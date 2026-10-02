@@ -33,7 +33,7 @@ namespace Ashvault
             if (Keyboard.current.vKey.wasPressedThisFrame) Toggle();
             if (!Inspecting)
             {
-                if (Mouse.current!=null) view.orthographicSize=Mathf.Clamp(view.orthographicSize-Mouse.current.scroll.ReadValue().y*.002f,3f,8f);
+                if (!GetComponent<LondonBackdrop>() && Mouse.current!=null) view.orthographicSize=Mathf.Clamp(view.orthographicSize-Mouse.current.scroll.ReadValue().y*.002f,3f,8f);
                 return;
             }
             float turn=(Keyboard.current.rightArrowKey.isPressed?1:0)-(Keyboard.current.leftArrowKey.isPressed?1:0);
@@ -52,6 +52,7 @@ namespace Ashvault
                 playerEnabled=player.enabled;runEnabled=run.enabled;hudEnabled=hud&&hud.activeSelf;
                 player.enabled=false;run.enabled=false;if(hud)hud.SetActive(false);
                 Time.timeScale=0;view.orthographicSize=1.18f;
+                GetComponent<LondonBackdrop>()?.SetInspection(true);
             }
             else Restore();
             Inspecting=!Inspecting;
@@ -59,6 +60,7 @@ namespace Ashvault
         void Restore()
         {
             Time.timeScale=oldTimeScale;
+            GetComponent<LondonBackdrop>()?.SetInspection(false);
             if(player)player.enabled=playerEnabled;if(run)run.enabled=runEnabled;if(hud)hud.SetActive(hudEnabled);
             transform.SetPositionAndRotation(oldPosition,oldRotation);if(view)view.orthographicSize=oldSize;
         }

@@ -1,6 +1,30 @@
 # Ashvault — 2026-10-02
 
-## Current ARMAGEDOM milestone — 2026-10-02
+## London image stage — 2026-10-02
+Owner rejected the basic 3D blockout and approved the original Westminster image
+with 3D actors. Implemented fixed perspective, invisible road/boundary collision,
+three authored convex depth masks and contact shadows. Original image is byte-identical;
+old London prefab/assets retained for rollback. Knight/roster remain; vagrant unresolved.
+Development builds beside the checkout reload saved StreamingAssets/London files
+once per second. Camera calibration, exposure, key light, road/masks and same-aspect
+image replacements are supported. Gameplay free orbit/scroll zoom disabled; V inspection
+restores the fixed view. Painted buildings are not individually movable assets.
+See docs/LONDON-BACKDROP.md for file contract and explicit startup/reload limits.
+
+Final verification:19/19 real PlayMode tests, six real Git sync tests, independent
+scoped review closed. Regression coverage includes live saved-file reload, restart
+persistence, invalid paired-image rejection, future-spawn safety, valid notched roads
+and native mesh cleanup. Build build_d0e9befb3676 Succeeded, zero errors, one warning,
+711979696bytes. Packaged startup smoke passed. Native Mac app visibly shows the
+original image, 3D hero and correct HUD at safe entrance; opened for owner playtest.
+Editor combat render checked; full native clear and sustained FPS not claimed.
+Runtime1181lines/11scripts. No cloud jobs or paid compute used. Source sync receipt
+is recorded in Codex coordination notes after promotion. Unrelated local dirt preserved.
+CodeGraph returned cache-polluted results; Semble discovery plus direct scoped source
+reads used. Runtime/test source verified after explicit Editor refresh; graph index
+freshness is not a verification claim.
+
+## Previous editable pilot (superseded visually)
 Source sync is configured and verified: Mac main -> public DomLynch/ARMAGEDOM ->
 clean /opt/armagedom on VPS. The unprivileged armagedom-sync.timer follows main
 without discarding dirt/divergence. Both f672c25 and61a7669 reached all three;

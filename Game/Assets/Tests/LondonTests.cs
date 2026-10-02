@@ -12,12 +12,63 @@ namespace Ashvault.Tests
         {
             SceneManager.LoadScene("Ashvault");
             yield return null;
-            var source = Resources.Load<GameObject>("London/Area");
-            var road = source.GetComponentInChildren<MeshFilter>().sharedMesh;
-            bool found = false;
-            foreach (var filter in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
-                if (filter.sharedMesh == road) found = true;
-            Assert.IsTrue(found, "The playable run must instantiate the saved London road, not the old arena.");
+            var stage = Camera.main.GetComponent<LondonBackdrop>();
+            Assert.IsNotNull(stage);
+            Assert.Greater(stage.Revision, 0);
+            Assert.IsFalse(Camera.main.orthographic);
+            var image = GameObject.Find("Original London image").GetComponent<Renderer>();
+            Assert.AreEqual(1672, image.sharedMaterial.mainTexture.width);
+            Assert.AreEqual(941, image.sharedMaterial.mainTexture.height);
+            Assert.IsFalse(GameObject.Find("Area(Clone)").GetComponentInChildren<Renderer>().enabled);
+            foreach(var direction in new[]{Vector3.forward,Vector3.back,Vector3.left,Vector3.right})
+                Assert.IsTrue(Physics.Raycast(RunManager.Instance.Player.transform.position+Vector3.up,direction,100,1<<8));
+
+        }
+
+        [UnityTest]
+        public System.Collections.IEnumerator SavedContentReloadsWithoutRestartAndRejectsInvalidEdits()
+        {
+            SceneManager.LoadScene("Ashvault"); yield return null;
+            var stage=Camera.main.GetComponent<LondonBackdrop>();
+            var run=RunManager.Instance; run.enabled=false;
+            string path=System.IO.Path.Combine(stage.ContentDirectory,"layout.json");
+            string original=System.IO.File.ReadAllText(path);
+            string png=System.IO.Path.Combine(stage.ContentDirectory,"backdrop.png");
+            byte[] originalImage=System.IO.File.ReadAllBytes(png);
+            var oldMesh=GameObject.Find("Original London image").GetComponent<MeshFilter>().sharedMesh;
+            int revision=stage.Revision;
+            try
+            {
+                var settings=JsonUtility.FromJson<LondonBackdrop.Layout>(original); settings.exposure=.83f;
+                System.IO.File.WriteAllText(path,JsonUtility.ToJson(settings));
+                yield return new WaitForSecondsRealtime(1.3f);
+                Assert.Greater(stage.Revision,revision); Assert.AreSame(run,RunManager.Instance);
+                Assert.IsTrue(oldMesh==null,"Replaced runtime meshes must be released.");
+                Assert.That(stage.Current.exposure,Is.EqualTo(.83f).Within(.001f));
+                string invalid=JsonUtility.ToJson(settings).Replace("0.83","-10");
+                Assert.IsFalse(stage.TryApply(invalid,out _));
+                Assert.That(stage.Current.exposure,Is.EqualTo(.83f).Within(.001f));
+                settings.road=new[]{new Vector2(.46f,.75f),new Vector2(.54f,.75f),new Vector2(.54f,.95f),new Vector2(.46f,.95f)};
+                Assert.IsFalse(stage.TryApply(JsonUtility.ToJson(settings),out string error));
+                StringAssert.Contains("wave entrance",error);
+                settings.road=new[]{new Vector2(.3f,.4f),new Vector2(.7f,.4f),new Vector2(.7f,.95f),new Vector2(.65f,.95f),new Vector2(.65f,.9f),new Vector2(.6f,.9f),new Vector2(.6f,.95f),new Vector2(.3f,.95f)};
+                Assert.IsTrue(stage.TryApply(JsonUtility.ToJson(settings),out error),error);
+                int accepted=stage.Revision;
+                var next=JsonUtility.FromJson<LondonBackdrop.Layout>(original); next.exposure=.72f;
+                System.IO.File.WriteAllText(path,JsonUtility.ToJson(next));
+                var wrongAspect=new Texture2D(2,2);
+                System.IO.File.WriteAllBytes(png,wrongAspect.EncodeToPNG()); Object.Destroy(wrongAspect);
+                LogAssert.Expect(LogType.Warning,new System.Text.RegularExpressions.Regex("LONDON_REJECTED:"));
+                yield return new WaitForSecondsRealtime(1.3f);
+                Assert.AreEqual(accepted,stage.Revision,"Invalid paired image must not commit the new layout.");
+                Assert.That(stage.Current.exposure,Is.EqualTo(.83f).Within(.001f));
+                System.IO.File.WriteAllBytes(png,originalImage);
+                next.exposure=.83f;System.IO.File.WriteAllText(path,JsonUtility.ToJson(next));
+                yield return new WaitForSecondsRealtime(1.3f);
+                SceneManager.LoadScene("Ashvault"); yield return null;
+                Assert.That(Camera.main.GetComponent<LondonBackdrop>().Current.exposure,Is.EqualTo(.83f).Within(.001f));
+            }
+            finally { System.IO.File.WriteAllText(path,original); System.IO.File.WriteAllBytes(png,originalImage); }
         }
 
         [Test]

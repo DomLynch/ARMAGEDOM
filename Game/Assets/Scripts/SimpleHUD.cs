@@ -101,7 +101,7 @@ namespace Ashvault
             healthLabel.text = "WARDEN   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
             stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Sword " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: sword · Cyan: armour · Green: tonic";
             hp.rectTransform.sizeDelta = new Vector2(320 * player.Life.current / player.Life.maximum, 12);
-            controls.text = "WASD move · LMB slash\nQ / RMB heavy " + Ready(player.heavyReady) + "\nSPACE dodge " + Ready(player.dodgeReady) + " · 1 shockwave " + Ready(player.specialReady) + " · R restart\nV inspect hero · Scroll zoom. Walk over loot.";
+            controls.text = "WASD move · LMB slash\nQ / RMB heavy " + Ready(player.heavyReady) + "\nSPACE dodge " + Ready(player.dodgeReady) + " · 1 shockwave " + Ready(player.specialReady) + " · R restart\nV inspect hero · Fixed view. Walk over loot.";
             notice.text = Time.time < run.MessageUntil ? run.Message : "";
             bossPanel.SetActive(run.Boss && !run.Boss.Life.Dead);
             if (run.Boss) bossHP.rectTransform.sizeDelta = new Vector2(430 * run.Boss.Life.current / run.Boss.Life.maximum, 12);

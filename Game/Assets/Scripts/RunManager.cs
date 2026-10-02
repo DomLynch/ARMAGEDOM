@@ -44,6 +44,7 @@ namespace Ashvault
             cameraTransform = cameraObject.transform;
             cameraTransform.rotation = Quaternion.LookRotation(new Vector3(0, .8f, 2) - cameraOffset);
             cameraTransform.position = Player.transform.position + cameraOffset;
+            cameraObject.AddComponent<LondonBackdrop>().Initialize(camera);
             Started = Time.time;
             nextWave = Time.time + 2;
             Notify("WESTMINSTER CHECKPOINT  ·  Move to enter combat. Survive three waves.");
@@ -64,9 +65,11 @@ namespace Ashvault
 
         void LateUpdate()
         {
-            if (Player && cameraTransform) cameraTransform.position = Vector3.SmoothDamp(cameraTransform.position,
+            if (Player && cameraTransform && !cameraTransform.GetComponent<LondonBackdrop>()) cameraTransform.position = Vector3.SmoothDamp(cameraTransform.position,
                 Player.transform.position + cameraOffset, ref cameraVelocity, .16f);
         }
+
+        public static Vector3 SpawnPosition(int count,int i) => new Vector3(count==1 ? 0 : (i%5-2)*1.7f,0,-1+(i/5)*2.4f);
 
         void SpawnWave()
         {
@@ -75,8 +78,7 @@ namespace Ashvault
             for (int i = 0; i < count; i++)
             {
                 int kind = Wave == 3 ? 3 : i % 3;
-                float x = count == 1 ? 0 : (i % 5 - 2) * 1.7f;
-                Vector3 position = new Vector3(x, 0, -1 + (i / 5) * 2.4f);
+                Vector3 position = SpawnPosition(count,i);
                 var go = ArenaBuilder.Actor(kind == 3 ? "Orc Warlord" : kind == 1 ? "Orc Executioner" : kind == 2 ? "Plague Warlock" : "Ash Revenant", position, kind);
                 var enemy = go.AddComponent<EnemyController>();
                 enemy.kind = kind;
