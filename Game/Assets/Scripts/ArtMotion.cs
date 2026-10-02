@@ -9,7 +9,7 @@ namespace Ashvault
         Vector3 previous;
         float attackUntil, attackStarted, windup, recovery;
         public float headProportion = 1;
-        Transform head;
+        Transform head, staffHand, staffShoulder, staffElbow;
         Vector3 headRest;
         PlayerController player;
         EnemyController enemy;
@@ -23,11 +23,18 @@ namespace Ashvault
             previous = transform.position;
             foreach (var child in GetComponentsInChildren<Transform>())
                 if (child.name == "Head") { head = child; headRest = child.localScale; break; }
+            if(enemy && enemy.kind==2)
+                foreach(var bone in GetComponentsInChildren<Transform>())
+                { if(bone.name=="Hand.R")staffHand=bone;if(bone.name=="UpperArm.R")staffShoulder=bone;if(bone.name=="Forearm.R")staffElbow=bone; }
             if (motion)
             {
                 motion["Idle"].clip.SampleAnimation(motion.gameObject, 0);
-                left = new Leg(motion, "L", transform); right = new Leg(motion, "R", transform);
+                RefreshProportions();
             }
+        }
+        public void RefreshProportions()
+        {
+            if(motion) { left=new Leg(motion,"L",transform);right=new Leg(motion,"R",transform); }
         }
         public void Swing(float delay = .14f, float settle = .28f)
         {
@@ -65,6 +72,24 @@ namespace Ashvault
             Sample("Run", cycle * motion["Run"].length, runWeight * (1 - strikeWeight));
             Sample("Attack", Mathf.Clamp01(strikePhase) * motion["Attack"].length, strikeWeight);
             motion.Sample();
+            if(staffHand && staffShoulder && staffElbow)
+            {
+                // Raise the enlarged staff grip without stretching the arm or tilting the staff.
+                float lift=Mathf.Max(0,transform.Find("Visual").localScale.x-1)*.6f*(1-strikeWeight);
+                Vector3 target=staffHand.position+Vector3.up*lift, delta=target-staffShoulder.position;
+                float upper=Vector3.Distance(staffShoulder.position,staffElbow.position), lower=Vector3.Distance(staffElbow.position,staffHand.position);
+                float armDistance=delta.magnitude;
+                if(armDistance>.01f && armDistance<upper+lower && armDistance>Mathf.Abs(upper-lower))
+                {
+                    Vector3 axis=delta/armDistance, pole=Vector3.ProjectOnPlane(staffElbow.position-staffShoulder.position,axis).normalized;
+                    float along=(upper*upper-lower*lower+armDistance*armDistance)/(2*armDistance);
+                    Vector3 bend=staffShoulder.position+axis*along+pole*Mathf.Sqrt(Mathf.Max(0,upper*upper-along*along));
+                    Quaternion rotation=staffHand.rotation;
+                    staffShoulder.rotation=Quaternion.FromToRotation(staffElbow.position-staffShoulder.position,bend-staffShoulder.position)*staffShoulder.rotation;
+                    staffElbow.rotation=Quaternion.FromToRotation(staffHand.position-staffElbow.position,target-staffElbow.position)*staffElbow.rotation;
+                    staffHand.rotation=rotation;
+                }
+            }
             bool grounded = !player || !player.Dodging;
             bool contacts = !striking && grounded && speed > .3f && runWeight > .8f;
             left.Plant(contacts && (walking ? cycle >= .05f && cycle < .45f : cycle >= .03f && cycle < .20f), transform.forward, grounded);
@@ -82,10 +107,11 @@ namespace Ashvault
         {
             readonly Transform hip, knee, foot;
             readonly System.Collections.Generic.List<Vector3> sole = new System.Collections.Generic.List<Vector3>();
-            readonly float upper, lower;
+            readonly float upper, lower, maxCorrection;
             Vector3 anchor;
             Vector3 contactPoint;
             bool planted;
+            Quaternion anchorRotation;
             public Leg(Animation animation, string side, Transform root)
             {
                 foreach (var bone in animation.GetComponentsInChildren<Transform>())
@@ -94,6 +120,7 @@ namespace Ashvault
                     if (bone.name == "Shin." + side) knee = bone;
                     if (bone.name == "Foot." + side) foot = bone;
                 }
+                maxCorrection=.45f*root.Find("Visual").lossyScale.x;
                 upper = Vector3.Distance(hip.position, knee.position);
                 lower = Vector3.Distance(knee.position, foot.position);
                 // Cache the actual boot shape once; model proportions are not a fixed offset.
@@ -112,6 +139,8 @@ namespace Ashvault
             public void Plant(bool contact, Vector3 forward, bool grounded)
             {
                 if (!grounded || sole.Count == 0) { planted = false; return; }
+                Quaternion sampledRotation=foot.rotation;
+                if(planted && contact) foot.rotation=anchorRotation;
                 var matrix = foot.localToWorldMatrix;
                 Vector3 lowest = sole[0]; float bottom = float.PositiveInfinity;
                 foreach (var point in sole)
@@ -120,11 +149,12 @@ namespace Ashvault
                     if (y < bottom) { bottom = y; lowest = point; }
                 }
                 if (!Physics.Raycast(foot.position + Vector3.up * .5f, Vector3.down, out var ground, 1.5f, 1 << 8))
-                { planted = false; return; }
+                { planted = false; foot.rotation=sampledRotation; return; }
                 if (!contact) planted = false;
                 if (contact && !planted)
                 {
                     contactPoint = lowest;
+                    anchorRotation=foot.rotation;
                     Vector3 toe = matrix.MultiplyPoint3x4(contactPoint);
                     anchor = new Vector3(toe.x, ground.point.y + .012f, toe.z);
                     planted = true;
@@ -134,8 +164,8 @@ namespace Ashvault
                 ankle.y += Mathf.Max(0, .012f - clearance);
                 Vector3 delta = ankle - hip.position;
                 // Release on a teleport or an unreachable contact; never stretch the skin.
-                if (delta.magnitude > upper + lower || Vector3.Distance(foot.position, ankle) > .45f)
-                { planted = false; return; }
+                if (delta.magnitude > upper + lower || Vector3.Distance(foot.position, ankle) > maxCorrection)
+                { planted = false; foot.rotation=sampledRotation; return; }
                 float distance = Mathf.Max(.01f, delta.magnitude);
                 Vector3 axis = delta / distance;
                 Vector3 pole = Vector3.ProjectOnPlane(forward, axis).normalized;

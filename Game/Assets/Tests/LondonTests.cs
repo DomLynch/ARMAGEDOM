@@ -71,6 +71,30 @@ namespace Ashvault.Tests
             finally { System.IO.File.WriteAllText(path,original); System.IO.File.WriteAllBytes(png,originalImage); }
         }
 
+        [UnityTest]
+        public System.Collections.IEnumerator ZoomAndFollowKeepTheImageRegisteredAndWithinItsEdges()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            var camera=Camera.main;var run=RunManager.Instance;run.enabled=false;run.Player.enabled=false;
+            var stage=camera.GetComponent<LondonBackdrop>();
+            var mesh=GameObject.Find("Original London image").GetComponent<MeshFilter>().sharedMesh;
+            Vector3 pose=camera.transform.position;Quaternion angle=camera.transform.rotation;
+            Vector3 before=camera.WorldToViewportPoint(mesh.vertices[0]);
+            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-before.x,Is.EqualTo(1.5f).Within(.005f));
+            Assert.That(run.Player.transform.Find("Visual").localScale.x,Is.EqualTo(1.15f).Within(.001f));
+            var capsule=run.Player.GetComponent<CharacterController>();capsule.enabled=false;
+            run.Player.transform.position=new Vector3(0,.04f,2);capsule.enabled=true;
+            yield return new WaitForSecondsRealtime(1.2f);
+            Vector3 topLeft=camera.WorldToViewportPoint(mesh.vertices[0]), bottomRight=camera.WorldToViewportPoint(mesh.vertices[2]);
+            Assert.Greater((topLeft-before).magnitude,.03f,"The image should gently scroll with travel.");
+            Assert.LessOrEqual(topLeft.x,.001f);Assert.GreaterOrEqual(topLeft.y,.999f);
+            Assert.GreaterOrEqual(bottomRight.x,.999f);Assert.LessOrEqual(bottomRight.y,.001f);
+            Assert.AreEqual(pose,camera.transform.position);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
+            var inspect=camera.GetComponent<HeroView>();inspect.Toggle();yield return null;inspect.Toggle();yield return null;
+            Assert.IsFalse(camera.orthographic);
+            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-camera.WorldToViewportPoint(mesh.vertices[0]).x,Is.EqualTo(1.5f).Within(.005f));
+        }
+
         [Test]
         public void LondonAreaKeepsThePlayableCorridorAndClosedBoundary()
         {

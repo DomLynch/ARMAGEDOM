@@ -1,5 +1,25 @@
 # Ashvault — 2026-10-02
 
+## Readability update — 2026-10-03
+Owner-requested1.5x zoom,15% cosmetic actor enlargement, .45s edge-clamped scrolling,
+and brighter key/cool fill are implemented. Saved layout.json now exposes zoom,
+characterScale, followSeconds and fillIntensity. Projection cropping keeps the image,
+depth masks and actors registered without changing camera angle/position or collision.
+The native updated app was opened and visibly shows the enlarged view/hero for owner
+playtest. Full native movement/clear is not claimed; automated movement checks pass.
+
+Final20/20 PlayMode tests pass; six sync tests pass; scoped reviewer closed findings.
+Build58f0075bf14e Succeeded with zero errors and one expected warning. Packaged smoke
+passed. Scaling exposed existing planted-foot rotation drift during turns; pinning
+foot world rotation during contact fixed the original unchanged skate assertion.
+Enlarged staff carry needed a two-bone arm adjustment preserving bone lengths and
+hand orientation, faded out during strikes. Whole-body lift was rejected because
+it caused idle feet to hover. Original deformation/ground/skate thresholds unchanged.
+A local name-shadow compilation error was corrected before the successful full suite.
+Unity needed a persistent detached restart during testing. No cloud/GPU job used.
+Semble three targeted searches and CodeGraph scoped LondonBackdrop inspection used;
+source/build/tests are current; graph semantic freshness is not a test receipt.
+
 ## London image stage — 2026-10-02
 Owner rejected the basic 3D blockout and approved the original Westminster image
 with 3D actors. Implemented fixed perspective, invisible road/boundary collision,

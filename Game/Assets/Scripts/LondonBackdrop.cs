@@ -12,6 +12,7 @@ namespace Ashvault
         {
             public int version;
             public float height, distance, targetZ, fieldOfView, exposure, keyIntensity;
+            public float zoom=1, characterScale=1, followSeconds=.45f, fillIntensity=.35f;
             public Vector2[] road;
             public Mask[] masks;
         }
@@ -22,7 +23,9 @@ namespace Ashvault
         GameObject geometry;
         Material backdrop, depth, contact;
         Texture2D picture;
-        Light key;
+        Light key, fill;
+        Matrix4x4 calibratedProjection;
+        Vector2 cropCenter=new Vector2(.5f,.5f), cropVelocity;
         DateTime lastLayout, lastImage;
         string rejectedStamp;
         float nextPoll;
@@ -50,6 +53,9 @@ namespace Ashvault
             key.transform.SetParent(transform); key.type = LightType.Directional;
             key.transform.rotation = Quaternion.Euler(38, -55, 0);
             key.color = new Color(1, .76f, .53f);
+            fill=new GameObject("London character fill").AddComponent<Light>();
+            fill.transform.SetParent(transform);fill.type=LightType.Directional;
+            fill.transform.rotation=Quaternion.Euler(25,155,0);fill.color=new Color(.8f,.88f,1);
             RenderSettings.sun = key; RenderSettings.fog = false;
             RenderSettings.ambientSkyColor = new Color(.37f, .39f, .43f);
             RenderSettings.ambientEquatorColor = new Color(.24f, .23f, .23f);
@@ -124,9 +130,10 @@ namespace Ashvault
             try { next = JsonUtility.FromJson<Layout>(json); } catch { return false; }
             if (next == null || next.version != 1 || !Range(next.height, 18, 32) || !Range(next.distance, 22, 40) ||
                 !Range(next.targetZ, 0, 10) || !Range(next.fieldOfView, 30, 48) || !Range(next.exposure, .4f, 1.6f) ||
-                !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road) || next.masks == null || next.masks.Length > 16) return false;
+                !Range(next.zoom,1,2) || !Range(next.characterScale,1,1.25f) || !Range(next.followSeconds,.15f,1.5f) || !Range(next.fillIntensity,0,1) || !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road) || next.masks == null || next.masks.Length > 16) return false;
             foreach (var mask in next.masks)
                 if (mask == null || !Polygon(mask.points,true) || !Range(mask.foot.x, 0, 1) || !Range(mask.foot.y, .3f, 1)) return false;
+            var oldProjection=view.projectionMatrix;view.ResetProjectionMatrix();
             var oldPosition = view.transform.position; var oldRotation = view.transform.rotation; float oldFov = view.fieldOfView;
             view.orthographic = false; view.fieldOfView = next.fieldOfView; view.aspect = Aspect;
             view.transform.position = new Vector3(0, next.height, -next.distance);
@@ -139,7 +146,7 @@ namespace Ashvault
             safe &= OnRoad(RunManager.SpawnPosition(1,0),next.road);
             if(!safe)
             {
-                view.transform.SetPositionAndRotation(oldPosition,oldRotation); view.fieldOfView=oldFov;
+                view.transform.SetPositionAndRotation(oldPosition,oldRotation); view.fieldOfView=oldFov;view.projectionMatrix=oldProjection;
                 error="Road edit would exclude an actor or wave entrance; keeping the current layout."; return false;
             }
             var replacement = new GameObject("London image stage"); replacement.SetActive(false);
@@ -158,7 +165,10 @@ namespace Ashvault
                 Quad(mask.name, mask.points, view.WorldToViewportPoint(Ground(mask.foot)).z, depth, replacement.transform);
             if (geometry) ReleaseGeometry();
             geometry=replacement; geometry.SetActive(true); Current=next; Revision++;
-            backdrop.SetFloat("_Exposure", next.exposure); key.intensity=next.keyIntensity;
+            backdrop.SetFloat("_Exposure", next.exposure); key.intensity=next.keyIntensity;fill.intensity=next.fillIntensity;
+            calibratedProjection=view.projectionMatrix;
+            foreach(var actor in FindObjectsByType<CharacterController>(FindObjectsSortMode.None)) ScaleActor(actor.transform);
+            UpdateCrop(true);
             Physics.SyncTransforms(); error=null;
             Debug.Log("LONDON_APPLIED: revision " + Revision);
             return true;
@@ -193,9 +203,39 @@ namespace Ashvault
             go.GetComponent<MeshFilter>().sharedMesh=mesh;go.GetComponent<MeshRenderer>().sharedMaterial=material;
             go.GetComponent<MeshRenderer>().shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
         }
-        public void SetInspection(bool inspecting) { if(geometry)geometry.SetActive(!inspecting); view.orthographic=inspecting; }
+        public void SetInspection(bool inspecting)
+        {
+            if(geometry)geometry.SetActive(!inspecting); view.ResetProjectionMatrix();view.orthographic=inspecting;
+        }
+        public void ScaleActor(Transform actor)
+        {
+            var visual=actor.Find("Visual");
+            if(visual && !Mathf.Approximately(visual.localScale.x,Current.characterScale))
+            {
+                visual.localScale=Vector3.one*Current.characterScale;
+                // Preserve the capsule skin offset while scaling the cosmetic model.
+                visual.localPosition=Vector3.up*actor.GetComponent<CharacterController>().skinWidth*(Current.characterScale-1);
+                actor.GetComponent<ArtMotion>()?.RefreshProportions();
+            }
+        }
+        void UpdateCrop(bool immediate=false)
+        {
+            if(Current==null || GetComponent<HeroView>().Inspecting) return;
+            var player=RunManager.Instance.Player;
+            Vector3 p=player.transform.position;
+            Vector4 clip=calibratedProjection*view.worldToCameraMatrix*new Vector4(p.x,p.y,p.z,1);
+            float edge=.5f/Current.zoom;
+            var target=new Vector2(Mathf.Clamp(.5f+clip.x/clip.w*.5f,edge,1-edge),
+                Mathf.Clamp(.6f+clip.y/clip.w*.5f,edge,1-edge));
+            cropCenter=immediate?target:Vector2.SmoothDamp(cropCenter,target,ref cropVelocity,Current.followSeconds,Mathf.Infinity,Time.unscaledDeltaTime);
+            cropCenter=new Vector2(Mathf.Clamp(cropCenter.x,edge,1-edge),Mathf.Clamp(cropCenter.y,edge,1-edge));
+            var crop=Matrix4x4.identity;crop.m00=crop.m11=Current.zoom;
+            crop.m03=-2*Current.zoom*(cropCenter.x-.5f);crop.m13=-2*Current.zoom*(cropCenter.y-.5f);
+            view.projectionMatrix=crop*calibratedProjection;
+        }
         void LateUpdate()
         {
+            UpdateCrop();
             float screenAspect=(float)Screen.width/Mathf.Max(1,Screen.height);
             view.rect=screenAspect>Aspect ? new Rect((1-Aspect/screenAspect)*.5f,0,Aspect/screenAspect,1) : new Rect(0,(1-screenAspect/Aspect)*.5f,1,screenAspect/Aspect);
             foreach(var actor in FindObjectsByType<CharacterController>(FindObjectsSortMode.None))

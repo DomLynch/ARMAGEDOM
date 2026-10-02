@@ -34,3 +34,9 @@ Validation: expanded real Unity suite covers original gameplay, packaged referen
 loading, closed road boundary, live file reload, persistence after scene restart,
 invalid paired-image rejection, future spawn safety and released runtime meshes.
 Native build and gameplay receipts are recorded in PROJECT_STATE.md.
+
+## Readability tuning
+Saved zoom1.5, characterScale1.15, followSeconds0.45, fillIntensity0.55 and keyIntensity1.2.
+Zoom/pan use a bounded crop of the original calibrated projection, so image, depth
+masks and 3D actors stay registered while the physical camera remains fixed.
+Visual scale changes refresh foot-solver proportions; gameplay capsules stay unchanged.

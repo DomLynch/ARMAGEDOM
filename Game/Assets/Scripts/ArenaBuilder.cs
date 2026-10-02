@@ -80,6 +80,7 @@ namespace Ashvault
                 rim.transform.localPosition = new Vector3(0, 2.4f, -.8f);
                 rim.color = new Color(.83f, .78f, .65f); rim.range = 5; rim.intensity = .9f;
             }
+            if(Camera.main) Camera.main.GetComponent<LondonBackdrop>()?.ScaleActor(root.transform);
             return root;
         }
     }
