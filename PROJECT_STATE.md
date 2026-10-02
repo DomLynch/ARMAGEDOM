@@ -32,7 +32,7 @@ Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 - 15/15 real PlayMode tests pass, including actual deformed sole clearance,
   planted-vertex drift, turns/stops, Warlock retreat/staff clearance, controls and combat.
   Original .2m deformation limit and directional travel thresholds retained.
-- Build `build_4b1d1731369c`: Succeeded, zero errors, 488,065,862 bytes.
+- Build `build_faf64ff2eb3a`: Succeeded, zero errors, 488,065,862 bytes.
   One expected warning: Pipeline remote runtime disabled in packaged app.
 - Packaged startup smoke passed. Native startup, movement/dodge, first-wave roster, incoming damage/death and
   restart visibly checked. App left at the safe entrance for user review.
@@ -95,7 +95,7 @@ forward framing. Scroll zoom range is 3–8; inspection still restores gameplay 
 Enemy columns are 1.7m apart (was 2.7m), starting at Z=-1 (was 2), with 2.4m
 row spacing. Same room, roster, counts and controls; six line replacements, no new components.
 User initially checked the original closer framing, then requested this 10% zoom-out.
-15/15 PlayMode tests pass; build_4b1d1731369c succeeded with zero errors and one
+15/15 PlayMode tests pass; build_faf64ff2eb3a succeeded with zero errors and one
 expected Pipeline warning; packaged startup smoke passes. Restarted the native app
 onto the new build and observed the closer view during the user's first-wave play/death.
 User is checking camera comfort and encounter pacing; no further input sent into their run.
@@ -104,13 +104,22 @@ User is checking camera comfort and encounter pacing; no further input sent into
 User subsequently requested the 10% zoom-out live, plus preview-only lower angles.
 Size3.905 passes all15 PlayMode tests. Four actual-engine stills share identical
 staged actors/zoom: artifacts/camera-slant/{00-current-zoom-out,01-subtle-34deg,
-02-balanced-30deg,03-lower-26deg}.png. Angle options are not applied to gameplay.
+02-balanced-30deg,03-lower-26deg}.png. User then selected option2 (30 degrees); it is now applied to gameplay.
 First test polling briefly lost Pipeline during domain reload; full gate rerun passes.
 Builds461b22abe849 and ba3a3f1f8507 misleadingly report Succeeded with6999 duplicate
 TypeDB errors. Restart alone did not fix it. Editor stopped, Library preserved in
 artifacts/Library-before-camera-build; fresh import fixed it. Build4b1d1731369c passed with zero errors; packaged smoke passed.
-Native app relaunched and the zoom-out verified at the safe entrance. Lower angles
-remain preview-only. No new runtime components/LOC; no remote/cloud deployment.
+Native app relaunched and the zoom-out verified at the safe entrance. Selected30-degree angle is live; alternatives remain preview-only. No new runtime components/LOC; no remote/cloud deployment.
 Two-pass review checked zoom clamp/inspection restore, follow framing and spawn scope.
 Post-edit CodeGraph returned fresh HeroView source; cache pollution required direct
 RunManager diff review. Existing search context reused for this small numeric edit.
+
+## Selected slant delivery — 2026-10-02
+Option2 is the default:30-degree pitch, yaw-32.005, same focus offset as preview,
+orthographic size3.905. One camera-offset initializer changed; smooth follow,
+scroll zoom and inspection preserved.15/15 tests; build_faf64ff2eb3a succeeded with
+zero errors/one expected warning; packaged smoke passed; native app restarted and
+30-degree entrance framing observed. Two-pass diff/preview-geometry review completed.
+Normal incremental build with DetailedBuildReport completed in3.7s without TypeDB
+errors; avoid unnecessary CleanBuildCache for subsequent small camera changes.
+CodeGraph query still returned preserved-cache noise; exact scoped diff reviewed.

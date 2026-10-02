@@ -1,11 +1,11 @@
 {
   "status": "completed",
-  "buildId": "build_4b1d1731369c",
+  "buildId": "build_faf64ff2eb3a",
   "result": "Succeeded",
   "totalErrors": 0,
   "totalWarnings": 1,
   "totalSizeBytes": 488065862,
-  "buildTimeMs": 30997,
-  "buildStartedAt": "2026-10-02T13:27:14.5245410Z",
-  "buildEndedAt": "2026-10-02T13:27:45.5215500Z"
+  "buildTimeMs": 3707,
+  "buildStartedAt": "2026-10-02T13:33:16.8348870Z",
+  "buildEndedAt": "2026-10-02T13:33:20.5423540Z"
 }

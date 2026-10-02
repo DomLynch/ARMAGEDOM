@@ -21,7 +21,7 @@ namespace Ashvault
         int kills;
         Transform cameraTransform;
         Vector3 cameraVelocity;
-        readonly Vector3 cameraOffset = new Vector3(5, 8, -6);
+        readonly Vector3 cameraOffset = new Vector3(0, .8f, 2) + Quaternion.Euler(30, -32.005f, 0) * Vector3.back * 15;
 
         void Awake() => Instance = this;
 
