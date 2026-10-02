@@ -1,32 +1,44 @@
 # Ashvault — 2026-10-02
 
-## ARMAGEDOM source sync and London direction — current task
-Owner authorized publishing the existing foundation to `DomLynch/ARMAGEDOM`
-and a VPS follower of verified main commits. Mac working folder remains Ashvault;
-unfinished local settings/art stay local. Sync script refuses dirt and divergence.
-Baseline f672c25 reached GitHub and `/opt/armagedom`; VPS checkout was clean.
-Installed armagedom-sync.timer follows main each minute as user armagedom;
-service result success/exit0, six real-Git tests pass on Mac and VPS. No Linux game
-server is implied. Owner selected an editable3D London area over a flat-picture scene.
-Latest direct brief confirms2029–2030 gameplay, superseding the older2045 narrative
-as implementation direction; preserve the original supplied story unchanged.
-Owner supplied a ruined Westminster/Thames image for the first area, preserved in
-`art/london/westminster-owner-reference.png`. Background conversion and human vagrant
-replacement are requested next; neither is delivered by this source-sync commit.
-Fresh pre-publication checks:15/15 PlayMode tests, native packaged startup smoke,
-six real-Git sync tests pass. Existing owner animation acceptance remains open.
+## Current ARMAGEDOM milestone — 2026-10-02
+Source sync is configured and verified: Mac main -> public DomLynch/ARMAGEDOM ->
+clean /opt/armagedom on VPS. The unprivileged armagedom-sync.timer follows main
+without discarding dirt/divergence. Both f672c25 and61a7669 reached all three;
+the latter followed automatically. This is source delivery, not a Linux game server.
+Unfinished Mac settings and unrelated duplicate art/cache backups remain local.
 
-## New direction — ARMAGEDOM handover
-Owner requested a post-nuclear near-future pivot, preserving the current room,
-camera and reusable hero/enemy bodies. Development handover:
-[docs/ARMAGEDOM-HANDOVER.md](docs/ARMAGEDOM-HANDOVER.md); original supplied narrative:
-[docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md](docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md).
-Direct request sets gameplay in2029–2030; attached brief says collapse then and play
-in2045. Working precedence is the direct request; resolve before dated narrative.
-The first conversion is a modern survivor/raider art pilot in the existing room.
-This is a documented direction, not implemented content. The playable build remains
-Ashvault; firearms, expanded route, persistent live tuning and MMO systems are not built.
-The existing implementation/evidence below describes that unchanged baseline.
+Editable Westminster pilot now replaces the generated gothic room:11 reusable
+mesh assets, saved Resources/London/Area.prefab,45 placed props and42 colliders.
+Existing21m footprint, central combat lane, camera, controls, roster and rigs remain.
+HUD names ARMAGEDOM/Westminster. Runtime reduced from1009 to955lines/10scripts.
+Human vagrant is NOT integrated; original asset identity/reference is unresolved.
+This is a modular prototype, well below the supplied reference's visual detail.
+Owner approval of art/motion, skyline composition and scene refinement remain open.
+
+Verified after axis correction:18/18 real PlayMode tests, six real-Git sync tests,
+independent scoped code/asset review without actionable findings. Native Mac build
+build_e2dff2e54325: Succeeded, zero errors, one expected Pipeline warning,
+709053567bytes. Packaged startup smoke passes. Native game visibly loads London,
+shows ARMAGEDOM/Westminster HUD, starts wave1 on movement and applies incoming
+combat damage. Full native clear/sustained FPS are not claimed. Current local
+build includes preserved pre-existing untracked Resources copies; these are not
+in the source commit. Build-size cleanup is outside this scoped pilot.
+Actual engine capture: artifacts/london-pilot.png; build report:
+artifacts/london-build-status.json. Two failures were caught and fixed: stale Editor
+assembly (explicit refresh/compile), and placement overwriting FBX axis conversion
+(compose placement yaw with original asset rotation; flat-road/upright-lamp checks).
+The full-run test now checks the London root instead of the removed Throne wall.
+
+Hugging Face CPU Upgrade job6abffcaf404719ba37626627 completed:11 valid meshes,
+zero degenerate triangles; source hash recorded in art/london/cloud-validation.json.
+First Python3.12 job failed wheel resolution; Python3.13 retry passed. Both terminal,
+no rented GPU. Owner prefers HF CPU at$0.03/hour; local Metal allowed as fallback.
+Blender authoring/source and Poly Haven texture provenance: art/london/README.md.
+Persistent live tuning/content patch delivery remain requested, unimplemented.
+
+Direct user brief sets2029–2030 gameplay. Original2045 narrative remains preserved
+unchanged in docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md. Micro-change decisions are in
+ARMAGEDOM/sessions/strategy/DECISIONS.md and docs/ITERATION.md.
 
 ## Objective and scope
 Local single-room isometric ARPG, three waves, melee, dodge, upgrades and an orc
@@ -36,7 +48,7 @@ Ten runtime scripts; no backend/networking. No purchased assets or paid cloud GP
 ## Current implementation
 One playable Warden plus Revenant, Orc Executioner and Plague Warlock enemy models.
 Original 4K PBR maps, CPU rigs, original sword/axe/crozier. First wave shows all
-three enemy types; waves contain 5, 6 and 1 foes. Existing room preserved.
+three enemy types; waves contain 5, 6 and 1 foes. London checkpoint now occupies the existing room footprint.
 WASD moves, LMB slashes/holds to repeat, Q/RMB heavy, 1 shockwave, Space dodge,
 R restart, V inspection, scroll zoom. No click travel. Hero turns through 360 degrees.
 Player and enemy attack cones/floor outlines removed; enemy animation signals wind-up.
@@ -45,7 +57,7 @@ distance-driven cadence, blended transitions, bounded acceleration and cosmetic
 world-space sole contacts during turns. Mobs now use authored Sprint (Revenant/Warlock)
 and Walk (Orc/Warlord), shared transition/contact playback, reverse cadence for
 Warlock retreat and gradual facing before strikes. Warlock staff carry clears the floor. Strike damage
-lands after anticipation; dodge cancels pending strike damage. Runtime: 1,009 lines across 10 scripts.
+lands after anticipation; dodge cancels pending strike damage. Runtime: 955 lines across 10 scripts after the London layout migration.
 
 ## Compute
 Original reference reconstruction used official TRELLIS.2 shared demo; overage zero.
@@ -56,7 +68,7 @@ hero retarget used local CPU; no new cloud job or rented GPU.
 Unity now operates in persistent local batch mode with Metal, without desktop Editor.
 Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 
-## Verified evidence
+## Prior foundation evidence (historical)
 - 15/15 real PlayMode tests pass, including actual deformed sole clearance,
   planted-vertex drift, turns/stops, Warlock retreat/staff clearance, controls and combat.
   Original .2m deformation limit and directional travel thresholds retained.

@@ -576,7 +576,7 @@ namespace Ashvault.Tests
                 Assert.AreEqual(3, run.Wave);
                 Assert.AreEqual(12, defeated);
                 Assert.IsNull(GameObject.Find("Connecting bridge"));
-                Assert.IsNotNull(GameObject.Find("Throne wall"));
+                Assert.IsNotNull(GameObject.Find(Resources.Load<GameObject>("London/Area").name + "(Clone)"), "Victory must keep the London arena loaded.");
             }
             finally { Time.timeScale = oldScale; }
         }

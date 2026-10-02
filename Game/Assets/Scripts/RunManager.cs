@@ -46,7 +46,7 @@ namespace Ashvault
             cameraTransform.position = Player.transform.position + cameraOffset;
             Started = Time.time;
             nextWave = Time.time + 2;
-            Notify("Move to enter combat. Revenants, orcs and warlocks guard the Outer Watch.");
+            Notify("WESTMINSTER CHECKPOINT  ·  Move to enter combat. Survive three waves.");
             gameObject.AddComponent<SimpleHUD>();
             Debug.Log("ASHVAULT_READY: one arena, player and camera created.");
         }
@@ -85,7 +85,7 @@ namespace Ashvault
                 Enemies.Add(enemy);
                 if (kind == 3) Boss = enemy;
             }
-            Notify(Wave == 3 ? "ORC WARLORD  ·  Dodge, then strike." : "THE OUTER WATCH  ·  Wave " + Wave + " / 3");
+            Notify(Wave == 3 ? "ORC WARLORD  ·  Dodge, then strike." : "WESTMINSTER CHECKPOINT  ·  Wave " + Wave + " / 3");
         }
 
         public void EnemyDied(EnemyController enemy)

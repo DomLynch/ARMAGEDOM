@@ -1,0 +1,136 @@
+{
+  "materials": [
+    {
+      "name": "Asphalt",
+      "color": [
+        0.65,
+        0.63,
+        0.6
+      ],
+      "metal": 0,
+      "smooth": 0.08,
+      "texture": "Asphalt"
+    },
+    {
+      "name": "Brick",
+      "color": [
+        0.65,
+        0.57,
+        0.46
+      ],
+      "metal": 0,
+      "smooth": 0.1,
+      "texture": "Brick"
+    },
+    {
+      "name": "Stone",
+      "color": [
+        0.55,
+        0.52,
+        0.44
+      ],
+      "metal": 0,
+      "smooth": 0.12,
+      "texture": "Stone"
+    },
+    {
+      "name": "RedPaint",
+      "color": [
+        0.39,
+        0.048,
+        0.024
+      ],
+      "metal": 0.45,
+      "smooth": 0.2,
+      "texture": "Weathered"
+    },
+    {
+      "name": "Iron",
+      "color": [
+        0.095,
+        0.105,
+        0.1
+      ],
+      "metal": 0.65,
+      "smooth": 0.24,
+      "texture": "Weathered"
+    },
+    {
+      "name": "Rust",
+      "color": [
+        0.24,
+        0.1,
+        0.041
+      ],
+      "metal": 0.3,
+      "smooth": 0.08,
+      "texture": "Weathered"
+    },
+    {
+      "name": "Canvas",
+      "color": [
+        0.33,
+        0.28,
+        0.18
+      ],
+      "metal": 0,
+      "smooth": 0.05,
+      "texture": "Weathered"
+    },
+    {
+      "name": "Glass",
+      "color": [
+        0.018,
+        0.028,
+        0.029
+      ],
+      "metal": 0.35,
+      "smooth": 0.65,
+      "texture": null
+    },
+    {
+      "name": "RoadPaint",
+      "color": [
+        0.65,
+        0.61,
+        0.48
+      ],
+      "metal": 0,
+      "smooth": 0.08,
+      "texture": "Weathered"
+    },
+    {
+      "name": "Rubber",
+      "color": [
+        0.028,
+        0.025,
+        0.022
+      ],
+      "metal": 0,
+      "smooth": 0.04,
+      "texture": "Weathered"
+    },
+    {
+      "name": "LampGlass",
+      "color": [
+        1,
+        0.52,
+        0.16
+      ],
+      "metal": 0,
+      "smooth": 0.25,
+      "texture": null
+    },
+    {
+      "name": "Water",
+      "color": [
+        0.055,
+        0.07,
+        0.072
+      ],
+      "metal": 0.5,
+      "smooth": 0.92,
+      "texture": null
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "asset": "worn_asphalt",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/worn_asphalt/worn_asphalt_diff_1k.jpg",
+    "path": "Game/Assets/Art/London/Textures/AsphaltColor.jpg",
+    "sha256": "3bf71ad290730092ad2aee85e246b2e43318bc1f32261826ba91250e815b5f72",
+    "license": "CC0",
+    "license_url": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "worn_asphalt",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/worn_asphalt/worn_asphalt_nor_gl_1k.jpg",
+    "path": "Game/Assets/Art/London/Textures/AsphaltNormal.jpg",
+    "sha256": "5f835d192dac296674229a763553f356f5e206bb7f6d812bca5b0f38fc5302a4",
+    "license": "CC0",
+    "license_url": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "red_bricks_02",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/red_bricks_02/red_bricks_02_diff_1k.jpg",
+    "path": "Game/Assets/Art/London/Textures/BrickColor.jpg",
+    "sha256": "f345db5a50cbbc122d3377079ee8cb9f85fe4191680189c9b53ac19b4ad803d8",
+    "license": "CC0",
+    "license_url": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "red_bricks_02",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/red_bricks_02/red_bricks_02_nor_gl_1k.jpg",
+    "path": "Game/Assets/Art/London/Textures/BrickNormal.jpg",
+    "sha256": "a36ca7fd87e51656ea85366326bf8f30c6ca10b816ee41fb9698f51a52a27bd9",
+    "license": "CC0",
+    "license_url": "https://polyhaven.com/license"
+  }
+]

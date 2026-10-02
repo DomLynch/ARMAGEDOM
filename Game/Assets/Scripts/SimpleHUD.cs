@@ -60,7 +60,7 @@ namespace Ashvault
             new GameObject("Input events", typeof(EventSystem), typeof(InputSystemUIInputModule));
             var header = Rect("Chamber", canvas.transform, new Vector2(0, 1), new Vector2(24, -22), new Vector2(335, 118));
             Panel(header, panel);
-            Label("ASHVAULT", header, new Vector2(16, -9), new Vector2(310, 40), 30).color = gold;
+            Label("ARMAGEDOM", header, new Vector2(16, -9), new Vector2(310, 40), 30).color = gold;
             status = Label("", header, new Vector2(17, -52), new Vector2(310, 62), 15);
             var player = Rect("Warden", canvas.transform, Vector2.zero, new Vector2(24, 24), new Vector2(354, 128));
             Panel(player, panel);
@@ -97,7 +97,7 @@ namespace Ashvault
         {
             var run = RunManager.Instance;
             var player = run.Player;
-            status.text = "THE OUTER WATCH  ·  3 WAVES\nHostiles: " + run.Enemies.Count + "    Wave: " + run.Wave;
+            status.text = "WESTMINSTER  ·  3 WAVES\nHostiles: " + run.Enemies.Count + "    Wave: " + run.Wave;
             healthLabel.text = "WARDEN   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
             stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Sword " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: sword · Cyan: armour · Green: tonic";
             hp.rectTransform.sizeDelta = new Vector2(320 * player.Life.current / player.Life.maximum, 12);
@@ -106,7 +106,7 @@ namespace Ashvault
             bossPanel.SetActive(run.Boss && !run.Boss.Life.Dead);
             if (run.Boss) bossHP.rectTransform.sizeDelta = new Vector2(430 * run.Boss.Life.current / run.Boss.Life.maximum, 12);
             endPanel.SetActive(run.Finished);
-            if (run.Finished) ending.text = run.Won ? "THE VAULT IS SILENT\n<size=20>The warlord has fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Watch their wind-up. Dodge, then strike.</size>";
+            if (run.Finished) ending.text = run.Won ? "CHECKPOINT CLEARED\n<size=20>The warlord has fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Watch their wind-up. Dodge, then strike.</size>";
         }
 
         string Ready(float time) => time <= Time.time ? "[ready]" : "[" + (time - Time.time).ToString("0.0") + "s]";

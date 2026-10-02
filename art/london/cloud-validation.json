@@ -1,0 +1,112 @@
+{
+  "blender": "5.2.2 LTS",
+  "source_sha256": "e516595ee4cbe90192f89f4361b18017087d4d26b67980bf43f2f12a4246373d",
+  "assets": [
+    {
+      "asset": "Road",
+      "triangles": 6672,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 4
+    },
+    {
+      "asset": "BusWreck",
+      "triangles": 10128,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 5
+    },
+    {
+      "asset": "Barrier",
+      "triangles": 1068,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 3
+    },
+    {
+      "asset": "Sandbags",
+      "triangles": 1960,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 2
+    },
+    {
+      "asset": "Lamp",
+      "triangles": 776,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 3
+    },
+    {
+      "asset": "Rubble",
+      "triangles": 940,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 3
+    },
+    {
+      "asset": "Facade",
+      "triangles": 6048,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 4
+    },
+    {
+      "asset": "Railing",
+      "triangles": 1326,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 2
+    },
+    {
+      "asset": "Crate",
+      "triangles": 360,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 3
+    },
+    {
+      "asset": "FireDrum",
+      "triangles": 628,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 4
+    },
+    {
+      "asset": "ClockTower",
+      "triangles": 4892,
+      "invalid_coordinates": false,
+      "degenerate_triangles": 0,
+      "repairs_needed": false,
+      "has_uv": true,
+      "materials": 4
+    }
+  ],
+  "job_id": "6abffcaf404719ba37626627",
+  "flavor": "cpu-upgrade",
+  "timeout_seconds": 600,
+  "hourly_usd": 0.03,
+  "initial_failed_job": "6abffc90404719ba37626620",
+  "initial_failure": "Python3.12 could not resolve bpy5.2.2; rerun with Python3.13.",
+  "status": "COMPLETED"
+}

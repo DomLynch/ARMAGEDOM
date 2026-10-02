@@ -1,0 +1,79 @@
+[
+  {
+    "asset": "Road",
+    "triangles": 6672,
+    "vertices": 3616,
+    "bytes": 151948,
+    "sha256": "b8f7c8c7a41ab6e2552185624cddb79bfebbc280b8b09294e8d17c9089dae34c"
+  },
+  {
+    "asset": "BusWreck",
+    "triangles": 10128,
+    "vertices": 5344,
+    "bytes": 266604,
+    "sha256": "24252346060efa001b1d679ceaae6d437a5b35a465c5e5b756f8099c850416de"
+  },
+  {
+    "asset": "Barrier",
+    "triangles": 1068,
+    "vertices": 560,
+    "bytes": 40412,
+    "sha256": "46a1864514772307016701ccf34f8fe4e77fd76684c342fa417d029b665575e5"
+  },
+  {
+    "asset": "Sandbags",
+    "triangles": 1960,
+    "vertices": 1036,
+    "bytes": 63180,
+    "sha256": "ac726d799691cb3d6a90a494fbca08106c31c8079440a4596c1eae7e200444cd"
+  },
+  {
+    "asset": "Lamp",
+    "triangles": 776,
+    "vertices": 416,
+    "bytes": 35708,
+    "sha256": "b9eb817247567c5e8e4a2da0ddc187b9aa891f05eaa992747162f13a5aa4155f"
+  },
+  {
+    "asset": "Rubble",
+    "triangles": 940,
+    "vertices": 564,
+    "bytes": 58764,
+    "sha256": "70ccc74c26320590dbe4d059055171882d84782daf6bb8ab014ebe75716d6233"
+  },
+  {
+    "asset": "Facade",
+    "triangles": 6048,
+    "vertices": 3136,
+    "bytes": 187580,
+    "sha256": "9eef2554639d6f5d64f82a4027701ed9d2731b8ca0ab72177c6a30d36a8e459d"
+  },
+  {
+    "asset": "Railing",
+    "triangles": 1326,
+    "vertices": 737,
+    "bytes": 47884,
+    "sha256": "b81fb3e55044714a351962f98cb316214e0981d7c719b442a475ffb2ea661b65"
+  },
+  {
+    "asset": "Crate",
+    "triangles": 360,
+    "vertices": 192,
+    "bytes": 27484,
+    "sha256": "1ed46cf745756ef5e25b64b2a978c95d6b7651f3322ea3b6a254b907ac99d844"
+  },
+  {
+    "asset": "FireDrum",
+    "triangles": 628,
+    "vertices": 338,
+    "bytes": 29676,
+    "sha256": "a3a3cd20c822e6042372b79b07343410d4c52aa1da3380e497d624072f84ed4b"
+  },
+  {
+    "asset": "ClockTower",
+    "triangles": 4892,
+    "vertices": 2544,
+    "bytes": 142972,
+    "sha256": "9398eca37c934573e297617232c94dd70ae08f1aa436c75a606bdcbd392a93c8"
+  }
+]
