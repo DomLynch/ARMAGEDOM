@@ -32,7 +32,7 @@ Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 - 15/15 real PlayMode tests pass, including actual deformed sole clearance,
   planted-vertex drift, turns/stops, Warlock retreat/staff clearance, controls and combat.
   Original .2m deformation limit and directional travel thresholds retained.
-- Build `build_faf64ff2eb3a`: Succeeded, zero errors, 488,065,862 bytes.
+- Build `build_8274b555f926`: Succeeded, zero errors, 488,065,862 bytes.
   One expected warning: Pipeline remote runtime disabled in packaged app.
 - Packaged startup smoke passed. Native startup, movement/dodge, first-wave roster, incoming damage/death and
   restart visibly checked. App left at the safe entrance for user review.
@@ -90,7 +90,7 @@ Workspace deploy lock cleared before further bakes; no bypass or paid compute.
 
 ## Closer camera delivery — 2026-10-02
 User selected the first elevated isometric preview and explicitly requested it live.
-Default orthographic size is now 3.905 (10% wider than the selected 3.55 preview; originally 5.7), matching the preview angle and
+Default orthographic size is now 4.49075 (another 15% wider than 3.905; originally 5.7), matching the preview angle and
 forward framing. Scroll zoom range is 3–8; inspection still restores gameplay view.
 Enemy columns are 1.7m apart (was 2.7m), starting at Z=-1 (was 2), with 2.4m
 row spacing. Same room, roster, counts and controls; six line replacements, no new components.
@@ -123,3 +123,9 @@ zero errors/one expected warning; packaged smoke passed; native app restarted an
 Normal incremental build with DetailedBuildReport completed in3.7s without TypeDB
 errors; avoid unnecessary CleanBuildCache for subsequent small camera changes.
 CodeGraph query still returned preserved-cache noise; exact scoped diff reviewed.
+
+## Additional zoom-out — 2026-10-02
+User requested another15% zoom-out after trying30degrees. Size3.905 x1.15 =4.49075;
+angle/follow/spacing/controls unchanged. One numeric edit.15/15 tests passed;
+build_8274b555f926 succeeded with zero errors (one expected warning), packaged smoke
+passed, app restarted and wider native framing observed. User feel remains subjective.

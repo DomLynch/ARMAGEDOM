@@ -36,7 +36,7 @@ namespace Ashvault
             var camera = cameraObject.GetComponent<Camera>();
             cameraObject.AddComponent<HeroView>();
             camera.orthographic = true;
-            camera.orthographicSize = 3.905f;
+            camera.orthographicSize = 4.49075f;
             camera.nearClipPlane = .1f;
             camera.farClipPlane = 160;
             camera.clearFlags = CameraClearFlags.SolidColor;
