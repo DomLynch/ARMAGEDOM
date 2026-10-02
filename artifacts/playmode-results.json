@@ -1,9 +1,9 @@
 {
   "status": "completed",
-  "duration": 13.31,
+  "duration": 21.33,
   "summary": {
-    "total": 14,
-    "passed": 14,
+    "total": 15,
+    "passed": 15,
     "failed": 0,
     "skipped": 0,
     "inconclusive": 0
@@ -12,98 +12,105 @@
     {
       "FullName": "Ashvault.Tests.RunTests.AttacksRespectRangeDirectionCooldownAndWalls",
       "Status": "Passed",
-      "Duration": 1.8702854,
+      "Duration": 1.8037384,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.AuthoredHeroBootsClearFloorDuringTravelAndTurns",
       "Status": "Passed",
-      "Duration": 1.0973952,
+      "Duration": 1.0954392,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.DodgeBlocksDamageThenExpiresAndDeathRestarts",
       "Status": "Passed",
-      "Duration": 0.4401726,
+      "Duration": 0.4491482,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.DodgeCancelsPendingStrike",
       "Status": "Passed",
-      "Duration": 0.4142716,
+      "Duration": 0.4257395,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EnemiesTurnGraduallyBeforeStriking",
+      "Status": "Passed",
+      "Duration": 0.7919273,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EnemyStrikeKeepsWindupTimingWithoutFloorConesWhenStaggered",
       "Status": "Passed",
-      "Duration": 0.6047959,
+      "Duration": 0.5742944,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EntranceWaitsForPlayerAndStartsOnMovement",
       "Status": "Passed",
-      "Duration": 2.3709476,
+      "Duration": 2.3534829,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.GothicModelsKeepScaleMaterialsAndGameplaySeparation",
       "Status": "Passed",
-      "Duration": 1.1387993,
+      "Duration": 0.9055112,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.HeldSlashKillsNearbyEnemyWithoutApproaching",
       "Status": "Passed",
-      "Duration": 1.5358169,
+      "Duration": 1.5066113,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.HeroInspectionPreservesGameStateAndOriginalMaterialMaps",
       "Status": "Passed",
-      "Duration": 0.1027482,
+      "Duration": 0.0979702,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.KeyboardTravelTurnsHeroAndPreservesDiagonalSpeed",
       "Status": "Passed",
-      "Duration": 1.7979058,
+      "Duration": 1.7796974,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.LeftClickSlashesWithoutMovingAndFacesCursor",
       "Status": "Passed",
-      "Duration": 1.0454204,
+      "Duration": 1.0461421,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.LootStrengthensPlayerAndFullRunReachesVictory",
       "Status": "Passed",
-      "Duration": 0.7642819,
+      "Duration": 0.7909447,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.MobSolesClearFloorDuringTravelTurnsAndStops",
+      "Status": "Passed",
+      "Duration": 7.6523527,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.RenderMaterialsAreExplicitBuildDependencies",
       "Status": "Passed",
-      "Duration": 0.0549775,
-      "Message": null,
-      "StackTrace": null
-    },
-    {
-      "FullName": "Ashvault.Tests.RunTests.RunFootContactMatchesRootTravel",
-      "Status": "Passed",
-      "Duration": 0.0629282,
+      "Duration": 0.0450683,
       "Message": null,
       "StackTrace": null
     }

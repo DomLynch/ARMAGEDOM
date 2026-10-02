@@ -121,3 +121,43 @@ left at the entrance. Independent before/after still review found clearer runnin
 silhouette and no new obvious deformation; complete cadence/user feel remains
 for re-check. CodeGraph post-edit MCP refresh timed out; explicit CLI sync retry
 succeeded (already up to date). Actual source review and gates cover changed paths.
+
+## Mob continuation — 2026-10-02 (delivered for user review)
+
+Scope: reuse authored motion on Revenant/Orc/Warlock, keep original mesh/rig/materials
+and existing strike timing. Candidates considered: retune old procedural gait; reuse
+pinned authored clips; migrate to a new Animator/retarget package. Reuse wins on
+visual value, reversibility and dependency/LOC cost. Revenant/Warlock use Sprint,
+Orc uses Walk at a measured ~1.31m/cycle. Warlock preserves its staff-arm carry pose.
+Shared cosmetic playback replaces duplicated enemy/hero paths; enemy gameplay
+turning is bounded and waits to face the target before starting a strike.
+
+Independent judge found between-key sole penetration in the 25-key Revenant bake
+(24.4mm) despite clean integer keys. Quarter-frame baking/export resolves sampled
+FBX penetration to less than 0.001mm. Original topology/weights/UVs/bind matrices
+and idle/attack poses match the source. Runtime sole/turn/stop tests and continuous
+game-camera recordings remain pending; static asset checks are not acceptance.
+New gradual-turn test reproduced the old 180-degree single-frame snap before the fix.
+
+Workspace deploy lock f6d0a95 temporarily holds bakes/builds/game checks as of16:04UTC.
+No lock bypass, paid tools/GPU, remote inference or new cloud job. CodeGraph
+returned cache symbols for some exact queries; direct known-file reads filled gaps.
+
+Final verification:15/15 real PlayMode tests pass; build_3c18afcd4b69 succeeded
+with0errors/1expected Pipeline warning,488065862bytes. Native startup smoke passes;
+movement/dodge, first-wave three-model roster, incoming damage/death and restart
+observed. Three200-frame game/side recordings saved under locomotion-*-authored.
+
+Failure closures: Orc planted target exceeded leg reach by21.234mm at phase.2306,
+causing36.191mm world-sole drift. A35mm lower walking pelvis leaves knee extension;
+the same35mm/frame drift limit now passes including turns and Warlock backward
+travel. Warlock staff regression (-141.15mm) fixed by a Run-only21° upper-arm local-X
+carry correction; independent385-sample FBX minimum+16.467mm, wrist/grip unchanged.
+Runtime staff-floor clearance test also passes. Minor between-key sole error in
+dense independent samples remains below5mm and is handled by runtime grounding.
+No new components/packages:1009runtime lines,17fewer than before.
+
+Search/impact receipt: three Semble searches and CodeGraph source/impact used before
+edits; cache symbols polluted some queries, so known-file reads filled those gaps.
+Post-edit CodeGraph returned updated ArtMotion/EnemyController callers without a
+staleness banner. No remote/deploy target; native app is the delivery.

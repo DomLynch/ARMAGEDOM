@@ -8,33 +8,26 @@ namespace Ashvault
         Animation motion;
         Vector3 previous;
         float attackUntil, attackStarted, windup, recovery;
-        string playing;
         public float headProportion = 1;
         Transform head;
         Vector3 headRest;
         PlayerController player;
+        EnemyController enemy;
         float cycle, runWeight, strikeWeight, idleTime;
-        const float Stride = 2.375f;
         Leg left, right;
         void Start()
         {
             motion = GetComponentInChildren<Animation>();
             player = GetComponent<PlayerController>();
+            enemy = GetComponent<EnemyController>();
             previous = transform.position;
             foreach (var child in GetComponentsInChildren<Transform>())
                 if (child.name == "Head") { head = child; headRest = child.localScale; break; }
-            Play("Idle");
-            if (player && motion)
+            if (motion)
             {
                 motion["Idle"].clip.SampleAnimation(motion.gameObject, 0);
                 left = new Leg(motion, "L", transform); right = new Leg(motion, "R", transform);
             }
-        }
-        void Play(string clip)
-        {
-            if (!motion || !motion[clip] || playing == clip) return;
-            motion.CrossFade(clip, .10f);
-            playing = clip;
         }
         public void Swing(float delay = .14f, float settle = .28f)
         {
@@ -42,40 +35,26 @@ namespace Ashvault
             windup = Mathf.Max(.01f, delay); recovery = settle;
             attackStarted = Time.time;
             attackUntil = Time.time + windup + recovery;
-            if (player) return;
-            motion["Attack"].speed = 0;
-            motion["Attack"].time = 0;
-            playing = null;
-            Play("Attack");
         }
         public void CancelSwing() => attackUntil = 0;
 
         void LateUpdate()
         {
-            if (head) head.localScale = headRest * headProportion;
             if (!RunManager.Instance || RunManager.Instance.Finished) return;
-            float distance = Vector3.ProjectOnPlane(transform.position - previous, Vector3.up).magnitude;
+            Vector3 travel = Vector3.ProjectOnPlane(transform.position - previous, Vector3.up);
+            float distance = travel.magnitude;
             float speed = distance / Mathf.Max(Time.deltaTime, .001f);
             previous = transform.position;
-            if (player && motion) { HeroMotion(distance, speed); return; }
-            if (motion && Time.time < attackUntil)
-            {
-                float elapsed = Time.time - attackStarted;
-                float phase = elapsed < windup ? .45f * elapsed / windup : .45f + .55f * (elapsed - windup) / recovery;
-                motion["Attack"].time = phase * motion["Attack"].length;
-                motion.Sample();
-                return;
-            }
-            // Baked stance covers .95m in 40% of one cycle: 2.375m per cycle.
-            if (motion && motion["Run"]) motion["Run"].speed = speed * motion["Run"].length /
-                (Stride * motion.transform.lossyScale.z);
-            Play(speed > .15f ? "Run" : "Idle");
+            if (motion) Animate(distance * (enemy && Vector3.Dot(travel, transform.forward) < 0 ? -1 : 1), speed);
+            if (head) head.localScale = headRest * headProportion;
         }
 
-        void HeroMotion(float distance, float speed)
+        void Animate(float distance, float speed)
         {
             bool striking = Time.time < attackUntil;
-            cycle = Mathf.Repeat(cycle + distance / (3.5f * motion.transform.lossyScale.z), 1);
+            bool walking = enemy && (enemy.kind == 1 || enemy.IsBoss);
+            float stride = walking ? 1.31f : 3.5f;
+            cycle = Mathf.Repeat(cycle + distance / (stride * motion.transform.lossyScale.z), 1);
             idleTime += Time.deltaTime;
             runWeight = Mathf.MoveTowards(runWeight, striking ? 0 : Mathf.Clamp01(speed / 1.3f), Time.deltaTime / .14f);
             strikeWeight = Mathf.MoveTowards(strikeWeight, striking ? 1 : 0, Time.deltaTime / .08f);
@@ -86,9 +65,10 @@ namespace Ashvault
             Sample("Run", cycle * motion["Run"].length, runWeight * (1 - strikeWeight));
             Sample("Attack", Mathf.Clamp01(strikePhase) * motion["Attack"].length, strikeWeight);
             motion.Sample();
-            bool contacts = !striking && !player.Dodging && speed > .3f && runWeight > .8f;
-            left.Plant(contacts && cycle >= .03f && cycle < .20f, transform.forward, !player.Dodging);
-            right.Plant(contacts && cycle >= .55f && cycle < .74f, transform.forward, !player.Dodging);
+            bool grounded = !player || !player.Dodging;
+            bool contacts = !striking && grounded && speed > .3f && runWeight > .8f;
+            left.Plant(contacts && (walking ? cycle >= .05f && cycle < .45f : cycle >= .03f && cycle < .20f), transform.forward, grounded);
+            right.Plant(contacts && (walking ? cycle >= .55f && cycle < .95f : cycle >= .55f && cycle < .74f), transform.forward, grounded);
         }
 
         void Sample(string clip, float time, float weight)

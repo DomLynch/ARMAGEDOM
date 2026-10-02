@@ -1,0 +1,14 @@
+{
+  "Revenant": {
+    "sha256": "89f968ad88aad5ef0146808a1f85f4699588dc7572bfc101ab0a4edfaa45b83e",
+    "bytes": 6926652
+  },
+  "Orc": {
+    "sha256": "41934a7663773320cba67ee2c0da831499a7f645bea401d6708468932d1a7e71",
+    "bytes": 7108412
+  },
+  "Warlock": {
+    "sha256": "cfae488951707c2d85f6d5f83022cea3b3c294f145064f8ca10778c868491004",
+    "bytes": 7343852
+  }
+}

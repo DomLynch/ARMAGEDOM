@@ -38,7 +38,6 @@ namespace Ashvault
                 return;
             }
             if (Time.time < recoverUntil || Time.time < staggerUntil) return;
-            if (distance > .01f) transform.rotation = Quaternion.LookRotation(offset);
             bool ranged = kind == 2 || IsBoss && bossPattern == 2;
             float reach = ranged ? 8 : Radius - .25f;
             bool blocked = Physics.Linecast(transform.position + Vector3.up, player.transform.position + Vector3.up, 1 << 8);
@@ -47,11 +46,12 @@ namespace Ashvault
                 Move(offset.normalized, kind == 1 ? 1.65f : IsBoss ? 2.1f : 2.8f);
                 return;
             }
-            if (kind == 2 && distance < 4 && Time.time < ready) Move(-offset.normalized, 2);
-            if (Time.time >= ready) BeginAttack(offset.normalized);
+            if (kind == 2 && distance < 4 && Time.time < ready) Move(-offset.normalized, 2, true);
+            else if (distance > .01f) transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(offset), 360 * Time.deltaTime);
+            if (Time.time >= ready && Vector3.Dot(transform.forward, offset.normalized) > .96f) BeginAttack(offset.normalized);
         }
 
-        void Move(Vector3 direction, float speed)
+        void Move(Vector3 direction, float speed, bool backwards = false)
         {
             // Local obstacle steering is enough for the deliberately open chamber layout.
             if (Physics.SphereCast(transform.position + Vector3.up * .6f, .35f, direction, out _, 1.2f, 1 << 8))
@@ -60,7 +60,10 @@ namespace Ashvault
                 if (Physics.SphereCast(transform.position + Vector3.up * .6f, .35f, side, out _, 1.2f, 1 << 8)) side = -side;
                 direction = side;
             }
-            body.Move((direction * speed + Vector3.down * 8) * Time.deltaTime);
+            Vector3 facing = backwards ? -direction : direction;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(facing), 360 * Time.deltaTime);
+            float alignment = Mathf.Max(0, Vector3.Dot(transform.forward, facing));
+            body.Move((transform.forward * (backwards ? -speed : speed) * alignment + Vector3.down * 8) * Time.deltaTime);
         }
 
         void BeginAttack(Vector3 direction)

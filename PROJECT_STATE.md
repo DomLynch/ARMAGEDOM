@@ -14,8 +14,10 @@ R restart, V inspection, scroll zoom. No click travel. Hero turns through 360 de
 Player and enemy attack cones/floor outlines removed; enemy animation signals wind-up.
 Hero now uses authored CC0 Sprint motion retargeted onto the original rig, with
 distance-driven cadence, blended transitions, bounded acceleration and cosmetic
-world-space sole contacts during turns. Enemy clips are unchanged. Strike damage
-lands after anticipation; dodge cancels pending strike damage. Runtime: 1,026 lines across 10 scripts.
+world-space sole contacts during turns. Mobs now use authored Sprint (Revenant/Warlock)
+and Walk (Orc/Warlord), shared transition/contact playback, reverse cadence for
+Warlock retreat and gradual facing before strikes. Warlock staff carry clears the floor. Strike damage
+lands after anticipation; dodge cancels pending strike damage. Runtime: 1,009 lines across 10 scripts.
 
 ## Compute
 Original reference reconstruction used official TRELLIS.2 shared demo; overage zero.
@@ -27,12 +29,12 @@ Unity now operates in persistent local batch mode with Metal, without desktop Ed
 Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 
 ## Verified evidence
-- 14/14 real PlayMode tests pass after final clean-cache build, including actual
-  deformed boot floor clearance during movement/turns, controls, combat and restart.
+- 15/15 real PlayMode tests pass, including actual deformed sole clearance,
+  planted-vertex drift, turns/stops, Warlock retreat/staff clearance, controls and combat.
   Original .2m deformation limit and directional travel thresholds retained.
-- Build `build_50200eeef63c`: Succeeded, zero errors, 487,613,862 bytes.
+- Build `build_3c18afcd4b69`: Succeeded, zero errors, 488,065,862 bytes.
   One expected warning: Pipeline remote runtime disabled in packaged app.
-- Packaged startup smoke passed. Native startup, input/dodge, first-wave roster and
+- Packaged startup smoke passed. Native startup, movement/dodge, first-wave roster, incoming damage/death and
   restart visibly checked. App left at the safe entrance for user review.
 - Identical 200-frame before/after real-input side/game-camera recordings:
   `artifacts/locomotion-before.mp4`, `artifacts/locomotion-after.mp4`.
@@ -48,7 +50,7 @@ Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 ## Closed failures
 Previous 8/11 input tests failed with physical desktop/focus interference. Scoped
 input-device/focus isolation passed the original unchanged 11 tests before controls
-changed. Latest suite has 13 tests; no thresholds relaxed.
+changed. That closure passed the unchanged 11 tests; subsequent suites added new controls/motion checks.
 A later click test measured vertical spawn settling (-0.26 to +0.04 Y) as travel;
 X/Z unchanged. Syncing colliders and settling the capsule before recording the input
 baseline fixed the fixture; same 0.03m 3D limit remains and full 13/13 suite passed.
@@ -72,3 +74,22 @@ artifacts/Library-before-motion-retarget, then rebuilt from a fresh cache. Same
 build workflow passed with zero errors; full 14-test suite and player smoke also pass.
 The first acceleration candidate failed a 135° reversal travel; corrected 48m/s² passes
 the same threshold. Retarget wrist and sole defects were corrected and rechecked.
+
+## Latest mob motion closure
+Independent CPU judge checked exact original mesh/UV/weights/material/bind preservation
+and idle/attack pose preservation. Denser quarter-frame export fixed the large between-key
+sole sink. Runtime regression caught an Orc contact target21mm beyond knee reach;
+lowering the walking pelvis35mm restored planting without changing skeleton/capsule.
+Warlock carry-arm21° correction fixes a new141mm staff-floor penetration; exported
+staff minimum+16.47mm across385 samples and runtime clearance/blends now pass.
+Existing floor/deformation/controls thresholds retained; walking swing height is
+validated separately from sprint lift.15/15 tests plus native smoke/build pass.
+Three200-frame game/side captures: artifacts/{revenant,orc,warlock}-authored.mp4.
+The reusable unity-blender-cpu-art reference now includes these verified lessons.
+Workspace deploy lock cleared before further bakes; no bypass or paid compute.
+
+## Camera preview request
+Three actual-engine1600x1000 stills in artifacts/camera-options: tighter isometric,
+over-shoulder, low straight-behind. Same staged room/hero/three mobs. Preview only;
+packaged camera remains unchanged. User selection pending. Lower views expose
+unfinished room horizon/walls and need camera/aim/collision work before adoption.

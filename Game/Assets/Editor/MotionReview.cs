@@ -20,9 +20,18 @@ namespace Ashvault.EditorTools
         static Texture2D image;
         static string folder;
         static int frame, lastFrame;
+        static EnemyController preview;
         static InputSettings.BackgroundBehavior background;
         static InputSettings.EditorInputBehaviorInPlayMode focus;
         public static string Status { get; private set; } = "idle";
+
+        public static void StartMob(int kind, string label)
+        {
+            Start(label);
+            RunManager.Instance.Player.gameObject.SetActive(false);
+            var actor = ArenaBuilder.Actor("Motion review", new Vector3(0, .04f, -4), kind);
+            preview = actor.AddComponent<EnemyController>(); preview.kind = kind; preview.enabled = false;
+        }
 
         public static void Start(string label)
         {
@@ -57,16 +66,25 @@ namespace Ashvault.EditorTools
             lastFrame = Time.frameCount;
             try
             {
-                var player = RunManager.Instance.Player;
+                var player = preview ? preview.transform : RunManager.Instance.Player.transform;
                 // Stand, straight travel, stop, restart, right turn, reverse, stop.
                 Key[] keys = frame < 20 || frame >= 65 && frame < 80 || frame >= 170 ? Array.Empty<Key>() :
                     frame < 110 ? new[] { Key.W } : frame < 140 ? new[] { Key.D } : new[] { Key.A };
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
+                if (preview)
+                {
+                    if (frame >= 20 && frame < 130)
+                    {
+                        if (frame >= 90) player.rotation = Quaternion.RotateTowards(player.rotation, Quaternion.Euler(0, 90, 0), 6);
+                        player.position += player.forward * ((preview.kind == 1 ? 1.65f : 2.8f) / 30);
+                    }
+                    if (frame == 150) preview.GetComponent<ArtMotion>().Swing(preview.kind == 0 ? .4f : preview.kind == 1 ? 1.05f : .65f);
+                }
                 var bones = player.GetComponentsInChildren<Transform>();
                 var left = Array.Find(bones, t => t.name == "Foot.L");
                 var right = Array.Find(bones, t => t.name == "Foot.R");
-                Vector3 p = player.transform.position, l = left.position, r = right.position;
-                samples.Add(FormattableString.Invariant($"{frame},{Time.time},{p.x},{p.y},{p.z},{player.transform.eulerAngles.y},{l.x},{l.y},{l.z},{r.x},{r.y},{r.z}"));
+                Vector3 p = player.position, l = left.position, r = right.position;
+                samples.Add(FormattableString.Invariant($"{frame},{Time.time},{p.x},{p.y},{p.z},{player.eulerAngles.y},{l.x},{l.y},{l.z},{r.x},{r.y},{r.z}"));
                 // Gameplay camera follows normally in RunManager.LateUpdate; run is disabled for an empty review room.
                 Camera.main.transform.position = p + new Vector3(12, 22, -17);
                 side.transform.position = p + new Vector3(4, 1.3f, .1f);
@@ -99,6 +117,8 @@ namespace Ashvault.EditorTools
             if (side) UnityEngine.Object.DestroyImmediate(side.gameObject);
             if (target) { target.Release(); UnityEngine.Object.DestroyImmediate(target); }
             if (image) UnityEngine.Object.DestroyImmediate(image);
+            if (preview) UnityEngine.Object.DestroyImmediate(preview.gameObject);
+            if (RunManager.Instance && RunManager.Instance.Player) RunManager.Instance.Player.gameObject.SetActive(true);
             File.WriteAllLines(Path.Combine(folder, "motion.csv"), samples);
             if (Status == "recording") Status = "completed: " + folder;
         }

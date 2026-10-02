@@ -1,16 +1,11 @@
 {
   "status": "completed",
-  "buildId": "build_50200eeef63c",
+  "buildId": "build_3c18afcd4b69",
   "result": "Succeeded",
-  "platform": "StandaloneOSX",
-  "outputPath": "/Users/domininclynch/Desktop/Business/Ashvault/Builds/Ashvault.app",
-  "totalSizeBytes": 487613862,
-  "buildTimeMs": 23107,
-  "totalWarnings": 1,
   "totalErrors": 0,
-  "warnings": [
-    {
-      "message": "Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds."
-    }
-  ]
+  "totalWarnings": 1,
+  "totalSizeBytes": 488065862,
+  "buildTimeMs": 14714,
+  "buildStartedAt": "2026-10-02T12:23:09.9479640Z",
+  "buildEndedAt": "2026-10-02T12:23:24.6623510Z"
 }

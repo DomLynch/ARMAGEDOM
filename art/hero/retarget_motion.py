@@ -1,5 +1,5 @@
-"""Retarget pinned CC0 motion onto Warden's existing skin; write a separate pilot.
-Blender -b -t 4 --python art/hero/retarget_motion.py -- Sprint
+"""Retarget pinned CC0 motion onto an original rig; write a separate candidate.
+Blender -b -t 4 --python art/hero/retarget_motion.py -- Sprint Revenant
 """
 
 import sys
@@ -10,12 +10,24 @@ import bpy
 from mathutils import Matrix, Vector
 
 ROOT = Path(__file__).resolve().parents[2]
-clip = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "Sprint"
-out = ROOT / "artifacts" / ("motion-" + clip.lower())
-out.mkdir(exist_ok=True)
-bpy.ops.wm.open_mainfile(
-    filepath=str(ROOT / "art/hero/warden-rigged.blend"), use_scripts=False
+args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
+clip = args[0] if args else "Sprint"
+name = args[1] if len(args) > 1 else "Warden"
+assert name in ("Warden", "Revenant", "Orc", "Warlock")
+out = (
+    ROOT
+    / "artifacts"
+    / ("motion-" + clip.lower() + ("" if name == "Warden" else "-" + name.lower()))
 )
+out.mkdir(exist_ok=True)
+source_path = (
+    "art/hero/warden-rigged.blend"
+    if name == "Warden"
+    else "art/enemies/revenant-rigged.blend"
+    if name == "Revenant"
+    else f"art/enemies/{name.lower()}/{name.lower()}-rigged.blend"
+)
+bpy.ops.wm.open_mainfile(filepath=str(ROOT / source_path), use_scripts=False)
 hero = next(o for o in bpy.data.objects if o.type == "ARMATURE")
 objects = set(bpy.data.objects)
 action = hero.animation_data.action
@@ -52,6 +64,19 @@ assert all(n in source.pose.bones for n in mapping.values()), list(
     source.pose.bones.keys()
 )
 rest = {b.name: b.matrix_local.copy() for b in hero.data.bones}
+# The staff arm keeps the original carry pose while hips and shoulders still move.
+bpy.context.scene.frame_set(1)
+carry = {
+    b.name: b.matrix_basis.copy()
+    for b in hero.pose.bones
+    if b.name.endswith(".R")
+    and b.name.startswith(("Clavicle", "UpperArm", "Forearm", "Hand"))
+}
+if name == "Warlock":
+    # Whole-staff clearance checked between keys; keep elbow, wrist and grip intact.
+    carry["UpperArm.R"] = carry["UpperArm.R"] @ Matrix.Rotation(
+        math.radians(21), 4, "X"
+    )
 ratio = (hero.data.bones["Thigh.L"].length + hero.data.bones["Shin.L"].length) / (
     source.data.bones["thigh_l"].length + source.data.bones["calf_l"].length
 )
@@ -83,38 +108,43 @@ def place_foot(side, ankle):
 
 # Cache source before changing the scene timeline used by the target's action.
 poses = []
-for i in range(25):
-    frame = lo + (hi - lo) * i / 24
+for i in range(97):
+    frame = lo + (hi - lo) * i / 96
     scene.frame_set(int(frame), subframe=frame % 1)
     bpy.context.view_layer.update()
     poses.append({n: source.pose.bones[n].matrix.copy() for n in mapping.values()})
 hero.animation_data.action = action
 rows = []
 for i, source_pose in enumerate(poses):
-    frame = 61 + i
-    scene.frame_set(frame)
+    frame = 61 + i / 4
+    scene.frame_set(int(frame), subframe=frame % 1)
     for bone in hero.pose.bones:
         bone.rotation_mode = "QUATERNION"
-    for name, src_name in mapping.items():
-        bone = hero.pose.bones[name]
+    for bone_name, src_name in mapping.items():
+        bone = hero.pose.bones[bone_name]
         src_rest = source.data.bones[src_name].matrix_local
         delta = (
             source_pose[src_name].to_quaternion() @ src_rest.to_quaternion().inverted()
         )
         # Preserve our ankle's bind-pose sole angle; match anatomical limb directions.
-        align = (rest[name].to_3x3() @ Vector((0, 1, 0))).rotation_difference(
+        align = (rest[bone_name].to_3x3() @ Vector((0, 1, 0))).rotation_difference(
             src_rest.to_3x3() @ Vector((0, 1, 0))
         )
-        if name.startswith(("Foot", "Clavicle")):
+        if bone_name.startswith(("Foot", "Clavicle")):
             align.identity()
-        rotation = delta @ align @ rest[name].to_quaternion()
+        rotation = delta @ align @ rest[bone_name].to_quaternion()
         head = bone.head.copy()
-        if name == "Hips":
+        if bone_name == "Hips":
             head = (
-                rest[name].translation
+                rest[bone_name].translation
                 + (source_pose[src_name].translation - src_rest.translation) * ratio
             )
+            # Leave knee extension for world-space planting above the capsule's skin offset.
+            if clip == "Walk":
+                head.z -= 0.035
         bone.matrix = Matrix.Translation(head) @ rotation.to_matrix().to_4x4()
+        if name == "Warlock" and bone_name in carry:
+            bone.matrix_basis = carry[bone_name]
         bpy.context.view_layer.update()
     for side in "LR":
         src_name = "foot_" + side.lower()
@@ -140,6 +170,8 @@ for i, source_pose in enumerate(poses):
                     for v in mesh.data.vertices
                     if any(g.group == group and g.weight > 0.6 for g in v.groups)
                 ]
+                if not indices:
+                    continue
                 evaluated = mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
                 data = evaluated.to_mesh()
                 minimum = min(
@@ -158,7 +190,7 @@ for i, source_pose in enumerate(poses):
         bone.keyframe_insert(data_path="rotation_quaternion", frame=frame)
         bone.keyframe_insert(data_path="location", frame=frame)
     rows.append(
-        {"phase": i / 24, **{s: list(hero.pose.bones["Foot." + s].head) for s in "LR"}}
+        {"phase": i / 96, **{s: list(hero.pose.bones["Foot." + s].head) for s in "LR"}}
     )
 
 for layer in action.layers:
@@ -175,9 +207,9 @@ scene.frame_set(1)
 bpy.ops.object.select_all(action="DESELECT")
 for obj in objects:
     obj.select_set(True)
-bpy.ops.wm.save_as_mainfile(filepath=str(out / "warden.blend"))
+bpy.ops.wm.save_as_mainfile(filepath=str(out / (name.lower() + ".blend")))
 bpy.ops.export_scene.fbx(
-    filepath=str(out / "Warden.fbx"),
+    filepath=str(out / (name + ".fbx")),
     use_selection=True,
     object_types={"MESH", "ARMATURE"},
     axis_forward="-Z",
@@ -187,6 +219,7 @@ bpy.ops.export_scene.fbx(
     add_leaf_bones=False,
     bake_space_transform=False,
     bake_anim=True,
+    bake_anim_step=0.25,
     bake_anim_use_all_actions=False,
     bake_anim_use_nla_strips=False,
     bake_anim_simplify_factor=0,

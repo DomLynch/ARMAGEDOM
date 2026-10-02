@@ -150,29 +150,115 @@ namespace Ashvault.Tests
             run.Player.enabled = false;
         }
 
-        [Test]
-        public void RunFootContactMatchesRootTravel()
+        [UnityTest]
+        public IEnumerator EnemiesTurnGraduallyBeforeStriking()
         {
-            // These clips have a flat ankle stance. The hero now uses heel/toe roll,
-            // validated against the deformed boot geometry in the moving test below.
-            foreach (string path in new[] { "Enemies/Revenant", "Enemies/Orc", "Enemies/Warlock" })
+            run.enabled = false;
+            var actor = ArenaBuilder.Actor("Turning revenant", new Vector3(0, .04f, -4), 0);
+            var enemy = actor.AddComponent<EnemyController>();
+            run.Player.transform.position = new Vector3(0, .04f, -6);
+            int rate = Time.captureFramerate; Time.captureFramerate = 30;
+            try
             {
-                var model = Object.Instantiate(Resources.Load<GameObject>(path));
-                try
-                {
-                    var animation = model.GetComponentInChildren<Animation>();
-                    var foot = System.Array.Find(model.GetComponentsInChildren<Transform>(), t => t.name == "Foot.L");
-                    Assert.IsNotNull(foot);
-                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .1f);
-                    Vector3 start = foot.position;
-                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .3f);
-                    Vector3 planted = foot.position + Vector3.forward * (2.375f * .2f);
-                    Assert.Less(Vector3.Distance(start, planted), .008f, path + " planted foot must stay still as the root moves.");
-                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .7f);
-                    Assert.Greater(foot.position.y, start.y + .15f, "Swing foot must clear the ground.");
-                }
-                finally { Object.DestroyImmediate(model); }
+                float before = run.Player.Life.current;
+                yield return null;
+                Assert.Less(Quaternion.Angle(Quaternion.identity, actor.transform.rotation), 20,
+                    "An enemy must turn with weight, not snap 180 degrees in one frame.");
+                yield return new WaitForSeconds(.2f);
+                Assert.AreEqual(before, run.Player.Life.current, "A turning enemy cannot hit behind itself.");
+                yield return new WaitForSeconds(1.1f);
+                Assert.Greater(Vector3.Dot(actor.transform.forward, Vector3.back), .95f);
+                Assert.Less(run.Player.Life.current, before, "The enemy must finish turning and attack.");
             }
+            finally { Time.captureFramerate = rate; Object.DestroyImmediate(actor); }
+        }
+
+        [UnityTest]
+        public IEnumerator MobSolesClearFloorDuringTravelTurnsAndStops()
+        {
+            run.enabled = false;
+            int rate = Time.captureFramerate; Time.captureFramerate = 30;
+            try
+            {
+                foreach (int kind in new[] { 0, 1, 2, 3 })
+                {
+                    var actor = ArenaBuilder.Actor("Foot contact review", new Vector3(0, .04f, -4), kind);
+                    var enemy = actor.AddComponent<EnemyController>(); enemy.kind = kind; enemy.enabled = false;
+                    actor.GetComponent<CharacterController>().enabled = false;
+                    var skin = System.Array.Find(actor.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name.EndsWith("armour"));
+                    var staff = kind == 2 ? System.Array.Find(actor.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name == "Ritual staff") : null;
+                    if (kind == 2) Assert.IsNotNull(staff);
+                    Assert.IsNotNull(skin);
+                    var indices = new System.Collections.Generic.List<int>[2];
+                    for (int side = 0; side < 2; side++)
+                    {
+                        indices[side] = new System.Collections.Generic.List<int>();
+                        int foot = System.Array.FindIndex(skin.bones, t => t.name == "Foot." + (side == 0 ? "L" : "R"));
+                        var weights = skin.sharedMesh.boneWeights;
+                        for (int i = 0; i < weights.Length; i++)
+                            if (weights[i].boneIndex0 == foot && weights[i].weight0 > .6f) indices[side].Add(i);
+                        Assert.Greater(indices[side].Count, 50);
+                    }
+                    var mesh = new Mesh(); int contacts = 0, stablePairs = 0, retreatPairs = 0; float lift = 0;
+                    var animation = actor.GetComponentInChildren<Animation>();
+                    int plantedVertex = -1; Vector3 plantedPoint = Vector3.zero;
+                    try
+                    {
+                        yield return null;
+                        for (int frame = 0; frame < (kind == 2 ? 180 : 90); frame++)
+                        {
+                            bool moving = frame < 70 || frame >= 90 && frame < 160;
+                            if (moving)
+                            {
+                                actor.transform.rotation = Quaternion.Euler(0, frame < 35 ? 0 : Mathf.Min(60, (frame - 35) * 6), 0);
+                                actor.transform.position += actor.transform.forward * ((frame >= 90 ? -2 : kind == 1 ? 1.65f : kind == 3 ? 2.1f : 2.8f) / 30);
+                            }
+                            yield return null;
+                            skin.BakeMesh(mesh, false); var vertices = mesh.vertices;
+                            float lowest = float.PositiveInfinity;
+                            foreach (var footIndices in indices)
+                            {
+                                float sole = float.PositiveInfinity;
+                                foreach (int index in footIndices) sole = Mathf.Min(sole, skin.transform.TransformPoint(vertices[index]).y);
+                                Assert.Greater(sole, -.025f, $"Mob {kind} sole penetrates floor, frame {frame}");
+                                lowest = Mathf.Min(lowest, sole); lift = Mathf.Max(lift, sole);
+                            }
+                            if (lowest < .065f) contacts++;
+                            if (!moving && frame % 90 > 80) Assert.Less(lowest, .065f, "Stopped mobs must settle onto the floor.");
+                            float phase = Mathf.Repeat(animation["Run"].normalizedTime, 1);
+                            bool stance = moving && frame > 10 && (kind == 1 || kind == 3 ? phase > .1f && phase < .25f : phase > .07f && phase < .16f);
+                            if (!stance) plantedVertex = -1;
+                            else if (plantedVertex < 0)
+                            {
+                                plantedVertex = indices[0][0];
+                                foreach (int index in indices[0])
+                                    if (vertices[index].y < vertices[plantedVertex].y) plantedVertex = index;
+                                plantedPoint = skin.transform.TransformPoint(vertices[plantedVertex]);
+                            }
+                            else
+                            {
+                                Vector3 point = skin.transform.TransformPoint(vertices[plantedVertex]);
+                                Assert.Less(Vector3.ProjectOnPlane(point - plantedPoint, Vector3.up).magnitude, .035f,
+                                    $"Mob {kind} planted sole skates, frame {frame}");
+                                plantedPoint = point; stablePairs++;
+                                if (frame >= 90) retreatPairs++;
+                            }
+                            if (staff)
+                            {
+                                staff.BakeMesh(mesh, false); float bottom = float.PositiveInfinity;
+                                foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, staff.transform.TransformPoint(vertex).y);
+                                Assert.Greater(bottom, -.025f, "The carried staff must clear the floor during movement and blends.");
+                            }
+                        }
+                        Assert.Greater(contacts, 20, "The gait must repeatedly contact the floor.");
+                        Assert.Greater(lift, kind == 1 || kind == 3 ? .07f : .15f, "Walking/running swing soles must lift rather than slide flat.");
+                        Assert.Greater(stablePairs, 1, "The test must observe consecutive planted-foot samples.");
+                        if (kind == 2) Assert.Greater(retreatPairs, 1, "Warlock retreat must exercise planted-foot samples too.");
+                    }
+                    finally { Object.DestroyImmediate(mesh); Object.DestroyImmediate(actor); }
+                }
+            }
+            finally { Time.captureFramerate = rate; }
         }
 
         [UnityTest]
@@ -441,6 +527,8 @@ namespace Ashvault.Tests
         {
             run.enabled = false;
             var enemy = ArenaBuilder.Actor("Windup test", run.Player.transform.position + Vector3.forward * 1.4f, 0).AddComponent<EnemyController>();
+            // Measure the strike wind-up after facing, separately from gradual turning.
+            enemy.transform.rotation = Quaternion.Euler(0, 180, 0);
             run.Enemies.Add(enemy);
             yield return null;
             yield return new WaitForSeconds(.3f);
