@@ -12,28 +12,38 @@ three enemy types; waves contain 5, 6 and 1 foes. Existing room preserved.
 WASD moves, LMB slashes/holds to repeat, Q/RMB heavy, 1 shockwave, Space dodge,
 R restart, V inspection, scroll zoom. No click travel. Hero turns through 360 degrees.
 Player and enemy attack cones/floor outlines removed; enemy animation signals wind-up.
-Distance-matched run playback and two-bone stance contacts; strike damage lands after
-anticipation, with planted feet and recovery. Dodge cancels pending strike damage.
+Hero now uses authored CC0 Sprint motion retargeted onto the original rig, with
+distance-driven cadence, blended transitions, bounded acceleration and cosmetic
+world-space sole contacts during turns. Enemy clips are unchanged. Strike damage
+lands after anticipation; dodge cancels pending strike damage. Runtime: 1,026 lines across 10 scripts.
 
 ## Compute
 Original reference reconstruction used official TRELLIS.2 shared demo; overage zero.
-Initial rigging/conversion local CPU. Latest motion bake used authenticated HF Pro
+Initial rigging/conversion local CPU. Previous roster motion bake used authenticated HF Pro
 CPU Upgrade, 8 vCPU/32 GB at $0.03/hour, 15-minute limit, private input/output repo.
-Job `6abfb00b404719ba37622f1a` completed and all four rigs integrated. No rented GPU.
+Job `6abfb00b404719ba37622f1a` completed and all four rigs integrated. Latest
+hero retarget used local CPU; no new cloud job or rented GPU.
 Unity now operates in persistent local batch mode with Metal, without desktop Editor.
 Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 
 ## Verified evidence
-- 13/13 real PlayMode tests pass, including controls, attack timing, dodge cancellation,
-  foot contacts, unchanged 0.2m deformation limit, materials, progression and restart.
-  Enemy timing test also confirms no floor outlines during wind-up or impact.
-- Latest Mac build `build_1ad04f9ab460`: Succeeded, zero errors, 443,255,510 bytes.
-  One expected warning: remote Pipeline runtime disabled in packaged app.
-- Latest packaged startup smoke passed. Native new build shows enemy attacks and
-  incoming damage without red floor outlines, plus the updated death hint.
-  Receipt: `artifacts/no-cones-native.png`; native full clear was not verified.
-- Reusable skill `unity-blender-cpu-art/references/original-hero.md` updated with
-  motion, CPU cloud dependencies/private IO, input isolation and validation learnings.
+- 14/14 real PlayMode tests pass after final clean-cache build, including actual
+  deformed boot floor clearance during movement/turns, controls, combat and restart.
+  Original .2m deformation limit and directional travel thresholds retained.
+- Build `build_50200eeef63c`: Succeeded, zero errors, 487,613,862 bytes.
+  One expected warning: Pipeline remote runtime disabled in packaged app.
+- Packaged startup smoke passed. Native startup, input/dodge, first-wave roster and
+  restart visibly checked. App left at the safe entrance for user review.
+- Identical 200-frame before/after real-input side/game-camera recordings:
+  `artifacts/locomotion-before.mp4`, `artifacts/locomotion-after.mp4`.
+  Independent still review sees clearer running silhouette and grounded stopped pose;
+  continuous cadence and user game-feel acceptance remain separate.
+- Agent verified original mesh/weights/rest matrices unchanged, corrected wrists and
+  sampled baked sole minimum -0.000005264m. Hero geometry/textures remain original.
+- Tool review: `art/tooling-review.md`. CC0 animation reference is pinned and reproducible.
+  Added original `blender-procedural-assets` Codex skill with fixture-tested mesh checker;
+  updated `unity-blender-cpu-art` with shader and retarget checks. Both validate.
+  Snyk skill decision record: `art/snyk-skill-review.md`.
 
 ## Closed failures
 Previous 8/11 input tests failed with physical desktop/focus interference. Scoped
@@ -55,3 +65,10 @@ Hands/grip, simple weapons, facial detail and world presentation remain prototyp
 limits. Native full clear, human difficulty/pacing, sustained FPS and Windows unverified.
 No Git remote/deployment target. Preserve unrelated Blender copies, old caches,
 review captures and TimeManager migration outside scoped commits.
+
+Latest build cache recovery: `build_f6311beefc92` misleadingly said Succeeded with
+13,994 TypeDB errors. Verified old Editor process exited, preserved Library under
+artifacts/Library-before-motion-retarget, then rebuilt from a fresh cache. Same
+build workflow passed with zero errors; full 14-test suite and player smoke also pass.
+The first acceleration candidate failed a 135° reversal travel; corrected 48m/s² passes
+the same threshold. Retarget wrist and sole defects were corrected and rechecked.

@@ -153,7 +153,9 @@ namespace Ashvault.Tests
         [Test]
         public void RunFootContactMatchesRootTravel()
         {
-            foreach (string path in new[] { "Hero/Warden", "Enemies/Revenant", "Enemies/Orc", "Enemies/Warlock" })
+            // These clips have a flat ankle stance. The hero now uses heel/toe roll,
+            // validated against the deformed boot geometry in the moving test below.
+            foreach (string path in new[] { "Enemies/Revenant", "Enemies/Orc", "Enemies/Warlock" })
             {
                 var model = Object.Instantiate(Resources.Load<GameObject>(path));
                 try
@@ -171,6 +173,54 @@ namespace Ashvault.Tests
                 }
                 finally { Object.DestroyImmediate(model); }
             }
+        }
+
+        [UnityTest]
+        public IEnumerator AuthoredHeroBootsClearFloorDuringTravelAndTurns()
+        {
+            run.enabled = false;
+            var player = run.Player;
+            var controller = player.GetComponent<CharacterController>();
+            controller.enabled = false;
+            player.transform.position = new Vector3(0, .04f, -4);
+            var skin = System.Array.Find(player.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name == "Warden armour");
+            Assert.IsNotNull(skin);
+            var weights = skin.sharedMesh.boneWeights;
+            var feet = new System.Collections.Generic.HashSet<int>();
+            for (int i = 0; i < skin.bones.Length; i++) if (skin.bones[i].name.StartsWith("Foot.")) feet.Add(i);
+            var indices = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < weights.Length; i++)
+            {
+                var w = weights[i];
+                if (feet.Contains(w.boneIndex0) && w.weight0 > .6f) indices.Add(i);
+            }
+            Assert.Greater(indices.Count, 100);
+            var mesh = new Mesh(); int contacts = 0; float maximumLift = 0;
+            int oldRate = Time.captureFramerate; Time.captureFramerate = 30;
+            try
+            {
+                yield return null;
+                for (int frame = 0; frame < 60; frame++)
+                {
+                    player.transform.rotation = Quaternion.Euler(0, frame < 30 ? 0 : Mathf.Min(60, (frame - 30) * 6), 0);
+                    player.transform.position += player.transform.forward * (.14f);
+                    yield return null;
+                    skin.BakeMesh(mesh, false);
+                    var vertices = mesh.vertices;
+                    float low = float.PositiveInfinity, high = float.NegativeInfinity;
+                    foreach (int index in indices)
+                    {
+                        float y = skin.transform.TransformPoint(vertices[index]).y;
+                        low = Mathf.Min(low, y); high = Mathf.Max(high, y);
+                    }
+                    Assert.Greater(low, -.025f, $"Boot sole penetrates floor at frame {frame}");
+                    if (low < .065f) contacts++;
+                    maximumLift = Mathf.Max(maximumLift, high);
+                }
+                Assert.Greater(contacts, 8, "Running must repeatedly contact the floor.");
+                Assert.Greater(maximumLift, .3f, "The swing boot must lift, not shuffle flat.");
+            }
+            finally { Time.captureFramerate = oldRate; Object.DestroyImmediate(mesh); controller.enabled = true; }
         }
 
         [UnityTest]
@@ -223,7 +273,7 @@ namespace Ashvault.Tests
                     yield return new WaitForSeconds(.3f);
                     Vector3 travelled=Vector3.ProjectOnPlane(player.transform.position-start,Vector3.up);
                     Assert.Less(Vector3.Angle(player.transform.forward,directions[i]),5,"Walking must turn the whole hero, independent of cursor.");
-                    Assert.Greater(Vector3.Dot(travelled,directions[i]),.5f);
+                    Assert.Greater(Vector3.Dot(travelled,directions[i]),.5f,$"Direction {i}, start {start}, travel {travelled}");
                     Assert.LessOrEqual(travelled.magnitude/(Time.time-began),player.speed*1.08f,"Diagonal speed must stay bounded.");
                 }
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState());

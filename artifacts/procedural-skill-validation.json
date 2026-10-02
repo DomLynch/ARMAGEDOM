@@ -1,0 +1,47 @@
+{
+  "valid_cube": true,
+  "degenerate_triangle_detected": true,
+  "source_unchanged": true,
+  "report": {
+    "source": "/private/tmp/ashvault-skill-fixture.blend",
+    "blender": "5.2.1 LTS",
+    "meshes": [
+      {
+        "object": "ClosedCube",
+        "vertices": 8,
+        "faces": 6,
+        "nonfinite_vertices": 0,
+        "degenerate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "signed_local_volume": 7.999999999999999,
+        "validation_would_repair": false,
+        "uv_layers": 1,
+        "material_slots": 1,
+        "object_scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "object": "DegenerateTriangle",
+        "vertices": 3,
+        "faces": 1,
+        "nonfinite_vertices": 0,
+        "degenerate_faces": 1,
+        "boundary_edges": 3,
+        "nonmanifold_edges": 3,
+        "signed_local_volume": 0.0,
+        "validation_would_repair": false,
+        "uv_layers": 0,
+        "material_slots": 0,
+        "object_scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  }
+}

@@ -84,3 +84,40 @@ The run pilot image and strike image are Unity render checks, not concept images
 - https://docs.unity.com/en-us/engine/6000.3/manual/unity-editor/command-line-arguments/editor
 - https://huggingface.co/docs/hub/main/en/jobs-pricing
 - https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.InputSettings.html
+
+## Authored hero locomotion — 2026-10-02
+
+One-hero refinement: pinned Mesh2Motion CC0 Sprint motion retargeted on local CPU
+to the original Warden rig, keeping existing idle/attack clips and all enemy clips.
+No purchased tools or new cloud GPU job. Existing HF Pro CPU workflow remains
+available; this small retarget bake completed locally. Source/license and tool
+decisions: `art/reference-motion/README.md`, `art/tooling-review.md`.
+
+1. Base gait: world/anatomical bone mapping, consistent wrist alignment, original
+   mesh/weights/rest matrices verified unchanged. Actual weighted boot geometry
+   corrected to ground during bake. Independent sampled minimum Z=-0.000005264m,
+   wrist angles14.36°/22.61°, zero joint gaps. Original .2m deformation test passes.
+2. Transitions: distance-driven cycle, weighted idle/run/strike blending and bounded
+   travel acceleration/deceleration. Initial26m/s² response drifted too far on the
+   test's135° reversal;48m/s² passes the unchanged directional travel threshold.
+3. Contacts: runtime cosmetic two-bone solve caches actual boot geometry, grounds
+   soles through blends and holds contact points during turns. Releases for dodge
+   or unreachable contact. Controller collision/damage remain independent.
+4. Review: `MotionReview.Start(label)` records200frames of identical synthetic
+   real-input idle/travel/stop/restart/right-turn/reverse/stop at30fps. Outputs
+   side/game views and world-foot CSV under `artifacts/locomotion-{label}`.
+
+All14 PlayMode checks pass. A new live deformed-boot test replaces the hero-only
+flat-ankle assumption (heel/toe roll moves the ankle during contact); the original
+flat-stance test remains unchanged for all three enemies. New test selects the
+body by its verified model name, because the sword also carries the full bone list.
+Naturalness remains a visual/user acceptance question; tests do not establish AAA.
+
+Final build `build_50200eeef63c` has zero errors and startup smoke passes. The prior
+TypeDB cache failure is retained in `artifacts/motion-build-cache-failure.json`;
+a verified Editor exit and fresh Library cleared it. Final14/14 suite also passed
+after rebuilding. Native startup, dodge/input, first wave and restart checked; app
+left at the entrance. Independent before/after still review found clearer running
+silhouette and no new obvious deformation; complete cadence/user feel remains
+for re-check. CodeGraph post-edit MCP refresh timed out; explicit CLI sync retry
+succeeded (already up to date). Actual source review and gates cover changed paths.

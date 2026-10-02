@@ -10,9 +10,10 @@ namespace Ashvault
         public int weaponLevel, armourLevel;
         public float attackReady, heavyReady, specialReady, dodgeReady;
         public Health Life { get; private set; }
+        public bool Dodging => Time.time < dodgeEnd;
         CharacterController body;
         Camera view;
-        Vector3 dodgeDirection;
+        Vector3 dodgeDirection, travelVelocity;
         float dodgeEnd, swingUntil;
         int swingVersion;
         Transform visual;
@@ -27,7 +28,7 @@ namespace Ashvault
             }
             leftClick.Enable(); rightClick.Enable();
         }
-        void OnDisable() { leftClick?.Disable(); rightClick?.Disable(); }
+        void OnDisable() { leftClick?.Disable(); rightClick?.Disable(); travelVelocity = Vector3.zero; }
         void OnDestroy() { leftClick?.Dispose(); rightClick?.Dispose(); }
 
 
@@ -71,9 +72,11 @@ namespace Ashvault
             {
                 var rotation = Quaternion.LookRotation(facing);
                 // Attack sectors must face their target on the exact damage frame.
-                transform.rotation = attack >= 0 ? rotation : Quaternion.RotateTowards(transform.rotation, rotation, 900 * Time.deltaTime);
+                transform.rotation = attack >= 0 ? rotation : Quaternion.RotateTowards(transform.rotation, rotation, 720 * Time.deltaTime);
             }
-            body.Move(((dodging ? dodgeDirection * 16 : move * speed * (swinging ? 0 : 1)) + Vector3.down * 8) * Time.deltaTime);
+            travelVelocity = swinging || dodging ? Vector3.zero : Vector3.MoveTowards(travelVelocity,
+                move * speed, (move.sqrMagnitude > .01f ? 48 : 34) * Time.deltaTime);
+            body.Move(((dodging ? dodgeDirection * 16 : travelVelocity) + Vector3.down * 8) * Time.deltaTime);
             if (visual)
             {
                 visual.localPosition = new Vector3(0, dodging ? .1f : 0, 0);

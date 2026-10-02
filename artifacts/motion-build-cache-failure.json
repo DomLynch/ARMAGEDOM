@@ -1,0 +1,10 @@
+{
+  "buildId": "build_f6311beefc92",
+  "status": "completed",
+  "result": "Succeeded",
+  "totalErrors": 13994,
+  "totalWarnings": 1,
+  "firstError": {
+    "message": "TypeDB: Class 'Ashvault.ArenaBuilder' was already registered, previous declaration was in 'Ashvault.dll' with 0 fields, current declaration is in 'Ashvault.dll'. Please check if your project doesn't contain classes with duplicate names. For ex., non-generic 'class MyClass' and generic 'class MyClass<T>."
+  }
+}

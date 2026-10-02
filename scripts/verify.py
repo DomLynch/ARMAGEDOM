@@ -63,7 +63,7 @@ if state:
                 json.dumps(result, indent=2)
             )
             summary = result["summary"]
-            assert summary["total"] >= 13 and summary["passed"] == summary["total"], (
+            assert summary["total"] >= 14 and summary["passed"] == summary["total"], (
                 result
             )
             print("PASS: real Unity Play Mode suite", summary)
@@ -91,7 +91,7 @@ else:
     )
     result = ET.parse(report).getroot()
     assert (
-        int(result.attrib.get("passed", "0")) >= 13
+        int(result.attrib.get("passed", "0")) >= 14
         and result.attrib["result"] == "Passed"
     )
     print("PASS: headless Unity Play Mode suite")

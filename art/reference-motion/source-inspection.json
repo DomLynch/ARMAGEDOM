@@ -1,0 +1,1147 @@
+{
+  "source_url": "https://raw.githubusercontent.com/Mesh2Motion/mesh2motion-app/79f3f61a9852ef70234a5a4a7c13ed87f7a71833/static/animations/human-base-animations.glb",
+  "source_commit": "79f3f61a9852ef70234a5a4a7c13ed87f7a71833",
+  "sha256": "406eb0a8dc4ab366e623b79b6e3005a4951392e1bda78ae39c1099d31147733c",
+  "bytes": 5656648,
+  "animations": [
+    {
+      "name": "Chest_Open",
+      "channels": 198
+    },
+    {
+      "name": "Chop_Tree",
+      "channels": 198
+    },
+    {
+      "name": "ClimbUp_1m_RM",
+      "channels": 198
+    },
+    {
+      "name": "Consume",
+      "channels": 198
+    },
+    {
+      "name": "Crouch_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Crouch_Walk",
+      "channels": 198
+    },
+    {
+      "name": "Dance_Simple",
+      "channels": 198
+    },
+    {
+      "name": "Death_D",
+      "channels": 198
+    },
+    {
+      "name": "Driving",
+      "channels": 198
+    },
+    {
+      "name": "Farm_Harvest",
+      "channels": 198
+    },
+    {
+      "name": "Farm_PlantSeed",
+      "channels": 198
+    },
+    {
+      "name": "Farm_Watering",
+      "channels": 198
+    },
+    {
+      "name": "Fixing_Kneeling",
+      "channels": 198
+    },
+    {
+      "name": "Hit_Chest",
+      "channels": 199
+    },
+    {
+      "name": "Hit_Head",
+      "channels": 198
+    },
+    {
+      "name": "Hit_Knockback",
+      "channels": 198
+    },
+    {
+      "name": "Hit_Knockback_RM",
+      "channels": 198
+    },
+    {
+      "name": "Idle_A",
+      "channels": 198
+    },
+    {
+      "name": "Idle_FoldArms",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Lantern",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Rail",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Rail_Call",
+      "channels": 198
+    },
+    {
+      "name": "Idle_ShakeOff",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Shield",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Shield_Break",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Sword",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Talking",
+      "channels": 198
+    },
+    {
+      "name": "Idle_TalkingPhone",
+      "channels": 198
+    },
+    {
+      "name": "Idle_Torch",
+      "channels": 198
+    },
+    {
+      "name": "Interact",
+      "channels": 198
+    },
+    {
+      "name": "Jog",
+      "channels": 198
+    },
+    {
+      "name": "Jump_air",
+      "channels": 198
+    },
+    {
+      "name": "Jump_Land",
+      "channels": 198
+    },
+    {
+      "name": "Jump_Start",
+      "channels": 198
+    },
+    {
+      "name": "LayToIdle",
+      "channels": 198
+    },
+    {
+      "name": "Melee_Hook",
+      "channels": 198
+    },
+    {
+      "name": "Melee_Hook_Rec",
+      "channels": 198
+    },
+    {
+      "name": "NinjaJump_Idle",
+      "channels": 198
+    },
+    {
+      "name": "NinjaJump_Land",
+      "channels": 198
+    },
+    {
+      "name": "NinjaJump_Start",
+      "channels": 198
+    },
+    {
+      "name": "OverhandThrow",
+      "channels": 198
+    },
+    {
+      "name": "PickUp_Table",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Aim_Down",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Aim_Neutral",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Aim_Up",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Reload",
+      "channels": 198
+    },
+    {
+      "name": "Pistol_Shoot",
+      "channels": 198
+    },
+    {
+      "name": "Punch_Cross",
+      "channels": 198
+    },
+    {
+      "name": "Punch_Jab",
+      "channels": 198
+    },
+    {
+      "name": "Push",
+      "channels": 198
+    },
+    {
+      "name": "Roll",
+      "channels": 198
+    },
+    {
+      "name": "Roll_RM",
+      "channels": 198
+    },
+    {
+      "name": "Shield_Dash_RM",
+      "channels": 198
+    },
+    {
+      "name": "Shield_OneShot",
+      "channels": 198
+    },
+    {
+      "name": "Sitting_Enter",
+      "channels": 198
+    },
+    {
+      "name": "Sitting_Exit",
+      "channels": 198
+    },
+    {
+      "name": "Sitting_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Sitting_Talking",
+      "channels": 198
+    },
+    {
+      "name": "Slide",
+      "channels": 198
+    },
+    {
+      "name": "Slide_Exit",
+      "channels": 198
+    },
+    {
+      "name": "Slide_Start",
+      "channels": 198
+    },
+    {
+      "name": "Spell_Simple_Enter",
+      "channels": 198
+    },
+    {
+      "name": "Spell_Simple_Exit",
+      "channels": 198
+    },
+    {
+      "name": "Spell_Simple_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Spell_Simple_Shoot",
+      "channels": 198
+    },
+    {
+      "name": "Sprint",
+      "channels": 198
+    },
+    {
+      "name": "Swim_Fwd",
+      "channels": 198
+    },
+    {
+      "name": "Swim_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Attack",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Attack_RM",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Block",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Dash_RM",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_A",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_A_Rec",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_B",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_B_Rec",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_C",
+      "channels": 198
+    },
+    {
+      "name": "Sword_Regular_C_RM",
+      "channels": 396
+    },
+    {
+      "name": "Sword_Regular_Combo",
+      "channels": 198
+    },
+    {
+      "name": "Walk",
+      "channels": 198
+    },
+    {
+      "name": "Walk_Carry",
+      "channels": 198
+    },
+    {
+      "name": "Walk_Formal",
+      "channels": 198
+    },
+    {
+      "name": "Yes",
+      "channels": 198
+    },
+    {
+      "name": "Zombie_Idle",
+      "channels": 198
+    },
+    {
+      "name": "Zombie_Scratch",
+      "channels": 198
+    },
+    {
+      "name": "Zombie_Walk",
+      "channels": 198
+    }
+  ],
+  "nodes": [
+    {
+      "index": 0,
+      "name": "head_leaf",
+      "translation": [
+        2.7755152099155286e-17,
+        0.08258671313524246,
+        -4.656612873077393e-10
+      ],
+      "children": null
+    },
+    {
+      "index": 1,
+      "name": "head",
+      "translation": [
+        5.967448333843743e-15,
+        0.1028909981250763,
+        -6.379559636116028e-08
+      ],
+      "children": [
+        0
+      ]
+    },
+    {
+      "index": 2,
+      "name": "neck_01",
+      "translation": [
+        -2.4250854102625397e-10,
+        0.16543574631214142,
+        0.001866072416305542
+      ],
+      "children": [
+        1
+      ]
+    },
+    {
+      "index": 3,
+      "name": "index_04_leaf_l",
+      "translation": [
+        -9.222276275977492e-09,
+        0.02412494830787182,
+        5.180932660664439e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 4,
+      "name": "index_03_l",
+      "translation": [
+        -2.7030182536691427e-09,
+        0.02780400961637497,
+        6.088363591061352e-09
+      ],
+      "children": [
+        3
+      ]
+    },
+    {
+      "index": 5,
+      "name": "index_02_l",
+      "translation": [
+        -7.682501745875925e-09,
+        0.03822464495897293,
+        1.8623070729972824e-07
+      ],
+      "children": [
+        4
+      ]
+    },
+    {
+      "index": 6,
+      "name": "index_01_l",
+      "translation": [
+        0.0019998373463749886,
+        0.11350490152835846,
+        0.04602818936109543
+      ],
+      "children": [
+        5
+      ]
+    },
+    {
+      "index": 7,
+      "name": "middle_04_leaf_l",
+      "translation": [
+        -3.5452103475108743e-09,
+        0.032602086663246155,
+        8.253630312538007e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 8,
+      "name": "middle_03_l",
+      "translation": [
+        7.631570042576641e-09,
+        0.03328521177172661,
+        -1.1422579859754478e-07
+      ],
+      "children": [
+        7
+      ]
+    },
+    {
+      "index": 9,
+      "name": "middle_02_l",
+      "translation": [
+        6.326445145532489e-09,
+        0.04149850085377693,
+        -2.236663760868396e-07
+      ],
+      "children": [
+        8
+      ]
+    },
+    {
+      "index": 10,
+      "name": "middle_01_l",
+      "translation": [
+        -0.00040034562698565423,
+        0.11804056912660599,
+        0.020533181726932526
+      ],
+      "children": [
+        9
+      ]
+    },
+    {
+      "index": 11,
+      "name": "pinky_04_leaf_l",
+      "translation": [
+        2.1917003323324025e-08,
+        0.026842748746275902,
+        -9.723828497953946e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 12,
+      "name": "pinky_03_l",
+      "translation": [
+        -2.296474121976644e-09,
+        0.02579972706735134,
+        -7.585185812786222e-10
+      ],
+      "children": [
+        11
+      ]
+    },
+    {
+      "index": 13,
+      "name": "pinky_02_l",
+      "translation": [
+        2.6520865503698587e-09,
+        0.035834793001413345,
+        -1.9017116414943303e-07
+      ],
+      "children": [
+        12
+      ]
+    },
+    {
+      "index": 14,
+      "name": "pinky_01_l",
+      "translation": [
+        0.0015995776047930121,
+        0.10989028215408325,
+        -0.03559767082333565
+      ],
+      "children": [
+        13
+      ]
+    },
+    {
+      "index": 15,
+      "name": "ring_04_leaf_l",
+      "translation": [
+        1.2801137927453965e-08,
+        0.029609767720103264,
+        -2.3203779164759908e-07
+      ],
+      "children": null
+    },
+    {
+      "index": 16,
+      "name": "ring_03_l",
+      "translation": [
+        1.8571881810203195e-09,
+        0.033095136284828186,
+        -1.942351985917412e-07
+      ],
+      "children": [
+        15
+      ]
+    },
+    {
+      "index": 17,
+      "name": "ring_02_l",
+      "translation": [
+        1.571333996253088e-08,
+        0.036588795483112335,
+        4.073272918958537e-08
+      ],
+      "children": [
+        16
+      ]
+    },
+    {
+      "index": 18,
+      "name": "ring_01_l",
+      "translation": [
+        -0.00010020265472121537,
+        0.11526656150817871,
+        -0.008064378052949905
+      ],
+      "children": [
+        17
+      ]
+    },
+    {
+      "index": 19,
+      "name": "thumb_04_leaf_l",
+      "translation": [
+        -1.7316779121756554e-07,
+        0.029425516724586487,
+        3.259629011154175e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 20,
+      "name": "thumb_03_l",
+      "translation": [
+        1.9033905118703842e-07,
+        0.04382622614502907,
+        -1.7695128917694092e-08
+      ],
+      "children": [
+        19
+      ]
+    },
+    {
+      "index": 21,
+      "name": "thumb_02_l",
+      "translation": [
+        -5.0044036470353603e-08,
+        0.049909256398677826,
+        -6.984919309616089e-09
+      ],
+      "children": [
+        20
+      ]
+    },
+    {
+      "index": 22,
+      "name": "thumb_01_l",
+      "translation": [
+        0.022799700498580933,
+        0.027299948036670685,
+        0.03360000252723694
+      ],
+      "children": [
+        21
+      ]
+    },
+    {
+      "index": 23,
+      "name": "hand_l",
+      "translation": [
+        1.9492755143346585e-07,
+        0.272640585899353,
+        -7.450029926303614e-09
+      ],
+      "children": [
+        6,
+        10,
+        14,
+        18,
+        22
+      ]
+    },
+    {
+      "index": 24,
+      "name": "lowerarm_l",
+      "translation": [
+        -2.415849280623661e-07,
+        0.2744402587413788,
+        5.729816621169448e-09
+      ],
+      "children": [
+        23
+      ]
+    },
+    {
+      "index": 25,
+      "name": "upperarm_l",
+      "translation": [
+        1.0244548320770264e-08,
+        0.22129219770431519,
+        7.566995918750763e-08
+      ],
+      "children": [
+        24
+      ]
+    },
+    {
+      "index": 26,
+      "name": "clavicle_l",
+      "translation": [
+        0.018799975514411926,
+        0.12222224473953247,
+        0.10658818483352661
+      ],
+      "children": [
+        25
+      ]
+    },
+    {
+      "index": 27,
+      "name": "index_04_leaf_r",
+      "translation": [
+        -1.2666532711591572e-08,
+        0.024124959483742714,
+        6.172416533445357e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 28,
+      "name": "index_03_r",
+      "translation": [
+        -6.146365194581449e-09,
+        0.027804020792245865,
+        -1.0274292350231917e-07
+      ],
+      "children": [
+        27
+      ]
+    },
+    {
+      "index": 29,
+      "name": "index_02_r",
+      "translation": [
+        1.6974809113889933e-08,
+        0.03822467848658562,
+        1.6467828345412272e-07
+      ],
+      "children": [
+        28
+      ]
+    },
+    {
+      "index": 30,
+      "name": "index_01_r",
+      "translation": [
+        -0.0019997158087790012,
+        0.11350517719984055,
+        0.04602812975645065
+      ],
+      "children": [
+        29
+      ]
+    },
+    {
+      "index": 31,
+      "name": "middle_04_leaf_r",
+      "translation": [
+        3.5415723687037826e-09,
+        0.032602131366729736,
+        -3.00239548778336e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 32,
+      "name": "middle_03_r",
+      "translation": [
+        3.5433913581073284e-09,
+        0.03328513726592064,
+        -1.0636813385644928e-07
+      ],
+      "children": [
+        31
+      ]
+    },
+    {
+      "index": 33,
+      "name": "middle_02_r",
+      "translation": [
+        -2.3892425815574825e-08,
+        0.04149848222732544,
+        -3.4290511052859074e-07
+      ],
+      "children": [
+        32
+      ]
+    },
+    {
+      "index": 34,
+      "name": "middle_01_r",
+      "translation": [
+        0.00040047019138000906,
+        0.11804083734750748,
+        0.020533114671707153
+      ],
+      "children": [
+        33
+      ]
+    },
+    {
+      "index": 35,
+      "name": "pinky_04_leaf_r",
+      "translation": [
+        -1.63308868650347e-08,
+        0.02684282697737217,
+        2.3247991975949844e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 36,
+      "name": "pinky_03_r",
+      "translation": [
+        -1.0742951417341828e-08,
+        0.02579980529844761,
+        2.3873298005128163e-07
+      ],
+      "children": [
+        35
+      ]
+    },
+    {
+      "index": 37,
+      "name": "pinky_02_r",
+      "translation": [
+        6.002665031701326e-09,
+        0.035834748297929764,
+        -1.932869224674505e-07
+      ],
+      "children": [
+        36
+      ]
+    },
+    {
+      "index": 38,
+      "name": "pinky_01_r",
+      "translation": [
+        -0.0015994462883099914,
+        0.10989052802324295,
+        -0.03559773042798042
+      ],
+      "children": [
+        37
+      ]
+    },
+    {
+      "index": 39,
+      "name": "ring_04_leaf_r",
+      "translation": [
+        -2.2115273168310523e-08,
+        0.0296099204570055,
+        -3.4702705420386337e-07
+      ],
+      "children": null
+    },
+    {
+      "index": 40,
+      "name": "ring_03_r",
+      "translation": [
+        5.4569682106375694e-12,
+        0.033095166087150574,
+        -3.0991208177511e-07
+      ],
+      "children": [
+        39
+      ]
+    },
+    {
+      "index": 41,
+      "name": "ring_02_r",
+      "translation": [
+        -8.191818778868765e-09,
+        0.03658882901072502,
+        4.331278091740387e-08
+      ],
+      "children": [
+        40
+      ]
+    },
+    {
+      "index": 42,
+      "name": "ring_01_r",
+      "translation": [
+        0.00010033061698777601,
+        0.1152668222784996,
+        -0.008064445108175278
+      ],
+      "children": [
+        41
+      ]
+    },
+    {
+      "index": 43,
+      "name": "thumb_04_leaf_r",
+      "translation": [
+        -1.2345844879746437e-07,
+        0.02942546084523201,
+        4.377216100692749e-08
+      ],
+      "children": null
+    },
+    {
+      "index": 44,
+      "name": "thumb_03_r",
+      "translation": [
+        -1.6068224795162678e-07,
+        0.04382627457380295,
+        -7.078051567077637e-08
+      ],
+      "children": [
+        43
+      ]
+    },
+    {
+      "index": 45,
+      "name": "thumb_02_r",
+      "translation": [
+        -9.506766218692064e-08,
+        0.04990924522280693,
+        2.6542693376541138e-08
+      ],
+      "children": [
+        44
+      ]
+    },
+    {
+      "index": 46,
+      "name": "thumb_01_r",
+      "translation": [
+        -0.022799815982580185,
+        0.027300041168928146,
+        0.03360000625252724
+      ],
+      "children": [
+        45
+      ]
+    },
+    {
+      "index": 47,
+      "name": "hand_r",
+      "translation": [
+        -1.1331010796311602e-07,
+        0.27264049649238586,
+        -8.359261727264311e-09
+      ],
+      "children": [
+        30,
+        34,
+        38,
+        42,
+        46
+      ]
+    },
+    {
+      "index": 48,
+      "name": "lowerarm_r",
+      "translation": [
+        6.979632871662034e-09,
+        0.2744401693344116,
+        -1.2612872524186969e-08
+      ],
+      "children": [
+        47
+      ]
+    },
+    {
+      "index": 49,
+      "name": "upperarm_r",
+      "translation": [
+        6.05359673500061e-09,
+        0.221292182803154,
+        -4.6100467443466187e-08
+      ],
+      "children": [
+        48
+      ]
+    },
+    {
+      "index": 50,
+      "name": "clavicle_r",
+      "translation": [
+        -0.018800005316734314,
+        0.12222224473953247,
+        0.10658818483352661
+      ],
+      "children": [
+        49
+      ]
+    },
+    {
+      "index": 51,
+      "name": "spine_03",
+      "translation": [
+        5.036120679381944e-16,
+        0.14127187430858612,
+        9.313225746154785e-10
+      ],
+      "children": [
+        2,
+        26,
+        50
+      ]
+    },
+    {
+      "index": 52,
+      "name": "spine_02",
+      "translation": [
+        5.462623473543758e-15,
+        0.12403508275747299,
+        -2.7153873816132545e-08
+      ],
+      "children": [
+        51
+      ]
+    },
+    {
+      "index": 53,
+      "name": "spine_01",
+      "translation": [
+        -5.828670879282072e-16,
+        0.1381763368844986,
+        1.7695128917694092e-08
+      ],
+      "children": [
+        52
+      ]
+    },
+    {
+      "index": 54,
+      "name": "ball_leaf_l",
+      "translation": [
+        3.2750049339114184e-09,
+        0.07889992743730545,
+        9.727916250312774e-10
+      ],
+      "children": null
+    },
+    {
+      "index": 55,
+      "name": "ball_l",
+      "translation": [
+        1.8681021174415946e-08,
+        0.17330090701580048,
+        -2.731394488364458e-08
+      ],
+      "children": [
+        54
+      ]
+    },
+    {
+      "index": 56,
+      "name": "foot_l",
+      "translation": [
+        -7.291419024113566e-09,
+        0.4294799864292145,
+        -2.9831426218152046e-10
+      ],
+      "children": [
+        55
+      ]
+    },
+    {
+      "index": 57,
+      "name": "calf_l",
+      "translation": [
+        1.1145173672844066e-08,
+        0.40030965209007263,
+        -1.0012035644990647e-10
+      ],
+      "children": [
+        56
+      ]
+    },
+    {
+      "index": 58,
+      "name": "thigh_l",
+      "translation": [
+        0.08899997919797897,
+        0.027770835906267166,
+        0.04602379724383354
+      ],
+      "children": [
+        57
+      ]
+    },
+    {
+      "index": 59,
+      "name": "ball_leaf_r",
+      "translation": [
+        -1.1671787980560566e-08,
+        0.07889991998672485,
+        -6.651461603723874e-10
+      ],
+      "children": null
+    },
+    {
+      "index": 60,
+      "name": "ball_r",
+      "translation": [
+        -1.1192241800017655e-08,
+        0.1733008623123169,
+        -2.8572685550898314e-08
+      ],
+      "children": [
+        59
+      ]
+    },
+    {
+      "index": 61,
+      "name": "foot_r",
+      "translation": [
+        2.250203579023946e-08,
+        0.42947983741760254,
+        -5.293259164318442e-09
+      ],
+      "children": [
+        60
+      ]
+    },
+    {
+      "index": 62,
+      "name": "calf_r",
+      "translation": [
+        -2.6508853778750563e-08,
+        0.4003097712993622,
+        4.610640758073714e-10
+      ],
+      "children": [
+        61
+      ]
+    },
+    {
+      "index": 63,
+      "name": "thigh_r",
+      "translation": [
+        -0.08899997919797897,
+        0.027770835906267166,
+        0.04602379351854324
+      ],
+      "children": [
+        62
+      ]
+    },
+    {
+      "index": 64,
+      "name": "pelvis",
+      "translation": [
+        0,
+        0.05010002851486206,
+        0.916700005531311
+      ],
+      "children": [
+        53,
+        58,
+        63
+      ]
+    },
+    {
+      "index": 65,
+      "name": "root",
+      "translation": null,
+      "children": [
+        64
+      ]
+    },
+    {
+      "index": 66,
+      "name": "Mannequin",
+      "translation": null,
+      "children": null
+    },
+    {
+      "index": 67,
+      "name": "Armature",
+      "translation": null,
+      "children": [
+        66,
+        65
+      ]
+    }
+  ]
+}

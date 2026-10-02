@@ -1,11 +1,11 @@
 {
   "status": "completed",
-  "buildId": "build_1ad04f9ab460",
+  "buildId": "build_50200eeef63c",
   "result": "Succeeded",
   "platform": "StandaloneOSX",
   "outputPath": "/Users/domininclynch/Desktop/Business/Ashvault/Builds/Ashvault.app",
-  "totalSizeBytes": 443255510,
-  "buildTimeMs": 21403,
+  "totalSizeBytes": 487613862,
+  "buildTimeMs": 23107,
   "totalWarnings": 1,
   "totalErrors": 0,
   "warnings": [
