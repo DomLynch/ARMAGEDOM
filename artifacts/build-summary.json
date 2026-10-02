@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "result": "Succeeded",
+  "platform": "StandaloneOSX",
+  "outputPath": "/Users/domininclynch/Desktop/Business/Ashvault/Builds/Ashvault.app",
+  "totalSizeBytes": 111096613,
+  "totalErrors": 0,
+  "warnings": [
+    {
+      "message": "Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds."
+    }
+  ]
+}

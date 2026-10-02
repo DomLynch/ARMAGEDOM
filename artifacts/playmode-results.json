@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 7.56,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "Ashvault.Tests.RunTests.AttacksRespectRangeDirectionCooldownAndWalls",
+      "Status": "Passed",
+      "Duration": 1.511816,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.DodgeBlocksDamageThenExpiresAndDeathRestarts",
+      "Status": "Passed",
+      "Duration": 0.5872255,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EnemyStrikeStaysSynchronizedWithTelegraphWhenStaggered",
+      "Status": "Passed",
+      "Duration": 0.633059,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EntranceWaitsForPlayerAndStartsOnMovement",
+      "Status": "Passed",
+      "Duration": 2.4192318,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.LootStrengthensPlayerAndFullRunReachesVictory",
+      "Status": "Passed",
+      "Duration": 2.245201,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.RenderMaterialsAreExplicitBuildDependencies",
+      "Status": "Passed",
+      "Duration": 0.068963,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

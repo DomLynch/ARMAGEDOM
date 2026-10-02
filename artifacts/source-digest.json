@@ -1,0 +1,11 @@
+{
+  "sha256": "e1552a440a3a2df51a83c58dc9b8ade74528126580f2dc750cd935095e15f9ea",
+  "scope": [
+    "Game/Assets/Scripts",
+    "Game/Assets/Editor",
+    "Game/Assets/Tests",
+    "Game/Assets/Resources",
+    "Game/ProjectSettings",
+    "Game/Packages"
+  ]
+}

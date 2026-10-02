@@ -1,0 +1,25 @@
+{
+  "before": {
+    "x": 0,
+    "z": -6,
+    "hp": 100,
+    "dodgeReady": 0,
+    "time": 36.6077538
+  },
+  "afterMovement": {
+    "x": -1.72541344,
+    "z": -3.55566478,
+    "hp": 100,
+    "dodgeReady": 0,
+    "time": 37.50796
+  },
+  "afterDodge": {
+    "x": -1.72541344,
+    "z": -3.55566478,
+    "hp": 100,
+    "dodgeReady": 0,
+    "time": 38.1070671
+  },
+  "movementPassed": true,
+  "dodgePassed": false
+}

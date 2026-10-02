@@ -1,0 +1,4 @@
+{
+  "name": "Ashvault",
+  "references": ["Unity.InputSystem", "Unity.ugui", "Unity.TextMeshPro"]
+}
