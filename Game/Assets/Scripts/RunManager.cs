@@ -21,7 +21,7 @@ namespace Ashvault
         int kills;
         Transform cameraTransform;
         Vector3 cameraVelocity;
-        readonly Vector3 cameraOffset = new Vector3(12, 22, -17);
+        readonly Vector3 cameraOffset = new Vector3(5, 8, -6);
 
         void Awake() => Instance = this;
 
@@ -36,13 +36,13 @@ namespace Ashvault
             var camera = cameraObject.GetComponent<Camera>();
             cameraObject.AddComponent<HeroView>();
             camera.orthographic = true;
-            camera.orthographicSize = 5.7f;
+            camera.orthographicSize = 3.905f;
             camera.nearClipPlane = .1f;
             camera.farClipPlane = 160;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(.025f, .035f, .05f);
             cameraTransform = cameraObject.transform;
-            cameraTransform.rotation = Quaternion.LookRotation(-cameraOffset);
+            cameraTransform.rotation = Quaternion.LookRotation(new Vector3(0, .8f, 2) - cameraOffset);
             cameraTransform.position = Player.transform.position + cameraOffset;
             Started = Time.time;
             nextWave = Time.time + 2;
@@ -75,8 +75,8 @@ namespace Ashvault
             for (int i = 0; i < count; i++)
             {
                 int kind = Wave == 3 ? 3 : i % 3;
-                float x = count == 1 ? 0 : (i % 5 - 2) * 2.7f;
-                Vector3 position = new Vector3(x, 0, 2 + (i / 5) * 3);
+                float x = count == 1 ? 0 : (i % 5 - 2) * 1.7f;
+                Vector3 position = new Vector3(x, 0, -1 + (i / 5) * 2.4f);
                 var go = ArenaBuilder.Actor(kind == 3 ? "Orc Warlord" : kind == 1 ? "Orc Executioner" : kind == 2 ? "Plague Warlock" : "Ash Revenant", position, kind);
                 var enemy = go.AddComponent<EnemyController>();
                 enemy.kind = kind;

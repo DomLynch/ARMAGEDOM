@@ -33,7 +33,7 @@ namespace Ashvault
             if (Keyboard.current.vKey.wasPressedThisFrame) Toggle();
             if (!Inspecting)
             {
-                if (Mouse.current!=null) view.orthographicSize=Mathf.Clamp(view.orthographicSize-Mouse.current.scroll.ReadValue().y*.002f,4.5f,8f);
+                if (Mouse.current!=null) view.orthographicSize=Mathf.Clamp(view.orthographicSize-Mouse.current.scroll.ReadValue().y*.002f,3f,8f);
                 return;
             }
             float turn=(Keyboard.current.rightArrowKey.isPressed?1:0)-(Keyboard.current.leftArrowKey.isPressed?1:0);

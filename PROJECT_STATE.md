@@ -32,7 +32,7 @@ Receipts/reproduction: `art/hero/motion-notes.md`, `art/enemies/roster.md`.
 - 15/15 real PlayMode tests pass, including actual deformed sole clearance,
   planted-vertex drift, turns/stops, Warlock retreat/staff clearance, controls and combat.
   Original .2m deformation limit and directional travel thresholds retained.
-- Build `build_3c18afcd4b69`: Succeeded, zero errors, 488,065,862 bytes.
+- Build `build_4b1d1731369c`: Succeeded, zero errors, 488,065,862 bytes.
   One expected warning: Pipeline remote runtime disabled in packaged app.
 - Packaged startup smoke passed. Native startup, movement/dodge, first-wave roster, incoming damage/death and
   restart visibly checked. App left at the safe entrance for user review.
@@ -88,8 +88,29 @@ Three200-frame game/side captures: artifacts/{revenant,orc,warlock}-authored.mp4
 The reusable unity-blender-cpu-art reference now includes these verified lessons.
 Workspace deploy lock cleared before further bakes; no bypass or paid compute.
 
-## Camera preview request
-Three actual-engine1600x1000 stills in artifacts/camera-options: tighter isometric,
-over-shoulder, low straight-behind. Same staged room/hero/three mobs. Preview only;
-packaged camera remains unchanged. User selection pending. Lower views expose
-unfinished room horizon/walls and need camera/aim/collision work before adoption.
+## Closer camera delivery — 2026-10-02
+User selected the first elevated isometric preview and explicitly requested it live.
+Default orthographic size is now 3.905 (10% wider than the selected 3.55 preview; originally 5.7), matching the preview angle and
+forward framing. Scroll zoom range is 3–8; inspection still restores gameplay view.
+Enemy columns are 1.7m apart (was 2.7m), starting at Z=-1 (was 2), with 2.4m
+row spacing. Same room, roster, counts and controls; six line replacements, no new components.
+User initially checked the original closer framing, then requested this 10% zoom-out.
+15/15 PlayMode tests pass; build_4b1d1731369c succeeded with zero errors and one
+expected Pipeline warning; packaged startup smoke passes. Restarted the native app
+onto the new build and observed the closer view during the user's first-wave play/death.
+User is checking camera comfort and encounter pacing; no further input sent into their run.
+
+## Zoom-out and slant previews — delivered 2026-10-02
+User subsequently requested the 10% zoom-out live, plus preview-only lower angles.
+Size3.905 passes all15 PlayMode tests. Four actual-engine stills share identical
+staged actors/zoom: artifacts/camera-slant/{00-current-zoom-out,01-subtle-34deg,
+02-balanced-30deg,03-lower-26deg}.png. Angle options are not applied to gameplay.
+First test polling briefly lost Pipeline during domain reload; full gate rerun passes.
+Builds461b22abe849 and ba3a3f1f8507 misleadingly report Succeeded with6999 duplicate
+TypeDB errors. Restart alone did not fix it. Editor stopped, Library preserved in
+artifacts/Library-before-camera-build; fresh import fixed it. Build4b1d1731369c passed with zero errors; packaged smoke passed.
+Native app relaunched and the zoom-out verified at the safe entrance. Lower angles
+remain preview-only. No new runtime components/LOC; no remote/cloud deployment.
+Two-pass review checked zoom clamp/inspection restore, follow framing and spawn scope.
+Post-edit CodeGraph returned fresh HeroView source; cache pollution required direct
+RunManager diff review. Existing search context reused for this small numeric edit.
