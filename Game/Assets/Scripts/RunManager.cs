@@ -39,7 +39,7 @@ namespace Ashvault
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.GetComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 10.7f;
+            camera.orthographicSize = 6.8f;
             camera.nearClipPlane = .1f;
             camera.farClipPlane = 160;
             camera.clearFlags = CameraClearFlags.SolidColor;
@@ -100,7 +100,7 @@ namespace Ashvault
                 int kind = Chamber == 3 ? 3 : Chamber == 0 && Wave == 1 ? 0 : (i + Wave) % 3;
                 float x = count == 1 ? 0 : (i % 5 - 2) * 2.7f;
                 Vector3 position = new Vector3(x, 0, Chamber * 24 + 3 + (i / 5) * 3);
-                var go = ArenaBuilder.Actor(kind == 3 ? "The Crownless" : kind == 1 ? "Brute" : kind == 2 ? "Ember seer" : "Hollow", position, kind);
+                var go = ArenaBuilder.Actor(kind == 3 ? "The Crownless" : kind == 1 ? "Ogre" : kind == 2 ? "Warlock" : i % 2 == 0 ? "Goblin" : "Orc raider", position, kind);
                 var enemy = go.AddComponent<EnemyController>();
                 enemy.kind = kind;
                 float hp = (kind == 3 ? 1600 : kind == 1 ? 190 : kind == 2 ? 80 : 90) * (kind == 3 ? 1 : 1 + Chamber * .25f);

@@ -1,45 +1,38 @@
 # Ashvault — 2026-10-02
 
-## Objective
-One local isometric ARPG run: move, fight, dodge, collect upgrades, beat a boss,
-die/restart. Target 5–10 minutes, 3 normal enemy types, 4 connected chambers.
+## Objective and scope
+Small local isometric action RPG: four chambers, melee combat, dodge, upgrades,
+boss and restart. Target run length 5–10 minutes. No backend, accounts, networking
+or inventory grid. Unity 6000.3.25f1, Built-in renderer, Mac desktop app.
 
-## Decisions
-- New local Git repository, no remote/deployment target.
-- Unity 6000.3.25f1 Apple Silicon LTS installed; Personal license activated.
-- Built-in 3D rendering and native primitives; no art-generation dependency.
-- Gameplay owns root transforms/colliders; `Visual` child owns appearance.
-- Alternatives: imported art-first slows the experiment; full controller packages
-  add dependencies; native small components selected.
-- Scope: only this repository plus its Codex handover; do not inspect/change Frankendom.
+## Current delivery
+- Gothic art pass built at `Builds/Ashvault.app` and visibly opened on the Mac.
+- Nine runtime scripts; gameplay roots/colliders remain separate from visual children.
+- Licensed Flare rigged knight, goblin, hobgoblin variants, warlock and skeleton mage;
+  original Blender ruins and CC0 Poly Haven stone textures. Attribution ships in StreamingAssets.
+- CPU albedo/AO baking, explicit materials, corrected FBX scaling and UV atlases,
+  idle/run/attack clips, closer camera and muted palette. Orc/ogre share a base model.
+- Local Blender CPU only; no paid GPU or cloud job/spend. No remote or deployment target.
 
-## Verification
-- CLI 1.0.0-beta.12 installed; account sign-in verified.
-- Game project created with official Built-in 3D template and Pipeline package.
-- First batch compile + scene setup succeeded (`artifacts/setup.log`: ASHVAULT_SETUP_PASS).
-- Eight runtime scripts implement combat, four chambers, three enemies, boss,
-  nine pickup variants, and restart: 775 runtime lines, 982 total C# lines including setup/tests.
-- User completed Editor terms. TMP resources imported; UI uses Canvas/TMP.
-- Six real Play Mode tests passed (`artifacts/playmode-results.json`). Covers attack
-  range/facing/cooldown/walls, dodge/invulnerability/expiry, death/restart,
-  telegraph timing under stagger, loot, full chamber/boss progression, shader assets,
-  and the entrance waiting safely until the player moves or attacks.
-- Simulated W input passed. Simulated Space missed the event; actual native Space
-  input passed without gameplay changes. See `artifacts/input-review.md`.
-- First standalone build failed: Standard shader stripped, causing ArenaBuilder.Start
-  to fail. Fixed by explicit Resources material assets; subsequent actual Mac player
-  headless smoke passed (`artifacts/player-smoke.json`).
-- Required gates: `python3 scripts/verify.py` and `python3 scripts/smoke_mac.py`.
-- Packages trimmed to Input System, uGUI/TMP, test framework and Pipeline plus Unity modules.
-- Pipeline is intentionally disabled in the standalone app. Its build warning is expected.
-- Local-only project: no remote, CI, deployment service, telemetry/backend, or paid compute.
+## Verified evidence
+- Final art/code version: 7/7 real PlayMode tests passed in `artifacts/playmode-results.json`.
+  Covers combat, dodge, restart, telegraph timing, full run/loot, shader dependencies,
+  plus six-actor geometry height, material/texture dependencies, clips and collider separation.
+- Mac build `build_6092935520d4`: succeeded, zero errors; expected Pipeline-runtime-disabled warning.
+- Actual standalone startup smoke passed without exceptions; assembly hash in
+  `artifacts/player-smoke.json`. Required gates are `scripts/verify.py` and `scripts/smoke_mac.py`.
+- Native visible review: textured stone/ruins, knight and first-wave creatures render;
+  W/Space movement and dodge observed (0.6s cooldown), 1 shockwave observed (6.2s
+  cooldown), enemy approach/death observed, R restores safe entrance and 100 HP.
+- Real reusable skill saved and validated at
+  `/Users/domininclynch/.codex/skills/unity-blender-cpu-art/SKILL.md`.
+  Project-specific details live in `art/UNITY-ART-WORKFLOW.md`.
 
-## Final desktop proof / remaining validation
-- Universal Mac `.app` built successfully, zero build errors; actual headless startup
-  check passed after the final rebuild. Visible standalone arena/HUD reviewed.
-- Native standalone keyboard checks: 1 displayed its 6.7-second cooldown; Space
-  moved the player and displayed its 0.3-second remaining cooldown; R reset to 100 HP.
-- Demo is ready for the user's first playtest; entrance stays safe until input.
-- Human game-feel, difficulty and 5–10 minute run length need user playtesting.
-- Windows source compatibility is intended; a Windows build has not been run.
-- Placeholder actors have separable visuals, not skeletal animation rigs.
+## Remaining acceptance
+The prototype is playable for review. Creatures remain visibly stylized; this does
+not yet meet the requested grounded Witcher character fidelity. Lighting/contact
+shadows and character materials need further refinement. Prioritize one approved
+character at game scale before another roster pass. Human difficulty, feel and
+5–10 minute pacing await user playtesting; Windows build remains untested.
+Old source Blender reflection-image warnings do not indicate a runtime dependency:
+Unity uses exported baked textures, which were checked in the native build.

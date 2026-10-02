@@ -1,0 +1,22 @@
+[
+  {
+    "source": "art_src_hd/characters/goblin/goblin.blend",
+    "sha256": "34efa9f53e1ed89b372b9b1dcedd97264978186df0e65ea19483be7700e3a318",
+    "bytes": 1859352
+  },
+  {
+    "source": "art_src_hd/characters/hobgoblin/hobgoblin.blend",
+    "sha256": "2813da3dcf4e307d00c4acbc521e894cddb8d6c684ecca429f48cb7588fc0297",
+    "bytes": 1659597
+  },
+  {
+    "source": "art_src_hd/characters/hero/hero.blend",
+    "sha256": "ae7e44c56802718639667062360633975947f344825514e1ebe33c75b0f42988",
+    "bytes": 14124708
+  },
+  {
+    "source": "art_src_hd/characters/skeleton_bosses/skeleton_mage_high.blend",
+    "sha256": "b13c9f4521fb0d258e78d87b8f0cd4d1da0fbc89656a8ee713baeb7e97ba977e",
+    "bytes": 10424434
+  }
+]

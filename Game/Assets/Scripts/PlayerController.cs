@@ -79,6 +79,7 @@ namespace Ashvault
             float range = kind == 2 ? 4.2f : kind == 1 ? 3.2f : 2.6f;
             float angle = kind == 2 ? 360 : kind == 1 ? 130 : 100;
             float amount = damage * (kind == 2 ? 2.2f : kind == 1 ? 2.1f : 1);
+            GetComponent<ArtMotion>()?.Swing();
             attackReady = Time.time + (kind == 0 ? .32f : .55f);
             if (kind == 1) heavyReady = Time.time + 1.6f;
             if (kind == 2) specialReady = Time.time + 7;

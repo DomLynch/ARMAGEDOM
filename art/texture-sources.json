@@ -1,0 +1,30 @@
+[
+  {
+    "asset": "monastery_stone_floor",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/monastery_stone_floor/monastery_stone_floor_diff_1k.jpg",
+    "path": "Game/Assets/Resources/Gothic/Textures/FloorColor.jpg",
+    "md5": "8e748f767d8e478438ef748833365754",
+    "license": "CC0"
+  },
+  {
+    "asset": "monastery_stone_floor",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/monastery_stone_floor/monastery_stone_floor_nor_gl_1k.jpg",
+    "path": "Game/Assets/Resources/Gothic/Textures/FloorNormal.jpg",
+    "md5": "257ccdbbe1c2a23f74cece55b81861ac",
+    "license": "CC0"
+  },
+  {
+    "asset": "medieval_wall_02",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/medieval_wall_02/medieval_wall_02_diff_1k.jpg",
+    "path": "Game/Assets/Resources/Gothic/Textures/WallColor.jpg",
+    "md5": "35394495938c916ea291e11e718c2a6d",
+    "license": "CC0"
+  },
+  {
+    "asset": "medieval_wall_02",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/medieval_wall_02/medieval_wall_02_nor_gl_1k.jpg",
+    "path": "Game/Assets/Resources/Gothic/Textures/WallNormal.jpg",
+    "md5": "9f90bd2c03ed28c69f4e2ca6e7435117",
+    "license": "CC0"
+  }
+]

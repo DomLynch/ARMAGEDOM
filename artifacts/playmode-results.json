@@ -1,9 +1,9 @@
 {
   "status": "completed",
-  "duration": 7.56,
+  "duration": 7.83,
   "summary": {
-    "total": 6,
-    "passed": 6,
+    "total": 7,
+    "passed": 7,
     "failed": 0,
     "skipped": 0,
     "inconclusive": 0
@@ -12,42 +12,49 @@
     {
       "FullName": "Ashvault.Tests.RunTests.AttacksRespectRangeDirectionCooldownAndWalls",
       "Status": "Passed",
-      "Duration": 1.511816,
+      "Duration": 1.5834985,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.DodgeBlocksDamageThenExpiresAndDeathRestarts",
       "Status": "Passed",
-      "Duration": 0.5872255,
+      "Duration": 0.5851157,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EnemyStrikeStaysSynchronizedWithTelegraphWhenStaggered",
       "Status": "Passed",
-      "Duration": 0.633059,
+      "Duration": 0.649929,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EntranceWaitsForPlayerAndStartsOnMovement",
       "Status": "Passed",
-      "Duration": 2.4192318,
+      "Duration": 2.3896616,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.GothicModelsKeepScaleMaterialsAndGameplaySeparation",
+      "Status": "Passed",
+      "Duration": 0.2062304,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.LootStrengthensPlayerAndFullRunReachesVictory",
       "Status": "Passed",
-      "Duration": 2.245201,
+      "Duration": 2.2294205,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.RenderMaterialsAreExplicitBuildDependencies",
       "Status": "Passed",
-      "Duration": 0.068963,
+      "Duration": 0.14831,
       "Message": null,
       "StackTrace": null
     }

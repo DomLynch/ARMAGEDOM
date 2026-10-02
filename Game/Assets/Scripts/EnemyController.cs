@@ -71,6 +71,7 @@ namespace Ashvault
             lockedPoint = transform.position;
             float delay = kind == 0 ? .4f : kind == 2 ? .65f : 1.05f;
             strikeAt = Time.time + delay;
+            GetComponent<ArtMotion>()?.Swing(delay);
             bool ranged = kind == 2 || IsBoss && bossPattern == 2;
             warning = CombatEffect.Sector(lockedPoint, direction, ranged ? 8 : Radius,
                 ranged ? 8 : Arc, new Color(1, .35f, .18f), delay);

@@ -16,9 +16,9 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
 ## Keep it small
 
-Eight runtime files in `Game/Assets/Scripts`: arena construction, run flow,
-player, enemy, health, combat effects, pickups, and HUD. No backend or multiplayer.
-All art is native placeholder geometry. No paid cloud jobs are needed.
+Nine runtime files in `Game/Assets/Scripts`: arena construction, run flow,
+player, enemy, health, combat effects, pickups, HUD, and cosmetic skeletal animation. No backend or multiplayer.
+Gothic art uses original Blender ruins, CC0 scanned stone, and credited Flare character sources. No paid cloud jobs were used.
 
 ## Replace art
 
@@ -26,7 +26,7 @@ Each actor has a gameplay root (CharacterController, Health, controller) and a
 `Visual` child. Replace that child's contents without changing the root or collider.
 Use FBX exported from Blender for Unity's native import. GLB needs a glTF importer
 or conversion in Blender; this prototype intentionally does not add one.
-The placeholder Hips hierarchy is a naming aid, not a rigged Mecanim Humanoid.
+The imported rigs use Legacy Idle/Run/Attack clips; no Mecanim retargeting is required.
 Aim is local +Z; world up is +Y; 1 unit is 1 metre.
 
 ## Verify
@@ -44,3 +44,13 @@ then `python3 scripts/smoke_mac.py` to launch/check the actual Mac build headles
 These commands are configured in `.quality-gate.json`. Stop Play Mode first.
 
 The canonical status and known limitations are in `PROJECT_STATE.md`.
+
+## Rebuild the art
+
+`art/build_gothic.py` authors the ruins; `art/convert_flare.py` converts the credited
+Blender characters and bakes muted albedo on CPU (four threads). Run either with
+Blender background mode, then use `Ashvault/Import gothic art` in the editor.
+The original source files, licenses, import metadata and texture receipts are retained.
+`Game/Assets/StreamingAssets/ART-CREDITS.txt` and the upstream notices ship in the app.
+The orc and ogre currently share a hobgoblin source at different sizes; this is a
+small dark-fantasy visual prototype, not Witcher-level production artwork.

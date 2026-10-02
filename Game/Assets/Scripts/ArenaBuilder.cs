@@ -6,7 +6,7 @@ namespace Ashvault
     public static class ArenaBuilder
     {
         public static Material Gold, Teal, Ember, Heal;
-        static Material stone, dark, metal, bone;
+        static Material stone, floor, dark, metal;
 
         static Material Surface(Color color)
         {
@@ -25,6 +25,12 @@ namespace Ashvault
             go.transform.localPosition = position;
             go.transform.localScale = size;
             go.GetComponent<Renderer>().sharedMaterial = material;
+            if (material == dark && type == PrimitiveType.Cube)
+            {
+                var tiled = new Material(material);
+                tiled.mainTextureScale = new Vector2(Mathf.Max(size.x, size.z) / 3.5f, size.y / 3.5f);
+                go.GetComponent<Renderer>().sharedMaterial = tiled;
+            }
             var collider = go.GetComponent<Collider>();
             if (!solid) { collider.enabled = false; Object.Destroy(collider); }
             else go.layer = 8;
@@ -37,29 +43,43 @@ namespace Ashvault
             Teal = Surface(new Color(.17f, .60f, .64f));
             Ember = Surface(new Color(.88f, .27f, .12f));
             Heal = Surface(new Color(.4f, .82f, .47f));
-            stone = Surface(new Color(.24f, .28f, .32f));
-            dark = Surface(new Color(.10f, .13f, .17f));
+            stone = Resources.Load<Material>("Gothic/Materials/Floor");
+            dark = Resources.Load<Material>("Gothic/Materials/Wall");
             metal = Surface(new Color(.49f, .54f, .60f));
-            bone = Surface(new Color(.72f, .69f, .59f));
-            RenderSettings.ambientLight = new Color(.43f, .49f, .58f);
+            floor = new Material(stone);
+            floor.mainTextureScale = Vector2.one * 10;
+            QualitySettings.shadows = ShadowQuality.All;
+            QualitySettings.shadowResolution = ShadowResolution.High;
+            QualitySettings.shadowDistance = 70;
+            QualitySettings.pixelLightCount = 4;
+            QualitySettings.antiAliasing = 4;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(.30f, .33f, .37f);
+            RenderSettings.ambientEquatorColor = new Color(.18f, .19f, .21f);
+            RenderSettings.ambientGroundColor = new Color(.07f, .065f, .055f);
             RenderSettings.fog = true;
             RenderSettings.fogColor = new Color(.06f, .08f, .11f);
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogDensity = .009f;
             var sun = new GameObject("Cold skylight").AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.color = new Color(.68f, .80f, 1);
-            sun.intensity = 1.15f;
+            sun.color = new Color(.79f, .85f, .90f);
+            sun.intensity = 1.1f;
+            sun.renderMode = LightRenderMode.ForcePixel;
+            RenderSettings.sun = sun;
             sun.shadows = LightShadows.Soft;
+            sun.shadowBias = .025f;
+            sun.shadowNormalBias = .25f;
+            sun.shadowStrength = .85f;
             sun.transform.rotation = Quaternion.Euler(48, -35, 0);
             var world = new GameObject("Ruined vault").transform;
             for (int room = 0; room < 4; room++)
             {
                 float z = room * 24;
+                var ruins = Object.Instantiate(Resources.Load<GameObject>("Gothic/Ruins"), world, false);
+                ruins.transform.localPosition = new Vector3(0, 0, z);
                 Shape("Chamber foundation", PrimitiveType.Cube, new Vector3(0, -.94f, z), new Vector3(21, 1.4f, 21), dark, world);
-                for (int x = -4; x <= 4; x++)
-                    for (int y = -4; y <= 4; y++)
-                        Shape("Stone slab", PrimitiveType.Cube, new Vector3(x * 2.2f, -.12f, z + y * 2.2f), new Vector3(2.15f, .24f, 2.15f), stone, world);
+                Shape("Weathered flagstones", PrimitiveType.Cube, new Vector3(0, -.12f, z), new Vector3(21, .24f, 21), floor, world);
                 Shape("West wall", PrimitiveType.Cube, new Vector3(-10.3f, 1, z), new Vector3(.6f, 2, 21), dark, world);
                 Shape("East wall", PrimitiveType.Cube, new Vector3(10.3f, 1, z), new Vector3(.6f, 2, 21), dark, world);
                 for (int side = -1; side <= 1; side += 2)
@@ -68,12 +88,9 @@ namespace Ashvault
                     {
                         Shape("Portal wall", PrimitiveType.Cube, new Vector3(side * 6.7f, .75f, z + end * 10.3f), new Vector3(7.1f, 1.5f, .6f), dark, world);
                         Vector3 post = new Vector3(side * 7.5f, 1.1f, z + end * 6.6f);
-                        Shape("Broken pillar", PrimitiveType.Cylinder, post, new Vector3(1, 1.1f, 1), stone, world);
-                        Shape("Pillar cap", PrimitiveType.Cube, post + Vector3.up * 1.1f, new Vector3(1.2f, .25f, 1.2f), dark, world);
+                        Shape("Pillar collision", PrimitiveType.Cylinder, post, new Vector3(1, 1.1f, 1), stone, world).GetComponent<Renderer>().enabled = false;
                     }
                     Vector3 brazier = new Vector3(side * 3.6f, .4f, z + 8.7f);
-                    Shape("Brazier", PrimitiveType.Cylinder, brazier, new Vector3(.65f, .4f, .65f), metal, world);
-                    Shape("Ember", PrimitiveType.Sphere, brazier + Vector3.up * .55f, Vector3.one * .45f, Ember, world, false);
                     var light = new GameObject("Warm firelight").AddComponent<Light>();
                     light.transform.position = brazier + Vector3.up * 1.1f;
                     light.type = LightType.Point;
@@ -89,7 +106,7 @@ namespace Ashvault
                 gate.transform.SetParent(world);
                 gate.transform.position = new Vector3(0, 0, z + 11);
                 for (int i = -3; i <= 3; i++)
-                    Shape("Gate bar", PrimitiveType.Cube, new Vector3(i, 1.1f, 0), new Vector3(.14f, 2.2f, .22f), Gold, gate.transform, false);
+                    Shape("Gate bar", PrimitiveType.Cube, new Vector3(i, 1.1f, 0), new Vector3(.085f, 3.5f, .10f), metal, gate.transform, false);
                 var block = gate.AddComponent<BoxCollider>();
                 block.center = Vector3.up;
                 block.size = new Vector3(6.4f, 2, .35f);
@@ -113,27 +130,15 @@ namespace Ashvault
             root.AddComponent<Health>();
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
-            Material cloth = kind == -1 ? Teal : kind == 1 ? metal : kind == 2 ? Ember : dark;
-            var hips = new GameObject("Hips").transform;
-            hips.SetParent(visual, false);
-            Shape("Torso", PrimitiveType.Capsule, new Vector3(0, 1.1f, 0), new Vector3(.65f, .43f, .42f), cloth, hips, false);
-            Shape("Head", PrimitiveType.Sphere, new Vector3(0, 1.78f, 0), new Vector3(.43f, .48f, .43f), kind == -1 ? metal : bone, hips, false);
-            Shape("Visor", PrimitiveType.Cube, new Vector3(0, 1.8f, .21f), new Vector3(.3f, .09f, .08f), kind == -1 ? Gold : Ember, hips, false);
-            for (int side = -1; side <= 1; side += 2)
+            string model = kind == -1 ? "Knight" : kind == 1 ? "Ogre" : kind == 2 ? "Warlock" : kind == 3 ? "Necromancer" : name == "Orc raider" ? "Orc" : "Goblin";
+            Object.Instantiate(Resources.Load<GameObject>("Gothic/" + model), visual, false);
+            root.AddComponent<ArtMotion>().headProportion = kind == 0 ? .63f : kind == 1 ? .72f : 1;
+            if (kind == -1)
             {
-                Shape(side == -1 ? "Left leg" : "Right leg", PrimitiveType.Capsule, new Vector3(side * .19f, .43f, 0), new Vector3(.24f, .28f, .25f), dark, hips, false);
-                Shape(side == -1 ? "Left arm" : "Right arm", PrimitiveType.Capsule, new Vector3(side * .43f, 1.16f, .05f), new Vector3(.22f, .30f, .23f), cloth, hips, false);
-                Shape("Pauldron", PrimitiveType.Sphere, new Vector3(side * .40f, 1.45f, 0), new Vector3(.37f, .26f, .35f), metal, hips, false);
-            }
-            Shape("Weapon grip", PrimitiveType.Cube, new Vector3(.46f, .98f, .44f), new Vector3(.10f, .10f, .56f), Gold, hips, false);
-            Shape(kind == 2 ? "Staff" : "Blade", PrimitiveType.Cube, new Vector3(.46f, 1, .94f), new Vector3(kind == 1 ? .36f : .14f, .10f, .80f), kind == 2 ? Ember : metal, hips, false);
-            if (kind == -1) Shape("Shield", PrimitiveType.Cube, new Vector3(-.49f, 1.08f, .18f), new Vector3(.12f, .65f, .50f), Gold, hips, false);
-            if (kind == 1) visual.localScale = new Vector3(1.35f, 1.15f, 1.35f);
-            if (kind == 3)
-            {
-                visual.localScale = Vector3.one * 1.75f;
-                for (int i = -1; i <= 1; i++)
-                    Shape("Broken crown", PrimitiveType.Cube, new Vector3(i * .16f, 2.05f, 0), new Vector3(.10f, .36f, .15f), Gold, hips, false);
+                var rim = new GameObject("Warden lantern").AddComponent<Light>();
+                rim.transform.SetParent(root.transform, false);
+                rim.transform.localPosition = new Vector3(0, 2.4f, -.8f);
+                rim.color = new Color(.83f, .78f, .65f); rim.range = 5; rim.intensity = .9f;
             }
             return root;
         }

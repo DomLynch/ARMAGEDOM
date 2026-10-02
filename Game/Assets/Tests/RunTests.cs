@@ -21,6 +21,64 @@ namespace Ashvault.Tests
             }
         }
 
+        [Test]
+        public void GothicModelsKeepScaleMaterialsAndGameplaySeparation()
+        {
+            foreach (string name in new[] { "Knight", "Goblin", "Orc", "Ogre", "Warlock", "Necromancer" })
+            {
+                var asset = Resources.Load<GameObject>("Gothic/" + name);
+                Assert.IsNotNull(asset, name);
+                var model = Object.Instantiate(asset);
+                try
+                {
+                    Assert.AreEqual(0, model.GetComponentsInChildren<Collider>().Length, name + " art must not change collision.");
+                    var renderers = model.GetComponentsInChildren<Renderer>();
+                    Assert.Greater(renderers.Length, 0);
+                    Assert.Less(renderers.Length, 36, name + " details must be batched.");
+                    var animation = model.GetComponentInChildren<Animation>();
+                    Assert.IsNotNull(animation, name + " needs its skeletal animation.");
+                    animation["Idle"].clip.SampleAnimation(model, 0);
+                    var bounds = new Bounds();
+                    bool firstVertex = true;
+                    foreach (var renderer in renderers)
+                    {
+                        // Renderer.bounds includes every imported animation, not current geometry.
+                        if (renderer is SkinnedMeshRenderer skin)
+                        {
+                            var mesh = new Mesh();
+                            skin.BakeMesh(mesh);
+                            foreach (var vertex in mesh.vertices)
+                            {
+                                var point = renderer.transform.TransformPoint(vertex);
+                                Assert.IsFalse(float.IsNaN(point.y) || float.IsInfinity(point.y));
+                                if (firstVertex) { bounds = new Bounds(point, Vector3.zero); firstVertex = false; }
+                                else bounds.Encapsulate(point);
+                            }
+                            Object.DestroyImmediate(mesh);
+                        }
+                        else
+                        {
+                            if (firstVertex) { bounds = renderer.bounds; firstVertex = false; }
+                            else bounds.Encapsulate(renderer.bounds);
+                        }
+                        foreach (var material in renderer.sharedMaterials)
+                        {
+                            Assert.IsNotNull(material);
+                            Assert.AreEqual("Standard", material.shader.name);
+                            Assert.IsNotNull(material.mainTexture, name + " lost its material remap.");
+                        }
+                    }
+                    Assert.That(bounds.size.y, Is.InRange(1f, 3.5f), name + " must import at metre scale.");
+                    foreach (string clip in new[] { "Idle", "Run", "Attack" })
+                    {
+                        Assert.IsNotNull(animation[clip], name + " lost " + clip);
+                        Assert.Greater(animation[clip].length, 0);
+                    }
+                }
+                finally { Object.DestroyImmediate(model); }
+            }
+        }
+
         [UnitySetUp]
         public IEnumerator Setup()
         {
