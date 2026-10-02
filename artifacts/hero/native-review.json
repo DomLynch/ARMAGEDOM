@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-02",
+  "build_id": "build_d359485e8c8b",
+  "build_errors": 0,
+  "playmode_tests": "8/8",
+  "native_smoke": {
+    "ready": true,
+    "exceptions": false,
+    "observed_seconds": 4,
+    "assembly_sha256": "ed9c12404dbebffe6ef69b43e677287cdff6a493c0bb17b55dc5a955a5ebb621"
+  },
+  "native_review": [
+    "Original hero rendered with PBR maps",
+    "V inspection hides HUD and returns to gameplay",
+    "Arrow orbit input exercised",
+    "Movement and dodge exercised",
+    "Special ability cooldown observed",
+    "Restart exercised"
+  ],
+  "image": "native-inspection.png",
+  "performance": "Short sample confounded by focus pauses; p95 about17.4ms, average not accepted as benchmark. No sustained combat FPS claim.",
+  "limitations": [
+    "Procedural animations and joint weights remain prototype quality",
+    "Simple sword; world/enemy fidelity unchanged",
+    "Human feel/pacing and Windows unverified"
+  ],
+  "assets_sha256": "39e0835e2ccfa7fd5edaa8806055fc1304968e13524ec7b086caa60ad8faa795",
+  "asset_file_count": 276,
+  "editor_pose_review": "Final Attack sample at 0.3s: connected geometry, no obvious shoulder explosion; still-frame check only."
+}

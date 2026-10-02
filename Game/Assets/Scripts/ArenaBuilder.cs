@@ -49,7 +49,10 @@ namespace Ashvault
             floor = new Material(stone);
             floor.mainTextureScale = Vector2.one * 10;
             QualitySettings.shadows = ShadowQuality.All;
-            QualitySettings.shadowResolution = ShadowResolution.High;
+            QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
+            RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = Resources.Load<Cubemap>("Hero/VaultReflection");
+            RenderSettings.reflectionIntensity = .85f;
             QualitySettings.shadowDistance = 70;
             QualitySettings.pixelLightCount = 4;
             QualitySettings.antiAliasing = 4;
@@ -131,7 +134,7 @@ namespace Ashvault
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
             string model = kind == -1 ? "Knight" : kind == 1 ? "Ogre" : kind == 2 ? "Warlock" : kind == 3 ? "Necromancer" : name == "Orc raider" ? "Orc" : "Goblin";
-            Object.Instantiate(Resources.Load<GameObject>("Gothic/" + model), visual, false);
+            Object.Instantiate(Resources.Load<GameObject>(kind == -1 ? "Hero/Warden" : "Gothic/" + model), visual, false);
             root.AddComponent<ArtMotion>().headProportion = kind == 0 ? .63f : kind == 1 ? .72f : 1;
             if (kind == -1)
             {

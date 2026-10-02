@@ -38,6 +38,7 @@ namespace Ashvault
             var cameraObject = new GameObject("Isometric camera", typeof(Camera), typeof(AudioListener));
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.GetComponent<Camera>();
+            cameraObject.AddComponent<HeroView>();
             camera.orthographic = true;
             camera.orthographicSize = 6.8f;
             camera.nearClipPlane = .1f;

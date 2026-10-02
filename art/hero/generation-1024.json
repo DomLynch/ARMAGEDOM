@@ -1,0 +1,9 @@
+{
+  "space": "microsoft/TRELLIS.2",
+  "paid_job": false,
+  "seed": 28419,
+  "resolution": 1024,
+  "triangles_target": 100000,
+  "texture_size": 2048,
+  "seconds": 42.5
+}

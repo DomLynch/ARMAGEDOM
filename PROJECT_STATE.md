@@ -2,37 +2,52 @@
 
 ## Objective and scope
 Small local isometric action RPG: four chambers, melee combat, dodge, upgrades,
-boss and restart. Target run length 5–10 minutes. No backend, accounts, networking
-or inventory grid. Unity 6000.3.25f1, Built-in renderer, Mac desktop app.
+boss and restart. Target run length 5–10 minutes. No backend/accounts/networking.
+Unity 6000.3.25f1, Built-in renderer, Mac desktop app at `Builds/Ashvault.app`.
 
 ## Current delivery
-- Gothic art pass built at `Builds/Ashvault.app` and visibly opened on the Mac.
-- Nine runtime scripts; gameplay roots/colliders remain separate from visual children.
-- Licensed Flare rigged knight, goblin, hobgoblin variants, warlock and skeleton mage;
-  original Blender ruins and CC0 Poly Haven stone textures. Attribution ships in StreamingAssets.
-- CPU albedo/AO baking, explicit materials, corrected FBX scaling and UV atlases,
-  idle/run/attack clips, closer camera and muted palette. Orc/ogre share a base model.
-- Local Blender CPU only; no paid GPU or cloud job/spend. No remote or deployment target.
+Original HD Warden replaces the earlier Flare hero: original generated reference,
+TRELLIS.2 reconstructed body, 198,630 body triangles, 4K PBR maps, original 19-bone
+CPU rig, idle/run/attack clips and Ashblade. Reflection lighting gives steel readable
+highlights. Geometry and visual components remain separate from gameplay colliders.
+V pauses into the same hero/materials close-up; arrows orbit; V restores gameplay/HUD.
+Mouse wheel adjusts gameplay zoom. Ten runtime scripts.
+
+Original Blender ruins, CC0 stone and credited Flare enemies remain from the previous
+pass. This task improves the hero; orc/ogre still share a base model.
+No purchased hero asset, paid HF Job or paid GPU compute. Two successful official
+TRELLIS.2 shared-GPU runs stayed within included quota (overquotaUsed=0). Rigging and
+conversion ran locally on CPU. This is not CPU-only reconstruction.
 
 ## Verified evidence
-- Final art/code version: 7/7 real PlayMode tests passed in `artifacts/playmode-results.json`.
-  Covers combat, dodge, restart, telegraph timing, full run/loot, shader dependencies,
-  plus six-actor geometry height, material/texture dependencies, clips and collider separation.
-- Mac build `build_6092935520d4`: succeeded, zero errors; expected Pipeline-runtime-disabled warning.
-- Actual standalone startup smoke passed without exceptions; assembly hash in
-  `artifacts/player-smoke.json`. Required gates are `scripts/verify.py` and `scripts/smoke_mac.py`.
-- Native visible review: textured stone/ruins, knight and first-wave creatures render;
-  W/Space movement and dodge observed (0.6s cooldown), 1 shockwave observed (6.2s
-  cooldown), enemy approach/death observed, R restores safe entrance and 100 HP.
-- Real reusable skill saved and validated at
-  `/Users/domininclynch/.codex/skills/unity-blender-cpu-art/SKILL.md`.
-  Project-specific details live in `art/UNITY-ART-WORKFLOW.md`.
+- 8/8 real PlayMode tests passed after final HUD fix, including combat, dodge,
+  restart, full-run progression, import materials/clips, and inspection state/HUD.
+- Build `build_d359485e8c8b`: succeeded, zero errors, 211,911,926 bytes.
+  One expected warning: remote Pipeline runtime disabled in distributed app.
+- Actual Mac startup smoke passed without exceptions; assembly SHA256 recorded in
+  `artifacts/player-smoke.json`. Gates: `.quality-gate.json`.
+- Native hero/materials, inspection HUD fix, return to gameplay and input exercised.
+  Screenshot and receipt: `artifacts/hero/native-inspection.png`, `native-review.json`.
+- Final Attack pose at 0.3s reviewed: no obvious detached limbs, shoulder explosion
+  or scale spike; screenshots `artifacts/hero/strike-final*.png`. Full motion polish remains.
+- Ruff and source/doc whitespace checks passed. Unity serialized files retain their
+  normal empty-field spacing. CodeGraph refreshed.
+- Skill `~/.codex/skills/unity-blender-cpu-art/SKILL.md` updated and validator passed;
+  reconstruction/import lessons in its `references/original-hero.md`.
+
+## Closed failures
+Packed WebP bytes under PNG names caused missing Unity textures: explicitly reencoded
+pixel data into actual PNGs, verified imported maps. HUD lookup ran before HUD Start:
+resolve on first inspection toggle; regression test checks hide/restore.
+Builds initially reported 6,993 TypeDB duplicate-registration errors despite Succeeded.
+CleanBuildCache and editor restart did not resolve them. Stopped editor, preserved old
+Library at `/tmp/Ashvault-Library-before-hero-clean-20261002`, regenerated Library,
+then the same clean build workflow returned zero errors. No checks were weakened.
 
 ## Remaining acceptance
-The prototype is playable for review. Creatures remain visibly stylized; this does
-not yet meet the requested grounded Witcher character fidelity. Lighting/contact
-shadows and character materials need further refinement. Prioritize one approved
-character at game scale before another roster pass. Human difficulty, feel and
-5–10 minute pacing await user playtesting; Windows build remains untested.
-Old source Blender reflection-image warnings do not indicate a runtime dependency:
-Unity uses exported baked textures, which were checked in the native build.
+User judges the requested 9/10 hero fidelity. This is a reconstructed prototype;
+procedural motion, fingers/underarms and the simple sword still need refinement.
+Enemy/world art remains below the requested contemporary production target.
+Short native frame sample was confounded by focus pauses; no sustained combat FPS
+claim. Human difficulty/feel, 5–10 minute pacing and Windows remain unverified.
+No Git remote or deployment target; local commit/app are the delivery.

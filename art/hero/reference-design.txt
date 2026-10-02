@@ -1,0 +1,5 @@
+Original Warden design brief (summary, not verbatim generation prompt)
+
+Grounded dark gothic human knight. Realistic adult proportions, full body in neutral A-pose, isolated transparent background, no weapon or cape. Blackened fluted steel armour, worn brass trim, narrow armet eye slit, broken sun medallion, burgundy cloth tassets, chainmail joints. Clear silhouette and coherent functional armour construction; fine material detail. Original design; no named franchise character or purchased source model.
+
+Reference: warden-reference.png; original built-in image generation.

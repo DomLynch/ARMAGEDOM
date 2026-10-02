@@ -79,7 +79,7 @@ namespace Ashvault.Editor
                 EditorUtility.SetDirty(mat);
             }
             AssetDatabase.SaveAssets();
-            Debug.Log("ASHVAULT_GOTHIC_IMPORT_PASS: seven FBX models and explicit Standard materials.");
+            Debug.Log("ASHVAULT_GOTHIC_IMPORT_PASS: gothic FBX models and explicit Standard materials.");
         }
 
         static ModelImporterClipAnimation Clip(string name, string take, float first, float last, bool loop) =>

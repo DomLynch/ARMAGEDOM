@@ -26,7 +26,7 @@ namespace Ashvault.Tests
         {
             foreach (string name in new[] { "Knight", "Goblin", "Orc", "Ogre", "Warlock", "Necromancer" })
             {
-                var asset = Resources.Load<GameObject>("Gothic/" + name);
+                var asset = Resources.Load<GameObject>(name == "Knight" ? "Hero/Warden" : "Gothic/" + name);
                 Assert.IsNotNull(asset, name);
                 var model = Object.Instantiate(asset);
                 try
@@ -87,6 +87,34 @@ namespace Ashvault.Tests
             yield return null;
             run = RunManager.Instance;
             run.Player.enabled = false;
+        }
+
+        [UnityTest]
+        public IEnumerator HeroInspectionPreservesGameStateAndOriginalMaterialMaps()
+        {
+            var material=Resources.Load<Material>("Hero/Warden");
+            Assert.IsNotNull(material);
+            Assert.GreaterOrEqual(material.mainTexture.width,2048);
+            Assert.IsNotNull(material.GetTexture("_MetallicGlossMap"));
+            Assert.IsNotNull(material.GetTexture("_BumpMap"));
+            var camera=Camera.main;
+            var inspect=camera.GetComponent<HeroView>();
+            float scale=Time.timeScale,size=camera.orthographicSize;
+            bool playerEnabled=run.Player.enabled;
+            var hud=GameObject.Find("HUD");
+            Assert.IsNotNull(hud);
+            inspect.Toggle();
+            yield return null;
+            Assert.AreEqual(0,Time.timeScale);
+            Assert.IsFalse(run.enabled);
+            Assert.IsFalse(run.Player.enabled);
+            Assert.IsFalse(hud.activeSelf);
+            inspect.Toggle();
+            Assert.AreEqual(scale,Time.timeScale);
+            Assert.AreEqual(size,camera.orthographicSize);
+            Assert.AreEqual(playerEnabled,run.Player.enabled);
+            Assert.IsTrue(run.enabled);
+            Assert.IsTrue(hud.activeSelf);
         }
 
         [UnityTest]

@@ -13,12 +13,14 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 - Walk over gold/cyan/green pickups for damage, maximum health, or healing.
 - Clear waves to open the next gate. Kill The Crownless in chamber four.
 - R or the outcome button restarts immediately.
+- V: pause and inspect the real hero close-up; left/right arrows orbit. V returns.
+- Mouse wheel: adjust gameplay zoom.
 
 ## Keep it small
 
-Nine runtime files in `Game/Assets/Scripts`: arena construction, run flow,
-player, enemy, health, combat effects, pickups, HUD, and cosmetic skeletal animation. No backend or multiplayer.
-Gothic art uses original Blender ruins, CC0 scanned stone, and credited Flare character sources. No paid cloud jobs were used.
+Ten runtime files in `Game/Assets/Scripts`: arena construction, run flow,
+player, enemy, health, combat effects, pickups, HUD, cosmetic skeletal animation, and paused hero inspection. No backend or multiplayer.
+Gothic art uses original Blender ruins, CC0 scanned stone, and an original reconstructed Warden plus credited Flare enemy sources. No paid cloud jobs were used.
 
 ## Replace art
 
@@ -54,3 +56,10 @@ The original source files, licenses, import metadata and texture receipts are re
 `Game/Assets/StreamingAssets/ART-CREDITS.txt` and the upstream notices ship in the app.
 The orc and ogre currently share a hobgoblin source at different sizes; this is a
 small dark-fantasy visual prototype, not Witcher-level production artwork.
+
+## Original HD Warden
+The hero uses an original reference and TRELLIS.2 reconstruction, 4K PBR maps,
+a custom 19-bone skeleton and authored animation. See `art/hero/README.md` for
+provenance, source files, reproducible CPU conversion and current limitations.
+The free shared-GPU runs consumed included quota: zero overquota usage verified.
+No paid asset or paid HF Job. The CPU32GB tier alone cannot execute TRELLIS.2.

@@ -1,6 +1,13 @@
+ORIGINAL WARDEN HERO — 2026-10-02
+Original Ashvault reference generated with the built-in image tool; original-reference
+3D reconstruction with Microsoft TRELLIS.2. Original CPU-authored skeleton, weights,
+idle/run/attack animation, sword and Unity material integration. No purchased hero
+model or third-party character rig. Source and reproducible scripts: art/hero/.
+https://github.com/microsoft/TRELLIS.2
+
 ASHVAULT — GOTHIC PROTOTYPE ART
 
-Character models and animation adapted from Flare HD Art Sources:
+Enemy character models and animation adapted from Flare HD Art Sources:
 https://github.com/flareteam/flare-game-art-src
 - Human hero, equipment and goblin: Clint Bellanger (CC BY 3.0).
 - Hobgoblin and high skeleton mage: VWolfdog; original models Clint Bellanger (CC BY 3.0).

@@ -221,21 +221,6 @@ def convert(name, source, wanted, height, width=1):
 
 
 jobs = [
-    (
-        "Knight",
-        "hero.blend",
-        [
-            "plate_boots",
-            "plate_cuirass",
-            "plate_gauntlets",
-            "plate_greaves",
-            "plate_helm",
-            "longsword",
-            "shield",
-        ],
-        1.95,
-        1,
-    ),
     ("Goblin", "goblin.blend", ["Goblin", "GoblinSpear"], 1.25, 1),
     ("Orc", "hobgoblin.blend", ["Goblin", "GoblinSpear"], 1.95, 1.08),
     ("Ogre", "hobgoblin.blend", ["Goblin", "GoblinSpear"], 2.65, 1.4),
