@@ -26,13 +26,13 @@ namespace Ashvault.Tests
         [Test]
         public void GothicModelsKeepScaleMaterialsAndGameplaySeparation()
         {
-            foreach (string name in new[] { "Knight", "Revenant" })
+            foreach (string name in new[] { "Knight", "Revenant", "Orc", "Warlock" })
             {
                 var asset = Resources.Load<GameObject>(name == "Knight" ? "Hero/Warden" : "Enemies/" + name);
                 Assert.IsNotNull(asset, name);
-                if (name == "Revenant")
+                if (name != "Knight")
                 {
-                    var surface = Resources.Load<Material>("Enemies/Revenant");
+                    var surface = Resources.Load<Material>("Enemies/" + name);
                     Assert.AreEqual(4096, surface.mainTexture.width);
                     Assert.IsNotNull(surface.GetTexture("_MetallicGlossMap"));
                     Assert.IsNotNull(surface.GetTexture("_BumpMap"));
@@ -82,7 +82,7 @@ namespace Ashvault.Tests
                     {
                         Assert.IsNotNull(animation[clip], name + " lost " + clip);
                         Assert.Greater(animation[clip].length, 0);
-                        if (name == "Revenant")
+                        // Check real deformed geometry for every delivered character.
                         {
                             foreach (float phase in new[] { .25f, .5f, .75f })
                             {
@@ -100,7 +100,7 @@ namespace Ashvault.Tests
                                     {
                                         int a = indices[t + edge], b = indices[t + (edge + 1) % 3];
                                         float stretch = Vector3.Distance(posed[a], posed[b]) - Vector3.Distance(rest[a], rest[b]);
-                                        Assert.Less(stretch, .2f, clip + " must not stretch fingers/arm triangles into long spikes.");
+                                        Assert.Less(stretch, .2f, name + " " + clip + " must not stretch fingers/arm triangles into long spikes.");
                                     }
                                     Object.DestroyImmediate(baked);
                                 }
@@ -264,6 +264,13 @@ namespace Ashvault.Tests
             yield return null;
             yield return null;
             Assert.AreEqual(5, run.Enemies.Count, "Moving must begin the first encounter.");
+            foreach (int kind in new[] { 0, 1, 2 })
+            {
+                var enemy = run.Enemies.Find(e => e.kind == kind);
+                Assert.IsNotNull(enemy, "First wave must show each distinct enemy design.");
+                string model = kind == 0 ? "Revenant" : kind == 1 ? "Orc" : "Warlock";
+                Assert.IsNotNull(enemy.transform.Find("Visual/" + model + "(Clone)"), model + " must use its own imported art.");
+            }
         }
 
         [UnityTest]

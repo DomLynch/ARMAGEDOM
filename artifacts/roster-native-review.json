@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-02",
+  "build": "build_f3d1672493fa",
+  "app": "Builds/Ashvault.app",
+  "observed": [
+    "three enemy models in first wave",
+    "5 hostiles",
+    "dodge and motion",
+    "heavy and shockwave cooldowns",
+    "incoming damage",
+    "death",
+    "restart to 100 HP safe entrance"
+  ],
+  "native_kill_verified": false,
+  "full_clear_verified": false,
+  "screenshot": "artifacts/roster-native.png",
+  "playmode_tests": "11/11 passed"
+}

@@ -74,6 +74,11 @@ namespace Ashvault
             sun.shadowNormalBias = .25f;
             sun.shadowStrength = .85f;
             sun.transform.rotation = Quaternion.Euler(48, -35, 0);
+            var fill = new GameObject("Cool armour rim").AddComponent<Light>();
+            fill.type = LightType.Directional;
+            fill.color = new Color(.57f, .69f, 1);
+            fill.intensity = .28f;
+            fill.transform.rotation = Quaternion.Euler(30, 145, 0);
             var world = new GameObject("Ruined vault").transform;
             for (int room = 0; room < 1; room++)
             {
@@ -118,8 +123,9 @@ namespace Ashvault
             root.AddComponent<Health>();
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
-            var model = Object.Instantiate(Resources.Load<GameObject>(kind == -1 ? "Hero/Warden" : "Enemies/Revenant"), visual, false);
-            if (kind == 1 || kind == 3) model.transform.localScale *= kind == 3 ? 1.25f : 1.12f;
+            string path = kind == -1 ? "Hero/Warden" : kind == 1 || kind == 3 ? "Enemies/Orc" : kind == 2 ? "Enemies/Warlock" : "Enemies/Revenant";
+            var model = Object.Instantiate(Resources.Load<GameObject>(path), visual, false);
+            if (kind == 1 || kind == 3) model.transform.localScale *= kind == 3 ? 1.3f : 1.16f;
             root.AddComponent<ArtMotion>();
             if (kind == -1)
             {

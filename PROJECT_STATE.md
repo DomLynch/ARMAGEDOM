@@ -1,77 +1,57 @@
 # Ashvault — 2026-10-02
 
 ## Objective and scope
-Small local isometric action RPG: one existing room, three enemy waves, melee,
-dodge, upgrades, captain and restart. No backend/accounts/networking.
-Unity 6000.3.25f1, Built-in renderer, Mac desktop app at `Builds/Ashvault.app`.
+Local isometric action RPG: same single room, three waves, melee, dodge, upgrades,
+orc warlord and restart. Unity 6000.3.25f1 Built-in renderer; native Mac delivery
+at `Builds/Ashvault.app`. No backend or networking. Ten runtime scripts.
 
 ## Current delivery
-Original HD Warden replaces the earlier Flare hero: original generated reference,
-TRELLIS.2 reconstructed body, 198,630 body triangles, 4K PBR maps, original 19-bone
-CPU rig, idle/run/attack clips and Ashblade. Reflection lighting gives steel readable
-highlights. Geometry and visual components remain separate from gameplay colliders.
-V pauses into the same hero/materials close-up; arrows orbit; V restores gameplay/HUD.
-Mouse wheel adjusts gameplay zoom. Ten runtime scripts.
-Movement update: hero turns toward travel, keeps its idle heading, and faces attacks.
-LMB ground clicks move at any angle (hold to steer); enemy clicks approach/slash.
-WASD overrides click travel; Shift+LMB slashes in place; RMB heavy, Space dodge.
-Click movement retains collisions and stops if blocked; no navigation around walls.
+Original Warden hero plus three distinct enemy models: Ash Revenant, Orc Executioner
+and Plague Warlock. All three designs appear in wave one; waves contain 5, 6 and 1
+foes. Warlord uses the larger orc model. Original 4K PBR textures, CPU rigs and
+idle/run/attack clips; original sword, axe and crozier. Geometry stays separate
+from gameplay colliders. Existing room preserved; yellow player cone removed.
+Closer gameplay camera, subtle cool fill, improved knee bends, continuous four-bone
+weights and removal of duplicate hero bounce. Hero turns through 360 degrees.
 
-Original Blender ruins and CC0 stone remain. New original Ash Revenant replaces
-runtime Flare enemies: 96,935 body triangles, 4K PBR maps, original 19-bone CPU rig.
-Regular/veteran/captain share geometry with different scale and combat behavior.
-Three waves contain five, six and one enemies. Yellow player cone/click marker
-removed; enemy warnings retained. Source/research: art/enemies/README.md.
-No purchased hero asset, paid HF Job or paid GPU compute. Two successful official
-TRELLIS.2 shared-GPU runs stayed within included quota (overquotaUsed=0). Rigging and
-conversion ran locally on CPU. This is not CPU-only reconstruction.
+LMB ground travel/enemy attack; WASD overrides travel; Shift+LMB slash, RMB heavy,
+1 shockwave, Space dodge, R restart. V inspects hero, arrows orbit, V restores HUD.
+Scroll zoom. Travel stops at obstacles; no global route-finding.
+
+Original reference images and official TRELLIS.2 shared-demo reconstruction;
+no purchased assets, paid Jobs or paid GPU compute. Orc/warlock quota overage was
+zero before and after generation. Rigging/conversion ran locally on CPU. This is
+not CPU-only reconstruction. Sources and receipts: `art/enemies/roster.md`.
 
 ## Verified evidence
-- 11/11 real PlayMode tests passed after enemy integration, including combat, dodge,
-  restart, full-run progression, import materials/clips, inspection state/HUD,
-  cardinal/diagonal turning, speed limits, persistent destination/stop and rapid clicks.
-- Build `build_abad3e36cc5c`: succeeded, zero errors, 287,375,046 bytes.
-  One expected warning: remote Pipeline runtime disabled in distributed app.
-- Actual Mac startup smoke passed without exceptions; assembly SHA256 recorded in
-  `artifacts/player-smoke.json`. Gates: `.quality-gate.json`.
-- Native mouse clicks in both directions turn and move the hero; held steering, dodge
-  and restart exercised. Receipt: `artifacts/movement-native-review.json`. App reset
-  to safe entrance. Enemy-click auto-attack passes a real InputSystem regression;
-  separate native acceptance remains.
-- Native final enemies approached; heavy/shockwave killed three (five to two),
-  loot appeared, death/restart worked. Screenshot: artifacts/revenant-native-combat-14.png.
-- Wrist and joined-cloth spikes fixed locally; final imported poses pass the
-  unchanged 0.2m edge-extension limit. No remote regeneration for rig fixes.
-- Agent research and official 2026 sources checked TRELLIS.2, Pixal3D and
-  SkinTokens. Only TRELLIS.2 used. No verified 2027 release or AAA claim.
-- Native hero/materials, inspection HUD fix, return to gameplay and input exercised.
-  Screenshot and receipt: `artifacts/hero/native-inspection.png`, `native-review.json`.
-- Final Attack pose at 0.3s reviewed: no obvious detached limbs, shoulder explosion
-  or scale spike; screenshots `artifacts/hero/strike-final*.png`. Full motion polish remains.
-- Ruff and source/doc whitespace checks passed. Unity serialized files retain their
-  normal empty-field spacing. CodeGraph refreshed.
-- Skill `~/.codex/skills/unity-blender-cpu-art/SKILL.md` updated and validator passed;
-  reconstruction/import lessons in its `references/original-hero.md`.
+- 11/11 real PlayMode tests pass: combat, full progression, restart, movement/input,
+  first-wave model identity, 4K materials/clips and sampled deformation on all four
+  characters. Warden's old 0.3186m underarm extension was fixed; unchanged 0.2m gate.
+- Final build `build_f3d1672493fa`: Succeeded, zero errors, 443,151,318 bytes.
+  One expected warning: distributed app disables remote Pipeline runtime.
+- Native startup smoke passed; assembly SHA256 in `artifacts/player-smoke.json`.
+- Final native app displays all three enemy models and 5 hostiles in wave one.
+  Movement/dodge, attack cooldowns, incoming damage, death and restart observed.
+  Screenshot: `artifacts/roster-native.png`; receipt: `artifacts/roster-native-review.json`.
+  App left at safe entrance with 100 HP. This pass's native trials did not verify
+  a kill or full clear; automated real PlayMode combat/progression tests did pass.
+- Imported idle/action poses visually reviewed; feet world Y approximately zero.
+- Ruff, source/doc whitespace and CodeGraph checks pass. Source art and Blender
+  rigging workflow retained. Reusable skill: `unity-blender-cpu-art`.
+- Earlier research agent and official 2026 sources checked TRELLIS.2, Pixal3D and
+  SkinTokens; only TRELLIS.2 used. No verified 2027 release or AAA quality claim.
 
 ## Closed failures
-Movement previously faced the cursor while walking. Travel now owns idle/walking
-heading; attacks own strike heading. A rapid native mouse click exposed missed
-press/release edges: use enabled InputActions to capture them, with a regression
-that presses and releases in the same input update (10/10 final suite passes).
-
-Packed WebP bytes under PNG names caused missing Unity textures: explicitly reencoded
-pixel data into actual PNGs, verified imported maps. HUD lookup ran before HUD Start:
-resolve on first inspection toggle; regression test checks hide/restore.
-Builds initially reported 6,993 TypeDB duplicate-registration errors despite Succeeded.
-CleanBuildCache and editor restart did not resolve them. Stopped editor, preserved old
-Library at `/tmp/Ashvault-Library-before-hero-clean-20261002`, regenerated Library,
-then the same clean build workflow returned zero errors. No checks were weakened.
+Build falsely reported Succeeded with 20,991 TypeDB duplicate errors; rejected.
+Fresh Library resolved it. Old cache preserved at
+`/tmp/Ashvault-Library-before-roster-clean-20261002`. Restart/CleanBuildCache alone
+had failed previously. Explicit zero-error report is the acceptance check.
+Old hard region skin weights stretched Warden's underarm: shared continuous weights
+fixed it locally, with no regeneration or weakened threshold.
 
 ## Remaining acceptance
-User judges the requested 9/10 hero fidelity. This is a reconstructed prototype;
-procedural motion, fingers/underarms and the simple sword still need refinement.
-World, procedural animation, weapons and material polish remain below the requested
-production target. Enemy micro normals are albedo-derived, not a sculpt bake.
-Short native frame sample was confounded by focus pauses; no sustained combat FPS
-claim. Human difficulty/feel, 5–10 minute pacing and Windows remain unverified.
-No Git remote or deployment target; local commit/app are the delivery.
+User judges visual quality. Procedural animation, faces/hands, simple weapons and
+world presentation remain below production AAA quality. Enemy micro normals are
+albedo-derived, not sculpt bakes. Human difficulty/pacing, sustained combat FPS,
+native full clear and Windows remain unverified. No Git remote; local app/commit
+are the delivery. Unrelated Blender copies and archived cache left untouched.

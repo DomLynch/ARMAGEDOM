@@ -14,7 +14,7 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 - Click movement stops at obstacles; this small prototype has no route-finding around walls.
 - Space: dodge, with a short invulnerability window. 1: shockwave.
 - Walk over gold/cyan/green pickups for damage, maximum health, or healing.
-- Fight three waves in the same Outer Watch room; defeat the Revenant Captain.
+- Fight revenants, orc executioners and plague warlocks in the same Outer Watch room; defeat the Orc Warlord.
 - R or the outcome button restarts immediately.
 - V: pause and inspect the real hero close-up; left/right arrows orbit. V returns.
 - Mouse wheel: adjust gameplay zoom.
@@ -23,7 +23,7 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
 Ten runtime files in `Game/Assets/Scripts`: arena construction, run flow,
 player, enemy, health, combat effects, pickups, HUD, cosmetic skeletal animation, and paused hero inspection. No backend or multiplayer.
-Gothic art uses original Blender ruins, CC0 scanned stone, and an original reconstructed Warden and an original reconstructed Revenant. No paid cloud jobs were used.
+Gothic art uses original Blender ruins, CC0 scanned stone and original reconstructed Warden, Revenant, Orc and Warlock characters. No paid cloud jobs were used.
 
 ## Replace art
 
@@ -58,7 +58,7 @@ Blender background mode, then use `Ashvault/Import gothic art` in the editor.
 The original source files, licenses, import metadata and texture receipts are retained.
 `Game/Assets/StreamingAssets/ART-CREDITS.txt` and the upstream notices ship in the app.
 The legacy Flare sources remain for provenance; the current arena uses the original
-Revenant. Veterans and captain share its body mesh at different sizes.
+roster. The warlord shares the orc mesh at a larger size.
 
 ## Original HD Warden
 The hero uses an original reference and TRELLIS.2 reconstruction, 4K PBR maps,
@@ -68,6 +68,7 @@ The free shared-GPU runs consumed included quota: zero overquota usage verified.
 No paid asset or paid HF Job. The CPU32GB tier alone cannot execute TRELLIS.2.
 
 ## Original 4K enemies
-The current room has five revenants, then six mixed regulars/veterans, then one captain.
+The current room has five mixed enemies, then six, then the Orc Warlord.
+All three distinct enemy designs appear in the first wave.
 Enemy attacks retain orange/red warnings; the yellow player slash cone is removed.
-New model, maps, rig reproduction and research are recorded in `art/enemies/README.md`.
+Models, maps, rig reproduction and verification are recorded in `art/enemies/roster.md`.

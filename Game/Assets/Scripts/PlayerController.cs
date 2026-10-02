@@ -113,7 +113,7 @@ namespace Ashvault
             }
             if (visual)
             {
-                visual.localPosition = new Vector3(0, dodging ? .1f : Mathf.Sin(Time.time * 15) * move.magnitude * .045f, 0);
+                visual.localPosition = new Vector3(0, dodging ? .1f : 0, 0);
                 visual.localRotation = Quaternion.Euler(dodging ? 35 : 0, 0, 0);
             }
             if (!dodging && attack >= 0) TryAttack(attack);

@@ -36,7 +36,7 @@ namespace Ashvault
             var camera = cameraObject.GetComponent<Camera>();
             cameraObject.AddComponent<HeroView>();
             camera.orthographic = true;
-            camera.orthographicSize = 6.8f;
+            camera.orthographicSize = 5.7f;
             camera.nearClipPlane = .1f;
             camera.farClipPlane = 160;
             camera.clearFlags = CameraClearFlags.SolidColor;
@@ -46,7 +46,7 @@ namespace Ashvault
             cameraTransform.position = Player.transform.position + cameraOffset;
             Started = Time.time;
             nextWave = Time.time + 2;
-            Notify("Move to awaken the revenants. Survive three waves in the Outer Watch.");
+            Notify("Move to enter combat. Revenants, orcs and warlocks guard the Outer Watch.");
             gameObject.AddComponent<SimpleHUD>();
             Debug.Log("ASHVAULT_READY: one arena, player and camera created.");
         }
@@ -74,18 +74,18 @@ namespace Ashvault
             int count = Wave == 3 ? 1 : 4 + Wave;
             for (int i = 0; i < count; i++)
             {
-                int kind = Wave == 3 ? 3 : Wave == 2 && i % 3 == 0 ? 1 : 0;
+                int kind = Wave == 3 ? 3 : i % 3;
                 float x = count == 1 ? 0 : (i % 5 - 2) * 2.7f;
                 Vector3 position = new Vector3(x, 0, 2 + (i / 5) * 3);
-                var go = ArenaBuilder.Actor(kind == 3 ? "Revenant Captain" : kind == 1 ? "Revenant Veteran" : "Ash Revenant", position, kind);
+                var go = ArenaBuilder.Actor(kind == 3 ? "Orc Warlord" : kind == 1 ? "Orc Executioner" : kind == 2 ? "Plague Warlock" : "Ash Revenant", position, kind);
                 var enemy = go.AddComponent<EnemyController>();
                 enemy.kind = kind;
-                float hp = kind == 3 ? 500 : kind == 1 ? 130 : 65;
+                float hp = kind == 3 ? 400 : kind == 1 ? 95 : kind == 2 ? 50 : 55;
                 enemy.Life.maximum = enemy.Life.current = hp;
                 Enemies.Add(enemy);
                 if (kind == 3) Boss = enemy;
             }
-            Notify(Wave == 3 ? "REVENANT CAPTAIN  ·  Dodge, then strike." : "THE OUTER WATCH  ·  Wave " + Wave + " / 3");
+            Notify(Wave == 3 ? "ORC WARLORD  ·  Dodge, then strike." : "THE OUTER WATCH  ·  Wave " + Wave + " / 3");
         }
 
         public void EnemyDied(EnemyController enemy)

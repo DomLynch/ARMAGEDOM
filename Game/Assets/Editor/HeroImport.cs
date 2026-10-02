@@ -19,10 +19,18 @@ namespace Ashvault.Editor
         [MenuItem("Ashvault/Import original Revenant")]
         public static void SetupRevenant() => SetupCharacter("Assets/Resources/Enemies/", "Revenant");
 
+        [MenuItem("Ashvault/Import original roster")]
+        public static void SetupRoster()
+        {
+            Setup();
+            foreach (string name in new[] { "Revenant", "Orc", "Warlock" })
+                SetupCharacter("Assets/Resources/Enemies/", name);
+        }
+
         static void SetupCharacter(string root, string name)
         {
             if (!File.Exists(root + name + ".fbx")) return;
-            foreach (string path in Directory.GetFiles(root, "*.png"))
+            foreach (string path in Directory.GetFiles(root, name + "*.png"))
             {
                 var importer = (TextureImporter)AssetImporter.GetAtPath(path);
                 importer.maxTextureSize = 4096;
@@ -49,8 +57,8 @@ namespace Ashvault.Editor
             string whitePath=root+"WeaponWhite.asset";
             var white=AssetDatabase.LoadAssetAtPath<Texture2D>(whitePath);
             if(!white){white=new Texture2D(1,1);white.SetPixel(0,0,Color.white);white.Apply();AssetDatabase.CreateAsset(white,whitePath);}
-            steel.color=new Color(.48f,.52f,.57f);steel.mainTexture=white;
-            steel.SetFloat("_Metallic",.92f);steel.SetFloat("_Glossiness",.72f);EditorUtility.SetDirty(steel);
+            steel.color=name=="Warlock"?new Color(.38f,.28f,.12f):new Color(.31f,.36f,.42f);steel.mainTexture=white;
+            steel.SetFloat("_Metallic",.92f);steel.SetFloat("_Glossiness",.58f);EditorUtility.SetDirty(steel);
             var model = (ModelImporter)AssetImporter.GetAtPath(root + name + ".fbx");
             model.animationType = ModelImporterAnimationType.Legacy;
             model.importAnimation = true;

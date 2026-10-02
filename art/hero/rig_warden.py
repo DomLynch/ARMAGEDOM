@@ -160,6 +160,42 @@ if NAME == "Revenant":
             (0.23 * sign, -0.18, 0.045),
             "Shin." + side,
         )
+if NAME in ("Orc", "Warlock"):
+    shoulder, elbow, wrist, hip = (
+        (0.30, 0.42, 0.49, 0.19) if NAME == "Orc" else (0.23, 0.32, 0.40, 0.13)
+    )
+    for side, sign in [("L", 1), ("R", -1)]:
+        bones["Clavicle." + side] = ((0, 0, 1.55), (shoulder * sign, 0, 1.59), "Chest")
+        bones["UpperArm." + side] = (
+            (shoulder * sign, 0, 1.59),
+            (elbow * sign, 0, 1.28),
+            "Clavicle." + side,
+        )
+        bones["Forearm." + side] = (
+            (elbow * sign, 0, 1.28),
+            (wrist * sign, -0.025, 1.01),
+            "UpperArm." + side,
+        )
+        bones["Hand." + side] = (
+            (wrist * sign, -0.025, 1.01),
+            (wrist * sign, -0.055, 0.86),
+            "Forearm." + side,
+        )
+        bones["Thigh." + side] = (
+            (hip * sign, 0, 0.98),
+            (hip * sign, 0.01, 0.55),
+            "Hips",
+        )
+        bones["Shin." + side] = (
+            (hip * sign, 0.01, 0.55),
+            (hip * sign, 0.025, 0.145),
+            "Thigh." + side,
+        )
+        bones["Foot." + side] = (
+            (hip * sign, 0.025, 0.145),
+            (hip * sign, -0.18, 0.045),
+            "Shin." + side,
+        )
 arm = bpy.data.armatures.new(NAME + " original skeleton")
 rig = bpy.data.objects.new(NAME + "Rig", arm)
 bpy.context.collection.objects.link(rig)
@@ -193,30 +229,8 @@ def bind(obj, rigid=None):
         return (p - (a + d * max(0, min(1, (p - a).dot(d) / d.length_squared)))).length
 
     for v in obj.data.vertices:
-        x, y, z = v.co
-        side = "L" if x > 0 else "R"
-        ax = abs(x)
-        if z > 1.70:
-            candidates = ["Head"]
-        elif z > 1.57 and ax < 0.15:
-            candidates = ["Neck", "Head"]
-        elif z > 1.40 and ax > 0.11:
-            candidates = ["Chest", "Clavicle." + side, "UpperArm." + side]
-        elif ax > 0.28 and z > 0.90:
-            candidates = ["UpperArm." + side, "Forearm." + side, "Hand." + side]
-        elif z < 0.96 and not (ax < 0.075 and z > 0.58):
-            candidates = ["Thigh." + side, "Shin." + side, "Foot." + side]
-        else:
-            candidates = ["Hips", "Spine", "Chest"]
-        if NAME == "Revenant":
-            # Continuous nearest-bone blend avoids classifying low fingers as legs
-            # or the inner elbow as torso along a hard x/z boundary.
-            candidates = list(
-                bones
-            )  # Include both legs across the centre of joined cloth.
-        ranked = sorted((distance(v.co, n), n) for n in candidates)[
-            : 4 if NAME == "Revenant" else 2
-        ]
+        # Continuous influences avoid hard region tears at underarms and cloth seams.
+        ranked = sorted((distance(v.co, n), n) for n in bones)[:4]
         weights = [1 / max(d, 0.025) ** 4 for d, n in ranked]
         total = sum(weights)
         for (_, name), weight in zip(ranked, weights):
@@ -246,7 +260,8 @@ def mesh(name, verts, faces):
     return obj
 
 
-cx, cy, cz = (-0.40, -0.06, 0.94) if NAME == "Revenant" else (-0.49, -0.06, 0.96)
+cx = -bones["Hand.L"][0][0]
+cy, cz = -0.06, 0.94
 # Blade extends down and slightly forward, separate from the character's leg.
 verts = []
 for t, w in [(0, 0.041), (0.12, 0.04), (0.70, 0.027), (0.84, 0)]:
@@ -305,6 +320,70 @@ f = [tuple(range(n - 1, -1, -1)), tuple(range(n, n * 2))] + [
     (i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)
 ]
 mesh("Swept crossguard", v, f)
+if NAME in ("Orc", "Warlock"):
+    for obj in objects:
+        bpy.data.objects.remove(obj, do_unlink=True)
+    objects.clear()
+    if NAME == "Orc":
+        cylinder("Axe haft", (cx, cy, cz - 0.20), 0.026, 1.05, 20)
+        for i in range(12):
+            cylinder("Axe wrapped grip", (cx, cy, cz - 0.12 + i * 0.025), 0.030, 0.009)
+        # Forged crescent with a thick socket and tapered cutting edge.
+        outline = [
+            (-0.035, 0.29),
+            (-0.18, 0.40),
+            (-0.32, 0.38),
+            (-0.25, 0.26),
+            (-0.27, 0.09),
+            (-0.37, -0.06),
+            (-0.17, -0.01),
+            (-0.035, 0.12),
+        ]
+        verts = [(cx + x, cy + y, cz + z) for y in [-0.026, 0.026] for x, z in outline]
+        n = len(outline)
+        faces = [tuple(range(n - 1, -1, -1)), tuple(range(n, n * 2))] + [
+            (i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)
+        ]
+        axe = mesh("Executioner crescent axe", verts, faces)
+        bevel = axe.modifiers.new("Worn cutting edge", "BEVEL")
+        bevel.width = 0.008
+        bevel.segments = 3
+        bpy.context.view_layer.objects.active = axe
+        bpy.ops.object.modifier_apply(modifier=bevel.name)
+        cylinder("Axe socket", (cx, cy, cz + 0.20), 0.048, 0.34)
+    else:
+        cylinder("Ritual staff", (cx, cy, cz - 0.06), 0.019, 1.65, 20)
+        for i in range(9):
+            cylinder("Staff ferrule", (cx, cy, cz - 0.64 + i * 0.16), 0.024, 0.028)
+        # Open metal crescent, rather than a floating sphere or a primitive cone.
+        for sign in [-1, 1]:
+            points = []
+            for i in range(13):
+                t = i / 12
+                points.append(
+                    (
+                        cx + sign * 0.115 * math.sin(t * math.pi),
+                        cy,
+                        cz + 0.68 + t * 0.31,
+                    )
+                )
+            curve = bpy.data.curves.new("Crozier prong", "CURVE")
+            curve.dimensions = "3D"
+            curve.bevel_depth = 0.012
+            curve.bevel_resolution = 3
+            spline = curve.splines.new("POLY")
+            spline.points.add(len(points) - 1)
+            for p, co in zip(spline.points, points):
+                p.co = (*co, 1)
+            obj = bpy.data.objects.new("Crozier prong", curve)
+            bpy.context.collection.objects.link(obj)
+            bpy.ops.object.select_all(action="DESELECT")
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.convert(target="MESH")
+            obj = bpy.context.object
+            obj.data.materials.append(weapon_mat)
+            objects.append(obj)
 # Join only weapon pieces; one additional draw, preserved separate metal material.
 bpy.ops.object.select_all(action="DESELECT")
 for o in objects:
@@ -340,14 +419,14 @@ for frame in range(1, 105):
     pose("Head", 0, 0, 0.018 * idle)
     if 61 <= frame <= 85:
         phase = (frame - 61) * math.tau / 24
-        rig.pose.bones["Hips"].location.z = 0.018 * (1 - math.cos(phase * 2))
+        rig.pose.bones["Hips"].location.z = 0.012 * (1 - math.cos(phase * 2))
         pose("Chest", 0.05, 0, 0.035 * math.sin(phase))
         for side, offset in [("L", 0), ("R", math.pi)]:
             wave = math.sin(phase + offset)
-            pose("Thigh." + side, 0.5 * wave)
-            pose("Shin." + side, -0.65 * max(0, -wave))
-            pose("Foot." + side, 0.18 * max(0, -wave))
-            pose("UpperArm." + side, -0.3 * wave, 0.21 if side == "L" else -0.21)
+            pose("Thigh." + side, 0.36 * wave)
+            pose("Shin." + side, 0.68 * max(0, -wave))
+            pose("Foot." + side, -0.24 * max(0, -wave))
+            pose("UpperArm." + side, -0.22 * wave, 0.21 if side == "L" else -0.21)
     elif frame >= 86:
         t = (frame - 86) / 18
         swing = math.sin(t * math.pi)
@@ -356,6 +435,11 @@ for frame in range(1, 105):
         pose("Forearm.R", -0.28 - 0.65 * swing)
         pose("Thigh.L", -0.10 * swing)
         pose("Shin.L", -0.12 * swing)
+        if NAME == "Warlock":
+            pose("UpperArm.R", -0.25 * swing, -0.21, 0.12 * swing)
+            pose("Forearm.R", -0.12)
+            pose("UpperArm.L", -0.80 * swing, 0.21)
+            pose("Forearm.L", -0.45 * swing)
     for pb in rig.pose.bones:
         pb.keyframe_insert(data_path="rotation_quaternion", frame=frame)
         if pb.name == "Hips":
