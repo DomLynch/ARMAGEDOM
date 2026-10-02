@@ -7,8 +7,11 @@ A small local Unity desktop action RPG prototype. Mac development; platform-neut
 Open `Game` in Unity 6000.3.25f1. Open `Assets/Scenes/Ashvault.unity` and press Play.
 The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
-- WASD: camera-relative movement; mouse: aim.
-- Hold left mouse: slash. Right mouse: heavy strike.
+- Left-click ground: move to that point; hold to steer. Click an enemy: approach and slash.
+- WASD: camera-relative movement with smooth turning; cancels the click destination.
+- Shift + left mouse: slash in place toward the cursor. Right mouse: heavy strike.
+- Movement and dodge face their travel direction; attacks face their target.
+- Click movement stops at obstacles; this small prototype has no route-finding around walls.
 - Space: dodge, with a short invulnerability window. 1: shockwave.
 - Walk over gold/cyan/green pickups for damage, maximum health, or healing.
 - Clear waves to open the next gate. Kill The Crownless in chamber four.

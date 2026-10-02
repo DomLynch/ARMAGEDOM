@@ -12,6 +12,10 @@ CPU rig, idle/run/attack clips and Ashblade. Reflection lighting gives steel rea
 highlights. Geometry and visual components remain separate from gameplay colliders.
 V pauses into the same hero/materials close-up; arrows orbit; V restores gameplay/HUD.
 Mouse wheel adjusts gameplay zoom. Ten runtime scripts.
+Movement update: hero turns toward travel, keeps its idle heading, and faces attacks.
+LMB ground clicks move at any angle (hold to steer); enemy clicks approach/slash.
+WASD overrides click travel; Shift+LMB slashes in place; RMB heavy, Space dodge.
+Click movement retains collisions and stops if blocked; no navigation around walls.
 
 Original Blender ruins, CC0 stone and credited Flare enemies remain from the previous
 pass. This task improves the hero; orc/ogre still share a base model.
@@ -20,12 +24,16 @@ TRELLIS.2 shared-GPU runs stayed within included quota (overquotaUsed=0). Riggin
 conversion ran locally on CPU. This is not CPU-only reconstruction.
 
 ## Verified evidence
-- 8/8 real PlayMode tests passed after final HUD fix, including combat, dodge,
-  restart, full-run progression, import materials/clips, and inspection state/HUD.
-- Build `build_d359485e8c8b`: succeeded, zero errors, 211,911,926 bytes.
+- 10/10 real PlayMode tests passed after movement/input changes, including combat, dodge,
+  restart, full-run progression, import materials/clips, inspection state/HUD,
+  cardinal/diagonal turning, speed limits, persistent destination/stop and rapid clicks.
+- Build `build_62f263ac928c`: succeeded, zero errors, 211,913,462 bytes.
   One expected warning: remote Pipeline runtime disabled in distributed app.
 - Actual Mac startup smoke passed without exceptions; assembly SHA256 recorded in
   `artifacts/player-smoke.json`. Gates: `.quality-gate.json`.
+- Native mouse clicks in both directions turn and move the hero; held steering, dodge
+  and restart exercised. Receipt: `artifacts/movement-native-review.json`. App reset
+  to safe entrance. Enemy-click auto-attack needs separate native acceptance.
 - Native hero/materials, inspection HUD fix, return to gameplay and input exercised.
   Screenshot and receipt: `artifacts/hero/native-inspection.png`, `native-review.json`.
 - Final Attack pose at 0.3s reviewed: no obvious detached limbs, shoulder explosion
@@ -36,6 +44,11 @@ conversion ran locally on CPU. This is not CPU-only reconstruction.
   reconstruction/import lessons in its `references/original-hero.md`.
 
 ## Closed failures
+Movement previously faced the cursor while walking. Travel now owns idle/walking
+heading; attacks own strike heading. A rapid native mouse click exposed missed
+press/release edges: use enabled InputActions to capture them, with a regression
+that presses and releases in the same input update (10/10 final suite passes).
+
 Packed WebP bytes under PNG names caused missing Unity textures: explicitly reencoded
 pixel data into actual PNGs, verified imported maps. HUD lookup ran before HUD Start:
 resolve on first inspection toggle; regression test checks hide/restore.

@@ -13,8 +13,25 @@ namespace Ashvault
         CharacterController body;
         Camera view;
         Vector3 dodgeDirection;
-        float dodgeEnd;
+        float dodgeEnd, blockedTime;
+        Vector3 destination;
+        bool travelling;
+        EnemyController target;
         Transform visual;
+        InputAction leftClick, rightClick;
+
+        void OnEnable()
+        {
+            if (leftClick == null)
+            {
+                leftClick = new InputAction("Move or slash", InputActionType.Button, "<Mouse>/leftButton");
+                rightClick = new InputAction("Heavy strike", InputActionType.Button, "<Mouse>/rightButton");
+            }
+            leftClick.Enable(); rightClick.Enable();
+        }
+        void OnDisable() { leftClick?.Disable(); rightClick?.Disable(); }
+        void OnDestroy() { leftClick?.Dispose(); rightClick?.Dispose(); }
+
 
         void Awake()
         {
@@ -34,35 +51,82 @@ namespace Ashvault
             if (RunManager.Instance.Finished) return;
             var keyboard = Keyboard.current;
             var mouse = Mouse.current;
-            if (keyboard == null || mouse == null) return;
+            if (keyboard == null || mouse == null || Time.timeScale == 0) return;
             var input = new Vector2((keyboard.dKey.isPressed ? 1 : 0) - (keyboard.aKey.isPressed ? 1 : 0),
                 (keyboard.wKey.isPressed ? 1 : 0) - (keyboard.sKey.isPressed ? 1 : 0));
             Vector3 forward = Vector3.ProjectOnPlane(view.transform.forward, Vector3.up).normalized;
             Vector3 move = Vector3.ClampMagnitude(view.transform.right * input.x + forward * input.y, 1);
             var ray = view.ScreenPointToRay(mouse.position.ReadValue());
+            Vector3 aim = transform.forward;
             if (new Plane(Vector3.up, transform.position).Raycast(ray, out float distance))
+                aim = Vector3.ProjectOnPlane(ray.GetPoint(distance) - transform.position, Vector3.up);
+            bool shift = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+            bool overUI = UnityEngine.EventSystems.EventSystem.current &&
+                UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
+            bool left = (mouse.leftButton.isPressed || leftClick.WasPressedThisFrame()) && !overUI;
+            int attack = keyboard.digit1Key.wasPressedThisFrame ? 2 :
+                (mouse.rightButton.isPressed || rightClick.WasPressedThisFrame()) && !overUI ? 1 : shift && left ? 0 : -1;
+            if (move.sqrMagnitude > .01f || attack >= 0) CancelTravel();
+            else if (left && !shift && (leftClick.WasPressedThisFrame() || !target))
             {
-                Vector3 aim = ray.GetPoint(distance) - transform.position;
-                aim.y = 0;
-                if (aim.sqrMagnitude > .05f) transform.rotation = Quaternion.LookRotation(aim);
+                if (Physics.Raycast(ray, out var hit, 200, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    var enemy = hit.collider.GetComponentInParent<EnemyController>();
+                    if (enemy && !enemy.Life.Dead)
+                    {
+                        target = enemy; travelling = true; blockedTime = 0;
+                    }
+                    else if (hit.normal.y > .7f && Mathf.Abs(hit.point.y - transform.position.y) < .5f)
+                    {
+                        destination = hit.point; target = null; travelling = true;
+                        if (leftClick.WasPressedThisFrame())
+                            CombatEffect.Ring(destination, .3f, new Color(.85f, .72f, .4f), .35f);
+                    }
+                }
+            }
+            if (travelling)
+            {
+                if (target) destination = target.transform.position;
+                Vector3 offset = Vector3.ProjectOnPlane(destination - transform.position, Vector3.up);
+                bool clear = !Physics.Linecast(transform.position + Vector3.up, destination + Vector3.up, 1 << 8);
+                if (target && !target.Life.Dead && offset.magnitude <= 2.2f && clear)
+                {
+                    aim = offset; attack = 0;
+                }
+                else if (offset.magnitude <= .15f) CancelTravel();
+                else move = offset.normalized * Mathf.Min(1, offset.magnitude / Mathf.Max(speed * Time.deltaTime, .001f));
             }
             if (keyboard.spaceKey.wasPressedThisFrame) TryDodge(move);
             bool dodging = Time.time < dodgeEnd;
+            Vector3 facing = dodging ? dodgeDirection : attack >= 0 ? aim : move;
+            if (facing.sqrMagnitude > .001f)
+            {
+                var rotation = Quaternion.LookRotation(facing);
+                // Attack sectors must face their target on the exact damage frame.
+                transform.rotation = attack >= 0 ? rotation : Quaternion.RotateTowards(transform.rotation, rotation, 900 * Time.deltaTime);
+            }
+            Vector3 before = transform.position;
             body.Move(((dodging ? dodgeDirection * 16 : move * speed) + Vector3.down * 8) * Time.deltaTime);
+            if (travelling && !dodging && move.sqrMagnitude > .01f)
+            {
+                float moved = Vector3.ProjectOnPlane(transform.position - before, Vector3.up).magnitude;
+                blockedTime = moved < speed * Time.deltaTime * .1f ? blockedTime + Time.deltaTime : 0;
+                if (blockedTime > .4f) CancelTravel();
+            }
             if (visual)
             {
                 visual.localPosition = new Vector3(0, dodging ? .1f : Mathf.Sin(Time.time * 15) * move.magnitude * .045f, 0);
                 visual.localRotation = Quaternion.Euler(dodging ? 35 : 0, 0, 0);
             }
-            if (dodging) return;
-            if (keyboard.digit1Key.wasPressedThisFrame) TryAttack(2);
-            else if (mouse.rightButton.isPressed) TryAttack(1);
-            else if (mouse.leftButton.isPressed) TryAttack(0);
+            if (!dodging && attack >= 0) TryAttack(attack);
         }
+
+        void CancelTravel() { travelling = false; target = null; blockedTime = 0; }
 
         public bool TryDodge(Vector3 direction)
         {
             if (Life.Dead || RunManager.Instance.Finished || Time.time < dodgeReady) return false;
+            CancelTravel();
             dodgeDirection = direction.sqrMagnitude > .01f ? direction.normalized : transform.forward;
             dodgeEnd = Time.time + .22f;
             Life.invulnerableUntil = Time.time + .25f;

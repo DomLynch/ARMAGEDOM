@@ -3,6 +3,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace Ashvault.Tests
 {
@@ -115,6 +117,79 @@ namespace Ashvault.Tests
             Assert.AreEqual(playerEnabled,run.Player.enabled);
             Assert.IsTrue(run.enabled);
             Assert.IsTrue(hud.activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator KeyboardTravelTurnsHeroAndPreservesDiagonalSpeed()
+        {
+            run.enabled = false;
+            var oldKeyboard=Keyboard.current; var oldMouse=Mouse.current;
+            var keyboard=InputSystem.AddDevice<Keyboard>(); var mouse=InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player=run.Player; player.enabled=true;
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=new Vector2(1,1) });
+                var camera=Camera.main;
+                var forward=Vector3.ProjectOnPlane(camera.transform.forward,Vector3.up).normalized;
+                var right=camera.transform.right;
+                Key[][] keys={new[]{Key.W},new[]{Key.D},new[]{Key.S},new[]{Key.A},new[]{Key.W,Key.D}};
+                Vector3[] directions={forward,right,-forward,-right,(forward+right).normalized};
+                for(int i=0;i<keys.Length;i++)
+                {
+                    Vector3 start=player.transform.position; float began=Time.time;
+                    InputSystem.QueueStateEvent(keyboard,new KeyboardState(keys[i]));
+                    yield return new WaitForSeconds(.3f);
+                    Vector3 travelled=Vector3.ProjectOnPlane(player.transform.position-start,Vector3.up);
+                    Assert.Less(Vector3.Angle(player.transform.forward,directions[i]),5,"Walking must turn the whole hero, independent of cursor.");
+                    Assert.Greater(Vector3.Dot(travelled,directions[i]),.5f);
+                    Assert.LessOrEqual(travelled.magnitude/(Time.time-began),player.speed*1.08f,"Diagonal speed must stay bounded.");
+                }
+                InputSystem.QueueStateEvent(keyboard,new KeyboardState());
+                yield return null; yield return null;
+                Quaternion facing=player.transform.rotation;
+                yield return new WaitForSeconds(.1f);
+                Assert.Less(Quaternion.Angle(facing,player.transform.rotation),.1f,"Idle must keep the last heading.");
+            }
+            finally
+            {
+                run.Player.enabled=false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+                oldKeyboard?.MakeCurrent(); oldMouse?.MakeCurrent();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator GroundClickPersistsStopsAndShiftClickAttacksInPlace()
+        {
+            run.enabled=false;
+            var oldKeyboard=Keyboard.current; var oldMouse=Mouse.current;
+            var keyboard=InputSystem.AddDevice<Keyboard>(); var mouse=InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player=run.Player; player.enabled=true;
+                Vector3 goal=player.transform.position+new Vector3(2,0,2);
+                Vector2 screen=Camera.main.WorldToScreenPoint(goal);
+                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen}.WithButton(MouseButton.Left));
+                // A quick press and release may both arrive in the same input update.
+                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen});
+                yield return new WaitForSeconds(.8f);
+                Assert.Less(Vector3.ProjectOnPlane(player.transform.position-goal,Vector3.up).magnitude,.2f);
+                Vector3 stopped=player.transform.position;
+                yield return new WaitForSeconds(.2f);
+                Assert.Less(Vector3.Distance(stopped,player.transform.position),.03f,"Destination must not oscillate.");
+                Vector3 aim=Vector3.left;
+                screen=Camera.main.WorldToScreenPoint(player.transform.position+aim*3);
+                InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.LeftShift));
+                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen}.WithButton(MouseButton.Left));
+                yield return null; yield return null;
+                Assert.Greater(player.attackReady,Time.time);
+                Assert.Less(Vector3.Distance(stopped,player.transform.position),.03f);
+                Assert.Less(Vector3.Angle(player.transform.forward,aim),5);
+            }
+            finally
+            {
+                run.Player.enabled=false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+                oldKeyboard?.MakeCurrent(); oldMouse?.MakeCurrent();
+            }
         }
 
         [UnityTest]
