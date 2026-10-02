@@ -7,7 +7,7 @@ namespace Ashvault
     {
         Animation motion;
         Vector3 previous;
-        float attackUntil;
+        float attackUntil, attackStarted, windup, recovery;
         string playing;
         public float headProportion = 1;
         Transform head;
@@ -26,24 +26,36 @@ namespace Ashvault
             motion.CrossFade(clip, .10f);
             playing = clip;
         }
-        public void Swing(float delay = 0)
+        public void Swing(float delay = .14f, float settle = .28f)
         {
             if (!motion || !motion["Attack"]) return;
-            float duration = Mathf.Max(.27f, delay);
-            motion["Attack"].speed = motion["Attack"].length / duration;
+            windup = Mathf.Max(.01f, delay); recovery = settle;
+            attackStarted = Time.time;
+            attackUntil = Time.time + windup + recovery;
+            motion["Attack"].speed = 0;
             motion["Attack"].time = 0;
             playing = null;
             Play("Attack");
-            attackUntil = Time.time + duration;
         }
+        public void CancelSwing() => attackUntil = 0;
+
         void LateUpdate()
         {
             if (head) head.localScale = headRest * headProportion;
             if (!RunManager.Instance || RunManager.Instance.Finished) return;
             float speed = Vector3.ProjectOnPlane(transform.position - previous, Vector3.up).magnitude / Mathf.Max(Time.deltaTime, .001f);
             previous = transform.position;
-            if (Time.time < attackUntil) return;
-            if (motion && motion["Run"]) motion["Run"].speed = Mathf.Clamp(speed / 3, .7f, 2);
+            if (motion && Time.time < attackUntil)
+            {
+                float elapsed = Time.time - attackStarted;
+                float phase = elapsed < windup ? .45f * elapsed / windup : .45f + .55f * (elapsed - windup) / recovery;
+                motion["Attack"].time = phase * motion["Attack"].length;
+                motion.Sample();
+                return;
+            }
+            // Baked stance covers .95m in 40% of one cycle: 2.375m per cycle.
+            if (motion && motion["Run"]) motion["Run"].speed = speed * motion["Run"].length /
+                (2.375f * motion.transform.lossyScale.z);
             Play(speed > .15f ? "Run" : "Idle");
         }
     }

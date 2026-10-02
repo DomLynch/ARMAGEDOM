@@ -11,7 +11,6 @@ namespace Ashvault
         CharacterController body;
         float ready, strikeAt, recoverUntil, staggerUntil;
         Vector3 lockedDirection, lockedPoint;
-        GameObject warning;
         bool attacking, alerted;
         int bossPattern;
         float Radius => kind == 3 ? (bossPattern == 1 ? 4 : 3.5f) : kind == 1 ? 2.8f : 1.8f;
@@ -72,15 +71,11 @@ namespace Ashvault
             float delay = kind == 0 ? .4f : kind == 2 ? .65f : 1.05f;
             strikeAt = Time.time + delay;
             GetComponent<ArtMotion>()?.Swing(delay);
-            bool ranged = kind == 2 || IsBoss && bossPattern == 2;
-            warning = CombatEffect.Sector(lockedPoint, direction, ranged ? 8 : Radius,
-                ranged ? 8 : Arc, new Color(1, .35f, .18f), delay);
         }
 
         void ResolveAttack()
         {
             attacking = false;
-            if (warning) Destroy(warning);
             bool ranged = kind == 2 || IsBoss && bossPattern == 2;
             float amount = IsBoss ? 25 : kind == 1 ? 23 : kind == 2 ? 12 : 9;
             if (ranged)
@@ -97,7 +92,6 @@ namespace Ashvault
                 var player = RunManager.Instance.Player;
                 Vector3 delta = player.transform.position - lockedPoint;
                 delta.y = 0;
-                CombatEffect.Sector(lockedPoint, lockedDirection, Radius, Arc, new Color(1, .65f, .3f), .18f);
                 if (delta.magnitude < Radius + .25f && Vector3.Angle(lockedDirection, delta) <= Arc / 2 &&
                     !Physics.Linecast(lockedPoint + Vector3.up, player.transform.position + Vector3.up, 1 << 8)) player.Life.Hit(amount);
             }
@@ -118,7 +112,6 @@ namespace Ashvault
 
         public void Die()
         {
-            if (warning) Destroy(warning);
             RunManager.Instance.EnemyDied(this);
             Destroy(gameObject);
         }

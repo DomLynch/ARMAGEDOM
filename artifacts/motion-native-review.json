@@ -1,0 +1,17 @@
+{
+  "build_id": "build_1ad04f9ab460",
+  "observed": [
+    "WASD/LMB/Q control HUD",
+    "Q heavy cooldown",
+    "Space dodge cooldown and movement",
+    "three enemy designs in first wave",
+    "enemy attack poses and incoming damage without floor outlines",
+    "updated wind-up death hint",
+    "restart"
+  ],
+  "native_full_clear_verified": false,
+  "natural_gait_accepted": false,
+  "user_feedback": "Walking still feels fake; natural motion refinement remains open.",
+  "runtime_physical_lines": 914,
+  "runtime_files": 10
+}

@@ -7,11 +7,10 @@ A small local Unity desktop action RPG prototype. Mac development; platform-neut
 Open `Game` in Unity 6000.3.25f1. Open `Assets/Scenes/Ashvault.unity` and press Play.
 The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
-- Left-click ground: move to that point; hold to steer. Click an enemy: approach and slash.
-- WASD: camera-relative movement with smooth turning; cancels the click destination.
-- Shift + left mouse: slash in place toward the cursor. Right mouse: heavy strike.
-- Movement and dodge face their travel direction; attacks face their target.
-- Click movement stops at obstacles; this small prototype has no route-finding around walls.
+- WASD: camera-relative movement with smooth turning.
+- Left mouse: slash toward the cursor; hold for repeated attacks. Clicking never moves.
+- Q or right mouse: heavy strike. Feet plant during swings; damage lands after wind-up.
+- Movement and dodge face travel; Space can cancel a pending strike.
 - Space: dodge, with a short invulnerability window. 1: shockwave.
 - Walk over gold/cyan/green pickups for damage, maximum health, or healing.
 - Fight revenants, orc executioners and plague warlocks in the same Outer Watch room; defeat the Orc Warlord.
@@ -23,7 +22,7 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
 Ten runtime files in `Game/Assets/Scripts`: arena construction, run flow,
 player, enemy, health, combat effects, pickups, HUD, cosmetic skeletal animation, and paused hero inspection. No backend or multiplayer.
-Gothic art uses original Blender ruins, CC0 scanned stone and original reconstructed Warden, Revenant, Orc and Warlock characters. No paid cloud jobs were used.
+Gothic art uses original Blender ruins, CC0 scanned stone and original reconstructed Warden, Revenant, Orc and Warlock characters. Animation processing uses the authorized Hugging Face Pro 32 GB CPU tier ($0.03/hour); no paid GPU jobs.
 
 ## Replace art
 
@@ -70,5 +69,9 @@ No paid asset or paid HF Job. The CPU32GB tier alone cannot execute TRELLIS.2.
 ## Original 4K enemies
 The current room has five mixed enemies, then six, then the Orc Warlord.
 All three distinct enemy designs appear in the first wave.
-Enemy attacks retain orange/red warnings; the yellow player slash cone is removed.
+Enemy wind-up animations signal attacks; player and enemy attack cones are removed.
 Models, maps, rig reproduction and verification are recorded in `art/enemies/roster.md`.
+
+`art/hero/refine_motion.py` refines the existing rigs without rebuilding textures.
+The run covers 2.375m per full cycle; ArtMotion scales playback to actual travel.
+Attack contact is normalized phase 0.45; gameplay wind-up and recovery control playback.

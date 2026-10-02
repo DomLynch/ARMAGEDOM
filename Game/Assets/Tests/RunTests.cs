@@ -8,9 +8,35 @@ using UnityEngine.InputSystem.LowLevel;
 
 namespace Ashvault.Tests
 {
+    // Isolate synthetic input from desktop focus and physical mouse/keyboard events.
     public class RunTests
     {
         RunManager run;
+        readonly System.Collections.Generic.List<InputDevice> desktopDevices = new System.Collections.Generic.List<InputDevice>();
+        InputSettings.BackgroundBehavior background;
+        InputSettings.EditorInputBehaviorInPlayMode editorInput;
+
+        [SetUp]
+        public void IsolateDesktopInput()
+        {
+            background = InputSystem.settings.backgroundBehavior;
+            editorInput = InputSystem.settings.editorInputBehaviorInPlayMode;
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            foreach (var device in InputSystem.devices)
+                if (device.enabled) desktopDevices.Add(device);
+            foreach (var device in desktopDevices) InputSystem.DisableDevice(device);
+        }
+
+        [TearDown]
+        public void RestoreDesktopInput()
+        {
+            foreach (var device in desktopDevices)
+                if (device.added) InputSystem.EnableDevice(device);
+            desktopDevices.Clear();
+            InputSystem.settings.backgroundBehavior = background;
+            InputSystem.settings.editorInputBehaviorInPlayMode = editorInput;
+        }
 
         [Test]
         public void RenderMaterialsAreExplicitBuildDependencies()
@@ -95,13 +121,15 @@ namespace Ashvault.Tests
                                     animation[clip].clip.SampleAnimation(model, animation[clip].length * phase);
                                     skin.BakeMesh(baked); var posed = baked.vertices;
                                     var indices = baked.triangles;
+                                    float maximumStretch = 0;
                                     for (int t = 0; t < indices.Length; t += 3)
                                     for (int edge = 0; edge < 3; edge++)
                                     {
                                         int a = indices[t + edge], b = indices[t + (edge + 1) % 3];
                                         float stretch = Vector3.Distance(posed[a], posed[b]) - Vector3.Distance(rest[a], rest[b]);
-                                        Assert.Less(stretch, .2f, name + " " + clip + " must not stretch fingers/arm triangles into long spikes.");
+                                        maximumStretch = Mathf.Max(maximumStretch, stretch);
                                     }
+                                    Assert.Less(maximumStretch, .2f, name + " " + clip + " must not stretch fingers/arm triangles into long spikes.");
                                     Object.DestroyImmediate(baked);
                                 }
                             }
@@ -113,13 +141,36 @@ namespace Ashvault.Tests
         }
 
         [UnitySetUp]
-        public IEnumerator Setup()
+        public IEnumerator LoadArena()
         {
             SceneManager.LoadScene("Ashvault");
             yield return null;
             yield return null;
             run = RunManager.Instance;
             run.Player.enabled = false;
+        }
+
+        [Test]
+        public void RunFootContactMatchesRootTravel()
+        {
+            foreach (string path in new[] { "Hero/Warden", "Enemies/Revenant", "Enemies/Orc", "Enemies/Warlock" })
+            {
+                var model = Object.Instantiate(Resources.Load<GameObject>(path));
+                try
+                {
+                    var animation = model.GetComponentInChildren<Animation>();
+                    var foot = System.Array.Find(model.GetComponentsInChildren<Transform>(), t => t.name == "Foot.L");
+                    Assert.IsNotNull(foot);
+                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .1f);
+                    Vector3 start = foot.position;
+                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .3f);
+                    Vector3 planted = foot.position + Vector3.forward * (2.375f * .2f);
+                    Assert.Less(Vector3.Distance(start, planted), .008f, path + " planted foot must stay still as the root moves.");
+                    animation["Run"].clip.SampleAnimation(model, animation["Run"].length * .7f);
+                    Assert.Greater(foot.position.y, start.y + .15f, "Swing foot must clear the ground.");
+                }
+                finally { Object.DestroyImmediate(model); }
+            }
         }
 
         [UnityTest]
@@ -189,66 +240,58 @@ namespace Ashvault.Tests
         }
 
         [UnityTest]
-        public IEnumerator GroundClickPersistsStopsAndShiftClickAttacksInPlace()
-        {
-            run.enabled=false;
-            var oldKeyboard=Keyboard.current; var oldMouse=Mouse.current;
-            var keyboard=InputSystem.AddDevice<Keyboard>(); var mouse=InputSystem.AddDevice<Mouse>();
-            try
-            {
-                var player=run.Player; player.enabled=true;
-                Vector3 goal=player.transform.position+new Vector3(2,0,2);
-                Vector2 screen=Camera.main.WorldToScreenPoint(goal);
-                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen}.WithButton(MouseButton.Left));
-                // A quick press and release may both arrive in the same input update.
-                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen});
-                yield return new WaitForSeconds(.8f);
-                Assert.Less(Vector3.ProjectOnPlane(player.transform.position-goal,Vector3.up).magnitude,.2f);
-                Vector3 stopped=player.transform.position;
-                yield return new WaitForSeconds(.2f);
-                Assert.Less(Vector3.Distance(stopped,player.transform.position),.03f,"Destination must not oscillate.");
-                Vector3 aim=Vector3.left;
-                screen=Camera.main.WorldToScreenPoint(player.transform.position+aim*3);
-                InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.LeftShift));
-                InputSystem.QueueStateEvent(mouse,new MouseState {position=screen}.WithButton(MouseButton.Left));
-                yield return null; yield return null;
-                Assert.Greater(player.attackReady,Time.time);
-                Assert.Less(Vector3.Distance(stopped,player.transform.position),.03f);
-                Assert.Less(Vector3.Angle(player.transform.forward,aim),5);
-            }
-            finally
-            {
-                run.Player.enabled=false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
-                oldKeyboard?.MakeCurrent(); oldMouse?.MakeCurrent();
-            }
-        }
-
-        [UnityTest]
-        public IEnumerator EnemyClickApproachesAndKills()
+        public IEnumerator LeftClickSlashesWithoutMovingAndFacesCursor()
         {
             run.enabled = false;
-            var oldKeyboard = Keyboard.current; var oldMouse = Mouse.current;
             var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
             try
             {
                 var player = run.Player; player.enabled = true;
-                var enemy = ArenaBuilder.Actor("Revenant target", player.transform.position + Vector3.forward * 4, 0).AddComponent<EnemyController>();
-                enemy.enabled = false;
-                enemy.Life.current = 40;
-                run.Enemies.Add(enemy);
-                yield return null;
-                Vector2 screen = Camera.main.WorldToScreenPoint(enemy.transform.position + Vector3.up * .9f);
+                // Let the capsule settle onto the newly loaded floor before measuring input travel.
+                Physics.SyncTransforms();
+                yield return new WaitForSeconds(.1f);
+                Vector3 start = player.transform.position;
+                Vector3 aim = Vector3.left;
+                Vector2 screen = Camera.main.WorldToScreenPoint(start + aim * 3);
                 InputSystem.QueueStateEvent(mouse, new MouseState { position = screen }.WithButton(MouseButton.Left));
                 InputSystem.QueueStateEvent(mouse, new MouseState { position = screen });
+                yield return null; yield return null;
+                Assert.Greater(player.attackReady, Time.time, "A rapid trackpad click must start a slash.");
+                Assert.Less(Vector3.Angle(player.transform.forward, aim), 5);
+                yield return new WaitForSeconds(.8f);
+                Assert.Less(Vector3.Distance(start, player.transform.position), .03f,
+                    "Clicking ground must never create travel. Start " + start + ", end " + player.transform.position);
+            }
+            finally
+            {
+                run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator HeldSlashKillsNearbyEnemyWithoutApproaching()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player = run.Player; player.enabled = true;
+                Physics.SyncTransforms();
+                yield return new WaitForSeconds(.1f);
+                Vector3 start = player.transform.position;
+                var enemy = ArenaBuilder.Actor("Slash target", start + Vector3.forward * 2, 0).AddComponent<EnemyController>();
+                enemy.enabled = false; enemy.Life.current = 40; run.Enemies.Add(enemy);
+                yield return null;
+                Vector2 screen = Camera.main.WorldToScreenPoint(enemy.transform.position);
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = screen }.WithButton(MouseButton.Left));
                 yield return new WaitForSeconds(1.3f);
-                Assert.AreEqual(0, run.Enemies.Count, "One enemy click must approach and keep attacking until the target dies.");
-                Assert.Greater(player.transform.position.z, -5.5f);
+                Assert.AreEqual(0, run.Enemies.Count, "Held slash must repeat and kill a nearby enemy.");
+                Assert.Less(Vector3.Distance(start, player.transform.position), .03f);
                 Assert.IsFalse(run.Finished);
             }
             finally
             {
                 run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
-                oldKeyboard?.MakeCurrent(); oldMouse?.MakeCurrent();
             }
         }
 
@@ -304,39 +347,59 @@ namespace Ashvault.Tests
             yield return null;
             Assert.IsTrue(player.TryAttack(0));
             Assert.IsNull(GameObject.Find("Attack telegraph"), "Hero slash must not draw a yellow cone.");
-            Assert.AreEqual(80, enemy.Life.current);
+            Assert.AreEqual(100, enemy.Life.current, "Wind-up must not deal damage.");
             Assert.IsFalse(player.TryAttack(0));
-            yield return new WaitForSeconds(.35f);
+            yield return new WaitForSeconds(.20f);
+            Assert.AreEqual(80, enemy.Life.current, "Damage must land during the strike.");
+            yield return new WaitForSeconds(.25f);
             player.transform.rotation = Quaternion.Euler(0, 180, 0);
             Assert.IsTrue(player.TryAttack(0));
+            yield return new WaitForSeconds(.45f);
             Assert.AreEqual(80, enemy.Life.current, "Behind the player must miss.");
-            yield return new WaitForSeconds(.35f);
             player.transform.rotation = Quaternion.identity;
             var wall = ArenaBuilder.Shape("Test wall", PrimitiveType.Cube, player.transform.position + Vector3.forward + Vector3.up,
                 new Vector3(2, 2, .2f), ArenaBuilder.Gold);
             Physics.SyncTransforms();
             Assert.IsTrue(player.TryAttack(0));
+            yield return new WaitForSeconds(.45f);
             Assert.AreEqual(80, enemy.Life.current, "Attacks must not pass through walls.");
             Object.Destroy(wall);
-            yield return new WaitForSeconds(.35f);
             enemy.GetComponent<CharacterController>().enabled = false;
             enemy.transform.position = player.transform.position + Vector3.forward * 6;
             Assert.IsTrue(player.TryAttack(2));
+            yield return new WaitForSeconds(.25f);
             Assert.AreEqual(80, enemy.Life.current, "Shockwave range must be bounded.");
         }
 
         [UnityTest]
-        public IEnumerator EnemyStrikeStaysSynchronizedWithTelegraphWhenStaggered()
+        public IEnumerator DodgeCancelsPendingStrike()
         {
             run.enabled = false;
-            var enemy = ArenaBuilder.Actor("Telegraph test", run.Player.transform.position + Vector3.forward * 1.4f, 0).AddComponent<EnemyController>();
+            var player = run.Player;
+            player.transform.rotation = Quaternion.identity;
+            var enemy = ArenaBuilder.Actor("Cancel target", player.transform.position + Vector3.forward * 2, 0).AddComponent<EnemyController>();
+            enemy.enabled = false; run.Enemies.Add(enemy);
+            yield return null;
+            Assert.IsTrue(player.TryAttack(1));
+            Assert.IsTrue(player.TryDodge(Vector3.back));
+            yield return new WaitForSeconds(.30f);
+            Assert.AreEqual(100, enemy.Life.current, "A cancelled wind-up must never deal a ghost hit.");
+        }
+
+        [UnityTest]
+        public IEnumerator EnemyStrikeKeepsWindupTimingWithoutFloorConesWhenStaggered()
+        {
+            run.enabled = false;
+            var enemy = ArenaBuilder.Actor("Windup test", run.Player.transform.position + Vector3.forward * 1.4f, 0).AddComponent<EnemyController>();
             run.Enemies.Add(enemy);
             yield return null;
             yield return new WaitForSeconds(.3f);
             Assert.AreEqual(100, run.Player.Life.current, "The windup must be harmless.");
+            Assert.IsNull(GameObject.Find("Attack telegraph"), "Enemy wind-up must not draw floor cones.");
             enemy.Stagger(Vector3.forward, .3f);
             yield return new WaitForSeconds(.16f);
-            Assert.AreEqual(91, run.Player.Life.current, "Hit time must match the visible telegraph despite hit reaction.");
+            Assert.AreEqual(91, run.Player.Life.current, "Hit time must match the animated wind-up despite hit reaction.");
+            Assert.IsNull(GameObject.Find("Attack telegraph"), "Enemy impact must not draw floor outlines.");
         }
 
         [UnityTest]

@@ -1,0 +1,10 @@
+{
+  "job_id": "6abfb00b404719ba37622f1a",
+  "hardware": "cpu-upgrade",
+  "status": "COMPLETED",
+  "url": "https://huggingface.co/jobs/Domlynch/6abfb00b404719ba37622f1a",
+  "input_repo": "Domlynch/ashvault-motion-work",
+  "private": true,
+  "hourly_usd": 0.03,
+  "timeout_minutes": 15
+}

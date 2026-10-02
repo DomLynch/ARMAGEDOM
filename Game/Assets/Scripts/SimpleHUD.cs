@@ -101,12 +101,12 @@ namespace Ashvault
             healthLabel.text = "WARDEN   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
             stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Sword " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: sword · Cyan: armour · Green: tonic";
             hp.rectTransform.sizeDelta = new Vector2(320 * player.Life.current / player.Life.maximum, 12);
-            controls.text = "LMB move / attack enemy · WASD move\nShift+LMB slash · RMB heavy " + Ready(player.heavyReady) + "\nSPACE dodge " + Ready(player.dodgeReady) + " · 1 shockwave " + Ready(player.specialReady) + " · R restart\nV inspect hero · Scroll zoom. Walk over loot.";
+            controls.text = "WASD move · LMB slash\nQ / RMB heavy " + Ready(player.heavyReady) + "\nSPACE dodge " + Ready(player.dodgeReady) + " · 1 shockwave " + Ready(player.specialReady) + " · R restart\nV inspect hero · Scroll zoom. Walk over loot.";
             notice.text = Time.time < run.MessageUntil ? run.Message : "";
             bossPanel.SetActive(run.Boss && !run.Boss.Life.Dead);
             if (run.Boss) bossHP.rectTransform.sizeDelta = new Vector2(430 * run.Boss.Life.current / run.Boss.Life.maximum, 12);
             endPanel.SetActive(run.Finished);
-            if (run.Finished) ending.text = run.Won ? "THE VAULT IS SILENT\n<size=20>The warlord has fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Dodge the red outlines. Strike after the attack.</size>";
+            if (run.Finished) ending.text = run.Won ? "THE VAULT IS SILENT\n<size=20>The warlord has fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Watch their wind-up. Dodge, then strike.</size>";
         }
 
         string Ready(float time) => time <= Time.time ? "[ready]" : "[" + (time - Time.time).ToString("0.0") + "s]";
