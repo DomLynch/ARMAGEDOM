@@ -1,9 +1,9 @@
 {
   "status": "completed",
-  "duration": 12.21,
+  "duration": 14.02,
   "summary": {
-    "total": 10,
-    "passed": 10,
+    "total": 11,
+    "passed": 11,
     "failed": 0,
     "skipped": 0,
     "inconclusive": 0
@@ -12,70 +12,77 @@
     {
       "FullName": "Ashvault.Tests.RunTests.AttacksRespectRangeDirectionCooldownAndWalls",
       "Status": "Passed",
-      "Duration": 1.6911136,
+      "Duration": 1.3398809,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.DodgeBlocksDamageThenExpiresAndDeathRestarts",
       "Status": "Passed",
-      "Duration": 0.7023284,
+      "Duration": 0.5557032,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EnemyClickApproachesAndKills",
+      "Status": "Passed",
+      "Duration": 1.4896158,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EnemyStrikeStaysSynchronizedWithTelegraphWhenStaggered",
       "Status": "Passed",
-      "Duration": 0.7229723,
+      "Duration": 0.6022778,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.EntranceWaitsForPlayerAndStartsOnMovement",
       "Status": "Passed",
-      "Duration": 2.4596574,
+      "Duration": 2.3493424,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.GothicModelsKeepScaleMaterialsAndGameplaySeparation",
       "Status": "Passed",
-      "Duration": 0.6622816,
+      "Duration": 3.7335407,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.GroundClickPersistsStopsAndShiftClickAttacksInPlace",
       "Status": "Passed",
-      "Duration": 1.2199847,
+      "Duration": 1.1395113,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.HeroInspectionPreservesGameStateAndOriginalMaterialMaps",
       "Status": "Passed",
-      "Duration": 0.2051889,
+      "Duration": 0.128465,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.KeyboardTravelTurnsHeroAndPreservesDiagonalSpeed",
       "Status": "Passed",
-      "Duration": 1.9595189,
+      "Duration": 1.7923187,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.LootStrengthensPlayerAndFullRunReachesVictory",
       "Status": "Passed",
-      "Duration": 2.3336093,
+      "Duration": 0.8039558,
       "Message": null,
       "StackTrace": null
     },
     {
       "FullName": "Ashvault.Tests.RunTests.RenderMaterialsAreExplicitBuildDependencies",
       "Status": "Passed",
-      "Duration": 0.1959714,
+      "Duration": 0.0598583,
       "Message": null,
       "StackTrace": null
     }

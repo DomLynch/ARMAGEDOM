@@ -1,0 +1,12 @@
+{
+  "vertices": 92272,
+  "triangles": 96935,
+  "bones": 19,
+  "height": 1.95,
+  "texture_size": [
+    4096,
+    4096
+  ],
+  "frames": 104,
+  "original_rig": true
+}

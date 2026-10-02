@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Ashvault
@@ -37,7 +36,7 @@ namespace Ashvault
             return go;
         }
 
-        public static void Build(List<GameObject> gates)
+        public static void Build()
         {
             Gold = Surface(new Color(.85f, .59f, .23f));
             Teal = Surface(new Color(.17f, .60f, .64f));
@@ -76,7 +75,7 @@ namespace Ashvault
             sun.shadowStrength = .85f;
             sun.transform.rotation = Quaternion.Euler(48, -35, 0);
             var world = new GameObject("Ruined vault").transform;
-            for (int room = 0; room < 4; room++)
+            for (int room = 0; room < 1; room++)
             {
                 float z = room * 24;
                 var ruins = Object.Instantiate(Resources.Load<GameObject>("Gothic/Ruins"), world, false);
@@ -101,23 +100,9 @@ namespace Ashvault
                     light.range = 7;
                     light.intensity = 2.5f;
                 }
-                if (room == 3) continue;
-                Shape("Connecting bridge", PrimitiveType.Cube, new Vector3(0, -.2f, z + 12), new Vector3(6.4f, .4f, 4.2f), stone, world);
-                for (int side = -1; side <= 1; side += 2)
-                    Shape("Bridge parapet", PrimitiveType.Cube, new Vector3(side * 3.3f, .5f, z + 12), new Vector3(.4f, 1, 4.4f), dark, world);
-                var gate = new GameObject("Sealed gate");
-                gate.transform.SetParent(world);
-                gate.transform.position = new Vector3(0, 0, z + 11);
-                for (int i = -3; i <= 3; i++)
-                    Shape("Gate bar", PrimitiveType.Cube, new Vector3(i, 1.1f, 0), new Vector3(.085f, 3.5f, .10f), metal, gate.transform, false);
-                var block = gate.AddComponent<BoxCollider>();
-                block.center = Vector3.up;
-                block.size = new Vector3(6.4f, 2, .35f);
-                gate.layer = 8;
-                gates.Add(gate);
             }
             Shape("Entrance seal", PrimitiveType.Cube, new Vector3(0, 1, -10.3f), new Vector3(6.4f, 2, .6f), dark, world);
-            Shape("Throne wall", PrimitiveType.Cube, new Vector3(0, 1.5f, 82.3f), new Vector3(6.4f, 3, .6f), dark, world);
+            Shape("Throne wall", PrimitiveType.Cube, new Vector3(0, 1.5f, 10.3f), new Vector3(6.4f, 3, .6f), dark, world);
         }
 
         public static GameObject Actor(string name, Vector3 position, int kind)
@@ -133,9 +118,9 @@ namespace Ashvault
             root.AddComponent<Health>();
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
-            string model = kind == -1 ? "Knight" : kind == 1 ? "Ogre" : kind == 2 ? "Warlock" : kind == 3 ? "Necromancer" : name == "Orc raider" ? "Orc" : "Goblin";
-            Object.Instantiate(Resources.Load<GameObject>(kind == -1 ? "Hero/Warden" : "Gothic/" + model), visual, false);
-            root.AddComponent<ArtMotion>().headProportion = kind == 0 ? .63f : kind == 1 ? .72f : 1;
+            var model = Object.Instantiate(Resources.Load<GameObject>(kind == -1 ? "Hero/Warden" : "Enemies/Revenant"), visual, false);
+            if (kind == 1 || kind == 3) model.transform.localScale *= kind == 3 ? 1.25f : 1.12f;
+            root.AddComponent<ArtMotion>();
             if (kind == -1)
             {
                 var rim = new GameObject("Warden lantern").AddComponent<Light>();

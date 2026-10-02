@@ -75,7 +75,7 @@ namespace Ashvault
             notice.alignment = TextAlignmentOptions.Center;
             var boss = Rect("Boss", canvas.transform, new Vector2(.5f, 1), new Vector2(70, -26), new Vector2(430, 70));
             bossPanel = boss.gameObject;
-            Label("THE CROWNLESS", boss, Vector2.zero, new Vector2(430, 28), 19).alignment = TextAlignmentOptions.Center;
+            Label("REVENANT CAPTAIN", boss, Vector2.zero, new Vector2(430, 28), 19).alignment = TextAlignmentOptions.Center;
             bossHP = Bar(boss, new Vector2(0, -35), 430, new Color(.7f, .28f, .14f));
             var end = Rect("Run outcome", canvas.transform, new Vector2(.5f, .5f), Vector2.zero, new Vector2(780, 300));
             endPanel = end.gameObject;
@@ -97,7 +97,7 @@ namespace Ashvault
         {
             var run = RunManager.Instance;
             var player = run.Player;
-            status.text = "CHAMBER " + (run.Chamber + 1) + " / 4 · " + run.Names[run.Chamber] + "\nHostiles: " + run.Enemies.Count + "    Wave: " + run.Wave;
+            status.text = "THE OUTER WATCH  ·  3 WAVES\nHostiles: " + run.Enemies.Count + "    Wave: " + run.Wave;
             healthLabel.text = "WARDEN   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
             stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Sword " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: sword · Cyan: armour · Green: tonic";
             hp.rectTransform.sizeDelta = new Vector2(320 * player.Life.current / player.Life.maximum, 12);
@@ -106,7 +106,7 @@ namespace Ashvault
             bossPanel.SetActive(run.Boss && !run.Boss.Life.Dead);
             if (run.Boss) bossHP.rectTransform.sizeDelta = new Vector2(430 * run.Boss.Life.current / run.Boss.Life.maximum, 12);
             endPanel.SetActive(run.Finished);
-            if (run.Finished) ending.text = run.Won ? "THE VAULT IS SILENT\n<size=20>The Crownless has fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Dodge the red outlines. Strike after the attack.</size>";
+            if (run.Finished) ending.text = run.Won ? "THE VAULT IS SILENT\n<size=20>The revenants have fallen.</size>" : "THE ASH CLAIMS YOU\n<size=20>Dodge the red outlines. Strike after the attack.</size>";
         }
 
         string Ready(float time) => time <= Time.time ? "[ready]" : "[" + (time - Time.time).ToString("0.0") + "s]";

@@ -3,6 +3,8 @@ Input is our original-reference TRELLIS mesh. No third-party character rig is us
 Blender 5.2: --background --threads 4 --python art/hero/rig_warden.py
 """
 
+import argparse
+import sys
 import json
 import math
 from pathlib import Path
@@ -12,12 +14,21 @@ import numpy as np
 from mathutils import Quaternion, Vector
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "Game/Assets/Resources/Hero"
+parser = argparse.ArgumentParser()
+parser.add_argument("--name", default="Warden")
+parser.add_argument("--folder", default="Hero")
+parser.add_argument("--source", type=Path, default=ROOT / "art/hero/warden-source.glb")
+args = parser.parse_args(
+    sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
+)
+NAME = args.name
+OUT = ROOT / "Game/Assets/Resources" / args.folder
+SOURCE = args.source.resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=str(ROOT / "art/hero/warden-source.glb"))
+bpy.ops.import_scene.gltf(filepath=str(SOURCE))
 body = next(o for o in bpy.data.objects if o.type == "MESH")
-body.name = "Warden armour"
+body.name = NAME + " armour"
 lo = min(v.co.z for v in body.data.vertices)
 hi = max(v.co.z for v in body.data.vertices)
 for v in body.data.vertices:
@@ -32,7 +43,7 @@ for p in body.data.polygons:
     p.use_smooth = True
 # Preserve the reconstruction's spatially-varying base colour and PBR channels.
 mat = body.data.materials[0]
-mat.name = "Warden"
+mat.name = NAME
 
 
 def source_image(socket):
@@ -53,11 +64,11 @@ packed = source_image(principled.inputs["Metallic"])
 assert albedo and packed and source_image(principled.inputs["Roughness"]) == packed
 assert len([o for o in bpy.data.objects if o.type == "MESH"]) == 1
 png = bpy.data.images.new(
-    "WardenAlbedoPNG", width=albedo.size[0], height=albedo.size[1], alpha=True
+    NAME + "AlbedoPNG", width=albedo.size[0], height=albedo.size[1], alpha=True
 )
 png.colorspace_settings.name = "sRGB"
 png.pixels.foreach_set(albedo.pixels[:])
-png.filepath_raw = str(OUT / "WardenAlbedo.png")
+png.filepath_raw = str(OUT / (NAME + "Albedo.png"))
 png.file_format = "PNG"
 png.save()
 pixels = np.asarray(packed.pixels[:], dtype=np.float32).reshape(-1, 4)
@@ -69,7 +80,7 @@ metal = bpy.data.images.new(
 )
 metal.colorspace_settings.name = "Non-Color"
 metal.pixels.foreach_set(output.ravel())
-metal.filepath_raw = str(OUT / "WardenMetallicSmoothness.png")
+metal.filepath_raw = str(OUT / (NAME + "MetallicSmoothness.png"))
 metal.file_format = "PNG"
 metal.save()
 # Skeleton matches the generated A pose. Skin weights are constrained by anatomical region.
@@ -116,8 +127,41 @@ for side, sign in [("L", 1), ("R", -1)]:
             ),
         }
     )
-arm = bpy.data.armatures.new("Warden original skeleton")
-rig = bpy.data.objects.new("WardenRig", arm)
+# The revenant reference has narrower arms and a wider stance than the Warden.
+if NAME == "Revenant":
+    for side, sign in [("L", 1), ("R", -1)]:
+        bones["UpperArm." + side] = (
+            (0.235 * sign, 0, 1.59),
+            (0.33 * sign, 0, 1.30),
+            "Clavicle." + side,
+        )
+        bones["Forearm." + side] = (
+            (0.33 * sign, 0, 1.30),
+            (0.40 * sign, -0.025, 0.99),
+            "UpperArm." + side,
+        )
+        bones["Hand." + side] = (
+            (0.40 * sign, -0.025, 0.99),
+            (0.40 * sign, -0.055, 0.86),
+            "Forearm." + side,
+        )
+        bones["Thigh." + side] = (
+            (0.16 * sign, 0, 0.98),
+            (0.20 * sign, 0.01, 0.55),
+            "Hips",
+        )
+        bones["Shin." + side] = (
+            (0.20 * sign, 0.01, 0.55),
+            (0.23 * sign, 0.025, 0.145),
+            "Thigh." + side,
+        )
+        bones["Foot." + side] = (
+            (0.23 * sign, 0.025, 0.145),
+            (0.23 * sign, -0.18, 0.045),
+            "Shin." + side,
+        )
+arm = bpy.data.armatures.new(NAME + " original skeleton")
+rig = bpy.data.objects.new(NAME + "Rig", arm)
 bpy.context.collection.objects.link(rig)
 bpy.context.view_layer.objects.active = rig
 rig.select_set(True)
@@ -164,7 +208,15 @@ def bind(obj, rigid=None):
             candidates = ["Thigh." + side, "Shin." + side, "Foot." + side]
         else:
             candidates = ["Hips", "Spine", "Chest"]
-        ranked = sorted((distance(v.co, n), n) for n in candidates)[:2]
+        if NAME == "Revenant":
+            # Continuous nearest-bone blend avoids classifying low fingers as legs
+            # or the inner elbow as torso along a hard x/z boundary.
+            candidates = list(
+                bones
+            )  # Include both legs across the centre of joined cloth.
+        ranked = sorted((distance(v.co, n), n) for n in candidates)[
+            : 4 if NAME == "Revenant" else 2
+        ]
         weights = [1 / max(d, 0.025) ** 4 for d, n in ranked]
         total = sum(weights)
         for (_, name), weight in zip(ranked, weights):
@@ -174,7 +226,7 @@ def bind(obj, rigid=None):
 bind(body)
 # Original weapon: double-edged ridged blade, swept guard, leather grip and brass pommel.
 # Geometry is authored in the right fist's rest coordinates and rigidly attached to Hand.R.
-weapon_mat = bpy.data.materials.new("WardenSteel")
+weapon_mat = bpy.data.materials.new(NAME + "Steel")
 weapon_mat.diffuse_color = (0.42, 0.45, 0.49, 1)
 weapon_mat.use_nodes = True
 bs = weapon_mat.node_tree.nodes.get("Principled BSDF")
@@ -194,10 +246,12 @@ def mesh(name, verts, faces):
     return obj
 
 
-cx, cy, cz = -0.49, -0.06, 0.96
+cx, cy, cz = (-0.40, -0.06, 0.94) if NAME == "Revenant" else (-0.49, -0.06, 0.96)
 # Blade extends down and slightly forward, separate from the character's leg.
 verts = []
 for t, w in [(0, 0.041), (0.12, 0.04), (0.70, 0.027), (0.84, 0)]:
+    if NAME == "Revenant":
+        w *= 1.8
     for dx, dy in [(-w, 0), (0, -0.008), (w, 0), (0, 0.008)]:
         verts.append((cx + dx, cy + dy - 0.65 * t, cz - 0.16 - 0.68 * t))
 faces = []
@@ -326,13 +380,15 @@ img = bpy.data.images.new(
 )
 img.colorspace_settings.name = "Non-Color"
 img.pixels.foreach_set(normal.ravel())
-img.filepath_raw = str(OUT / "WardenNormal.png")
+img.filepath_raw = str(OUT / (NAME + "Normal.png"))
 img.file_format = "PNG"
 img.save()
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / "art/hero/warden-rigged.blend"))
+bpy.ops.wm.save_as_mainfile(
+    filepath=str(SOURCE.parent / (NAME.lower() + "-rigged.blend"))
+)
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.fbx(
-    filepath=str(OUT / "Warden.fbx"),
+    filepath=str(OUT / (NAME + ".fbx")),
     use_selection=True,
     object_types={"MESH", "ARMATURE"},
     axis_forward="-Z",
@@ -347,7 +403,7 @@ bpy.ops.export_scene.fbx(
     bake_anim_simplify_factor=0,
     path_mode="STRIP",
 )
-(ROOT / "art/hero/rig-report.json").write_text(
+(SOURCE.parent / "rig-report.json").write_text(
     json.dumps(
         {
             "vertices": len(body.data.vertices),

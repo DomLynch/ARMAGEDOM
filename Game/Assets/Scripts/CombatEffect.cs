@@ -21,11 +21,12 @@ namespace Ashvault
             line.startColor = line.endColor = color;
             line.startWidth = line.endWidth = .065f;
             const int steps = 36;
-            line.positionCount = steps + 3;
-            line.SetPosition(0, Vector3.zero);
+            bool ring = angle >= 359;
+            line.positionCount = ring ? steps + 1 : steps + 3;
+            if (!ring) line.SetPosition(0, Vector3.zero);
             for (int i = 0; i <= steps; i++)
-                line.SetPosition(i + 1, Quaternion.AngleAxis(-angle / 2 + angle * i / steps, Vector3.up) * facing.normalized * radius);
-            line.SetPosition(steps + 2, Vector3.zero);
+                line.SetPosition(i + (ring ? 0 : 1), Quaternion.AngleAxis(-angle / 2 + angle * i / steps, Vector3.up) * facing.normalized * radius);
+            if (!ring) line.SetPosition(steps + 2, Vector3.zero);
             go.AddComponent<CombatEffect>().expires = Time.time + lifetime;
             return go;
         }

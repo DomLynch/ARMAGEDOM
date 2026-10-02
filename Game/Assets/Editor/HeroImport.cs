@@ -10,8 +10,19 @@ namespace Ashvault.Editor
         [MenuItem("Ashvault/Import original Warden")]
         public static void Setup()
         {
-            if (!File.Exists(Root + "Warden.fbx")) return;
-            foreach (string path in Directory.GetFiles(Root, "*.png"))
+            SetupCharacter(Root, "Warden");
+            CreateReflection();
+            PlayerSettings.macRetinaSupport = true;
+            AssetDatabase.SaveAssets();
+            Debug.Log("ASHVAULT_HERO_IMPORT_PASS");
+        }
+        [MenuItem("Ashvault/Import original Revenant")]
+        public static void SetupRevenant() => SetupCharacter("Assets/Resources/Enemies/", "Revenant");
+
+        static void SetupCharacter(string root, string name)
+        {
+            if (!File.Exists(root + name + ".fbx")) return;
+            foreach (string path in Directory.GetFiles(root, "*.png"))
             {
                 var importer = (TextureImporter)AssetImporter.GetAtPath(path);
                 importer.maxTextureSize = 4096;
@@ -23,31 +34,31 @@ namespace Ashvault.Editor
                 importer.textureType = path.Contains("Normal") ? TextureImporterType.NormalMap : TextureImporterType.Default;
                 importer.SaveAndReimport();
             }
-            var material = AssetDatabase.LoadAssetAtPath<Material>(Root + "Warden.mat");
-            if (!material) { material = new Material(Shader.Find("Standard")); AssetDatabase.CreateAsset(material, Root + "Warden.mat"); }
+            var material = AssetDatabase.LoadAssetAtPath<Material>(root + name + ".mat");
+            if (!material) { material = new Material(Shader.Find("Standard")); AssetDatabase.CreateAsset(material, root + name + ".mat"); }
             material.color = Color.white;
-            material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "WardenAlbedo.png");
-            material.SetTexture("_MetallicGlossMap", AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "WardenMetallicSmoothness.png"));
+            material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(root + name + "Albedo.png");
+            material.SetTexture("_MetallicGlossMap", AssetDatabase.LoadAssetAtPath<Texture2D>(root + name + "MetallicSmoothness.png"));
             material.EnableKeyword("_METALLICGLOSSMAP");
             material.SetFloat("_GlossMapScale", 1);
-            material.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "WardenNormal.png"));
+            material.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>(root + name + "Normal.png"));
             if (material.GetTexture("_BumpMap")) material.EnableKeyword("_NORMALMAP");
             EditorUtility.SetDirty(material);
-            var steel=AssetDatabase.LoadAssetAtPath<Material>(Root+"WardenSteel.mat");
-            if(!steel){steel=new Material(Shader.Find("Standard"));AssetDatabase.CreateAsset(steel,Root+"WardenSteel.mat");}
-            const string whitePath=Root+"WeaponWhite.asset";
+            var steel=AssetDatabase.LoadAssetAtPath<Material>(root+name + "Steel.mat");
+            if(!steel){steel=new Material(Shader.Find("Standard"));AssetDatabase.CreateAsset(steel,root+name + "Steel.mat");}
+            string whitePath=root+"WeaponWhite.asset";
             var white=AssetDatabase.LoadAssetAtPath<Texture2D>(whitePath);
             if(!white){white=new Texture2D(1,1);white.SetPixel(0,0,Color.white);white.Apply();AssetDatabase.CreateAsset(white,whitePath);}
             steel.color=new Color(.48f,.52f,.57f);steel.mainTexture=white;
             steel.SetFloat("_Metallic",.92f);steel.SetFloat("_Glossiness",.72f);EditorUtility.SetDirty(steel);
-            var model = (ModelImporter)AssetImporter.GetAtPath(Root + "Warden.fbx");
+            var model = (ModelImporter)AssetImporter.GetAtPath(root + name + ".fbx");
             model.animationType = ModelImporterAnimationType.Legacy;
             model.importAnimation = true;
             model.importNormals = ModelImporterNormals.Import;
             model.importTangents = ModelImporterTangents.CalculateMikk;
             model.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
-            model.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), "Warden"), material);
-            model.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), "WardenSteel"), steel);
+            model.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), name), material);
+            model.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), name + "Steel"), steel);
             model.SaveAndReimport();
             var take = model.defaultClipAnimations[0];
             float start = take.firstFrame;
@@ -56,10 +67,8 @@ namespace Ashvault.Editor
                 Clip("Run",take.takeName,start+60,start+84,true),
                 Clip("Attack",take.takeName,start+85,start+103,false) };
             model.SaveAndReimport();
-            CreateReflection();
-            PlayerSettings.macRetinaSupport = true;
             AssetDatabase.SaveAssets();
-            Debug.Log("ASHVAULT_HERO_IMPORT_PASS");
+            Debug.Log("ASHVAULT_CHARACTER_IMPORT_PASS: " + name);
         }
         static ModelImporterClipAnimation Clip(string name,string take,float first,float last,bool loop) =>
             new ModelImporterClipAnimation { name=name,takeName=take,firstFrame=first,lastFrame=last,loopTime=loop,wrapMode=loop?WrapMode.Loop:WrapMode.Once };

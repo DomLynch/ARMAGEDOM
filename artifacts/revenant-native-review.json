@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-02",
+  "build_id": "build_abad3e36cc5c",
+  "ability_kills": 3,
+  "loot_visible": true,
+  "death_and_restart": true,
+  "dodge_exercised": true,
+  "native_enemy_click": "pending; InputSystem regression passed",
+  "screenshot": "revenant-native-combat-14.png",
+  "fps_and_difficulty": "unmeasured"
+}

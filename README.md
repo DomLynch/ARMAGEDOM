@@ -14,7 +14,7 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 - Click movement stops at obstacles; this small prototype has no route-finding around walls.
 - Space: dodge, with a short invulnerability window. 1: shockwave.
 - Walk over gold/cyan/green pickups for damage, maximum health, or healing.
-- Clear waves to open the next gate. Kill The Crownless in chamber four.
+- Fight three waves in the same Outer Watch room; defeat the Revenant Captain.
 - R or the outcome button restarts immediately.
 - V: pause and inspect the real hero close-up; left/right arrows orbit. V returns.
 - Mouse wheel: adjust gameplay zoom.
@@ -23,7 +23,7 @@ The standalone Mac build is `Builds/Ashvault.app` (no Unity Editor required).
 
 Ten runtime files in `Game/Assets/Scripts`: arena construction, run flow,
 player, enemy, health, combat effects, pickups, HUD, cosmetic skeletal animation, and paused hero inspection. No backend or multiplayer.
-Gothic art uses original Blender ruins, CC0 scanned stone, and an original reconstructed Warden plus credited Flare enemy sources. No paid cloud jobs were used.
+Gothic art uses original Blender ruins, CC0 scanned stone, and an original reconstructed Warden and an original reconstructed Revenant. No paid cloud jobs were used.
 
 ## Replace art
 
@@ -39,7 +39,7 @@ Aim is local +Z; world up is +Y; 1 unit is 1 metre.
 Play Mode tests are in `Game/Assets/Tests`. They test real Unity components,
 including attack obstruction, invulnerability expiry, death/restart, and run progression.
 The full-run test accelerates the simulation and kills enemies directly to test
-progression; it does not establish difficulty, game feel, or a 5–10 minute human run.
+progression; it does not establish difficulty, game feel, or human pacing.
 
 Editor menu `Ashvault/Create playable scene` regenerates the minimal entry scene.
 `Ashvault/Build Mac demo` produces the desktop app.
@@ -57,8 +57,8 @@ Blender characters and bakes muted albedo on CPU (four threads). Run either with
 Blender background mode, then use `Ashvault/Import gothic art` in the editor.
 The original source files, licenses, import metadata and texture receipts are retained.
 `Game/Assets/StreamingAssets/ART-CREDITS.txt` and the upstream notices ship in the app.
-The orc and ogre currently share a hobgoblin source at different sizes; this is a
-small dark-fantasy visual prototype, not Witcher-level production artwork.
+The legacy Flare sources remain for provenance; the current arena uses the original
+Revenant. Veterans and captain share its body mesh at different sizes.
 
 ## Original HD Warden
 The hero uses an original reference and TRELLIS.2 reconstruction, 4K PBR maps,
@@ -66,3 +66,8 @@ a custom 19-bone skeleton and authored animation. See `art/hero/README.md` for
 provenance, source files, reproducible CPU conversion and current limitations.
 The free shared-GPU runs consumed included quota: zero overquota usage verified.
 No paid asset or paid HF Job. The CPU32GB tier alone cannot execute TRELLIS.2.
+
+## Original 4K enemies
+The current room has five revenants, then six mixed regulars/veterans, then one captain.
+Enemy attacks retain orange/red warnings; the yellow player slash cone is removed.
+New model, maps, rig reproduction and research are recorded in `art/enemies/README.md`.

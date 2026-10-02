@@ -1,0 +1,14 @@
+{
+  "before": {
+    "base": 2400,
+    "current": 2239.106742,
+    "resetsAt": "2026-10-03T09:16:50.351Z",
+    "overquotaUsed": 0
+  },
+  "after": {
+    "base": 2400,
+    "current": 2158.1791160000002,
+    "resetsAt": "2026-10-03T09:16:50.096Z",
+    "overquotaUsed": 0
+  }
+}

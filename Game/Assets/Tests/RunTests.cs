@@ -26,10 +26,17 @@ namespace Ashvault.Tests
         [Test]
         public void GothicModelsKeepScaleMaterialsAndGameplaySeparation()
         {
-            foreach (string name in new[] { "Knight", "Goblin", "Orc", "Ogre", "Warlock", "Necromancer" })
+            foreach (string name in new[] { "Knight", "Revenant" })
             {
-                var asset = Resources.Load<GameObject>(name == "Knight" ? "Hero/Warden" : "Gothic/" + name);
+                var asset = Resources.Load<GameObject>(name == "Knight" ? "Hero/Warden" : "Enemies/" + name);
                 Assert.IsNotNull(asset, name);
+                if (name == "Revenant")
+                {
+                    var surface = Resources.Load<Material>("Enemies/Revenant");
+                    Assert.AreEqual(4096, surface.mainTexture.width);
+                    Assert.IsNotNull(surface.GetTexture("_MetallicGlossMap"));
+                    Assert.IsNotNull(surface.GetTexture("_BumpMap"));
+                }
                 var model = Object.Instantiate(asset);
                 try
                 {
@@ -75,6 +82,30 @@ namespace Ashvault.Tests
                     {
                         Assert.IsNotNull(animation[clip], name + " lost " + clip);
                         Assert.Greater(animation[clip].length, 0);
+                        if (name == "Revenant")
+                        {
+                            foreach (float phase in new[] { .25f, .5f, .75f })
+                            {
+                                animation[clip].clip.SampleAnimation(model, animation[clip].length * phase);
+                                foreach (var skin in model.GetComponentsInChildren<SkinnedMeshRenderer>())
+                                {
+                                    var baked = new Mesh();
+                                    animation["Idle"].clip.SampleAnimation(model, 0);
+                                    skin.BakeMesh(baked); var rest = baked.vertices;
+                                    animation[clip].clip.SampleAnimation(model, animation[clip].length * phase);
+                                    skin.BakeMesh(baked); var posed = baked.vertices;
+                                    var indices = baked.triangles;
+                                    for (int t = 0; t < indices.Length; t += 3)
+                                    for (int edge = 0; edge < 3; edge++)
+                                    {
+                                        int a = indices[t + edge], b = indices[t + (edge + 1) % 3];
+                                        float stretch = Vector3.Distance(posed[a], posed[b]) - Vector3.Distance(rest[a], rest[b]);
+                                        Assert.Less(stretch, .2f, clip + " must not stretch fingers/arm triangles into long spikes.");
+                                    }
+                                    Object.DestroyImmediate(baked);
+                                }
+                            }
+                        }
                     }
                 }
                 finally { Object.DestroyImmediate(model); }
@@ -193,6 +224,35 @@ namespace Ashvault.Tests
         }
 
         [UnityTest]
+        public IEnumerator EnemyClickApproachesAndKills()
+        {
+            run.enabled = false;
+            var oldKeyboard = Keyboard.current; var oldMouse = Mouse.current;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player = run.Player; player.enabled = true;
+                var enemy = ArenaBuilder.Actor("Revenant target", player.transform.position + Vector3.forward * 4, 0).AddComponent<EnemyController>();
+                enemy.enabled = false;
+                enemy.Life.current = 40;
+                run.Enemies.Add(enemy);
+                yield return null;
+                Vector2 screen = Camera.main.WorldToScreenPoint(enemy.transform.position + Vector3.up * .9f);
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = screen }.WithButton(MouseButton.Left));
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = screen });
+                yield return new WaitForSeconds(1.3f);
+                Assert.AreEqual(0, run.Enemies.Count, "One enemy click must approach and keep attacking until the target dies.");
+                Assert.Greater(player.transform.position.z, -5.5f);
+                Assert.IsFalse(run.Finished);
+            }
+            finally
+            {
+                run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+                oldKeyboard?.MakeCurrent(); oldMouse?.MakeCurrent();
+            }
+        }
+
+        [UnityTest]
         public IEnumerator EntranceWaitsForPlayerAndStartsOnMovement()
         {
             yield return new WaitForSeconds(2.2f);
@@ -236,6 +296,7 @@ namespace Ashvault.Tests
             run.Enemies.Add(enemy);
             yield return null;
             Assert.IsTrue(player.TryAttack(0));
+            Assert.IsNull(GameObject.Find("Attack telegraph"), "Hero slash must not draw a yellow cone.");
             Assert.AreEqual(80, enemy.Life.current);
             Assert.IsFalse(player.TryAttack(0));
             yield return new WaitForSeconds(.35f);
@@ -298,14 +359,16 @@ namespace Ashvault.Tests
                     {
                         var controller = run.Player.GetComponent<CharacterController>();
                         controller.enabled = false;
-                        run.Player.transform.position = new Vector3(0, 0, run.Chamber * 24 + 15);
+                        run.Player.transform.position = new Vector3(0, 0, -4);
                         controller.enabled = true;
                     }
                     yield return null;
                 }
-                Assert.IsTrue(run.Won, "All chamber waves must lead to boss victory.");
-                Assert.AreEqual(3, run.Chamber);
-                Assert.Greater(defeated, 30);
+                Assert.IsTrue(run.Won, "All three arena waves must lead to captain victory.");
+                Assert.AreEqual(3, run.Wave);
+                Assert.AreEqual(12, defeated);
+                Assert.IsNull(GameObject.Find("Connecting bridge"));
+                Assert.IsNotNull(GameObject.Find("Throne wall"));
             }
             finally { Time.timeScale = oldScale; }
         }

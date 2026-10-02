@@ -79,8 +79,6 @@ namespace Ashvault
                     else if (hit.normal.y > .7f && Mathf.Abs(hit.point.y - transform.position.y) < .5f)
                     {
                         destination = hit.point; target = null; travelling = true;
-                        if (leftClick.WasPressedThisFrame())
-                            CombatEffect.Ring(destination, .3f, new Color(.85f, .72f, .4f), .35f);
                     }
                 }
             }
@@ -147,8 +145,7 @@ namespace Ashvault
             attackReady = Time.time + (kind == 0 ? .32f : .55f);
             if (kind == 1) heavyReady = Time.time + 1.6f;
             if (kind == 2) specialReady = Time.time + 7;
-            CombatEffect.Sector(transform.position, transform.forward, range, angle,
-                kind == 2 ? new Color(.25f, .8f, 1) : new Color(1, .8f, .35f), .16f);
+            if (kind == 2) CombatEffect.Ring(transform.position, range, new Color(.25f, .8f, 1), .16f);
             foreach (var enemy in RunManager.Instance.Enemies.ToArray())
             {
                 if (!enemy || enemy.Life.Dead) continue;
