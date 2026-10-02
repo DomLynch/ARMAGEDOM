@@ -5,6 +5,12 @@ Mac authoring checkout: `/Users/domininclynch/Desktop/Business/Ashvault`.
 VPS follower: `/opt/armagedom`, branch `main`, dedicated user `armagedom`.
 The Unity project remains `Game/`; the existing Mac app remains Ashvault.
 
+Installed2026-10-02: baseline `f672c25` matched GitHub and the clean VPS checkout.
+Six sync tests passed on both Mac and VPS;15/15 Unity tests and Mac player smoke
+passed locally. Service runs as armagedom with success/exit0; timer enabled.
+Pre-existing Mac ProjectSettings/TimeManager edits and untracked art/cache backups
+remain local intentionally. A clean follower does not imply the authoring tree is clean.
+
 Only reviewed, verified commits are pushed. Unfinished local edits, Unity caches,
 builds and untracked art/captures stay on the Mac. No automatic commit, force push,
 reset, clean, or bidirectional merge. The VPS is a source copy, not a playable

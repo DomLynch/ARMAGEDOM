@@ -3,8 +3,11 @@
 ## ARMAGEDOM source sync and London direction — current task
 Owner authorized publishing the existing foundation to `DomLynch/ARMAGEDOM`
 and a VPS follower of verified main commits. Mac working folder remains Ashvault;
-unfinished local settings/art stay local. Sync script refuses dirt and divergence;
-installation/parity evidence follows after deployment. No Linux game server is implied.
+unfinished local settings/art stay local. Sync script refuses dirt and divergence.
+Baseline f672c25 reached GitHub and `/opt/armagedom`; VPS checkout was clean.
+Installed armagedom-sync.timer follows main each minute as user armagedom;
+service result success/exit0, six real-Git tests pass on Mac and VPS. No Linux game
+server is implied. Owner selected an editable3D London area over a flat-picture scene.
 Latest direct brief confirms2029–2030 gameplay, superseding the older2045 narrative
 as implementation direction; preserve the original supplied story unchanged.
 Owner supplied a ruined Westminster/Thames image for the first area, preserved in
@@ -90,7 +93,7 @@ review continuous weight transfer, hips/shoulders and start-stop transitions nex
 Passing mechanics tests is not proof of natural animation or AAA quality.
 Hands/grip, simple weapons, facial detail and world presentation remain prototype
 limits. Native full clear, human difficulty/pacing, sustained FPS and Windows unverified.
-GitHub source remote and VPS follower are being configured; no game deployment target.
+GitHub source remote and VPS follower are configured; no game deployment target.
 Preserve unrelated Blender copies, old caches,
 review captures and TimeManager migration outside scoped commits.
 
