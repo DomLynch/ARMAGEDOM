@@ -1,4 +1,10 @@
-# Ashvault
+# ARMAGEDOM — Ashvault foundation
+
+The owner is taking this prototype toward a grounded 2029–2030 post-nuclear ARPG.
+The installed game still contains the original fantasy roster and room.
+See [the handover](docs/ARMAGEDOM-HANDOVER.md),
+[original narrative](docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md), and
+[Mac/GitHub/VPS source sync](docs/SYNC.md).
 
 A small local Unity desktop action RPG prototype. Mac development; platform-neutral C#.
 

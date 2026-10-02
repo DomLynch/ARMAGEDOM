@@ -1,0 +1,17 @@
+[Unit]
+Description=Follow verified ARMAGEDOM main commits
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=armagedom
+Group=armagedom
+Environment=GIT_TERMINAL_PROMPT=0
+ExecStart=/usr/bin/python3 /usr/local/libexec/armagedom-sync.py /opt/armagedom https://github.com/DomLynch/ARMAGEDOM.git
+TimeoutStartSec=120
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/armagedom

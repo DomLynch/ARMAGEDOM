@@ -1,0 +1,11 @@
+[Unit]
+Description=Check ARMAGEDOM main every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=1min
+AccuracySec=5s
+Unit=armagedom-sync.service
+
+[Install]
+WantedBy=timers.target

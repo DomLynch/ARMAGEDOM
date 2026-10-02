@@ -1,5 +1,30 @@
 # Ashvault — 2026-10-02
 
+## ARMAGEDOM source sync and London direction — current task
+Owner authorized publishing the existing foundation to `DomLynch/ARMAGEDOM`
+and a VPS follower of verified main commits. Mac working folder remains Ashvault;
+unfinished local settings/art stay local. Sync script refuses dirt and divergence;
+installation/parity evidence follows after deployment. No Linux game server is implied.
+Latest direct brief confirms2029–2030 gameplay, superseding the older2045 narrative
+as implementation direction; preserve the original supplied story unchanged.
+Owner supplied a ruined Westminster/Thames image for the first area, preserved in
+`art/london/westminster-owner-reference.png`. Background conversion and human vagrant
+replacement are requested next; neither is delivered by this source-sync commit.
+Fresh pre-publication checks:15/15 PlayMode tests, native packaged startup smoke,
+six real-Git sync tests pass. Existing owner animation acceptance remains open.
+
+## New direction — ARMAGEDOM handover
+Owner requested a post-nuclear near-future pivot, preserving the current room,
+camera and reusable hero/enemy bodies. Development handover:
+[docs/ARMAGEDOM-HANDOVER.md](docs/ARMAGEDOM-HANDOVER.md); original supplied narrative:
+[docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md](docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md).
+Direct request sets gameplay in2029–2030; attached brief says collapse then and play
+in2045. Working precedence is the direct request; resolve before dated narrative.
+The first conversion is a modern survivor/raider art pilot in the existing room.
+This is a documented direction, not implemented content. The playable build remains
+Ashvault; firearms, expanded route, persistent live tuning and MMO systems are not built.
+The existing implementation/evidence below describes that unchanged baseline.
+
 ## Objective and scope
 Local single-room isometric ARPG, three waves, melee, dodge, upgrades and an orc
 warlord. Unity 6000.3.25f1 Built-in renderer; native Mac `Builds/Ashvault.app`.
@@ -65,7 +90,8 @@ review continuous weight transfer, hips/shoulders and start-stop transitions nex
 Passing mechanics tests is not proof of natural animation or AAA quality.
 Hands/grip, simple weapons, facial detail and world presentation remain prototype
 limits. Native full clear, human difficulty/pacing, sustained FPS and Windows unverified.
-No Git remote/deployment target. Preserve unrelated Blender copies, old caches,
+GitHub source remote and VPS follower are being configured; no game deployment target.
+Preserve unrelated Blender copies, old caches,
 review captures and TimeManager migration outside scoped commits.
 
 Latest build cache recovery: `build_f6311beefc92` misleadingly said Succeeded with
