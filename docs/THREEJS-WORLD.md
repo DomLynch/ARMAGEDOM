@@ -20,12 +20,13 @@ stretching painting; ground picking uses the cropped inverse. Masks are depth-on
 convex meshes at their saved foot depth. Circle movement includes.061m boundary
 clearance, substeps and sliding; ray visibility rejects solid polygons.
 
-Verification: six Node tests pass after two real missing-feature red runs. They
-cover golden Unity registration, blocker tunnelling/sliding, sample previously
-audited pavement points across all three portable layouts, aspect crop registration,
+Verification: seven Node tests pass after two real missing-feature red runs. They
+cover golden Unity registration, blocker tunnelling/sliding, all26 audited pavement landmarks connected by production circle movement across
+all three portable layouts, aspect crop registration,
 fixed camera/constant actor size and resource disposal. Actual Chromium151 browser
 WASD moves the probe about2.5m; checkpoint mask reduces cyan actor pixels1951→1170
-behind the barrier, console has0page errors. Desktop1280×720 and844×390 landscape
+behind the barrier, the same probe in front stays2179→2179pixels, solid-blocker
+movement stops4.2m short of its centre, and console has0page errors. Desktop1280×720 and844×390 landscape
 captures in artifacts/threejs-world/. This is a geometry probe, not character
 art/full fight/physical phone/hosted acceptance. Lead owns integrated fight gate.
 
