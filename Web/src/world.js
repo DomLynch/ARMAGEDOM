@@ -82,8 +82,14 @@ export class LondonWorld {
       const projectedHeight=q=>Math.abs(geometry.point(q,2).y-geometry.point(q).y);
       zoom=clamp(zoom*projectedHeight(reference)/projectedHeight(playerPosition),1,4);
     }
-    const aspect=Math.max(1,width)/Math.max(1,height),zx=zoom*Math.max(1,ASPECT/aspect),zy=zoom*Math.max(1,aspect/ASPECT);
-    const ex=.5/zx,ey=.5/zy,target={x:clamp(p.x,ex,1-ex),y:clamp(1-p.y+.1,ey,1-ey)};
+    const aspect=Math.max(1,width)/Math.max(1,height),portrait=aspect<1;
+    if(portrait) {
+      // A scaled 2m reference stays ~70 CSS pixels; zoom>=1 keeps the finite painting covering the screen.
+      const actorHeight=Math.abs(geometry.point(playerPosition,2*layout.characterScale).y-p.y);
+      zoom=clamp(70/(actorHeight*Math.max(1,height)),1,4);
+    }
+    const zx=zoom*Math.max(1,ASPECT/aspect),zy=zoom*Math.max(1,aspect/ASPECT);
+    const ex=.5/zx,ey=.5/zy,target={x:clamp(p.x,ex,1-ex),y:clamp(1-p.y+(portrait?.02/zy:.1),ey,1-ey)};
     if(immediate){this.center=target;this.velocity={x:0,y:0};}
     else {
       [this.center.x,this.velocity.x]=damp(this.center.x,target.x,this.velocity.x,layout.followSeconds,Math.max(0,Math.min(dt,.1)));
