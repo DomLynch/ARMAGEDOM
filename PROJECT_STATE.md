@@ -1,4 +1,21 @@
-# Ashvault — 2026-10-02
+# ARMAGEDOM — 2026-10-03
+
+## Canonical workspace migration — 2026-10-03
+Owner requested the full game move into ARMAGEDOM. Canonical root is now
+/Users/domininclynch/Desktop/Business/ARMAGEDOM; Game/, Builds/, art/, Git history,
+all caches and unrelated local work were moved together on the same filesystem.
+Original top-level directory inodes and critical file hashes were verified after
+rename. Planning folders are merged here; overlapping old planning documents are
+preserved under handovers/pre-migration-planning-20261003/. Old Ashvault directory
+was removed only after emptying it by rename. Internal app/scene/assembly names
+remain unchanged; no runtime code or game build is required for this move.
+Updated strategy brief, README, developer handover, sync path and Codex routing.
+Verified from the new path: 20/20 PlayMode tests, six sync tests and packaged
+startup smoke pass. Native app visibly loads the London image, hero and HUD;
+LONDON_CONTENT resolves to ARMAGEDOM/Game/Assets/StreamingAssets/London.
+Existing build, saved content and both pre-existing dirty settings retain identical
+SHA256 hashes. No rebuild. Unity Hub registration and workspace quality-gate paths
+updated. Migration preservation receipt: artifacts/workspace-migration.json.
 
 ## Readability update — 2026-10-03
 Owner-requested1.5x zoom,15% cosmetic actor enlargement, .45s edge-clamped scrolling,
@@ -82,26 +99,27 @@ Persistent live tuning/content patch delivery remain requested, unimplemented.
 
 Direct user brief sets2029–2030 gameplay. Original2045 narrative remains preserved
 unchanged in docs/ARMAGEDOM-WORLD-BRIEF-SOURCE.md. Micro-change decisions are in
-ARMAGEDOM/sessions/strategy/DECISIONS.md and docs/ITERATION.md.
+sessions/strategy/DECISIONS.md and docs/ITERATION.md.
 
 ## Objective and scope
 Local single-room isometric ARPG, three waves, melee, dodge, upgrades and an orc
 warlord. Unity 6000.3.25f1 Built-in renderer; native Mac `Builds/Ashvault.app`.
-Ten runtime scripts; no backend/networking. No purchased assets or paid cloud GPU.
+Eleven runtime scripts; no backend/networking. No purchased assets or paid cloud GPU.
 
 ## Current implementation
 One playable Warden plus Revenant, Orc Executioner and Plague Warlock enemy models.
 Original 4K PBR maps, CPU rigs, original sword/axe/crozier. First wave shows all
 three enemy types; waves contain 5, 6 and 1 foes. London checkpoint now occupies the existing room footprint.
 WASD moves, LMB slashes/holds to repeat, Q/RMB heavy, 1 shockwave, Space dodge,
-R restart, V inspection, scroll zoom. No click travel. Hero turns through 360 degrees.
+R restart, V inspection. Saved zoom with fixed-angle, edge-clamped scrolling.
+No click travel. Hero turns through 360 degrees.
 Player and enemy attack cones/floor outlines removed; enemy animation signals wind-up.
 Hero now uses authored CC0 Sprint motion retargeted onto the original rig, with
 distance-driven cadence, blended transitions, bounded acceleration and cosmetic
 world-space sole contacts during turns. Mobs now use authored Sprint (Revenant/Warlock)
 and Walk (Orc/Warlord), shared transition/contact playback, reverse cadence for
 Warlock retreat and gradual facing before strikes. Warlock staff carry clears the floor. Strike damage
-lands after anticipation; dodge cancels pending strike damage. Runtime: 955 lines across 10 scripts after the London layout migration.
+lands after anticipation; dodge cancels pending strike damage. Runtime remains split across 11 scripts, including the London image stage.
 
 ## Compute
 Original reference reconstruction used official TRELLIS.2 shared demo; overage zero.

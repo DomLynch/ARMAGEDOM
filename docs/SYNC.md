@@ -1,7 +1,7 @@
 # ARMAGEDOM source sync
 
 GitHub: https://github.com/DomLynch/ARMAGEDOM (public).
-Mac authoring checkout: `/Users/domininclynch/Desktop/Business/Ashvault`.
+Mac authoring checkout: `/Users/domininclynch/Desktop/Business/ARMAGEDOM`.
 VPS follower: `/opt/armagedom`, branch `main`, dedicated user `armagedom`.
 The Unity project remains `Game/`; the existing Mac app remains Ashvault.
 

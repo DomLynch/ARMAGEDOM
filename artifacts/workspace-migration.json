@@ -1,0 +1,29 @@
+{
+  "head": "729492a648245c49bd84bcce8f397f748ba253f1",
+  "moved": {
+    "artifacts": 214618204,
+    ".DS_Store": 214839528,
+    ".pytest_cache": 216040039,
+    "art": 214860061,
+    ".ruff_cache": 214719450,
+    "Game": 214592252,
+    "docs": 216009546,
+    "Builds": 214712284,
+    "README.md": 214646254,
+    ".gitignore": 214475877,
+    "PROJECT_STATE.md": 214475875,
+    "scripts": 214719423,
+    ".quality-gate.json": 214719425,
+    "ops": 216044051,
+    "AGENTS.md": 214475874,
+    ".git": 214475813,
+    ".codegraph": 214475924
+  },
+  "preserved": {
+    "Game/ProjectSettings/ProjectSettings.asset": "d959e748b7fb666517b003b854404a976869206f4752f5e6c4944448230d9720",
+    "Game/ProjectSettings/TimeManager.asset": "3396f52fdc16d445024e01d7a2d99db6f0a37569d1d73c0302e9ffb857d90287",
+    "Builds/Ashvault.app/Contents/Resources/Data/Managed/Ashvault.dll": "4fe5d46bcdecbcd2ffc1325e1a319a8e0fe2b51c69e1d01cc5ae91313e00bc9a",
+    "Game/Assets/StreamingAssets/London/backdrop.png": "7ce686a7dd54b800261bb697b3e269f18cb2a72ca8ae5b7733a742ceab2c28e2",
+    "Game/Assets/StreamingAssets/London/layout.json": "88273b4721e0df4236104691ec49362e2b15ae1c1cc0e5f3ecf33ccc97f0d4d9"
+  }
+}
