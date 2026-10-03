@@ -1,0 +1,11 @@
+# Consistent player follow — 2026-10-03
+
+Owner-approved fixed-angle player follow now has an opt-in saved `followPlayerSize` flag. It adjusts the shared crop projection against a grounded 2m height probe at Westminster reference(.52,.78), keeping image, masks and actors registered without moving the calibrated camera or changing character scale/collision. Zoom is guarded1–4; current surveyed routes remain within those limits. Pan remains .45s and clamps to image edges. The original default view omits the flag and preserves fixed-zoom behaviour.
+
+Owner subsequently requested a10% wider starting view: base zoom1.65→1.485, character/mob scale1.265 unchanged. Connected areas share that wider baseline for consistent apparent player size. Default/West saved values were applied before the new runtime, so the current pilot needs R/re-entry for that tuning; follow itself requires the updated client.
+
+East previously had no foreground masks. Seven convex prop masks and two additional solid footprints (north road crate, building frontage) correct the bounded overlap cases. All26 audited landmarks remain clear and connected. A trial full silhouette collider cut off the far street and was rejected; use painted depth silhouettes for visual hiding and ground bases for physical exclusion. Stairs, elevated painted roofs and river remain nonwalkable.
+
+Actual isolated Unity baseline test failed in2.64s: probe height0.10112→0.08569, about15% shrink. Final target passes1/1 in8.14s at new1.485 baseline: eight positions over all3areas, projected height within1%, fixed camera, image registration/edge coverage and physical crate/frontage Linecasts. Eight camera stills were captured and inspected; these are stationary Unity views, not native continuous travel/animation acceptance. Full integrated gate/build/native review remains the next required step.
+
+Receipt: artifacts/follow-size-receipt.json. The previous47test integrated gate took414.19s; adding8.14s required runner allowance480s (per-waypoint12s assertions unchanged). Original artwork, rigs, combat runtime and source rollback are preserved. World branch changes are lane-only against private baseline4b39e21; integration must not merge that baseline wholesale.

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "zoom": 1.65,
+  "zoom": 1.485,
   "characterScale": 1.265,
   "followSeconds": 0.45,
   "fillIntensity": 0.55,
@@ -465,5 +465,6 @@
         }
       ]
     }
-  ]
+  ],
+  "followPlayerSize": true
 }

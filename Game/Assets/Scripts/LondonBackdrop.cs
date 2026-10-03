@@ -13,6 +13,7 @@ namespace Ashvault
             public int version;
             public float height, distance, targetZ, fieldOfView, exposure, keyIntensity;
             public float zoom=1, characterScale=1, followSeconds=.45f, fillIntensity=.35f;
+            public bool followPlayerSize;
             public Vector2[] road;
             public Mask[] masks, blockers;
         }
@@ -263,19 +264,31 @@ namespace Ashvault
                 actor.GetComponent<ArtMotion>()?.RefreshProportions();
             }
         }
+        float ProjectedHeight(Vector3 point)
+        {
+            var matrix=calibratedProjection*view.worldToCameraMatrix;
+            var bottom=matrix*new Vector4(point.x,point.y,point.z,1);
+            var top=matrix*new Vector4(point.x,point.y+2,point.z,1);
+            return Mathf.Abs(top.y/top.w-bottom.y/bottom.w);
+        }
         void UpdateCrop(bool immediate=false)
         {
             if(Current==null || GetComponent<HeroView>().Inspecting) return;
             var player=RunManager.Instance.Player;
             Vector3 p=player.transform.position;
             Vector4 clip=calibratedProjection*view.worldToCameraMatrix*new Vector4(p.x,p.y,p.z,1);
-            float edge=.5f/Current.zoom;
+            float zoom=Current.zoom;
+            if(Current.followPlayerSize) {
+                var reference=CalibratedGround(new Vector2(.52f,.78f));
+                zoom=Mathf.Clamp(zoom*ProjectedHeight(reference)/ProjectedHeight(new Vector3(p.x,0,p.z)),1,4);
+            }
+            float edge=.5f/zoom;
             var target=new Vector2(Mathf.Clamp(.5f+clip.x/clip.w*.5f,edge,1-edge),
                 Mathf.Clamp(.6f+clip.y/clip.w*.5f,edge,1-edge));
             cropCenter=immediate?target:Vector2.SmoothDamp(cropCenter,target,ref cropVelocity,Current.followSeconds,Mathf.Infinity,Time.unscaledDeltaTime);
             cropCenter=new Vector2(Mathf.Clamp(cropCenter.x,edge,1-edge),Mathf.Clamp(cropCenter.y,edge,1-edge));
-            var crop=Matrix4x4.identity;crop.m00=crop.m11=Current.zoom;
-            crop.m03=-2*Current.zoom*(cropCenter.x-.5f);crop.m13=-2*Current.zoom*(cropCenter.y-.5f);
+            var crop=Matrix4x4.identity;crop.m00=crop.m11=zoom;
+            crop.m03=-2*zoom*(cropCenter.x-.5f);crop.m13=-2*zoom*(cropCenter.y-.5f);
             view.projectionMatrix=crop*calibratedProjection;
         }
         void LateUpdate()

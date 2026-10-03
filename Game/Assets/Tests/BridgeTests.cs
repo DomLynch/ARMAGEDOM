@@ -78,7 +78,7 @@ if(x>.08f)keys.Add(Key.D);else if(x<-.08f)keys.Add(Key.A);if(y>.08f)keys.Add(Key
 InputSystem.QueueStateEvent(keyboard,new KeyboardState(keys.ToArray()));yield return null;
 }
 Assert.AreSame(player,run.Player);Assert.AreEqual(hp,player.Life.current);Assert.AreEqual(cooldown,player.attackReady);
-Assert.Less(Quaternion.Angle(rotation,camera.transform.rotation),.001f);Assert.AreEqual(1.65f,stage.Current.zoom);Assert.AreEqual(1.265f,stage.Current.characterScale);
+Assert.Less(Quaternion.Angle(rotation,camera.transform.rotation),.001f);Assert.AreEqual(1.485f,stage.Current.zoom);Assert.AreEqual(1.265f,stage.Current.characterScale);
 Assert.Greater(Vector3.Distance(entry,player.transform.position),1);
 } finally {InputSystem.RemoveDevice(keyboard);InputSystem.RemoveDevice(mouse);UnityEngine.Object.Destroy(travel);}
 yield return null;
@@ -113,7 +113,7 @@ Assert.IsTrue(Physics.Linecast(player.transform.position+Vector3.up*.5f,blocked+
 }
 }
 Assert.IsFalse((bool)type.GetProperty("InSouth").GetValue(travel),"North exit must return to Westminster.");Assert.IsFalse((bool)type.GetProperty("InEast").GetValue(travel));
-Assert.AreSame(player,run.Player);Assert.AreEqual(health,player.Life.current);Assert.AreEqual(cooldown,player.attackReady);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);Assert.AreEqual(1.65f,stage.Current.zoom);Assert.AreEqual(1.265f,stage.Current.characterScale);
+Assert.AreSame(player,run.Player);Assert.AreEqual(health,player.Life.current);Assert.AreEqual(cooldown,player.attackReady);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);Assert.AreEqual(1.485f,stage.Current.zoom);Assert.AreEqual(1.265f,stage.Current.characterScale);
 } finally {InputSystem.RemoveDevice(keyboard);InputSystem.RemoveDevice(mouse);UnityEngine.Object.Destroy(travel);}
 yield return null;
 }
