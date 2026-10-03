@@ -1,0 +1,36 @@
+{
+  "purpose": "Projection feasibility probe, not engine acceptance",
+  "originalCamera": {
+    "height": 23,
+    "distance": 26,
+    "targetZ": 6,
+    "fieldOfView": 42,
+    "pitchDegrees": 35.706691400602885
+  },
+  "legacyReference": {
+    "foot": {
+      "depth": 29.6639365343635,
+      "imageY": 0.8075297612726643
+    },
+    "head": {
+      "depth": 28.187337332537485,
+      "imageY": 0.7287054362032565
+    },
+    "referenceHeightMeters": 2.53
+  },
+  "fixedPerspectiveThreeTileDepths": {
+    "0.8": 29.844620613786585,
+    "1.8": 16.498511680838163,
+    "2.8": 11.40040529470435
+  },
+  "fixedPerspectiveApparentSizeRatioSouthToStart": 2.6178561061903505,
+  "orthographicCandidate": {
+    "sizeBeforeZoom": 13.03150320467754,
+    "sizeAtZoom1_65": 7.8978807301076,
+    "referenceProjectedHeightMatchedAnalytically": true,
+    "angleUnchanged": true,
+    "sourceImagesUnchanged": true,
+    "nativeApproval": false
+  },
+  "decision": "Fixed perspective extended crop magnifies southern actors by roughly2.6x. Candidate shared orthographic mapping keeps pixel size constant; calibrate initial foot/head registration and judge actual native perspective before acceptance."
+}

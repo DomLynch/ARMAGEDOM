@@ -48,3 +48,44 @@ scale is 10% above 1.15; zoom is 10% above 1.5, about 21% combined on screen.
 Baked skinned geometry already includes scale: boot calibration and world-space
 contact checks rotate/translate baked vertices without scaling them twice, matching
 [Unity Digital Human](https://github.com/Unity-Technologies/com.unity.demoteam.digital-human/blob/master/Runtime/SkinAttachmentTarget.cs#L260).
+
+## Connected London pilot (2026-10-03)
+
+Launch the development Mac player with `-london-travel` for the bounded
+Westminster/east/south pilot. A normal launch retains the original Westminster
+rollback. The supplied original PNGs are copied byte-for-byte into
+`Game/Assets/StreamingAssets/London/Travel/{west,east,south}/backdrop.png`, with
+separate `layout.json` road/collision and foreground masks. No source painting
+is overwritten. Camera angle, zoom1.65, actor scale1.265 and .45s crop follow remain.
+
+Walk along the right bridge to its far edge for east; return through the east
+bridge's lower-left edge. Walk down the Westminster bottom road for south;
+return through the south road's upper edge. This first pilot switches images
+visibly at exits; it is not a registered seamless panorama. East and south are
+exploration lanes: Westminster enemies/wave updates park while away and resume
+on return. The same player, health, upgrades, equipment and cooldown fields persist.
+No new enemy encounter, multiplayer or 50–100-area streaming implementation is claimed.
+
+Travel loads destination files on crossing. Original one-second saved settings
+polling pauses during this opt-in pilot so it cannot overwrite the active area.
+Invalid destination data keeps the prior area and actor position. R restarts the
+scene and reapplies the opt-in travel loader. Current content hashes are recorded
+in `artifacts/london-travel-content.json`; test/build/native evidence is separate.
+
+South road refinement2026-10-03: the highlighted upper-left pavement and
+lower-left road are now two connected spurs around the central checkpoint. The
+wreck/crates remain outside the road boundary. This saved layout loads on south
+re-entry; no client rebuild is needed for a development app beside this checkout.
+Rollback layout: art/london/areas/south-pilot-20261003/layout-before-left-paths.json.
+
+Follow-up: the checkpoint upper/side entrance also needs clearance for walking
+from the main road into the left lane. The39point south road includes the marked
+crossing(.51,.325); real keyboard testing now crosses it in both directions. The
+previous branch test reached the lanes separately and missed this side entrance.
+
+Complete south pavement loop: the road now includes the north-left pavement up
+to source y.02 and the connecting lane left of the wreck. Optional `blockers`
+(name/points arrays) add physical boundaries around the checkpoint and gate-side
+barrel/crate. Masks retain their previous validation range. Extended road rays
+must hit ground forward inside the existing200m floor; rejection retains prior
+layout/camera. This change needs the new client; reopen the London launcher.

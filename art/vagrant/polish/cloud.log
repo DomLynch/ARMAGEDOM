@@ -1,0 +1,483 @@
+Downloading cpython-3.13.12-linux-x86_64-gnu (download) (33.5MiB)
+ Downloaded cpython-3.13.12-linux-x86_64-gnu (download)
+Downloading hf-xet (4.3MiB)
+Downloading pygments (1.2MiB)
+Downloading cython (3.2MiB)
+Downloading numpy (15.9MiB)
+Downloading zstandard (5.3MiB)
+Downloading bpy (383.1MiB)
+ Downloaded hf-xet
+ Downloaded zstandard
+ Downloaded pygments
+ Downloaded cython
+ Downloaded numpy
+ Downloaded bpy
+Installed 30 packages in 118ms
+debconf: delaying package configuration, since apt-utils is not installed
+No files have been modified since last commit. Skipping to prevent empty commit.
+
+job-roundtrip.txt:   0%|          | 0.00/23.0 [00:00<?, ?B/s][Ajob-roundtrip.txt: 100%|██████████| 23.0/23.0 [00:00<00:00, 183kB/s]
+
+inputs/rig.blend:   0%|          | 0.00/17.9M [00:00<?, ?B/s][Ainputs/rig.blend: 100%|██████████| 17.9M/17.9M [00:00<00:00, 27.0MB/s]
+
+inputs/donor.npz:   0%|          | 0.00/583k [00:00<?, ?B/s][Ainputs/donor.npz: 100%|██████████| 583k/583k [00:00<00:00, 5.94MB/s]
+
+CC0-LICENSE.md:   0%|          | 0.00/6.96k [00:00<?, ?B/s][ACC0-LICENSE.md: 100%|██████████| 6.96k/6.96k [00:00<00:00, 26.4MB/s]
+
+build_pilot.py:   0%|          | 0.00/29.5k [00:00<?, ?B/s][Abuild_pilot.py: 100%|██████████| 29.5k/29.5k [00:00<00:00, 113MB/s]
+
+validate_pilot.py:   0%|          | 0.00/3.72k [00:00<?, ?B/s][Avalidate_pilot.py: 100%|██████████| 3.72k/3.72k [00:00<00:00, 15.6MB/s]
+00:00.067  system.path      | WARNING Could not get a list of mounted file-systems
+00:01.225  blend            | Read blend: "/tmp/vagrant/inputs/rig.blend"
+00:01.343  system.path      | WARNING Could not get a list of mounted file-systems
+/tmp/vagrant/build_pilot.py:183: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+00:15.318  system.path      | WARNING Could not get a list of mounted file-systems
+Info: Saved as "candidate.blend"
+
+FBX export starting... '/tmp/vagrant/output/Vagrant.fbx'
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+(bpy.data.armatures['Warden original skeleton'], 'POSE')
+export finished in 0.3417 sec.
+VAGRANT_BUILD_COMPLETE {"rig": "WardenRig", "bones": ["Hips", "Spine", "Chest", "Neck", "Head", "Clavicle.L", "UpperArm.L", "Forearm.L", "Hand.L", "Clavicle.R", "UpperArm.R", "Forearm.R", "Hand.R", "Thigh.L", "Shin.L", "Foot.L", "Thigh.R", "Shin.R", "Foot.R"], "rest_matrices": {"Hips": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 1.0, 0.0, 0.9800000190734863], [0.0, 0.0, 0.0, 1.0]], "Spine": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 0.9999999403953552, 0.0, 1.149999976158142], [0.0, 0.0, 0.0, 1.0]], "Chest": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 0.9999999403953552, 0.0, 1.3799999952316284], [0.0, 0.0, 0.0, 1.0]], "Neck": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 0.9999999403953552, 0.0, 1.5700000524520874], [0.0, 0.0, 0.0, 1.0]], "Head": [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, -1.0, 0.0], [0.0, 0.9999999403953552, 0.0, 1.7000000476837158], [0.0, 0.0, 0.0, 1.0]], "Clavicle.L": [[0.028156638145446777, 0.9858213067054749, -0.16542048752307892, 0.0], [-0.9858212471008301, 0.0, -0.1677996963262558, 0.0], [-0.16542048752307892, 0.1677996963262558, 0.9718433022499084, 1.5499999523162842], [0.0, 0.0, 0.0, 1.0]], "UpperArm.L": [[0.7889307737350464, 0.4594228267669678, 0.40806761384010315, 0.23500002920627594], [-0.4594228267669678, -1.4901161193847656e-08, 0.8882178664207458, 0.0], [0.4080674648284912, -0.8882177472114563, 0.21106931567192078, 1.590000033378601], [0.0, 0.0, 0.0, 1.0]], "Forearm.L": [[0.8906991481781006, 0.3160896897315979, 0.3267148733139038, 0.3850000202655792], [-0.31608960032463074, -0.08589392900466919, 0.9448332786560059, -4.865178482305055e-09], [0.32671481370925903, -0.9448330998420715, 0.02340705692768097, 1.2999999523162842], [0.0, 0.0, 0.0, 1.0]], "Hand.L": [[0.9875059127807617, 0.09603054076433182, 0.12494096159934998, 0.47700002789497375], [-0.09603050351142883, -0.2619014382362366, 0.9603052139282227, -0.025000005960464478], [0.1249409019947052, -0.9603049159049988, -0.24940729141235352, 1.024999976158142], [0.0, 0.0, 0.0, 1.0]], "Clavicle.R": [[0.028156638145446777, -0.9858213067054749, 0.16542048752307892, 0.0], [0.9858212471008301, 0.0, -0.1677996963262558, 0.0], [0.16542048752307892, 0.1677996963262558, 0.9718433022499084, 1.5499999523162842], [0.0, 0.0, 0.0, 1.0]], "UpperArm.R": [[0.7889307737350464, -0.4594228267669678, -0.40806761384010315, -0.23500002920627594], [0.4594228267669678, -1.4901161193847656e-08, 0.8882178664207458, 0.0], [-0.4080674648284912, -0.8882177472114563, 0.21106931567192078, 1.590000033378601], [0.0, 0.0, 0.0, 1.0]], "Forearm.R": [[0.8906991481781006, -0.3160896897315979, -0.3267148733139038, -0.3850000202655792], [0.31608960032463074, -0.08589392900466919, 0.9448332786560059, -4.865178482305055e-09], [-0.32671481370925903, -0.9448330998420715, 0.02340705692768097, 1.2999999523162842], [0.0, 0.0, 0.0, 1.0]], "Hand.R": [[0.9875059127807617, -0.09603054076433182, -0.12494096159934998, -0.47700002789497375], [0.09603050351142883, -0.2619014382362366, 0.9603052139282227, -0.025000005960464478], [-0.1249409019947052, -0.9603049159049988, -0.24940729141235352, 1.024999976158142], [0.0, 0.0, 0.0, 1.0]], "Thigh.L": [[0.9935817718505859, 0.08110523223876953, 0.07898598909378052, 0.11500000208616257], [-0.08111274242401123, 0.023172926157712936, 0.9964370727539062, 0.0], [0.07898762822151184, -0.9964357614517212, 0.029601745307445526, 0.9800000190734863], [0.0, 0.0, 0.0, 1.0]], "Shin.L": [[0.9976680874824524, 0.04928886145353317, 0.047441255301237106, 0.14999999105930328], [-0.049296312034130096, 0.036966659128665924, 0.9981014728546143, 0.009999996982514858], [0.047443632036447525, -0.9980998635292053, 0.03930889070034027, 0.5500001907348633], [0.0, 0.0, 0.0, 1.0]], "Foot.L": [[1.0000108480453491, -3.725290298461914e-09, -8.866190910339355e-07, 0.16999998688697815], [-7.737427949905396e-06, -0.8987693190574646, 0.43842563033103943, 0.02499999850988388], [1.8581049516797066e-06, -0.43842393159866333, -0.8987680077552795, 0.1450001299381256], [0.0, 0.0, 0.0, 1.0]], "Thigh.R": [[0.9935817718505859, -0.08110523223876953, -0.07898598909378052, -0.11500000208616257], [0.08111274242401123, 0.023172926157712936, 0.9964370727539062, 0.0], [-0.07898762822151184, -0.9964357614517212, 0.029601745307445526, 0.9800000190734863], [0.0, 0.0, 0.0, 1.0]], "Shin.R": [[0.9976680874824524, -0.04928886145353317, -0.047441255301237106, -0.14999999105930328], [0.049296312034130096, 0.036966659128665924, 0.9981014728546143, 0.009999996982514858], [-0.047443632036447525, -0.9980998635292053, 0.03930889070034027, 0.5500001907348633], [0.0, 0.0, 0.0, 1.0]], "Foot.R": [[1.0000108480453491, 3.725290298461914e-09, 8.866190910339355e-07, -0.16999998688697815], [7.737427949905396e-06, -0.8987693190574646, 0.43842563033103943, 0.02499999850988388], [-1.8581049516797066e-06, -0.43842393159866333, -0.8987680077552795, 0.1450001299381256], [0.0, 0.0, 0.0, 1.0]]}, "source_sha256": "244c418b35d115cb21e668273467e6dce5f4c62153b815787f2b8e34e837870f", "fbx_sha256": "12c32c38ff8ab4dd178bb55c422d4c33f8198e162b81a191ebe72ee1804bfbdb", "pieces": [{"name": "Backpack", "vertices": 372, "material": "Backpack"}, {"name": "Feet boots", "vertices": 1116, "material": "Feet boots"}, {"name": "Legs trousers", "vertices": 1447, "material": "Legs trousers"}, {"name": "Machete", "vertices": 14, "material": "Machete"}, {"name": "Machete handle", "vertices": 336, "material": "Machete handle"}, {"name": "Protection vest", "vertices": 264, "material": "Protection vest"}, {"name": "Torso jacket", "vertices": 4345, "material": "Torso jacket"}, {"name": "Vagrant body", "vertices": 11385, "material": "Vagrant body"}], "gpu_calls": 0, "status": "unreviewed polish candidate"}
+Processing Files (0 / 0)      : |          |  0.00B /  0.00B            
+New Data Upload               : |          |  0.00B /  0.00B            [A
+
+  ...agrant/output/Vagrant.fbx: 100%|█████████▉| 2.34MB / 2.34MB            [A[A
+
+
+  ...ut/Torso_jacketAlbedo.png: 100%|█████████▉| 2.34MB / 2.34MB            [A[A[A
+
+
+
+  ...ut/Torso_jacketNormal.png: 100%|█████████▉| 2.53MB / 2.53MB            [A[A[A[A
+
+
+
+
+  ...output/BackpackAlbedo.png: 100%|█████████▉|  679kB /  679kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestAlbedo.png: 100%|█████████▉|  620kB /  620kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|█████████▉|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  .../Machete_handleNormal.png: 100%|█████████▉|  199kB /  199kB            [A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+  .../output/MacheteNormal.png: 100%|█████████▉|  169kB /  169kB            [A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+  ...ut/Vagrant_bodyAlbedo.png: 100%|█████████▉| 1.70MB / 1.70MB            [A[A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+
+  ...Protection_vestNormal.png: 100%|█████████▉|  484kB /  484kB            [A[A[A[A[A[A[A[A[A[A[A
+
+  ...agrant/output/Vagrant.fbx: 100%|█████████▉| 2.34MB / 2.34MB            [A[A
+
+
+  ...ut/Torso_jacketAlbedo.png: 100%|█████████▉| 2.34MB / 2.34MB            [A[A[A
+
+
+
+  ...ut/Torso_jacketNormal.png: 100%|█████████▉| 2.53MB / 2.53MB            [A[A[A[A
+
+
+
+
+  ...output/BackpackAlbedo.png: 100%|█████████▉|  679kB /  679kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestAlbedo.png: 100%|█████████▉|  620kB /  620kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|█████████▉|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  .../Machete_handleNormal.png: 100%|█████████▉|  199kB /  199kB            [A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+  .../output/MacheteNormal.png: 100%|█████████▉|  169kB /  169kB            [A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+  ...ut/Vagrant_bodyAlbedo.png: 100%|█████████▉| 1.70MB / 1.70MB            [A[A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+
+  [+ 8 files]                 : 100%|█████████▉| 33.6MB / 33.6MB            [A[A[A[A[A[A[A[A[A[A[A
+
+  ...agrant/output/Vagrant.fbx: 100%|██████████| 2.34MB / 2.34MB            [A[A
+
+
+  ...ut/Torso_jacketAlbedo.png: 100%|██████████| 2.34MB / 2.34MB            [A[A[A
+
+
+
+  ...ut/Torso_jacketNormal.png: 100%|██████████| 2.53MB / 2.53MB            [A[A[A[A
+
+
+
+
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestAlbedo.png: 100%|██████████|  620kB /  620kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  .../Machete_handleNormal.png: 100%|██████████|  199kB /  199kB            [A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            [A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+  ...ut/Vagrant_bodyAlbedo.png: 100%|██████████| 1.70MB / 1.70MB            [A[A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+
+  [+ 8 files]                 : 100%|██████████| 33.6MB / 33.6MB            [A[A[A[A[A[A[A[A[A[A[AProcessing Files (18 / 18)    : 100%|██████████| 44.4MB / 44.4MB, 4.22MB/s  
+New Data Upload               : 100%|██████████| 44.4MB / 44.4MB, 4.22MB/s  
+  ...agrant/output/Vagrant.fbx: 100%|██████████| 2.34MB / 2.34MB            
+  ...ut/Torso_jacketAlbedo.png: 100%|██████████| 2.34MB / 2.34MB            
+  ...ut/Torso_jacketNormal.png: 100%|██████████| 2.53MB / 2.53MB            
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            
+  ...Protection_vestAlbedo.png: 100%|██████████|  620kB /  620kB            
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            
+  .../Machete_handleNormal.png: 100%|██████████|  199kB /  199kB            
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            
+  ...ut/Vagrant_bodyAlbedo.png: 100%|██████████| 1.70MB / 1.70MB            
+  [+ 8 files]                 : 100%|██████████| 33.6MB / 33.6MB            
+MODEL_CHECKPOINT=ee4ee166151c3b472dfb6ebf8dddb7b653e5dee9
+00:16.982  blend            | Read blend: "/tmp/vagrant/inputs/rig.blend"
+00:17.112  system.path      | WARNING Could not get a list of mounted file-systems
+00:17.144  blend            | Read blend: "/tmp/vagrant/output/candidate.blend"
+00:17.210  system.path      | WARNING Could not get a list of mounted file-systems
+Traceback (most recent call last):
+  File "//cloud_job.py", line 20, in <module>
+    runpy.run_path(str(root/"validate_pilot.py"),run_name="__main__")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/vagrant/validate_pilot.py", line 73, in <module>
+    validate()
+    ~~~~~~~~^^
+  File "/tmp/vagrant/validate_pilot.py", line 62, in validate
+    assert stretch < .2, (name, "posed triangle expansion", stretch)
+           ^^^^^^^^^^^^
+AssertionError: ('Protection vest', 'posed triangle expansion', 0.3050466775894165)
+Processing Files (0 / 0)      : |          |  0.00B /  0.00B            
+New Data Upload               : |          |  0.00B /  0.00B            [A
+
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            [A[A
+
+
+  ...tput/Feet_bootsNormal.png: 100%|██████████|  359kB /  359kB            [A[A[A
+
+
+
+  .../Machete_handleAlbedo.png: 100%|██████████|  336kB /  336kB            [A[A[A[A
+
+
+
+
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestNormal.png: 100%|██████████|  484kB /  484kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  ...output/BackpackNormal.png: 100%|██████████|  498kB /  498kB            [A[A[A[A[A[A[A[A
+
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            [A[A
+
+
+  ...tput/Feet_bootsNormal.png: 100%|██████████|  359kB /  359kB            [A[A[A
+
+
+
+  .../Machete_handleAlbedo.png: 100%|██████████|  336kB /  336kB            [A[A[A[A
+
+
+
+
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestNormal.png: 100%|██████████|  484kB /  484kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  ...output/BackpackNormal.png: 100%|██████████|  498kB /  498kB            [A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+  ...agrant/output/Vagrant.fbx: 100%|██████████| 2.34MB / 2.34MB            [A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+  ...tput/Feet_bootsAlbedo.png: 100%|██████████|  521kB /  521kB            [A[A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+
+  ...ut/Vagrant_bodyAlbedo.png: 100%|██████████| 1.70MB / 1.70MB            [A[A[A[A[A[A[A[A[A[A[A
+
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            [A[A
+
+
+  ...tput/Feet_bootsNormal.png: 100%|██████████|  359kB /  359kB            [A[A[A
+
+
+
+  .../Machete_handleAlbedo.png: 100%|██████████|  336kB /  336kB            [A[A[A[A
+
+
+
+
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            [A[A[A[A[A
+
+
+
+
+
+  ...Protection_vestNormal.png: 100%|██████████|  484kB /  484kB            [A[A[A[A[A[A
+
+
+
+
+
+
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            [A[A[A[A[A[A[A
+
+
+
+
+
+
+
+  ...output/BackpackNormal.png: 100%|██████████|  498kB /  498kB            [A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+  ...agrant/output/Vagrant.fbx: 100%|██████████| 2.34MB / 2.34MB            [A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+  ...tput/Feet_bootsAlbedo.png: 100%|██████████|  521kB /  521kB            [A[A[A[A[A[A[A[A[A[A
+
+
+
+
+
+
+
+
+
+
+  [+ 8 files]                 : 100%|██████████| 38.8MB / 38.8MB            [A[A[A[A[A[A[A[A[A[A[AProcessing Files (18 / 18)    : 100%|██████████| 44.4MB / 44.4MB,   ???B/s  
+New Data Upload               : |          |  0.00B /  0.00B,   ???B/s  
+  ...output/BackpackAlbedo.png: 100%|██████████|  679kB /  679kB            
+  ...tput/Feet_bootsNormal.png: 100%|██████████|  359kB /  359kB            
+  .../Machete_handleAlbedo.png: 100%|██████████|  336kB /  336kB            
+  .../output/MacheteNormal.png: 100%|██████████|  169kB /  169kB            
+  ...Protection_vestNormal.png: 100%|██████████|  484kB /  484kB            
+  .../output/MacheteAlbedo.png: 100%|██████████|  285kB /  285kB            
+  ...output/BackpackNormal.png: 100%|██████████|  498kB /  498kB            
+  ...agrant/output/Vagrant.fbx: 100%|██████████| 2.34MB / 2.34MB            
+  ...tput/Feet_bootsAlbedo.png: 100%|██████████|  521kB /  521kB            
+  [+ 8 files]                 : 100%|██████████| 38.8MB / 38.8MB            
+Traceback (most recent call last):
+  File "//cloud_job.py", line 20, in <module>
+    runpy.run_path(str(root/"validate_pilot.py"),run_name="__main__")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/vagrant/validate_pilot.py", line 73, in <module>
+    validate()
+    ~~~~~~~~^^
+  File "/tmp/vagrant/validate_pilot.py", line 62, in validate
+    assert stretch < .2, (name, "posed triangle expansion", stretch)
+           ^^^^^^^^^^^^
+AssertionError: ('Protection vest', 'posed triangle expansion', 0.3050466775894165)

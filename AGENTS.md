@@ -2,7 +2,9 @@
 
 Canonical repository, Unity game, art, briefs and sessions now live together here.
 Read PROJECT_STATE.md, then briefs/MAIN-STRATEGY-DEV.md. Unity project: Game/.
-Do not use the retired ../Ashvault path or create another implementation copy.
+Do not use the retired ../Ashvault path. Owner-approved Git worktrees under
+the canonical repo's .worktrees/ are isolated development lanes of this same
+repository, not separate products. Follow docs/PARALLEL-DEVELOPMENT.md.
 
 Local Unity desktop ARPG prototype. Keep gameplay near1,000–1,500 runtime lines
 and custom components few. No backend/networking/accounts/inventory grid or
@@ -18,4 +20,5 @@ Use game-iteration-publishing and relevant Unity/art skills. Supported settings
 reload from Game/Assets/StreamingAssets/London/layout.json; new behavior needs code.
 Use Unity CLI for editor/scene operations. Run .quality-gate.json and a visible
 native check before claiming playable. Distinguish source, build and live receipts.
-Codex coordination: ../Vibe Coding Management/codex-state/armagedom.md.
+Codex coordination (shared by all worktrees):
+/Users/domininclynch/Desktop/Business/Vibe Coding Management/codex-state/armagedom.md.

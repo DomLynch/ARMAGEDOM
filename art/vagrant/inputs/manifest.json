@@ -1,0 +1,25 @@
+{
+  "inputs": [
+    {
+      "file": "rig.blend",
+      "source": "/Users/domininclynch/Desktop/Business/ARMAGEDOM/artifacts/motion-sprint/warden.blend",
+      "sha256": "244c418b35d115cb21e668273467e6dce5f4c62153b815787f2b8e34e837870f",
+      "bytes": 17928192
+    },
+    {
+      "file": "donor.npz",
+      "source": "/Users/domininclynch/Desktop/Business/artifacts/frankendom-anatomy-pilot-20261002/mpfb-test/donor-anatomy.npz",
+      "sha256": "b55b9fe162fbcc3e31952a620a09d4be3e34f5414fab22aa477a35f3d7668039",
+      "bytes": 582895
+    },
+    {
+      "file": "CC0-LICENSE.md",
+      "source": "/Users/domininclynch/Desktop/Business/artifacts/frankendom-anatomy-pilot-20261002/vendor/mpfb2/LICENSE.ASSETS.md",
+      "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c",
+      "bytes": 6962
+    }
+  ],
+  "runtime_fbx_sha256": "89ebfb63744afd99c9255b325ef6c465c9276c5669b14b5da285fe0ff64978f7",
+  "donor": "MPFB2 core human CC0, not Frankendom fitted candidate",
+  "gpu_calls": 0
+}

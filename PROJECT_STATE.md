@@ -1,5 +1,112 @@
 # ARMAGEDOM — 2026-10-03
 
+## Owner priority — first playable loop, 2026-10-03
+Owner considers centre, south and east sufficient and approved focusing on a small
+combat roster, a loot/equipment/save loop, then a polished first session before
+expanding content. Milestone1 allocation is saved in briefs/FIRST-PLAYABLE-LOOP.md
+and dispatched within the existing five lanes; no additional permanent lane.
+World finishes the current bounded south paths and releases Unity; Lead then
+reviews one short existing Westminster mixed fight. Character review remains
+separate; delivery follows the accepted demo. Boss follows ordinary-combat acceptance.
+These are next milestones, not completed systems. Preserve the current bounded
+south-path acceptance and character review; no new region, LLM or backend work.
+
+Prior Lead combat candidate: real keyboard reproduction showed a quick Q in
+late slash recovery was discarded. Added one fresh attack buffer in the final120ms
+of recovery, preserving press-time aim/cooldowns and existing attack timings.
+Early taps remain discarded; dodge/disable clear queued intent; a fresh eligible
+selected command supersedes an older queue. Final38/38 PlayMode and6/6sync pass;
+build_fbe77483fe4a Succeeded, zero errors/one expected warning; packaged smoke passes.
+Native shows the current survivor/five mixed enemies, incoming damage, dodge and
+heavy cooldown activation; R returns to Westminster100HP/Wave0, left open for Dom.
+Short native captures do not establish continuous motion/full clear, native death
+retry or shockwave activation. Dom combat-feel/character acceptance remains open.
+Pre-combat app preserved as Builds/Before-combat-buffer-20261003.app; exact source/
+content hashes, native limits and receipts in artifacts/combat-review/receipt.json.
+World's all-three-area walkability audit is saved and targeted movement checks pass;
+Lead owns its combined full gate with the next sword change; native path review remains open.
+
+Latest owner combat direction: Dom finds the buffer-only change negligible and
+requests two normal attacks (sword slash/stab), heavy, special, dodge and guard/
+block/parry, with action roles reusable for later weapon types. Strategy records
+the amendment in FIRST-PLAYABLE-LOOP.md. Dom subsequently approved one adaptable
+survivor with equipment-led specialisations and sword acceptance followed by one
+basic gun proof. Four separate rosters/classes remain outside scope. Lead took
+World's offered release after its three audit movement sweeps; sword source now
+adds distinct thrust/heavy/guard poses, finite frontal block and timed eligible
+parry through small weapon/defence definitions. Five missing-mechanic failures
+and the shared slash/thrust pose failure were reproduced before repairs; six
+new targets pass. Independent scoped code review found no actionable defects.
+Combined full gate/build/native are pending; the running app still has the prior
+buffer candidate until rebuilt. Earlier38/38 does not prove the new actions.
+World's latest Diablo-style size/follow and east solid-overlap feedback is a
+separate pending checkpoint; World prepares outside loaded Game during this gate.
+
+## Connected London pilot — 2026-10-03
+Owner confirmed native walking across the Westminster bridge into supplied east
+image. Build_53178edfc779:29/29 tests, zero build errors; accepted east app retained
+as Builds/Accepted-east-bridge-20261003.app. Owner then requested south/down.
+Same bounded travel path now adds original south image and north return, preserving
+player, controls, fixed camera, zoom1.65, scale1.265 and existing crop follow.
+Final31/31 real PlayMode and6/6 sync pass, including real-input east/south roundtrips
+and R restart in both away areas. Scoped duplicate TypeDB metadata preservation
+fixed the build: build_338fb3a4be8c Succeeded with zero errors/one warning;
+packaged startup smoke passes. Native log records south→west; owner now supplies
+south screenshots and requests an additional highlighted walkable area.
+World owns this small saved south layout/collision refinement. Native automated
+physical-hold roundtrip remains unproven; prior east owner acceptance retained.
+Candidate images remain byte-identical; accepted east build is preserved.
+
+This pilot uses a visible image switch at exits. East/south are exploration lanes;
+Westminster enemies and wave updates park while away and resume on return. Original
+normal launch and pre-bridge app remain rollback. Opt-in local launcher:
+Builds/Play-London-pilot.command. South roof/generation/panorama work is deferred.
+Receipt: artifacts/london-travel-receipt.json. Native ready screenshot retained.
+Owner native screenshots establish south play. Latest marks add north-left
+pavement and the lane connecting both sides of the checkpoint. Saved34point outer
+road reaches y.02; two optional blocker polygons preserve wreck/supplies and gate
+barrel/crate collision. Road rays must hit ground forward inside the existing200m
+floor; unchanged mask coordinate limits retained. Extended full keyboard route
+passes71.71s: ascent/descent, both left-lane directions, prior crossings, checkpoint
+collision and north return. Unsafe shallow-camera layout preserves last-good state.
+Full32/32 PlayMode and6/6sync pass. Build_f3ad34225b42 Succeeded0errors/1warning
+in3729ms; packaged smoke passes. Updated opt-in native client open, visually
+Westminster Wave0/100HP; south-loop owner review remains next. Future saved road/
+blocker edits reload on area re-entry. Previous app/layout preserved for rollback.
+World releases sequential Editor. Receipt: artifacts/london-travel-receipt.json.
+Owner then marks tight gate-barrel/wreck gap. Only two saved blocker footprints
+tightened; outer road/masks/settings unchanged. Exact real-keyboard gap test
+passes1/1 in14.26s, both directions with checkpoint still physically blocked.
+No additional World build; south re-entry loads content. Lead owns next combined
+full gate/build for combat; owner gap review remains next.
+Two7018-error builds were held; scoped duplicate TypeDb-All 2.json recovery
+preserves metadata outside Library and produces a clean1154ms build.
+
+Owner-requested all-three-area walkability audit is now activated as saved content:
+26 surveyed street/pavement locations connected, 20 previously outside/blocked.
+Real-keyboard Westminster54.87s/east59.09s/south60.14s sweeps pass, including six
+physical prop/river exclusions. South northern blocker clipped to validy.205;
+existing runtime limits preserved. Artwork/masks/camera/scale/combat unchanged;
+no World rebuild. Source hashes match tested candidates;6/6sync passed. Previous
+layouts retained under art/london/areas/walkability-audit-20261003/before.
+Native WestminsterWave0/100HP visible; new-path owner review requires R or area
+re-entry. Lead explicitly took Unity for ONE combined sword/world full gate;
+no duplicate41test World run. Receipt artifacts/walkability-audit-receipt.json;
+coverage/limits docs/LONDON-WALKABILITY-AUDIT.md. No all41/full native travel claim.
+
+## Story and AI direction recorded — 2026-10-03
+Owner approved incorporating adaptive zone intelligences and competing military-AI
+escalation into briefs/MAIN-STRATEGY-DEV.md. Owner subsequently removed EDEN:
+surviving AI factions, their conflicting agendas and consequences for human
+communities now form the main story, without a central restoration system.
+War and gameplay both remain2029–2030; collapse unfolds over weeks/months.
+Original2045 source remains historical and unchanged. WARDEN is a future Westminster
+boss concept, distinct from the legacy hero asset. Deterministic combat executes
+validated tactics; an optional future LLM layer supplies bounded strategy/dialogue
+with encounter memory and fallback. This is design-only, not implemented or deployed.
+One future boss experiment follows current character/world priorities; no new
+runtime, backend, provider, purchases or compute authorized by this brief update.
+
 ## Additional readability tuning — 2026-10-03
 Owner requested another10% actor size and10% scene zoom: characterScale1.265,
 zoom1.65, about21% combined apparent enlargement. Saved settings updated; former
@@ -249,3 +356,53 @@ User requested another15% zoom-out after trying30degrees. Size3.905 x1.15 =4.490
 angle/follow/spacing/controls unchanged. One numeric edit.15/15 tests passed;
 build_8274b555f926 succeeded with zero errors (one expected warning), packaged smoke
 passed, app restarted and wider native framing observed. User feel remains subjective.
+
+## Human Vagrant pilot — ready for art review 2026-10-03
+Owner authorized modular civilian art for London2029–2030 using bounded HF
+cpu-upgrade32GB at$0.03/hour, no GPU. First pilot is active in the local native
+build: worn jacket/trousers/boots/pouch and short machete. Eight separate meshes;
+optional vest/backpack start disabled and toggle on the shared original19bone rig.
+Original Idle/Run/Attack clip assets, gameplay collider, scale1.265, London camera
+and Warden rollback retained; original Hero/Enemies assets untouched.
+
+Final FBXc5767fcf...c5087d matches runtime import, HF output6fd96e05...;19bone/rest/
+action and head-volume checks pass. Final26/26 PlayMode and6/6 sync pass.
+Build_58b2a8b41f4b: zero errors, one expected Pipeline warning, startup smoke PASS.
+Native movement/dodge/attacks observed; alive Wave1 capture shows4hostiles,56HP,
+shockwave cooldown. App reset to safe Wave0/100HP. Ten isolated and12 staged
+London pose views reviewed at unchanged camera/scale; those stills complement
+brief native input checks, not completed-wave or physical-phone acceptance.
+Evidence: art/vagrant/review/acceptance.json and native-final-*.png.
+
+Functional pilot only: face/hair, hand grip/fingers, fabric wear/seams, boots and
+gear detail need polish; vest-front silhouette is subtle. Existing inspection
+near enemies can be occluded; reset first. No inventory/stat expansion, outfit
+batch, commit or published survivor release. All character cloud jobs terminal.
+Character Unity checkpoint finished; shared Editor slot released to next lane.
+Next: owner reviews silhouette/clothing/weapon direction before the art polish pass.
+
+## Human Vagrant polish — local review, art acceptance held 2026-10-03
+Owner-approved first detail pass is imported in the local review build. Separate
+source/output and rollback-runtime preserve the frozen pilot; knight untouched.
+Final FBXb7537dca...e6cb9, HF outputbda3e2b5..., CPU-only. Eight meshes,36924triangles.
+Original19bone/rest/actions remain exact; original Unity clip assets reused.
+Closed grip, blade bevel, fitted knee patch, collar/zipper/stitches, boot laces/welt,
+pouch/gear fasteners and explicit albedo/normal atlases. Misplaced brow/eye patches
+removed after visual rejection. Camera/FOV42/scale1.265 and gameplay preserved.
+
+Actual final unfiltered gate27/28: all4Vagrant pass; World's real-keyboard route
+fails at first waypoint. Sync6/6. Build_3e66f238bb5f:0errors/1expected warning;
+packaged startup smoke PASS. Native inspection and short input review captured;
+first longer combat capture ends in death, not completed-wave evidence. Twelve
+staged London poses complement native review. App restored to safe entrance.
+Receipts: art/vagrant/polish/review/acceptance.json and full-playmode-results.json.
+
+Art acceptance remains held: pinch folds/bulky fingers/projecting thumb, jagged
+hairline, moving zipper/collar and basic procedural wear. Local4mm smoothing trial
+worsened hand folds and was rejected; not imported. No AAA or global-green release
+claim, no publication/commit. All character cloud jobs terminal. Shared Editor
+explicitly released08:50Z to World; no further Char Editor mutation/build queued.
+Owner suggested Tripo H3.1 replacement base; official capability/cost research
+supports testing one reference-driven candidate. No Tripo job or purchase run.
+Next: World closes keyboard fixture and reruns full gate; character lane can
+prepare a reference/morphology pilot with separate clothing/gear and original rig.

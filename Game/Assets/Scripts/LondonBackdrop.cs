@@ -14,10 +14,11 @@ namespace Ashvault
             public float height, distance, targetZ, fieldOfView, exposure, keyIntensity;
             public float zoom=1, characterScale=1, followSeconds=.45f, fillIntensity=.35f;
             public Vector2[] road;
-            public Mask[] masks;
+            public Mask[] masks, blockers;
         }
         public string ContentDirectory { get; private set; }
         public int Revision { get; private set; }
+        public bool TravelActive { get; set; }
         public Layout Current { get; private set; }
         Camera view;
         GameObject geometry;
@@ -67,7 +68,7 @@ namespace Ashvault
 
         void Update()
         {
-            if (GetComponent<HeroView>().Inspecting || Time.unscaledTime < nextPoll) return;
+            if (TravelActive || GetComponent<HeroView>().Inspecting || Time.unscaledTime < nextPoll) return;
             nextPoll = Time.unscaledTime + 1;
             Poll();
         }
@@ -101,14 +102,14 @@ namespace Ashvault
         }
         static bool Range(float value, float min, float max) => !float.IsNaN(value) && !float.IsInfinity(value) && value >= min && value <= max;
         static float Cross(Vector2 a, Vector2 b) => a.x*b.y-a.y*b.x;
-        static bool Polygon(Vector2[] points, bool convex=false)
+        static bool Polygon(Vector2[] points, bool convex=false, float minimumY=.2f)
         {
             if (points == null || points.Length < 3 || points.Length > 64) return false;
             float area=0, sign=0;
             for(int i=0;i<points.Length;i++)
             {
                 Vector2 a=points[i], b=points[(i+1)%points.Length], c=points[(i+2)%points.Length];
-                if (!Range(a.x, 0, 1) || !Range(a.y, .2f, 1) || (b-a).sqrMagnitude<.000001f) return false;
+                if (!Range(a.x, 0, 1) || !Range(a.y, minimumY, 1) || (b-a).sqrMagnitude<.000001f) return false;
                 area+=Cross(a,b); float turn=Cross(b-a,c-b);
                 if(convex && (Mathf.Abs(turn)<.000001f || (sign!=0 && turn*sign<0))) return false;
                 sign=turn;
@@ -123,16 +124,20 @@ namespace Ashvault
             }
             return Mathf.Abs(area)>.0001f;
         }
-        public bool TryApply(string json, out string error)
+        public bool TryApply(string json, out string error, bool validateWaveEntrances=true)
         {
             error = "Invalid London layout; keeping the last working version.";
             Layout next;
             try { next = JsonUtility.FromJson<Layout>(json); } catch { return false; }
             if (next == null || next.version != 1 || !Range(next.height, 18, 32) || !Range(next.distance, 22, 40) ||
                 !Range(next.targetZ, 0, 10) || !Range(next.fieldOfView, 30, 48) || !Range(next.exposure, .4f, 1.6f) ||
-                !Range(next.zoom,1,2) || !Range(next.characterScale,1,1.5f) || !Range(next.followSeconds,.15f,1.5f) || !Range(next.fillIntensity,0,1) || !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road) || next.masks == null || next.masks.Length > 16) return false;
+                !Range(next.zoom,1,2) || !Range(next.characterScale,1,1.5f) || !Range(next.followSeconds,.15f,1.5f) || !Range(next.fillIntensity,0,1) || !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road,false,0) || next.masks == null || next.masks.Length > 16) return false;
             foreach (var mask in next.masks)
                 if (mask == null || !Polygon(mask.points,true) || !Range(mask.foot.x, 0, 1) || !Range(mask.foot.y, .3f, 1)) return false;
+            if(next.blockers!=null) {
+                if(next.blockers.Length>16) return false;
+                foreach(var blocker in next.blockers) if(blocker==null || !Polygon(blocker.points)) return false;
+            }
             var oldProjection=view.projectionMatrix;view.ResetProjectionMatrix();
             var oldPosition = view.transform.position; var oldRotation = view.transform.rotation; float oldFov = view.fieldOfView;
             view.orthographic = false; view.fieldOfView = next.fieldOfView; view.aspect = Aspect;
@@ -140,26 +145,29 @@ namespace Ashvault
             view.transform.LookAt(new Vector3(0, 0, next.targetZ));
             // Keep both occupied positions and later wave entrances inside the road.
             bool safe=true;
+            // Expanded roads must still project forward onto the existing finite ground floor.
+            foreach(var point in next.road) {
+                var ray=view.ViewportPointToRay(new Vector3(point.x,1-point.y,0));
+                if(!new Plane(Vector3.up,Vector3.zero).Raycast(ray,out float distance) || distance<=0) {safe=false;continue;}
+                var ground=ray.GetPoint(distance);
+                safe &= Mathf.Abs(ground.x)<99 && Mathf.Abs(ground.z)<99;
+            }
             foreach (var actor in FindObjectsByType<CharacterController>(FindObjectsSortMode.None))
-                safe &= OnRoad(actor.transform.position,next.road);
-            for(int i=0;i<6;i++) safe &= OnRoad(RunManager.SpawnPosition(6,i),next.road);
-            safe &= OnRoad(RunManager.SpawnPosition(1,0),next.road);
+                safe &= OnRoad(actor.transform.position,next);
+            if(validateWaveEntrances) {
+                for(int i=0;i<6;i++) safe &= OnRoad(RunManager.SpawnPosition(6,i),next);
+                safe &= OnRoad(RunManager.SpawnPosition(1,0),next);
+            }
             if(!safe)
             {
                 view.transform.SetPositionAndRotation(oldPosition,oldRotation); view.fieldOfView=oldFov;view.projectionMatrix=oldProjection;
-                error="Road edit would exclude an actor or wave entrance; keeping the current layout."; return false;
+                error="Road edit would exclude an actor or wave entrance, or leave the ground floor; keeping the current layout."; return false;
             }
             var replacement = new GameObject("London image stage"); replacement.SetActive(false);
             var floor = new GameObject("Invisible street floor"); floor.transform.SetParent(replacement.transform); floor.layer = 8;
             var box = floor.AddComponent<BoxCollider>(); box.center = new Vector3(0, -.25f, 0); box.size = new Vector3(200, .5f, 200);
-            for (int i=0; i<next.road.Length; i++)
-            {
-                Vector3 a=Ground(next.road[i]), b=Ground(next.road[(i+1)%next.road.Length]);
-                var wall = new GameObject("Street boundary " + i); wall.layer=8; wall.transform.SetParent(replacement.transform);
-                wall.transform.position=(a+b)*.5f+Vector3.up*2;
-                wall.transform.rotation=Quaternion.LookRotation(b-a);
-                wall.AddComponent<BoxCollider>().size=new Vector3(.12f,4,Vector3.Distance(a,b)+.12f);
-            }
+            BuildBoundary(next.road,replacement.transform);
+            if(next.blockers!=null) foreach(var blocker in next.blockers) BuildBoundary(blocker.points,replacement.transform);
             Quad("Original London image", new[]{new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1)}, 100, backdrop, replacement.transform);
             foreach (var mask in next.masks)
                 Quad(mask.name, mask.points, view.WorldToViewportPoint(Ground(mask.foot)).z, depth, replacement.transform);
@@ -173,16 +181,53 @@ namespace Ashvault
             Debug.Log("LONDON_APPLIED: revision " + Revision);
             return true;
         }
+        // Travel validates active actors; Westminster wave entrances remain checked on return.
+        public bool TryLoadArea(string directory, bool westminster, out string error)
+        {
+            Texture2D next=null; error=null;
+            try {
+                next=new Texture2D(2,2,TextureFormat.RGB24,false);
+                if(!next.LoadImage(File.ReadAllBytes(Path.Combine(directory,"backdrop.png"))) || Mathf.Abs((float)next.width/next.height-Aspect)>.02f)
+                    throw new InvalidDataException("Invalid area image.");
+                next.wrapMode=TextureWrapMode.Clamp;
+                if(!TryApply(File.ReadAllText(Path.Combine(directory,"layout.json")),out error,westminster)) return false;
+                backdrop.mainTexture=next;if(picture)Destroy(picture);picture=next;next=null;
+                return true;
+            } catch(Exception e) {error=e.Message;return false;}
+            finally {if(next)Destroy(next);}
+        }
+        public Vector3 CalibratedGround(Vector2 point)
+        {
+            var projection=view.projectionMatrix;view.projectionMatrix=calibratedProjection;
+            try {return Ground(point);} finally {view.projectionMatrix=projection;}
+        }
+        public Vector2 CalibratedPoint(Vector3 position)
+        {
+            Vector4 clip=calibratedProjection*view.worldToCameraMatrix*new Vector4(position.x,position.y,position.z,1);
+            return new Vector2(.5f+clip.x/clip.w*.5f,.5f-clip.y/clip.w*.5f);
+        }
         public Vector3 Ground(Vector2 point)
         {
             var ray=view.ViewportPointToRay(new Vector3(point.x,1-point.y,0));
             new Plane(Vector3.up,Vector3.zero).Raycast(ray,out float distance);
             return ray.GetPoint(distance);
         }
-        bool OnRoad(Vector3 position, Vector2[] road)
+        void BuildBoundary(Vector2[] points, Transform parent)
+        {
+            for(int i=0;i<points.Length;i++) {
+                Vector3 a=Ground(points[i]), b=Ground(points[(i+1)%points.Length]);
+                var wall=new GameObject("Street boundary "+i);wall.layer=8;wall.transform.SetParent(parent);
+                wall.transform.position=(a+b)*.5f+Vector3.up*2;wall.transform.rotation=Quaternion.LookRotation(b-a);
+                wall.AddComponent<BoxCollider>().size=new Vector3(.12f,4,Vector3.Distance(a,b)+.12f);
+            }
+        }
+        bool OnRoad(Vector3 position, Layout layout)
         {
             var p=view.WorldToViewportPoint(position);
-            return p.z>0 && Inside(new Vector2(p.x,1-p.y),road);
+            var point=new Vector2(p.x,1-p.y);
+            if(p.z<=0 || !Inside(point,layout.road)) return false;
+            if(layout.blockers!=null) foreach(var blocker in layout.blockers) if(Inside(point,blocker.points)) return false;
+            return true;
         }
         static bool Inside(Vector2 p, Vector2[] points)
         {

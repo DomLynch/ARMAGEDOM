@@ -1,0 +1,45 @@
+{
+  "reviewedAt": "2026-10-03T08:35:45.946065+00:00",
+  "status": "real-engine staged seam concealment PASS; real-keyboard continuity FAIL/unproven",
+  "checks": {
+    "controllerRoundtrip": "PASS31.995s",
+    "roofSetup": "PASS",
+    "invalidContentFallback": "PASS",
+    "realKeyboardRoute": "FAIL first waypoint stationary actor; no capture from traversal",
+    "stagedCaptureFixture": "PASS0.82s"
+  },
+  "captures": [
+    {
+      "path": "artifacts/covered-passage-engine/staged-00.png",
+      "sha256": "416bdaea59c67e6a7586d8ea86d7ce5855003877baa0ab078cd295d01e3444eb"
+    },
+    {
+      "path": "artifacts/covered-passage-engine/staged-01.png",
+      "sha256": "97b9bc42bc12b79fa0c0665458a3848992ed6e721ce9d536c0aa31fa63d5cda4"
+    },
+    {
+      "path": "artifacts/covered-passage-engine/staged-02.png",
+      "sha256": "4c5a1cc05cd0b088d5691bc77d5ceedb46ba63ac913eecc0576f06088f2c5436"
+    },
+    {
+      "path": "artifacts/covered-passage-engine/staged-03.png",
+      "sha256": "98743c9cccd604e93c214a78fd4271760fa4e3c6c769bd608522a569e509e765"
+    },
+    {
+      "path": "artifacts/covered-passage-engine/staged-04.png",
+      "sha256": "2caa6a8f6e7980c76eb8f46ef8cf7d6aa8ae5edf0f46d0d582aba8ff28d9ff41"
+    },
+    {
+      "path": "artifacts/covered-passage-engine/staged-05.png",
+      "sha256": "1421893b72de9bea3fe62ce3f36d0a75c95e5b60700e0e78d4249bd92e75a192"
+    }
+  ],
+  "observations": [
+    "Both posed under-roof views hide the real actor and full-width seam without prior row-smear or UV warp.",
+    "South exit staged atx.495 clears the burnt car body; painted loose rubble still requires native motion/contact judgement.",
+    "Cutout roof has visibly sharp/stippled alpha edges compared with static blend; may need standard alpha cutoff tuning.",
+    "Actual occlusion duration/readability during running remains unmeasured; positions were staged.",
+    "No pilot native app/build produced; default live Westminster remains unchanged."
+  ],
+  "next": "Compare proven RunTests desktop isolation; capture current input devices/key/button/swing state at PlayerController update boundary before one minimal test-fixture fix. No Unity operations until next explicit handoff."
+}

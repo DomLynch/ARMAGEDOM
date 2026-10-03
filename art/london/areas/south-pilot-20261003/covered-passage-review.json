@@ -1,0 +1,74 @@
+{
+  "reviewedAt": "2026-10-03 08:08Z",
+  "status": "static concealment PASS; native/physical acceptance pending",
+  "roofHash": "0a884b820f17dbef28e38925b315ec0ae37a06481323bf80f5337737592d4c5d",
+  "sourceDimensions": [
+    2055,
+    765
+  ],
+  "uniformRenderWidth": 1672,
+  "opacityBandThreshold": 250,
+  "opaqueWorldOffsets": [
+    -41.494890510948906,
+    40.68126520681265
+  ],
+  "zoom": 1.65,
+  "characterScale": 1.265,
+  "actorMarkerHeightBeforeZoom": 71,
+  "viewports": [
+    1672,
+    941
+  ],
+  "screenshotsDirectory": "artifacts/covered-passage-static",
+  "observations": [
+    "Both full-width seams are concealed by a visible textured physical viaduct.",
+    "No copied-edge smear, UV stretch, source image edits, fade or fullscreen blackout.",
+    "Roof-entry/under/exit frames reviewed for both joins; outer pavements included in full-width overview.",
+    "Original road widths differ across joins, hidden under the deck.",
+    "Identical reused decks add visible new architecture; native grounding/depth/occlusion and traversal remain untested.",
+    "SVG actor is a sizing/occlusion marker; no claim of live character contact or lighting."
+  ],
+  "next": "Lead static judgement; only then scoped engine integration after explicit Unity handoff. Keep existing live Westminster unchanged.",
+  "staticActorRoadCheck": [
+    {
+      "frame": "join1-approach",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join1-entry",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join1-under",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join1-exit",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join1-clear",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join2-approach",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join2-entry",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join2-under",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join2-exit",
+      "insideUnwarpedAreaRoad": true
+    },
+    {
+      "frame": "join2-clear",
+      "insideUnwarpedAreaRoad": true
+    }
+  ]
+}

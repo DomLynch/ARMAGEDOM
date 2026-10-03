@@ -1,0 +1,17 @@
+[
+  {
+    "area": "west",
+    "layout_sha256": "34d0e47c62da392b6aec2e64164f8d0dddb0e4eac54439c83b06745e1456b66a",
+    "backdrop_sha256": "7ce686a7dd54b800261bb697b3e269f18cb2a72ca8ae5b7733a742ceab2c28e2"
+  },
+  {
+    "area": "south",
+    "layout_sha256": "8ad40c948e242ad88349460be916b3bac50162d4401f073b7fdd57f8429cc7c2",
+    "backdrop_sha256": "d2380a6ea7a922c9b0cec71c80ca718492a679c79c8a87474b06a7376d0e52de"
+  },
+  {
+    "area": "east",
+    "layout_sha256": "bc9bd754c07a278b5802c0b16c69465f9ae50e0b544a67ed2eb5179118714836",
+    "backdrop_sha256": "c059acad2a7e83b5cd776fa6f18463fd42ed113e02dd2f6ff29f6c82b5a946ec"
+  }
+]

@@ -96,11 +96,21 @@ namespace Ashvault
                 Vector3 delta = player.transform.position - lockedPoint;
                 delta.y = 0;
                 if (delta.magnitude < Radius + .25f && Vector3.Angle(lockedDirection, delta) <= Arc / 2 &&
-                    !Physics.Linecast(lockedPoint + Vector3.up, player.transform.position + Vector3.up, 1 << 8)) player.Life.Hit(amount);
+                    !Physics.Linecast(lockedPoint + Vector3.up, player.transform.position + Vector3.up, 1 << 8)) player.ReceiveHit(new CombatHit(amount, lockedPoint, this,
+                        IsBoss ? DefenceEligibility.None : DefenceEligibility.Block | (kind == 0 ? DefenceEligibility.Parry : DefenceEligibility.None)));
             }
-            recoverUntil = Time.time + (kind == 1 || IsBoss ? .95f : .45f);
-            ready = Time.time + (kind == 0 ? 1.2f : 1.9f);
+            recoverUntil = Mathf.Max(recoverUntil, Time.time + (kind == 1 || IsBoss ? .95f : .45f));
+            ready = Mathf.Max(ready, Time.time + (kind == 0 ? 1.2f : 1.9f));
             if (IsBoss) bossPattern = (bossPattern + 1) % 3;
+        }
+
+        public void Parried()
+        {
+            if (Life.Dead || IsBoss) return;
+            attacking = false;
+            recoverUntil = ready = Time.time + .9f;
+            staggerUntil = recoverUntil;
+            GetComponent<ArtMotion>()?.CancelSwing();
         }
 
         public void Stagger(Vector3 direction, float duration)

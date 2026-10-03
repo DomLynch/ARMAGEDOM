@@ -1,0 +1,88 @@
+{
+  "date_utc": "2026-10-03",
+  "status": "first detail pass local review; art acceptance held; global gate held",
+  "cloud": {
+    "id": "6ac0c033fbc85ba682378a6f",
+    "source_revision": "208f6114a2f4bbbb31934606669afd94b931d9a4",
+    "checkpoint": "8a6bf9a9d2310486b74d16837c6ab0c36da00bb3",
+    "timeout_seconds": 600,
+    "cost_ceiling_usd": 0.005,
+    "status": "COMPLETED",
+    "output_revision": "bda3e2b5445f991ec025ff8e5c6f2be40c0b0dd1",
+    "fbx_sha256": "b7537dca617517f58147485665479a380c623112766aa75401d965e4571e6cb9"
+  },
+  "runtime_fbx_sha256": "b7537dca617517f58147485665479a380c623112766aa75401d965e4571e6cb9",
+  "build_id": "build_3e66f238bb5f",
+  "build_errors": 0,
+  "build_warnings": 1,
+  "playmode": {
+    "total": 28,
+    "passed": 27,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "failed_tests": [
+    {
+      "FullName": "Ashvault.Tests.WorldTests.RealKeyboardMovesTheActorUnderBothPassagesAndBack",
+      "Status": "Failed",
+      "Duration": 8.3962302,
+      "Message": "  Keyboard route blocked at (0.55, 0.90); pos=(0.00, 0.04, -7.67) goal=(2.31, 0.00, -11.85) finished=False timeScale=1 device=True\n  Expected: less than 72.7052917f\n  But was:  72.7068405f\n",
+      "StackTrace": "at Ashvault.Tests.WorldTests+<RealKeyboardMovesTheActorUnderBothPassagesAndBack>d__8.MoveNext () [0x002f4] in /Users/domininclynch/Desktop/Business/ARMAGEDOM/Game/Assets/Tests/WorldTests.cs:124\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44\n"
+    }
+  ],
+  "vagrant_tests": [
+    {
+      "test": "Ashvault.Tests.VagrantTests.EquipmentChangesKeepTheSameRigAndAnimationPose",
+      "status": "Passed"
+    },
+    {
+      "test": "Ashvault.Tests.VagrantTests.GameplaySelectsSurvivorWithoutChangingCollision",
+      "status": "Passed"
+    },
+    {
+      "test": "Ashvault.Tests.VagrantTests.ImportedPiecesShareOriginalSkeletonAndDeformThroughoutClips",
+      "status": "Passed"
+    },
+    {
+      "test": "Ashvault.Tests.VagrantTests.SurvivorHasSeparateEquipmentAndOriginalMotion",
+      "status": "Passed"
+    }
+  ],
+  "sync_tests_passed": 6,
+  "startup_smoke": {
+    "ready": true,
+    "exceptions": false,
+    "observed_seconds": 4,
+    "assembly_sha256": "77c64aa108354b96e705ea93c31505be95df71fe7ba65295c4e4bb74eb23ec24"
+  },
+  "rig_validation": {
+    "bones": 19,
+    "rest_error": 0.0,
+    "pose_error": 0.0,
+    "triangles": 36924
+  },
+  "camera": {
+    "scale": 1.265,
+    "fieldOfView": 42,
+    "projection": "2.41913\t0.00000\t0.00000\t0.00000\n0.00000\t4.29840\t-0.65000\t0.00000\n0.00000\t0.00000\t-1.00125\t-0.20013\n0.00000\t0.00000\t-1.00000\t0.00000\n",
+    "cameraPosition": "(0.00, 23.00, -26.00)",
+    "kind": "staged imported poses in runtime London camera"
+  },
+  "native_review": {
+    "inspection": "native-inspection.png shows final attire in actual player; existing view crops top of head",
+    "inputs": "W/SPACE/LMB/Q/1/V/R sent through native UI; short run, not completed-wave acceptance",
+    "combat_capture": "native-combat.png records death in longer check; native-attacks.png records alive Wave1,3hostiles,12HP and shockwave5.8s cooldown in shorter repeat",
+    "restored": "native-entrance.png safe Wave0/100HP after first check; final R resets safe start",
+    "limits": "Native input attempts and stills do not prove every motion transition or physical-phone acceptance"
+  },
+  "art_limits": [
+    "folded grip creases, bulky finger pads, projecting thumb",
+    "jagged scalp hairline",
+    "zipper buckles during run; angular collar/hem",
+    "procedural wear and skin/leather detail remain basic"
+  ],
+  "preserved": "original19bone rig and original Idle/Run/Attack assets; scale1.265; FOV42; camera; gameplay; pilot+knight rollbacks",
+  "next": "Consider one Tripo H3.1 replacement anatomy pilot, then CPU Blender cleanup, modular separation, binding to preserved rig, same Unity gates. No Tripo generation or purchase executed.",
+  "review": "Independent final reviewer confirms eye artifacts removed, native appearance and remaining defects; art acceptance held."
+}

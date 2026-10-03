@@ -1,0 +1,79 @@
+{
+  "jobs": [
+    {
+      "receipt": "cloud-job-a-retry.json",
+      "id": "6ac0a055404719ba3762a3bd",
+      "status": "ERROR",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-a.json",
+      "id": "6ac09fed404719ba3762a39a",
+      "status": "ERROR",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-a3.json",
+      "id": "6ac0a0b3fbc85ba682377ffb",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-b.json",
+      "id": "6ac0a226404719ba3762a45b",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-c-runtime.json",
+      "id": "6ac0a40cfbc85ba6823781a5",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-c.json",
+      "id": "6ac0a3da404719ba3762a4f9",
+      "status": "ERROR",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-d.json",
+      "id": "6ac0a4f0404719ba3762a55e",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-e.json",
+      "id": "6ac0a5fdfbc85ba6823782ad",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-f.json",
+      "id": "6ac0a6c9404719ba3762a60e",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-final.json",
+      "id": "6ac0a7ddfbc85ba68237838d",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-native-fix.json",
+      "id": "6ac0abb2404719ba3762a7fe",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    },
+    {
+      "receipt": "cloud-job-volume.json",
+      "id": "6ac0ad6bfbc85ba682378659",
+      "status": "COMPLETED",
+      "timeout_seconds": 1200
+    }
+  ],
+  "rate_usd_per_hour": 0.03,
+  "gpu_jobs": 0,
+  "billing_estimate_note": "Hardware ceiling $0.01 per 20m job; actual bill not queried"
+}

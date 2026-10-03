@@ -1,0 +1,86 @@
+using System;
+using System.Collections;
+using System.IO;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+
+namespace Ashvault.Tests
+{
+    public class WorldTests
+    {
+        static Type WorldType => typeof(RunManager).Assembly.GetType("Ashvault.LondonWorld");
+        static object Call(Component world, string name, params object[] args) => WorldType.GetMethod(name).Invoke(world,args);
+        static string Bundle => Path.GetFullPath(Path.Combine(Application.dataPath,"../../art/london/areas/south-pilot-20261003/world-bundle"));
+
+        [UnityTest]
+        public IEnumerator ContinuousRoadRegistersBothSeamsAndPreservesTheActor()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            Assert.IsNotNull(WorldType,"Continuous world runtime is missing.");
+            var run=RunManager.Instance;run.enabled=false;run.Player.enabled=false;
+            var camera=Camera.main;var stage=camera.GetComponent<LondonBackdrop>();
+            var actor=run.Player;var angle=camera.transform.rotation;
+            float health=actor.Life.current, cooldown=actor.attackReady;
+            camera.ResetProjectionMatrix();
+            var foot=camera.WorldToViewportPoint(actor.transform.position);
+            var head=camera.WorldToViewportPoint(actor.transform.position+Vector3.up*2*stage.Current.characterScale);
+            float referenceHeight=head.y-foot.y;
+            var world=camera.gameObject.AddComponent(WorldType);
+            var args=new object[]{Bundle,null};Assert.IsTrue((bool)Call(world,"Initialize",args),args[1] as string);
+            var actualFoot=camera.WorldToViewportPoint(actor.transform.position);
+            var actualHead=camera.WorldToViewportPoint(actor.transform.position+Vector3.up*2*stage.Current.characterScale);
+            // Both images and actor must use the same zoom when comparing the reference.
+            Assert.That((actualHead.y-actualFoot.y)/stage.Current.zoom,Is.EqualTo(referenceHeight).Within(.002f));
+            var body=actor.GetComponent<CharacterController>();
+            var route=new[]{new Vector2(.55f,.90f),new Vector2(.615f,1.03f),new Vector2(.58f,1.15f),
+                new Vector2(.55f,1.35f),new Vector2(.50f,1.6f),new Vector2(.52f,1.9f),
+                new Vector2(.52f,2.03f),new Vector2(.52f,2.16f)};
+            for(int leg=0;leg<2;leg++)
+                for(int step=0;step<route.Length;step++)
+                {
+                    var point=route[leg==0?step:route.Length-1-step];
+                    var goal=(Vector3)Call(world,"Ground",point);float deadline=Time.realtimeSinceStartup+8;
+                    while(Vector3.ProjectOnPlane(goal-actor.transform.position,Vector3.up).magnitude>.12f)
+                    {
+                        Assert.Less(Time.realtimeSinceStartup,deadline,"Collision snag before "+point);
+                        var previous=actor.transform.position;
+                        body.Move(Vector3.ProjectOnPlane(goal-previous,Vector3.up).normalized*actor.speed*Time.deltaTime+Vector3.down*Time.deltaTime);
+                        Assert.Less(Vector3.Distance(previous,actor.transform.position),actor.speed*Time.deltaTime+.03f,"Travel must not teleport.");
+                        yield return null;
+                        var ground=(Vector3)Call(world,"Ground",point);
+                        var picture=(Vector3)Call(world,"Picture",point);
+                        Assert.Less(Vector2.Distance(camera.WorldToViewportPoint(ground),camera.WorldToViewportPoint(picture)),.002f,"Paint and ground drifted.");
+                    }
+                    Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
+                    Assert.That(actor.transform.Find("Visual").localScale.x,Is.EqualTo(1.265f).Within(.001f));
+                }
+            Assert.AreSame(actor,run.Player);Assert.AreEqual(health,actor.Life.current);Assert.AreEqual(cooldown,actor.attackReady);
+            var inspect=camera.GetComponent<HeroView>();inspect.Toggle();yield return null;inspect.Toggle();yield return null;
+            Assert.IsTrue(camera.orthographic);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
+            UnityEngine.Object.Destroy(world);yield return null;
+            Assert.IsTrue(stage.enabled);Assert.IsFalse(camera.orthographic);
+        }
+
+        [UnityTest]
+        public IEnumerator InvalidDestinationKeepsTheLegacyAreaWorking()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            Assert.IsNotNull(WorldType,"Continuous world runtime is missing.");
+            var camera=Camera.main;var stage=camera.GetComponent<LondonBackdrop>();
+            var world=camera.gameObject.AddComponent(WorldType);
+            string temp=Path.Combine(Path.GetTempPath(),"armagedom-world-invalid-"+Guid.NewGuid());Directory.CreateDirectory(temp);
+            try
+            {
+                File.WriteAllText(Path.Combine(temp,"world.json"),File.ReadAllText(Path.Combine(Bundle,"world.json")));
+                var args=new object[]{temp,null};Assert.IsFalse((bool)Call(world,"Initialize",args));
+                Assert.IsTrue(stage.enabled);Assert.IsFalse(camera.orthographic);
+                Assert.IsTrue(GameObject.Find("Original London image").activeInHierarchy);
+                Assert.IsNotEmpty(args[1] as string);
+            }
+            finally {UnityEngine.Object.Destroy(world);Directory.Delete(temp,true);}
+        }
+    }
+}

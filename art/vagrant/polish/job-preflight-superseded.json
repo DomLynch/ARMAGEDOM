@@ -1,0 +1,11 @@
+{
+  "id": "6ac0b89a404719ba3762a9ea",
+  "url": "https://huggingface.co/jobs/Domlynch/6ac0b89a404719ba3762a9ea",
+  "source_revision": "ba72cad39016279ad6352d4ab6359b697860f55b",
+  "output_prefix": "pilot-polish",
+  "flavor": "cpu-upgrade",
+  "rate_usd_per_hour": 0.03,
+  "timeout_seconds": 1200,
+  "cost_ceiling_usd": 0.01,
+  "reason": "construction check measured index knuckle above handle; compress donor knuckle span before bake"
+}

@@ -1,0 +1,68 @@
+{
+  "status": "candidate-not-active",
+  "coordinateSystem": "normalized image, top-left origin; geometry requires runtime area registration",
+  "connections": [
+    {
+      "from": "westminster",
+      "edge": "bottom-road",
+      "to": "connector",
+      "entry": "top-road"
+    },
+    {
+      "from": "connector",
+      "edge": "bottom-road",
+      "to": "south",
+      "entry": "top-road"
+    }
+  ],
+  "safeEntries": {
+    "south": {
+      "x": 0.55,
+      "y": 0.18
+    },
+    "connector": {
+      "x": 0.56,
+      "y": 0.12
+    }
+  },
+  "enemySpawns": {
+    "south": [
+      {
+        "x": 0.57,
+        "y": 0.29
+      },
+      {
+        "x": 0.58,
+        "y": 0.35
+      },
+      {
+        "x": 0.59,
+        "y": 0.43
+      },
+      {
+        "x": 0.57,
+        "y": 0.57
+      },
+      {
+        "x": 0.56,
+        "y": 0.64
+      }
+    ]
+  },
+  "connector": {
+    "file": "connector-v1.png",
+    "sha256": "28922156ab23874c272a7c68ebb1c73b0011c4cdfefaa89e0591cee5ebb46ff8",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "generator": "built-in image_gen",
+    "promptSummary": "Separate open ruined London road joining Westminster bottom-road and south top-road; no people/HUD; sunset lighting; lane clear."
+  },
+  "openRisks": [
+    "Road and mask calibration not yet verified in Unity",
+    "Original road edges are not pixel-matched; seam correction remains required",
+    "Candidate polygons include y<0.2 and need the lead area validator, not the legacy live reload",
+    "Do not activate by replacing Westminster content"
+  ]
+}

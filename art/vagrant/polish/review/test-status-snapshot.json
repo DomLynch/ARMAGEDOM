@@ -1,0 +1,209 @@
+{
+  "status": "completed",
+  "duration": 71.92,
+  "summary": {
+    "total": 28,
+    "passed": 27,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "Ashvault.Tests.LondonTests.LondonAreaKeepsThePlayableCorridorAndClosedBoundary",
+      "Status": "Passed",
+      "Duration": 0.0146704,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.LondonTests.LondonPropsHaveExplicitMaterialsAndBoundedRendererCount",
+      "Status": "Passed",
+      "Duration": 0.003249,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.LondonTests.PlayableRunLoadsTheSavedLondonLayout",
+      "Status": "Passed",
+      "Duration": 0.1021035,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.LondonTests.SavedContentReloadsWithoutRestartAndRejectsInvalidEdits",
+      "Status": "Passed",
+      "Duration": 4.0976464,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.LondonTests.ZoomAndFollowKeepTheImageRegisteredAndWithinItsEdges",
+      "Status": "Passed",
+      "Duration": 1.3360195,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.AttacksRespectRangeDirectionCooldownAndWalls",
+      "Status": "Passed",
+      "Duration": 1.7796007,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.AuthoredHeroBootsClearFloorDuringTravelAndTurns",
+      "Status": "Passed",
+      "Duration": 1.1092149,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.DodgeBlocksDamageThenExpiresAndDeathRestarts",
+      "Status": "Passed",
+      "Duration": 0.4675841,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.DodgeCancelsPendingStrike",
+      "Status": "Passed",
+      "Duration": 0.4417816,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EnemiesTurnGraduallyBeforeStriking",
+      "Status": "Passed",
+      "Duration": 0.8116497,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EnemyStrikeKeepsWindupTimingWithoutFloorConesWhenStaggered",
+      "Status": "Passed",
+      "Duration": 0.6093615,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.EntranceWaitsForPlayerAndStartsOnMovement",
+      "Status": "Passed",
+      "Duration": 2.4077793,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.GothicModelsKeepScaleMaterialsAndGameplaySeparation",
+      "Status": "Passed",
+      "Duration": 0.9229759,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.HeldSlashKillsNearbyEnemyWithoutApproaching",
+      "Status": "Passed",
+      "Duration": 1.5557392,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.HeroInspectionPreservesGameStateAndOriginalMaterialMaps",
+      "Status": "Passed",
+      "Duration": 0.1130348,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.KeyboardTravelTurnsHeroAndPreservesDiagonalSpeed",
+      "Status": "Passed",
+      "Duration": 1.778861,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.LeftClickSlashesWithoutMovingAndFacesCursor",
+      "Status": "Passed",
+      "Duration": 1.0420659,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.LootStrengthensPlayerAndFullRunReachesVictory",
+      "Status": "Passed",
+      "Duration": 0.7882402,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.MobSolesClearFloorDuringTravelTurnsAndStops",
+      "Status": "Passed",
+      "Duration": 7.6600169,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.RunTests.RenderMaterialsAreExplicitBuildDependencies",
+      "Status": "Passed",
+      "Duration": 0.059062,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.VagrantTests.EquipmentChangesKeepTheSameRigAndAnimationPose",
+      "Status": "Passed",
+      "Duration": 0.0014845,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.VagrantTests.GameplaySelectsSurvivorWithoutChangingCollision",
+      "Status": "Passed",
+      "Duration": 0.0004213,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.VagrantTests.ImportedPiecesShareOriginalSkeletonAndDeformThroughoutClips",
+      "Status": "Passed",
+      "Duration": 3.4819754,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.VagrantTests.SurvivorHasSeparateEquipmentAndOriginalMotion",
+      "Status": "Passed",
+      "Duration": 0.0329108,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.WorldTests.ContinuousRoadRegistersBothSeamsAndPreservesTheActor",
+      "Status": "Passed",
+      "Duration": 31.8895822,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.WorldTests.CoveredPassagesKeepSourceGeometryAndHideBothCompleteJoins",
+      "Status": "Passed",
+      "Duration": 0.8346732,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.WorldTests.InvalidDestinationKeepsTheLegacyAreaWorking",
+      "Status": "Passed",
+      "Duration": 0.131106,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "Ashvault.Tests.WorldTests.RealKeyboardMovesTheActorUnderBothPassagesAndBack",
+      "Status": "Failed",
+      "Duration": 8.3962302,
+      "Message": "  Keyboard route blocked at (0.55, 0.90); pos=(0.00, 0.04, -7.67) goal=(2.31, 0.00, -11.85) finished=False timeScale=1 device=True\n  Expected: less than 72.7052917f\n  But was:  72.7068405f\n",
+      "StackTrace": "at Ashvault.Tests.WorldTests+<RealKeyboardMovesTheActorUnderBothPassagesAndBack>d__8.MoveNext () [0x002f4] in /Users/domininclynch/Desktop/Business/ARMAGEDOM/Game/Assets/Tests/WorldTests.cs:124\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44\n"
+    }
+  ]
+}

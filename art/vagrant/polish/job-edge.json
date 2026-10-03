@@ -1,0 +1,8 @@
+{
+  "id": "6ac0bc40fbc85ba682378999",
+  "url": "https://huggingface.co/jobs/Domlynch/6ac0bc40fbc85ba682378999",
+  "source_revision": "b958ec7d791ab58d9eaa23653237c5d1ea311a09",
+  "checkpoint": "b1ce564fe183492ef001da5e0a021a988a461af9",
+  "timeout_seconds": 600,
+  "cost_ceiling_usd": 0.005
+}

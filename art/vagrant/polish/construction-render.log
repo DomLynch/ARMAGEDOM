@@ -1,0 +1,9 @@
+00:03.152  blend            | Read blend: "/Users/domininclynch/Desktop/Business/ARMAGEDOM/art/vagrant/polish/inputs/rig.blend"
+/Users/domininclynch/Desktop/Business/ARMAGEDOM/art/vagrant/polish/render_construction.py:183: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+00:10.982  render           | Saved: '/Users/domininclynch/Desktop/Business/ARMAGEDOM/art/vagrant/polish/output/diagnostics/grip.png'
+00:15.695  render           | Saved: '/Users/domininclynch/Desktop/Business/ARMAGEDOM/art/vagrant/polish/output/diagnostics/front.png'
+PREBAKE_OK {'index': {'knuckle': [-0.4889895708694664, -0.06680052950197186, 1.0257655585504137], 'tip': [-0.457, -0.064, 1.0217655585504137]}, 'middle': {'knuckle': [-0.49365735538799216, -0.0679806820360868, 0.9942237938508652], 'tip': [-0.457, -0.064, 0.9902237938508652]}, 'ring': {'knuckle': [-0.4938180612258959, -0.06708870805124588, 0.9718914129345622], 'tip': [-0.457, -0.064, 0.9678914129345622]}, 'pinky': {'knuckle': [-0.4889895692403003, -0.0668005394865467, 0.9530510352503863], 'tip': [-0.457, -0.064, 0.9490510352503863]}, 'thumb': {'knuckle': [-0.47952714355124065, -0.02818198886485614, 1.0276491216750974], 'tip': [-0.47, -0.081, 0.983]}}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

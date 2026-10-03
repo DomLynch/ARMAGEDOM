@@ -1,0 +1,9 @@
+{
+  "id": "6ac0abb2404719ba3762a7fe",
+  "url": "https://huggingface.co/jobs/Domlynch/6ac0abb2404719ba3762a7fe",
+  "revision": "e476dcc9860e2ab6deab689db11a50508dce0716",
+  "output_prefix": "pilot-native-fix",
+  "python": "3.13",
+  "timeout_seconds": 1200,
+  "cpu_cost_ceiling_usd": 0.01
+}

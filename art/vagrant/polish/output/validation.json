@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "rig_bones": 19,
+  "rest_matrix_error": 0.0,
+  "pose_matrix_error": 0.0,
+  "sample_frames": [
+    1,
+    15,
+    30,
+    45,
+    60,
+    61,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    85,
+    89,
+    94,
+    99,
+    104
+  ],
+  "pieces": [
+    {
+      "name": "Backpack",
+      "vertices": 372,
+      "triangles": 696,
+      "maximum_edge_expansion_m": 2.39349901676178e-07
+    },
+    {
+      "name": "Feet boots",
+      "vertices": 1116,
+      "triangles": 1996,
+      "maximum_edge_expansion_m": 3.129243850708008e-07
+    },
+    {
+      "name": "Legs trousers",
+      "vertices": 1440,
+      "triangles": 2756,
+      "maximum_edge_expansion_m": 0.04865569248795509
+    },
+    {
+      "name": "Machete",
+      "vertices": 82,
+      "triangles": 160,
+      "maximum_edge_expansion_m": 2.384185791015625e-07
+    },
+    {
+      "name": "Machete handle",
+      "vertices": 336,
+      "triangles": 648,
+      "maximum_edge_expansion_m": 1.8940772861242294e-07
+    },
+    {
+      "name": "Protection vest",
+      "vertices": 264,
+      "triangles": 452,
+      "maximum_edge_expansion_m": 2.086162567138672e-07
+    },
+    {
+      "name": "Torso jacket",
+      "vertices": 4345,
+      "triangles": 7584,
+      "maximum_edge_expansion_m": 0.04996233433485031
+    },
+    {
+      "name": "Vagrant body",
+      "vertices": 11369,
+      "triangles": 22632,
+      "maximum_edge_expansion_m": 0.04354367032647133
+    }
+  ],
+  "candidate_sha256": "e088c53b5a2f06e09284aaf374f1d261b0a625c00af8c3fd2fae4e17fc5b712c",
+  "limits": "Sampled geometry/rig check; visible seams, native clearance and export behaviour require review."
+}

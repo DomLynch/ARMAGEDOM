@@ -9,7 +9,7 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Ashvault.Tests
 {
     // Isolate synthetic input from desktop focus and physical mouse/keyboard events.
-    public class RunTests
+    public partial class RunTests
     {
         RunManager run;
         readonly System.Collections.Generic.List<InputDevice> desktopDevices = new System.Collections.Generic.List<InputDevice>();
@@ -272,7 +272,8 @@ namespace Ashvault.Tests
             var controller = player.GetComponent<CharacterController>();
             controller.enabled = false;
             player.transform.position = new Vector3(0, .04f, -4);
-            var skin = System.Array.Find(player.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name == "Warden armour");
+            var skin = System.Array.Find(player.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name == "Feet boots");
+            if (!skin) skin = System.Array.Find(player.GetComponentsInChildren<SkinnedMeshRenderer>(), s => s.name == "Warden armour");
             Assert.IsNotNull(skin);
             var weights = skin.sharedMesh.boneWeights;
             var feet = new System.Collections.Generic.HashSet<int>();
@@ -508,6 +509,155 @@ namespace Ashvault.Tests
             Assert.IsTrue(player.TryAttack(2));
             yield return new WaitForSeconds(.25f);
             Assert.AreEqual(80, enemy.Life.current, "Shockwave range must be bounded.");
+        }
+
+        [UnityTest]
+        public IEnumerator LateHeavyTapSurvivesSlashRecoveryExactlyOnce()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player = run.Player; player.enabled = true; player.transform.rotation = Quaternion.identity;
+                var enemy = ArenaBuilder.Actor("Buffered heavy target", player.transform.position + Vector3.forward * 2, 0).AddComponent<EnemyController>();
+                enemy.enabled = false; enemy.Life.maximum = enemy.Life.current = 200; run.Enemies.Add(enemy);
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = Camera.main.WorldToScreenPoint(enemy.transform.position) });
+                yield return null;
+                Assert.IsTrue(player.TryAttack(0));
+                while (Time.time < player.attackReady - .08f) yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Q));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                yield return new WaitForSeconds(.55f);
+                Assert.That(enemy.Life.current, Is.EqualTo(138), "A late quick Q must deal one heavy strike after the opening slash.");
+                Assert.Greater(player.heavyReady, Time.time);
+                yield return new WaitForSeconds(1.6f);
+                Assert.That(enemy.Life.current, Is.EqualTo(138), "A buffered tap must never repeat after its cooldown.");
+            }
+            finally { run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse); }
+        }
+
+        [UnityTest]
+        public IEnumerator FreshShockwaveOverridesAnOlderQueuedHeavy()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            System.Action freshInput = null;
+            try
+            {
+                var player = run.Player; player.enabled = true; player.transform.rotation = Quaternion.identity;
+                var enemy = ArenaBuilder.Actor("Fresh command target", player.transform.position + Vector3.forward * 2, 0).AddComponent<EnemyController>();
+                enemy.enabled = false; enemy.Life.maximum = enemy.Life.current = 200; run.Enemies.Add(enemy);
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = Camera.main.WorldToScreenPoint(enemy.transform.position) });
+                yield return null;
+                Assert.IsTrue(player.TryAttack(0));
+                while (Time.time < player.attackReady - .08f) yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Q));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                float ready = player.attackReady; bool sent = false;
+                freshInput = () => {
+                    if (Time.time < ready || sent) return;
+                    sent = true; InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Digit1));
+                };
+                InputSystem.onBeforeUpdate += freshInput;
+                yield return new WaitForSeconds(.55f);
+                Assert.IsTrue(sent, "Inject a fresh physical-style press on the first ready input frame.");
+                Assert.Greater(player.specialReady, Time.time, "The newest eligible command must win.");
+                Assert.AreEqual(0, player.heavyReady, "The older queued heavy must be discarded.");
+                Assert.That(enemy.Life.current, Is.EqualTo(136), "One opening slash and one shockwave must hit.");
+            }
+            finally
+            {
+                if (freshInput != null) InputSystem.onBeforeUpdate -= freshInput;
+                run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator HeldRightButtonIsNotMadeFreshByANewLeftClick()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            System.Action freshInput = null;
+            try
+            {
+                var player = run.Player; player.transform.rotation = Quaternion.identity;
+                var enemy = ArenaBuilder.Actor("Held input target", player.transform.position + Vector3.forward * 2, 0).AddComponent<EnemyController>();
+                enemy.enabled = false; enemy.Life.maximum = enemy.Life.current = 200; run.Enemies.Add(enemy);
+                Vector2 aim = Camera.main.WorldToScreenPoint(enemy.transform.position);
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = aim }.WithButton(MouseButton.Right));
+                yield return null;
+                Assert.IsTrue(player.TryAttack(0)); player.enabled = true;
+                while (Time.time < player.attackReady - .08f) yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Digit1));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                float ready = player.attackReady; bool sent = false;
+                freshInput = () => {
+                    if (Time.time < ready || sent) return;
+                    sent = true;
+                    InputSystem.QueueStateEvent(mouse, new MouseState { position = aim }.WithButton(MouseButton.Right).WithButton(MouseButton.Left));
+                };
+                InputSystem.onBeforeUpdate += freshInput;
+                float deadline = Time.time + 1;
+                while (!sent && Time.time < deadline) yield return null;
+                Assert.IsTrue(sent, "The ready-frame input hook must run within one second.");
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = aim });
+                yield return new WaitForSeconds(.35f);
+                Assert.Greater(player.specialReady, Time.time, "The held right button has no fresh edge and cannot replace queued shockwave.");
+                Assert.AreEqual(0, player.heavyReady);
+                Assert.That(enemy.Life.current, Is.EqualTo(136));
+            }
+            finally
+            {
+                if (freshInput != null) InputSystem.onBeforeUpdate -= freshInput;
+                run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator EarlyHeavyTapIsNotSavedForADeferredAttack()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player = run.Player; player.enabled = true;
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = Camera.main.WorldToScreenPoint(player.transform.position + Vector3.forward * 2) });
+                yield return null;
+                Assert.IsTrue(player.TryAttack(0));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Q));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                yield return new WaitForSeconds(.6f);
+                Assert.AreEqual(0, player.heavyReady, "An early recovery tap must not trigger a delayed heavy attack.");
+            }
+            finally { run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse); }
+        }
+
+        [UnityTest]
+        public IEnumerator DodgeDiscardsTheLateQueuedHeavyTap()
+        {
+            run.enabled = false;
+            var keyboard = InputSystem.AddDevice<Keyboard>(); var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                var player = run.Player; player.enabled = true;
+                InputSystem.QueueStateEvent(mouse, new MouseState { position = Camera.main.WorldToScreenPoint(player.transform.position + Vector3.forward * 2) });
+                yield return null;
+                Assert.IsTrue(player.TryAttack(0));
+                while (Time.time < player.attackReady - .08f) yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Q));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Space));
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                Assert.Greater(player.dodgeReady, Time.time, "Space must start the actual dodge.");
+                yield return new WaitForSeconds(.6f);
+                Assert.AreEqual(0, player.heavyReady, "Dodge must cancel queued intent as well as the active strike.");
+            }
+            finally { run.Player.enabled = false; InputSystem.RemoveDevice(keyboard); InputSystem.RemoveDevice(mouse); }
         }
 
         [UnityTest]

@@ -1,0 +1,171 @@
+using System;
+using System.Collections;
+using System.IO;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using System.Collections.Generic;
+
+namespace Ashvault.Tests
+{
+    public class WorldTests
+    {
+        static Type WorldType => typeof(RunManager).Assembly.GetType("Ashvault.LondonWorld");
+        static object Call(Component world, string name, params object[] args) => WorldType.GetMethod(name).Invoke(world,args);
+        static string Bundle => Path.GetFullPath(Path.Combine(Application.dataPath,"../../art/london/areas/south-pilot-20261003/world-covered-bundle"));
+
+        [UnityTest]
+        public IEnumerator ContinuousRoadRegistersBothSeamsAndPreservesTheActor()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            Assert.IsNotNull(WorldType,"Continuous world runtime is missing.");
+            var run=RunManager.Instance;run.enabled=false;run.Player.enabled=false;
+            var camera=Camera.main;var stage=camera.GetComponent<LondonBackdrop>();
+            var actor=run.Player;var angle=camera.transform.rotation;var originalPosition=actor.transform.position;
+            float health=actor.Life.current, cooldown=actor.attackReady;
+            camera.ResetProjectionMatrix();
+            var foot=camera.WorldToViewportPoint(actor.transform.position);
+            var head=camera.WorldToViewportPoint(actor.transform.position+Vector3.up*2*stage.Current.characterScale);
+            float referenceHeight=head.y-foot.y;
+            var world=camera.gameObject.AddComponent(WorldType);
+            var args=new object[]{Bundle,null};Assert.IsTrue((bool)Call(world,"Initialize",args),args[1] as string);
+            var actualFoot=camera.WorldToViewportPoint(actor.transform.position);
+            var actualHead=camera.WorldToViewportPoint(actor.transform.position+Vector3.up*2*stage.Current.characterScale);
+            // Both images and actor must use the same zoom when comparing the reference.
+            Assert.That((actualHead.y-actualFoot.y)/stage.Current.zoom,Is.EqualTo(referenceHeight).Within(.002f));
+            var body=actor.GetComponent<CharacterController>();
+            var route=new[]{new Vector2(.55f,.90f),new Vector2(.615f,1.03f),new Vector2(.58f,1.15f),
+                new Vector2(.55f,1.35f),new Vector2(.50f,1.6f),new Vector2(.52f,1.9f),
+                new Vector2(.51f,2.03f),new Vector2(.495f,2.14f),new Vector2(.53f,2.21f),new Vector2(.57f,2.28f)};
+            for(int leg=0;leg<2;leg++)
+                for(int step=0;step<route.Length;step++)
+                {
+                    var point=route[leg==0?step:route.Length-1-step];
+                    var goal=(Vector3)Call(world,"Ground",point);float deadline=Time.realtimeSinceStartup+8;
+                    while(Vector3.ProjectOnPlane(goal-actor.transform.position,Vector3.up).magnitude>.12f)
+                    {
+                        Assert.Less(Time.realtimeSinceStartup,deadline,"Collision snag before "+point);
+                        var previous=actor.transform.position;
+                        body.Move(Vector3.ProjectOnPlane(goal-previous,Vector3.up).normalized*actor.speed*Time.deltaTime+Vector3.down*Time.deltaTime);
+                        Assert.Less(Vector3.Distance(previous,actor.transform.position),actor.speed*Time.deltaTime+.03f,"Travel must not teleport.");
+                        yield return null;
+                        var ground=(Vector3)Call(world,"Ground",point);
+                        var picture=(Vector3)Call(world,"Picture",point);
+                        Assert.Less(Vector2.Distance(camera.WorldToViewportPoint(ground),camera.WorldToViewportPoint(picture)),.002f,"Paint and ground drifted.");
+                    }
+                    Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
+                    Assert.That(actor.transform.Find("Visual").localScale.x,Is.EqualTo(1.265f).Within(.001f));
+                }
+            Assert.AreSame(actor,run.Player);Assert.AreEqual(health,actor.Life.current);Assert.AreEqual(cooldown,actor.attackReady);
+            var inspect=camera.GetComponent<HeroView>();inspect.Toggle();yield return null;inspect.Toggle();yield return null;
+            Assert.IsTrue(camera.orthographic);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
+            UnityEngine.Object.Destroy(world);yield return null;
+            Assert.IsTrue(stage.enabled);Assert.IsFalse(camera.orthographic);
+            Assert.Less(Vector3.Distance(originalPosition,actor.transform.position),.001f,"Rollback must restore the legacy actor position.");
+        }
+
+        [UnityTest]
+        public IEnumerator CoveredPassagesKeepSourceGeometryAndHideBothCompleteJoins()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            var run=RunManager.Instance;run.enabled=false;run.Player.enabled=false;
+            var world=Camera.main.gameObject.AddComponent(WorldType);
+            var args=new object[]{Bundle,null};Assert.IsTrue((bool)Call(world,"Initialize",args),args[1] as string);
+            foreach(string name in new[]{"covered-1 foreground","covered-2 foreground"})
+            {
+                var roof=GameObject.Find(name);Assert.IsNotNull(roof,"Covered physical passage is missing.");
+                var mesh=roof.GetComponent<MeshFilter>().sharedMesh;
+                Assert.AreEqual(4,mesh.vertexCount);Assert.AreEqual(6,mesh.triangles.Length);
+                Assert.AreEqual("Ashvault/LondonForeground",roof.GetComponent<Renderer>().sharedMaterial.shader.name);
+                Assert.IsNull(roof.GetComponent<Collider>(),"Roof must not block the road.");
+            }
+            var staged=new[]{new Vector2(.57f,.90f),new Vector2(.57f,1.025f),new Vector2(.57f,1.15f),new Vector2(.52f,1.9f),new Vector2(.51f,2.03f),new Vector2(.495f,2.14f)};
+            var body=run.Player.GetComponent<CharacterController>();
+            for(int i=0;i<staged.Length;i++)
+            {
+                body.enabled=false;run.Player.transform.position=(Vector3)Call(world,"Ground",staged[i])+Vector3.up*.04f;body.enabled=true;run.Player.GetComponent<ArtMotion>()?.RefreshProportions();
+                WorldType.GetMethod("Follow",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(world,new object[]{true});yield return null;
+                Capture(Camera.main,"staged-"+i.ToString("00"));
+            }
+            UnityEngine.Object.Destroy(world);yield return null;
+        }
+
+        int tracedFrames;
+        void TraceInput(Keyboard keyboard,Mouse mouse,PlayerController actor,string stage)
+        {
+            if(tracedFrames>16)return;
+            var currentKeyboard=Keyboard.current;var currentMouse=Mouse.current;
+            string value=stage+" frame="+tracedFrames+" expectedKeyboard="+keyboard.deviceId+" currentKeyboard="+(currentKeyboard==null?-1:currentKeyboard.deviceId)+" expectedMouse="+mouse.deviceId+" currentMouse="+(currentMouse==null?-1:currentMouse.deviceId)+" expectedS="+keyboard.sKey.isPressed+" expectedD="+keyboard.dKey.isPressed+" currentS="+(currentKeyboard!=null&&currentKeyboard.sKey.isPressed)+" currentD="+(currentKeyboard!=null&&currentKeyboard.dKey.isPressed)+" left="+(currentMouse!=null&&currentMouse.leftButton.isPressed)+" right="+(currentMouse!=null&&currentMouse.rightButton.isPressed)+" actorEnabled="+actor.enabled+" active="+actor.gameObject.activeInHierarchy+" time="+Time.time+" position="+actor.transform.position;
+            foreach(string field in new[]{"travelVelocity","swingUntil","dodgeEnd"})value+=" "+field+"="+typeof(PlayerController).GetField(field,BindingFlags.Instance|BindingFlags.NonPublic).GetValue(actor);
+            string dir=Path.GetFullPath(Path.Combine(Application.dataPath,"../../artifacts/covered-passage-engine"));Directory.CreateDirectory(dir);File.AppendAllText(Path.Combine(dir,"input-boundary-trace.txt"),value+System.Environment.NewLine);
+        }
+        static void Capture(Camera camera,string name)
+        {
+            string directory=Path.GetFullPath(Path.Combine(Application.dataPath,"../../artifacts/covered-passage-engine"));Directory.CreateDirectory(directory);
+            var target=RenderTexture.GetTemporary(1672,941,24);var prior=camera.targetTexture;var active=RenderTexture.active;var rect=camera.rect;
+            var image=new Texture2D(1672,941,TextureFormat.RGB24,false);
+            try {camera.targetTexture=target;camera.rect=new Rect(0,0,1,1);camera.Render();RenderTexture.active=target;image.ReadPixels(new Rect(0,0,1672,941),0,0);image.Apply();File.WriteAllBytes(Path.Combine(directory,name+".png"),image.EncodeToPNG());}
+            finally {camera.targetTexture=prior;camera.rect=rect;RenderTexture.active=active;RenderTexture.ReleaseTemporary(target);UnityEngine.Object.Destroy(image);}
+        }
+        [UnityTest]
+        public IEnumerator RealKeyboardMovesTheActorUnderBothPassagesAndBack()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            var run=RunManager.Instance;run.enabled=false;var actor=run.Player;var angle=Camera.main.transform.rotation;
+            var world=Camera.main.gameObject.AddComponent(WorldType);var args=new object[]{Bundle,null};Assert.IsTrue((bool)Call(world,"Initialize",args),args[1] as string);
+            var inputFocus=InputSystem.settings.editorInputBehaviorInPlayMode;InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            var keyboard=InputSystem.AddDevice<Keyboard>();var mouse=InputSystem.AddDevice<Mouse>();
+            var route=new[]{new Vector2(.55f,.90f),new Vector2(.57f,.98f),new Vector2(.57f,1.025f),new Vector2(.57f,1.15f),
+                new Vector2(.55f,1.35f),new Vector2(.50f,1.6f),new Vector2(.52f,1.9f),new Vector2(.51f,2.03f),
+                new Vector2(.495f,2.14f),new Vector2(.53f,2.21f),new Vector2(.57f,2.28f)};
+            try
+            {
+                Assert.IsTrue(actor.enabled,"Real PlayerController must handle the keyboard.");
+                for(int leg=0;leg<2;leg++)for(int step=0;step<route.Length;step++)
+                {
+                    int index=leg==0?step:route.Length-1-step;var point=route[index];var goal=(Vector3)Call(world,"Ground",point);float deadline=Time.realtimeSinceStartup+8;
+                    while(Vector3.ProjectOnPlane(goal-actor.transform.position,Vector3.up).magnitude>.16f)
+                    {
+                        Assert.Less(Time.realtimeSinceStartup,deadline,"Keyboard route blocked at "+point+"; pos="+actor.transform.position+" goal="+goal+" finished="+run.Finished+" timeScale="+Time.timeScale+" device="+keyboard.enabled);
+                        var delta=goal-actor.transform.position;var forward=Vector3.ProjectOnPlane(Camera.main.transform.forward,Vector3.up).normalized;
+                        float x=Vector3.Dot(delta,Camera.main.transform.right),y=Vector3.Dot(delta,forward);var keys=new List<Key>();
+                        if(x>.07f)keys.Add(Key.D);else if(x<-.07f)keys.Add(Key.A);if(y>.07f)keys.Add(Key.W);else if(y<-.07f)keys.Add(Key.S);
+                        InputSystem.EnableDevice(keyboard);InputSystem.EnableDevice(mouse);InputSystem.QueueStateEvent(keyboard,new KeyboardState(keys.ToArray()));InputSystem.Update();TraceInput(keyboard,mouse,actor,"queued");var prior=actor.transform.position;
+                        yield return null;TraceInput(keyboard,mouse,actor,"after-player-update");tracedFrames++;
+                        Assert.Less(Vector3.Distance(prior,actor.transform.position),actor.speed*Time.deltaTime+.08f,"Input travel teleported.");
+                        Assert.Less(Quaternion.Angle(angle,Camera.main.transform.rotation),.001f);
+                    }
+                    InputSystem.QueueStateEvent(keyboard,new KeyboardState());yield return new WaitForSeconds(.12f);
+                    if(index==0||index==1||index==2||index==3||index==6||index==7||index==8)
+                        Capture(Camera.main,(leg==0?"south-":"north-")+index.ToString("00"));
+                }
+                Assert.AreSame(actor,run.Player);Assert.IsFalse(actor.Life.Dead);
+            }
+            finally {InputSystem.QueueStateEvent(keyboard,new KeyboardState());InputSystem.RemoveDevice(keyboard);InputSystem.RemoveDevice(mouse);InputSystem.settings.editorInputBehaviorInPlayMode=inputFocus;UnityEngine.Object.Destroy(world);}
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator InvalidDestinationKeepsTheLegacyAreaWorking()
+        {
+            SceneManager.LoadScene("Ashvault");yield return null;yield return null;
+            Assert.IsNotNull(WorldType,"Continuous world runtime is missing.");
+            var camera=Camera.main;var stage=camera.GetComponent<LondonBackdrop>();
+            var world=camera.gameObject.AddComponent(WorldType);
+            string temp=Path.Combine(Path.GetTempPath(),"armagedom-world-invalid-"+Guid.NewGuid());Directory.CreateDirectory(temp);
+            try
+            {
+                File.WriteAllText(Path.Combine(temp,"world.json"),File.ReadAllText(Path.Combine(Bundle,"world.json")));
+                var args=new object[]{temp,null};Assert.IsFalse((bool)Call(world,"Initialize",args));
+                Assert.IsTrue(stage.enabled);Assert.IsFalse(camera.orthographic);
+                Assert.IsTrue(GameObject.Find("Original London image").activeInHierarchy);
+                Assert.IsNotEmpty(args[1] as string);
+            }
+            finally {UnityEngine.Object.Destroy(world);Directory.Delete(temp,true);}
+        }
+    }
+}

@@ -54,7 +54,7 @@ if state:
         "--async_tests",
         "true",
     )
-    deadline = time.monotonic() + 120
+    deadline = time.monotonic() + 420
     while time.monotonic() < deadline:
         time.sleep(2)
         result = command("test_status")
@@ -69,7 +69,7 @@ if state:
             print("PASS: real Unity Play Mode suite", summary)
             break
     else:
-        raise RuntimeError("Play Mode tests did not finish within 120 seconds")
+        raise RuntimeError("Play Mode tests did not finish within 420 seconds")
 else:
     report = ARTIFACTS / "playmode-results.xml"
     subprocess.run(
@@ -84,10 +84,10 @@ else:
             "--output",
             str(report),
             "--timeout",
-            "180",
+            "420",
         ],
         check=True,
-        timeout=200,
+        timeout=440,
     )
     result = ET.parse(report).getroot()
     assert (

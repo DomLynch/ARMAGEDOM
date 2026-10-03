@@ -1,0 +1,29 @@
+{
+  "south": {
+    "simpleRoad": true,
+    "convexMasks": 4,
+    "entryInsideRoad": true,
+    "spawnCount": 5,
+    "unityCalibrated": false,
+    "visualCorrections": [
+      "North-entry wreck excluded",
+      "Bus-side sandbags excluded"
+    ]
+  },
+  "connector": {
+    "simpleRoad": true,
+    "convexMasks": 0,
+    "entryInsideRoad": true,
+    "spawnCount": 0,
+    "unityCalibrated": false
+  },
+  "connectorV2": {
+    "dimensions": [
+      1602,
+      982
+    ],
+    "sha256": "f80845c0188cc199576666d8c7a2bcd6a549387fa54c4903839b44a508a6a7f5",
+    "accepted": false,
+    "reason": "Generator changed dimensions and composition; no pixel-registered seam proof"
+  }
+}

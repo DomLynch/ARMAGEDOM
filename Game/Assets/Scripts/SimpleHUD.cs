@@ -67,9 +67,9 @@ namespace Ashvault
             healthLabel = Label("", player, new Vector2(16, -12), new Vector2(324, 30), 16);
             stats = Label("", player, new Vector2(16, -64), new Vector2(324, 54), 16);
             hp = Bar(player, new Vector2(16, -43), 320, new Color(.70f, .22f, .23f));
-            var help = Rect("Controls", canvas.transform, new Vector2(1, 0), new Vector2(-24, 24), new Vector2(442, 128));
+            var help = Rect("Controls", canvas.transform, new Vector2(1, 0), new Vector2(-24, 24), new Vector2(442, 166));
             Panel(help, panel);
-            controls = Label("", help, new Vector2(16, -12), new Vector2(414, 108), 15);
+            controls = Label("", help, new Vector2(16, -12), new Vector2(414, 146), 15);
             var message = Rect("Notice", canvas.transform, new Vector2(.5f, 1), new Vector2(0, -157), new Vector2(820, 48));
             notice = Label("", message, Vector2.zero, new Vector2(820, 48), 18);
             notice.alignment = TextAlignmentOptions.Center;
@@ -98,10 +98,13 @@ namespace Ashvault
             var run = RunManager.Instance;
             var player = run.Player;
             status.text = "WESTMINSTER  ·  3 WAVES\nHostiles: " + run.Enemies.Count + "    Wave: " + run.Wave;
-            healthLabel.text = "WARDEN   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
-            stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Sword " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: sword · Cyan: armour · Green: tonic";
+            healthLabel.text = "SURVIVOR   " + Mathf.CeilToInt(player.Life.current) + " / " + player.Life.maximum + " HP";
+            stats.text = "Damage " + Mathf.RoundToInt(player.damage) + " · Blade " + player.weaponLevel + " · Armour " + player.armourLevel + "\nGold: blade · Cyan: armour · Green: tonic";
             hp.rectTransform.sizeDelta = new Vector2(320 * player.Life.current / player.Life.maximum, 12);
-            controls.text = "WASD move · LMB slash\nQ / RMB heavy " + Ready(player.heavyReady) + "\nSPACE dodge " + Ready(player.dodgeReady) + " · 1 shockwave " + Ready(player.specialReady) + " · R restart\nV inspect hero · Fixed view. Walk over loot.";
+            controls.text = "WASD move · LMB slash · RMB stab\nQ heavy " + Ready(player.heavyReady) + " · E special " + Ready(player.specialReady) +
+                "\nSPACE dodge " + Ready(player.dodgeReady) + " · Hold F guard" +
+                "\nGuard " + Mathf.CeilToInt(player.GuardCapacity) + "/" + player.Defence.capacity + (player.GuardBroken ? " · BROKEN" : player.Guarding ? " · BLOCKING" : " · timed F parries melee") +
+                "\nR restart · V inspect · Walk over loot.";
             notice.text = Time.time < run.MessageUntil ? run.Message : "";
             bossPanel.SetActive(run.Boss && !run.Boss.Life.Dead);
             if (run.Boss) bossHP.rectTransform.sizeDelta = new Vector2(430 * run.Boss.Life.current / run.Boss.Life.maximum, 12);

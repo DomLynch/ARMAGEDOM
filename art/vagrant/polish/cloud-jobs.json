@@ -1,0 +1,42 @@
+[
+  {
+    "id": "6ac0b89a404719ba3762a9ea",
+    "stage": "CANCELED",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0b8e2404719ba3762a9f3",
+    "stage": "ERROR",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0b967404719ba3762aa03",
+    "stage": "ERROR",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0ba58fbc85ba682378948",
+    "stage": "COMPLETED",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0bb44fbc85ba68237897d",
+    "stage": "COMPLETED",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0bc40fbc85ba682378999",
+    "stage": "COMPLETED",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0bd00fbc85ba6823789b9",
+    "stage": "COMPLETED",
+    "hardware": "cpu-upgrade"
+  },
+  {
+    "id": "6ac0c033fbc85ba682378a6f",
+    "stage": "COMPLETED",
+    "hardware": "cpu-upgrade"
+  }
+]

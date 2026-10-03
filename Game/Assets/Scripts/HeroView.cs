@@ -69,7 +69,7 @@ namespace Ashvault
         {
             if (!Inspecting) return;
             var style=new GUIStyle(GUI.skin.label) { alignment=TextAnchor.MiddleCenter,fontSize=18 };
-            GUI.Label(new Rect(0,Screen.height-60,Screen.width,40),"WARDEN  ·  ← → rotate  ·  V return to game",style);
+            GUI.Label(new Rect(0,Screen.height-60,Screen.width,40),"SURVIVOR  ·  ← → rotate  ·  V return to game",style);
         }
     }
 }

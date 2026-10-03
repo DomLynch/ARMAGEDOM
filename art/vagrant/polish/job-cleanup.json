@@ -1,0 +1,7 @@
+{
+  "id": "6ac0bd00fbc85ba6823789b9",
+  "source_revision": "25ad4f2b623c0c8a969f9b94baf748496a36c1a8",
+  "checkpoint": "25ad4f2b623c0c8a969f9b94baf748496a36c1a8",
+  "timeout_seconds": 600,
+  "cost_ceiling_usd": 0.005
+}

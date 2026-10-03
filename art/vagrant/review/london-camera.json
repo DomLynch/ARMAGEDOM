@@ -1,0 +1,7 @@
+{
+  "scale": 1.265,
+  "fieldOfView": 42,
+  "projection": "2.41913\t0.00000\t0.00000\t0.00000\n0.00000\t4.29840\t-0.65000\t0.00000\n0.00000\t0.00000\t-1.00125\t-0.20013\n0.00000\t0.00000\t-1.00000\t0.00000\n",
+  "cameraPosition": "(0.00, 23.00, -26.00)",
+  "kind": "staged imported poses in runtime London camera"
+}

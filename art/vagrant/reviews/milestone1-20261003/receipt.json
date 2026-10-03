@@ -1,0 +1,64 @@
+{
+  "status": "bounded review complete; character acceptance pending Dom",
+  "runtime_fbx_sha256": "b7537dca617517f58147485665479a380c623112766aa75401d965e4571e6cb9",
+  "evidence_build_id": "build_3e66f238bb5f",
+  "historical_build_note": "Earlier character review build; later World builds and gates must use their own receipts",
+  "camera": {
+    "scale": 1.265,
+    "fieldOfView": 42,
+    "projection": "2.41913\t0.00000\t0.00000\t0.00000\n0.00000\t4.29840\t-0.65000\t0.00000\n0.00000\t0.00000\t-1.00125\t-0.20013\n0.00000\t0.00000\t-1.00000\t0.00000\n",
+    "cameraPosition": "(0.00, 23.00, -26.00)",
+    "kind": "staged imported poses in runtime London camera"
+  },
+  "evidence": [
+    {
+      "path": "art/vagrant/polish/review/attack.png",
+      "sha256": "da368d3a434183fa5a1eef27281a7cd0fb02f7604948f353c080eb35e801894d"
+    },
+    {
+      "path": "art/vagrant/polish/review/run.png",
+      "sha256": "42bd33ef527813b3498732ba47fcaf5d00d804368d83cc6eb7ddfe1b1df873f0"
+    },
+    {
+      "path": "art/vagrant/polish/review/grip/front.png",
+      "sha256": "bc90e062e891bb39342fbfe153646631edc02af851eddf8b39efb230f6e16e77"
+    },
+    {
+      "path": "art/vagrant/polish/review/london/starter-front-run.png",
+      "sha256": "471b36405aadd47cb3f082069399fb34970be5c892020f00b4ab2f1f5d321c18"
+    },
+    {
+      "path": "art/vagrant/polish/review/london/starter-front-attack.png",
+      "sha256": "79c10f41f2bc4c4b778b92c0d4938cfff32d304f7b3f0016c2816adcdd94f140"
+    },
+    {
+      "path": "art/vagrant/polish/review/london/equipped-front-idle.png",
+      "sha256": "9505fd8ca5e5d0dcd0b73c96943893a5a3485b69afa3022ad0cd5a95c5d4e114"
+    },
+    {
+      "path": "art/vagrant/polish/review/london/equipped-back-idle.png",
+      "sha256": "d65b062bd7015cd9bce92b2cbbcb6c1f5b2d1d34e95489acc06899ccec461075"
+    },
+    {
+      "path": "art/vagrant/polish/review/native-inspection.png",
+      "sha256": "55e8783243794c897aa4d5bb413bc2374c600b20419384e8b4a3b5d3d34be2d0"
+    },
+    {
+      "path": "art/vagrant/polish/review/native-attacks.png",
+      "sha256": "3b924a7e027858bd53b7e419170c599b2b7b187105ee6a135331d3b9c9cae3ec"
+    },
+    {
+      "path": "art/vagrant/references/front-pilot-20261003/vagrant-front-open-hands.png",
+      "sha256": "e680249af41650008f8e3dd9e3849f036d5ea615e78ede8429313efca68a3827"
+    }
+  ],
+  "single_blocker": "Folded weapon-hand finger surfaces/bulky pads/projecting thumb",
+  "smallest_next_correction": "Isolated weapon-hand geometry repair around existing machete handle on separate candidate; preserve19bone rig, original clips, camera, scale and gameplay; do not repeat rejected4mm smoothing",
+  "acceptance_gaps": [
+    "continuous native movement/attack/dodge and return-to-idle",
+    "live gear swap with visible change and no motion/collider regression",
+    "Dom character/reference acceptance"
+  ],
+  "changes": "review/docs only; no asset replacement, runtime change, Unity operation, generation or spend",
+  "reference_status": "front-only clothed concept,1024x1536, pending owner review; no Tripo submission"
+}

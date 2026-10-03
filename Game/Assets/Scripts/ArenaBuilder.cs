@@ -69,8 +69,10 @@ namespace Ashvault
             root.AddComponent<Health>();
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
-            string path = kind == -1 ? "Hero/Warden" : kind == 1 || kind == 3 ? "Enemies/Orc" : kind == 2 ? "Enemies/Warlock" : "Enemies/Revenant";
-            var model = Object.Instantiate(Resources.Load<GameObject>(path), visual, false);
+            string path = kind == -1 ? "Vagrant/Player" : kind == 1 || kind == 3 ? "Enemies/Orc" : kind == 2 ? "Enemies/Warlock" : "Enemies/Revenant";
+            var asset = Resources.Load<GameObject>(path);
+            if (!asset && kind == -1) asset = Resources.Load<GameObject>("Hero/Warden");
+            var model = Object.Instantiate(asset, visual, false);
             if (kind == 1 || kind == 3) model.transform.localScale *= kind == 3 ? 1.3f : 1.16f;
             root.AddComponent<ArtMotion>();
             if (kind == -1)

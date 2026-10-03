@@ -1,0 +1,72 @@
+{
+  "status": "read-only art handoff; new thrust/guard not implemented or visually accepted",
+  "clips": [
+    {
+      "name": "Idle",
+      "source_frames": [
+        1,
+        60
+      ]
+    },
+    {
+      "name": "Run",
+      "source_frames": [
+        61,
+        85
+      ]
+    },
+    {
+      "name": "Attack",
+      "source_frames": [
+        86,
+        104
+      ]
+    }
+  ],
+  "dedicated_thrust_or_guard_clip": false,
+  "eligible_pose_bones": [
+    "UpperArm.R",
+    "Forearm.R",
+    "Hand.R"
+  ],
+  "optional_support_bones": [
+    "Clavicle.R",
+    "Chest"
+  ],
+  "weapon_attachment": "Machete and Machete handle are rig-parented skinned meshes, effectively100percent weighted toHand.R; no separate hand socket transform",
+  "bone_count": 19,
+  "finger_bones": [],
+  "implementation_owner": "Lead",
+  "editor_owner": "World then Lead; no Char Editor operations",
+  "sources": [
+    {
+      "path": "Game/Assets/Scripts/ArtMotion.cs",
+      "sha256": "4828d5e5906aec080a3b873c5c9e3a0423bf35e208456752d147c7bef866d837"
+    },
+    {
+      "path": "Game/Assets/Editor/VagrantImport.cs",
+      "sha256": "fa93433de347f3b81a55c05aed2b9e668fe6ede80eb9188b2da6ee92cdee29a7"
+    },
+    {
+      "path": "Game/Assets/Resources/Hero/Warden.fbx.meta",
+      "sha256": "6ea1dbbab92a828d498d5a4eab7e87b82d6b354d53f524def7c1bc31f10fd73e"
+    },
+    {
+      "path": "Game/Assets/Resources/Vagrant/Player.prefab",
+      "sha256": "343b2863e81054c822d4d779af033931ed48f07a8bbcc03cc36af08e13bd0df5"
+    },
+    {
+      "path": "art/vagrant/polish/output/manifest.json",
+      "sha256": "2502025be0595f0337b4b594590de7d35c09ace22ad4b3f2c7c94b6c3d523ca2"
+    },
+    {
+      "path": "art/vagrant/polish/output/validation.json",
+      "sha256": "8cb7f54f4103a7923ef319933019c40a013273a3f38ca088c1d263f30ad6df0d"
+    }
+  ],
+  "limits": [
+    "New bone rotations require actual exported-rig pose review",
+    "Existing grip anatomy remains held",
+    "No stab/guard screenshot, timing proof or damage/parry implementation provided"
+  ]
+}

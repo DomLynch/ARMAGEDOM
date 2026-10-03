@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "head_width_depth_height_m": [
+    0.229250967502594,
+    0.2628069967031479,
+    0.3461490869522095
+  ],
+  "scope": "authored rest mesh only; no runtime acceptance claim"
+}

@@ -1,0 +1,19 @@
+{
+  "status": "front-only concept reference for owner review, no Tripo submission",
+  "tool": "built-in image_gen",
+  "width": 1024,
+  "height": 1536,
+  "requested_resolution": "native4K2732x4096",
+  "native_4k_delivered": false,
+  "sha256": "e680249af41650008f8e3dd9e3849f036d5ea615e78ede8429313efca68a3827",
+  "source_reference": "/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/codex-clipboard-e02c5539-19ec-47b9-85f3-d17cbb3810ad.png",
+  "outfit": "charcoal sleeveless shirt and grey knee-length shorts; underwear-only attempt rejected by image tool",
+  "pose": "front A-pose, open palms/five separated digits per hand, feet visible",
+  "tripo_calls": 0,
+  "hf_jobs": 0,
+  "limitations": [
+    "2D image is not a rigged mesh or modular outfit",
+    "Back and sides remain inferred in a single-image 3D test",
+    "Finger reconstruction and closed weapon grip require separate 3D acceptance"
+  ]
+}

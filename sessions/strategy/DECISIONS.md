@@ -1,5 +1,21 @@
 # Strategy decisions
 
+## 2026-10-03 — AI storyline and adaptive boss direction
+Owner requested incorporating the supplied hybrid-AI concept into the game brief
+and storyline. Active brief now connects competing military-AI escalation, surviving
+zone intelligences and competing AI factions. Owner explicitly rejected EDEN as
+overdone: remove it from active canon; conflicting agendas and their consequences
+for human communities are the main story, not a central restoration-system quest.
+Original source mentions remain historical only. Owner clarified war AND gameplay
+remain2029–2030; collapse takes weeks/months, not a fifteen-year jump. Original2045
+source preserved unchanged; it is historical and does not override the active brief.
+Future Westminster boss concept WARDEN is distinct from the legacy player rig.
+Ordinary mobs stay deterministic; elites can use utility adaptation; LLMs propose
+bounded boss/commander strategy and dialogue while game rules enforce all actions.
+One future boss pilot must prove memory, counterplay and offline/error fallback
+before expansion. No AI code, backend, new lane, cloud job or paid service authorized
+by this documentation request. Current character/world milestones continue.
+
 ## 2026-10-03 — canonical workspace and current iteration
 Owner authorized moving the complete game into ARMAGEDOM and updating the brief.
 ARMAGEDOM is now the single repo/game/planning root; prior Ashvault path decisions

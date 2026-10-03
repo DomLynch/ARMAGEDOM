@@ -1,0 +1,219 @@
+{
+  "width": 1672,
+  "panelHeight": 941,
+  "roofImage": "covered-passage-v1.png",
+  "roofScale": 0.813625304136253,
+  "roofHeight": 622.4233576642335,
+  "roofLocalSeamY": 262.8009732360097,
+  "seams": [
+    941,
+    1882
+  ],
+  "opaqueBandWorldOffsets": [
+    -41.494890510948906,
+    40.68126520681265
+  ],
+  "frames": [
+    {
+      "id": "join1-approach",
+      "actor": [
+        0.57,
+        0.75
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.57,
+        0.65
+      ],
+      "translation": [
+        -736.5159999999998,
+        -538.7224999999999
+      ]
+    },
+    {
+      "id": "join1-entry",
+      "actor": [
+        0.57,
+        0.9
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.57,
+        0.8
+      ],
+      "translation": [
+        -736.5159999999998,
+        -771.6200000000001
+      ]
+    },
+    {
+      "id": "join1-under",
+      "actor": [
+        0.57,
+        1.025
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.57,
+        0.9249999999999999
+      ],
+      "translation": [
+        -736.5159999999998,
+        -965.7012499999998
+      ]
+    },
+    {
+      "id": "join1-exit",
+      "actor": [
+        0.57,
+        1.15
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.57,
+        1.0499999999999998
+      ],
+      "translation": [
+        -736.5159999999998,
+        -1159.7824999999996
+      ]
+    },
+    {
+      "id": "join1-clear",
+      "actor": [
+        0.57,
+        1.27
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.57,
+        1.17
+      ],
+      "translation": [
+        -736.5159999999998,
+        -1346.1005
+      ]
+    },
+    {
+      "id": "join2-approach",
+      "actor": [
+        0.52,
+        1.75
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.52,
+        1.65
+      ],
+      "translation": [
+        -598.576,
+        -2091.3724999999995
+      ]
+    },
+    {
+      "id": "join2-entry",
+      "actor": [
+        0.52,
+        1.9
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.52,
+        1.7999999999999998
+      ],
+      "translation": [
+        -598.576,
+        -2324.2699999999995
+      ]
+    },
+    {
+      "id": "join2-under",
+      "actor": [
+        0.52,
+        2.025
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.52,
+        1.9249999999999998
+      ],
+      "translation": [
+        -598.576,
+        -2518.3512499999993
+      ]
+    },
+    {
+      "id": "join2-exit",
+      "actor": [
+        0.52,
+        2.15
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.52,
+        2.05
+      ],
+      "translation": [
+        -598.576,
+        -2712.4324999999994
+      ]
+    },
+    {
+      "id": "join2-clear",
+      "actor": [
+        0.56,
+        2.27
+      ],
+      "viewport": [
+        1672,
+        941
+      ],
+      "zoom": 1.65,
+      "cameraCentre": [
+        0.56,
+        2.17
+      ],
+      "translation": [
+        -708.9280000000001,
+        -2898.7504999999996
+      ]
+    }
+  ],
+  "status": "static candidate; no Unity acceptance"
+}

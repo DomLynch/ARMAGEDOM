@@ -15,6 +15,12 @@ namespace Ashvault
         EnemyController enemy;
         float cycle, runWeight, strikeWeight, idleTime;
         Leg left, right;
+        Transform swordShoulder, swordElbow, swordHand;
+        Quaternion shoulderBase, elbowBase, handBase;
+        Vector3 bladeAxis;
+        int attackKind;
+        float guardPose;
+        bool poseApplied;
         void Start()
         {
             motion = GetComponentInChildren<Animation>();
@@ -30,23 +36,49 @@ namespace Ashvault
             {
                 motion["Idle"].clip.SampleAnimation(motion.gameObject, 0);
                 RefreshProportions();
+                if (player)
+                {
+                    foreach (var bone in GetComponentsInChildren<Transform>())
+                    { if (bone.name == "UpperArm.R") swordShoulder = bone; if (bone.name == "Forearm.R") swordElbow = bone; if (bone.name == "Hand.R") swordHand = bone; }
+                    if (swordHand)
+                        foreach (var skin in GetComponentsInChildren<SkinnedMeshRenderer>())
+                            if (skin.name == "Machete")
+                            {
+                                var mesh = new Mesh(); skin.BakeMesh(mesh, false);
+                                var matrix = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
+                                Vector3 tip = swordHand.position; float farthest = 0;
+                                foreach (var vertex in mesh.vertices)
+                                { var point = matrix.MultiplyPoint3x4(vertex); float distance = (point - swordHand.position).sqrMagnitude;
+                                    if (distance > farthest) { farthest = distance; tip = point; } }
+                                bladeAxis = swordHand.InverseTransformDirection(tip - swordHand.position).normalized;
+                                Destroy(mesh); break;
+                            }
+                }
             }
         }
         public void RefreshProportions()
         {
             if(motion) { left=new Leg(motion,"L",transform);right=new Leg(motion,"R",transform); }
         }
-        public void Swing(float delay = .14f, float settle = .28f)
+        public void Swing(float delay = .14f, float settle = .28f, int kind = 0)
         {
             if (!motion || !motion["Attack"]) return;
-            windup = Mathf.Max(.01f, delay); recovery = settle;
+            windup = Mathf.Max(.01f, delay); recovery = settle; attackKind = kind;
             attackStarted = Time.time;
             attackUntil = Time.time + windup + recovery;
         }
         public void CancelSwing() => attackUntil = 0;
 
+        void OnDisable() { RestoreCombatPose(); guardPose = 0; attackUntil = 0; }
+        void RestoreCombatPose()
+        {
+            if (!poseApplied || !swordShoulder || !swordElbow || !swordHand) return;
+            swordShoulder.localRotation = shoulderBase; swordElbow.localRotation = elbowBase; swordHand.localRotation = handBase;
+            poseApplied = false;
+        }
         void LateUpdate()
         {
+            RestoreCombatPose();
             if (!RunManager.Instance || RunManager.Instance.Finished) return;
             Vector3 travel = Vector3.ProjectOnPlane(transform.position - previous, Vector3.up);
             float distance = travel.magnitude;
@@ -68,9 +100,11 @@ namespace Ashvault
             float elapsed = Mathf.Max(0, Time.time - attackStarted);
             float strikePhase = elapsed < windup ? .45f * elapsed / Mathf.Max(.01f, windup) :
                 .45f + .55f * (elapsed - windup) / Mathf.Max(.01f, recovery);
-            Sample("Idle", idleTime, (1 - runWeight) * (1 - strikeWeight));
             Sample("Run", cycle * motion["Run"].length, runWeight * (1 - strikeWeight));
-            Sample("Attack", Mathf.Clamp01(strikePhase) * motion["Attack"].length, strikeWeight);
+            // Thrust uses the freshly sampled base, rather than replaying the slash upper body.
+            float slashWeight = player && attackKind == 3 ? 0 : strikeWeight;
+            Sample("Idle", idleTime, (1 - runWeight) * (1 - slashWeight));
+            Sample("Attack", Mathf.Clamp01(strikePhase) * motion["Attack"].length, slashWeight);
             motion.Sample();
             if(staffHand && staffShoulder && staffElbow)
             {
@@ -90,10 +124,55 @@ namespace Ashvault
                     staffHand.rotation=rotation;
                 }
             }
+            if (player) PoseSword(elapsed, striking);
             bool grounded = !player || !player.Dodging;
             bool contacts = !striking && grounded && speed > .3f && runWeight > .8f;
             left.Plant(contacts && (walking ? cycle >= .05f && cycle < .45f : cycle >= .03f && cycle < .20f), transform.forward, grounded);
             right.Plant(contacts && (walking ? cycle >= .55f && cycle < .95f : cycle >= .55f && cycle < .74f), transform.forward, grounded);
+        }
+
+        void PoseSword(float elapsed, bool striking)
+        {
+            if (!swordShoulder || !swordElbow || !swordHand || bladeAxis.sqrMagnitude < .1f) return;
+            float upper = Vector3.Distance(swordShoulder.position, swordElbow.position), lower = Vector3.Distance(swordElbow.position, swordHand.position);
+            float reach = upper + lower;
+            Vector3 target, direction; float weight;
+            guardPose = Mathf.MoveTowards(guardPose, player.Guarding ? 1 : 0, Time.deltaTime / .10f);
+            float side = Mathf.Sign(Vector3.Dot(swordShoulder.position - transform.position, transform.right));
+            if (striking && attackKind == 3)
+            {
+                float extension = elapsed < windup ? Mathf.Lerp(.05f, .9f, Mathf.SmoothStep(0, 1, elapsed / windup)) :
+                    Mathf.Lerp(.9f, .05f, Mathf.Clamp01((elapsed - windup) / recovery));
+                target = swordShoulder.position + transform.forward * reach * extension + transform.right * side * .08f - Vector3.up * reach * .20f;
+                direction = transform.forward; weight = strikeWeight;
+            }
+            else if (striking && attackKind == 1 && elapsed < windup)
+            {
+                target = swordShoulder.position + transform.forward * .25f + Vector3.up * .20f;
+                direction = (Vector3.up + transform.forward * .25f).normalized;
+                weight = Mathf.Sin(Mathf.Clamp01(elapsed / windup) * Mathf.PI);
+            }
+            else
+            {
+                target = swordShoulder.position + transform.forward * .28f - transform.right * side * .12f - Vector3.up * .20f;
+                direction = (Vector3.up + transform.right * side * .3f).normalized; weight = guardPose;
+            }
+            if (weight <= 0) return;
+            shoulderBase = swordShoulder.localRotation; elbowBase = swordElbow.localRotation; handBase = swordHand.localRotation;
+            Quaternion shoulderRotation = swordShoulder.rotation, elbowRotation = swordElbow.rotation, handRotation = swordHand.rotation;
+            Vector3 delta = target - swordShoulder.position;
+            float distance = Mathf.Clamp(delta.magnitude, Mathf.Abs(upper - lower) + .01f, reach * .98f);
+            Vector3 axis = delta.normalized;
+            Vector3 pole = Vector3.ProjectOnPlane(transform.right * side - Vector3.up * .5f, axis).normalized;
+            float along = (upper * upper - lower * lower + distance * distance) / (2 * distance);
+            Vector3 bend = swordShoulder.position + axis * along + pole * Mathf.Sqrt(Mathf.Max(0, upper * upper - along * along));
+            Vector3 endpoint = swordShoulder.position + axis * distance;
+            swordShoulder.rotation = Quaternion.Slerp(shoulderRotation,
+                Quaternion.FromToRotation(swordElbow.position - swordShoulder.position, bend - swordShoulder.position) * shoulderRotation, weight);
+            swordElbow.rotation = Quaternion.Slerp(elbowRotation,
+                Quaternion.FromToRotation(swordHand.position - swordElbow.position, endpoint - swordElbow.position) * swordElbow.rotation, weight);
+            swordHand.rotation = Quaternion.Slerp(handRotation, Quaternion.FromToRotation(handRotation * bladeAxis, direction) * handRotation, weight);
+            poseApplied = true;
         }
 
         void Sample(string clip, float time, float weight)

@@ -1,0 +1,67 @@
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+namespace Ashvault.Editor
+{
+    public static class VagrantImport
+    {
+        const string Root = "Assets/Resources/Vagrant/";
+        [MenuItem("ARMAGEDOM/Import modular Vagrant pilot")]
+        public static void Setup()
+        {
+            AssetDatabase.Refresh();
+            var importer = (ModelImporter)AssetImporter.GetAtPath(Root + "Vagrant.fbx");
+            importer.animationType = ModelImporterAnimationType.Legacy;
+            importer.importAnimation = false;
+            importer.isReadable = true; // ArtMotion reads sole weights/vertices for ground contact.
+            importer.importNormals = ModelImporterNormals.Import;
+            importer.importTangents = ModelImporterTangents.CalculateMikk;
+            importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
+            foreach (string path in Directory.GetFiles(Root, "*Albedo.png"))
+            {
+                var texture = (TextureImporter)AssetImporter.GetAtPath(path);
+                texture.sRGBTexture = true;
+                texture.maxTextureSize = 1024;
+                texture.mipmapEnabled = true;
+                texture.textureCompression = TextureImporterCompression.CompressedHQ;
+                texture.SaveAndReimport();
+                string name = Path.GetFileNameWithoutExtension(path).Replace("Albedo", "").Replace("_", " ");
+                string materialPath = Root + name + ".mat";
+                var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+                if (!material) { material = new Material(Shader.Find("Standard")); AssetDatabase.CreateAsset(material, materialPath); }
+                material.color = Color.white;
+                material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                material.SetFloat("_Metallic", name == "Machete" ? .72f : 0);
+                material.SetFloat("_Glossiness", name == "Machete" ? .35f : .15f);
+                EditorUtility.SetDirty(material);
+                importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), name), material);
+            }
+            importer.SaveAndReimport();
+            var model = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Root + "Vagrant.fbx"));
+            try
+            {
+                model.name = "Human Vagrant";
+                var animation = model.GetComponent<Animation>();
+                if (!animation) animation = model.AddComponent<Animation>();
+                var original = AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Hero/Warden.fbx");
+                // Reuse the exact working runtime clips; no rebake or timing drift.
+                foreach (string name in new[] { "Idle", "Run", "Attack" })
+                {
+                    var clip = System.Array.Find(original, a => a is AnimationClip && a.name == name) as AnimationClip;
+                    if (!clip) throw new System.InvalidOperationException("Original Warden clip missing: " + name);
+                    animation.AddClip(clip, name);
+                    if (name == "Idle") animation.clip = clip;
+                }
+                animation.playAutomatically = false;
+                model.AddComponent<VagrantGear>();
+                foreach (var renderer in model.GetComponentsInChildren<Renderer>())
+                    if (renderer.name == "Protection vest" || renderer.name == "Backpack") renderer.enabled = false;
+                PrefabUtility.SaveAsPrefabAsset(model, Root + "Player.prefab");
+                AssetDatabase.SaveAssets();
+                Debug.Log("ARMAGEDOM_VAGRANT_IMPORT_PASS");
+            }
+            finally { Object.DestroyImmediate(model); }
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "6ac0c033fbc85ba682378a6f",
+  "source_revision": "208f6114a2f4bbbb31934606669afd94b931d9a4",
+  "checkpoint": "8a6bf9a9d2310486b74d16837c6ab0c36da00bb3",
+  "timeout_seconds": 600,
+  "cost_ceiling_usd": 0.005,
+  "status": "SCHEDULING"
+}

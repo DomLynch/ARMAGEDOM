@@ -1,0 +1,390 @@
+[
+  {
+    "area": "west",
+    "clear_cells": 7357,
+    "connected_cells": 7354,
+    "margin_m": 0.52,
+    "landmarks": [
+      {
+        "name": "right pavement above wreck",
+        "point": [
+          0.83,
+          0.705
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.83125,
+          0.70625
+        ],
+        "offset": 0.0018
+      },
+      {
+        "name": "right pavement under HUD",
+        "point": [
+          0.92,
+          0.86
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.91875,
+          0.8625
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "right pavement lower edge",
+        "point": [
+          0.94,
+          0.96
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.9375,
+          0.9625
+        ],
+        "offset": 0.0035
+      },
+      {
+        "name": "left forecourt",
+        "point": [
+          0.2,
+          0.78
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2,
+          0.78125
+        ],
+        "offset": 0.0012
+      },
+      {
+        "name": "left lower pavement",
+        "point": [
+          0.265,
+          0.875
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2625,
+          0.875
+        ],
+        "offset": 0.0025
+      },
+      {
+        "name": "left road above lion",
+        "point": [
+          0.24,
+          0.435
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2375,
+          0.4375
+        ],
+        "offset": 0.0035
+      },
+      {
+        "name": "bus-side road",
+        "point": [
+          0.275,
+          0.42
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.275,
+          0.41875
+        ],
+        "offset": 0.0012
+      },
+      {
+        "name": "bridge",
+        "point": [
+          0.9,
+          0.4
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.9,
+          0.4
+        ],
+        "offset": 0.0
+      }
+    ]
+  },
+  {
+    "area": "south",
+    "clear_cells": 8960,
+    "connected_cells": 8944,
+    "margin_m": 0.52,
+    "landmarks": [
+      {
+        "name": "upper-left pavement",
+        "point": [
+          0.3,
+          0.105
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.3,
+          0.10625
+        ],
+        "offset": 0.0013
+      },
+      {
+        "name": "gate gap",
+        "point": [
+          0.36,
+          0.335
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.3625,
+          0.3375
+        ],
+        "offset": 0.0035
+      },
+      {
+        "name": "left connecting lane",
+        "point": [
+          0.29,
+          0.37
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2875,
+          0.36875
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "station approach",
+        "point": [
+          0.195,
+          0.73
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.19375,
+          0.73125
+        ],
+        "offset": 0.0018
+      },
+      {
+        "name": "station lower pavement",
+        "point": [
+          0.235,
+          0.825
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2375,
+          0.825
+        ],
+        "offset": 0.0025
+      },
+      {
+        "name": "below supplies",
+        "point": [
+          0.32,
+          0.86
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.31875,
+          0.8625
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "right pavement above bus",
+        "point": [
+          0.72,
+          0.53
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.71875,
+          0.53125
+        ],
+        "offset": 0.0018
+      },
+      {
+        "name": "right pavement beside bus",
+        "point": [
+          0.915,
+          0.735
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.9125,
+          0.7375
+        ],
+        "offset": 0.0035
+      },
+      {
+        "name": "lower road below bus",
+        "point": [
+          0.82,
+          0.94
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.81875,
+          0.9375
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "upper-right pavement",
+        "point": [
+          0.675,
+          0.29
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.675,
+          0.2875
+        ],
+        "offset": 0.0025
+      }
+    ]
+  },
+  {
+    "area": "east",
+    "clear_cells": 3178,
+    "connected_cells": 3176,
+    "margin_m": 0.52,
+    "landmarks": [
+      {
+        "name": "back bridge pavement",
+        "point": [
+          0.2,
+          0.57
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2,
+          0.56875
+        ],
+        "offset": 0.0012
+      },
+      {
+        "name": "statue rear path",
+        "point": [
+          0.26,
+          0.53
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.2625,
+          0.53125
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "mid bridge road",
+        "point": [
+          0.43,
+          0.475
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.43125,
+          0.475
+        ],
+        "offset": 0.0013
+      },
+      {
+        "name": "front bridge pavement",
+        "point": [
+          0.44,
+          0.555
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.4375,
+          0.55625
+        ],
+        "offset": 0.0028
+      },
+      {
+        "name": "above bus",
+        "point": [
+          0.56,
+          0.31
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.5625,
+          0.3125
+        ],
+        "offset": 0.0035
+      },
+      {
+        "name": "beyond bridge",
+        "point": [
+          0.67,
+          0.33
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.66875,
+          0.33125
+        ],
+        "offset": 0.0018
+      },
+      {
+        "name": "far street",
+        "point": [
+          0.82,
+          0.3
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.81875,
+          0.3
+        ],
+        "offset": 0.0012
+      },
+      {
+        "name": "far pavement edge",
+        "point": [
+          0.965,
+          0.32
+        ],
+        "clear": true,
+        "connected": true,
+        "nearest": [
+          0.9625,
+          0.31875
+        ],
+        "offset": 0.0028
+      }
+    ]
+  }
+]

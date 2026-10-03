@@ -1,0 +1,44 @@
+{
+  "date_utc": "2026-10-03",
+  "status": "functional modular pilot for owner art review; unpublished",
+  "fbx_sha256": "c5767fcfc1225b6622b115569db56674ac976120965e0a75df66a6ab90c5087d",
+  "build_id": "build_58b2a8b41f4b",
+  "build_errors": 0,
+  "build_warnings": 1,
+  "playmode": {
+    "total": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "sync_tests": 6,
+  "startup_smoke": {
+    "ready": true,
+    "exceptions": false,
+    "observed_seconds": 4,
+    "assembly_sha256": "6a7561f2656a5dc80d14bc350f25c14edb7c4dfcb91f738a00da6a7f355aa02f"
+  },
+  "camera": {
+    "scale": 1.265,
+    "fieldOfView": 42,
+    "projection": "2.41913\t0.00000\t0.00000\t0.00000\n0.00000\t4.29840\t-0.65000\t0.00000\n0.00000\t0.00000\t-1.00125\t-0.20013\n0.00000\t0.00000\t-1.00000\t0.00000\n",
+    "cameraPosition": "(0.00, 23.00, -26.00)",
+    "kind": "staged imported poses in runtime London camera"
+  },
+  "native_review": {
+    "inputs": "WASD, SPACE, LMB, Q, 1, V, R through native UI",
+    "alive_combat": "native-final-attacks.png: Wave1, hostiles4, HP56, shockwave cooldown",
+    "entrance": "native-final-entrance.png: Wave0, hostiles0, HP100",
+    "limits": "Brief native input review, not completed-wave or device acceptance. Inspection during battle can be occluded by existing enemies; reset before inspection."
+  },
+  "art_limits": [
+    "face and hair texture detail",
+    "fabric wear and seams",
+    "hand grip and fingers",
+    "boot shape and equipment detailing",
+    "vest front silhouette subtle; stronger coverage needed before gear ladder"
+  ],
+  "preserved": "19-bone original rig, exact original clip assets, gameplay controller, saved scale1.265, London camera, Warden rollback",
+  "no_inventory_expansion": true
+}

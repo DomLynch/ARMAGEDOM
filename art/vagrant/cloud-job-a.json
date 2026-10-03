@@ -1,0 +1,9 @@
+{
+  "id": "6ac09fed404719ba3762a39a",
+  "url": "https://huggingface.co/jobs/Domlynch/6ac09fed404719ba3762a39a",
+  "flavor": "cpu-upgrade",
+  "timeout_seconds": 1200,
+  "cpu_cost_ceiling_usd": 0.01,
+  "input_revision": "a8de70c833f4b7f9bc5f053bde1d1442435a5a8f",
+  "submission": "SDK secure token fallback: connector OAuth has read-repos but no write-repos"
+}

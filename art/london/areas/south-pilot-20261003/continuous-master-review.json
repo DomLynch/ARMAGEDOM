@@ -1,0 +1,24 @@
+{
+  "reviewedAt": "2026-10-03 07:54Z",
+  "candidate": "continuous-master-v1.png",
+  "sha256": "f17afc279a2d1659aca46769e0963eb6e3ee9f853f99e3c17e023751e5f663c0",
+  "dimensions": [
+    965,
+    1629
+  ],
+  "requestedDimensions": [
+    1672,
+    2823
+  ],
+  "status": "FAIL: do not activate",
+  "observations": [
+    "Common painting has continuous asphalt/kerbs without the shader row-smear.",
+    "Generator moved painted object positions in protected original regions.",
+    "Original-preserving HTML overlay retains original pixels outside80px edge bands, but both bands show ghosted/misaligned objects.",
+    "Master is below source resolution and visibly softer at source-size review."
+  ],
+  "reviewSurface": "continuous-review.html",
+  "unityOperations": 0,
+  "hfJobs": 0,
+  "next": "No further blind regeneration. Resolve original-edge preservation with a seam-aware painted connection or explicitly reviewed short covered passage; retain default Westminster until artwork and native movement pass."
+}

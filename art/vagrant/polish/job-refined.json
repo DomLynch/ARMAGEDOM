@@ -1,0 +1,10 @@
+{
+  "id": "6ac0bb44fbc85ba68237897d",
+  "url": "https://huggingface.co/jobs/Domlynch/6ac0bb44fbc85ba68237897d",
+  "source_revision": "4cbcfe833291ff80e8810a801442221f017010b7",
+  "output_prefix": "pilot-polish",
+  "flavor": "cpu-upgrade",
+  "rate_usd_per_hour": 0.03,
+  "timeout_seconds": 1200,
+  "cost_ceiling_usd": 0.01
+}
