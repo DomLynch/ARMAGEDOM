@@ -1,0 +1,12 @@
+{
+  "build_id": "build_6e9b39d24885",
+  "zoom": 1.65,
+  "characterScale": 1.265,
+  "playmode_tests": "20/20",
+  "sync_tests": "6/6",
+  "build_errors": 0,
+  "smoke": true,
+  "native": "Original London, enlarged hero and five first-wave mobs visibly checked via CUA; reset to safe entrance.",
+  "native_full_clear": false,
+  "assembly_sha256": "a5b6f8c7dc8a95fc970fc42b0d7fdbee9d23a414b382c26d21c1fc8a4c644b78"
+}

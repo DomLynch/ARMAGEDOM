@@ -15,7 +15,7 @@ Unity6000.3.25f1 Built-in; project Game/, scene Assets/Scenes/Ashvault.unity.
 Existing tested Mac app: Builds/Ashvault.app. Internal legacy names are retained
 for this filesystem migration; renaming classes/scenes/bundles is separate work.
 London uses the owner's detailed Westminster image with real3D actors, invisible
-road collision and depth masks. Saved1.5x crop zoom,15% larger characters, gentle
+road collision and depth masks. Saved 1.65x crop zoom,26.5% larger characters, gentle
 scrolling and brighter lighting are implemented. The user tried it and wants
 further refinements. Current technical receipts live in PROJECT_STATE.md.
 

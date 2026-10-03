@@ -19,7 +19,7 @@ the human vagrant replacement is pending the intended reference/model.
 
 The current London area is a2.5D image stage: original Westminster artwork,3D
 actors, invisible floor/road boundaries and authored depth masks. The previous
-3D London prefab remains preserved. Saved zoom1.5, characterScale1.15, gentle
+3D London prefab remains preserved. Saved zoom 1.65, characterScale 1.265, gentle
 edge-clamped follow and character fill lighting are installed and user-tried.
 Runtime edits use Game/Assets/StreamingAssets/London/layout.json and backdrop.png.
 See docs/LONDON-BACKDROP.md for validation, reload and image/perspective limits.

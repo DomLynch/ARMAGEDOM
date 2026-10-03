@@ -130,7 +130,7 @@ namespace Ashvault
             try { next = JsonUtility.FromJson<Layout>(json); } catch { return false; }
             if (next == null || next.version != 1 || !Range(next.height, 18, 32) || !Range(next.distance, 22, 40) ||
                 !Range(next.targetZ, 0, 10) || !Range(next.fieldOfView, 30, 48) || !Range(next.exposure, .4f, 1.6f) ||
-                !Range(next.zoom,1,2) || !Range(next.characterScale,1,1.25f) || !Range(next.followSeconds,.15f,1.5f) || !Range(next.fillIntensity,0,1) || !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road) || next.masks == null || next.masks.Length > 16) return false;
+                !Range(next.zoom,1,2) || !Range(next.characterScale,1,1.5f) || !Range(next.followSeconds,.15f,1.5f) || !Range(next.fillIntensity,0,1) || !Range(next.keyIntensity, .1f, 2) || !Polygon(next.road) || next.masks == null || next.masks.Length > 16) return false;
             foreach (var mask in next.masks)
                 if (mask == null || !Polygon(mask.points,true) || !Range(mask.foot.x, 0, 1) || !Range(mask.foot.y, .3f, 1)) return false;
             var oldProjection=view.projectionMatrix;view.ResetProjectionMatrix();

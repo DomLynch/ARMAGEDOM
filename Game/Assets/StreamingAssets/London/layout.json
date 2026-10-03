@@ -1,5 +1,5 @@
 {
- "version": 1, "zoom": 1.5, "characterScale": 1.15, "followSeconds": 0.45, "fillIntensity": 0.55, "height": 23, "distance": 26, "targetZ": 6, "fieldOfView": 42,
+ "version": 1, "zoom": 1.65, "characterScale": 1.265, "followSeconds": 0.45, "fillIntensity": 0.55, "height": 23, "distance": 26, "targetZ": 6, "fieldOfView": 42,
  "exposure": 1, "keyIntensity": 1.2,
  "road": [{"x":0.35,"y":0.43},{"x":0.47,"y":0.46},{"x":0.60,"y":0.51},{"x":0.67,"y":0.57},{"x":0.66,"y":0.68},{"x":0.70,"y":0.75},{"x":0.70,"y":0.88},{"x":0.76,"y":0.995},{"x":0.47,"y":0.995},{"x":0.43,"y":0.85},{"x":0.40,"y":0.75},{"x":0.36,"y":0.69},{"x":0.36,"y":0.63},{"x":0.43,"y":0.56},{"x":0.40,"y":0.51}],
  "masks": [

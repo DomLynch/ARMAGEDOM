@@ -84,7 +84,7 @@ namespace Ashvault.Tests
                             skin.BakeMesh(mesh);
                             foreach (var vertex in mesh.vertices)
                             {
-                                var point = renderer.transform.TransformPoint(vertex);
+                                var point = BakedWorldPoint(skin, vertex);
                                 Assert.IsFalse(float.IsNaN(point.y) || float.IsInfinity(point.y));
                                 if (firstVertex) { bounds = new Bounds(point, Vector3.zero); firstVertex = false; }
                                 else bounds.Encapsulate(point);
@@ -173,6 +173,9 @@ namespace Ashvault.Tests
             finally { Time.captureFramerate = rate; Object.DestroyImmediate(actor); }
         }
 
+        // BakeMesh(false) includes renderer scale; its world conversion excludes scale.
+        static Vector3 BakedWorldPoint(SkinnedMeshRenderer skin, Vector3 point) => skin.transform.position + skin.transform.rotation * point;
+
         [UnityTest]
         public IEnumerator MobSolesClearFloorDuringTravelTurnsAndStops()
         {
@@ -219,7 +222,7 @@ namespace Ashvault.Tests
                             foreach (var footIndices in indices)
                             {
                                 float sole = float.PositiveInfinity;
-                                foreach (int index in footIndices) sole = Mathf.Min(sole, skin.transform.TransformPoint(vertices[index]).y);
+                                foreach (int index in footIndices) sole = Mathf.Min(sole, BakedWorldPoint(skin, vertices[index]).y);
                                 Assert.Greater(sole, -.025f, $"Mob {kind} sole penetrates floor, frame {frame}");
                                 lowest = Mathf.Min(lowest, sole); lift = Mathf.Max(lift, sole);
                             }
@@ -232,12 +235,12 @@ namespace Ashvault.Tests
                             {
                                 plantedVertex = indices[0][0];
                                 foreach (int index in indices[0])
-                                    if (vertices[index].y < vertices[plantedVertex].y) plantedVertex = index;
-                                plantedPoint = skin.transform.TransformPoint(vertices[plantedVertex]);
+                                    if (BakedWorldPoint(skin, vertices[index]).y < BakedWorldPoint(skin, vertices[plantedVertex]).y) plantedVertex = index;
+                                plantedPoint = BakedWorldPoint(skin, vertices[plantedVertex]);
                             }
                             else
                             {
-                                Vector3 point = skin.transform.TransformPoint(vertices[plantedVertex]);
+                                Vector3 point = BakedWorldPoint(skin, vertices[plantedVertex]);
                                 Assert.Less(Vector3.ProjectOnPlane(point - plantedPoint, Vector3.up).magnitude, .035f,
                                     $"Mob {kind} planted sole skates, frame {frame}");
                                 plantedPoint = point; stablePairs++;
@@ -246,7 +249,7 @@ namespace Ashvault.Tests
                             if (staff)
                             {
                                 staff.BakeMesh(mesh, false); float bottom = float.PositiveInfinity;
-                                foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, staff.transform.TransformPoint(vertex).y);
+                                foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, BakedWorldPoint(staff, vertex).y);
                                 Assert.Greater(bottom, -.025f, "The carried staff must clear the floor during movement and blends.");
                             }
                         }
@@ -296,7 +299,7 @@ namespace Ashvault.Tests
                     float low = float.PositiveInfinity, high = float.NegativeInfinity;
                     foreach (int index in indices)
                     {
-                        float y = skin.transform.TransformPoint(vertices[index]).y;
+                        float y = BakedWorldPoint(skin, vertices[index]).y;
                         low = Mathf.Min(low, y); high = Mathf.Max(high, y);
                     }
                     Assert.Greater(low, -.025f, $"Boot sole penetrates floor at frame {frame}");

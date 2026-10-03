@@ -5,7 +5,7 @@ Migrated from Ashvault on2026-10-03, preserving Git history and local assets/bui
 
 A local Unity desktop ARPG set toward2029–2030 post-nuclear London. The first area
 uses the owner's Westminster image with animated3D actors, hidden collision/depth
-masks,1.5x zoom,15% larger characters and gentle scrolling. The original fantasy
+masks,1.65x zoom,26.5% larger characters and gentle scrolling. The original fantasy
 roster remains pending the human vagrant/art conversion. No backend or multiplayer.
 
 ## Open and play

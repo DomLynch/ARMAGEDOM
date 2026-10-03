@@ -1,5 +1,22 @@
 # ARMAGEDOM — 2026-10-03
 
+## Additional readability tuning — 2026-10-03
+Owner requested another10% actor size and10% scene zoom: characterScale1.265,
+zoom1.65, about21% combined apparent enlargement. Saved settings updated; former
+native size cap1.25 raised to1.5. Updated development player is live and left at the safe entrance for owner playtest.
+The contact failure was double application of BakeMesh renderer scale, confirmed
+by equal world bone poses with false45mm vertex drift and Unity Digital Human's
+TRS(position,rotation,Vector3.one) conversion. Production boot cache and test world
+measurements corrected; sole selection now uses worldY. Original35mm skate/25mm
+penetration limits preserved. Target contact regression passes. All experimental
+IK/shin/hip/cadence changes removed; original rigs, assets and gameplay retained.
+Full20/20 PlayMode suite passes; six sync tests pass. Development build6e9b39d24885
+Succeeded, zero errors, one expected Pipeline warning; packaged smoke passes.
+Native original London/hero/HUD and five first-wave mobs visibly checked, then reset.
+Full native clear is not claimed. Native launch initially blocked in macOS file open;
+relaunch through the workspace runner reached clean startup/render. Receipt:
+artifacts/readability-receipt.json. No paid compute/cloud job used.
+
 ## Canonical workspace migration — 2026-10-03
 Owner requested the full game move into ARMAGEDOM. Canonical root is now
 /Users/domininclynch/Desktop/Business/ARMAGEDOM; Game/, Builds/, art/, Git history,

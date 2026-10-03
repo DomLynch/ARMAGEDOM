@@ -80,8 +80,8 @@ namespace Ashvault.Tests
             var mesh=GameObject.Find("Original London image").GetComponent<MeshFilter>().sharedMesh;
             Vector3 pose=camera.transform.position;Quaternion angle=camera.transform.rotation;
             Vector3 before=camera.WorldToViewportPoint(mesh.vertices[0]);
-            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-before.x,Is.EqualTo(1.5f).Within(.005f));
-            Assert.That(run.Player.transform.Find("Visual").localScale.x,Is.EqualTo(1.15f).Within(.001f));
+            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-before.x,Is.EqualTo(1.65f).Within(.005f));
+            Assert.That(run.Player.transform.Find("Visual").localScale.x,Is.EqualTo(1.265f).Within(.001f));
             var capsule=run.Player.GetComponent<CharacterController>();capsule.enabled=false;
             run.Player.transform.position=new Vector3(0,.04f,2);capsule.enabled=true;
             yield return new WaitForSecondsRealtime(1.2f);
@@ -92,7 +92,7 @@ namespace Ashvault.Tests
             Assert.AreEqual(pose,camera.transform.position);Assert.Less(Quaternion.Angle(angle,camera.transform.rotation),.001f);
             var inspect=camera.GetComponent<HeroView>();inspect.Toggle();yield return null;inspect.Toggle();yield return null;
             Assert.IsFalse(camera.orthographic);
-            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-camera.WorldToViewportPoint(mesh.vertices[0]).x,Is.EqualTo(1.5f).Within(.005f));
+            Assert.That(camera.WorldToViewportPoint(mesh.vertices[1]).x-camera.WorldToViewportPoint(mesh.vertices[0]).x,Is.EqualTo(1.65f).Within(.005f));
         }
 
         [Test]

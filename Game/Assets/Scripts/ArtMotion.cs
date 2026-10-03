@@ -123,7 +123,7 @@ namespace Ashvault
                 maxCorrection=.45f*root.Find("Visual").lossyScale.x;
                 upper = Vector3.Distance(hip.position, knee.position);
                 lower = Vector3.Distance(knee.position, foot.position);
-                // Cache the actual boot shape once; model proportions are not a fixed offset.
+                // BakeMesh already includes skin scale; rotate/translate without applying it twice.
                 foreach (var skin in animation.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
                     int index = System.Array.IndexOf(skin.bones, foot);
@@ -132,7 +132,7 @@ namespace Ashvault
                     var weights = skin.sharedMesh.boneWeights; var vertices = mesh.vertices;
                     for (int i = 0; i < vertices.Length; i++)
                         if (weights[i].boneIndex0 == index && weights[i].weight0 > .6f)
-                            sole.Add(foot.InverseTransformPoint(skin.transform.TransformPoint(vertices[i])));
+                            sole.Add(foot.InverseTransformPoint(skin.transform.position + skin.transform.rotation * vertices[i]));
                     Object.Destroy(mesh);
                 }
             }
