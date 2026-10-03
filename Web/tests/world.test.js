@@ -5,10 +5,11 @@ import * as THREE from 'three';
 let module={};
 try {module=await import('../src/world.js');} catch(e) {if(e.code!=='ERR_MODULE_NOT_FOUND') throw e;}
 const layout=JSON.parse(readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url)));
+const manifest=JSON.parse(readFileSync(new URL('../public/world/manifest.json',import.meta.url)));
 function setup(){
   assert.equal(typeof module.LondonWorld,'function','Three.js registered world missing');
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera();
-  return {scene,camera,world:new module.LondonWorld({THREE,scene,camera,layout,texture:new THREE.Texture()})};
+  return {scene,camera,world:new module.LondonWorld({THREE,scene,camera,layout,texture:new THREE.Texture(),manifest})};
 }
 test('one crop registers backdrop, foreground depths, actor and picking at different phone aspects',()=>{
   const {world,camera}=setup();
@@ -51,4 +52,14 @@ test('disposing an area removes owned meshes and releases texture without removi
   const {world,scene}=setup();const actor=new THREE.Group();scene.add(actor);let released=0;
   world.texture.addEventListener('dispose',()=>released++);world.dispose();
   assert.equal(released,1);assert.deepEqual(scene.children,[actor]);
+});
+test('area requests preserve the four existing route thresholds and destination entries',()=>{
+  const {world}=setup();assert.equal(typeof world.travelAt,'function','travel detector missing');
+  for(const [area,point,destination,entry] of [
+    ['westminster',{x:.966,y:.335},'east',{x:.10,y:.72}],
+    ['westminster',{x:.60,y:.985},'south',{x:.55,y:.29}],
+    ['east',{x:.03,y:.74},'westminster',{x:.90,y:.40}],
+    ['south',{x:.54,y:.22},'westminster',{x:.60,y:.92}]
+  ]) {world.areaId=area;assert.deepEqual(world.travelAt(world.geometry.ground(point)),{areaId:destination,entryPoint:entry});}
+  world.areaId='westminster';assert.equal(world.travelAt(world.spawn),null);assert.equal(world.actorScale,1.265);world.dispose();
 });
