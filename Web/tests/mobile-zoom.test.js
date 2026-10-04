@@ -117,3 +117,14 @@ test('single-finger menu scrolling is not canceled and release/click unlock audi
   for (const type of ['pointerup', 'touchend', 'click']) f.win.dispatchEvent(new Event(type));
   assert.equal(f.interactions(), before + 3);
 });
+
+test('Shift sprint reaches the adapter and blur releases keyboard intent', t => {
+  const f = fixture(t);
+  for (const code of ['KeyD', 'ShiftLeft']) {
+    const e = new Event('keydown', {cancelable: true}); Object.assign(e, {code, repeat: false}); f.win.dispatchEvent(e);
+  }
+  assert.equal(f.input.take().run, true);
+  const up = new Event('keyup'); Object.assign(up, {code: 'ShiftLeft'}); f.win.dispatchEvent(up);
+  assert.equal(f.input.take().run, false);
+  f.win.dispatchEvent(new Event('blur')); assert.deepEqual(f.input.take().move, {x: 0, y: 0});
+});

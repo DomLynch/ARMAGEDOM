@@ -100,12 +100,13 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  if(l.kind===0){const pct=.1+l.tier*.025;p.damage*=1+pct;p.weaponLevel++;notify(g,`BLADE +${Math.round(pct*100)}% damage`);}
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};
  if(intent.dodge)dodge(g,move,intent.aim);
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
  if(g.pilot)knifeGuard(g,intent,swinging,dodging);else if(p.guarding&&intent.guardPressed)p.parryUntil=t+.16;if(!g.pilot&&!p.guarding)p.parryUntil=0;
- if(g.pilot)knifeRegen(g,p,dt,swinging||dodging||t<p.hurtUntil);
+ const sprintCandidate=!!(g.pilot&&intent.run&&!p.guarding&&!p.exhausted&&p.stamina>EPS&&!swinging&&!dodging&&t>=p.hurtUntil&&mag(move)>.01);
+ if(g.pilot){if(!sprintCandidate)knifeRegen(g,p,dt,swinging||dodging||t<p.hurtUntil);}
  else if(!intent.guard&&t>=p.guardRecoverAt&&t>=p.guardBrokenUntil)p.guard=Math.min(100,p.guard+35*dt);
  if(intent.aim&&mag(intent.aim)>.001&&!swinging&&!dodging)p.facing=normal(intent.aim);
  if(p.buffer&&t>p.buffer.until)p.buffer=null;
@@ -115,7 +116,21 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  if(!g.pilot&&p.swing&&!p.swing.resolved&&t+EPS>=p.swing.hitAt){p.swing.resolved=true;strike(g,p.swing);}
  if(!g.pilot&&p.swing&&t+EPS>=p.swing.end)p.swing=null;
  if(!g.finished){if(dodging)moveBody(g,p,{x:p.dodgeDirection.x*(g.pilot?R.rollSpeed:16)*dt,z:p.dodgeDirection.z*(g.pilot?R.rollSpeed:16)*dt});
- else if(!p.swing&&(!g.pilot||t>=p.hurtUntil)){const m=mag(move)>1?normal(move):move,vel={x:m.x*(g.pilot?R.walkSpeed:4.2)*(p.guarding?(g.pilot?R.guardSpeed:.4):1),z:m.z*(g.pilot?R.walkSpeed:4.2)*(p.guarding?(g.pilot?R.guardSpeed:.4):1)},difference=sub(vel,p.velocity),n=mag(difference),step=(mag(m)>.01?48:34)*dt;p.velocity=n<=step?vel:{x:p.velocity.x+difference.x/n*step,z:p.velocity.z+difference.z/n*step};moveBody(g,p,{x:p.velocity.x*dt,z:p.velocity.z*dt});if(!intent.aim&&mag(m)>.01&&!p.guarding)p.facing=turn(p.facing,m,720*dt);}else {p.velocity={x:0,z:0};if(g.pilot)knifeStepIn(g,p,dt);}
+ else if(!p.swing&&(!g.pilot||t>=p.hurtUntil)){
+  const m=mag(move)>1?normal(move):move;
+  const speed=g.pilot?(sprintCandidate?R.runSpeed:R.walkSpeed*(p.exhausted?R.exhaustWalk:1)):4.2;
+  const scale=p.guarding?(g.pilot?R.guardSpeed:.4):1;
+  const vel={x:m.x*speed*scale,z:m.z*speed*scale},difference=sub(vel,p.velocity),n=mag(difference),step=(mag(m)>.01?48:34)*dt;
+  p.velocity=n<=step?vel:{x:p.velocity.x+difference.x/n*step,z:p.velocity.z+difference.z/n*step};
+  const start={...p.pos};moveBody(g,p,{x:p.velocity.x*dt,z:p.velocity.z*dt});
+  if(sprintCandidate&&mag(sub(p.pos,start))>EPS){
+   p.running=true;p.guard=p.stamina-R.runDrain*dt; // No action recovery delay.
+  }
+  if(!intent.aim&&mag(m)>.01&&!p.guarding)p.facing=turn(p.facing,m,720*dt);
+ }else {p.velocity={x:0,z:0};if(g.pilot)knifeStepIn(g,p,dt);}
+ // Defer only a possible sprint tick until collision has proved displacement.
+ // Unchanged non-sprint input retains the existing action/regen ordering.
+ if(sprintCandidate&&!p.running)knifeRegen(g,p,dt,!!p.swing||dodging||t<p.hurtUntil);
  if(mag(sub(p.pos,g.world.spawn??{x:0,z:-6}))>=1)g.started=true;
  if(g.encounterActive!==false&&g.started&&!g.enemies.length&&t+EPS>=g.nextWave){if(g.wave>=3){g.finished=true;g.won=true;}else spawnWave(g);}
  for(const e of [...g.enemies]){enemyTick(g,e,dt);if(g.finished)break;}

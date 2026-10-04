@@ -32,6 +32,7 @@ test('background/menu/rotation clear held movement and queued attacks', () => {
   s.clear();
   assert.deepEqual(s.take(), {
     move: { x: 0, y: 0 },
+    run: false,
     aim: null,
     actions: [],
     held: [],

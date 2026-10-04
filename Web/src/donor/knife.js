@@ -2,7 +2,7 @@
 import {knifePaths} from './knife-paths.js';
 export const KNIFE_RULES = Object.freeze({
   hz:60, health:150, goblinHealth:120, goblinBodyScale:.78,
-  walkSpeed:3, rollSpeed:5.2, roll:36, rollCost:30, maxStamina:100, exhaustRecover:20, goblinRegen:1.5, safeStart:4, safeEnd:20,
+  walkSpeed:3, runSpeed:5.2, runDrain:12, exhaustWalk:.7, rollSpeed:5.2, roll:36, rollCost:30, maxStamina:100, exhaustRecover:20, goblinRegen:1.5, safeStart:4, safeEnd:20,
   parry:10, parryCooldown:30, parryStun:90, parryRecovery:8,
   perfectBlock:3, perfectBlockCost:.5, breakCost:60,
   guardArc:120, guardSpeed:.35, regen:40, regenDelay:45, guardRegen:.5,

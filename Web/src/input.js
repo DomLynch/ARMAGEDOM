@@ -45,7 +45,10 @@ export class InputState {
     pointer.at = { ...at };
     const delta = { x: at.x - pointer.start.x, y: at.y - pointer.start.y };
     if (pointer.kind === 'move') {
-      this.stick = clampStick(delta, 46);
+      // Preserve the floating touch origin: donor ratios map to this 46px pad.
+      const raw = Math.hypot(delta.x, delta.y) / 46;
+      this.stick = raw < .12 ? { x: 0, y: 0 } : clampStick(delta, 46);
+      pointer.run = raw > 1.4 + 1e-10;
     } else if (Math.hypot(delta.x, delta.y) > 12) {
       pointer.aim = clampStick(delta, 1);
       pointer.aimOrder = ++this.aimOrder;
@@ -100,6 +103,8 @@ export class InputState {
     const presses = this.pending.splice(0);
     return {
       move,
+      run: [...this.pointers.values()].some(p => p.kind === 'move' && p.run) ||
+        this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
       aim: this.aim,
       actions: presses
         .filter((press) => !['guard', 'dodge'].includes(press.kind))
@@ -266,7 +271,7 @@ export function attachInput({
     }
     if (isPaused()) return;
     onInteraction();
-    if (['KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
+    if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight'].includes(event.code)) {
       event.preventDefault();
       state.keys.add(event.code);
     }

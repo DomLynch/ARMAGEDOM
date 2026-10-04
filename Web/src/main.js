@@ -302,7 +302,7 @@ enter.addEventListener("click", async () => {
     if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Mobile controls candidate011 · Approved006 framing";
+      "Three.js · Donor sprint candidate012 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
