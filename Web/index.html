@@ -21,8 +21,23 @@
           SURVIVOR <span id="health-number">100 / 100</span>
         </div>
         <div class="bar health"><span id="health-fill"></span></div>
-        <div class="guard-line">GUARD <span id="guard-number">100</span></div>
-        <div class="bar defence"><span id="guard-fill"></span></div>
+        <div class="guard-line">
+          <span>STAMINA</span
+          ><span id="stamina-state" role="status" aria-live="polite"></span
+          ><span id="guard-number">100 / 100</span>
+        </div>
+        <div
+          id="stamina-bar"
+          class="bar defence"
+          role="progressbar"
+          aria-label="Stamina"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="100"
+          aria-describedby="stamina-state"
+        >
+          <span id="guard-fill"></span>
+        </div>
         <div id="objective">WESTMINSTER · WAVE 0 / 3</div>
       </section>
       <button id="menu-button" aria-label="Open game menu">☰</button>
@@ -37,9 +52,9 @@
         </div>
         <div id="action-cluster">
           <button class="action primary" id="slash" data-action="slash">
-            <span>SLASH</span><i class="aim-arrow"></i></button
+            <span>SLASH</span><small></small><i class="aim-arrow"></i></button
           ><button class="action" id="stab" data-action="stab">
-            <span>STAB</span><i class="aim-arrow"></i></button
+            <span>STAB</span><small></small><i class="aim-arrow"></i></button
           ><button class="action" id="heavy" data-action="heavy">
             <span>HEAVY</span><small></small><i class="aim-arrow"></i></button
           ><button class="action" id="special" data-action="special">
@@ -78,6 +93,11 @@
         <p>
           Desktop: WASD move · mouse aims · LMB Slash · RMB Stab · Q Heavy · E
           Special · Space Dodge · hold F Guard · R Retry.
+        </p>
+        <p>
+          Attacks and dodge spend stamina. Recover when not attacking; recovery
+          is slower while guarding. Low stamina dims actions; exhausted fighters
+          must recover before attacking or dodging.
         </p>
         <p>Gold loot upgrades your blade; cyan upgrades armour; green heals.</p>
       </details>
