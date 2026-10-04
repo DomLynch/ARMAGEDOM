@@ -147,7 +147,7 @@ test("donor displays actual 150HP maximum and held guard without false break dur
   assert.equal(el("guard-fill").style.width, "25%");
   assert.equal(el("guard").classList.contains("pressed"), false);
 });
-test("default002 keeps its waves, cooldown periods and Warlord victory", (t) => {
+test("legacy wave HUD keeps cooldown periods but hides positive ending", (t) => {
   const { hud, el } = setup(t);
   const g = game();
   g.cooldowns = { heavy: 0, special: 15, dodge: 0.6 }; // Only the explicit pilot selects these.
@@ -165,9 +165,9 @@ test("default002 keeps its waves, cooldown periods and Warlord victory", (t) => 
   assert.equal(el("health-number").textContent, "50 / 100");
   g.finished = g.won = true;
   hud.update(g);
-  assert.equal(el("result-hint").textContent, "The warlord has fallen.");
+  assert.equal(el("ending").hidden, true);
 });
-test("donor death, retry and victory retain existing controls with accurate opponent text", (t) => {
+test("donor death and Retry remain available while positive clearance stays hidden", (t) => {
   const { hud, el, actions } = setup(t);
   const g = game(true);
   g.player.hp = 0;
@@ -190,8 +190,8 @@ test("donor death, retry and victory retain existing controls with accurate oppo
   assert.equal(el("health-number").textContent, "150 / 150");
   g.finished = g.won = true;
   hud.update(g);
-  assert.equal(el("result").textContent, "CHECKPOINT CLEARED");
-  assert.equal(el("result-hint").textContent, "The Goblin has fallen.");
+  assert.equal(el("ending").hidden, true);
+  assert.notEqual(el("result").textContent, "CHECKPOINT CLEARED");
 });
 
 const costs = { slash: 18, stab: 14, heavy: 26, special: 40, dodge: 30 };
@@ -283,31 +283,25 @@ test("exact cost is affordable, zero stamina dims guard, invalid/out-of-range va
     assert.equal(el("guard").classList.contains("low-energy"), width === "0%");
   }
 });
-test("HUD follows active area identity and exposes Continue only after victory", (t) => {
-  const { hud, el } = setup(t),
-    g = game(true);
-  g.world = { areaId: "east" };
-  g.encounterActive = false;
-  hud.update(g);
-  assert.equal(el("objective").textContent, "EAST · EXPLORING");
-  assert.equal(el("menu-area").textContent, "EAST · LONDON 2030");
-  assert.equal(el("explore").hidden, true);
-  g.world.areaId = "south";
-  hud.update(g);
-  assert.equal(el("objective").textContent, "SOUTH · EXPLORING");
-  g.world.areaId = "westminster";
-  g.finished = g.won = true;
-  hud.update(g);
-  assert.equal(el("explore").hidden, false);
-  g.won = false;
-  hud.update(g);
-  assert.equal(el("explore").hidden, true);
-  g.finished = false;
-  g.encounterCleared = true;
-  hud.update(g);
-  assert.equal(
-    el("objective").textContent,
-    "WESTMINSTER · CLEARED · EXPLORE LONDON",
-  );
+test("HUD counts current-area residents and keeps cleared exploration uninterrupted", (t) => {
+  const { hud, el } = setup(t), g = game(true);
+  g.encounter = { id: "hollow-scavengers" };
+  g.enemies = Array.from({ length: 9 }, () => ({kind:0}));
+  for (const area of ["east", "south", "westminster"]) {
+    g.world = { areaId: area };hud.update(g);
+    assert.equal(el("objective").textContent, `${area.toUpperCase()} · HOLLOW SCAVENGERS · 9 HOSTILES`);
+    assert.equal(el("menu-area").textContent, `${area.toUpperCase()} · LONDON 2030`);
+    assert.equal(el("ending").hidden, true);
+  }
+  g.encounterCleared = true;g.enemies = [];hud.update(g);
+  assert.equal(el("objective").textContent, "WESTMINSTER · CLEARED · EXPLORE LONDON");
+  assert.equal(el("ending").hidden, true);
+  assert.equal(el("explore").onclick, undefined, "no Continue action is bound");
 });
-test('Hollow HUD counts the actual group and names its cleared encounter',t=>{const {hud,el}=setup(t),g=game(true);g.encounter={id:'hollow-scavengers'};g.enemies=[{kind:0},{kind:0},{kind:0}];hud.update(g);assert.equal(el('objective').textContent,'WESTMINSTER · HOLLOW SCAVENGERS · 3 HOSTILES');g.finished=g.won=true;g.enemies=[];hud.update(g);assert.equal(el('result-hint').textContent,'The three Hollow scavengers have fallen.');});
+test('Hollow HUD uses actual survivors without a clearance modal',t=>{
+ const {hud,el}=setup(t),g=game(true);g.encounter={id:'hollow-scavengers'};
+ g.enemies=Array.from({length:6},()=>({kind:0}));hud.update(g);
+ assert.equal(el('objective').textContent,'WESTMINSTER · HOLLOW SCAVENGERS · 6 HOSTILES');
+ g.encounterCleared=true;g.enemies=[];hud.update(g);
+ assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED · EXPLORE LONDON');assert.equal(el('ending').hidden,true);
+});
