@@ -23,15 +23,29 @@ void main(){
 const fragments = {
   smoke:`float r=length(uvLocal*vec2(1.0,.85));
     float edge=1.0-smoothstep(.25,1.0,r);
-    float grain=.76+.24*sin(uvLocal.x*11.0+age*5.0)*sin(uvLocal.y*9.0-age*4.0);
+    float grain=.45+.55*turbulence(uvLocal*3.5+vec2(age*.6,-clock*.13));
     float a=edge*grain*sin(age*3.14159)*alpha;
-    gl_FragColor=vec4(vec3(.13,.12,.11),a);`,
-  flicker:`float edge=exp(-dot(uvLocal,uvLocal)*4.0);
-    float pulse=.55+.25*sin(clock*5.3)+.2*sin(clock*9.7+1.3);
-    gl_FragColor=vec4(.74,.32,.09,edge*alpha*pulse);`,
+    gl_FragColor=vec4(vec3(.095,.085,.075),a);`,
+  flame:`vec2 q=vec2(uvLocal.x,(uvLocal.y+1.0)*.5);
+    float flow=turbulence(vec2(q.x*3.2,q.y*5.5-clock*1.8));
+    float curl=.16*sin(q.y*9.0-clock*3.1)+.13*sin(q.y*17.0-clock*5.7);
+    float taper=(1.0-q.y)*(.65+.28*flow);
+    float body=1.0-smoothstep(taper*.38,taper+.02,abs(q.x+curl*q.y));
+    float tip=1.0-smoothstep(.57+flow*.36,.86+flow*.14,q.y);
+    float tongues=.55+.45*turbulence(vec2(q.x*7.0,q.y*9.0-clock*2.8));
+    float a=body*tip*tongues*smoothstep(0.0,.035,q.y)*alpha;
+    float core=body*pow(1.0-q.y,1.7)*(.55+.45*flow);
+    vec3 color=mix(vec3(.72,.12,.015),vec3(1.0,.62,.20),core);
+    gl_FragColor=vec4(color,a);`,
   ember:`float a=(1.0-smoothstep(.15,1.0,length(uvLocal)))*pow(sin(age*3.14159),4.0)*alpha;
     gl_FragColor=vec4(.63,.29,.08,a);`
 };
+// Original analytic turbulence; no borrowed footage, sprite sheet or textures.
+const noiseShader=`
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float turbulence(vec2 p){return noise(p)*.57+noise(p*2.03+3.1)*.28+noise(p*4.11+1.7)*.15;}
+`;
 
 // No independent clock/render loop. Caller uses existing RAF and dt=0 on pause.
 export function createAtmosphere({THREE,scene,world}) {
@@ -52,14 +66,15 @@ export function createAtmosphere({THREE,scene,world}) {
       const p=new THREE.Vector3(2*x-1,1-2*y,.5).applyMatrix4(inverse);
       return p.multiplyScalar(depth/-p.z).applyMatrix4(camera.matrixWorld);
     };
-    const batches={smoke:[],flicker:[],ember:[]};
+    const batches={smoke:[],flame:[],ember:[]};
     for(const anchor of WESTMINSTER_ATMOSPHERE){
       const depth=anchor.depth??world.geometry.point(world.geometry.ground(anchor.foot)).depth-.03;
       const origin=project(anchor.x,anchor.y,depth);
       const unitX=project(anchor.x+1,anchor.y,depth).distanceTo(origin);
       const unitY=project(anchor.x,anchor.y-1,depth).distanceTo(origin);
       for(let i=0;i<anchor.smoke;i++)batches.smoke.push({origin,wx:anchor.width*unitX,wy:anchor.width*unitY*.8,dx:anchor.width*unitX*.35,dy:anchor.rise*unitY,speed:1/7,phase:i/anchor.smoke,alpha:anchor.opacity});
-      if(anchor.flicker)batches.flicker.push({origin,wx:anchor.width*unitX*.7,wy:anchor.width*unitY,dx:0,dy:0,speed:0,phase:0,alpha:anchor.flicker});
+      const fireHalfHeight=anchor.fireHeight*unitY*.5;
+      if(anchor.fireHeight>0)batches.flame.push({origin:origin.clone().addScaledVector(up,fireHalfHeight),wx:anchor.fireWidth*unitX,wy:fireHalfHeight,dx:0,dy:0,speed:0,phase:0,alpha:.90});
       for(let i=0;i<anchor.embers;i++)batches.ember.push({origin,wx:.0007*unitX,wy:.0009*unitY,dx:anchor.width*unitX*.3,dy:anchor.rise*unitY*.6,speed:1/4,phase:i/anchor.embers,alpha:.35});
     }
     for(const [kind,particles] of Object.entries(batches)){
@@ -75,7 +90,7 @@ export function createAtmosphere({THREE,scene,world}) {
       const geometry=new THREE.BufferGeometry();
       for(const [name,data,count] of [['position',positions,3],['corner',corners,2],['motion',motions,3],['size',sizes,2],['phase',phases,1],['strength',strengths,1]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,count));
       geometry.setIndex(indices);
-      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
+      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; ${noiseShader} void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
       const mesh=new THREE.Mesh(geometry,material);mesh.name=`Atmosphere ${kind}`;
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.

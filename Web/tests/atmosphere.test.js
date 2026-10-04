@@ -20,7 +20,7 @@ test('painting anchors survive a cropped camera; bounded three batches without t
   assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);assert.equal(fx.stats().drawCalls,3);assert.equal(fx.stats().textureBytes,0);
   const smoke=scene.children[0].children.find(x=>x.name==='Atmosphere smoke');
   const positions=smoke.geometry.getAttribute('position');
-  for(const [index,anchor] of [[0,WESTMINSTER_ATMOSPHERE[0]],[20,WESTMINSTER_ATMOSPHERE[1]]]){
+  for(const [index,anchor] of [[0,WESTMINSTER_ATMOSPHERE[0]],[4*WESTMINSTER_ATMOSPHERE[0].smoke,WESTMINSTER_ATMOSPHERE[1]]]){
     const p=new THREE.Vector3().fromBufferAttribute(positions,index).applyMatrix4(world.camera.matrixWorldInverse).applyMatrix4(world.calibrated);
     assert.ok(Math.abs((p.x+1)/2-anchor.x)<1e-6);assert.ok(Math.abs((1-p.y)/2-anchor.y)<1e-6);
   }
@@ -36,6 +36,6 @@ test('area exit disposes each resource once, reentry allocates one group, final 
   const {world,scene,fx}=fixture();fx.update(.01);const old=[...scene.children[0].children];let released=0;
   for(const mesh of old){mesh.geometry.addEventListener('dispose',()=>released++);mesh.material.addEventListener('dispose',()=>released++);}
   world.areaId='south';fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().quads,0);
-  world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,12);
+  world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);
   fx.dispose();fx.dispose();fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().disposed,true);
 });

@@ -1,7 +1,11 @@
 // Normalized coordinates on the unchanged 1672 x 941 Westminster painting.
-// Bus: blackened roof; tower: existing orange breach below the clock.
+// Bus: blackened roof, smoke ONLY. Other anchors: visible painted fire bases.
 export const WESTMINSTER_ATMOSPHERE = Object.freeze([
-  Object.freeze({id:'bus-roof',x:.425,y:.287,foot:Object.freeze({x:.42,y:.415}),depth:null,width:.019,rise:.043,smoke:5,opacity:.085,flicker:0,embers:0}),
-  Object.freeze({id:'tower-breach',x:.750,y:.145,depth:80,width:.009,rise:.025,smoke:4,opacity:.055,flicker:.055,embers:2})
+  Object.freeze({id:'bus-roof',x:.425,y:.287,foot:Object.freeze({x:.42,y:.415}),depth:null,width:.019,rise:.043,smoke:3,opacity:.12,fireWidth:0,fireHeight:0,embers:0}),
+  Object.freeze({id:'tower-breach',x:.756,y:.145,depth:80,width:.012,rise:.047,smoke:2,opacity:.16,fireWidth:.006,fireHeight:.024,embers:2}),
+  Object.freeze({id:'riverside-wreck-fire',x:.791,y:.594,foot:Object.freeze({x:.80,y:.67}),depth:null,width:.021,rise:.08,smoke:3,opacity:.22,fireWidth:.011,fireHeight:.046,embers:2}),
+  Object.freeze({id:'riverside-fire-drum',x:.778,y:.552,foot:Object.freeze({x:.80,y:.67}),depth:null,width:.01,rise:.035,smoke:0,opacity:0,fireWidth:.006,fireHeight:.024,embers:1}),
+  Object.freeze({id:'parliament-base-fire',x:.455,y:.254,depth:80,width:.012,rise:.032,smoke:2,opacity:.13,fireWidth:.007,fireHeight:.020,embers:1}),
+  Object.freeze({id:'parliament-west-blaze',x:.348,y:.215,depth:80,width:.017,rise:.06,smoke:2,opacity:.18,fireWidth:.011,fireHeight:.043,embers:3})
 ]);
-export const ATMOSPHERE_BUDGET = Object.freeze({quads:12,drawCalls:3,textureBytes:0});
+export const ATMOSPHERE_BUDGET = Object.freeze({quads:26,drawCalls:3,textureBytes:0});
