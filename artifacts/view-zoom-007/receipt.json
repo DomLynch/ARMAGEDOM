@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-04",
+  "option": "viewZoomMultiplier",
+  "default": 1,
+  "preview007": 1.15,
+  "landscapeReferenceZoom": 1.536975,
+  "tests": {
+    "passed": 42,
+    "failed": 0
+  },
+  "renderedBrowser": false,
+  "physicalPhone": false,
+  "files": {
+    "Web/src/world.js": "16386787af7e0d1ea3e3a36bcfb8d014d4deb40ebb0e18e89934ef8749db35ad",
+    "Web/tests/view-zoom.test.js": "34db3014fb19ff91907e1a10c7d67fdc274882d898c2311155d201fb7ed73f48"
+  }
+}
