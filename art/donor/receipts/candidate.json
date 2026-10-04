@@ -1,0 +1,35 @@
+{
+  "revision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+  "files": {
+    "player": {
+      "source": "src/assets/warrior.glb",
+      "file": "warrior.glb",
+      "bytes": 6749796,
+      "sourceSha256": "cc89e64fb5242be006cfc88a619bfc0167561ca581e27cc1f6911f5c36f61d41",
+      "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
+      "normalizedKeyframes": 836,
+      "errors": 0,
+      "warnings": 26
+    },
+    "opponent": {
+      "source": "src/assets/goblin.glb",
+      "file": "goblin.glb",
+      "bytes": 6450612,
+      "sourceSha256": "90d76b3b21a92d51998a3ba0f33e5b0cdee4673146d8e5bf0320a0d6cab80ba8",
+      "sha256": "5726558c413927ce6e3fa041dda439cff1edbc32407b624ba85fd9bacffdaf25",
+      "normalizedKeyframes": 825,
+      "errors": 0,
+      "warnings": 31
+    },
+    "weapon": {
+      "source": "src/assets/weapons/player/knife.glb",
+      "file": "knife.glb",
+      "bytes": 382956,
+      "sourceSha256": "15a9c730e35267d689c02236a746fab6763068fe3f42996c4b5d62e3addea16d",
+      "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec",
+      "normalizedKeyframes": 786,
+      "errors": 0,
+      "warnings": 0
+    }
+  }
+}
