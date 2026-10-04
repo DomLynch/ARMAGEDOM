@@ -1,6 +1,0 @@
-{
-  "name": "Ashvault.Tests",
-  "references": ["Ashvault", "Unity.InputSystem"],
-  "optionalUnityReferences": ["TestAssemblies"],
-  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
-}

@@ -1,20 +1,13 @@
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
+# Generated browser/build outputs and local tooling
+node_modules/
+dist/
 [Bb]uild/
 [Bb]uilds/
-[Ll]ogs/
-[Uu]ser[Ss]ettings/
 .DS_Store
 .codegraph/
 .semble/
-*.csproj
-*.sln
-*.slnx
-.vs/
 __pycache__/
+artifacts/**/*.log
 artifacts/*.log
 artifacts/build-report.json
-
-artifacts/**/*.log
 *.blend1

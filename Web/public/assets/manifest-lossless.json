@@ -1,0 +1,904 @@
+{
+  "version": 1,
+  "status": "Lossless candidate; exact decoded buffers/pixels and Three browser60pose equality PASS. Lead game/served/phone acceptance pending.",
+  "models": {
+    "vagrant": {
+      "url": "lossless/vagrant.glb",
+      "sha256": "2fa34a820d5a4bcc221482b828ed2c4814386f4e4d95ede726a82f22c2242e3c",
+      "bytes": 9535240,
+      "scale": 1,
+      "forwardCorrection": 0,
+      "forward": "+Z",
+      "units": "metres",
+      "feetOrigin": {
+        "mode": "authored origin preserved",
+        "idleLowestY": 0.012000457383692265
+      },
+      "idleBounds": {
+        "min": [
+          -0.4154016971588135,
+          0.012000457383692265,
+          -0.4139999747276306
+        ],
+        "max": [
+          0.4172285199165344,
+          1.885420560836792,
+          0.7111519575119019
+        ]
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Run",
+        "run": "Run",
+        "attack": "Attack",
+        "death": null
+      },
+      "clipDurations": {
+        "Idle": 1.9666666666666666,
+        "Run": 0.8,
+        "Attack": 0.6
+      },
+      "starterHidden": [
+        "Backpack",
+        "Protection vest"
+      ],
+      "modularMeshNames": [
+        "Vagrant body",
+        "Torso jacket",
+        "Legs trousers",
+        "Feet boots",
+        "Protection vest",
+        "Backpack",
+        "Machete",
+        "Machete handle"
+      ],
+      "bones": [
+        "Hips",
+        "Spine",
+        "Chest",
+        "Neck",
+        "Head",
+        "Clavicle.L",
+        "UpperArm.L",
+        "Forearm.L",
+        "Hand.L",
+        "Clavicle.R",
+        "UpperArm.R",
+        "Forearm.R",
+        "Hand.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R"
+      ],
+      "nameLookup": "GLTFLoader sanitizes .name; original glTF name is retained in node.userData.name. Prefer userData.name or runtime aliases.",
+      "boneAliases": {
+        "Hips": "Hips",
+        "Spine": "Spine",
+        "Chest": "Chest",
+        "Neck": "Neck",
+        "Head": "Head",
+        "Clavicle.L": "ClavicleL",
+        "UpperArm.L": "UpperArmL",
+        "Forearm.L": "ForearmL",
+        "Hand.L": "HandL",
+        "Clavicle.R": "ClavicleR",
+        "UpperArm.R": "UpperArmR",
+        "Forearm.R": "ForearmR",
+        "Hand.R": "HandR",
+        "Thigh.L": "ThighL",
+        "Shin.L": "ShinL",
+        "Foot.L": "FootL",
+        "Thigh.R": "ThighR",
+        "Shin.R": "ShinR",
+        "Foot.R": "FootR"
+      },
+      "formatValidation": {
+        "errors": 0,
+        "warnings": 16
+      },
+      "roundtripValidation": {
+        "pass": true,
+        "maximumErrorMetres": 4.866888957621995e-06
+      },
+      "proceduralOverlayOwner": "Lead",
+      "noBakedClips": [
+        "Stab",
+        "Heavy",
+        "Guard",
+        "Dodge",
+        "Special",
+        "Death"
+      ],
+      "baselineSha256": "204e8c296401b2f173bf9407b071bb2ce00fbb0613dc643f8e3636058565f599"
+    },
+    "revenant": {
+      "url": "lossless/revenant.glb",
+      "sha256": "ae4d6fd661e0fe76e64d812b4f27351037db044344e0430a0a8f946905e50d5d",
+      "bytes": 13363264,
+      "scale": 1,
+      "forwardCorrection": 0,
+      "forward": "+Z",
+      "units": "metres",
+      "feetOrigin": {
+        "mode": "authored origin preserved",
+        "idleLowestY": -0.0015236290637403727
+      },
+      "idleBounds": {
+        "min": [
+          -0.40852242708206177,
+          -0.0015236290637403727,
+          -0.23926180601119995
+        ],
+        "max": [
+          0.35336169600486755,
+          1.8949999809265137,
+          1.0356932878494263
+        ]
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Run",
+        "run": "Run",
+        "attack": "Attack",
+        "death": null
+      },
+      "clipDurations": {
+        "Idle": 1.9666666666666666,
+        "Run": 0.8,
+        "Attack": 0.6
+      },
+      "starterHidden": [],
+      "modularMeshNames": [
+        "Revenant armour",
+        "Ashblade"
+      ],
+      "bones": [
+        "Hips",
+        "Spine",
+        "Chest",
+        "Neck",
+        "Head",
+        "Clavicle.L",
+        "UpperArm.L",
+        "Forearm.L",
+        "Hand.L",
+        "Clavicle.R",
+        "UpperArm.R",
+        "Forearm.R",
+        "Hand.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R"
+      ],
+      "nameLookup": "GLTFLoader sanitizes .name; original glTF name is retained in node.userData.name. Prefer userData.name or runtime aliases.",
+      "boneAliases": {
+        "Hips": "Hips",
+        "Spine": "Spine",
+        "Chest": "Chest",
+        "Neck": "Neck",
+        "Head": "Head",
+        "Clavicle.L": "ClavicleL",
+        "UpperArm.L": "UpperArmL",
+        "Forearm.L": "ForearmL",
+        "Hand.L": "HandL",
+        "Clavicle.R": "ClavicleR",
+        "UpperArm.R": "UpperArmR",
+        "Forearm.R": "ForearmR",
+        "Hand.R": "HandR",
+        "Thigh.L": "ThighL",
+        "Shin.L": "ShinL",
+        "Foot.L": "FootL",
+        "Thigh.R": "ThighR",
+        "Shin.R": "ShinR",
+        "Foot.R": "FootR"
+      },
+      "formatValidation": {
+        "errors": 0,
+        "warnings": 3
+      },
+      "roundtripValidation": {
+        "pass": true,
+        "maximumErrorMetres": 2.6654861358110793e-06
+      },
+      "proceduralOverlayOwner": "Lead",
+      "noBakedClips": [
+        "Stab",
+        "Heavy",
+        "Guard",
+        "Dodge",
+        "Special",
+        "Death"
+      ],
+      "baselineSha256": "4b19efade863b99f27a9b908082207c40793b97f36dcf85f088443316c06d578"
+    },
+    "orc": {
+      "url": "lossless/orc.glb",
+      "sha256": "3d8c800cbcc7d4067fcd230ae845a554ef55fc436e2e5c68463d1e5d4bfe2187",
+      "bytes": 13642508,
+      "scale": 1.16,
+      "forwardCorrection": 0,
+      "forward": "+Z",
+      "units": "metres",
+      "feetOrigin": {
+        "mode": "authored origin preserved",
+        "idleLowestY": -0.004073277115821838
+      },
+      "idleBounds": {
+        "min": [
+          -0.7573981285095215,
+          -0.004073277115821838,
+          -0.26485827565193176
+        ],
+        "max": [
+          0.45743653178215027,
+          1.8949999809265137,
+          0.5439161062240601
+        ]
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Run",
+        "run": "Run",
+        "attack": "Attack",
+        "death": null
+      },
+      "clipDurations": {
+        "Idle": 1.9666666666666666,
+        "Run": 0.8,
+        "Attack": 0.6
+      },
+      "starterHidden": [],
+      "modularMeshNames": [
+        "Orc armour",
+        "Axe haft"
+      ],
+      "bones": [
+        "Hips",
+        "Spine",
+        "Chest",
+        "Neck",
+        "Head",
+        "Clavicle.L",
+        "UpperArm.L",
+        "Forearm.L",
+        "Hand.L",
+        "Clavicle.R",
+        "UpperArm.R",
+        "Forearm.R",
+        "Hand.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R"
+      ],
+      "nameLookup": "GLTFLoader sanitizes .name; original glTF name is retained in node.userData.name. Prefer userData.name or runtime aliases.",
+      "boneAliases": {
+        "Hips": "Hips",
+        "Spine": "Spine",
+        "Chest": "Chest",
+        "Neck": "Neck",
+        "Head": "Head",
+        "Clavicle.L": "ClavicleL",
+        "UpperArm.L": "UpperArmL",
+        "Forearm.L": "ForearmL",
+        "Hand.L": "HandL",
+        "Clavicle.R": "ClavicleR",
+        "UpperArm.R": "UpperArmR",
+        "Forearm.R": "ForearmR",
+        "Hand.R": "HandR",
+        "Thigh.L": "ThighL",
+        "Shin.L": "ShinL",
+        "Foot.L": "FootL",
+        "Thigh.R": "ThighR",
+        "Shin.R": "ShinR",
+        "Foot.R": "FootR"
+      },
+      "formatValidation": {
+        "errors": 0,
+        "warnings": 3
+      },
+      "roundtripValidation": {
+        "pass": true,
+        "maximumErrorMetres": 8.371217177227663e-07
+      },
+      "proceduralOverlayOwner": "Lead",
+      "noBakedClips": [
+        "Stab",
+        "Heavy",
+        "Guard",
+        "Dodge",
+        "Special",
+        "Death"
+      ],
+      "baselineSha256": "e503fc57b734e020eac7513dfa13ac79a02604236841bc4ba1148c3ed0b8716b"
+    },
+    "warlock": {
+      "url": "lossless/warlock.glb",
+      "sha256": "76580758e4a6e04e4f9f342b85b348a7a33cb191a8c317306172d2e3e1ec41f1",
+      "bytes": 14326896,
+      "scale": 1,
+      "forwardCorrection": 0,
+      "forward": "+Z",
+      "units": "metres",
+      "feetOrigin": {
+        "mode": "authored origin preserved",
+        "idleLowestY": -0.007248544134199619
+      },
+      "idleBounds": {
+        "min": [
+          -0.5529265403747559,
+          -0.007248544134199619,
+          -0.18708199262619019
+        ],
+        "max": [
+          0.3148905336856842,
+          1.8949999809265137,
+          0.6022065877914429
+        ]
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Run",
+        "run": "Run",
+        "attack": "Attack",
+        "death": null
+      },
+      "clipDurations": {
+        "Idle": 1.9666666666666666,
+        "Run": 0.8,
+        "Attack": 0.6
+      },
+      "starterHidden": [],
+      "modularMeshNames": [
+        "Warlock armour",
+        "Ritual staff"
+      ],
+      "bones": [
+        "Hips",
+        "Spine",
+        "Chest",
+        "Neck",
+        "Head",
+        "Clavicle.L",
+        "UpperArm.L",
+        "Forearm.L",
+        "Hand.L",
+        "Clavicle.R",
+        "UpperArm.R",
+        "Forearm.R",
+        "Hand.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R"
+      ],
+      "nameLookup": "GLTFLoader sanitizes .name; original glTF name is retained in node.userData.name. Prefer userData.name or runtime aliases.",
+      "boneAliases": {
+        "Hips": "Hips",
+        "Spine": "Spine",
+        "Chest": "Chest",
+        "Neck": "Neck",
+        "Head": "Head",
+        "Clavicle.L": "ClavicleL",
+        "UpperArm.L": "UpperArmL",
+        "Forearm.L": "ForearmL",
+        "Hand.L": "HandL",
+        "Clavicle.R": "ClavicleR",
+        "UpperArm.R": "UpperArmR",
+        "Forearm.R": "ForearmR",
+        "Hand.R": "HandR",
+        "Thigh.L": "ThighL",
+        "Shin.L": "ShinL",
+        "Foot.L": "FootL",
+        "Thigh.R": "ThighR",
+        "Shin.R": "ShinR",
+        "Foot.R": "FootR"
+      },
+      "formatValidation": {
+        "errors": 0,
+        "warnings": 3
+      },
+      "roundtripValidation": {
+        "pass": true,
+        "maximumErrorMetres": 9.353372547593608e-07
+      },
+      "proceduralOverlayOwner": "Lead",
+      "noBakedClips": [
+        "Stab",
+        "Heavy",
+        "Guard",
+        "Dodge",
+        "Special",
+        "Death"
+      ],
+      "baselineSha256": "33f08e8cf7043559d06affff926ad0cc6c158344a6b8686aded3b90cde6e7027"
+    },
+    "warlord": {
+      "url": "lossless/orc.glb",
+      "sha256": "3d8c800cbcc7d4067fcd230ae845a554ef55fc436e2e5c68463d1e5d4bfe2187",
+      "bytes": 13642508,
+      "scale": 1.3,
+      "forwardCorrection": 0,
+      "forward": "+Z",
+      "units": "metres",
+      "feetOrigin": {
+        "mode": "authored origin preserved",
+        "idleLowestY": -0.004073277115821838
+      },
+      "idleBounds": {
+        "min": [
+          -0.7573981285095215,
+          -0.004073277115821838,
+          -0.26485827565193176
+        ],
+        "max": [
+          0.45743653178215027,
+          1.8949999809265137,
+          0.5439161062240601
+        ]
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Run",
+        "run": "Run",
+        "attack": "Attack",
+        "death": null
+      },
+      "clipDurations": {
+        "Idle": 1.9666666666666666,
+        "Run": 0.8,
+        "Attack": 0.6
+      },
+      "starterHidden": [],
+      "modularMeshNames": [
+        "Orc armour",
+        "Axe haft"
+      ],
+      "bones": [
+        "Hips",
+        "Spine",
+        "Chest",
+        "Neck",
+        "Head",
+        "Clavicle.L",
+        "UpperArm.L",
+        "Forearm.L",
+        "Hand.L",
+        "Clavicle.R",
+        "UpperArm.R",
+        "Forearm.R",
+        "Hand.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R"
+      ],
+      "nameLookup": "GLTFLoader sanitizes .name; original glTF name is retained in node.userData.name. Prefer userData.name or runtime aliases.",
+      "boneAliases": {
+        "Hips": "Hips",
+        "Spine": "Spine",
+        "Chest": "Chest",
+        "Neck": "Neck",
+        "Head": "Head",
+        "Clavicle.L": "ClavicleL",
+        "UpperArm.L": "UpperArmL",
+        "Forearm.L": "ForearmL",
+        "Hand.L": "HandL",
+        "Clavicle.R": "ClavicleR",
+        "UpperArm.R": "UpperArmR",
+        "Forearm.R": "ForearmR",
+        "Hand.R": "HandR",
+        "Thigh.L": "ThighL",
+        "Shin.L": "ShinL",
+        "Foot.L": "FootL",
+        "Thigh.R": "ThighR",
+        "Shin.R": "ShinR",
+        "Foot.R": "FootR"
+      },
+      "formatValidation": {
+        "errors": 0,
+        "warnings": 3
+      },
+      "roundtripValidation": {
+        "pass": true,
+        "maximumErrorMetres": 8.371217177227663e-07
+      },
+      "proceduralOverlayOwner": "Lead",
+      "noBakedClips": [
+        "Stab",
+        "Heavy",
+        "Guard",
+        "Dodge",
+        "Special",
+        "Death"
+      ],
+      "sharedModel": "orc",
+      "baselineSha256": "e503fc57b734e020eac7513dfa13ac79a02604236841bc4ba1148c3ed0b8716b"
+    }
+  },
+  "commonActorScale": 1.265,
+  "scaleNote": "model.scale is additional original actor factor; World owns common saved scale/projection compensation. Apply1.265once, not perbone.",
+  "provenance": [
+    {
+      "id": "vagrant",
+      "source": "art/vagrant/polish/output/candidate.blend",
+      "source_sha256": "e088c53b5a2f06e09284aaf374f1d261b0a625c00af8c3fd2fae4e17fc5b712c",
+      "textures": [
+        {
+          "source": "Game/Assets/Resources/Vagrant/Vagrant_bodyAlbedo.png",
+          "sha256": "7e5cf52d586a424791487f2e56ea68bd95a9aff47f95f6363f5d1da8884b1958",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Vagrant_bodyNormal.png",
+          "sha256": "24b51b7853c10f514919a2d9c5da71a8c8a142b88b6b962746cdd9df119d0935",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Torso_jacketAlbedo.png",
+          "sha256": "d9181c7769197f80ee84f1f2eeefe242564e0181d52b30546695565ed6b6917a",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Torso_jacketNormal.png",
+          "sha256": "05443f62d147b067178925d2e7f13a87d3cadfc4c7fdf385e4c5fb8aa259a781",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Legs_trousersAlbedo.png",
+          "sha256": "752138513749f57620a3ecd0740dffe283e4ef46f7092ed3f27235242055f438",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Legs_trousersNormal.png",
+          "sha256": "10885177a7d6fce857a5c9f197defa36ebd0ba5395a807f7fa3d16369cc4840d",
+          "source_size": [
+            2048,
+            2048
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Feet_bootsAlbedo.png",
+          "sha256": "7e5c7dcb8735b246164f82fe9e2e2ba945df26c758f5206afe2325f77f4d6a2a",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Feet_bootsNormal.png",
+          "sha256": "fc4b8c6df90452bb3d9281ca4d30adbb8a3afc2849c92bd7e294907cc0af8478",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Protection_vestAlbedo.png",
+          "sha256": "664dbeb49f4a20a21ca7485f96ebdccf0fc06a0395ef047953a19a4e02d269aa",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Protection_vestNormal.png",
+          "sha256": "a80389e3774a06bbd7eb4a820c2ff1cfa0ae0b767338c6d795e3a22c125ac98c",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/BackpackAlbedo.png",
+          "sha256": "23238eee3c9f58a762fe7750e98f2abee1632f80fe2724bb008e9080e49e9c98",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/BackpackNormal.png",
+          "sha256": "33426275117c24f5265241be920e6771c6c261fb2f71c50f479955a3afac3906",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/MacheteAlbedo.png",
+          "sha256": "fdc73696306886700ae178a8e6bf0f5ac74b95c062fb7c6334aa6265f51f3f85",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/MacheteNormal.png",
+          "sha256": "5b6989158846f558a0dca1bdd25320aa0087a090a3d73c975886d4640e844411",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Machete_handleAlbedo.png",
+          "sha256": "bb5451adf1b288edaaf6d74dbb9fabfa3495de4b517e28f1d339334fe4bec4bf",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Vagrant/Machete_handleNormal.png",
+          "sha256": "87d2201adc81fbfddf4f535bf017ba4cd994b42c79dffca3bfc2872f2d1f7783",
+          "source_size": [
+            1024,
+            1024
+          ],
+          "export_size": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "originals_preserved": true,
+      "exporter": "Blender5.2.1CPU, art/browser/export_characters.py",
+      "exporterWeightCutoff": 0.0001
+    },
+    {
+      "id": "revenant",
+      "source": "art/enemies/revenant-rigged.blend",
+      "source_sha256": "85502736ea76353206ab684098b67bb8cf5c8547938a27d9bbc10ac89d3f541e",
+      "textures": [
+        {
+          "source": "Game/Assets/Resources/Enemies/RevenantAlbedo.png",
+          "sha256": "da8d1dfb9093bb944c98738af2dc1e230108a34ddc5e55a5cc81b461af55e44e",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/RevenantNormal.png",
+          "sha256": "252acb20c07990f7ccaf26b684ce2ead9447f46d04b8254a2d28250375cb3a90",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/RevenantMetallicSmoothness.png",
+          "sha256": "70441f3e6d5cc35c66787b51551874a59f11ffa9cf72482c1824f028c3b0adac",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        }
+      ],
+      "originals_preserved": true,
+      "exporter": "Blender5.2.1CPU, art/browser/export_characters.py",
+      "exporterWeightCutoff": 0
+    },
+    {
+      "id": "orc",
+      "source": "art/enemies/orc/orc-rigged.blend",
+      "source_sha256": "47700b46a7df82e6dc3e8dffa50e2e00fdf86bdddde707682c145baada637fe9",
+      "textures": [
+        {
+          "source": "Game/Assets/Resources/Enemies/OrcAlbedo.png",
+          "sha256": "5d095487bff263ced487b2c7465cd1ccf2ebb10bc3f9adc585aa483946309b6b",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/OrcNormal.png",
+          "sha256": "b4b68c1c02bdf01af9177bf7732ce5577ba892229aa27ad7689c15b3e74a38fb",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/OrcMetallicSmoothness.png",
+          "sha256": "84fddf6da8f3e573948dc2364c7de0e8ee0c48dec767394542bfff38e75a31f8",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        }
+      ],
+      "originals_preserved": true,
+      "exporter": "Blender5.2.1CPU, art/browser/export_characters.py",
+      "exporterWeightCutoff": 0
+    },
+    {
+      "id": "warlock",
+      "source": "art/enemies/warlock/warlock-rigged.blend",
+      "source_sha256": "5385d1ca52eb50182b0b0bdba8e852dcbd5b27af81e9607985d71ceef8c29af4",
+      "textures": [
+        {
+          "source": "Game/Assets/Resources/Enemies/WarlockAlbedo.png",
+          "sha256": "f92a9b4a3807aed57229de3bd0fb222d24c8b7f0d78767dc3e4ed816daf77a13",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/WarlockNormal.png",
+          "sha256": "271b1f47359b1dbcc5b1a11016283202b20f81d35cf4e1863f1c1e6c5cba90fb",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source": "Game/Assets/Resources/Enemies/WarlockMetallicSmoothness.png",
+          "sha256": "b0a52e77c0b3e4737d6235cfc1b536a63959cac94c274d8377365d7cbb9545bd",
+          "source_size": [
+            4096,
+            4096
+          ],
+          "export_size": [
+            2048,
+            2048
+          ]
+        }
+      ],
+      "originals_preserved": true,
+      "exporter": "Blender5.2.1CPU, art/browser/export_characters.py",
+      "exporterWeightCutoff": 0
+    }
+  ],
+  "limits": [
+    "Exact authored geometry/19bone rig retained; no remesh, new roster or source changes.",
+    "Only original Idle/Run/Attack exported; walk uses sameRun with originalstride. Lead owns all ArtMotion overlays/state/root behavior.",
+    "PBR map channels converted for glTF; metallicR/smoothnessA->roughnessG/metallicB, roughness=1-smoothness. Shader/light matching is not proved.",
+    "Normals use renderer-generated tangent basis; validator warnings and source grip/anatomy defects remain disclosed.",
+    "Lossless Meshopt/WebP candidate; identical decoded geometry and pixels; served physical-phone loading/memory/frame pacing remain unverified."
+  ],
+  "requiredLoaderExtensions": [
+    "EXT_meshopt_compression",
+    "EXT_texture_webp"
+  ],
+  "loaderSetup": "GLTFLoader.setMeshoptDecoder(MeshoptDecoder); Three.js0.182 supports WebP extension.",
+  "compression": {
+    "quantization": false,
+    "filters": false,
+    "reorder": false,
+    "resampling": false,
+    "textureResize": false,
+    "textureCodec": "lossless WebP exact RGBA",
+    "browserComparison": {
+      "models": 4,
+      "posesPerModel": 15,
+      "maxVertexErrorMetres": 0,
+      "changedRenderChannels": 0,
+      "renderer": "Three.js0.182 neutral256x384; Codex IAB",
+      "actualGameAcceptance": false,
+      "physicalPhoneAcceptance": false
+    }
+  }
+}

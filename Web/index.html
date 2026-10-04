@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101719" />
+    <title>ARMAGEDOM · London 2030</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas
+      id="world"
+      aria-label="Westminster fight. WASD to move; left click slash, right click stab, Q heavy, E special, Space dodge, F guard."
+    ></canvas>
+    <div id="hud" hidden>
+      <section id="vitals" aria-label="Survivor status">
+        <div class="hud-name">
+          SURVIVOR <span id="health-number">100 / 100</span>
+        </div>
+        <div class="bar health"><span id="health-fill"></span></div>
+        <div class="guard-line">
+          <span>STAMINA</span
+          ><span id="stamina-state" role="status" aria-live="polite"></span
+          ><span id="guard-number">100 / 100</span>
+        </div>
+        <div
+          id="stamina-bar"
+          class="bar defence"
+          role="progressbar"
+          aria-label="Stamina"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="100"
+          aria-describedby="stamina-state"
+        >
+          <span id="guard-fill"></span>
+        </div>
+        <div id="objective">WESTMINSTER · WAVE 0 / 3</div>
+      </section>
+      <button id="menu-button" aria-label="Open game menu">☰</button>
+      <p id="notice" role="status"></p>
+      <section id="boss" hidden>
+        <span>ORC WARLORD</span>
+        <div class="bar health"><span id="boss-fill"></span></div>
+      </section>
+      <div id="touch-controls">
+        <div id="move" role="button" aria-label="Move joystick">
+          <span class="move-knob"></span>
+        </div>
+        <div id="action-cluster">
+          <button class="action primary" id="slash" data-action="slash">
+            <span>SLASH</span><small></small><i class="aim-arrow"></i></button
+          ><button class="action" id="stab" data-action="stab">
+            <span>STAB</span><small></small><i class="aim-arrow"></i></button
+          ><button class="action" id="heavy" data-action="heavy">
+            <span>HEAVY</span><small></small><i class="aim-arrow"></i></button
+          ><button class="action" id="special" data-action="special">
+            <span>SPECIAL</span><small></small><i class="aim-arrow"></i></button
+          ><button class="action" id="dodge" data-action="dodge">
+            <span>DODGE</span><small></small></button
+          ><button class="action" id="guard" data-action="guard">
+            <span>GUARD</span><i class="aim-arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <section id="entry" class="overlay">
+      <div class="card">
+        <p class="eyebrow">LONDON · 2030</p>
+        <h1>ARMAGEDOM</h1>
+        <p>Westminster checkpoint</p>
+        <button id="enter">Enter Westminster</button>
+        <p id="loading" role="status">Warrior and Goblin · matched knife combat pilot.</p>
+      </div>
+    </section>
+    <dialog id="menu">
+      <button id="close-menu" class="close" aria-label="Resume">×</button>
+      <p class="eyebrow">WESTMINSTER · LONDON 2030</p>
+      <h2>ARMAGEDOM</h2>
+      <button id="resume">Resume fight</button
+      ><button id="sound" aria-pressed="true">Sound on</button>
+      <details>
+        <summary>Controls</summary>
+        <p>
+          Phone: portrait or landscape. Left stick moves. Tap an action in your
+          facing direction. Drag on an action to aim following strikes; drag
+          Guard to turn your defence. Hold Guard to block, press just before
+          eligible melee hits to parry.
+        </p>
+        <p>
+          Desktop: WASD move · mouse aims · LMB Slash · RMB Stab · Q Heavy · E
+          Special · Space Dodge · hold F Guard · R Retry.
+        </p>
+        <p>
+          Attacks and dodge spend stamina. Recover when not attacking; recovery
+          is slower while guarding. Low stamina dims actions; exhausted fighters
+          must recover before attacking or dodging.
+        </p>
+        <p>Knife pilot: Slash, Stab, Heavy, Pommel, Dodge and frontal Guard. Side and rear hits bypass defence.</p>
+      </details>
+      <button id="retry">Retry encounter</button>
+      <p class="version" id="version">Three.js conversion preview</p>
+    </dialog>
+    <section id="ending" class="overlay" hidden>
+      <div class="card">
+        <h2 id="result"></h2>
+        <p id="result-hint"></p>
+        <button id="again">Try again</button>
+      </div>
+    </section>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

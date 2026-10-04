@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "coordinates": "Unity-compatible x-right y-up z-forward, metres; artwork x-right y-down normalised",
+  "referenceAspect": 1.7768331562167907,
+  "sourceCommit": "20539763739681d4919afb02efe2a67fdfee441e",
+  "initialArea": "westminster",
+  "files": [
+    {
+      "area": "westminster",
+      "path": "westminster/layout.json",
+      "source": "Game/Assets/StreamingAssets/London/Travel/west/layout.json",
+      "bytes": 6819,
+      "sha256": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5"
+    },
+    {
+      "area": "westminster",
+      "path": "westminster/backdrop.png",
+      "source": "Game/Assets/StreamingAssets/London/Travel/west/backdrop.png",
+      "bytes": 2898653,
+      "sha256": "7ce686a7dd54b800261bb697b3e269f18cb2a72ca8ae5b7733a742ceab2c28e2"
+    },
+    {
+      "area": "south",
+      "path": "south/layout.json",
+      "source": "Game/Assets/StreamingAssets/London/Travel/south/layout.json",
+      "bytes": 7904,
+      "sha256": "d9ef498feae4d1db1270711d47190b886fa75209e774a6cc02a6db79ee0a2da7"
+    },
+    {
+      "area": "south",
+      "path": "south/backdrop.png",
+      "source": "Game/Assets/StreamingAssets/London/Travel/south/backdrop.png",
+      "bytes": 3152685,
+      "sha256": "d2380a6ea7a922c9b0cec71c80ca718492a679c79c8a87474b06a7376d0e52de"
+    },
+    {
+      "area": "east",
+      "path": "east/layout.json",
+      "source": "Game/Assets/StreamingAssets/London/Travel/east/layout.json",
+      "bytes": 9572,
+      "sha256": "6e85438817d64ce8d5b13fc69ec5c3754f4130ad2f3c36465223964355a6df84"
+    },
+    {
+      "area": "east",
+      "path": "east/backdrop.png",
+      "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png",
+      "bytes": 3005065,
+      "sha256": "c059acad2a7e83b5cd776fa6f18463fd42ed113e02dd2f6ff29f6c82b5a946ec"
+    }
+  ],
+  "lazyAreas": [
+    "south",
+    "east"
+  ],
+  "entries": {
+    "south": {
+      "x": 0.55,
+      "y": 0.29
+    },
+    "east": {
+      "x": 0.1,
+      "y": 0.72
+    },
+    "westminster": {
+      "x": 0.52,
+      "y": 0.78
+    }
+  },
+  "links": [
+    {
+      "from": "westminster",
+      "to": "east",
+      "condition": {
+        "xMin": 0.955,
+        "yMin": 0.28,
+        "yMax": 0.4
+      },
+      "entry": {
+        "x": 0.1,
+        "y": 0.72
+      }
+    },
+    {
+      "from": "east",
+      "to": "westminster",
+      "condition": {
+        "xMax": 0.04,
+        "yMin": 0.68,
+        "yMax": 0.81
+      },
+      "entry": {
+        "x": 0.9,
+        "y": 0.4
+      }
+    },
+    {
+      "from": "westminster",
+      "to": "south",
+      "condition": {
+        "yMin": 0.97,
+        "xMin": 0.49,
+        "xMax": 0.75
+      },
+      "entry": {
+        "x": 0.55,
+        "y": 0.29
+      }
+    },
+    {
+      "from": "south",
+      "to": "westminster",
+      "condition": {
+        "yMax": 0.235,
+        "xMin": 0.49,
+        "xMax": 0.58
+      },
+      "entry": {
+        "x": 0.6,
+        "y": 0.92
+      }
+    }
+  ]
+}

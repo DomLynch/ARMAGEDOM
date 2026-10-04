@@ -1,0 +1,93 @@
+{
+  "revision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+  "sources": [
+    {
+      "path": "src/moves.ts",
+      "sha256": "54aa6e5bcbd20ea28e92a5ed6948861752767a2577f4e58662e3fd84198755e7"
+    },
+    {
+      "path": "src/duel.ts",
+      "sha256": "7ec0f7b019f019457892a4d54592a9c724104048693e351bd1c7f6f10a2cb1bc"
+    },
+    {
+      "path": "src/blade.ts",
+      "sha256": "63b9a93b08edd9410b81c54ba5cb494c46c2bf90a366f9ed93740d825dc53efc"
+    },
+    {
+      "path": "src/blade-paths.ts",
+      "sha256": "a4b294158e64c3a450eacc3ce03c4a8cc95856c7cf6e7815a466c2a330f02de5"
+    },
+    {
+      "path": "src/sim.ts",
+      "sha256": "9037204116f0bd61e11f31ac5f68c65cd37832e51b6c3aea005849a855ef606a"
+    },
+    {
+      "path": "scripts/blade-manifest.json",
+      "sha256": "761fb56c5f0768c0bde55083547c0f188c3cff8a5fe2601200acdaedef00cf61"
+    },
+    {
+      "path": "src/combat.ts",
+      "sha256": "f235f4376a3a59366878d993111f63329775452845f23313a93cb48cc213df1f"
+    },
+    {
+      "path": "src/characters.ts",
+      "sha256": "4e94c13d996f44c5644c8dcc72c7060bcf08e655be9cc4c52ba6dafb16efde0c"
+    },
+    {
+      "path": "src/assets/warrior.glb",
+      "sha256": "cc89e64fb5242be006cfc88a619bfc0167561ca581e27cc1f6911f5c36f61d41"
+    },
+    {
+      "path": "src/assets/goblin.glb",
+      "sha256": "90d76b3b21a92d51998a3ba0f33e5b0cdee4673146d8e5bf0320a0d6cab80ba8"
+    },
+    {
+      "path": "src/assets/weapons/player/knife.glb",
+      "sha256": "15a9c730e35267d689c02236a746fab6763068fe3f42996c4b5d62e3addea16d"
+    }
+  ],
+  "selection": "bladePathsByRig.hero.knife and goblin.knife; four unchained paths only",
+  "adaptations": [
+    "same engine optional pilot",
+    "no ring/Side/duel authority",
+    "single donor stamina pool for actions and defence; legacy guard accessor aliases stamina; no posture economy",
+    "frontal guard without five directional sides",
+    "tap attacks, no chamber/charge",
+    "render-domain handedness reflected consistently",
+    "no donor AI/ladder/netcode",
+    "Math trig; no cross-engine deterministic replay claim",
+    "unchained base timings; no accelerated chain/riposte/counter bonuses or thrust whiff stall",
+    "existing London velocity ramp and world collision retained; no donor ring",
+    "Goblin authored deterministic slash/stab/slash/heavy pattern; not donor duel AI",
+    "heavy has commitment gating only; roll period .6s; Special15s",
+    "hit/death.actor remains victim; explicit attackerId/victimId identify outcome parties"
+  ],
+  "stamina": {
+    "attackerCosts": {
+      "slash": 18,
+      "stab": 14,
+      "heavy": 26,
+      "special": 40,
+      "dodge": 30
+    },
+    "maximum": 100,
+    "regenPerSecond": 40,
+    "delayTicks": 45,
+    "heldGuardMultiplier": 0.5,
+    "exhaustionRecovery": 20,
+    "goblinRegenMultiplier": 1.5,
+    "sources": [
+      "src/moves.ts:363-386 KNIFE_MOVES; skill() default stamina40 and MOVES.skill_pommel",
+      "src/moves.ts:168-177 RULES rollCost/regen/delay/guard/exhaustion",
+      "src/moves.ts:645 Goblin regen1.5",
+      "src/duel.ts legal()/spend()/phase-gated regeneration; createFighter initial100"
+    ],
+    "adaptations": [
+      "ordinary London movement retained at exhaustion; no exhaustedSpeed reduction",
+      "no sprint drain, attrition, wound modifiers, retreat/wall rules, chains or posture",
+      "insufficient-energy input refuses immediately without queueing; unlike donor generic illegal-tail buffering",
+      "Goblin original authored pattern retained; same cost/exhaustion gates applied without donor AI import",
+      "parry remains cost-free with existing regeneration delay; front block/perfect costs share action pool"
+    ]
+  }
+}

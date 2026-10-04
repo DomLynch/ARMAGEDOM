@@ -1,0 +1,253 @@
+const clampStick = (value, radius) => {
+  const length = Math.hypot(value.x, value.y);
+  const divisor = length > radius ? length : radius;
+  return { x: value.x / divisor, y: value.y / divisor };
+};
+
+export class InputState {
+  constructor() {
+    this.pointers = new Map();
+    this.keys = new Set();
+    this.clear();
+  }
+
+  down(id, kind, at) {
+    if (this.pointers.has(id)) return;
+    const alreadyGuarding = this.guardHeld();
+    const pointer = { kind, start: { ...at }, at: { ...at } };
+    this.pointers.set(id, pointer);
+    if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
+      this.pending.push({ pointer, kind });
+    }
+  }
+
+  guardHeld() {
+    return [...this.pointers.values()].some(
+      (pointer) => pointer.kind === 'guard',
+    );
+  }
+
+  get aim() {
+    let owner = null;
+    for (const pointer of this.pointers.values()) {
+      if (pointer.aim && (!owner || pointer.aimOrder > owner.aimOrder))
+        owner = pointer;
+    }
+    return owner ? { ...owner.aim } : null;
+  }
+
+  move(id, at) {
+    const pointer = this.pointers.get(id);
+    if (!pointer) return;
+    pointer.at = { ...at };
+    const delta = { x: at.x - pointer.start.x, y: at.y - pointer.start.y };
+    if (pointer.kind === 'move') {
+      this.stick = clampStick(delta, 46);
+    } else if (Math.hypot(delta.x, delta.y) > 12) {
+      pointer.aim = clampStick(delta, 1);
+      pointer.aimOrder = ++this.aimOrder;
+    }
+  }
+
+  up(id) {
+    const pointer = this.pointers.get(id);
+    if (pointer?.kind === 'move') this.stick = { x: 0, y: 0 };
+    this.pointers.delete(id);
+  }
+
+  cancel(id) {
+    // Automatic lostcapture after a successful up must preserve the quick tap.
+    if (!this.pointers.has(id)) return;
+    const pointer = this.pointers.get(id);
+    this.pending = this.pending.filter((press) => press.pointer !== pointer);
+    this.up(id);
+  }
+
+  clear() {
+    this.pointers.clear();
+    this.keys.clear();
+    this.stick = { x: 0, y: 0 };
+    this.aimOrder = 0;
+    this.pending = [];
+  }
+
+  take() {
+    const held = [
+      ...new Set(
+        [...this.pointers.values()]
+          .map((pointer) => pointer.kind)
+          .filter((kind) => !['move', 'guard', 'dodge'].includes(kind)),
+      ),
+    ];
+    const move = {
+      x:
+        this.stick.x +
+        (this.keys.has('KeyD') ? 1 : 0) -
+        (this.keys.has('KeyA') ? 1 : 0),
+      y:
+        this.stick.y +
+        (this.keys.has('KeyS') ? 1 : 0) -
+        (this.keys.has('KeyW') ? 1 : 0),
+    };
+    const length = Math.hypot(move.x, move.y);
+    if (length > 1) {
+      move.x /= length;
+      move.y /= length;
+    }
+    const presses = this.pending.splice(0);
+    return {
+      move,
+      aim: this.aim,
+      actions: presses
+        .filter((press) => !['guard', 'dodge'].includes(press.kind))
+        .map((press) => press.kind),
+      held,
+      guard: this.guardHeld(),
+      guardPressed: presses.some((press) => press.kind === 'guard'),
+      dodge: presses.some((press) => press.kind === 'dodge'),
+    };
+  }
+}
+
+export function attachInput({
+  canvas,
+  onMenu,
+  onRetry,
+  isPaused,
+  onInteraction = () => {},
+}) {
+  const state = new InputState();
+  const map = {
+    KeyQ: 'heavy',
+    KeyE: 'special',
+    Digit1: 'special',
+    Space: 'dodge',
+    KeyF: 'guard',
+  };
+  let mouse = null,
+    touch = false;
+
+  const bind = (element, kind) => {
+    element.addEventListener('pointerdown', (event) => {
+      if (isPaused()) return;
+      onInteraction();
+      event.preventDefault();
+      touch = true;
+      document.body.classList.add('touch');
+      element.setPointerCapture(event.pointerId);
+      element.classList.add('pressed');
+      state.down(event.pointerId, kind, { x: event.clientX, y: event.clientY });
+    });
+    element.addEventListener('pointermove', (event) => {
+      state.move(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (kind === 'move') {
+        element.style.setProperty('--knob-x', `${state.stick.x * 36}px`);
+        element.style.setProperty('--knob-y', `${state.stick.y * 36}px`);
+      } else {
+        const aim = state.pointers.get(event.pointerId)?.aim;
+        if (aim)
+          element.style.setProperty(
+            '--aim-angle',
+            `${Math.atan2(aim.y, aim.x)}rad`,
+          );
+      }
+    });
+    const release = (event) => {
+      if (event.type === 'pointerup') state.up(event.pointerId);
+      else state.cancel(event.pointerId);
+      if (
+        ![...state.pointers.values()].some((pointer) => pointer.kind === kind)
+      ) {
+        element.classList.remove('pressed');
+      }
+      if (kind === 'move') {
+        element.style.setProperty('--knob-x', '0px');
+        element.style.setProperty('--knob-y', '0px');
+      }
+    };
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      element.addEventListener(type, release);
+    }
+  };
+  bind(document.querySelector('#move'), 'move');
+  for (const element of document.querySelectorAll('[data-action]'))
+    bind(element, element.dataset.action);
+
+  canvas.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse') {
+      touch = false;
+      mouse = { x: event.clientX, y: event.clientY };
+    }
+  });
+  canvas.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'mouse' || isPaused()) return;
+    onInteraction();
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    mouse = { x: event.clientX, y: event.clientY };
+    state.down(event.pointerId, event.button === 2 ? 'stab' : 'slash', mouse);
+  });
+  canvas.addEventListener('pointerup', (event) => state.up(event.pointerId));
+  canvas.addEventListener('pointercancel', (event) =>
+    state.cancel(event.pointerId),
+  );
+  canvas.addEventListener('lostpointercapture', (event) =>
+    state.cancel(event.pointerId),
+  );
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  function retryAllowed() {
+    if (
+      document.hidden ||
+      document.getElementById('menu')?.open ||
+      document.getElementById('entry')?.hidden === false
+    )
+      return false;
+    // Main treats a finished encounter as paused; retain desktop death/retry.
+    return !isPaused() || document.getElementById('ending')?.hidden === false;
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if (event.code === 'Escape') {
+      event.preventDefault();
+      if (!event.repeat) onMenu();
+      return;
+    }
+    if (event.code === 'KeyR') {
+      event.preventDefault();
+      if (!event.repeat && retryAllowed()) onRetry();
+      return;
+    }
+    if (isPaused()) return;
+    onInteraction();
+    if (['KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
+      event.preventDefault();
+      state.keys.add(event.code);
+    }
+    if (map[event.code] && !event.repeat) {
+      event.preventDefault();
+      state.down(event.code, map[event.code], { x: 0, y: 0 });
+    }
+  });
+  window.addEventListener('keyup', (event) => {
+    state.keys.delete(event.code);
+    state.up(event.code);
+  });
+
+  function clear() {
+    state.clear();
+    mouse = null;
+    for (const element of document.querySelectorAll('.pressed'))
+      element.classList.remove('pressed');
+    const move = document.querySelector('#move');
+    move.style.setProperty('--knob-x', '0px');
+    move.style.setProperty('--knob-y', '0px');
+  }
+  window.addEventListener('blur', clear);
+  document.addEventListener('visibilitychange', clear);
+  return {
+    state,
+    clear,
+    take: () => ({ ...state.take(), mouse: touch ? null : mouse }),
+  };
+}
