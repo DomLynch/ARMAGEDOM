@@ -484,3 +484,20 @@ summary {
     bottom: 0;
   }
 }
+
+/* Energy feedback retains each control's hit area and drag-to-aim input. */
+#stamina-state {
+  color: var(--gold);
+  letter-spacing: 0;
+}
+#stamina-bar.low-energy {
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.action.low-energy {
+  color: #a49c8a;
+  border-color: rgba(233, 227, 211, 0.28);
+  background: rgba(12, 18, 18, 0.34);
+}
+.action.low-energy.pressed {
+  border-color: var(--gold);
+}

@@ -18,13 +18,16 @@ class Element extends EventTarget {
         enabled ? classes.add(name) : classes.delete(name),
       contains: (name) => classes.has(name),
     };
+    this.attributes = new Map();
     this.small = { textContent: '' };
   }
   querySelector(selector) {
     assert.equal(selector, 'small');
     return this.small;
   }
-  setAttribute() {}
+  setAttribute(name, value) {
+    this.attributes.set(name, String(value));
+  }
   showModal() {
     this.open = true;
   }
@@ -132,14 +135,15 @@ test('donor displays actual 150HP maximum and held guard without false break dur
   hud.update(g);
   assert.equal(el('health-number').textContent, '75 / 150');
   assert.equal(el('health-fill').style.width, '50%');
-  assert.equal(el('guard-number').textContent, 100);
+  assert.equal(el('guard-number').textContent, '100 / 100');
   assert.equal(el('guard-fill').style.width, '100%');
   assert.equal(el('guard').classList.contains('pressed'), true);
   g.player.guard = 25;
   g.player.guarding = false;
   g.player.guardBrokenUntil = 11;
   hud.update(g);
-  assert.equal(el('guard-number').textContent, 'BROKEN');
+  assert.equal(el('guard-number').textContent, '25 / 100');
+  assert.equal(el('stamina-state').textContent, 'GUARD BROKEN');
   assert.equal(el('guard-fill').style.width, '25%');
   assert.equal(el('guard').classList.contains('pressed'), false);
 });
@@ -188,4 +192,94 @@ test('donor death, retry and victory retain existing controls with accurate oppo
   hud.update(g);
   assert.equal(el('result').textContent, 'CHECKPOINT CLEARED');
   assert.equal(el('result-hint').textContent, 'The Goblin has fallen.');
+});
+
+const costs = { slash: 18, stab: 14, heavy: 26, special: 40, dodge: 30 };
+test('stamina uses the unified player resource and an accessible clamped gold bar', (t) => {
+  const { hud, el } = setup(t),
+    g = game(true);
+  Object.assign(g.player, {
+    stamina: 35,
+    maxStamina: 100,
+    guard: 90,
+    exhausted: false,
+  });
+  g.staminaCosts = costs;
+  hud.update(g);
+  assert.equal(el('guard-number').textContent, '35 / 100');
+  assert.equal(el('guard-fill').style.width, '35%');
+  assert.equal(el('stamina-bar').attributes.get('aria-valuenow'), '35');
+  assert.equal(el('stamina-bar').attributes.get('aria-valuemax'), '100');
+  assert.equal(el('stamina-state').textContent, 'LOW');
+});
+test('unaffordable actions dim without disabling aim or held guard and preserve cooldown', (t) => {
+  const { hud, el } = setup(t),
+    g = game(true);
+  Object.assign(g.player, { stamina: 17, maxStamina: 100, exhausted: false });
+  g.staminaCosts = costs;
+  g.player.specialReady = 17.5;
+  hud.update(g);
+  assert.equal(el('slash').classList.contains('low-energy'), true);
+  assert.equal(el('stab').classList.contains('low-energy'), false);
+  assert.equal(el('heavy').classList.contains('low-energy'), true);
+  assert.equal(el('special').small.textContent, '7.5s · LOW');
+  assert.equal(el('slash').small.textContent, 'LOW');
+  assert.equal(Number(el('special').style['--ready']), 0.5);
+  assert.equal(el('guard').classList.contains('low-energy'), false);
+  assert.equal(el('guard').classList.contains('pressed'), true);
+  for (const id of ['slash', 'stab', 'heavy', 'special', 'dodge', 'guard']) {
+    assert.notEqual(el(id).disabled, true);
+    assert.equal(el(id).attributes.has('disabled'), false);
+    assert.equal(el(id).attributes.has('aria-disabled'), false);
+  }
+});
+test('exhaustion dims all six controls and recovery/retry clears every stale hint', (t) => {
+  const { hud, el } = setup(t),
+    g = game(true);
+  Object.assign(g.player, { stamina: 40, maxStamina: 100, exhausted: true });
+  g.staminaCosts = costs;
+  hud.update(g);
+  assert.equal(el('stamina-state').textContent, 'EXHAUSTED');
+  for (const id of ['slash', 'stab', 'heavy', 'special', 'dodge', 'guard'])
+    assert.equal(el(id).classList.contains('low-energy'), true);
+  const fresh = game(true);
+  Object.assign(fresh.player, {
+    stamina: 100,
+    maxStamina: 100,
+    exhausted: false,
+  });
+  fresh.staminaCosts = costs;
+  hud.update(fresh);
+  assert.equal(el('stamina-state').textContent, '');
+  assert.equal(el('guard-fill').style.width, '100%');
+  for (const id of ['slash', 'stab', 'heavy', 'special', 'dodge', 'guard'])
+    assert.equal(el(id).classList.contains('low-energy'), false);
+  for (const id of ['slash', 'stab', 'heavy', 'special', 'dodge'])
+    assert.equal(el(id).small.textContent, '');
+});
+test('exact cost is affordable, zero stamina dims guard, invalid/out-of-range values stay finite', (t) => {
+  const { hud, el } = setup(t),
+    g = game(true);
+  g.staminaCosts = costs;
+  Object.assign(g.player, { stamina: 18, maxStamina: 100, exhausted: false });
+  hud.update(g);
+  assert.equal(el('slash').classList.contains('low-energy'), false);
+  for (const [value, maximum, width, number] of [
+    [-10, 100, '0%', '0 / 100'],
+    [140, 100, '100%', '100 / 100'],
+    [NaN, 100, '0%', '0 / 100'],
+    [Infinity, 0, '0%', '0 / 100'],
+    [30, 60, '50%', '30 / 60'],
+  ]) {
+    Object.assign(g.player, { stamina: value, maxStamina: maximum });
+    hud.update(g);
+    assert.equal(el('guard-fill').style.width, width);
+    assert.equal(el('guard-number').textContent, number);
+    assert.ok(
+      Number.isFinite(
+        Number(el('stamina-bar').attributes.get('aria-valuenow')),
+      ),
+    );
+    assert.equal(el('guard').classList.contains('low-energy'), width === '0%');
+  }
 });

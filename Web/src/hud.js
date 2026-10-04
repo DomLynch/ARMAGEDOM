@@ -35,7 +35,8 @@ export function createHUD({ onRetry, onPause, onSound }) {
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', pause);
   resize();
-  let lastMessage = '';
+  let lastMessage = '',
+    lastStaminaState = null;
   return {
     toggleMenu,
     resize,
@@ -58,9 +59,58 @@ export function createHUD({ onRetry, onPause, onSound }) {
         donor = g.pilot === 'donor-knife';
       el('health-fill').style.width = `${(p.hp / p.maxHP) * 100}%`;
       el('health-number').textContent = `${Math.ceil(p.hp)} / ${p.maxHP}`;
-      el('guard-fill').style.width = `${p.guard}%`;
-      el('guard-number').textContent =
-        p.guardBrokenUntil > g.time ? 'BROKEN' : Math.ceil(p.guard);
+      const maximum =
+        Number.isFinite(p.maxStamina) && p.maxStamina > 0 ? p.maxStamina : 100;
+      const rawStamina = p.stamina ?? p.guard;
+      const stamina = Math.min(
+        maximum,
+        Math.max(0, Number.isFinite(rawStamina) ? rawStamina : 0),
+      );
+      const exhausted = p.exhausted === true;
+      const unaffordable = (id) => {
+        const cost = g.staminaCosts?.[id];
+        return id === 'guard'
+          ? stamina <= 0 || exhausted
+          : Number.isFinite(cost) && cost > 0 && (stamina < cost || exhausted);
+      };
+      const low =
+        stamina <= 0 ||
+        ['slash', 'stab', 'heavy', 'special', 'dodge'].some(unaffordable);
+      const staminaState = exhausted
+        ? 'EXHAUSTED'
+        : p.guardBrokenUntil > g.time
+          ? 'GUARD BROKEN'
+          : low
+            ? 'LOW'
+            : '';
+      el('guard-fill').style.width = `${(stamina / maximum) * 100}%`;
+      el('guard-number').textContent = `${Math.ceil(stamina)} / ${maximum}`;
+      const bar = el('stamina-bar');
+      bar.setAttribute('aria-valuenow', String(stamina));
+      bar.setAttribute('aria-valuemax', String(maximum));
+      bar.classList.toggle('low-energy', low || exhausted);
+      if (staminaState !== lastStaminaState) {
+        el('stamina-state').textContent = staminaState;
+        lastStaminaState = staminaState;
+      }
+      for (const id of [
+        'slash',
+        'stab',
+        'heavy',
+        'special',
+        'dodge',
+        'guard',
+      ]) {
+        const button = el(id),
+          lowEnergy = unaffordable(id);
+        button.classList.toggle('low-energy', lowEnergy);
+        button.setAttribute(
+          'aria-label',
+          `${id}${lowEnergy ? ' · Low stamina' : ''}`,
+        );
+        if (id === 'slash' || id === 'stab')
+          button.querySelector('small').textContent = lowEnergy ? 'LOW' : '';
+      }
       el('objective').textContent = donor
         ? `WESTMINSTER · GOBLIN ENCOUNTER · ${g.enemies.length} HOSTILES`
         : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
@@ -83,8 +133,12 @@ export function createHUD({ onRetry, onPause, onSound }) {
           '--ready',
           String(period > 0 ? 1 - left / period : 1),
         );
-        button.querySelector('small').textContent =
-          left > 0 ? `${left.toFixed(1)}s` : '';
+        button.querySelector('small').textContent = [
+          left > 0 ? `${left.toFixed(1)}s` : '',
+          unaffordable(id) ? 'LOW' : '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
       }
       el('guard').classList.toggle('pressed', p.guarding);
       const boss = g.enemies.find((e) => e.kind === 3);
