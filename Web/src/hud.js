@@ -150,9 +150,10 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
       if(pistol){
         const equipped=pistol.equipped;
         if(equipped!==lastPistolEquipped){
-          for(const [id,label] of Object.entries(equipped?{slash:'FIRE / AIM',stab:'RELOAD',heavy:'MELEE',special:'UNAVAILABLE',guard:'UNAVAILABLE'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
+          for(const [id,label] of Object.entries(equipped?{slash:'FIRE / AIM',stab:'RELOAD',heavy:'MELEE',special:'NO SPECIAL',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
           el('special').disabled=el('guard').disabled=equipped;lastPistolEquipped=equipped;
         }
+        if(equipped){el('special').setAttribute('aria-label','Special unavailable with pistol');el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
         el('ammo').hidden=!equipped;
         el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
         el('slash').querySelector('small').textContent=equipped?`${pistol.magazine}/6`:'';
