@@ -195,3 +195,25 @@ test('cancelling a reused pointer ID preserves its earlier completed quick tap',
   send(e.heavy, 'pointercancel');
   assert.deepEqual(input.take().actions, ['slash']);
 });
+
+for (const ending of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  test(`second movement touch cannot steal steering or stop the owner on ${ending}`, (t) => {
+    const { elements: e, input } = setup(t);
+    send(e.move, 'pointerdown', { pointerId: 1 });
+    send(e.move, 'pointermove', { pointerId: 1, clientX: 46 });
+    send(e.move, 'pointerdown', { pointerId: 2 });
+    send(e.move, 'pointermove', { pointerId: 2, clientX: -46 });
+    assert.deepEqual(input.take().move, { x: 1, y: 0 });
+    send(e.move, ending, { pointerId: 2 });
+    assert.deepEqual(input.take().move, { x: 1, y: 0 });
+    assert.equal(e.move.style.get('--knob-x'), '36px');
+    assert.equal(e.move.classList.contains('pressed'), true);
+    send(e.move, 'pointercancel', { pointerId: 1 });
+    assert.deepEqual(input.take().move, { x: 0, y: 0 });
+    assert.equal(e.move.style.get('--knob-x'), '0px');
+    assert.equal(e.move.classList.contains('pressed'), false);
+    send(e.move, 'pointerdown', { pointerId: 3 });
+    send(e.move, 'pointermove', { pointerId: 3, clientY: -46 });
+    assert.deepEqual(input.take().move, { x: 0, y: -1 });
+  });
+}
