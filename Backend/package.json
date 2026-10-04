@@ -1,0 +1,16 @@
+{
+  "name": "armagedom-backend-foundation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/client.test.mjs",
+    "test:database": "python3 tests/database_test.py",
+    "test:api": "node tests/dev-api.mjs"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.117.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
