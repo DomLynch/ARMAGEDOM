@@ -1,21 +1,26 @@
 // Linear RGB factors, like glTF baseColorFactor; existing vertex grime stays active.
 const palette=(id,jacket,trousers)=>Object.freeze({id,jacket:Object.freeze(jacket),trousers:Object.freeze(trousers)});
 export const HOLLOW_PALETTES=Object.freeze([
- palette('charcoal',[.09,.10,.10],[.13,.125,.11]),
- palette('brown',[.20,.13,.08],[.16,.13,.105]),
- palette('dark-red',[.23,.075,.06],[.14,.105,.09]),
- palette('olive',[.12,.17,.075],[.135,.14,.10]),
- palette('dirty-ochre',[.30,.23,.08],[.18,.15,.10]),
- palette('muted-purple',[.17,.10,.19],[.135,.115,.14]),
- palette('dusty-blue-grey',[.11,.17,.23],[.12,.14,.155]),
+ palette('charcoal',[.025,.03,.035],[.055,.055,.05]),
+ palette('brown',[.26,.09,.035],[.18,.10,.055]),
+ palette('dark-red',[.36,.045,.025],[.20,.065,.045]),
+ palette('olive',[.075,.20,.04],[.085,.12,.045]),
+ palette('dirty-ochre',[.42,.27,.045],[.23,.16,.055]),
+ palette('muted-purple',[.23,.045,.29],[.14,.065,.17]),
+ palette('dusty-blue-grey',[.045,.15,.33],[.065,.105,.18]),
 ]);
 export const HOLLOW_GARMENTS=Object.freeze({jacket:'Torn charcoal canvas jacket',trousers:'Worn tobacco trousers'});
-// Current Hollow IDs are consecutive at spawn. Multiplication by3 permutes all7.
-// No frame RNG: same entity ID/encounter seed always selects the same cached object.
+// Warm, cool, then light/dark/olive: each consecutive3-ID window spans families.
+// Six cached triplets retain all7 colours across groups without per-frame RNG.
+const TRIPLETS=Object.freeze([
+ [2,6,4],[1,5,0],[2,6,3],[1,5,4],[2,6,0],[1,5,3],
+].map(row=>Object.freeze(row)));
 export function hollowPaletteFor(id,seed='westminster-hollow'){
  if(!Number.isSafeInteger(id)||id<0||typeof seed!=='string')throw Error('Hollow palette requires a stable numeric ID and string seed');
  let hash=2166136261;for(let i=0;i<seed.length;i++)hash=Math.imul(hash^seed.charCodeAt(i),16777619)>>>0;
- return HOLLOW_PALETTES[((id%7)*3+hash%7)%7];
+ // Default seed hash%6 is2; offset4 makes IDs1/2/3 rust-red/blue/ochre.
+ const n=id-1,slot=((n%3)+3)%3,row=((Math.floor(n/3)+(hash%6+4)%6)%6+6)%6;
+ return HOLLOW_PALETTES[TRIPLETS[row][slot]];
 }
 // Call on EXISTING per-actor material clones once at creation, only for Hollow.
 // No clone, texture, geometry, emissive, roughness or shader changes here.
