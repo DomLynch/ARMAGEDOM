@@ -39,7 +39,7 @@ function pistolIntent(g,intent){
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
  const explicit=!!intent.manualPistolAim&&Number.isFinite(intent.aim?.x)&&Number.isFinite(intent.aim?.z)&&mag(intent.aim)>.001;
- const reference=explicit?normal(intent.aim):{...p.facing},switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/30);
+ const reference=explicit?normal(intent.aim):mag(intent.move??{x:0,z:0})>.01?normal(intent.move):{...p.facing},switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/30);
  const target=firing&&canAct&&explicit&&!intent.cancel?selectPistolTarget({position:p.pos,aim:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
  if(target&&(switchTarget||g.pistolTargetId!==target.targetId))g.pistolTargetFacing={...reference};
  g.pistolTargetId=target?.targetId??null;
