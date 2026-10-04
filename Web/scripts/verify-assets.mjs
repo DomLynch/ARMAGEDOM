@@ -104,6 +104,10 @@ export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossl
   }
  }
  for(const file of worldManifest.files){const name=path.posix.join(path.posix.dirname(world),safe(file.path));const raw=await select(name,file);if(!raw.equals(await read(publicDir,name)))throw Error(`Copied world differs from source: ${name}`);}
+ for(const [area,texture] of Object.entries(worldManifest.backdrops??{})){
+  const name=path.posix.join(safe(area),safe(texture));
+  if(!worldManifest.files.some(file=>file.path===name))throw Error(`Unlisted backdrop: ${name}`);
+ }
  if(audio){
   safe(audio);
   if(!code.includes(audio))throw Error('Generated code does not select configured audio manifest');

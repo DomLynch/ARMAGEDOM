@@ -54,3 +54,31 @@ test('audio tamper rejected before exclusions are deleted',async t=>{const f=awa
 test('missing or symlink WAV rejected',async t=>{const f=await audioFixture(t);await rm(path.join(f.dist,'audio/combat.wav'));await assert.rejects(verifyAssets(f));await symlink(path.join(f.publicDir,'audio/combat.wav'),path.join(f.dist,'audio/combat.wav'));await assert.rejects(verifyAssets(f),/Symlink/);});
 test('unsafe audio URL and invalid hash metadata rejected',async t=>{const f=await audioFixture(t);f.manifest.url='../outside.wav';await f.set();await assert.rejects(verifyAssets(f),/Unsafe/);f.manifest.url='combat.wav';delete f.manifest.sha256;await f.set();await assert.rejects(verifyAssets(f),/hash record/);});
 test('audio selection must appear in generated code',async t=>{const f=await audioFixture(t);await f.put('assets/index-ABC.js','fetch("assets/manifest-lossless.json");fetch("world/manifest.json")',false);await assert.rejects(verifyAssets(f),/configured audio/);});
+
+for(const copied of [false,true])test(`backdrop selection missing from allowlist fails before pruning (copied=${copied})`,async t=>{
+ const f=await fixture(t),manifest=JSON.parse(await readFile(path.join(f.publicDir,'world/manifest.json')));
+ manifest.backdrops={west:'backdrop.webp'};
+ if(copied)await f.put('world/west/backdrop.webp','selected-picture');
+ await f.put('world/manifest.json',JSON.stringify(manifest));
+ await assert.rejects(verifyAssets({...f,prune:true}),/Unlisted backdrop/);
+ assert.equal(await readFile(path.join(f.dist,'assets/unused.glb'),'utf8'),'original');
+ if(copied)assert.equal(await readFile(path.join(f.dist,'world/west/backdrop.webp'),'utf8'),'selected-picture');
+});
+test('backdrop selection keeps the hashed WebP and prunes only its unselected PNG copy',async t=>{
+ const f=await fixture(t),manifest=JSON.parse(await readFile(path.join(f.publicDir,'world/manifest.json'))),raw='selected-picture';
+ manifest.backdrops={west:'backdrop.webp'};
+ manifest.files[1]={path:'west/backdrop.webp',bytes:raw.length,sha256:sha(raw)};
+ await f.put('world/west/backdrop.webp',raw);await f.put('world/manifest.json',JSON.stringify(manifest));
+ const result=await verifyAssets({...f,prune:true});
+ assert.ok(result.files.some(file=>file.path==='world/west/backdrop.webp'));
+ assert.ok(result.removed.includes('world/west/backdrop.png'));
+ assert.equal(await readFile(path.join(f.publicDir,'world/west/backdrop.png'),'utf8'),'picture');
+});
+test('backdrop selection rejects unsafe area or texture paths before pruning',async t=>{
+ const f=await fixture(t),manifest=JSON.parse(await readFile(path.join(f.publicDir,'world/manifest.json')));
+ for(const backdrops of [{west:'../escape.webp'},{'../west':'backdrop.png'},{west:'https://example.test/a.webp'}]){
+  manifest.backdrops=backdrops;await f.put('world/manifest.json',JSON.stringify(manifest));
+  await assert.rejects(verifyAssets({...f,prune:true}),/Unsafe/);
+  assert.equal(await readFile(path.join(f.dist,'assets/unused.glb'),'utf8'),'original');
+ }
+});
