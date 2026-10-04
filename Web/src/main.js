@@ -5,6 +5,7 @@ import { createGame, stepGame } from "./combat.js";
 import { attachInput } from "./input.js";
 import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
+import { travelTo, continueExploring } from "./travel.js";
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -26,6 +27,10 @@ let renderer,
   loading = false,
   paused = false,
   contextLost = false,
+  traveling = false,
+  travelLatch = false,
+  startup = null,
+  focusLost = false,
   last = 0,
   accumulator = 0;
 const scene = new THREE.Scene(),
@@ -51,11 +56,32 @@ function pause(value) {
 }
 const hud = createHUD({
   onRetry: restart,
+  onExplore: () => {
+    if (!traveling && continueExploring(game)) {
+      input.clear();
+      accumulator = 0;
+      last = 0;
+      hud.update(game);
+      audio.unlock().catch(() => {});
+    }
+  },
   onPause: pause,
-  onSound: (value) => audio.setEnabled(value),
+  onSound: (value) => {
+    audio.setEnabled(value);
+    if (value) audio.unlock().catch(() => {});
+  },
 });
-function restart() {
-  if (!loaded) return;
+async function restart() {
+  if (!loaded || traveling || contextLost) return;
+  if (world.areaId !== "westminster") {
+    if (
+      !(await crossArea({
+        areaId: "westminster",
+        entryPoint: world.manifest.entries.westminster,
+      }))
+    )
+      return;
+  }
   input.clear();
   actors.reset();
   effects.reset();
@@ -75,7 +101,8 @@ input = attachInput({
     if (!paused) audio.unlock().catch(() => {});
   },
   onRetry: restart,
-  isPaused: () => !loaded || paused || contextLost || game?.finished,
+  isPaused: () =>
+    !loaded || paused || traveling || contextLost || game?.finished,
 });
 document
   .getElementById("resume")
@@ -98,7 +125,14 @@ function resize() {
 }
 window.addEventListener("resize", resize);
 window.addEventListener("blur", () => {
+  focusLost = true;
   if (loaded && !paused) hud.toggleMenu();
+});
+window.addEventListener("focus", () => {
+  focusLost = false;
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && loaded && !document.getElementById("menu").open) hud.toggleMenu();
 });
 function toDomain(v) {
   return {
@@ -131,13 +165,20 @@ function frame(ms) {
   const dt = last ? Math.min(0.1, (ms - last) / 1000) : 0;
   last = ms;
   if (!world || !game || contextLost) return;
-  if (loaded && !paused && !game.finished) {
+  if (loaded && !paused && !traveling && !game.finished) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
       stepGame(game, intent(), 1 / 60);
       effects.events(game);
       audio.play(game.events);
       accumulator -= 1 / 60;
+      const request = world.travelAt(game.player.pos);
+      if (!request) travelLatch = false;
+      if (request && !travelLatch) {
+        travelLatch = true;
+        crossArea(request);
+        break;
+      }
       if (game.finished) {
         input.clear();
         break;
@@ -145,13 +186,54 @@ function frame(ms) {
     }
   }
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
-  actors?.update(game, paused ? 0 : dt);
+  actors?.update(game, paused || traveling ? 0 : dt);
   effects?.update(game);
   rim.position
     .copy(world.toRender(game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));
   hud.update(game);
   renderer.render(scene, camera);
+}
+async function crossArea(request) {
+  traveling = true;
+  accumulator = 0;
+  input.clear();
+  game.message = `Traveling to ${request.areaId.toUpperCase()}…`;
+  game.messageUntil = game.time + 4;
+  try {
+    await travelTo(game, request);
+    if (contextLost) return false;
+    effects.reset();
+    actors.reset();
+    game.events = [];
+    world.update(game.player.pos, 0, innerWidth, innerHeight, true);
+    actors.update(game, 0);
+    console.info(
+      "ARMAGEDOM_TRAVEL",
+      JSON.stringify({ area: world.areaId, position: game.player.pos }),
+    );
+    return true;
+  } catch (error) {
+    console.error("ARMAGEDOM_TRAVEL_FAILED", error);
+    game.message =
+      "Could not load that area. Move away and try the exit again.";
+    game.messageUntil = game.time + 5;
+    return false;
+  } finally {
+    traveling = false;
+    input.clear();
+    accumulator = 0;
+    last = 0;
+    hud.update(game);
+    if (!contextLost) renderer.render(scene, camera);
+  }
+}
+function prepareEncounter() {
+  // Fetch and decode on page arrival, rather than making Enter start every request.
+  return (startup ??= Promise.allSettled([
+    createWorld({ THREE, scene, camera, baseUrl, viewZoomMultiplier }),
+    loadActors(baseUrl, () => {}, actorManifest),
+  ]));
 }
 canvas.addEventListener("webglcontextlost", (event) => {
   event.preventDefault();
@@ -185,15 +267,13 @@ enter.addEventListener("click", async () => {
     renderer.toneMapping = THREE.NoToneMapping;
     resize();
     hud.loading("Loading London and the original character rigs…");
-    const results = await Promise.allSettled([
-      createWorld({ THREE, renderer, scene, camera, baseUrl, viewZoomMultiplier }),
-      loadActors(
-        baseUrl,
-        (name) =>
-          hud.loading(`${name.toUpperCase()} ready · loading encounter…`),
-        actorManifest,
-      ),
-    ]);
+    const results = await prepareEncounter();
+    startup = null;
+    if (contextLost) {
+      for (const result of results)
+        if (result.status === "fulfilled") result.value.dispose();
+      return;
+    }
     if (results.some((r) => r.status === "rejected")) {
       if (results[0].status === "fulfilled") results[0].value.dispose();
       if (results[1].status === "fulfilled") results[1].value.dispose();
@@ -203,7 +283,9 @@ enter.addEventListener("click", async () => {
     world = nextWorld;
     pendingLibrary = library;
     game = createGame(world, pilot);
-    actors = createActors(scene, world, library, { visualScale: actorVisualScale });
+    actors = createActors(scene, world, library, {
+      visualScale: actorVisualScale,
+    });
     pendingLibrary = null;
     effects = createEffects(scene, world);
     actors.update(game, 0);
@@ -214,9 +296,10 @@ enter.addEventListener("click", async () => {
       );
     loaded = true;
     hud.ready();
+    if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Stamina trial008 · Approved006 framing";
+      "Three.js · London routes009 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
@@ -256,3 +339,4 @@ enter.addEventListener("click", async () => {
     loading = false;
   }
 });
+prepareEncounter();

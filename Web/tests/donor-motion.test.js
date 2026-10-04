@@ -18,3 +18,21 @@ test('Cancellation, responses, guard, roll, special, death and independent mixer
 test('Candidate hashes, preserved roots and rig-specific stride',()=>{for(const entry of Object.values(manifest.files)){const bytes=fs.readFileSync(new URL('../public/assets/donor/'+entry.file,import.meta.url));assert.equal(sha(bytes),entry.sha256);assert.equal(entry.errors,0);}assert.equal(manifest.models.goblin.scale,1);assert.equal(manifest.models.goblin.stride,.7014);assert.deepEqual(goblin.scene.children[0].scale.toArray(),[.7515,.80995,.80995]);});
 test('Moving guard uses native legs and dedicated upper guard; stopped simulation stays still',()=>{const a=actor('hero');a.root.position.z=.02;a.motion.update({hp:100,guarding:true},1,1/60);assert.equal(a.motion.guardUpper.getEffectiveWeight(),1);assert.equal(a.motion.actions.get(a.motion.currentClip).getEffectiveWeight(),0);assert.equal(a.motion.actions.get(a.motion.currentClip+'GuardLegs').getEffectiveWeight(),1);assert(a.motion.actions.get(a.motion.currentClip+'GuardLegs').getClip().tracks.every(t=>!t.name.startsWith('hand_')));const cycle=a.motion.cycle;a.motion.update({hp:100,guarding:true},1,0);assert.equal(a.motion.cycle,cycle);a.motion.dispose();a.motion.dispose();});
 test('A fresh counter swing supersedes lingering parry response',()=>{const a=actor('hero');a.motion.update({hp:100,response:{clip:'Parry',start:0,ticks:10},swing:{clip:'Attack',ageTicks:14,timing:{windup:14,active:6,recovery:16},sourceContact:.34,end:1}},.1,.016);assert.equal(a.motion.currentClip,'Attack');assert.equal(a.motion.currentPhase,.34);a.motion.dispose();});
+test('ordinary 3m/s uses ArmedWalk and no-tick 120Hz frames retain it with the same cadence as 60Hz',()=>{
+ const samples=[];
+ for(const fps of [60,120]){
+  const a=actor('hero');a.root.scale.setScalar(1.265*1.3225);a.root.rotation.y=Math.PI;
+  const entity={hp:100,swing:null,guarding:false};let time=0,accumulator=0,wrong=0;
+  a.motion.update(entity,0,0);
+  for(let frame=0;frame<fps*2;frame++){
+   accumulator+=1/fps;
+   while(accumulator+1e-10>=1/60){time+=1/60;a.root.position.z-=3/60;accumulator-=1/60;}
+   a.motion.update(entity,time,1/fps);
+   if(time>0&&a.motion.currentClip!=='ArmedWalk')wrong++;
+  }
+  samples.push({fps,wrong,phase:a.motion.currentPhase,z:a.root.position.z});a.motion.dispose();
+ }
+ assert.equal(samples[0].wrong,0);assert.equal(samples[1].wrong,0);
+ assert.ok(Math.abs(samples[0].phase-samples[1].phase)<1e-10);
+ assert.ok(Math.abs(samples[0].z-samples[1].z)<1e-10);
+});

@@ -184,3 +184,15 @@ test("actor reset retains the library; disposal frees source resources", async (
   assert.equal(scene.children.length, 0);
   assert.deepEqual(asset.disposed, { geometry: 1, material: 1, texture: 1 });
 });
+
+ test("equipment download starts before the body finishes decoding", async (t) => {
+  manifest(t, { vagrant: { url: "hero.glb", equipment: { url: "knife.glb" } }, goblin: { url: "goblin.glb" } });
+  let resolveHero; const pendingHero = new Promise(resolve => { resolveHero = resolve; });
+  const calls = []; const asset = resource();
+  t.mock.method(GLTFLoader.prototype, "loadAsync", path => { calls.push(path); return path.endsWith("hero.glb") ? pendingHero : Promise.resolve(asset.gltf); });
+  const pending = loadActors(url);
+  await new Promise(resolve => setImmediate(resolve));
+  const equipmentStarted = calls.some(path => path.endsWith("knife.glb"));
+  resolveHero(asset.gltf); const library = await pending; library.dispose();
+  assert.equal(equipmentStarted, true, "equipment must not wait for body network/decode");
+ });

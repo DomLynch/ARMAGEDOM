@@ -45,10 +45,15 @@ export async function loadActors(
   const results = await Promise.allSettled(
     Object.entries(manifest.models).map(async ([name, description]) => {
       const url = new URL(description.url, manifestURL).href;
-      const gltf = await load(url);
-      const equipment = description.equipment
-        ? await load(new URL(description.equipment.url, manifestURL).href)
-        : null;
+      const parts = await Promise.allSettled([
+        load(url),
+        description.equipment
+          ? load(new URL(description.equipment.url, manifestURL).href)
+          : Promise.resolve(null),
+      ]);
+      const failed = parts.find(part => part.status === "rejected");
+      if (failed) throw failed.reason;
+      const [gltf, equipment] = parts.map(part => part.value);
       models.set(name, { gltf, description, equipment });
       onProgress(name);
     }),

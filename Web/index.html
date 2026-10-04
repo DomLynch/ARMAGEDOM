@@ -73,12 +73,14 @@
         <h1>ARMAGEDOM</h1>
         <p>Westminster checkpoint</p>
         <button id="enter">Enter Westminster</button>
-        <p id="loading" role="status">Warrior and Goblin · matched knife combat pilot.</p>
+        <p id="loading" role="status">
+          Warrior and Goblin · matched knife combat pilot.
+        </p>
       </div>
     </section>
     <dialog id="menu">
       <button id="close-menu" class="close" aria-label="Resume">×</button>
-      <p class="eyebrow">WESTMINSTER · LONDON 2030</p>
+      <p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p>
       <h2>ARMAGEDOM</h2>
       <button id="resume">Resume fight</button
       ><button id="sound" aria-pressed="true">Sound on</button>
@@ -99,7 +101,10 @@
           is slower while guarding. Low stamina dims actions; exhausted fighters
           must recover before attacking or dodging.
         </p>
-        <p>Knife pilot: Slash, Stab, Heavy, Pommel, Dodge and frontal Guard. Side and rear hits bypass defence.</p>
+        <p>
+          Knife pilot: Slash, Stab, Heavy, Pommel, Dodge and frontal Guard. Side
+          and rear hits bypass defence.
+        </p>
       </details>
       <button id="retry">Retry encounter</button>
       <p class="version" id="version">Three.js conversion preview</p>
@@ -108,6 +113,7 @@
       <div class="card">
         <h2 id="result"></h2>
         <p id="result-hint"></p>
+        <button id="explore" hidden>Continue exploring</button>
         <button id="again">Try again</button>
       </div>
     </section>
