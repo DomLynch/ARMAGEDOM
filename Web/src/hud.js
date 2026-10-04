@@ -54,28 +54,35 @@ export function createHUD({ onRetry, onPause, onSound }) {
       el('loading').textContent = message;
     },
     update(g) {
-      const p = g.player;
+      const p = g.player,
+        donor = g.pilot === 'donor-knife';
       el('health-fill').style.width = `${(p.hp / p.maxHP) * 100}%`;
       el('health-number').textContent = `${Math.ceil(p.hp)} / ${p.maxHP}`;
       el('guard-fill').style.width = `${p.guard}%`;
       el('guard-number').textContent =
         p.guardBrokenUntil > g.time ? 'BROKEN' : Math.ceil(p.guard);
-      el('objective').textContent =
-        `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
+      el('objective').textContent = donor
+        ? `WESTMINSTER · GOBLIN ENCOUNTER · ${g.enemies.length} HOSTILES`
+        : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
       const message = g.time < g.messageUntil ? g.message : '';
       if (message !== lastMessage) {
         el('notice').textContent = message;
         lastMessage = message;
       }
-      for (const [id, ready, period] of [
+      for (const [id, ready, fallback] of [
         ['heavy', p.heavyReady, 1.6],
         ['special', p.specialReady, 7],
         ['dodge', p.dodgeReady, 1.05],
       ]) {
         const button = el(id),
-          left = Math.max(0, ready - g.time);
+          left = Math.max(0, ready - g.time),
+          period = donor ? (g.cooldowns?.[id] ?? fallback) : fallback;
         button.classList.toggle('cooldown', left > 0);
-        button.style.setProperty('--ready', String(1 - left / period));
+        // Heavy has no extra cooldown in the pilot; its commitment is combat-owned.
+        button.style.setProperty(
+          '--ready',
+          String(period > 0 ? 1 - left / period : 1),
+        );
         button.querySelector('small').textContent =
           left > 0 ? `${left.toFixed(1)}s` : '';
       }
@@ -90,7 +97,9 @@ export function createHUD({ onRetry, onPause, onSound }) {
           ? 'CHECKPOINT CLEARED'
           : 'THE ASH CLAIMS YOU';
         el('result-hint').textContent = g.won
-          ? 'The warlord has fallen.'
+          ? donor
+            ? 'The Goblin has fallen.'
+            : 'The warlord has fallen.'
           : 'Watch their wind-up. Dodge, then strike.';
       }
     },
