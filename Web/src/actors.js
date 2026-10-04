@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
+import {hollowPaletteFor,applyHollowPalette} from "./hollow-palette.js";
 import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
@@ -101,6 +102,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
             : names[entity.kind],
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
+    const palette=entity.rig==='hollow-scavenger'?hollowPaletteFor(entity.id):null;
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
       description = source.description,
@@ -132,6 +134,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         const original = Array.isArray(o.material) ? o.material : [o.material];
         const copies = original.map((m) => {
           const own = m.clone();
+          if(palette)applyHollowPalette(own,palette);
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
