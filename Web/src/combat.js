@@ -36,7 +36,7 @@ export function attack(g,action,direction=g.player.facing){const p=g.player,def=
  if(action==='heavy')p.heavyReady=g.time+def.cooldown;if(action==='special')p.specialReady=g.time+def.cooldown;
  g.started=true;event(g,'attack',{actor:p,action,...(g.pilot?{moveId:def.moveId,clip:def.clip,weapon:'knife',material:'iron'}:{})});return true;
 }
-function dodge(g,move){if(g.pilot){knifeDodge(g,move);return;}const p=g.player;if(g.finished||p.hp<=0||p.dodgeReady>g.time+EPS)return;
+function dodge(g,move,aim){if(g.pilot){knifeDodge(g,move,aim);return;}const p=g.player;if(g.finished||p.hp<=0||p.dodgeReady>g.time+EPS)return;
  p.swing=null;p.buffer=null;p.guarding=false;p.parryUntil=0;p.velocity={x:0,z:0};p.dodgeDirection=normal(move??p.facing,p.facing);p.facing={...p.dodgeDirection};p.dodgeUntil=g.time+.22;p.invulnerableUntil=g.time+.25;p.dodgeReady=g.time+1.05;g.started=true;event(g,'dodge',{actor:p});
 }
 export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceive(g,hit);const p=g.player,t=g.time;if(g.finished||p.hp<=0||t<p.invulnerableUntil)return false;
@@ -63,7 +63,7 @@ function strike(g,s){const p=g.player,def=s.def;event(g,'strike',{actor:p,action
   if(e.hp<=0)kill(g,e);else if(e.kind!==3){e.staggerUntil=g.time+def.stagger;moveBody(g,e,{x:delta.x*.18,z:delta.z*.18});}
  }
 }
-export function spawnWave(g){if(g.pilot){g.wave=1;g.enemies=[Object.assign(enemy(0,g.world.move(g.player.pos,{x:0,z:4},.4)),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null})];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
+export function spawnWave(g){if(g.pilot){const position=knifeSpawnPosition(g);if(!position)return false;g.wave=1;g.enemies=[Object.assign(enemy(0,position),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null})];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
 const radius=e=>e.kind===3?(e.pattern===1?4:3.5):e.kind===1?2.8:1.8;
 const arc=e=>e.kind===3&&e.pattern===1?360:e.kind===1?110:90;
 function bolt(g,pos,dir,amount){g.bolts.push({id:++serial,pos:{...pos},dir:{...dir},amount,expires:g.time+4});}
@@ -93,7 +93,7 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
 export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};
- if(intent.dodge)dodge(g,move);
+ if(intent.dodge)dodge(g,move,intent.aim);
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
  if(g.pilot)knifeGuard(g,intent,swinging,dodging);else if(p.guarding&&intent.guardPressed)p.parryUntil=t+.16;if(!g.pilot&&!p.guarding)p.parryUntil=0;
@@ -115,6 +115,21 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  }
 }
 
+function knifeSpawnPosition(g){
+ const radius=.4,player=g.player;
+ // Each projection uses the actual world collision radius. Never assume that a
+ // requested offset survives sliding: it may collapse back to the start point.
+ const offsets=[{x:0,z:4},{x:4,z:0},{x:-4,z:0},{x:0,z:-4},
+  {x:3,z:3},{x:-3,z:3},{x:3,z:-3},{x:-3,z:-3}];
+ for(const offset of offsets){
+  const position=g.world.move(player.pos,offset,radius);
+  const circleClear=g.world.geometry?.clear?.(position,radius)??g.world.clear?.(position,radius)??g.world.lineClear(position,position);
+  if(!circleClear||!g.world.lineClear(player.pos,position))continue;
+  if([player,...g.enemies].some(e=>e.hp>0&&mag(sub(position,e.pos))<radius+e.radius))continue;
+  return position;
+ }
+ return null;
+}
 // The pilot uses the same entity/world loop, with a focused move/contact profile.
 // Explicit activation lets Lead integrate the matching assets atomically.
 function knifeMove(entity,action){
@@ -129,11 +144,12 @@ function knifeSwing(g,entity,action,def){
   dir:{...entity.facing},hitIds:new Set(),resolved:false,activeEmitted:false};
 }
 const snapshot=e=>({...e,pos:{...e.pos},facing:{...e.facing}});
-function knifeDodge(g,move){
+function knifeDodge(g,move,aim){
  const p=g.player,t=g.time;
  if(g.finished||p.hp<=0||p.dodgeReady>t+EPS||p.swing||p.hurtUntil>t||p.guardBrokenUntil>t)return;
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.velocity={x:0,z:0};
- p.dodgeDirection=normal(move,{x:-p.facing.x,z:-p.facing.z});p.facing={...p.dodgeDirection};
+ const facing=aim&&Number.isFinite(aim.x)&&Number.isFinite(aim.z)&&mag(aim)>.001?normal(aim):p.facing;
+ p.dodgeDirection=normal(move,{x:-facing.x,z:-facing.z});p.facing={...p.dodgeDirection};
  p.dodgeStart=t;p.dodgeUntil=t+R.roll/60;p.dodgeReady=p.dodgeUntil;
  // Safety is a middle interval, not instant invulnerability on press.
  p.invulnerableUntil=0;g.started=true;event(g,'dodge',{actor:p,clip:'Roll',ticks:R.roll});
