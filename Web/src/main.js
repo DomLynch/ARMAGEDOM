@@ -11,6 +11,7 @@ const canvas = document.getElementById("world"),
 const pilot = { pilot: "donor-knife" };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
+const viewZoomMultiplier = 1.15;
 const actorManifest = "assets/donor/manifest.json";
 const audio = createAudio({ donor: true, baseUrl });
 let renderer,
@@ -184,7 +185,7 @@ enter.addEventListener("click", async () => {
     resize();
     hud.loading("Loading London and the original character rigs…");
     const results = await Promise.allSettled([
-      createWorld({ THREE, renderer, scene, camera, baseUrl }),
+      createWorld({ THREE, renderer, scene, camera, baseUrl, viewZoomMultiplier }),
       loadActors(
         baseUrl,
         (name) =>
@@ -214,7 +215,7 @@ enter.addEventListener("click", async () => {
     hud.ready();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Characters +15% over005 trial006";
+      "Three.js · Larger characters +15% map zoom trial007";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
@@ -227,6 +228,7 @@ enter.addEventListener("click", async () => {
         actorScale: world.layout.characterScale,
         actorVisualScale,
         zoom: world.layout.zoom,
+        viewZoomMultiplier: world.viewZoomMultiplier,
         models: [...library.models.keys()],
         pilot: game.pilot,
         audio: audio.state,
