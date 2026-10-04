@@ -1,3 +1,4 @@
+import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
 import {selectPistolTarget} from './pistol-targeting.js';
 import {createPistolState, stepPistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
@@ -27,6 +28,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
+ if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
@@ -55,7 +57,7 @@ function pistolIntent(g,intent){
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
-   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;
+   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home){target.alerted=true;target.returning=false;}
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',parry:false});
    if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet'});}
   }
@@ -96,7 +98,7 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
-function kill(g,e,meta={}){g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){g.finished=true;g.won=g.player.hp>0;notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+function kill(g,e,meta={}){g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -218,14 +220,41 @@ function hollowSpawn(g){
    positions.push(position);if(positions.length===profile.count)break;
   }
   if(positions.length!==profile.count)continue;
-  g.wave=1;g.enemies=positions.map((position,index)=>knifeEnergy(Object.assign(enemy(0,position),{
-   rig:c.rig,contactRig:c.contactRig,weapon:c.weapon,bodyScale:c.bodyScale,combatScale:p.combatScale,radius,
-   hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
-   ready:g.time+index*profile.aggression
-  }),profile.regen));
+  g.wave=1;g.enemies=positions.map((position,index)=>hollowActor(g,position,index));
+  if(g.areaResidents)initializeAreaResidents(g);
   notify(g,'LONDON · Hollow scavengers');event(g,'wave',{count:profile.count,encounter:profile.id});return true;
  }
  return false;
+}
+// The opening group and placed residents share the same Hollow factory/rules.
+function hollowActor(g,position,index=0){
+ const profile=g.encounter,c=profile.character;
+ return knifeEnergy(Object.assign(enemy(0,position),{rig:c.rig,contactRig:c.contactRig,weapon:c.weapon,
+  bodyScale:c.bodyScale,combatScale:g.player.combatScale,radius:.4*c.bodyScale,
+  hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
+  ready:g.time+index*profile.aggression}),profile.regen);
+}
+export function initializeAreaResidents(g){
+ if(!g.areaResidents||g.areaInitialized)return;
+ const area=g.world.areaId??'westminster';
+ // The original atomic opening spawn must succeed before West extras exist.
+ if(area==='westminster'&&!g.wave)return;
+ const residents=AREA_MOB_SPAWNS[area].map(placement=>Object.assign(hollowActor(g,placement.pos),{
+  placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
+ }));
+ g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=true;g.encounterCleared=false;
+ if(area!=='westminster'){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
+}
+function residentPatrol(g,e,dt){
+ const playerHome=mag(sub(g.player.pos,e.home));
+ if(e.alerted&&playerHome>12){e.alerted=false;e.returning=true;}
+ if(e.returning&&mag(sub(e.pos,e.home))<.2)e.returning=false;
+ if(!e.returning&&!e.alerted&&mag(sub(g.player.pos,e.pos))<=6&&g.world.lineClear(e.pos,g.player.pos))e.alerted=true;
+ if(e.alerted)return false;
+ let goal=e.returning?e.home:e.patrol[e.patrolIndex],delta=sub(goal,e.pos),distance=mag(delta);
+ if(distance<.15&&!e.returning){e.patrolIndex=1-e.patrolIndex;goal=e.patrol[e.patrolIndex];delta=sub(goal,e.pos);distance=mag(delta);}
+ if(distance>.05)enemyMove(g,e,normal(delta),e.moveSpeed,Math.min(dt,distance/e.moveSpeed));
+ return true;
 }
 function knifeSpawnPosition(g){
  const radius=.4,player=g.player;
@@ -314,6 +343,7 @@ function knifeEnemy(g,e,dt){
  knifeRegen(g,e,dt,!!e.swing||g.time<e.recoverUntil||g.time<e.staggerUntil);
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
+ if(e.home&&residentPatrol(g,e,dt))return;
  const delta=sub(g.player.pos,e.pos),distance=mag(delta),dir=normal(delta,e.facing);
  const action=['slash','stab','slash','heavy'][e.pattern%4],def=knifeMove(e,action);
  if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,e.moveSpeed??R.walkSpeed*1.2,dt);return;}
@@ -348,7 +378,7 @@ function knifeContacts(g,before){
  for(const {a,d,def} of contacts){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
   else{
-   const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;
+   const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home){d.alerted=true;d.returning=false;}
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.hp?'Hit':'Death',start:g.time,ticks:d.hp?Math.round(def.stagger*60):144};
    event(g,'hit',{actor:d,amount,...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}

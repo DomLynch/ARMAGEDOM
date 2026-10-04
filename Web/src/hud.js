@@ -1,4 +1,4 @@
-export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onPistol = () => {} }) {
+export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
   let loaded = false,
@@ -27,7 +27,6 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
   };
   el("again").onclick = onRetry;
   el("pistol-interact").onclick = onPistol;
-  el("explore").onclick = onExplore;
   el("sound").onclick = () => {
     sound = !sound;
     el("sound").textContent = sound ? "Sound on" : "Sound off";
@@ -115,14 +114,11 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
       }
       const area = (g.world?.areaId ?? "westminster").toUpperCase();
       el("menu-area").textContent = `${area} · LONDON 2030`;
-      el("objective").textContent =
-        g.world?.areaId && g.world.areaId !== "westminster"
-          ? `${area} · EXPLORING`
-          : g.encounterCleared
-            ? `${area} · CLEARED · EXPLORE LONDON`
-            : donor
-              ? `WESTMINSTER · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
-              : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
+      el("objective").textContent = g.encounterCleared
+        ? `${area} · CLEARED · EXPLORE LONDON`
+        : donor
+          ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
+          : `${area} · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
       const message = g.time < g.messageUntil ? g.message : "";
       if (message !== lastMessage) {
         el("notice").textContent = message;
@@ -169,18 +165,12 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
       el("boss").hidden = !boss;
       if (boss)
         el("boss-fill").style.width = `${(boss.hp / boss.maxHP) * 100}%`;
-      el("ending").hidden = !g.finished;
-      el("explore").hidden = !g.finished || !g.won;
-      if (g.finished) {
-        el("result").textContent = g.won
-          ? "CHECKPOINT CLEARED"
-          : "THE ASH CLAIMS YOU";
-        el("result-hint").textContent = g.won
-          ? donor
-            ? g.encounter ? "The three Hollow scavengers have fallen." : "The Goblin has fallen."
-            : "The warlord has fallen."
-          : "Watch their wind-up. Dodge, then strike.";
+      el("ending").hidden = !g.finished || g.player.hp > 0;
+      if (g.finished && g.player.hp <= 0) {
+        el("result").textContent = "THE ASH CLAIMS YOU";
+        el("result-hint").textContent = "Watch their wind-up. Dodge, then strike.";
       }
+
     },
   };
 }

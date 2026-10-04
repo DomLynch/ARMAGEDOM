@@ -6,7 +6,7 @@ import { attachInput } from "./input.js";
 import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
-import { travelTo, continueExploring } from "./travel.js";
+import { travelTo } from "./travel.js";
 import {createAtmosphere} from "./atmosphere.js";
 import {stepPistol} from "./pistol.js";
 import {PISTOL_SAVE_KEY,encodePistol,restorePistol} from "./pistol-save.js";
@@ -25,7 +25,7 @@ function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pisto
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true };
+const pilot = { pilot: "donor-knife", pistol: true, areaResidents: true };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -74,15 +74,6 @@ function pause(value) {
 }
 const hud = createHUD({
   onRetry: restart,
-  onExplore: () => {
-    if (!traveling && continueExploring(game)) {
-      input.clear();
-      accumulator = 0;
-      last = 0;
-      hud.update(game);
-      audio.unlock().catch(() => {});
-    }
-  },
   onPause: pause,
   onPistol: () => {
     if (!loaded || paused || traveling || contextLost || game.finished) return;
