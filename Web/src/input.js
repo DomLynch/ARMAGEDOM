@@ -13,6 +13,9 @@ export class InputState {
 
   down(id, kind, at) {
     if (this.pointers.has(id)) return;
+    // One thumb owns movement until release; extra pad contacts cannot steer it.
+    if (kind === 'move' && [...this.pointers.values()].some(p => p.kind === 'move'))
+      return;
     const alreadyGuarding = this.guardHeld();
     const pointer = { kind, start: { ...at }, at: { ...at } };
     this.pointers.set(id, pointer);
@@ -161,8 +164,8 @@ export function attachInput({
         element.classList.remove('pressed');
       }
       if (kind === 'move') {
-        element.style.setProperty('--knob-x', '0px');
-        element.style.setProperty('--knob-y', '0px');
+        element.style.setProperty('--knob-x', `${state.stick.x * 36}px`);
+        element.style.setProperty('--knob-y', `${state.stick.y * 36}px`);
       }
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
