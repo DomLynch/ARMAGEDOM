@@ -21,7 +21,7 @@ function restoreSavedPistol(g){
  }catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=5;}
  g.player.weapon=g.pistol.equipped?'pistol':'knife';persistPistol(g);
 }
-function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.update(g);}
+function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g);}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -223,13 +223,13 @@ function frame(ms) {
   }
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
   atmosphere?.update(dt, {paused: paused || traveling});
-  actors?.update(game, paused || traveling ? 0 : dt);
+  actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0);
   effects?.update(game);
   rim.position
     .copy(world.toRender(game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));
   hud.update(game);
-  renderer.render(scene, camera);
+  if(effects)effects.render(renderer,camera,game,canvas.clientHeight);else renderer.render(scene,camera);
 }
 async function crossArea(request) {
   traveling = true;

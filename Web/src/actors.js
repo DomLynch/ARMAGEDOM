@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import {PISTOL_RULES} from "./pistol.js";
 import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
@@ -196,7 +195,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     reset() {
       for (const id of [...views.keys()]) remove(id);
     },
-    update(game, dt) {
+    update(game, dt, pistolRecoil=0) {
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
@@ -215,7 +214,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(view.pistolMount){
           const holding=entity.weapon==='pistol',pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;
-          if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:game.pistol?Math.max(0,1-(game.time-(game.pistol.nextFireAt-PISTOL_RULES.cadence))/.12):0});
+          if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:pistolRecoil});
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         const flash = !game.finished && entity.flashUntil > game.time;
