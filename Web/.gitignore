@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Preserve original comparison assets locally; publish/version only selected derivatives.
+/public/assets/*.glb
+/public/assets/manifest.json

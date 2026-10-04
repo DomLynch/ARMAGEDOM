@@ -1,0 +1,208 @@
+{
+  "westminster": {
+    "entry": [
+      0.5,
+      0.8
+    ],
+    "landmarks": [
+      [
+        "right pavement above wreck",
+        [
+          0.83,
+          0.705
+        ]
+      ],
+      [
+        "right pavement under HUD",
+        [
+          0.92,
+          0.86
+        ]
+      ],
+      [
+        "right pavement lower edge",
+        [
+          0.94,
+          0.96
+        ]
+      ],
+      [
+        "left forecourt",
+        [
+          0.2,
+          0.78
+        ]
+      ],
+      [
+        "left lower pavement",
+        [
+          0.265,
+          0.875
+        ]
+      ],
+      [
+        "left road above lion",
+        [
+          0.24,
+          0.435
+        ]
+      ],
+      [
+        "bus-side road",
+        [
+          0.275,
+          0.42
+        ]
+      ],
+      [
+        "bridge",
+        [
+          0.9,
+          0.4
+        ]
+      ]
+    ]
+  },
+  "south": {
+    "entry": [
+      0.55,
+      0.29
+    ],
+    "landmarks": [
+      [
+        "upper-left pavement",
+        [
+          0.3,
+          0.105
+        ]
+      ],
+      [
+        "gate gap",
+        [
+          0.36,
+          0.335
+        ]
+      ],
+      [
+        "left connecting lane",
+        [
+          0.29,
+          0.37
+        ]
+      ],
+      [
+        "station approach",
+        [
+          0.195,
+          0.73
+        ]
+      ],
+      [
+        "station lower pavement",
+        [
+          0.235,
+          0.825
+        ]
+      ],
+      [
+        "below supplies",
+        [
+          0.32,
+          0.86
+        ]
+      ],
+      [
+        "right pavement above bus",
+        [
+          0.72,
+          0.53
+        ]
+      ],
+      [
+        "right pavement beside bus",
+        [
+          0.915,
+          0.735
+        ]
+      ],
+      [
+        "lower road below bus",
+        [
+          0.82,
+          0.94
+        ]
+      ],
+      [
+        "upper-right pavement",
+        [
+          0.675,
+          0.29
+        ]
+      ]
+    ]
+  },
+  "east": {
+    "entry": [
+      0.1,
+      0.72
+    ],
+    "landmarks": [
+      [
+        "back bridge pavement",
+        [
+          0.2,
+          0.57
+        ]
+      ],
+      [
+        "statue rear path",
+        [
+          0.26,
+          0.53
+        ]
+      ],
+      [
+        "mid bridge road",
+        [
+          0.43,
+          0.475
+        ]
+      ],
+      [
+        "front bridge pavement",
+        [
+          0.44,
+          0.555
+        ]
+      ],
+      [
+        "above bus",
+        [
+          0.56,
+          0.31
+        ]
+      ],
+      [
+        "beyond bridge",
+        [
+          0.67,
+          0.33
+        ]
+      ],
+      [
+        "far street",
+        [
+          0.82,
+          0.3
+        ]
+      ],
+      [
+        "far pavement edge",
+        [
+          0.965,
+          0.32
+        ]
+      ]
+    ]
+  }
+}
