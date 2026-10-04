@@ -216,7 +216,7 @@ enter.addEventListener("click", async () => {
     hud.ready();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Approved006 character size and framing";
+      "Three.js · Stamina trial008 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
@@ -232,6 +232,9 @@ enter.addEventListener("click", async () => {
         viewZoomMultiplier: world.viewZoomMultiplier,
         models: [...library.models.keys()],
         pilot: game.pilot,
+        stamina: game.player.stamina,
+        maxStamina: game.player.maxStamina,
+        staminaCosts: game.staminaCosts,
         audio: audio.state,
         devicePixelRatio: renderer.getPixelRatio(),
       }),
