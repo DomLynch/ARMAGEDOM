@@ -33,3 +33,18 @@ test('unreferenced hashed script rejected',async t=>{const f=await fixture(t);aw
 
 test('missing generated chunk rejected',async t=>{const f=await fixture(t);await f.put('assets/index-ABC.js','fetch("assets/manifest-lossless.json");fetch("world/manifest.json");import("./chunk-MISSING.js")',false);await assert.rejects(verifyAssets({...f,prune:true}),/Missing generated/);});
 test('CSS resources retained and missing resources rejected',async t=>{const f=await fixture(t);await f.put('assets/index-DEF.css','body{background:url(./texture.png)}',false);await assert.rejects(verifyAssets({...f,prune:true}));await f.put('assets/texture.png','texture');const r=await verifyAssets({...f,prune:true});assert(r.files.some(x=>x.path==='assets/texture.png'));});
+async function donorFixture(t){
+ const f=await fixture(t),raw=await readFile(path.join(f.publicDir,'assets/current.glb'));
+ await f.put('assets/donor/warrior.glb',raw);await f.put('assets/donor/goblin.glb',raw);await f.put('assets/donor/knife.glb',raw);
+ const record=file=>({file,bytes:raw.length,sha256:sha(raw)});
+ const manifest={models:{vagrant:{url:'warrior.glb',equipment:{url:'knife.glb'}},goblin:{url:'goblin.glb'}},files:{player:record('warrior.glb'),opponent:record('goblin.glb'),weapon:record('knife.glb')}};
+ async function set(){await f.put('assets/donor/manifest.json',JSON.stringify(manifest));}
+ await set();await f.put('assets/index-ABC.js','fetch("assets/donor/manifest.json");fetch("world/manifest.json");',false);
+ return {...f,actors:'assets/donor/manifest.json',prune:true,manifest,set};
+}
+test('donor file hash records include equipment and prune original roster',async t=>{const f=await donorFixture(t),r=await verifyAssets(f);assert.deepEqual(r.files.filter(x=>x.path.endsWith('.glb')).map(x=>x.path),['assets/donor/goblin.glb','assets/donor/knife.glb','assets/donor/warrior.glb']);assert(r.removed.includes('assets/current.glb'));});
+test('missing equipment hash record rejected before pruning',async t=>{const f=await donorFixture(t);delete f.manifest.files.weapon;await f.set();await assert.rejects(verifyAssets(f),/Missing.*hash/);assert.equal(await readFile(path.join(f.dist,'assets/unused.glb'),'utf8'),'original');});
+test('tampered equipment rejected even when both copies match',async t=>{const f=await donorFixture(t);await f.put('assets/donor/knife.glb','tampered');await assert.rejects(verifyAssets(f),/hash|size/);});
+test('missing and symlink equipment rejected',async t=>{const f=await donorFixture(t);await rm(path.join(f.dist,'assets/donor/knife.glb'));await assert.rejects(verifyAssets(f));await symlink(path.join(f.publicDir,'assets/donor/knife.glb'),path.join(f.dist,'assets/donor/knife.glb'));await assert.rejects(verifyAssets(f),/Symlink/);});
+test('unsafe equipment URLs and hash-record paths rejected',async t=>{const f=await donorFixture(t);f.manifest.models.vagrant.equipment.url='../escape.glb';await f.set();await assert.rejects(verifyAssets(f),/Unsafe/);f.manifest.models.vagrant.equipment.url='knife.glb';f.manifest.files.weapon.file='https://example.com/knife.glb';await f.set();await assert.rejects(verifyAssets(f),/Unsafe/);});
+test('conflicting duplicate donor hash records rejected',async t=>{const f=await donorFixture(t);f.manifest.files.extra={...f.manifest.files.weapon,sha256:'0'.repeat(64)};await f.set();await assert.rejects(verifyAssets(f),/Conflicting/);});

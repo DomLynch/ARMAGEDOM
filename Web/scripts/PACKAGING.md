@@ -40,3 +40,27 @@ Generated manifest string presence is a drift check, not proof of dynamic-loader
 semantics. New audio/donor manifest schemas require a reviewed closure adapter;
 CSS assets transformed/renamed by Vite currently require a matching public path
 or fail closed. No physical-phone/performance/runtime acceptance is inferred.
+
+## Donor pilot schema adapter — 2026-10-04
+
+For Character0371f1e/Lead48c9921, select `--actors assets/donor/manifest.json`.
+Hash metadata may be inline on models (002) or in donor `files` role records
+`{file,bytes,sha256}`. Each model URL and optional `model.equipment.url` must
+resolve to pinned metadata; conflicting inline/role or duplicate records fail.
+Unused role records do not automatically add files to the runtime closure.
+Equipment uses the same GLB/external-resource, source-equality and safe-path rules.
+
+Lead package wiring for the donor build/verification:
+
+```json
+{
+  "build": "vite build --base=./ && node scripts/verify-assets.mjs --prune --actors assets/donor/manifest.json",
+  "verify:assets": "node scripts/verify-assets.mjs --actors assets/donor/manifest.json"
+}
+```
+
+16 focused checks pass, including six donor cases. Actual warrior/Goblin/knife
+13,583,364 bytes/hash records verified with current world files in a temp fixture.
+Generated manifest references in that fixture are synthetic: no build/gameplay or
+phone acceptance implied. Audio remains absent until WorldAudio's concrete schema.
+Receipt: canonical artifacts/threejs-hosting/donor-closure-checks.json.
