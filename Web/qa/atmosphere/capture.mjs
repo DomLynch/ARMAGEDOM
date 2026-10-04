@@ -13,7 +13,7 @@ try{
   const receipt={scope:'Registered painting review, not a gameplay/physical phone test',errors,views:[],profile:{}};
   for(const [name,width,height,x,y] of [['spawn-landscape',1280,720,.5,.80753],['bus-landscape',1280,720,.43,.43],['tower-landscape',1280,720,.75,.54],['spawn-portrait',390,844,.5,.80753],['bus-portrait',390,844,.43,.43]]){
     await page.setViewportSize({width,height});await page.evaluate(([x,y])=>review.move(x,y),[x,y]);
-    for(const enabled of [false,true]){const stats=await page.evaluate(enabled=>review.frame(enabled),enabled);await page.screenshot({path:`${out}/${name}-${enabled?'enabled':'baseline'}.png`});receipt.views.push({name,enabled,stats});}
+    for(const enabled of [false,true]){const stats=await page.evaluate(enabled=>review.frame(enabled),enabled);await page.screenshot({path:`${out}/${name}-${enabled?'enabled':'baseline'}.png`});if(name==='bus-landscape')await page.screenshot({path:`${out}/bus-close-${enabled?'enabled':'baseline'}.png`,clip:{x:400,y:160,width:450,height:350}});receipt.views.push({name,enabled,stats});}
   }
   await page.setViewportSize({width:1280,height:720});
   receipt.profile.baseline=await page.evaluate(()=>review.profile(false));receipt.profile.enabled=await page.evaluate(()=>review.profile(true));

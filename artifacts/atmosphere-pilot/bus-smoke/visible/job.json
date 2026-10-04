@@ -1,0 +1,14 @@
+{
+  "job": "web-259d3aff7330",
+  "hostname": "Brain",
+  "source_files_verified": 91,
+  "command": [
+    "bash",
+    "-lc",
+    "npm ci --no-audit --no-fund && npm install --no-save --package-lock=false --no-audit --no-fund playwright && ATMOSPHERE_CHROMIUM=/opt/frankendom-shadow/ms-playwright/chromium-1234/chrome-linux64/chrome node qa/atmosphere/capture.mjs"
+  ],
+  "exit_code": 0,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 19.02,
+  "finished_epoch": 1791136799.5623057
+}
