@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as THREE from 'three';
 import {createEffects} from '../src/effects.js';
+import {createGame,enemy,attack,stepGame} from '../src/combat.js';
 let audio={};try{audio=await import('../src/donor-audio.js');}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;}
 const attacker={id:1,pos:{x:0,z:0},facing:{x:0,z:1},combatScale:1.265};
 test('donor Pommel is a close forward effect; legacy Special remains a shockwave',()=>{
@@ -36,3 +37,26 @@ test('selected WAV contains exactly the pinned donor PCM ranges and no extra cue
    assert.equal(createHash('sha256').update(pcm).digest('hex'),origin.pcmSHA256);
  }
 });
+
+for (const interrupted of [false,true]) {
+ test(`enemy attack warning handles same-tick interruption: ${interrupted}`,()=>{
+  const scene=new THREE.Scene(),world={spawn:{x:0,z:0},layout:{characterScale:1},
+   move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,
+   toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
+  const game=createGame(world,{pilot:'donor-knife'}),foe=Object.assign(enemy(0,{x:0,z:1.1}),
+   {rig:'goblin',weapon:'knife',combatScale:1,bodyScale:.78,hp:100,maxHP:100,ready:14/60});
+  game.enemies=[foe];game.wave=1;
+  if(interrupted)attack(game,'slash');
+  for(let tick=0;tick<14;tick++)stepGame(game);
+  assert.ok(game.events.some(event=>event.type==='enemy-attack'));
+  assert.equal(foe.hp,interrupted?90:100);
+  assert.equal(foe.swing===null,interrupted);
+  const effects=createEffects(scene,world);
+  try {
+   effects.events(game);
+   assert.equal(scene.children.filter(mesh=>mesh.material.color.getHex()===0xe45735).length,interrupted?0:1);
+   game.time+=1;effects.update(game);
+   assert.equal(scene.children.length,0,'expired effects must leave the scene');
+  } finally {effects.dispose();}
+ });
+}
