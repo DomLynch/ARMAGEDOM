@@ -113,3 +113,20 @@ test('successful save clears draft and returns revision without mutable state al
   assert.equal(result.status,'ok');assert.equal(result.data.revision,1);assert.equal(api.state().draft,null);
   const copy=api.state();copy.save.revision=999;assert.equal(api.state().save.revision,1);
 });
+test('old refresh rejection preserves the new account and its unsaved draft',async()=>{
+  const s=sdk(),api=module.createPersistence(s.client);await api.refreshAccount();
+  let reject;s.client.auth.getUser=()=>new Promise((_,fail)=>reject=fail);
+  const pending=api.refreshAccount();
+  s.change({id:'B',is_anonymous:false});
+  await api.saveCharacter(0,payload);
+  reject(new Error('old account request failed'));
+  assert.equal((await pending).status,'account_changed');
+  assert.deepEqual(api.state(),{userId:'B',draft:payload,save:null});
+});
+test('current account refresh rejection still clears account state',async()=>{
+  const s=sdk(),api=module.createPersistence(s.client);await api.refreshAccount();
+  await api.saveCharacter(0,payload);
+  s.client.auth.getUser=async()=>{throw new Error('offline');};
+  assert.equal((await api.refreshAccount()).status,'network');
+  assert.deepEqual(api.state(),{userId:null,draft:null,save:null});
+});

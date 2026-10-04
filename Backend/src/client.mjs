@@ -45,7 +45,10 @@ export function createPersistence(client = null) {
         if (error) { changeAccount(null); return { status: 'network' }; }
         suspended = false; changeAccount(accountId(data.user));
         return { status: userId ? 'ok' : 'signed_out' };
-      } catch { changeAccount(null); return { status: 'network' }; }
+      } catch {
+        if (generation !== epoch) return { status: 'account_changed' };
+        changeAccount(null); return { status: 'network' };
+      }
     },
     requestOtp: email => authCall(() => client.auth.signInWithOtp({ email })),
     async verifyOtp(email, token) {
