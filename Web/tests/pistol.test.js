@@ -68,7 +68,7 @@ test('invalid direction/obstacle contract cannot spend ammo or damage',()=>{
 });
 test('held fire is cadence bounded at fixed ticks and never underflows',()=>{
   let state=armed(),shots=0,dry=0;
-  for(let tick=0;tick<180;tick++) {
+  for(let tick=0;tick<600;tick++) {
     const out=shot(state,tick/60);state=out.state;
     shots+=out.events.filter(e=>e.type==='shot').length;
     dry+=out.events.filter(e=>e.type==='dry').length;
@@ -84,15 +84,15 @@ test('cadence cannot be bypassed by repeated input, holster or cancel',()=>{
   const reequipped=equipPistol(holstered,true).state;
   assert.equal(shot(reequipped,.1).events.length,0);
   assert.equal(shot(stepPistol(reequipped,{time:.1,cancel:true}).state,.1).events.length,0);
-  assert.equal(shot(reequipped,.3).events[0].type,'shot');
+  assert.equal(shot(reequipped,R.cadence).events[0].type,'shot');
 });
 test('reload transfers finite reserve only on completion',()=>{
   const spent=shot(armed()).state;
-  const begin=stepPistol(spent,{...context,time:.3,reload:true});
-  assert.equal(begin.state.reloadingUntil,1.6);assert.equal(begin.state.magazine,5);
+  const begin=stepPistol(spent,{...context,time:R.cadence,reload:true});
+  assert.equal(begin.state.reloadingUntil,R.cadence+R.reload);assert.equal(begin.state.magazine,5);
   assert.equal(begin.state.reserve,12);assert.equal(begin.events[0].type,'reload-start');
-  const waiting=shot(begin.state,1.59);assert.equal(waiting.events.length,0);
-  const done=stepPistol(waiting.state,{...context,time:1.6});
+  const waiting=shot(begin.state,R.cadence+R.reload-.01);assert.equal(waiting.events.length,0);
+  const done=stepPistol(waiting.state,{...context,time:R.cadence+R.reload});
   assert.equal(done.state.magazine,6);assert.equal(done.state.reserve,11);
   assert.equal(done.events[0].type,'reload-complete');
 });
@@ -146,9 +146,27 @@ test('fire release emits no later shots and cancelled reload needs a new request
   const state=shot(armed()).state;
   const release=stepPistol(state,{...context,time:2});
   assert.equal(release.state.magazine,5);assert.equal(release.events.length,0);
-  const start=stepPistol(state,{...context,time:.3,reload:true}).state;
-  const cancel=stepPistol(start,{...context,time:.4,cancel:true}).state;
+  const start=stepPistol(state,{...context,time:R.cadence,reload:true}).state;
+  const cancel=stepPistol(start,{...context,time:R.cadence+.1,cancel:true}).state;
   const later=stepPistol(cancel,{...context,time:3});
   assert.equal(later.state.magazine,5);assert.equal(later.state.reserve,12);
   assert.equal(later.events.length,0);
+});
+
+test('one second cadence survives rapid tap/repress, cancellation and equip; no early queue',()=>{
+ let state=armed();const first=shot(state,0);state=first.state;assert.equal(first.events[0].type,'shot');assert.equal(state.nextFireAt,1);
+ for(const time of [.01,.1,.3,.6,.9,1-1e-9]) {
+  state=stepPistol(state,{...context,time,fire:false}).state;
+  state=stepPistol(state,{...context,time,cancel:true}).state;
+  state=equipPistol(equipPistol(state,false).state,true).state;
+  const early=shot(state,time);assert.equal(early.events.length,0);assert.equal(early.state.magazine,5);assert.equal(early.state.nextFireAt,1);state=early.state;
+ }
+ const idle=stepPistol(state,{...context,time:1});assert.equal(idle.events.length,0);assert.equal(idle.state.magazine,5);
+ const next=shot(idle.state,1);assert.equal(next.events[0].type,'shot');assert.equal(next.state.magazine,4);assert.equal(next.state.nextFireAt,2);
+});
+test('held fire debits exactly one round per second and late attempts never catch up in a burst',()=>{
+ let state=armed();const times=[];
+ for(let tick=0;tick<=300;tick++){const time=tick/60,out=shot(state,time);if(out.events.some(e=>e.type==='shot'))times.push(time);state=out.state;}
+ assert.deepEqual(times,[0,1,2,3,4,5]);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
+ state=shot(armed(),0).state;const late=shot(state,4.5);assert.equal(late.state.magazine,4);assert.equal(late.state.nextFireAt,5.5);assert.equal(shot(late.state,4.5).events.length,0);
 });

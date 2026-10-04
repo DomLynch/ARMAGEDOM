@@ -1,7 +1,7 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
 export const PISTOL_RULES = Object.freeze({
   capacity: 6, reserve: 12, damage: 25, range: 18,
-  cadence: .3, reload: 1.3, pickupRadius: 1.3,
+  cadence: 1, reload: 1.3, pickupRadius: 1.3,
 });
 const EPS = 1e-8;
 const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
@@ -97,7 +97,7 @@ export function stepPistol(state, input = {}) {
     next.reloadingUntil=time+PISTOL_RULES.reload;
     events.push({type:'reload-start',until:next.reloadingUntil});
   }
-  if (!input.fire || next.reloadingUntil || time+EPS<next.nextFireAt) return {state:next,events};
+  if (!input.fire || next.reloadingUntil || time<next.nextFireAt) return {state:next,events};
   const origin=input.origin ?? input.position, aim=input.aim ?? input.facing;
   const trace=tracePistol(origin,aim,input.targets,input.lineClear);
   if (!trace) return {state:next,events};
