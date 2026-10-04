@@ -11,7 +11,7 @@ test('donor Pommel is a close forward effect; legacy Special remains a shockwave
  for(const donor of [false,true]) {
   const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
   fx.events({pilot:donor?'donor-knife':undefined,time:1,events:[{type:'strike',actor:attacker,action:'special',moveId:donor?'skill_pommel':undefined,dir:attacker.facing,range:1.3}]});
-  const positions=scene.children[0].geometry.attributes.position;let radius=0;
+  const positions=scene.children.find(o=>o.isLine).geometry.attributes.position;let radius=0;
   for(let i=0;i<positions.count;i++){radius=Math.max(radius,Math.hypot(positions.getX(i),positions.getZ(i)));if(donor)assert.ok(positions.getZ(i)<0,'Pommel sweeps behind attacker');}
   assert.ok(Math.abs(radius-(donor?1.3*1.265:4.2))<1e-6);fx.dispose();
  }
@@ -20,7 +20,7 @@ test('donor impact uses victim ground metadata instead of attacker identity',()=
  const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
  const victim={id:2,pos:{x:3,z:4},facing:{x:0,z:-1}};
  fx.events({pilot:'donor-knife',time:1,events:[{type:'hit',actor:victim,attackerId:1,victimId:2,position:{x:3.2,z:4.1},amount:20}]});
- assert.equal(scene.children.length,1);assert.equal(scene.children[0].position.x,3.2);assert.equal(scene.children[0].position.z,-4.1);fx.dispose();
+ const impacts=scene.children.filter(o=>o.isLine);assert.equal(impacts.length,1);assert.equal(impacts[0].position.x,3.2);assert.equal(impacts[0].position.z,-4.1);fx.dispose();assert.equal(scene.children.length,0);
 });
 test('donor cues preserve impact gains and omit blocked hits, death and crowd',()=>{
  assert.equal(typeof audio.donorCues,'function','donor sound mapping missing');
@@ -54,9 +54,10 @@ for (const interrupted of [false,true]) {
   const effects=createEffects(scene,world);
   try {
    effects.events(game);
-   assert.equal(scene.children.filter(mesh=>mesh.material.color.getHex()===0xe45735).length,interrupted?0:1);
+   assert.equal(scene.children.filter(mesh=>mesh.isLine&&mesh.material.color.getHex()===0xe45735).length,interrupted?0:1);
    game.time+=1;effects.update(game);
-   assert.equal(scene.children.length,0,'expired effects must leave the scene');
-  } finally {effects.dispose();}
+   assert.equal(scene.children.filter(o=>o.isLine).length,0,'expired transient effects must leave the scene');
+   assert.equal(scene.children.filter(o=>o.isGroup).length,2,'persistent pistol groups retain their owner until dispose');
+  } finally {effects.dispose();assert.equal(scene.children.length,0,'dispose must remove every owned effect and pistol group');}
  });
 }

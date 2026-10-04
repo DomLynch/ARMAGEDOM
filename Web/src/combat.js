@@ -47,7 +47,7 @@ function pistolIntent(g,intent){
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
    const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',parry:false});
-   if(target.hp<=0)kill(g,target,{weapon:'pistol',attackClass:'bullet'});
+   if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet'});}
   }
  }
  if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,guard:false,guardPressed:false,actions:[],held:[]};}

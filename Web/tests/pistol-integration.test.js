@@ -21,3 +21,12 @@ test('area round trip and re-equip preserve collected pickup/ammo; retry gets ne
  const g=game();tick(g,{actions:['pickup']});tick(g,{actions:['fire']});const ammo=g.pistol.magazine;await travelTo(g,{areaId:'east'});await travelTo(g,{areaId:'westminster'});
  tick(g,{actions:['pickup']});assert.equal(g.pistol.magazine,ammo);tick(g,{actions:['heavy']});tick(g,{actions:['pickup']});assert.equal(g.player.weapon,'pistol');assert.equal(g.pistol.magazine,ammo);assert.equal(game().pistol.collected,false);
 });
+
+import * as THREE from 'three';import {DonorMotion} from '../src/donor-motion.js';
+test('lethal pistol hit clears an active swing and starts advancing native Death playback',()=>{
+ const g=game();tick(g,{actions:['pickup']});const target=enemy(0,{x:0,z:-2});target.hp=20;target.swing={end:10};g.enemies=[target];g.wave=1;tick(g,{actions:['fire'],aim:{x:0,z:1}});
+ assert.equal(target.swing,null);assert.deepEqual(target.response,{clip:'Death',start:g.time,ticks:144});
+ const root=new THREE.Group(),model=new THREE.Group(),body=new THREE.Object3D();body.name='body';model.add(body);root.add(model);
+ const motion=new DonorMotion(root,model,[new THREE.AnimationClip('Armed',1,[]),new THREE.AnimationClip('Death',2.4,[new THREE.NumberKeyframeTrack('body.position[y]',[0,2.4],[0,-.5])])],{clips:{idle:'Armed',death:'Death'}});
+ motion.update(target,g.time,0);assert.equal(motion.currentPhase,0);const initial=body.position.y;motion.update(target,g.time,.6);assert.ok(motion.currentPhase>.24&&motion.currentPhase<.26);assert.ok(body.position.y<initial);motion.dispose();
+});
