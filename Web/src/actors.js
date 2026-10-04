@@ -80,7 +80,7 @@ function shadowTexture() {
   ctx.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(canvas);
 }
-export function createActors(scene, world, library) {
+export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -106,7 +106,7 @@ export function createActors(scene, world, library) {
     root.name = name;
     root.position.copy(world.toRender(entity.pos));
     root.scale.setScalar(
-      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1),
+      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale,
     );
     root.add(model);
     const hidden = new Set(

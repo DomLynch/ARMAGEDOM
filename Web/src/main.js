@@ -9,6 +9,8 @@ const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
 const pilot = { pilot: "donor-knife" };
+// Scale bodies and equipped gear independently of camera framing and combat.
+const actorVisualScale = 1.1;
 const actorManifest = "assets/donor/manifest.json";
 const audio = createAudio({ donor: true, baseUrl });
 let renderer,
@@ -199,7 +201,7 @@ enter.addEventListener("click", async () => {
     world = nextWorld;
     pendingLibrary = library;
     game = createGame(world, pilot);
-    actors = createActors(scene, world, library);
+    actors = createActors(scene, world, library, { visualScale: actorVisualScale });
     pendingLibrary = null;
     effects = createEffects(scene, world);
     actors.update(game, 0);
@@ -212,7 +214,7 @@ enter.addEventListener("click", async () => {
     hud.ready();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Frankendom melee pilot 003";
+      "Three.js · Larger characters trial 004";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
@@ -223,6 +225,7 @@ enter.addEventListener("click", async () => {
       JSON.stringify({
         enterToFirstRenderMs,
         actorScale: world.layout.characterScale,
+        actorVisualScale,
         zoom: world.layout.zoom,
         models: [...library.models.keys()],
         pilot: game.pilot,
