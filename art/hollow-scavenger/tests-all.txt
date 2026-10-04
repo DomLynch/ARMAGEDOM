@@ -1,0 +1,68 @@
+
+> armagedom-web@0.1.0 test
+> node --test tests/*.test.js
+
+✔ slash only deals damage after windup and inside its facing sector (1.108458ms)
+✔ stab chooses nearest target and excludes wide-angle target (0.129375ms)
+✔ heavy and special have distinct damage and cannot bypass cooldown (1.346625ms)
+✔ blocking geometry prevents a sword damaging through an obstacle (0.221459ms)
+✔ front eligible melee is parried within window; unguardable boss damage remains (0.326917ms)
+✔ late guard chips health and drains guard capacity; rear attacks bypass it (0.203083ms)
+✔ guard break empties capacity and prevents immediate renewed guard (0.101042ms)
+✔ dodge travels while invulnerable and hits resume after dodge (0.1245ms)
+✔ first interaction starts the original mixed five-enemy wave (0.881375ms)
+✔ lethal player damage ends run and frozen run cannot keep moving (0.113584ms)
+✔ attack buffering accepts a last-recovery tap without losing its aimed direction (0.147833ms)
+✔ projectile sweeps hit the player once and walls stop them first (0.084791ms)
+✔ second wave has six enemies and third wave preserves400HP Warlord (0.080041ms)
+✔ blade/armour/tonic pickups retain distinct original progression (0.058334ms)
+✔ simultaneous attacks preserve Special over Heavy over Stab over Slash priority (0.045334ms)
+✔ Contact phase 14 (0.571417ms)
+✔ Contact phase 12 (0.051291ms)
+✔ Contact phase 22 (0.039208ms)
+✔ Contact phase 18 (0.026125ms)
+✔ Equip preserves source scenes, grip transform and player overrides (4.255666ms)
+✔ hero light_right fixed-tick contacts and cardinal headings (8.583042ms)
+✔ hero light_left fixed-tick contacts and cardinal headings (5.713458ms)
+✔ hero thrust fixed-tick contacts and cardinal headings (4.8795ms)
+✔ hero heavy_overhead fixed-tick contacts and cardinal headings (7.543541ms)
+✔ goblin light_right fixed-tick contacts and cardinal headings (5.83775ms)
+✔ goblin light_left fixed-tick contacts and cardinal headings (5.293541ms)
+✔ goblin thrust fixed-tick contacts and cardinal headings (5.88075ms)
+✔ goblin heavy_overhead fixed-tick contacts and cardinal headings (7.506625ms)
+✔ Cancellation, responses, guard, roll, special, death and independent mixers (1.9885ms)
+✔ Candidate hashes, preserved roots and rig-specific stride (6.097292ms)
+✔ Moving guard uses native legs and dedicated upper guard; stopped simulation stays still (1.073167ms)
+✔ A fresh counter swing supersedes lingering parry response (0.654292ms)
+✔ Hollow descriptor pins source, independent rig key and supported human contacts (4.435583ms)
+✔ Own native knife contact matches source through every attack tick (20.911958ms)
+✔ Hunch changes upper body while preserving gait hips, feet and readable combat clips (2.514541ms)
+✔ Candidate removes medieval gear and uses a smaller active geometry/material set (4.427ms)
+✔ two pointers can move and aim an attack together (1.160667ms)
+✔ guard is held once and releases even when finger ends outside (0.077959ms)
+✔ background/menu/rotation clear held movement and queued attacks (0.064167ms)
+✔ dodge is one press, not repeated on hold (0.050666ms)
+✔ releasing one of two guard pointers does not cancel remaining held guard (0.054583ms)
+✔ two-bone cosmetic solve reaches a feasible hand target without stretching bones (2.40325ms)
+✔ attack animation phase reaches contact at45percent and ends with recovery (0.073792ms)
+✔ leaving Westminster parks the existing fight and returning retains its health and wave (0.95125ms)
+✔ failed destination load leaves the prior fight and player intact (0.751791ms)
+✔ while exploring a side area movement and six actions work without inventing enemy waves (0.127584ms)
+✔ calibration retains Unity metres and image registration (1.527666ms)
+✔ circle movement cannot tunnel through a blocker and slides beside it (3.584ms)
+✔ audited street and pavement landmarks remain reachable for all three areas (1.951458ms)
+✔ all 26 audited landmarks connect by actual circle movement from their entries (83.478667ms)
+✔ one crop registers backdrop, foreground depths, actor and picking at different phone aspects (2.147667ms)
+✔ fixed camera and adaptive crop preserve actor size from near street to far street (2.430292ms)
+✔ disposing an area removes owned meshes and releases texture without removing actors (0.363792ms)
+✔ area requests preserve the four existing route thresholds and destination entries (0.348375ms)
+✔ portrait shows a readable actor above controls where painting bounds allow, preserving landscape (0.310042ms)
+✔ portrait follow responds to production movement and settles after rotation (3.504875ms)
+ℹ tests 56
+ℹ suites 0
+ℹ pass 56
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 449.130125

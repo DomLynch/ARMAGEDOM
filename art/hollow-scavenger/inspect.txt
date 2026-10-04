@@ -1,0 +1,50 @@
+[INFO ] services.locationservice ...............: Not adding link to MakeHuman user data, since neither explicit path nor auto-discovery is set in preferences.
+[INFO ] mpfb.init ..............................: Build info FROM_SOURCE
+[INFO ] mpfb.init ..............................: MPFB initialization has finished.
+addon_utils.disable: bl_ext.lab.mcp not enabled
+14:59:26 | INFO: Data are loaded, start creating Blender stuff
+14:59:26 | INFO: Blender create Mesh node 0
+14:59:26 | INFO: Blender create Mesh node 1
+14:59:26 | INFO: Blender create Mesh node 2
+14:59:26 | INFO: Blender create Mesh node 3
+14:59:26 | INFO: Blender create Mesh node 4
+14:59:26 | INFO: Blender create Mesh node 5
+14:59:26 | INFO: Blender create Mesh node 6
+14:59:26 | INFO: Blender create Mesh node 7
+14:59:26 | INFO: Blender create Mesh node 8
+14:59:26 | INFO: Blender create Mesh node 9
+14:59:26 | INFO: Blender create Mesh node 10
+14:59:26 | INFO: Blender create Mesh node 11
+14:59:26 | INFO: Blender create Mesh node 12
+14:59:26 | INFO: Blender create Mesh node 13
+14:59:26 | INFO: Blender create Mesh node 14
+14:59:26 | INFO: Blender create Mesh node 15
+14:59:26 | INFO: Blender create Mesh node 16
+14:59:26 | INFO: glTF import finished in 0.21s
+RIG Armature 65
+NLA [('Skill_Pommel', [('Skill_Pommel', 1.0, 25.0, 'Skill_Pommel')]), ('Skill_WitchArm', [('Skill_WitchArm', 1.0, 25.0, 'Skill_WitchArm')]), ('Death_QuietOne', [('Death_QuietOne', 1.0, 58.60000228881836, 'Death_QuietOne')]), ('Fin_RunThrough', [('Fin_RunThrough', 1.0, 25.0, 'Fin_RunThrough')]), ('Death_RunThrough', [('Death_RunThrough', 1.0, 25.0, 'Death_RunThrough')]), ('Death_SplitCrown', [('Death_SplitCrown', 1.0, 25.0, 'Death_SplitCrown')]), ('Deflected', [('Deflected', 1.0, 25.0, 'Deflected')]), ('Parry', [('Parry', 1.0, 25.0, 'Parry')]), ('BlockImpact', [('BlockImpact', 1.0, 25.0, 'BlockImpact')]), ('Kick', [('Kick', 1.0, 25.0, 'Kick')]), ('StrafeRight', [('StrafeRight', 1.0, 20.200000762939453, 'StrafeRight')]), ('StrafeLeft', [('StrafeLeft', 1.0, 20.200000762939453, 'StrafeLeft')]), ('ArmedWalk', [('ArmedWalk', 1.0, 33.0, 'ArmedWalk')]), ('Riposte', [('Riposte', 1.0, 25.0, 'Riposte')]), ('Heavy', [('Heavy', 1.0, 25.0, 'Heavy')]), ('Return', [('Return', 1.0, 25.0, 'Return')]), ('Guard', [('Guard', 1.0, 24.272727966308594, 'Guard')]), ('Roll', [('Roll', 1.0, 36.20000076293945, 'Roll')]), ('Draw', [('Draw', 1.0, 17.799999237060547, 'Draw')]), ('Death', [('Death', 1.0, 58.60000228881836, 'Death')]), ('Hit', [('Hit', 1.0, 9.0, 'Hit')]), ('Attack', [('Attack', 1.0, 25.0, 'Attack')]), ('Armed', [('Armed', 1.0, 41.0, 'Armed')]), ('Run', [('Run', 1.0, 17.0, 'Run')]), ('Jog', [('Jog', 1.0, 23.399999618530273, 'Jog')]), ('Walk', [('Walk', 1.0, 33.0, 'Walk')]), ('Idle', [('Idle', 1.0, 61.0, 'Idle')])]
+ACTION <bpy_struct, Action("Idle") at 0x7c63b92d08>
+ACTIONS [('Armed', (0.0, 40.0), 1), ('ArmedWalk', (0.0, 32.0), 1), ('Attack', (0.0, 24.0), 1), ('BlockImpact', (0.0, 24.0), 1), ('Death', (0.0, 57.60000228881836), 1), ('Death_QuietOne', (0.0, 57.60000228881836), 1), ('Death_RunThrough', (0.0, 24.0), 1), ('Death_SplitCrown', (0.0, 24.0), 1), ('Deflected', (0.0, 24.0), 1), ('Draw', (0.0, 16.799999237060547), 1), ('Fin_RunThrough', (0.0, 24.0), 1), ('Guard', (0.7272728681564331, 24.0), 1), ('Heavy', (0.0, 24.0), 1), ('Hit', (0.0, 8.0), 1), ('Idle', (0.0, 60.0), 1), ('Jog', (0.0, 22.399999618530273), 1), ('Kick', (0.0, 24.0), 1), ('Parry', (0.0, 24.0), 1), ('Return', (0.0, 24.0), 1), ('Riposte', (0.0, 24.0), 1), ('Roll', (0.0, 35.20000076293945), 1), ('Run', (0.0, 16.0), 1), ('Skill_Pommel', (0.0, 24.0), 1), ('Skill_WitchArm', (0.0, 24.0), 1), ('StrafeLeft', (0.0, 19.200000762939453), 1), ('StrafeRight', (0.0, 19.200000762939453), 1), ('Walk', (0.0, 32.0), 1)]
+MESH Antique brass 88 ['Antique brass'] 65
+MESH Antique brass.Body 320 ['Antique brass'] 65
+MESH Face 656 ['Face'] 65
+MESH Gambeson 4484 ['Gambeson'] 65
+MESH Heraldry 4888 ['Heraldry'] 65
+MESH Icosphere 80 [] 0
+MESH Leather 312 ['Leather'] 65
+MESH Leather.Body 668 ['Leather'] 65
+MESH Leather.Boots 3520 ['Leather'] 65
+MESH Photo 12129 ['Photo'] 65
+MESH PhotoEyes 1536 ['PhotoEyes'] 65
+MESH PhotoTeeth 501 ['PhotoTeeth'] 65
+MESH Skin 21028 ['Skin'] 65
+MESH Steel 560 ['Steel'] 65
+MESH WeaponDrawn_1 2913 ['WeaponLongsword'] 0
+MESH WeaponDrawn_1.001 2913 ['WeaponLongsword'] 0
+MESH WeaponDrawn_2 78 ['WeaponLongswordShaft'] 0
+MESH WeaponDrawn_2.001 78 ['WeaponLongswordShaft'] 0
+MESH Wrap 6228 ['Wrap'] 65
+MESH Wrap.Boots 672 ['Wrap'] 65
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

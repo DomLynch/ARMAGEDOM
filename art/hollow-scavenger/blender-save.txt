@@ -1,0 +1,16 @@
+[INFO ] services.locationservice ...............: Not adding link to MakeHuman user data, since neither explicit path nor auto-discovery is set in preferences.
+[INFO ] mpfb.init ..............................: Build info FROM_SOURCE
+[INFO ] mpfb.init ..............................: MPFB initialization has finished.
+addon_utils.disable: bl_ext.lab.mcp not enabled
+15:10:27 | INFO: Data are loaded, start creating Blender stuff
+15:10:27 | INFO: Blender create Mesh node 0
+15:10:27 | INFO: Blender create Mesh node 1
+15:10:27 | INFO: Blender create Mesh node 2
+15:10:27 | INFO: Blender create Mesh node 3
+15:10:27 | INFO: Blender create Mesh node 4
+15:10:27 | INFO: Blender create Mesh node 5
+15:10:27 | INFO: glTF import finished in 0.22s
+Info: Saved as "hollow-scavenger-review.blend"
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

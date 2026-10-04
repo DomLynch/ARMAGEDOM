@@ -1,0 +1,25 @@
+{
+  "revision": "5dc5610cba7cf2d0e8141b07a5d14cc7e7eac570",
+  "files": [
+    {
+      "file": "Web/src/world.js",
+      "sha256": "16386787af7e0d1ea3e3a36bcfb8d014d4deb40ebb0e18e89934ef8749db35ad",
+      "byteMatchesPinnedRuntime": true
+    },
+    {
+      "file": "Web/src/world-geometry.js",
+      "sha256": "c171c12bc67d0583d61e1699a12a3e112cb3a2f424d2c72c8ec9143902664706",
+      "byteMatchesPinnedRuntime": true
+    },
+    {
+      "file": "Web/public/world/westminster/layout.json",
+      "sha256": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5",
+      "byteMatchesPinnedRuntime": true
+    },
+    {
+      "file": "Web/public/world/westminster/backdrop.png",
+      "sha256": "7ce686a7dd54b800261bb697b3e269f18cb2a72ca8ae5b7733a742ceab2c28e2",
+      "byteMatchesPinnedRuntime": true
+    }
+  ]
+}

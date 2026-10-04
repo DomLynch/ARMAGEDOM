@@ -1,0 +1,24 @@
+{
+  "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "fps": 8,
+  "seconds": 12,
+  "modes": [
+    "idle",
+    "walk",
+    "attack",
+    "heavy",
+    "hit",
+    "death"
+  ],
+  "characterScale": 1.265,
+  "actorVisualScale": 1.3225,
+  "cameraZoom": 1.3365,
+  "candidatePosition": {
+    "x": 2,
+    "z": -6
+  },
+  "playerCameraTarget": {
+    "x": 0,
+    "z": -6
+  }
+}
