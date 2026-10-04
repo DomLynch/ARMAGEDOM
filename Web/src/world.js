@@ -58,7 +58,7 @@ export class LondonWorld {
     const response=await fetch(new URL('layout.json',url));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
     const layout=await response.json(),geometry=createGeometry(layout),entry=geometry.ground(entryPoint);
     if(!geometry.clear(entry,.4))throw Error('London entry is blocked');
-    const texture=await new THREE.TextureLoader().loadAsync(new URL('backdrop.png',url).href);
+    const texture=await new THREE.TextureLoader().loadAsync(new URL(this.manifest.backdrops?.[areaId]??'backdrop.png',url).href);
     let next;
     try {
       if(this.disposed||generation!==this.loadGeneration)throw Error('London load superseded');
@@ -115,6 +115,6 @@ export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThi
   const url=new URL('world/westminster/',baseUrl);
   const response=await fetch(new URL('layout.json',url));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
   const layout=await response.json();createGeometry(layout);
-  const texture=await new THREE.TextureLoader().loadAsync(new URL('backdrop.png',url).href);
+  const texture=await new THREE.TextureLoader().loadAsync(new URL(manifest.backdrops?.westminster??'backdrop.png',url).href);
   try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,baseUrl,viewZoomMultiplier});} catch(e){texture.dispose();throw e;}
 }

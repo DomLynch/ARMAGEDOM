@@ -1,0 +1,38 @@
+[
+  {
+    "area": "westminster",
+    "pngBytes": 2898653,
+    "webpBytes": 2297404,
+    "seconds": 2.64,
+    "decodedRGBASHA256": "3e23a19822c3bda0c0e578c5b93164c9c1a4e56bf6e06cb09d60021e52cb155e",
+    "sha256": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1",
+    "dimensions": [
+      1672,
+      941
+    ]
+  },
+  {
+    "area": "south",
+    "pngBytes": 3152685,
+    "webpBytes": 2569092,
+    "seconds": 2.57,
+    "decodedRGBASHA256": "edecf2ed1c9092f9d2b711017a9454545281d2b1d5aa29aadfb30beb57b39320",
+    "sha256": "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8",
+    "dimensions": [
+      1672,
+      941
+    ]
+  },
+  {
+    "area": "east",
+    "pngBytes": 3005065,
+    "webpBytes": 2374366,
+    "seconds": 2.38,
+    "decodedRGBASHA256": "2efb696c9a460ff42282b18ee38b6d1a95eb02947e1ee2e4c65a8cfece5dbc78",
+    "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532",
+    "dimensions": [
+      1672,
+      941
+    ]
+  }
+]

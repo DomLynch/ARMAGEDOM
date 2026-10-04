@@ -14,10 +14,10 @@
     },
     {
       "area": "westminster",
-      "path": "westminster/backdrop.png",
-      "source": "Game/Assets/StreamingAssets/London/Travel/west/backdrop.png",
-      "bytes": 2898653,
-      "sha256": "7ce686a7dd54b800261bb697b3e269f18cb2a72ca8ae5b7733a742ceab2c28e2"
+      "path": "westminster/backdrop.webp",
+      "source": "Game/Assets/StreamingAssets/London/Travel/west/backdrop.png (lossless WebP copy)",
+      "bytes": 2297404,
+      "sha256": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1"
     },
     {
       "area": "south",
@@ -28,10 +28,10 @@
     },
     {
       "area": "south",
-      "path": "south/backdrop.png",
-      "source": "Game/Assets/StreamingAssets/London/Travel/south/backdrop.png",
-      "bytes": 3152685,
-      "sha256": "d2380a6ea7a922c9b0cec71c80ca718492a679c79c8a87474b06a7376d0e52de"
+      "path": "south/backdrop.webp",
+      "source": "Game/Assets/StreamingAssets/London/Travel/south/backdrop.png (lossless WebP copy)",
+      "bytes": 2569092,
+      "sha256": "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8"
     },
     {
       "area": "east",
@@ -42,10 +42,10 @@
     },
     {
       "area": "east",
-      "path": "east/backdrop.png",
-      "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png",
-      "bytes": 3005065,
-      "sha256": "c059acad2a7e83b5cd776fa6f18463fd42ed113e02dd2f6ff29f6c82b5a946ec"
+      "path": "east/backdrop.webp",
+      "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png (lossless WebP copy)",
+      "bytes": 2374366,
+      "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
     }
   ],
   "lazyAreas": [
@@ -119,5 +119,10 @@
         "y": 0.92
       }
     }
-  ]
+  ],
+  "backdrops": {
+    "westminster": "backdrop.webp",
+    "south": "backdrop.webp",
+    "east": "backdrop.webp"
+  }
 }

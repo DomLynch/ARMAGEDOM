@@ -1,0 +1,50 @@
+[
+  {
+    "browser": "chromium",
+    "version": "151.0.7922.34",
+    "area": "westminster",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  },
+  {
+    "browser": "chromium",
+    "version": "151.0.7922.34",
+    "area": "south",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  },
+  {
+    "browser": "chromium",
+    "version": "151.0.7922.34",
+    "area": "east",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  },
+  {
+    "browser": "webkit",
+    "version": "26.5",
+    "area": "westminster",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  },
+  {
+    "browser": "webkit",
+    "version": "26.5",
+    "area": "south",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  },
+  {
+    "browser": "webkit",
+    "version": "26.5",
+    "area": "east",
+    "width": 1672,
+    "height": 941,
+    "identical": true
+  }
+]
