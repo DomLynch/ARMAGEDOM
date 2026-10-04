@@ -11,7 +11,8 @@ const canvas = document.getElementById("world"),
 const pilot = { pilot: "donor-knife" };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
-const viewZoomMultiplier = 1.15;
+// Dom selected preview006: retain enlarged actors without extra scene zoom.
+const viewZoomMultiplier = 1;
 const actorManifest = "assets/donor/manifest.json";
 const audio = createAudio({ donor: true, baseUrl });
 let renderer,
@@ -215,7 +216,7 @@ enter.addEventListener("click", async () => {
     hud.ready();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Larger characters +15% map zoom trial007";
+      "Three.js · Approved006 character size and framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);
