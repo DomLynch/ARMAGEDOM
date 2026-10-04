@@ -109,7 +109,7 @@ export function createHUD({ onRetry, onPause, onSound }) {
           `${id}${lowEnergy ? ' · Low stamina' : ''}`,
         );
         if (id === 'slash' || id === 'stab')
-          button.querySelector('small').textContent = lowEnergy ? 'LOW' : '';
+          button.querySelector('small').textContent = '';
       }
       el('objective').textContent = donor
         ? `WESTMINSTER · GOBLIN ENCOUNTER · ${g.enemies.length} HOSTILES`
@@ -133,12 +133,8 @@ export function createHUD({ onRetry, onPause, onSound }) {
           '--ready',
           String(period > 0 ? 1 - left / period : 1),
         );
-        button.querySelector('small').textContent = [
-          left > 0 ? `${left.toFixed(1)}s` : '',
-          unaffordable(id) ? 'LOW' : '',
-        ]
-          .filter(Boolean)
-          .join(' · ');
+        button.querySelector('small').textContent =
+          left > 0 ? `${left.toFixed(1)}s` : '';
       }
       el('guard').classList.toggle('pressed', p.guarding);
       const boss = g.enemies.find((e) => e.kind === 3);
