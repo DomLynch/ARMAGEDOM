@@ -64,3 +64,28 @@ Lead package wiring for the donor build/verification:
 Generated manifest references in that fixture are synthetic: no build/gameplay or
 phone acceptance implied. Audio remains absent until WorldAudio's concrete schema.
 Receipt: canonical artifacts/threejs-hosting/donor-closure-checks.json.
+
+## Pinned audio adapter — 2026-10-04
+
+WorldAudio0ea6e126 uses `audio/manifest.json` with top-level
+`{url:"combat.wav",bytes,sha256}` plus cue/provenance metadata. Enable only through
+`--audio audio/manifest.json`; closure keeps that manifest and its hash-pinned WAV.
+Generated code must contain the selected manifest path. WAV RIFF/WAVE header/size,
+source equality, safe paths/symlinks and manifest hashes are checked before pruning.
+Cue timing/mix/audibility remain World/Lead runtime acceptance, not packaging proof.
+
+Lead proposed wiring:
+
+```json
+{
+  "build": "vite build --base=./ && node scripts/verify-assets.mjs --prune --actors assets/donor/manifest.json --audio audio/manifest.json",
+  "verify:assets": "node scripts/verify-assets.mjs --actors assets/donor/manifest.json --audio audio/manifest.json"
+}
+```
+
+21 focused fixture checks pass. Actual pinned WAV1,848,908bytes/SHA256
+b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d verified alongside
+actual donor/world resources in a temporary fixture; generated path references are
+synthetic. No build/publish/audio playback/physical-device claim. Receipt canonical
+artifacts/threejs-hosting/audio-closure-checks.json. Existing no-audio002 defaults
+remain unchanged.
