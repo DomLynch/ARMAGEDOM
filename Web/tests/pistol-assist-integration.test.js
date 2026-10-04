@@ -19,7 +19,7 @@ test('no-drag Fire targets ahead, marker and shot agree, release clears lock',()
 test('retained target cannot rotate the reference cone behind player; manual override wins',()=>{
  const {g,e}=fixture();tick(g,{held:['fire']});e.pos={x:0,z:-8};tick(g,{held:['fire']});
  assert.equal(g.pistolTargetId,null);assert.deepEqual(g.player.facing,{x:0,z:1});assert.equal(e.hp,30);
- e.pos={x:2,z:-2};for(let i=0;i<18;i++)tick(g);
+ e.pos={x:2,z:-2};while(g.time<=g.pistol.nextFireAt)tick(g);
  tick(g,{actions:['fire'],aim:{x:-1,z:0},manualPistolAim:true});const shot=g.events.find(e=>e.type==='shot');
  assert.equal(g.pistolTargetId,null);assert.deepEqual(shot.direction,{x:-1,z:0});assert.equal(shot.targetId,null);assert.equal(e.hp,30);
  tick(g,{held:['fire'],cancel:true});assert.equal(g.pistolTargetId,null);assert.ok(!g.events.some(e=>e.type==='shot'));
