@@ -1,0 +1,17 @@
+capture: blender-cpu holds slot 1 of 3 from 16:11:46Z (nice 15, ionice idle)
+XDG_RUNTIME_DIR (/run/user/0) is not owned by us (uid 1002), but by uid 0! (This could e.g. happen if you try to connect to a non-root PulseAudio as a root user, over the native protocol. Don't do that.)
+/srv/dev-jobs/pistol-art-20261004/src/art/pistol/build.py:8: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(n);m.diffuse_color=(*c,1);m.use_nodes=True;p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=(*c,1);p.inputs['Metallic'].default_value=metal;p.inputs['Roughness'].default_value=rough;return m
+Info: Saved as "pistol.blend"
+INFO Draco is available, use library at /opt/blender/blender-5.2.2-linux-x64/lib/libbf_intern_draco_bridge.so
+INFO MeshOptimizer is available, use library at /opt/blender/blender-5.2.2-linux-x64/lib/libbf_intern_meshopt_bridge.so
+20:11:48 | INFO: Starting glTF 2.0 export
+20:11:48 | INFO: Extracting primitive: Cube.002
+20:11:48 | INFO: Primitives created: 3
+20:11:48 | INFO: Finished glTF 2.0 export in 0.08214783668518066 s
+
+{"originalAuthorship": "Original procedural geometry authored for ARMAGEDOM; no external mesh or textures.", "sha256": "62d6bdc4789365ace89c98bc3fe74322ae427f316810f81cb4ad66857e73f321", "bytes": 106436, "meshObjects": 1, "triangles": 1364, "units": "metres", "forward": [0, 0, 1], "up": [0, 1, 0], "grip": [0, 0, 0], "muzzle": [0, 0.055, 0.161]}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:34:58)
+
+Blender quit
+capture: released at 16:11:48Z, exit 0

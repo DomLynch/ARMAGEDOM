@@ -1,0 +1,1396 @@
+TAP version 13
+# Subtest: donor selection owns its separate equipment and releases it on failed load
+ok 1 - donor selection owns its separate equipment and releases it on failed load
+  ---
+  duration_ms: 6.48129
+  type: 'test'
+  ...
+# Subtest: library owns shared GLB resources and disposal is idempotent
+ok 2 - library owns shared GLB resources and disposal is idempotent
+  ---
+  duration_ms: 0.914443
+  type: 'test'
+  ...
+# Subtest: failed load settles late resources, cleans them, and allows a clean retry
+ok 3 - failed load settles late resources, cleans them, and allows a clean retry
+  ---
+  duration_ms: 8.268661
+  type: 'test'
+  ...
+# Subtest: missing survivor and progress callback failures release completed models
+ok 4 - missing survivor and progress callback failures release completed models
+  ---
+  duration_ms: 1.301059
+  type: 'test'
+  ...
+# Subtest: actor reset retains the library; disposal frees source resources
+ok 5 - actor reset retains the library; disposal frees source resources
+  ---
+  duration_ms: 7.172085
+  type: 'test'
+  ...
+# Subtest: equipment download starts before the body finishes decoding
+ok 6 - equipment download starts before the body finishes decoding
+  ---
+  duration_ms: 2.840725
+  type: 'test'
+  ...
+# Subtest: Hollow selection loads both source-relative native knives and is complete without Goblin
+ok 7 - Hollow selection loads both source-relative native knives and is complete without Goblin
+  ---
+  duration_ms: 1.394995
+  type: 'test'
+  ...
+# Subtest: resume starts a fresh audio load while an aborted decode is still settling
+ok 8 - resume starts a fresh audio load while an aborted decode is still settling
+  ---
+  duration_ms: 6.623005
+  type: 'test'
+  ...
+# Subtest: world uses explicit per-area backdrop selection through initial and atomic loads
+ok 9 - world uses explicit per-area backdrop selection through initial and atomic loads
+  ---
+  duration_ms: 10.144306
+  type: 'test'
+  ...
+# Subtest: selected assets have accurate runtime hashes and preserve original PNGs
+ok 10 - selected assets have accurate runtime hashes and preserve original PNGs
+  ---
+  duration_ms: 16.404542
+  type: 'test'
+  ...
+# Subtest: actual Westminster 120-forward entry never spawns Goblin on player
+ok 11 - actual Westminster 120-forward entry never spawns Goblin on player
+  ---
+  duration_ms: 22.437941
+  type: 'test'
+  ...
+# Subtest: all spawn offsets blocked postpones wave safely and retries after clearance
+ok 12 - all spawn offsets blocked postpones wave safely and retries after clearance
+  ---
+  duration_ms: 0.838161
+  type: 'test'
+  ...
+# Subtest: stationary same-tick aim and dodge retreats from current aim
+ok 13 - stationary same-tick aim and dodge retreats from current aim
+  ---
+  duration_ms: 0.567004
+  type: 'test'
+  ...
+# Subtest: movement-driven dodge overrides aim and retains press-time direction
+ok 14 - movement-driven dodge overrides aim and retains press-time direction
+  ---
+  duration_ms: 0.993363
+  type: 'test'
+  ...
+# Subtest: same-tick aim/dodge cannot cancel a committed attack
+ok 15 - same-tick aim/dodge cannot cancel a committed attack
+  ---
+  duration_ms: 0.719408
+  type: 'test'
+  ...
+# Subtest: stationary dodge ignores zero or nonfinite same-tick aim
+ok 16 - stationary dodge ignores zero or nonfinite same-tick aim
+  ---
+  duration_ms: 0.440476
+  type: 'test'
+  ...
+# Subtest: separated projected offsets still require actual circle clearance
+ok 17 - separated projected offsets still require actual circle clearance
+  ---
+  duration_ms: 0.43184
+  type: 'test'
+  ...
+# Subtest: slash only deals damage after windup and inside its facing sector
+ok 18 - slash only deals damage after windup and inside its facing sector
+  ---
+  duration_ms: 3.368205
+  type: 'test'
+  ...
+# Subtest: stab chooses nearest target and excludes wide-angle target
+ok 19 - stab chooses nearest target and excludes wide-angle target
+  ---
+  duration_ms: 0.45853
+  type: 'test'
+  ...
+# Subtest: heavy and special have distinct damage and cannot bypass cooldown
+ok 20 - heavy and special have distinct damage and cannot bypass cooldown
+  ---
+  duration_ms: 2.200966
+  type: 'test'
+  ...
+# Subtest: blocking geometry prevents a sword damaging through an obstacle
+ok 21 - blocking geometry prevents a sword damaging through an obstacle
+  ---
+  duration_ms: 0.263373
+  type: 'test'
+  ...
+# Subtest: front eligible melee is parried within window; unguardable boss damage remains
+ok 22 - front eligible melee is parried within window; unguardable boss damage remains
+  ---
+  duration_ms: 0.526668
+  type: 'test'
+  ...
+# Subtest: late guard chips health and drains guard capacity; rear attacks bypass it
+ok 23 - late guard chips health and drains guard capacity; rear attacks bypass it
+  ---
+  duration_ms: 0.340246
+  type: 'test'
+  ...
+# Subtest: guard break empties capacity and prevents immediate renewed guard
+ok 24 - guard break empties capacity and prevents immediate renewed guard
+  ---
+  duration_ms: 0.321142
+  type: 'test'
+  ...
+# Subtest: dodge travels while invulnerable and hits resume after dodge
+ok 25 - dodge travels while invulnerable and hits resume after dodge
+  ---
+  duration_ms: 0.398526
+  type: 'test'
+  ...
+# Subtest: first interaction starts the original mixed five-enemy wave
+ok 26 - first interaction starts the original mixed five-enemy wave
+  ---
+  duration_ms: 1.735334
+  type: 'test'
+  ...
+# Subtest: lethal player damage ends run and frozen run cannot keep moving
+ok 27 - lethal player damage ends run and frozen run cannot keep moving
+  ---
+  duration_ms: 0.480331
+  type: 'test'
+  ...
+# Subtest: attack buffering accepts a last-recovery tap without losing its aimed direction
+ok 28 - attack buffering accepts a last-recovery tap without losing its aimed direction
+  ---
+  duration_ms: 1.087178
+  type: 'test'
+  ...
+# Subtest: projectile sweeps hit the player once and walls stop them first
+ok 29 - projectile sweeps hit the player once and walls stop them first
+  ---
+  duration_ms: 0.306534
+  type: 'test'
+  ...
+# Subtest: second wave has six enemies and third wave preserves400HP Warlord
+ok 30 - second wave has six enemies and third wave preserves400HP Warlord
+  ---
+  duration_ms: 0.258926
+  type: 'test'
+  ...
+# Subtest: blade/armour/tonic pickups retain distinct original progression
+ok 31 - blade/armour/tonic pickups retain distinct original progression
+  ---
+  duration_ms: 0.215393
+  type: 'test'
+  ...
+# Subtest: simultaneous attacks preserve Special over Heavy over Stab over Slash priority
+ok 32 - simultaneous attacks preserve Special over Heavy over Stab over Slash priority
+  ---
+  duration_ms: 0.228749
+  type: 'test'
+  ...
+# Subtest: block: front obeys frontal 120-degree cone
+ok 33 - block: front obeys frontal 120-degree cone
+  ---
+  duration_ms: 6.894415
+  type: 'test'
+  ...
+# Subtest: block: right side obeys frontal 120-degree cone
+ok 34 - block: right side obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.411476
+  type: 'test'
+  ...
+# Subtest: block: left side obeys frontal 120-degree cone
+ok 35 - block: left side obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.114919
+  type: 'test'
+  ...
+# Subtest: block: rear obeys frontal 120-degree cone
+ok 36 - block: rear obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.779477
+  type: 'test'
+  ...
+# Subtest: block: right just inside obeys frontal 120-degree cone
+ok 37 - block: right just inside obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.109659
+  type: 'test'
+  ...
+# Subtest: block: left just inside obeys frontal 120-degree cone
+ok 38 - block: left just inside obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.16286
+  type: 'test'
+  ...
+# Subtest: block: right boundary obeys frontal 120-degree cone
+ok 39 - block: right boundary obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.335685
+  type: 'test'
+  ...
+# Subtest: block: left boundary obeys frontal 120-degree cone
+ok 40 - block: left boundary obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.386167
+  type: 'test'
+  ...
+# Subtest: block: right just outside obeys frontal 120-degree cone
+ok 41 - block: right just outside obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.666484
+  type: 'test'
+  ...
+# Subtest: block: left just outside obeys frontal 120-degree cone
+ok 42 - block: left just outside obeys frontal 120-degree cone
+  ---
+  duration_ms: 1.950125
+  type: 'test'
+  ...
+# Subtest: block: turn 0 to 90 before front impact uses current facing
+ok 43 - block: turn 0 to 90 before front impact uses current facing
+  ---
+  duration_ms: 1.338349
+  type: 'test'
+  ...
+# Subtest: block: turn 0 to -90 before front impact uses current facing
+ok 44 - block: turn 0 to -90 before front impact uses current facing
+  ---
+  duration_ms: 1.256505
+  type: 'test'
+  ...
+# Subtest: block: turn 0 to 180 before front impact uses current facing
+ok 45 - block: turn 0 to 180 before front impact uses current facing
+  ---
+  duration_ms: 1.188478
+  type: 'test'
+  ...
+# Subtest: block: turn 90 to 0 before front impact uses current facing
+ok 46 - block: turn 90 to 0 before front impact uses current facing
+  ---
+  duration_ms: 1.239884
+  type: 'test'
+  ...
+# Subtest: parry: front obeys frontal 120-degree cone
+ok 47 - parry: front obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.269945
+  type: 'test'
+  ...
+# Subtest: parry: right side obeys frontal 120-degree cone
+ok 48 - parry: right side obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.254528
+  type: 'test'
+  ...
+# Subtest: parry: left side obeys frontal 120-degree cone
+ok 49 - parry: left side obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.18708
+  type: 'test'
+  ...
+# Subtest: parry: rear obeys frontal 120-degree cone
+ok 50 - parry: rear obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.188413
+  type: 'test'
+  ...
+# Subtest: parry: right just inside obeys frontal 120-degree cone
+ok 51 - parry: right just inside obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.173895
+  type: 'test'
+  ...
+# Subtest: parry: left just inside obeys frontal 120-degree cone
+ok 52 - parry: left just inside obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.167605
+  type: 'test'
+  ...
+# Subtest: parry: right boundary obeys frontal 120-degree cone
+ok 53 - parry: right boundary obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.142547
+  type: 'test'
+  ...
+# Subtest: parry: left boundary obeys frontal 120-degree cone
+ok 54 - parry: left boundary obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.144971
+  type: 'test'
+  ...
+# Subtest: parry: right just outside obeys frontal 120-degree cone
+ok 55 - parry: right just outside obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.150172
+  type: 'test'
+  ...
+# Subtest: parry: left just outside obeys frontal 120-degree cone
+ok 56 - parry: left just outside obeys frontal 120-degree cone
+  ---
+  duration_ms: 0.163387
+  type: 'test'
+  ...
+# Subtest: parry: turn 0 to 90 before front impact uses current facing
+ok 57 - parry: turn 0 to 90 before front impact uses current facing
+  ---
+  duration_ms: 0.19714
+  type: 'test'
+  ...
+# Subtest: parry: turn 0 to -90 before front impact uses current facing
+ok 58 - parry: turn 0 to -90 before front impact uses current facing
+  ---
+  duration_ms: 0.193894
+  type: 'test'
+  ...
+# Subtest: parry: turn 0 to 180 before front impact uses current facing
+ok 59 - parry: turn 0 to 180 before front impact uses current facing
+  ---
+  duration_ms: 0.211305
+  type: 'test'
+  ...
+# Subtest: parry: turn 90 to 0 before front impact uses current facing
+ok 60 - parry: turn 90 to 0 before front impact uses current facing
+  ---
+  duration_ms: 0.192731
+  type: 'test'
+  ...
+# Subtest: matched actor integration preserves native scale, equipment and completed death playback across retry
+ok 61 - matched actor integration preserves native scale, equipment and completed death playback across retry
+  ---
+  duration_ms: 1095.214411
+  type: 'test'
+  ...
+# Subtest: pilot exposes matched rigs, six action metadata and authored special
+ok 62 - pilot exposes matched rigs, six action metadata and authored special
+  ---
+  duration_ms: 2.785422
+  type: 'test'
+  ...
+# Subtest: knife slash waits fourteen ticks and lands only once during active sweep
+ok 63 - knife slash waits fourteen ticks and lands only once during active sweep
+  ---
+  duration_ms: 6.456653
+  type: 'test'
+  ...
+# Subtest: blade sweep does not hit a target merely inside old sword range
+ok 64 - blade sweep does not hit a target merely inside old sword range
+  ---
+  duration_ms: 2.846075
+  type: 'test'
+  ...
+# Subtest: pilot active contact remains blocked by world obstacles
+ok 65 - pilot active contact remains blocked by world obstacles
+  ---
+  duration_ms: 1.679698
+  type: 'test'
+  ...
+# Subtest: donor roll has startup vulnerability and safety only on ticks four through twenty
+ok 66 - donor roll has startup vulnerability and safety only on ticks four through twenty
+  ---
+  duration_ms: 10.554514
+  type: 'test'
+  ...
+# Subtest: parry uses donor stun and explicit attacker/victim semantics
+ok 67 - parry uses donor stun and explicit attacker/victim semantics
+  ---
+  duration_ms: 0.975228
+  type: 'test'
+  ...
+# Subtest: pilot spawns one Goblin and its death completes existing encounter contract
+ok 68 - pilot spawns one Goblin and its death completes existing encounter contract
+  ---
+  duration_ms: 1.844949
+  type: 'test'
+  ...
+# Subtest: late held guard blocks without chip while rear attacks bypass it
+ok 69 - late held guard blocks without chip while rear attacks bypass it
+  ---
+  duration_ms: 1.401186
+  type: 'test'
+  ...
+# Subtest: guard parry cooldown forbids fresh windows from repeated taps
+ok 70 - guard parry cooldown forbids fresh windows from repeated taps
+  ---
+  duration_ms: 0.730108
+  type: 'test'
+  ...
+# Subtest: released failed parry exposes guard for eight ticks but leaves attack available
+ok 71 - released failed parry exposes guard for eight ticks but leaves attack available
+  ---
+  duration_ms: 1.535329
+  type: 'test'
+  ...
+# Subtest: Special has close range and spends fifteen-second cooldown on a whiff
+ok 72 - Special has close range and spends fifteen-second cooldown on a whiff
+  ---
+  duration_ms: 3.140797
+  type: 'test'
+  ...
+# Subtest: cancel clears queued intent and guard while pause freezes simulation
+ok 73 - cancel clears queued intent and guard while pause freezes simulation
+  ---
+  duration_ms: 2.485019
+  type: 'test'
+  ...
+# Subtest: one killed target does not stop another opponent or the London simulation
+ok 74 - one killed target does not stop another opponent or the London simulation
+  ---
+  duration_ms: 2.689962
+  type: 'test'
+  ...
+# Subtest: simultaneous lethal contacts trade without player-first kill suppressing enemy contact
+ok 75 - simultaneous lethal contacts trade without player-first kill suppressing enemy contact
+  ---
+  duration_ms: 1.22683
+  type: 'test'
+  ...
+# Subtest: a startup hit interrupts the roll and hurt response owns the recovery
+ok 76 - a startup hit interrupts the roll and hurt response owns the recovery
+  ---
+  duration_ms: 0.468358
+  type: 'test'
+  ...
+# Subtest: stationary dodge retreats from the current aim and obstacle movement clamps it
+ok 77 - stationary dodge retreats from the current aim and obstacle movement clamps it
+  ---
+  duration_ms: 1.194789
+  type: 'test'
+  ...
+# Subtest: guard recovers at half donor regeneration while held after spend delay
+ok 78 - guard recovers at half donor regeneration while held after spend delay
+  ---
+  duration_ms: 2.079648
+  type: 'test'
+  ...
+# Subtest: missing rig paths fail closed and hero/Goblin paths remain distinct
+ok 79 - missing rig paths fail closed and hero/Goblin paths remain distinct
+  ---
+  duration_ms: 1.823839
+  type: 'test'
+  ...
+# Subtest: sweep catches a target crossing the blade between tick endpoints
+ok 80 - sweep catches a target crossing the blade between tick endpoints
+  ---
+  duration_ms: 1.718362
+  type: 'test'
+  ...
+# Subtest: path transform obeys render handedness, rotation and common actor scale
+ok 81 - path transform obeys render handedness, rotation and common actor scale
+  ---
+  duration_ms: 0.287529
+  type: 'test'
+  ...
+# Subtest: finite segment geometry handles parallel and point blades
+ok 82 - finite segment geometry handles parallel and point blades
+  ---
+  duration_ms: 0.206336
+  type: 'test'
+  ...
+# Subtest: chip from an ordinary heavy block does not stagger or drop the held guard
+ok 83 - chip from an ordinary heavy block does not stagger or drop the held guard
+  ---
+  duration_ms: 2.000009
+  type: 'test'
+  ...
+# Subtest: stab selects the nearest contacted target even when array order is reversed
+ok 84 - stab selects the nearest contacted target even when array order is reversed
+  ---
+  duration_ms: 2.361577
+  type: 'test'
+  ...
+# Subtest: perfect block stops heavy chip and insufficient guard breaks without free renewal
+ok 85 - perfect block stops heavy chip and insufficient guard breaks without free renewal
+  ---
+  duration_ms: 1.954043
+  type: 'test'
+  ...
+# Subtest: real Westminster geometry contains the pilot spawn and complete roaming encounter
+ok 86 - real Westminster geometry contains the pilot spawn and complete roaming encounter
+  ---
+  duration_ms: 88.625694
+  type: 'test'
+  ...
+# Subtest: pilot rejects skipped simulation ticks before mutating the fight
+ok 87 - pilot rejects skipped simulation ticks before mutating the fight
+  ---
+  duration_ms: 0.401544
+  type: 'test'
+  ...
+# Subtest: finished pilot rejects external damage and retry starts a fresh guard/swing state
+ok 88 - finished pilot rejects external damage and retry starts a fresh guard/swing state
+  ---
+  duration_ms: 0.161051
+  type: 'test'
+  ...
+# Subtest: lethal pilot hit retains the victim and authored death response for presentation
+ok 89 - lethal pilot hit retains the victim and authored death response for presentation
+  ---
+  duration_ms: 0.969076
+  type: 'test'
+  ...
+# Subtest: Contact phase 14
+ok 90 - Contact phase 14
+  ---
+  duration_ms: 1.794594
+  type: 'test'
+  ...
+# Subtest: Contact phase 12
+ok 91 - Contact phase 12
+  ---
+  duration_ms: 0.36307
+  type: 'test'
+  ...
+# Subtest: Contact phase 22
+ok 92 - Contact phase 22
+  ---
+  duration_ms: 0.168786
+  type: 'test'
+  ...
+# Subtest: Contact phase 18
+ok 93 - Contact phase 18
+  ---
+  duration_ms: 0.099666
+  type: 'test'
+  ...
+# Subtest: Equip preserves source scenes, grip transform and player overrides
+ok 94 - Equip preserves source scenes, grip transform and player overrides
+  ---
+  duration_ms: 47.58986
+  type: 'test'
+  ...
+# Subtest: hero light_right fixed-tick contacts and cardinal headings
+ok 95 - hero light_right fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 48.522578
+  type: 'test'
+  ...
+# Subtest: hero light_left fixed-tick contacts and cardinal headings
+ok 96 - hero light_left fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 65.628985
+  type: 'test'
+  ...
+# Subtest: hero thrust fixed-tick contacts and cardinal headings
+ok 97 - hero thrust fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 24.070221
+  type: 'test'
+  ...
+# Subtest: hero heavy_overhead fixed-tick contacts and cardinal headings
+ok 98 - hero heavy_overhead fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 57.385193
+  type: 'test'
+  ...
+# Subtest: goblin light_right fixed-tick contacts and cardinal headings
+ok 99 - goblin light_right fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 26.034903
+  type: 'test'
+  ...
+# Subtest: goblin light_left fixed-tick contacts and cardinal headings
+ok 100 - goblin light_left fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 18.316385
+  type: 'test'
+  ...
+# Subtest: goblin thrust fixed-tick contacts and cardinal headings
+ok 101 - goblin thrust fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 18.722465
+  type: 'test'
+  ...
+# Subtest: goblin heavy_overhead fixed-tick contacts and cardinal headings
+ok 102 - goblin heavy_overhead fixed-tick contacts and cardinal headings
+  ---
+  duration_ms: 50.010588
+  type: 'test'
+  ...
+# Subtest: Cancellation, responses, guard, roll, special, death and independent mixers
+ok 103 - Cancellation, responses, guard, roll, special, death and independent mixers
+  ---
+  duration_ms: 15.173272
+  type: 'test'
+  ...
+# Subtest: Candidate hashes, preserved roots and rig-specific stride
+ok 104 - Candidate hashes, preserved roots and rig-specific stride
+  ---
+  duration_ms: 17.162122
+  type: 'test'
+  ...
+# Subtest: Moving guard uses native legs and dedicated upper guard; stopped simulation stays still
+ok 105 - Moving guard uses native legs and dedicated upper guard; stopped simulation stays still
+  ---
+  duration_ms: 4.076882
+  type: 'test'
+  ...
+# Subtest: A fresh counter swing supersedes lingering parry response
+ok 106 - A fresh counter swing supersedes lingering parry response
+  ---
+  duration_ms: 3.188367
+  type: 'test'
+  ...
+# Subtest: ordinary 3m/s uses ArmedWalk and no-tick 120Hz frames retain it with the same cadence as 60Hz
+ok 107 - ordinary 3m/s uses ArmedWalk and no-tick 120Hz frames retain it with the same cadence as 60Hz
+  ---
+  duration_ms: 33.457538
+  type: 'test'
+  ...
+# Subtest: floating46px stick deadzone, analog walk and deliberate outer sprint
+ok 108 - floating46px stick deadzone, analog walk and deliberate outer sprint
+  ---
+  duration_ms: 3.084773
+  type: 'test'
+  ...
+# Subtest: donor sprint reaches5.2m/s and drains12/s without regen or action delay
+ok 109 - donor sprint reaches5.2m/s and drains12/s without regen or action delay
+  ---
+  duration_ms: 10.794896
+  type: 'test'
+  ...
+# Subtest: blocked sprint spends nothing and keeps eligible recovery
+ok 110 - blocked sprint spends nothing and keeps eligible recovery
+  ---
+  duration_ms: 3.25894
+  type: 'test'
+  ...
+# Subtest: zero stamina walks at2.1m/s until20 recovery, then held sprint rearms
+ok 111 - zero stamina walks at2.1m/s until20 recovery, then held sprint rearms
+  ---
+  duration_ms: 1.809131
+  type: 'test'
+  ...
+# Subtest: guard, melee commitment, roll and hurt inhibit sprint without changing action costs
+ok 112 - guard, melee commitment, roll and hurt inhibit sprint without changing action costs
+  ---
+  duration_ms: 2.161922
+  type: 'test'
+  ...
+# Subtest: donor Pommel is a close forward effect; legacy Special remains a shockwave
+ok 113 - donor Pommel is a close forward effect; legacy Special remains a shockwave
+  ---
+  duration_ms: 7.26037
+  type: 'test'
+  ...
+# Subtest: donor impact uses victim ground metadata instead of attacker identity
+ok 114 - donor impact uses victim ground metadata instead of attacker identity
+  ---
+  duration_ms: 0.950162
+  type: 'test'
+  ...
+# Subtest: donor cues preserve impact gains and omit blocked hits, death and crowd
+ok 115 - donor cues preserve impact gains and omit blocked hits, death and crowd
+  ---
+  duration_ms: 1.055628
+  type: 'test'
+  ...
+# Subtest: selected WAV contains exactly the pinned donor PCM ranges and no extra cues
+ok 116 - selected WAV contains exactly the pinned donor PCM ranges and no extra cues
+  ---
+  duration_ms: 5.497174
+  type: 'test'
+  ...
+# Subtest: enemy attack warning handles same-tick interruption: false
+ok 117 - enemy attack warning handles same-tick interruption: false
+  ---
+  duration_ms: 6.050271
+  type: 'test'
+  ...
+# Subtest: enemy attack warning handles same-tick interruption: true
+ok 118 - enemy attack warning handles same-tick interruption: true
+  ---
+  duration_ms: 2.680365
+  type: 'test'
+  ...
+# Subtest: explicit Hollow config creates3 independent source-scaled humans with unchanged player costs
+ok 119 - explicit Hollow config creates3 independent source-scaled humans with unchanged player costs
+  ---
+  duration_ms: 3.35036
+  type: 'test'
+  ...
+# Subtest: descriptor required and unsupported contact rig/config fail closed
+ok 120 - descriptor required and unsupported contact rig/config fail closed
+  ---
+  duration_ms: 0.608129
+  type: 'test'
+  ...
+# Subtest: real Westminster group placement after0forwardticks is atomic/clear/spaced
+ok 121 - real Westminster group placement after0forwardticks is atomic/clear/spaced
+  ---
+  duration_ms: 19.97781
+  type: 'test'
+  ...
+# Subtest: real Westminster group placement after120forwardticks is atomic/clear/spaced
+ok 122 - real Westminster group placement after120forwardticks is atomic/clear/spaced
+  ---
+  duration_ms: 15.909003
+  type: 'test'
+  ...
+# Subtest: insufficient road space never partly spawns/advances and retries when clear
+ok 123 - insufficient road space never partly spawns/advances and retries when clear
+  ---
+  duration_ms: 2.228498
+  type: 'test'
+  ...
+# Subtest: slash reaches multiple contacted foes only once each
+ok 124 - slash reaches multiple contacted foes only once each
+  ---
+  duration_ms: 7.749628
+  type: 'test'
+  ...
+# Subtest: heavy reaches multiple contacted foes only once each
+ok 125 - heavy reaches multiple contacted foes only once each
+  ---
+  duration_ms: 5.684867
+  type: 'test'
+  ...
+# Subtest: special reaches multiple contacted foes only once each
+ok 126 - special reaches multiple contacted foes only once each
+  ---
+  duration_ms: 5.633149
+  type: 'test'
+  ...
+# Subtest: stab hits only nearest contacted target even with several in range
+ok 127 - stab hits only nearest contacted target even with several in range
+  ---
+  duration_ms: 4.753751
+  type: 'test'
+  ...
+# Subtest: individual death/corpse leaves others alive; only final death wins and fresh retry resets
+ok 128 - individual death/corpse leaves others alive; only final death wins and fresh retry resets
+  ---
+  duration_ms: 14.852983
+  type: 'test'
+  ...
+# Subtest: Hollow front guard/parry retain facing gate; side/rear use full damage with no spend
+ok 129 - Hollow front guard/parry retain facing gate; side/rear use full damage with no spend
+  ---
+  duration_ms: 1.486475
+  type: 'test'
+  ...
+# Subtest: encounter snapshots source descriptor and tuning instead of retaining mutable caller data
+ok 130 - encounter snapshots source descriptor and tuning instead of retaining mutable caller data
+  ---
+  duration_ms: 0.326863
+  type: 'test'
+  ...
+# Subtest: Hollow movement and recovery tune only this preset; default donor remains one Goblin
+ok 131 - Hollow movement and recovery tune only this preset; default donor remains one Goblin
+  ---
+  duration_ms: 0.939281
+  type: 'test'
+  ...
+# Subtest: an exhausted Hollow does not spend or stop another independent attacker
+ok 132 - an exhausted Hollow does not spend or stop another independent attacker
+  ---
+  duration_ms: 0.546294
+  type: 'test'
+  ...
+# Subtest: real Westminster3-copy paced movement/guard/counter completes after0entry ticks
+ok 133 - real Westminster3-copy paced movement/guard/counter completes after0entry ticks
+  ---
+  duration_ms: 199.654725
+  type: 'test'
+  ...
+# Subtest: real Westminster3-copy paced movement/guard/counter completes after120entry ticks
+ok 134 - real Westminster3-copy paced movement/guard/counter completes after120entry ticks
+  ---
+  duration_ms: 213.335389
+  type: 'test'
+  ...
+# Subtest: two available projected positions cannot create a partial3-copy wave
+ok 135 - two available projected positions cannot create a partial3-copy wave
+  ---
+  duration_ms: 0.514875
+  type: 'test'
+  ...
+# Subtest: Hollow aggression spaces admission without changing committed knife phases or stamina costs
+ok 136 - Hollow aggression spaces admission without changing committed knife phases or stamina costs
+  ---
+  duration_ms: 12.897908
+  type: 'test'
+  ...
+# Subtest: Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player
+ok 137 - Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player
+  ---
+  duration_ms: 20.02599
+  type: 'test'
+  ...
+# Subtest: three Hollow bodies and native knives use independent clones/mixers at selected006 scale
+ok 138 - three Hollow bodies and native knives use independent clones/mixers at selected006 scale
+  ---
+  duration_ms: 1127.334451
+  type: 'test'
+  ...
+# Subtest: Hollow descriptor pins source, independent rig key and supported human contacts
+ok 139 - Hollow descriptor pins source, independent rig key and supported human contacts
+  ---
+  duration_ms: 9.753131
+  type: 'test'
+  ...
+# Subtest: Own native knife contact matches source through every attack tick
+ok 140 - Own native knife contact matches source through every attack tick
+  ---
+  duration_ms: 143.506842
+  type: 'test'
+  ...
+# Subtest: Hunch changes upper body while preserving gait hips, feet and readable combat clips
+ok 141 - Hunch changes upper body while preserving gait hips, feet and readable combat clips
+  ---
+  duration_ms: 10.811798
+  type: 'test'
+  ...
+# Subtest: Candidate removes medieval gear and uses a smaller active geometry/material set
+ok 142 - Candidate removes medieval gear and uses a smaller active geometry/material set
+  ---
+  duration_ms: 17.752969
+  type: 'test'
+  ...
+# Subtest: donor objective identifies one Goblin encounter without three-wave text
+ok 143 - donor objective identifies one Goblin encounter without three-wave text
+  ---
+  duration_ms: 4.431107
+  type: 'test'
+  ...
+# Subtest: donor cooldown arcs use supplied periods and zero-cooldown Heavy stays finite
+ok 144 - donor cooldown arcs use supplied periods and zero-cooldown Heavy stays finite
+  ---
+  duration_ms: 1.089934
+  type: 'test'
+  ...
+# Subtest: donor displays actual 150HP maximum and held guard without false break during exposure
+ok 145 - donor displays actual 150HP maximum and held guard without false break during exposure
+  ---
+  duration_ms: 0.757079
+  type: 'test'
+  ...
+# Subtest: default002 keeps its waves, cooldown periods and Warlord victory
+ok 146 - default002 keeps its waves, cooldown periods and Warlord victory
+  ---
+  duration_ms: 0.721312
+  type: 'test'
+  ...
+# Subtest: donor death, retry and victory retain existing controls with accurate opponent text
+ok 147 - donor death, retry and victory retain existing controls with accurate opponent text
+  ---
+  duration_ms: 1.009252
+  type: 'test'
+  ...
+# Subtest: stamina uses the unified player resource and an accessible clamped gold bar
+ok 148 - stamina uses the unified player resource and an accessible clamped gold bar
+  ---
+  duration_ms: 1.864315
+  type: 'test'
+  ...
+# Subtest: unaffordable actions dim without disabling aim or held guard and preserve cooldown
+ok 149 - unaffordable actions dim without disabling aim or held guard and preserve cooldown
+  ---
+  duration_ms: 0.66102
+  type: 'test'
+  ...
+# Subtest: exhaustion dims all six controls and recovery/retry clears every stale hint
+ok 150 - exhaustion dims all six controls and recovery/retry clears every stale hint
+  ---
+  duration_ms: 0.558096
+  type: 'test'
+  ...
+# Subtest: exact cost is affordable, zero stamina dims guard, invalid/out-of-range values stay finite
+ok 151 - exact cost is affordable, zero stamina dims guard, invalid/out-of-range values stay finite
+  ---
+  duration_ms: 0.772629
+  type: 'test'
+  ...
+# Subtest: HUD follows active area identity and exposes Continue only after victory
+ok 152 - HUD follows active area identity and exposes Continue only after victory
+  ---
+  duration_ms: 0.660668
+  type: 'test'
+  ...
+# Subtest: Hollow HUD counts the actual group and names its cleared encounter
+ok 153 - Hollow HUD counts the actual group and names its cleared encounter
+  ---
+  duration_ms: 0.374292
+  type: 'test'
+  ...
+# Subtest: pointercancel discards only the cancelled action's unconsumed press
+ok 154 - pointercancel discards only the cancelled action's unconsumed press
+  ---
+  duration_ms: 6.976027
+  type: 'test'
+  ...
+# Subtest: lostpointercapture discards only the cancelled action's unconsumed press
+ok 155 - lostpointercapture discards only the cancelled action's unconsumed press
+  ---
+  duration_ms: 0.721733
+  type: 'test'
+  ...
+# Subtest: quick released tap survives normal automatic lost capture exactly once
+ok 156 - quick released tap survives normal automatic lost capture exactly once
+  ---
+  duration_ms: 0.808435
+  type: 'test'
+  ...
+# Subtest: cancelled guard cannot emit a fresh press on the next frame
+ok 157 - cancelled guard cannot emit a fresh press on the next frame
+  ---
+  duration_ms: 0.717466
+  type: 'test'
+  ...
+# Subtest: cancelled dodge cannot emit a fresh press on the next frame
+ok 158 - cancelled dodge cannot emit a fresh press on the next frame
+  ---
+  duration_ms: 1.016324
+  type: 'test'
+  ...
+# Subtest: cancel does not clear independent movement or a second guard hold
+ok 159 - cancel does not clear independent movement or a second guard hold
+  ---
+  duration_ms: 2.913342
+  type: 'test'
+  ...
+# Subtest: released drag cannot steer a later tap
+ok 160 - released drag cannot steer a later tap
+  ---
+  duration_ms: 0.727384
+  type: 'test'
+  ...
+# Subtest: releasing latest aim pointer restores another live aimed guard
+ok 161 - releasing latest aim pointer restores another live aimed guard
+  ---
+  duration_ms: 0.704071
+  type: 'test'
+  ...
+# Subtest: canvas cancellation cannot queue a mouse attack
+ok 162 - canvas cancellation cannot queue a mouse attack
+  ---
+  duration_ms: 0.824596
+  type: 'test'
+  ...
+# Subtest: R is blocked during pause, menu, loading and hidden document
+ok 163 - R is blocked during pause, menu, loading and hidden document
+  ---
+  duration_ms: 0.887283
+  type: 'test'
+  ...
+# Subtest: R retries active play and death once per fresh press
+ok 164 - R retries active play and death once per fresh press
+  ---
+  duration_ms: 0.562975
+  type: 'test'
+  ...
+# Subtest: Escape repeat does not repeatedly toggle the menu
+ok 165 - Escape repeat does not repeatedly toggle the menu
+  ---
+  duration_ms: 0.38356
+  type: 'test'
+  ...
+# Subtest: blur and visibility handlers clear held and queued intent
+ok 166 - blur and visibility handlers clear held and queued intent
+  ---
+  duration_ms: 0.80518
+  type: 'test'
+  ...
+# Subtest: cancelling a reused pointer ID preserves its earlier completed quick tap
+ok 167 - cancelling a reused pointer ID preserves its earlier completed quick tap
+  ---
+  duration_ms: 0.588923
+  type: 'test'
+  ...
+# Subtest: second movement touch cannot steal steering or stop the owner on pointerup
+ok 168 - second movement touch cannot steal steering or stop the owner on pointerup
+  ---
+  duration_ms: 2.308628
+  type: 'test'
+  ...
+# Subtest: second movement touch cannot steal steering or stop the owner on pointercancel
+ok 169 - second movement touch cannot steal steering or stop the owner on pointercancel
+  ---
+  duration_ms: 0.559959
+  type: 'test'
+  ...
+# Subtest: second movement touch cannot steal steering or stop the owner on lostpointercapture
+ok 170 - second movement touch cannot steal steering or stop the owner on lostpointercapture
+  ---
+  duration_ms: 0.558717
+  type: 'test'
+  ...
+# Subtest: two pointers can move and aim an attack together
+ok 171 - two pointers can move and aim an attack together
+  ---
+  duration_ms: 2.156893
+  type: 'test'
+  ...
+# Subtest: guard is held once and releases even when finger ends outside
+ok 172 - guard is held once and releases even when finger ends outside
+  ---
+  duration_ms: 0.378469
+  type: 'test'
+  ...
+# Subtest: background/menu/rotation clear held movement and queued attacks
+ok 173 - background/menu/rotation clear held movement and queued attacks
+  ---
+  duration_ms: 0.344105
+  type: 'test'
+  ...
+# Subtest: dodge is one press, not repeated on hold
+ok 174 - dodge is one press, not repeated on hold
+  ---
+  duration_ms: 0.250839
+  type: 'test'
+  ...
+# Subtest: releasing one of two guard pointers does not cancel remaining held guard
+ok 175 - releasing one of two guard pointers does not cancel remaining held guard
+  ---
+  duration_ms: 0.376757
+  type: 'test'
+  ...
+# Subtest: Safari gestures and cross-control pinch cancel defaults without stopping dispatch
+ok 176 - Safari gestures and cross-control pinch cancel defaults without stopping dispatch
+  ---
+  duration_ms: 26.999973
+  type: 'test'
+  ...
+# Subtest: game double taps include HUD gaps while single taps and menu clicks stay available
+ok 177 - game double taps include HUD gaps while single taps and menu clicks stay available
+  ---
+  duration_ms: 1.201072
+  type: 'test'
+  ...
+# Subtest: multi-finger release and cancellation cannot become a double tap
+ok 178 - multi-finger release and cancellation cannot become a double tap
+  ---
+  duration_ms: 0.678212
+  type: 'test'
+  ...
+# Subtest: pinch prevention preserves two-pointer movement, dragged guard, rapid attacks and cancel
+ok 179 - pinch prevention preserves two-pointer movement, dragged guard, rapid attacks and cancel
+  ---
+  duration_ms: 2.421109
+  type: 'test'
+  ...
+# Subtest: single-finger menu scrolling is not canceled and release/click unlock audio
+ok 180 - single-finger menu scrolling is not canceled and release/click unlock audio
+  ---
+  duration_ms: 0.966932
+  type: 'test'
+  ...
+# Subtest: Shift sprint reaches the adapter and blur releases keyboard intent
+ok 181 - Shift sprint reaches the adapter and blur releases keyboard intent
+  ---
+  duration_ms: 0.734116
+  type: 'test'
+  ...
+# Subtest: two-bone cosmetic solve reaches a feasible hand target without stretching bones
+ok 182 - two-bone cosmetic solve reaches a feasible hand target without stretching bones
+  ---
+  duration_ms: 3.48375
+  type: 'test'
+  ...
+# Subtest: attack animation phase reaches contact at45percent and ends with recovery
+ok 183 - attack animation phase reaches contact at45percent and ends with recovery
+  ---
+  duration_ms: 0.192061
+  type: 'test'
+  ...
+# Subtest: player5.2m/s sprint samples native Run at1x independent of approved visual scale
+ok 184 - player5.2m/s sprint samples native Run at1x independent of approved visual scale
+  ---
+  duration_ms: 4.179706
+  type: 'test'
+  ...
+# Subtest: slash pays donor cost once even on a whiff or interruption
+ok 185 - slash pays donor cost once even on a whiff or interruption
+  ---
+  duration_ms: 7.066557
+  type: 'test'
+  ...
+# Subtest: stab pays donor cost once even on a whiff or interruption
+ok 186 - stab pays donor cost once even on a whiff or interruption
+  ---
+  duration_ms: 2.568425
+  type: 'test'
+  ...
+# Subtest: heavy pays donor cost once even on a whiff or interruption
+ok 187 - heavy pays donor cost once even on a whiff or interruption
+  ---
+  duration_ms: 1.350352
+  type: 'test'
+  ...
+# Subtest: special pays donor cost once even on a whiff or interruption
+ok 188 - special pays donor cost once even on a whiff or interruption
+  ---
+  duration_ms: 1.940819
+  type: 'test'
+  ...
+# Subtest: dodge spends30 once and committed/repeated inputs spend nothing
+ok 189 - dodge spends30 once and committed/repeated inputs spend nothing
+  ---
+  duration_ms: 6.450623
+  type: 'test'
+  ...
+# Subtest: buffer pays only when admitted and only once
+ok 190 - buffer pays only when admitted and only once
+  ---
+  duration_ms: 3.281651
+  type: 'test'
+  ...
+# Subtest: unaffordable tail input is never queued or charged and cannot delay recovery
+ok 191 - unaffordable tail input is never queued or charged and cannot delay recovery
+  ---
+  duration_ms: 4.670705
+  type: 'test'
+  ...
+# Subtest: cooldown, hurt and guard-break refusal charge nothing
+ok 192 - cooldown, hurt and guard-break refusal charge nothing
+  ---
+  duration_ms: 0.723315
+  type: 'test'
+  ...
+# Subtest: full and held-guard recovery wait45ticks after spending
+ok 193 - full and held-guard recovery wait45ticks after spending
+  ---
+  duration_ms: 10.003051
+  type: 'test'
+  ...
+# Subtest: zero exhausts actions/guard until20 restored while ordinary movement remains
+ok 194 - zero exhausts actions/guard until20 restored while ordinary movement remains
+  ---
+  duration_ms: 4.917268
+  type: 'test'
+  ...
+# Subtest: front block/perfect use shared stamina; parry/rear semantics unchanged
+ok 195 - front block/perfect use shared stamina; parry/rear semantics unchanged
+  ---
+  duration_ms: 2.807132
+  type: 'test'
+  ...
+# Subtest: block empties unified pool and exhaustion clears guard
+ok 196 - block empties unified pool and exhaustion clears guard
+  ---
+  duration_ms: 1.156218
+  type: 'test'
+  ...
+# Subtest: pause freezes stamina/exhaustion/recovery; fresh retry restores100
+ok 197 - pause freezes stamina/exhaustion/recovery; fresh retry restores100
+  ---
+  duration_ms: 1.103068
+  type: 'test'
+  ...
+# Subtest: held spam depletes and recovers without starving regen
+ok 198 - held spam depletes and recovers without starving regen
+  ---
+  duration_ms: 35.745596
+  type: 'test'
+  ...
+# Subtest: tap spam depletes and recovers without starving regen
+ok 199 - tap spam depletes and recovers without starving regen
+  ---
+  duration_ms: 37.94972
+  type: 'test'
+  ...
+# Subtest: legacy encounter retains original guard behavior
+ok 200 - legacy encounter retains original guard behavior
+  ---
+  duration_ms: 0.472455
+  type: 'test'
+  ...
+# Subtest: Goblin pays same costs, exhausts, waits for20 and regenerates60/s idle
+ok 201 - Goblin pays same costs, exhausts, waits for20 and regenerates60/s idle
+  ---
+  duration_ms: 6.187579
+  type: 'test'
+  ...
+# Subtest: actual Westminster paced guard/counter wins after 0-tick entry
+ok 202 - actual Westminster paced guard/counter wins after 0-tick entry
+  ---
+  duration_ms: 171.543418
+  type: 'test'
+  ...
+# Subtest: actual Westminster paced guard/counter wins after 120-tick entry
+ok 203 - actual Westminster paced guard/counter wins after 120-tick entry
+  ---
+  duration_ms: 96.584984
+  type: 'test'
+  ...
+# Subtest: heavy recovery cannot regenerate merely because45tick spend delay expired
+ok 204 - heavy recovery cannot regenerate merely because45tick spend delay expired
+  ---
+  duration_ms: 4.156191
+  type: 'test'
+  ...
+# Subtest: westminster to east: actual circle reaches trigger and destination entry is safe
+ok 205 - westminster to east: actual circle reaches trigger and destination entry is safe
+  ---
+  duration_ms: 120.25201
+  type: 'test'
+  ...
+# Subtest: east to westminster: actual circle reaches trigger and destination entry is safe
+ok 206 - east to westminster: actual circle reaches trigger and destination entry is safe
+  ---
+  duration_ms: 20.633147
+  type: 'test'
+  ...
+# Subtest: westminster to south: actual circle reaches trigger and destination entry is safe
+ok 207 - westminster to south: actual circle reaches trigger and destination entry is safe
+  ---
+  duration_ms: 48.292146
+  type: 'test'
+  ...
+# Subtest: south to westminster: actual circle reaches trigger and destination entry is safe
+ok 208 - south to westminster: actual circle reaches trigger and destination entry is safe
+  ---
+  duration_ms: 31.545904
+  type: 'test'
+  ...
+# Subtest: leaving Westminster parks the existing fight and returning retains its health and wave
+ok 209 - leaving Westminster parks the existing fight and returning retains its health and wave
+  ---
+  duration_ms: 3.323098
+  type: 'test'
+  ...
+# Subtest: failed destination load leaves the prior fight and player intact
+ok 210 - failed destination load leaves the prior fight and player intact
+  ---
+  duration_ms: 1.841002
+  type: 'test'
+  ...
+# Subtest: while exploring a side area movement and six actions work without inventing enemy waves
+ok 211 - while exploring a side area movement and six actions work without inventing enemy waves
+  ---
+  duration_ms: 0.603822
+  type: 'test'
+  ...
+# Subtest: donor crossing clears an in-flight roll and parks corpses with their encounter
+ok 212 - donor crossing clears an in-flight roll and parks corpses with their encounter
+  ---
+  duration_ms: 0.385914
+  type: 'test'
+  ...
+# Subtest: continuing a won encounter preserves HP/stamina and never respawns it on return
+ok 213 - continuing a won encounter preserves HP/stamina and never respawns it on return
+  ---
+  duration_ms: 1.751613
+  type: 'test'
+  ...
+# Subtest: dead or uncleared encounter cannot be dismissed as explored
+ok 214 - dead or uncleared encounter cannot be dismissed as explored
+  ---
+  duration_ms: 0.363052
+  type: 'test'
+  ...
+# Subtest: optional view zoom scales both orientations while preserving registration and collision
+ok 215 - optional view zoom scales both orientations while preserving registration and collision
+  ---
+  duration_ms: 29.274186
+  type: 'test'
+  ...
+# Subtest: factory and atomic area loading retain the optional view zoom
+ok 216 - factory and atomic area loading retain the optional view zoom
+  ---
+  duration_ms: 3.128103
+  type: 'test'
+  ...
+# Subtest: invalid view multipliers fail before creating owned geometry
+ok 217 - invalid view multipliers fail before creating owned geometry
+  ---
+  duration_ms: 0.838101
+  type: 'test'
+  ...
+# Subtest: default gate runs Web only with no retired engine comparator
+ok 218 - default gate runs Web only with no retired engine comparator
+  ---
+  duration_ms: 9.665559
+  type: 'test'
+  ...
+# Subtest: Web gate executes valid source and real tests
+ok 219 - Web gate executes valid source and real tests
+  ---
+  duration_ms: 248.552635
+  type: 'test'
+  ...
+# Subtest: Web gate rejects invalid syntax and failing assertions
+ok 220 - Web gate rejects invalid syntax and failing assertions
+  ---
+  duration_ms: 258.909069
+  type: 'test'
+  ...
+# Subtest: Web gate rejects a missing test suite
+ok 221 - Web gate rejects a missing test suite
+  ---
+  duration_ms: 9.556524
+  type: 'test'
+  ...
+# Subtest: calibration retains Unity metres and image registration
+ok 222 - calibration retains Unity metres and image registration
+  ---
+  duration_ms: 2.729848
+  type: 'test'
+  ...
+# Subtest: circle movement cannot tunnel through a blocker and slides beside it
+ok 223 - circle movement cannot tunnel through a blocker and slides beside it
+  ---
+  duration_ms: 6.334555
+  type: 'test'
+  ...
+# Subtest: audited street and pavement landmarks remain reachable for all three areas
+ok 224 - audited street and pavement landmarks remain reachable for all three areas
+  ---
+  duration_ms: 2.495248
+  type: 'test'
+  ...
+# Subtest: all 26 audited landmarks connect by actual circle movement from their entries
+ok 225 - all 26 audited landmarks connect by actual circle movement from their entries
+  ---
+  duration_ms: 364.069258
+  type: 'test'
+  ...
+# Subtest: one crop registers backdrop, foreground depths, actor and picking at different phone aspects
+ok 226 - one crop registers backdrop, foreground depths, actor and picking at different phone aspects
+  ---
+  duration_ms: 6.09798
+  type: 'test'
+  ...
+# Subtest: fixed camera and adaptive crop preserve actor size from near street to far street
+ok 227 - fixed camera and adaptive crop preserve actor size from near street to far street
+  ---
+  duration_ms: 2.215793
+  type: 'test'
+  ...
+# Subtest: disposing an area removes owned meshes and releases texture without removing actors
+ok 228 - disposing an area removes owned meshes and releases texture without removing actors
+  ---
+  duration_ms: 0.946224
+  type: 'test'
+  ...
+# Subtest: area requests preserve the four existing route thresholds and destination entries
+ok 229 - area requests preserve the four existing route thresholds and destination entries
+  ---
+  duration_ms: 3.01368
+  type: 'test'
+  ...
+# Subtest: portrait shows a readable actor above controls where painting bounds allow, retaining portrait framing
+ok 230 - portrait shows a readable actor above controls where painting bounds allow, retaining portrait framing
+  ---
+  duration_ms: 1.256616
+  type: 'test'
+  ...
+# Subtest: portrait follow responds to production movement and settles after rotation
+ok 231 - portrait follow responds to production movement and settles after rotation
+  ---
+  duration_ms: 17.082692
+  type: 'test'
+  ...
+1..231
+# tests 231
+# suites 0
+# pass 231
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2896.101002

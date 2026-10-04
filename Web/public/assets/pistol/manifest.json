@@ -1,0 +1,28 @@
+{
+  "originalAuthorship": "Original procedural geometry authored for ARMAGEDOM; no external mesh or textures.",
+  "sha256": "62d6bdc4789365ace89c98bc3fe74322ae427f316810f81cb4ad66857e73f321",
+  "bytes": 106436,
+  "meshObjects": 1,
+  "triangles": 1364,
+  "units": "metres",
+  "forward": [
+    0,
+    0,
+    1
+  ],
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "grip": [
+    0,
+    0,
+    0
+  ],
+  "muzzle": [
+    0,
+    0.055,
+    0.161
+  ]
+}

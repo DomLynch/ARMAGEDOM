@@ -1,0 +1,14 @@
+{
+  "job": "pistol-art-16dc9428336f",
+  "hostname": "Brain",
+  "source_files_verified": 1795,
+  "command": [
+    "bash",
+    "-lc",
+    "node scripts/verify_web.mjs && bash art/pistol/review-only.sh"
+  ],
+  "exit_code": 0,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 33.02,
+  "finished_epoch": 1791130548.4935088
+}
