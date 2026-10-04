@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-04",
+  "donorRevision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+  "tests": {
+    "passed": 39,
+    "failed": 0
+  },
+  "browserProof": "browser.json",
+  "integratedFight": false,
+  "physicalPhone": false,
+  "files": {
+    "Web/src/effects.js": {
+      "bytes": 4857,
+      "sha256": "7643a2fe5fc7eac4e9ea7cb3cb3a035e18bfafab7069f3bdfe5212c603a6c417"
+    },
+    "Web/src/donor-audio.js": {
+      "bytes": 3616,
+      "sha256": "cdc987209bb33ee6dbce9564d4d75be581be4a14a2095d1112ceff597a562bd9"
+    },
+    "Web/public/audio/manifest.json": {
+      "bytes": 12525,
+      "sha256": "d45e2591b751b48ea33117848d3e8c398806213ad607b9482ea58edd664723cb"
+    },
+    "Web/public/audio/combat.wav": {
+      "bytes": 1848908,
+      "sha256": "b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d"
+    },
+    "Web/tests/effects-audio.test.js": {
+      "bytes": 3341,
+      "sha256": "cbb8e548e74422e166753dbc12595dcc9d9219400ec0a6f02b2331d5941ed283"
+    }
+  }
+}

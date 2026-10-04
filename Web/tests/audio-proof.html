@@ -1,0 +1,7 @@
+<!doctype html><title>Donor audio gesture proof</title><button id="unlock">Unlock audio</button>
+<script type="module">
+import {createDonorAudio} from '../src/donor-audio.js';
+window.audio=createDonorAudio({baseUrl:new URL('/public/',location.href)});
+document.querySelector('button').onclick=async()=>{window.unlocked=await audio.unlock()};
+window.READY=true;
+</script>

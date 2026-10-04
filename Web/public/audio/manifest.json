@@ -1,0 +1,455 @@
+{
+  "version": 1,
+  "url": "combat.wav",
+  "sampleRate": 48000,
+  "channels": 1,
+  "format": "PCM16 WAV",
+  "sha256": "b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d",
+  "bytes": 1848908,
+  "cues": {
+    "hit_flesh": [
+      [
+        0.0,
+        0.62
+      ],
+      [
+        0.66,
+        0.45
+      ],
+      [
+        1.15,
+        0.75
+      ],
+      [
+        1.94,
+        0.6
+      ],
+      [
+        2.58,
+        0.7
+      ]
+    ],
+    "hit_heavy": [
+      [
+        3.32,
+        0.75
+      ],
+      [
+        4.11,
+        0.55
+      ],
+      [
+        4.7,
+        0.852
+      ],
+      [
+        5.592,
+        0.682
+      ],
+      [
+        6.314,
+        0.795
+      ]
+    ],
+    "block": [
+      [
+        7.149,
+        0.5
+      ],
+      [
+        7.689,
+        0.5
+      ],
+      [
+        8.229,
+        0.48
+      ],
+      [
+        8.749,
+        0.48
+      ]
+    ],
+    "parry": [
+      [
+        9.269,
+        0.72
+      ],
+      [
+        10.029,
+        0.72
+      ],
+      [
+        10.789,
+        0.72
+      ],
+      [
+        11.549,
+        0.66
+      ],
+      [
+        12.249,
+        0.66
+      ],
+      [
+        12.949,
+        0.66
+      ]
+    ],
+    "guard_break": [
+      [
+        13.649,
+        0.46
+      ],
+      [
+        14.149,
+        0.46
+      ],
+      [
+        14.649,
+        0.46
+      ],
+      [
+        15.149,
+        0.46
+      ]
+    ],
+    "whoosh_light": [
+      [
+        15.649,
+        0.192
+      ],
+      [
+        15.881,
+        0.185
+      ],
+      [
+        16.106,
+        0.182
+      ],
+      [
+        16.328,
+        0.181
+      ]
+    ],
+    "whoosh_heavy": [
+      [
+        16.549,
+        0.291
+      ],
+      [
+        16.88,
+        0.294
+      ],
+      [
+        17.214,
+        0.253
+      ],
+      [
+        17.507,
+        0.272
+      ]
+    ],
+    "roll": [
+      [
+        17.819,
+        0.32
+      ],
+      [
+        18.179,
+        0.32
+      ],
+      [
+        18.539,
+        0.32
+      ],
+      [
+        18.899,
+        0.32
+      ]
+    ]
+  },
+  "donorRevision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+  "sourceSpriteSHA256": "804f2ed4e699bcb1f20a2574a8f65bcfd87834630d0b7e4f94fdfb79b17df809",
+  "sourceManifestSHA256": "088886c688d61f73a0031b472e5dc05c5c9bd3fd1795ef9fe3038a1ce226700a",
+  "cueMappingSHA256": "437867d81ffa3394d021f933f5351abd6ae6134fc0d7bba56a3259338fe9a983",
+  "buildSourceSHA256": "07fd1a63f827060040ea55977e825ac22a440b4b50e5e4e15af14e79d06220cb",
+  "rights": {
+    "procedural": "Original project-authored Foley per pinned build-audio.mjs; owner-approved reuse",
+    "recordings": {
+      "swordhit": {
+        "page": "https://freesound.org/people/CogFireStudios/sounds/547042/",
+        "url": "https://cdn.freesound.org/previews/547/547042_7614679-hq.mp3",
+        "sha256": "bfa9309e46739a5bd2fc4424b98f383a55e080012e5b0eec1bb747e910329bb9",
+        "title": "Hit Impact Sword 3",
+        "author": "CogFireStudios",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "note": "Owner picked it 2026-09-22 (candidate J of three CC0 freesound hits; \"this is good i like it\"). hit_flesh variant at pitch 1: the strike from 0 s, .62 s (tail is under -34 dBFS by .75 s).",
+        "retrieved": "2026-09-22"
+      },
+      "fleshslice": {
+        "page": "https://freesound.org/people/NeoSpica/sounds/504615/",
+        "url": "https://cdn.freesound.org/previews/504/504615_7704891-hq.mp3",
+        "sha256": "f8e3d47aa24053707ac879fbb1c2760d577ee56ba8b9869ddf09eadafcdc4bed",
+        "title": "Slicing through flesh",
+        "author": "NeoSpica",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "note": "Owner picked it 2026-09-23 (candidate B of twelve CC0 flesh landings, \"these are fine\"). hit_flesh variant at pitch 1: the take from 0.13 s, 0.75 s.",
+        "retrieved": "2026-09-23"
+      },
+      "bloodyblade": {
+        "page": "https://freesound.org/people/Kreastricon62/sounds/323525/",
+        "url": "https://cdn.freesound.org/previews/323/323525_4336114-hq.mp3",
+        "sha256": "1ec4bb7ec3e44484420f5aef4bcae592e1188163b60ca37b656a5c28587a3b7f",
+        "title": "Bloody Blade.wav",
+        "author": "Kreastricon62",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "note": "Owner picked it 2026-09-23 (candidate C of twelve CC0 flesh landings, \"these are fine\"). hit_flesh variant at pitch 1: the take from 0.07 s, 0.6 s.",
+        "retrieved": "2026-09-23"
+      },
+      "messystab": {
+        "page": "https://freesound.org/people/Logicogonist/sounds/811118/",
+        "url": "https://cdn.freesound.org/previews/811/811118_3797507-hq.mp3",
+        "sha256": "be244d2624cee30191b413d6edee212ae3e9f2916af589c0d4dc69a906884bb1",
+        "title": "messy stabber 1",
+        "author": "Logicogonist",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "note": "Owner picked it 2026-09-23 (candidate H of twelve CC0 flesh landings, \"these are fine\"). hit_flesh variant at pitch 1: the take from 4.23 s, 0.7 s.",
+        "retrieved": "2026-09-23"
+      },
+      "meatysplosh": {
+        "page": "https://freesound.org/people/magnuswaker/sounds/528834/",
+        "url": "https://cdn.freesound.org/previews/528/528834_11537497-hq.mp3",
+        "sha256": "2cd6428e8f2e06524bc621bd20b8bd200c72ed5bc27fb401d2d81772636c28f1",
+        "title": "Meaty Splosh",
+        "author": "magnuswaker",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "note": "Owner picked it 2026-09-23 (candidate J of twelve CC0 flesh landings, \"these are fine\"). hit_flesh variant at pitch 1: the take from 0.04 s, 0.7 s.",
+        "retrieved": "2026-09-23"
+      }
+    }
+  },
+  "extraction": "Only listed original Opus decoded ranges; mono48k PCM16,40ms silence separators. No sound generation/pitch/normalization; no crowd/arena/finisher cues. PCM16 quantization follows ffmpeg decode.",
+  "ranges": [
+    {
+      "cue": "hit_flesh",
+      "sourceStart": 3.071,
+      "duration": 0.62,
+      "pcmSHA256": "704ab10e20621fb5d8ed7c503406c7cf9c4eda2df69126df5a975808ab0b4204"
+    },
+    {
+      "cue": "hit_flesh",
+      "sourceStart": 3.751,
+      "duration": 0.45,
+      "pcmSHA256": "baa8d75da3cd8d2f8677e06fcee475c05395e1d7d882b723d3619e27e8b6194d"
+    },
+    {
+      "cue": "hit_flesh",
+      "sourceStart": 4.261,
+      "duration": 0.75,
+      "pcmSHA256": "3cb274ea46efd9b2fecabf5320082c3a956048854fe19c9eeb61acec4f408b0c"
+    },
+    {
+      "cue": "hit_flesh",
+      "sourceStart": 5.071,
+      "duration": 0.6,
+      "pcmSHA256": "83dd183e54a4253da82d530061a6f9ef1fc57dd2a2b32479d8feec277387173f"
+    },
+    {
+      "cue": "hit_flesh",
+      "sourceStart": 5.731,
+      "duration": 0.7,
+      "pcmSHA256": "e29b8367730a301874858fde6ac14c853b7bef130ca361b7556a1d3b0c3f630c"
+    },
+    {
+      "cue": "hit_heavy",
+      "sourceStart": 6.491,
+      "duration": 0.75,
+      "pcmSHA256": "26283832f0477a6938102f9691106d9695fffce6ba2180305ea8d219508776cc"
+    },
+    {
+      "cue": "hit_heavy",
+      "sourceStart": 7.301,
+      "duration": 0.55,
+      "pcmSHA256": "5a74b5b0861ca46cea57b5a6b508e13cc4ed33bb4d45465f7152ce21c1d10479"
+    },
+    {
+      "cue": "hit_heavy",
+      "sourceStart": 7.911,
+      "duration": 0.852,
+      "pcmSHA256": "0bd13454c4843e839098a1049a44469c3e56a6f20f1bb344f279a18d72d38ae1"
+    },
+    {
+      "cue": "hit_heavy",
+      "sourceStart": 8.824,
+      "duration": 0.682,
+      "pcmSHA256": "951c21202a3fafaa19f76cc2fe19d17190e228aaec072f3323b3d5b824dceae4"
+    },
+    {
+      "cue": "hit_heavy",
+      "sourceStart": 9.565,
+      "duration": 0.795,
+      "pcmSHA256": "d2e3945de425404d1ac1e7aa87cee0675a88952d0de61e3b5c298fdd71139e5a"
+    },
+    {
+      "cue": "block",
+      "sourceStart": 11.781,
+      "duration": 0.5,
+      "pcmSHA256": "057a539970c4a0905ac77465718447e673ec7acc8e2b837be7b738e4828b8b3b"
+    },
+    {
+      "cue": "block",
+      "sourceStart": 12.341,
+      "duration": 0.5,
+      "pcmSHA256": "b6afea3bb21943cb6db332c19d1ba9dee52231ec30cb2eb906b25c4e8b45591f"
+    },
+    {
+      "cue": "block",
+      "sourceStart": 12.901,
+      "duration": 0.48,
+      "pcmSHA256": "c2dd39c833e4dc0dec5719ab33ceb65f6e563e334fe17b2d2826d72916a65719"
+    },
+    {
+      "cue": "block",
+      "sourceStart": 13.441,
+      "duration": 0.48,
+      "pcmSHA256": "8666ae5b9dac3f979ecb882da2d476518922bb17c1e780544eef0dbe83dae4b6"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 16.621,
+      "duration": 0.72,
+      "pcmSHA256": "5a467ae2a2f116bc3060df1d68577f132e7d5423730ea73bdccbc9d64ed41bdd"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 17.401,
+      "duration": 0.72,
+      "pcmSHA256": "cf659b41d7e7e461a75bfd4f0b260087d680094b8c1925251bab188b9cd12dd2"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 18.181,
+      "duration": 0.72,
+      "pcmSHA256": "f239f8ee26dbdf5d82375b6ef31e9e029923ddf94e2732a8879f5abb7f87c8e4"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 18.961,
+      "duration": 0.66,
+      "pcmSHA256": "393f07feb9bf853edb27a298bbcfc62aba7f7c7df52cec72bdeff1f578d2b01d"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 19.681,
+      "duration": 0.66,
+      "pcmSHA256": "9feb8749ab5e06971ece68d7a30c3db63fd85cb33928d8b440cdcd9c2114e015"
+    },
+    {
+      "cue": "parry",
+      "sourceStart": 20.401,
+      "duration": 0.66,
+      "pcmSHA256": "5f0824c1f44d03530b06e9959d3bee4322b940ad93b3d4430c03b19d8dc5a1d0"
+    },
+    {
+      "cue": "guard_break",
+      "sourceStart": 21.121,
+      "duration": 0.46,
+      "pcmSHA256": "09c165744f5a7f0f8390c19679150a16387f8a77bf32bd891be2d84c61b73fa5"
+    },
+    {
+      "cue": "guard_break",
+      "sourceStart": 21.641,
+      "duration": 0.46,
+      "pcmSHA256": "7cc53c01b45ec12392d9256f60aa7ed19559ebda0a690a8b0f59f4db767fab5d"
+    },
+    {
+      "cue": "guard_break",
+      "sourceStart": 22.161,
+      "duration": 0.46,
+      "pcmSHA256": "52eaf0111aae65baef5b47a3437c7973404fc9d97a9fd5acc307f853d59ab16a"
+    },
+    {
+      "cue": "guard_break",
+      "sourceStart": 22.681,
+      "duration": 0.46,
+      "pcmSHA256": "0556316afd09fe86de6c30089d01bb3cca48996d31a7c735b15405b98dac2d89"
+    },
+    {
+      "cue": "whoosh_light",
+      "sourceStart": 0.02,
+      "duration": 0.192,
+      "pcmSHA256": "8779c0fcb1dafe9f56876f94b47b6792e16b53fdcfd523fc2e55f0635f17a660"
+    },
+    {
+      "cue": "whoosh_light",
+      "sourceStart": 0.272,
+      "duration": 0.185,
+      "pcmSHA256": "407359978f978d856e0fef5e88e07eada5800960bd1d2623704a7801581c040e"
+    },
+    {
+      "cue": "whoosh_light",
+      "sourceStart": 0.517,
+      "duration": 0.182,
+      "pcmSHA256": "4b2c9993ef856d0fc60308daae3e265df39fa06e6a37294790bfdb521d851720"
+    },
+    {
+      "cue": "whoosh_light",
+      "sourceStart": 0.759,
+      "duration": 0.181,
+      "pcmSHA256": "d73e0eca5837bcc945317ec4a33879377a1a66019dab209e73d93c0f566c925b"
+    },
+    {
+      "cue": "whoosh_heavy",
+      "sourceStart": 1,
+      "duration": 0.291,
+      "pcmSHA256": "da6e6e88ce78c5a5d18385bed7b9161fa53b618cac254528e273db97b52e8af6"
+    },
+    {
+      "cue": "whoosh_heavy",
+      "sourceStart": 1.352,
+      "duration": 0.294,
+      "pcmSHA256": "f6211b318d0adc5b10f8a71b1936070cb5d667194c2fa51939d4f69d38e0f967"
+    },
+    {
+      "cue": "whoosh_heavy",
+      "sourceStart": 1.706,
+      "duration": 0.253,
+      "pcmSHA256": "77758e32115f1fb5d6e491aaf8d1a60c4617b8c7625266297a102383842ea77c"
+    },
+    {
+      "cue": "whoosh_heavy",
+      "sourceStart": 2.019,
+      "duration": 0.272,
+      "pcmSHA256": "b47a79568972fc9f808b07fe00398bb8e3bd5a6724cc41594e3a90d96b4a2d4f"
+    },
+    {
+      "cue": "roll",
+      "sourceStart": 28.241,
+      "duration": 0.32,
+      "pcmSHA256": "2853e082e2be6d53d3550879f0f9538b00e9578d18f7d1f1b255f268f9e9f6fd"
+    },
+    {
+      "cue": "roll",
+      "sourceStart": 28.621,
+      "duration": 0.32,
+      "pcmSHA256": "35a99e2a151759170931981a01e72e2aadcc161e7299126170160d9242def4e0"
+    },
+    {
+      "cue": "roll",
+      "sourceStart": 29.001,
+      "duration": 0.32,
+      "pcmSHA256": "ae8addd522265b378e1bace328c90c4677e0d374fa6835353ec29a927db33946"
+    },
+    {
+      "cue": "roll",
+      "sourceStart": 29.381,
+      "duration": 0.32,
+      "pcmSHA256": "9a919f9ed4caa0ec9cea7cf82fdc24da955a2fed3e459f452d5253c91fd9e1ad"
+    }
+  ]
+}
