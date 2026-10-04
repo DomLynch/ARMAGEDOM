@@ -1,0 +1,64 @@
+
+> armagedom-web@0.1.0 test
+> node --test tests/*.test.js
+
+✔ slash only deals damage after windup and inside its facing sector (1.193334ms)
+✔ stab chooses nearest target and excludes wide-angle target (0.389166ms)
+✔ heavy and special have distinct damage and cannot bypass cooldown (0.731583ms)
+✔ blocking geometry prevents a sword damaging through an obstacle (0.078334ms)
+✔ front eligible melee is parried within window; unguardable boss damage remains (0.148125ms)
+✔ late guard chips health and drains guard capacity; rear attacks bypass it (0.097083ms)
+✔ guard break empties capacity and prevents immediate renewed guard (0.0725ms)
+✔ dodge travels while invulnerable and hits resume after dodge (0.12625ms)
+✔ first interaction starts the original mixed five-enemy wave (0.855208ms)
+✔ lethal player damage ends run and frozen run cannot keep moving (0.111084ms)
+✔ attack buffering accepts a last-recovery tap without losing its aimed direction (0.139667ms)
+✔ projectile sweeps hit the player once and walls stop them first (0.087375ms)
+✔ second wave has six enemies and third wave preserves400HP Warlord (0.086459ms)
+✔ blade/armour/tonic pickups retain distinct original progression (0.062084ms)
+✔ simultaneous attacks preserve Special over Heavy over Stab over Slash priority (0.046708ms)
+✔ Contact phase 14 (0.532541ms)
+✔ Contact phase 12 (0.047084ms)
+✔ Contact phase 22 (0.035709ms)
+✔ Contact phase 18 (0.024375ms)
+✔ Equip preserves source scenes, grip transform and player overrides (4.393417ms)
+✔ hero light_right fixed-tick contacts and cardinal headings (6.685ms)
+✔ hero light_left fixed-tick contacts and cardinal headings (5.521125ms)
+✔ hero thrust fixed-tick contacts and cardinal headings (5.036709ms)
+✔ hero heavy_overhead fixed-tick contacts and cardinal headings (7.091292ms)
+✔ goblin light_right fixed-tick contacts and cardinal headings (5.760041ms)
+✔ goblin light_left fixed-tick contacts and cardinal headings (5.374458ms)
+✔ goblin thrust fixed-tick contacts and cardinal headings (5.354208ms)
+✔ goblin heavy_overhead fixed-tick contacts and cardinal headings (7.7015ms)
+✔ Cancellation, responses, guard, roll, special, death and independent mixers (2.064209ms)
+✔ Candidate hashes, preserved roots and rig-specific stride (5.371833ms)
+✔ Moving guard uses native legs and dedicated upper guard; stopped simulation stays still (0.986042ms)
+✔ A fresh counter swing supersedes lingering parry response (0.707917ms)
+✔ two pointers can move and aim an attack together (1.941042ms)
+✔ guard is held once and releases even when finger ends outside (0.087625ms)
+✔ background/menu/rotation clear held movement and queued attacks (0.060791ms)
+✔ dodge is one press, not repeated on hold (0.045ms)
+✔ releasing one of two guard pointers does not cancel remaining held guard (0.058917ms)
+✔ two-bone cosmetic solve reaches a feasible hand target without stretching bones (1.307125ms)
+✔ attack animation phase reaches contact at45percent and ends with recovery (0.059333ms)
+✔ leaving Westminster parks the existing fight and returning retains its health and wave (0.871459ms)
+✔ failed destination load leaves the prior fight and player intact (0.767333ms)
+✔ while exploring a side area movement and six actions work without inventing enemy waves (0.119ms)
+✔ calibration retains Unity metres and image registration (1.379083ms)
+✔ circle movement cannot tunnel through a blocker and slides beside it (2.091208ms)
+✔ audited street and pavement landmarks remain reachable for all three areas (0.83775ms)
+✔ all 26 audited landmarks connect by actual circle movement from their entries (62.923375ms)
+✔ one crop registers backdrop, foreground depths, actor and picking at different phone aspects (2.077417ms)
+✔ fixed camera and adaptive crop preserve actor size from near street to far street (1.332708ms)
+✔ disposing an area removes owned meshes and releases texture without removing actors (0.245667ms)
+✔ area requests preserve the four existing route thresholds and destination entries (0.329292ms)
+✔ portrait shows a readable actor above controls where painting bounds allow, preserving landscape (0.271333ms)
+✔ portrait follow responds to production movement and settles after rotation (3.137334ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 384.643292
