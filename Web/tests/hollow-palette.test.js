@@ -10,13 +10,30 @@ test('pinned Hollow garment slots are separate from skin/photo/boots and retain 
 test('seven bounded, distinct, immutable colour pairs',()=>{
  assert.equal(HOLLOW_PALETTES.length,7);assert.equal(new Set(HOLLOW_PALETTES.map(p=>p.id)).size,7);
  assert.equal(new Set(HOLLOW_PALETTES.map(p=>String(p.jacket))).size,7);
- for(const p of HOLLOW_PALETTES){assert.ok(Object.isFrozen(p)&&Object.isFrozen(p.jacket)&&Object.isFrozen(p.trousers));for(const c of [...p.jacket,...p.trousers])assert.ok(c>0&&c<=.30);}
+ for(const p of HOLLOW_PALETTES){assert.ok(Object.isFrozen(p)&&Object.isFrozen(p.jacket)&&Object.isFrozen(p.trousers));for(const c of [...p.jacket,...p.trousers])assert.ok(c>0&&c<=.42);}
 });
-test('consecutive encounter IDs give different first3 and all7 without random/frame state',()=>{
- for(const seed of ['westminster-hollow','run-a','run-b',''])for(const start of [1,7,16,99,10000]){
-  const group=Array.from({length:7},(_,i)=>hollowPaletteFor(start+i,seed));assert.equal(new Set(group).size,7);assert.equal(new Set(group.slice(0,3)).size,3);
-  for(let i=0;i<7;i++)assert.equal(hollowPaletteFor(start+i,seed),group[i]);
+test('every three consecutive IDs spans warm/cool/contrast families across Retry and arbitrary start IDs',()=>{
+ const family=id=>['dark-red','brown'].includes(id)?'warm':['dusty-blue-grey','muted-purple'].includes(id)?'cool':'contrast';
+ for(const seed of ['westminster-hollow','run-a','run-b',''])for(let start=0;start<90;start++){
+  const group=Array.from({length:3},(_,i)=>hollowPaletteFor(start+i,seed));assert.equal(new Set(group).size,3);
+  assert.deepEqual(new Set(group.map(p=>family(p.id))),new Set(['warm','cool','contrast']));
+  for(let i=0;i<3;i++)assert.equal(hollowPaletteFor(start+i,seed),group[i]);
  }
+});
+test('first and Retry groups avoid old greenish trio and all7 colours remain available',()=>{
+ assert.deepEqual([1,2,3].map(id=>hollowPaletteFor(id).id),['dark-red','dusty-blue-grey','dirty-ochre']);
+ assert.deepEqual([4,5,6].map(id=>hollowPaletteFor(id).id),['brown','muted-purple','charcoal']);
+ for(const seed of ['westminster-hollow','another-run','']){
+  assert.equal(new Set(Array.from({length:18},(_,i)=>hollowPaletteFor(i+1,seed))).size,7);
+  for(let start=1;start<=18;start+=3)assert.notDeepEqual([0,1,2].map(i=>hollowPaletteFor(start+i,seed).id).sort(),['charcoal','dirty-ochre','olive']);
+ }
+});
+test('warm/cool jackets have stronger channel separation and light/dark choices differ in luminance',()=>{
+ const byId=Object.fromEntries(HOLLOW_PALETTES.map(p=>[p.id,p]));
+ for(const id of ['dark-red','brown']){const [r,g,b]=byId[id].jacket;assert.ok(r>=g*2&&r>=b*3);}
+ for(const id of ['dusty-blue-grey','muted-purple']){const [r,g,b]=byId[id].jacket;assert.ok(b>=g*2&&b>r);}
+ const luminance=p=>p.jacket[0]*.2126+p.jacket[1]*.7152+p.jacket[2]*.0722;
+ assert.ok(luminance(byId['dirty-ochre'])>luminance(byId.charcoal)*7);
 });
 test('park/recreate an actor with the same ID/seed retains its palette',()=>{
  const parked=hollowPaletteFor(41,'encounter-one');for(let i=0;i<100;i++)hollowPaletteFor(i,'elsewhere');assert.equal(hollowPaletteFor(41,'encounter-one'),parked);

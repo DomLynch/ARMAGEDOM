@@ -1,0 +1,19 @@
+{
+  "base": "d30e7806bf2bcefd687332ecb6533afdbf987ed8",
+  "files": {
+    "Web/src/hollow-palette.js": {
+      "sha256": "acca09485f415f78b517dd4a80fed954073383b14c320147f8b748ab776d86e7",
+      "bytes": 2016
+    },
+    "Web/tests/hollow-palette.test.js": {
+      "sha256": "b88543b52570f2c71930b3d44b8e9bb13251d5e899a81b797834f2e4b54ad79d",
+      "bytes": 5077
+    }
+  },
+  "assetSha256Unchanged": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "focused": "9 PASS",
+  "prior019SameTests": "6 PASS /3 FAIL;exit1",
+  "runtimeInterface": "unchanged",
+  "integratedCapture": "WebUI pending; no new Character capture",
+  "physicalPhone": "pending"
+}

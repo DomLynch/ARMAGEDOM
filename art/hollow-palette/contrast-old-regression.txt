@@ -1,0 +1,95 @@
+✔ pinned Hollow garment slots are separate from skin/photo/boots and retain vertex grime (2.519833ms)
+✔ seven bounded, distinct, immutable colour pairs (0.090084ms)
+✖ every three consecutive IDs spans warm/cool/contrast families across Retry and arbitrary start IDs (0.926333ms)
+✖ first and Retry groups avoid old greenish trio and all7 colours remain available (0.19ms)
+✖ warm/cool jackets have stronger channel separation and light/dark choices differ in luminance (3.0245ms)
+✔ park/recreate an actor with the same ID/seed retains its palette (0.168875ms)
+✔ only garment colour is written; shared texture/vertex detail/flash fields preserved (0.116041ms)
+✔ existing material clone identities stay independent (0.070875ms)
+✔ invalid identity/config rejected before garment writes (0.188958ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 6
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.464
+
+✖ failing tests:
+
+test at ../../../../private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:15:1
+✖ every three consecutive IDs spans warm/cool/contrast families across Retry and arbitrary start IDs (0.926333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + Set(2) {
+  - Set(3) {
+  -   'contrast',
+      'cool',
+      'warm'
+    }
+  
+      at TestContext.<anonymous> (file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:19:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Set(2) { 'cool', 'warm' },
+    expected: Set(3) { 'warm', 'cool', 'contrast' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:23:1
+✖ first and Retry groups avoid old greenish trio and all7 colours remain available (0.19ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'dark-red',
+  +   'muted-purple',
+  +   'brown'
+  -   'dusty-blue-grey',
+  -   'dirty-ochre'
+    ]
+  
+      at TestContext.<anonymous> (file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:24:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'dark-red', 'muted-purple', 'brown' ],
+    expected: [ 'dark-red', 'dusty-blue-grey', 'dirty-ochre' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:31:1
+✖ warm/cool jackets have stronger channel separation and light/dark choices differ in luminance (3.0245ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(r>=g*2&&r>=b*3)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-colour-red-gjw6c0wc/tests/hollow-palette.test.js:33:77)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
