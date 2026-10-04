@@ -34,6 +34,7 @@ test('background/menu/rotation clear held movement and queued attacks', () => {
     move: { x: 0, y: 0 },
     run: false,
     aim: null,
+    fireAim: null,
     actions: [],
     held: [],
     guard: false,
