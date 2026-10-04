@@ -195,6 +195,7 @@ export function attachInput({
       if (!state.pointers.has(event.pointerId)) return;
       element.classList.add('pressed');
       element.style.setProperty('--aim-angle', '0rad');
+      element.classList.remove('aiming');
     });
     element.addEventListener('pointermove', (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -203,11 +204,13 @@ export function attachInput({
         element.style.setProperty('--knob-y', `${state.stick.y * 36}px`);
       } else {
         const aim = state.pointers.get(event.pointerId)?.aim;
-        if (aim)
+        if (aim) {
+          element.classList.add('aiming');
           element.style.setProperty(
             '--aim-angle',
             `${Math.atan2(aim.y, aim.x)}rad`,
           );
+        }
       }
     });
     const release = (event) => {
@@ -217,6 +220,7 @@ export function attachInput({
         ![...state.pointers.values()].some((pointer) => pointer.kind === kind || kind === 'slash' && pointer.kind === 'fire')
       ) {
         element.classList.remove('pressed');
+        element.classList.remove('aiming');
         element.style.setProperty('--aim-angle', '0rad');
       }
       if (kind === 'move') {
@@ -300,6 +304,7 @@ export function attachInput({
     mouse = null;
     for (const element of document.querySelectorAll('.pressed')) {
       element.classList.remove('pressed');
+      element.classList.remove('aiming');
       element.style.setProperty('--aim-angle', '0rad');
     }
     const move = document.querySelector('#move');

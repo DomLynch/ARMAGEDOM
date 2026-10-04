@@ -521,3 +521,6 @@ summary {
   box-shadow: none;
 }
 .pistol-aim .aim-arrow::after { color: #8aa5af; }
+
+.pistol-aim.pressed .aim-arrow { display: none; }
+.pistol-aim.pressed.aiming .aim-arrow { display: block; }
