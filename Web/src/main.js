@@ -7,6 +7,7 @@ import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo, continueExploring } from "./travel.js";
+import {createAtmosphere} from "./atmosphere.js";
 import {stepPistol} from "./pistol.js";
 import {PISTOL_SAVE_KEY,encodePistol,restorePistol} from "./pistol-save.js";
 let pistolSaveCache=null;
@@ -35,6 +36,7 @@ let renderer,
   world,
   actors,
   effects,
+  atmosphere,
   game,
   input,
   pendingLibrary,
@@ -107,6 +109,7 @@ async function restart() {
   input.clear();
   actors.reset();
   effects.reset();
+  atmosphere?.reset();
   audio.reset();
   game = createGame(world, pilot);
   persistPistol(game);
@@ -141,6 +144,7 @@ function resize() {
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(innerWidth, innerHeight, false);
     world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight);
+    atmosphere?.update(0, {paused: true});
   }
   input?.clear();
   if (game?.pistol) cancelPistol(game);
@@ -218,6 +222,7 @@ function frame(ms) {
     }
   }
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
+  atmosphere?.update(dt, {paused: paused || traveling});
   actors?.update(game, paused || traveling ? 0 : dt);
   effects?.update(game);
   rim.position
@@ -240,6 +245,7 @@ async function crossArea(request) {
     actors.reset();
     game.events = [];
     world.update(game.player.pos, 0, innerWidth, innerHeight, true);
+    atmosphere?.update(0, {paused: true});
     actors.update(game, 0);
     console.info(
       "ARMAGEDOM_TRAVEL",
@@ -271,6 +277,7 @@ function prepareEncounter() {
 canvas.addEventListener("webglcontextlost", (event) => {
   event.preventDefault();
   contextLost = true;
+  atmosphere?.dispose();
   pause(true);
   loaded = false;
   document.getElementById("entry").hidden = false;
@@ -324,6 +331,7 @@ enter.addEventListener("click", async () => {
     });
     pendingLibrary = null;
     effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"));
+    atmosphere = createAtmosphere({THREE, scene, world});
     actors.update(game, 0);
     renderer.setAnimationLoop(frame);
     if (!library.complete)
@@ -366,6 +374,8 @@ enter.addEventListener("click", async () => {
       pendingLibrary?.dispose();
       pendingLibrary = null;
       effects?.dispose();
+      atmosphere?.dispose();
+      atmosphere = null;
       world?.dispose();
       actors = effects = world = game = null;
       renderer?.setAnimationLoop(null);
