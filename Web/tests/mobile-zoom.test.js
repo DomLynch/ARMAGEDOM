@@ -109,6 +109,10 @@ test('pinch prevention preserves two-pointer movement, dragged guard, rapid atta
 test('single-finger menu scrolling is not canceled and release/click unlock audio', t => {
   const f = fixture(t); f.pause(true);
   assert.equal(f.touch('touchmove', f.menu, 100, 1).defaultPrevented, false);
+  const pausedBefore = f.interactions();
+  for (const type of ['pointerup', 'touchend', 'click']) f.win.dispatchEvent(new Event(type));
+  assert.equal(f.interactions(), pausedBefore);
+  f.pause(false);
   const before = f.interactions();
   for (const type of ['pointerup', 'touchend', 'click']) f.win.dispatchEvent(new Event(type));
   assert.equal(f.interactions(), before + 3);

@@ -160,7 +160,9 @@ export function attachInput({
   });
   // WebKit can require release/click activation even when pointerdown worked.
   for (const type of ['pointerup', 'touchend', 'click'])
-    window.addEventListener(type, onInteraction, { passive: true });
+    window.addEventListener(type, () => {
+      if (!isPaused()) onInteraction();
+    }, { passive: true });
   const map = {
     KeyQ: 'heavy',
     KeyE: 'special',
