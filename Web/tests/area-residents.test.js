@@ -87,7 +87,7 @@ test('player death still finishes and stops movement',()=>{
  const g=fixture();spawnWave(g);receiveHit(g,{amount:1000,origin:{x:0,z:0},block:false,parry:false});assert.equal(g.player.hp,0);assert.equal(g.finished,true);assert.equal(g.won,false);const pos={...g.player.pos};ticks(g,10,{move:{x:1,z:0}});assert.deepEqual(g.player.pos,pos);
 });
 test('positive melee contact wakes its struck recovering resident',()=>{
- const g=fixture();spawnWave(g);const e=g.enemies[3];g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:1.2};e.recoverUntil=100;
+ const g=fixture();spawnWave(g);const e=g.enemies[3];g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:1.2};e.home={...e.pos};e.recoverUntil=100;
  ticks(g,50,{actions:['slash'],aim:{x:0,z:1}});assert.ok(e.hp<40);assert.equal(e.alerted,true);
 });
 test('corpse animation and projectile lifetimes retain remaining duration while parked',async()=>{
