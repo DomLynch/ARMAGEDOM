@@ -30,3 +30,7 @@ Slash alternates light_right/Attack and light_left/Return (14/6/16 ticks); stab 
 Lead matched London game-camera test: visible knife contact/grip, weapon normals/PBR, feet/guard movement, all6controls, hit/parry interruption, death/corpses/retry and portrait/landscape. Then physical-phone simultaneous touch/performance. Generated donor head/material/knife service commercial provenance receipts remain incomplete; CC0 body/animation sources are recorded in pinned intake/build scripts, not a complete licensing clearance.
 
 CPU preparation: `node art/donor/probe.mjs`, `node art/donor/prepare.mjs`, `npm test --prefix Web`. QA scripts currently use the saved read-only intake and its existing validator install paths; runtime and tests have no dependency on the Frankendom checkout or those QA installations. No paid jobs/build/publish/Unity changes performed.
+
+### Test portability repair — 2026-10-04
+
+Lead reproduced an import-time saved-intake dependency in the QA helper. Fixed by moving intake reads and receipts-directory creation inside the direct-execution `main()` only. `node art/donor/check-portability.mjs` copies the real assets/adapter/tests/helper into a temporary standalone fixture with no sibling `character` lane, runs all17 motion tests in a subprocess, and verifies importing the helper creates no receipts directory. RED reproduced ENOENT before the fix; GREEN17/17 passed afterward. Active intake was never moved/deleted. Offline probe command retains its existing saved-intake workflow; runtime/assets/adapter behavior unchanged.

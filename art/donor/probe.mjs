@@ -7,10 +7,6 @@ import {fileURLToPath} from 'node:url';
 import * as THREE from '../../Web/node_modules/three/build/three.module.js';
 import {GLTFLoader} from '../../Web/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const intake=path.resolve(root,'../character/art/reuse/frankendom-20261004');
-const original=JSON.parse(fs.readFileSync(path.join(intake,'manifest.json')));
-const out=path.join(root,'art/donor/receipts');fs.mkdirSync(out,{recursive:true});
 export const sha=b=>createHash('sha256').update(b).digest('hex');
 export function decode(b){const n=b.readUInt32LE(12);return {doc:JSON.parse(b.subarray(20,20+n)),bin:b.subarray(28+n),binOffset:28+n};}
 export function normalizedCopy(b){
@@ -67,6 +63,10 @@ export function sample(asset,mixer,name,progress){
 export function endpoints(asset){const knife=asset.scene.getObjectByName('WeaponDrawn');return [.12,.52].map(y=>knife.localToWorld(new THREE.Vector3(0,y,0)));}
 
 async function main(){
+ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+ const intake=path.resolve(root,'../character/art/reuse/frankendom-20261004');
+ const original=JSON.parse(fs.readFileSync(path.join(intake,'manifest.json')));
+ const out=path.join(root,'art/donor/receipts');fs.mkdirSync(out,{recursive:true});
  const revision=original.donor_revision,donor=original.donor_repo,files={player:'src/assets/warrior.glb',opponent:'src/assets/goblin.glb',weapon:'src/assets/weapons/player/knife.glb'},source={};
  for(const [key,file]of Object.entries(files)){const b=execFileSync('git',['-C',donor,'show',revision+':'+file],{maxBuffer:30e6});if(sha(b)!==original.files.find(f=>f.path===file).sha256)throw Error('Source mismatch');source[key]=b;}
  const tables=JSON.parse(fs.readFileSync(path.join(intake,'knife-contact-paths.json')));
