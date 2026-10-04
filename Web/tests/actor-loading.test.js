@@ -27,6 +27,51 @@ function manifest(t, models) {
 }
 const url = "https://example.test/game/";
 
+test("donor selection owns its separate equipment and releases it on failed load", async (t) => {
+  const hero = resource(),
+    goblin = resource(),
+    knife = resource();
+  const fetched = [];
+  t.mock.method(globalThis, "fetch", async (path) => {
+    fetched.push(String(path));
+    return {
+      ok: true,
+      json: async () => ({
+        pilot: "donor-knife",
+        models: {
+          vagrant: { url: "warrior.glb", equipment: { url: "knife.glb" } },
+          goblin: { url: "goblin.glb" },
+        },
+      }),
+    };
+  });
+  t.mock.method(GLTFLoader.prototype, "loadAsync", async (path) =>
+    path.endsWith("warrior.glb")
+      ? hero.gltf
+      : path.endsWith("goblin.glb")
+        ? goblin.gltf
+        : knife.gltf,
+  );
+  const library = await loadActors(url, () => {}, "assets/donor/manifest.json");
+  assert.equal(fetched[0], url + "assets/donor/manifest.json");
+  assert.equal(library.complete, true);
+  assert.equal(library.models.get("vagrant").equipment, knife.gltf);
+  library.dispose();
+  for (const asset of [hero, goblin, knife])
+    assert.deepEqual(asset.disposed, { geometry: 1, material: 1, texture: 1 });
+
+  const fresh = resource();
+  GLTFLoader.prototype.loadAsync = async (path) => {
+    if (path.endsWith("knife.glb")) throw Error("missing knife");
+    return fresh.gltf;
+  };
+  await assert.rejects(
+    loadActors(url, () => {}, "assets/donor/manifest.json"),
+    /missing knife/,
+  );
+  assert.deepEqual(fresh.disposed, { geometry: 1, material: 1, texture: 1 });
+});
+
 test("library owns shared GLB resources and disposal is idempotent", async (t) => {
   manifest(t, { vagrant: { url: "hero.glb" }, orc: { url: "hero.glb" } });
   const asset = resource();

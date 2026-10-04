@@ -1,14 +1,16 @@
-import * as THREE from 'three';
-import { createWorld } from './world.js';
-import { loadActors, createActors } from './actors.js';
-import { createGame, stepGame } from './combat.js';
-import { attachInput } from './input.js';
-import { createHUD } from './hud.js';
-import { createEffects, createAudio } from './effects.js';
-const canvas = document.getElementById('world'),
-  enter = document.getElementById('enter'),
-  baseUrl = new URL('./', document.baseURI),
-  audio = createAudio();
+import * as THREE from "three";
+import { createWorld } from "./world.js";
+import { loadActors, createActors } from "./actors.js";
+import { createGame, stepGame } from "./combat.js";
+import { attachInput } from "./input.js";
+import { createHUD } from "./hud.js";
+import { createEffects, createAudio } from "./effects.js";
+const canvas = document.getElementById("world"),
+  enter = document.getElementById("enter"),
+  baseUrl = new URL("./", document.baseURI);
+const pilot = { pilot: "donor-knife" };
+const actorManifest = "assets/donor/manifest.json";
+const audio = createAudio({ donor: true, baseUrl });
 let renderer,
   world,
   actors,
@@ -53,7 +55,8 @@ function restart() {
   input.clear();
   actors.reset();
   effects.reset();
-  game = createGame(world);
+  audio.reset();
+  game = createGame(world, pilot);
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);
   hud.update(game);
@@ -71,13 +74,13 @@ input = attachInput({
   isPaused: () => !loaded || paused || contextLost || game?.finished,
 });
 document
-  .getElementById('resume')
-  .addEventListener('click', () => audio.unlock().catch(() => {}));
+  .getElementById("resume")
+  .addEventListener("click", () => audio.unlock().catch(() => {}));
 document
-  .getElementById('close-menu')
-  .addEventListener('click', () => audio.unlock().catch(() => {}));
-const touchPreview = new URLSearchParams(location.search).get('touch') === '1';
-if (touchPreview) document.body.classList.add('touch');
+  .getElementById("close-menu")
+  .addEventListener("click", () => audio.unlock().catch(() => {}));
+const touchPreview = new URLSearchParams(location.search).get("touch") === "1";
+if (touchPreview) document.body.classList.add("touch");
 function resize() {
   if (renderer) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -89,7 +92,10 @@ function resize() {
   hud.resize();
   if (renderer && world && !contextLost) renderer.render(scene, camera);
 }
-window.addEventListener('resize', resize);
+window.addEventListener("resize", resize);
+window.addEventListener("blur", () => {
+  if (loaded && !paused) hud.toggleMenu();
+});
 function toDomain(v) {
   return {
     x: v.x * world.cameraRight.x - v.y * world.cameraForward.x,
@@ -143,18 +149,18 @@ function frame(ms) {
   hud.update(game);
   renderer.render(scene, camera);
 }
-canvas.addEventListener('webglcontextlost', (event) => {
+canvas.addEventListener("webglcontextlost", (event) => {
   event.preventDefault();
   contextLost = true;
   pause(true);
   loaded = false;
-  document.getElementById('entry').hidden = false;
-  document.getElementById('hud').hidden = true;
-  hud.failed('Graphics paused. Reload this page to restore your fight.');
-  enter.textContent = 'Reload game';
+  document.getElementById("entry").hidden = false;
+  document.getElementById("hud").hidden = true;
+  hud.failed("Graphics paused. Reload this page to restore your fight.");
+  enter.textContent = "Reload game";
 });
-canvas.addEventListener('webglcontextrestored', () => location.reload());
-enter.addEventListener('click', async () => {
+canvas.addEventListener("webglcontextrestored", () => location.reload());
+enter.addEventListener("click", async () => {
   if (contextLost) {
     location.reload();
     return;
@@ -162,34 +168,37 @@ enter.addEventListener('click', async () => {
   if (loading) return;
   loading = true;
   enter.disabled = true;
-  enter.textContent = 'Loading Westminster…';
+  enter.textContent = "Loading Westminster…";
   const start = performance.now();
-  audio.unlock().catch(() => {});
+  const audioReady = audio.unlock();
   try {
     renderer ??= new THREE.WebGLRenderer({
       canvas,
       antialias: true,
-      powerPreference: 'high-performance',
+      powerPreference: "high-performance",
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
     resize();
-    hud.loading('Loading London and the original character rigs…');
+    hud.loading("Loading London and the original character rigs…");
     const results = await Promise.allSettled([
       createWorld({ THREE, renderer, scene, camera, baseUrl }),
-      loadActors(baseUrl, (name) =>
-        hud.loading(`${name.toUpperCase()} ready · loading encounter…`),
+      loadActors(
+        baseUrl,
+        (name) =>
+          hud.loading(`${name.toUpperCase()} ready · loading encounter…`),
+        actorManifest,
       ),
     ]);
-    if (results.some((r) => r.status === 'rejected')) {
-      if (results[0].status === 'fulfilled') results[0].value.dispose();
-      if (results[1].status === 'fulfilled') results[1].value.dispose();
-      throw results.find((r) => r.status === 'rejected').reason;
+    if (results.some((r) => r.status === "rejected")) {
+      if (results[0].status === "fulfilled") results[0].value.dispose();
+      if (results[1].status === "fulfilled") results[1].value.dispose();
+      throw results.find((r) => r.status === "rejected").reason;
     }
     const [nextWorld, library] = results.map((r) => r.value);
     world = nextWorld;
     pendingLibrary = library;
-    game = createGame(world);
+    game = createGame(world, pilot);
     actors = createActors(scene, world, library);
     pendingLibrary = null;
     effects = createEffects(scene, world);
@@ -197,27 +206,32 @@ enter.addEventListener('click', async () => {
     renderer.setAnimationLoop(frame);
     if (!library.complete)
       throw Error(
-        'Enemy exports are still being validated. This private candidate is not a complete fight yet.',
+        "Enemy exports are still being validated. This private candidate is not a complete fight yet.",
       );
     loaded = true;
     hud.ready();
-    hud.loading('');
-    document.getElementById('version').textContent =
-      'Three.js · responsive trial 002';
+    hud.loading("");
+    document.getElementById("version").textContent =
+      "Three.js · Frankendom melee pilot 003";
     resize();
     renderer.render(scene, camera);
+    const enterToFirstRenderMs = Math.round(performance.now() - start);
+    if (!(await audioReady) && audio.state.error)
+      console.warn("ARMAGEDOM_AUDIO_FAILED", audio.state.error);
     console.info(
-      'ARMAGEDOM_READY',
+      "ARMAGEDOM_READY",
       JSON.stringify({
-        enterToFirstRenderMs: Math.round(performance.now() - start),
+        enterToFirstRenderMs,
         actorScale: world.layout.characterScale,
         zoom: world.layout.zoom,
         models: [...library.models.keys()],
+        pilot: game.pilot,
+        audio: audio.state,
         devicePixelRatio: renderer.getPixelRatio(),
       }),
     );
   } catch (error) {
-    console.error('ARMAGEDOM_LOAD_FAILED', error);
+    console.error("ARMAGEDOM_LOAD_FAILED", error);
     hud.failed(error.message);
     if (!loaded) {
       actors?.dispose();
@@ -227,6 +241,7 @@ enter.addEventListener('click', async () => {
       world?.dispose();
       actors = effects = world = game = null;
       renderer?.setAnimationLoop(null);
+      audio.reset();
     }
   } finally {
     loading = false;

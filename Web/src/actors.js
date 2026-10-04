@@ -3,21 +3,39 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { ActorMotion } from "./motion.js";
+import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 const names = ["revenant", "orc", "warlock", "warlord"];
-export async function loadActors(baseUrl, onProgress = () => {}) {
-  const manifestURL = new URL("assets/manifest-lossless.json", baseUrl);
+export async function loadActors(
+  baseUrl,
+  onProgress = () => {},
+  manifestPath = "assets/manifest-lossless.json",
+) {
+  const manifestURL = new URL(manifestPath, baseUrl);
   const response = await fetch(manifestURL);
   if (!response.ok) throw Error(`Character manifest HTTP ${response.status}`);
   const manifest = await response.json();
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const models = new Map();
   const urls = new Map();
+  const sources = new Set();
+  function load(url) {
+    if (!urls.has(url))
+      urls.set(
+        url,
+        loader.loadAsync(url).then((gltf) => {
+          sources.add(gltf);
+          return gltf;
+        }),
+      );
+    return urls.get(url);
+  }
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    disposeActorSources(new Set([...models.values()].map(({ gltf }) => gltf)));
+    disposeActorSources(sources);
+    sources.clear();
     models.clear();
     urls.clear();
   };
@@ -27,9 +45,11 @@ export async function loadActors(baseUrl, onProgress = () => {}) {
   const results = await Promise.allSettled(
     Object.entries(manifest.models).map(async ([name, description]) => {
       const url = new URL(description.url, manifestURL).href;
-      if (!urls.has(url)) urls.set(url, loader.loadAsync(url));
-      const gltf = await urls.get(url);
-      models.set(name, { gltf, description });
+      const gltf = await load(url);
+      const equipment = description.equipment
+        ? await load(new URL(description.equipment.url, manifestURL).href)
+        : null;
+      models.set(name, { gltf, description, equipment });
       onProgress(name);
     }),
   );
@@ -41,7 +61,10 @@ export async function loadActors(baseUrl, onProgress = () => {}) {
   return {
     models,
     manifest,
-    complete: names.every((name) => models.has(name)),
+    complete:
+      manifest.pilot === "donor-knife"
+        ? models.has("goblin") && !!models.get("vagrant").equipment
+        : names.every((name) => models.has(name)),
     dispose,
   };
 }
@@ -62,13 +85,24 @@ export function createActors(scene, world, library) {
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
   function make(entity) {
-    const name = entity.kind < 0 ? "vagrant" : names[entity.kind],
+    const name =
+        entity.kind < 0
+          ? "vagrant"
+          : library.manifest.pilot === "donor-knife"
+            ? entity.rig
+            : names[entity.kind],
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
+    const animations = source.equipment
+      ? equipDonorPlayer(
+          { scene: model, animations: source.gltf.animations },
+          source.equipment,
+        ).animations
+      : source.gltf.animations;
     root.name = name;
     root.position.copy(world.toRender(entity.pos));
     root.scale.setScalar(
@@ -120,12 +154,9 @@ export function createActors(scene, world, library) {
     };
     views.set(entity.id, view);
     try {
-      view.motion = new ActorMotion(
-        root,
-        model,
-        source.gltf.animations,
-        description,
-      );
+      const Motion =
+        description.motion === "donor-knife" ? DonorMotion : ActorMotion;
+      view.motion = new Motion(root, model, animations, description);
       scene.add(root, shadow);
     } catch (error) {
       remove(entity.id);
@@ -153,7 +184,7 @@ export function createActors(scene, world, library) {
       for (const id of [...views.keys()]) remove(id);
     },
     update(game, dt) {
-      const entities = [game.player, ...game.enemies],
+      const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
@@ -163,7 +194,11 @@ export function createActors(scene, world, library) {
           Math.atan2(entity.facing.x, -entity.facing.z) +
           (view.description.forwardCorrection ?? 0);
         view.root.updateMatrixWorld(true);
-        view.motion.update(entity, game.time, game.finished ? 0 : dt);
+        view.motion.update(
+          entity,
+          game.time,
+          game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
+        );
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         const flash = !game.finished && entity.flashUntil > game.time;
         for (const m of view.materials) {
