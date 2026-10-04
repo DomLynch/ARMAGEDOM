@@ -1,29 +1,253 @@
-const clampStick=(v,r)=>{const n=Math.hypot(v.x,v.y);return n>r?{x:v.x/n,y:v.y/n}:{x:v.x/r,y:v.y/r};};
-export class InputState{
- constructor(){this.pointers=new Map();this.keys=new Set();this.clear();}
- down(id,kind,at){if(this.pointers.has(id))return;this.pointers.set(id,{kind,start:{...at},at:{...at}});if(kind==='guard'){if(!this.guardHeld())this.guardPressed=true;else if([...this.pointers.values()].filter(p=>p.kind==='guard').length===1)this.guardPressed=true;}else if(kind==='dodge')this.dodge=true;else if(kind!=='move')this.actions.push(kind);}
- guardHeld(){return [...this.pointers.values()].some(p=>p.kind==='guard');}
- move(id,at){const p=this.pointers.get(id);if(!p)return;p.at={...at};const d={x:at.x-p.start.x,y:at.y-p.start.y};if(p.kind==='move')this.stick=clampStick(d,46);else if(Math.hypot(d.x,d.y)>12)this.aim=clampStick(d,1);}
- up(id){const p=this.pointers.get(id);if(p?.kind==='move')this.stick={x:0,y:0};this.pointers.delete(id);}
- clear(){this.pointers.clear();this.keys.clear();this.stick={x:0,y:0};this.aim=null;this.actions=[];this.guardPressed=false;this.dodge=false;}
- take(){const held=[...new Set([...this.pointers.values()].map(p=>p.kind).filter(k=>k!=='move'&&k!=='guard'&&k!=='dodge'))],k=this.keys;
- const move={x:this.stick.x+(k.has('KeyD')?1:0)-(k.has('KeyA')?1:0),y:this.stick.y+(k.has('KeyS')?1:0)-(k.has('KeyW')?1:0)},m=Math.hypot(move.x,move.y);if(m>1){move.x/=m;move.y/=m;}
- const value={move,aim:this.aim?{...this.aim}:null,actions:this.actions.splice(0),held,guard:this.guardHeld(),guardPressed:this.guardPressed,dodge:this.dodge};this.guardPressed=false;this.dodge=false;return value;}
+const clampStick = (value, radius) => {
+  const length = Math.hypot(value.x, value.y);
+  const divisor = length > radius ? length : radius;
+  return { x: value.x / divisor, y: value.y / divisor };
+};
+
+export class InputState {
+  constructor() {
+    this.pointers = new Map();
+    this.keys = new Set();
+    this.clear();
+  }
+
+  down(id, kind, at) {
+    if (this.pointers.has(id)) return;
+    const alreadyGuarding = this.guardHeld();
+    const pointer = { kind, start: { ...at }, at: { ...at } };
+    this.pointers.set(id, pointer);
+    if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
+      this.pending.push({ pointer, kind });
+    }
+  }
+
+  guardHeld() {
+    return [...this.pointers.values()].some(
+      (pointer) => pointer.kind === 'guard',
+    );
+  }
+
+  get aim() {
+    let owner = null;
+    for (const pointer of this.pointers.values()) {
+      if (pointer.aim && (!owner || pointer.aimOrder > owner.aimOrder))
+        owner = pointer;
+    }
+    return owner ? { ...owner.aim } : null;
+  }
+
+  move(id, at) {
+    const pointer = this.pointers.get(id);
+    if (!pointer) return;
+    pointer.at = { ...at };
+    const delta = { x: at.x - pointer.start.x, y: at.y - pointer.start.y };
+    if (pointer.kind === 'move') {
+      this.stick = clampStick(delta, 46);
+    } else if (Math.hypot(delta.x, delta.y) > 12) {
+      pointer.aim = clampStick(delta, 1);
+      pointer.aimOrder = ++this.aimOrder;
+    }
+  }
+
+  up(id) {
+    const pointer = this.pointers.get(id);
+    if (pointer?.kind === 'move') this.stick = { x: 0, y: 0 };
+    this.pointers.delete(id);
+  }
+
+  cancel(id) {
+    // Automatic lostcapture after a successful up must preserve the quick tap.
+    if (!this.pointers.has(id)) return;
+    const pointer = this.pointers.get(id);
+    this.pending = this.pending.filter((press) => press.pointer !== pointer);
+    this.up(id);
+  }
+
+  clear() {
+    this.pointers.clear();
+    this.keys.clear();
+    this.stick = { x: 0, y: 0 };
+    this.aimOrder = 0;
+    this.pending = [];
+  }
+
+  take() {
+    const held = [
+      ...new Set(
+        [...this.pointers.values()]
+          .map((pointer) => pointer.kind)
+          .filter((kind) => !['move', 'guard', 'dodge'].includes(kind)),
+      ),
+    ];
+    const move = {
+      x:
+        this.stick.x +
+        (this.keys.has('KeyD') ? 1 : 0) -
+        (this.keys.has('KeyA') ? 1 : 0),
+      y:
+        this.stick.y +
+        (this.keys.has('KeyS') ? 1 : 0) -
+        (this.keys.has('KeyW') ? 1 : 0),
+    };
+    const length = Math.hypot(move.x, move.y);
+    if (length > 1) {
+      move.x /= length;
+      move.y /= length;
+    }
+    const presses = this.pending.splice(0);
+    return {
+      move,
+      aim: this.aim,
+      actions: presses
+        .filter((press) => !['guard', 'dodge'].includes(press.kind))
+        .map((press) => press.kind),
+      held,
+      guard: this.guardHeld(),
+      guardPressed: presses.some((press) => press.kind === 'guard'),
+      dodge: presses.some((press) => press.kind === 'dodge'),
+    };
+  }
 }
-export function attachInput({canvas,onMenu,onRetry,isPaused,onInteraction=()=>{}}){
- const state=new InputState(),map={KeyQ:'heavy',KeyE:'special',Digit1:'special',Space:'dodge',KeyF:'guard'};let mouse=null,touch=false;
- const bind=(el,kind)=>{el.addEventListener('pointerdown',e=>{if(isPaused())return;onInteraction();e.preventDefault();touch=true;document.body.classList.add('touch');el.setPointerCapture(e.pointerId);el.classList.add('pressed');state.down(e.pointerId,kind,{x:e.clientX,y:e.clientY});});
- el.addEventListener('pointermove',e=>{state.move(e.pointerId,{x:e.clientX,y:e.clientY});if(kind==='move'){const x=state.stick.x*36,y=state.stick.y*36;el.style.setProperty('--knob-x',`${x}px`);el.style.setProperty('--knob-y',`${y}px`);}else if(state.aim)el.style.setProperty('--aim-angle',`${Math.atan2(state.aim.y,state.aim.x)}rad`);});
- const release=e=>{state.up(e.pointerId);if(![...state.pointers.values()].some(p=>p.kind===kind))el.classList.remove('pressed');if(kind==='move'){el.style.setProperty('--knob-x','0px');el.style.setProperty('--knob-y','0px');}};
- el.addEventListener('pointerup',release);el.addEventListener('pointercancel',release);el.addEventListener('lostpointercapture',release);};
- bind(document.querySelector('#move'),'move');for(const el of document.querySelectorAll('[data-action]'))bind(el,el.dataset.action);
- canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){touch=false;mouse={x:e.clientX,y:e.clientY};}});
- canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||isPaused())return;onInteraction();e.preventDefault();canvas.setPointerCapture(e.pointerId);mouse={x:e.clientX,y:e.clientY};state.down(e.pointerId,e.button===2?'stab':'slash',mouse);});
- canvas.addEventListener('pointerup',e=>state.up(e.pointerId));canvas.addEventListener('pointercancel',e=>state.up(e.pointerId));canvas.addEventListener('lostpointercapture',e=>state.up(e.pointerId));canvas.addEventListener('contextmenu',e=>e.preventDefault());
- window.addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();onMenu();return;}if(e.code==='KeyR'&&!e.repeat){onRetry();return;}if(isPaused())return;onInteraction();
- if(['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();state.keys.add(e.code);}if(map[e.code]&&!e.repeat){e.preventDefault();state.down(e.code,map[e.code],{x:0,y:0});}});
- window.addEventListener('keyup',e=>{state.keys.delete(e.code);state.up(e.code);});
- function clear(){state.clear();mouse=null;for(const el of document.querySelectorAll('.pressed'))el.classList.remove('pressed');const el=document.querySelector('#move');el.style.setProperty('--knob-x','0px');el.style.setProperty('--knob-y','0px');}
- window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
- return {state,clear,take:()=>({...state.take(),mouse:touch?null:mouse})};
+
+export function attachInput({
+  canvas,
+  onMenu,
+  onRetry,
+  isPaused,
+  onInteraction = () => {},
+}) {
+  const state = new InputState();
+  const map = {
+    KeyQ: 'heavy',
+    KeyE: 'special',
+    Digit1: 'special',
+    Space: 'dodge',
+    KeyF: 'guard',
+  };
+  let mouse = null,
+    touch = false;
+
+  const bind = (element, kind) => {
+    element.addEventListener('pointerdown', (event) => {
+      if (isPaused()) return;
+      onInteraction();
+      event.preventDefault();
+      touch = true;
+      document.body.classList.add('touch');
+      element.setPointerCapture(event.pointerId);
+      element.classList.add('pressed');
+      state.down(event.pointerId, kind, { x: event.clientX, y: event.clientY });
+    });
+    element.addEventListener('pointermove', (event) => {
+      state.move(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (kind === 'move') {
+        element.style.setProperty('--knob-x', `${state.stick.x * 36}px`);
+        element.style.setProperty('--knob-y', `${state.stick.y * 36}px`);
+      } else {
+        const aim = state.pointers.get(event.pointerId)?.aim;
+        if (aim)
+          element.style.setProperty(
+            '--aim-angle',
+            `${Math.atan2(aim.y, aim.x)}rad`,
+          );
+      }
+    });
+    const release = (event) => {
+      if (event.type === 'pointerup') state.up(event.pointerId);
+      else state.cancel(event.pointerId);
+      if (
+        ![...state.pointers.values()].some((pointer) => pointer.kind === kind)
+      ) {
+        element.classList.remove('pressed');
+      }
+      if (kind === 'move') {
+        element.style.setProperty('--knob-x', '0px');
+        element.style.setProperty('--knob-y', '0px');
+      }
+    };
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      element.addEventListener(type, release);
+    }
+  };
+  bind(document.querySelector('#move'), 'move');
+  for (const element of document.querySelectorAll('[data-action]'))
+    bind(element, element.dataset.action);
+
+  canvas.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse') {
+      touch = false;
+      mouse = { x: event.clientX, y: event.clientY };
+    }
+  });
+  canvas.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'mouse' || isPaused()) return;
+    onInteraction();
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    mouse = { x: event.clientX, y: event.clientY };
+    state.down(event.pointerId, event.button === 2 ? 'stab' : 'slash', mouse);
+  });
+  canvas.addEventListener('pointerup', (event) => state.up(event.pointerId));
+  canvas.addEventListener('pointercancel', (event) =>
+    state.cancel(event.pointerId),
+  );
+  canvas.addEventListener('lostpointercapture', (event) =>
+    state.cancel(event.pointerId),
+  );
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  function retryAllowed() {
+    if (
+      document.hidden ||
+      document.getElementById('menu')?.open ||
+      document.getElementById('entry')?.hidden === false
+    )
+      return false;
+    // Main treats a finished encounter as paused; retain desktop death/retry.
+    return !isPaused() || document.getElementById('ending')?.hidden === false;
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if (event.code === 'Escape') {
+      event.preventDefault();
+      if (!event.repeat) onMenu();
+      return;
+    }
+    if (event.code === 'KeyR') {
+      event.preventDefault();
+      if (!event.repeat && retryAllowed()) onRetry();
+      return;
+    }
+    if (isPaused()) return;
+    onInteraction();
+    if (['KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
+      event.preventDefault();
+      state.keys.add(event.code);
+    }
+    if (map[event.code] && !event.repeat) {
+      event.preventDefault();
+      state.down(event.code, map[event.code], { x: 0, y: 0 });
+    }
+  });
+  window.addEventListener('keyup', (event) => {
+    state.keys.delete(event.code);
+    state.up(event.code);
+  });
+
+  function clear() {
+    state.clear();
+    mouse = null;
+    for (const element of document.querySelectorAll('.pressed'))
+      element.classList.remove('pressed');
+    const move = document.querySelector('#move');
+    move.style.setProperty('--knob-x', '0px');
+    move.style.setProperty('--knob-y', '0px');
+  }
+  window.addEventListener('blur', clear);
+  document.addEventListener('visibilitychange', clear);
+  return {
+    state,
+    clear,
+    take: () => ({ ...state.take(), mouse: touch ? null : mouse }),
+  };
 }
