@@ -75,7 +75,7 @@ export function createAtmosphere({THREE,scene,world}) {
       const geometry=new THREE.BufferGeometry();
       for(const [name,data,count] of [['position',positions,3],['corner',corners,2],['motion',motions,3],['size',sizes,2],['phase',phases,1],['strength',strengths,1]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,count));
       geometry.setIndex(indices);
-      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`precision mediump float; uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
+      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
       const mesh=new THREE.Mesh(geometry,material);mesh.name=`Atmosphere ${kind}`;
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.

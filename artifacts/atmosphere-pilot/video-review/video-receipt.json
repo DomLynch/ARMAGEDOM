@@ -1,0 +1,6 @@
+{
+  "scope": "12-second deterministic rendered candidate preview, 12fps; not live-game performance",
+  "frames": 144,
+  "fps": 12,
+  "errors": []
+}

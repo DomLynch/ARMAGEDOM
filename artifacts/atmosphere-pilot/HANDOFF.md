@@ -1,5 +1,11 @@
 # Westminster atmosphere candidate — 2026-10-04
 
+**Superseded capture evidence:** the original c774d8f candidate had a GLSL
+uniform precision mismatch. Its pageerror-only capture missed the shader console
+error, so the original stills/profile below do not prove enabled effects. The
+video check caught it before integration. Corrected capture now also fails on
+console errors. See `video-review/` for replacement evidence when available.
+
 Base: accepted012 `fcec55be75160a48a07a2e2a68ef01b55d0b58a9`.
 Isolated World lane: `worktrees/westminster-atmosphere`, branch
 `codex/armagedom-westminster-atmosphere`. No shared runtime, layout, backdrop,

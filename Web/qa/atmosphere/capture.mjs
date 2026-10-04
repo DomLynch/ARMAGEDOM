@@ -5,6 +5,8 @@ const out='qa/atmosphere/results';await fs.mkdir(out,{recursive:true});
 const server=spawn('./node_modules/.bin/vite',['--host','127.0.0.1','--port','8893'],{stdio:'ignore'});
 const browser=await chromium.launch({headless:true,executablePath:process.env.ATMOSPHERE_CHROMIUM||undefined,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[];page.on('pageerror',e=>errors.push(String(e)));
+await page.route('**/favicon.ico',route=>route.fulfill({status:204,body:''}));
+page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 try{
   for(let i=0;i<50;i++){try{await page.goto('http://127.0.0.1:8893/qa/atmosphere/review.html');break;}catch{await new Promise(r=>setTimeout(r,100));}}
   await page.waitForFunction(()=>window.ready,{timeout:30000});
