@@ -26,7 +26,7 @@ async function walk(root, prefix='') {
  }
  return names.sort();
 }
-export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossless.json',world='world/manifest.json',prune=false}) {
+export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossless.json',world='world/manifest.json',audio,prune=false}) {
  dist=await realpath(dist);publicDir=await realpath(publicDir);
  if(dist===publicDir||dist.startsWith(publicDir+path.sep)||publicDir.startsWith(dist+path.sep))throw Error('Generated/source directories overlap');
  const selected=new Map(),all=await walk(dist);
@@ -104,13 +104,22 @@ export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossl
   }
  }
  for(const file of worldManifest.files){const name=path.posix.join(path.posix.dirname(world),safe(file.path));const raw=await select(name,file);if(!raw.equals(await read(publicDir,name)))throw Error(`Copied world differs from source: ${name}`);}
+ if(audio){
+  safe(audio);
+  if(!code.includes(audio))throw Error('Generated code does not select configured audio manifest');
+  const audioManifest=await manifest(audio);
+  const name=path.posix.join(path.posix.dirname(audio),safe(audioManifest.url));
+  const raw=await select(name,checkedHash(audioManifest,name));
+  if(!raw.equals(await read(publicDir,name)))throw Error(`Copied audio differs from source: ${name}`);
+  if(!name.endsWith('.wav')||raw.length<12||raw.toString('ascii',0,4)!=='RIFF'||raw.toString('ascii',8,12)!=='WAVE'||raw.readUInt32LE(4)+8!==raw.length)throw Error(`Unexpected or invalid WAV: ${name}`);
+ }
  // Validate every exclusion before deleting anything. No blanket directory rm.
  const excluded=all.filter(name=>!selected.has(name));
  for(const name of excluded){let source;try{source=await read(publicDir,name);}catch{throw Error(`Unexpected generated asset: ${name}`);}if(!(await read(dist,name)).equals(source))throw Error(`Unexpected altered public copy: ${name}`);}
  if(excluded.length&&!prune)throw Error(`Unselected copied assets: ${excluded.join(', ')}`);
  if(prune)for(const name of excluded)await unlink(path.join(dist,name));
  const files=[...selected.values()].sort((a,b)=>a.path.localeCompare(b.path,'en'));
- return {actors,world,files,bytes:files.reduce((n,f)=>n+f.bytes,0),removed:excluded};
+ return {actors,world,...(audio?{audio}:{}),files,bytes:files.reduce((n,f)=>n+f.bytes,0),removed:excluded};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
  const web=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -118,7 +127,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  const args=process.argv.slice(2);
  for(let i=0;i<args.length;i++){
   if(args[i]==='--prune')options.prune=true;
-  else if(['--dist','--public','--actors','--world'].includes(args[i])){const key={'--dist':'dist','--public':'publicDir','--actors':'actors','--world':'world'}[args[i]];if(!args[i+1]||args[i+1].startsWith('--'))throw Error(`Missing ${args[i]} value`);options[key]=args[++i];}
+  else if(['--dist','--public','--actors','--world','--audio'].includes(args[i])){const key={'--dist':'dist','--public':'publicDir','--actors':'actors','--world':'world','--audio':'audio'}[args[i]];if(!args[i+1]||args[i+1].startsWith('--'))throw Error(`Missing ${args[i]} value`);options[key]=args[++i];}
   else throw Error(`Unknown argument: ${args[i]}`);
  }
  console.log(JSON.stringify(await verifyAssets(options),null,2));
