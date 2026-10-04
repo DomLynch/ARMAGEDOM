@@ -1,0 +1,290 @@
+{
+  "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "blender": "5.2.1 LTS",
+  "meshObjects": 6,
+  "triangles": 43099,
+  "materials": [
+    {
+      "name": "Ash-grey affected skin"
+    },
+    {
+      "name": "Dirty black work boots"
+    },
+    {
+      "name": "Dirty black work boots.001"
+    },
+    {
+      "name": "Photo"
+    },
+    {
+      "name": "PhotoEyes"
+    },
+    {
+      "name": "PhotoTeeth"
+    },
+    {
+      "name": "Torn charcoal canvas jacket"
+    },
+    {
+      "name": "Torn charcoal canvas jacket.001"
+    },
+    {
+      "name": "Worn tobacco trousers"
+    }
+  ],
+  "images": [
+    {
+      "name": "Image_0",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "channels": 4
+    },
+    {
+      "name": "Image_1",
+      "dimensions": [
+        2048,
+        2048
+      ],
+      "channels": 4
+    },
+    {
+      "name": "Image_2",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "channels": 4
+    },
+    {
+      "name": "Image_3",
+      "dimensions": [
+        512,
+        512
+      ],
+      "channels": 4
+    },
+    {
+      "name": "Image_4",
+      "dimensions": [
+        512,
+        512
+      ],
+      "channels": 4
+    }
+  ],
+  "rigBones": 65,
+  "actions": [
+    {
+      "name": "Armed",
+      "frameRange": [
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "name": "ArmedWalk",
+      "frameRange": [
+        0.0,
+        32.0
+      ]
+    },
+    {
+      "name": "Attack",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "BlockImpact",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Death",
+      "frameRange": [
+        0.0,
+        57.60000228881836
+      ]
+    },
+    {
+      "name": "Death_QuietOne",
+      "frameRange": [
+        0.0,
+        57.60000228881836
+      ]
+    },
+    {
+      "name": "Death_RunThrough",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Death_SplitCrown",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Deflected",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Draw",
+      "frameRange": [
+        0.0,
+        16.799999237060547
+      ]
+    },
+    {
+      "name": "Fin_RunThrough",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Guard",
+      "frameRange": [
+        0.7272728681564331,
+        24.0
+      ]
+    },
+    {
+      "name": "Heavy",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Hit",
+      "frameRange": [
+        0.0,
+        8.0
+      ]
+    },
+    {
+      "name": "HollowIdle",
+      "frameRange": [
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "name": "HollowWalk",
+      "frameRange": [
+        0.0,
+        32.0
+      ]
+    },
+    {
+      "name": "Idle",
+      "frameRange": [
+        0.0,
+        60.0
+      ]
+    },
+    {
+      "name": "Jog",
+      "frameRange": [
+        0.0,
+        22.399999618530273
+      ]
+    },
+    {
+      "name": "Kick",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Parry",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Return",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Riposte",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Roll",
+      "frameRange": [
+        0.0,
+        35.20000076293945
+      ]
+    },
+    {
+      "name": "Run",
+      "frameRange": [
+        0.0,
+        16.0
+      ]
+    },
+    {
+      "name": "Skill_Pommel",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Skill_WitchArm",
+      "frameRange": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "SourceRun",
+      "frameRange": [
+        0.0,
+        16.0
+      ]
+    },
+    {
+      "name": "StrafeLeft",
+      "frameRange": [
+        0.0,
+        19.200000762939453
+      ]
+    },
+    {
+      "name": "StrafeRight",
+      "frameRange": [
+        0.0,
+        19.200000762939453
+      ]
+    },
+    {
+      "name": "Walk",
+      "frameRange": [
+        0.0,
+        32.0
+      ]
+    }
+  ]
+}

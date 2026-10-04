@@ -1,0 +1,12 @@
+✔ Hollow descriptor pins source, independent rig key and supported human contacts (4.34ms)
+✔ Own native knife contact matches source through every attack tick (16.497583ms)
+✔ Hunch changes upper body while preserving gait hips, feet and readable combat clips (2.262583ms)
+✔ Candidate removes medieval gear and uses a smaller active geometry/material set (4.200583ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.856625

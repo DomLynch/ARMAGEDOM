@@ -1,0 +1,84 @@
+{
+  "authoringBase": "21b7c4ae220124bdd7eaf06e00ae08cfb54e5f51",
+  "runtimeReference": "5dc5610cba7cf2d0e8141b07a5d14cc7e7eac570",
+  "inventory": [
+    {
+      "name": "source",
+      "activeEquippedTriangles": 60784,
+      "meshPrimitives": 17,
+      "materialNames": [
+        "WeaponKnife",
+        "WeaponKnifeShaft",
+        "Steel",
+        "Antique brass",
+        "Leather",
+        "Heraldry",
+        "Gambeson",
+        "Wrap",
+        "Skin",
+        "Face",
+        "Photo",
+        "PhotoEyes",
+        "PhotoTeeth"
+      ]
+    },
+    {
+      "name": "hollow",
+      "activeEquippedTriangles": 46293,
+      "meshPrimitives": 11,
+      "materialNames": [
+        "WeaponKnife",
+        "WeaponKnifeShaft",
+        "Dirty black work boots",
+        "Torn charcoal canvas jacket",
+        "Ash-grey affected skin",
+        "Worn tobacco trousers",
+        "Photo",
+        "PhotoEyes",
+        "PhotoTeeth"
+      ]
+    }
+  ],
+  "proof": [
+    {
+      "file": "hollow-moving-proof-v2.mp4",
+      "sha256": "fff918dd33b2f737edcf29d15d5d3693930f99c5b76b33eb441aed5de279abd1",
+      "bytes": 541975
+    },
+    {
+      "file": "hollow-moving-proof-v2.gif",
+      "sha256": "d3df17179eb8073743796d01798bffc9f553ee8d016ebd39b0c1b68cea5d78a1",
+      "bytes": 5428061
+    },
+    {
+      "file": "hollow-scavenger-review.blend",
+      "sha256": "4c55d0278a28a256da51b311bc4b49542eb6d551be900e86fc02cecaca3fde84",
+      "bytes": 4151775
+    }
+  ],
+  "capture": {
+    "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+    "fps": 8,
+    "seconds": 12,
+    "modes": [
+      "idle",
+      "walk",
+      "attack",
+      "heavy",
+      "hit",
+      "death"
+    ],
+    "characterScale": 1.265,
+    "actorVisualScale": 1.3225,
+    "cameraZoom": 1.3365,
+    "candidatePosition": {
+      "x": 2,
+      "z": -6
+    },
+    "playerCameraTarget": {
+      "x": 0,
+      "z": -6
+    }
+  },
+  "scope": "isolated actual exported-model art review; group/integrated gameplay and physical phone not tested"
+}

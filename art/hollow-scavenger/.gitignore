@@ -1,0 +1,9 @@
+# Raw local capture frames and disposable process logs are preserved locally.
+frames/
+frames-v2/*.jpg
+server.log
+# Superseded capture at an obstructed spawn stays locally available.
+hollow-moving-proof.gif
+hollow-moving-proof.mp4
+walk-review.png
+attack-review.png
