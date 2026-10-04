@@ -1,6 +1,6 @@
 import {PISTOL_RULES} from './pistol.js';
 
-export const PISTOL_TARGETING = Object.freeze({acquireDegrees:60, retainDegrees:75});
+export const PISTOL_TARGETING = Object.freeze({acquireDegrees:12, retainDegrees:18});
 const EPS = 1e-8;
 const acquireDot = Math.cos(PISTOL_TARGETING.acquireDegrees*Math.PI/180);
 const retainDot = Math.cos(PISTOL_TARGETING.retainDegrees*Math.PI/180);

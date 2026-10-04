@@ -16,36 +16,36 @@ test('front target resolves a normalized direction from player position',()=>{
     targets:[{...target('front'),pos:{x:2,z:7}}],lineClear:()=>true});
   assert.deepEqual(out,{targetId:'front',direction:facing});
 });
-test('acquisition includes both 60 degree edges, excludes beyond and rear',()=>{
-  for(const angle of [-60,60]) assert.equal(select([target('edge',angle)]).targetId,'edge');
-  for(const angle of [-60.001,60.001,-90,90,180]) assert.equal(select([target('outside',angle)]),null);
+test('acquisition includes both 12 degree edges, excludes beyond and rear',()=>{
+  for(const angle of [-12,12]) assert.equal(select([target('edge',angle)]).targetId,'edge');
+  for(const angle of [-12.001,12.001,-90,90,180]) assert.equal(select([target('outside',angle)]),null);
 });
 test('alignment wins over proximity; proximity breaks equal alignment',()=>{
-  assert.equal(select([target('near',30,1),target('aligned',0,17)]).targetId,'aligned');
-  assert.equal(select([target('far',-20,8),target('near',20,3)]).targetId,'near');
+  assert.equal(select([target('near',10,1),target('aligned',0,17)]).targetId,'aligned');
+  assert.equal(select([target('far',-10,8),target('near',10,3)]).targetId,'near');
 });
 test('equal candidates have stable ID ordering independent of target array order',()=>{
-  const targets=[target('b',20),target('a',-20)];
+  const targets=[target('b',10),target('a',-10)];
   assert.equal(select(targets).targetId,'a');
   assert.equal(select([...targets].reverse()).targetId,'a');
 });
 test('retention prevents flicker even when another target is better aligned or closer',()=>{
-  for(const angle of [20,59,65,-75,75]) {
+  for(const angle of [5,12,15,-18,18]) {
     assert.equal(select([target('held',angle,10),target('new',0,1)],
       {retainedTargetId:'held'}).targetId,'held');
   }
 });
-test('retention releases beyond 75 degrees and never tracks a rear target',()=>{
-  for(const angle of [-75.001,75.001,90,180]) {
+test('retention releases beyond 18 degrees and never tracks a rear target',()=>{
+  for(const angle of [-18.001,18.001,90,180]) {
     assert.equal(select([target('held',angle),target('front')],
       {retainedTargetId:'held'}).targetId,'front');
   }
 });
 test('deliberate turn reacquires against new intent instead of stale retention',()=>{
-  const targets=[target('old',0),target('new',40)];
-  assert.equal(select(targets,{aim:direction(40),retainedTargetId:'old'}).targetId,'old');
-  assert.equal(select(targets,{aim:direction(40),retainedTargetId:'old',switchTarget:true}).targetId,'new');
-  assert.equal(select([target('old',65)],{retainedTargetId:'old',switchTarget:true}),null);
+  const targets=[target('old',0),target('new',15)];
+  assert.equal(select(targets,{aim:direction(15),retainedTargetId:'old'}).targetId,'old');
+  assert.equal(select(targets,{aim:direction(15),retainedTargetId:'old',switchTarget:true}).targetId,'new');
+  assert.equal(select([target('old',15)],{retainedTargetId:'old',switchTarget:true}),null);
 });
 test('explicit intent overrides facing; zero or invalid explicit aim cannot fall back',()=>{
   assert.equal(select([target('right',90)],{aim:{x:7,z:0}}).targetId,'right');
@@ -54,10 +54,10 @@ test('explicit intent overrides facing; zero or invalid explicit aim cannot fall
 });
 test('dead, hidden, out-of-range or blocked retained targets release to visible alternative',()=>{
   for(const held of [target('held',0,4,{hp:0}),target('held',0,4,{visible:false}),target('held',0,18.001)]) {
-    assert.equal(select([held,target('next',20)],{retainedTargetId:'held'}).targetId,'next');
+    assert.equal(select([held,target('next',10)],{retainedTargetId:'held'}).targetId,'next');
   }
   const lineClear=(_a,b)=>b.z<5;
-  assert.equal(select([target('held',0,8),target('next',20,3)],
+  assert.equal(select([target('held',0,8),target('next',10,3)],
     {retainedTargetId:'held',lineClear}).targetId,'next');
 });
 test('range uses inclusive 18m target center and overlapping/invalid candidates are ignored',()=>{

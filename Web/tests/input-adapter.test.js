@@ -226,3 +226,8 @@ test('pistol touch button taps once and holds Fire without an aiming drag', t=>{
  i=input.take();assert.deepEqual(i.held,['fire']);assert.equal(i.aim,null);
  send(e.slash,'pointercancel',{pointerId:2});assert.deepEqual(input.take().held,[]);
 });
+test('Fire release/cancel clears stale arrow and another Fire pointer cannot replace it', t=>{
+ const {elements:e,input}=setup(t,true);send(e.slash,'pointerdown',{pointerId:1,clientX:100,clientY:100});send(e.slash,'pointermove',{pointerId:1,clientX:100,clientY:70});const angle=e.slash.style.get('--aim-angle');assert.notEqual(angle,'0rad');
+ send(e.slash,'pointerdown',{pointerId:2,clientX:100,clientY:100});assert.equal(e.slash.style.get('--aim-angle'),angle);send(e.slash,'pointerup',{pointerId:2});assert.equal(e.slash.style.get('--aim-angle'),angle);
+ send(e.slash,'pointercancel',{pointerId:1});assert.equal(e.slash.style.get('--aim-angle'),'0rad');assert.equal(input.take().fireAim,null);send(e.slash,'pointerdown',{pointerId:3});assert.equal(e.slash.style.get('--aim-angle'),'0rad');input.clear();assert.equal(e.slash.style.get('--aim-angle'),'0rad');
+});

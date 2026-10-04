@@ -107,6 +107,7 @@ export class InputState {
       run: [...this.pointers.values()].some(p => p.kind === 'move' && p.run) ||
         this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
       aim: this.aim,
+      fireAim: ([...this.pointers.values()].find(p=>p.kind==='fire') ?? presses.find(p=>p.kind==='fire')?.pointer)?.aim ?? null,
       actions: presses
         .filter((press) => !['guard', 'dodge'].includes(press.kind))
         .map((press) => press.kind),
@@ -189,9 +190,11 @@ export function attachInput({
       touch = true;
       document.body.classList.add('touch');
       element.setPointerCapture(event.pointerId);
-      element.classList.add('pressed');
       const fire = isPistol() && kind === 'slash';
       state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY });
+      if (!state.pointers.has(event.pointerId)) return;
+      element.classList.add('pressed');
+      element.style.setProperty('--aim-angle', '0rad');
     });
     element.addEventListener('pointermove', (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -214,6 +217,7 @@ export function attachInput({
         ![...state.pointers.values()].some((pointer) => pointer.kind === kind || kind === 'slash' && pointer.kind === 'fire')
       ) {
         element.classList.remove('pressed');
+        element.style.setProperty('--aim-angle', '0rad');
       }
       if (kind === 'move') {
         element.style.setProperty('--knob-x', `${state.stick.x * 36}px`);
@@ -294,8 +298,10 @@ export function attachInput({
     lastTap = -Infinity;
     state.clear();
     mouse = null;
-    for (const element of document.querySelectorAll('.pressed'))
+    for (const element of document.querySelectorAll('.pressed')) {
       element.classList.remove('pressed');
+      element.style.setProperty('--aim-angle', '0rad');
+    }
     const move = document.querySelector('#move');
     move.style.setProperty('--knob-x', '0px');
     move.style.setProperty('--knob-y', '0px');

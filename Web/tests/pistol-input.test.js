@@ -20,3 +20,10 @@ test('desktop Fire press/hold/release retains immediate mouse aiming parity',()=
 test('second Fire contact cannot steal the existing aim or cancel its ownership',()=>{
  const s=new InputState();s.down(1,'fire',{x:0,y:0});s.move(1,{x:20,y:0});s.down(2,'fire',{x:0,y:0});s.move(2,{x:0,y:-30});s.up(2);assert.deepEqual(s.take().aim,{x:1,y:0});assert.deepEqual(s.take().held,['fire']);
 });
+test('right Fire owner keeps its vector when another action drags later',()=>{
+ const s=new InputState();s.down(1,'move',{x:0,y:0});s.move(1,{x:30,y:0});s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.down(3,'heavy',{x:300,y:100});s.move(3,{x:300,y:70});const raw=s.take();assert.deepEqual(raw.fireAim,{x:1,y:0});assert.ok(raw.move.x>0);assert.deepEqual(raw.aim,{x:0,y:-1});
+});
+test('quick drag/release retains its queued Fire direction but cancellation removes it',()=>{
+ const s=new InputState();s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.up(2);assert.deepEqual(s.take().fireAim,{x:1,y:0});assert.equal(s.take().fireAim,null);
+ s.down(2,'fire',{x:0,y:0});s.move(2,{x:20,y:0});s.cancel(2);assert.equal(s.take().fireAim,null);
+});

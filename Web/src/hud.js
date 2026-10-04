@@ -1,3 +1,4 @@
+import {PISTOL_RULES} from './pistol.js';
 export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
@@ -152,7 +153,11 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
         if(equipped){el('special').setAttribute('aria-label','Special unavailable with pistol');el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
         el('ammo').hidden=!equipped;
         el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
-        el('slash').querySelector('small').textContent=equipped?`${pistol.magazine}/6`:'';
+        const fireLeft=Math.max(0,pistol.nextFireAt-g.time);
+        el('slash').classList.toggle('pistol-aim',equipped);
+        el('slash').classList.toggle('cooldown',equipped&&fireLeft>0);
+        el('slash').style.setProperty('--ready',String(equipped?1-Math.min(1,fireLeft/PISTOL_RULES.cadence):1));
+        el('slash').querySelector('small').textContent=equipped?(fireLeft>0?`${fireLeft.toFixed(1)}s`:`${pistol.magazine}/6`):'';
         el('stab').querySelector('small').textContent=equipped&&pistol.reloadingUntil?`${Math.max(0,pistol.reloadingUntil-g.time).toFixed(1)}s`:'';
         if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire; targets enemies ahead':id==='stab'?'Reload':'Switch to melee');}}
         const nearby=!pistol.collected&&(g.world.areaId??'westminster')===pistol.pickupAreaId&&Math.hypot(p.pos.x-pistol.pickupPos.x,p.pos.z-pistol.pickupPos.z)<=1.3;

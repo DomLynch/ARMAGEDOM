@@ -164,10 +164,10 @@ function intent() {
   const raw = input.take(),
     value = {
       ...raw,
-      manualPistolAim: [...input.state.pointers.values()].some(p => p.kind === 'fire' && p.aim),
+      manualPistolAim: !!raw.fireAim,
       pistolVisibleIds: game.pistol?.equipped ? game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id) : undefined,
       move: toDomain(raw.move),
-      aim: raw.aim ? toDomain(raw.aim) : null,
+      aim: game.pistol?.equipped ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };
   if (raw.mouse) {
     const bounds = canvas.getBoundingClientRect(),
@@ -175,11 +175,13 @@ function intent() {
         ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1,
         1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2,
       );
-    if (point)
+    if (point) {
+      value.manualPistolAim = true;
       value.aim = {
         x: point.x - game.player.pos.x,
         z: point.z - game.player.pos.z,
       };
+    }
   }
   return value;
 }

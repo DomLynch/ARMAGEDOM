@@ -38,14 +38,13 @@ function pistolIntent(g,intent){
  if(!g.pistol)return intent;
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
- const intended=intent.aim??(mag(intent.move??{x:0,z:0})>.12?intent.move:g.pistolAssistFacing??p.facing);
- const reference=normal(intended),switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/6);
- g.pistolAssistFacing=reference;
- const target=firing&&canAct&&!intent.cancel&&!intent.manualPistolAim?selectPistolTarget({position:p.pos,facing:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
+ const explicit=!!intent.manualPistolAim&&Number.isFinite(intent.aim?.x)&&Number.isFinite(intent.aim?.z)&&mag(intent.aim)>.001;
+ const reference=explicit?normal(intent.aim):{...p.facing},switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/30);
+ const target=firing&&canAct&&explicit&&!intent.cancel?selectPistolTarget({position:p.pos,aim:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
  if(target&&(switchTarget||g.pistolTargetId!==target.targetId))g.pistolTargetFacing={...reference};
  g.pistolTargetId=target?.targetId??null;
  if(!target)g.pistolTargetFacing=null;
- const aim=intent.manualPistolAim?intent.aim:target?.direction??reference;
+ const aim=target?.direction??reference;
  const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim,
   collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
   fire:firing,cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});

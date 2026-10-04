@@ -20,10 +20,11 @@ class Element extends EventTarget {
     };
     this.attributes = new Map();
     this.small = { textContent: "" };
+    this.span = { textContent: "" };
   }
   querySelector(selector) {
-    assert.equal(selector, "small");
-    return this.small;
+    assert.ok(["small", "span"].includes(selector));
+    return this[selector];
   }
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
@@ -304,4 +305,10 @@ test('Hollow HUD uses actual survivors without a clearance modal',t=>{
  assert.equal(el('objective').textContent,'WESTMINSTER · HOLLOW SCAVENGERS · 6 HOSTILES');
  g.encounterCleared=true;g.enemies=[];hud.update(g);
  assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED · EXPLORE LONDON');assert.equal(el('ending').hidden,true);
+});
+test('Fire stays enabled for neutral aim and shows authoritative remaining cooldown',t=>{
+ const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:5,reserve:12,nextFireAt:11.2,reloadingUntil:0};hud.update(g);
+ assert.equal(el('slash').classList.contains('cooldown'),true);assert.equal(el('slash').classList.contains('pistol-aim'),true);assert.equal(el('slash').querySelector('small').textContent,'1.2s');assert.notEqual(el('slash').disabled,true);
+ g.time=11.2;hud.update(g);assert.equal(el('slash').classList.contains('cooldown'),false);assert.equal(el('slash').querySelector('small').textContent,'5/6');
+ g.pistol.equipped=false;hud.update(g);assert.equal(el('slash').classList.contains('pistol-aim'),false);assert.equal(el('slash').classList.contains('cooldown'),false);
 });
