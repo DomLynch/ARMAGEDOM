@@ -1,0 +1,17 @@
+{
+  "west": {
+    "surveyed": 8,
+    "previously_outside_or_blocked": 7,
+    "now_free": 8
+  },
+  "south": {
+    "surveyed": 10,
+    "previously_outside_or_blocked": 7,
+    "now_free": 10
+  },
+  "east": {
+    "surveyed": 8,
+    "previously_outside_or_blocked": 6,
+    "now_free": 8
+  }
+}
