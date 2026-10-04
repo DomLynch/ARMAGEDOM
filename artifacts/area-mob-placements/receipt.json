@@ -1,0 +1,120 @@
+{
+  "base": "751ad4799be64615ad2affca0ee0cb529d9cd769",
+  "radius": 0.55,
+  "actualHollowRadius": 0.4,
+  "scope": "Registered collision/data checks only; gameplay wake/chase/state/phone pending",
+  "areas": {
+    "westminster": {
+      "layoutSHA": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5",
+      "count": 2,
+      "separationMetres": 33.04705676508273,
+      "entranceDistances": [
+        [
+          19.761529740688093,
+          23.39809809412936
+        ],
+        [
+          39.194139031577336,
+          6.650275118620546
+        ],
+        [
+          24.54938933939606,
+          22.9094255529601
+        ]
+      ],
+      "endpoints": [
+        {
+          "id": "westminster-roamer-1",
+          "artwork": {
+            "x": 0.23000001850833524,
+            "y": 0.47999997190494137,
+            "depth": 40.26837007487653
+          },
+          "patrolMetres": 2
+        },
+        {
+          "id": "westminster-roamer-2",
+          "artwork": {
+            "x": 0.8200000687963045,
+            "y": 0.4500000651225132,
+            "depth": 41.63154087951811
+          },
+          "patrolMetres": 2
+        }
+      ],
+      "reachableFromEachEntry": true,
+      "patrolClear": true,
+      "exitTriggersClear": true
+    },
+    "east": {
+      "layoutSHA": "6e85438817d64ce8d5b13fc69ec5c3754f4130ad2f3c36465223964355a6df84",
+      "count": 2,
+      "separationMetres": 22.28869193915381,
+      "entranceDistances": [
+        [
+          10.422494094766751,
+          32.232441186218324
+        ]
+      ],
+      "endpoints": [
+        {
+          "id": "east-roamer-1",
+          "artwork": {
+            "x": 0.300000025895672,
+            "y": 0.529999925199908,
+            "depth": 38.18452750801458
+          },
+          "patrolMetres": 2
+        },
+        {
+          "id": "east-roamer-2",
+          "artwork": {
+            "x": 0.6499999502140488,
+            "y": 0.36000001780050306,
+            "depth": 46.33742168121425
+          },
+          "patrolMetres": 2
+        }
+      ],
+      "reachableFromEachEntry": true,
+      "patrolClear": true,
+      "exitTriggersClear": true
+    },
+    "south": {
+      "layoutSHA": "d9ef498feae4d1db1270711d47190b886fa75209e774a6cc02a6db79ee0a2da7",
+      "count": 2,
+      "separationMetres": 14.10359756009083,
+      "entranceDistances": [
+        [
+          11.347205319451747,
+          24.490018390093933
+        ]
+      ],
+      "endpoints": [
+        {
+          "id": "south-roamer-1",
+          "artwork": {
+            "x": 0.5800000171990761,
+            "y": 0.4500000651225132,
+            "depth": 41.63154087951811
+          },
+          "patrolMetres": 1.9999999999999996
+        },
+        {
+          "id": "south-roamer-2",
+          "artwork": {
+            "x": 0.4600000519124342,
+            "y": 0.7400000023856241,
+            "depth": 31.36704133391028
+          },
+          "patrolMetres": 2
+        }
+      ],
+      "reachableFromEachEntry": true,
+      "patrolClear": true,
+      "exitTriggersClear": true
+    }
+  },
+  "status": "PASS",
+  "dataSHA": "009b1eda35469126c57b98b21bfe3e0889b499f193608bc1cb770a918ca77f89"
+}
