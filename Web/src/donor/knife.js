@@ -2,23 +2,24 @@
 import {knifePaths} from './knife-paths.js';
 export const KNIFE_RULES = Object.freeze({
   hz:60, health:150, goblinHealth:120, goblinBodyScale:.78,
-  walkSpeed:3, rollSpeed:5.2, roll:36, safeStart:4, safeEnd:20,
+  walkSpeed:3, rollSpeed:5.2, roll:36, rollCost:30, maxStamina:100, exhaustRecover:20, goblinRegen:1.5, safeStart:4, safeEnd:20,
   parry:10, parryCooldown:30, parryStun:90, parryRecovery:8,
   perfectBlock:3, perfectBlockCost:.5, breakCost:60,
   guardArc:120, guardSpeed:.35, regen:40, regenDelay:45, guardRegen:.5,
   bufferWindow:10, bufferTtl:11, stepInFrom:3, skillCooldown:900
 });
-const move=(moveId,clip,path,windup,active,recovery,damage,staminaDamage,stagger,chip,reach,stepIn,knockback,sourceContact)=>
+const move=(moveId,clip,path,windup,active,recovery,damage,staminaDamage,stagger,chip,reach,stepIn,knockback,sourceContact,stamina)=>
   Object.freeze({moveId,clip,path,windupTicks:windup,activeTicks:active,recoveryTicks:recovery,
-    windup:windup/60,active:active/60,recovery:recovery/60,damage,staminaDamage,
+    windup:windup/60,active:active/60,recovery:recovery/60,damage,staminaDamage,stamina,
     stagger:stagger/60,chip,range:reach,stepIn,knockback,sourceContact,arc:90,parryable:true,cooldown:0});
 export const KNIFE_MOVES = Object.freeze({
-  light_right:move('light_right','Attack','light_right',14,6,16,10,10,18,0,1.2,.4,2,.34),
-  light_left:move('light_left','Return','light_left',14,6,16,10,10,18,0,1.2,.4,2,.34),
-  thrust:move('thrust','Riposte','thrust',12,4,20,9,12,14,0,1.45,1,2,.34),
-  heavy_overhead:move('heavy_overhead','Heavy','heavy_overhead',22,5,26,14,20,20,.2,1.55,.55,3,.48),
-  skill_pommel:Object.freeze({...move('skill_pommel','Skill_Pommel',null,18,4,18,20,30,50,.4,1.3,.55,0,.45),cooldown:15})
+  light_right:move('light_right','Attack','light_right',14,6,16,10,10,18,0,1.2,.4,2,.34,18),
+  light_left:move('light_left','Return','light_left',14,6,16,10,10,18,0,1.2,.4,2,.34,18),
+  thrust:move('thrust','Riposte','thrust',12,4,20,9,12,14,0,1.45,1,2,.34,14),
+  heavy_overhead:move('heavy_overhead','Heavy','heavy_overhead',22,5,26,14,20,20,.2,1.55,.55,3,.48,26),
+  skill_pommel:Object.freeze({...move('skill_pommel','Skill_Pommel',null,18,4,18,20,30,50,.4,1.3,.55,0,.45,40),cooldown:15})
 });
+export const KNIFE_STAMINA_COSTS = Object.freeze({slash:18,stab:14,heavy:26,special:40,dodge:30});
 export const KNIFE_COOLDOWNS = Object.freeze({heavy:0,special:15,dodge:36/60});
 // Shared by donor animation sampling and its offline bake. Character must use this
 // for path-backed moves; Skill_Pommel has its own authored phase map.

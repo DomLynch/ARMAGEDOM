@@ -40,14 +40,14 @@ test('perfect block stops heavy chip and insufficient guard breaks without free 
 
 import {readFileSync} from 'node:fs';
 import {createGeometry} from '../src/world-geometry.js';
+import {pacedKnifeIntent} from './helpers/paced-knife.js';
 test('real Westminster geometry contains the pilot spawn and complete roaming encounter',()=>{
  const layout=JSON.parse(readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url)));
  const geometry=createGeometry(layout),london={spawn:{x:0,z:-6},layout,...geometry};
  const g=createGame(london,{pilot:'donor-knife'});g.started=true;g.nextWave=0;
  let incoming=0,outgoing=0;
  for(let i=0;i<60*30&&!g.finished;i++){
-  const e=g.enemies[0],aim=e?{x:e.pos.x-g.player.pos.x,z:e.pos.z-g.player.pos.z}:{x:0,z:1};
-  stepGame(g,{aim,held:['slash']},1/60);
+  stepGame(g,pacedKnifeIntent(g),1/60);
   assert.ok(geometry.clear(g.player.pos,g.player.radius),'player off road');
   assert.ok(g.enemies.every(e=>geometry.clear(e.pos,e.radius)),'Goblin off road');
   for(const hit of g.events.filter(e=>e.type==='hit'))if(hit.victimId===0)incoming++;else outgoing++;

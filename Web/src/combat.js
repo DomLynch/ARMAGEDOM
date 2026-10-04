@@ -1,4 +1,4 @@
-import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, bladeContact} from './donor/knife.js';
+import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 export const attacks={
  slash:{windup:.14,recovery:.28,range:2.6,arc:100,multiplier:1,stagger:.10,cooldown:0},
@@ -15,7 +15,8 @@ let serial=0;
 export function enemy(kind,pos){const hp=[55,95,50,400][kind];return {id:++serial,kind,pos:{...pos},facing:{x:0,z:-1},hp,maxHP:hp,radius:kind===3?.65:.4,ready:0,recoverUntil:0,staggerUntil:0,alerted:false,pattern:0,swing:null,flashUntil:0};}
 export function createGame(world,options={}){const g={world,time:0,wave:0,kills:0,nextWave:2,started:false,finished:false,won:false,events:[],enemies:[],bolts:[],loot:[],message:'Move to enter combat. Survive three waves.',messageUntil:4,player:{id:0,kind:-1,pos:{...(world.spawn??{x:0,z:-6})},facing:{x:0,z:1},hp:100,maxHP:100,damage:20,weaponLevel:0,armourLevel:0,radius:.4,guard:100,guarding:false,parryUntil:0,guardBrokenUntil:0,guardRecoverAt:0,ready:0,heavyReady:0,specialReady:0,dodgeReady:0,dodgeUntil:0,invulnerableUntil:0,swing:null,buffer:null,velocity:{x:0,z:0},flashUntil:0}};
  if(options.pilot==='donor-knife'){
-  g.pilot='donor-knife';g.corpses=[];g.cooldowns=KNIFE_COOLDOWNS;g.tick=0;
+  g.pilot='donor-knife';g.corpses=[];g.cooldowns=KNIFE_COOLDOWNS;g.staminaCosts=KNIFE_STAMINA_COSTS;g.tick=0;
+  knifeEnergy(g.player);
   Object.assign(g.player,{rig:'hero',weapon:'knife',combatScale:world.layout?.characterScale??1.265,bodyScale:1,hp:R.health,maxHP:R.health,lastMove:null,parryReady:0,guardExposedUntil:0,hurtUntil:0,dodgeStart:-Infinity});
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
  }
@@ -30,7 +31,9 @@ function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // Wo
 export function attack(g,action,direction=g.player.facing){const p=g.player,def=g.pilot?knifeMove(p,action):attacks[action];
  if(!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
+ if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
+ if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;}
  if(action==='heavy')p.heavyReady=g.time+def.cooldown;if(action==='special')p.specialReady=g.time+def.cooldown;
@@ -63,7 +66,7 @@ function strike(g,s){const p=g.player,def=s.def;event(g,'strike',{actor:p,action
   if(e.hp<=0)kill(g,e);else if(e.kind!==3){e.staggerUntil=g.time+def.stagger;moveBody(g,e,{x:delta.x*.18,z:delta.z*.18});}
  }
 }
-export function spawnWave(g){if(g.pilot){const position=knifeSpawnPosition(g);if(!position)return false;g.wave=1;g.enemies=[Object.assign(enemy(0,position),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null})];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
+export function spawnWave(g){if(g.pilot){const position=knifeSpawnPosition(g);if(!position)return false;g.wave=1;g.enemies=[knifeEnergy(Object.assign(enemy(0,position),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null}),R.goblinRegen)];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
 const radius=e=>e.kind===3?(e.pattern===1?4:3.5):e.kind===1?2.8:1.8;
 const arc=e=>e.kind===3&&e.pattern===1?360:e.kind===1?110:90;
 function bolt(g,pos,dir,amount){g.bolts.push({id:++serial,pos:{...pos},dir:{...dir},amount,expires:g.time+4});}
@@ -97,7 +100,8 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
  if(g.pilot)knifeGuard(g,intent,swinging,dodging);else if(p.guarding&&intent.guardPressed)p.parryUntil=t+.16;if(!g.pilot&&!p.guarding)p.parryUntil=0;
- if((!intent.guard||g.pilot&&p.guarding)&&t>=p.guardRecoverAt&&t>=p.guardBrokenUntil)p.guard=Math.min(100,p.guard+(g.pilot?R.regen*(p.guarding?R.guardRegen:1):35)*dt);
+ if(g.pilot)knifeRegen(g,p,dt,swinging||dodging||t<p.hurtUntil);
+ else if(!intent.guard&&t>=p.guardRecoverAt&&t>=p.guardBrokenUntil)p.guard=Math.min(100,p.guard+35*dt);
  if(intent.aim&&mag(intent.aim)>.001&&!swinging&&!dodging)p.facing=normal(intent.aim);
  if(p.buffer&&t>p.buffer.until)p.buffer=null;
  const priority=['special','heavy','stab','slash'],fresh=[...(intent.actions??[])].sort((a,b)=>priority.indexOf(a)-priority.indexOf(b));for(const action of fresh){const buffer=p.buffer;if(attack(g,action,intent.aim??p.facing)||p.buffer!==buffer)break;}
@@ -115,6 +119,32 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  }
 }
 
+// One pool for action costs and defence. The legacy guard field is an alias,
+// so existing HUD/hit callers cannot create a second independent resource.
+function knifeEnergy(entity,regen=1){
+ if(entity.maxStamina!==undefined)return entity;
+ entity.stamina=R.maxStamina;entity.maxStamina=R.maxStamina;entity.exhausted=false;entity.staminaRegen=regen;
+ entity.guardRecoverAt=0;
+ Object.defineProperty(entity,'guard',{enumerable:true,configurable:true,get(){return this.stamina;},set(value){
+  this.stamina=Math.max(0,Math.min(this.maxStamina,value));
+  if(this.stamina<=EPS)this.exhausted=true;
+ }});
+ return entity;
+}
+function knifeAffordable(entity,cost){
+ if(entity.stamina<=EPS)entity.exhausted=true;
+ return !entity.exhausted&&entity.stamina+EPS>=cost;
+}
+function knifeSpend(g,entity,cost){
+ entity.guard=Math.max(0,entity.stamina-cost);entity.guardRecoverAt=g.time+R.regenDelay/60;
+ if(entity.exhausted){entity.guarding=false;entity.parryUntil=0;}
+}
+function knifeRegen(g,entity,dt,committed){
+ if(entity.stamina<=EPS)entity.exhausted=true;
+ if(!committed&&g.time+EPS>=entity.guardRecoverAt&&g.time+EPS>=(entity.guardBrokenUntil??0))
+  entity.guard=entity.stamina+R.regen*(entity.staminaRegen??1)*(entity.guarding?R.guardRegen:1)*dt;
+ if(entity.exhausted&&entity.stamina+EPS>=R.exhaustRecover)entity.exhausted=false;
+}
 function knifeSpawnPosition(g){
  const radius=.4,player=g.player;
  // Each projection uses the actual world collision radius. Never assume that a
@@ -147,6 +177,8 @@ const snapshot=e=>({...e,pos:{...e.pos},facing:{...e.facing}});
 function knifeDodge(g,move,aim){
  const p=g.player,t=g.time;
  if(g.finished||p.hp<=0||p.dodgeReady>t+EPS||p.swing||p.hurtUntil>t||p.guardBrokenUntil>t)return;
+ if(!knifeAffordable(p,R.rollCost)){p.buffer=null;return;}
+ knifeSpend(g,p,R.rollCost);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.velocity={x:0,z:0};
  const facing=aim&&Number.isFinite(aim.x)&&Number.isFinite(aim.z)&&mag(aim)>.001?normal(aim):p.facing;
  p.dodgeDirection=normal(move,{x:-facing.x,z:-facing.z});p.facing={...p.dodgeDirection};
@@ -156,7 +188,7 @@ function knifeDodge(g,move,aim){
 }
 function knifeGuard(g,intent,swinging,dodging){
  const p=g.player,t=g.time;
- p.guarding=!!intent.guard&&!swinging&&!dodging&&t>=p.hurtUntil&&t>=p.guardBrokenUntil&&t>=p.guardExposedUntil&&p.guard>0;
+ p.guarding=!!intent.guard&&!swinging&&!dodging&&t>=p.hurtUntil&&t>=p.guardBrokenUntil&&t>=p.guardExposedUntil&&p.guard>0&&!p.exhausted;
  if(p.guarding){
   if(intent.guardPressed&&t+EPS>=p.parryReady){p.guardStart=t;p.parryUntil=t+R.parry/60;p.parryReady=t+R.parryCooldown/60;p.parryReleased=false;}
   if(!Number.isFinite(p.guardStart))p.guardStart=t-R.parry/60;
@@ -177,8 +209,8 @@ function knifeReceive(g,hit){
   }
   const guardAge=(t-(p.guardStart??-Infinity))*60-R.parry;
   const perfect=guardAge>=-EPS&&guardAge<R.perfectBlock-EPS,cost=(def?.staminaDamage??amount)*(perfect?R.perfectBlockCost:1);
-  if(p.guard+EPS>=cost){blocked=true;p.guard-=cost;amount=perfect?0:Math.round(amount*(def?.chip??0));p.response={clip:'BlockImpact',start:t,ticks:12};event(g,'block',{actor:p,amount,perfect,cost,...meta});}
-  else{p.guard=Math.max(0,p.guard-R.breakCost);p.guarding=false;p.parryUntil=0;p.guardBrokenUntil=t+(def?.stagger??.3);event(g,'guard-break',{actor:p,...meta});}
+  if(p.guard+EPS>=cost){blocked=true;knifeSpend(g,p,cost);amount=perfect?0:Math.round(amount*(def?.chip??0));p.response={clip:'BlockImpact',start:t,ticks:12};event(g,'block',{actor:p,amount,perfect,cost,...meta});}
+  else{knifeSpend(g,p,R.breakCost);p.guarding=false;p.parryUntil=0;p.guardBrokenUntil=t+(def?.stagger??.3);event(g,'guard-break',{actor:p,...meta});}
  }
  if(amount<=0)return false;
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;
@@ -195,13 +227,16 @@ function knifeStepIn(g,e,dt){
 }
 function knifeEnemy(g,e,dt){
  if(e.hp<=0)return;
+ knifeEnergy(e,R.goblinRegen);
+ knifeRegen(g,e,dt,!!e.swing||g.time<e.recoverUntil||g.time<e.staggerUntil);
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  const delta=sub(g.player.pos,e.pos),distance=mag(delta),dir=normal(delta,e.facing);
  const action=['slash','stab','slash','heavy'][e.pattern%4],def=knifeMove(e,action);
  if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,R.walkSpeed*1.2,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.96){
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.96&&knifeAffordable(e,def.stamina)){
+  knifeSpend(g,e,def.stamina);
   e.swing=knifeSwing(g,e,action,def);e.ready=e.swing.end;e.pattern++;
   event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:def.range*e.combatScale,arc:def.arc,moveId:def.moveId,clip:def.clip});
  }
