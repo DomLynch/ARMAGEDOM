@@ -1,3 +1,4 @@
+import {createPistolState, stepPistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
@@ -25,16 +26,39 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
+ if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
 function notify(g,text){g.message=text;g.messageUntil=g.time+4;}
 function event(g,type,data={}){g.events.push({type,...data});}
+function pistolIntent(g,intent){
+ if(!g.pistol)return intent;
+ const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
+ const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:intent.aim,
+  collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
+  fire:wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire')),cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
+ g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
+ for(const e of result.events){
+  event(g,e.type,{...e,actor:p});
+  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Drag Fire to aim; Reload; Melee to switch.');
+  if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
+  if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
+  if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
+  if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
+   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;
+   event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',parry:false});
+   if(target.hp<=0)kill(g,target,{weapon:'pistol',attackClass:'bullet'});
+  }
+ }
+ if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,guard:false,guardPressed:false,actions:[],held:[]};}
+ return {...intent,actions:actions.filter(a=>a!=='pickup')};
+}
 function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // World owns static collision.
  for(const other of [g.player,...g.enemies]){if(other===body||other.hp<=0)continue;const delta=sub(next,other.pos),n=mag(delta),r=body.radius+other.radius;if(n<r&&n>.001){next=g.world.move(body.pos,{x:next.x-body.pos.x+delta.x/n*(r-n),z:next.z-body.pos.z+delta.z/n*(r-n)},body.radius);}}
  body.pos=next;
 }
 export function attack(g,action,direction=g.player.facing){const p=g.player,def=g.pilot?knifeMove(p,action):attacks[action];
- if(!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
+ if(p.weapon==='pistol'||!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
@@ -100,7 +124,7 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  if(l.kind===0){const pct=.1+l.tier*.025;p.damage*=1+pct;p.weaponLevel++;notify(g,`BLADE +${Math.round(pct*100)}% damage`);}
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};intent=pistolIntent(g,intent);
  if(intent.dodge)dodge(g,move,intent.aim);
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;

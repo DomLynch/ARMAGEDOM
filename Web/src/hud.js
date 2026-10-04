@@ -1,4 +1,4 @@
-export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
+export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onPistol = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
   let loaded = false,
@@ -26,6 +26,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
     onRetry();
   };
   el("again").onclick = onRetry;
+  el("pistol-interact").onclick = onPistol;
   el("explore").onclick = onExplore;
   el("sound").onclick = () => {
     sound = !sound;
@@ -37,7 +38,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
   document.addEventListener("visibilitychange", pause);
   resize();
   let lastMessage = "",
-    lastStaminaState = null;
+    lastStaminaState = null, lastPistolEquipped = null;
   return {
     toggleMenu,
     resize,
@@ -145,6 +146,24 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
           left > 0 ? `${left.toFixed(1)}s` : "";
       }
       el("guard").classList.toggle("pressed", p.guarding);
+      const pistol=g.pistol;
+      if(pistol){
+        const equipped=pistol.equipped;
+        if(equipped!==lastPistolEquipped){
+          for(const [id,label] of Object.entries(equipped?{slash:'FIRE / AIM',stab:'RELOAD',heavy:'MELEE',special:'UNAVAILABLE',guard:'UNAVAILABLE'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
+          el('special').disabled=el('guard').disabled=equipped;lastPistolEquipped=equipped;
+        }
+        el('ammo').hidden=!equipped;
+        el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
+        el('slash').querySelector('small').textContent=equipped?`${pistol.magazine}/6`:'';
+        el('stab').querySelector('small').textContent=equipped&&pistol.reloadingUntil?`${Math.max(0,pistol.reloadingUntil-g.time).toFixed(1)}s`:'';
+        if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire and aim':id==='stab'?'Reload':'Switch to melee');}}
+        const nearby=!pistol.collected&&(g.world.areaId??'westminster')===pistol.pickupAreaId&&Math.hypot(p.pos.x-pistol.pickupPos.x,p.pos.z-pistol.pickupPos.z)<=1.3;
+        el('pistol-interact').hidden=g.finished||(!nearby&&(!pistol.collected||equipped));
+        el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';
+        const icon=el('pistol-icon');icon.hidden=pistol.collected||(g.world.areaId??'westminster')!==pistol.pickupAreaId;
+        if(!icon.hidden&&g.world.camera){const at=g.world.toRender(pistol.pickupPos,.65).project(g.world.camera);icon.style.left=`${(at.x+1)*innerWidth/2}px`;icon.style.top=`${(1-at.y)*innerHeight/2}px`;}
+      }
       const boss = g.enemies.find((e) => e.kind === 3);
       el("boss").hidden = !boss;
       if (boss)

@@ -42,6 +42,9 @@
       </section>
       <button id="menu-button" aria-label="Open game menu">☰</button>
       <p id="notice" role="status"></p>
+      <p id="ammo" hidden aria-live="polite"></p>
+      <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
+      <button id="pistol-interact" hidden>Equip pistol · G</button>
       <section id="boss" hidden>
         <span>ORC WARLORD</span>
         <div class="bar health"><span id="boss-fill"></span></div>
@@ -104,7 +107,15 @@
           must recover before attacking or dodging.
         </p>
         <p>
-          Knife pilot: Slash, Stab, Heavy, Pommel, Dodge and frontal Guard. Side
+          Pistol: collect/equip with the equipment button or G. Fire: press to aim,
+          drag beyond the deadzone to fire while held. Short taps only aim;
+          releasing or cancelling stops firing.
+          Reload in the Stab position; Melee in Heavy. Desktop mouse aims,
+          left click fires, right click reloads, Q returns to melee.
+          Guard and Special are unavailable with the pistol.
+        </p>
+        <p>
+          Knife: Slash, Stab, Heavy, Pommel, Dodge and frontal Guard. Side
           and rear hits bypass defence.
         </p>
       </details>

@@ -25,10 +25,12 @@ export async function travelTo(game, request) {
       game.bolts = parked.bolts;
       game.loot = parked.loot;
       game.nextWave = parked.nextWave + elapsed;
+      if (Number.isFinite(game.nextEnemyAttackAt)) game.nextEnemyAttackAt += elapsed;
       for (const e of game.enemies) {
         e.ready += elapsed;
         e.recoverUntil += elapsed;
         e.staggerUntil += elapsed;
+        if (Number.isFinite(e.guardRecoverAt)) e.guardRecoverAt += elapsed;
         e.swing = null;
       }
       for (const b of game.bolts) b.expires += elapsed;

@@ -234,5 +234,10 @@
       "errors": 0,
       "warnings": 0
     }
+  },
+  "pistol": {
+    "url": "pistol/pistol.glb",
+    "bytes": 106436,
+    "sha256": "62d6bdc4789365ace89c98bc3fe74322ae427f316810f81cb4ad66857e73f321"
   }
 }

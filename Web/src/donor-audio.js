@@ -51,6 +51,12 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
     },
     play(events) {
       if(!enabled||!buffer||context?.state!=='running')return;
+      for(const event of events)if(event.type==='shot'||event.type==='pickup'){
+        const source=context.createOscillator(),gain=context.createGain(),at=context.currentTime,duration=event.type==='shot'?.09:.16;
+        source.type=event.type==='shot'?'sawtooth':'sine';source.frequency.setValueAtTime(event.type==='shot'?180:660,at);source.frequency.exponentialRampToValueAtTime(event.type==='shot'?35:880,at+duration);
+        gain.gain.setValueAtTime(event.type==='shot'?.07:.025,at);gain.gain.exponentialRampToValueAtTime(.001,at+duration);source.connect(gain);gain.connect(context.destination);
+        const voice={source,gain};active.add(voice);source.onended=()=>{active.delete(voice);source.disconnect();gain.disconnect();};source.start(at);source.stop(at+duration);
+      }
       for(const cue of donorCues(events)) {
         const variants=manifest.cues[cue.name];if(!variants?.length)continue;
         // Rotate existing takes without repeating the preceding take; no new sound/pitch layers.

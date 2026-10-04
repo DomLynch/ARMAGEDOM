@@ -81,7 +81,7 @@ export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossl
    actorRecords.set(file,record);
   }
  }
- const descriptors=Object.values(modelManifest.models).flatMap(model=>model.equipment?[model,model.equipment]:[model]);
+ const descriptors=[...Object.values(modelManifest.models).flatMap(model=>model.equipment?[model,model.equipment]:[model]),...(modelManifest.pistol?[modelManifest.pistol]:[])];
  for(const descriptor of descriptors){
   const url=safe(descriptor.url),record=actorRecords.get(url);
   const inline=descriptor.bytes!==undefined||descriptor.sha256!==undefined?checkedHash(descriptor,url):null;

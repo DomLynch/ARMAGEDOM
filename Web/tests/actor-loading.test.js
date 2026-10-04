@@ -197,3 +197,9 @@ test("actor reset retains the library; disposal frees source resources", async (
   assert.equal(equipmentStarted, true, "equipment must not wait for body network/decode");
  });
 test('Hollow selection loads both source-relative native knives and is complete without Goblin',async t=>{const hero=resource(),body=resource(),knife=resource(),urls=[];t.mock.method(globalThis,'fetch',async()=>({ok:true,json:async()=>({pilot:'donor-knife',encounter:'hollow-scavengers',models:{vagrant:{url:'donor/warrior.glb',equipment:{url:'donor/knife.glb'}},'hollow-scavenger':{url:'hollow-scavenger/hollow-scavenger.glb',equipment:{url:'hollow-scavenger/knife.glb'}}}})}));t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{urls.push(path);return path.endsWith('warrior.glb')?hero.gltf:path.endsWith('hollow-scavenger.glb')?body.gltf:knife.gltf});const library=await loadActors(url,()=>{},'assets/manifest-hollow.json');assert.equal(library.complete,true);assert.equal(library.models.get('hollow-scavenger').equipment,knife.gltf);assert.deepEqual(urls.sort(),['assets/donor/knife.glb','assets/donor/warrior.glb','assets/hollow-scavenger/hollow-scavenger.glb','assets/hollow-scavenger/knife.glb'].map(p=>url+p).sort());library.dispose();});
+
+test('separate pistol source settles and is disposed when actor startup fails',async t=>{
+ const pistol=resource();t.mock.method(globalThis,'fetch',async()=>({ok:true,json:async()=>({models:{vagrant:{url:'missing.glb'}},pistol:{url:'pistol.glb'}})}));
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{if(path.endsWith('pistol.glb'))return pistol.gltf;throw Error('hero decode failed')});
+ await assert.rejects(loadActors(url),/hero decode failed/);assert.deepEqual(pistol.disposed,{geometry:1,material:1,texture:1});
+});

@@ -3,6 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { ActorMotion } from "./motion.js";
+import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 const names = ["revenant", "orc", "warlock", "warlord"];
@@ -17,6 +18,7 @@ export async function loadActors(
   const manifest = await response.json();
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const models = new Map();
+  let pistolAsset=null;
   const urls = new Map();
   const sources = new Set();
   function load(url) {
@@ -43,7 +45,7 @@ export async function loadActors(
   // Settle every request before releasing sources: late successful loads also
   // belong to this attempt, including the shared Orc/Warlord GLB.
   const results = await Promise.allSettled(
-    Object.entries(manifest.models).map(async ([name, description]) => {
+    [...Object.entries(manifest.models).map(async ([name, description]) => {
       const url = new URL(description.url, manifestURL).href;
       const parts = await Promise.allSettled([
         load(url),
@@ -56,7 +58,7 @@ export async function loadActors(
       const [gltf, equipment] = parts.map(part => part.value);
       models.set(name, { gltf, description, equipment });
       onProgress(name);
-    }),
+    }), ...(manifest.pistol?[load(new URL(manifest.pistol.url,manifestURL).href).then(asset=>{pistolAsset=asset})]:[])],
   );
   const failure = results.find((result) => result.status === "rejected");
   if (failure || !models.has("vagrant")) {
@@ -66,6 +68,7 @@ export async function loadActors(
   return {
     models,
     manifest,
+    pistolAsset,
     complete:
       manifest.pilot === "donor-knife"
         ? models.has(manifest.encounter === "hollow-scavengers" ? "hollow-scavenger" : "goblin") && !!models.get("vagrant").equipment
@@ -108,6 +111,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           source.equipment,
         ).animations
       : source.gltf.animations;
+    const pistolMount=entity.kind<0&&library.pistolAsset?attachPistol(model,library.pistolAsset.scene):null;
+    if(pistolMount)pistolMount.visible=false;
+    const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
     root.name = name;
     root.position.copy(world.toRender(entity.pos));
     root.scale.setScalar(
@@ -156,6 +162,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       materials,
       entity,
       description,
+      pistolMount,knife,
     };
     views.set(entity.id, view);
     try {
@@ -204,6 +211,11 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           game.time,
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
         );
+        if(view.pistolMount){
+          const holding=entity.weapon==='pistol',pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;
+          if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:game.pistol?Math.max(0,1-(game.time-(game.pistol.nextFireAt-.3))/.12):0});
+        }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         const flash = !game.finished && entity.flashUntil > game.time;
         for (const m of view.materials) {

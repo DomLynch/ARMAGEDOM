@@ -7,10 +7,24 @@ import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo, continueExploring } from "./travel.js";
+import {stepPistol} from "./pistol.js";
+import {PISTOL_SAVE_KEY,encodePistol,restorePistol} from "./pistol-save.js";
+let pistolSaveCache=null;
+function persistPistol(g){
+ const raw=encodePistol(g.pistol);if(raw===pistolSaveCache)return;pistolSaveCache=raw;
+ try{localStorage.setItem(PISTOL_SAVE_KEY,raw)}catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=g.time+5;}
+}
+function restoreSavedPistol(g){
+ try{const restored=restorePistol(g.pistol,localStorage.getItem(PISTOL_SAVE_KEY));
+  if(restored)g.pistol=restored;else{g.pistol={...g.pistol,collected:true};g.message='Pistol save invalid. Retry to start a fresh run.';g.messageUntil=5;}
+ }catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=5;}
+ g.player.weapon=g.pistol.equipped?'pistol':'knife';persistPistol(g);
+}
+function cancelPistol(g){g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife" };
+const pilot = { pilot: "donor-knife", pistol: true };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -52,6 +66,7 @@ function pause(value) {
     game.player.guarding = false;
     game.player.parryUntil = 0;
   }
+  if (game?.pistol) cancelPistol(game);
   if (value) audio.pause();
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : frame);
 }
@@ -67,6 +82,12 @@ const hud = createHUD({
     }
   },
   onPause: pause,
+  onPistol: () => {
+    if (!loaded || paused || traveling || contextLost || game.finished) return;
+    input.state.down("pickup", "pickup", {x:0,y:0});
+    input.state.up("pickup");
+    audio.unlock().catch(() => {});
+  },
   onSound: (value) => {
     audio.setEnabled(value);
     if (value) audio.unlock().catch(() => {});
@@ -88,6 +109,7 @@ async function restart() {
   effects.reset();
   audio.reset();
   game = createGame(world, pilot);
+  persistPistol(game);
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);
   hud.update(game);
@@ -102,6 +124,7 @@ input = attachInput({
     if (!paused) audio.unlock().catch(() => {});
   },
   onRetry: restart,
+  isPistol: () => !!game?.pistol?.equipped,
   isPaused: () =>
     !loaded || paused || traveling || contextLost || game?.finished,
 });
@@ -120,6 +143,7 @@ function resize() {
     world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight);
   }
   input?.clear();
+  if (game?.pistol) cancelPistol(game);
   accumulator = 0;
   hud.resize();
   if (renderer && world && !contextLost) renderer.render(scene, camera);
@@ -169,7 +193,10 @@ function frame(ms) {
   if (loaded && !paused && !traveling && !game.finished) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
+      const weaponBefore = game.player.weapon;
       stepGame(game, intent(), 1 / 60);
+      if (weaponBefore !== game.player.weapon) input.clear();
+      persistPistol(game);
       effects.events(game);
       audio.play(game.events);
       accumulator -= 1 / 60;
@@ -199,6 +226,7 @@ async function crossArea(request) {
   traveling = true;
   accumulator = 0;
   input.clear();
+  if (game.pistol) cancelPistol(game);
   game.message = `Traveling to ${request.areaId.toUpperCase()}…`;
   game.messageUntil = game.time + 4;
   try {
@@ -286,11 +314,12 @@ enter.addEventListener("click", async () => {
     world = nextWorld;
     pendingLibrary = library;
     game = createGame(world, pilot);
+    restoreSavedPistol(game);
     actors = createActors(scene, world, library, {
       visualScale: actorVisualScale,
     });
     pendingLibrary = null;
-    effects = createEffects(scene, world);
+    effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"));
     actors.update(game, 0);
     renderer.setAnimationLoop(frame);
     if (!library.complete)
@@ -302,7 +331,7 @@ enter.addEventListener("click", async () => {
     if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · Donor sprint candidate012 · Approved006 framing";
+      "Three.js · Starting pistol V1 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);

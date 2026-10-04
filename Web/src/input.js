@@ -11,15 +11,17 @@ export class InputState {
     this.clear();
   }
 
-  down(id, kind, at) {
+  down(id, kind, at, {deferFire = false} = {}) {
     if (this.pointers.has(id)) return;
     // One thumb owns movement until release; extra pad contacts cannot steer it.
     if (kind === 'move' && [...this.pointers.values()].some(p => p.kind === 'move'))
       return;
+    if (kind === 'fire' && [...this.pointers.values()].some(p => p.kind === 'fire')) return;
     const alreadyGuarding = this.guardHeld();
     const pointer = { kind, start: { ...at }, at: { ...at } };
+    if (kind === 'fire') pointer.deferFire = deferFire;
     this.pointers.set(id, pointer);
-    if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
+    if (kind !== 'move' && !deferFire && (kind !== 'guard' || !alreadyGuarding)) {
       this.pending.push({ pointer, kind });
     }
   }
@@ -66,6 +68,8 @@ export class InputState {
     if (!this.pointers.has(id)) return;
     const pointer = this.pointers.get(id);
     this.pending = this.pending.filter((press) => press.pointer !== pointer);
+    // Cancellation never commits a tap fire.
+    if (pointer.kind === 'fire') pointer.deferFire = false;
     this.up(id);
   }
 
@@ -81,6 +85,7 @@ export class InputState {
     const held = [
       ...new Set(
         [...this.pointers.values()]
+          .filter(pointer => pointer.kind !== 'fire' || !pointer.deferFire || pointer.aim)
           .map((pointer) => pointer.kind)
           .filter((kind) => !['move', 'guard', 'dodge'].includes(kind)),
       ),
@@ -123,6 +128,7 @@ export function attachInput({
   onRetry,
   isPaused,
   onInteraction = () => {},
+  isPistol = () => false,
 }) {
   const state = new InputState();
   // Safari may ignore viewport zoom hints. Cancel browser gestures, not game
@@ -146,7 +152,7 @@ export function attachInput({
   document.addEventListener('touchend', (event) => {
     const target = event.target;
     const clickDriven = target?.closest?.(
-      '#menu, #menu-button, #entry, #ending, a, input, select, textarea',
+      '#menu, #menu-button, #entry, #ending, #pistol-interact, a, input, select, textarea',
     );
     const fight = !isPaused() && !clickDriven && (
       target === document.body || target === document.documentElement ||
@@ -174,6 +180,7 @@ export function attachInput({
     Digit1: 'special',
     Space: 'dodge',
     KeyF: 'guard',
+    KeyG: 'pickup',
   };
   let mouse = null,
     touch = false;
@@ -187,7 +194,8 @@ export function attachInput({
       document.body.classList.add('touch');
       element.setPointerCapture(event.pointerId);
       element.classList.add('pressed');
-      state.down(event.pointerId, kind, { x: event.clientX, y: event.clientY });
+      const fire = isPistol() && kind === 'slash';
+      state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY }, {deferFire: fire});
     });
     element.addEventListener('pointermove', (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -207,7 +215,7 @@ export function attachInput({
       if (event.type === 'pointerup') state.up(event.pointerId);
       else state.cancel(event.pointerId);
       if (
-        ![...state.pointers.values()].some((pointer) => pointer.kind === kind)
+        ![...state.pointers.values()].some((pointer) => pointer.kind === kind || kind === 'slash' && pointer.kind === 'fire')
       ) {
         element.classList.remove('pressed');
       }
@@ -236,7 +244,7 @@ export function attachInput({
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
     mouse = { x: event.clientX, y: event.clientY };
-    state.down(event.pointerId, event.button === 2 ? 'stab' : 'slash', mouse);
+    state.down(event.pointerId, event.button === 2 ? 'stab' : isPistol() ? 'fire' : 'slash', mouse);
   });
   canvas.addEventListener('pointerup', (event) => state.up(event.pointerId));
   canvas.addEventListener('pointercancel', (event) =>
