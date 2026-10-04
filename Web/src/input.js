@@ -120,6 +120,47 @@ export function attachInput({
   onInteraction = () => {},
 }) {
   const state = new InputState();
+  // Safari may ignore viewport zoom hints. Cancel browser gestures, not game
+  // pointers: movement and action contacts still reach the bindings below.
+  const prevent = (event) => {
+    if (event.cancelable) event.preventDefault();
+  };
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
+    document.addEventListener(type, prevent, { passive: false });
+  let multiTouch = false, lastTap = -Infinity;
+  for (const type of ['touchstart', 'touchmove']) {
+    document.addEventListener(type, (event) => {
+      if (type === 'touchstart' && event.touches.length === 1) multiTouch = false;
+      if (event.touches.length > 1) {
+        multiTouch = true;
+        lastTap = -Infinity;
+        prevent(event);
+      }
+    }, { passive: false });
+  }
+  document.addEventListener('touchend', (event) => {
+    const target = event.target;
+    const clickDriven = target?.closest?.(
+      '#menu, #menu-button, #entry, #ending, a, input, select, textarea',
+    );
+    const fight = !isPaused() && !clickDriven && (
+      target === document.body || target === document.documentElement ||
+      target?.closest?.('#world, #hud, #move, #action-cluster, [data-action]')
+    );
+    if (!fight || multiTouch || event.touches.length || event.changedTouches.length !== 1) {
+      lastTap = -Infinity;
+      return;
+    }
+    if (event.timeStamp - lastTap < 350) prevent(event);
+    lastTap = event.timeStamp;
+  }, { passive: false });
+  document.addEventListener('touchcancel', () => {
+    multiTouch = false;
+    lastTap = -Infinity;
+  });
+  // WebKit can require release/click activation even when pointerdown worked.
+  for (const type of ['pointerup', 'touchend', 'click'])
+    window.addEventListener(type, onInteraction, { passive: true });
   const map = {
     KeyQ: 'heavy',
     KeyE: 'special',
@@ -238,6 +279,8 @@ export function attachInput({
   });
 
   function clear() {
+    multiTouch = false;
+    lastTap = -Infinity;
     state.clear();
     mouse = null;
     for (const element of document.querySelectorAll('.pressed'))

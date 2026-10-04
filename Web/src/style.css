@@ -24,6 +24,7 @@ body {
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
+  touch-action: none;
 }
 body {
   touch-action: none;
@@ -343,6 +344,11 @@ dialog {
 }
 dialog::backdrop {
   background: #0009;
+}
+/* The dialog is its own scroll container; button touch-action:none would
+   otherwise block a scroll starting on Resume/Retry. Keep clicks intact. */
+dialog button {
+  touch-action: pan-y;
 }
 dialog h2 {
   color: var(--gold);
