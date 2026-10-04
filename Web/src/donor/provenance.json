@@ -50,7 +50,7 @@
   "adaptations": [
     "same engine optional pilot",
     "no ring/Side/duel authority",
-    "existing guard meter replaces stamina/posture economy",
+    "single donor stamina pool for actions and defence; legacy guard accessor aliases stamina; no posture economy",
     "frontal guard without five directional sides",
     "tap attacks, no chamber/charge",
     "render-domain handedness reflected consistently",
@@ -61,5 +61,33 @@
     "Goblin authored deterministic slash/stab/slash/heavy pattern; not donor duel AI",
     "heavy has commitment gating only; roll period .6s; Special15s",
     "hit/death.actor remains victim; explicit attackerId/victimId identify outcome parties"
-  ]
+  ],
+  "stamina": {
+    "attackerCosts": {
+      "slash": 18,
+      "stab": 14,
+      "heavy": 26,
+      "special": 40,
+      "dodge": 30
+    },
+    "maximum": 100,
+    "regenPerSecond": 40,
+    "delayTicks": 45,
+    "heldGuardMultiplier": 0.5,
+    "exhaustionRecovery": 20,
+    "goblinRegenMultiplier": 1.5,
+    "sources": [
+      "src/moves.ts:363-386 KNIFE_MOVES; skill() default stamina40 and MOVES.skill_pommel",
+      "src/moves.ts:168-177 RULES rollCost/regen/delay/guard/exhaustion",
+      "src/moves.ts:645 Goblin regen1.5",
+      "src/duel.ts legal()/spend()/phase-gated regeneration; createFighter initial100"
+    ],
+    "adaptations": [
+      "ordinary London movement retained at exhaustion; no exhaustedSpeed reduction",
+      "no sprint drain, attrition, wound modifiers, retreat/wall rules, chains or posture",
+      "insufficient-energy input refuses immediately without queueing; unlike donor generic illegal-tail buffering",
+      "Goblin original authored pattern retained; same cost/exhaustion gates applied without donor AI import",
+      "parry remains cost-free with existing regeneration delay; front block/perfect costs share action pool"
+    ]
+  }
 }
