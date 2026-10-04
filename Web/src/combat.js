@@ -1,3 +1,4 @@
+import {selectPistolTarget} from './pistol-targeting.js';
 import {createPistolState, stepPistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
@@ -34,13 +35,20 @@ function event(g,type,data={}){g.events.push({type,...data});}
 function pistolIntent(g,intent){
  if(!g.pistol)return intent;
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
- const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:intent.aim,
+ const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
+ const intended=intent.aim??(mag(intent.move??{x:0,z:0})>.12?intent.move:g.pistolAssistFacing??p.facing);
+ const reference=normal(intended),switchTarget=!!g.pistolAssistFacing&&dot(reference,g.pistolAssistFacing)<Math.cos(Math.PI/6);
+ g.pistolAssistFacing=reference;
+ const target=firing&&canAct&&!intent.cancel&&!intent.manualPistolAim?selectPistolTarget({position:p.pos,facing:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
+ g.pistolTargetId=target?.targetId??null;
+ const aim=intent.manualPistolAim?intent.aim:target?.direction??reference;
+ const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim,
   collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
-  fire:wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire')),cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
+  fire:firing,cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(const e of result.events){
   event(g,e.type,{...e,actor:p});
-  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Drag Fire to aim; Reload; Melee to switch.');
+  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Face an enemy and tap or hold Fire.');
   if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
@@ -50,7 +58,9 @@ function pistolIntent(g,intent){
    if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet'});}
   }
  }
- if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,guard:false,guardPressed:false,actions:[],held:[]};}
+ if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0))g.pistolTargetId=null;
+ if(!g.pistol.equipped){g.pistolTargetId=null;g.pistolAssistFacing=null;}
+ if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,aim,guard:false,guardPressed:false,actions:[],held:[]};}
  return {...intent,actions:actions.filter(a=>a!=='pickup')};
 }
 function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // World owns static collision.

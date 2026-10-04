@@ -20,7 +20,7 @@ function restoreSavedPistol(g){
  }catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=5;}
  g.player.weapon=g.pistol.equipped?'pistol':'knife';persistPistol(g);
 }
-function cancelPistol(g){g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;}
+function cancelPistol(g){g.pistolTargetId=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.update(g);}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -169,6 +169,8 @@ function intent() {
   const raw = input.take(),
     value = {
       ...raw,
+      manualPistolAim: [...input.state.pointers.values()].some(p => p.kind === 'fire' && p.aim),
+      pistolVisibleIds: game.pistol?.equipped ? game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id) : undefined,
       move: toDomain(raw.move),
       aim: raw.aim ? toDomain(raw.aim) : null,
     };
@@ -208,6 +210,7 @@ function frame(ms) {
         break;
       }
       if (game.finished) {
+        game.pistolTargetId = null;
         input.clear();
         break;
       }

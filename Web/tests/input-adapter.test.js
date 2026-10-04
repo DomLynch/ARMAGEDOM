@@ -23,7 +23,7 @@ function send(target, type, values = {}) {
   Object.assign(event, { clientX: 0, clientY: 0, pointerId: 1, ...values });
   target.dispatchEvent(event);
 }
-function setup(t) {
+function setup(t, pistol = false) {
   const oldWindow = globalThis.window,
     oldDocument = globalThis.document;
   const window = new EventTarget(),
@@ -67,6 +67,7 @@ function setup(t) {
   };
   env.input = attachInput({
     canvas: env.canvas,
+    isPistol: () => pistol,
     isPaused: () => env.paused,
     onRetry: () => env.retries++,
     onMenu: () => env.menus++,
@@ -217,3 +218,11 @@ for (const ending of ['pointerup', 'pointercancel', 'lostpointercapture']) {
     assert.deepEqual(input.take().move, { x: 0, y: -1 });
   });
 }
+
+test('pistol touch button taps once and holds Fire without an aiming drag', t=>{
+ const {elements:e,input}=setup(t,true);send(e.slash,'pointerdown');send(e.slash,'pointerup');
+ let i=input.take();assert.deepEqual(i.actions,['fire']);assert.deepEqual(i.held,[]);assert.equal(i.aim,null);
+ assert.deepEqual(input.take().actions,[]);send(e.slash,'pointerdown',{pointerId:2});
+ i=input.take();assert.deepEqual(i.held,['fire']);assert.equal(i.aim,null);
+ send(e.slash,'pointercancel',{pointerId:2});assert.deepEqual(input.take().held,[]);
+});

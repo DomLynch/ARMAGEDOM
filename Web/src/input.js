@@ -11,7 +11,7 @@ export class InputState {
     this.clear();
   }
 
-  down(id, kind, at, {deferFire = false} = {}) {
+  down(id, kind, at) {
     if (this.pointers.has(id)) return;
     // One thumb owns movement until release; extra pad contacts cannot steer it.
     if (kind === 'move' && [...this.pointers.values()].some(p => p.kind === 'move'))
@@ -19,9 +19,8 @@ export class InputState {
     if (kind === 'fire' && [...this.pointers.values()].some(p => p.kind === 'fire')) return;
     const alreadyGuarding = this.guardHeld();
     const pointer = { kind, start: { ...at }, at: { ...at } };
-    if (kind === 'fire') pointer.deferFire = deferFire;
     this.pointers.set(id, pointer);
-    if (kind !== 'move' && !deferFire && (kind !== 'guard' || !alreadyGuarding)) {
+    if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
       this.pending.push({ pointer, kind });
     }
   }
@@ -68,8 +67,6 @@ export class InputState {
     if (!this.pointers.has(id)) return;
     const pointer = this.pointers.get(id);
     this.pending = this.pending.filter((press) => press.pointer !== pointer);
-    // Cancellation never commits a tap fire.
-    if (pointer.kind === 'fire') pointer.deferFire = false;
     this.up(id);
   }
 
@@ -85,7 +82,6 @@ export class InputState {
     const held = [
       ...new Set(
         [...this.pointers.values()]
-          .filter(pointer => pointer.kind !== 'fire' || !pointer.deferFire || pointer.aim)
           .map((pointer) => pointer.kind)
           .filter((kind) => !['move', 'guard', 'dodge'].includes(kind)),
       ),
@@ -195,7 +191,7 @@ export function attachInput({
       element.setPointerCapture(event.pointerId);
       element.classList.add('pressed');
       const fire = isPistol() && kind === 'slash';
-      state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY }, {deferFire: fire});
+      state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY });
     });
     element.addEventListener('pointermove', (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });

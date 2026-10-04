@@ -150,7 +150,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
       if(pistol){
         const equipped=pistol.equipped;
         if(equipped!==lastPistolEquipped){
-          for(const [id,label] of Object.entries(equipped?{slash:'FIRE / AIM',stab:'RELOAD',heavy:'MELEE',special:'NO SPECIAL',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
+          for(const [id,label] of Object.entries(equipped?{slash:'FIRE',stab:'RELOAD',heavy:'MELEE',special:'NO SPECIAL',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
           el('special').disabled=el('guard').disabled=equipped;lastPistolEquipped=equipped;
         }
         if(equipped){el('special').setAttribute('aria-label','Special unavailable with pistol');el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
@@ -158,7 +158,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {}, onP
         el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
         el('slash').querySelector('small').textContent=equipped?`${pistol.magazine}/6`:'';
         el('stab').querySelector('small').textContent=equipped&&pistol.reloadingUntil?`${Math.max(0,pistol.reloadingUntil-g.time).toFixed(1)}s`:'';
-        if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire and aim':id==='stab'?'Reload':'Switch to melee');}}
+        if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire; targets enemies ahead':id==='stab'?'Reload':'Switch to melee');}}
         const nearby=!pistol.collected&&(g.world.areaId??'westminster')===pistol.pickupAreaId&&Math.hypot(p.pos.x-pistol.pickupPos.x,p.pos.z-pistol.pickupPos.z)<=1.3;
         el('pistol-interact').hidden=g.finished||(!nearby&&(!pistol.collected||equipped));
         el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';
