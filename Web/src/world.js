@@ -8,7 +8,9 @@ function damp(value,target,velocity,time,dt) {
   return [target+(change+temp)*decay,(velocity-omega*temp)*decay];
 }
 export class LondonWorld {
-  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null}) {
+  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1}) {
+    if(!Number.isFinite(viewZoomMultiplier)||viewZoomMultiplier<1)throw Error('View zoom multiplier must be finite and at least 1');
+    this.viewZoomMultiplier=viewZoomMultiplier;
     this.THREE=THREE;this.scene=scene;this.camera=camera;this.layout=layout;this.texture=texture;
     this.geometry=createGeometry(layout);this.spawn={x:0,z:-6};this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
     this.manifest=manifest;this.baseUrl=baseUrl;this.areaId='westminster';this.disposed=false;
@@ -61,7 +63,7 @@ export class LondonWorld {
     try {
       if(this.disposed||generation!==this.loadGeneration)throw Error('London load superseded');
       // Build against an isolated scene and camera; current art/collision stay live until ready.
-      next=new LondonWorld({THREE,scene:new THREE.Scene(),camera:camera.clone(),layout,texture,manifest:this.manifest,baseUrl:this.baseUrl});
+      next=new LondonWorld({THREE,scene:new THREE.Scene(),camera:camera.clone(),layout,texture,manifest:this.manifest,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
       next.update(entry,0,this.width,this.height,true);
       this.dispose();camera.copy(next.camera,false);next.camera=camera;next.scene=scene;scene.add(next.group);
       Object.assign(this,next);this.areaId=areaId;this.spawn={...entry};return {...entry};
@@ -88,6 +90,7 @@ export class LondonWorld {
       const actorHeight=Math.abs(geometry.point(playerPosition,2*layout.characterScale).y-p.y);
       zoom=clamp(70/(actorHeight*Math.max(1,height)),1,4);
     }
+    zoom*=this.viewZoomMultiplier;
     const zx=zoom*Math.max(1,ASPECT/aspect),zy=zoom*Math.max(1,aspect/ASPECT);
     const ex=.5/zx,ey=.5/zy,target={x:clamp(p.x,ex,1-ex),y:clamp(1-p.y+(portrait?.02/zy:.1),ey,1-ey)};
     if(immediate){this.center=target;this.velocity={x:0,y:0};}
@@ -106,12 +109,12 @@ export class LondonWorld {
     this.backdrop.material.dispose();this.depthMaterial.dispose();this.texture.dispose();
   }
 }
-export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThis.document?.baseURI}) {
+export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThis.document?.baseURI,viewZoomMultiplier=1}) {
   const manifestResponse=await fetch(new URL('world/manifest.json',baseUrl));if(!manifestResponse.ok)throw Error(`London manifest HTTP ${manifestResponse.status}`);
   const manifest=await manifestResponse.json();
   const url=new URL('world/westminster/',baseUrl);
   const response=await fetch(new URL('layout.json',url));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
   const layout=await response.json();createGeometry(layout);
   const texture=await new THREE.TextureLoader().loadAsync(new URL('backdrop.png',url).href);
-  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,baseUrl});} catch(e){texture.dispose();throw e;}
+  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,baseUrl,viewZoomMultiplier});} catch(e){texture.dispose();throw e;}
 }
