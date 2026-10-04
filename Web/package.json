@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 8890",
-    "build": "vite build --base=./ && node scripts/verify-assets.mjs --actors assets/donor/manifest.json --audio audio/manifest.json --prune",
+    "build": "vite build --base=./ && node scripts/verify-assets.mjs --actors assets/manifest-hollow.json --audio audio/manifest.json --prune",
     "test": "node --test tests/*.test.js",
     "check": "node ../scripts/verify_web.mjs",
-    "verify:assets": "node scripts/verify-assets.mjs --actors assets/donor/manifest.json --audio audio/manifest.json",
+    "verify:assets": "node scripts/verify-assets.mjs --actors assets/manifest-hollow.json --audio audio/manifest.json",
     "test:packaging": "node --test scripts/verify-assets.test.mjs"
   },
   "dependencies": {

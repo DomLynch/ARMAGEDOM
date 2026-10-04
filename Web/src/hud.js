@@ -120,7 +120,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
           : g.encounterCleared
             ? `${area} · CLEARED · EXPLORE LONDON`
             : donor
-              ? `WESTMINSTER · GOBLIN ENCOUNTER · ${g.enemies.length} HOSTILES`
+              ? `WESTMINSTER · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
               : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
       const message = g.time < g.messageUntil ? g.message : "";
       if (message !== lastMessage) {
@@ -157,7 +157,7 @@ export function createHUD({ onRetry, onPause, onSound, onExplore = () => {} }) {
           : "THE ASH CLAIMS YOU";
         el("result-hint").textContent = g.won
           ? donor
-            ? "The Goblin has fallen."
+            ? g.encounter ? "The three Hollow scavengers have fallen." : "The Goblin has fallen."
             : "The warlord has fallen."
           : "Watch their wind-up. Dodge, then strike.";
       }

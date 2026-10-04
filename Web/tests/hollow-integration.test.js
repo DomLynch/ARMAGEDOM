@@ -1,0 +1,29 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import * as THREE from 'three';
+import {loadGeometry} from '../../art/donor/probe.mjs';
+import {createActors} from '../src/actors.js';
+import {disposeActorSources} from '../src/actor-resources.js';
+import {createGame,spawnWave} from '../src/combat.js';
+import {createHollowEncounter} from '../src/hollow-encounter.js';
+const publicRoot=new URL('../public/',import.meta.url);
+const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
+ assert.deepEqual(Object.keys(manifest.models).sort(),['hollow-scavenger','vagrant']);
+ const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
+ const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
+ for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
+ assert.equal(manifest.models['hollow-scavenger'].contactRig,'hero');assert.equal(manifest.count,3);
+});
+test('three Hollow bodies and native knives use independent clones/mixers at selected006 scale',async(t)=>{
+ const priorDocument=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;});
+ const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)))});
+ const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
+ const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
+ const actors=createActors(new THREE.Scene(),world,{models,manifest,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
+ assert.equal(game.enemies.length,3);const views=game.enemies.map(e=>actors.views.get(e.id));assert.equal(new Set(views.map(v=>v.root)).size,3);assert.equal(new Set(views.map(v=>v.motion.mixer)).size,3);
+ for(const view of views){assert.equal(view.root.name,'hollow-scavenger');assert.equal(view.root.scale.x,1.265*1.3225);assert.equal(view.model.getObjectByName('WeaponDrawn').parent.name,'hand_r');}
+ actors.dispose();
+});

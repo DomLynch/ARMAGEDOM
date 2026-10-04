@@ -5,6 +5,7 @@ import { createGame, stepGame } from "./combat.js";
 import { attachInput } from "./input.js";
 import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
+import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo, continueExploring } from "./travel.js";
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
@@ -14,7 +15,7 @@ const pilot = { pilot: "donor-knife" };
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
 const viewZoomMultiplier = 1;
-const actorManifest = "assets/donor/manifest.json";
+const actorManifest = "assets/manifest-hollow.json";
 const audio = createAudio({ donor: true, baseUrl });
 let renderer,
   world,
@@ -280,6 +281,8 @@ enter.addEventListener("click", async () => {
       throw results.find((r) => r.status === "rejected").reason;
     }
     const [nextWorld, library] = results.map((r) => r.value);
+    const character = library.manifest.models["hollow-scavenger"];
+    pilot.encounter = createHollowEncounter({rig: "hollow-scavenger", weapon: "knife", contactRig: character.contactRig, bodyScale: character.bodyScale});
     world = nextWorld;
     pendingLibrary = library;
     game = createGame(world, pilot);
@@ -299,7 +302,7 @@ enter.addEventListener("click", async () => {
     if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
     hud.loading("");
     document.getElementById("version").textContent =
-      "Three.js · London routes009 · Approved006 framing";
+      "Three.js · Three Hollow candidate010 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
     const enterToFirstRenderMs = Math.round(performance.now() - start);

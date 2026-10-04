@@ -310,3 +310,4 @@ test("HUD follows active area identity and exposes Continue only after victory",
     "WESTMINSTER · CLEARED · EXPLORE LONDON",
   );
 });
+test('Hollow HUD counts the actual group and names its cleared encounter',t=>{const {hud,el}=setup(t),g=game(true);g.encounter={id:'hollow-scavengers'};g.enemies=[{kind:0},{kind:0},{kind:0}];hud.update(g);assert.equal(el('objective').textContent,'WESTMINSTER · HOLLOW SCAVENGERS · 3 HOSTILES');g.finished=g.won=true;g.enemies=[];hud.update(g);assert.equal(el('result-hint').textContent,'The three Hollow scavengers have fallen.');});

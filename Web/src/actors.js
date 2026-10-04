@@ -68,7 +68,7 @@ export async function loadActors(
     manifest,
     complete:
       manifest.pilot === "donor-knife"
-        ? models.has("goblin") && !!models.get("vagrant").equipment
+        ? models.has(manifest.encounter === "hollow-scavengers" ? "hollow-scavenger" : "goblin") && !!models.get("vagrant").equipment
         : names.every((name) => models.has(name)),
     dispose,
   };
