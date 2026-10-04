@@ -1,3 +1,4 @@
+import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 export const attacks={
@@ -13,12 +14,16 @@ const inside=(dir,delta,arc)=>mag(delta)<.001||dot(normal(dir),normal(delta))+EP
 const rotate=(v,angle)=>({x:v.x*Math.cos(angle)+v.z*Math.sin(angle),z:v.z*Math.cos(angle)-v.x*Math.sin(angle)});
 let serial=0;
 export function enemy(kind,pos){const hp=[55,95,50,400][kind];return {id:++serial,kind,pos:{...pos},facing:{x:0,z:-1},hp,maxHP:hp,radius:kind===3?.65:.4,ready:0,recoverUntil:0,staggerUntil:0,alerted:false,pattern:0,swing:null,flashUntil:0};}
-export function createGame(world,options={}){const g={world,time:0,wave:0,kills:0,nextWave:2,started:false,finished:false,won:false,events:[],enemies:[],bolts:[],loot:[],message:'Move to enter combat. Survive three waves.',messageUntil:4,player:{id:0,kind:-1,pos:{...(world.spawn??{x:0,z:-6})},facing:{x:0,z:1},hp:100,maxHP:100,damage:20,weaponLevel:0,armourLevel:0,radius:.4,guard:100,guarding:false,parryUntil:0,guardBrokenUntil:0,guardRecoverAt:0,ready:0,heavyReady:0,specialReady:0,dodgeReady:0,dodgeUntil:0,invulnerableUntil:0,swing:null,buffer:null,velocity:{x:0,z:0},flashUntil:0}};
+export function createGame(world,options={}){
+ if(options.encounter&&(options.pilot!=='donor-knife'||options.encounter.id!=='hollow-scavengers'))throw Error('Unsupported combat encounter');
+ const encounter=options.encounter?createHollowEncounter(options.encounter.character,options.encounter):null;
+ const g={world,time:0,wave:0,kills:0,nextWave:2,started:false,finished:false,won:false,events:[],enemies:[],bolts:[],loot:[],message:'Move to enter combat. Survive three waves.',messageUntil:4,player:{id:0,kind:-1,pos:{...(world.spawn??{x:0,z:-6})},facing:{x:0,z:1},hp:100,maxHP:100,damage:20,weaponLevel:0,armourLevel:0,radius:.4,guard:100,guarding:false,parryUntil:0,guardBrokenUntil:0,guardRecoverAt:0,ready:0,heavyReady:0,specialReady:0,dodgeReady:0,dodgeUntil:0,invulnerableUntil:0,swing:null,buffer:null,velocity:{x:0,z:0},flashUntil:0}};
  if(options.pilot==='donor-knife'){
   g.pilot='donor-knife';g.corpses=[];g.cooldowns=KNIFE_COOLDOWNS;g.staminaCosts=KNIFE_STAMINA_COSTS;g.tick=0;
   knifeEnergy(g.player);
   Object.assign(g.player,{rig:'hero',weapon:'knife',combatScale:world.layout?.characterScale??1.265,bodyScale:1,hp:R.health,maxHP:R.health,lastMove:null,parryReady:0,guardExposedUntil:0,hurtUntil:0,dodgeStart:-Infinity});
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
+  if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
  return g;
 }
@@ -55,7 +60,7 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
-function kill(g,e,meta={}){g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){g.finished=true;g.won=g.player.hp>0;notify(g,'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+function kill(g,e,meta={}){g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){g.finished=true;g.won=g.player.hp>0;notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -66,7 +71,7 @@ function strike(g,s){const p=g.player,def=s.def;event(g,'strike',{actor:p,action
   if(e.hp<=0)kill(g,e);else if(e.kind!==3){e.staggerUntil=g.time+def.stagger;moveBody(g,e,{x:delta.x*.18,z:delta.z*.18});}
  }
 }
-export function spawnWave(g){if(g.pilot){const position=knifeSpawnPosition(g);if(!position)return false;g.wave=1;g.enemies=[knifeEnergy(Object.assign(enemy(0,position),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null}),R.goblinRegen)];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
+export function spawnWave(g){if(g.encounter)return hollowSpawn(g);if(g.pilot){const position=knifeSpawnPosition(g);if(!position)return false;g.wave=1;g.enemies=[knifeEnergy(Object.assign(enemy(0,position),{rig:'goblin',weapon:'knife',combatScale:g.player.combatScale,bodyScale:R.goblinBodyScale,hp:R.goblinHealth,maxHP:R.goblinHealth,lastMove:null}),R.goblinRegen)];notify(g,'LONDON · Goblin knife encounter');event(g,'wave');return;}g.wave++;const count=g.wave===3?1:4+g.wave;g.enemies=Array.from({length:count},(_,i)=>enemy(g.wave===3?3:i%3,{x:count===1?0:(i%5-2)*1.7,z:-1+Math.floor(i/5)*2.4}));notify(g,g.wave===3?'ORC WARLORD · Dodge, then strike.':`WESTMINSTER · Wave ${g.wave}/3`);event(g,'wave');}
 const radius=e=>e.kind===3?(e.pattern===1?4:3.5):e.kind===1?2.8:1.8;
 const arc=e=>e.kind===3&&e.pattern===1?360:e.kind===1?110:90;
 function bolt(g,pos,dir,amount){g.bolts.push({id:++serial,pos:{...pos},dir:{...dir},amount,expires:g.time+4});}
@@ -145,6 +150,32 @@ function knifeRegen(g,entity,dt,committed){
   entity.guard=entity.stamina+R.regen*(entity.staminaRegen??1)*(entity.guarding?R.guardRegen:1)*dt;
  if(entity.exhausted&&entity.stamina+EPS>=R.exhaustRecover)entity.exhausted=false;
 }
+function hollowSpawn(g){
+ if(g.enemies.length||g.finished||g.wave)return false;
+ const profile=g.encounter,c=profile.character,radius=.4*c.bodyScale,p=g.player,forward=normal(p.facing);
+ const sectors=[forward,{x:forward.z,z:-forward.x},{x:-forward.z,z:forward.x},{x:-forward.x,z:-forward.z}];
+ // Keep the whole group in one sector, leaving an open side. Plan every circle
+ // before changing the wave or allocating IDs; a tight road retries atomically.
+ for(const direction of sectors){
+  const positions=[];
+  for(const distance of [4,6,8])for(const lateral of [0,1.4,-1.4,2.8,-2.8]){
+   if(positions.length===profile.count)continue;
+   const position=g.world.move(p.pos,{x:direction.x*distance-direction.z*lateral,z:direction.z*distance+direction.x*lateral},radius);
+   const delta=sub(position,p.pos),circleClear=g.world.geometry?.clear?.(position,radius)??g.world.clear?.(position,radius)??g.world.lineClear(position,position);
+   if(!circleClear||!g.world.lineClear(p.pos,position)||dot(delta,direction)<2||mag(delta)<Math.max(2,p.radius+radius+.35))continue;
+   if(positions.some(other=>mag(sub(position,other))<radius*2+.35))continue;
+   positions.push(position);if(positions.length===profile.count)break;
+  }
+  if(positions.length!==profile.count)continue;
+  g.wave=1;g.enemies=positions.map((position,index)=>knifeEnergy(Object.assign(enemy(0,position),{
+   rig:c.rig,contactRig:c.contactRig,weapon:c.weapon,bodyScale:c.bodyScale,combatScale:p.combatScale,radius,
+   hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
+   ready:g.time+index*profile.aggression
+  }),profile.regen));
+  notify(g,'LONDON · Hollow scavengers');event(g,'wave',{count:profile.count,encounter:profile.id});return true;
+ }
+ return false;
+}
 function knifeSpawnPosition(g){
  const radius=.4,player=g.player;
  // Each projection uses the actual world collision radius. Never assume that a
@@ -173,6 +204,7 @@ function knifeSwing(g,entity,action,def){
   start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.active+def.recovery,
   dir:{...entity.facing},hitIds:new Set(),resolved:false,activeEmitted:false};
 }
+const contactSnapshot=e=>e.contactRig?{...e,rig:e.contactRig}:e;
 const snapshot=e=>({...e,pos:{...e.pos},facing:{...e.facing}});
 function knifeDodge(g,move,aim){
  const p=g.player,t=g.time;
@@ -223,21 +255,22 @@ function knifeReceive(g,hit){
 }
 function knifeStepIn(g,e,dt){
  const s=e.swing;if(!s)return;const age=Math.floor((g.time-s.start)*60+EPS);s.ageTicks=age;
- if(age>R.stepInFrom&&age<s.def.windupTicks)moveBody(g,e,{x:s.dir.x*R.walkSpeed*s.def.stepIn*(e.rig==='goblin'?1.2:1)*dt,z:s.dir.z*R.walkSpeed*s.def.stepIn*(e.rig==='goblin'?1.2:1)*dt});
+ if(age>R.stepInFrom&&age<s.def.windupTicks)moveBody(g,e,{x:s.dir.x*R.walkSpeed*s.def.stepIn*(e.moveSpeed!==undefined?e.moveSpeed/R.walkSpeed:e.rig==='goblin'?1.2:1)*dt,z:s.dir.z*R.walkSpeed*s.def.stepIn*(e.moveSpeed!==undefined?e.moveSpeed/R.walkSpeed:e.rig==='goblin'?1.2:1)*dt});
 }
 function knifeEnemy(g,e,dt){
  if(e.hp<=0)return;
- knifeEnergy(e,R.goblinRegen);
+ knifeEnergy(e,g.encounter?.regen??R.goblinRegen);
  knifeRegen(g,e,dt,!!e.swing||g.time<e.recoverUntil||g.time<e.staggerUntil);
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  const delta=sub(g.player.pos,e.pos),distance=mag(delta),dir=normal(delta,e.facing);
  const action=['slash','stab','slash','heavy'][e.pattern%4],def=knifeMove(e,action);
- if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,R.walkSpeed*1.2,dt);return;}
+ if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,e.moveSpeed??R.walkSpeed*1.2,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.96&&knifeAffordable(e,def.stamina)){
+ if(g.time+EPS>=e.ready&&(!g.encounter||g.time+EPS>=g.nextEnemyAttackAt)&&dot(e.facing,dir)>.96&&knifeAffordable(e,def.stamina)){
   knifeSpend(g,e,def.stamina);
-  e.swing=knifeSwing(g,e,action,def);e.ready=e.swing.end;e.pattern++;
+  e.swing=knifeSwing(g,e,action,def);e.ready=e.swing.end+(e.recoveryDelay??0);e.pattern++;
+  if(g.encounter)g.nextEnemyAttackAt=g.time+g.encounter.aggression;
   event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:def.range*e.combatScale,arc:def.arc,moveId:def.moveId,clip:def.clip});
  }
 }
@@ -251,7 +284,7 @@ function knifeContacts(g,before){
    const targets=a===g.player?[...g.enemies].sort((a1,b1)=>mag(sub(a1.pos,a.pos))-mag(sub(b1.pos,a.pos))||a1.id-b1.id):[g.player];
    for(const d of targets){
     if(d.hp<=0||s.hitIds.has(d.id)||s.action==='stab'&&s.hitIds.size||!g.world.lineClear(a.pos,d.pos))continue;
-    const hit=s.path?bladeContact(before.get(a.id)??after.get(a.id),after.get(a.id),before.get(d.id)??after.get(d.id),after.get(d.id),s.path,age-1,age)
+    const hit=s.path?bladeContact(contactSnapshot(before.get(a.id)??after.get(a.id)),contactSnapshot(after.get(a.id)),before.get(d.id)??after.get(d.id),after.get(d.id),s.path,age-1,age)
      :age===s.def.windupTicks&&mag(sub(d.pos,a.pos))<=s.def.range*a.combatScale+EPS&&inside(s.dir,sub(d.pos,a.pos),90);
     if(hit){s.hitIds.add(d.id);contacts.push({a,d,def:s.def,s});}
    }
@@ -265,7 +298,7 @@ function knifeContacts(g,before){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
   else{
    const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;
-   d.ready=d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.swing=null;d.response={clip:d.hp?'Hit':'Death',start:g.time,ticks:d.hp?Math.round(def.stagger*60):144};
+   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.hp?'Hit':'Death',start:g.time,ticks:d.hp?Math.round(def.stagger*60):144};
    event(g,'hit',{actor:d,amount,...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
    if(d.hp<=0)kill(g,d,hitMetadata(a,d,def));
