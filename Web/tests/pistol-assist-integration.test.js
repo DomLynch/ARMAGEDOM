@@ -24,3 +24,11 @@ test('retained target cannot rotate the reference cone behind player; manual ove
  assert.equal(g.pistolTargetId,null);assert.deepEqual(shot.direction,{x:-1,z:0});assert.equal(shot.targetId,null);assert.equal(e.hp,30);
  tick(g,{held:['fire'],cancel:true});assert.equal(g.pistolTargetId,null);assert.ok(!g.events.some(e=>e.type==='shot'));
 });
+
+test('gradual deliberate steering releases the old lock just like a single turn',()=>{
+ const {g,e}=fixture();e.pos={x:0,z:-1};e.hp=e.maxHP=1000;
+ const angle=40*Math.PI/180,other=Object.assign(enemy(0,{x:Math.sin(angle)*5,z:-6+Math.cos(angle)*5}),{hp:1000,maxHP:1000,staggerUntil:100});g.enemies.push(other);
+ tick(g,{held:['fire']});assert.equal(g.pistolTargetId,e.id);
+ for(let degrees=1;degrees<=40;degrees++){const a=degrees*Math.PI/180;tick(g,{held:['fire'],aim:{x:Math.sin(a),z:Math.cos(a)}});}
+ assert.equal(g.pistolTargetId,other.id);
+});

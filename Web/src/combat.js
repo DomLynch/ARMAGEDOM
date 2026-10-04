@@ -37,10 +37,12 @@ function pistolIntent(g,intent){
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
  const intended=intent.aim??(mag(intent.move??{x:0,z:0})>.12?intent.move:g.pistolAssistFacing??p.facing);
- const reference=normal(intended),switchTarget=!!g.pistolAssistFacing&&dot(reference,g.pistolAssistFacing)<Math.cos(Math.PI/6);
+ const reference=normal(intended),switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/6);
  g.pistolAssistFacing=reference;
  const target=firing&&canAct&&!intent.cancel&&!intent.manualPistolAim?selectPistolTarget({position:p.pos,facing:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
+ if(target&&(switchTarget||g.pistolTargetId!==target.targetId))g.pistolTargetFacing={...reference};
  g.pistolTargetId=target?.targetId??null;
+ if(!target)g.pistolTargetFacing=null;
  const aim=intent.manualPistolAim?intent.aim:target?.direction??reference;
  const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim,
   collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
@@ -58,7 +60,7 @@ function pistolIntent(g,intent){
    if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet'});}
   }
  }
- if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0))g.pistolTargetId=null;
+ if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
  if(!g.pistol.equipped){g.pistolTargetId=null;g.pistolAssistFacing=null;}
  if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,aim,guard:false,guardPressed:false,actions:[],held:[]};}
  return {...intent,actions:actions.filter(a=>a!=='pickup')};

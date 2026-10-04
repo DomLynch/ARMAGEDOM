@@ -20,7 +20,7 @@ function restoreSavedPistol(g){
  }catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=5;}
  g.player.weapon=g.pistol.equipped?'pistol':'knife';persistPistol(g);
 }
-function cancelPistol(g){g.pistolTargetId=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.update(g);}
+function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.update(g);}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -211,6 +211,7 @@ function frame(ms) {
       }
       if (game.finished) {
         game.pistolTargetId = null;
+        game.pistolTargetFacing = null;
         input.clear();
         break;
       }
