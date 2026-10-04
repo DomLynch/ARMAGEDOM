@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-04",
+  "canonicalBaseline": "82a54abaca5aa42b89208a7820bde542c55ffd06",
+  "roadPolygonsMatchSavedAudit": true,
+  "existingLandmarks": 26,
+  "reachableLinks": 4,
+  "radiusMetres": 0.4,
+  "planningRadiusMetres": 0.46,
+  "sourceOmissionFound": false,
+  "renderedTravel": false,
+  "references": {
+    "artifacts/travel-audit-20261004/reference/coverage-summary.json": "36f8056bed69d37a08e620c31adc0ad2fe6d1ee442e8a0076a1b5f5ccc88a22b",
+    "artifacts/travel-audit-20261004/reference/west-layout.json": "34d0e47c62da392b6aec2e64164f8d0dddb0e4eac54439c83b06745e1456b66a",
+    "artifacts/travel-audit-20261004/reference/south-layout.json": "8ad40c948e242ad88349460be916b3bac50162d4401f073b7fdd57f8429cc7c2",
+    "artifacts/travel-audit-20261004/reference/east-layout.json": "bc9bd754c07a278b5802c0b16c69465f9ae50e0b544a67ed2eb5179118714836",
+    "artifacts/travel-audit-20261004/reference/routes.json": "24ba02734224dcacee260bfcaaae0cd2088ba35598629943134ece391e7ac877",
+    "artifacts/travel-audit-20261004/reference/candidate-connectivity.json": "4bae01a54f3a0751d08e98b69b70b854b058690d801d375a34a0cfd462b98a06"
+  }
+}
