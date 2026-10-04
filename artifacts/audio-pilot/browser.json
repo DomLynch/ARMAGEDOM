@@ -1,0 +1,48 @@
+{
+  "browser": "151.0.7922.34",
+  "locked": {
+    "ready": false,
+    "context": "locked",
+    "enabled": true,
+    "activeVoices": 0,
+    "error": null
+  },
+  "playing": {
+    "ready": true,
+    "context": "running",
+    "enabled": true,
+    "activeVoices": 3,
+    "error": null
+  },
+  "paused": {
+    "ready": true,
+    "context": "suspended",
+    "enabled": true,
+    "activeVoices": 0,
+    "error": null
+  },
+  "reset": {
+    "ready": true,
+    "context": "running",
+    "enabled": true,
+    "activeVoices": 0,
+    "error": null
+  },
+  "muted": {
+    "ready": true,
+    "context": "running",
+    "enabled": false,
+    "activeVoices": 0,
+    "error": null
+  },
+  "closed": {
+    "ready": false,
+    "context": "closed",
+    "enabled": false,
+    "activeVoices": 0,
+    "error": null
+  },
+  "errors": [],
+  "physicalPhone": false,
+  "audibleDeviceMix": false
+}
