@@ -1,7 +1,7 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
 export const PISTOL_RULES = Object.freeze({
   capacity: 6, reserve: 12, damage: 25, range: 18,
-  cadence: 1, reload: 1.3, pickupRadius: 1.3,
+  cadence: 1.2, reload: 1.3, pickupRadius: 1.3,
 });
 const EPS = 1e-8;
 const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);

@@ -74,7 +74,7 @@ test('held fire is cadence bounded at fixed ticks and never underflows',()=>{
     dry+=out.events.filter(e=>e.type==='dry').length;
   }
   assert.equal(shots,6);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
-  assert.equal(dry,4);
+  assert.equal(dry,3);
 });
 test('cadence cannot be bypassed by repeated input, holster or cancel',()=>{
   const state=shot(armed()).state;
@@ -153,20 +153,20 @@ test('fire release emits no later shots and cancelled reload needs a new request
   assert.equal(later.events.length,0);
 });
 
-test('one second cadence survives rapid tap/repress, cancellation and equip; no early queue',()=>{
- let state=armed();const first=shot(state,0);state=first.state;assert.equal(first.events[0].type,'shot');assert.equal(state.nextFireAt,1);
- for(const time of [.01,.1,.3,.6,.9,1-1e-9]) {
+test('1.2 second cadence survives rapid tap/repress, cancellation and equip; no early queue',()=>{
+ let state=armed();const first=shot(state,0);state=first.state;assert.equal(first.events[0].type,'shot');assert.equal(state.nextFireAt,1.2);
+ for(const time of [.01,.1,.3,.6,.9,1,1.2-1e-9]) {
   state=stepPistol(state,{...context,time,fire:false}).state;
   state=stepPistol(state,{...context,time,cancel:true}).state;
   state=equipPistol(equipPistol(state,false).state,true).state;
-  const early=shot(state,time);assert.equal(early.events.length,0);assert.equal(early.state.magazine,5);assert.equal(early.state.nextFireAt,1);state=early.state;
+  const early=shot(state,time);assert.equal(early.events.length,0);assert.equal(early.state.magazine,5);assert.equal(early.state.nextFireAt,1.2);state=early.state;
  }
- const idle=stepPistol(state,{...context,time:1});assert.equal(idle.events.length,0);assert.equal(idle.state.magazine,5);
- const next=shot(idle.state,1);assert.equal(next.events[0].type,'shot');assert.equal(next.state.magazine,4);assert.equal(next.state.nextFireAt,2);
+ const idle=stepPistol(state,{...context,time:1.2});assert.equal(idle.events.length,0);assert.equal(idle.state.magazine,5);
+ const next=shot(idle.state,1.2);assert.equal(next.events[0].type,'shot');assert.equal(next.state.magazine,4);assert.equal(next.state.nextFireAt,2.4);
 });
-test('held fire debits exactly one round per second and late attempts never catch up in a burst',()=>{
+test('held fire debits exactly one round per 1.2 seconds and late attempts never catch up in a burst',()=>{
  let state=armed();const times=[];
- for(let tick=0;tick<=300;tick++){const time=tick/60,out=shot(state,time);if(out.events.some(e=>e.type==='shot'))times.push(time);state=out.state;}
- assert.deepEqual(times,[0,1,2,3,4,5]);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
- state=shot(armed(),0).state;const late=shot(state,4.5);assert.equal(late.state.magazine,4);assert.equal(late.state.nextFireAt,5.5);assert.equal(shot(late.state,4.5).events.length,0);
+ for(let tick=0;tick<=400;tick++){const time=tick/60,out=shot(state,time);if(out.events.some(e=>e.type==='shot'))times.push(time);state=out.state;}
+ assert.deepEqual(times,[0,1.2,2.4,3.6,4.8,6]);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
+ state=shot(armed(),0).state;const late=shot(state,4.5);assert.equal(late.state.magazine,4);assert.equal(late.state.nextFireAt,5.7);assert.equal(shot(late.state,4.5).events.length,0);
 });
