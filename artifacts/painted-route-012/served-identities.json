@@ -1,0 +1,331 @@
+[
+  {
+    "version": "009",
+    "releaseSHA256": "b59624a080fd404773142d5fb3e3aa39acf6c712682a72506bd852471595de30",
+    "release": {
+      "version": "three-20261004-009",
+      "engine": "three0.182.0",
+      "sourceFingerprint": "47dbc59202d7f4be301eacaacb32f5633fa8a6f34c2b35f3f0bc6b959a67d174",
+      "sourceCommit": "eba57b6aea6073755260160a4a4ad55971eaf953",
+      "sourceKind": "scoped committed WebUI branch atop Three-only82a54ab",
+      "donorRevision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+      "bytes": 23594968,
+      "files": [
+        {
+          "path": "assets/donor/goblin.glb",
+          "bytes": 6450612,
+          "sha256": "5726558c413927ce6e3fa041dda439cff1edbc32407b624ba85fd9bacffdaf25"
+        },
+        {
+          "path": "assets/donor/knife.glb",
+          "bytes": 382956,
+          "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec"
+        },
+        {
+          "path": "assets/donor/manifest.json",
+          "bytes": 3144,
+          "sha256": "d603bcb7f3d676469c0ce63fc431b1261cb5fa6ce8544ec8d7bf16631ef36716"
+        },
+        {
+          "path": "assets/donor/warrior.glb",
+          "bytes": 6749796,
+          "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"
+        },
+        {
+          "path": "assets/index-D6Cr57eA.css",
+          "bytes": 6582,
+          "sha256": "45f3e7ca1ad3b73956bdfad86d6db77a23677366e4b0dde1fc9d7702ecc1dd3f"
+        },
+        {
+          "path": "assets/index-Vu5WkNhu.js",
+          "bytes": 867293,
+          "sha256": "c3c24ea8062376e7fa4a3654eb0200b8a14595e9b4ae9c1600469c68bb4ac370"
+        },
+        {
+          "path": "audio/combat.wav",
+          "bytes": 1848908,
+          "sha256": "b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d"
+        },
+        {
+          "path": "audio/manifest.json",
+          "bytes": 12525,
+          "sha256": "d45e2591b751b48ea33117848d3e8c398806213ad607b9482ea58edd664723cb"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4858,
+          "sha256": "4859a6b88d216052ce37983413602981b6d34e85b14bd2d4feafad87aa823030"
+        },
+        {
+          "path": "world/east/backdrop.webp",
+          "bytes": 2374366,
+          "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
+        },
+        {
+          "path": "world/east/layout.json",
+          "bytes": 9572,
+          "sha256": "6e85438817d64ce8d5b13fc69ec5c3754f4130ad2f3c36465223964355a6df84"
+        },
+        {
+          "path": "world/manifest.json",
+          "bytes": 3137,
+          "sha256": "da49321b7431e35265391919ad8938f93bdad83506f2ce9a7c39b22b7dd848b6"
+        },
+        {
+          "path": "world/south/backdrop.webp",
+          "bytes": 2569092,
+          "sha256": "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8"
+        },
+        {
+          "path": "world/south/layout.json",
+          "bytes": 7904,
+          "sha256": "d9ef498feae4d1db1270711d47190b886fa75209e774a6cc02a6db79ee0a2da7"
+        },
+        {
+          "path": "world/westminster/backdrop.webp",
+          "bytes": 2297404,
+          "sha256": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1"
+        },
+        {
+          "path": "world/westminster/layout.json",
+          "bytes": 6819,
+          "sha256": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5"
+        }
+      ],
+      "retainedRollback": [
+        "three-20261004-008"
+      ],
+      "acceptance": "private London routes and input/loading/audio/gait fix candidate",
+      "knownGaps": [
+        "Physical iPhone/Android loading, concurrent touch, sustained frame pacing, held touch defence, audible mix/background resume remain unverified.",
+        "Donor commercial head/material/knife provenance and Dom gait/art feel acceptance remain open.",
+        "Three-Hollow group remains a separate candidate."
+      ],
+      "checks": {
+        "webNodeTests": 193,
+        "packagingTests": 21,
+        "sourceAudit": "independent AuditorPASS fingerprint47dbc592",
+        "vpsBrowser": "LinuxChromium lifecycle/503cleanretry/blur-resume-rotation/EastRetry/failedtravel/contextloss PASS; actualfight death with55audio bufferstarts/0errors; victory receipt supplied separately before publication",
+        "routes": "MacChromium actualpointer Westminster-East-Westminster-South-Westminster allpass, hp113 East/94 Southreturn,0errors"
+      },
+      "changes": [
+        "Remove per-action yellow LOW labels, retain stamina bar and cooldown cues.",
+        "Connect existing East/South travel, park/restore fight, dynamic areaHUD, victory Continueexploring and sideRetry.",
+        "Page-arrival world/actors preload, parallel equipment loading, safe cancelled audio decode, focus/context loss cleanup.",
+        "Use authored ArmedWalk below4.2m/s and hold locomotion pose between simulationticks; movement3m/s and006framing retained.",
+        "Focused joystick-owner and cancelled-swing effects safety fixes.",
+        "Pixel-identical lossless WebP backdrops; original PNGs retained outside runtime."
+      ]
+    },
+    "manifestSHA256": "da49321b7431e35265391919ad8938f93bdad83506f2ce9a7c39b22b7dd848b6",
+    "links": [
+      {
+        "from": "westminster",
+        "to": "east",
+        "condition": {
+          "xMin": 0.955,
+          "yMin": 0.28,
+          "yMax": 0.4
+        },
+        "entry": {
+          "x": 0.1,
+          "y": 0.72
+        }
+      },
+      {
+        "from": "east",
+        "to": "westminster",
+        "condition": {
+          "xMax": 0.04,
+          "yMin": 0.68,
+          "yMax": 0.81
+        },
+        "entry": {
+          "x": 0.9,
+          "y": 0.4
+        }
+      },
+      {
+        "from": "westminster",
+        "to": "south",
+        "condition": {
+          "yMin": 0.97,
+          "xMin": 0.49,
+          "xMax": 0.75
+        },
+        "entry": {
+          "x": 0.55,
+          "y": 0.29
+        }
+      },
+      {
+        "from": "south",
+        "to": "westminster",
+        "condition": {
+          "yMax": 0.235,
+          "xMin": 0.49,
+          "xMax": 0.58
+        },
+        "entry": {
+          "x": 0.6,
+          "y": 0.92
+        }
+      }
+    ]
+  },
+  {
+    "version": "012",
+    "releaseSHA256": "21ce3f3a08712d1135edeb71fa45885f0b4719c7e8f8d62dd32cf2d7a919b57d",
+    "release": {
+      "version": "three-20261004-012",
+      "engine": "three0.182.0",
+      "sourceCommit": "fcec55be75160a48a07a2e2a68ef01b55d0b58a9",
+      "sourceFingerprint": "3bcae0211356990be77d4b75f31713071a04c5c491c437d21e5b08fac9e5f9ee",
+      "sourceKind": "scoped donor sprint atop accepted011",
+      "donorRevision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
+      "bytes": 21649497,
+      "files": [
+        {
+          "path": "assets/donor/knife.glb",
+          "bytes": 382956,
+          "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec"
+        },
+        {
+          "path": "assets/donor/warrior.glb",
+          "bytes": 6749796,
+          "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"
+        },
+        {
+          "path": "assets/hollow-scavenger/hollow-scavenger.glb",
+          "bytes": 4114032,
+          "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc"
+        },
+        {
+          "path": "assets/hollow-scavenger/knife.glb",
+          "bytes": 382956,
+          "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec"
+        },
+        {
+          "path": "assets/index-BUVyzOZT.css",
+          "bytes": 6633,
+          "sha256": "8c73ca281f86b8f3431ded7e9e56b7c73465b5cf1b9c11a0da1e8fe97f7e8715"
+        },
+        {
+          "path": "assets/index-ONfrslj5.js",
+          "bytes": 871886,
+          "sha256": "ab3fab231f006b549edd0ccea655055d7d3624863ff870a53dd591624c195044"
+        },
+        {
+          "path": "assets/manifest-hollow.json",
+          "bytes": 6513,
+          "sha256": "3a0e84fd37bd337709097e04f12d6b70b4201214b2573bd548e6728b9fe5a6ec"
+        },
+        {
+          "path": "audio/combat.wav",
+          "bytes": 1848908,
+          "sha256": "b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d"
+        },
+        {
+          "path": "audio/manifest.json",
+          "bytes": 12525,
+          "sha256": "d45e2591b751b48ea33117848d3e8c398806213ad607b9482ea58edd664723cb"
+        },
+        {
+          "path": "index.html",
+          "bytes": 4998,
+          "sha256": "232cf275bc16d69c0dba9b9bf0501bc2aee1230678cfeeca572e69aac7d24464"
+        },
+        {
+          "path": "world/east/backdrop.webp",
+          "bytes": 2374366,
+          "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
+        },
+        {
+          "path": "world/east/layout.json",
+          "bytes": 9572,
+          "sha256": "6e85438817d64ce8d5b13fc69ec5c3754f4130ad2f3c36465223964355a6df84"
+        },
+        {
+          "path": "world/manifest.json",
+          "bytes": 3137,
+          "sha256": "da49321b7431e35265391919ad8938f93bdad83506f2ce9a7c39b22b7dd848b6"
+        },
+        {
+          "path": "world/south/backdrop.webp",
+          "bytes": 2569092,
+          "sha256": "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8"
+        },
+        {
+          "path": "world/south/layout.json",
+          "bytes": 7904,
+          "sha256": "d9ef498feae4d1db1270711d47190b886fa75209e774a6cc02a6db79ee0a2da7"
+        },
+        {
+          "path": "world/westminster/backdrop.webp",
+          "bytes": 2297404,
+          "sha256": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1"
+        },
+        {
+          "path": "world/westminster/layout.json",
+          "bytes": 6819,
+          "sha256": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5"
+        }
+      ]
+    },
+    "manifestSHA256": "da49321b7431e35265391919ad8938f93bdad83506f2ce9a7c39b22b7dd848b6",
+    "links": [
+      {
+        "from": "westminster",
+        "to": "east",
+        "condition": {
+          "xMin": 0.955,
+          "yMin": 0.28,
+          "yMax": 0.4
+        },
+        "entry": {
+          "x": 0.1,
+          "y": 0.72
+        }
+      },
+      {
+        "from": "east",
+        "to": "westminster",
+        "condition": {
+          "xMax": 0.04,
+          "yMin": 0.68,
+          "yMax": 0.81
+        },
+        "entry": {
+          "x": 0.9,
+          "y": 0.4
+        }
+      },
+      {
+        "from": "westminster",
+        "to": "south",
+        "condition": {
+          "yMin": 0.97,
+          "xMin": 0.49,
+          "xMax": 0.75
+        },
+        "entry": {
+          "x": 0.55,
+          "y": 0.29
+        }
+      },
+      {
+        "from": "south",
+        "to": "westminster",
+        "condition": {
+          "yMax": 0.235,
+          "xMin": 0.49,
+          "xMax": 0.58
+        },
+        "entry": {
+          "x": 0.6,
+          "y": 0.92
+        }
+      }
+    ]
+  }
+]
