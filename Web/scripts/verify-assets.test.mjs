@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp, mkdir, writeFile, readFile, rm, symlink} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {verifyAssets} from './verify-assets.mjs';
+const sha = b => createHash('sha256').update(b).digest('hex');
+async function fixture(t) {
+ const dir = await mkdtemp(path.join(tmpdir(),'armagedom-closure-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const publicDir=path.join(dir,'public'),dist=path.join(dir,'dist');
+ async function put(name,raw,source=true){for(const root of source?[publicDir,dist]:[dist]){await mkdir(path.dirname(path.join(root,name)),{recursive:true});await writeFile(path.join(root,name),raw);}}
+ const glb=Buffer.alloc(20);glb.writeUInt32LE(0x46546c67);glb.writeUInt32LE(2,4);glb.writeUInt32LE(20,8);glb.writeUInt32LE(0,12);glb.writeUInt32LE(0x4e4f534a,16);
+ // Minimal glTF JSON chunk: embedded-resource model fixture.
+ const json=Buffer.from('{"asset":{"version":"2.0"}}  ');const model=Buffer.alloc(20+json.length);glb.copy(model);model.writeUInt32LE(model.length,8);model.writeUInt32LE(json.length,12);json.copy(model,20);
+ await put('assets/current.glb',model);await put('assets/unused.glb','original');
+ await put('assets/manifest-lossless.json',JSON.stringify({models:{hero:{url:'current.glb',bytes:model.length,sha256:sha(model)},enemy:{url:'current.glb',bytes:model.length,sha256:sha(model)}}}));
+ await put('world/west/layout.json','{}');await put('world/west/backdrop.png','picture');
+ await put('world/manifest.json',JSON.stringify({files:[{path:'west/layout.json',bytes:2,sha256:sha('{}')},{path:'west/backdrop.png',bytes:7,sha256:sha('picture')}]}));
+ await put('index.html','<script type="module" src="./assets/index-ABC.js"></script><link href="./assets/index-DEF.css" rel="stylesheet">',false);
+ await put('assets/index-ABC.js','fetch("assets/manifest-lossless.json");fetch("world/manifest.json");',false);await put('assets/index-DEF.css','body{}',false);
+ return {publicDir,dist,put};
+}
+test('selects shared model once, excludes unused original and is repeatable',async t=>{const f=await fixture(t);const r=await verifyAssets({...f,prune:true});assert.equal(r.removed.length,1);assert.equal(r.files.filter(x=>x.path.endsWith('.glb')).length,1);assert.deepEqual((await verifyAssets(f)).files,r.files);assert.equal(await readFile(path.join(f.publicDir,'assets/unused.glb'),'utf8'),'original');});
+test('check-only detects unused copied assets',async t=>{const f=await fixture(t);await assert.rejects(verifyAssets(f),/Unselected/);});
+test('missing selected resource fails before pruning',async t=>{const f=await fixture(t);await rm(path.join(f.dist,'assets/current.glb'));await assert.rejects(verifyAssets({...f,prune:true}));assert.equal(await readFile(path.join(f.dist,'assets/unused.glb'),'utf8'),'original');});
+test('tampered selected model is rejected',async t=>{const f=await fixture(t);await f.put('assets/current.glb','broken',false);await assert.rejects(verifyAssets({...f,prune:true}),/hash|size/i);});
+test('unexpected generated asset is rejected rather than deleted',async t=>{const f=await fixture(t);await f.put('secret.env','secret',false);await assert.rejects(verifyAssets({...f,prune:true}),/Unexpected/);});
+test('manifest traversal and external URLs rejected',async t=>{const f=await fixture(t);for(const url of ['../escape.glb','https://example.com/a.glb','%2e%2e/a.glb']){await f.put('assets/manifest-lossless.json',JSON.stringify({models:{hero:{url}}}));await assert.rejects(verifyAssets({...f,prune:true}),/Unsafe/);}});
+test('symlink copied asset rejected; overlapping output rejected',async t=>{const f=await fixture(t);await rm(path.join(f.dist,'assets/current.glb'));await symlink(path.join(f.publicDir,'assets/current.glb'),path.join(f.dist,'assets/current.glb'));await assert.rejects(verifyAssets({...f,prune:true}),/Symlink/);await assert.rejects(verifyAssets({dist:f.publicDir,publicDir:f.publicDir,prune:true}),/overlap/i);});
+
+test('unreferenced hashed script rejected',async t=>{const f=await fixture(t);await f.put('assets/unused-ABC.js','unexpected',false);await assert.rejects(verifyAssets({...f,prune:true}),/Unexpected/);});
+
+test('missing generated chunk rejected',async t=>{const f=await fixture(t);await f.put('assets/index-ABC.js','fetch("assets/manifest-lossless.json");fetch("world/manifest.json");import("./chunk-MISSING.js")',false);await assert.rejects(verifyAssets({...f,prune:true}),/Missing generated/);});
+test('CSS resources retained and missing resources rejected',async t=>{const f=await fixture(t);await f.put('assets/index-DEF.css','body{background:url(./texture.png)}',false);await assert.rejects(verifyAssets({...f,prune:true}));await f.put('assets/texture.png','texture');const r=await verifyAssets({...f,prune:true});assert(r.files.some(x=>x.path==='assets/texture.png'));});
