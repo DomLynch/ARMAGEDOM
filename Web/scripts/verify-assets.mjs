@@ -68,9 +68,27 @@ export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossl
  async function manifest(name){const raw=await select(name);if(!raw.equals(await read(publicDir,name)))throw Error(`Copied manifest differs from source: ${name}`);return JSON.parse(raw);}
  const modelManifest=await manifest(actors),worldManifest=await manifest(world);
  if(!modelManifest.models||!Object.keys(modelManifest.models).length||!Array.isArray(worldManifest.files)||!worldManifest.files.length)throw Error('Empty asset manifest');
- for(const model of Object.values(modelManifest.models)){
-  const name=path.posix.join(path.posix.dirname(actors),safe(model.url));
-  const raw=await select(name,model);
+ const actorRecords=new Map();
+ function checkedHash(record,name){
+  if(!Number.isSafeInteger(record.bytes)||record.bytes<0||!/^[0-9a-f]{64}$/.test(record.sha256))throw Error(`Missing or invalid hash record: ${name}`);
+  return record;
+ }
+ if(modelManifest.files){
+  if(Array.isArray(modelManifest.files)||typeof modelManifest.files!=='object')throw Error('Unexpected actor files schema');
+  for(const record of Object.values(modelManifest.files)){
+   const file=safe(record.file);checkedHash(record,file);const prior=actorRecords.get(file);
+   if(prior&&(prior.bytes!==record.bytes||prior.sha256!==record.sha256))throw Error(`Conflicting actor hash records: ${file}`);
+   actorRecords.set(file,record);
+  }
+ }
+ const descriptors=Object.values(modelManifest.models).flatMap(model=>model.equipment?[model,model.equipment]:[model]);
+ for(const descriptor of descriptors){
+  const url=safe(descriptor.url),record=actorRecords.get(url);
+  const inline=descriptor.bytes!==undefined||descriptor.sha256!==undefined?checkedHash(descriptor,url):null;
+  if(inline&&record&&(inline.bytes!==record.bytes||inline.sha256!==record.sha256))throw Error(`Conflicting actor hash records: ${url}`);
+  const expected=inline??record;if(!expected)throw Error(`Missing actor hash record: ${url}`);
+  const name=path.posix.join(path.posix.dirname(actors),url);
+  const raw=await select(name,expected);
   if(!raw.equals(await read(publicDir,name)))throw Error(`Copied actor differs from source: ${name}`);
   let gltf;
   if(name.endsWith('.glb')){
