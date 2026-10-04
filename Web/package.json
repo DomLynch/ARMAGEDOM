@@ -9,7 +9,8 @@
     "test": "node --test tests/*.test.js",
     "check": "node ../scripts/verify_web.mjs",
     "verify:assets": "node scripts/verify-assets.mjs --actors assets/donor/manifest.json --audio audio/manifest.json",
-    "test:packaging": "node --test scripts/verify-assets.test.mjs"
+    "test:packaging": "node --test scripts/verify-assets.test.mjs",
+    "metrics": "node scripts/metrics.mjs"
   },
   "dependencies": {
     "three": "0.182.0"

@@ -1,6 +1,25 @@
 export function createHUD({ onRetry, onPause, onSound }) {
-  const el = (id) => document.getElementById(id),
-    menu = el('menu');
+  const nodes = new Map();
+  const el = (id) => {
+    if (!nodes.has(id)) nodes.set(id, document.getElementById(id));
+    return nodes.get(id);
+  };
+  const menu = el('menu'),
+    actions = ['slash', 'stab', 'heavy', 'special', 'dodge', 'guard'],
+    labels = new Map(actions.map((id) => [id, el(id).querySelector('small')]));
+  // DOM writes can invalidate layout and accessibility state even when the
+  // displayed value is unchanged. Keep ownership here, outside simulation.
+  const displayed = new WeakMap();
+  const set = (node, key, value) => {
+    if (!displayed.has(node)) displayed.set(node, new Map());
+    const previous = displayed.get(node);
+    if (previous.has(key) && previous.get(key) === value) return;
+    node[key] = value;
+    previous.set(key, value);
+  };
+  const attribute = (node, key, value) => {
+    if (node.getAttribute(key) !== value) node.setAttribute(key, value);
+  };
   let loaded = false,
     sound = true;
   function pause() {
@@ -35,8 +54,6 @@ export function createHUD({ onRetry, onPause, onSound }) {
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', pause);
   resize();
-  let lastMessage = '',
-    lastStaminaState = null;
   return {
     toggleMenu,
     resize,
@@ -57,8 +74,8 @@ export function createHUD({ onRetry, onPause, onSound }) {
     update(g) {
       const p = g.player,
         donor = g.pilot === 'donor-knife';
-      el('health-fill').style.width = `${(p.hp / p.maxHP) * 100}%`;
-      el('health-number').textContent = `${Math.ceil(p.hp)} / ${p.maxHP}`;
+      set(el('health-fill').style, 'width', `${(p.hp / p.maxHP) * 100}%`);
+      set(el('health-number'), 'textContent', `${Math.ceil(p.hp)} / ${p.maxHP}`);
       const maximum =
         Number.isFinite(p.maxStamina) && p.maxStamina > 0 ? p.maxStamina : 100;
       const rawStamina = p.stamina ?? p.guard;
@@ -83,42 +100,30 @@ export function createHUD({ onRetry, onPause, onSound }) {
           : low
             ? 'LOW'
             : '';
-      el('guard-fill').style.width = `${(stamina / maximum) * 100}%`;
-      el('guard-number').textContent = `${Math.ceil(stamina)} / ${maximum}`;
+      set(el('guard-fill').style, 'width', `${(stamina / maximum) * 100}%`);
+      set(el('guard-number'), 'textContent', `${Math.ceil(stamina)} / ${maximum}`);
       const bar = el('stamina-bar');
-      bar.setAttribute('aria-valuenow', String(stamina));
-      bar.setAttribute('aria-valuemax', String(maximum));
+      attribute(bar, 'aria-valuenow', String(stamina));
+      attribute(bar, 'aria-valuemax', String(maximum));
       bar.classList.toggle('low-energy', low || exhausted);
-      if (staminaState !== lastStaminaState) {
-        el('stamina-state').textContent = staminaState;
-        lastStaminaState = staminaState;
-      }
-      for (const id of [
-        'slash',
-        'stab',
-        'heavy',
-        'special',
-        'dodge',
-        'guard',
-      ]) {
+      set(el('stamina-state'), 'textContent', staminaState);
+      for (const id of actions) {
         const button = el(id),
           lowEnergy = unaffordable(id);
         button.classList.toggle('low-energy', lowEnergy);
-        button.setAttribute(
+        attribute(
+          button,
           'aria-label',
           `${id}${lowEnergy ? ' · Low stamina' : ''}`,
         );
         if (id === 'slash' || id === 'stab')
-          button.querySelector('small').textContent = lowEnergy ? 'LOW' : '';
+          set(labels.get(id), 'textContent', lowEnergy ? 'LOW' : '');
       }
-      el('objective').textContent = donor
+      set(el('objective'), 'textContent', donor
         ? `WESTMINSTER · GOBLIN ENCOUNTER · ${g.enemies.length} HOSTILES`
-        : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
+        : `WESTMINSTER · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`);
       const message = g.time < g.messageUntil ? g.message : '';
-      if (message !== lastMessage) {
-        el('notice').textContent = message;
-        lastMessage = message;
-      }
+      set(el('notice'), 'textContent', message);
       for (const [id, ready, fallback] of [
         ['heavy', p.heavyReady, 1.6],
         ['special', p.specialReady, 7],
@@ -129,32 +134,31 @@ export function createHUD({ onRetry, onPause, onSound }) {
           period = donor ? (g.cooldowns?.[id] ?? fallback) : fallback;
         button.classList.toggle('cooldown', left > 0);
         // Heavy has no extra cooldown in the pilot; its commitment is combat-owned.
-        button.style.setProperty(
-          '--ready',
-          String(period > 0 ? 1 - left / period : 1),
-        );
-        button.querySelector('small').textContent = [
+        const readiness = String(period > 0 ? 1 - left / period : 1);
+        if (button.style.getPropertyValue('--ready') !== readiness)
+          button.style.setProperty('--ready', readiness);
+        set(labels.get(id), 'textContent', [
           left > 0 ? `${left.toFixed(1)}s` : '',
           unaffordable(id) ? 'LOW' : '',
         ]
           .filter(Boolean)
-          .join(' · ');
+          .join(' · '));
       }
       el('guard').classList.toggle('pressed', p.guarding);
       const boss = g.enemies.find((e) => e.kind === 3);
-      el('boss').hidden = !boss;
+      set(el('boss'), 'hidden', !boss);
       if (boss)
-        el('boss-fill').style.width = `${(boss.hp / boss.maxHP) * 100}%`;
-      el('ending').hidden = !g.finished;
+        set(el('boss-fill').style, 'width', `${(boss.hp / boss.maxHP) * 100}%`);
+      set(el('ending'), 'hidden', !g.finished);
       if (g.finished) {
-        el('result').textContent = g.won
+        set(el('result'), 'textContent', g.won
           ? 'CHECKPOINT CLEARED'
-          : 'THE ASH CLAIMS YOU';
-        el('result-hint').textContent = g.won
+          : 'THE ASH CLAIMS YOU');
+        set(el('result-hint'), 'textContent', g.won
           ? donor
             ? 'The Goblin has fallen.'
             : 'The warlord has fallen.'
-          : 'Watch their wind-up. Dodge, then strike.';
+          : 'Watch their wind-up. Dodge, then strike.');
       }
     },
   };

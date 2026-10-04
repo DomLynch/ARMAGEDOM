@@ -6,6 +6,7 @@ import { ActorMotion } from "./motion.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 const names = ["revenant", "orc", "warlock", "warlord"];
+const hitFlash = new THREE.Color(0.65, 0.2, 0.05);
 export async function loadActors(
   baseUrl,
   onProgress = () => {},
@@ -97,63 +98,59 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
-    const animations = source.equipment
-      ? equipDonorPlayer(
-          { scene: model, animations: source.gltf.animations },
-          source.equipment,
-        ).animations
-      : source.gltf.animations;
-    root.name = name;
-    root.position.copy(world.toRender(entity.pos));
-    root.scale.setScalar(
-      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale,
-    );
-    root.add(model);
-    const hidden = new Set(
-      (description.starterHidden ?? []).map(
-        THREE.PropertyBinding.sanitizeNodeName,
-      ),
-    );
-    model.traverse((o) => {
-      if (hidden.has(o.name)) o.visible = false;
-      if (o.isMesh) {
-        o.frustumCulled = false;
-        const original = Array.isArray(o.material) ? o.material : [o.material];
-        const copies = original.map((m) => {
-          const own = m.clone();
-          materials.push({
-            material: own,
-            emissive: own.emissive?.clone(),
-            intensity: own.emissiveIntensity,
-          });
-          return own;
-        });
-        o.material = Array.isArray(o.material) ? copies : copies[0];
-      }
-    });
-    const shadow = new THREE.Mesh(
-      shadowGeometry,
-      new THREE.MeshBasicMaterial({
-        map: shadowMap,
-        transparent: true,
-        depthWrite: false,
-        toneMapped: false,
-      }),
-    );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.scale.set(1.25 * root.scale.x, 1.25 * root.scale.x, 1);
-    shadow.renderOrder = 0;
+    // Register ownership before equipment/material setup can fail.
     const view = {
-      root,
-      model,
-      shadow,
-      motion: null,
-      materials,
-      entity,
-      description,
+      root, model, shadow: null, motion: null, materials, entity, description,
     };
     views.set(entity.id, view);
     try {
+      const animations = source.equipment
+        ? equipDonorPlayer(
+            { scene: model, animations: source.gltf.animations },
+            source.equipment,
+          ).animations
+        : source.gltf.animations;
+      root.name = name;
+      root.position.copy(world.toRender(entity.pos));
+      root.scale.setScalar(
+        (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale,
+      );
+      root.add(model);
+      const hidden = new Set(
+        (description.starterHidden ?? []).map(
+          THREE.PropertyBinding.sanitizeNodeName,
+        ),
+      );
+      model.traverse((o) => {
+        if (hidden.has(o.name)) o.visible = false;
+        if (o.isMesh) {
+          o.frustumCulled = false;
+          const original = Array.isArray(o.material) ? o.material : [o.material];
+          const copies = original.map((m) => {
+            const own = m.clone();
+            materials.push({
+              material: own,
+              emissive: own.emissive?.clone(),
+              intensity: own.emissiveIntensity,
+            });
+            return own;
+          });
+          o.material = Array.isArray(o.material) ? copies : copies[0];
+        }
+      });
+      const shadow = new THREE.Mesh(
+        shadowGeometry,
+        new THREE.MeshBasicMaterial({
+          map: shadowMap,
+          transparent: true,
+          depthWrite: false,
+          toneMapped: false,
+        }),
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.scale.set(1.25 * root.scale.x, 1.25 * root.scale.x, 1);
+      shadow.renderOrder = 0;
+      view.shadow = shadow;
       const Motion =
         description.motion === "donor-knife" ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
@@ -173,8 +170,11 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       if (o.skeleton) skeletons.add(o.skeleton);
     });
     for (const skeleton of skeletons) skeleton.dispose();
-    scene.remove(view.root, view.shadow);
-    view.shadow.material.dispose();
+    scene.remove(view.root);
+    if (view.shadow) {
+      scene.remove(view.shadow);
+      view.shadow.material.dispose();
+    }
     for (const m of view.materials) m.material.dispose();
     views.delete(id);
   }
@@ -204,7 +204,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         for (const m of view.materials) {
           if (m.material.emissive) {
             m.material.emissive.copy(
-              flash ? new THREE.Color(0.65, 0.2, 0.05) : m.emissive,
+              flash ? hitFlash : m.emissive,
             );
             m.material.emissiveIntensity = flash ? 0.8 : m.intensity;
           }

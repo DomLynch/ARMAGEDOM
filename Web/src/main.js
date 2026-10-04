@@ -147,9 +147,8 @@ function frame(ms) {
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
   actors?.update(game, paused ? 0 : dt);
   effects?.update(game);
-  rim.position
-    .copy(world.toRender(game.player.pos, 2.4))
-    .add(new THREE.Vector3(0, 0, 0.8));
+  rim.position.copy(world.toRender(game.player.pos, 2.4));
+  rim.position.z += 0.8;
   hud.update(game);
   renderer.render(scene, camera);
 }

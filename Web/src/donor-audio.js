@@ -16,7 +16,7 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
   let context=null,enabled=true,buffer=null,manifest=null,loading=null,aborter=null,generation=0,error=null;
   const active=new Set(),lastVariants=new Map();
   function stop() {
-    generation++;aborter?.abort();
+    generation++;aborter?.abort();loading=null;
     for(const voice of active){try{voice.source.stop();}catch{}voice.source.disconnect();voice.gain.disconnect();}
     active.clear();
   }
@@ -38,9 +38,16 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
         context??=new(globalThis.AudioContext||globalThis.webkitAudioContext)();
         // Resume directly within the gesture call, before awaiting network/decode.
         await context.resume();if(token!==generation)return false;
-        if(!buffer){loading??=load().finally(()=>{loading=null;});if(!await loading)return false;}
+        if(!buffer){
+          if(!loading){
+            // An aborted decode can finish after the next gesture starts a load.
+            const pending=load().finally(()=>{if(loading===pending)loading=null;});
+            loading=pending;
+          }
+          if(!await loading)return false;
+        }
         error=null;return token===generation&&context.state==='running';
-      }catch(e){if(e.name!=='AbortError')error=e.message;return false;}
+      }catch(e){if(token===generation&&e.name!=='AbortError')error=e.message;return false;}
     },
     play(events) {
       if(!enabled||!buffer||context?.state!=='running')return;

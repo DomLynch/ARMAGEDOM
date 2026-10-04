@@ -184,3 +184,33 @@ test("actor reset retains the library; disposal frees source resources", async (
   assert.equal(scene.children.length, 0);
   assert.deepEqual(asset.disposed, { geometry: 1, material: 1, texture: 1 });
 });
+
+test("failed equipment setup releases cloned skeletons without disposing the library", async (t) => {
+  const { createActors } = await import("../src/actors.js");
+  const previous = globalThis.document;
+  globalThis.document = { createElement: () => ({ getContext: () => ({
+    createRadialGradient: () => ({ addColorStop() {} }), fillRect() {},
+  }) }) };
+  t.after(() => { if (previous === undefined) delete globalThis.document; else globalThis.document = previous; });
+  const asset = resource(), bone = new THREE.Bone();
+  const mesh = new THREE.SkinnedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial());
+  mesh.add(bone); mesh.bind(new THREE.Skeleton([bone])); asset.gltf.scene.add(mesh);
+  const original = mesh.skeleton;
+  const disposed = [];
+  const dispose = THREE.Skeleton.prototype.dispose;
+  t.mock.method(THREE.Skeleton.prototype, "dispose", function () { disposed.push(this); dispose.call(this); });
+  const library = { manifest: {}, models: new Map([["vagrant", {
+    gltf: asset.gltf, description: { clips: {} }, equipment: { scene: new THREE.Group(), animations: [] },
+  }]]), dispose() {} };
+  const scene = new THREE.Scene(), actors = createActors(scene, {
+    layout: {}, toRender: ({ x, z }) => new THREE.Vector3(x, 0, -z),
+  }, library);
+  const game = { player: { id: 0, kind: -1, pos: { x: 0, z: 0 }, facing: { x: 0, z: 1 } }, enemies: [], time: 0 };
+  assert.throws(() => actors.update(game, 0), /Donor knife mount missing/);
+  assert.equal(actors.views.size, 0);
+  assert.equal(scene.children.length, 0);
+  assert.equal(disposed.length, 1, "partially constructed clone skeleton must be released");
+  assert.notEqual(disposed[0], original);
+  assert.deepEqual(asset.disposed, { geometry: 0, material: 0, texture: 0 });
+  actors.dispose();
+});

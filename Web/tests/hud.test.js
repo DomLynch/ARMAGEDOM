@@ -8,6 +8,7 @@ class Element extends EventTarget {
     this.hidden = false;
     this.open = false;
     this.style = {
+      getPropertyValue: (name) => this.style[name] ?? '',
       setProperty: (name, value) => {
         this.style[name] = value;
       },
@@ -25,6 +26,7 @@ class Element extends EventTarget {
     assert.equal(selector, 'small');
     return this.small;
   }
+  getAttribute(name) { return this.attributes.get(name) ?? null; }
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
   }
@@ -64,7 +66,7 @@ function setup(t) {
     },
     onSound() {},
   });
-  return { hud, el, actions };
+  return { hud, el, actions, elements };
 }
 function game(donor = false) {
   return {
@@ -282,4 +284,33 @@ test('exact cost is affordable, zero stamina dims guard, invalid/out-of-range va
     );
     assert.equal(el('guard').classList.contains('low-energy'), width === '0%');
   }
+});
+
+
+test('unchanged HUD frames avoid repeated DOM writes and element lookups', (t) => {
+  const { hud, el, elements } = setup(t), g = game(true);
+  g.player.hp = 50;
+  hud.update(g);
+  // Browsers serialize fractional CSS percentages with reduced precision.
+  el('health-fill').style.width = '33.3333%';
+  let writes = 0;
+  const watch = (node, key) => {
+    let value = node[key];
+    Object.defineProperty(node, key, { get: () => value, set(next) { writes++; value = key === 'width' ? `${Number.parseFloat(next).toFixed(4)}%` : next; }, configurable: true });
+  };
+  for (const node of elements.values()) {
+    watch(node, 'textContent'); watch(node, 'hidden'); watch(node.small, 'textContent');
+    watch(node.style, 'width'); watch(node.style, '--ready');
+    const attribute = node.setAttribute.bind(node);
+    t.mock.method(node, 'setAttribute', (...args) => { writes++; attribute(...args); });
+  }
+  const lookup = t.mock.method(document, 'getElementById');
+  for (let frame = 0; frame < 60; frame++) hud.update(g);
+  assert.equal(writes, 0, 'stable game state must not rewrite the DOM');
+  assert.equal(lookup.mock.callCount(), 0, 'HUD should retain its element bindings');
+  g.player.hp = 12; g.player.guard = 20;
+  hud.update(g);
+  assert.equal(el('health-number').textContent, '12 / 150');
+  assert.equal(el('guard-number').textContent, '20 / 100');
+  assert.ok(writes > 0, 'changed values must still reach the HUD');
 });

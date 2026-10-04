@@ -23,6 +23,7 @@ export function donorSwingPhase(age,timing,source){
 export class DonorMotion{
  constructor(root,model,clips,description){
   this.root=root;this.model=model;this.description=description;this.mixer=new THREE.AnimationMixer(model);this.actions=new Map();this.last=root.position.clone();this.cycle=0;this.visualTime=0;this.response=null;this.responseTime=0;this.disposed=false;
+  this.delta=new THREE.Vector3();this.forward=new THREE.Vector3();this.right=new THREE.Vector3();
   for(const clip of clips){const action=this.mixer.clipAction(clip);action.play();action.paused=true;action.setEffectiveWeight(0);this.actions.set(clip.name,action);}
   // Only spine descendants hold guard while native locomotion drives the legs.
   const upper=new Set();model.getObjectByName('spine_01')?.traverse(node=>upper.add(node.name));
@@ -46,7 +47,7 @@ export class DonorMotion{
  }
  update(entity,time,dt){
   if(this.disposed)return;
-  const delta=this.root.position.clone().sub(this.last);delta.y=0;this.last.copy(this.root.position);this.visualTime+=Math.max(0,dt);
+  const delta=this.delta.subVectors(this.root.position,this.last);delta.y=0;this.last.copy(this.root.position);this.visualTime+=Math.max(0,dt);
   const response=entity.response;
   if(response!==this.response){this.response=response;this.responseTime=this.visualTime;}
   const responseAge=response?Math.max(time-response.start,this.visualTime-this.responseTime):0;
@@ -57,7 +58,7 @@ export class DonorMotion{
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}
   const distance=delta.length(),speed=dt>0?distance/dt:0;
   if(speed>.05){
-   const forward=new THREE.Vector3(0,0,1).applyQuaternion(this.root.quaternion),right=new THREE.Vector3(1,0,0).applyQuaternion(this.root.quaternion),along=delta.dot(forward),across=delta.dot(right);
+   const forward=this.forward.set(0,0,1).applyQuaternion(this.root.quaternion),right=this.right.set(1,0,0).applyQuaternion(this.root.quaternion),along=delta.dot(forward),across=delta.dot(right);
    const strafe=Math.abs(across)>Math.abs(along),name=strafe?(across<0?'StrafeLeft':'StrafeRight'):(speed>2.2?'Run':this.description.clips.walk);
    const stride=this.description.stride??1,rate=strafe?.75:name==='Run'?3.5:1.7;
    this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+(strafe?distance:Math.sign(along)*distance)/(rate*stride*this.root.scale.x),1);
