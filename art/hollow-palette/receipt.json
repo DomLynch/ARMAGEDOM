@@ -1,0 +1,64 @@
+{
+  "base": "d01911f3445bc17c6bc679049bcecee56496e501",
+  "assetSha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "materials": [
+    {
+      "index": 0,
+      "name": "Photo"
+    },
+    {
+      "index": 1,
+      "name": "PhotoEyes"
+    },
+    {
+      "index": 2,
+      "name": "PhotoTeeth"
+    },
+    {
+      "index": 3,
+      "name": "Ash-grey affected skin"
+    },
+    {
+      "index": 4,
+      "name": "Torn charcoal canvas jacket"
+    },
+    {
+      "index": 5,
+      "name": "Worn tobacco trousers"
+    },
+    {
+      "index": 6,
+      "name": "Dirty black work boots"
+    }
+  ],
+  "meshMaterials": [
+    [
+      6
+    ],
+    [
+      4
+    ],
+    [
+      3,
+      4,
+      5,
+      6
+    ],
+    [
+      0
+    ],
+    [
+      1
+    ],
+    [
+      2
+    ]
+  ],
+  "helperBytes": 1749,
+  "helperSha256": "015850c4aa908e5c2007bcc2af39140537658d97e793b676a324d9d44154b012",
+  "focusedTests": "7 PASS; lightweight local node test",
+  "unchangedExistingFiles": true,
+  "newAssetDownloads": 0,
+  "runtimeIntegration": "pending WebUI",
+  "renderOrDeviceClaim": false
+}

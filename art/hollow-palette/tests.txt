@@ -1,0 +1,15 @@
+✔ pinned Hollow garment slots are separate from skin/photo/boots and retain vertex grime (2.531791ms)
+✔ seven bounded, distinct, immutable colour pairs (0.093541ms)
+✔ consecutive encounter IDs give different first3 and all7 without random/frame state (0.189792ms)
+✔ park/recreate an actor with the same ID/seed retains its palette (0.057ms)
+✔ only garment colour is written; shared texture/vertex detail/flash fields preserved (0.093708ms)
+✔ existing material clone identities stay independent (0.0655ms)
+✔ invalid identity/config rejected before garment writes (0.161875ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.54925
