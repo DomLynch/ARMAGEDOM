@@ -159,7 +159,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
         el('slash').style.setProperty('--ready',String(equipped?1-Math.min(1,fireLeft/PISTOL_RULES.cadence):1));
         el('slash').querySelector('small').textContent=equipped?(fireLeft>0?`${fireLeft.toFixed(1)}s`:`${pistol.magazine}/6`):'';
         el('stab').querySelector('small').textContent=equipped&&pistol.reloadingUntil?`${Math.max(0,pistol.reloadingUntil-g.time).toFixed(1)}s`:'';
-        if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire; targets enemies ahead':id==='stab'?'Reload':'Switch to melee');}}
+        if(equipped){el('heavy').querySelector('small').textContent='';el('heavy').classList.toggle('cooldown',false);for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&!pistol.magazine);el(id).setAttribute('aria-label',id==='slash'?'Fire; drag to aim, mouse aims on desktop':id==='stab'?'Reload':'Switch to melee');}}
         const nearby=!pistol.collected&&(g.world.areaId??'westminster')===pistol.pickupAreaId&&Math.hypot(p.pos.x-pistol.pickupPos.x,p.pos.z-pistol.pickupPos.z)<=1.3;
         el('pistol-interact').hidden=g.finished||(!nearby&&(!pistol.collected||equipped));
         el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';

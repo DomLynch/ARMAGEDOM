@@ -51,7 +51,7 @@ function pistolIntent(g,intent){
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(const e of result.events){
   event(g,e.type,{...e,actor:p});
-  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Face an enemy and tap or hold Fire.');
+  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Drag Fire to aim; hold to shoot. Mouse aims on desktop.');
   if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
@@ -62,7 +62,7 @@ function pistolIntent(g,intent){
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
- if(!g.pistol.equipped){g.pistolTargetId=null;g.pistolAssistFacing=null;}
+ if(!g.pistol.equipped){g.pistolTargetId=null;}
  if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,aim,guard:false,guardPressed:false,actions:[],held:[]};}
  return {...intent,actions:actions.filter(a=>a!=='pickup')};
 }
