@@ -6,16 +6,19 @@ attribute vec3 motion;
 attribute vec2 size;
 attribute float phase;
 attribute float strength;
+attribute vec3 tint;
 uniform float clock;
 uniform vec3 right;
 uniform vec3 up;
 varying vec2 uvLocal;
 varying float age;
 varying float alpha;
+varying vec3 smokeTint;
 void main(){
   age=fract(clock*motion.z+phase);
   uvLocal=corner;
   alpha=strength;
+  smokeTint=tint;
   float drift=sin(age*3.14159+phase*19.0)*motion.x;
   vec3 p=position+right*(corner.x*size.x+drift)+up*(corner.y*size.y+age*motion.y);
   gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
@@ -25,7 +28,7 @@ const fragments = {
     float edge=1.0-smoothstep(.25,1.0,r);
     float grain=.45+.55*turbulence(uvLocal*3.5+vec2(age*.6,-clock*.13));
     float a=edge*grain*sin(age*3.14159)*alpha;
-    gl_FragColor=vec4(vec3(.095,.085,.075),a);`,
+    gl_FragColor=vec4(smokeTint,a);`,
   flame:`vec2 q=vec2(uvLocal.x,(uvLocal.y+1.0)*.5);
     float flow=turbulence(vec2(q.x*3.2,q.y*5.5-clock*1.8));
     float curl=.16*sin(q.y*9.0-clock*3.1)+.13*sin(q.y*17.0-clock*5.7);
@@ -72,25 +75,26 @@ export function createAtmosphere({THREE,scene,world}) {
       const origin=project(anchor.x,anchor.y,depth);
       const unitX=project(anchor.x+1,anchor.y,depth).distanceTo(origin);
       const unitY=project(anchor.x,anchor.y-1,depth).distanceTo(origin);
-      for(let i=0;i<anchor.smoke;i++)batches.smoke.push({origin,wx:anchor.width*unitX,wy:anchor.width*unitY*.8,dx:anchor.width*unitX*.35,dy:anchor.rise*unitY,speed:1/7,phase:i/anchor.smoke,alpha:anchor.opacity});
+      for(let i=0;i<anchor.smoke;i++)batches.smoke.push({origin,wx:anchor.width*unitX,wy:anchor.width*unitY*.8,dx:anchor.width*unitX*.35,dy:anchor.rise*unitY,speed:1/7,phase:i/anchor.smoke,alpha:anchor.opacity,tint:anchor.smokeColor});
       const fireHalfHeight=anchor.fireHeight*unitY*.5;
       if(anchor.fireHeight>0)batches.flame.push({origin:origin.clone().addScaledVector(up,fireHalfHeight),wx:anchor.fireWidth*unitX,wy:fireHalfHeight,dx:0,dy:0,speed:0,phase:0,alpha:.90});
       for(let i=0;i<anchor.embers;i++)batches.ember.push({origin,wx:.0007*unitX,wy:.0009*unitY,dx:anchor.width*unitX*.3,dy:anchor.rise*unitY*.6,speed:1/4,phase:i/anchor.embers,alpha:.35});
     }
     for(const [kind,particles] of Object.entries(batches)){
       if(!particles.length)continue;
-      const positions=[],corners=[],motions=[],sizes=[],phases=[],strengths=[],indices=[];
+      const positions=[],corners=[],motions=[],sizes=[],phases=[],strengths=[],tints=[],indices=[];
       for(const p of particles){
         const base=positions.length/3;
         for(const [x,y] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
           positions.push(p.origin.x,p.origin.y,p.origin.z);corners.push(x,y);motions.push(p.dx,p.dy,p.speed);sizes.push(p.wx,p.wy);phases.push(p.phase);strengths.push(p.alpha);
+          tints.push(...(p.tint??[.095,.085,.075]));
         }
         indices.push(base,base+1,base+2,base,base+2,base+3);
       }
       const geometry=new THREE.BufferGeometry();
-      for(const [name,data,count] of [['position',positions,3],['corner',corners,2],['motion',motions,3],['size',sizes,2],['phase',phases,1],['strength',strengths,1]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,count));
+      for(const [name,data,count] of [['position',positions,3],['corner',corners,2],['motion',motions,3],['size',sizes,2],['phase',phases,1],['strength',strengths,1],['tint',tints,3]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,count));
       geometry.setIndex(indices);
-      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; ${noiseShader} void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
+      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; varying vec3 smokeTint; ${noiseShader} void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
       const mesh=new THREE.Mesh(geometry,material);mesh.name=`Atmosphere ${kind}`;
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.

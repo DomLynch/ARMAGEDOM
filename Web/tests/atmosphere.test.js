@@ -39,3 +39,13 @@ test('area exit disposes each resource once, reentry allocates one group, final 
   world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);
   fx.dispose();fx.dispose();fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().disposed,true);
 });
+test('bus emits smoke only with its own tint; other smoke retains its accepted colour',()=>{
+  const bus=WESTMINSTER_ATMOSPHERE[0];
+  assert.equal(bus.fireHeight,0);assert.equal(bus.fireWidth,0);assert.equal(bus.embers,0);
+  const {fx,scene}=fixture();fx.update(.01);
+  const tint=scene.children[0].children.find(x=>x.name==='Atmosphere smoke').geometry.getAttribute('tint');
+  for(const [index,expected] of [[0,bus.smokeColor],[bus.smoke*4,[.095,.085,.075]]]){
+    for(let channel=0;channel<3;channel++)assert.ok(Math.abs(tint.array[index*3+channel]-expected[channel])<1e-6);
+  }
+  fx.dispose();
+});
