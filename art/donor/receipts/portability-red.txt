@@ -1,0 +1,44 @@
+node:fs:556
+  return binding.open(
+                 ^
+
+Error: ENOENT: no such file or directory, open '/private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-motion-n8wPXa/character/art/reuse/frankendom-20261004/manifest.json'
+    at Object.openSync (node:fs:556:18)
+    at Object.readFileSync (node:fs:440:35)
+    at file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-motion-n8wPXa/standalone/art/donor/probe.mjs:12:30
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:639:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-motion-n8wPXa/character/art/reuse/frankendom-20261004/manifest.json'
+}
+
+Node.js v25.8.1
+✖ Web/tests/donor-motion.test.js (71.708833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 75.661375
+
+✖ failing tests:
+
+test at Web/tests/donor-motion.test.js:1:1
+✖ Web/tests/donor-motion.test.js (71.708833ms)
+  'test failed'
+file:///Users/domininclynch/Desktop/Business/ARMAGEDOM/worktrees/character-web/art/donor/check-portability.mjs:18
+ if(result.status!==0)throw Error('Standalone motion tests failed');
+                            ^
+
+Error: Standalone motion tests failed
+    at file:///Users/domininclynch/Desktop/Business/ARMAGEDOM/worktrees/character-web/art/donor/check-portability.mjs:18:29
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:639:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1

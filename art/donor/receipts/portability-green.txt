@@ -1,0 +1,26 @@
+✔ Contact phase 14 (0.501916ms)
+✔ Contact phase 12 (0.044334ms)
+✔ Contact phase 22 (0.03425ms)
+✔ Contact phase 18 (0.025834ms)
+✔ Equip preserves source scenes, grip transform and player overrides (4.293083ms)
+✔ hero light_right fixed-tick contacts and cardinal headings (7.04925ms)
+✔ hero light_left fixed-tick contacts and cardinal headings (5.698875ms)
+✔ hero thrust fixed-tick contacts and cardinal headings (5.192542ms)
+✔ hero heavy_overhead fixed-tick contacts and cardinal headings (6.880375ms)
+✔ goblin light_right fixed-tick contacts and cardinal headings (5.697916ms)
+✔ goblin light_left fixed-tick contacts and cardinal headings (5.199375ms)
+✔ goblin thrust fixed-tick contacts and cardinal headings (5.275416ms)
+✔ goblin heavy_overhead fixed-tick contacts and cardinal headings (7.240333ms)
+✔ Cancellation, responses, guard, roll, special, death and independent mixers (2.04ms)
+✔ Candidate hashes, preserved roots and rig-specific stride (5.419708ms)
+✔ Moving guard uses native legs and dedicated upper guard; stopped simulation stays still (1.0685ms)
+✔ A fresh counter swing supersedes lingering parry response (0.630625ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.550458
+PASS: 17 real motion tests, no sibling intake and no import-created receipts
