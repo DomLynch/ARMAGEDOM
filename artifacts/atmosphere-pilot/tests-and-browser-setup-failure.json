@@ -1,0 +1,14 @@
+{
+  "job": "web-9cffaf391dea",
+  "hostname": "Brain",
+  "source_files_verified": 90,
+  "command": [
+    "bash",
+    "-lc",
+    "npm ci --no-audit --no-fund && node --test tests/atmosphere.test.js && npm install --no-save --package-lock=false playwright && node qa/atmosphere/capture.mjs"
+  ],
+  "exit_code": 1,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 7.01,
+  "finished_epoch": 1791130540.6955383
+}

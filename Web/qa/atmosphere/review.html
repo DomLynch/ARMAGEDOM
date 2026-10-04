@@ -1,0 +1,18 @@
+<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;background:#181713}canvas{display:block}</style>
+<script type="module">
+import * as THREE from 'three';
+import {createWorld} from '../../src/world.js';
+import {createAtmosphere} from '../../src/atmosphere.js';
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(1);document.body.append(renderer.domElement);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera();
+const world=await createWorld({THREE,renderer,scene,camera,baseUrl:location.origin+'/'});
+const atmosphere=createAtmosphere({THREE,scene,world});
+let pos={x:0,z:-6};
+function draw(){renderer.setSize(innerWidth,innerHeight);world.update(pos,0,innerWidth,innerHeight,true);renderer.render(scene,camera);}
+window.review={
+  frame(enabled,time=3){atmosphere.reset();for(let i=0;i<time*10;i++)atmosphere.update(.1,{enabled});draw();return {...atmosphere.stats(),calls:renderer.info.render.calls};},
+  move(x,y){pos=world.geometry.ground({x,y});draw();},
+  async profile(enabled){atmosphere.update(0,{enabled});const timings=[];for(let i=0;i<45;i++){const start=performance.now();atmosphere.update(.016,{enabled});draw();timings.push(performance.now()-start);await new Promise(requestAnimationFrame);}return {meanMs:timings.reduce((a,b)=>a+b,0)/timings.length,p95Ms:[...timings].sort((a,b)=>a-b)[Math.floor(timings.length*.95)],calls:renderer.info.render.calls,...atmosphere.stats()};},
+  dispose(){atmosphere.dispose();world.dispose();renderer.dispose();}
+};draw();window.ready=true;
+</script>
