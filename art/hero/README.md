@@ -1,3 +1,5 @@
+> Historical engine reference only — 2026-10-04: Unity is retired; Game/ and engine commands are privately archived and must not be reactivated. Consult canonical AGENTS.md and briefs/THREEJS-ONLY-RETIREMENT.md for active Three.js work.
+
 # Original Warden hero — 2026-10-02
 
 Original dark gothic knight concept -> image-to-3D -> CPU rig/material conversion ->

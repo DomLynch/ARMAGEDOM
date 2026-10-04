@@ -1,3 +1,5 @@
+> Historical engine reference only — 2026-10-04: Unity is retired; Game/ and engine commands are privately archived and must not be reactivated. Consult canonical AGENTS.md and briefs/THREEJS-ONLY-RETIREMENT.md for active Three.js work.
+
 # Motion and trackpad controls — 2026-10-02
 
 The user rated the art 6.5/10 and requested natural feet/arms/strikes, WASD travel

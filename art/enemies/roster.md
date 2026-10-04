@@ -1,3 +1,5 @@
+> Historical engine reference only — 2026-10-04: Unity is retired; Game/ and engine commands are privately archived and must not be reactivated. Consult canonical AGENTS.md and briefs/THREEJS-ONLY-RETIREMENT.md for active Three.js work.
+
 # Original combat roster — 2026-10-02
 
 The same room now shows three distinct enemy meshes in its first wave:
