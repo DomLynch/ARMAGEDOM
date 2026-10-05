@@ -1,6 +1,6 @@
 # Gun-compatible prepared-head reuse — Characters read-only mapping, 2026-10-05
 
-Direct approved queue step2 supersedes the old blanket bullet-no-decap restriction. Current inspected WebUI candidate `cdde203c2373945beaa9275c9513a2b345ce5c73`; six actual files match that commit, hashes in SOURCE.json. This is source guidance for after046, not changes to046 or a new presenter/pool. WebUI sole existing runtime editor; Combat owns event eligibility/classification. Do not merge this art lane's historical baseline.
+Direct approved queue step2 supersedes the old blanket bullet-no-decap restriction. Current inspected WebUI candidate `b1583eaa1895620bdc5afed6757f7cccd336fee1`; six actual files match that commit, hashes in SOURCE.json. This is source guidance for after046, not changes to046 or a new presenter/pool. WebUI sole existing runtime editor; Combat owns event eligibility/classification. Do not merge this art lane's historical baseline.
 
 ## Smallest coherent presentation seam
 
