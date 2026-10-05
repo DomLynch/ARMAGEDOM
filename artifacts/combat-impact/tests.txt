@@ -1,0 +1,17 @@
+✔ 40/50/80ms holds consume leftover time without slowing external clocks (0.799584ms)
+✔ frame partition invariance includes hold boundary and camera waveform (0.122833ms)
+✔ High/Low/Off and reduced motion remain distinct and reset old impulses (0.6125ms)
+✔ rapid directional events are finite and camera norm never exceeds eight CSS pixels (3.056792ms)
+✔ shorter event cannot shorten pending lethal hold; recoil and hit impulses reinforce (0.21875ms)
+✔ pause freezes presentation only; invalid input cannot poison state and reset clears it (0.122333ms)
+✔ victim reactions are isolated, direction-normalized, exact and never advance finisher time (0.139833ms)
+✔ victim pause, mode/motion transition and malformed strength have safe lifecycles (0.052541ms)
+✔ normal per-victim hold is45ms, independent of global pistol50ms (0.054125ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.477083

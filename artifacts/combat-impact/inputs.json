@@ -1,0 +1,13 @@
+{
+  "zipSHA256": "179c75b541e39c12a77aad23b5487886ee00e49d0b36b5ad94132930ac1b5983",
+  "reference_inputs": {
+    "mobile-combat-18-handoff/prototype/docs/COMBAT_HANDOFF.md": "ea8524b872a2ff879dae302b7847d49f0619ad70569cc33279af6becc46cf6dd",
+    "mobile-combat-18-handoff/prototype/src/combat.js": "47e25d8be8eb46654eef1fa5ff6584ac3c6129a990b9af2b764319a15353fbce",
+    "mobile-combat-18-handoff/prototype/src/input.js": "800fe444def9d863a923ff56ab8fcced9064a9c1839b6e07702239ad67c7bdae",
+    "mobile-combat-18-handoff/prototype/src/main.js": "b151e3eae2baae9e855abd2be20c8396be7f53b1f71d78916af3f5d010adfd49",
+    "mobile-combat-18-handoff/prototype/src/impact.js": "4fe6e38f0b54bb2c3ab57429f7901a009aa07fda86d8a532975339aaa9e0ba65",
+    "mobile-combat-18-handoff/prototype/src/audio.js": "99bfe55ab2397a47d9b3a2709e66b0490c21d8811282f3131ea3b0441b617d55",
+    "ARM041/Web/src/donor-audio.js": "764c1267238246d25ab7e426f0c2200458fb49dba92d908a4415b24a76979d87"
+  },
+  "reference_inputs_pinned": true
+}

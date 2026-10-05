@@ -1,0 +1,37 @@
+[
+  {
+    "fault": "drop-leftover",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "remove-camera-cap",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "ignore-reduced-motion",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "opposite-hit-impulse",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "shorten-hold",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "ignore-pause",
+    "exit_code": 1,
+    "failed_tests": []
+  },
+  {
+    "fault": "wrong-victim-hold",
+    "exit_code": 1,
+    "failed_tests": []
+  }
+]

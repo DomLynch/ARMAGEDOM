@@ -1,0 +1,8 @@
+{
+  "base": "1dd5e841212125a9a62a64cdfdfddf61f26d5659",
+  "scope": "pure component only; no integration/audio/visual/phone claim",
+  "tests": 9,
+  "faults_caught": 7,
+  "sourceSHA256": "1f31945ee834b2c6fc0fe7d5ceb679b07bdb341a74aee2645d5ea24643fa428c",
+  "testSHA256": "3272459cd9bf81df38ba8fd36ebc32705e8a440c12ad63f32607a7483ee79774"
+}
