@@ -9,8 +9,18 @@ import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo } from "./travel.js";
 import {createAtmosphere} from "./atmosphere.js";
 import {stepPistol} from "./pistol.js";
-import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,collectNearbySupplies} from "./pistol-save.js";
+import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,collectNearbySupplies,collectNearbyVest,VEST_BAG_POSITION} from "./pistol-save.js";
 import {createSupplyView} from "./supplies-view.js";
+import {createVestBagView} from "./vest-view.js";
+import {vestAvailable} from "./vest.js";
+let vestBag=null;
+function clearVestBag(){vestBag?.dispose();vestBag=null;}
+function updateVestBag(){
+ const available=!contextLost&&!traveling&&!game.finished&&world.areaId==='westminster'&&vestAvailable(game.vest,game.supplies);
+ if(!available){clearVestBag();return;}
+ if(!vestBag){vestBag=createVestBagView();scene.add(vestBag.root);vestBag.root.position.copy(world.toRender(VEST_BAG_POSITION));game.message='Supply bag by the pistol stash · Worn vest available.';game.messageUntil=game.time+4;}
+ vestBag.update(game.time);
+}
 let runSaveCache=null;
 function persistRun(g){
  if(g.runSaveInvalid)return false;
@@ -37,7 +47,7 @@ function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pisto
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -112,6 +122,7 @@ async function restart() {
   }
   input.clear();
   clearSupplies();
+  clearVestBag();
   actors.reset();
   effects.reset();
   atmosphere?.reset();
@@ -214,6 +225,7 @@ function frame(ms) {
       stepGame(game, intent(), 1 / 60);
       if (weaponBefore !== game.player.weapon) input.clear();
       collectNearbySupplies(game,persistRun);
+      collectNearbyVest(game,persistRun);
       persistRun(game);
       effects.events(game);
       audio.play(game.events);
@@ -236,6 +248,7 @@ function frame(ms) {
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
   atmosphere?.update(dt, {paused: paused || traveling});
   updateSupplies();
+  updateVestBag();
   actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0);
   effects?.update(game,{paused:paused||traveling,visibleIds:combatVisibleIds(),viewportHeight:canvas.clientHeight});
   rim.position
@@ -292,6 +305,7 @@ canvas.addEventListener("webglcontextlost", (event) => {
   contextLost = true;
   atmosphere?.dispose();
   clearSupplies();
+  clearVestBag();
   pause(true);
   loaded = false;
   document.getElementById("entry").hidden = false;

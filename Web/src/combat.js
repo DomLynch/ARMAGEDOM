@@ -1,4 +1,5 @@
 import {createSuppliesState,issueSupply} from './supplies.js';
+import {createVestState,damageAfterVest} from './vest.js';
 import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
 import {selectCombatTarget,resolvePistolShot} from './pistol-targeting.js';
 import {createPistolState, stepPistol} from './pistol.js';
@@ -31,6 +32,7 @@ export function createGame(world,options={}){
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
  if(options.supplies)g.supplies=createSuppliesState();
+ if(options.vest)g.vest=createVestState();
  if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
@@ -342,6 +344,7 @@ function knifeReceive(g,hit){
   else{knifeSpend(g,p,R.breakCost);p.guarding=false;p.parryUntil=0;p.guardBrokenUntil=t+(def?.stagger??.3);event(g,'guard-break',{actor:p,...meta});}
  }
  if(amount<=0)return false;
+ amount=damageAfterVest(amount,g.vest,{blocked});
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;
  if(blocked&&p.hp>0){event(g,'hit',{actor:p,amount,blocked:true,...meta});return true;}
  p.hurtUntil=t+(def?.stagger??.3);p.swing=null;p.buffer=null;p.dodgeUntil=t;p.ready=p.hurtUntil;

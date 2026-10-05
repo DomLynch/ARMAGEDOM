@@ -1,3 +1,4 @@
+import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
@@ -187,6 +188,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
+    view.vest?.dispose();
     view.motion?.dispose();
     const skeletons = new Set();
     view.model.traverse((o) => {
@@ -223,6 +225,10 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           const holding=entity.weapon==='pistol',pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;
           if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:pistolRecoil});
+        }
+        if(entity===game.player&&game.vest){
+          view.vest??=createVestView(view.model);
+          view.vest.setVisible(game.vest.equipped);view.vest.update();
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         const flash = !game.finished && entity.flashUntil > game.time;
