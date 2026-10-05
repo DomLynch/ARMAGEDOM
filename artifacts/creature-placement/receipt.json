@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "scope": "mapping/static-data only; no runtime cycles or creature-route proof",
+  "base": "f4109869b4169d82be1a385ed110ee4e68291309",
+  "spawnSourceSHA256": "9f3f646f5f87c81ae293c75a7b0f0f20cfa6fbafff58df9f780b95edf6373084",
+  "ledgerSHA256": "1f718b0b5a6c5467943957d62e29c7ab21a8612639d2930986ef1aa458372fea",
+  "planSHA256": "e73eb558fb9cde7442716017da68f60f2a9d18c9074bd89875a6750a6f7a18f4",
+  "baselineResidents": {
+    "human-street-scavenger": 18,
+    "human-crooked-hollow": 6
+  },
+  "cohortUniqueRecipes": {
+    "A": 18,
+    "B": 18
+  },
+  "catalogueCoverage": 30,
+  "protectedKeys": [
+    "westminster-roamer-1",
+    "westminster-roamer-2",
+    "westminster-roamer-3",
+    "westminster-roamer-4",
+    "westminster-roamer-5",
+    "westminster-roamer-6"
+  ],
+  "firstIncompleteStage": "actual foundation capabilities/grounding/contact/collider and authorised persisted incarnation seam; static slots do not prove creature reachability"
+}

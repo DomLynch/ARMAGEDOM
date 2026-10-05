@@ -1,0 +1,8 @@
+{
+  "placementIdentity": true,
+  "worldInputsIdentity": true,
+  "receiptReuse": "artifacts/area-mob-placements/receipt.json",
+  "scope": "Prior .4 route/.55 endpoint clearance only. New creature collider/contact/motion not proven; no new route test or capture.",
+  "priorPlacement": "ed4dfa67c9df3dd89c5560e64e53b9ccc6999c11",
+  "current": "f4109869b4169d82be1a385ed110ee4e68291309"
+}

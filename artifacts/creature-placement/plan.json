@@ -1,0 +1,72 @@
+{
+  "scope": "placement plan only; no runtime recipe assignment or new lifecycle activated",
+  "protectedKeys": [
+    "westminster-roamer-1",
+    "westminster-roamer-2",
+    "westminster-roamer-3",
+    "westminster-roamer-4",
+    "westminster-roamer-5",
+    "westminster-roamer-6"
+  ],
+  "pilots": {
+    "human-gaunt-skulker": "east-roamer-1",
+    "human-stocky-brute": "south-roamer-2",
+    "rat-sewer": "east-roamer-7"
+  },
+  "cohorts": {
+    "A": {
+      "westminster-roamer-1": "human-street-scavenger",
+      "westminster-roamer-2": "human-street-scavenger",
+      "westminster-roamer-3": "human-crooked-hollow",
+      "westminster-roamer-4": "human-street-scavenger",
+      "westminster-roamer-5": "human-crooked-hollow",
+      "westminster-roamer-6": "human-street-scavenger",
+      "east-roamer-1": "human-gaunt-skulker",
+      "south-roamer-2": "human-stocky-brute",
+      "east-roamer-7": "rat-sewer",
+      "east-roamer-2": "human-limping-lurker",
+      "east-roamer-3": "human-tunnel-dweller",
+      "east-roamer-4": "human-ragged-runner",
+      "east-roamer-5": "human-corner-ambusher",
+      "east-roamer-6": "human-territorial-brawler",
+      "east-roamer-8": "human-pack-scavenger",
+      "east-roamer-9": "human-wounded-straggler",
+      "south-roamer-1": "human-scarred-veteran",
+      "south-roamer-3": "rat-ash",
+      "south-roamer-4": "rat-soot",
+      "south-roamer-5": "rat-mangy",
+      "south-roamer-6": "rat-heavy",
+      "south-roamer-7": "rat-nest-defender",
+      "south-roamer-8": "human-crooked-hollow",
+      "south-roamer-9": "human-street-scavenger"
+    },
+    "B": {
+      "westminster-roamer-1": "human-street-scavenger",
+      "westminster-roamer-2": "human-street-scavenger",
+      "westminster-roamer-3": "human-crooked-hollow",
+      "westminster-roamer-4": "human-street-scavenger",
+      "westminster-roamer-5": "human-crooked-hollow",
+      "westminster-roamer-6": "human-street-scavenger",
+      "east-roamer-1": "human-gaunt-skulker",
+      "south-roamer-2": "human-stocky-brute",
+      "east-roamer-7": "rat-sewer",
+      "east-roamer-2": "dog-street-mongrel",
+      "east-roamer-3": "dog-gaunt-hound",
+      "east-roamer-4": "dog-stocky-yard",
+      "east-roamer-5": "dog-ash-coated",
+      "east-roamer-6": "dog-mangy-stray",
+      "east-roamer-8": "dog-pack-chaser",
+      "east-roamer-9": "roach-sewer",
+      "south-roamer-1": "roach-ash",
+      "south-roamer-3": "roach-rust-shell",
+      "south-roamer-4": "roach-heavy-shell",
+      "south-roamer-5": "roach-skitter",
+      "south-roamer-6": "roach-nest-guard",
+      "south-roamer-7": "rat-nest-defender",
+      "south-roamer-8": "human-crooked-hollow",
+      "south-roamer-9": "human-street-scavenger"
+    }
+  },
+  "owner": "World placement; Lead intake; WebUI sole runtime integration",
+  "firstIncompleteStage": "actual foundation capabilities/grounding/contact/collider and authorised persisted incarnation seam; static slots do not prove creature reachability"
+}
