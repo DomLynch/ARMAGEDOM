@@ -1,0 +1,6 @@
+input/Web/
+input/art/
+input/world/
+input/knife.glb
+proof-first/*.png
+**/__pycache__/

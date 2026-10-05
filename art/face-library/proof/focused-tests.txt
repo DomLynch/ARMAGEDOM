@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: actual repaired rig handles all50 recipes with bounded shared geometry and no source/clone cross-mutation
+ok 1 - actual repaired rig handles all50 recipes with bounded shared geometry and no source/clone cross-mutation
+  ---
+  duration_ms: 648.210023
+  type: 'test'
+  ...
+# Subtest: fallback/unknown/shared-material rejection preserve the rig; owned hair disposes once without skeleton disposal
+ok 2 - fallback/unknown/shared-material rejection preserve the rig; owned hair disposes once without skeleton disposal
+  ---
+  duration_ms: 35.208616
+  type: 'test'
+  ...
+# Subtest: 50 unique frozen recipes cover all reusable head/hair/complexion combinations
+ok 3 - 50 unique frozen recipes cover all reusable head/hair/complexion combinations
+  ---
+  duration_ms: 1.217523
+  type: 'test'
+  ...
+# Subtest: authored neighbours differ in at least two visible ingredients; weathering varies independently of hair
+ok 4 - authored neighbours differ in at least two visible ingredients; weathering varies independently of hair
+  ---
+  duration_ms: 1.534026
+  type: 'test'
+  ...
+# Subtest: explicit original appearance fallback and malformed IDs cannot silently allocate a variant
+ok 5 - explicit original appearance fallback and malformed IDs cannot silently allocate a variant
+  ---
+  duration_ms: 0.614682
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1227.583027

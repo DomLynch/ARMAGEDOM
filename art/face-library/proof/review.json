@@ -1,0 +1,501 @@
+{
+  "scope": "50 shared recipe sheet and changed head/hair/weathering adapter on repaired original rig. Isolated art; no runtime allocation/gameplay/phone claim",
+  "errors": [],
+  "samples": [
+    {
+      "clip": "HollowIdle",
+      "phase": 0,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "Attack",
+      "phase": 0.34,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "Guard",
+      "phase": 0.15,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.35,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "Death",
+      "phase": 0.8,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      }
+    },
+    {
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 0.85,
+      "crooked": true
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.35,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 0.85,
+      "crooked": true
+    },
+    {
+      "clip": "Death",
+      "phase": 0.8,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 0.85,
+      "crooked": true
+    },
+    {
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 1.15,
+      "crooked": true
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.35,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 1.15,
+      "crooked": true
+    },
+    {
+      "clip": "Death",
+      "phase": 0.8,
+      "maxBoneDelta": 0,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 64,
+      "triangles": 238637,
+      "kit": {
+        "activeActors": 5,
+        "cachedGeometries": 13,
+        "geometryBytes": 3197434
+      },
+      "factor": 1.15,
+      "crooked": true
+    }
+  ],
+  "selected": [
+    {
+      "id": "face-narrow-buzz-light",
+      "headPreset": "narrow",
+      "hairPreset": "buzz",
+      "skinPreset": "light",
+      "weatheringPreset": "dust"
+    },
+    {
+      "id": "face-broad-rough-crop-deep",
+      "headPreset": "broad",
+      "hairPreset": "rough-crop",
+      "skinPreset": "deep",
+      "weatheringPreset": "scar"
+    },
+    {
+      "id": "face-narrow-crest-light",
+      "headPreset": "narrow",
+      "hairPreset": "crest",
+      "skinPreset": "light",
+      "weatheringPreset": "ash"
+    },
+    {
+      "id": "face-broad-back-crop-deep",
+      "headPreset": "broad",
+      "hairPreset": "back-crop",
+      "skinPreset": "deep",
+      "weatheringPreset": "dust"
+    },
+    {
+      "id": "face-narrow-messy-light",
+      "headPreset": "narrow",
+      "hairPreset": "messy",
+      "skinPreset": "light",
+      "weatheringPreset": "stubble"
+    }
+  ],
+  "sheet": {
+    "version": "armagedom-face-v1",
+    "count": 50,
+    "width": 1800,
+    "height": 1280,
+    "costs": [
+      {
+        "id": "face-narrow-buzz-light",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-broad-back-crop-brown",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-narrow-crest-tan",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-broad-buzz-deep",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-narrow-messy-olive",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-broad-crest-light",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-narrow-rough-crop-brown",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-broad-messy-tan",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-narrow-back-crop-deep",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-broad-rough-crop-olive",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-narrow-buzz-olive",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-broad-back-crop-light",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-narrow-crest-brown",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-broad-buzz-tan",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-narrow-messy-deep",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-broad-crest-olive",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-narrow-rough-crop-light",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-broad-messy-brown",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-narrow-back-crop-tan",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-broad-rough-crop-deep",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-narrow-buzz-deep",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-broad-back-crop-olive",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-narrow-crest-light",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-broad-buzz-brown",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-narrow-messy-tan",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-broad-crest-deep",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-narrow-rough-crop-olive",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-broad-messy-light",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-narrow-back-crop-brown",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-broad-rough-crop-tan",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-narrow-buzz-tan",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-broad-back-crop-deep",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-narrow-crest-olive",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-broad-buzz-light",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-narrow-messy-brown",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-broad-crest-tan",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-narrow-rough-crop-deep",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-broad-messy-olive",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-narrow-back-crop-light",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-broad-rough-crop-brown",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-narrow-buzz-brown",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-broad-back-crop-tan",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-narrow-crest-deep",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-broad-buzz-olive",
+        "drawCalls": 10,
+        "triangles": 43755
+      },
+      {
+        "id": "face-narrow-messy-light",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-broad-crest-brown",
+        "drawCalls": 11,
+        "triangles": 44458
+      },
+      {
+        "id": "face-narrow-rough-crop-tan",
+        "drawCalls": 11,
+        "triangles": 44975
+      },
+      {
+        "id": "face-broad-messy-deep",
+        "drawCalls": 11,
+        "triangles": 45088
+      },
+      {
+        "id": "face-narrow-back-crop-olive",
+        "drawCalls": 11,
+        "triangles": 44391
+      },
+      {
+        "id": "face-broad-rough-crop-light",
+        "drawCalls": 11,
+        "triangles": 44975
+      }
+    ],
+    "kit": {
+      "activeActors": 5,
+      "cachedGeometries": 22,
+      "geometryBytes": 6215928
+    }
+  },
+  "disposal": {
+    "baselineMemory": {
+      "geometries": 12,
+      "textures": 19
+    },
+    "after": {
+      "geometries": 12,
+      "textures": 19
+    },
+    "kit": {
+      "activeActors": 0,
+      "cachedGeometries": 0,
+      "geometryBytes": 0
+    }
+  }
+}

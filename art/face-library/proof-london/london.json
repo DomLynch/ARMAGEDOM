@@ -1,0 +1,58 @@
+{
+  "scope": "Changed shared adapter recipes in selected006 isolated London camera; no game allocation, travel, collision, gameplay or phone claim",
+  "errors": [],
+  "samples": [
+    {
+      "scope": "Isolated London art camera",
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 30,
+      "triangles": 95949
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "Hit",
+      "phase": 0.35,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 30,
+      "triangles": 95949
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "Death",
+      "phase": 0.8,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 30,
+      "triangles": 95949
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "width": 852,
+      "height": 393,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 30,
+      "triangles": 95949
+    }
+  ]
+}

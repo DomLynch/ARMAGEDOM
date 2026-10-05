@@ -1,0 +1,28 @@
+{
+  "recipeComponent": "3dc84b7",
+  "files": [
+    {
+      "path": "Web/src/face-recipes.js",
+      "bytes": 1713,
+      "sha256": "a3430bfe0394e10782759fc885899623435dcc91969a0b9b93d5f840acfd062b"
+    },
+    {
+      "path": "Web/src/face-appearance.js",
+      "bytes": 8729,
+      "sha256": "dc93dafad4056f4fdd26db5f6186d210eb7872812a6772b68336a35d1180716b"
+    },
+    {
+      "path": "Web/tests/face-recipes.test.js",
+      "bytes": 1795,
+      "sha256": "cb6d2efe3dadce9ea90efec24acc0cc5b4c17081555a82f2c7b84459228c5164"
+    },
+    {
+      "path": "Web/tests/face-appearance.test.js",
+      "bytes": 4311,
+      "sha256": "230b7950025c34582ec72203150915c891ceac5214d1eba24f86b7c926e38e99"
+    }
+  ],
+  "runtimeSourceBytes": 10442,
+  "additionalAssetDownloadBytes": 0,
+  "baseGLB": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
+}
