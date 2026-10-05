@@ -496,3 +496,15 @@ summary {
 @media (orientation: portrait) {
   #pistol-interact {bottom: calc(var(--safe-b) + 244px);}
 }
+
+/* Narrow landscape keeps the equipment CTA between the two thumb controls. */
+@media (orientation: landscape) and (max-width: 680px) {
+  #pistol-interact {
+    left: calc(var(--safe-l) + 144px);
+    right: calc(var(--safe-r) + 222px);
+    bottom: var(--safe-b);
+    transform: none;
+    font-size: 11px;
+    padding: 9px 4px;
+  }
+}
