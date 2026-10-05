@@ -1,4 +1,5 @@
 import {PISTOL_RULES} from './pistol.js';
+import {vestAvailable} from './vest.js';
 export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
@@ -120,7 +121,14 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
         : donor
           ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
           : `${area} · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
-      const message = g.time < g.messageUntil ? g.message : "";
+      const vestNotice = !g.finished && p.hp > 0
+        ? g.vest?.equipped
+          ? "VEST EQUIPPED · 10% protection"
+          : g.world?.areaId === "westminster" && vestAvailable(g.vest, g.supplies)
+            ? "VEST BY PISTOL STASH · Walk near to equip"
+            : ""
+        : "";
+      const message = g.time < g.messageUntil ? g.message : vestNotice;
       if (message !== lastMessage) {
         el("notice").textContent = message;
         lastMessage = message;

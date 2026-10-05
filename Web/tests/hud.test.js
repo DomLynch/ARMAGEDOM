@@ -5,6 +5,7 @@ import { createHUD } from "../src/hud.js";
 class Element extends EventTarget {
   constructor() {
     super();
+    this.textContent = "";
     this.hidden = false;
     this.open = false;
     this.style = {
@@ -324,4 +325,25 @@ test('Fire magazine remains truthful through reload/pickup and clears on holster
  g.pistol.magazine=g.pistol.reserve=0;hud.update(g);assert.equal(el('slash').small.textContent,'0/6');
  g.pistol.equipped=false;hud.update(g);assert.equal(el('slash').small.textContent,'');
  g.world={areaId:'westminster'};g.player.pos={x:0,z:0};g.pistol={...g.pistol,collected:false,pickupAreaId:'westminster',pickupPos:{x:5,z:5}};hud.update(g);assert.equal(el('slash').span.textContent,'SLASH');
+});
+
+
+import {createVestState} from '../src/vest.js';
+import {createSuppliesState,issueSupply} from '../src/supplies.js';
+import {encodeRun,restoreRun,applySavedRun} from '../src/pistol-save.js';
+function vestGame(){const g=game(true);g.world={areaId:'westminster'};g.vest=createVestState();g.supplies=createSuppliesState();g.pistol={collected:true,equipped:true,magazine:6,reserve:12,nextFireAt:0,reloadingUntil:0};return g;}
+function unlockVest(g){for(const placementKey of ['westminster-roamer-2','westminster-roamer-4'])g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey,position:{x:0,z:0},hp:0}).state;}
+test('vest notice persists after transient expires, uses existing unlock and hides outside West or when finished',t=>{
+ const {hud,el}=setup(t),g=vestGame();hud.update(g);assert.equal(el('notice').textContent,'');
+ g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-2',position:{x:0,z:0},hp:0}).state;hud.update(g);assert.equal(el('notice').textContent,'');
+ g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-4',position:{x:0,z:0},hp:0}).state;g.message='Scavenged rounds';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,'Scavenged rounds');
+ g.time=11;hud.update(g);assert.equal(el('notice').textContent,'VEST BY PISTOL STASH · Walk near to equip');g.time=50;hud.update(g);assert.equal(el('notice').textContent,'VEST BY PISTOL STASH · Walk near to equip');
+ g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'');g.world.areaId='westminster';g.finished=true;hud.update(g);assert.equal(el('notice').textContent,'');g.finished=false;g.player.hp=0;hud.update(g);assert.equal(el('notice').textContent,'');
+});
+test('equipped vest status follows authoritative restore, holster, transient priority and fresh Retry',t=>{
+ const {hud,el}=setup(t),g=vestGame();unlockVest(g);g.vest.equipped=true;hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
+ g.pistol.equipped=false;g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
+ g.message='OUT OF AMMO · Switch to melee.';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,g.message);g.time=12;hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
+ const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
+ hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,false);
 });
