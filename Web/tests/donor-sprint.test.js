@@ -5,10 +5,10 @@ import {createGame,stepGame} from '../src/combat.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 const ticks=(g,n,intent={})=>{for(let i=0;i<n;i++)stepGame(g,intent)};
 const game=(blocked=false)=>{const g=createGame({spawn:{x:0,z:0},layout:{characterScale:1.265},move:(p,d)=>blocked?{...p}:{x:p.x+d.x,z:p.z+d.z},lineClear:()=>true},{pilot:'donor-knife'});g.encounterActive=false;return g};
-test('floating46px stick deadzone, analog walk and deliberate outer sprint',()=>{
+test('floating46px stick 13% radial deadzone, linear analog walk and deliberate outer sprint',()=>{
  const s=new InputState();s.down(1,'move',{x:100,y:100});
  s.move(1,{x:105,y:100});assert.deepEqual(s.take().move,{x:0,y:0});
- s.move(1,{x:123,y:100});near(s.take().move.x,.5);assert.equal(s.take().run,false);
+ s.move(1,{x:123,y:100});near(s.take().move.x,(.5-.13)/.87);assert.equal(s.take().run,false);
  s.move(1,{x:146,y:100});near(s.take().move.x,1);assert.equal(s.take().run,false);
  s.move(1,{x:164.4,y:100});assert.equal(s.take().run,false);
  s.move(1,{x:165,y:100});assert.equal(s.take().run,true);
