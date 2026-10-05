@@ -8,8 +8,12 @@ import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
-import { hollowLocomotionFor } from "./area-mob-spawns.js";
+import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
+import {createFaceAppearanceLibrary} from './face-appearance.js';
+import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from './face-recipes.js';
+import {allocateFaceRecipes} from './face-allocator.js';
+const residentFaces=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});
 const names = ["revenant", "orc", "warlock", "warlord"];
 export async function loadActors(
   baseUrl,
@@ -93,6 +97,7 @@ function shadowTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
+  const faceKits=new Map();
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -149,6 +154,12 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         o.material = Array.isArray(o.material) ? copies : copies[0];
       }
     });
+    let appearance=null;
+    if(entity.kind>=0&&entity.rig==='hollow-scavenger'){
+      if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
+      appearance=faceKits.get(source.gltf.scene).apply(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
+    }
+    const flashMaterials=[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))];
     const shadow = new THREE.Mesh(
       shadowGeometry,
       new THREE.MeshBasicMaterial({
@@ -166,7 +177,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model,
       shadow,
       motion: null,
-      materials,
+      materials,appearance,flashMaterials,
       entity,
       description,
       locomotionVariant: hollowLocomotionFor(entity),
@@ -190,6 +201,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
+    view.appearance?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
     const skeletons = new Set();
@@ -234,7 +246,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         const flash = !game.finished && entity.flashUntil > game.time;
-        for (const m of view.materials) {
+        for (const m of view.flashMaterials) {
           if (m.material.emissive) {
             m.material.emissive.copy(
               flash ? new THREE.Color(0.65, 0.2, 0.05) : m.emissive,
@@ -247,6 +259,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     dispose() {
       this.reset();
       shadowMap.dispose();
+      for(const kit of faceKits.values())kit.dispose();
+      faceKits.clear();
       shadowGeometry.dispose();
       library.dispose();
     },

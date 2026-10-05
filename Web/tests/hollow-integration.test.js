@@ -6,6 +6,9 @@ import * as THREE from 'three';
 import {loadGeometry} from '../../art/donor/probe.mjs';
 import {HOLLOW_GARMENTS,hollowPaletteFor} from '../src/hollow-palette.js';
 import {mobSizeProfile} from '../src/mob-size.js';
+import {allocateFaceRecipes} from '../src/face-allocator.js';
+import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from '../src/face-recipes.js';
+import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
 import {createActors} from '../src/actors.js';
 import {disposeActorSources} from '../src/actor-resources.js';
 import {createGame,spawnWave} from '../src/combat.js';
@@ -39,12 +42,17 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  for(let i=0;i<game.enemies.length;i++){game.enemies[i].placementKey=`westminster-roamer-${i+1}`;game.enemies[i].id+=100;}
  actors.update(game,0);
  for(const entity of game.enemies){const view=actors.views.get(entity.id),palette=hollowPaletteFor(entity,world.areaId);assert.equal(view.palette,palette);for(const {material} of view.materials){if(material.name===HOLLOW_GARMENTS.jacket)assert.deepEqual(material.color.toArray(),palette.jacket);if(material.name===HOLLOW_GARMENTS.trousers)assert.deepEqual(material.color.toArray(),palette.trousers);}}
- assert.equal(actors.views.get(0).palette,null);
- const dead=game.enemies.shift(),outfit=actors.views.get(dead.id).palette;dead.hp=0;game.corpses.push(dead);actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);
- actors.reset();actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);
+ assert.equal(actors.views.get(0).palette,null);assert.equal(actors.views.get(0).appearance,null);
+ const faceMap=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});assert.equal(new Set(faceMap.values()).size,24);
+ for(const e of game.enemies)assert.equal(actors.views.get(e.id).appearance.id,faceMap.get(e.placementKey));
+ const dead=game.enemies.shift(),outfit=actors.views.get(dead.id).palette,faceId=actors.views.get(dead.id).appearance.id;dead.hp=0;game.corpses.push(dead);actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);
+ actors.reset();actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);
  const cohort=[...game.enemies,...game.corpses];for(let i=0;i<cohort.length;i++){const entity=cohort[i],factor=[.85,1.15,1][i];Object.assign(entity,mobSizeProfile({bodyScale:1,combatScale:1.265,radius:.4},factor),{mobSize:factor});}
  actors.reset();actors.update(game,0);
  for(const entity of cohort){const view=actors.views.get(entity.id);assert.equal(view.root.scale.x,1.265*1.3225*entity.mobSize);assert.equal(view.shadow.scale.x,1.25*view.root.scale.x);assert.ok(view.root.position.equals(world.toRender(entity.pos)));assert.equal(view.palette,hollowPaletteFor(entity,world.areaId));}
  assert.equal(actors.views.get(0).root.scale.x,1.265*1.3225);
- for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);actors.dispose();
+ for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
+ const hair=[...actors.views.values()].flatMap(v=>v.appearance?.extraMaterials??[]);let hairDisposed=0;hair.forEach(m=>m.addEventListener('dispose',()=>hairDisposed++));
+ const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,.8);game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
+ actors.dispose();assert.equal(hairDisposed,hair.length);
 });
