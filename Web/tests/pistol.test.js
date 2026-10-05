@@ -68,13 +68,13 @@ test('invalid direction/obstacle contract cannot spend ammo or damage',()=>{
 });
 test('held fire is cadence bounded at fixed ticks and never underflows',()=>{
   let state=armed(),shots=0,dry=0;
-  for(let tick=0;tick<600;tick++) {
+  for(let tick=0;tick<1600;tick++) {
     const out=shot(state,tick/60);state=out.state;
     shots+=out.events.filter(e=>e.type==='shot').length;
     dry+=out.events.filter(e=>e.type==='dry').length;
   }
-  assert.equal(shots,6);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
-  assert.equal(dry,3);
+  assert.equal(shots,18);assert.equal(state.magazine,0);assert.equal(state.reserve,0);
+  assert.ok(dry>0);
 });
 test('cadence cannot be bypassed by repeated input, holster or cancel',()=>{
   const state=shot(armed()).state;
@@ -169,4 +169,31 @@ test('held fire debits exactly one round per 1.2 seconds and late attempts never
  for(let tick=0;tick<=400;tick++){const time=tick/60,out=shot(state,time);if(out.events.some(e=>e.type==='shot'))times.push(time);state=out.state;}
  assert.deepEqual(times,[0,1.2,2.4,3.6,4.8,6]);assert.equal(state.magazine,0);assert.equal(state.reserve,12);
  state=shot(armed(),0).state;const late=shot(state,4.5);assert.equal(late.state.magazine,4);assert.equal(late.state.nextFireAt,5.7);assert.equal(shot(late.state,4.5).events.length,0);
+});
+
+
+test('empty magazine starts one automatic reload after last-shot cadence without input',()=>{
+ const last=shot({...armed(),magazine:1},5);assert.equal(last.state.magazine,0);
+ const early=stepPistol(last.state,{time:6.19});assert.equal(early.state.reloadingUntil,0);
+ const start=stepPistol(early.state,{time:6.2});assert.deepEqual(start.events.map(e=>e.type),['reload-start']);
+ assert.equal(start.state.reloadingUntil,7.5);assert.equal(start.state.reserve,12);
+ const wait=stepPistol(start.state,{time:7});assert.equal(wait.events.length,0);assert.equal(wait.state.reloadingUntil,7.5);
+ const done=stepPistol(wait.state,{time:7.5});assert.deepEqual(done.events.map(e=>e.type),['reload-complete']);assert.equal(done.state.magazine,6);assert.equal(done.state.reserve,6);
+ assert.equal(stepPistol(done.state,{time:20}).events.length,0,'idle never shoots or tops up a partial magazine');
+});
+test('empty auto reload cancels before completion and starts fresh only in legal resumed play',()=>{
+ const empty={...armed(),magazine:0,reserve:2},start=stepPistol(empty,{time:0}).state;
+ for(const input of [{cancel:true},{canAct:false},{holster:true}]){
+  const out=stepPistol(start,{...context,time:1.3,fire:true,...input});assert.equal(out.state.magazine,0);assert.equal(out.state.reserve,2);assert.equal(out.state.reloadingUntil,0);assert.ok(!out.events.some(e=>e.type==='shot'||e.type==='reload-complete'));
+  const paused=stepPistol(out.state,{time:10,canAct:false});assert.equal(paused.state.magazine,0);assert.equal(paused.state.reloadingUntil,0);
+  const resumed=stepPistol({...paused.state,equipped:true},{time:10});assert.equal(resumed.state.reloadingUntil,11.3);
+  const done=stepPistol(resumed.state,{time:11.3});assert.equal(done.state.magazine,2);assert.equal(done.state.reserve,0);
+ }
+});
+test('reserve acquired while empty enables auto reload; partial ammo still requires manual top-up',()=>{
+ const dry={...armed(),magazine:0,reserve:0};assert.equal(stepPistol(dry,{time:0}).events.length,0);assert.equal(shot(dry).events[0].type,'dry');
+ assert.equal(stepPistol({...dry,reserve:3},{time:2}).state.reloadingUntil,3.3);
+ const partial={...armed(),magazine:2};assert.equal(stepPistol(partial,{time:0}).events.length,0);
+ assert.equal(stepPistol(partial,{time:0,reload:true}).events[0].type,'reload-start');
+ assert.equal(stepPistol({...dry,reserve:3,equipped:false},{time:2}).events.length,0);
 });

@@ -92,7 +92,7 @@ export function stepPistol(state, input = {}) {
     next.magazine+=rounds; next.reserve-=rounds; next.reloadingUntil=0;
     events.push({type:'reload-complete',rounds});
   }
-  if (input.reload && !next.reloadingUntil && next.reserve>0
+  if ((input.reload || next.magazine===0) && !next.reloadingUntil && next.reserve>0
       && next.magazine<PISTOL_RULES.capacity && time+EPS>=next.nextFireAt) {
     next.reloadingUntil=time+PISTOL_RULES.reload;
     events.push({type:'reload-start',until:next.reloadingUntil});

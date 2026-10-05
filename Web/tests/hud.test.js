@@ -306,9 +306,22 @@ test('Hollow HUD uses actual survivors without a clearance modal',t=>{
  g.encounterCleared=true;g.enemies=[];hud.update(g);
  assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED · EXPLORE LONDON');assert.equal(el('ending').hidden,true);
 });
-test('Fire stays enabled for neutral aim and shows authoritative remaining cooldown',t=>{
+test('Fire stays enabled for neutral aim and keeps ammo counts during authoritative cooldown',t=>{
  const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:5,reserve:12,nextFireAt:11.2,reloadingUntil:0};hud.update(g);
- assert.equal(el('slash').classList.contains('cooldown'),true);assert.equal(el('slash').classList.contains('pistol-aim'),true);assert.equal(el('slash').querySelector('small').textContent,'1.2s');assert.notEqual(el('slash').disabled,true);
+ assert.equal(el('slash').classList.contains('cooldown'),true);assert.equal(el('slash').classList.contains('pistol-aim'),true);assert.equal(el('slash').querySelector('small').textContent,'5/6');assert.notEqual(el('slash').disabled,true);
  g.time=11.2;hud.update(g);assert.equal(el('slash').classList.contains('cooldown'),false);assert.equal(el('slash').querySelector('small').textContent,'5/6');
  g.pistol.equipped=false;hud.update(g);assert.equal(el('slash').classList.contains('pistol-aim'),false);assert.equal(el('slash').classList.contains('cooldown'),false);
+});
+
+
+test('Fire magazine remains truthful through reload/pickup and clears on holster/Retry',t=>{
+ const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:6,reserve:12,nextFireAt:0,reloadingUntil:0};
+ hud.update(g);assert.equal(el('slash').small.textContent,'6/6');
+ g.pistol.magazine=0;g.pistol.nextFireAt=11.2;hud.update(g);assert.equal(el('slash').small.textContent,'0/6');assert.match(el('slash').attributes.get('aria-label'),/0 of 6.*12 reserve/);
+ g.pistol.reloadingUntil=11.3;hud.update(g);assert.equal(el('slash').small.textContent,'0/6');assert.equal(el('stab').small.textContent,'1.3s');assert.match(el('slash').attributes.get('aria-label'),/reloading/);
+ g.pistol.magazine=6;g.pistol.reserve=6;g.pistol.reloadingUntil=0;hud.update(g);assert.equal(el('slash').small.textContent,'6/6');
+ g.pistol.reserve+=3;hud.update(g);assert.equal(el('slash').small.textContent,'6/6');assert.match(el('ammo').textContent,/9 RESERVE/);
+ g.pistol.magazine=g.pistol.reserve=0;hud.update(g);assert.equal(el('slash').small.textContent,'0/6');
+ g.pistol.equipped=false;hud.update(g);assert.equal(el('slash').small.textContent,'');
+ g.world={areaId:'westminster'};g.player.pos={x:0,z:0};g.pistol={...g.pistol,collected:false,pickupAreaId:'westminster',pickupPos:{x:5,z:5}};hud.update(g);assert.equal(el('slash').span.textContent,'SLASH');
 });
