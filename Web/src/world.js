@@ -86,9 +86,9 @@ export class LondonWorld {
     }
     const aspect=Math.max(1,width)/Math.max(1,height),portrait=aspect<1;
     if(portrait) {
-      // A scaled 2m reference stays ~70 CSS pixels; zoom>=1 keeps the finite painting covering the screen.
+      // A scaled 2m reference stays ~63 CSS pixels; zoom>=1 keeps the finite painting covering the screen.
       const actorHeight=Math.abs(geometry.point(playerPosition,2*layout.characterScale).y-p.y);
-      zoom=clamp(70/(actorHeight*Math.max(1,height)),1,4);
+      zoom=clamp(63/(actorHeight*Math.max(1,height)),1,4);
     }
     zoom*=this.viewZoomMultiplier;
     const zx=zoom*Math.max(1,ASPECT/aspect),zy=zoom*Math.max(1,aspect/ASPECT);

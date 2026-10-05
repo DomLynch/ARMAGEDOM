@@ -437,8 +437,8 @@ summary {
     font-size: 9px;
   }
   #move {
-    width: min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px));
-    height: min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px));
+    width: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .8);
+    height: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .8);
     bottom: calc(var(--safe-b) + 24px);
   }
   #action-cluster {

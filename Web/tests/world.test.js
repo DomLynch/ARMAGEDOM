@@ -70,7 +70,7 @@ test('portrait shows a readable actor above controls where painting bounds allow
     world.update(position,0,390,844,true);
     const feet=world.toRender(position).project(camera),head=world.toRender(position,2*world.actorScale).project(camera);
     const pixels=(head.y-feet.y)*844/2;
-    assert.ok(pixels>=60&&pixels<=80,`portrait actor is ${pixels}px`);
+    if(position===mid)assert.ok(Math.abs(pixels-63)<1e-8,`unclamped portrait reference is ${pixels}px, expected63`);else assert.ok(pixels>=63&&pixels<=70,`finite-painting clamp portrait reference is ${pixels}px`);
     const image=world.backdrop.geometry.attributes.position;
     const a=new THREE.Vector3().fromBufferAttribute(image,0).project(camera),b=new THREE.Vector3().fromBufferAttribute(image,2).project(camera);
     assert.ok(a.x<=-1+1e-4&&a.y<=-1+1e-4&&b.x>=1-1e-4&&b.y>=1-1e-4);
