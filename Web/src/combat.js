@@ -73,7 +73,7 @@ function pistolIntent(g,intent){
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
    const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home){target.alerted=true;target.returning=false;}
-   event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',parry:false});
+   event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
    if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
  }
@@ -391,7 +391,7 @@ function knifeReceive(g,hit){
  p.hurtUntil=t+(def?.stagger??.3);p.swing=null;p.buffer=null;p.dodgeUntil=t;p.ready=p.hurtUntil;
  p.response={clip:p.hp?'Hit':'Death',start:t,ticks:p.hp?Math.round((def?.stagger??.3)*60):144};
  if(def?.knockback){const dir=normal(sub(p.pos,hit.origin));moveBody(g,p,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
- event(g,'hit',{actor:p,amount,...meta});
+ event(g,'hit',{actor:p,amount,impactDirection:normal(sub(p.pos,hit.origin)),...meta});
  if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p,...meta});}return true;
 }
 function knifeStepIn(g,e,dt){
@@ -441,7 +441,7 @@ function knifeContacts(g,before){
   else{
    const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home){d.alerted=true;d.returning=false;}
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.hp?'Hit':'Death',start:g.time,ticks:d.hp?Math.round(def.stagger*60):144};
-   event(g,'hit',{actor:d,amount,...hitMetadata(a,d,def)});
+   event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
    if(d.hp<=0)kill(g,d,{...hitMetadata(a,d,def),impactDirection:sub(after.get(d.id).pos,after.get(a.id).pos)});
   }

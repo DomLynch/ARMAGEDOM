@@ -13,13 +13,24 @@ export function donorCues(events) {
   return [...impacts,...air];
 }
 export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
-  let context=null,enabled=true,buffer=null,manifest=null,loading=null,aborter=null,generation=0,error=null;
+  let context=null,enabled=true,buffer=null,manifest=null,loading=null,aborter=null,generation=0,error=null,mode='high',noiseBuffer=null,output=null,played=0,shotEvents=0,hitEvents=0,killEvents=0;
   const active=new Set(),lastVariants=new Map();
   function stop() {
     generation++;aborter?.abort();loading=null;
-    for(const voice of active){try{voice.source.stop();}catch{}voice.source.disconnect();voice.gain.disconnect();}
+    for(const voice of active){try{voice.source.stop();}catch{}voice.cleanup();}
     active.clear();
   }
+  const effectiveMode=()=>mode==='off'?'off':mode==='high'&&!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false)?'high':'low';
+  function emit(source,duration,volume,filter=null,offset=null){
+    if(active.size>=16){source.disconnect();filter?.disconnect();return;}
+    if(!output){output=context.createGain();output.gain.value=.65;output.connect(context.destination);}
+    const gain=context.createGain(),at=context.currentTime;gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(volume*(effectiveMode()==='low'?.4:1),at+.002);gain.gain.exponentialRampToValueAtTime(.0001,at+duration);
+    source.connect(filter??gain);if(filter)filter.connect(gain);gain.connect(output);let ended=false;const voice={source,gain,filter,cleanup(){if(ended)return;ended=true;source.onended=null;active.delete(voice);source.disconnect();filter?.disconnect();gain.disconnect();}};active.add(voice);played++;
+    source.onended=voice.cleanup;
+    if(offset===null){source.start(at);source.stop(at+duration+.01);}else source.start(at,offset,duration);
+  }
+  function tone(from,to,duration,gain,type='triangle'){if(active.size>=16)return;const source=context.createOscillator();source.type=type;source.frequency.setValueAtTime(from,context.currentTime);source.frequency.exponentialRampToValueAtTime(to,context.currentTime+duration);emit(source,duration,gain);}
+  function noise(duration,gain,frequency){if(active.size>=16)return;if(!noiseBuffer){noiseBuffer=context.createBuffer(1,Math.ceil(context.sampleRate*.16),context.sampleRate);const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;}const source=context.createBufferSource(),filter=context.createBiquadFilter();source.buffer=noiseBuffer;filter.type='highpass';filter.frequency.value=frequency;emit(source,duration,gain,filter);}
   async function load() {
     const token=generation;aborter=new AbortController();const signal=aborter.signal;
     const url=new URL('audio/manifest.json',baseUrl),response=await fetch(url,{signal});
@@ -31,7 +42,7 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
     manifest=next;buffer=decoded;return true;
   }
   return {
-    get state(){return {ready:!!buffer,context:context?.state??'locked',enabled,activeVoices:active.size,error};},
+    get state(){return {ready:!!buffer,context:context?.state??'locked',enabled,activeVoices:active.size,voiceCapacity:16,mode:effectiveMode(),played,shotEvents,hitEvents,killEvents,noiseCached:!!noiseBuffer,error};},
     async unlock() {
       const token=generation;
       try {
@@ -51,25 +62,27 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
     },
     play(events) {
       if(!enabled||!buffer||context?.state!=='running')return;
-      for(const event of events)if(event.type==='shot'||event.type==='pickup'){
-        const source=context.createOscillator(),gain=context.createGain(),at=context.currentTime,duration=event.type==='shot'?.09:.16;
-        source.type=event.type==='shot'?'sawtooth':'sine';source.frequency.setValueAtTime(event.type==='shot'?180:660,at);source.frequency.exponentialRampToValueAtTime(event.type==='shot'?35:880,at+duration);
-        gain.gain.setValueAtTime(event.type==='shot'?.07:.025,at);gain.gain.exponentialRampToValueAtTime(.001,at+duration);source.connect(gain);gain.connect(context.destination);
-        const voice={source,gain};active.add(voice);source.onended=()=>{active.delete(voice);source.disconnect();gain.disconnect();};source.start(at);source.stop(at+duration);
+      try{
+      const id=e=>e.actor?.id??e.victimId,killed=new Set(events.filter(e=>e.type==='death'&&e.weapon==='pistol'&&id(e)!=null).map(id)),playedLethal=new Set(),off=effectiveMode()==='off';
+      function hitCue(lethal,countHit=true){if(countHit)hitEvents++;if(lethal)killEvents++;if(off)tone(lethal?1450:1000,lethal?550:800,lethal?.09:.035,.062,'sine');else{tone(lethal?160:280,lethal?55:130,lethal?.14:.065,.16);noise(lethal?.085:.03,.1,1700);if(lethal)tone(1000,1500,.09,.065,'sine');}}
+      for(const event of events){
+        if(event.type==='shot'){shotEvents++;tone(off?240:220,off?55:48,off?.08:.11,off?.085:.22);if(!off)noise(.065,.15,900);}
+        else if(event.type==='pickup')tone(660,880,.16,.025,'sine');
+        else if(event.type==='hit'&&!event.blocked&&event.amount>0&&event.weapon==='pistol'){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}
       }
-      for(const cue of donorCues(events)) {
+      for(const key of killed)if(!playedLethal.has(key))hitCue(true,false);
+      for(const cue of donorCues(events.filter(e=>e.weapon!=='pistol'))) {
         const variants=manifest.cues[cue.name];if(!variants?.length)continue;
         // Rotate existing takes without repeating the preceding take; no new sound/pitch layers.
         const index=((lastVariants.get(cue.name)??-1)+1)%variants.length;lastVariants.set(cue.name,index);
-        const [offset,duration]=variants[index],source=context.createBufferSource(),gain=context.createGain();
-        source.buffer=buffer;gain.gain.value=cue.gain;source.connect(gain);gain.connect(context.destination);
-        const voice={source,gain};active.add(voice);
-        source.onended=()=>{active.delete(voice);source.disconnect();gain.disconnect();};source.start(context.currentTime,offset,duration);
+        if(active.size>=16)continue;const [offset,duration]=variants[index],source=context.createBufferSource();source.buffer=buffer;emit(source,duration,cue.gain,null,offset);
       }
+      }catch(e){error=e.message;stop();}
     },
+    setMode(value){mode=['high','low','off'].includes(value)?value:'low';stop();},
     setEnabled(value){enabled=!!value;if(!enabled)stop();},
     pause(){stop();return context?.suspend();},
     reset(){stop();lastVariants.clear();},
-    dispose(){stop();buffer=null;manifest=null;return context?.close();}
+    dispose(){stop();buffer=noiseBuffer=null;manifest=null;output?.disconnect();output=null;return context?.close();}
   };
 }

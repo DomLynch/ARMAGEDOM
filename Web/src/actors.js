@@ -1,3 +1,5 @@
+import {attachPistolSlide} from './pistol-slide.js';
+import {createHitReaction} from './combat-impact.js';
 import {createFinisherPresentation} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
@@ -99,6 +101,8 @@ function shadowTexture() {
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   const faceKits=new Map();
+  let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+  const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -183,7 +187,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       description,
       locomotionVariant: hollowLocomotionFor(entity),
       palette,
-      pistolMount,knife,
+      pistolMount,pistolSlide:attachPistolSlide(pistolMount),knife,hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()}),
     };
     views.set(entity.id, view);
     try {
@@ -209,6 +213,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     if (!view) return;
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
+    view.pistolSlide.dispose();
     view.appearance?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
@@ -224,10 +229,14 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   }
   return {
     views,
+    configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.pistolSlide.reset();}},
+    resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.pistolSlide.reset();}},
+    events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
     },
     update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false}={}) {
+      if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
@@ -259,11 +268,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
           deathPose,
         );
+        const reaction=view.hitReaction.update(view.hitReactionFresh?0:presentationDt,{paused:presentationDt===0});
+        view.hitReactionFresh=false;
+        // Living flinch and native corpse pose share this sole render transform owner.
+        if(entity.hp>0){const lean=reaction.energy*.30;view.root.rotation.x=-reaction.z*lean;view.root.rotation.z=-reaction.x*lean;const flinch={x:entity.pos.x+reaction.x*reaction.energy*.10,z:entity.pos.z+reaction.z*reaction.energy*.10};if((!world.geometry?.clear||world.geometry.clear(flinch,entity.radius))&&(!world.lineClear||world.lineClear(entity.pos,flinch)))view.root.position.copy(world.toRender(flinch));}else{view.root.rotation.x=view.root.rotation.z=0;}
         if(deathPose){view.root.position.x+=deathPose.offset.x;view.root.position.z-=deathPose.offset.z;view.root.updateMatrixWorld(true);}
         if(view.pistolMount){
           const holding=entity.weapon==='pistol',pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;
           if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:pistolRecoil});
+          view.pistolSlide.setRecoil(pose?pistolRecoil:0);
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);

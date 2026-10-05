@@ -39,8 +39,8 @@ test('no-drag fire stays on current direction without wide acquisition',()=>{con
 test('loaded cooldown rejects input without restarting actual-shot recoil or queuing a shot',()=>{
  const {g,e,world}=fixture();e.pos={x:0,z:-1};const scene=new THREE.Scene(),fx=createEffects(scene,world);
  tick(g,{actions:['fire'],aim:{x:0,z:1},manualPistolAim:true});fx.events(g);const first=g.time,deadline=g.pistol.nextFireAt;assert.equal(g.pistol.magazine,5);assert.equal(fx.pistolRecoil(g),1);
- for(let i=0;i<18;i++){tick(g,{actions:['fire'],manualPistolAim:true,aim:{x:0,z:1}});assert.equal(g.events.some(e=>e.type==='shot'),false);fx.events(g);assert.equal(g.pistol.magazine,5);assert.equal(g.pistol.nextFireAt,deadline);assert.ok(Math.abs(fx.pistolRecoil(g)-Math.max(0,1-(g.time-first)/.12))<1e-8);}
- while(g.time<=deadline){tick(g);fx.events(g);assert.equal(g.events.some(e=>e.type==='shot'),false);}
+ for(let i=0;i<18;i++){fx.advance(1/60);tick(g,{actions:['fire'],manualPistolAim:true,aim:{x:0,z:1}});assert.equal(g.events.some(e=>e.type==='shot'),false);fx.events(g);assert.equal(g.pistol.magazine,5);assert.equal(g.pistol.nextFireAt,deadline);assert.ok(Math.abs(fx.pistolRecoil(g)-Math.exp(-(g.time-first)*12))<1e-8);}
+ while(g.time<=deadline){fx.advance(1/60);tick(g);fx.events(g);assert.equal(g.events.some(e=>e.type==='shot'),false);}
  assert.equal(g.pistol.magazine,5);assert.equal(fx.pistolRecoil(g),0);
  tick(g,{actions:['fire'],manualPistolAim:true,aim:{x:0,z:1}});assert.equal(g.events.filter(e=>e.type==='shot').length,1);fx.events(g);assert.equal(g.pistol.magazine,4);assert.equal(fx.pistolRecoil(g),1);fx.dispose();
 });

@@ -29,7 +29,13 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)))});
  const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
- const actors=createActors(new THREE.Scene(),world,{models,manifest,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
+ const pistolAsset=await loadGeometry(fs.readFileSync(new URL('assets/pistol/pistol.glb',publicRoot)));
+ const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
+ const playerView=actors.views.get(0);assert.equal(playerView.pistolSlide.supported,true);
+ game.player.weapon='pistol';actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);
+ const slideMaterial=playerView.pistolSlide.slide.children[0].material;assert.ok(playerView.materials.some(m=>m.material===slideMaterial),'slide borrows the actor private material');
+ actors.update(game,0,.4);assert.ok(Math.abs(playerView.pistolSlide.slide.position.z+.0048)<1e-9);
+ actors.resetFeedback();assert.equal(playerView.pistolSlide.slide.position.z,0);game.player.weapon='knife';actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,0,'holstered slide remains at rest');
  assert.equal(game.enemies.length,3);const views=game.enemies.map(e=>actors.views.get(e.id));assert.equal(new Set(views.map(v=>v.root)).size,3);assert.equal(new Set(views.map(v=>v.motion.mixer)).size,3);
  for(const view of views){assert.equal(view.root.name,'hollow-scavenger');assert.equal(view.root.scale.x,1.265*1.3225);assert.equal(view.model.getObjectByName('WeaponDrawn').parent.name,'hand_r');}
  const paletteColors=views.map(view=>view.materials.filter(m=>Object.values(HOLLOW_GARMENTS).includes(m.material.name)).map(m=>({name:m.material.name,rgb:m.material.color.toArray()})));
@@ -72,6 +78,16 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
  actors.update(game,0);
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
+ // Controlled actual-rig feedback: one owner composes render flinch without
+ // changing logical positions or advancing/fighting the complete finisher clock.
+ const receiver=game.enemies[0],rendered=actors.views.get(receiver.id),origin=world.toRender(receiver.pos),logical={...receiver.pos};
+ actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});
+ assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8);assert.ok(Math.abs(rendered.root.rotation.z+.30)<1e-8);assert.deepEqual(receiver.pos,logical);
+ actors.update(game,0,0,{presentationDt:0});assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8,'paused repeat does not accumulate root offset');
+ world.geometry.clear=()=>false;actors.update(game,0,0,{presentationDt:0});assert.ok(rendered.root.position.equals(origin),'registered wall suppresses visual offset');world.geometry.clear=()=>true;
+ actors.configureFeedback('low');actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(Math.abs(rendered.root.position.x-origin.x-.04)<1e-8);
+ actors.configureFeedback('off');actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(rendered.root.position.equals(origin));actors.configureFeedback('high');actors.resetFeedback();actors.update(game,0);
+
  const gun=game.enemies.shift(),gunView=actors.views.get(gun.id);gun.finisher=selectFinisher({victimId:gun.id,lethal:true,weapon:'pistol',impactDirection:{x:1,z:0}},{support:gun.finisherSupport,budget:2,ordinal:1});gun.hp=0;gun.response={start:game.time,ticks:144,clip:'Death'};game.corpses.push(gun);actors.update(game,0);
  const native=v=>v.motion.native??v.motion;assert.equal(native(gunView).currentClip,'Hit');
  const half=gun.finisherSupport[0].reactionSeconds/2;game.time+=half;actors.update(game,half);assert.equal(native(gunView).currentClip,'Hit');assert.ok(Math.abs(native(gunView).currentPhase-.5)<1e-6);assert.ok(Math.abs(gunView.root.position.x-world.toRender(gun.pos).x-.1)<1e-6);

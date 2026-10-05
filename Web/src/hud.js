@@ -1,6 +1,6 @@
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
-export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
+export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFeedback = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
   let loaded = false,
@@ -35,6 +35,8 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
     el("sound").setAttribute("aria-pressed", String(sound));
     onSound(sound);
   };
+  const feedback=el('feedback-mode');
+  feedback.onchange=()=>onFeedback(feedback.value);
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", pause);
   resize();

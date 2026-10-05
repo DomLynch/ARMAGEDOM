@@ -30,8 +30,8 @@ export function applyPistolAim(model,mount,{recoil=0}={}){
   const curl=finger==='index'?[.15,.48,.45][part-1]:[.75,1.05,.85][part-1];
   bone.quaternion.setFromEuler(new T.Euler(0,part===1?-Math.PI/2:0,-curl,'YXZ'));
  }
- const gunQ=basis.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(-Math.max(0,Math.min(1,recoil))*.10,0,0)));
- const grip=hand.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.045,.13).multiplyScalar(scale).applyQuaternion(basis));
+ const gunQ=basis.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(-Math.max(0,Math.min(1,recoil))*.22,0,0)));
+ const grip=hand.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.045,.13-Math.max(0,Math.min(1,recoil))*.11).multiplyScalar(scale).applyQuaternion(basis));
  mount.position.copy(model.worldToLocal(grip));mount.quaternion.copy(model.getWorldQuaternion(new T.Quaternion()).invert().multiply(gunQ));
  model.updateWorldMatrix(true,true);model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});return mount.getObjectByName('Muzzle');
 }

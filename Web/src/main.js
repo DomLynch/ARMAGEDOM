@@ -43,7 +43,7 @@ function updateSupplies(){
  }
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
-function cancelPistol(g){resetMobileControls(g);g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g,{paused:true});}
+function cancelPistol(g){resetMobileControls(g);actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g,{paused:true});}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -96,6 +96,7 @@ function pause(value) {
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : frame);
 }
 const hud = createHUD({
+  onFeedback:mode=>{effects?.configureFeedback(mode);actors?.configureFeedback(mode);audio.setMode?.(mode);},
   onRetry: restart,
   onPause: pause,
   onPistol: () => {
@@ -218,6 +219,7 @@ function frame(ms) {
   const elapsed = last ? Math.max(0, (ms - last) / 1000) : 0, dt = Math.min(0.1, elapsed);
   last = ms;
   if (!world || !game || contextLost) return;
+  effects?.advance(elapsed,{paused:paused||traveling});
   if (loaded && !paused && !traveling && !game.finished) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
@@ -228,6 +230,7 @@ function frame(ms) {
       collectNearbyVest(game,persistRun);
       persistRun(game);
       effects.events(game);
+      actors?.events(game);
       audio.play(game.events);
       accumulator -= 1 / 60;
       const request = world.travelAt(game.player.pos);
@@ -251,12 +254,12 @@ function frame(ms) {
   updateSupplies();
   updateVestBag();
   actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0,{presentationDt:paused||traveling?0:elapsed});
-  effects?.update(game,{paused:paused||traveling,visibleIds:combatVisibleIds(),viewportHeight:canvas.clientHeight});
+  effects?.update(game,{paused:paused||traveling,visibleIds:combatVisibleIds(),viewportHeight:canvas.clientHeight,viewportWidth:canvas.clientWidth});
   rim.position
     .copy(world.toRender(game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));
   hud.update(game);
-  if(effects)effects.render(renderer,camera,game,canvas.clientHeight);else renderer.render(scene,camera);
+  if(effects)effects.render(renderer,camera,game,canvas.clientHeight,canvas.clientWidth);else renderer.render(scene,camera);
 }
 async function crossArea(request) {
   traveling = true;
