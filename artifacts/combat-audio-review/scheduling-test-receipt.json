@@ -1,0 +1,8 @@
+{
+  "testSHA256": "3e7f254cd71767d3ef1700751b9711aa59fc936f46075e5601f65c9311228288",
+  "targetSourceSHA256": "80955ff9c36668c2d8ba33e538a9f20f1b204ed0978f1a16a49766b3b1c435aa",
+  "tests": 8,
+  "exit_code": 0,
+  "scope": "injected WebAudio scheduling tests on046WIP; no ear/browser/device claim",
+  "command": "COMBAT_AUDIO_MODULE=file:///.../web-ui-hollow/Web/src/donor-audio.js node --test Web/tests/combat-audio-lifecycle.test.js"
+}

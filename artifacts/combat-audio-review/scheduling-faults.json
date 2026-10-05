@@ -1,0 +1,26 @@
+[
+  {
+    "fault": "cap-removed",
+    "exit_code": 1
+  },
+  {
+    "fault": "double-cleanup",
+    "exit_code": 1
+  },
+  {
+    "fault": "low-not-attenuated",
+    "exit_code": 1
+  },
+  {
+    "fault": "duplicate-lethal",
+    "exit_code": 1
+  },
+  {
+    "fault": "death-only-silent",
+    "exit_code": 1
+  },
+  {
+    "fault": "per-shot-noise-buffer",
+    "exit_code": 1
+  }
+]

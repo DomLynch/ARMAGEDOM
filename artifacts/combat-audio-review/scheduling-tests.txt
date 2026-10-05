@@ -1,0 +1,16 @@
+✔ locked/muted/unavailable audio plays nothing and failed unlock is contained (1.234083ms)
+✔ one context/noise cache and16source cap across rapid pistol and melee events (2.622209ms)
+✔ High/Low/Off and reduced motion give distinct actual gains/layers (0.443209ms)
+✔ reset/mute/pause/dispose tolerate late onended and reconnect one output only (0.412208ms)
+✔ mute independent ofFX mode; optional sources stay stopped until reenabled (0.219958ms)
+✔ pistol nonlethal and lethal pair replaceWAV, one killcue even with duplicate hit (0.262292ms)
+✔ accepted pistol death-only emits killcue once per distinct victim (0.441917ms)
+✔ zero/blocked pistol hits silent; melee keeps exactly one originalWAV (0.201709ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.616416
