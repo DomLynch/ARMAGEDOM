@@ -64,6 +64,7 @@ function pause(value) {
   last = 0;
   input?.clear();
   if (game) {
+    if (game.player.swing) game.player.swing.turnTo = null;
     game.player.buffer = null;
     game.player.guarding = false;
     game.player.parryUntil = 0;
@@ -138,6 +139,7 @@ function resize() {
     atmosphere?.update(0, {paused: true});
   }
   input?.clear();
+  if (game?.player.swing) game.player.swing.turnTo = null;
   if (game?.pistol) cancelPistol(game);
   accumulator = 0;
   hud.resize();
