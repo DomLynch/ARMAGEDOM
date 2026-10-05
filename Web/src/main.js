@@ -165,7 +165,7 @@ function intent() {
     value = {
       ...raw,
       manualPistolAim: !!raw.fireAim,
-      pistolVisibleIds: game.pistol?.equipped ? game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id) : undefined,
+      combatVisibleIds: game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id),
       move: toDomain(raw.move),
       aim: game.pistol?.equipped ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };

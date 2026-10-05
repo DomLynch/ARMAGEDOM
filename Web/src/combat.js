@@ -1,6 +1,6 @@
 import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
-import {selectPistolTarget} from './pistol-targeting.js';
-import {createPistolState, stepPistol} from './pistol.js';
+import {selectCombatTarget,PISTOL_TARGETING} from './pistol-targeting.js';
+import {createPistolState, stepPistol,tracePistol,PISTOL_RULES} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
@@ -12,6 +12,7 @@ export const attacks={
 };
 const EPS=1e-8,mag=v=>Math.hypot(v.x,v.z),sub=(a,b)=>({x:a.x-b.x,z:a.z-b.z});
 export function normal(v,fallback={x:0,z:1}){const n=mag(v);return n>.001?{x:v.x/n,z:v.z/n}:{...fallback};}
+const validDirection=v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&mag(v)>.001;
 const dot=(a,b)=>a.x*b.x+a.z*b.z;
 const inside=(dir,delta,arc)=>mag(delta)<.001||dot(normal(dir),normal(delta))+EPS>=Math.cos(arc*Math.PI/360);
 const rotate=(v,angle)=>({x:v.x*Math.cos(angle)+v.z*Math.sin(angle),z:v.z*Math.cos(angle)-v.x*Math.sin(angle)});
@@ -38,18 +39,24 @@ function pistolIntent(g,intent){
  if(!g.pistol)return intent;
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
- const explicit=!!intent.manualPistolAim&&Number.isFinite(intent.aim?.x)&&Number.isFinite(intent.aim?.z)&&mag(intent.aim)>.001;
- const reference=explicit?normal(intent.aim):mag(intent.move??{x:0,z:0})>.01?normal(intent.move):{...p.facing},switchTarget=!!g.pistolTargetFacing&&dot(reference,g.pistolTargetFacing)<Math.cos(Math.PI/30);
- const target=firing&&canAct&&explicit&&!intent.cancel?selectPistolTarget({position:p.pos,aim:reference,targets:g.enemies.filter(e=>!intent.pistolVisibleIds||intent.pistolVisibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),retainedTargetId:g.pistolTargetId,switchTarget}):null;
- if(target&&(switchTarget||g.pistolTargetId!==target.targetId))g.pistolTargetFacing={...reference};
- g.pistolTargetId=target?.targetId??null;
- if(!target)g.pistolTargetFacing=null;
- const aim=target?.direction??reference;
- const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim,
+ const explicit=validDirection(intent.aim);
+ const moving=mag(intent.move??{x:0,z:0})>.01;
+ const reference=explicit?normal(intent.aim):moving?normal(intent.move):g.pistolUserFacing??{...p.facing};
+ // Preserve unassisted user intent between shots, never a resolved target bearing.
+ if(wasEquipped)g.pistolUserFacing={...reference};
+ g.pistolTargetId=null;g.pistolTargetFacing=null;
+ let shotDirection=null;
+ const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:reference,
   collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
   fire:firing,cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
- for(const e of result.events){
+ for(let e of result.events){
+  if(e.type==='shot'){
+   const selected=selectCombatTarget({position:e.origin,aim:reference,range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees,areaId:g.world.areaId,
+    targets:g.enemies.filter(t=>!(intent.combatVisibleIds??intent.pistolVisibleIds)|| (intent.combatVisibleIds??intent.pistolVisibleIds).includes(t.id)),lineClear:(a,b)=>g.world.lineClear(a,b)});
+   if(selected)e={...e,...tracePistol(e.origin,selected.direction,g.enemies,(a,b)=>g.world.lineClear(a,b))};
+   shotDirection=e.direction;
+  }
   event(g,e.type,{...e,actor:p});
   if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Drag Fire to aim; hold to shoot. Mouse aims on desktop.');
   if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
@@ -62,22 +69,26 @@ function pistolIntent(g,intent){
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
- if(!g.pistol.equipped){g.pistolTargetId=null;}
- if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,aim,guard:false,guardPressed:false,actions:[],held:[]};}
+ if(!wasEquipped&&g.pistol.equipped)g.pistolUserFacing={...reference};
+ if(!g.pistol.equipped){g.pistolUserFacing=null;}
+ if(wasEquipped||g.pistol.equipped){p.buffer=null;p.guarding=false;p.parryUntil=0;return {...intent,aim:shotDirection??(explicit||moving?reference:null),guard:false,guardPressed:false,actions:[],held:[]};}
  return {...intent,actions:actions.filter(a=>a!=='pickup')};
 }
 function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // World owns static collision.
  for(const other of [g.player,...g.enemies]){if(other===body||other.hp<=0)continue;const delta=sub(next,other.pos),n=mag(delta),r=body.radius+other.radius;if(n<r&&n>.001){next=g.world.move(body.pos,{x:next.x-body.pos.x+delta.x/n*(r-n),z:next.z-body.pos.z+delta.z/n*(r-n)},body.radius);}}
  body.pos=next;
 }
-export function attack(g,action,direction=g.player.facing){const p=g.player,def=g.pilot?knifeMove(p,action):attacks[action];
+export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.player,def=g.pilot?knifeMove(p,action):attacks[action];
  if(p.weapon==='pistol'||!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
+ const windupTicks=def.windupTicks??Math.floor(def.windup*60),range=def.range*(g.pilot?p.combatScale:1)+(g.pilot?R.walkSpeed*def.stepIn*Math.max(0,windupTicks-R.stepInFrom-1)/60:0);
+ const selected=selectCombatTarget({position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,coneDegrees:45,areaId:g.world.areaId});
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;}
+ if(selected){p.swing.turnTo={...selected.direction};p.swing.assistUntil=g.time+Math.min(def.windup-1/60,8/60);}
  if(action==='heavy')p.heavyReady=g.time+def.cooldown;if(action==='special')p.specialReady=g.time+def.cooldown;
  g.started=true;event(g,'attack',{actor:p,action,...(g.pilot?{moveId:def.moveId,clip:def.clip,weapon:'knife',material:'iron'}:{})});return true;
 }
@@ -137,8 +148,8 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  if(l.kind===0){const pct=.1+l.tier*.025;p.damage*=1+pct;p.weaponLevel++;notify(g,`BLADE +${Math.round(pct*100)}% damage`);}
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};intent=pistolIntent(g,intent);
- if(intent.dodge)dodge(g,move,intent.aim);
+export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};
+ if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
  if(g.pilot)knifeGuard(g,intent,swinging,dodging);else if(p.guarding&&intent.guardPressed)p.parryUntil=t+.16;if(!g.pilot&&!p.guarding)p.parryUntil=0;
@@ -147,9 +158,15 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  else if(!intent.guard&&t>=p.guardRecoverAt&&t>=p.guardBrokenUntil)p.guard=Math.min(100,p.guard+35*dt);
  if(intent.aim&&mag(intent.aim)>.001&&!swinging&&!dodging)p.facing=normal(intent.aim);
  if(p.buffer&&t>p.buffer.until)p.buffer=null;
- const priority=['special','heavy','stab','slash'],fresh=[...(intent.actions??[])].sort((a,b)=>priority.indexOf(a)-priority.indexOf(b));for(const action of fresh){const buffer=p.buffer;if(attack(g,action,intent.aim??p.facing)||p.buffer!==buffer)break;}
- if(!dodging&&p.buffer&&t+EPS>=p.ready){const buffer=p.buffer;p.buffer=null;attack(g,buffer.action,buffer.dir);}
- if(!fresh.length)for(const a of ['stab','slash'])if(intent.held?.includes(a)&&attack(g,a,intent.aim??p.facing))break;
+ const attackDirection=validDirection(intent.aim)?normal(intent.aim):mag(move)>.01?normal(move):p.facing;
+ const visibleIds=intent.combatVisibleIds??intent.pistolVisibleIds;
+ const priority=['special','heavy','stab','slash'],fresh=[...(intent.cancel?[]:intent.actions??[])].sort((a,b)=>priority.indexOf(a)-priority.indexOf(b));for(const action of fresh){const buffer=p.buffer;if(attack(g,action,attackDirection,visibleIds)||p.buffer!==buffer)break;}
+ if(!dodging&&p.buffer&&t+EPS>=p.ready){const buffer=p.buffer;p.buffer=null;attack(g,buffer.action,attackDirection,visibleIds);}
+ if(!intent.cancel&&!fresh.length)for(const a of ['stab','slash'])if(intent.held?.includes(a)&&attack(g,a,attackDirection,visibleIds))break;
+ if(p.swing?.turnTo){
+  p.facing=turn(p.facing,p.swing.turnTo,360*dt);p.swing.dir={...p.facing};
+  if(t+EPS>=p.swing.assistUntil)p.swing.turnTo=null;
+ }
  if(!g.pilot&&p.swing&&!p.swing.resolved&&t+EPS>=p.swing.hitAt){p.swing.resolved=true;strike(g,p.swing);}
  if(!g.pilot&&p.swing&&t+EPS>=p.swing.end)p.swing=null;
  if(!g.finished){if(dodging)moveBody(g,p,{x:p.dodgeDirection.x*(g.pilot?R.rollSpeed:16)*dt,z:p.dodgeDirection.z*(g.pilot?R.rollSpeed:16)*dt});

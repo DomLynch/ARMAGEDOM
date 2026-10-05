@@ -8,15 +8,15 @@ function fixture(){
  const g=createGame(world,{pilot:'donor-knife',pistol:true});tick(g,{actions:['pickup']});
  const e=Object.assign(enemy(0,{x:2,z:-2}),{staggerUntil:100});g.enemies=[e];g.wave=1;return {g,e,world};
 }
-test('explicit near-aligned Fire nudges aim, marker and shot agree, release clears lock',()=>{
+test('accepted near-aligned Fire nudges barrel with forward feedback and no target lock',()=>{
  const {g,e,world}=fixture();tick(g,{actions:['fire'],manualPistolAim:true,aim:{x:2,z:4}});const shot=g.events.find(e=>e.type==='shot');
- assert.equal(shot.targetId,e.id);assert.equal(e.hp,30);assert.equal(g.pistolTargetId,e.id);
+ assert.equal(shot.targetId,e.id);assert.equal(e.hp,30);assert.equal(g.pistolTargetId,null);
  assert.deepEqual(g.player.facing,shot.direction);assert.equal(g.pistol.magazine,5);
  const scene=new THREE.Scene(),fx=createEffects(scene,world);fx.update(g);
- const marker=scene.children.find(o=>o.name==='Pistol aim marker');assert.equal(marker.visible,true);assert.deepEqual(marker.position.toArray(),[e.pos.x,0,-e.pos.z]);assert.equal(marker.children.find(o=>o.isMesh).visible,true);
+ const marker=scene.children.find(o=>o.name==='Pistol aim marker');assert.equal(marker.visible,true);assert.deepEqual(marker.position.toArray(),[g.player.pos.x+g.player.facing.x*4,0,-(g.player.pos.z+g.player.facing.z*4)]);assert.equal(marker.children.find(o=>o.isMesh).visible,false);
  tick(g);fx.update(g);assert.equal(g.pistolTargetId,null);assert.equal(marker.children.find(o=>o.isMesh).visible,false);assert.equal(g.pistol.magazine,5);fx.dispose();assert.equal(scene.children.length,0);
 });
-test('retained target cannot rotate the reference cone behind player; manual override wins',()=>{
+test('each actual shot uses deliberate intent; behind target and manual override cannot retain a lock',()=>{
  const {g,e}=fixture();tick(g,{held:['fire'],manualPistolAim:true,aim:{x:2,z:4}});e.pos={x:0,z:-8};tick(g,{held:['fire'],manualPistolAim:true,aim:{x:0,z:1}});
  assert.equal(g.pistolTargetId,null);assert.deepEqual(g.player.facing,{x:0,z:1});assert.equal(e.hp,30);
  e.pos={x:2,z:-2};while(g.time<=g.pistol.nextFireAt)tick(g);
@@ -25,12 +25,12 @@ test('retained target cannot rotate the reference cone behind player; manual ove
  tick(g,{held:['fire'],cancel:true});assert.equal(g.pistolTargetId,null);assert.ok(!g.events.some(e=>e.type==='shot'));
 });
 
-test('gradual deliberate steering releases the old lock just like a single turn',()=>{
+test('gradual deliberate steering wins without tracking a target during cooldown',()=>{
  const {g,e}=fixture();e.pos={x:0,z:-1};e.hp=e.maxHP=1000;
  const angle=15*Math.PI/180,other=Object.assign(enemy(0,{x:Math.sin(angle)*5,z:-6+Math.cos(angle)*5}),{hp:1000,maxHP:1000,staggerUntil:100});g.enemies.push(other);
- tick(g,{held:['fire'],manualPistolAim:true,aim:{x:0,z:1}});assert.equal(g.pistolTargetId,e.id);
+ tick(g,{held:['fire'],manualPistolAim:true,aim:{x:0,z:1}});assert.equal(g.pistolTargetId,null);
  for(let degrees=1;degrees<=15;degrees++){const a=degrees*Math.PI/180;tick(g,{held:['fire'],manualPistolAim:true,aim:{x:Math.sin(a),z:Math.cos(a)}});}
- assert.equal(g.pistolTargetId,other.id);
+ assert.equal(g.pistolTargetId,null);assert.ok(Math.abs(Math.atan2(g.player.facing.x,g.player.facing.z)*180/Math.PI-15)<1e-8);assert.equal(g.pistol.magazine,5);assert.equal(other.hp,1000);
 });
 
 test('no-drag fire stays on current direction without wide acquisition',()=>{const {g,e}=fixture();tick(g,{actions:['fire']});const shot=g.events.find(e=>e.type==='shot');assert.equal(shot.targetId,null);assert.equal(g.pistolTargetId,null);assert.deepEqual(shot.direction,{x:0,z:1});assert.equal(e.hp,55);assert.equal(g.pistol.magazine,5);});
