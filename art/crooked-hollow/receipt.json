@@ -1,0 +1,28 @@
+{
+  "base": "79f88419e28a53e4f792edf5b94eb48b329f41b5",
+  "files": {
+    "Web/src/crooked-hollow.js": {
+      "bytes": 5743,
+      "sha256": "5e092312facf6752eccb0d48e22fd0101dcbc28c2b82207def2fdc6544621356"
+    },
+    "Web/tests/crooked-hollow.test.js": {
+      "bytes": 5609,
+      "sha256": "25a775a9309cb995c8e15dcf8a8bf6407d1a831815c64b4096dd411e24ad5f44"
+    },
+    "art/crooked-hollow/proof/crooked-hollow.mp4": {
+      "bytes": 288078,
+      "sha256": "a003535f4ed0360137b4a6a04078bcfff6511dabb4c93b37338d07941d62dc01"
+    }
+  },
+  "bodySha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "knifeSha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec",
+  "captureJob": "/srv/dev-jobs/job-input-4103b842bbb1",
+  "captureExit": 0,
+  "captureSeconds": 49.03,
+  "focusedFinalJob": "/srv/dev-jobs/job-input-a5d313acfc91",
+  "focusedExit": 0,
+  "focusedSeconds": 4.01,
+  "focusedTests": 7,
+  "integratedNormalPlay": "pending WebUI",
+  "publicationAndPhone": "pending"
+}

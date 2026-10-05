@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: deep fold lowers head, hangs hands, and restoration returns the actual rig exactly
+ok 1 - deep fold lowers head, hangs hands, and restoration returns the actual rig exactly
+  ---
+  duration_ms: 38.155953
+  type: 'test'
+  ...
+# Subtest: shuffling is nonlinear, continuous, wraps, and uneven at half-stride
+ok 2 - shuffling is nonlinear, continuous, wraps, and uneven at half-stride
+  ---
+  duration_ms: 0.408116
+  type: 'test'
+  ...
+# Subtest: ground targets remain near native floor with asymmetric shortened steps on actual gait
+ok 3 - ground targets remain near native floor with asymmetric shortened steps on actual gait
+  ---
+  duration_ms: 20.778884
+  type: 'test'
+  ...
+# Subtest: native weapon contact and all reactions stay exact after entering crooked locomotion
+ok 4 - native weapon contact and all reactions stay exact after entering crooked locomotion
+  ---
+  duration_ms: 96.49973
+  type: 'test'
+  ...
+# Subtest: same simulation tick reapply does not accumulate or lose folded posture
+ok 5 - same simulation tick reapply does not accumulate or lose folded posture
+  ---
+  duration_ms: 9.043404
+  type: 'test'
+  ...
+# Subtest: clone independence, root transform preservation and disposal restore
+ok 6 - clone independence, root transform preservation and disposal restore
+  ---
+  duration_ms: 55.605595
+  type: 'test'
+  ...
+# Subtest: native update preserves every knife contact tick after crooked gait and hurt/death transitions
+ok 7 - native update preserves every knife contact tick after crooked gait and hurt/death transitions
+  ---
+  duration_ms: 119.656983
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 851.170576
