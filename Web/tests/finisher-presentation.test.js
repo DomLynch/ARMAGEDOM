@@ -18,7 +18,7 @@ test('player/missing anatomy/missing direction/ineligible pistol cut never detac
  assert.throws(()=>createFinisherPresentation({...fixture(),clips:[]}),TypeError);
 });
 
-test('prepared head uses refreshed world binds, independent owned snapshots and bounded full elapsed motion',()=>{
+for(const recipeId of ['decapitation','pistol-decapitation'])test(`${recipeId} uses refreshed world binds, owned snapshots and bounded elapsed motion`,()=>{
  const f=fixture(),bone=f.model.getObjectByName('Head');bone.position.y=1.7;
  const geometry=new T.CylinderGeometry(.08,.08,.3,12);geometry.translate(0,1.7,0);
  const count=geometry.attributes.position.count,indices=new Uint16Array(count*4),weights=new Float32Array(count*4);
@@ -30,9 +30,12 @@ test('prepared head uses refreshed world binds, independent owned snapshots and 
  f.root.position.set(1,0,6);f.root.scale.setScalar(1.9);
  let borrowedDisposed=0,calls=0;for(const r of [geometry,material,texture])r.addEventListener('dispose',()=>borrowedDisposed++);
  const disposeSkeleton=skeleton.dispose.bind(skeleton);skeleton.dispose=()=>{borrowedDisposed++;disposeSkeleton();};
- const p=createFinisherPresentation({...f,clips,isBlocked:()=>{calls++;return false;}});
- assert.ok(p.support.some(s=>s.id==='decapitation'));
- p.start({recipeId:'decapitation',damageType:'cutting',impactDirection:{x:1,z:0}});
+ const preparedClips=recipeId==='pistol-decapitation'?clips.filter(c=>c.name!=='Death_SplitCrown'):clips;
+ const p=createFinisherPresentation({...f,clips:preparedClips,isBlocked:()=>{calls++;return false;}});
+ assert.ok(p.support.some(s=>s.id===recipeId));
+ if(recipeId==='pistol-decapitation')assert.ok(!p.support.some(s=>s.id==='decapitation'));
+ p.start({recipeId,damageType:recipeId==='pistol-decapitation'?'bullet':'cutting',impactDirection:{x:1,z:0}});
+ if(recipeId==='pistol-decapitation'){assert.equal(p.pose(1/6).clip,'Hit');assert.equal(p.pose(1/6).phase,.5);assert.ok(Math.abs(p.pose(1/3+.6).phase-.25)<1e-12);assert.equal(p.pose(1/3+.6).clip,'Death');}
  const part=f.scene.children.find(o=>o.name==='Prepared detached Hollow head');assert.ok(part);part.updateMatrixWorld(true);
  const source=f.model.getObjectByName('Photo'),copied=part.getObjectByName('Photo');
  assert.notEqual(copied.geometry,geometry);assert.notEqual(copied.material,material);assert.equal(copied.material.map,texture);

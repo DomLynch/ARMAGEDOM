@@ -97,11 +97,12 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=[], bone=model.getObjectByName('Head');
   let head=null, preparationError=null;
-  if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function'&&validDuration(cut)) {
+  if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
     try{head=snapshotHead(model,bone,maxVertices);}catch(error){preparationError=error.message;}
   }
   if(!isPlayer&&validDuration(death)&&validDuration(hit)) support.push({id:'pistol-directional',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:0,parts:[],prepared:true});
-  if(head)support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
+  if(head&&validDuration(hit))support.push({id:'pistol-decapitation',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
+  if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
@@ -112,9 +113,9 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
       if(disposed||chosen)return recipe;
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
       const candidate=support.find(s=>s.id===outcome?.recipeId);
-      const eligible=direction&&candidate&&(candidate.id==='pistol-directional'?outcome.damageType==='bullet':outcome.damageType==='cutting');
+      const eligible=direction&&candidate&&(candidate.id.startsWith('pistol-')?outcome.damageType==='bullet':outcome.damageType==='cutting');
       recipe=eligible?candidate:ordinary(validDuration(death)?death:2.4);
-      if(recipe.id==='decapitation') {
+      if(recipe.parts.includes('head')) {
         root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
         matrix.copy(bone.matrixWorld).multiply(new T.Matrix4().makeTranslation(...head.center.toArray()));
         matrix.decompose(head.group.position,head.group.quaternion,head.group.scale);
@@ -128,14 +129,14 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
     },
     pose(age) {
       const elapsed=Math.max(0,Number.isFinite(age)?age:0);
-      if(recipe.id==='pistol-directional'&&elapsed<hit) {
+      if(recipe.reactionClip==='Hit'&&elapsed<hit) {
         const amount=.1*Math.sin(Math.PI*elapsed/hit), proposed={x:direction.x*amount,z:direction.z*amount};
         const origin={x:root.position.x,z:-root.position.z};
         const offset=typeof isBlocked==='function'&&!isBlocked({x:origin.x+proposed.x,z:origin.z+proposed.z},.2)?proposed:{x:0,z:0};
         return {clip:'Hit',phase:Math.min(.999999,elapsed/hit),offset};
       }
       const offset={x:0,z:0}, clip=recipe.clip, clipSeconds=recipe.id==='decapitation'?cut:death;
-      return {clip,phase:Math.min(.999999,Math.max(0,elapsed-(recipe.id==='pistol-directional'?hit:0))/clipSeconds),offset};
+      return {clip,phase:Math.min(.999999,Math.max(0,elapsed-(recipe.reactionClip==='Hit'?hit:0))/clipSeconds),offset};
     },
     update(age,dt) {
       if(disposed||!detached||expired)return;

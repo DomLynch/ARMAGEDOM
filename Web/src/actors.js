@@ -198,7 +198,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='decapitation'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation'].includes(entity.finisher?.recipeId)),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -247,6 +247,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.root.rotation.y =
           Math.atan2(entity.facing.x, -entity.facing.z) +
           (view.description.forwardCorrection ?? 0);
+        if(entity.hp<=0)view.root.rotation.x=view.root.rotation.z=0;
         view.root.updateMatrixWorld(true);
         let deathPose=null;
         if(entity.hp<=0&&view.finisher&&entity.finisher){

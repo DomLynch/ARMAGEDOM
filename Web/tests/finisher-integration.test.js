@@ -34,3 +34,19 @@ test('pistol-only delivery retains ranged variety and ordinary cutting without h
  const melee=createGame(world,{pilot:'donor-knife',pistol:true,supplies:true,finishers:'pistol-only'});melee.wave=1;melee.started=true;melee.kills=1;melee.finishers.recentRecipeId='ordinary';const cut=victim(melee,'westminster-roamer-5');assert.equal(attack(melee,'slash',{x:0,z:1}),true);for(let i=0;i<20;i++)stepGame(melee);
  assert.equal(cut.hp,0);assert.equal(cut.finisher.recipeId,'ordinary');assert.equal(cut.finisherHeadUntil,undefined);assert.equal(melee.kills,2);
 });
+
+test('confirmed cosmetic pistol death reserves one head; nonlethal, miss and full cap do not',()=>{
+ const gunHead={id:'pistol-decapitation',clip:'Death',seconds:2.733333,cost:1,parts:['head'],prepared:true};
+ for(const occupied of [0,2]){
+  const g=fixture();g.kills=1;g.finishers.recentRecipeId='ordinary';
+  g.corpses=Array.from({length:occupied},(_,i)=>({id:100+i,finisherHeadUntil:100}));
+  const e=victim(g);e.finisherSupport=[...support,gunHead];e.hp=40;
+  fire(g);assert.equal(e.hp,15);assert.equal(e.finisher,undefined);assert.equal(e.finisherHeadUntil,undefined);assert.equal(g.kills,1);
+  Object.assign(g.pistol,{nextFireAt:0});stepGame(g,{actions:['fire'],aim:{x:0,z:-1}});
+  assert.equal(e.hp,15);assert.equal(e.finisher,undefined);assert.equal(g.kills,1);
+  fire(g);assert.equal(e.hp,0);assert.equal(e.finisher.recipeId,occupied?'pistol-directional':'pistol-decapitation');
+  assert.equal(e.finisher.hitRegion,null);assert.equal(g.kills,2);assert.equal(g.events.filter(e=>e.type==='death').length,1);
+  assert.deepEqual(g.supplies.issued,['westminster-roamer-3']);
+  if(!occupied)assert.ok(e.finisherHeadUntil>g.time);
+ }
+});

@@ -113,3 +113,21 @@ test('confirmed native/pistol corpse selection leaves the real once-only kill/re
     assert.equal(g.enemies[0],survivor);assert.equal(g.finished,false);
   }
 });
+
+const gunHead={id:'pistol-decapitation',clip:'Death',seconds:2.733333,cost:1,parts:['head'],prepared:true};
+test('cosmetic gun head is scheduled once per five total kills; fallback and repeat policies retain ordinary mix',()=>{
+ const rows=[{...pistol,cost:0},gunHead];
+ const selected=Array.from({length:20},(_,ordinal)=>choose(context,{support:rows,ordinal}).recipeId);
+ assert.deepEqual(selected.map((id,i)=>id==='pistol-decapitation'?i:null).filter(i=>i!==null),[1,6,11,16]);
+ for(const ordinal of [1,6,11,16]){
+  assert.equal(choose(context,{support:rows,ordinal,budget:0}).recipeId,ordinal%2?'pistol-directional':'ordinary');
+  assert.notEqual(choose(context,{support:rows,ordinal,recentRecipeId:'pistol-decapitation'}).recipeId,'pistol-decapitation');
+  assert.equal(choose(cut,{support:[gunHead],ordinal}).recipeId,'ordinary');
+ }
+ const chosen=choose(context,{support:rows,ordinal:1});assert.equal(chosen.hitRegion,null);
+ assert.equal(choose(context,{support:[],ordinal:0,budget:0,chosen}),chosen);
+ assert.equal(choose({...context,lethal:false},{support:rows,ordinal:1}),null);
+ assert.equal(choose({...context,impactDirection:null},{support:rows,ordinal:1}).recipeId,'ordinary');
+ for(const row of [{...gunHead,prepared:false},{...gunHead,parts:[]},{...gunHead,seconds:NaN}])
+  assert.equal(choose(context,{support:[row],ordinal:1}).recipeId,'ordinary');
+});

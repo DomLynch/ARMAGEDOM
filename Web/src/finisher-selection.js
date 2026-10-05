@@ -1,4 +1,4 @@
-const recipes=[['pistol-directional','bullet',[]],['decapitation','cutting',['head']],
+const recipes=[['pistol-directional','bullet',[]],['pistol-decapitation','bullet',['head']],['decapitation','cutting',['head']],
   ['split-crown','cutting',['crown']],['opened','cutting',['upper-body']],['run-through','piercing',[]]];
 const id=value=>typeof value==='string'&&value.trim().length>0 || Number.isSafeInteger(value)&&value>0;
 const direction=value=>{
@@ -25,6 +25,8 @@ export function selectFinisher(context,{support=[],budget=0,ordinal=0,recentReci
   if(type&&impact&&Array.isArray(support)&&Number.isSafeInteger(budget)&&budget>=0){
     for(const [name,required,parts] of recipes){
       if(required!==type)continue;
+      // Cosmetic only: at most one scheduled head outcome per five confirmed kills.
+      if(name==='pistol-decapitation'&&(!Number.isSafeInteger(ordinal)||ordinal<0||ordinal%5!==1))continue;
       const matches=support.filter(row=>row?.id===name),row=matches.length===1?matches[0]:null;
       if(!row || row.prepared!==true || typeof row.clip!=='string' || !row.clip.trim()
           || !Number.isFinite(row.seconds) || row.seconds<=0 || row.seconds>10
@@ -36,7 +38,7 @@ export function selectFinisher(context,{support=[],budget=0,ordinal=0,recentReci
   }
   const fresh=pool.length>1?pool.filter(row=>row.id!==recentRecipeId):pool;
   const index=Number.isSafeInteger(ordinal)&&ordinal>=0?ordinal%fresh.length:0;
-  const selected=fresh[index];
+  const selected=fresh.find(row=>row.id==='pistol-decapitation')??fresh[index];
   return {version:1,victimId:context.victimId,recipeId:selected.id,damageType:type,
     clip:selected.clip,seconds:selected.seconds,cost:selected.cost,parts:[...selected.parts],
     impactDirection:impact,hitRegion:typeof context.hitRegion==='string'&&context.hitRegion.trim()?context.hitRegion:null};
