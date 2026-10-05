@@ -30,7 +30,9 @@ test('insufficient road space never partly spawns/advances and retries when clea
 });
 function contactGame(){const g=game();spawnWave(g);assert.equal(g.enemies.length,3);const positions=[{x:-.35,z:.95},{x:.35,z:.95},{x:10,z:10}];g.enemies.forEach((e,i)=>{e.pos=positions[i];e.staggerUntil=100;});return g;}
 for(const [action,amount] of [['slash',10],['heavy',14],['special',20]])test(`${action} reaches multiple contacted foes only once each`,()=>{
- const g=contactGame();attack(g,action);ticks(g,32);const damaged=g.enemies.filter(e=>e.hp<40);assert.equal(damaged.length,2);for(const e of damaged)assert.equal(e.hp,40-amount);assert.equal(g.enemies[2].hp,40);assert.equal(g.player.stamina,100-({slash:18,heavy:26,special:40})[action]);
+ // These symmetric fixtures verify native multi-contact, independently of selection.
+ // No viewport-eligible target means the original heading is committed unchanged.
+ const g=contactGame();attack(g,action,g.player.facing,[]);ticks(g,32);const damaged=g.enemies.filter(e=>e.hp<40);assert.equal(damaged.length,2);for(const e of damaged)assert.equal(e.hp,40-amount);assert.equal(g.enemies[2].hp,40);assert.equal(g.player.stamina,100-({slash:18,heavy:26,special:40})[action]);
 });
 test('stab hits only nearest contacted target even with several in range',()=>{const g=contactGame();attack(g,'stab');ticks(g,22);assert.equal(g.enemies.filter(e=>e.hp<40).length,1);assert.equal(g.enemies.filter(e=>e.hp===31).length,1);});
 test('individual death/corpse leaves others alive; only final death wins and fresh retry resets',()=>{
