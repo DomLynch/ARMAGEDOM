@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {addPickupOutline} from './pickup-outline.js';
+import {addPickupGlow} from './pickup-glow.js';
 
 // ONE fitted cloth overlay. Reads the original bind geometry/weights; never edits it.
 export function createVestView(model){
@@ -54,7 +54,7 @@ export function createVestBagView(){
  const geometry=new T.BoxGeometry(.34,.18,.24),cloth=new T.MeshStandardMaterial({color:0x706a50,roughness:1}),bag=new T.Mesh(geometry,cloth);bag.position.y=.10;bag.rotation.y=.18;root.add(bag);
  const seamGeometry=new T.BoxGeometry(.36,.025,.065),seamMaterial=new T.MeshStandardMaterial({color:0x383629,roughness:1}),strap=new T.Mesh(seamGeometry,seamMaterial);strap.position.y=.2;strap.rotation.y=.18;root.add(strap);
  const cueGeometry=new T.RingGeometry(.30,.34,24),cueMaterial=new T.MeshBasicMaterial({color:0xb48a4c,transparent:true,opacity:.16,depthWrite:false}),cue=new T.Mesh(cueGeometry,cueMaterial);cue.rotation.x=-Math.PI/2;cue.position.y=.012;root.add(cue);
- const outlines=[addPickupOutline(bag),addPickupOutline(strap)];
+ const glows=[addPickupGlow(bag),addPickupGlow(strap)];
  let disposed=false;
- return {root,setVisible(value){if(!disposed)root.visible=!!value;},update(time){if(!disposed)cueMaterial.opacity=.16+.045*Math.sin((Number.isFinite(time)?time:0)*2.3);},dispose(){if(disposed)return;disposed=true;for(const o of outlines)o.dispose();root.removeFromParent();geometry.dispose();seamGeometry.dispose();cueGeometry.dispose();cloth.dispose();seamMaterial.dispose();cueMaterial.dispose();root.clear();}};
+ return {root,setVisible(value){if(!disposed)root.visible=!!value;},update(time){if(!disposed)cueMaterial.opacity=.16+.045*Math.sin((Number.isFinite(time)?time:0)*2.3);},dispose(){if(disposed)return;disposed=true;for(const o of glows)o.dispose();root.removeFromParent();geometry.dispose();seamGeometry.dispose();cueGeometry.dispose();cloth.dispose();seamMaterial.dispose();cueMaterial.dispose();root.clear();}};
 }
