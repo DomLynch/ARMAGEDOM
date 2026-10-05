@@ -35,7 +35,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
     el("sound").setAttribute("aria-pressed", String(sound));
     onSound(sound);
   };
-  let assist=true;el("assist").onclick=()=>{assist=!assist;el("assist").textContent=assist?"Assist: +50%":"Assist: Off";el("assist").setAttribute("aria-pressed",String(assist));onAssist(assist);};
+  let assist=true;el("assist").onclick=()=>{assist=!assist;el("assist").textContent=assist?"Assist: 70%":"Assist: Off";el("assist").setAttribute("aria-pressed",String(assist));onAssist(assist);};
   const feedback=el('feedback-mode');
   feedback.onchange=()=>onFeedback(feedback.value);
   window.addEventListener("resize", resize);

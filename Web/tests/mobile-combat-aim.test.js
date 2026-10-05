@@ -66,3 +66,22 @@ test('held deadzone keeps prior steering for manual resume and never acquires a 
  const retained=step().state,center=step(retained,{move:{x:0,z:0}}).state;assert.equal(center.targetId,retained.targetId);near(center.steering,retained.steering);near(center.previousMove,retained.previousMove);
  const resumed=step(center,{move:{x:Math.sin(rad(20)),z:Math.cos(rad(20))}});near(resumed.state.rawHeading,followMobileAngle(0,rad(20),1/60,10));assert.equal(resumed.state.targetId,retained.targetId);
 });
+
+test('pistol70percent corrects small medium/long errors into real unchanged circles without raw drift',()=>{
+ for(const [distance,error] of [[8,4],[12,3],[14,2.5],[17,2]]){
+  const t={...target('far',error,distance),radius:.34};let state=createMobileAimState(),out;
+  for(let i=0;i<90;i++){out=step(state,{targets:[t],pistolEquipped:true});state=out.state;near(state.rawHeading,0);near(out.correction,rad(error)*.70);assert.equal(state.targetId,'far');if(i===14)assert.equal(mobileAimRay({x:0,z:0},state.heading,[t],()=>true).targetId,'far','ordinary .25s body convergence reaches actual circle');}
+  near(state.heading,rad(error)*.70);assert.equal(mobileAimRay({x:0,z:0},state.heading,[t],()=>true).targetId,'far');const off=step(createMobileAimState(),{targets:[t],pistolEquipped:true,assistEnabled:false});assert.equal(off.correction,0);assert.equal(mobileAimRay({x:0,z:0},off.state.heading,[t],()=>true).targetId,null,'same original circle and raw error miss with assistance Off');
+ }
+ const t={...target('far',6,17),radius:.34},out=step(createMobileAimState(),{targets:[t],pistolEquipped:true});assert.equal(out.state.targetId,null);assert.equal(out.correction,0);assert.equal(mobileAimRay({x:0,z:0},out.state.heading,[t],()=>true).targetId,null);
+});
+test('pistol radius-based boundaries preserve retention, intentional escape, range and eligibility',()=>{
+ const radius=.34,distance=17,acquire=Math.asin(.60*radius/distance)/.30,retain=Math.asin(.90*radius/distance)/.30;
+ const t=angle=>({...target('far',angle*180/Math.PI,distance),radius});
+ for(const angle of [acquire,acquire+1e-5])assert.equal(step(createMobileAimState(),{targets:[t(angle)],pistolEquipped:true}).state.targetId,null);
+ const state={...createMobileAimState(),targetId:'far',bearing:retain-.001,steering:0,previousMove:0};assert.equal(step(state,{targets:[t(retain-.001)],pistolEquipped:true}).state.targetId,'far');
+ assert.equal(step({...state,bearing:retain},{targets:[t(retain)],pistolEquipped:true}).state.targetId,null);
+ const valid={...target('far',2,17),radius};for(const extra of [{assistEnabled:false},{lineClear:()=>false},{targets:[{...valid,hp:0}]},{targets:[{...valid,visible:false}]},{areaId:'east'},{cancel:true},{alive:false},{pointerHeading:0},{targets:[{...valid,radius:NaN}]},{targets:[{...valid,radius:0}]},{targets:[{...valid,radius:undefined}]},{targets:[{...valid,radius:-1}]},{targets:[{...valid,pos:{x:0,z:18}}]}])assert.equal(step(createMobileAimState(),{targets:[valid],pistolEquipped:true,...extra}).state.targetId,null);
+ const lift=step(createMobileAimState(),{targets:[valid],pistolEquipped:true,moveHeld:false});assert.equal(lift.state.targetId,null);near(lift.correction,rad(2)*.70);
+ assert.equal(step(createMobileAimState(),{targets:[valid],pistolEquipped:false}).state.targetId,null);near(step().correction,rad(4)*.4125,'knife correction remains original');
+});

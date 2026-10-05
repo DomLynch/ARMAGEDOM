@@ -181,7 +181,7 @@ function mobileControl(g,intent,dt){
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
-  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled});
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:!!g.pistol?.equipped});
  g.mobileAim=result.state;g.mobileAiming=true;
  if(!intent.moveHeld)p.velocity={x:0,z:0};
  if(!busy)p.facing={...result.direction};

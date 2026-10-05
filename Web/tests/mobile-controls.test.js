@@ -9,7 +9,7 @@ const tick=(g,intent,n=1)=>{for(let i=0;i<n;i++)stepGame(g,intent);};
 function fixture(angle=0,distance=4){
  const g=createGame(world,{pilot:'donor-knife',pistol:true,mobileControls:true});g.wave=1;g.started=true;
  Object.assign(g.pistol,{collected:true,equipped:true,magazine:6,reserve:12});
- const e=Object.assign(enemy(0,{x:Math.sin(angle)*distance,z:Math.cos(angle)*distance}),{placementKey:'westminster-roamer-3',hp:1000,radius:.05,staggerUntil:1000});g.enemies=[e];return {g,e};
+ const e=Object.assign(enemy(0,{x:Math.sin(angle)*distance,z:Math.cos(angle)*distance}),{placementKey:'westminster-roamer-3',hp:1000,radius:.4,staggerUntil:1000});g.enemies=[e];return {g,e};
 }
 test('mobile body heading drives real pistol ray without old second snap; desktop keeps existing policy',()=>{
  const {g,e}=fixture(10*Math.PI/180);tick(g,{mobile:true,moveHeld:false,actions:['fire']});
@@ -61,4 +61,12 @@ test('real left-stick input acquires off-centre target, tracks travel, exits del
  steer(25);for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,null,'manual turn escapes 9degree retention');
  input.up(11);const position={...g.player.pos};for(let i=0;i<8;i++)frame();assert.deepEqual(g.player.pos,position);assert.equal(g.mobileAim.targetId,null);
  input.down(11,'move',{x:0,y:0});g.mobileAssistEnabled=false;steer(0);for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,null);input.clear();resetMobileControls(g);assert.equal(g.mobileAiming,false);
+});
+
+test('real touch state and equipped-pistol mode produce medium/long body-ray25 hits; matched Off rays miss',()=>{
+ for(const [distance,error] of [[8,4],[12,3],[14,2.5],[17,2]])for(const enabled of [true,false]){
+  const {g,e}=fixture(error*Math.PI/180,distance);e.radius=.34;g.mobileAssistEnabled=enabled;const input=new InputState();input.down(11,'move',{x:0,y:0});input.move(11,{x:0,y:-7});
+  const frame=()=>{const raw=input.take();stepGame(g,{...raw,mobile:true,move:{x:raw.move.x,z:-raw.move.y},combatVisibleIds:[e.id]});};
+  for(let i=0;i<15;i++)frame();assert.equal(g.mobileAim.targetId,enabled?e.placementKey:null);input.down(21,'fire',{x:100,y:0});frame();const shot=g.events.find(e=>e.type==='shot');assert.ok(shot);assert.deepEqual(shot.direction,g.player.facing);assert.equal(shot.targetId,enabled?e.id:null);assert.equal(e.hp,enabled?975:1000);assert.equal(g.pistol.magazine,5);assert.equal(g.pistol.reserve,12);input.clear();resetMobileControls(g);assert.equal(g.mobileAim.targetId,null);
+ }
 });
