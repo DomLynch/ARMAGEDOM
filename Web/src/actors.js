@@ -7,6 +7,8 @@ import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
+import { hollowLocomotionFor } from "./area-mob-spawns.js";
+import { CrookedHollowMotion } from "./crooked-hollow.js";
 const names = ["revenant", "orc", "warlock", "warlord"];
 export async function loadActors(
   baseUrl,
@@ -165,6 +167,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       materials,
       entity,
       description,
+      locomotionVariant: hollowLocomotionFor(entity),
       pistolMount,knife,
     };
     views.set(entity.id, view);
@@ -172,6 +175,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       const Motion =
         description.motion === "donor-knife" ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
+      if (view.locomotionVariant === 'crooked-hollow')
+        view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
     } catch (error) {
       remove(entity.id);

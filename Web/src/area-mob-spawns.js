@@ -2,6 +2,16 @@
 // Westminster: six scattered residents; production disables the optional opening trio.
 // East/South: nine residents each. Only current-area actors update/render.
 // Starts and full short patrol legs are clear at .55 (Hollow radius .4 + margin).
+// Presentation selection uses placement keys, independent of fresh-run actor IDs.
+const crookedResidents = new Set([
+  'westminster-roamer-3', 'westminster-roamer-5',
+  'east-roamer-3', 'east-roamer-6',
+  'south-roamer-4', 'south-roamer-7',
+]);
+export function hollowLocomotionFor(entity) {
+  return entity.kind >= 0 && entity.rig === 'hollow-scavenger' && crookedResidents.has(entity.placementKey)
+    ? 'crooked-hollow' : null;
+}
 export const AREA_MOB_SPAWNS = Object.freeze({
   westminster: Object.freeze([
     Object.freeze({key:'westminster-roamer-1',pos:Object.freeze({x:-12.63653,z:9.32328}),patrol:Object.freeze([Object.freeze({x:-12.63653,z:9.32328}),Object.freeze({x:-10.63653,z:9.32328})])}),
