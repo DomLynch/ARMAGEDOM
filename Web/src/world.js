@@ -90,6 +90,7 @@ export class LondonWorld {
       const actorHeight=Math.abs(geometry.point(playerPosition,2*layout.characterScale).y-p.y);
       zoom=clamp(63/(actorHeight*Math.max(1,height)),1,4);
     }
+    if(!portrait)zoom*=1.1;
     zoom*=this.viewZoomMultiplier;
     const zx=zoom*Math.max(1,ASPECT/aspect),zy=zoom*Math.max(1,aspect/ASPECT);
     const ex=.5/zx,ey=.5/zy,target={x:clamp(p.x,ex,1-ex),y:clamp(1-p.y+(portrait?.02/zy:.1),ey,1-ey)};

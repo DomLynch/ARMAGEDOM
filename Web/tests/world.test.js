@@ -80,8 +80,8 @@ test('portrait shows a readable actor above controls where painting bounds allow
   }
   world.update(world.spawn,0,852,393,true);
   const a=world.toRender(world.spawn).project(camera),b=world.toRender(world.spawn,2*world.actorScale).project(camera);
-  assert.ok(Math.abs((b.y-a.y)*393/2-55.839178022156624*.9)<1e-8,'landscape must use the approved 10% zoom-out');
-  assert.ok(Math.abs((1-a.y)/2-.6877572955357277)<1e-8,'landscape framing changed');
+  assert.ok(Math.abs((b.y-a.y)*393/2-55.839178022156624*.9*1.1)<1e-8,'landscape must magnify the accepted054 whole-world crop by 10%');
+  assert.ok(Math.abs((1-a.y)/2-(.5+(.6877572955357277-.5)*1.1))<1e-8,'landscape framing changed');
   world.dispose();
 });
 test('portrait follow responds to production movement and settles after rotation',()=>{
