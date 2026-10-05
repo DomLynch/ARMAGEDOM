@@ -1,0 +1,36 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  {
+    cache: {
+      bytes: 3526236,
+      geometries: 5,
+      users: 0
+...
+      geometries: 29,
++     textures: 90
+-     textures: 110
+    }
+  }
+
+    at file:///srv/dev-jobs/input-25f2cd4e7bd0/src/capture.mjs:12:9 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: {
+    cache: { geometries: 5, users: 0, bytes: 3526236 },
+    memory: { geometries: 29, textures: 90 }
+  },
+  expected: {
+    cache: { geometries: 5, users: 0, bytes: 3526236 },
+    memory: { geometries: 29, textures: 110 }
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.2

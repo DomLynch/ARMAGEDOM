@@ -1,0 +1,47 @@
+{
+  "base": "f4109869b4169d82be1a385ed110ee4e68291309",
+  "files": [
+    {
+      "path": "Web/src/gaunt-shape.js",
+      "bytes": 4235,
+      "sha256": "9131b3f7067800d0ee50a1d7fd5ce1763d36cbb8897b76c292e5bf825ca53648"
+    },
+    {
+      "path": "Web/src/gaunt-motion.js",
+      "bytes": 2041,
+      "sha256": "d3f4717785d815c41e6dda324aa1c6ae5c97992a9ec5facc26efe37e57134e92"
+    },
+    {
+      "path": "Web/tests/gaunt-pilot.test.js",
+      "bytes": 4154,
+      "sha256": "c526a12b8e62fd5749392a4ac8aa7bbfae8b48389498e835750e996b59ecae1c"
+    },
+    {
+      "path": "Web/public/assets/hollow-scavenger/hollow-scavenger.glb",
+      "bytes": 4329068,
+      "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
+    },
+    {
+      "path": "Web/public/assets/hollow-scavenger/knife.glb",
+      "bytes": 382956,
+      "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec"
+    },
+    {
+      "path": "Web/src/face-appearance.js",
+      "bytes": 8729,
+      "sha256": "dc93dafad4056f4fdd26db5f6186d210eb7872812a6772b68336a35d1180716b"
+    },
+    {
+      "path": "Web/src/face-recipes.js",
+      "bytes": 1713,
+      "sha256": "a3430bfe0394e10782759fc885899623435dcc91969a0b9b93d5f840acfd062b"
+    },
+    {
+      "path": "Web/src/donor-motion.js",
+      "bytes": 6145,
+      "sha256": "5e29ca6dd961e074f266d2c2b2652735a0c902270793192191c686b9aded69e2"
+    }
+  ],
+  "vpsProof": "input-ed687643329a /18 inputs /18.02s /EXIT0; request.json all18 hashes verified against recovered/current input",
+  "failedProof": "input-25f2cd4e7bd0 /17.02s /EXIT1; missing cloned skeleton disposal in preview; preserved proof-first; candidate unchanged"
+}

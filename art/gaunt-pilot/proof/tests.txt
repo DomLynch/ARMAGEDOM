@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: radial gaunt shape changes girth, preserves axial positions/rig/UV/weights and shares one owned cache
+ok 1 - radial gaunt shape changes girth, preserves axial positions/rig/UV/weights and shares one owned cache
+  ---
+  duration_ms: 8.304299
+  type: 'test'
+  ...
+# Subtest: skulking posture restores clean native attack/guard/death and forwards the one death pose
+ok 2 - skulking posture restores clean native attack/guard/death and forwards the one death pose
+  ---
+  duration_ms: 1.959834
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.51261

@@ -1,0 +1,46 @@
+{
+  "recipeId": "human-gaunt-skulker",
+  "foundationId": "hollow-human-v1",
+  "shapePreset": "gaunt-radial-v1",
+  "appearancePreset": "existing stable face/clothing allocation",
+  "motionPreset": "gaunt-skulking-v1",
+  "behaviourPreset": "Combat proposed native thrust then bounded post-completion retreat",
+  "rig": "hollow-scavenger",
+  "contactRig": "hero",
+  "weapon": "knife",
+  "bodyScale": 1,
+  "sizeRange": [
+    0.85,
+    1.15
+  ],
+  "globalCharacterScale": 1.265,
+  "visualScale": 1.3225,
+  "forward": "+Z",
+  "capabilities": {
+    "nativeAttackPath": "unchanged hero bake; tested Riposte hand matrices agree <=8.9e-16",
+    "ordinaryDeath": true,
+    "optionalHeadFinisher": "unproved for this combined shape/posture; advertise unsupported until bound integration proof",
+    "targetCapsule": "CURRENT .55 to1.45 with radius.31, scaled by combatScale*bodyScale; pending Combat acceptance/calibration, not silently narrowed with bodyScale",
+    "grounding": "native feet and boots unchanged; sampled bone positions match original at min/max size"
+  },
+  "nativeClipDurations": {
+    "HollowIdle": 1.6666666269302368,
+    "HollowWalk": 1.3333333730697632,
+    "Riposte": 1,
+    "Heavy": 1,
+    "Hit": 0.3333333432674408,
+    "Death": 2.4000000953674316
+  },
+  "cost": {
+    "extraDraws": 0,
+    "extraTriangles": 0,
+    "sharedGeometryCount": 5,
+    "sharedGeometryBytes": 3526236,
+    "extraTextureBytes": 0,
+    "newGLBBytes": 0
+  },
+  "stage": "foundation",
+  "runtimeRelease": null,
+  "phoneAcceptance": "pending",
+  "contactGap": "Gaunt core radius max at sampled walk .279 vs original .264 due forward posture; idle .193 vs original .249. Current capsule .31 encloses sampled core but overhang/contact fit and continuous attack extremes still need review; core-only samples do not prove limbs/full contact."
+}

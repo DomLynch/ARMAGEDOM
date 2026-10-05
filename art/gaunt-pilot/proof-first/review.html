@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/Web/node_modules/three/build/three.module.js","three/addons/":"/Web/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {clone} from 'three/addons/utils/SkeletonUtils.js';import {DonorMotion,equipDonorPlayer} from './Web/src/donor-motion.js';import {createGauntShapeLibrary} from './Web/src/gaunt-shape.js';import {GauntSkulkerMotion} from './Web/src/gaunt-motion.js';import {createFaceAppearanceLibrary} from './Web/src/face-appearance.js';import {createWorld} from './world.js';
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(1);document.body.append(renderer.domElement);
+const scene=new T.Scene(),camera=new T.PerspectiveCamera();scene.add(new T.HemisphereLight(0xcbd7dc,0x494038,1.2));const light=new T.DirectionalLight(0xffecd5,2);light.position.set(-3,5,4);scene.add(light);
+const world=await createWorld({THREE:T,renderer,scene,camera,baseUrl:new URL('./',location.href),viewZoomMultiplier:1.3365});
+const loader=new GLTFLoader(),source=await loader.loadAsync('hollow-scavenger.glb'),knife=await loader.loadAsync('knife.glb');
+const shapes=createGauntShapeLibrary(source.scene),faces=createFaceAppearanceLibrary(source.scene);let actors=[];
+function actor(gaunt,x,face,size){
+ const model=clone(source.scene),root=new T.Group(),materials=[];const asset=equipDonorPlayer({scene:model,animations:source.animations},knife);
+ model.traverse(o=>{if(o.isMesh){const original=Array.isArray(o.material)?o.material:[o.material],own=original.map(m=>m.clone());materials.push(...own);o.material=Array.isArray(o.material)?own:own[0];o.frustumCulled=false;}});
+ const appearance=faces.apply(model,face),shape=gaunt?shapes.apply(model):null;root.add(model);root.scale.setScalar(1.265*1.3225*size);root.position.copy(world.toRender({x,z:-5.4}));root.rotation.y=Math.PI/4;scene.add(root);
+ const native=new DonorMotion(root,model,asset.animations,{clips:{idle:'HollowIdle',walk:'HollowWalk',guard:'Guard'}}),motion=gaunt?new GauntSkulkerMotion(native):native;
+ return{root,model,motion,native,shape,appearance,materials,x,dispose(){motion.dispose();shape?.dispose();appearance.dispose();root.removeFromParent();materials.forEach(m=>m.dispose());}};
+}
+function reset(face='face-original',size=1){actors.forEach(a=>a.dispose());actors=[actor(false,-.65,face,size),actor(true,.65,face,size)];}
+function sample(clip,phase,width=393,height=852,face='face-original',size=1){
+ if(!actors.length||actors[0].face!==face||actors[0].size!==size){reset(face,size);actors[0].face=face;actors[0].size=size;}
+ renderer.setSize(width,height);world.update({x:0,z:-6},0,width,height,true);
+ for(const a of actors){a.motion.sample(clip,phase);a.root.updateMatrixWorld(true);}renderer.render(scene,camera);
+ const report={clip,phase,width,height,face,size,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,cache:shapes.stats(),feet:actors.map(a=>['foot_l','foot_r'].map(n=>a.model.getObjectByName(n).getWorldPosition(new T.Vector3()).sub(a.root.position).toArray()))};
+ if(!['HollowIdle','HollowWalk','Run','StrafeLeft','StrafeRight'].includes(clip)){
+  let matrixError=0;const names=['hand_r','Head','foot_l','foot_r'];for(const name of names){const matrices=actors.map(a=>a.root.matrixWorld.clone().invert().multiply(a.model.getObjectByName(name).matrixWorld));for(let i=0;i<16;i++)matrixError=Math.max(matrixError,Math.abs(matrices[0].elements[i]-matrices[1].elements[i]));}report.nativeJointMatrixError=matrixError;
+ }
+ return report;
+}
+window.__proof={sample,async movie(){reset();renderer.setSize(393,852);world.update({x:0,z:-6},0,393,852,true);const frames=[];const start=performance.now();await new Promise(resolve=>{function frame(now){const age=(now-start)/1000;for(const a of actors){a.root.position.copy(world.toRender({x:a.x+Math.sin(age)*.16,z:-5.4+Math.sin(age*.8)*.24}));a.motion.sample('HollowWalk',(age/1.2)%1);a.root.updateMatrixWorld(true);}renderer.render(scene,camera);frames.push(age);if(age<4.8)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});return{elapsed:frames.at(-1),frames,clock:'RAF real elapsed seconds; CPU frame rate is not device performance'};},cleanup(){actors.forEach(a=>a.dispose());actors=[];renderer.render(scene,camera);return{cache:shapes.stats(),memory:{...renderer.info.memory}};}};
+__proof.sample('HollowIdle',0);
+</script>

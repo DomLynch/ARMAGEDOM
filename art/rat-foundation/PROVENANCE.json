@@ -1,0 +1,34 @@
+{
+  "checkedUtc": "2026-10-05T15:27:05.657607+00:00",
+  "stage": "sourcing",
+  "chosenCandidate": {
+    "title": "Rat",
+    "author": "br-n518",
+    "page": "https://opengameart.org/content/rat-0",
+    "published": "2018-09-17",
+    "listedLicense": "CC0",
+    "listedTriangles": 270,
+    "listedTexture": "512x512",
+    "listedAnimations": [
+      "idle-loop",
+      "walk-loop",
+      "run-loop",
+      "attack",
+      "death"
+    ],
+    "listedSourceArchive": "rat_source.7z, 1.2MB",
+    "evidence": "Uploader page author/license/description inspected live 2026-10-05; no binary downloaded or rig inspected."
+  },
+  "alternatives": [
+    {
+      "title": "[Animated] Rat",
+      "author": "CoinCoin",
+      "page": "https://opengameart.org/content/animated-rat-0",
+      "listedLicense": "CC-BY 4.0",
+      "listedArchive": "rat.zip,3.4MB",
+      "reasonNotFirst": "Attribution-required alternative; exact rig/clips uninspected."
+    }
+  ],
+  "scope": "Only provenance sourcing while human gaunt active; no rat asset job, conversion, runtime, payment or six-model derivation",
+  "nextGate": "Download immutable archive with SHA, inspect supplied license/source/rig/clips/texture on bounded VPS foundation stage after human pilot. Confirm visual suitability, unit/forward/grounding/feet/tail/bite/contact and ordinary death. Public page claims are not actual rig/asset validation."
+}
