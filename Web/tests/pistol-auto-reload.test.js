@@ -20,8 +20,8 @@ test('real finite supply collection while empty enables reload only after durabl
 });
 test('actual main cancellation callback clears reload before completion and paused ticks cannot mutate ammo',()=>{
  const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),fn=source.slice(source.indexOf('function cancelPistol(g)'),source.indexOf('function cancelPistol(g)')+source.slice(source.indexOf('function cancelPistol(g)')).indexOf('\n'));
- const cancel=new Function('stepPistol','resetMobileControls','effects',`${fn};return cancelPistol;`)(stepPistol,resetMobileControls,{clearPistolFeedback(){},update(){}});
- const g=game();g.pistol.magazine=0;advance(g);const time=g.time;cancel(g);assert.equal(g.pistol.reloadingUntil,0);stepGame(g,{paused:true});assert.equal(g.time,time);assert.equal(g.pistol.magazine,0);assert.equal(g.pistol.reserve,12);
+ let actorResets=0;const cancel=new Function('stepPistol','resetMobileControls','effects','actors',`${fn};return cancelPistol;`)(stepPistol,resetMobileControls,{clearPistolFeedback(){},update(){}},{resetFeedback(){actorResets++;}});
+ const g=game();g.pistol.magazine=0;advance(g);const time=g.time;cancel(g);assert.equal(actorResets,1);assert.equal(g.pistol.reloadingUntil,0);stepGame(g,{paused:true});assert.equal(g.time,time);assert.equal(g.pistol.magazine,0);assert.equal(g.pistol.reserve,12);
  advance(g);assert.ok(g.pistol.reloadingUntil>g.time);stepGame(g,{actions:['heavy']});assert.equal(g.pistol.equipped,false);assert.equal(g.pistol.reloadingUntil,0);advance(g,100);assert.equal(g.pistol.magazine,0);assert.equal(g.pistol.reserve,12);
  const fresh=game();assert.equal(fresh.pistol.magazine,6);assert.equal(fresh.pistol.reserve,12);assert.equal(fresh.pistol.reloadingUntil,0);
 });
