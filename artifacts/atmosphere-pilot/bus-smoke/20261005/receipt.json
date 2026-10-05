@@ -1,0 +1,160 @@
+{
+  "scope": "Registered painting review, not a gameplay/physical phone test",
+  "errors": [],
+  "views": [
+    {
+      "name": "spawn-landscape",
+      "enabled": false,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 0,
+        "disposed": false,
+        "calls": 4
+      }
+    },
+    {
+      "name": "spawn-landscape",
+      "enabled": true,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 3.0000000000000013,
+        "disposed": false,
+        "calls": 7
+      }
+    },
+    {
+      "name": "bus-landscape",
+      "enabled": false,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 0,
+        "disposed": false,
+        "calls": 4
+      }
+    },
+    {
+      "name": "bus-landscape",
+      "enabled": true,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 3.0000000000000013,
+        "disposed": false,
+        "calls": 7
+      }
+    },
+    {
+      "name": "tower-landscape",
+      "enabled": false,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 0,
+        "disposed": false,
+        "calls": 4
+      }
+    },
+    {
+      "name": "tower-landscape",
+      "enabled": true,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 3.0000000000000013,
+        "disposed": false,
+        "calls": 7
+      }
+    },
+    {
+      "name": "spawn-portrait",
+      "enabled": false,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 0,
+        "disposed": false,
+        "calls": 4
+      }
+    },
+    {
+      "name": "spawn-portrait",
+      "enabled": true,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 3.0000000000000013,
+        "disposed": false,
+        "calls": 7
+      }
+    },
+    {
+      "name": "bus-portrait",
+      "enabled": false,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 0,
+        "disposed": false,
+        "calls": 4
+      }
+    },
+    {
+      "name": "bus-portrait",
+      "enabled": true,
+      "stats": {
+        "area": "westminster",
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0,
+        "time": 3.0000000000000013,
+        "disposed": false,
+        "calls": 7
+      }
+    }
+  ],
+  "profile": {
+    "baseline": {
+      "meanMs": 1.222222179836697,
+      "p95Ms": 0.9000005722045898,
+      "calls": 4,
+      "area": "westminster",
+      "quads": 28,
+      "drawCalls": 3,
+      "textureBytes": 0,
+      "time": 3.0000000000000013,
+      "disposed": false
+    },
+    "enabled": {
+      "meanMs": 0.624444474114312,
+      "p95Ms": 1,
+      "calls": 7,
+      "area": "westminster",
+      "quads": 28,
+      "drawCalls": 3,
+      "textureBytes": 0,
+      "time": 3.720000000000002,
+      "disposed": false
+    }
+  }
+}
