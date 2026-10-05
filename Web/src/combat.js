@@ -28,7 +28,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
- if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;}
+ if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
@@ -236,13 +236,13 @@ function hollowActor(g,position,index=0){
 export function initializeAreaResidents(g){
  if(!g.areaResidents||g.areaInitialized)return;
  const area=g.world.areaId??'westminster';
- // The original atomic opening spawn must succeed before West extras exist.
- if(area==='westminster'&&!g.wave)return;
+ // Legacy opening groups remain atomic; resident-only starts initialize directly.
+ if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const residents=AREA_MOB_SPAWNS[area].map(placement=>Object.assign(hollowActor(g,placement.pos),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=true;g.encounterCleared=false;
- if(area!=='westminster'){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
+ if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
 function residentPatrol(g,e,dt){
  const playerHome=mag(sub(g.player.pos,e.home));

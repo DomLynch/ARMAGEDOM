@@ -1,5 +1,5 @@
 // Registered world metres (x right, z forward), accepted Three020 layouts.
-// Westminster: six EXTRA residents; retain its existing opening three (nine total).
+// Westminster: six scattered residents; production disables the optional opening trio.
 // East/South: nine residents each. Only current-area actors update/render.
 // Starts and full short patrol legs are clear at .55 (Hollow radius .4 + margin).
 export const AREA_MOB_SPAWNS = Object.freeze({
