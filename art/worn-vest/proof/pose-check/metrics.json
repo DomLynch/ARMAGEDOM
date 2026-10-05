@@ -1,0 +1,45 @@
+{
+  "sampleCount": 65,
+  "maxBoneDelta": 2.220446049250313e-15,
+  "maxStretch": 1.5201283378000459,
+  "vestVertices": 342,
+  "vestTriangles": 544,
+  "rows": [
+    {
+      "kind": "base",
+      "calls": 17,
+      "triangles": 60784,
+      "memory": {
+        "geometries": 17,
+        "textures": 47
+      }
+    },
+    {
+      "kind": "vest",
+      "calls": 18,
+      "triangles": 61328,
+      "memory": {
+        "geometries": 18,
+        "textures": 48
+      }
+    },
+    {
+      "kind": "side",
+      "calls": 18,
+      "triangles": 61328,
+      "memory": {
+        "geometries": 18,
+        "textures": 48
+      }
+    },
+    {
+      "kind": "game",
+      "calls": 25,
+      "triangles": 61415,
+      "memory": {
+        "geometries": 25,
+        "textures": 49
+      }
+    }
+  ]
+}

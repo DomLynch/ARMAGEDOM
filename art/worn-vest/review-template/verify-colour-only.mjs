@@ -1,0 +1,1 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';const old=fs.readFileSync('pose-tested-vest-view.js','utf8'),current=fs.readFileSync('Web/src/vest-view.js','utf8');assert.equal(current,old.replace('colour.setHex(0x8f8969)','colour.setHex(0x6e7770)'));console.log('Pose inputs identical except vest colour PASS');

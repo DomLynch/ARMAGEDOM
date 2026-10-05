@@ -1,0 +1,12 @@
+file:///srv/dev-jobs/job-input-daa77af37c1d/src/Web/src/vest-view.js:26
+  if(!selected)throw Error('Vest fitting ray missed original torso at '+origin.toArray()+' direction '+direction.toArray());
+                     ^
+
+Error: Vest fitting ray missed original torso at 0.36,1.395,2.2043642384652358e-17 direction -1,0,-6.123233995736766e-17
+    at vertex (file:///srv/dev-jobs/job-input-daa77af37c1d/src/Web/src/vest-view.js:26:22)
+    at file:///srv/dev-jobs/job-input-daa77af37c1d/src/Web/src/vest-view.js:35:182
+    at grid (file:///srv/dev-jobs/job-input-daa77af37c1d/src/Web/src/vest-view.js:32:111)
+    at createVestView (file:///srv/dev-jobs/job-input-daa77af37c1d/src/Web/src/vest-view.js:35:3)
+    at file:///srv/dev-jobs/job-input-daa77af37c1d/src/diagnose.mjs:1:547
+
+Node.js v22.23.2

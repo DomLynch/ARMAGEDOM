@@ -1,0 +1,10 @@
+Error: Vest fitting ray missed original torso
+file:///srv/dev-jobs/job-input-27dbead9abd8/src/capture.mjs:2
+const browser=await chromium.launch({executablePath:'/opt/frankendom-shadow/ms-playwright/chromium-1234/chrome-linux64/chrome',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'],headless:true}),page=await browser.newPage({viewport:{width:1293,height:920}}),errors=[];page.on('pageerror',e=>{errors.push(String(e));console.error(String(e));});await page.goto('http://127.0.0.1:8897/review.html');await page.waitForFunction(()=>window.review?.ready,{}, {timeout:10000}).catch(e=>{throw Error(errors.join('\n')||e.message);});fs.mkdirSync('proof',{recursive:true});const measurements=await page.evaluate(()=>window.review.check());assert.ok(measurements.maxBoneDelta<1e-6);assert.ok(measurements.maxStretch<2.5);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^
+
+Error: Error: Vest fitting ray missed original torso
+    at file:///srv/dev-jobs/job-input-27dbead9abd8/src/capture.mjs:2:529
+    at async file:///srv/dev-jobs/job-input-27dbead9abd8/src/capture.mjs:2:440
+
+Node.js v22.23.2

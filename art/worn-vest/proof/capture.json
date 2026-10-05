@@ -1,0 +1,69 @@
+{
+  "measurements": {
+    "reusedPoseJob": "job-input-574a32c3c66c",
+    "sampleCount": 65,
+    "maxBoneDelta": 2.220446049250313e-15,
+    "maxStretch": 1.5201283378000459,
+    "scope": "Pose/deformation checks reused; only cloth colour changed."
+  },
+  "disposal": [
+    {
+      "kind": "base",
+      "before": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "after": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "geometryDisposals": 0,
+      "materialDisposals": 0,
+      "skeletonDisposals": 0
+    },
+    {
+      "kind": "vest",
+      "before": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "after": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "geometryDisposals": 1,
+      "materialDisposals": 1,
+      "skeletonDisposals": 1
+    },
+    {
+      "kind": "side",
+      "before": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "after": {
+        "geometries": 20,
+        "textures": 47
+      },
+      "geometryDisposals": 1,
+      "materialDisposals": 1,
+      "skeletonDisposals": 1
+    },
+    {
+      "kind": "game",
+      "before": {
+        "geometries": 24,
+        "textures": 48
+      },
+      "after": {
+        "geometries": 24,
+        "textures": 48
+      },
+      "geometryDisposals": 1,
+      "materialDisposals": 1,
+      "skeletonDisposals": 1
+    }
+  ],
+  "errors": [],
+  "scope": "Actual original equipped player rig sampled through65 native phases plus saved006 portrait. Isolated art fit; not runtime pickup/save/damage/phone acceptance."
+}
