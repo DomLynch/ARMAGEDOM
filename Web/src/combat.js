@@ -1,7 +1,7 @@
 import {createSuppliesState,issueSupply} from './supplies.js';
 import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
-import {selectCombatTarget,PISTOL_TARGETING} from './pistol-targeting.js';
-import {createPistolState, stepPistol,tracePistol,PISTOL_RULES} from './pistol.js';
+import {selectCombatTarget,resolvePistolShot} from './pistol-targeting.js';
+import {createPistolState, stepPistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
@@ -54,9 +54,8 @@ function pistolIntent(g,intent){
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(let e of result.events){
   if(e.type==='shot'){
-   const selected=selectCombatTarget({position:e.origin,aim:reference,range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees,areaId:g.world.areaId,
-    targets:g.enemies.filter(t=>!(intent.combatVisibleIds??intent.pistolVisibleIds)|| (intent.combatVisibleIds??intent.pistolVisibleIds).includes(t.id)),lineClear:(a,b)=>g.world.lineClear(a,b)});
-   if(selected)e={...e,...tracePistol(e.origin,selected.direction,g.enemies,(a,b)=>g.world.lineClear(a,b))};
+   e={...e,...resolvePistolShot({position:e.origin,aim:reference,targets:g.enemies,
+    visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,lineClear:(a,b)=>g.world.lineClear(a,b),areaId:g.world.areaId})};
    shotDirection=e.direction;
   }
   event(g,e.type,{...e,actor:p});

@@ -33,7 +33,7 @@ function updateSupplies(){
  }
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
-function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g);}
+function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g,{paused:true});}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
@@ -175,12 +175,15 @@ function toDomain(v) {
     z: v.x * world.cameraRight.z - v.y * world.cameraForward.z,
   };
 }
+function combatVisibleIds() {
+  return game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id);
+}
 function intent() {
   const raw = input.take(),
     value = {
       ...raw,
       manualPistolAim: !!raw.fireAim,
-      combatVisibleIds: game.enemies.filter(e => {const v=world.toRender(e.pos,1).project(world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id),
+      combatVisibleIds: combatVisibleIds(),
       move: toDomain(raw.move),
       aim: game.pistol?.equipped ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };
@@ -234,7 +237,7 @@ function frame(ms) {
   atmosphere?.update(dt, {paused: paused || traveling});
   updateSupplies();
   actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0);
-  effects?.update(game);
+  effects?.update(game,{paused:paused||traveling,visibleIds:combatVisibleIds(),viewportHeight:canvas.clientHeight});
   rim.position
     .copy(world.toRender(game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));

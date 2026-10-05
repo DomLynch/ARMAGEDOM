@@ -1,4 +1,4 @@
-import {PISTOL_RULES} from './pistol.js';
+import {PISTOL_RULES,tracePistol} from './pistol.js';
 
 export const PISTOL_TARGETING = Object.freeze({acquireDegrees:12, retainDegrees:18});
 export const COMBAT_TARGETING = Object.freeze({meleeDegrees:45});
@@ -45,4 +45,31 @@ export function selectPistolTarget({retainedTargetId=null, switchTarget=false, .
     targets:Array.from(input.targets ?? []).filter(target=>target?.id===retainedTargetId),
   }) : null;
   return retained ?? selectCombatTarget(policy);
+}
+
+// The actual shot and its presentation share selection AND the first-hit trace.
+// Selection may favour a far aligned enemy; its ray can hit a nearer body first.
+export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,areaId}) {
+  const selected=selectCombatTarget({position,aim,targets:targets.filter(t=>!visibleIds||visibleIds.includes(t.id)),
+    lineClear,areaId,range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
+  return tracePistol(position,selected?.direction??aim,targets,lineClear);
+}
+
+// Read-only preview of the current unassisted intent. No retained ID/body turn.
+export function pistolCue(game,{paused=false,visibleIds}={}) {
+  const p=game.player,pistol=game.pistol;
+  if(paused||game.finished||!(p.hp>0)||!pistol?.equipped)return null;
+  const aim=game.pistolUserFacing??p.facing,length=Math.hypot(aim.x,aim.z);
+  if(!Number.isFinite(length)||length<.001)return null;
+  const direction={x:aim.x/length,z:aim.z/length};
+  const ready=pistol.magazine>0&&!pistol.reloadingUntil&&game.time>=pistol.nextFireAt
+    &&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=p.dodgeUntil;
+  const trace=ready?resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
+    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId}):null;
+  const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
+  const eligible=hit&&selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
+    lineClear:game.world.lineClear.bind(game.world),areaId:game.world.areaId,
+    range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
+  return {targetId:eligible?hit.id:null,ready,position:eligible?hit.pos:
+    {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }
