@@ -194,7 +194,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='decapitation',isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='decapitation'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -232,7 +232,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        const view = views.get(entity.id) ?? make(entity,!!game.finishers,restoreCorpses);
+        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =
           Math.atan2(entity.facing.x, -entity.facing.z) +

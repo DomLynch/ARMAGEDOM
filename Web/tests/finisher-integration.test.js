@@ -27,3 +27,10 @@ test('native cutting lethal uses shared-contact impact direction and reserves on
 test('unprepared victim safely uses ordinary without reserving or fabricating geometry',()=>{
  const g=fixture();g.kills=1;g.finishers.recentRecipeId='ordinary';const e=victim(g);e.finisherSupport=[];fire(g);assert.equal(e.finisher.recipeId,'ordinary');assert.equal(e.finisherHeadUntil,undefined);
 });
+
+test('pistol-only delivery retains ranged variety and ordinary cutting without head reservations',()=>{
+ const g=createGame(world,{pilot:'donor-knife',pistol:true,supplies:true,finishers:'pistol-only'});g.wave=1;g.started=true;
+ assert.equal(g.finishers.maxHeads,0);victim(g);fire(g);const ranged=victim(g,'westminster-roamer-1');fire(g);assert.equal(ranged.finisher.recipeId,'pistol-directional');
+ Object.assign(g.pistol,{equipped:false});g.finishers.recentRecipeId='ordinary';const cut=victim(g,'westminster-roamer-5');assert.equal(attack(g,'slash',{x:0,z:1}),true);for(let i=0;i<20;i++)stepGame(g);
+ assert.equal(cut.hp,0);assert.equal(cut.finisher.recipeId,'ordinary');assert.equal(cut.finisherHeadUntil,undefined);assert.equal(g.kills,3);
+});

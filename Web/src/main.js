@@ -47,7 +47,7 @@ function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pisto
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: "pistol-only", areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.

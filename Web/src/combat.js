@@ -34,7 +34,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
- if(options.finishers&&g.pilot)g.finishers={maxHeads:2,recentRecipeId:null};
+ if(options.finishers&&g.pilot)g.finishers={maxHeads:options.finishers==='pistol-only'?0:2,recentRecipeId:null};
  if(options.supplies)g.supplies=createSuppliesState();
  if(options.vest)g.vest=createVestState();
  if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
