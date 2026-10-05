@@ -173,7 +173,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {} }) {
       el("ending").hidden = !g.finished || g.player.hp > 0;
       if (g.finished && g.player.hp <= 0) {
         el("result").textContent = "THE ASH CLAIMS YOU";
-        el("result-hint").textContent = "Watch their wind-up. Dodge, then strike.";
+        el("result-hint").textContent = g.runSaveInvalid ? "Saved run invalid. Retry to start fresh." : "Watch their wind-up. Dodge, then strike.";
       }
 
     },

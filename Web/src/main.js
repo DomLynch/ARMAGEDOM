@@ -9,23 +9,35 @@ import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo } from "./travel.js";
 import {createAtmosphere} from "./atmosphere.js";
 import {stepPistol} from "./pistol.js";
-import {PISTOL_SAVE_KEY,encodePistol,restorePistol} from "./pistol-save.js";
-let pistolSaveCache=null;
-function persistPistol(g){
- const raw=encodePistol(g.pistol);if(raw===pistolSaveCache)return;pistolSaveCache=raw;
- try{localStorage.setItem(PISTOL_SAVE_KEY,raw)}catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=g.time+5;}
+import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,collectNearbySupplies} from "./pistol-save.js";
+import {createSupplyView} from "./supplies-view.js";
+let runSaveCache=null;
+function persistRun(g){
+ if(g.runSaveInvalid)return false;
+ const raw=encodeRun(g);if(raw===runSaveCache)return true;
+ try{localStorage.setItem(RUN_SAVE_KEY,raw);runSaveCache=raw;return true;}catch{g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;return false;}
 }
-function restoreSavedPistol(g){
- try{const restored=restorePistol(g.pistol,localStorage.getItem(PISTOL_SAVE_KEY));
-  if(restored)g.pistol=restored;else{g.pistol={...g.pistol,collected:true};g.message='Pistol save invalid. Retry to start a fresh run.';g.messageUntil=5;}
- }catch{g.message='Pistol saving unavailable in this browser.';g.messageUntil=5;}
- g.player.weapon=g.pistol.equipped?'pistol':'knife';persistPistol(g);
+function restoreSavedRun(g){
+ try{const raw=localStorage.getItem(RUN_SAVE_KEY),saved=restoreRun(g,raw,raw==null?localStorage.getItem(PISTOL_SAVE_KEY):null);
+  if(saved)applySavedRun(g,saved);else{g.runSaveInvalid=true;g.supplies=null;g.player.hp=0;g.finished=true;g.message='Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
+ }catch{g.runSaveInvalid=true;g.message='Run saving unavailable. Supplies kept.';g.messageUntil=5;}
+ persistRun(g);
 }
+const supplyViews=new Map();
+function updateSupplies(){
+ const drops=game?.supplies?.pending.filter(d=>d.areaId===world.areaId)??[],ids=new Set(drops.map(d=>d.id));
+ for(const [id,v] of supplyViews)if(!ids.has(id)){v.view.dispose();supplyViews.delete(id);}
+ for(const drop of drops){let v=supplyViews.get(drop.id);if(v&&v.remaining!==drop.remaining){v.view.dispose();supplyViews.delete(drop.id);v=null;}
+  if(!v){v={remaining:drop.remaining,view:createSupplyView({kind:drop.kind==='rounds'?'ammo':'dressing',count:drop.remaining})};supplyViews.set(drop.id,v);scene.add(v.view.root);}
+  v.view.root.position.copy(world.toRender(drop.position));v.view.update(game.time);
+ }
+}
+function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
 function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g);}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -99,12 +111,13 @@ async function restart() {
       return;
   }
   input.clear();
+  clearSupplies();
   actors.reset();
   effects.reset();
   atmosphere?.reset();
   audio.reset();
   game = createGame(world, pilot);
-  persistPistol(game);
+  persistRun(game);
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);
   hud.update(game);
@@ -197,7 +210,8 @@ function frame(ms) {
       const weaponBefore = game.player.weapon;
       stepGame(game, intent(), 1 / 60);
       if (weaponBefore !== game.player.weapon) input.clear();
-      persistPistol(game);
+      collectNearbySupplies(game,persistRun);
+      persistRun(game);
       effects.events(game);
       audio.play(game.events);
       accumulator -= 1 / 60;
@@ -218,6 +232,7 @@ function frame(ms) {
   }
   world.update(game.player.pos, paused ? 0 : dt, innerWidth, innerHeight);
   atmosphere?.update(dt, {paused: paused || traveling});
+  updateSupplies();
   actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0);
   effects?.update(game);
   rim.position
@@ -273,6 +288,7 @@ canvas.addEventListener("webglcontextlost", (event) => {
   event.preventDefault();
   contextLost = true;
   atmosphere?.dispose();
+  clearSupplies();
   pause(true);
   loaded = false;
   document.getElementById("entry").hidden = false;
@@ -320,7 +336,7 @@ enter.addEventListener("click", async () => {
     world = nextWorld;
     pendingLibrary = library;
     game = createGame(world, pilot);
-    restoreSavedPistol(game);
+    restoreSavedRun(game);
     actors = createActors(scene, world, library, {
       visualScale: actorVisualScale,
     });

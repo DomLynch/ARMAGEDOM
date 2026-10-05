@@ -1,3 +1,4 @@
+import {createSuppliesState,issueSupply} from './supplies.js';
 import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
 import {selectCombatTarget,PISTOL_TARGETING} from './pistol-targeting.js';
 import {createPistolState, stepPistol,tracePistol,PISTOL_RULES} from './pistol.js';
@@ -29,6 +30,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
+ if(options.supplies)g.supplies=createSuppliesState();
  if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
@@ -108,7 +110,7 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
-function kill(g,e,meta={}){g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+function kill(g,e,meta={}){if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -255,10 +257,10 @@ export function initializeAreaResidents(g){
  const area=g.world.areaId??'westminster';
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
- const residents=AREA_MOB_SPAWNS[area].map(placement=>Object.assign(hollowActor(g,placement.pos),{
+ const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
- g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=true;g.encounterCleared=false;
+ g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
 function residentPatrol(g,e,dt){
