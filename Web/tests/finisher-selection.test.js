@@ -42,6 +42,13 @@ test('missing support, preparation, parts, clip or budget falls back without cla
   assert.equal(choose(context,{support:undefined}).recipeId,'ordinary');
   assert.equal(choose(context,{support:[pistol,pistol]}).recipeId,'ordinary');
 });
+test('prepared no-part pistol jolt/collapse remains available with exhausted detached-head budget',()=>{
+  const ranged={...pistol,clip:'Death',reactionClip:'Hit',seconds:3,cost:0};
+  const decap={...head,clip:'Death_SplitCrown',cost:1};
+  assert.equal(choose(context,{support:[ranged,decap],budget:0}).recipeId,'pistol-directional');
+  assert.equal(choose(cut,{support:[ranged,decap],budget:0}).recipeId,'ordinary');
+  assert.equal(choose(cut,{support:[ranged,decap],budget:1}).recipeId,'decapitation');
+});
 test('deterministic rotation is independent of support order and keeps ordinary in mix',()=>{
   assert.deepEqual([0,1,2,3,4,5].map(ordinal=>choose(context,{ordinal}).recipeId),
     ['ordinary','pistol-directional','ordinary','pistol-directional','ordinary','pistol-directional']);

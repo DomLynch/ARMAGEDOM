@@ -22,13 +22,13 @@ export function selectFinisher(context,{support=[],budget=0,ordinal=0,recentReci
   const type=damageType(context),impact=direction(context.impactDirection);
   const ordinary={id:'ordinary',clip:'Death',seconds:2.4,cost:0,parts:[]};
   const pool=[ordinary];
-  if(type&&impact&&Array.isArray(support)&&Number.isSafeInteger(budget)&&budget>0){
+  if(type&&impact&&Array.isArray(support)&&Number.isSafeInteger(budget)&&budget>=0){
     for(const [name,required,parts] of recipes){
       if(required!==type)continue;
       const matches=support.filter(row=>row?.id===name),row=matches.length===1?matches[0]:null;
       if(!row || row.prepared!==true || typeof row.clip!=='string' || !row.clip.trim()
           || !Number.isFinite(row.seconds) || row.seconds<=0 || row.seconds>10
-          || !Number.isSafeInteger(row.cost) || row.cost<1 || row.cost>budget
+          || !Number.isSafeInteger(row.cost) || row.cost<parts.length || row.cost>budget
           || !Array.isArray(row.parts) || row.parts.length!==parts.length
           || parts.some((part,i)=>row.parts[i]!==part))continue;
       pool.push(row);
