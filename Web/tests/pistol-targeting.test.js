@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectPistolTarget} from '../src/pistol-targeting.js';
+import {selectPistolTarget,selectCombatTarget} from '../src/pistol-targeting.js';
 import {tracePistol,stepPistol,createPistolState,collectPistol} from '../src/pistol.js';
 
 const position={x:0,z:0}, facing={x:0,z:1};
@@ -10,6 +10,55 @@ const target=(id,degrees=0,distance=4,extra={})=>{
   return {id,pos:{x:d.x*distance,z:d.z*distance},hp:40,radius:.4,...extra};
 };
 const select=(targets,extra={})=>selectPistolTarget({position,facing,targets,lineClear:()=>true,...extra});
+const melee=(targets,extra={})=>selectCombatTarget({position,facing,targets,lineClear:()=>true,range:2,...extra});
+
+test('shared melee policy includes45 degree edges but not outside, side or rear',()=>{
+  for(const angle of [-45,45]) assert.equal(melee([target('edge',angle,1)]).targetId,'edge');
+  for(const angle of [-45.001,45.001,-90,90,180]) assert.equal(melee([target('outside',angle,1)]),null);
+});
+test('shared ranking chooses alignment before distance and breaks ties deterministically',()=>{
+  assert.equal(melee([target('close',40,.5),target('aligned',2,1.9)]).targetId,'aligned');
+  assert.equal(melee([target('far',-20,1.9),target('near',20,1)]).targetId,'near');
+  const tied=[target('b',20,1),target('a',-20,1)];
+  assert.equal(melee(tied).targetId,'a');assert.equal(melee([...tied].reverse()).targetId,'a');
+});
+test('shared selection rejects dead, hidden, foreign-area, blocked and beyond weapon reach',()=>{
+  const bad=[target('dead',0,1,{hp:0}),target('hidden',0,1,{visible:false}),
+    target('foreign',0,1,{areaId:'east'}),target('far',0,2.001),target('blocked',0,1.8)];
+  const extra={areaId:'westminster',lineClear:(_a,b)=>b.z<1.7};
+  assert.equal(melee(bad,extra),null);
+  assert.equal(melee([...bad,target('valid',20,1,{areaId:'westminster'})],extra).targetId,'valid');
+  assert.equal(melee([target('boundary',0,2)]).targetId,'boundary');
+});
+test('shared selector requires finite positive reach and a strictly forward cone',()=>{
+  for(const range of [undefined,0,-1,NaN,Infinity]) assert.equal(melee([target('front',0,1)],{range}),null);
+  for(const coneDegrees of [-1,90,180,NaN,Infinity]) assert.equal(melee([target('front',0,1)],{coneDegrees}),null);
+  assert.equal(melee([target('front',0,1)],{coneDegrees:0}).targetId,'front');
+  assert.equal(selectCombatTarget(),null);
+});
+test('shared selection follows current explicit intent with no retained lock or enemy tracking',()=>{
+  const targets=[target('old',0,1),target('new',30,1)];
+  assert.equal(melee(targets).targetId,'old');
+  const out=melee(targets,{aim:direction(30),retainedTargetId:'old'});
+  assert.equal(out.targetId,'new');
+  const committed={...out.direction};targets[1].pos={x:-1,z:0};
+  assert.deepEqual(out.direction,committed);
+  assert.equal(melee(targets,{aim:direction(180),retainedTargetId:'old'}),null);
+  assert.equal(melee(targets,{aim:{x:0,z:0}}),null);
+});
+test('shared selector respects weapon-supplied potential reach without changing target/body state',()=>{
+  const targets=[target('potential',15,2.4)];Object.freeze(targets[0].pos);Object.freeze(targets[0]);Object.freeze(targets);
+  assert.equal(melee(targets),null);
+  assert.equal(melee(targets,{range:2.5}).targetId,'potential');
+  assert.equal(targets[0].hp,40);assert.equal(targets[0].radius,.4);
+});
+test('pistol resolves new12 degree candidate each call when caller supplies no retention',()=>{
+  const targets=[target('old',0,4),target('new',10,4)];
+  assert.equal(select(targets).targetId,'old');
+  assert.equal(select(targets,{aim:direction(10)}).targetId,'new');
+  assert.equal(select([target('outside',15)]),null);
+  assert.equal(select([target('far',0,19)],{range:100,coneDegrees:45}),null);
+});
 
 test('front target resolves a normalized direction from player position',()=>{
   const out=selectPistolTarget({position:{x:2,z:3},facing:{x:0,z:10},
