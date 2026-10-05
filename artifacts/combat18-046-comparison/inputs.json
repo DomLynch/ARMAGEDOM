@@ -1,0 +1,16 @@
+{
+  "scope": "read-only source comparison, no rendered feel proof",
+  "armSource": "b1583eaa1895620bdc5afed6757f7cccd336fee1",
+  "zipSHA256": "179c75b541e39c12a77aad23b5487886ee00e49d0b36b5ad94132930ac1b5983",
+  "donorRuntime": "ab135cc977089c0972d724c0e67c53f7a139cd7e",
+  "armFiles": {
+    "Web/src/effects.js": "2526f1b05b5f78c6f6ffb8f91b0f0b1aa6b92a45c94c3f805ab4332430e676b5",
+    "Web/src/actors.js": "4c0ed406962c3777b5c9bf98381c2d841563237f306261fe0e68ced9694b5efe",
+    "Web/src/combat-impact.js": "1f31945ee834b2c6fc0fe7d5ceb679b07bdb341a74aee2645d5ea24643fa428c",
+    "Web/src/pistol-pose.js": "29c96a4ff9678d477ba5c5dd99ee0e862aaedf4e80764f4dc860780f517cecc8",
+    "Web/src/pistol-slide.js": "7f4be44cb968450960c550239f0c85c8d0d32d88c5723d4b205e63fd742ba509",
+    "Web/src/donor-audio.js": "80955ff9c36668c2d8ba33e538a9f20f1b204ed0978f1a16a49766b3b1c435aa",
+    "Web/src/main.js": "734c140e71861bad80540c9827b72fb21c4713a5807e286427f7b5ef76f593ae",
+    "Web/src/world.js": "921e3f652f4a7c52cf0a3d75ee39de99d76555746fe46591d52ec680b76d53f4"
+  }
+}
