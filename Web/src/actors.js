@@ -123,7 +123,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     root.name = name;
     root.position.copy(world.toRender(entity.pos));
     root.scale.setScalar(
-      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale,
+      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale * (entity.kind>=0?(entity.mobSize??1):1),
     );
     root.add(model);
     const hidden = new Set(

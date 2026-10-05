@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import * as THREE from 'three';
 import {loadGeometry} from '../../art/donor/probe.mjs';
 import {HOLLOW_GARMENTS,hollowPaletteFor} from '../src/hollow-palette.js';
+import {mobSizeProfile} from '../src/mob-size.js';
 import {createActors} from '../src/actors.js';
 import {disposeActorSources} from '../src/actor-resources.js';
 import {createGame,spawnWave} from '../src/combat.js';
@@ -41,5 +42,9 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  assert.equal(actors.views.get(0).palette,null);
  const dead=game.enemies.shift(),outfit=actors.views.get(dead.id).palette;dead.hp=0;game.corpses.push(dead);actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);
  actors.reset();actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);
+ const cohort=[...game.enemies,...game.corpses];for(let i=0;i<cohort.length;i++){const entity=cohort[i],factor=[.85,1.15,1][i];Object.assign(entity,mobSizeProfile({bodyScale:1,combatScale:1.265,radius:.4},factor),{mobSize:factor});}
+ actors.reset();actors.update(game,0);
+ for(const entity of cohort){const view=actors.views.get(entity.id);assert.equal(view.root.scale.x,1.265*1.3225*entity.mobSize);assert.equal(view.shadow.scale.x,1.25*view.root.scale.x);assert.ok(view.root.position.equals(world.toRender(entity.pos)));assert.equal(view.palette,hollowPaletteFor(entity,world.areaId));}
+ assert.equal(actors.views.get(0).root.scale.x,1.265*1.3225);
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);actors.dispose();
 });

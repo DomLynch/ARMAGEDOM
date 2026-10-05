@@ -1,3 +1,5 @@
+import {allocateMobSizes} from './mob-size-allocation.js';
+import {mobSizeProfile} from './mob-size.js';
 import {createSuppliesState,issueSupply} from './supplies.js';
 import {createVestState,damageAfterVest} from './vest.js';
 import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
@@ -89,7 +91,7 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
  const windupTicks=def.windupTicks??Math.floor(def.windup*60),range=def.range*(g.pilot?p.combatScale:1)+(g.pilot?R.walkSpeed*def.stepIn*Math.max(0,windupTicks-R.stepInFrom-1)/60:0);
- const selected=selectCombatTarget({position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,coneDegrees:45,areaId:g.world.areaId});
+ const selected=selectCombatTarget({position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,rangeOffset:target=>target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,coneDegrees:45,areaId:g.world.areaId});
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;}
  if(selected){p.swing.turnTo={...selected.direction};p.swing.assistUntil=g.time+Math.min(def.windup-1/60,8/60);}
  if(action==='heavy')p.heavyReady=g.time+def.cooldown;if(action==='special')p.specialReady=g.time+def.cooldown;
@@ -246,10 +248,10 @@ function hollowSpawn(g){
  return false;
 }
 // The opening group and placed residents share the same Hollow factory/rules.
-function hollowActor(g,position,index=0){
+function hollowActor(g,position,index=0,mobSize=1){
  const profile=g.encounter,c=profile.character;
  return knifeEnergy(Object.assign(enemy(0,position),{rig:c.rig,contactRig:c.contactRig,weapon:c.weapon,
-  bodyScale:c.bodyScale,combatScale:g.player.combatScale,radius:.4*c.bodyScale,
+  ...mobSizeProfile({bodyScale:c.bodyScale,combatScale:g.player.combatScale,radius:.4*c.bodyScale},mobSize),mobSize,
   hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
   ready:g.time+index*profile.aggression}),profile.regen);
 }
@@ -258,7 +260,8 @@ export function initializeAreaResidents(g){
  const area=g.world.areaId??'westminster';
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
- const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos),{
+ const sizes=allocateMobSizes(area,AREA_MOB_SPAWNS[area].map(placement=>placement.key));
+ const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;

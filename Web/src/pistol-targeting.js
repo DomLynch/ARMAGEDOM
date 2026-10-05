@@ -8,11 +8,11 @@ const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 // Stateless: caller supplies original intent, current visible cohort and weapon
 // potential reach. Selection never turns an actor, starts an attack or grants a hit.
 export function selectCombatTarget({position, facing, aim, targets, lineClear,
-  range, coneDegrees=COMBAT_TARGETING.meleeDegrees, areaId} = {}) {
+  range, rangeOffset, coneDegrees=COMBAT_TARGETING.meleeDegrees, areaId} = {}) {
   const intent = aim ?? facing;
   if (!point(position) || !point(intent) || typeof lineClear !== 'function'
       || !Number.isFinite(range) || range<=0 || !Number.isFinite(coneDegrees)
-      || coneDegrees<0 || coneDegrees>=90) return null;
+      || coneDegrees<0 || coneDegrees>=90 || rangeOffset!==undefined&&typeof rangeOffset!=='function') return null;
   const length = Math.hypot(intent.x,intent.z);
   if (!Number.isFinite(length) || length<EPS) return null;
   const forward = {x:intent.x/length,z:intent.z/length};
@@ -24,7 +24,8 @@ export function selectCombatTarget({position, facing, aim, targets, lineClear,
         || areaId!=null && target.areaId!=null && target.areaId!==areaId) continue;
     const x=target.pos.x-position.x, z=target.pos.z-position.z;
     const distance=Math.hypot(x,z);
-    if (!Number.isFinite(distance) || distance<EPS || distance>range+EPS) continue;
+    const candidateRange=range+(rangeOffset?rangeOffset(target):0);
+    if (!Number.isFinite(candidateRange)||candidateRange<=0||!Number.isFinite(distance) || distance<EPS || distance>candidateRange+EPS) continue;
     const direction={x:x/distance,z:z/distance};
     const alignment=direction.x*forward.x+direction.z*forward.z;
     if (alignment+EPS<minimumDot || !lineClear(position,target.pos)) continue;
@@ -70,6 +71,6 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   const eligible=hit&&selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
     lineClear:game.world.lineClear.bind(game.world),areaId:game.world.areaId,
     range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
-  return {targetId:eligible?hit.id:null,ready,position:eligible?hit.pos:
+  return {targetId:eligible?hit.id:null,ready,height:eligible?1.15*(hit.mobSize??1):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }
