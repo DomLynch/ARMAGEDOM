@@ -7,7 +7,7 @@ import {loadGeometry} from '../../art/donor/probe.mjs';
 import {HOLLOW_GARMENTS,hollowPaletteFor} from '../src/hollow-palette.js';
 import {mobSizeProfile} from '../src/mob-size.js';
 import {allocateFaceRecipes} from '../src/face-allocator.js';
-import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from '../src/face-recipes.js';
+import {FACE_APPEARANCE_VERSION,FACE_RECIPES,FACE_SKINS,ORIGINAL_FACE_ID} from '../src/face-recipes.js';
 import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
 import {selectFinisher} from '../src/finisher-selection.js';
 import {createActors} from '../src/actors.js';
@@ -15,6 +15,7 @@ import {disposeActorSources} from '../src/actor-resources.js';
 import {createGame,spawnWave} from '../src/combat.js';
 import {createHollowEncounter} from '../src/hollow-encounter.js';
 const sceneHeadCount=actors=>actors.views.get(0).root.parent.children.filter(o=>o.name==='Prepared detached Hollow head').length;
+const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appearance.id),skin=FACE_SKINS.find(s=>s.id===recipe.skinPreset);assert.deepEqual(view.model.getObjectByName('Photo').material.color.toArray(),skin.photo,'ordinary update preserves authored complexion');};
 const publicRoot=new URL('../public/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
@@ -68,7 +69,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
   actors.reset();world.areaId=area;game.corpses=[];
   game.enemies=rows.map((row,i)=>({...cohort[i%cohort.length],id:300+i,placementKey:row.key,pos:{...row.pos},hp:100,flashUntil:0}));
   actors.update(game,0);
-  for(const e of game.enemies){const v=actors.views.get(e.id);assert.equal(v.appearance.id,faceMap.get(e.placementKey));assert.equal(v.palette,hollowPaletteFor(e,area));assert.equal(v.model.getObjectByName('Scavenger hair')?.skeleton??v.model.getObjectByName('Photo').skeleton,v.model.getObjectByName('Photo').skeleton);}
+  for(const e of game.enemies){const v=actors.views.get(e.id);assert.equal(v.appearance.id,faceMap.get(e.placementKey));assertComplexion(v);assert.equal(v.palette,hollowPaletteFor(e,area));assert.equal(v.model.getObjectByName('Scavenger hair')?.skeleton??v.model.getObjectByName('Photo').skeleton,v.model.getObjectByName('Photo').skeleton);}
   assert.equal(new Set(game.enemies.map(e=>actors.views.get(e.id).appearance.id)).size,rows.length);
  }
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
@@ -83,11 +84,12 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  const receiver=game.enemies[0],rendered=actors.views.get(receiver.id),origin=world.toRender(receiver.pos),logical={...receiver.pos};
  actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});
  assert.ok(rendered.flashMaterials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===1),'High real-rig pale flash is visible');
+ assert.deepEqual(rendered.model.getObjectByName('Photo').material.color.toArray(),new THREE.Color('#fff3dd').toArray());
  assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8);assert.ok(Math.abs(rendered.root.rotation.z+.30)<1e-8);assert.deepEqual(receiver.pos,logical);
  actors.update(game,0,0,{presentationDt:0});assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8,'paused repeat does not accumulate root offset');
  world.geometry.clear=()=>false;actors.update(game,0,0,{presentationDt:0});assert.ok(rendered.root.position.equals(origin),'registered wall suppresses visual offset');world.geometry.clear=()=>true;
- actors.configureFeedback('low');actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(Math.abs(rendered.root.position.x-origin.x-.04)<1e-8);
- actors.configureFeedback('off');actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(rendered.root.position.equals(origin));actors.configureFeedback('high');actors.resetFeedback();actors.update(game,0);
+ actors.configureFeedback('low');assertComplexion(rendered);for(const m of rendered.flashMaterials)if(m.emissive){assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());assert.equal(m.material.emissiveIntensity,m.intensity);}actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(Math.abs(rendered.root.position.x-origin.x-.04)<1e-8);
+ actors.configureFeedback('off');actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});assert.ok(rendered.root.position.equals(origin));actors.configureFeedback('high');actors.events({events:[{type:'hit',actor:receiver,amount:10}]});actors.update(game,0);actors.resetFeedback();assertComplexion(rendered);for(const m of rendered.flashMaterials)if(m.emissive){assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());assert.equal(m.material.emissiveIntensity,m.intensity);}actors.update(game,0);
 
  const gun=game.enemies.shift(),gunView=actors.views.get(gun.id);gun.finisher=selectFinisher({victimId:gun.id,lethal:true,weapon:'pistol',impactDirection:{x:1,z:0}},{support:gun.finisherSupport,budget:2,ordinal:1});gun.hp=0;gun.response={start:game.time,ticks:144,clip:'Death'};game.corpses.push(gun);actors.update(game,0);
  const native=v=>v.motion.native??v.motion;assert.equal(native(gunView).currentClip,'Hit');
