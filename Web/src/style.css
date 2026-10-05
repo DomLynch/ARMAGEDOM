@@ -252,13 +252,9 @@ summary:focus-visible {
   right: 0;
   top: 54px;
 }
-#special {
+#dodge {
   left: 78px;
   top: 99px;
-}
-#dodge {
-  left: 0;
-  bottom: 0;
 }
 #guard {
   right: 0;
@@ -400,7 +396,7 @@ summary {
   #action-cluster {
     height: 190px;
   }
-  #special {
+  #dodge {
     top: 87px;
   }
   #slash {
@@ -437,8 +433,8 @@ summary {
     font-size: 9px;
   }
   #move {
-    width: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .8);
-    height: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .8);
+    width: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);
+    height: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);
     bottom: calc(var(--safe-b) + 24px);
   }
   #action-cluster {
@@ -451,8 +447,7 @@ summary {
   #slash {left: 5px; top: 58px;}
   #stab {width: 56px; height: 56px; left: calc(50% - 28px); top: 0;}
   #heavy {width: 58px; height: 58px; right: 0; top: 58px;}
-  #special {width: 44px; height: 44px; left: calc(50% - 22px); top: 122px; font-size: 8px;}
-  #dodge {width: 56px; height: 56px; left: 5px; bottom: 0;}
+  #dodge {width: 44px; height: 44px; left: calc(50% - 22px); top: 122px; font-size: 8px;}
   #guard {width: 64px; height: 64px; right: 0; bottom: 0;}
 
 }

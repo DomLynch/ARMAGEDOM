@@ -81,7 +81,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
       };
       const low =
         stamina <= 0 ||
-        ["slash", "stab", "heavy", "special", "dodge"].some(unaffordable);
+        ["slash", "stab", "heavy", "dodge"].some(unaffordable);
       const staminaState = exhausted
         ? "EXHAUSTED"
         : p.guardBrokenUntil > g.time
@@ -103,7 +103,6 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
         "slash",
         "stab",
         "heavy",
-        "special",
         "dodge",
         "guard",
       ]) {
@@ -112,7 +111,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
         button.classList.toggle("low-energy", lowEnergy);
         button.setAttribute(
           "aria-label",
-          `${id}${lowEnergy ? " · Low stamina" : ""}`,
+          `${id === "dodge" ? "Dodge Roll" : id}${lowEnergy ? " · Low stamina" : ""}`,
         );
         if (id === "slash" || id === "stab")
           button.querySelector("small").textContent = "";
@@ -138,7 +137,6 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
       }
       for (const [id, ready, fallback] of [
         ["heavy", p.heavyReady, 1.6],
-        ["special", p.specialReady, 7],
         ["dodge", p.dodgeReady, 1.05],
       ]) {
         const button = el(id),
@@ -158,10 +156,10 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
       if(pistol){
         const equipped=pistol.equipped;
         if(equipped!==lastPistolEquipped){
-          for(const [id,label] of Object.entries(equipped?{slash:'FIRE',stab:'RELOAD',heavy:'MELEE',special:'NO SPECIAL',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',special:'SPECIAL',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
-          el('special').disabled=el('guard').disabled=equipped;lastPistolEquipped=equipped;
+          for(const [id,label] of Object.entries(equipped?{slash:'FIRE',stab:'RELOAD',heavy:'MELEE',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
+          el('guard').disabled=equipped;lastPistolEquipped=equipped;
         }
-        if(equipped){el('special').setAttribute('aria-label','Special unavailable with pistol');el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
+        if(equipped){el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
         el('ammo').hidden=!equipped;
         el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
         const fireLeft=Math.max(0,pistol.nextFireAt-g.time);

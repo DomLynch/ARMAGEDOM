@@ -46,7 +46,7 @@ function setup(t) {
     return elements.get(id);
   };
   globalThis.document = {
-    getElementById: el,
+    getElementById: id=>id==='special'?null:el(id),
     hidden: false,
     body: new Element(),
     addEventListener() {},
@@ -118,17 +118,13 @@ test("donor cooldown arcs use supplied periods and zero-cooldown Heavy stays fin
   g.player.specialReady = 17.5; // Half of its actual 15-second cooldown left.
   g.player.dodgeReady = 10.3; // Half of its actual .6-second roll left.
   hud.update(g);
-  assert.equal(Number(el("special").style["--ready"]), 0.5);
   assert.ok(Math.abs(Number(el("dodge").style["--ready"]) - 0.5) < 1e-12);
-  assert.equal(el("special").small.textContent, "7.5s");
   assert.equal(el("dodge").small.textContent, "0.3s");
   assert.equal(el("heavy").style["--ready"], "1");
   assert.equal(el("heavy").small.textContent, "");
   assert.equal(el("heavy").classList.contains("cooldown"), false);
   g.time = 18;
   hud.update(g);
-  assert.equal(el("special").classList.contains("cooldown"), false);
-  assert.equal(el("special").style["--ready"], "1");
 });
 test("donor displays actual 150HP maximum and held guard without false break during exposure", (t) => {
   const { hud, el } = setup(t);
@@ -161,7 +157,7 @@ test("legacy wave HUD keeps cooldown periods but hides positive ending", (t) => 
     el("objective").textContent,
     "WESTMINSTER · WAVE 1 / 3 · 1 HOSTILES",
   );
-  for (const id of ["heavy", "special", "dodge"]) {
+  for (const id of ["heavy", "dodge"]) {
     assert.ok(Math.abs(Number(el(id).style["--ready"]) - 0.5) < 1e-12);
   }
   assert.equal(el("health-number").textContent, "50 / 100");
@@ -212,7 +208,7 @@ test("stamina uses the unified player resource and an accessible clamped gold ba
   assert.equal(el("guard-fill").style.width, "35%");
   assert.equal(el("stamina-bar").attributes.get("aria-valuenow"), "35");
   assert.equal(el("stamina-bar").attributes.get("aria-valuemax"), "100");
-  assert.equal(el("stamina-state").textContent, "LOW");
+  assert.equal(el("stamina-state").textContent, ""); // All visible actions affordable; keyboard Special remains separate.
 });
 test("unaffordable actions dim without disabling aim or held guard and preserve cooldown", (t) => {
   const { hud, el } = setup(t),
@@ -224,25 +220,23 @@ test("unaffordable actions dim without disabling aim or held guard and preserve 
   assert.equal(el("slash").classList.contains("low-energy"), true);
   assert.equal(el("stab").classList.contains("low-energy"), false);
   assert.equal(el("heavy").classList.contains("low-energy"), true);
-  assert.equal(el("special").small.textContent, "7.5s");
   assert.equal(el("slash").small.textContent, "");
-  assert.equal(Number(el("special").style["--ready"]), 0.5);
   assert.equal(el("guard").classList.contains("low-energy"), false);
   assert.equal(el("guard").classList.contains("pressed"), true);
-  for (const id of ["slash", "stab", "heavy", "special", "dodge", "guard"]) {
+  for (const id of ["slash", "stab", "heavy", "dodge", "guard"]) {
     assert.notEqual(el(id).disabled, true);
     assert.equal(el(id).attributes.has("disabled"), false);
     assert.equal(el(id).attributes.has("aria-disabled"), false);
   }
 });
-test("exhaustion dims all six controls and recovery/retry clears every stale hint", (t) => {
+test("exhaustion dims all five controls and recovery/retry clears every stale hint", (t) => {
   const { hud, el } = setup(t),
     g = game(true);
   Object.assign(g.player, { stamina: 40, maxStamina: 100, exhausted: true });
   g.staminaCosts = costs;
   hud.update(g);
   assert.equal(el("stamina-state").textContent, "EXHAUSTED");
-  for (const id of ["slash", "stab", "heavy", "special", "dodge", "guard"])
+  for (const id of ["slash", "stab", "heavy", "dodge", "guard"])
     assert.equal(el(id).classList.contains("low-energy"), true);
   const fresh = game(true);
   Object.assign(fresh.player, {
@@ -254,9 +248,9 @@ test("exhaustion dims all six controls and recovery/retry clears every stale hin
   hud.update(fresh);
   assert.equal(el("stamina-state").textContent, "");
   assert.equal(el("guard-fill").style.width, "100%");
-  for (const id of ["slash", "stab", "heavy", "special", "dodge", "guard"])
+  for (const id of ["slash", "stab", "heavy", "dodge", "guard"])
     assert.equal(el(id).classList.contains("low-energy"), false);
-  for (const id of ["slash", "stab", "heavy", "special", "dodge"])
+  for (const id of ["slash", "stab", "heavy", "dodge"])
     assert.equal(el(id).small.textContent, "");
 });
 test("exact cost is affordable, zero stamina dims guard, invalid/out-of-range values stay finite", (t) => {
@@ -348,6 +342,10 @@ test('equipped vest status follows authoritative restore, holster, transient pri
  hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,false);
 });
 
-test('Assist 100percent correction setting toggles independently without changing six weapon actions',t=>{
+test('Assist 100percent correction setting toggles independently without changing five touch actions',t=>{
  const {el}=setup(t);let enabled;createHUD({onPause(){},onAssist:value=>enabled=value});el('assist').onclick();assert.equal(enabled,false);assert.equal(el('assist').textContent,'Assist: Off');assert.equal(el('assist').attributes.get('aria-pressed'),'false');el('assist').onclick();assert.equal(enabled,true);assert.equal(el('assist').textContent,'Assist: 100%');
+});
+
+test('five-control HUD works without Special DOM; Dodge remains enabled in pistol and guard follows mode',t=>{
+ const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:6,reserve:12,nextFireAt:0,reloadingUntil:0};hud.update(g);assert.equal(el('guard').disabled,true);assert.equal(el('guard').span.textContent,'NO GUARD');assert.notEqual(el('dodge').disabled,true);assert.equal(el('dodge').attributes.get('aria-label'),'Dodge Roll');g.pistol.equipped=false;hud.update(g);assert.equal(el('guard').disabled,false);assert.equal(el('guard').span.textContent,'GUARD');assert.notEqual(el('dodge').disabled,true);
 });

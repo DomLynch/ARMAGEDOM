@@ -231,3 +231,9 @@ test('Fire drag never gains an aim arrow and another pointer cannot replace its 
  send(e.slash,'pointerdown',{pointerId:2,clientX:100,clientY:100});assert.equal(e.slash.style.get('--aim-angle'),angle);send(e.slash,'pointerup',{pointerId:2});assert.equal(e.slash.style.get('--aim-angle'),angle);
  send(e.slash,'pointercancel',{pointerId:1});assert.equal(e.slash.style.get('--aim-angle'),'0rad');assert.equal(e.slash.classList.contains('aiming'),false);assert.equal(input.take().fireAim,null);send(e.slash,'pointerdown',{pointerId:3});assert.equal(e.slash.style.get('--aim-angle'),'0rad');input.clear();assert.equal(e.slash.style.get('--aim-angle'),'0rad');
 });
+
+test('keyboard Special and Space Dodge remain available without a Special touch node',t=>{
+ const env=setup(t);
+ send(env.window,'keydown',{code:'KeyE'});assert.ok(env.input.take().actions.includes('special'));send(env.window,'keyup',{code:'KeyE'});
+ send(env.window,'keydown',{code:'Space'});assert.equal(env.input.take().dodge,true);send(env.window,'keyup',{code:'Space'});
+});
