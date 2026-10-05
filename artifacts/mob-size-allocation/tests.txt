@@ -1,0 +1,14 @@
+✔ registered6/9/9 rosters are balanced and use every factor before repetition (0.775792ms)
+✔ input permutations and frozen arrays preserve stable key assignments (0.635334ms)
+✔ dead/ordinary/Crooked keys share full-roster assignments across refresh and return (0.091667ms)
+✔ area identity affects assignment without random state, actor IDs or persistent cache (0.19675ms)
+✔ empty, one-factor, custom pools and larger rosters terminate with balanced bounded reuse (0.615458ms)
+✔ reject malformed area/keys and duplicate, sparse, nonfinite or out-of-range factors (0.170375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.784333

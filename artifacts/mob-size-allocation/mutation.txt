@@ -1,0 +1,30 @@
+✖ registered6/9/9 rosters are balanced and use every factor before repetition (10.447625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 83.64375
+
+✖ failing tests:
+
+test at ../../../../../../../private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-size-9d9lv5us/mutant.test.mjs:6:1
+✖ registered6/9/9 rosters are balanced and use every factor before repetition (10.447625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(Math.max(...counts)-Math.min(...counts)<=1)
+  
+      at TestContext.<anonymous> (file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-size-9d9lv5us/mutant.test.mjs:9:96)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

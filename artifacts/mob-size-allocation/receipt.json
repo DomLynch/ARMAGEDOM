@@ -1,0 +1,15 @@
+{
+  "base": "50dd70e7cd342d04bf0161de1e74e0def93dfab1",
+  "scope": "Pure full-roster size-factor allocation; no actual scaled render/contact/collision/runtime/phone/publication proof",
+  "mutation": {
+    "change": "Assign every resident smallest factor",
+    "expectedExit": 1,
+    "actualExit": 1
+  },
+  "focusedTests": 6,
+  "exitCode": 0,
+  "sourceSHA": "3a392d205163aed682fc0d091a735980153a2ccb6cdd4d2980177c7092d6e20f",
+  "testSHA": "4571edfdac9de841f9af2273eb447ad0c05a7d120558b5abdccbb5ce0cb50ace",
+  "registeredRosterSHA": "9f3f646f5f87c81ae293c75a7b0f0f20cfa6fbafff58df9f780b95edf6373084",
+  "verifiedAtUTC": "2026-10-05T08:23:11.660381+00:00"
+}
