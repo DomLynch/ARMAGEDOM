@@ -1,0 +1,44 @@
+{
+  "measurements": [
+    {
+      "kind": "ammo",
+      "calls": 3,
+      "triangles": 192,
+      "memory": {
+        "geometries": 3,
+        "textures": 1
+      }
+    },
+    {
+      "kind": "dressing",
+      "calls": 4,
+      "triangles": 108,
+      "memory": {
+        "geometries": 3,
+        "textures": 1
+      }
+    },
+    {
+      "kind": "game",
+      "calls": 11,
+      "triangles": 315,
+      "memory": {
+        "geometries": 10,
+        "textures": 2
+      }
+    }
+  ],
+  "disposal": {
+    "baseline": {
+      "geometries": 4,
+      "textures": 2
+    },
+    "after": {
+      "geometries": 4,
+      "textures": 2
+    },
+    "remainingSupplyNodes": 0
+  },
+  "errors": [],
+  "scope": "Exact primitive factory at selected006393x852 London; isolated art comparison, not actual kill/pickup or HUD/phone acceptance."
+}

@@ -1,0 +1,3 @@
+# Reproduce the bounded art review
+
+Stage a temporary root containing these four scripts, `Web/src/supplies-view.js`, accepted028 `Web/src/world.js` and `world-geometry.js`, `Web/public/world/manifest.json`, `Web/public/world/westminster/layout.json` and `backdrop.webp`. See proof/request.json for exact staged paths/hashes. Write Web/package.json with type module and dependencies three0.182.0/playwright1.61.1. Submit the temporary root through vps-run.py --timeout150 -- bash run.sh. Script assumes existing VPS Chromium path; inspect capture.mjs before reuse. Do not copy local node_modules or credentials. This review requires no main-game build and supplies no runtime reward proof.

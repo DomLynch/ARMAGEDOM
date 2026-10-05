@@ -1,0 +1,67 @@
+{
+  "reports": [
+    {
+      "options": {
+        "kind": "ammo",
+        "count": 2
+      },
+      "calls": 3,
+      "triangles": 144,
+      "geometries": 3,
+      "materials": 3,
+      "instances": 2,
+      "envelope": [
+        0.550000011920929,
+        0.0607999980449677,
+        0.550000011920929
+      ],
+      "disposed": {
+        "geometry": 3,
+        "material": 3,
+        "instance": 2
+      }
+    },
+    {
+      "options": {
+        "kind": "ammo",
+        "count": 3
+      },
+      "calls": 3,
+      "triangles": 192,
+      "geometries": 3,
+      "materials": 3,
+      "instances": 2,
+      "envelope": [
+        0.550000011920929,
+        0.0607999980449677,
+        0.550000011920929
+      ],
+      "disposed": {
+        "geometry": 3,
+        "material": 3,
+        "instance": 2
+      }
+    },
+    {
+      "options": {
+        "kind": "dressing"
+      },
+      "calls": 4,
+      "triangles": 108,
+      "geometries": 3,
+      "materials": 4,
+      "instances": 2,
+      "envelope": [
+        0.550000011920929,
+        0.05062499933992513,
+        0.550000011920929
+      ],
+      "disposed": {
+        "geometry": 3,
+        "material": 4,
+        "instance": 2
+      }
+    }
+  ],
+  "checks": "Factory dimensions/counts, bounded opacity/no recolour, ground bounds, independent resources, exact once-only disposal and invalid-kind/count rejection PASS"
+}
