@@ -12,7 +12,7 @@ const vertexShader=`
       center=instanceMatrix*center;
     #endif
     center=modelMatrix*center;
-    center.y+=0.06;
+    center.y+=0.12;
     float scale=max(length(modelMatrix[0].xyz),max(length(modelMatrix[1].xyz),length(modelMatrix[2].xyz)));
     float radius=max(0.19,shapeRadius*scale+0.11);
     vec4 point=viewMatrix*center;
@@ -24,7 +24,7 @@ const fragmentShader=`
   uniform vec3 color;
   void main(){
     float r=length(vUv*2.0-1.0);
-    float alpha=smoothstep(0.38,0.62,r)*(1.0-smoothstep(0.66,1.0,r))*0.60;
+    float alpha=smoothstep(0.12,0.36,r)*(1.0-smoothstep(0.40,1.0,r))*0.85;
     if(alpha<0.01)discard;
     gl_FragColor=vec4(color,alpha);
     #include <colorspace_fragment>

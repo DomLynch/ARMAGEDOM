@@ -1,0 +1,11 @@
+{
+  "base": "1dd5e841212125a9a62a64cdfdfddf61f26d5659",
+  "files": {
+    "Web/src/pickup-glow.js": "b95d7780a8b658a2fdcb7c87ed173cadb1f795d188378c6ccdfeb3c3dfdcd691",
+    "Web/tests/pickup-glow.test.js": "75a7cad2ff185c44b5cf8fd59e286bd502f38f3bef60713e3d8757135a2563a2"
+  },
+  "referenceScreenshot": {
+    "path": "/Users/domininclynch/Downloads/ARMAGEDOM \u00b7 London 2034.png",
+    "sha256": "0e0900f27b2abae0a5e24f5de62ca2a34c0e0dfdb6ca982f4b1f80b918dd77a7"
+  }
+}

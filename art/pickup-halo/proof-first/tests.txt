@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: actual1/2/3 instances retain original surfaces and transforms; owned halo disposal is idempotent
+ok 1 - actual1/2/3 instances retain original surfaces and transforms; owned halo disposal is idempotent
+  ---
+  duration_ms: 6.153075
+  type: 'test'
+  ...
+# Subtest: quad survives until last user and recreation is owned; equipped cloth is rejected
+ok 2 - quad survives until last user and recreation is owned; equipped cloth is rejected
+  ---
+  duration_ms: 1.70658
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 129.474712

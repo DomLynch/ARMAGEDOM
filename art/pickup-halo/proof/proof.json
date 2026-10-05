@@ -1,0 +1,95 @@
+{
+  "errors": [],
+  "samples": [
+    {
+      "name": "portrait",
+      "mode": "halo",
+      "width": 393,
+      "height": 852,
+      "overlap": true,
+      "blocked": false,
+      "orange": 1200,
+      "calls": 41,
+      "triangles": 47606,
+      "memory": {
+        "geometries": 32,
+        "textures": 21
+      },
+      "haloInstances": 15,
+      "corpsePosition": [
+        -0.2,
+        0,
+        5.5
+      ]
+    },
+    {
+      "name": "landscape",
+      "mode": "halo",
+      "width": 852,
+      "height": 393,
+      "overlap": true,
+      "blocked": false,
+      "orange": 4441,
+      "calls": 41,
+      "triangles": 47606,
+      "memory": {
+        "geometries": 32,
+        "textures": 21
+      },
+      "haloInstances": 15,
+      "corpsePosition": [
+        -0.2,
+        0,
+        5.5
+      ]
+    }
+  ],
+  "clear": {
+    "mode": "halo",
+    "width": 393,
+    "height": 852,
+    "overlap": false,
+    "blocked": false,
+    "orange": 1677,
+    "calls": 29,
+    "triangles": 657,
+    "memory": {
+      "geometries": 32,
+      "textures": 21
+    },
+    "haloInstances": 15,
+    "corpsePosition": [
+      -0.2,
+      0,
+      5.5
+    ]
+  },
+  "blocked": {
+    "mode": "halo",
+    "width": 393,
+    "height": 852,
+    "overlap": true,
+    "blocked": true,
+    "orange": 0,
+    "calls": 42,
+    "triangles": 47608,
+    "memory": {
+      "geometries": 33,
+      "textures": 21
+    },
+    "haloInstances": 15,
+    "corpsePosition": [
+      -0.2,
+      0,
+      5.5
+    ]
+  },
+  "disposed1": {
+    "geometries": 17,
+    "textures": 21
+  },
+  "disposed2": {
+    "geometries": 17,
+    "textures": 21
+  }
+}
