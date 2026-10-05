@@ -42,7 +42,7 @@ for(const recipeId of ['decapitation','pistol-decapitation'])test(`${recipeId} u
  const a=new T.Vector3().fromBufferAttribute(copied.geometry.attributes.position,0).applyMatrix4(copied.matrixWorld),b=new T.Vector3().fromBufferAttribute(geometry.attributes.position,0);source.applyBoneTransform(0,b).applyMatrix4(source.matrixWorld);
  assert.ok(a.distanceTo(b)<1e-5);assert.equal(source.visible,false);
  let ownedDisposed=0;copied.geometry.addEventListener('dispose',()=>ownedDisposed++);copied.material.addEventListener('dispose',()=>ownedDisposed++);
- p.update(.5,.5);assert.ok(calls<=6);assert.ok(part.position.x>1.3); // full .5s impulse, not clamped .1s slowdown
+ calls=0;p.update(.5,.5);assert.ok(calls<=6);assert.ok(part.position.x>1.3); // full .5s impulse, not clamped .1s slowdown
  p.update(6,5.5);assert.equal(part.parent,null);assert.equal(p.stats().expired,true);
  p.dispose();p.dispose();assert.equal(source.visible,true);assert.equal(ownedDisposed,2);assert.equal(borrowedDisposed,0);
  geometry.dispose();material.dispose();texture.dispose();skeleton.dispose();
