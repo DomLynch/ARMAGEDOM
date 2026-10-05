@@ -1,0 +1,12 @@
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /review.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/node_modules/three/build/three.module.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/src/supplies-view.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/src/pickup-glow.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /world.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/src/vest-view.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/src/pickup-outline.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /world-geometry.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /Web/node_modules/three/build/three.core.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /world/manifest.json HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /world/westminster/layout.json HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 15:09:55] "GET /world/westminster/backdrop.webp HTTP/1.1" 200 -

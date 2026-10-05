@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: instanced rounds preserve transforms and borrowed resources; disposal restores originals once
+ok 1 - instanced rounds preserve transforms and borrowed resources; disposal restores originals once
+  ---
+  duration_ms: 4.314858
+  type: 'test'
+  ...
+# Subtest: multi-material items restore identity; equipped skinned cloth is rejected without mutation
+ok 2 - multi-material items restore identity; equipped skinned cloth is rejected without mutation
+  ---
+  duration_ms: 1.265773
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.508847

@@ -1,0 +1,20 @@
+{
+  "base": "fa2277f58fa437cb69ecd98db948a68e8eed997a",
+  "files": {
+    "review.html": "d0a0d7e1949237f1b5695d9d9d7fc87dd084a9c451e42064eeda66ff607900a7",
+    "world.js": "921e3f652f4a7c52cf0a3d75ee39de99d76555746fe46591d52ec680b76d53f4",
+    "capture.mjs": "ce68a393102560879d54f001b366b7bc91684b073be5844eecd8c96f1a6a06ba",
+    "run.sh": "6874a59bd2620ea3015c12bd37e8479e4b1ae606120e30b95c3baebe57f4ca4c",
+    "world-geometry.js": "c171c12bc67d0583d61e1699a12a3e112cb3a2f424d2c72c8ec9143902664706",
+    "Web/package-lock.json": "b7f9f5be94640262f27fba1a58bb0888cdaefea16d8dd95d47a548f461b0717c",
+    "Web/package.json": "997893d4aa0b70c9b5f4aa8f80307c87b228b21b5f1acc2b948bb2577ceb54a7",
+    "world/manifest.json": "da49321b7431e35265391919ad8938f93bdad83506f2ce9a7c39b22b7dd848b6",
+    "world/westminster/backdrop.webp": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1",
+    "world/westminster/layout.json": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5",
+    "Web/tests/pickup-glow.test.js": "a589f6068bf35da53839203496a184b93897670405fa373b6a145dd917dae670",
+    "Web/src/pickup-glow.js": "ebe4bff82d2302ee281d670976ca563c58a024f2b9502a906055e9d642ea47e6",
+    "Web/src/pickup-outline.js": "77aa6df63f9ecebf3adfb8d2823f0f8bd3c4314b6c2007080eeb4773bbe77d0e",
+    "Web/src/supplies-view.js": "bcb09472b858c6d09c343e0c6276890e33bd61b4e2939aaa059314e13e6179a9",
+    "Web/src/vest-view.js": "e4739d56dd29f41d3ef4fe628e7c57f365378b4a31b61d660718681f349023a8"
+  }
+}

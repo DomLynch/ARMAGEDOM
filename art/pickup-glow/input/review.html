@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/Web/node_modules/three/build/three.module.js"}}</script>
+<script type="module">
+import * as T from 'three';
+import {createSupplyView} from './Web/src/supplies-view.js';
+import {createVestBagView} from './Web/src/vest-view.js';
+import {addPickupGlow} from './Web/src/pickup-glow.js';
+import {createWorld} from './world.js';
+const scene=new T.Scene(),camera=new T.PerspectiveCamera(),renderer=new T.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(1);renderer.setSize(393,852);document.body.append(renderer.domElement);
+scene.add(new T.HemisphereLight(0xcbd7dc,0x494038,1.2));const light=new T.DirectionalLight(0xffecd5,2);light.position.set(-3,5,4);scene.add(light);
+const world=await createWorld({THREE:T,renderer,scene,camera,baseUrl:new URL('./',location.href),viewZoomMultiplier:1.3365});
+let views=[],handles=[];
+function reset(glow){handles.forEach(h=>h.dispose());views.forEach(v=>v.dispose());handles=[];
+ views=[1,2,3].map(count=>createSupplyView({kind:'ammo',count})).concat(createSupplyView({kind:'dressing'}),createVestBagView());
+ views.forEach((v,i)=>{v.root.position.copy(world.toRender({x:-1+i*.5,z:-5.6}));v.update(1);scene.add(v.root);if(glow){for(const mesh of v.root.children)if(mesh.isMesh&&mesh.material.isMeshStandardMaterial)handles.push(addPickupGlow(mesh));v.root.traverse(o=>{if(o.isLineSegments)o.visible=false;});}});
+}
+const wall=new T.Mesh(new T.PlaneGeometry(100,100),new T.MeshBasicMaterial({color:0x202020}));wall.visible=false;scene.add(wall);
+const target=new T.WebGLRenderTarget();target.texture.colorSpace=T.SRGBColorSpace;
+window.__proof={sample(glow,width,height,blocked=false,close=false){reset(glow);renderer.setSize(width,height);world.update({x:0,z:-6},0,width,height,true);
+ if(close){world.group.visible=false;camera.fov=35;camera.aspect=width/height;camera.position.set(0,world.toRender({x:0,z:-5.6}).y+3,world.toRender({x:0,z:-5.6}).z+3);camera.lookAt(world.toRender({x:0,z:-5.6}));camera.updateProjectionMatrix();}else world.group.visible=true;
+ camera.updateMatrixWorld(true);wall.visible=blocked;wall.position.copy(camera.position).lerp(world.toRender({x:0,z:-5.6}),.4);wall.quaternion.copy(camera.quaternion);
+ target.setSize(width,height);renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(width*height*4);renderer.readRenderTargetPixels(target,0,0,width,height,p);let amber=0;for(let i=0;i<p.length;i+=4)if(p[i]>190&&p[i+1]>80&&p[i+1]<220&&p[i+2]<140&&p[i]>p[i+1]*1.2)amber++;
+ renderer.setRenderTarget(null);renderer.render(scene,camera);return {glow,width,height,blocked,close,amber,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,lines:renderer.info.render.lines,memory:{...renderer.info.memory},ownedMaterials:handles.length,positions:views.map(v=>v.root.position.toArray())};},
+ dispose(){handles.forEach(h=>h.dispose());views.forEach(v=>v.dispose());renderer.render(scene,camera);return {...renderer.info.memory};}};
+__proof.sample(false,393,852);
+</script>
