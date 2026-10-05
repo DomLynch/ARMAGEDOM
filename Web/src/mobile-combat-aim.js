@@ -21,7 +21,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
   const pointer=Number.isFinite(pointerHeading),active=mobile&&moveHeld&&!pointer&&!cancel&&alive;
   const assistEligible=mobile&&!pointer&&!cancel&&alive&&assistEnabled;
   const moving=Math.hypot(move.x,move.z)>.01,strength=Math.min(1,Math.hypot(move.x,move.z));
-  let steering=active&&moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):null;
+  let steering=active?(moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):state.steering):null;
   const movement=cancel||!alive||mobile&&!moveHeld?{x:0,z:0}:steering!==null?{x:Math.sin(steering)*strength,z:Math.cos(steering)*strength}:{...move};
   const cohort=[];
   if(assistEligible&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
@@ -43,7 +43,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
   }else if(assistEligible)raw=state.rawHeading;
   else raw=moving&&!mobile&&!cancel&&alive?Math.atan2(move.x,move.z):state.heading;
   if(retained&&Math.abs(arc(retained.bearing-raw))>=9*DEG)retained=null;
-  if(!retained&&!deliberateExit){
+  if(!retained&&!deliberateExit&&(!active||moving)){
     const candidates=cohort.filter(t=>Math.abs(arc(t.bearing-raw))<6*DEG);
     candidates.sort((a,b)=>Math.abs(arc(a.bearing-raw))-Math.abs(arc(b.bearing-raw))||a.distance-b.distance||(a.id<b.id?-1:a.id>b.id?1:0));
     retained=candidates[0]??null;

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,enemy,stepGame,resetMobileControls} from '../src/combat.js';
 import {createMobileAimState} from '../src/mobile-combat-aim.js';
+import {InputState} from '../src/input.js';
 import {pistolCue} from '../src/pistol-targeting.js';
 const world={areaId:'westminster',spawn:{x:0,z:0},layout:{characterScale:1.3225},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true};
 const tick=(g,intent,n=1)=>{for(let i=0;i<n;i++)stepGame(g,intent);};
@@ -45,4 +46,19 @@ test('translation consumes steered intent rather than original raw direction, in
  const {g}=fixture();tick(g,{mobile:true,moveHeld:true,move:{x:0,z:1}});g.player.pos={x:0,z:0};g.player.velocity={x:0,z:0};
  tick(g,{mobile:true,moveHeld:true,move:{x:1,z:0}});assert.ok(g.player.pos.x>0);assert.ok(g.player.pos.z>g.player.pos.x*3,'travel initially preserves forward direction while smoothly turning right');
  const position={...g.player.pos};tick(g,{mobile:true,moveHeld:false,move:{x:1,z:0}});assert.deepEqual(g.player.pos,position);assert.deepEqual(g.player.velocity,{x:0,z:0});
+});
+
+// Controlled domain fixture driven through the real touch state, not a synthetic
+// post-mapping intent. Native compiled-game coverage is recorded separately.
+test('real left-stick input acquires off-centre target, tracks travel, exits deliberately and stops on lift',()=>{
+ const {g,e}=fixture(4*Math.PI/180,4),input=new InputState(),arc=a=>Math.atan2(Math.sin(a),Math.cos(a));
+ const frame=()=>{const raw=input.take();stepGame(g,{...raw,mobile:true,move:{x:raw.move.x,z:-raw.move.y},combatVisibleIds:[e.id]});};
+ const steer=degrees=>{const a=degrees*Math.PI/180;input.move(11,{x:Math.sin(a)*13,y:-Math.cos(a)*13});};
+ input.down(11,'move',{x:0,y:0});steer(0);for(let i=0;i<30;i++)frame();
+ assert.equal(g.mobileAim.targetId,e.placementKey);const error=arc(g.mobileAim.bearing-g.mobileAim.rawHeading);assert.ok(error>3*Math.PI/180&&error<5*Math.PI/180);assert.ok(g.mobileAim.heading>g.mobileAim.rawHeading);const bearing=g.mobileAim.bearing;
+ for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,e.placementKey);assert.ok(g.mobileAim.bearing>bearing);assert.ok(Math.abs(arc(g.mobileAim.bearing-g.mobileAim.rawHeading)-error)<1e-8,'travel preserves intentional aim error');
+ steer(7);for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,e.placementKey,'partial manual turn retains target');
+ steer(25);for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,null,'manual turn escapes 9degree retention');
+ input.up(11);const position={...g.player.pos};for(let i=0;i<8;i++)frame();assert.deepEqual(g.player.pos,position);assert.equal(g.mobileAim.targetId,null);
+ input.down(11,'move',{x:0,y:0});g.mobileAssistEnabled=false;steer(0);for(let i=0;i<30;i++)frame();assert.equal(g.mobileAim.targetId,null);input.clear();resetMobileControls(g);assert.equal(g.mobileAiming,false);
 });

@@ -8,14 +8,14 @@ function fixture(){
  const g=createGame(world,{pilot:'donor-knife',pistol:true});tick(g,{actions:['pickup']});
  const e=Object.assign(enemy(0,{x:2,z:-2}),{staggerUntil:100});g.enemies=[e];g.wave=1;return {g,e,world};
 }
-test('accepted near-aligned Fire nudges barrel; read-only cue uses unassisted intent and mutes cooldown',()=>{
+test('accepted near-aligned Fire nudges barrel; read-only cue uses unassisted intent and preserves ray cue during cooldown',()=>{
  const {g,e,world}=fixture();e.pos={x:.5,z:-2};
  const scene=new THREE.Scene(),fx=createEffects(scene,world);fx.update(g,{visibleIds:[e.id]});
  const marker=scene.children.find(o=>o.name==='Pistol aim marker');assert.equal(marker.visible,true);assert.equal(marker.userData.targetId,e.id);assert.equal(marker.userData.ready,true);assert.deepEqual(marker.position.toArray(),[e.pos.x,1.15,-e.pos.z]);assert.equal(g.pistolTargetId,null);
  tick(g,{actions:['fire'],aim:{x:0,z:1},combatVisibleIds:[e.id]});const shot=g.events.find(e=>e.type==='shot');
  assert.equal(shot.targetId,e.id);assert.equal(e.hp,30);assert.equal(g.pistolTargetId,null);
  assert.deepEqual(g.player.facing,shot.direction);assert.equal(g.pistol.magazine,5);
- fx.update(g);assert.equal(marker.userData.targetId,null);assert.equal(marker.userData.ready,false);assert.deepEqual(marker.position.toArray(),[g.player.pos.x,1.05,-(g.player.pos.z+4)]);
+ fx.update(g);assert.equal(marker.userData.targetId,e.id);assert.equal(marker.userData.ready,false);assert.deepEqual(marker.position.toArray(),[e.pos.x,1.15,-e.pos.z]);
  tick(g);fx.update(g);assert.equal(g.pistolTargetId,null);assert.equal(g.pistol.magazine,5);fx.dispose();assert.equal(scene.children.length,0);
 });
 test('each actual shot uses deliberate intent; behind target and manual override cannot retain a lock',()=>{

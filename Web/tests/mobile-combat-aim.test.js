@@ -60,3 +60,9 @@ test('stopped touch aim keeps stateless partial correction without travel retent
  near(state.heading,rad(4)*.4125);const off=step(createMobileAimState(),{assistEnabled:false});near(off.correction,0);assert.equal(off.state.targetId,null);assert.deepEqual(off.move,{x:0,z:1});
  assert.equal(step(state,{moveHeld:false,lineClear:()=>false}).correction,0);assert.equal(step(state,{moveHeld:false,assistEnabled:false}).correction,0);
 });
+
+test('held deadzone keeps prior steering for manual resume and never acquires a new sticky target',()=>{
+ const empty=step(createMobileAimState(),{move:{x:0,z:0}});assert.equal(empty.state.targetId,null);assert.equal(empty.correction,0);
+ const retained=step().state,center=step(retained,{move:{x:0,z:0}}).state;assert.equal(center.targetId,retained.targetId);near(center.steering,retained.steering);near(center.previousMove,retained.previousMove);
+ const resumed=step(center,{move:{x:Math.sin(rad(20)),z:Math.cos(rad(20))}});near(resumed.state.rawHeading,followMobileAngle(0,rad(20),1/60,10));assert.equal(resumed.state.targetId,retained.targetId);
+});

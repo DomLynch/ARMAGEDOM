@@ -65,10 +65,10 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   const direction={x:aim.x/length,z:aim.z/length};
   const ready=pistol.magazine>0&&!pistol.reloadingUntil&&game.time>=pistol.nextFireAt
     &&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=p.dodgeUntil;
-  const trace=ready?(game.mobileAiming?tracePistol(p.pos,direction,game.enemies,game.world.lineClear.bind(game.world)):resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
-    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId})):null;
+  const trace=game.mobileAiming?tracePistol(p.pos,direction,game.enemies,game.world.lineClear.bind(game.world)):resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
+    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId});
   const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
-  const eligible=hit&&(game.mobileAiming?true:selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
+  const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId)&&(game.mobileAiming?true:selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
     lineClear:game.world.lineClear.bind(game.world),areaId:game.world.areaId,
     range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees}));
   return {targetId:eligible?hit.id:null,ready,height:eligible?1.15*(hit.mobSize??1):1.05,position:eligible?hit.pos:
