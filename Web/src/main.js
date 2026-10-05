@@ -47,7 +47,7 @@ function cancelPistol(g){resetMobileControls(g);actors?.resetFeedback();g.pistol
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true, mobileControls: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true,rat: true, mobileControls: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -133,7 +133,7 @@ async function restart() {
   game = createGame(world, pilot);game.mobileAssistEnabled=mobileAssistEnabled;
   persistRun(game);
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
-  actors.update(game, 0);
+  actors.update(game, 0);game.ratContact=actors.ratContact();
   hud.update(game);
   accumulator = 0;
   audio.unlock().catch(() => {});
@@ -278,7 +278,7 @@ async function crossArea(request) {
     game.events = [];
     world.update(game.player.pos, 0, innerWidth, innerHeight, true);
     atmosphere?.update(0, {paused: true});
-    actors.update(game, 0, 0, {restoreCorpses:true});
+    actors.update(game, 0, 0, {restoreCorpses:true});game.ratContact=actors.ratContact();
     console.info(
       "ARMAGEDOM_TRAVEL",
       JSON.stringify({ area: world.areaId, position: game.player.pos }),
@@ -367,7 +367,7 @@ enter.addEventListener("click", async () => {
     pendingLibrary = null;
     effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),{hitMarker:document.getElementById("hit-marker"),getView:actor=>actors.views.get(actor.id)});
     atmosphere = createAtmosphere({THREE, scene, world});
-    actors.update(game, 0);
+    actors.update(game, 0);game.ratContact=actors.ratContact();
     renderer.setAnimationLoop(frame);
     if (!library.complete)
       throw Error(

@@ -54,10 +54,11 @@ export class DonorMotion{
   if(entity.hp<=0){this.sample(deathPose?.clip??this.description.clips.death,deathPose?.phase??(response?responseAge/(response.ticks/60):1));return;}
   if(time<entity.dodgeUntil){this.sample(this.description.clips.dodge,(time-entity.dodgeStart)/(entity.dodgeUntil-entity.dodgeStart));return;}
   const swing=entity.swing;
-  if(swing&&time<swing.end){this.sample(swing.clip,donorSwingPhase(swing.ageTicks,swing.timing,swing.sourceContact));return;}
+  if(swing&&time<swing.end){this.sample(swing.clip,swing.native?(time-swing.start)/(swing.end-swing.start):donorSwingPhase(swing.ageTicks,swing.timing,swing.sourceContact));return;}
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}
   if(noTick)return; // Keep the sampled pose between fixed simulation ticks.
   const distance=delta.length(),speed=elapsed>0?distance/elapsed:0;
+  if(this.description.motion==='rat'){const name=speed>.05?this.description.clips.walk:this.description.clips.idle;this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+elapsed/this.actions.get(name).getClip().duration,1);this.sample(name,this.cycle);return;}
   if(speed>.05){
    const forward=new THREE.Vector3(0,0,1).applyQuaternion(this.root.quaternion),right=new THREE.Vector3(1,0,0).applyQuaternion(this.root.quaternion),along=delta.dot(forward),across=delta.dot(right);
    const strafe=Math.abs(across)>Math.abs(along),name=strafe?(across<0?'StrafeLeft':'StrafeRight'):(speed>=4.2?'Run':this.description.clips.walk);

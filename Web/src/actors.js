@@ -1,3 +1,7 @@
+import {createRatBiteReceiver,ratLowBlade} from './rat-contact.js';
+import footBindings from './rat-data/foot-bindings.json' with {type:'json'};
+import lowClip from './rat-data/low-slash.json' with {type:'json'};
+import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
 import {createFinisherPresentation} from './finisher-presentation.js';
@@ -121,12 +125,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
-    const animations = source.equipment
+    let animations = source.equipment
       ? equipDonorPlayer(
           { scene: model, animations: source.gltf.animations },
           source.equipment,
         ).animations
       : source.gltf.animations;
+    if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip)];
     const pistolMount=entity.kind<0&&library.pistolAsset?attachPistol(model,library.pistolAsset.scene):null;
     if(pistolMount)pistolMount.visible=false;
     const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
@@ -192,7 +197,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     views.set(entity.id, view);
     try {
       const Motion =
-        description.motion === "donor-knife" ? DonorMotion : ActorMotion;
+        ["donor-knife","rat"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
@@ -211,6 +216,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
+    view.footReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
     view.pistolSlide.dispose();
@@ -230,18 +236,52 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
+    ratContact(){
+      const point=new THREE.Vector3(),ray=new THREE.Raycaster();
+      function preparePlayer(view){
+        if(view.footReceiver)return;
+        view.footReceiver=createRatBiteReceiver(view.model,footBindings.bindings);view.footPoints=[];
+        for(const binding of footBindings.bindings){const mesh=view.model.getObjectByName(binding.runtimeName),g=mesh.geometry,ix=g.attributes.skinIndex,w=g.attributes.skinWeight;
+          for(const side of ['l','r']){const indices=new Set(binding.faceBindings.flatMap(f=>f.vertices)),valid=[...indices].filter(i=>{let total=0;for(let k=0;k<4;k++)if(['foot_'+side,'ball_'+side].includes(mesh.skeleton.bones[ix.getComponent(i,k)]?.name))total+=w.getComponent(i,k);return total>.85;});
+            const chosen=new Set();for(const axis of ['X','Y','Z'])for(const sign of [-1,1]){let best=null;for(const i of valid)if(best===null||sign*g.attributes.position['get'+axis](i)>sign*g.attributes.position['get'+axis](best))best=i;if(best!==null)chosen.add(best);}
+            for(const i of chosen)view.footPoints.push({mesh,i});
+          }
+        }
+      }
+      function visible(mesh){for(let n=mesh;n;n=n.parent)if(!n.visible)return false;return true;}
+      function tooth(view){const mesh=view.model.getObjectByName('Original_ARM_rat_surface_3');mesh.getVertexPosition(80,point);return point.applyMatrix4(mesh.matrixWorld).toArray();}
+      return {
+        capture:game=>{
+          this.update(game,0,0,{presentationDt:0,contactOnly:true});const player=views.get(0);player.root.updateWorldMatrix(true,true);preparePlayer(player);const rats=new Map();
+          for(const e of game.enemies)if(e.rig==='original-rat'){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);rats.set(e.id,{tooth:tooth(view),view,root:view.root.matrixWorld.clone()});}
+          return {player:player.footReceiver.capture(),playerRoot:player.root.matrixWorld.clone(),rats};
+        },
+        foot:(game,rat)=>{
+          const player=views.get(0);if(!player)return null;preparePlayer(player);let best=null,distance=Infinity;
+          for(const{mesh,i}of player.footPoints){if(!visible(mesh))continue;mesh.getVertexPosition(i,point);point.applyMatrix4(mesh.matrixWorld);if(point.y<-.01||point.y>.20)continue;const next={x:point.x,z:-point.z},d=Math.hypot(next.x-rat.pos.x,next.z-rat.pos.z);if(d<distance&&world.geometry.clear(next,0)&&world.lineClear(rat.pos,next)){best=next;distance=d;}}
+          return best;
+        },
+        hit:(a,d,s,before,after)=>{
+          if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
+          if(d.rig!=='original-rat'||!s.def.ratLow)return false;
+          const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
+          const meshes=[];view.model.traverse(m=>{if(m.isSkinnedMesh&&visible(m)){m.computeBoundingSphere();meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
+        },
+      };
+    },
     configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
     resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
     events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
     },
-    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false}={}) {
+    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false}={}) {
       if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
+        if(contactOnly&&entity.kind>=0&&entity.rig!=='original-rat')continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =
@@ -250,7 +290,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(entity.hp<=0)view.root.rotation.x=view.root.rotation.z=0;
         view.root.updateMatrixWorld(true);
         let deathPose=null;
-        if(entity.hp<=0&&view.finisher&&entity.finisher){
+        if(!contactOnly&&entity.hp<=0&&view.finisher&&entity.finisher){
           if(!view.finisherStarted){
             const recipe=view.finisher.start(entity.finisher);view.finisherStarted=true;view.finisherAge=Math.max(0,game.time-(entity.response?.start??game.time));
             if(view.restoredCorpse&&recipe.parts.includes('head')){
@@ -270,8 +310,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
           deathPose,
         );
-        const reaction=view.hitReaction.update(view.hitReactionFresh?0:Math.min(.05,presentationDt),{paused:presentationDt===0});
-        if(!view.hitReactionFresh)view.impactFlashLife=Math.max(0,(view.impactFlashLife??0)-Math.min(.05,Math.max(0,presentationDt)));view.hitReactionFresh=false;
+        const reaction=view.hitReaction.update(contactOnly||view.hitReactionFresh?0:Math.min(.05,presentationDt),{paused:presentationDt===0});
+        if(!contactOnly&&!view.hitReactionFresh)view.impactFlashLife=Math.max(0,(view.impactFlashLife??0)-Math.min(.05,Math.max(0,presentationDt)));if(!contactOnly)view.hitReactionFresh=false;
         // Living flinch and native corpse pose share this sole render transform owner.
         if(entity.hp>0){const lean=reaction.energy*.30;view.root.rotation.x=-reaction.z*lean;view.root.rotation.z=-reaction.x*lean;const flinch={x:entity.pos.x+reaction.x*reaction.energy*.10,z:entity.pos.z+reaction.z*reaction.energy*.10};if((!world.geometry?.clear||world.geometry.clear(flinch,entity.radius))&&(!world.lineClear||world.lineClear(entity.pos,flinch)))view.root.position.copy(world.toRender(flinch));}else{view.root.rotation.x=view.root.rotation.z=0;}
         if(deathPose){view.root.position.x+=deathPose.offset.x;view.root.position.z-=deathPose.offset.z;view.root.updateMatrixWorld(true);}

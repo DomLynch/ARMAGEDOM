@@ -203,6 +203,23 @@
           "receipt": "art/hollow-scavenger/neck-repair-037.json"
         }
       }
+    },
+    "original-rat": {
+      "url": "rat/original-rat.glb",
+      "rig": "original-rat",
+      "motion": "rat",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "rat_idle",
+        "walk": "rat_walk",
+        "run": "rat_run",
+        "hit": "rat_hit",
+        "death": "rat_death",
+        "attack": "rat_bite"
+      },
+      "bytes": 704884,
+      "sha256": "fa2e609a8075fafc77719aaa89886521ed66d5a34f3abd97c34564ddc9ffe267"
     }
   },
   "files": {

@@ -19,7 +19,7 @@ const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appe
 const publicRoot=new URL('../public/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
- assert.deepEqual(Object.keys(manifest.models).sort(),['hollow-scavenger','vagrant']);
+ assert.deepEqual(Object.keys(manifest.models).sort(),['hollow-scavenger','original-rat','vagrant']);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
  const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
@@ -27,11 +27,11 @@ test('Hollow candidate resolves source-relative body/equipment hashes and keeps 
 });
 test('three Hollow bodies and native knives use independent clones/mixers at selected006 scale',async(t)=>{
  const priorDocument=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;});
- const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)))});
+ const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
  const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
  const pistolAsset=await loadGeometry(fs.readFileSync(new URL('assets/pistol/pistol.glb',publicRoot)));
- const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
+ const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))))},{visualScale:1.3225});actors.update(game,0);
  const playerView=actors.views.get(0);assert.equal(playerView.pistolSlide.supported,true);
  game.player.weapon='pistol';actors.update(game,0,0);const hand=playerView.model.getObjectByName('hand_r'),restHand=hand.getWorldPosition(new THREE.Vector3()),restGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);const recoilHand=hand.getWorldPosition(new THREE.Vector3()),recoilGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());assert.ok(recoilHand.distanceTo(restHand)>.1,'whole arm conveys actual shot recoil');assert.ok(Math.abs(recoilHand.distanceTo(recoilGun)-restHand.distanceTo(restGun))<1e-6,'gun remains gripped while arm recoils');
  const slideMaterial=playerView.pistolSlide.slide.children[0].material;assert.ok(playerView.materials.some(m=>m.material===slideMaterial),'slide borrows the actor private material');
