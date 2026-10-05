@@ -1,0 +1,98 @@
+[
+  {
+    "case": "shot-high",
+    "state": {
+      "ready": true,
+      "context": "running",
+      "enabled": true,
+      "activeVoices": 2,
+      "voiceCapacity": 16,
+      "mode": "high",
+      "played": 2,
+      "shotEvents": 1,
+      "hitEvents": 0,
+      "killEvents": 0,
+      "noiseCached": true,
+      "error": null
+    },
+    "layers": 2,
+    "envelopePeaks": [
+      null,
+      0.22,
+      0.15
+    ]
+  },
+  {
+    "case": "shot-low",
+    "state": {
+      "ready": true,
+      "context": "running",
+      "enabled": true,
+      "activeVoices": 2,
+      "voiceCapacity": 16,
+      "mode": "low",
+      "played": 4,
+      "shotEvents": 2,
+      "hitEvents": 0,
+      "killEvents": 0,
+      "noiseCached": true,
+      "error": null
+    },
+    "layers": 2,
+    "envelopePeaks": [
+      0.08800000000000001,
+      0.06
+    ]
+  },
+  {
+    "case": "shot-off",
+    "state": {
+      "ready": true,
+      "context": "running",
+      "enabled": true,
+      "activeVoices": 1,
+      "voiceCapacity": 16,
+      "mode": "off",
+      "played": 5,
+      "shotEvents": 3,
+      "hitEvents": 0,
+      "killEvents": 0,
+      "noiseCached": true,
+      "error": null
+    },
+    "layers": 1,
+    "envelopePeaks": [
+      0.085
+    ]
+  },
+  {
+    "case": "single-context-noise-cache",
+    "contexts": 1,
+    "buffers": 1
+  },
+  {
+    "case": "reset-late-ended",
+    "maxDisconnects": 1,
+    "voices": 0
+  },
+  {
+    "case": "standalone-pistol-death",
+    "voices": 0
+  },
+  {
+    "case": "duplicate-lethal-hit-in-batch",
+    "voices": 6,
+    "killEvents": 2
+  },
+  {
+    "case": "rapid-1000",
+    "voices": 16,
+    "started": 16,
+    "contexts": 1,
+    "buffers": 1
+  },
+  {
+    "case": "melee-retains-one-WAV",
+    "started": 1
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "scope": "read-only current WIP scheduling probe; fake WebAudio API not auditory/browser/device acceptance",
+  "sourceSHA256": "e66cbec4f73eee39b6884dd96bfca55a52666526517ae363f01ac1caa47d391b",
+  "input": "web-ui-hollow/Web/src/donor-audio.js captured046WIP",
+  "command": "node artifacts/combat-audio-review/probe.mjs",
+  "exit_code": 0,
+  "existing_runtime_edits": false,
+  "impact_tests_reused": "a56a38b2 nine tests seven faults unchanged"
+}
