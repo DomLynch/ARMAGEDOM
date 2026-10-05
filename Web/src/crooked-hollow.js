@@ -56,8 +56,8 @@ export class CrookedHollowMotion{
   this.refresh();
  }
  sample(name,phase,guard=false){this.restore();this.native.sample(name,phase,guard);if(!guard)this.pose(name,phase);}
- update(entity,time,dt){
-  this.restore();this.native.update(entity,time,dt);
+ update(entity,time,dt,deathPose=null){
+  this.restore();this.native.update(entity,time,dt,deathPose);
   const cycle=this.native.cycle??0,delta=T.MathUtils.euclideanModulo(cycle-this.previousCycle+.5,1)-.5;this.previousCycle=cycle;this.cycle=T.MathUtils.euclideanModulo(this.cycle+delta*1.55,1);
   if(entity.hp>0&&!entity.guarding&&!entity.swing&&!(time<entity.dodgeUntil)&&!(entity.response&&time<entity.response.start+entity.response.ticks/60))this.pose(this.native.currentClip,this.native.currentClip==='HollowIdle'?0:this.cycle);
  }

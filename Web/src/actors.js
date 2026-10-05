@@ -1,3 +1,4 @@
+import {createFinisherPresentation} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -101,7 +102,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
-  function make(entity) {
+  function make(entity,finishers=false,restoreCorpses=false) {
     const name =
         entity.kind < 0
           ? "vagrant"
@@ -192,6 +193,11 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
+      if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='decapitation',isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        entity.finisherSupport=view.finisher.support;
+        view.restoredCorpse=restoreCorpses&&entity.hp<=0;
+      }
     } catch (error) {
       remove(entity.id);
       throw error;
@@ -201,6 +207,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
+    view.finisher?.dispose();
+    if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
     view.appearance?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
@@ -219,22 +227,39 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     reset() {
       for (const id of [...views.keys()]) remove(id);
     },
-    update(game, dt, pistolRecoil=0) {
+    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false}={}) {
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        const view = views.get(entity.id) ?? make(entity);
+        const view = views.get(entity.id) ?? make(entity,!!game.finishers,restoreCorpses);
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =
           Math.atan2(entity.facing.x, -entity.facing.z) +
           (view.description.forwardCorrection ?? 0);
         view.root.updateMatrixWorld(true);
+        let deathPose=null;
+        if(entity.hp<=0&&view.finisher&&entity.finisher){
+          if(!view.finisherStarted){
+            const recipe=view.finisher.start(entity.finisher);view.finisherStarted=true;view.finisherAge=Math.max(0,game.time-(entity.response?.start??game.time));
+            if(view.restoredCorpse&&recipe.parts.includes('head')){
+              if(view.finisherAge>=6)view.finisher.update(view.finisherAge,0);
+              else for(let age=0;age<view.finisherAge;){const step=Math.min(1/60,view.finisherAge-age);age+=step;view.finisher.update(age,step);}
+              entity.finisherHeadUntil=game.time+Math.max(0,6-view.finisherAge);
+            }
+            if(!view.finisher.stats().detached)entity.finisherHeadUntil=0;
+          }
+          else view.finisherAge=Math.max(game.time-(entity.response?.start??game.time),view.finisherAge+Math.max(0,presentationDt));
+          deathPose=view.finisher.pose(view.finisherAge);view.finisher.update(view.finisherAge,presentationDt);
+          if(view.finisher.stats().expired)entity.finisherHeadUntil=0;
+        }
         view.motion.update(
           entity,
           game.time,
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
+          deathPose,
         );
+        if(deathPose){view.root.position.x+=deathPose.offset.x;view.root.position.z-=deathPose.offset.z;view.root.updateMatrixWorld(true);}
         if(view.pistolMount){
           const holding=entity.weapon==='pistol',pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;

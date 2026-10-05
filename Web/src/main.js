@@ -47,7 +47,7 @@ function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pisto
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -215,7 +215,7 @@ function intent() {
   return value;
 }
 function frame(ms) {
-  const dt = last ? Math.min(0.1, (ms - last) / 1000) : 0;
+  const elapsed = last ? Math.max(0, (ms - last) / 1000) : 0, dt = Math.min(0.1, elapsed);
   last = ms;
   if (!world || !game || contextLost) return;
   if (loaded && !paused && !traveling && !game.finished) {
@@ -249,7 +249,7 @@ function frame(ms) {
   atmosphere?.update(dt, {paused: paused || traveling});
   updateSupplies();
   updateVestBag();
-  actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0);
+  actors?.update(game, paused || traveling ? 0 : dt, effects?.pistolRecoil(game)??0,{presentationDt:paused||traveling?0:elapsed});
   effects?.update(game,{paused:paused||traveling,visibleIds:combatVisibleIds(),viewportHeight:canvas.clientHeight});
   rim.position
     .copy(world.toRender(game.player.pos, 2.4))
@@ -272,7 +272,7 @@ async function crossArea(request) {
     game.events = [];
     world.update(game.player.pos, 0, innerWidth, innerHeight, true);
     atmosphere?.update(0, {paused: true});
-    actors.update(game, 0);
+    actors.update(game, 0, 0, {restoreCorpses:true});
     console.info(
       "ARMAGEDOM_TRAVEL",
       JSON.stringify({ area: world.areaId, position: game.player.pos }),

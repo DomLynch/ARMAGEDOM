@@ -1,3 +1,4 @@
+import {selectFinisher} from './finisher-selection.js';
 import {allocateMobSizes} from './mob-size-allocation.js';
 import {mobSizeProfile} from './mob-size.js';
 import {createSuppliesState,issueSupply} from './supplies.js';
@@ -33,6 +34,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
+ if(options.finishers&&g.pilot)g.finishers={maxHeads:2,recentRecipeId:null};
  if(options.supplies)g.supplies=createSuppliesState();
  if(options.vest)g.vest=createVestState();
  if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
@@ -70,7 +72,7 @@ function pistolIntent(g,intent){
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
    const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home){target.alerted=true;target.returning=false;}
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',parry:false});
-   if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet'});}
+   if(target.hp<=0){target.swing=null;target.response={clip:'Death',start:g.time,ticks:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
@@ -113,7 +115,14 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
-function kill(g,e,meta={}){if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+function kill(g,e,meta={}){
+ if(!g.enemies.includes(e))return;
+ if(g.finishers&&!e.finisher){
+  const active=(g.corpses??[]).filter(c=>c.finisherHeadUntil>g.time).length;
+  e.finisher=selectFinisher({victimId:e.id,lethal:e.hp<=0,...meta},{support:e.finisherSupport??[],budget:Math.max(0,g.finishers.maxHeads-active),ordinal:g.kills,recentRecipeId:g.finishers.recentRecipeId});
+  if(e.finisher){g.finishers.recentRecipeId=e.finisher.recipeId;if(e.finisher.parts.includes('head'))e.finisherHeadUntil=g.time+6;}
+ }
+ if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -405,7 +414,7 @@ function knifeContacts(g,before){
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.hp?'Hit':'Death',start:g.time,ticks:d.hp?Math.round(def.stagger*60):144};
    event(g,'hit',{actor:d,amount,...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
-   if(d.hp<=0)kill(g,d,hitMetadata(a,d,def));
+   if(d.hp<=0)kill(g,d,{...hitMetadata(a,d,def),impactDirection:sub(after.get(d.id).pos,after.get(a.id).pos)});
   }
  }
  if(g.player.hp<=0){g.finished=true;g.won=false;}

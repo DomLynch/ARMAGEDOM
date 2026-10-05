@@ -44,14 +44,14 @@ export class DonorMotion{
   this.mixer.update(0);this.model.updateWorldMatrix(true,true);this.model.traverse(node=>{if(node.isSkinnedMesh)node.skeleton.update();});
   this.currentClip=name;this.currentPhase=phase;
  }
- update(entity,time,dt){
+ update(entity,time,dt,deathPose=null){
   if(this.disposed)return;
   const noTick=time===this.lastSampleTime,elapsed=this.lastSampleTime===null?dt:Math.max(0,time-this.lastSampleTime);this.lastSampleTime=time;
   const delta=this.root.position.clone().sub(this.last);delta.y=0;this.last.copy(this.root.position);this.visualTime+=Math.max(0,dt);
   const response=entity.response;
   if(response!==this.response){this.response=response;this.responseTime=this.visualTime;}
   const responseAge=response?Math.max(time-response.start,this.visualTime-this.responseTime):0;
-  if(entity.hp<=0){this.sample(this.description.clips.death,response?responseAge/(response.ticks/60):1);return;}
+  if(entity.hp<=0){this.sample(deathPose?.clip??this.description.clips.death,deathPose?.phase??(response?responseAge/(response.ticks/60):1));return;}
   if(time<entity.dodgeUntil){this.sample(this.description.clips.dodge,(time-entity.dodgeStart)/(entity.dodgeUntil-entity.dodgeStart));return;}
   const swing=entity.swing;
   if(swing&&time<swing.end){this.sample(swing.clip,donorSwingPhase(swing.ageTicks,swing.timing,swing.sourceContact));return;}

@@ -9,10 +9,12 @@ import {mobSizeProfile} from '../src/mob-size.js';
 import {allocateFaceRecipes} from '../src/face-allocator.js';
 import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from '../src/face-recipes.js';
 import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
+import {selectFinisher} from '../src/finisher-selection.js';
 import {createActors} from '../src/actors.js';
 import {disposeActorSources} from '../src/actor-resources.js';
 import {createGame,spawnWave} from '../src/combat.js';
 import {createHollowEncounter} from '../src/hollow-encounter.js';
+const sceneHeadCount=actors=>actors.views.get(0).root.parent.children.filter(o=>o.name==='Prepared detached Hollow head').length;
 const publicRoot=new URL('../public/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
@@ -25,7 +27,7 @@ test('Hollow candidate resolves source-relative body/equipment hashes and keeps 
 test('three Hollow bodies and native knives use independent clones/mixers at selected006 scale',async(t)=>{
  const priorDocument=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;});
  const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)))});
- const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
+ const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
  const actors=createActors(new THREE.Scene(),world,{models,manifest,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
  assert.equal(game.enemies.length,3);const views=game.enemies.map(e=>actors.views.get(e.id));assert.equal(new Set(views.map(v=>v.root)).size,3);assert.equal(new Set(views.map(v=>v.motion.mixer)).size,3);
@@ -64,5 +66,19 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
   assert.equal(new Set(game.enemies.map(e=>actors.views.get(e.id).appearance.id)).size,rows.length);
  }
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
+ // Controlled real-rig stage1 renderer: prepare only at birth, separate corpse
+ // poses, borrowed current face/hair, normal clock, head expiry and reset cleanup.
+ actors.reset();world.areaId='westminster';game.finishers={maxHeads:2,recentRecipeId:null};game.corpses=[];
+ game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
+ actors.update(game,0);
+ for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
+ const gun=game.enemies.shift(),gunView=actors.views.get(gun.id);gun.finisher=selectFinisher({victimId:gun.id,lethal:true,weapon:'pistol',impactDirection:{x:1,z:0}},{support:gun.finisherSupport,budget:2,ordinal:1});gun.hp=0;gun.response={start:game.time,ticks:144,clip:'Death'};game.corpses.push(gun);actors.update(game,0);
+ const native=v=>v.motion.native??v.motion;assert.equal(native(gunView).currentClip,'Hit');
+ const half=gun.finisherSupport[0].reactionSeconds/2;game.time+=half;actors.update(game,half);assert.equal(native(gunView).currentClip,'Hit');assert.ok(Math.abs(native(gunView).currentPhase-.5)<1e-6);assert.ok(Math.abs(gunView.root.position.x-world.toRender(gun.pos).x-.1)<1e-6);
+ const cut=game.enemies.shift(),cutView=actors.views.get(cut.id);cut.finisher=selectFinisher({victimId:cut.id,lethal:true,weapon:'knife',moveId:'light_right',impactDirection:{x:0,z:1}},{support:cut.finisherSupport,budget:2,ordinal:1});cut.hp=0;cut.response={start:game.time,ticks:144,clip:'Death'};game.corpses.push(cut);actors.update(game,0);
+ assert.equal(native(cutView).currentClip,'Death_SplitCrown');assert.equal(cutView.finisher.stats().detached,true);assert.equal(sceneHeadCount(actors),1);
+ const photo=cutView.model.getObjectByName('Photo');assert.equal(photo.visible,false);assert.equal(cutView.finisher.stats().lethalVertexCopies,0);
+ game.time+=7;actors.update(game,7);assert.equal(cutView.finisher.stats().expired,true);assert.equal(cut.finisherHeadUntil,0);assert.equal(sceneHeadCount(actors),0);assert.equal(native(gunView).currentClip,'Death');
+ actors.reset();actors.update(game,0,0,{restoreCorpses:true});assert.equal(actors.views.get(cut.id).model.getObjectByName('Photo').visible,false);assert.equal(sceneHeadCount(actors),0);
  actors.dispose();assert.equal(hairDisposed,hair.length);
 });
