@@ -1,6 +1,6 @@
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 const DEG=Math.PI/180;
-export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:.70,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
+export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:.85,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
 const arc=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const vector=angle=>({x:Math.sin(angle),z:Math.cos(angle)});
