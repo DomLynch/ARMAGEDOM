@@ -1,0 +1,14 @@
+{
+  "base": "340ca3b7b8e5823284c3e47feb0a3bfa2ee5b83c",
+  "scope": "Pure injected-library allocator tests only; actual palette/runtime/material/phone/publication pending",
+  "mutation": {
+    "change": "Zero all perceptual nearest-distance scores (priority-only assignment)",
+    "expectedExit": 1,
+    "actualExit": 1
+  },
+  "focusedTests": 8,
+  "exitCode": 0,
+  "sourceSHA": "92910b42f7c32a67f67e7e3b049dc7e3eea4c0651b0ed0b71fe345da736fa61a",
+  "testSHA": "7cf93b63cbc682932101ccc78eb6df12d4b9b03a4ae317a444eb34a07cf25ea4",
+  "verifiedAtUTC": "2026-10-05T08:01:43.079021+00:00"
+}

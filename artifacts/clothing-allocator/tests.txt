@@ -1,0 +1,16 @@
+✔ full ordinary/Crooked/corpse roster gives unique tops and outfits for current areas and all50 (6.113875ms)
+✔ resident, library and allowed-pair ordering cannot reshuffle identities or mutate inputs (2.451ms)
+✔ death/return/refresh lookups use the full registered roster before the live filter (1.114958ms)
+✔ farthest-first picks greatest minimum perceptual distance among UNUSED grey tops (0.181041ms)
+✔ 51+ uses bounded deterministic top reuse and approved alternate pants, not uniqueness fiction (2.206ms)
+✔ empty roster and one-colour library terminate; only listed coordinated pairs are possible (0.291458ms)
+✔ area/version affect deterministic priority without hidden cache or input dependence (1.735417ms)
+✔ reject bad area/keys/version, duplicate colour IDs, invalid RGB and broken pairing libraries (0.505125ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.755792
