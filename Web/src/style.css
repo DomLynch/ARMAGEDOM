@@ -508,3 +508,6 @@ summary {
     padding: 9px 4px;
   }
 }
+@media (orientation: landscape) {
+  #pistol-interact {bottom: var(--safe-b);}
+}
