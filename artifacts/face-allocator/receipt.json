@@ -1,23 +1,19 @@
 {
   "base": "a1d5f220283eeae873f47aabbcebece58b9fd208",
-  "characterInterfaceCommit": "46dfed9",
-  "scope": "Pure injected test-recipe identity allocation; actual50 recipe library/appearance/rig/material/runtime/phone/publication pending",
-  "sensitivity": [
-    {
-      "variant": "duplicate-recipes",
-      "expectedExit": 1,
-      "actualExit": 1
-    },
-    {
-      "variant": "priority-hash-ties",
-      "expectedExit": 0,
-      "actualExit": 0
-    }
-  ],
-  "focusedTests": 7,
-  "exitCode": 0,
   "sourceSHA": "3395714a90fcaa237eaca03546ae4b5d592adc90fadc7bdf92e66a7033a70297",
-  "testSHA": "17521ec4941933718757816655e7934e8588081ceef937c532f8ab5b2f2d0803",
+  "testSHA": "7731e419b815410fd700bd62af12430526b1ea30b05e1232ef0a564104340a24",
   "registeredRosterSHA": "9f3f646f5f87c81ae293c75a7b0f0f20cfa6fbafff58df9f780b95edf6373084",
-  "verifiedAtUTC": "2026-10-05T10:05:58.667078+00:00"
+  "scope": "One pure shared whole24 roster Map; no compiled travel/corpse render/actualrecipe proof",
+  "reusedSevenTests": {
+    "receipt": "receipt-7-tests.json",
+    "originalTestPrefixSHA": "17521ec4941933718757816655e7934e8588081ceef937c532f8ab5b2f2d0803",
+    "unchangedPrefixVerified": true
+  },
+  "newFocusedCheck": {
+    "name": "combined24",
+    "passed": 1,
+    "exitCode": 0
+  },
+  "stableRosterNamespace": "london-residents",
+  "verifiedAtUTC": "2026-10-05T10:10:23.998875+00:00"
 }

@@ -35,3 +35,16 @@ test('reject malformed area/keys/version, sparse pools and duplicate/invalid rec
  for(const bad of [null,{}, {...l,version:''},{...l,version:1},{...l,recipes:[]},{...l,recipes:Array(1)},{...l,recipes:[null]},{...l,recipes:[{}]},{...l,recipes:[{id:1}]},{...l,recipes:[{id:''}]},{...l,recipes:[{id:'x'},{id:'x'}]},{...l,recipes:library(51).recipes}])assert.throws(()=>allocateFaceRecipes('east',[],bad));
  const special=['__proto__','constructor','toString'];assert.equal(allocateFaceRecipes('east',special,l).size,3);
 });
+test('combined24 roster shares one cross-area map for live, corpse, refresh and area-return lookups',()=>{
+ const full=Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),l=library(),namespace='london-residents';
+ assert.equal(full.length,24);assert.equal(new Set(full).size,24);
+ const shared=allocateFaceRecipes(namespace,full,l),snapshot=[...shared];
+ assert.equal(shared.size,24);assert.equal(new Set(shared.values()).size,24);assert.deepEqual([...shared.values()],l.recipes.slice(0,24).map(r=>r.id));
+ assert.deepEqual(allocateFaceRecipes(namespace,[...full].reverse(),l),shared);
+ const dead=new Set(Object.values(AREA_MOB_SPAWNS).map(records=>records[0].key));
+ const live=area=>AREA_MOB_SPAWNS[area].filter(r=>!dead.has(r.key)).map(r=>[r.key,shared.get(r.key)]);
+ const westBefore=live('westminster'),east=live('east'),south=live('south'),westReturn=live('westminster');
+ assert.deepEqual(westReturn,westBefore);assert.ok([...east,...south,...westReturn].every(([key,id])=>id===shared.get(key)));
+ const corpseIds=[...dead].map(key=>shared.get(key)),all=[...westReturn,...east,...south].map(([,id])=>id).concat(corpseIds);
+ assert.equal(all.length,24);assert.equal(new Set(all).size,24);assert.deepEqual([...shared],snapshot);
+});
