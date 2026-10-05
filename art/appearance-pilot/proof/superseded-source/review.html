@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#313631;color:#eee;font:16px sans-serif}header{padding:10px}canvas{display:block}aside{display:flex;justify-content:space-around;padding:10px}</style>
+<header>Hollow · original / recovered neck / narrow light / broad deep · isolated ingredient pilot</header>
+<script type="importmap">{"imports":{"three":"/Web/node_modules/three/build/three.module.js","three/addons/":"/Web/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {DonorMotion,equipDonorPlayer} from './donor-motion.js';
+const scene=new T.Scene(),renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(1400,700);renderer.setPixelRatio(1);document.body.append(renderer.domElement);scene.background=new T.Color('#757a70');scene.add(new T.HemisphereLight(0xffffff,0x484940,2.2));const light=new T.DirectionalLight(0xffffff,2);light.position.set(2,5,6);scene.add(light);
+const camera=new T.OrthographicCamera(-4.5,4.5,2.5,-1.9,.1,40);camera.position.set(0,2.9,10);camera.lookAt(0,1.2,0);
+const desc={clips:{idle:'HollowIdle',walk:'HollowWalk',guard:'Guard',death:'Death',dodge:'Roll'},stride:1};const loader=new GLTFLoader(),rows=[];
+for(const [i,url]of ['hollow.glb','results/neck-repair.glb','results/narrow-light.glb','results/broad-deep.glb'].entries()){
+const a=await loader.loadAsync(url),knife=await loader.loadAsync('knife.glb');equipDonorPlayer(a,knife);const root=new T.Group();root.position.x=-3.25+i*2.15;root.scale.setScalar(1.265*1.3225);root.add(a.scene);scene.add(root);const motion=new DonorMotion(root,a.scene,a.animations,desc);rows.push({root,model:a.scene,motion,url});}
+const labels=document.createElement('aside');labels.innerHTML=['Original fallback','Recovered original neck','Narrow · light · shaved','Broad · deep · rough crop'].map(s=>`<span>${s}</span>`).join('');document.body.append(labels);
+const originalBoneNames=[];rows[0].model.traverse(n=>{if(n.isBone)originalBoneNames.push(n.name)});
+window.__pilot={sample(clip,phase,side=false){camera.position.set(side?7:0,2.9,side?7:10);camera.lookAt(0,1.2,0);let maxBoneDelta=0,maxKnifeDelta=0,finite=true;const baseline=rows[0];for(const r of rows)r.motion.sample(clip,phase);for(const r of rows.slice(1)){
+for(const name of originalBoneNames){const a=baseline.model.getObjectByName(name),b=r.model.getObjectByName(name);const av=a.getWorldPosition(new T.Vector3()).sub(baseline.root.position),bv=b.getWorldPosition(new T.Vector3()).sub(r.root.position);maxBoneDelta=Math.max(maxBoneDelta,av.distanceTo(bv));}
+const a=baseline.model.getObjectByName('WeaponDrawn').matrixWorld.clone(),b=r.model.getObjectByName('WeaponDrawn').matrixWorld.clone();a.elements[12]-=baseline.root.position.x;b.elements[12]-=r.root.position.x;for(let k=0;k<16;k++)maxKnifeDelta=Math.max(maxKnifeDelta,Math.abs(a.elements[k]-b.elements[k]));}
+for(const r of rows)r.model.traverse(n=>{if(n.isSkinnedMesh)for(let i=0;i<n.geometry.attributes.position.count;i++){const p=n.getVertexPosition(i,new T.Vector3());finite&&=p.toArray().every(Number.isFinite);}});
+renderer.render(scene,camera);return{clip,phase,maxBoneDelta,maxKnifeDelta,finite,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};},close(){camera.left=-4.5;camera.right=4.5;camera.top=.95;camera.bottom=-.95;camera.position.set(0,3.0,10);camera.lookAt(0,2.62,0);camera.updateProjectionMatrix();renderer.render(scene,camera);}};
+__pilot.sample('HollowIdle',0);
+</script>

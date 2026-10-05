@@ -1,0 +1,7 @@
+import {chromium} from '/opt/frankendom-shadow/repo/node_modules/playwright/index.mjs';import fs from 'node:fs';import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1400,height:785}}),report={scope:'Isolated original-rig neck repair and representative head/complexion/hair ingredients, no runtime integration/gameplay/device claim',errors:[],samples:[]};page.on('pageerror',e=>report.errors.push(e.message));
+try{await page.goto('http://127.0.0.1:18926/review.html');await page.waitForFunction(()=>window.__pilot,null,{timeout:60000});
+for(const [clip,phase]of [['HollowIdle',0],['HollowWalk',.25],['Attack',.34],['Guard',.15],['Hit',.35],['Death',.8]]){const s=await page.evaluate(({clip,phase})=>__pilot.sample(clip,phase),{clip,phase});report.samples.push(s);assert(s.finite&&s.maxBoneDelta<1e-12&&s.maxKnifeDelta<1e-12);await page.screenshot({path:`results/pilot-${clip}.png`});}
+for(const phase of [0,.125,.25,.5,.75,.875,.999999]){const s=await page.evaluate(phase=>__pilot.sample('Hit',phase),phase);report.samples.push(s);assert(s.finite&&s.maxBoneDelta<1e-12&&s.maxKnifeDelta<1e-12);}
+await page.evaluate(()=>{__pilot.sample('HollowIdle',0);__pilot.close()});await page.screenshot({path:'results/pilot-heads.png'});assert.deepEqual(report.errors,[]);console.log('REPRESENTATIVE_INGREDIENT_PILOT_PASS');}
+finally{fs.writeFileSync('results/review.json',JSON.stringify(report,null,2));await browser.close();}
