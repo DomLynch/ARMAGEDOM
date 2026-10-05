@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import {hollowPaletteFor,applyHollowPalette} from "./hollow-palette.js";
+import {HOLLOW_GARMENTS,hollowPaletteFor,applyHollowPalette} from "./hollow-palette.js";
 import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
@@ -105,7 +105,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
             : names[entity.kind],
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
-    const palette=entity.rig==='hollow-scavenger'?hollowPaletteFor(entity.id):null;
+    const garments=source.description.clothingMaterials??(entity.rig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
+    const palette=entity.kind>=0&&garments?hollowPaletteFor(entity,world.areaId):null;
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
       description = source.description,
@@ -137,7 +138,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         const original = Array.isArray(o.material) ? o.material : [o.material];
         const copies = original.map((m) => {
           const own = m.clone();
-          if(palette)applyHollowPalette(own,palette);
+          if(palette)applyHollowPalette(own,palette,garments);
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
@@ -169,6 +170,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       entity,
       description,
       locomotionVariant: hollowLocomotionFor(entity),
+      palette,
       pistolMount,knife,
     };
     views.set(entity.id, view);

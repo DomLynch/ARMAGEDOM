@@ -1,5 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
-import {HOLLOW_PALETTES,HOLLOW_GARMENTS,hollowPaletteFor,applyHollowPalette} from '../src/hollow-palette.js';
+import {HOLLOW_GARMENTS,hollowPaletteFor,applyHollowPalette} from '../src/hollow-palette.js';
+import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
+const samples=AREA_MOB_SPAWNS.westminster.map((r,i)=>hollowPaletteFor({id:i+1,placementKey:r.key},'westminster'));
 const bytes=readFileSync(new URL('../public/assets/hollow-scavenger/hollow-scavenger.glb',import.meta.url)),glb=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)));
 test('pinned Hollow garment slots are separate from skin/photo/boots and retain vertex grime',()=>{
  assert.equal(createHash('sha256').update(bytes).digest('hex'),'b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc');
@@ -7,50 +9,52 @@ test('pinned Hollow garment slots are separate from skin/photo/boots and retain 
  const body=glb.meshes[2].primitives;assert.deepEqual(body.map(p=>p.material),[3,4,5,6]);assert.ok(body.every(p=>p.attributes.COLOR_0!==undefined));
  assert.notEqual(glb.materials[3].name,HOLLOW_GARMENTS.jacket);assert.notEqual(glb.materials[6].name,HOLLOW_GARMENTS.trousers);
 });
-test('seven bounded, distinct, immutable colour pairs',()=>{
- assert.equal(HOLLOW_PALETTES.length,7);assert.equal(new Set(HOLLOW_PALETTES.map(p=>p.id)).size,7);
- assert.equal(new Set(HOLLOW_PALETTES.map(p=>String(p.jacket))).size,7);
- for(const p of HOLLOW_PALETTES){assert.ok(Object.isFrozen(p)&&Object.isFrozen(p.jacket)&&Object.isFrozen(p.trousers));for(const c of [...p.jacket,...p.trousers])assert.ok(c>0&&c<=.42);}
-});
-test('every three consecutive IDs spans warm/cool/contrast families across Retry and arbitrary start IDs',()=>{
- const family=id=>['dark-red','brown'].includes(id)?'warm':['dusty-blue-grey','muted-purple'].includes(id)?'cool':'contrast';
- for(const seed of ['westminster-hollow','run-a','run-b',''])for(let start=0;start<90;start++){
-  const group=Array.from({length:3},(_,i)=>hollowPaletteFor(start+i,seed));assert.equal(new Set(group).size,3);
-  assert.deepEqual(new Set(group.map(p=>family(p.id))),new Set(['warm','cool','contrast']));
-  for(let i=0;i<3;i++)assert.equal(hollowPaletteFor(start+i,seed),group[i]);
+test('full registered area rosters use unique tops and outfits, ordinary and Crooked sharing one pool',()=>{
+ for(const [area,roster] of Object.entries(AREA_MOB_SPAWNS)){
+  const outfits=roster.map((resident,i)=>hollowPaletteFor({id:i+1,placementKey:resident.key},area));
+  assert.equal(new Set(outfits.map(p=>p.topId)).size,roster.length);
+  assert.equal(new Set(outfits.map(p=>p.id)).size,roster.length);
+  for(const p of outfits)assert.ok(Object.isFrozen(p)&&Object.isFrozen(p.jacket)&&Object.isFrozen(p.trousers));
  }
 });
-test('first and Retry groups avoid old greenish trio and all7 colours remain available',()=>{
- assert.deepEqual([1,2,3].map(id=>hollowPaletteFor(id).id),['dark-red','dusty-blue-grey','dirty-ochre']);
- assert.deepEqual([4,5,6].map(id=>hollowPaletteFor(id).id),['brown','muted-purple','charcoal']);
- for(const seed of ['westminster-hollow','another-run','']){
-  assert.equal(new Set(Array.from({length:18},(_,i)=>hollowPaletteFor(i+1,seed))).size,7);
-  for(let start=1;start<=18;start+=3)assert.notDeepEqual([0,1,2].map(i=>hollowPaletteFor(start+i,seed).id).sort(),['charcoal','dirty-ochre','olive']);
- }
+test('death, refresh, changed serial IDs, spawn order and area return retain resident outfits',()=>{
+ const area='westminster',roster=AREA_MOB_SPAWNS[area];
+ const initial=new Map(roster.map((r,i)=>[r.key,hollowPaletteFor({id:i+1,placementKey:r.key},area)]));
+ // Remove a resident from the caller's surviving list; allocation still includes its key.
+ for(const r of roster.slice(1).reverse())assert.equal(hollowPaletteFor({id:901,placementKey:r.key},area),initial.get(r.key));
+ for(const r of AREA_MOB_SPAWNS.east)hollowPaletteFor({id:902,placementKey:r.key},'east');
+ for(const r of roster)assert.equal(hollowPaletteFor({id:903,placementKey:r.key},area),initial.get(r.key));
 });
-test('warm/cool jackets have stronger channel separation and light/dark choices differ in luminance',()=>{
- const byId=Object.fromEntries(HOLLOW_PALETTES.map(p=>[p.id,p]));
- for(const id of ['dark-red','brown']){const [r,g,b]=byId[id].jacket;assert.ok(r>=g*2&&r>=b*3);}
- for(const id of ['dusty-blue-grey','muted-purple']){const [r,g,b]=byId[id].jacket;assert.ok(b>=g*2&&b>r);}
- const luminance=p=>p.jacket[0]*.2126+p.jacket[1]*.7152+p.jacket[2]*.0722;
- assert.ok(luminance(byId['dirty-ochre'])>luminance(byId.charcoal)*7);
-});
-test('park/recreate an actor with the same ID/seed retains its palette',()=>{
- const parked=hollowPaletteFor(41,'encounter-one');for(let i=0;i<100;i++)hollowPaletteFor(i,'elsewhere');assert.equal(hollowPaletteFor(41,'encounter-one'),parked);
+test('nonresident fixtures have stable bounded approved fallback outfits',()=>{
+ const fixtures=[1,2,3].map(id=>hollowPaletteFor({id},undefined));
+ assert.equal(new Set(fixtures.map(p=>p.topId)).size,3);
+ assert.equal(hollowPaletteFor({id:41},'fixture'),hollowPaletteFor({id:41},'fixture'));
+ assert.equal(hollowPaletteFor({id:51},'fixture'),fixtures[0]);
 });
 test('only garment colour is written; shared texture/vertex detail/flash fields preserved',()=>{
  for(const name of glb.materials.map(m=>m.name).concat(['WeaponSteel','PhotoHair'])){
   const writes=[],map={},emissive={},material={name,color:{setRGB(...rgb){writes.push(rgb);}},map,vertexColors:true,emissive,emissiveIntensity:.8,roughness:.94};
-  const yes=applyHollowPalette(material,HOLLOW_PALETTES[2]);assert.equal(yes,Object.values(HOLLOW_GARMENTS).includes(name));assert.equal(writes.length,yes?1:0);
-  if(yes)assert.deepEqual(writes[0],name===HOLLOW_GARMENTS.jacket?HOLLOW_PALETTES[2].jacket:HOLLOW_PALETTES[2].trousers);
+  const yes=applyHollowPalette(material,samples[2]);assert.equal(yes,Object.values(HOLLOW_GARMENTS).includes(name));assert.equal(writes.length,yes?1:0);
+  if(yes)assert.deepEqual(writes[0],name===HOLLOW_GARMENTS.jacket?samples[2].jacket:samples[2].trousers);
   assert.equal(material.map,map);assert.equal(material.emissive,emissive);assert.equal(material.emissiveIntensity,.8);assert.equal(material.vertexColors,true);assert.equal(material.roughness,.94);
  }
 });
 test('existing material clone identities stay independent',()=>{
  function own(){return {name:HOLLOW_GARMENTS.jacket,color:{rgb:[],setRGB(...rgb){this.rgb=rgb;}}};}
- const a=own(),b=own();applyHollowPalette(a,HOLLOW_PALETTES[0]);applyHollowPalette(b,HOLLOW_PALETTES[4]);assert.notDeepEqual(a.color.rgb,b.color.rgb);assert.deepEqual(a.color.rgb,HOLLOW_PALETTES[0].jacket);
+ const a=own(),b=own();applyHollowPalette(a,samples[0]);applyHollowPalette(b,samples[4]);assert.notDeepEqual(a.color.rgb,b.color.rgb);assert.deepEqual(a.color.rgb,samples[0].jacket);
 });
-test('invalid identity/config rejected before garment writes',()=>{
- for(const id of [-1,NaN,1.5,Infinity,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>hollowPaletteFor(id));assert.throws(()=>hollowPaletteFor(1,{}));
- const material={name:HOLLOW_GARMENTS.jacket,color:{setRGB(){throw Error('unexpected write');}}};assert.throws(()=>applyHollowPalette(material,{}),/Unknown/);
+test('semantic garment mapping supports future compatible models without tinting other slots',()=>{
+ const garments={jacket:'Future coat',trousers:'Future pants'},writes=[];
+ for(const name of ['Future coat','Future pants','Skin','Boots','Vest','WeaponSteel']){
+  const material={name,color:{setRGB(...rgb){writes.push({name,rgb});}}};
+  assert.equal(applyHollowPalette(material,samples[0],garments),['Future coat','Future pants'].includes(name));
+ }
+ assert.deepEqual(writes.map(w=>w.rgb),[samples[0].jacket,samples[0].trousers]);
+});
+test('invalid identity, unapproved pair and ambiguous mapping reject before garment writes',()=>{
+ for(const id of [-1,NaN,1.5,Infinity,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>hollowPaletteFor({id}));
+ assert.throws(()=>hollowPaletteFor(null));
+ const material={name:HOLLOW_GARMENTS.jacket,color:{setRGB(){throw Error('unexpected write');}}};
+ assert.throws(()=>applyHollowPalette(material,{}));
+ assert.throws(()=>applyHollowPalette(material,samples[0],{jacket:'same',trousers:'same'}),/mapping/);
 });
