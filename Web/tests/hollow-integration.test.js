@@ -54,5 +54,15 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
  const hair=[...actors.views.values()].flatMap(v=>v.appearance?.extraMaterials??[]);let hairDisposed=0;hair.forEach(m=>m.addEventListener('dispose',()=>hairDisposed++));
  const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,.8);game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
+ // Controlled actual-view area cohorts: full roster IDs survive teardown/recreation;
+ // this checks the renderer seam, not native gate traversal.
+ for(const [area,rows] of Object.entries(AREA_MOB_SPAWNS)){
+  actors.reset();world.areaId=area;game.corpses=[];
+  game.enemies=rows.map((row,i)=>({...cohort[i%cohort.length],id:300+i,placementKey:row.key,pos:{...row.pos},hp:100,flashUntil:0}));
+  actors.update(game,0);
+  for(const e of game.enemies){const v=actors.views.get(e.id);assert.equal(v.appearance.id,faceMap.get(e.placementKey));assert.equal(v.palette,hollowPaletteFor(e,area));assert.equal(v.model.getObjectByName('Scavenger hair')?.skeleton??v.model.getObjectByName('Photo').skeleton,v.model.getObjectByName('Photo').skeleton);}
+  assert.equal(new Set(game.enemies.map(e=>actors.views.get(e.id).appearance.id)).size,rows.length);
+ }
+ for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
  actors.dispose();assert.equal(hairDisposed,hair.length);
 });
