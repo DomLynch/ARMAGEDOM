@@ -60,17 +60,17 @@ export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,are
 export function pistolCue(game,{paused=false,visibleIds}={}) {
   const p=game.player,pistol=game.pistol;
   if(paused||game.finished||!(p.hp>0)||!pistol?.equipped)return null;
-  const aim=game.pistolUserFacing??p.facing,length=Math.hypot(aim.x,aim.z);
+  const aim=game.mobileAiming?p.facing:game.pistolUserFacing??p.facing,length=Math.hypot(aim.x,aim.z);
   if(!Number.isFinite(length)||length<.001)return null;
   const direction={x:aim.x/length,z:aim.z/length};
   const ready=pistol.magazine>0&&!pistol.reloadingUntil&&game.time>=pistol.nextFireAt
     &&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=p.dodgeUntil;
-  const trace=ready?resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
-    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId}):null;
+  const trace=ready?(game.mobileAiming?tracePistol(p.pos,direction,game.enemies,game.world.lineClear.bind(game.world)):resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
+    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId})):null;
   const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
-  const eligible=hit&&selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
+  const eligible=hit&&(game.mobileAiming?true:selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
     lineClear:game.world.lineClear.bind(game.world),areaId:game.world.areaId,
-    range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
+    range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees}));
   return {targetId:eligible?hit.id:null,ready,height:eligible?1.15*(hit.mobSize??1):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }

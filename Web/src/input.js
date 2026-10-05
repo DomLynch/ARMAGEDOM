@@ -1,3 +1,4 @@
+import {mobileStickVector} from './mobile-combat-aim.js';
 const clampStick = (value, radius) => {
   const length = Math.hypot(value.x, value.y);
   const divisor = length > radius ? length : radius;
@@ -48,9 +49,9 @@ export class InputState {
     if (pointer.kind === 'move') {
       // Preserve the floating touch origin: donor ratios map to this 46px pad.
       const raw = Math.hypot(delta.x, delta.y) / 46;
-      this.stick = raw < .12 ? { x: 0, y: 0 } : clampStick(delta, 46);
+      this.stick = mobileStickVector(delta.x, delta.y, 46);
       pointer.run = raw > 1.4 + 1e-10;
-    } else if (Math.hypot(delta.x, delta.y) > 12) {
+    } else if (pointer.kind !== 'fire' && Math.hypot(delta.x, delta.y) > 12) {
       pointer.aim = clampStick(delta, 1);
       pointer.aimOrder = ++this.aimOrder;
     }
@@ -104,6 +105,7 @@ export class InputState {
     const presses = this.pending.splice(0);
     return {
       move,
+      moveHeld: [...this.pointers.values()].some(p => p.kind === 'move'),
       run: [...this.pointers.values()].some(p => p.kind === 'move' && p.run) ||
         this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
       aim: this.aim,
@@ -285,6 +287,7 @@ export function attachInput({
     onInteraction();
     if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight'].includes(event.code)) {
       event.preventDefault();
+      touch = false;
       state.keys.add(event.code);
     }
     if (map[event.code] && !event.repeat) {
@@ -316,6 +319,6 @@ export function attachInput({
   return {
     state,
     clear,
-    take: () => ({ ...state.take(), mouse: touch ? null : mouse }),
+    take: () => ({ ...state.take(), mobile: touch, mouse: touch ? null : mouse }),
   };
 }

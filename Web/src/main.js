@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { createWorld } from "./world.js";
 import { loadActors, createActors } from "./actors.js";
-import { createGame, stepGame } from "./combat.js";
+import { createGame, stepGame, resetMobileControls } from "./combat.js";
 import { attachInput } from "./input.js";
 import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
@@ -43,11 +43,11 @@ function updateSupplies(){
  }
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
-function cancelPistol(g){g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g,{paused:true});}
+function cancelPistol(g){resetMobileControls(g);g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;effects?.clearPistolFeedback();effects?.update(g,{paused:true});}
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: "pistol-only", areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: "pistol-only", mobileControls: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -223,7 +223,7 @@ function frame(ms) {
     while (accumulator >= 1 / 60) {
       const weaponBefore = game.player.weapon;
       stepGame(game, intent(), 1 / 60);
-      if (weaponBefore !== game.player.weapon) input.clear();
+      if (weaponBefore !== game.player.weapon) {input.clear();resetMobileControls(game);}
       collectNearbySupplies(game,persistRun);
       collectNearbyVest(game,persistRun);
       persistRun(game);
@@ -238,6 +238,7 @@ function frame(ms) {
         break;
       }
       if (game.finished) {
+        resetMobileControls(game);
         game.pistolTargetId = null;
         game.pistolTargetFacing = null;
         input.clear();
@@ -287,6 +288,7 @@ async function crossArea(request) {
   } finally {
     traveling = false;
     input.clear();
+    resetMobileControls(game);
     accumulator = 0;
     last = 0;
     hud.update(game);

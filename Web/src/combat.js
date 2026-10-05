@@ -1,3 +1,4 @@
+import {createMobileAimState,stepMobileAim} from './mobile-combat-aim.js';
 import {selectFinisher} from './finisher-selection.js';
 import {allocateMobSizes} from './mob-size-allocation.js';
 import {mobSizeProfile} from './mob-size.js';
@@ -35,6 +36,7 @@ export function createGame(world,options={}){
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
  if(options.finishers&&g.pilot)g.finishers={maxHeads:options.finishers==='pistol-only'?0:2,recentRecipeId:null};
+ if(options.mobileControls)g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));
  if(options.supplies)g.supplies=createSuppliesState();
  if(options.vest)g.vest=createVestState();
  if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
@@ -49,7 +51,7 @@ function pistolIntent(g,intent){
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
  const explicit=validDirection(intent.aim);
  const moving=mag(intent.move??{x:0,z:0})>.01;
- const reference=explicit?normal(intent.aim):moving?normal(intent.move):g.pistolUserFacing??{...p.facing};
+ const reference=g.mobileAiming?{...p.facing}:explicit?normal(intent.aim):moving?normal(intent.move):g.pistolUserFacing??{...p.facing};
  // Preserve unassisted user intent between shots, never a resolved target bearing.
  if(wasEquipped)g.pistolUserFacing={...reference};
  g.pistolTargetId=null;g.pistolTargetFacing=null;
@@ -60,12 +62,12 @@ function pistolIntent(g,intent){
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(let e of result.events){
   if(e.type==='shot'){
-   e={...e,...resolvePistolShot({position:e.origin,aim:reference,targets:g.enemies,
+   if(!g.mobileAiming)e={...e,...resolvePistolShot({position:e.origin,aim:reference,targets:g.enemies,
     visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,lineClear:(a,b)=>g.world.lineClear(a,b),areaId:g.world.areaId})};
    shotDirection=e.direction;
   }
   event(g,e.type,{...e,actor:p});
-  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Drag Fire to aim; hold to shoot. Mouse aims on desktop.');
+  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Left stick aims; hold Fire to shoot. Mouse aims on desktop.');
   if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
@@ -162,7 +164,30 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  if(l.kind===0){const pct=.1+l.tier*.025;p.damage*=1+pct;p.weaponLevel++;notify(g,`BLADE +${Math.round(pct*100)}% damage`);}
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time,move=intent.move??{x:0,z:0};intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};
+export function resetMobileControls(g){
+ if(!g?.mobileAim)return;
+ g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));g.mobileAiming=false;g.player.velocity={x:0,z:0};
+}
+function mobileControl(g,intent,dt){
+ if(!g.mobileAim)return intent;
+ const p=g.player,heading=Math.atan2(p.facing.x,p.facing.z);
+ if(intent.mobile&&!intent.moveHeld)p.velocity={x:0,z:0};
+ if(!intent.mobile||intent.cancel||validDirection(intent.aim)){
+  g.mobileAim=createMobileAimState(heading);g.mobileAiming=false;
+  if(intent.cancel)p.velocity={x:0,z:0};return intent;
+ }
+ const areaId=g.world.areaId,visible=intent.combatVisibleIds??intent.pistolVisibleIds;
+ const busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!g.pistol?.equipped;
+ if(busy)g.mobileAim={...g.mobileAim,heading};
+ const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
+  targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0});
+ g.mobileAim=result.state;g.mobileAiming=true;
+ if(!intent.moveHeld)p.velocity={x:0,z:0};
+ if(!busy)p.facing={...result.direction};
+ return {...intent,move:result.move,aim:busy?null:{...p.facing}};
+}
+export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -204,6 +229,10 @@ export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)|
  for(const e of [...g.enemies]){enemyTick(g,e,dt);if(g.finished)break;}
  if(g.pilot)knifeContacts(g,before);
  if(!g.finished){projectiles(g,dt);collect(g);}
+ }
+ if(g.mobileAim){
+  if(g.finished)resetMobileControls(g);
+  else if(!g.enemies.some(e=>e.placementKey===g.mobileAim.targetId&&e.hp>0))g.mobileAim={...g.mobileAim,targetId:null,bearing:null};
  }
 }
 

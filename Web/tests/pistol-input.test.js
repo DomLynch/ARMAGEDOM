@@ -5,9 +5,9 @@ test('touch Fire tap queues one shot; held Fire needs no aiming drag',()=>{
  const s=new InputState();s.down(2,'fire',{x:200,y:100});assert.deepEqual(s.take().actions,['fire']);assert.deepEqual(s.take().held,['fire']);
  s.move(2,{x:208,y:104});assert.deepEqual(s.take().held,['fire']);s.up(2);assert.deepEqual(s.take().actions,[]);assert.deepEqual(s.take().actions,[]);
 });
-test('deliberate right-thumb drag fires along explicit aim while left thumb moves',()=>{
+test('Fire drag cannot aim while the independent left thumb moves',()=>{
  const s=new InputState();s.down(1,'move',{x:0,y:0});s.move(1,{x:30,y:0});s.down(2,'fire',{x:200,y:100});s.move(2,{x:200,y:70});const i=s.take();
- assert.ok(i.move.x>0);assert.deepEqual(i.aim,{x:0,y:-1});assert.deepEqual(i.actions,['fire']);assert.deepEqual(i.held,['fire']);s.up(2);assert.deepEqual(s.take().held,[]);assert.deepEqual(s.take().actions,[]);
+ assert.ok(i.move.x>0);assert.equal(i.aim,null);assert.deepEqual(i.actions,['fire']);assert.deepEqual(i.held,['fire']);s.up(2);assert.deepEqual(s.take().held,[]);assert.deepEqual(s.take().actions,[]);
 });
 test('cancelled Fire clears unconsumed tap and release never adds a shot',()=>{
  const s=new InputState();s.down(2,'fire',{x:0,y:0});s.cancel(2);assert.deepEqual(s.take().actions,[]);
@@ -17,13 +17,13 @@ test('desktop Fire press/hold/release retains immediate mouse aiming parity',()=
  const s=new InputState();s.down(2,'fire',{x:0,y:0});assert.deepEqual(s.take().actions,['fire']);assert.deepEqual(s.take().held,['fire']);s.up(2);assert.deepEqual(s.take().actions,[]);assert.deepEqual(s.take().held,[]);
 });
 
-test('second Fire contact cannot steal the existing aim or cancel its ownership',()=>{
- const s=new InputState();s.down(1,'fire',{x:0,y:0});s.move(1,{x:20,y:0});s.down(2,'fire',{x:0,y:0});s.move(2,{x:0,y:-30});s.up(2);assert.deepEqual(s.take().aim,{x:1,y:0});assert.deepEqual(s.take().held,['fire']);
+test('second Fire contact cannot steer or cancel the shooting owner',()=>{
+ const s=new InputState();s.down(1,'fire',{x:0,y:0});s.move(1,{x:20,y:0});s.down(2,'fire',{x:0,y:0});s.move(2,{x:0,y:-30});s.up(2);assert.equal(s.take().aim,null);assert.deepEqual(s.take().held,['fire']);
 });
-test('right Fire owner keeps its vector when another action drags later',()=>{
- const s=new InputState();s.down(1,'move',{x:0,y:0});s.move(1,{x:30,y:0});s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.down(3,'heavy',{x:300,y:100});s.move(3,{x:300,y:70});const raw=s.take();assert.deepEqual(raw.fireAim,{x:1,y:0});assert.ok(raw.move.x>0);assert.deepEqual(raw.aim,{x:0,y:-1});
+test('Fire stays action-only while another native melee action aims',()=>{
+ const s=new InputState();s.down(1,'move',{x:0,y:0});s.move(1,{x:30,y:0});s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.down(3,'heavy',{x:300,y:100});s.move(3,{x:300,y:70});const raw=s.take();assert.equal(raw.fireAim,null);assert.ok(raw.move.x>0);assert.deepEqual(raw.aim,{x:0,y:-1});
 });
-test('quick drag/release retains its queued Fire direction but cancellation removes it',()=>{
- const s=new InputState();s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.up(2);assert.deepEqual(s.take().fireAim,{x:1,y:0});assert.equal(s.take().fireAim,null);
+test('quick Fire drag/release queues one action without a direction; cancellation removes it',()=>{
+ const s=new InputState();s.down(2,'fire',{x:200,y:100});s.move(2,{x:220,y:100});s.up(2);assert.equal(s.take().fireAim,null);assert.equal(s.take().fireAim,null);
  s.down(2,'fire',{x:0,y:0});s.move(2,{x:20,y:0});s.cancel(2);assert.equal(s.take().fireAim,null);
 });
