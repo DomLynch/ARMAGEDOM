@@ -1,0 +1,30 @@
+[
+  {
+    "name": "original",
+    "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+    "errors": 0,
+    "warnings": 7,
+    "infos": 18
+  },
+  {
+    "name": "neck-repair",
+    "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff",
+    "errors": 0,
+    "warnings": 8,
+    "infos": 25
+  },
+  {
+    "name": "narrow-light",
+    "sha256": "628181b41addbf36b8691a4f43d8f2e0205609812240b038738601ab4c3e2128",
+    "errors": 0,
+    "warnings": 8,
+    "infos": 25
+  },
+  {
+    "name": "broad-deep",
+    "sha256": "baab3fdf88d19e7d617198dc4ae077add70f9cf00c8d869db7e52451457a69b1",
+    "errors": 0,
+    "warnings": 9,
+    "infos": 25
+  }
+]

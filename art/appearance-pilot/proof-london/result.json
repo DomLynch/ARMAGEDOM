@@ -1,0 +1,13 @@
+{
+  "job": "london-input-23eb98d03ceb",
+  "hostname": "Brain",
+  "source_files_verified": 16,
+  "command": [
+    "bash",
+    "run.sh"
+  ],
+  "exit_code": 0,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 7.02,
+  "finished_epoch": 1791192696.590795
+}

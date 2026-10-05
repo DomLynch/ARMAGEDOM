@@ -1,0 +1,1 @@
+First strict whole-node equality check failed on the deliberate appended hair child. Corrected criterion requires all original child links/rest transforms identical, permitting exactly one new Rough cropped hair child; no model change. Corrected check PASS.

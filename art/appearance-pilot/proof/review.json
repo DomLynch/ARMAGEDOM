@@ -1,0 +1,123 @@
+{
+  "scope": "Isolated original-rig neck repair and representative head/complexion/hair ingredients, no runtime integration/gameplay/device claim",
+  "errors": [],
+  "samples": [
+    {
+      "clip": "HollowIdle",
+      "phase": 0,
+      "maxBoneDelta": 6.661338147750939e-16,
+      "maxKnifeDelta": 1.1102230246251565e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "maxBoneDelta": 1.3322676295501878e-15,
+      "maxKnifeDelta": 2.220446049250313e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Attack",
+      "phase": 0.34,
+      "maxBoneDelta": 6.661338147750939e-16,
+      "maxKnifeDelta": 5.551115123125783e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Guard",
+      "phase": 0.15,
+      "maxBoneDelta": 6.661338147750939e-16,
+      "maxKnifeDelta": 1.1102230246251565e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.35,
+      "maxBoneDelta": 1.1102230246251565e-15,
+      "maxKnifeDelta": 2.220446049250313e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Death",
+      "phase": 0.8,
+      "maxBoneDelta": 8.881784197001252e-16,
+      "maxKnifeDelta": 0,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0,
+      "maxBoneDelta": 8.881784197001252e-16,
+      "maxKnifeDelta": 1.1102230246251565e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.125,
+      "maxBoneDelta": 1.3322676295501878e-15,
+      "maxKnifeDelta": 4.440892098500626e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.25,
+      "maxBoneDelta": 8.881784197001252e-16,
+      "maxKnifeDelta": 3.3306690738754696e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.5,
+      "maxBoneDelta": 7.771561172376096e-16,
+      "maxKnifeDelta": 2.220446049250313e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.75,
+      "maxBoneDelta": 8.881784197001252e-16,
+      "maxKnifeDelta": 2.220446049250313e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.875,
+      "maxBoneDelta": 7.771561172376096e-16,
+      "maxKnifeDelta": 4.440892098500626e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    },
+    {
+      "clip": "Hit",
+      "phase": 0.999999,
+      "maxBoneDelta": 1.1102230246251565e-15,
+      "maxKnifeDelta": 2.220446049250313e-16,
+      "finite": true,
+      "drawCalls": 48,
+      "triangles": 188577
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "scope": "Framing-only isolated London successor, exact written pilot models. Native bone/finite/Crooked/size tests reused from f49a70cea6a2; no game runtime edits or fullgame/phone claim",
+  "errors": [],
+  "samples": [
+    {
+      "scope": "Isolated London art camera",
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 29,
+      "triangles": 95350
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "Hit",
+      "phase": 0.35,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 29,
+      "triangles": 95350
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "Death",
+      "phase": 0.8,
+      "width": 393,
+      "height": 852,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 29,
+      "triangles": 95350
+    },
+    {
+      "scope": "Isolated London art camera",
+      "clip": "HollowWalk",
+      "phase": 0.25,
+      "width": 852,
+      "height": 393,
+      "scales": [
+        1.422018125,
+        1.9239068749999997
+      ],
+      "drawCalls": 29,
+      "triangles": 95350
+    }
+  ]
+}

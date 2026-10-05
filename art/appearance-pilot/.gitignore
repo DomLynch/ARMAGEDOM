@@ -1,0 +1,11 @@
+input/*.glb
+input/Web/
+input/world/
+london-input/results/
+london-input/Web/
+london-input/world/
+london-input/knife.glb
+format-input/*.glb
+**/__pycache__/
+proof/*.glb
+proof/*.png

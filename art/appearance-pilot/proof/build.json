@@ -1,0 +1,35 @@
+{
+  "sourceSHA": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
+  "fallbackSHA": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+  "recipes": [
+    {
+      "id": "neck-repair",
+      "bytes": 4328856,
+      "sha256": "769d9af2382a59c9c9882965ab52d1ca5c9aae1c1e4e6b6119e8bdf2ea6e0c53",
+      "headWidth": 1,
+      "headHeight": 1,
+      "hair": null,
+      "neckRestored": true
+    },
+    {
+      "id": "narrow-light",
+      "bytes": 4328852,
+      "sha256": "f6db04833490da9901087b1827694b2e00ce93e4a8393e125c09908737a66a26",
+      "headWidth": 0.87,
+      "headHeight": 1.035,
+      "hair": null,
+      "neckRestored": true
+    },
+    {
+      "id": "broad-deep",
+      "bytes": 4375148,
+      "sha256": "596747770cc6d2050ad89c9ac71e35e019e9efc2e6bd565682f0171a51694351",
+      "headWidth": 1.12,
+      "headHeight": 0.98,
+      "hair": "rough",
+      "neckRestored": true
+    }
+  ],
+  "diagnosis": "Hollow builder keep-list omitted donor Face mesh (lower neck y1.4727\u20131.5663) while retaining Photo (miny1.5521). Restored original weighted donor Face only, with identical bind matrices/joints.",
+  "status": "Representative pilot; not approved50 recipe library or runtime integration"
+}
