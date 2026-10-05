@@ -1,0 +1,30 @@
+{
+  "checkedUtc": "2026-10-05T14:58:33.439054+00:00",
+  "command": "node --test Web/tests/pistol-slide.test.js",
+  "exitCode": 0,
+  "tests": 3,
+  "pass": 3,
+  "fail": 0,
+  "three": "0.182.0",
+  "scope": "Actual GLTFLoader scene, exact source GLB hash, triangle partition and attributes, fixed grip/muzzle transforms, recoil/reset, duplicate prepare/unsupported geometry fallback, 12 prepare/dispose cycles, owned buffer disposal, borrowed materials/geometry undisposed",
+  "initialFailures": "First helper assumed GLTFLoader produced one grouped Mesh; actual loader produces three Mesh children. Corrected actual runtime structure. Follow-up found negative-zero expectation and insufficient geometry mutation fixture; fixed zero output and mutated all steel Y positions. Final tests all pass. No successful no-tests substitution.",
+  "sourceHashes": [
+    {
+      "path": "Web/src/pistol-slide.js",
+      "bytes": 5022,
+      "sha256": "7f4be44cb968450960c550239f0c85c8d0d32d88c5723d4b205e63fd742ba509"
+    },
+    {
+      "path": "Web/tests/pistol-slide.test.js",
+      "bytes": 5395,
+      "sha256": "44a01b23856bb21e27309b08e85d56b4d1126a947cda7fe7e192d0c3c31dae74"
+    }
+  ],
+  "noClaims": [
+    "rendered appearance",
+    "game integration",
+    "served release",
+    "phone feel",
+    "GPU performance"
+  ]
+}

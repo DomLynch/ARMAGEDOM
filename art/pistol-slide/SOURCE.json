@@ -1,0 +1,20 @@
+{
+  "base": "f4109869b4169d82be1a385ed110ee4e68291309",
+  "files": [
+    {
+      "path": "Web/src/pistol-slide.js",
+      "bytes": 5022,
+      "sha256": "7f4be44cb968450960c550239f0c85c8d0d32d88c5723d4b205e63fd742ba509"
+    },
+    {
+      "path": "Web/tests/pistol-slide.test.js",
+      "bytes": 5395,
+      "sha256": "44a01b23856bb21e27309b08e85d56b4d1126a947cda7fe7e192d0c3c31dae74"
+    },
+    {
+      "path": "Web/public/assets/pistol/pistol.glb",
+      "bytes": 106436,
+      "sha256": "62d6bdc4789365ace89c98bc3fe74322ae427f316810f81cb4ad66857e73f321"
+    }
+  ]
+}
