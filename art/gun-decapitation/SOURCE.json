@@ -1,0 +1,38 @@
+{
+  "checkedUtc": "2026-10-05T15:14:41.598488+00:00",
+  "inspectionRevision": "b1583eaa1895620bdc5afed6757f7cccd336fee1",
+  "releaseAcceptance": "046 candidate source only, not accepted publication",
+  "files": [
+    {
+      "path": "Web/src/finisher-presentation.js",
+      "bytes": 10683,
+      "sha256": "78553b8a4712e8f2e7e5efcf66d217fa5f08323aa19162cd9418376cdd888fe1"
+    },
+    {
+      "path": "Web/src/finisher-selection.js",
+      "bytes": 2673,
+      "sha256": "0d2a705fca8d71df3d63e0f0810ada36c1390bb6001f5c9224836cebf934e585"
+    },
+    {
+      "path": "Web/src/actors.js",
+      "bytes": 14343,
+      "sha256": "4c0ed406962c3777b5c9bf98381c2d841563237f306261fe0e68ced9694b5efe"
+    },
+    {
+      "path": "Web/src/donor-motion.js",
+      "bytes": 6145,
+      "sha256": "5e29ca6dd961e074f266d2c2b2652735a0c902270793192191c686b9aded69e2"
+    },
+    {
+      "path": "Web/src/combat.js",
+      "bytes": 37734,
+      "sha256": "8b68607a54c56aea75f83110e9495a914e468410828e8bb94d6ad320c108c343"
+    },
+    {
+      "path": "Web/src/travel.js",
+      "bytes": 2923,
+      "sha256": "dbae3a2b6362383d3870010fce4a78134dc7e9434d1000d76d22e1fa354b017a"
+    }
+  ],
+  "method": "Read-only current committed source; no jobs or runtime mutation"
+}
