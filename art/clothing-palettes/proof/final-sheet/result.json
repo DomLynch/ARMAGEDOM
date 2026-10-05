@@ -1,0 +1,13 @@
+{
+  "job": "job-input-a2739df50a2c",
+  "hostname": "Brain",
+  "source_files_verified": 10,
+  "command": [
+    "bash",
+    "run-capture.sh"
+  ],
+  "exit_code": 0,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 13.01,
+  "finished_epoch": 1791187468.749391
+}

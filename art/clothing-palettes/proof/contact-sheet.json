@@ -1,0 +1,511 @@
+{
+  "version": "armagedom-clothing-033-v1",
+  "tops": 50,
+  "trousers": 50,
+  "reports": [
+    {
+      "topId": "top-charcoal-01",
+      "trouserId": "trousers-sand-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-charcoal-02",
+      "trouserId": "trousers-sand-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-charcoal-03",
+      "trouserId": "trousers-sand-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-charcoal-04",
+      "trouserId": "trousers-sand-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-ash-01",
+      "trouserId": "trousers-tobacco-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-ash-02",
+      "trouserId": "trousers-tobacco-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-ash-03",
+      "trouserId": "trousers-tobacco-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-ash-04",
+      "trouserId": "trousers-tobacco-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-earth-01",
+      "trouserId": "trousers-ash-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-earth-02",
+      "trouserId": "trousers-faded-navy-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-earth-03",
+      "trouserId": "trousers-ash-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-earth-04",
+      "trouserId": "trousers-khaki-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-tobacco-01",
+      "trouserId": "trousers-blue-grey-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-tobacco-02",
+      "trouserId": "trousers-blue-grey-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-tobacco-03",
+      "trouserId": "trousers-faded-navy-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-tobacco-04",
+      "trouserId": "trousers-ash-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-rust-01",
+      "trouserId": "trousers-blue-grey-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-rust-02",
+      "trouserId": "trousers-faded-navy-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-rust-03",
+      "trouserId": "trousers-blue-grey-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-rust-04",
+      "trouserId": "trousers-faded-navy-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-oxblood-01",
+      "trouserId": "trousers-khaki-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-oxblood-02",
+      "trouserId": "trousers-khaki-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-oxblood-03",
+      "trouserId": "trousers-ash-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-oxblood-04",
+      "trouserId": "trousers-khaki-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-olive-01",
+      "trouserId": "trousers-rust-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-olive-02",
+      "trouserId": "trousers-rust-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-olive-03",
+      "trouserId": "trousers-rust-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-olive-04",
+      "trouserId": "trousers-rust-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-khaki-01",
+      "trouserId": "trousers-oxblood-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-khaki-02",
+      "trouserId": "trousers-oxblood-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-khaki-03",
+      "trouserId": "trousers-oxblood-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-khaki-04",
+      "trouserId": "trousers-oxblood-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-dirty-ochre-01",
+      "trouserId": "trousers-olive-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-dirty-ochre-02",
+      "trouserId": "trousers-olive-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-dirty-ochre-03",
+      "trouserId": "trousers-olive-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-dirty-ochre-04",
+      "trouserId": "trousers-olive-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-sand-01",
+      "trouserId": "trousers-muted-plum-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-sand-02",
+      "trouserId": "trousers-earth-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-sand-03",
+      "trouserId": "trousers-muted-plum-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-sand-04",
+      "trouserId": "trousers-earth-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-faded-navy-01",
+      "trouserId": "trousers-dirty-ochre-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-faded-navy-02",
+      "trouserId": "trousers-dirty-ochre-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-faded-navy-03",
+      "trouserId": "trousers-dirty-ochre-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-faded-navy-04",
+      "trouserId": "trousers-dirty-ochre-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-blue-grey-01",
+      "trouserId": "trousers-earth-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-blue-grey-02",
+      "trouserId": "trousers-earth-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-blue-grey-03",
+      "trouserId": "trousers-charcoal-04",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-blue-grey-04",
+      "trouserId": "trousers-charcoal-03",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-muted-plum-01",
+      "trouserId": "trousers-charcoal-02",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    },
+    {
+      "topId": "top-muted-plum-02",
+      "trouserId": "trousers-charcoal-01",
+      "slots": {
+        "jacket": 2,
+        "trousers": 1
+      },
+      "drawCalls": 11,
+      "triangles": 46293
+    }
+  ],
+  "sharedSourceColoursUnchanged": true,
+  "sourceGrimeMapsPreserved": true,
+  "scope": "Exact original Hollow GLB/knife and native idle, all50 approved top+trouser pairs once, one small-figure sheet. QA selection only; not World allocation/crowd/phone acceptance.",
+  "errors": []
+}
