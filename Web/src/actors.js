@@ -152,7 +152,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
-            intensity: own.emissiveIntensity,
+            intensity: own.emissiveIntensity,color:own.color?.clone(),
           });
           return own;
         });
@@ -164,7 +164,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
       appearance=faceKits.get(source.gltf.scene).apply(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
     }
-    const flashMaterials=[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))];
+    const flashMaterials=[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity,color:material.color?.clone()}))];
     const shadow = new THREE.Mesh(
       shadowGeometry,
       new THREE.MeshBasicMaterial({
@@ -229,9 +229,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   }
   return {
     views,
-    configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.pistolSlide.reset();}},
-    resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.pistolSlide.reset();}},
-    events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
+    configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;v.pistolSlide.reset();}},
+    resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;v.pistolSlide.reset();}},
+    events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
     },
@@ -268,8 +268,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
           deathPose,
         );
-        const reaction=view.hitReaction.update(view.hitReactionFresh?0:presentationDt,{paused:presentationDt===0});
-        view.hitReactionFresh=false;
+        const reaction=view.hitReaction.update(view.hitReactionFresh?0:Math.min(.05,presentationDt),{paused:presentationDt===0});
+        if(!view.hitReactionFresh)view.impactFlashLife=Math.max(0,(view.impactFlashLife??0)-Math.min(.05,Math.max(0,presentationDt)));view.hitReactionFresh=false;
         // Living flinch and native corpse pose share this sole render transform owner.
         if(entity.hp>0){const lean=reaction.energy*.30;view.root.rotation.x=-reaction.z*lean;view.root.rotation.z=-reaction.x*lean;const flinch={x:entity.pos.x+reaction.x*reaction.energy*.10,z:entity.pos.z+reaction.z*reaction.energy*.10};if((!world.geometry?.clear||world.geometry.clear(flinch,entity.radius))&&(!world.lineClear||world.lineClear(entity.pos,flinch)))view.root.position.copy(world.toRender(flinch));}else{view.root.rotation.x=view.root.rotation.z=0;}
         if(deathPose){view.root.position.x+=deathPose.offset.x;view.root.position.z-=deathPose.offset.z;view.root.updateMatrixWorld(true);}
@@ -284,13 +284,15 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.vest.setVisible(game.vest.equipped);view.vest.update();
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
-        const flash = !game.finished && entity.flashUntil > game.time;
+        const contrast=feedbackMode==='high'&&!reducedMotion()&&(view.impactFlashLife??0)>0;
+        const flash = !game.finished && entity.flashUntil > game.time||contrast;
         for (const m of view.flashMaterials) {
           if (m.material.emissive) {
             m.material.emissive.copy(
-              flash ? new THREE.Color(0.65, 0.2, 0.05) : m.emissive,
+              flash ? new THREE.Color(...(contrast?[.95,.9,.78]:[.65,.2,.05])) : m.emissive,
             );
-            m.material.emissiveIntensity = flash ? 0.8 : m.intensity;
+            m.material.emissiveIntensity = contrast?1:flash ? 0.8 : m.intensity;
+            if(m.color)m.material.color.copy(contrast?new THREE.Color('#fff3dd'):m.color);
           }
         }
       }

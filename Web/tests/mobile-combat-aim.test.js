@@ -54,3 +54,9 @@ test('frozen state/cohort inputs untouched; invalid steps reject explicitly',()=
  const state=Object.freeze(createMobileAimState()),t=Object.freeze(target());step(state,{targets:Object.freeze([t])});assert.equal(state.targetId,null);
  for(const dt of [-1,NaN,Infinity,.2])assert.throws(()=>step(state,{dt}),RangeError);
 });
+
+test('stopped touch aim keeps stateless partial correction without travel retention or feedback drift',()=>{
+ let state=createMobileAimState();for(let i=0;i<180;i++){const out=step(state,{moveHeld:false,move:{x:0,z:0}});near(out.state.rawHeading,0);near(out.correction,rad(4)*.4125);assert.equal(out.state.targetId,null);assert.deepEqual(out.move,{x:0,z:0});state=out.state;}
+ near(state.heading,rad(4)*.4125);const off=step(createMobileAimState(),{assistEnabled:false});near(off.correction,0);assert.equal(off.state.targetId,null);assert.deepEqual(off.move,{x:0,z:1});
+ assert.equal(step(state,{moveHeld:false,lineClear:()=>false}).correction,0);assert.equal(step(state,{moveHeld:false,assistEnabled:false}).correction,0);
+});

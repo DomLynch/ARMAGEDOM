@@ -32,7 +32,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  const pistolAsset=await loadGeometry(fs.readFileSync(new URL('assets/pistol/pistol.glb',publicRoot)));
  const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment])))},{visualScale:1.3225});actors.update(game,0);
  const playerView=actors.views.get(0);assert.equal(playerView.pistolSlide.supported,true);
- game.player.weapon='pistol';actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);
+ game.player.weapon='pistol';actors.update(game,0,0);const hand=playerView.model.getObjectByName('hand_r'),restHand=hand.getWorldPosition(new THREE.Vector3()),restGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);const recoilHand=hand.getWorldPosition(new THREE.Vector3()),recoilGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());assert.ok(recoilHand.distanceTo(restHand)>.1,'whole arm conveys actual shot recoil');assert.ok(Math.abs(recoilHand.distanceTo(recoilGun)-restHand.distanceTo(restGun))<1e-6,'gun remains gripped while arm recoils');
  const slideMaterial=playerView.pistolSlide.slide.children[0].material;assert.ok(playerView.materials.some(m=>m.material===slideMaterial),'slide borrows the actor private material');
  actors.update(game,0,.4);assert.ok(Math.abs(playerView.pistolSlide.slide.position.z+.0048)<1e-9);
  actors.resetFeedback();assert.equal(playerView.pistolSlide.slide.position.z,0);game.player.weapon='knife';actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,0,'holstered slide remains at rest');
@@ -82,6 +82,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  // changing logical positions or advancing/fighting the complete finisher clock.
  const receiver=game.enemies[0],rendered=actors.views.get(receiver.id),origin=world.toRender(receiver.pos),logical={...receiver.pos};
  actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});
+ assert.ok(rendered.flashMaterials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===1),'High real-rig pale flash is visible');
  assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8);assert.ok(Math.abs(rendered.root.rotation.z+.30)<1e-8);assert.deepEqual(receiver.pos,logical);
  actors.update(game,0,0,{presentationDt:0});assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8,'paused repeat does not accumulate root offset');
  world.geometry.clear=()=>false;actors.update(game,0,0,{presentationDt:0});assert.ok(rendered.root.position.equals(origin),'registered wall suppresses visual offset');world.geometry.clear=()=>true;

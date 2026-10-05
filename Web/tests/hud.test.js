@@ -347,3 +347,7 @@ test('equipped vest status follows authoritative restore, holster, transient pri
  const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
  hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,false);
 });
+
+test('Assist +50percent setting toggles independently without changing six weapon actions',t=>{
+ const {el}=setup(t);let enabled;createHUD({onPause(){},onAssist:value=>enabled=value});el('assist').onclick();assert.equal(enabled,false);assert.equal(el('assist').textContent,'Assist: Off');assert.equal(el('assist').attributes.get('aria-pressed'),'false');el('assist').onclick();assert.equal(enabled,true);assert.equal(el('assist').textContent,'Assist: +50%');
+});

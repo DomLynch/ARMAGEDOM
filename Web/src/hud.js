@@ -1,6 +1,6 @@
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
-export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFeedback = () => {} }) {
+export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
   let loaded = false,
@@ -35,6 +35,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
     el("sound").setAttribute("aria-pressed", String(sound));
     onSound(sound);
   };
+  let assist=true;el("assist").onclick=()=>{assist=!assist;el("assist").textContent=assist?"Assist: +50%":"Assist: Off";el("assist").setAttribute("aria-pressed",String(assist));onAssist(assist);};
   const feedback=el('feedback-mode');
   feedback.onchange=()=>onFeedback(feedback.value);
   window.addEventListener("resize", resize);

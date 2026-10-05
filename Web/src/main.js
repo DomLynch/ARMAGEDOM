@@ -53,6 +53,7 @@ const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
 const viewZoomMultiplier = 1;
 const actorManifest = "assets/manifest-hollow.json";
+let mobileAssistEnabled=true;
 const audio = createAudio({ donor: true, baseUrl });
 let renderer,
   world,
@@ -96,6 +97,7 @@ function pause(value) {
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : frame);
 }
 const hud = createHUD({
+  onAssist:enabled=>{mobileAssistEnabled=enabled;if(game){game.mobileAssistEnabled=enabled;resetMobileControls(game);}},
   onFeedback:mode=>{effects?.configureFeedback(mode);actors?.configureFeedback(mode);audio.setMode?.(mode);},
   onRetry: restart,
   onPause: pause,
@@ -128,7 +130,7 @@ async function restart() {
   effects.reset();
   atmosphere?.reset();
   audio.reset();
-  game = createGame(world, pilot);
+  game = createGame(world, pilot);game.mobileAssistEnabled=mobileAssistEnabled;
   persistRun(game);
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);
@@ -357,13 +359,13 @@ enter.addEventListener("click", async () => {
     pilot.encounter = createHollowEncounter({rig: "hollow-scavenger", weapon: "knife", contactRig: character.contactRig, bodyScale: character.bodyScale});
     world = nextWorld;
     pendingLibrary = library;
-    game = createGame(world, pilot);
+    game = createGame(world, pilot);game.mobileAssistEnabled=mobileAssistEnabled;
     restoreSavedRun(game);
     actors = createActors(scene, world, library, {
       visualScale: actorVisualScale,
     });
     pendingLibrary = null;
-    effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"));
+    effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),{hitMarker:document.getElementById("hit-marker"),getView:actor=>actors.views.get(actor.id)});
     atmosphere = createAtmosphere({THREE, scene, world});
     actors.update(game, 0);
     renderer.setAnimationLoop(frame);

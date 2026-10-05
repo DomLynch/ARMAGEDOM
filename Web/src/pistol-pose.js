@@ -15,7 +15,7 @@ export function applyPistolAim(model,mount,{recoil=0}={}){
  if(!upper||!fore||!hand||mount.parent!==model)throw Error('Pistol rig/mount mismatch');
  model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),scale=model.getWorldScale(new T.Vector3()).x;
  const shoulder=upper.getWorldPosition(new T.Vector3()),elbow=fore.getWorldPosition(new T.Vector3()),wrist=hand.getWorldPosition(new T.Vector3());
- const a=shoulder.distanceTo(elbow),b=elbow.distanceTo(wrist),d=(a+b)*.92;
+ const a=shoulder.distanceTo(elbow),b=elbow.distanceTo(wrist),d=(a+b)*(.92-Math.max(0,Math.min(1,recoil))*.22);
  const dir=new T.Vector3(0,-.07,1).normalize().applyQuaternion(basis),bend=new T.Vector3(.25,-1,-.07).normalize().applyQuaternion(basis);
  bend.addScaledVector(dir,-bend.dot(dir)).normalize();
  const along=(a*a-b*b+d*d)/(2*d),height=Math.sqrt(Math.max(0,a*a-along*along));
@@ -31,7 +31,7 @@ export function applyPistolAim(model,mount,{recoil=0}={}){
   bone.quaternion.setFromEuler(new T.Euler(0,part===1?-Math.PI/2:0,-curl,'YXZ'));
  }
  const gunQ=basis.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(-Math.max(0,Math.min(1,recoil))*.22,0,0)));
- const grip=hand.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.045,.13-Math.max(0,Math.min(1,recoil))*.11).multiplyScalar(scale).applyQuaternion(basis));
+ const grip=hand.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.045,.13).multiplyScalar(scale).applyQuaternion(basis));
  mount.position.copy(model.worldToLocal(grip));mount.quaternion.copy(model.getWorldQuaternion(new T.Quaternion()).invert().multiply(gunQ));
  model.updateWorldMatrix(true,true);model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});return mount.getObjectByName('Muzzle');
 }
