@@ -138,3 +138,11 @@ test('resolved direction still obeys existing first-hit and Fire/ammo authority'
   const fired=stepPistol(state,{...input,fire:true});
   assert.equal(fired.state.magazine,5);assert.equal(fired.events[0].targetId,'near');
 });
+
+test('nearest mode ignores facing and chooses stable distance/ID ties without bypassing eligibility or reach',()=>{
+ const back=target('back',180,.8),ahead=target('ahead',0,1.2);
+ assert.equal(melee([ahead,back],{nearest:true,aim:{x:0,z:0}}).targetId,'back');
+ const tied=[target('b',180,1),target('a',90,1)];for(const targets of [tied,[...tied].reverse()])assert.equal(melee(targets,{nearest:true,aim:null,facing:null}).targetId,'a');
+ const bad=[target('dead',180,.3,{hp:0}),target('hidden',180,.3,{visible:false}),target('area',180,.3,{areaId:'east'}),target('blocked',180,.4),target('far',180,2.01)];
+ assert.equal(melee(bad,{nearest:true,areaId:'westminster',lineClear:(_a,p)=>Math.hypot(p.x,p.z)>.5}),null);
+});

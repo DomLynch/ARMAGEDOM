@@ -8,14 +8,14 @@ const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 // Stateless: caller supplies original intent, current visible cohort and weapon
 // potential reach. Selection never turns an actor, starts an attack or grants a hit.
 export function selectCombatTarget({position, facing, aim, targets, lineClear,
-  range, rangeOffset, coneDegrees=COMBAT_TARGETING.meleeDegrees, areaId} = {}) {
+  range, rangeOffset, coneDegrees=COMBAT_TARGETING.meleeDegrees, areaId, nearest=false} = {}) {
   const intent = aim ?? facing;
-  if (!point(position) || !point(intent) || typeof lineClear !== 'function'
+  if (!point(position) || !nearest&&!point(intent) || typeof lineClear !== 'function'
       || !Number.isFinite(range) || range<=0 || !Number.isFinite(coneDegrees)
       || coneDegrees<0 || coneDegrees>=90 || rangeOffset!==undefined&&typeof rangeOffset!=='function') return null;
-  const length = Math.hypot(intent.x,intent.z);
-  if (!Number.isFinite(length) || length<EPS) return null;
-  const forward = {x:intent.x/length,z:intent.z/length};
+  const length = point(intent)?Math.hypot(intent.x,intent.z):0;
+  if (!nearest&&(!Number.isFinite(length) || length<EPS)) return null;
+  const forward = length>=EPS?{x:intent.x/length,z:intent.z/length}:{x:0,z:1};
   const minimumDot=Math.cos(coneDegrees*Math.PI/180);
   let best = null;
   for (const target of targets ?? []) {
@@ -28,11 +28,11 @@ export function selectCombatTarget({position, facing, aim, targets, lineClear,
     if (!Number.isFinite(candidateRange)||candidateRange<=0||!Number.isFinite(distance) || distance<EPS || distance>candidateRange+EPS) continue;
     const direction={x:x/distance,z:z/distance};
     const alignment=direction.x*forward.x+direction.z*forward.z;
-    if (alignment+EPS<minimumDot || !lineClear(position,target.pos)) continue;
+    if (!nearest&&alignment+EPS<minimumDot || !lineClear(position,target.pos)) continue;
     const candidate={targetId:target.id,direction,alignment,distance};
-    if (!best || alignment>best.alignment+EPS
-        || Math.abs(alignment-best.alignment)<=EPS && (distance<best.distance-EPS
-          || Math.abs(distance-best.distance)<=EPS && String(target.id)<String(best.targetId))) best=candidate;
+    const closer=distance<(best?.distance??Infinity)-EPS, tied=best&&Math.abs(distance-best.distance)<=EPS&&String(target.id)<String(best.targetId);
+    if (!best || (nearest?closer||tied:alignment>best.alignment+EPS
+        || Math.abs(alignment-best.alignment)<=EPS && (closer||tied))) best=candidate;
   }
   return best ? {targetId:best.targetId,direction:best.direction} : null;
 }

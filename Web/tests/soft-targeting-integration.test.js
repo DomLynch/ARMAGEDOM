@@ -6,9 +6,9 @@ const angle=v=>Math.atan2(v.x,v.z)*180/Math.PI;
 const tick=(g,i={})=>stepGame(g,i);
 function fixture(){const world={areaId:'westminster',spawn:{x:0,z:0},layout:{characterScale:1.265},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true};const g=createGame(world,{pilot:'donor-knife'});g.wave=1;return g;}
 function target(g,a=28,d=1.25){const f=direction(a);const e=Object.assign(enemy(0,{x:f.x*d,z:f.z*d}),{rig:'hollow-scavenger',contactRig:'hero',combatScale:1.265,bodyScale:1,hp:1000,maxHP:1000,staggerUntil:100,ready:100});g.enemies.push(e);return e;}
-for(const [action,last] of [['slash',null],['slash','light_right'],['stab',null],['heavy',null],['special',null]])test(`${action}/${last} gently turns only accepted windup and preserves actual native contact`,()=>{
+for(const [action,last] of [['slash',null],['slash','light_right'],['stab',null],['heavy',null],['special',null]])test(`${action}/${last} faces nearest at accepted attack start and preserves actual native contact`,()=>{
  const g=fixture(),e=target(g);g.player.lastMove=last;
- tick(g,{actions:[action]});const s=g.player.swing;assert(s);assert.ok(angle(g.player.facing)>0&&angle(g.player.facing)<28,'bounded first turn');
+ tick(g,{actions:[action]});const s=g.player.swing;assert(s);if(action==='special')assert.ok(angle(g.player.facing)>0&&angle(g.player.facing)<28);else assert.ok(Math.abs(angle(g.player.facing)-28)<1e-8,'full facing before native swing');
  let hit=false;for(let i=0;i<s.def.windupTicks+s.def.activeTicks;i++){tick(g);if(i===7){assert.ok(Math.abs(angle(g.player.facing)-28)<1e-8);assert.deepEqual(g.player.facing,s.dir);}hit||=g.events.some(v=>v.type==='hit'&&v.actor===e);}
  assert.ok(hit,'original blade/pommel contact still resolves');assert.equal(e.hp,1000-s.def.damage);
 });
@@ -19,8 +19,8 @@ test('selected direction is a snapshot; active/recovery and idle never chase',()
 test('explicit aim beats active movement; movement beats facing for a fresh attack',()=>{
  for(const [i,wanted] of [[{aim:direction(90),move:direction(-90)},118],[{move:direction(90)},118]]){const g=fixture();target(g,118);tick(g,{...i,actions:['stab']});for(let n=0;n<8;n++)tick(g);assert.ok(Math.abs(angle(g.player.facing)-wanted)<1e-8);}
 });
-test('behind, obstacle, unseen, out-of-range and no-target attacks retain original intent',()=>{
- for(const kind of ['behind','wall','unseen','far','empty']){const g=fixture(),e=kind==='empty'?null:target(g,kind==='behind'?170:28,kind==='far'?6:1.25);if(kind==='wall')g.world.lineClear=()=>false;tick(g,{actions:['stab'],combatVisibleIds:kind==='unseen'?[]:undefined});for(let i=0;i<8;i++)tick(g);assert.deepEqual(g.player.facing,{x:0,z:1});assert.ok(!e||e.hp===1000);}
+test('obstacle, unseen, dead, foreign-area, out-of-range and no-target attacks retain original intent',()=>{
+ for(const kind of ['wall','unseen','far','empty','dead','area']){const g=fixture(),e=kind==='empty'?null:target(g,kind==='behind'?170:28,kind==='far'?6:1.25);if(kind==='wall')g.world.lineClear=()=>false;if(kind==='dead')e.hp=0;if(kind==='area')e.areaId='east';tick(g,{actions:['stab'],combatVisibleIds:kind==='unseen'?[]:undefined});for(let i=0;i<8;i++)tick(g);assert.deepEqual(g.player.facing,{x:0,z:1});assert.ok(!e||e.hp===(kind==='dead'?0:1000));}
 });
 test('buffer resolves fresh intent and target when the action really starts',()=>{
  const g=fixture(),e=target(g,28);g.player.ready=.1;tick(g,{actions:['stab']});assert.equal(g.player.swing,null);assert.equal(angle(g.player.facing),0);e.pos={x:1.25,z:0};for(let i=0;i<8;i++)tick(g,{move:direction(90)});assert.ok(g.player.swing);assert.ok(Math.abs(angle(g.player.facing)-90)<1e-8);
@@ -43,3 +43,13 @@ test('neutral pistol dodge updates real unassisted heading for the next ordinary
 test('held melee resolves anew at each accepted action and invalid aim falls back to movement',()=>{const g=fixture(),e=target(g);tick(g,{held:['stab']});const first=g.player.swing.start;while(g.player.swing)tick(g);e.pos={x:g.player.pos.x-1.25,z:g.player.pos.z};tick(g,{held:['stab'],aim:{x:NaN,z:0},move:direction(-90)});assert.ok(g.player.swing.start>first);assert.ok(Math.abs(angle(g.player.facing)+90)<1e-8);assert.ok(Math.abs(angle(g.player.swing.dir)+90)<1e-8);});
 
 for(const callback of ['pause','resize'])test(`actual main ${callback} callback cancels pending assistance without destroying committed swing`,()=>{const g=fixture();target(g);tick(g,{actions:['heavy']});const swing=g.player.swing,facing={...g.player.facing},state=new InputState();state.down(1,'slash',{x:0,y:0});const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),pause=source.slice(source.indexOf('function pause(value)'),source.indexOf('const hud =')),resize=source.slice(source.indexOf('function resize()'),source.indexOf('window.addEventListener("resize", resize)'));const callbacks=new Function('game','input','audio','hud',`let paused=false,accumulator=0,last=0,renderer=null,loaded=false,world=null,atmosphere=null,contextLost=false;${pause}${resize};return {pause,resize};`)(g,{clear:()=>state.clear()},{pause(){}},{resize(){}});if(callback==='pause'){callbacks.pause(true);callbacks.pause(false);}else callbacks.resize();assert.equal(g.player.swing,swing);assert.equal(swing.turnTo,null);assert.equal(state.pointers.size,0);for(let i=0;i<8;i++)tick(g,state.take());assert.deepEqual(g.player.facing,facing);assert.deepEqual(swing.dir,facing);});
+
+for(const action of ['slash','stab','heavy'])test(`${action} closer behind beats farther ahead and native blade hits committed facing`,()=>{
+ const g=fixture(),behind=target(g,180,1.05),front=target(g,0,1.3);front.id=99;
+ const input=new InputState();input.down(7,action,{x:0,y:0});tick(g,input.take());input.clear();
+ const swing=g.player.swing;assert(swing);assert.ok(g.player.facing.z<-.999);assert.deepEqual(swing.dir,g.player.facing);assert.equal(swing.turnTo,undefined);
+ let hit=false;for(let i=0;i<swing.def.windupTicks+swing.def.activeTicks;i++){tick(g,{aim:direction(0)});assert.ok(g.player.facing.z<-.999);hit||=g.events.some(e=>e.type==='hit'&&e.actor===behind);}
+ assert.ok(hit,'real native blade contact behind');assert.equal(behind.hp,1000-swing.def.damage);assert.equal(front.hp,1000);
+});
+
+for(const action of ['slash','stab','heavy'])test(`${action} Assist Off leaves original facing and misses behind`,()=>{const g=fixture(),e=target(g,180,1.05);g.mobileAssistEnabled=false;tick(g,{actions:[action]});const s=g.player.swing;assert(s);assert.deepEqual(s.dir,{x:0,z:1});for(let n=0;n<s.def.windupTicks+s.def.activeTicks;n++)tick(g);assert.equal(e.hp,1000);assert.deepEqual(g.player.facing,{x:0,z:1});});

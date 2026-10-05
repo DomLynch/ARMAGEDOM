@@ -1,6 +1,6 @@
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 const DEG=Math.PI/180;
-export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:.85,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
+export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:1,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
 const arc=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const vector=angle=>({x:Math.sin(angle),z:Math.cos(angle)});
@@ -31,7 +31,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
       const distance=Math.hypot(t.pos.x-position.x,t.pos.z-position.z);
       if(distance<.01||distance>=range-1e-8||!lineClear(position,t.pos))continue;
       if(pistol&&(!Number.isFinite(t.radius)||t.radius<=0))continue;
-      const acquire=pistol?Math.min(MOBILE_AIM.acquire,Math.asin(Math.min(1,MOBILE_AIM.acquireMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.acquire,retain=pistol?Math.min(MOBILE_AIM.retain,Math.asin(Math.min(1,MOBILE_AIM.retainMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.retain;
+      const acquire=pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.acquire,Math.asin(Math.min(1,MOBILE_AIM.acquireMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.acquire,retain=pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.retain,Math.asin(Math.min(1,MOBILE_AIM.retainMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.retain;
       cohort.push({id:t.id,distance,acquire,retain,bearing:Math.atan2(t.pos.x-position.x,t.pos.z-position.z)});
     }
   }
