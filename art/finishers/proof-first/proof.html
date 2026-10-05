@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/Web/node_modules/three/build/three.module.js","three/addons/":"/Web/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {clone} from 'three/addons/utils/SkeletonUtils.js';
+import {DonorMotion,equipDonorPlayer} from './Web/src/donor-motion.js';import {createFinisherPresentation} from './Web/src/finisher-presentation.js';import {createFaceAppearanceLibrary} from './Web/src/face-appearance.js';import {createWorld} from './world.js';
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(1);renderer.setSize(393,852);document.body.append(renderer.domElement);const scene=new T.Scene(),camera=new T.PerspectiveCamera();scene.add(new T.HemisphereLight(0xcbd7dc,0x494038,1.2));const light=new T.DirectionalLight(0xffecd5,2);light.position.set(-3,5,4);scene.add(light);
+const world=await createWorld({THREE:T,renderer,scene,camera,baseUrl:new URL('./',location.href),viewZoomMultiplier:1.3365}),loader=new GLTFLoader(),source=await loader.loadAsync('hollow-scavenger.glb'),knife=await loader.loadAsync('knife.glb'),faces=createFaceAppearanceLibrary(source.scene),rows=[];
+const geometryState=[];source.scene.traverse(o=>{if(o.isSkinnedMesh)geometryState.push([o,o.geometry,o.material,o.visible]);});
+for(let i=0;i<3;i++) {
+ const model=clone(source.scene),root=new T.Group();root.scale.setScalar(1.265*1.3225*[1,.85,1.15][i]);root.position.copy(world.toRender({x:(i-1)*1.05,z:-6}));root.add(model);scene.add(root);
+ const materials=[];model.traverse(n=>{if(n.isMesh){const own=Array.isArray(n.material)?n.material.map(m=>m.clone()):n.material.clone();materials.push(...(Array.isArray(own)?own:[own]));n.material=own;}});
+ const face=faces.apply(model,['face-original','face-narrow-messy-light','face-broad-crest-deep'][i]);
+ const body=equipDonorPlayer({scene:model,animations:source.animations},knife),motion=new DonorMotion(root,model,body.animations,{clips:{idle:'HollowIdle',walk:'HollowWalk',guard:'Guard'}});
+ const presentation=createFinisherPresentation({root,model,clips:body.animations,scene,groundY:0,isBlocked:p=>Math.abs(p.x)>3});
+ const plan={recipeId:['ordinary','pistol-directional','decapitation'][i],damageType:['unknown','bullet','cutting'][i],impactDirection:{x:1,z:.2}};
+ const before=performance.now(),recipe=presentation.start(plan),startMs=performance.now()-before;
+ rows.push({root,model,motion,presentation,face,materials,recipe,startMs,origin:root.position.clone()});
+}
+let last=0;
+function frame(age,width=393,height=852){renderer.setSize(width,height);world.update({x:0,z:-6},0,width,height,true);const dt=Math.max(0,age-last);last=age;
+ for(const row of rows){const pose=row.presentation.pose(age);row.motion.sample(pose.clip,pose.phase);row.root.position.copy(row.origin).add(new T.Vector3(pose.offset.x,0,-pose.offset.z));row.presentation.update(age,dt);}
+ renderer.render(scene,camera);return{age,width,height,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,rows:rows.map(r=>({recipe:r.recipe,startMs:r.startMs,pose:r.presentation.pose(age),stats:r.presentation.stats(),scale:r.root.scale.x}))};}
+window.__proof={frame,
+ check(){const detached=scene.children.find(n=>n.name==='Prepared detached Hollow head'),body=rows[2];let appearance=true;for(const mesh of detached?.children??[])if(mesh.name.startsWith('Photo')||mesh.name==='Scavenger hair'){const original=body.model.getObjectByName(mesh.name);appearance&&=mesh.material!==original.material&&mesh.material.map===original.material.map&&mesh.material.color.equals(original.material.color)&&mesh.material.vertexColors===original.material.vertexColors;}
+ let finite=true;for(const row of rows)row.model.traverse(o=>{if(o.isSkinnedMesh)for(const n of o.skeleton.boneMatrices)finite&&=Number.isFinite(n);});
+ return {appearance,finite,sourceUnchanged:geometryState.every(([n,g,m,v])=>n.geometry===g&&n.material===m&&n.visible===v),headPosition:detached?.position.toArray(),partScale:detached?.scale.toArray(),independent:rows[0].model.getObjectByName('Photo').visible&&rows[1].model.getObjectByName('Photo').visible&&!body.model.getObjectByName('Photo').visible,cache:faces.stats()};},
+ dispose(){for(const row of rows){row.presentation.dispose();row.face.dispose();row.motion.dispose();row.root.removeFromParent();row.materials.forEach(m=>m.dispose());}faces.dispose();renderer.render(scene,camera);return{memory:{...renderer.info.memory},sourceUnchanged:geometryState.every(([n,g,m,v])=>n.geometry===g&&n.material===m&&n.visible===v)};}};
+__proof.frame(0);
+</script>

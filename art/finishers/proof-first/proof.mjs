@@ -1,0 +1,11 @@
+import {chromium} from '/opt/frankendom-shadow/repo/node_modules/playwright/index.mjs';import {writeFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:393,height:852},recordVideo:{dir:'results',size:{width:393,height:852}}}),report={errors:[],frames:[]};page.on('pageerror',e=>report.errors.push(e.message));
+try{
+ await page.goto('http://127.0.0.1:18917/proof.html');await page.waitForFunction(()=>window.__proof);report.initial=await page.evaluate(()=>__proof.check());assert.ok(report.initial.appearance&&report.initial.finite&&report.initial.sourceUnchanged&&report.initial.independent);
+ const start=Date.now();for(let i=0;i<=390;i++){const age=i/60;const f=await page.evaluate(age=>__proof.frame(age),age);if(i%30===0){report.frames.push(f);const c=await page.evaluate(()=>__proof.check());assert.ok(c.finite&&c.sourceUnchanged);if(i<360)assert.ok(c.appearance);if(i===0||i===30||i===90||i===180)await page.screenshot({path:`results/portrait-${i}.png`});}const delay=start+i*1000/60-Date.now();if(delay>0)await new Promise(r=>setTimeout(r,delay));}
+ const final=report.frames.at(-1);assert.equal(final.rows[1].recipe.id,'pistol-directional');assert.equal(final.rows[2].recipe.id,'decapitation');assert.equal(final.rows[2].stats.lethalVertexCopies,0);assert.equal(final.rows[2].stats.expired,true);
+ // New page for landscape starts from fresh prepared state, preserving this lifetime proof.
+ report.disposal=await page.evaluate(()=>__proof.dispose());assert.equal(report.disposal.sourceUnchanged,true);assert.deepEqual(report.errors,[]);
+ const landscape=await browser.newPage({viewport:{width:852,height:393}});await landscape.goto('http://127.0.0.1:18917/proof.html');await landscape.waitForFunction(()=>window.__proof);report.landscape=await landscape.evaluate(()=>__proof.frame(.5,852,393));await landscape.screenshot({path:'results/landscape-.5.png'});await landscape.close();
+ console.log('FINISHER_NATIVE_PISTOL_HEAD_APPEARANCE_SCALE_LIFETIME_DISPOSAL_PASS');
+}finally{writeFileSync('results/proof.json',JSON.stringify(report,null,2));await page.close();const video=await page.video()?.path();writeFileSync('results/video-path.txt',video??'');await browser.close();}

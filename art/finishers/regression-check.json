@@ -1,0 +1,12 @@
+[
+  {
+    "mutation": "stale-bind",
+    "exit": 1,
+    "caught": true
+  },
+  {
+    "mutation": "slow-head-clock",
+    "exit": 1,
+    "caught": true
+  }
+]

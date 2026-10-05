@@ -1,0 +1,7 @@
+{
+  "base": "0ab3aaa8a256d9cd50145995a8405b0d135a41db",
+  "runtimeAndTests": {
+    "Web/src/finisher-presentation.js": "78553b8a4712e8f2e7e5efcf66d217fa5f08323aa19162cd9418376cdd888fe1",
+    "Web/tests/finisher-presentation.test.js": "3f0443b449851ba1a84a195d1e3b014ff62104ec695d287195198d6828ac9486"
+  }
+}

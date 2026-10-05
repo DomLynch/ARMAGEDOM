@@ -1,0 +1,11 @@
+✔ native pistol sequence advances at1x, directional recoil is bounded and ordinary fallback remains (1.468417ms)
+✔ player/missing anatomy/missing direction/ineligible pistol cut never detach (0.260292ms)
+✔ prepared head uses refreshed world binds, independent owned snapshots and bounded full elapsed motion (3.67675ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 83.336583

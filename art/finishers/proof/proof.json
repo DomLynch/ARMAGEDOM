@@ -1,0 +1,1579 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "age": 0.007700000762939453,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.0032083335237370523,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Hit",
+            "phase": 0.023100001600384664,
+            "offset": {
+              "x": 0.007109907369683693,
+              "z": 0.0014219814739367385
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.007700000762939453,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 0.8256000003814697,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.3439999864896144,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.2051110989804626,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.8256000003814697,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 1.621300000190735,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.6755416399025266,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.5366527523933747,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 2.41960000038147,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.8692777392555182,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 3.2052000007629395,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 3.9193000001907348,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 4.724300000190735,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 5.523800000190735,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 6.227800000190735,
+      "width": 393,
+      "height": 852,
+      "calls": 39,
+      "triangles": 128077,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.3000001907348633,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 1.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": true
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    }
+  ],
+  "initial": {
+    "appearance": true,
+    "finite": true,
+    "sourceUnchanged": true,
+    "headPosition": [
+      0.895975468242693,
+      2.621262006401483,
+      6.324620558472586
+    ],
+    "partScale": [
+      1.7482015374120274,
+      1.8526380006828231,
+      1.8641350784516182
+    ],
+    "independent": true,
+    "cache": {
+      "activeActors": 2,
+      "cachedGeometries": 8,
+      "geometryBytes": 1413584
+    }
+  },
+  "launch": {
+    "age": 0,
+    "width": 393,
+    "height": 852,
+    "calls": 44,
+    "triangles": 142994,
+    "rows": [
+      {
+        "recipe": {
+          "id": "ordinary",
+          "clip": "Death",
+          "seconds": 2.4000000953674316,
+          "cost": 0,
+          "parts": [],
+          "prepared": true
+        },
+        "startMs": 0.3000001907348633,
+        "launchError": 0,
+        "pose": {
+          "clip": "Death",
+          "phase": 0,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 7605,
+          "triangles": 14214,
+          "ownedGeometries": 4,
+          "ownedMaterials": 4,
+          "lethalVertexCopies": 0,
+          "detached": false,
+          "expired": false
+        },
+        "scale": 1.6729625
+      },
+      {
+        "recipe": {
+          "id": "pistol-directional",
+          "clip": "Death",
+          "reactionClip": "Hit",
+          "reactionSeconds": 0.3333333432674408,
+          "seconds": 2.7333334386348724,
+          "cost": 0,
+          "parts": [],
+          "prepared": true
+        },
+        "startMs": 0,
+        "launchError": 0,
+        "pose": {
+          "clip": "Hit",
+          "phase": 0,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 8851,
+          "triangles": 15547,
+          "ownedGeometries": 5,
+          "ownedMaterials": 5,
+          "lethalVertexCopies": 0,
+          "detached": false,
+          "expired": false
+        },
+        "scale": 1.422018125
+      },
+      {
+        "recipe": {
+          "id": "decapitation",
+          "clip": "Death_SplitCrown",
+          "seconds": 1,
+          "cost": 1,
+          "parts": [
+            "head"
+          ],
+          "prepared": true,
+          "lifetime": 6
+        },
+        "startMs": 1.5,
+        "launchError": 3.23585689692933e-8,
+        "pose": {
+          "clip": "Death_SplitCrown",
+          "phase": 0,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 8223,
+          "triangles": 14917,
+          "ownedGeometries": 5,
+          "ownedMaterials": 5,
+          "lethalVertexCopies": 0,
+          "detached": true,
+          "expired": false
+        },
+        "scale": 1.9239068749999997
+      }
+    ]
+  },
+  "clock": {
+    "elapsed": 6.645200000762939,
+    "frames": 18
+  },
+  "stills": [
+    {
+      "age": 0.15,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.09999942779541016,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.062499997516473234,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0,
+          "launchError": 0,
+          "pose": {
+            "clip": "Hit",
+            "phase": 0.4499999865889553,
+            "offset": {
+              "x": 0.09685080939299108,
+              "z": 0.019370161878598215
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 0.5,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.15,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 0.5,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.19999980926513672,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.20833332505491078,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.10000038146972656,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.06944443754575898,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 0.6000003814697266,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.5,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    },
+    {
+      "age": 1.5,
+      "width": 393,
+      "height": 852,
+      "calls": 44,
+      "triangles": 142994,
+      "rows": [
+        {
+          "recipe": {
+            "id": "ordinary",
+            "clip": "Death",
+            "seconds": 2.4000000953674316,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.19999980926513672,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.6249999751647324,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 7605,
+            "triangles": 14214,
+            "ownedGeometries": 4,
+            "ownedMaterials": 4,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.6729625
+        },
+        {
+          "recipe": {
+            "id": "pistol-directional",
+            "clip": "Death",
+            "reactionClip": "Hit",
+            "reactionSeconds": 0.3333333432674408,
+            "seconds": 2.7333334386348724,
+            "cost": 0,
+            "parts": [],
+            "prepared": true
+          },
+          "startMs": 0.10000038146972656,
+          "launchError": 0,
+          "pose": {
+            "clip": "Death",
+            "phase": 0.48611108765558053,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8851,
+            "triangles": 15547,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": false,
+            "expired": false
+          },
+          "scale": 1.422018125
+        },
+        {
+          "recipe": {
+            "id": "decapitation",
+            "clip": "Death_SplitCrown",
+            "seconds": 1,
+            "cost": 1,
+            "parts": [
+              "head"
+            ],
+            "prepared": true,
+            "lifetime": 6
+          },
+          "startMs": 0.7000007629394531,
+          "launchError": 3.23585689692933e-8,
+          "pose": {
+            "clip": "Death_SplitCrown",
+            "phase": 0.999999,
+            "offset": {
+              "x": 0,
+              "z": 0
+            }
+          },
+          "stats": {
+            "prepared": true,
+            "preparationError": null,
+            "vertices": 8223,
+            "triangles": 14917,
+            "ownedGeometries": 5,
+            "ownedMaterials": 5,
+            "lethalVertexCopies": 0,
+            "detached": true,
+            "expired": false
+          },
+          "scale": 1.9239068749999997
+        }
+      ]
+    }
+  ],
+  "disposal": {
+    "memory": {
+      "geometries": 16,
+      "textures": 37
+    },
+    "sourceUnchanged": true
+  },
+  "landscape": {
+    "age": 0.5,
+    "width": 852,
+    "height": 393,
+    "calls": 44,
+    "triangles": 142994,
+    "rows": [
+      {
+        "recipe": {
+          "id": "ordinary",
+          "clip": "Death",
+          "seconds": 2.4000000953674316,
+          "cost": 0,
+          "parts": [],
+          "prepared": true
+        },
+        "startMs": 0.10000038146972656,
+        "launchError": 0,
+        "pose": {
+          "clip": "Death",
+          "phase": 0.20833332505491078,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 7605,
+          "triangles": 14214,
+          "ownedGeometries": 4,
+          "ownedMaterials": 4,
+          "lethalVertexCopies": 0,
+          "detached": false,
+          "expired": false
+        },
+        "scale": 1.6729625
+      },
+      {
+        "recipe": {
+          "id": "pistol-directional",
+          "clip": "Death",
+          "reactionClip": "Hit",
+          "reactionSeconds": 0.3333333432674408,
+          "seconds": 2.7333334386348724,
+          "cost": 0,
+          "parts": [],
+          "prepared": true
+        },
+        "startMs": 0,
+        "launchError": 0,
+        "pose": {
+          "clip": "Death",
+          "phase": 0.06944443754575898,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 8851,
+          "triangles": 15547,
+          "ownedGeometries": 5,
+          "ownedMaterials": 5,
+          "lethalVertexCopies": 0,
+          "detached": false,
+          "expired": false
+        },
+        "scale": 1.422018125
+      },
+      {
+        "recipe": {
+          "id": "decapitation",
+          "clip": "Death_SplitCrown",
+          "seconds": 1,
+          "cost": 1,
+          "parts": [
+            "head"
+          ],
+          "prepared": true,
+          "lifetime": 6
+        },
+        "startMs": 0.39999961853027344,
+        "launchError": 3.23585689692933e-8,
+        "pose": {
+          "clip": "Death_SplitCrown",
+          "phase": 0.5,
+          "offset": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "stats": {
+          "prepared": true,
+          "preparationError": null,
+          "vertices": 8223,
+          "triangles": 14917,
+          "ownedGeometries": 5,
+          "ownedMaterials": 5,
+          "lethalVertexCopies": 0,
+          "detached": true,
+          "expired": false
+        },
+        "scale": 1.9239068749999997
+      }
+    ]
+  }
+}

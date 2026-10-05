@@ -1,0 +1,13 @@
+{
+  "job": "input-af6c9db6350a",
+  "hostname": "Brain",
+  "source_files_verified": 20,
+  "command": [
+    "bash",
+    "proof.sh"
+  ],
+  "exit_code": 0,
+  "stopped_for_disk_reserve": false,
+  "elapsed_seconds": 163.06,
+  "finished_epoch": 1791201423.5370305
+}

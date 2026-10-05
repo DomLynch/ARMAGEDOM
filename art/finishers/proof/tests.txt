@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: native pistol sequence advances at1x, directional recoil is bounded and ordinary fallback remains
+ok 1 - native pistol sequence advances at1x, directional recoil is bounded and ordinary fallback remains
+  ---
+  duration_ms: 3.033075
+  type: 'test'
+  ...
+# Subtest: player/missing anatomy/missing direction/ineligible pistol cut never detach
+ok 2 - player/missing anatomy/missing direction/ineligible pistol cut never detach
+  ---
+  duration_ms: 0.907471
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 158.823102
