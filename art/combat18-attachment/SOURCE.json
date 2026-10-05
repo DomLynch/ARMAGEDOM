@@ -1,0 +1,37 @@
+{
+  "revision": "f4109869b4169d82be1a385ed110ee4e68291309",
+  "checkedUtc": "2026-10-05T14:48:13.345659+00:00",
+  "method": "Read committed source and pistol GLB JSON header; no rendering or jobs",
+  "files": [
+    {
+      "path": "Web/public/assets/pistol/pistol.glb",
+      "bytes": 106436,
+      "sha256": "62d6bdc4789365ace89c98bc3fe74322ae427f316810f81cb4ad66857e73f321"
+    },
+    {
+      "path": "Web/src/pistol-pose.js",
+      "bytes": 3212,
+      "sha256": "7f800c6d3a4a68253adad3330280539d48a7f22527d581e254b70082054f0088"
+    },
+    {
+      "path": "Web/src/actors.js",
+      "bytes": 12455,
+      "sha256": "1e61e9f15ff169c1c78db5dacfcb06f8f51d3c3e786877279d09c1ae6063a0d5"
+    },
+    {
+      "path": "Web/src/donor-motion.js",
+      "bytes": 6145,
+      "sha256": "5e29ca6dd961e074f266d2c2b2652735a0c902270793192191c686b9aded69e2"
+    },
+    {
+      "path": "Web/src/finisher-presentation.js",
+      "bytes": 10683,
+      "sha256": "78553b8a4712e8f2e7e5efcf66d217fa5f08323aa19162cd9418376cdd888fe1"
+    },
+    {
+      "path": "Web/public/assets/manifest-hollow.json",
+      "bytes": 7050,
+      "sha256": "6ecd2e7b657df6964488e6f2d3b034464b9b406455d9e5366dc389b29848bdd2"
+    }
+  ]
+}
