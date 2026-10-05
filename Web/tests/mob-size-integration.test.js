@@ -42,6 +42,6 @@ test('optional candidate reach preserves ranking/cone and rejects invalid offset
  for(const rangeOffset of [()=>NaN,()=>Infinity,()=>-3,{}])assert.equal(selectCombatTarget({...args,rangeOffset}),null);
  target.pos={x:2,z:0};assert.equal(selectCombatTarget({...args,rangeOffset:()=>.05}),null);
 });
-test('min/max actual target cue height varies once; free/empty/absent target height remains unchanged',()=>{
- for(const factor of [.85,1,1.15]){const g=fixture(),e=g.enemies.find(e=>e.mobSize===factor);g.enemies=[e];e.pos={x:0,z:0};Object.assign(g.pistol,{collected:true,equipped:true,magazine:6,reserve:12});const cue=pistolCue(g);assert.equal(cue.targetId,e.id);assert.equal(cue.height,1.15*factor);g.pistol.magazine=0;assert.equal(pistolCue(g).height,1.05);g.pistol.magazine=6;e.hp=0;assert.equal(pistolCue(g).height,1.05);}
+test('min/max target cue height varies once even when empty; absent target keeps free height',()=>{
+ for(const factor of [.85,1,1.15]){const g=fixture(),e=g.enemies.find(e=>e.mobSize===factor);g.enemies=[e];e.pos={x:0,z:0};Object.assign(g.pistol,{collected:true,equipped:true,magazine:6,reserve:12});const cue=pistolCue(g);assert.equal(cue.targetId,e.id);assert.equal(cue.height,1.15*factor);g.pistol.magazine=0;assert.equal(pistolCue(g).height,1.15*factor);assert.equal(pistolCue(g).targetId,e.id);assert.equal(pistolCue(g).ready,false);g.pistol.magazine=6;e.hp=0;assert.equal(pistolCue(g).height,1.05);}
 });
