@@ -1,0 +1,30 @@
+✖ actual6/9/9 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses (1.045708ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.175708
+
+✖ failing tests:
+
+test at ../../../../../../../private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-face-iyn5gxc8/variant.test.mjs:7:1
+✖ actual6/9/9 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses (1.045708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 6
+  
+      at TestContext.<anonymous> (file:///private/var/folders/yp/79ldsfmx2x3frcq_wfvb4nlc0000gn/T/armagedom-face-iyn5gxc8/variant.test.mjs:8:180)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

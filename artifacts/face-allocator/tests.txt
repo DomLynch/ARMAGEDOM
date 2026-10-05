@@ -1,0 +1,15 @@
+✔ actual6/9/9 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses (1.138667ms)
+✔ roster order, creation order and frozen inputs cannot change key identities (0.141458ms)
+✔ refresh/death/return lookups use the same full roster including corpses (0.081958ms)
+✔ area and recipe version affect stable identity priority without hidden cache or random state (0.140209ms)
+✔ authored recipe order is preserved, not replaced by invented contrast metadata (0.3405ms)
+✔ empty/50/51/151 allocations terminate; all unused recipes consumed before bounded reuse (0.535ms)
+✔ reject malformed area/keys/version, sparse pools and duplicate/invalid recipe identifiers (0.3005ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.726084

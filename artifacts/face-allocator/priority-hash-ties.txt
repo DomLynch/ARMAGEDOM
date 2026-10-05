@@ -1,0 +1,10 @@
+✔ actual6/9/9 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses (1.260083ms)
+✔ roster order, creation order and frozen inputs cannot change key identities (0.153459ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63.364333
