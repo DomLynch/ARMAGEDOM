@@ -1,0 +1,17 @@
+[
+  {
+    "fault": "protected-supply-replaced",
+    "exit_code": 1,
+    "assertion": "AssertionError: protected replacement denied"
+  },
+  {
+    "fault": "population-raised",
+    "exit_code": 1,
+    "assertion": "AssertionError: no added/removed resident slots"
+  },
+  {
+    "fault": "catalogue-recipe-unreachable",
+    "exit_code": 1,
+    "assertion": "AssertionError: not all30 recipes reachable in proposed cohorts"
+  }
+]
