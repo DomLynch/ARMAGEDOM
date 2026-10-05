@@ -1,0 +1,26 @@
+{
+  "reports": [
+    {
+      "options": {
+        "kind": "ammo",
+        "count": 1
+      },
+      "calls": 3,
+      "triangles": 96,
+      "geometries": 3,
+      "materials": 3,
+      "instances": 2,
+      "envelope": [
+        0.550000011920929,
+        0.06079999804496769,
+        0.550000011920929
+      ],
+      "disposed": {
+        "geometry": 3,
+        "material": 3,
+        "instance": 2
+      }
+    }
+  ],
+  "checks": "Factory dimensions/counts, bounded opacity/no recolour, ground bounds, independent resources, exact once-only disposal and invalid-kind/count rejection PASS"
+}

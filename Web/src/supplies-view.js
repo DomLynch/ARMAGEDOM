@@ -1,7 +1,7 @@
 import * as T from 'three';
 // Original primitive-only pickup proxies. No texture/model fetch or scene lights.
 export function createSupplyView({kind,count=3}={}){
- if(!['ammo','dressing'].includes(kind)||kind==='ammo'&&![2,3].includes(count))throw Error('Supply visual requires ammo2/3 or dressing');
+ if(!['ammo','dressing'].includes(kind)||kind==='ammo'&&![1,2,3].includes(count))throw Error('Supply visual requires ammo1/2/3 or dressing');
  const root=new T.Group();root.name='Supply_'+kind;
  const geometries=[],materials=[];
  const geometry=g=>(geometries.push(g),g),material=m=>(materials.push(m),m);
