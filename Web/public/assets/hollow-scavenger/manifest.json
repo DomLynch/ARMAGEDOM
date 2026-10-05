@@ -144,8 +144,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
-      "bytes": 4114032,
+      "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff",
+      "bytes": 4329068,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -153,13 +153,20 @@
         "Hollow body and worn trousers",
         "Photo",
         "PhotoEyes",
-        "PhotoTeeth"
+        "PhotoTeeth",
+        "Recovered donor lower neck"
       ],
       "provenance": {
         "source": "Web/public/assets/donor/warrior.glb",
         "sourceSha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
         "revision": "303af39e97b758f50a84935eeb0cac6196fe98ae",
-        "edits": "Separate material/coverage derivative, retained native combat clips and knife; only new idle/walk/run spine/neck samples."
+        "edits": "Separate material/coverage derivative, retained native combat clips and knife; only new idle/walk/run spine/neck samples.",
+        "neckRepair": {
+          "authorCommit": "46dfed987225277e0e25c29e82706b4f7a2e5a4b",
+          "originalSha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc",
+          "archive": "art/hollow-scavenger/archive/hollow-before-neck-037.glb",
+          "receipt": "art/hollow-scavenger/neck-repair-037.json"
+        }
       }
     }
   }

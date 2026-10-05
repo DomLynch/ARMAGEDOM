@@ -4,7 +4,7 @@ import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
 const samples=AREA_MOB_SPAWNS.westminster.map((r,i)=>hollowPaletteFor({id:i+1,placementKey:r.key},'westminster'));
 const bytes=readFileSync(new URL('../public/assets/hollow-scavenger/hollow-scavenger.glb',import.meta.url)),glb=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)));
 test('pinned Hollow garment slots are separate from skin/photo/boots and retain vertex grime',()=>{
- assert.equal(createHash('sha256').update(bytes).digest('hex'),'b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc');
+ assert.equal(createHash('sha256').update(bytes).digest('hex'),'352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff');
  assert.equal(glb.materials[4].name,HOLLOW_GARMENTS.jacket);assert.equal(glb.materials[5].name,HOLLOW_GARMENTS.trousers);
  const body=glb.meshes[2].primitives;assert.deepEqual(body.map(p=>p.material),[3,4,5,6]);assert.ok(body.every(p=>p.attributes.COLOR_0!==undefined));
  assert.notEqual(glb.materials[3].name,HOLLOW_GARMENTS.jacket);assert.notEqual(glb.materials[6].name,HOLLOW_GARMENTS.trousers);

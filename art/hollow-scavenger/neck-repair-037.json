@@ -1,0 +1,27 @@
+{
+  "scope": "Restore omitted original donor Face lower-neck mesh only; no head/hair variants",
+  "authorCommit": "46dfed987225277e0e25c29e82706b4f7a2e5a4b",
+  "selected": {
+    "path": "Web/public/assets/hollow-scavenger/hollow-scavenger.glb",
+    "bytes": 4329068,
+    "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
+  },
+  "original": {
+    "path": "art/hollow-scavenger/archive/hollow-before-neck-037.glb",
+    "bytes": 4114032,
+    "sha256": "b309eeb508a1c31babbfeaf13275ace3f54990dab380ae719c0d5881416f89fc"
+  },
+  "proofs": {
+    "build.json": "51aa24b01ff79d4c14f99361faff4b6f7fbcf7eb4af5af96e5ae73abab2b8b87",
+    "preservation.json": "89e01097647dc382cde9c81f2d85c841db34279c7db300861002361b27e0e0fc",
+    "result.json": "c76c37e85d90619e0715421927bb79342ea6292b0b85783c0deac754fbf62ef7"
+  },
+  "preservation": "Original rest hierarchy, weights, UVs, 30 clips, five embedded images, clothing, eyes, teeth and knife preserved. Reuse Characters 25 sampled-pose receipt; not continuous clearance.",
+  "cost": {
+    "addedTriangles": 656,
+    "addedDrawCallsPerFigure": 1,
+    "addedTextures": 0
+  },
+  "format": "0 errors; 8 warnings versus original 7; inherited tangent/nested-skin warnings disclosed",
+  "material": "Private Photo-matched exposed lower neck; garment allocation unchanged"
+}
