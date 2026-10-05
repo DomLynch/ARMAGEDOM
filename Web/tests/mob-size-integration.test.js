@@ -33,9 +33,9 @@ test('parked actual domain area return preserves absolute sizes and outfits with
 test('actual player attack admits enlarged capsule boundary and rejects smaller, blocked and hidden targets',()=>{
  const def=KNIFE_MOVES.light_right,range=def.range*1.265+KNIFE_RULES.walkSpeed*def.stepIn*(def.windupTicks-KNIFE_RULES.stepInFrom-1)/60;
  for(const [key,expected] of [['westminster-roamer-1',true],['westminster-roamer-5',false]]){
-  const g=fixture(),e=g.enemies.find(e=>e.placementKey===key);g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:range+.02};assert.ok(attack(g,'slash'));assert.equal(!!g.player.swing.turnTo,expected);assert.equal(g.player.combatScale,1.265);assert.equal(g.player.hp,150);assert.equal(g.player.radius,.4);
+  const g=fixture(),e=g.enemies.find(e=>e.placementKey===key);g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:-(range+.02)};assert.ok(attack(g,'slash'));assert.equal(g.player.facing.z<0,expected);assert.deepEqual(g.player.swing.dir,g.player.facing);assert.equal(g.player.swing.turnTo,undefined);assert.equal(g.player.combatScale,1.265);assert.equal(g.player.hp,150);assert.equal(g.player.radius,.4);
  }
- for(const mode of ['blocked','hidden']){const g=fixture(),e=g.enemies.find(e=>e.mobSize===1.15);g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:range+.02};if(mode==='blocked')g.world.lineClear=()=>false;attack(g,'slash',undefined,mode==='hidden'?[]:undefined);assert.equal(g.player.swing.turnTo,undefined);}
+ for(const mode of ['blocked','hidden']){const g=fixture(),e=g.enemies.find(e=>e.mobSize===1.15);g.enemies=[e];g.player.pos={x:0,z:0};e.pos={x:0,z:-(range+.02)};if(mode==='blocked')g.world.lineClear=()=>false;attack(g,'slash',undefined,mode==='hidden'?[]:undefined);assert.equal(g.player.swing.turnTo,undefined);assert.deepEqual(g.player.facing,{x:0,z:1});}
 });
 test('optional candidate reach preserves ranking/cone and rejects invalid offsets',()=>{
  const target={id:1,pos:{x:0,z:2.02},hp:40},args={position:{x:0,z:0},facing:{x:0,z:1},targets:[target],lineClear:()=>true,range:2};assert.equal(selectCombatTarget(args),null);assert.equal(selectCombatTarget({...args,rangeOffset:()=>.05}).targetId,1);
