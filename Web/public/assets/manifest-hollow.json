@@ -216,10 +216,11 @@
         "run": "rat_run",
         "hit": "rat_hit",
         "death": "rat_death",
-        "attack": "rat_bite"
+        "attack": "rat_bite",
+        "attackLow": "rat_bite_low"
       },
-      "bytes": 704884,
-      "sha256": "fa2e609a8075fafc77719aaa89886521ed66d5a34f3abd97c34564ddc9ffe267"
+      "bytes": 715108,
+      "sha256": "4aa89380963ea3523a3bea05427ae8b54cc0104e656a1ec42cfef5e18cbc7e83"
     }
   },
   "files": {

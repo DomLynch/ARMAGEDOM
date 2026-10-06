@@ -7,6 +7,13 @@ const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.re
 const encounter=createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1});
 function world(){return {areaId:'east',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};}
 const options={pilot:'donor-knife',encounter,rat:true,pistol:true,supplies:true,finishers:true,areaResidents:true,openingGroup:false};
+test('rat commits low or original native bite from actual foot height without retargeting its clip',()=>{
+ for(const [height,clip]of [[.051770188649450204,'rat_bite_low'],[.08,'rat_bite_low'],[.12,'rat_bite']]){
+  const g=createGame(world(),options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];Object.assign(rat,{pos:{x:.8,z:0},facing:{x:-1,z:0},home:null,alerted:true,ready:0});let footY=height;
+  g.ratContact={capture:()=>null,foot:()=>({x:.48,y:footY,z:0})};stepGame(g);assert.equal(rat.swing.clip,clip);assert.equal(rat.swing.footGoalY,height);assert.equal(rat.swing.native,true);assert.equal(rat.swing.timing.windup,15);assert.equal(rat.swing.timing.active,6);assert.equal(rat.swing.timing.recovery,15);assert.equal(rat.swing.def.damage,6);
+  footY=height<=.08?.12:.05;stepGame(g);assert.equal(rat.swing.clip,clip,'pose remains committed through this bite');assert.equal(rat.swing.footGoalY,height);
+ }
+});
 test('one rat replaces existing East7 without adding residents or West rewards',async()=>{
  const w=world(),g=createGame(w,options);assert.equal(g.enemies.length,9);const rat=g.enemies.find(e=>e.rig==='original-rat');assert.equal(rat.placementKey,'east-roamer-7');assert.equal(rat.hp,20);assert.equal(rat.radius,.4);assert.equal(rat.mobSize,1);assert.equal(rat.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-rat').length,1);
  const west=createGame({...world(),areaId:'westminster'},options);assert.equal(west.enemies.length,6);assert.ok(west.enemies.every(e=>e.rig==='hollow-scavenger'&&e.hp===40));

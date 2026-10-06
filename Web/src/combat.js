@@ -18,6 +18,7 @@ export const attacks={
 };
 const RAT_LOW=Object.freeze({...KNIFE_MOVES.light_right,moveId:'rat_low',clip:'RatLowSlash',path:null,native:true,ratLow:true,windupTicks:20,activeTicks:6,recoveryTicks:28,windup:20/60,active:6/60,recovery:28/60,stepIn:0,knockback:0});
 const RAT_BITE=Object.freeze({...RAT_LOW,moveId:'rat_bite',clip:'rat_bite',ratLow:false,ratBite:true,windupTicks:15,activeTicks:6,recoveryTicks:15,windup:15/60,active:6/60,recovery:15/60,damage:6,staminaDamage:6,stamina:0,parryable:false,range:.95});
+const RAT_BITE_LOW=Object.freeze({...RAT_BITE,clip:'rat_bite_low'});
 const EPS=1e-8,mag=v=>Math.hypot(v.x,v.z),sub=(a,b)=>({x:a.x-b.x,z:a.z-b.z});
 export function normal(v,fallback={x:0,z:1}){const n=mag(v);return n>.001?{x:v.x/n,z:v.z/n}:{...fallback};}
 const validDirection=v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&mag(v)>.001;
@@ -432,7 +433,7 @@ function ratEnemy(g,e,dt){
  const offset=sub(foot,e.pos),distance=mag(sub(g.player.pos,e.pos)),dir=normal(offset,e.facing);
  if(distance>.95||mag(offset)>.35||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,2.1,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.swing=knifeSwing(g,e,'bite',RAT_BITE);e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:'rat_bite'});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.08?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
 }
 function knifeContacts(g,before,ratBefore){
  const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[];
