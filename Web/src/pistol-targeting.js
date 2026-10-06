@@ -68,9 +68,8 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   const trace=typeof game.world?.lineClear==='function'?(game.mobileAiming?tracePistol(p.pos,direction,game.enemies,game.world.lineClear.bind(game.world)):resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
     visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId})):null;
   const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
-  const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId)&&(game.mobileAiming?true:selectCombatTarget({position:p.pos,aim:direction,targets:[hit],
-    lineClear:game.world.lineClear.bind(game.world),areaId:game.world.areaId,
-    range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees}));
+  // The resolved ray already identifies the first body hit, including body edges.
+  const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId);
   return {targetId:eligible?hit.id:null,ready,height:eligible?(hit.rig==='original-rat'?.54:hit.rig==='original-dog'?(hit.contactGoalReach?.70:.35):hit.rig==='original-roach'?(hit.contactGoalReach?.24:.08):1.15)*(hit.mobSize??1):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }
