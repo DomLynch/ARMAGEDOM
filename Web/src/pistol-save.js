@@ -1,3 +1,4 @@
+import {initializeAreaResidents} from './combat.js';
 import {DRONE_KEYS} from './drone-mechanics.js';
 import {createSuppliesState,isSuppliesState,collectSupply} from './supplies.js';
 import {createVestState,isVestState,collectVest} from './vest.js';
@@ -15,24 +16,27 @@ export function restorePistol(state,raw){
 
 // One authoritative successor record: ammunition, health and Area1 reward ledger.
 export const RUN_SAVE_KEY='armagedom:area1-run:v1';
-export function encodeRun(g){return JSON.stringify({version:2,pistol:JSON.parse(encodePistol(g.pistol)),hp:g.player.hp,supplies:g.supplies,vest:g.vest??createVestState(),droneDeaths:g.droneDeaths??[]});}
+export function encodeRun(g){return JSON.stringify({version:2,pistol:JSON.parse(encodePistol(g.pistol)),hp:g.player.hp,supplies:g.supplies,vest:g.vest??createVestState(),droneDeaths:g.droneDeaths??[],animalCycle:g.animalCycle??'A'});}
 export function restoreRun(g,raw,legacyRaw){
- if(raw==null){const pistol=restorePistol(g.pistol,legacyRaw);return pistol?{pistol,hp:g.player.hp,supplies:createSuppliesState(),vest:createVestState(),droneDeaths:[]}:null;}
+ if(raw==null){const pistol=restorePistol(g.pistol,legacyRaw);return pistol?{pistol,hp:g.player.hp,supplies:createSuppliesState(),vest:createVestState(),droneDeaths:[],animalCycle:'A'}:null;}
  let saved;try{saved=JSON.parse(raw)}catch{return null}
  if(![1,2].includes(saved?.version)||!saved.pistol||typeof saved.pistol!=='object'||!Number.isFinite(saved.hp)||saved.hp<0||saved.hp>g.player.maxHP||!isSuppliesState(saved.supplies))return null;
  const vest=saved.version===1&&!('vest' in saved)?createVestState():saved.version===2?saved.vest:null;
  if(!isVestState(vest)||vest.equipped&&saved.supplies.issued.length<2)return null;
+ const animalCycle=Object.hasOwn(saved,'animalCycle')?saved.animalCycle:'A';if(!['A','B'].includes(animalCycle))return null;
  const droneDeaths=Object.hasOwn(saved,'droneDeaths')?saved.droneDeaths:[];
  if(!Array.isArray(droneDeaths)||droneDeaths.some(k=>!Object.hasOwn(DRONE_KEYS,k))||new Set(droneDeaths).size!==droneDeaths.length)return null;
  const pistol=restorePistol(g.pistol,JSON.stringify(saved.pistol));
- return pistol?{pistol,hp:saved.hp,supplies:saved.supplies,vest,droneDeaths}:null;
+ return pistol?{pistol,hp:saved.hp,supplies:saved.supplies,vest,droneDeaths,animalCycle}:null;
 }
 export function applySavedRun(g,saved){
  g.pistol=saved.pistol;g.player.hp=saved.hp;g.supplies=saved.supplies;g.vest=saved.vest;g.droneDeaths=saved.droneDeaths??[];g.player.weapon=g.pistol.equipped?'pistol':'knife';
+ if(g.animalVariants&&g.areaResidents){g.animalCycle=saved.animalCycle??'A';g.enemies=[];g.areaInitialized=false;initializeAreaResidents(g);}
  if(g.world.areaId==='westminster'&&g.areaResidents){g.enemies=g.enemies.filter(e=>!g.supplies.issued.includes(e.placementKey));g.kills=g.supplies.issued.length;g.encounterCleared=!g.enemies.length;g.encounterActive=!g.encounterCleared;}
  if(g.areaResidents){g.enemies=g.enemies.filter(e=>!g.droneDeaths.includes(e.placementKey));g.kills+=g.droneDeaths.length;g.encounterCleared=!g.enemies.length;g.encounterActive=!g.encounterCleared;}
  if(!g.player.hp){g.finished=true;g.won=false;}
 }
+export function commitFreshRun(previous,proposed,save){return save(proposed)?proposed:previous;}
 // Main supplies the sole synchronous writer. Commit rewards only AFTER durable write.
 export function collectNearbySupplies(g,save){
  if(!g.supplies||g.runSaveInvalid||g.finished)return;

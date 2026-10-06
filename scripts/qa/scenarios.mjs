@@ -103,3 +103,10 @@ export async function droneEncounter(page,{targetKey='westminster-drone-1'}={}){
  const reset=await pauseAndRetry(page,{enemyCount:7});assert.deepEqual(reset.retry.saved.droneDeaths,[]);
  return{before,warning,incoming,killed,corpse,refreshed,reset,scope:'One controlled West native warning/bolt/player hit/pistol kill, all-area counts/return, cold refresh and Retry. Actual Low rigid contact reused from component and source integration; no walked route or physical-phone claim.'};
 }
+
+export async function animalCycleRows(page,{cycle,assignments,offsets={}}){
+ const rows=await page.evaluate(()=>{const q=__qa,g=q.game;return{cycle:g.animalCycle,savedCycle:JSON.parse(localStorage.getItem('armagedom:area1-run:v1')).animalCycle,area:q.world.areaId,hp:g.player.hp,count:g.enemies.length,actors:g.enemies.filter(e=>e.animalRecipe).map(e=>{const v=q.actors.views.get(e.id),meshes=[],bones=new Set();v.model.traverse(m=>{if(m.skeleton)for(const b of m.skeleton.bones)bones.add(b);if(m.isSkinnedMesh){const p=m.geometry.attributes.position;let min=Infinity,max=-Infinity;for(let i=0;i<p.count;i++){min=Math.min(min,p.getX(i));max=Math.max(max,p.getX(i));}meshes.push({name:m.name,positions:p.count,width:max-min,vertexColors:m.material.vertexColors,tint:m.material.color.toArray()});}});return{key:e.placementKey,rig:e.rig,recipe:e.animalRecipe,appearance:v.animalAppearanceId,root:v.root.scale.toArray(),bones:bones.size,bodyShape:v.bodyShape?.recipe??null,home:{...e.home},patrol:e.patrol.map(p=>({...p})),meshes};})};});
+ assert.equal(rows.cycle,cycle);assert.equal(rows.savedCycle,cycle);assert.equal(rows.count,rows.area==='westminster'?7:10);assert.equal(rows.hp,150);
+ for(const e of rows.actors){assert.equal(e.recipe,assignments[e.key]);assert.equal(e.appearance,e.recipe);const dog=e.rig==='original-dog';assert(Math.abs(e.root[0]-1.6729625*(dog?2:3))<1e-9);assert.equal(e.bones,dog?25:e.rig==='original-rat'?24:27);if(['dog-gaunt-hound','dog-stocky-yard'].includes(e.recipe))assert.equal(e.bodyShape.id,e.recipe);if(offsets[e.key])for(const axis of ['x','z'])assert(Math.abs(e.home[axis]-offsets[e.key][axis])<1e-8);}
+ return rows;
+}

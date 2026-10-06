@@ -50,6 +50,6 @@ const FIRST_ANIMAL_APPEARANCES=Object.freeze({
  'westminster-roamer-6':'dog-ash-coated','east-roamer-4':'dog-pack-chaser'
 });
 export function animalAppearanceFor(entity){
- const id=entity.kind>=0?FIRST_ANIMAL_APPEARANCES[entity.placementKey]:null;
- return id&&((id.startsWith('rat-')&&entity.rig==='original-rat')||(id.startsWith('dog-')&&entity.rig==='original-dog'))?id:null;
+ const id=entity.kind>=0?(entity.animalRecipe??FIRST_ANIMAL_APPEARANCES[entity.placementKey]):null;
+ return id&&((id.startsWith('rat-')&&entity.rig==='original-rat')||(id.startsWith('dog-')&&entity.rig==='original-dog')||(id.startsWith('roach-')&&entity.rig==='original-roach'))?id:null;
 }

@@ -1,3 +1,5 @@
+import {createFeralBodyShapeLibrary} from './feral-body-shapes.js';
+import {createRoachAppearanceLibrary} from './roach-appearance.js';
 import {createLowHoverDroneLibrary} from './low-hover-drone.js';
 import {createAnimalAppearanceLibrary} from './animal-appearance.js';
 import {createFeralCoatProfileLibrary} from './feral-coat-profiles.js';
@@ -114,7 +116,7 @@ function shadowTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
-  const droneKits=createLowHoverDroneLibrary(),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
+  const bodyShapes=createFeralBodyShapeLibrary(),roachLooks=createRoachAppearanceLibrary(THREE),droneKits=createLowHoverDroneLibrary(),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
@@ -155,7 +157,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       animations=[...animations,THREE.AnimationClip.parse(dogBite)];
     }
     const animalAppearanceId=animalAppearanceFor(entity);
-    if(animalAppearanceId){if(entity.rig==='original-rat')animalLooks.apply(model,animalAppearanceId,entity.rig);else dogCoats.apply(model,animalAppearanceId);}
+    const bodyShape=['dog-gaunt-hound','dog-stocky-yard'].includes(animalAppearanceId)?bodyShapes.apply(model,animalAppearanceId):null;
+    if(animalAppearanceId){if(entity.rig==='original-rat')animalLooks.apply(model,animalAppearanceId,entity.rig);else if(entity.rig==='original-roach')roachLooks.apply(model,animalAppearanceId);else dogCoats.apply(model,animalAppearanceId);}
     const pistolMount=entity.kind<0&&library.pistolAsset?attachPistol(model,library.pistolAsset.scene):null;
     if(pistolMount)pistolMount.visible=false;
     const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
@@ -211,7 +214,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model,
       shadow,
       motion: null,
-      materials,appearance,feral,flashMaterials,
+      materials,appearance,feral,bodyShape,flashMaterials,
       entity,
       description,
       locomotionVariant: hollowLocomotionFor(entity),
@@ -245,7 +248,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
     view.pistolSlide.dispose();
-    view.appearance?.dispose();view.feral?.dispose();
+    view.appearance?.dispose();view.bodyShape?.dispose();view.feral?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
     const skeletons = new Set();
@@ -388,7 +391,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       shadowMap.dispose();
       for(const kit of faceKits.values())kit.dispose();
       faceKits.clear();
-      animalLooks.dispose();dogCoats.dispose();
+      animalLooks.dispose();dogCoats.dispose();bodyShapes.dispose();roachLooks.dispose();
       for(const kit of dogKits.values())kit.dispose();
       dogKits.clear();
       shadowGeometry.dispose();

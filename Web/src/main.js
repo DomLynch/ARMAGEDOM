@@ -9,7 +9,8 @@ import { createHollowEncounter } from "./hollow-encounter.js";
 import { travelTo } from "./travel.js";
 import {createAtmosphere} from "./atmosphere.js";
 import {stepPistol} from "./pistol.js";
-import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,collectNearbySupplies,collectNearbyVest,VEST_BAG_POSITION} from "./pistol-save.js";
+import {nextAnimalCycle} from './animal-cycle.js';
+import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,commitFreshRun,collectNearbySupplies,collectNearbyVest,VEST_BAG_POSITION} from "./pistol-save.js";
 import {createSupplyView} from "./supplies-view.js";
 import {createVestBagView} from "./vest-view.js";
 import {vestAvailable} from "./vest.js";
@@ -47,7 +48,7 @@ function cancelPistol(g){resetMobileControls(g);actors?.resetFeedback();g.pistol
 const canvas = document.getElementById("world"),
   enter = document.getElementById("enter"),
   baseUrl = new URL("./", document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true,rat: true, dog: true, roach: true, drone: true, mobileControls: true, areaResidents: true, openingGroup: false };
+const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true,rat: true, dog: true, roach: true, drone: true, animalVariants: true, mobileControls: true, areaResidents: true, openingGroup: false };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.
@@ -123,6 +124,8 @@ async function restart() {
     )
       return;
   }
+  const fresh=commitFreshRun(game,createGame(world,{...pilot,animalCycle:nextAnimalCycle(game.animalCycle)}),persistRun);
+  if(fresh===game){game.message='Run saving unavailable. Retry kept the current run.';game.messageUntil=game.time+5;return;}
   input.clear();
   clearSupplies();
   clearVestBag();
@@ -130,8 +133,7 @@ async function restart() {
   effects.reset();
   atmosphere?.reset();
   audio.reset();
-  game = createGame(world, pilot);game.mobileAssistEnabled=mobileAssistEnabled;
-  persistRun(game);
+  game = fresh;game.mobileAssistEnabled=mobileAssistEnabled;
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);game.ratContact=actors.ratContact();
   hud.update(game);
