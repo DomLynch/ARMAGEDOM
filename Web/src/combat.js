@@ -97,17 +97,21 @@ function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // Wo
  for(const other of [g.player,...g.enemies]){if(other===body||other.hp<=0)continue;const delta=sub(next,other.pos),n=mag(delta),r=body.radius+other.radius;if(n<r&&n>.001){next=g.world.move(body.pos,{x:next.x-body.pos.x+delta.x/n*(r-n),z:next.z-body.pos.z+delta.z/n*(r-n)},body.radius);}}
  body.pos=next;
 }
-export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.player;let def=g.pilot?knifeMove(p,action):attacks[action],lowTargetId=null;
+export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.player;let def=g.pilot?knifeMove(p,action):attacks[action],lowTargetId=null,slashTarget=null;
  if(p.weapon==='pistol'||!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
- if(g.pilot&&action==='slash'){const closest=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:RAT_LOW.range*p.combatScale,rangeOffset:target=>target.rig==='original-rat'&&target.contactGoalReach?target.radius:0,areaId:g.world.areaId});const rig=g.enemies.find(e=>e.id===closest?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?DOG_LOW:rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=closest.targetId;}}
+ if(g.pilot&&action==='slash'){
+  const ticks=def.windupTicks??Math.floor(def.windup*60),normalReach=def.range*p.combatScale+R.walkSpeed*def.stepIn*Math.max(0,ticks-R.stepInFrom-1)/60,lowReach=RAT_LOW.range*p.combatScale;
+  slashTarget=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>['original-rat','original-dog','original-roach'].includes(target.rig)?lowReach+(target.rig==='original-rat'&&target.contactGoalReach?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
+  const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?DOG_LOW:rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=slashTarget.targetId;}
+ }
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
  const windupTicks=def.windupTicks??Math.floor(def.windup*60),range=def.range*(g.pilot?p.combatScale:1)+(g.pilot?R.walkSpeed*def.stepIn*Math.max(0,windupTicks-R.stepInFrom-1)/60:0);
  const nearest=['slash','stab','heavy'].includes(action);
- const selected=g.mobileAssistEnabled===false?null:selectCombatTarget({nearest,position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,rangeOffset:target=>target.rig==='original-rat'&&target.contactGoalReach?target.radius:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,coneDegrees:45,areaId:g.world.areaId});
+ const selected=g.mobileAssistEnabled===false?null:g.pilot&&action==='slash'?slashTarget:selectCombatTarget({nearest,position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,rangeOffset:target=>target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,coneDegrees:45,areaId:g.world.areaId});
  if(selected&&nearest)p.facing={...selected.direction};
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;if(lowTargetId!==null)p.swing.lowTargetId=lowTargetId;}
  if(selected&&!nearest){p.swing.turnTo={...selected.direction};p.swing.assistUntil=g.time+Math.min(def.windup-1/60,8/60);}
