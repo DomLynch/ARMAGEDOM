@@ -1,3 +1,6 @@
+import {createAnimalAppearanceLibrary} from './animal-appearance.js';
+import {createFeralCoatProfileLibrary} from './feral-coat-profiles.js';
+import {animalAppearanceFor} from './area-mob-spawns.js';
 import roachBite from './roach-data/bite-scaled.json' with {type:'json'};
 import {createFeralDogLibrary} from './feral-dog.js';
 import dogBite from './dog-data/bite-scaled.json' with {type:'json'};
@@ -110,7 +113,7 @@ function shadowTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
-  const faceKits=new Map(),dogKits=new Map();
+  const faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
@@ -145,6 +148,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       feral=dogKits.get(source.gltf.scene).apply(model);
       animations=[...animations,THREE.AnimationClip.parse(dogBite)];
     }
+    const animalAppearanceId=animalAppearanceFor(entity);
+    if(animalAppearanceId){if(entity.rig==='original-rat')animalLooks.apply(model,animalAppearanceId,entity.rig);else dogCoats.apply(model,animalAppearanceId);}
     const pistolMount=entity.kind<0&&library.pistolAsset?attachPistol(model,library.pistolAsset.scene):null;
     if(pistolMount)pistolMount.visible=false;
     const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
@@ -205,7 +210,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       description,
       locomotionVariant: hollowLocomotionFor(entity),
       palette,
-      pistolMount,pistolSlide:attachPistolSlide(pistolMount),knife,hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()}),
+      animalAppearanceId,pistolMount,pistolSlide:attachPistolSlide(pistolMount),knife,hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()}),
     };
     views.set(entity.id, view);
     try {
@@ -370,6 +375,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       shadowMap.dispose();
       for(const kit of faceKits.values())kit.dispose();
       faceKits.clear();
+      animalLooks.dispose();dogCoats.dispose();
       for(const kit of dogKits.values())kit.dispose();
       dogKits.clear();
       shadowGeometry.dispose();

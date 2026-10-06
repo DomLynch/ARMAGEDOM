@@ -44,3 +44,12 @@ export const AREA_MOB_SPAWNS = Object.freeze({
     Object.freeze({key:'south-roamer-9',pos:Object.freeze({x:-4.76500,z:0.48615}),patrol:Object.freeze([Object.freeze({x:-4.76500,z:0.48615}),Object.freeze({x:-2.76500,z:0.48615})])}),
   ]),
 });
+
+const FIRST_ANIMAL_APPEARANCES=Object.freeze({
+ 'westminster-roamer-4':'rat-ash','south-roamer-3':'rat-mangy',
+ 'westminster-roamer-6':'dog-ash-coated','east-roamer-4':'dog-pack-chaser'
+});
+export function animalAppearanceFor(entity){
+ const id=entity.kind>=0?FIRST_ANIMAL_APPEARANCES[entity.placementKey]:null;
+ return id&&((id.startsWith('rat-')&&entity.rig==='original-rat')||(id.startsWith('dog-')&&entity.rig==='original-dog'))?id:null;
+}

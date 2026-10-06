@@ -82,3 +82,9 @@ export async function finisherPrepared(page,{targetKey}){
  const s=await page.evaluate(key=>{const q=__qa,e=q.game.enemies.find(e=>e.placementKey===key),v=e&&q.actors.views.get(e.id);if(!v?.finisher)throw Error('Existing compiled finisher handle missing');return{key:e.placementKey,rig:e.rig,hp:e.hp,rootScale:v.root.scale.toArray(),stats:v.finisher.stats(),support:v.finisher.support,scope:'Live compiled preparation boundary only; detached motion/native kills reused from matched component receipts'};},targetKey);
  assert(s.stats.prepared);assert.equal(s.stats.preparationError,null);assert.equal(s.stats.detached,false);assert(s.support.some(r=>r.id==='decapitation'));return s;
 }
+export async function animalAppearanceRows(page,{assignments}){
+ await page.waitForFunction(()=>__qa.game.enemies.every(e=>__qa.actors.views.has(e.id)),null,{timeout:60000});
+ const s=await page.evaluate(()=>{const q=__qa;return{area:q.world.areaId,actors:q.game.enemies.filter(e=>['original-rat','original-dog','original-roach'].includes(e.rig)).map(e=>{const v=q.actors.views.get(e.id),meshes=[],bones=[];v.model.traverse(o=>{if(o.isBone)bones.push(o.name);if(o.isSkinnedMesh)meshes.push({geometry:o.geometry.uuid,positions:o.geometry.attributes.position.count,colorAttribute:!!o.geometry.attributes.color,material:o.material.name,vertexColors:o.material.vertexColors,tint:o.material.color.toArray()});});return{key:e.placementKey,rig:e.rig,appearance:v.animalAppearanceId??null,factor:v.description.scale,root:v.root.scale.toArray(),hp:e.hp,radius:e.radius,bones:bones.length,meshes};})};});
+ for(const e of s.actors){assert.equal(e.appearance,assignments[e.key]??null);assert.equal(e.factor,e.rig==='original-dog'?2:3);assert(Math.abs(e.root[0]-1.6729625*e.factor)<1e-9);assert.equal(e.bones,e.rig==='original-dog'?25:e.rig==='original-rat'?24:27);if(e.appearance?.startsWith('dog-'))assert(e.meshes.some(m=>m.vertexColors&&m.colorAttribute));}
+ return s;
+}
