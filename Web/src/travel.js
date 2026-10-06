@@ -31,6 +31,7 @@ export async function travelTo(game, request) {
       for (const field of ['ready', 'recoverUntil', 'staggerUntil', 'guardRecoverAt', 'flashUntil'])
         if (Number.isFinite(e[field])) e[field] += elapsed;
       if (Number.isFinite(e.response?.start)) e.response.start += elapsed;
+      if(e.droneState){e.droneState.readyAt+=elapsed;if(e.droneState.warning){e.droneState.warning.start+=elapsed;e.droneState.warning.releaseAt+=elapsed;}}
       e.swing = null;
     }
     for (const bolt of game.bolts) if (Number.isFinite(bolt.expires)) bolt.expires += elapsed;

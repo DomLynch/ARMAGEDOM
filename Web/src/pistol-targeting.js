@@ -70,6 +70,6 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
   // The resolved ray already identifies the first body hit, including body edges.
   const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId);
-  return {targetId:eligible?hit.id:null,ready,height:eligible?(hit.rig==='original-rat'?.54:hit.rig==='original-dog'?(hit.contactGoalReach?.70:.35):hit.rig==='original-roach'?(hit.contactGoalReach?.24:.08):1.15)*(hit.mobSize??1):1.05,position:eligible?hit.pos:
+  return {targetId:eligible?hit.id:null,ready,height:eligible?(hit.rig==='low-hover-drone'?.45:hit.rig==='original-rat'?.54:hit.rig==='original-dog'?(hit.contactGoalReach?.70:.35):hit.rig==='original-roach'?(hit.contactGoalReach?.24:.08):1.15)*(hit.mobSize??1):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }

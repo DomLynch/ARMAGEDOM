@@ -1,3 +1,4 @@
+import {createLowHoverDroneLibrary} from './low-hover-drone.js';
 import {createAnimalAppearanceLibrary} from './animal-appearance.js';
 import {createFeralCoatProfileLibrary} from './feral-coat-profiles.js';
 import {animalAppearanceFor} from './area-mob-spawns.js';
@@ -113,13 +114,18 @@ function shadowTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
-  const faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
+  const droneKits=createLowHoverDroneLibrary(),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
   function make(entity,finishers=false,restoreCorpses=false) {
+    if(entity.rig==='low-hover-drone'){
+      const drone=droneKits.spawn({scene,position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
+      const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
+      views.set(entity.id,view);return view;
+    }
     const name =
         entity.kind < 0
           ? "vagrant"
@@ -234,6 +240,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
+    if(view.drone){view.drone.dispose();views.delete(id);return;}
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
@@ -276,7 +283,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
             player.dogReceiver=createRatBiteReceiver(player.model,bindings);
           }
           const rats=new Map();
-          for(const e of game.enemies)if(['original-rat','original-dog','original-roach'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
+          for(const e of game.enemies)if(['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);if(view.drone){rats.set(e.id,{view,root:view.root.matrixWorld.clone()});continue;}const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
           return {player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
@@ -294,9 +301,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         hit:(a,d,s,before,after)=>{
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
           if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,receiver=scaled?views.get(0).dogReceiver:views.get(0).footReceiver;return old&&now&&now.teeth.some((to,i)=>receiver.sweep(scaled?before.playerDog:before.player,scaled?after.playerDog:after.player,old.teeth[i],to).hit);}
-          if(!['original-rat','original-dog','original-roach'].includes(d.rig)||!s.def.ratLow)return false;
+          if(!['original-rat','original-dog','original-roach','low-hover-drone'].includes(d.rig)||!s.def.ratLow)return false;
           const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
-          const meshes=[];view.model.traverse(m=>{if(m.isSkinnedMesh&&visible(m)){m.computeBoundingSphere();meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
+          const meshes=[];view.model.traverse(m=>{if(visible(m)&&(view.drone?m.isMesh&&m.name==='ARM_Drone_Rigid_Frame':m.isSkinnedMesh)){if(m.isSkinnedMesh)m.computeBoundingSphere();else{m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();}meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
       };
     },
@@ -312,8 +319,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach'].includes(entity.rig))continue;
+        if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);
+        if(view.drone){
+          const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
+          view.drone.update({time:game.time,dt:Math.max(0,dt),position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z),state,phase:dead?(game.time-(entity.response?.start??game.time))/.8:warning?(game.time-warning.start)/.6:0});
+          view.root.updateWorldMatrix(true,true);continue;
+        }
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =
           Math.atan2(entity.facing.x, -entity.facing.z) +
@@ -372,6 +384,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     },
     dispose() {
       this.reset();
+      droneKits.dispose();
       shadowMap.dispose();
       for(const kit of faceKits.values())kit.dispose();
       faceKits.clear();
