@@ -7,12 +7,20 @@ const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.re
 const encounter=createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1});
 function world(){return {areaId:'east',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};}
 const options={pilot:'donor-knife',encounter,rat:true,pistol:true,supplies:true,finishers:true,areaResidents:true,openingGroup:false};
-test('rat commits low or original native bite from actual foot height without retargeting its clip',()=>{
- for(const [height,clip]of [[.051770188649450204,'rat_bite_low'],[.08,'rat_bite_low'],[.12,'rat_bite']]){
-  const g=createGame(world(),options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];Object.assign(rat,{pos:{x:.8,z:0},facing:{x:-1,z:0},home:null,alerted:true,ready:0});let footY=height;
+test('rat commits low frontal or original bite without retargeting its clip after height or facing changes',()=>{
+ for(const [height,front,clip]of [[.051770188649450204,true,'rat_bite_low'],[.08,true,'rat_bite_low'],[.12,true,'rat_bite'],[.05,false,'rat_bite']]){
+  const g=createGame(world(),options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];Object.assign(rat,{pos:{x:.8,z:0},facing:{x:-1,z:0},home:null,alerted:true,ready:0});g.player.facing={x:front?1:-1,z:0};let footY=height;
   g.ratContact={capture:()=>null,foot:()=>({x:.48,y:footY,z:0})};stepGame(g);assert.equal(rat.swing.clip,clip);assert.equal(rat.swing.footGoalY,height);assert.equal(rat.swing.native,true);assert.equal(rat.swing.timing.windup,15);assert.equal(rat.swing.timing.active,6);assert.equal(rat.swing.timing.recovery,15);assert.equal(rat.swing.def.damage,6);
-  footY=height<=.08?.12:.05;stepGame(g);assert.equal(rat.swing.clip,clip,'pose remains committed through this bite');assert.equal(rat.swing.footGoalY,height);
+  footY=height<=.08?.12:.05;g.player.facing={x:front?-1:1,z:0};stepGame(g);assert.equal(rat.swing.clip,clip,'pose remains committed through this bite');assert.equal(rat.swing.footGoalY,height);
  }
+});
+test('recorded stationary frontal .8 case receives repeated actual lower tooth contacts',async t=>{
+ const prior=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
+ const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
+ const w=world(),g=createGame(w,options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];g.player.pos={x:-7.144549814807844,z:7.587677113802718};g.player.facing={x:-.27447389279720097,z:.9615945518630763};Object.assign(rat,{pos:{x:-7.512485647121097,z:8.298045485353672},home:null,alerted:true});
+ const sources=new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))),actors=createActors(new T.Scene(),w,{models,manifest,dispose:()=>disposeActorSources(sources)},{visualScale:1.3225});t.after(()=>actors.dispose());actors.update(g,0);g.ratContact=actors.ratContact();const hits=[],commits=[],start={...g.player.pos};
+ for(let i=0;i<110;i++){stepGame(g);hits.push(...g.events.filter(e=>e.type==='hit'&&e.actor===g.player));commits.push(...g.events.filter(e=>e.type==='enemy-attack'&&e.actor===rat));assert.deepEqual(g.player.pos,start);assert.ok(Math.hypot(rat.pos.x-start.x,rat.pos.z-start.z)>=.8-1e-8);actors.events(g);actors.update(g,1/60,0,{presentationDt:1/60});}
+ assert.ok(hits.length>=2,'repeated real tooth intersections in formerly missing stationary case');assert.ok(hits.every(e=>e.amount===6&&e.weapon==='teeth'));assert.ok(commits.every(e=>e.clip==='rat_bite_low'));assert.equal(rat.hp,20);
 });
 test('one rat replaces existing East7 without adding residents or West rewards',async()=>{
  const w=world(),g=createGame(w,options);assert.equal(g.enemies.length,9);const rat=g.enemies.find(e=>e.rig==='original-rat');assert.equal(rat.placementKey,'east-roamer-7');assert.equal(rat.hp,20);assert.equal(rat.radius,.4);assert.equal(rat.mobSize,1);assert.equal(rat.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-rat').length,1);

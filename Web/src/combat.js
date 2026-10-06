@@ -433,7 +433,7 @@ function ratEnemy(g,e,dt){
  const offset=sub(foot,e.pos),distance=mag(sub(g.player.pos,e.pos)),dir=normal(offset,e.facing);
  if(distance>.95||mag(offset)>.35||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,2.1,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.08?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.08&&dot(g.player.facing,normal(sub(e.pos,g.player.pos)))>=.5?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
 }
 function knifeContacts(g,before,ratBefore){
  const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[];
