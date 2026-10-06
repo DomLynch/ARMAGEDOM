@@ -312,8 +312,8 @@ export function initializeAreaResidents(g){
  const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
- if(g.rat&&area==='east'){const rat=residents.find(e=>e.placementKey==='east-roamer-7');if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.4,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0});}
- if(g.dog&&area==='south'){const dog=residents.find(e=>e.placementKey==='south-roamer-8');if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.77,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0});}
+ if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.4,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0});}
+ if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.77,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0});}
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
