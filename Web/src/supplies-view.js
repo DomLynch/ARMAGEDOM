@@ -6,8 +6,6 @@ export function createSupplyView({kind,count=3}={}){
  const root=new T.Group();root.name='Supply_'+kind;
  const geometries=[],materials=[],glows=[];
  const geometry=g=>(geometries.push(g),g),material=m=>(materials.push(m),m);
- const cue=material(new T.MeshBasicMaterial({color:0xb48a4c,transparent:true,opacity:.16,depthWrite:false}));
- const ring=new T.Mesh(geometry(new T.RingGeometry(.235,.275,24)),cue);ring.rotation.x=-Math.PI/2;ring.position.y=.012;root.add(ring);
  if(kind==='ammo'){
   const brass=material(new T.MeshStandardMaterial({color:0xb49a65,metalness:.3,roughness:.72})),tip=material(new T.MeshStandardMaterial({color:0x574a39,metalness:.45,roughness:.7}));
   const cases=new T.InstancedMesh(geometry(new T.CylinderGeometry(.018,.019,.11,8)),brass,count),tips=new T.InstancedMesh(geometry(new T.ConeGeometry(.017,.035,8)),tip,count),dummy=new T.Object3D(),axis=new T.Vector3(0,1,0);
@@ -25,5 +23,5 @@ export function createSupplyView({kind,count=3}={}){
   marks.instanceMatrix.needsUpdate=seams.instanceMatrix.needsUpdate=true;packet.add(marks,seams);
  }
  let disposed=false;
- return {root,update(time){if(disposed)return;cue.opacity=.16+.045*Math.sin((Number.isFinite(time)?time:0)*2.3);},dispose(){if(disposed)return;disposed=true;for(const o of glows)o.dispose();root.removeFromParent();root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();root.clear();}};
+ return {root,update(){},dispose(){if(disposed)return;disposed=true;for(const o of glows)o.dispose();root.removeFromParent();root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();root.clear();}};
 }

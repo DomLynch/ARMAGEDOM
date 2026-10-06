@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import * as T from 'three';import {addPickupGlow} from '../src/pickup-glow.js';
-test('actual1/2/3 instances retain original surfaces and transforms; owned halo disposal is idempotent',()=>{
+test('actual1/2/3 instances retain original surfaces and transforms; owned contour disposal is idempotent',()=>{
  for(const count of [1,2,3]){
   const geometry=new T.CylinderGeometry(.018,.019,.11,8),map=new T.Texture(),material=new T.MeshStandardMaterial({color:0xb49a65,map}),mesh=new T.InstancedMesh(geometry,material,count);
   for(let i=0;i<count;i++)mesh.setMatrixAt(i,new T.Matrix4().makeTranslation(i,.022,.066*i));
@@ -13,7 +13,7 @@ test('actual1/2/3 instances retain original surfaces and transforms; owned halo 
   mesh.dispose();geometry.dispose();material.dispose();map.dispose();
  }
 });
-test('quad survives until last user and recreation is owned; equipped cloth is rejected',()=>{
+test('hull survives until last user and recreation is owned; equipped cloth is rejected',()=>{
  const geometry=new T.BoxGeometry(),materials=[new T.MeshStandardMaterial(),new T.MeshStandardMaterial()],a=new T.Mesh(geometry,materials),b=new T.Mesh(geometry,materials[0]);
  const ha=addPickupGlow(a),hb=addPickupGlow(b);assert.equal(ha.halo.geometry,hb.halo.geometry);let freed=0;ha.halo.geometry.addEventListener('dispose',()=>freed++);
  ha.dispose();assert.equal(freed,0);assert.equal(a.material,materials);hb.dispose();assert.equal(freed,1);
