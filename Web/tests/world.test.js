@@ -63,14 +63,14 @@ test('area requests preserve the four existing route thresholds and destination 
   ]) {world.areaId=area;assert.deepEqual(world.travelAt(world.geometry.ground(point)),{areaId:destination,entryPoint:entry});}
   world.areaId='westminster';assert.equal(world.travelAt(world.spawn),null);assert.equal(world.actorScale,1.265);world.dispose();
 });
-test('portrait shows a readable actor above controls where painting bounds allow, retaining portrait framing',()=>{
+test('portrait shows a readable actor above controls where painting bounds allow, with approved five percent portrait magnification',()=>{
   const {world,camera}=setup();
   const mid=world.geometry.ground({x:.52,y:.5});
   for(const position of [world.spawn,mid,world.geometry.ground({x:.52,y:.78})]) {
     world.update(position,0,390,844,true);
     const feet=world.toRender(position).project(camera),head=world.toRender(position,2*world.actorScale).project(camera);
     const pixels=(head.y-feet.y)*844/2;
-    if(position===mid)assert.ok(Math.abs(pixels-63)<1e-8,`unclamped portrait reference is ${pixels}px, expected63`);else assert.ok(pixels>=63&&pixels<=70,`finite-painting clamp portrait reference is ${pixels}px`);
+    if(position===mid)assert.ok(Math.abs(pixels-66.15)<1e-8,`unclamped portrait reference is ${pixels}px, expected66.15`);else assert.ok(pixels>=66.15&&pixels<=73.5,`finite-painting clamp portrait reference is ${pixels}px`);
     const image=world.backdrop.geometry.attributes.position;
     const a=new THREE.Vector3().fromBufferAttribute(image,0).project(camera),b=new THREE.Vector3().fromBufferAttribute(image,2).project(camera);
     assert.ok(a.x<=-1+1e-4&&a.y<=-1+1e-4&&b.x>=1-1e-4&&b.y>=1-1e-4);
