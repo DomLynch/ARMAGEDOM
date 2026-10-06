@@ -19,7 +19,7 @@ const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appe
 const publicRoot=new URL('../public/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
- assert.deepEqual(Object.keys(manifest.models).sort(),['hollow-scavenger','original-rat','vagrant']);
+ assert.deepEqual(Object.keys(manifest.models).sort(),['hollow-scavenger','original-dog','original-rat','vagrant']);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
  const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
