@@ -1,0 +1,23 @@
+{
+  "helperSHA256": "41497c1707d5d9b8049c215c7ffaccb9baeaf5e09382d95c6f684deb47ea2cd7",
+  "fixed": [
+    "Returned manifest safe unique complete set bound to immutable owned input archive",
+    "Output tar safe unique regular file closure equals declared outputs plus explicit validated metadata before extraction"
+  ],
+  "offlineCases": 15,
+  "successExit": 0,
+  "failedJobExitPreserved": 7,
+  "negativeCases": 13,
+  "networkCalls": 0,
+  "providerCleanup": false,
+  "realArchiveReplay": "six existing073/074/075 success+failed archives validated; no new job",
+  "timingReuse": {
+    "job": "6ac52381fbc85ba6823b7bb5",
+    "jobFinishedUTC": "2026-10-06T16:36:55.244Z",
+    "helperStartedUTC": "2026-10-06T16:36:18.131952+00:00",
+    "terminalObservedUTC": "2026-10-06T16:36:56.285420+00:00",
+    "recoveryStartedUTC": "2026-10-06T16:36:56.285420+00:00",
+    "recoveryEndedUTC": "2026-10-06T16:37:01.715086+00:00"
+  },
+  "scope": "Closure/manifest recovery guards only; actual073 timing reused; no universal latency guarantee or gameplay/source-package rerun"
+}
