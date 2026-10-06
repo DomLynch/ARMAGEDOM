@@ -22,7 +22,9 @@ const RAT_BITE_LOW=Object.freeze({...RAT_BITE,clip:'rat_bite_low'});
 const ROACH_LOW=Object.freeze({...RAT_LOW,moveId:'roach_low'});
 const ROACH_BITE=Object.freeze({...RAT_BITE,moveId:'roach_bite',clip:'roach_bite',damage:4,staminaDamage:4,range:.93});
 const DOG_LOW=Object.freeze({...RAT_LOW,moveId:'dog_low'});
+const DOG_MID=Object.freeze({...DOG_LOW,clip:'DogMidSlash'});
 const DOG_BITE=Object.freeze({...RAT_BITE,moveId:'dog_bite',clip:'dog_bite_calf',windupTicks:18,activeTicks:6,recoveryTicks:24,windup:18/60,active:6/60,recovery:24/60,damage:8,staminaDamage:8,range:1.17});
+const DOG_BITE_SCALED=Object.freeze({...DOG_BITE,clip:'dog_bite_scaled'});
 const EPS=1e-8,mag=v=>Math.hypot(v.x,v.z),sub=(a,b)=>({x:a.x-b.x,z:a.z-b.z});
 export function normal(v,fallback={x:0,z:1}){const n=mag(v);return n>.001?{x:v.x/n,z:v.z/n}:{...fallback};}
 const validDirection=v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&mag(v)>.001;
@@ -104,8 +106,8 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
  if(g.pilot&&action==='slash'){
   const ticks=def.windupTicks??Math.floor(def.windup*60),normalReach=def.range*p.combatScale+R.walkSpeed*def.stepIn*Math.max(0,ticks-R.stepInFrom-1)/60,lowReach=RAT_LOW.range*p.combatScale;
-  slashTarget=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>['original-rat','original-dog','original-roach'].includes(target.rig)?lowReach+(target.rig==='original-rat'&&target.contactGoalReach?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
-  const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?DOG_LOW:rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=slashTarget.targetId;}
+  slashTarget=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>['original-rat','original-dog','original-roach'].includes(target.rig)?lowReach+(['original-rat','original-dog'].includes(target.rig)&&target.contactGoalReach?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
+  const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?(g.enemies.find(e=>e.id===slashTarget.targetId).contactGoalReach?DOG_MID:DOG_LOW):rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=slashTarget.targetId;}
  }
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
@@ -321,7 +323,7 @@ export function initializeAreaResidents(g){
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.09,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.050307904880233});}
  if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,{rig:'original-roach',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.53,hp:20,maxHP:20,moveSpeed:1.8,recoveryDelay:0});}
- if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.77,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0});}
+ if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.54,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.635623468495986});}
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
@@ -452,10 +454,10 @@ function dogEnemy(g,e,dt){
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  if(e.home&&residentPatrol(g,e,dt))return;
- const offset=sub(g.player.pos,e.pos),distance=mag(offset),footGoal=e.rig==='original-roach'?g.ratContact?.calf(g,e):null;
+ const offset=sub(g.player.pos,e.pos),distance=mag(offset),footGoal=e.rig==='original-roach'||e.contactGoalReach?g.ratContact?.calf(g,e):null;
  if(distance>e.radius+g.player.radius+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,normal(footGoal?sub(footGoal,e.pos):offset),e.moveSpeed,dt);return;}
- const calf=e.rig==='original-roach'?footGoal:g.ratContact?.calf(g,e);if(!calf)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='original-roach'?ROACH_BITE:DOG_BITE);e.swing.calfGoal={...calf};e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
+ const calf=e.rig==='original-roach'||e.contactGoalReach?footGoal:g.ratContact?.calf(g,e);if(!calf||e.contactGoalReach&&mag(sub(calf,e.pos))>e.contactGoalReach+EPS)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='original-roach'?ROACH_BITE:e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
 }
 function knifeContacts(g,before,ratBefore){
  const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[];

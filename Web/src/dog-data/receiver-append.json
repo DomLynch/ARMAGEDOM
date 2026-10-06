@@ -1,0 +1,29 @@
+[
+  {
+    "runtimeName": "Skin",
+    "face": 3344,
+    "vertices": [
+      1709,
+      1708,
+      1898
+    ]
+  },
+  {
+    "runtimeName": "Skin",
+    "face": 2626,
+    "vertices": [
+      1770,
+      1898,
+      1692
+    ]
+  },
+  {
+    "runtimeName": "Skin",
+    "face": 2280,
+    "vertices": [
+      1718,
+      1079,
+      1082
+    ]
+  }
+]

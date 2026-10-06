@@ -1,3 +1,8 @@
+import {createFeralDogLibrary} from './feral-dog.js';
+import dogBite from './dog-data/bite-scaled.json' with {type:'json'};
+import dogMidClip from './dog-data/mid-slash.json' with {type:'json'};
+import dogBlade from './dog-data/blade-path.json' with {type:'json'};
+import dogReceiverAppend from './dog-data/receiver-append.json' with {type:'json'};
 import {createRatBiteReceiver,ratLowBlade} from './rat-contact.js';
 import footBindings from './rat-data/foot-bindings.json' with {type:'json'};
 import lowClip from './rat-data/low-slash.json' with {type:'json'};
@@ -104,7 +109,7 @@ function shadowTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
-  const faceKits=new Map();
+  const faceKits=new Map(),dogKits=new Map();
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
@@ -131,7 +136,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           source.equipment,
         ).animations
       : source.gltf.animations;
-    if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip)];
+    if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip),THREE.AnimationClip.parse(dogMidClip)];
+    let feral=null;
+    if(entity.rig==='original-dog'&&description.scale===2){
+      if(!dogKits.has(source.gltf.scene))dogKits.set(source.gltf.scene,createFeralDogLibrary(source.gltf.scene));
+      feral=dogKits.get(source.gltf.scene).apply(model);
+      animations=[...animations,THREE.AnimationClip.parse(dogBite)];
+    }
     const pistolMount=entity.kind<0&&library.pistolAsset?attachPistol(model,library.pistolAsset.scene):null;
     if(pistolMount)pistolMount.visible=false;
     const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
@@ -187,7 +198,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model,
       shadow,
       motion: null,
-      materials,appearance,flashMaterials,
+      materials,appearance,feral,flashMaterials,
       entity,
       description,
       locomotionVariant: hollowLocomotionFor(entity),
@@ -216,11 +227,11 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id) {
     const view = views.get(id);
     if (!view) return;
-    view.footReceiver?.dispose();view.ratReceiver?.dispose();
+    view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
     view.pistolSlide.dispose();
-    view.appearance?.dispose();
+    view.appearance?.dispose();view.feral?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
     const skeletons = new Set();
@@ -252,9 +263,14 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       function tooth(view){const mesh=view.model.getObjectByName('Original_ARM_rat_surface_3');mesh.getVertexPosition(80,point);return point.applyMatrix4(mesh.matrixWorld).toArray();}
       return {
         capture:game=>{
-          this.update(game,0,0,{presentationDt:0,contactOnly:true});const player=views.get(0);player.root.updateWorldMatrix(true,true);preparePlayer(player);const rats=new Map();
+          this.update(game,0,0,{presentationDt:0,contactOnly:true});const player=views.get(0);player.root.updateWorldMatrix(true,true);preparePlayer(player);
+          if(!player.dogReceiver&&game.enemies.some(e=>e.rig==='original-dog'&&views.get(e.id)?.description.scale===2)){
+            const bindings=footBindings.bindings.map(b=>({...b,faceBindings:[...b.faceBindings,...dogReceiverAppend.filter(f=>f.runtimeName===b.runtimeName).map(({face,vertices})=>({face,vertices}))]}));
+            player.dogReceiver=createRatBiteReceiver(player.model,bindings);
+          }
+          const rats=new Map();
           for(const e of game.enemies)if(['original-rat','original-dog','original-roach'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
-          return {player:player.footReceiver.capture(),playerRoot:player.root.matrixWorld.clone(),rats};
+          return {player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
           const player=views.get(0);if(!player)return null;preparePlayer(player);let best=null,distance=Infinity;
@@ -270,9 +286,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         },
         hit:(a,d,s,before,after)=>{
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
-          if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&now.teeth.some((to,i)=>views.get(0).footReceiver.sweep(before.player,after.player,old.teeth[i],to).hit);}
+          if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,receiver=scaled?views.get(0).dogReceiver:views.get(0).footReceiver;return old&&now&&now.teeth.some((to,i)=>receiver.sweep(scaled?before.playerDog:before.player,scaled?after.playerDog:after.player,old.teeth[i],to).hit);}
           if(!['original-rat','original-dog','original-roach'].includes(d.rig)||!s.def.ratLow)return false;
-          const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
+          const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
           const meshes=[];view.model.traverse(m=>{if(m.isSkinnedMesh&&visible(m)){m.computeBoundingSphere();meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
       };
@@ -352,6 +368,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       shadowMap.dispose();
       for(const kit of faceKits.values())kit.dispose();
       faceKits.clear();
+      for(const kit of dogKits.values())kit.dispose();
+      dogKits.clear();
       shadowGeometry.dispose();
       library.dispose();
     },

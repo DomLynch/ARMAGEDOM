@@ -25,7 +25,7 @@ export const AREA_MOB_SPAWNS = Object.freeze({
     Object.freeze({key:'east-roamer-1',pos:Object.freeze({x:15.03955,z:19.18419}),patrol:Object.freeze([Object.freeze({x:15.03955,z:19.18419}),Object.freeze({x:13.03955,z:19.18419})])}),
     Object.freeze({key:'east-roamer-2',pos:Object.freeze({x:-17.82920,z:2.17941}),patrol:Object.freeze([Object.freeze({x:-17.82920,z:2.17941}),Object.freeze({x:-15.82920,z:2.17941})])}),
     Object.freeze({key:'east-roamer-3',pos:Object.freeze({x:0.00000,z:7.05940}),patrol:Object.freeze([Object.freeze({x:0.00000,z:7.05940}),Object.freeze({x:2.00000,z:7.05940})])}),
-    Object.freeze({key:'east-roamer-4',pos:Object.freeze({x:-3.79260,z:14.53346}),patrol:Object.freeze([Object.freeze({x:-3.79260,z:14.53346}),Object.freeze({x:-1.79260,z:14.53346})])}),
+    Object.freeze({key:'east-roamer-4',pos:Object.freeze({x:-3.47760,z:13.99346}),patrol:Object.freeze([Object.freeze({x:-3.47760,z:13.99346}),Object.freeze({x:-1.47760,z:13.99346})])}),
     Object.freeze({key:'east-roamer-5',pos:Object.freeze({x:-9.67637,z:6.00000}),patrol:Object.freeze([Object.freeze({x:-9.67637,z:6.00000}),Object.freeze({x:-7.67637,z:6.00000})])}),
     Object.freeze({key:'east-roamer-6',pos:Object.freeze({x:8.42609,z:11.80376}),patrol:Object.freeze([Object.freeze({x:8.42609,z:11.80376}),Object.freeze({x:8.42609,z:13.80376})])}),
     Object.freeze({key:'east-roamer-7',pos:Object.freeze({x:-7.72927,z:10.51955}),patrol:Object.freeze([Object.freeze({x:-7.72927,z:10.51955}),Object.freeze({x:-5.72927,z:10.51955})])}),

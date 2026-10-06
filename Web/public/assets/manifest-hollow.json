@@ -252,7 +252,7 @@
       "url": "dog/original-dog.glb",
       "rig": "original-dog",
       "motion": "dog",
-      "scale": 1,
+      "scale": 2,
       "forwardCorrection": 0,
       "clips": {
         "idle": "dog_idle",
@@ -260,7 +260,7 @@
         "run": "dog_run",
         "hit": "dog_hit",
         "death": "dog_death",
-        "attack": "dog_bite_calf"
+        "attack": "dog_bite_scaled"
       },
       "contact": {
         "canines": [
@@ -276,22 +276,26 @@
         "calfFaces": [
           {
             "runtimeName": "Skin",
-            "face": 3181,
+            "face": 2400,
             "vertices": [
-              1186,
-              1201,
-              1200
+              1684,
+              1683,
+              1686
             ]
           },
           {
             "runtimeName": "Skin",
-            "face": 1867,
+            "face": 3456,
             "vertices": [
-              1305,
-              1307,
-              1308
+              1769,
+              1606,
+              1605
             ]
           }
+        ],
+        "calfBand": [
+          0.975770340789257,
+          1.119044353324368
         ]
       },
       "bytes": 711848,
