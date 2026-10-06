@@ -10,3 +10,8 @@ test('slow visible progress, stalled clock, event success and predicate failure 
  const original=Error('browser predicate failure'),page={evaluate:async()=>start,waitForFunction:async()=>{throw original;}};
  await assert.rejects(waitSimulation(page,()=>false),error=>error===original);
 });
+
+test('Playwright receives an invoked callback, never a truthy function expression string',async t=>{
+ const previous={qa:globalThis.__qa,window:globalThis.window,document:globalThis.document};t.after(()=>{globalThis.__qa=previous.qa;globalThis.window=previous.window;globalThis.document=previous.document;});globalThis.__qa={game:{time:1,tick:60}};globalThis.window={};globalThis.document={visibilityState:'visible',getElementById:()=>({open:false})};
+ const page={evaluate:async(fn,arg)=>fn(arg),waitForFunction:async(callback,arg)=>{assert.equal(typeof callback,'function');return callback(arg);}};assert.equal(await waitSimulation(page,()=>false),false);assert.equal(window.__qaWaits.at(-1).trace.length,1);assert.equal(await waitSimulation(page,value=>value,{type:'hit'}).then(x=>x.type),'hit');
+});

@@ -22,7 +22,8 @@ export async function waitSimulation(page,predicate,arg=null,{seconds=6,wallMs=9
  assert(Number.isFinite(seconds)&&seconds>0&&Number.isFinite(wallMs)&&wallMs>0,'finite wait limits required');
  const start=await page.evaluate(label=>{const g=__qa.game,record={label,start:{time:g.time,tick:g.tick,wall:performance.now()},trace:[]};(window.__qaWaits??=[]).push(record);return record.start;},label);
  const expression=`cfg=>{const g=__qa.game,f=window.__qaFrames,now={time:g.time,tick:g.tick,wall:performance.now(),frames:f?.count??null,meanFrameMs:f?.times?.length>1?(f.times.at(-1)-f.times[0])/(f.times.length-1):null,visibility:document.visibilityState,menuOpen:!!document.getElementById('menu')?.open},record=window.__qaWaits.at(-1);if(!record.trace.length||now.wall-record.trace.at(-1).wall>=1000){record.trace.push(now);if(record.trace.length>100)record.trace.shift();}return (${evaluateSimulationWait.toString()})(cfg.start,now,cfg.limits,()=>(${predicate.toString()})(cfg.arg));}`;
- return page.waitForFunction(expression,{start,limits:{seconds,wallMs},arg},{timeout:wallMs+1000,polling:100});
+ const callback=new Function('cfg','return ('+expression+')(cfg)');
+ return page.waitForFunction(callback,{start,limits:{seconds,wallMs},arg},{timeout:wallMs+1000,polling:100});
 }
 export function codeDigest(scenario){return sha([scenario.toString(),verifyCamera.toString(),installObserver.toString(),stage.toString(),readState.toString(),aimAt.toString(),legal.toString(),waitEvent.toString(),waitSimulation.toString(),evaluateSimulationWait.toString()].join('\n'));}
 export function reuseMatches(receipt,current){
