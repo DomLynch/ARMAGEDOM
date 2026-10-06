@@ -122,7 +122,7 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
         head.group.matrixAutoUpdate=false;head.group.matrix.copy(matrix);head.group.matrixWorldNeedsUpdate=true;
         scene.add(head.group);head.stump.visible=true;
         for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}
-        velocity.set(direction.x*.9,1.4,-direction.z*.9);spin.set(-direction.z,0,-direction.x).normalize().multiplyScalar(6);
+        velocity.set(direction.x*1.6,1.8,-direction.z*1.6);spin.set(-direction.z,0,-direction.x).normalize().multiplyScalar(6);
         detached=true;
       }
       return recipe;
