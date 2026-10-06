@@ -61,6 +61,17 @@ test('Safari gestures and cross-control pinch cancel defaults without stopping d
       assert.equal(f.touch(type, target, 50, 2).defaultPrevented, true);
   assert.equal(observed, 3);
 });
+test('first gameplay touch start and move cancel browser recognition before a second tap ends', t => {
+ const f=fixture(t);
+ for(const target of [f.world,f.move,f.guard,f.slash,f.body,f.html]){
+  assert.equal(f.touch('touchstart',target,100,1).defaultPrevented,true);
+  assert.equal(f.touch('touchmove',target,180,1).defaultPrevented,true);
+ }
+ for(const target of [f.menuButton,f.resume])
+  assert.equal(f.touch('touchstart',target,200,1).defaultPrevented,false);
+ f.pause(true);
+ assert.equal(f.touch('touchstart',f.world,210,1).defaultPrevented,false);
+});
 test('game double taps include HUD gaps while single taps and menu clicks stay available', t => {
   const f = fixture(t);
   assert.equal(f.touch('touchend', f.world, 100).defaultPrevented, false);

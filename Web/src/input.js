@@ -130,13 +130,17 @@ export function attachInput({
   isPistol = () => false,
 }) {
   const state = new InputState();
+  const gameplayTouch = target => !isPaused() && !target?.closest?.(
+    '#menu, #menu-button, #entry, #ending, #pistol-interact, a, input, select, textarea',
+  ) && (target === document.body || target === document.documentElement ||
+    !!target?.closest?.('#world, #hud, #move, #action-cluster, [data-action]'));
   // Safari may ignore viewport zoom hints. Cancel browser gestures, not game
   // pointers: movement and action contacts still reach the bindings below.
   const prevent = (event) => {
     if (event.cancelable) event.preventDefault();
   };
   for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
-    document.addEventListener(type, prevent, { passive: false });
+    document.addEventListener(type, prevent, { passive: false, capture: true });
   let multiTouch = false, lastTap = -Infinity;
   for (const type of ['touchstart', 'touchmove']) {
     document.addEventListener(type, (event) => {
@@ -145,25 +149,17 @@ export function attachInput({
         multiTouch = true;
         lastTap = -Infinity;
         prevent(event);
-      }
-    }, { passive: false });
+      } else if (gameplayTouch(event.target)) prevent(event);
+    }, { passive: false, capture: true });
   }
   document.addEventListener('touchend', (event) => {
-    const target = event.target;
-    const clickDriven = target?.closest?.(
-      '#menu, #menu-button, #entry, #ending, #pistol-interact, a, input, select, textarea',
-    );
-    const fight = !isPaused() && !clickDriven && (
-      target === document.body || target === document.documentElement ||
-      target?.closest?.('#world, #hud, #move, #action-cluster, [data-action]')
-    );
-    if (!fight || multiTouch || event.touches.length || event.changedTouches.length !== 1) {
+    if (!gameplayTouch(event.target) || multiTouch || event.touches.length || event.changedTouches.length !== 1) {
       lastTap = -Infinity;
       return;
     }
     if (event.timeStamp - lastTap < 350) prevent(event);
     lastTap = event.timeStamp;
-  }, { passive: false });
+  }, { passive: false, capture: true });
   document.addEventListener('touchcancel', () => {
     multiTouch = false;
     lastTap = -Infinity;
