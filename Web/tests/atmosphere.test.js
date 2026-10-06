@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as THREE from 'three';
 import {createGeometry} from '../src/world-geometry.js';
+import {atmosphereForArea,ATMOSPHERE_PRESETS,atmosphereBudget}from'../src/atmosphere-areas.js';
 import {createAtmosphere} from '../src/atmosphere.js';
 import {WESTMINSTER_ATMOSPHERE,ATMOSPHERE_BUDGET} from '../src/atmosphere-westminster.js';
 
@@ -35,7 +36,7 @@ test('pause, disable and invalid delta freeze effects; reset does not duplicate 
 test('area exit disposes each resource once, reentry allocates one group, final disposal is idempotent',()=>{
   const {world,scene,fx}=fixture();fx.update(.01);const old=[...scene.children[0].children];let released=0;
   for(const mesh of old){mesh.geometry.addEventListener('dispose',()=>released++);mesh.material.addEventListener('dispose',()=>released++);}
-  world.areaId='south';fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().quads,0);
+  world.areaId='unknown';fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().quads,0);
   world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);
   fx.dispose();fx.dispose();fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().disposed,true);
 });
@@ -48,4 +49,9 @@ test('bus emits smoke only with its own tint; other smoke retains its accepted c
     for(let channel=0;channel<3;channel++)assert.ok(Math.abs(tint.array[index*3+channel]-expected[channel])<1e-6);
   }
   fx.dispose();
+});
+
+test('five seeded presets and active three-area budgets retain approved West parameters',()=>{
+ assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',28,6],['east',24,7],['south',21,6]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
+ for(const [i,a]of atmosphereForArea('westminster').entries())for(const key of Object.keys(WESTMINSTER_ATMOSPHERE[i]))assert.deepEqual(a[key],WESTMINSTER_ATMOSPHERE[i][key]);fx.dispose();fx.dispose();assert.equal(scene.children.length,0);
 });
