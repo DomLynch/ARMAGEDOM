@@ -1,6 +1,33 @@
 #!/usr/bin/env python3
 """One bounded VPS job: fixed gates, exact package, selected prepared browser config."""
-import datetime,hashlib,json,pathlib,subprocess,sys
+import datetime,hashlib,json,pathlib,re,subprocess,sys
+def verify_source_reuse(root,current):
+    def record_map(manifest):
+        rows=manifest.get('files')
+        if not isinstance(rows,list) or not rows:raise RuntimeError('Empty source manifest')
+        result={}
+        for f in rows:
+            name=f.get('path');path=pathlib.PurePosixPath(name) if isinstance(name,str) else None
+            if not name or path.is_absolute() or '..' in path.parts or path.as_posix()!=name or '\\' in name or name in result or type(f.get('bytes')) is not int or not re.fullmatch('[0-9a-f]{64}',f.get('sha256','')):raise RuntimeError('Invalid source record')
+            result[name]=f
+        if manifest.get('fingerprint')!=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest():raise RuntimeError('Source fingerprint mismatch')
+        return result
+    def eligible(rows):return {k:v for k,v in rows.items() if k!='Web/src/style.css' and not k.startswith('scripts/qa/')}
+    prior=json.loads((root/'prior-source-manifest.json').read_text());previous=eligible(record_map(prior));present=record_map(current);required=eligible(present);reuse=json.loads((root/'source-reuse.json').read_text())
+    if not required or required!=previous or record_map({'files':reuse.get('files'),'fingerprint':hashlib.sha256(json.dumps(reuse.get('files'),sort_keys=True,separators=(',',':')).encode()).hexdigest()})!=required:raise RuntimeError('Incomplete or changed source reuse input set')
+    actual={p.relative_to(root).as_posix() for p in (root/'Web/src').rglob('*.js')}|{p.relative_to(root).as_posix() for p in (root/'Web/tests').rglob('*.test.js')}
+    if not actual.issubset(present):raise RuntimeError('Unlisted source/test input')
+    for name,f in required.items():
+        p=root/name
+        if p.stat().st_size!=f['bytes'] or hashlib.sha256(p.read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Changed source reuse input: '+name)
+    stages=json.loads((root/'prior-source-stages.json').read_text());matches=[x for x in stages if x.get('name')=='source']
+    if len(matches)!=1 or type(matches[0].get('exit')) is not int or matches[0]['exit']!=0 or matches[0].get('argv')!=['node','scripts/verify_web.mjs']:raise RuntimeError('Prior source stage did not pass')
+    result=json.loads((root/'prior-source-result.json').read_text());raw=(root/'source-pass.log').read_bytes();digest=hashlib.sha256(raw).hexdigest();logs=[x for x in result.get('outputs',[]) if x.get('path')=='results/source.log']
+    if not re.fullmatch('[0-9a-f]{40}',prior.get('head','')) or result.get('sourceCommit')!=prior['head'] or result.get('sourceFingerprint')!=prior['fingerprint'] or reuse.get('source')!=prior['head'] or len(logs)!=1 or logs[0].get('sha256')!=digest or logs[0].get('bytes')!=len(raw) or reuse.get('receiptSHA256')!=digest:raise RuntimeError('Prior source identity/log mismatch')
+    counts={key:re.findall(r'(?m)^ℹ '+key+r' (\d+)$',raw.decode()) for key in ['tests','pass','fail']}
+    if any(len(v)!=1 for v in counts.values()) or int(counts['tests'][0])<=0 or counts['tests']!=counts['pass'] or counts['fail']!=['0'] or reuse.get('tests')!=int(counts['tests'][0]) or type(reuse.get('exit')) is not int or reuse['exit']!=0:raise RuntimeError('Prior tests did not pass')
+    return {'name':'source-reuse','exit':0,'tests':reuse['tests'],'source':prior['head'],'receiptSHA256':digest,'inputsVerified':len(required),'scope':'Exact complete prior/current relevant set; only portrait CSS and QA runner files excluded; successful prior source stage/log identity bound.'}
+
 root=pathlib.Path.cwd();out=root/'results';out.mkdir(exist_ok=True);receipts=[];server=None
 source=json.loads((root/'source-manifest.json').read_text());config=json.loads((root/'qa-config.json').read_text())
 def run(name,argv,cwd=None):
@@ -16,11 +43,7 @@ try:
     run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows','portraitDodge'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
     run('install',['npm','ci','--no-audit','--no-fund'],root/'Web')
     if config.get('sourceReuse'):
-        reused=json.loads((root/'source-reuse.json').read_text())
-        if reused['exit']!=0 or hashlib.sha256((root/'source-pass.log').read_bytes()).hexdigest()!=reused['receiptSHA256']:raise RuntimeError('Invalid source reuse receipt')
-        for f in reused['files']:
-            if hashlib.sha256((root/f['path']).read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Source reuse input changed: '+f['path'])
-        record={'name':'source-reuse','exit':0,'tests':reused['tests'],'source':reused['source'],'receiptSHA256':reused['receiptSHA256'],'scope':reused['scope']};receipts.append(record);(out/'release-stages.json').write_text(json.dumps(receipts,indent=2)+'\n')
+        record=verify_source_reuse(root,source);receipts.append(record);(out/'release-stages.json').write_text(json.dumps(receipts,indent=2)+'\n')
     else:run('source',['node','scripts/verify_web.mjs'])
     run('packaging',['npm','run','test:packaging'],root/'Web')
     run('build',['npm','run','build'],root/'Web')
