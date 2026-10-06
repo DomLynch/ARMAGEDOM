@@ -138,7 +138,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         ).animations
       : source.gltf.animations;
     if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip),THREE.AnimationClip.parse(dogMidClip)];
-    if(entity.rig==='original-roach'&&description.scale===4)animations=[...animations,THREE.AnimationClip.parse(roachBite)];
+    if(entity.rig==='original-roach'&&(description.scale===3||description.scale===4))animations=[...animations,THREE.AnimationClip.parse(roachBite)];
     let feral=null;
     if(entity.rig==='original-dog'&&description.scale===2){
       if(!dogKits.has(source.gltf.scene))dogKits.set(source.gltf.scene,createFeralDogLibrary(source.gltf.scene));

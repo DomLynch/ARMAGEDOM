@@ -305,7 +305,7 @@
       "url": "roach/original-roach.glb",
       "rig": "original-roach",
       "motion": "roach",
-      "scale": 4,
+      "scale": 3,
       "forwardCorrection": 0,
       "clips": {
         "idle": "roach_idle",
@@ -327,26 +327,26 @@
           }
         ],
         "calfBand": [
-          0.20866533858557962,
-          0.21551182772300584
+          0.15649900393918476,
+          0.1616338707922544
         ],
         "calfFaces": [
           {
-            "runtimeName": "Skin",
-            "face": 10330,
+            "runtimeName": "WrapBoots",
+            "face": 236,
             "vertices": [
-              5962,
-              5961,
-              6020
+              14,
+              12,
+              100
             ]
           },
           {
-            "runtimeName": "WrapBoots",
-            "face": 68,
+            "runtimeName": "Skin",
+            "face": 9824,
             "vertices": [
-              13,
-              15,
-              65
+              5446,
+              5409,
+              5460
             ]
           }
         ]

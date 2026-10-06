@@ -26,7 +26,7 @@ test('direct body-clear goals retain identity; changed area and leash discard de
  assert.equal(s.steer({world,actor,goal,time:.2,leash:1}),goal);
  const direct={x:actor.pos.x,z:actor.pos.z-.1};assert(bodyLineClear(east,actor.pos,direct,.4));assert.equal(s.steer({world,actor,goal:direct,time:.3}),direct);
 });
-test('fourfold roach gets no detour through a corridor narrower than its body',()=>{
+test('historical fourfold roach gets no detour through a corridor narrower than its body',()=>{
  const west=createGeometry(JSON.parse(fs.readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url))));
  const s=createBridgeSteering(),goal=west.ground({x:.97,y:.34}),actor={pos:west.ground({x:.52,y:.78}),radius:2.12};
  assert.equal(s.steer({world:{areaId:'westminster',geometry:west},actor,goal,time:0}),goal);assert.equal(bodyLineClear(west,actor.pos,goal,actor.radius),false);

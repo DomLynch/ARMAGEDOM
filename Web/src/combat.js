@@ -329,7 +329,7 @@ export function initializeAreaResidents(g){
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.09,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.050307904880233});}
- if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,{rig:'original-roach',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:2.12,hp:20,maxHP:20,moveSpeed:1.8,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:2.141769110872878});}
+ if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,{rig:'original-roach',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.59,hp:20,maxHP:20,moveSpeed:1.8,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.6063268331546576});}
  if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.54,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.635623468495986});}
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
