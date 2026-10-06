@@ -12,10 +12,16 @@ try:
     for f in source['files']:
         p=root/f['path']
         if p.stat().st_size!=f['bytes'] or hashlib.sha256(p.read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Frozen input mismatch: '+f['path'])
-    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle']:raise RuntimeError('Prepare selected browser profile before submission')
-    run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
+    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle','portrait-dodge']:raise RuntimeError('Prepare selected browser profile before submission')
+    run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows','portraitDodge'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
     run('install',['npm','ci','--no-audit','--no-fund'],root/'Web')
-    run('source',['node','scripts/verify_web.mjs'])
+    if config.get('sourceReuse'):
+        reused=json.loads((root/'source-reuse.json').read_text())
+        if reused['exit']!=0 or hashlib.sha256((root/'source-pass.log').read_bytes()).hexdigest()!=reused['receiptSHA256']:raise RuntimeError('Invalid source reuse receipt')
+        for f in reused['files']:
+            if hashlib.sha256((root/f['path']).read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Source reuse input changed: '+f['path'])
+        record={'name':'source-reuse','exit':0,'tests':reused['tests'],'source':reused['source'],'receiptSHA256':reused['receiptSHA256'],'scope':reused['scope']};receipts.append(record);(out/'release-stages.json').write_text(json.dumps(receipts,indent=2)+'\n')
+    else:run('source',['node','scripts/verify_web.mjs'])
     run('packaging',['npm','run','test:packaging'],root/'Web')
     run('build',['npm','run','build'],root/'Web')
     run('assets',['node','Web/scripts/verify-assets.mjs','--actors','assets/manifest-hollow.json','--audio','audio/manifest.json'])

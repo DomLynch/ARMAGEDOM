@@ -447,7 +447,7 @@ summary {
   #slash {left: 5px; top: 58px;}
   #stab {width: 56px; height: 56px; left: calc(50% - 28px); top: 0;}
   #heavy {width: 58px; height: 58px; right: 0; top: 58px;}
-  #dodge {width: 44px; height: 44px; left: calc(50% - 46px); top: 146px; font-size: 8px;}
+  #dodge {width: 60px; height: 60px; left: calc(50% - 54px); top: 138px; font-size: 10px;}
   #guard {width: 64px; height: 64px; right: 0; bottom: 0;}
 
 }
