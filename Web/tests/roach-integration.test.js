@@ -10,3 +10,7 @@ test('only roach approach follows the currently visible foot before legal-root c
   assert.equal(e.swing,null);assert.ok(e.pos.z<2);if(rig==='original-roach'){assert.equal(calls,1);assert.ok(e.pos.x>0);}else{assert.equal(calls,0);assert.equal(e.pos.x,0);}
  }
 });
+
+test('missing visible roach foot preserves root approach outside legal gap and denies attack without a goal',()=>{
+ for(const distance of [2,.93]){const g=createGame(world(),opts),e=g.enemies.find(e=>e.rig==='original-roach');g.enemies=[e];g.player.pos={x:0,z:0};Object.assign(e,{home:null,alerted:true,pos:{x:0,z:distance},facing:{x:0,z:-1},ready:0});let calls=0;g.ratContact={capture:()=>null,calf:()=>{calls++;return null}};stepGame(g);assert.equal(calls,1);assert.equal(e.swing,null);assert.equal(e.pos.x,0);if(distance===2)assert(e.pos.z<2);else assert.equal(e.pos.z,distance);}
+});
