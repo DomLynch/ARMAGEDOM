@@ -197,7 +197,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     views.set(entity.id, view);
     try {
       const Motion =
-        ["donor-knife","rat","dog"].includes(description.motion) ? DonorMotion : ActorMotion;
+        ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
@@ -253,7 +253,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       return {
         capture:game=>{
           this.update(game,0,0,{presentationDt:0,contactOnly:true});const player=views.get(0);player.root.updateWorldMatrix(true,true);preparePlayer(player);const rats=new Map();
-          for(const e of game.enemies)if(['original-rat','original-dog'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
+          for(const e of game.enemies)if(['original-rat','original-dog','original-roach'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
           return {player:player.footReceiver.capture(),playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
@@ -265,13 +265,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           this.update(game,0,0,{presentationDt:0,contactOnly:true});
           const player=views.get(0),view=views.get(dog.id);if(!player||!view)return null;let best=null,distance=Infinity;
           player.root.updateMatrixWorld(true);
-          for(const binding of view.description.contact.calfFaces){const mesh=player.model.getObjectByName(binding.runtimeName);if(!visible(mesh))continue;const goal=new THREE.Vector3();for(const i of binding.vertices){mesh.getVertexPosition(i,point);goal.add(point.applyMatrix4(mesh.matrixWorld));}goal.multiplyScalar(1/3);if(goal.y<.49||goal.y>.54)continue;const next={x:goal.x,y:goal.y,z:-goal.z,face:binding.face},d=Math.hypot(next.x-dog.pos.x,next.y,next.z-dog.pos.z);if(d<distance&&world.lineClear(dog.pos,next)){best=next;distance=d;}}
+          for(const binding of view.description.contact.calfFaces){const mesh=player.model.getObjectByName(binding.runtimeName);if(!visible(mesh))continue;const goal=new THREE.Vector3();for(const i of binding.vertices){mesh.getVertexPosition(i,point);goal.add(point.applyMatrix4(mesh.matrixWorld));}goal.multiplyScalar(1/3);const band=view.description.contact.calfBand??[.49,.54];if(goal.y<band[0]||goal.y>band[1])continue;const next={x:goal.x,y:goal.y,z:-goal.z,face:binding.face},d=Math.hypot(next.x-dog.pos.x,next.y,next.z-dog.pos.z);if(d<distance&&world.lineClear(dog.pos,next)){best=next;distance=d;}}
           return best;
         },
         hit:(a,d,s,before,after)=>{
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
-          if(a.rig==='original-dog'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&now.teeth.some((to,i)=>views.get(0).footReceiver.sweep(before.player,after.player,old.teeth[i],to).hit);}
-          if(!['original-rat','original-dog'].includes(d.rig)||!s.def.ratLow)return false;
+          if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&now.teeth.some((to,i)=>views.get(0).footReceiver.sweep(before.player,after.player,old.teeth[i],to).hit);}
+          if(!['original-rat','original-dog','original-roach'].includes(d.rig)||!s.def.ratLow)return false;
           const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
           const meshes=[];view.model.traverse(m=>{if(m.isSkinnedMesh&&visible(m)){m.computeBoundingSphere();meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
@@ -289,7 +289,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog'].includes(entity.rig))continue;
+        if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach'].includes(entity.rig))continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =

@@ -270,6 +270,59 @@
       },
       "bytes": 711848,
       "sha256": "7b2ee11b61a08966ad8c94615f80bcce0ced74148b52ae1f5ec59775f52e0a78"
+    },
+    "original-roach": {
+      "url": "roach/original-roach.glb",
+      "rig": "original-roach",
+      "motion": "roach",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "roach_idle",
+        "walk": "roach_walk",
+        "run": "roach_run",
+        "hit": "roach_hit",
+        "death": "roach_death",
+        "attack": "roach_bite"
+      },
+      "contact": {
+        "canines": [
+          {
+            "mesh": "ARM_Original_Infected_Ground_Roach",
+            "vertex": 1883
+          },
+          {
+            "mesh": "ARM_Original_Infected_Ground_Roach",
+            "vertex": 2075
+          }
+        ],
+        "calfBand": [
+          0.04,
+          0.075
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "LeatherBoots",
+            "face": 150,
+            "vertices": [
+              189,
+              188,
+              170
+            ]
+          },
+          {
+            "runtimeName": "LeatherBoots",
+            "face": 137,
+            "vertices": [
+              188,
+              171,
+              170
+            ]
+          }
+        ]
+      },
+      "bytes": 632972,
+      "sha256": "2ae989a3aca14dbbd26fcb0576bed348dcc56515f5ad9e4d4e3b612cddd7ad7d"
     }
   },
   "files": {
