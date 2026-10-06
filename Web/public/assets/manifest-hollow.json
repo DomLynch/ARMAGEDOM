@@ -208,7 +208,7 @@
       "url": "rat/original-rat.glb",
       "rig": "original-rat",
       "motion": "rat",
-      "scale": 1,
+      "scale": 3,
       "forwardCorrection": 0,
       "clips": {
         "idle": "rat_idle",
@@ -220,7 +220,33 @@
         "attackLow": "rat_bite_low"
       },
       "bytes": 715108,
-      "sha256": "4aa89380963ea3523a3bea05427ae8b54cc0104e656a1ec42cfef5e18cbc7e83"
+      "sha256": "4aa89380963ea3523a3bea05427ae8b54cc0104e656a1ec42cfef5e18cbc7e83",
+      "contact": {
+        "calfBand": [
+          0.3440308079655002,
+          0.4469086482463746
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 3182,
+            "vertices": [
+              2037,
+              2036,
+              1991
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 1820,
+            "vertices": [
+              1236,
+              1237,
+              1238
+            ]
+          }
+        ]
+      }
     },
     "original-dog": {
       "url": "dog/original-dog.glb",

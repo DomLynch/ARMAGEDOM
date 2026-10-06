@@ -102,12 +102,12 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
- if(g.pilot&&action==='slash'){const closest=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:RAT_LOW.range*p.combatScale,areaId:g.world.areaId});const rig=g.enemies.find(e=>e.id===closest?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?DOG_LOW:rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=closest.targetId;}}
+ if(g.pilot&&action==='slash'){const closest=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:RAT_LOW.range*p.combatScale,rangeOffset:target=>target.rig==='original-rat'&&target.contactGoalReach?target.radius:0,areaId:g.world.areaId});const rig=g.enemies.find(e=>e.id===closest?.targetId)?.rig;if(['original-rat','original-dog','original-roach'].includes(rig)){def=rig==='original-dog'?DOG_LOW:rig==='original-roach'?ROACH_LOW:RAT_LOW;lowTargetId=closest.targetId;}}
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
  const windupTicks=def.windupTicks??Math.floor(def.windup*60),range=def.range*(g.pilot?p.combatScale:1)+(g.pilot?R.walkSpeed*def.stepIn*Math.max(0,windupTicks-R.stepInFrom-1)/60:0);
  const nearest=['slash','stab','heavy'].includes(action);
- const selected=g.mobileAssistEnabled===false?null:selectCombatTarget({nearest,position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,rangeOffset:target=>target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,coneDegrees:45,areaId:g.world.areaId});
+ const selected=g.mobileAssistEnabled===false?null:selectCombatTarget({nearest,position:p.pos,aim:p.facing,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range,rangeOffset:target=>target.rig==='original-rat'&&target.contactGoalReach?target.radius:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,coneDegrees:45,areaId:g.world.areaId});
  if(selected&&nearest)p.facing={...selected.direction};
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;if(lowTargetId!==null)p.swing.lowTargetId=lowTargetId;}
  if(selected&&!nearest){p.swing.turnTo={...selected.direction};p.swing.assistUntil=g.time+Math.min(def.windup-1/60,8/60);}
@@ -315,7 +315,7 @@ export function initializeAreaResidents(g){
  const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
- if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.4,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0});}
+ if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.09,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.050307904880233});}
  if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,{rig:'original-roach',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.53,hp:20,maxHP:20,moveSpeed:1.8,recoveryDelay:0});}
  if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.77,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0});}
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
@@ -438,11 +438,11 @@ function ratEnemy(g,e,dt){
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  if(e.home&&residentPatrol(g,e,dt))return;
- const foot=g.ratContact?.foot(g,e);if(!foot)return;
+ const foot=e.contactGoalReach?g.ratContact?.calf(g,e):g.ratContact?.foot(g,e);if(!foot)return;
  const offset=sub(foot,e.pos),distance=mag(sub(g.player.pos,e.pos)),dir=normal(offset,e.facing);
- if(distance>.95||mag(offset)>.35||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,2.1,dt);return;}
+ if(distance>(e.contactGoalReach?e.radius+g.player.radius:.95)+EPS||mag(offset)>(e.contactGoalReach??.35)+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,2.1,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.06?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.06?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:e.contactGoalReach?e.radius+g.player.radius:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
 }
 function dogEnemy(g,e,dt){
  if(e.swing){knifeStepIn(g,e,dt);return;}

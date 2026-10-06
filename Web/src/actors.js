@@ -253,7 +253,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       return {
         capture:game=>{
           this.update(game,0,0,{presentationDt:0,contactOnly:true});const player=views.get(0);player.root.updateWorldMatrix(true,true);preparePlayer(player);const rats=new Map();
-          for(const e of game.enemies)if(['original-rat','original-dog','original-roach'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
+          for(const e of game.enemies)if(['original-rat','original-dog','original-roach'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
           return {player:player.footReceiver.capture(),playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
