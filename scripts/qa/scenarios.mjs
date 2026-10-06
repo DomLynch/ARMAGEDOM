@@ -13,7 +13,7 @@ export function verifyPackage(root,expected={}){
 }
 export function codeDigest(scenario){return sha([scenario.toString(),verifyCamera.toString(),installObserver.toString(),stage.toString(),readState.toString(),aimAt.toString(),legal.toString(),waitEvent.toString()].join('\n'));}
 export function reuseMatches(receipt,current){
- return receipt.status==='passed'&&['identity','stageHarnessHash','moduleHash','runnerHash','observerHash','dependencies','inputHash','environment','preconditions'].every(k=>stable(receipt[k])===stable(current[k]))&&fs.existsSync(receipt.rawOutputPath)&&sha(fs.readFileSync(receipt.rawOutputPath))===receipt.rawOutputSha256;
+ return receipt.status==='passed'&&['identity','stageHarnessHash','moduleHash','runnerHash','observerHash','dependencies','inputHash','environment','preconditions'].every(k=>receipt[k]!==undefined&&current[k]!==undefined&&stable(receipt[k])===stable(current[k]))&&fs.existsSync(receipt.rawOutputPath)&&sha(fs.readFileSync(receipt.rawOutputPath))===receipt.rawOutputSha256;
 }
 export async function stage(name,context,run){
  assert(/^[a-z0-9_.-]+$/i.test(name),'unsafe stage name');for(const key of ['identity','stageHarnessHash','moduleHash','runnerHash','observerHash','dependencies','inputHash','environment','preconditions','rawOutputPath','receiptDir'])assert(context[key]!==undefined,'missing '+key);
