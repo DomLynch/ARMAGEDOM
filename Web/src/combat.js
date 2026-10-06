@@ -1,3 +1,4 @@
+import {createBridgeSteering} from './bridge-steering.js';
 import {createMobileAimState,stepMobileAim} from './mobile-combat-aim.js';
 import {selectFinisher} from './finisher-selection.js';
 import {allocateMobSizes} from './mob-size-allocation.js';
@@ -173,7 +174,12 @@ function enemyTick(g,e,dt){if(g.pilot){knifeEnemy(g,e,dt);return;}if(e.hp<=0)ret
  if(t+EPS>=e.ready&&dot(e.facing,dir)>.96){const delay=e.kind===0?.4:e.kind===2?.65:1.05;e.swing={dir,pos:{...e.pos},start:t,hitAt:t+delay,end:t+delay+.28};event(g,'enemy-attack',{actor:e,dir,range:radius(e),arc:arc(e)});}
 }
 function turn(a,b,degrees){const cross=a.x*b.z-a.z*b.x,d=dot(a,b);const angle=Math.atan2(cross,d),limit=degrees*Math.PI/180;const theta=Math.sign(angle)*Math.min(Math.abs(angle),limit);return normal({x:a.x*Math.cos(theta)-a.z*Math.sin(theta),z:a.x*Math.sin(theta)+a.z*Math.cos(theta)});}
-function enemyMove(g,e,dir,speed,dt,backward=false){let delta={x:dir.x*speed*dt,z:dir.z*speed*dt},next=g.world.move(e.pos,delta,e.radius);
+function enemyMove(g,e,dir,speed,dt,backward=false){
+ if(g.areaResidents&&e.home&&e.alerted&&!backward){
+  const goal=g.player.pos,target=(g.bridgeSteering??=createBridgeSteering()).steer({world:g.world,actor:e,goal,time:g.time});
+  if(target!==goal)dir=normal(sub(target,e.pos),dir);
+ }else g.bridgeSteering?.reset(e);
+ let delta={x:dir.x*speed*dt,z:dir.z*speed*dt},next=g.world.move(e.pos,delta,e.radius);
  if(mag(sub(next,e.pos))<speed*dt*.25){const side={x:-dir.z,z:dir.x};delta={x:side.x*speed*dt,z:side.z*speed*dt};next=g.world.move(e.pos,delta,e.radius);if(mag(sub(next,e.pos))<speed*dt*.25)delta={x:-delta.x,z:-delta.z};dir=normal(delta);}
  e.facing=turn(e.facing,backward?{x:-dir.x,z:-dir.z}:dir,360*dt);const align=Math.max(0,dot(e.facing,backward?{x:-dir.x,z:-dir.z}:dir));moveBody(g,e,{x:dir.x*speed*dt*align,z:dir.z*speed*dt*align});
 }
