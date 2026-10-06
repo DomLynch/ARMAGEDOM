@@ -7,11 +7,11 @@ const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.re
 const encounter=createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1});
 function world(){return {areaId:'east',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};}
 const options={pilot:'donor-knife',encounter,rat:true,pistol:true,supplies:true,finishers:true,areaResidents:true,openingGroup:false};
-test('rat commits low frontal or original bite without retargeting its clip after height or facing changes',()=>{
- for(const [height,front,clip]of [[.051770188649450204,true,'rat_bite_low'],[.08,true,'rat_bite_low'],[.12,true,'rat_bite'],[.05,false,'rat_bite']]){
-  const g=createGame(world(),options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];Object.assign(rat,{pos:{x:.8,z:0},facing:{x:-1,z:0},home:null,alerted:true,ready:0});g.player.facing={x:front?1:-1,z:0};let footY=height;
+test('rat commits low or original native bite from actual foot height without retargeting its clip',()=>{
+ for(const [height,clip]of [[.051770188649450204,'rat_bite_low'],[.06,'rat_bite_low'],[.08,'rat_bite'],[.12,'rat_bite']]){
+  const g=createGame(world(),options),rat=g.enemies.find(e=>e.rig==='original-rat');g.enemies=[rat];Object.assign(rat,{pos:{x:.8,z:0},facing:{x:-1,z:0},home:null,alerted:true,ready:0});let footY=height;
   g.ratContact={capture:()=>null,foot:()=>({x:.48,y:footY,z:0})};stepGame(g);assert.equal(rat.swing.clip,clip);assert.equal(rat.swing.footGoalY,height);assert.equal(rat.swing.native,true);assert.equal(rat.swing.timing.windup,15);assert.equal(rat.swing.timing.active,6);assert.equal(rat.swing.timing.recovery,15);assert.equal(rat.swing.def.damage,6);
-  footY=height<=.08?.12:.05;g.player.facing={x:front?-1:1,z:0};stepGame(g);assert.equal(rat.swing.clip,clip,'pose remains committed through this bite');assert.equal(rat.swing.footGoalY,height);
+  footY=height<=.06?.12:.05;stepGame(g);assert.equal(rat.swing.clip,clip,'pose remains committed through this bite');assert.equal(rat.swing.footGoalY,height);
  }
 });
 test('recorded stationary frontal .8 case receives repeated actual lower tooth contacts',async t=>{
