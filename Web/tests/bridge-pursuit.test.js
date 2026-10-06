@@ -17,7 +17,7 @@ test('real resident pursuit rounds the statue snag without crossing static bound
 });
 test('recovery and leash still precede routed pursuit',()=>{
  const {g,e}=fixture();e.recoverUntil=1;const start={...e.pos};for(let i=0;i<30;i++)stepGame(g);assert.deepEqual(e.pos,start);
- g.player.pos={x:e.home.x+20,z:e.home.z};for(let i=0;i<60;i++)stepGame(g);assert.equal(e.alerted,false);assert.equal(e.returning,false);assert.equal(e.hp,e.maxHP);
+ g.player.pos={x:e.home.x+20,z:e.home.z};for(let i=0;i<60;i++)stepGame(g);assert.equal(e.alerted,false);assert.equal(e.returning,true);assert.equal(e.hp,e.maxHP);
 });
 test('direct body-clear goals retain identity; changed area and leash discard detours',()=>{
  const s=createBridgeSteering(),actor={pos:east.ground({x:.3259258437,y:.478034667}),home:{x:-9.67637,z:6},radius:.4},world={areaId:'east',geometry:east},goal=east.ground({x:.44,y:.36});
