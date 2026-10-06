@@ -221,6 +221,55 @@
       },
       "bytes": 715108,
       "sha256": "4aa89380963ea3523a3bea05427ae8b54cc0104e656a1ec42cfef5e18cbc7e83"
+    },
+    "original-dog": {
+      "url": "dog/original-dog.glb",
+      "rig": "original-dog",
+      "motion": "dog",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "dog_idle",
+        "walk": "dog_walk",
+        "run": "dog_run",
+        "hit": "dog_hit",
+        "death": "dog_death",
+        "attack": "dog_bite_calf"
+      },
+      "contact": {
+        "canines": [
+          {
+            "mesh": "Original_ARM_dog_surface_3",
+            "vertex": 32
+          },
+          {
+            "mesh": "Original_ARM_dog_surface_3",
+            "vertex": 76
+          }
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 3181,
+            "vertices": [
+              1186,
+              1201,
+              1200
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 1867,
+            "vertices": [
+              1305,
+              1307,
+              1308
+            ]
+          }
+        ]
+      },
+      "bytes": 711848,
+      "sha256": "7b2ee11b61a08966ad8c94615f80bcce0ced74148b52ae1f5ec59775f52e0a78"
     }
   },
   "files": {

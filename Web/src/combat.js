@@ -19,6 +19,8 @@ export const attacks={
 const RAT_LOW=Object.freeze({...KNIFE_MOVES.light_right,moveId:'rat_low',clip:'RatLowSlash',path:null,native:true,ratLow:true,windupTicks:20,activeTicks:6,recoveryTicks:28,windup:20/60,active:6/60,recovery:28/60,stepIn:0,knockback:0});
 const RAT_BITE=Object.freeze({...RAT_LOW,moveId:'rat_bite',clip:'rat_bite',ratLow:false,ratBite:true,windupTicks:15,activeTicks:6,recoveryTicks:15,windup:15/60,active:6/60,recovery:15/60,damage:6,staminaDamage:6,stamina:0,parryable:false,range:.95});
 const RAT_BITE_LOW=Object.freeze({...RAT_BITE,clip:'rat_bite_low'});
+const DOG_LOW=Object.freeze({...RAT_LOW,moveId:'dog_low'});
+const DOG_BITE=Object.freeze({...RAT_BITE,moveId:'dog_bite',clip:'dog_bite_calf',windupTicks:18,activeTicks:6,recoveryTicks:24,windup:18/60,active:6/60,recovery:24/60,damage:8,staminaDamage:8,range:1.17});
 const EPS=1e-8,mag=v=>Math.hypot(v.x,v.z),sub=(a,b)=>({x:a.x-b.x,z:a.z-b.z});
 export function normal(v,fallback={x:0,z:1}){const n=mag(v);return n>.001?{x:v.x/n,z:v.z/n}:{...fallback};}
 const validDirection=v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&mag(v)>.001;
@@ -39,6 +41,7 @@ export function createGame(world,options={}){
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
  if(options.rat)g.rat=true;
+ if(options.dog)g.dog=true;
  if(options.finishers&&g.pilot)g.finishers={maxHeads:options.finishers==='pistol-only'?0:2,recentRecipeId:null};
  if(options.mobileControls)g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));
  if(options.supplies)g.supplies=createSuppliesState();
@@ -78,7 +81,7 @@ function pistolIntent(g,intent){
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
    const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home){target.alerted=true;target.returning=false;}
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
-   if(target.hp<=0){target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
+   if(target.hp<=0){target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
@@ -96,7 +99,7 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
- if(g.pilot&&action==='slash'){const closest=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:RAT_LOW.range*p.combatScale,areaId:g.world.areaId});if(g.enemies.find(e=>e.id===closest?.targetId)?.rig==='original-rat'){def=RAT_LOW;lowTargetId=closest.targetId;}}
+ if(g.pilot&&action==='slash'){const closest=selectCombatTarget({nearest:true,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:RAT_LOW.range*p.combatScale,areaId:g.world.areaId});const rig=g.enemies.find(e=>e.id===closest?.targetId)?.rig;if(rig==='original-rat'||rig==='original-dog'){def=rig==='original-dog'?DOG_LOW:RAT_LOW;lowTargetId=closest.targetId;}}
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
  const windupTicks=def.windupTicks??Math.floor(def.windup*60),range=def.range*(g.pilot?p.combatScale:1)+(g.pilot?R.walkSpeed*def.stepIn*Math.max(0,windupTicks-R.stepInFrom-1)/60:0);
@@ -194,7 +197,7 @@ function mobileControl(g,intent,dt){
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>e.rig==='original-rat'&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -310,6 +313,7 @@ export function initializeAreaResidents(g){
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat&&area==='east'){const rat=residents.find(e=>e.placementKey==='east-roamer-7');if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.4,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0});}
+ if(g.dog&&area==='south'){const dog=residents.find(e=>e.placementKey==='south-roamer-8');if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:.77,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0});}
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
@@ -375,9 +379,9 @@ function knifeGuard(g,intent,swinging,dodging){
  }else if(p.parryUntil>t&& !intent.cancel){p.parryReleased=true;}
  if(p.parryReleased&&t+EPS>=p.parryUntil&&p.parryUntil>0){p.parryUntil=0;p.guardExposedUntil=t+R.parryRecovery/60;p.parryReleased=false;}
 }
-function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,weapon:attacker?.rig==='original-rat'?'teeth':'knife',material:attacker?.rig==='original-rat'?'flesh':'iron'};}
+function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,weapon:['original-rat','original-dog'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog'].includes(attacker?.rig)?'flesh':'iron'};}
 function knifeReceive(g,hit){
- const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.moveId==='rat_bite'?RAT_BITE:KNIFE_MOVES[hit.moveId];
+ const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:KNIFE_MOVES[hit.moveId];
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}
  const meta=hitMetadata(hit.attacker,p,def);let amount=hit.amount,blocked=false;
  if(p.guarding&&hit.block&&inside(p.facing,sub(hit.origin,p.pos),R.guardArc)){
@@ -409,6 +413,7 @@ function knifeStepIn(g,e,dt){
 function knifeEnemy(g,e,dt){
  if(e.hp<=0)return;
  if(e.rig==='original-rat'){ratEnemy(g,e,dt);return;}
+ if(e.rig==='original-dog'){dogEnemy(g,e,dt);return;}
  knifeEnergy(e,g.encounter?.regen??R.goblinRegen);
  knifeRegen(g,e,dt,!!e.swing||g.time<e.recoverUntil||g.time<e.staggerUntil);
  if(e.swing){knifeStepIn(g,e,dt);return;}
@@ -435,6 +440,15 @@ function ratEnemy(g,e,dt){
  e.facing=turn(e.facing,dir,360*dt);
  if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.06?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
 }
+function dogEnemy(g,e,dt){
+ if(e.swing){knifeStepIn(g,e,dt);return;}
+ if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
+ if(e.home&&residentPatrol(g,e,dt))return;
+ const offset=sub(g.player.pos,e.pos),distance=mag(offset);
+ if(distance>e.radius+g.player.radius+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,normal(offset),2.6,dt);return;}
+ const calf=g.ratContact?.calf(g,e);if(!calf)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',DOG_BITE);e.swing.calfGoal={...calf};e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...dir},range:1.17,arc:90,moveId:'dog_bite',clip:DOG_BITE.clip});}
+}
 function knifeContacts(g,before,ratBefore){
  const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[];
  for(const a of entities)if(a.swing)a.swing.ageTicks=Math.floor((g.time-a.swing.start)*60+EPS);
@@ -446,9 +460,9 @@ function knifeContacts(g,before,ratBefore){
    if(!s.activeEmitted){s.activeEmitted=true;event(g,'strike',{actor:a,action:s.action,dir:s.dir,range:s.def.range,moveId:s.moveId});}
    const targets=a===g.player?[...g.enemies].sort((a1,b1)=>mag(sub(a1.pos,a.pos))-mag(sub(b1.pos,a.pos))||a1.id-b1.id):[g.player];
    for(const d of targets){
-    if(s.def.ratLow&&(d.rig!=='original-rat'||d.id!==s.lowTargetId))continue;
+    if(s.def.ratLow&&(!['original-rat','original-dog'].includes(d.rig)||d.id!==s.lowTargetId))continue;
     if(d.hp<=0||s.hitIds.has(d.id)||s.action==='stab'&&s.hitIds.size||!g.world.lineClear(a.pos,d.pos))continue;
-    const hit=a.rig==='original-rat'||d.rig==='original-rat'?!!(ratBefore&&g.ratContact.hit(a,d,s,ratBefore,ratAfter))
+    const hit=['original-rat','original-dog'].includes(a.rig)||['original-rat','original-dog'].includes(d.rig)?!!(ratBefore&&g.ratContact.hit(a,d,s,ratBefore,ratAfter))
      :s.path?bladeContact(contactSnapshot(before.get(a.id)??after.get(a.id)),contactSnapshot(after.get(a.id)),before.get(d.id)??after.get(d.id),after.get(d.id),s.path,age-1,age)
      :age===s.def.windupTicks&&mag(sub(d.pos,a.pos))<=s.def.range*a.combatScale+EPS&&inside(s.dir,sub(d.pos,a.pos),90);
     if(hit){s.hitIds.add(d.id);contacts.push({a,d,def:s.def,s});}
@@ -463,7 +477,7 @@ function knifeContacts(g,before,ratBefore){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
   else{
    const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home){d.alerted=true;d.returning=false;}
-   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):(d.hp?Math.round(def.stagger*60):144)};
+   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):(d.hp?Math.round(def.stagger*60):144)};
    event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
    if(d.hp<=0)kill(g,d,{...hitMetadata(a,d,def),impactDirection:sub(after.get(d.id).pos,after.get(a.id).pos)});
