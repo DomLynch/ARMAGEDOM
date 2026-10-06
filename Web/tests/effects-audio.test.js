@@ -61,3 +61,13 @@ for (const interrupted of [false,true]) {
   } finally {effects.dispose();assert.equal(scene.children.length,0,'dispose must remove every owned effect and pistol group');}
  });
 }
+
+test('roach low strike and mandible bite stay on the ground-level animal effect path',()=>{
+ for(const [moveId,action,radius]of [['roach_low','slash',1.2],['roach_bite','bite',.6]]){
+  const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
+  fx.events({pilot:'donor-knife',time:1,events:[{type:'strike',actor:{...attacker,rig:'original-roach'},action,moveId,dir:attacker.facing}]});
+  const line=scene.children.find(o=>o.isLine),positions=line.geometry.attributes.position;
+  assert.equal(line.material.color.getHex(),0xe3e9ec);let maximum=0;for(let i=0;i<positions.count;i++){assert.ok(Math.abs(positions.getY(i)-.15)<1e-7);maximum=Math.max(maximum,Math.hypot(positions.getX(i),positions.getZ(i)));}assert.ok(Math.abs(maximum-radius)<1e-6);
+  fx.dispose();assert.equal(scene.children.length,0);
+ }
+});
