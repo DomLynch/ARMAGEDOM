@@ -1,3 +1,4 @@
+import {ratMeleePosePhase} from './rat-melee-definition.js';
 import {withPresentedRecipe} from './finisher-selection.js';
 import {createGauntShapeLibrary} from './gaunt-shape.js';
 import {createFeralBodyShapeLibrary} from './feral-body-shapes.js';
@@ -27,7 +28,7 @@ import { clone } from "three/addons/utils/SkeletonUtils.js";
 import {HOLLOW_GARMENTS,hollowPaletteFor,applyHollowPalette} from "./hollow-palette.js";
 import { ActorMotion } from "./motion.js";
 import {attachPistol,applyPistolAim} from "./pistol-pose.js";
-import { DonorMotion, equipDonorPlayer } from "./donor-motion.js";
+import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
@@ -303,7 +304,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           }
           const rats=new Map();
           for(const e of game.enemies)if(['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);if(view.drone){rats.set(e.id,{view,root:view.root.matrixWorld.clone()});continue;}const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
-          return {player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
+          const playerBlade=game.player.swing?.def.ratRetimed?[.12,.52].map(y=>player.model.getObjectByName('WeaponDrawn').localToWorld(point.set(0,y,0)).toArray()):null,playerBladePhase=playerBlade?ratMeleePosePhase(game.player.swing,donorSwingPhase):null;
+          return {playerBlade,playerBladePhase,player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
           const player=views.get(0);if(!player)return null;preparePlayer(player);let best=null,distance=Infinity;
@@ -321,7 +323,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
           if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,receiver=scaled?views.get(0).dogReceiver:views.get(0).footReceiver;return old&&now&&now.teeth.some((to,i)=>receiver.sweep(scaled?before.playerDog:before.player,scaled?after.playerDog:after.player,old.teeth[i],to).hit);}
           if(!['original-rat','original-dog','original-roach','low-hover-drone'].includes(d.rig)||!s.def.ratLow)return false;
-          const view=after.rats.get(d.id)?.view;if(!view)return false;const [from,to]=ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
+          const view=after.rats.get(d.id)?.view;if(!view||s.def.ratRetimed&&!after.playerBlade)return false;const [from,to]=s.def.ratRetimed?after.playerBlade:ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
           const meshes=[];view.model.traverse(m=>{if(visible(m)&&(view.drone?m.isMesh&&m.name==='ARM_Drone_Rigid_Frame':m.isSkinnedMesh)){if(m.isSkinnedMesh)m.computeBoundingSphere();else{m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();}meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
       };

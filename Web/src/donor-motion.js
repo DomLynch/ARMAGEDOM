@@ -1,3 +1,4 @@
+import {ratMeleePosePhase} from './rat-melee-definition.js';
 import * as THREE from 'three';
 
 // Native hand transform and per-player clip overrides; never mutate the cache.
@@ -54,7 +55,7 @@ export class DonorMotion{
   if(entity.hp<=0){this.sample(deathPose?.clip??this.description.clips.death,deathPose?.phase??(response?responseAge/(response.ticks/60):1));return;}
   if(time<entity.dodgeUntil){this.sample(this.description.clips.dodge,(time-entity.dodgeStart)/(entity.dodgeUntil-entity.dodgeStart));return;}
   const swing=entity.swing;
-  if(swing&&time<swing.end){this.sample(swing.clip,swing.native?(time-swing.start)/(swing.end-swing.start):donorSwingPhase(swing.ageTicks,swing.timing,swing.sourceContact));return;}
+  if(swing&&time<swing.end){this.sample(swing.clip,swing.native?(time-swing.start)/(swing.end-swing.start):ratMeleePosePhase(swing,donorSwingPhase));return;}
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}
   if(noTick)return; // Keep the sampled pose between fixed simulation ticks.
   const distance=delta.length(),speed=elapsed>0?distance/elapsed:0;
