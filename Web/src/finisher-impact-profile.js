@@ -1,12 +1,12 @@
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
 const rows={
-  decapitation:['cutting','head',16,2,.52,2.8,48],
-  'split-crown':['cutting','head',14,2,.48,2.4,65],
-  opened:['cutting','body',20,4,.60,3.0,70],
+  decapitation:['cutting','head',16,2,.52,3.3,48],
+  'split-crown':['cutting','head',14,2,.48,2.9,65],
+  opened:['cutting','body',20,4,.60,3.6,70],
   'run-through':['piercing','body',10,1,.42,2.5,16],
   'pistol-directional':['bullet','body',8,0,.34,2.6,20],
-  'pistol-decapitation':['bullet','head',16,2,.52,3.2,32],
+  'pistol-decapitation':['bullet','head',16,2,.52,3.8,32],
 };
 export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:.60});
 const palette=Object.freeze([0x650c1b,0x831428,0x430812]);
@@ -23,7 +23,7 @@ export function finisherImpactProfile(event,anchors){
     // ARM direction x/z -> render x/-z ONCE. Anchor is already render space.
     direction:Object.freeze({x:d.x/length,y:0,z:-d.z/length}),
     droplets:row[2],trails:row[3],lifetime:row[4],speed:row[5],spreadDegrees:row[6],
-    trailLifetime:.18,trailLength:.22,dropSize:.055,gravity:8,
+    trailLifetime:.18,trailLength:.22,dropSize:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:8,
     palette,depthTest:true,depthWrite:false,additive:false,bloom:false});
 }
 

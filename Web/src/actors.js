@@ -18,7 +18,7 @@ import lowClip from './rat-data/low-slash.json' with {type:'json'};
 import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
-import {createFinisherPresentation} from './finisher-presentation.js';
+import {createFinisherPresentation,finisherVictimPoseAge} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -362,7 +362,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
             const parts=view.finisher.stats();if(!parts.detached)entity.finisherHeadUntil=0;if(!parts.activePartCost)entity.finisherPartsUntil=0;
           }
           else view.finisherAge=Math.max(game.time-(entity.response?.start??game.time),view.finisherAge+Math.max(0,presentationDt));
-          view.finisher.update(view.finisherAge,presentationDt);deathPose=view.finisher.pose(view.finisherAge);entity.finisherPresentationAge=view.finisherAge;
+          view.finisher.update(view.finisherAge,presentationDt);view.finisherPoseAge=finisherVictimPoseAge(view.finisherAge,{enabled:feedbackMode!=='off'&&!reducedMotion(),restored:!!view.restoredCorpse});deathPose=view.finisher.pose(view.finisherPoseAge);entity.finisherPresentationAge=view.finisherAge;
           if(view.finisher.stats().expired){entity.finisherHeadUntil=0;entity.finisherPartsUntil=0;}
         }
         view.motion.update(

@@ -21,11 +21,12 @@ export async function cuttingKill(page,key,options={}){
  const second=await readState(page);assert(!second.enemies.some(e=>e.id===id));
  return{...setup,lethalPrerequisite,second};
 }
-export async function crownKill(page,{screenshotPath,keys=['westminster-roamer-1','westminster-roamer-3'],beforeLethal,preserveViewport=false}={}){
+export async function crownKill(page,{screenshotPath,keys=['westminster-roamer-1','westminster-roamer-3'],beforeLethal,afterLethal,preserveViewport=false}={}){
  await pause(page);const equipped=await stash(page),kills=[];
  for(const [i,key]of keys.entries()){
   const kill=await cuttingKill(page,key,i===1?{beforeLethal}:{});
   if(i===1){await waitSimulation(page,key=>{const q=__qa,e=q.game.corpses.find(e=>e.placementKey===key);return e&&q.actors.views.get(e.id)?.finisher?.stats().crownActive;},key,{seconds:2,label:'crown-actual-presentation-start'});
+   if(afterLethal)await afterLethal(page,key);
    if(screenshotPath){await page.setViewportSize({width:393,height:852});await page.waitForFunction(()=>__qa.world.width===393&&__qa.world.height===852);await page.screenshot({path:screenshotPath});}}
   await pause(page);const corpse=await inspect(page,key);assert.equal(corpse.hp,0);kills.push({...kill,corpse});
   if(i===0){assert.equal(corpse.recipe.recipeId,'ordinary');await resume(page);await legal(page);await equipPistol(page);await pause(page);}

@@ -5,6 +5,10 @@ import {prepareVictimGrounding} from './finisher-grounding.js';
 
 const HEAD_NAMES = ['Photo', 'PhotoEyes', 'PhotoTeeth'];
 const PART_LIFETIME = 6;
+// Brief victim pose emphasis. Detached-part physics and expiry use real age.
+export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
+  return enabled&&!restored ? age-.25*Math.min(.2,Math.max(0,age)) : age;
+}
 const ordinary = duration => ({id:'ordinary', clip:'Death', seconds:duration, cost:0, parts:[], prepared:true});
 const durationOf = (clips, name) => clips.find(c => c.name === name)?.duration;
 const validDuration = n => Number.isFinite(n) && n > 0;
