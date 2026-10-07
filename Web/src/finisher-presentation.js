@@ -100,7 +100,7 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=[], bone=model.getObjectByName('Head');
   let runGrounding=null,runPreparationError=null;const runScale=new T.Vector3();
-  if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=prepareVictimGrounding({model,root,clip:clips.find(c=>c.name==='Death_RunThrough')});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
+  if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=typeof prepareRunThrough==='function'?prepareRunThrough({model,root,clip:clips.find(c=>c.name==='Death_RunThrough')}):prepareVictimGrounding({model,root,clip:clips.find(c=>c.name==='Death_RunThrough')});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
   let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
   if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
     try{head=snapshotHead(model,bone,maxVertices);}catch(error){preparationError=error.message;}
