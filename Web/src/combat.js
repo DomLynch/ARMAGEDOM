@@ -1,3 +1,4 @@
+import {gauntHumanRecipe} from './gaunt-human-bindings.js';
 import {resolveResidentIntent,canWakeResident,recoveryMovement,observeResidentCompanions} from './creature-behaviour-intents.js';
 import {animalPlacement} from './animal-cycle.js';
 import {AREA_DRONE_SPAWNS} from './area-drone-spawns.js';
@@ -347,6 +348,7 @@ export function initializeAreaResidents(g){
   if(g.animalCycle==='A'&&area==='east'&&e.placementKey==='east-roamer-4'&&recipe==='dog-pack-chaser'&&rig==='original-dog')e.residentIntent=PACK_CHASER;
   e.pos={x:e.pos.x+offset.x,z:e.pos.z+offset.z};e.home={...e.pos};e.patrol=e.patrol.map(p=>({x:p.x+offset.x,z:p.z+offset.z}));
  }
+ for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
  if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(enemy(0,placement.pos),{rig:'low-hover-drone',areaId:area,placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false,weapon:'bolt',radius:DRONE_RULES.radius,hp:DRONE_RULES.hp,maxHP:DRONE_RULES.hp,moveSpeed:DRONE_RULES.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}

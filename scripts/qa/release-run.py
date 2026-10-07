@@ -39,7 +39,7 @@ try:
     for f in source['files']:
         p=root/f['path']
         if p.stat().st_size!=f['bytes'] or hashlib.sha256(p.read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Frozen input mismatch: '+f['path'])
-    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle','portrait-dodge','drone-melee','pack-chaser','qa-readiness']:raise RuntimeError('Prepare selected browser profile before submission')
+    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle','portrait-dodge','drone-melee','pack-chaser','qa-readiness','gaunt-body']:raise RuntimeError('Prepare selected browser profile before submission')
     run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows','portraitDodge','droneMeleeInput','dronePistolControl','preflightCompiled','ordinaryInput','equipPistol','inputReadinessScenario'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
     run('install',['npm','ci','--no-audit','--no-fund'],root/'Web')
     if config.get('sourceReuse'):

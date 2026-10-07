@@ -1,3 +1,4 @@
+import {createGauntShapeLibrary} from './gaunt-shape.js';
 import {createFeralBodyShapeLibrary} from './feral-body-shapes.js';
 import {createRoachAppearanceLibrary} from './roach-appearance.js';
 import {createLowHoverDroneLibrary} from './low-hover-drone.js';
@@ -117,6 +118,9 @@ function shadowTexture() {
 }
 export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   const bodyShapes=createFeralBodyShapeLibrary(),roachLooks=createRoachAppearanceLibrary(THREE),droneKits=createLowHoverDroneLibrary(),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
+  const gauntKits=new Map(),humanFoundation=library.models.get('hollow-scavenger')?.gltf.scene;
+  let gauntPreparationError=null;
+  if(humanFoundation?.getObjectByName('Hollow_body_and_worn_trousers'))try{gauntKits.set(humanFoundation,createGauntShapeLibrary(humanFoundation));}catch(error){gauntPreparationError=String(error.message??error);}
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const views = new Map(),
@@ -196,6 +200,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
       appearance=faceKits.get(source.gltf.scene).apply(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
     }
+    const humanBodyRequest=entity.kind>=0&&entity.rig==='hollow-scavenger'?entity.humanBodyRecipe:null;
+    const humanBody=humanBodyRequest==='human-gaunt-skulker'?gauntKits.get(source.gltf.scene)?.apply(model)??null:null;
+    const humanBodyRecipe=humanBody?humanBodyRequest:null;
     const flashMaterials=[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone()}));
     const shadow = new THREE.Mesh(
       shadowGeometry,
@@ -214,7 +221,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       model,
       shadow,
       motion: null,
-      materials,appearance,feral,bodyShape,flashMaterials,
+      materials,appearance,feral,bodyShape,humanBody,humanBodyRecipe,humanBodyRequest,flashMaterials,
       entity,
       description,
       locomotionVariant: hollowLocomotionFor(entity),
@@ -248,7 +255,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
     view.pistolSlide.dispose();
-    view.appearance?.dispose();view.bodyShape?.dispose();view.feral?.dispose();
+    view.appearance?.dispose();view.humanBody?.dispose();view.bodyShape?.dispose();view.feral?.dispose();
     view.vest?.dispose();
     view.motion?.dispose();
     const skeletons = new Set();
@@ -264,6 +271,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
+    humanBodyStats(){return {libraries:[...gauntKits.values()].map(kit=>kit.stats()),preparationError:gauntPreparationError};},
     ratContact(){
       const point=new THREE.Vector3(),ray=new THREE.Raycaster();
       function preparePlayer(view){
@@ -391,6 +399,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       shadowMap.dispose();
       for(const kit of faceKits.values())kit.dispose();
       faceKits.clear();
+      for(const kit of gauntKits.values())kit.dispose();
+      gauntKits.clear();
       animalLooks.dispose();dogCoats.dispose();bodyShapes.dispose();roachLooks.dispose();
       for(const kit of dogKits.values())kit.dispose();
       dogKits.clear();
