@@ -1,4 +1,3 @@
-import {prepareVictimGrounding} from './finisher-grounding.js';
 import {withPresentedRecipe} from './finisher-selection.js';
 import {createGauntShapeLibrary} from './gaunt-shape.js';
 import {createFeralBodyShapeLibrary} from './feral-body-shapes.js';
@@ -245,11 +244,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareRunThrough:(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through')&&(({model,root,clip})=>{
-          // The death sampler uses the native pose; the live Crooked overlay is restored around preparation only.
-          const motion=view.motion,name=motion.currentClip,phase=motion.currentPhase??0;motion.restore?.();
-          try{return prepareVictimGrounding({model,root,clip});}finally{motion.sample(name,phase);}
-        }),prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[world.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[world.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
