@@ -1,3 +1,4 @@
+import {withPresentedRecipe} from './finisher-selection.js';
 import {createGauntShapeLibrary} from './gaunt-shape.js';
 import {createFeralBodyShapeLibrary} from './feral-body-shapes.js';
 import {createRoachAppearanceLibrary} from './roach-appearance.js';
@@ -35,6 +36,12 @@ import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from './face-reci
 import {allocateFaceRecipes} from './face-allocator.js';
 const residentFaces=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});
 const names = ["revenant", "orc", "warlock", "warlord"];
+// Keep an already-presented corpse age through registered area reconstruction.
+export function finisherPresentationAge(entity,time){
+ const elapsed=Math.max(0,time-(entity.response?.start??time)),shown=entity.finisherPresentationAge;
+ return Math.max(elapsed,Number.isFinite(shown)&&shown>=0?shown:0);
+}
+
 export async function loadActors(
   baseUrl,
   onProgress = () => {},
@@ -237,7 +244,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[world.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -346,16 +353,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         let deathPose=null;
         if(!contactOnly&&entity.hp<=0&&view.finisher&&entity.finisher){
           if(!view.finisherStarted){
-            const recipe=view.finisher.start(entity.finisher);view.finisherStarted=true;view.finisherAge=Math.max(0,game.time-(entity.response?.start??game.time));
+            view.finisherRequestedRecipeId=entity.finisher.recipeId;const recipe=view.finisher.start(entity.finisher),chosen=entity.finisher;entity.finisher=withPresentedRecipe(chosen,recipe);if(entity.finisher!==chosen&&game.finishers?.lastVictimId===entity.id)game.finishers.recentRecipeId=recipe.id;view.finisherStarted=true;view.finisherAge=finisherPresentationAge(entity,game.time);
             if(view.restoredCorpse&&recipe.cost>0){
               if(view.finisherAge>=6)view.finisher.update(view.finisherAge,0);
               else for(let age=0;age<view.finisherAge;){const step=Math.min(1/60,view.finisherAge-age);age+=step;view.finisher.update(age,step);}
               entity.finisherPartsUntil=game.time+Math.max(0,6-view.finisherAge);if(recipe.parts.includes('head'))entity.finisherHeadUntil=entity.finisherPartsUntil;
             }
-            const parts=view.finisher.stats();if(!parts.detached)entity.finisherHeadUntil=0;if(!parts.detached&&!parts.crownActive)entity.finisherPartsUntil=0;
+            const parts=view.finisher.stats();if(!parts.detached)entity.finisherHeadUntil=0;if(!parts.activePartCost)entity.finisherPartsUntil=0;
           }
           else view.finisherAge=Math.max(game.time-(entity.response?.start??game.time),view.finisherAge+Math.max(0,presentationDt));
-          deathPose=view.finisher.pose(view.finisherAge);view.finisher.update(view.finisherAge,presentationDt);
+          view.finisher.update(view.finisherAge,presentationDt);deathPose=view.finisher.pose(view.finisherAge);entity.finisherPresentationAge=view.finisherAge;
           if(view.finisher.stats().expired){entity.finisherHeadUntil=0;entity.finisherPartsUntil=0;}
         }
         view.motion.update(

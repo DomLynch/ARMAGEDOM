@@ -43,3 +43,10 @@ export function selectFinisher(context,{support=[],budget=0,ordinal=0,recentReci
     clip:selected.clip,seconds:selected.seconds,cost:selected.cost,parts:[...selected.parts],
     impactDirection:impact,hitRegion:typeof context.hitRegion==='string'&&context.hitRegion.trim()?context.hitRegion:null};
 }
+
+// Presentation may reject a cosmetic recipe at the actual registered death point.
+// Retain the confirmed victim/damage identity; reconcile only rendered recipe cost.
+export function withPresentedRecipe(outcome,recipe){
+ if(outcome.recipeId===recipe.id)return outcome;
+ return {...outcome,recipeId:recipe.id,clip:recipe.clip,seconds:recipe.seconds,cost:recipe.cost,parts:[...recipe.parts]};
+}

@@ -131,3 +131,8 @@ test('cosmetic gun head is scheduled once per five total kills; fallback and rep
  for(const row of [{...gunHead,prepared:false},{...gunHead,parts:[]},{...gunHead,seconds:NaN}])
   assert.equal(choose(context,{support:[row],ordinal:1}).recipeId,'ordinary');
 });
+
+test('registered-space presentation fallback preserves lethal identity and reconciles cost without mutating selection',async()=>{
+ const {withPresentedRecipe}=await import('../src/finisher-selection.js');const chosen={version:1,victimId:7,recipeId:'opened',damageType:'cutting',clip:'Death_SplitCrown',seconds:1,cost:1,parts:['upper-body'],impactDirection:{x:1,z:0},hitRegion:null},before=JSON.stringify(chosen);
+ const actual=withPresentedRecipe(chosen,{id:'ordinary',clip:'Death',seconds:2.4,cost:0,parts:[]});assert.equal(actual.victimId,7);assert.equal(actual.damageType,'cutting');assert.deepEqual(actual.impactDirection,chosen.impactDirection);assert.deepEqual([actual.recipeId,actual.clip,actual.seconds,actual.cost,actual.parts],['ordinary','Death',2.4,0,[]]);assert.equal(JSON.stringify(chosen),before);assert.equal(withPresentedRecipe(chosen,{id:'opened'}),chosen);
+});

@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {prepareSplitCrown} from './finisher-crown.js';
+import {prepareOpened as prepareOpenedBody} from './finisher-opened.js';
 
 const HEAD_NAMES = ['Photo', 'PhotoEyes', 'PhotoTeeth'];
 const PART_LIFETIME = 6;
@@ -93,22 +94,23 @@ function snapshotHead(model, bone, maxVertices) {
 // damage/rewards/removal and clip sampling. ARM x/z direction is converted only
 // for detached render-space motion. One actor, one head, finite lifetime.
 export function createFinisherPresentation({root,model,clips,scene,groundY=0,isBlocked,
-  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000}={}) {
+  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000}={}) {
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=[], bone=model.getObjectByName('Head');
-  let head=null, crown=null, crownActive=false, crownPreparationError=null, preparationError=null;
+  let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
   if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
     try{head=snapshotHead(model,bone,maxVertices);}catch(error){preparationError=error.message;}
   }
   if(!isPlayer&&validDuration(death)&&validDuration(hit)) support.push({id:'pistol-directional',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:0,parts:[],prepared:true});
   if(head&&validDuration(hit))support.push({id:'pistol-decapitation',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
   if(head&&prepareCrown&&validDuration(cut)){try{crown=prepareSplitCrown(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
+  if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=prepareOpenedBody({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
-  function expire(){if(expired)return;expired=true;head?.group.removeFromParent();crown?.group.removeFromParent();}
+  function expire(){if(expired)return;expired=true;head?.group.removeFromParent();crown?.group.removeFromParent();opened?.group.removeFromParent();if(openedActive){for(const[node,value]of visible)node.visible=value;openedActive=false;}}
   return {
     support,
     start(outcome) {
@@ -116,7 +118,8 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
       const candidate=support.find(s=>s.id===outcome?.recipeId);
       const eligible=direction&&candidate&&(candidate.id.startsWith('pistol-')?outcome.damageType==='bullet':outcome.damageType==='cutting');
-      recipe=eligible?candidate:ordinary(validDuration(death)?death:2.4);
+      recipe=eligible&&!(candidate.id==='opened'&&!opened.canStart())?candidate:ordinary(validDuration(death)?death:2.4);
+      if(recipe.id==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
       if(recipe.id==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
       if(recipe.parts.includes('head')) {
         root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
@@ -132,17 +135,19 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
     },
     pose(age) {
       const elapsed=Math.max(0,Number.isFinite(age)?age:0);
+      if(expired&&recipe.id==='opened')return{clip:'Death',phase:.999999,offset:{x:0,z:0}};
       if(recipe.reactionClip==='Hit'&&elapsed<hit) {
         const amount=.1*Math.sin(Math.PI*elapsed/hit), proposed={x:direction.x*amount,z:direction.z*amount};
         const origin={x:root.position.x,z:-root.position.z};
         const offset=typeof isBlocked==='function'&&!isBlocked({x:origin.x+proposed.x,z:origin.z+proposed.z},.2)?proposed:{x:0,z:0};
         return {clip:'Hit',phase:Math.min(.999999,elapsed/hit),offset};
       }
-      const offset={x:0,z:0}, clip=recipe.clip, clipSeconds=['decapitation','split-crown'].includes(recipe.id)?cut:death;
+      const offset={x:0,z:0}, clip=recipe.clip, clipSeconds=['decapitation','split-crown','opened'].includes(recipe.id)?cut:death;
       return {clip,phase:Math.min(.999999,Math.max(0,elapsed-(recipe.reactionClip==='Hit'?hit:0))/clipSeconds),offset};
     },
     update(age,dt) {
       if(disposed||expired)return;
+      if(openedActive){if(age>=PART_LIFETIME){expire();return;}if(age>=.045){if(!openedShown){for(const node of opened.nodes){visible.push([node,node.visible]);node.visible=false;}openedShown=true;opened.group.visible=true;}opened.update(T.MathUtils.clamp(age/cut,0,1));}return;}
       if(crownActive){if(age>=PART_LIFETIME){expire();return;}const t=T.MathUtils.clamp((age-.045)/.12,0,1);crown.open(t*t*(3-2*t));return;}
       if(!detached)return;
       if(age>=PART_LIFETIME){expire();return;}
@@ -159,7 +164,7 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
         head.group.matrix.setPosition(head.group.position);head.group.matrixWorldNeedsUpdate=true;
       }
     },
-    stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null};},
-    dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
+    stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},
+    dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;opened?.dispose();opened=null;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
   };
 }

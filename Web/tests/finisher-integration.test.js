@@ -60,3 +60,7 @@ test('generic crown cost consumes the same finite budget as existing heads and e
   const g=fixture();g.kills=1;g.corpses=[{id:999,finisherPartsUntil:partsUntil,finisher:{cost,parts:['crown']}}];const e=victim(g);e.finisherSupport=[{id:'split-crown',clip:'Death_SplitCrown',seconds:1,cost:1,parts:['crown'],prepared:true}];assert(attack(g,'slash',{x:0,z:1}));for(let i=0;i<20;i++)stepGame(g);assert.equal(e.finisher.recipeId,expected);if(expected==='ordinary')assert.equal(e.finisherPartsUntil,undefined);
  }
 });
+
+test('Opened reserves generic cost with no detached-head alias and tracks the latest confirmed victim',()=>{
+ for(const occupied of [0,2]){const g=fixture();g.kills=1;g.corpses=occupied?[{id:999,finisherPartsUntil:100,finisher:{cost:2}}]:[];const e=victim(g);e.finisherSupport=[{id:'opened',clip:'Death_SplitCrown',seconds:1,cost:1,parts:['upper-body'],prepared:true}];assert(attack(g,'slash',{x:0,z:1}));for(let i=0;i<20;i++)stepGame(g);assert.equal(e.finisher.recipeId,occupied?'ordinary':'opened');assert.equal(g.finishers.lastVictimId,e.id);assert.equal(e.finisherHeadUntil,undefined);assert.equal(g.kills,2);if(!occupied)assert(e.finisherPartsUntil>g.time);}
+});
