@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,stepGame,attack} from '../src/combat.js';
 import {travelTo} from '../src/travel.js';
+import {droneHoverHeight} from '../src/drone-mechanics.js';
 import {encodeRun,restoreRun,applySavedRun} from '../src/pistol-save.js';
 const encounter={id:'hollow-scavengers',character:{rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1}};
 function fixture(area='westminster'){
@@ -19,7 +20,7 @@ test('adds one drone per area, preserves ground keys and parked warning duration
 test('warning freezes on pause, commits one real bolt after .6s and damages once through projectile authority',()=>{
  const g=fixture(),e=solo(g);ticks(g,1);const origin={...e.pos},clock=g.time;const release=e.droneState.warning.releaseAt;
  ticks(g,100,{paused:true});assert.equal(g.time,clock);assert.equal(g.bolts.length,0);assert.equal(e.droneState.warning.releaseAt,release);
- ticks(g,35);assert.equal(g.bolts.length,0);assert.deepEqual(e.pos,origin);ticks(g,1);assert.equal(g.bolts.length,1);assert.equal(g.bolts[0].amount,6);
+ ticks(g,35);assert.equal(g.bolts.length,0);assert.deepEqual(e.pos,origin);ticks(g,1);assert.equal(g.bolts.length,1);assert.equal(g.bolts[0].amount,6);assert.equal(g.bolts[0].height,droneHoverHeight(g.time));
  ticks(g,14);assert.equal(g.player.hp,144);assert.equal(g.bolts.length,0);assert.equal(e.droneState.phase,'recover');ticks(g,30);assert.equal(g.player.hp,144);
 });
 test('cover cancels the committed bolt and hurt resets warning without a catchup burst',()=>{
@@ -35,7 +36,7 @@ test('pistol death credits once, persists all three area keys, filters cold rest
  const g=fixture(),old=JSON.parse(encodeRun(g));delete old.droneDeaths;assert.deepEqual(restoreRun(g,JSON.stringify(old)).droneDeaths,[]);
  for(const keys of [['unknown'],['east-drone-1','east-drone-1'],null]){old.droneDeaths=keys;assert.equal(restoreRun(g,JSON.stringify(old)),null);}
 });
-test('ordinary Slash selects native Low once for the drone and never grants a hit without actual contact',()=>{
+test('ordinary Slash selects native Mid once for the drone and never grants a hit without actual contact',()=>{
  const g=fixture(),e=solo(g);g.player.pos={x:e.pos.x,z:e.pos.z-.95};e.recoverUntil=100;
- assert.equal(attack(g,'slash',{x:0,z:1}),true);assert.equal(g.player.swing.moveId,'drone_low');assert.equal(g.player.swing.lowTargetId,e.id);assert.equal(g.player.swing.clip,'RatLowSlash');ticks(g,54);assert.equal(e.hp,20);
+ assert.equal(attack(g,'slash',{x:0,z:1}),true);assert.equal(g.player.swing.moveId,'drone_low');assert.equal(g.player.swing.lowTargetId,e.id);assert.equal(g.player.swing.clip,'DogMidSlash');ticks(g,54);assert.equal(e.hp,20);
 });

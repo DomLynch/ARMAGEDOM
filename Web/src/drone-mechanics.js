@@ -1,6 +1,7 @@
 // One finite phase selector for existing resident movement + projectile authority.
-export const DRONE_RULES=Object.freeze({hp:20,radius:.55,moveSpeed:1.6,wakeDistance:6,homeLeash:12,
+export const DRONE_RULES=Object.freeze({hoverHeight:.90,hp:20,radius:.55,moveSpeed:1.6,wakeDistance:6,homeLeash:12,
  attackRange:3,warningSeconds:.6,recoverySeconds:1.4,damage:6,boltSpeed:8,boltRange:6});
+export const droneHoverHeight=time=>DRONE_RULES.hoverHeight+Math.sin(time*3)*.025;
 export const DRONE_KEYS=Object.freeze({'westminster-drone-1':'westminster','east-drone-1':'east','south-drone-1':'south'});
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const live=a=>a&&Number.isFinite(a.hp)&&a.hp>0&&point(a.pos);
@@ -17,7 +18,7 @@ export function droneIntent(state,{time,areaId,actor,player,lineClear,hurt=false
   if(time+1e-8<w.releaseAt)return out(state,'warning');
   const next={phase:'recover',readyAt:time+DRONE_RULES.recoverySeconds,warning:null};
   if(!lineClear(actor.pos,player.pos)||!lineClear(w.origin,w.target))return out(next,'recover');
-  return out(next,'emit-bolt',{bolt:{pos:copy(w.origin),dir:copy(w.direction),amount:DRONE_RULES.damage,
+  return out(next,'emit-bolt',{bolt:{pos:copy(w.origin),dir:copy(w.direction),amount:DRONE_RULES.damage,height:droneHoverHeight(time),
    expires:time+DRONE_RULES.boltRange/DRONE_RULES.boltSpeed}});
  }
  if(time+1e-8<state.readyAt)return out({...state,phase:'recover'},'recover');

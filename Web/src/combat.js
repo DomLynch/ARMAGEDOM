@@ -25,7 +25,7 @@ const PACK_CHASER=resolveResidentIntent('dog-pack-chaser',{behaviourCapabilities
 const RAT_LOW=Object.freeze({...KNIFE_MOVES.light_right,moveId:'rat_low',clip:'RatLowSlash',path:null,native:true,ratLow:true,windupTicks:20,activeTicks:6,recoveryTicks:28,windup:20/60,active:6/60,recovery:28/60,stepIn:0,knockback:0});
 const RAT_BITE=Object.freeze({...RAT_LOW,moveId:'rat_bite',clip:'rat_bite',ratLow:false,ratBite:true,windupTicks:15,activeTicks:6,recoveryTicks:15,windup:15/60,active:6/60,recovery:15/60,damage:6,staminaDamage:6,stamina:0,parryable:false,range:.95});
 const RAT_BITE_LOW=Object.freeze({...RAT_BITE,clip:'rat_bite_low'});
-const droneLow=def=>({...RAT_LOW,moveId:'drone_low',damage:def.damage,stamina:def.stamina,staminaDamage:def.staminaDamage,stagger:def.stagger,cooldown:def.cooldown});
+const droneLow=def=>({...RAT_LOW,clip:'DogMidSlash',moveId:'drone_low',damage:def.damage,stamina:def.stamina,staminaDamage:def.staminaDamage,stagger:def.stagger,cooldown:def.cooldown});
 const ROACH_LOW=Object.freeze({...RAT_LOW,moveId:'roach_low'});
 const ROACH_BITE=Object.freeze({...RAT_BITE,moveId:'roach_bite',clip:'roach_bite',damage:4,staminaDamage:4,range:.93});
 const ROACH_BITE_SCALED=Object.freeze({...ROACH_BITE,clip:'roach_bite_scaled'});

@@ -1,8 +1,9 @@
+import {DRONE_RULES,droneHoverHeight} from './drone-mechanics.js';
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // One original shared foundation; metres/render-space. Presentation owns no damage,
 // AI/pathfinding, reward, save, projectile or actor-scale authority.
-export const DRONE_SUPPORT=Object.freeze({id:'low-hover-watcher',procedural:true,rig:null,clips:[],states:Object.freeze(['idle','patrol','alert','attack','death']),hoverHeight:.45,bodyBand:Object.freeze([.24,.64]),movementRadius:.55,attackWarningSeconds:.6,deathSeconds:.8,finisher:'ordinary',melee:'Requires Combat actual blade/body validation; no immunity or headshot claim'});
+export const DRONE_SUPPORT=Object.freeze({id:'low-hover-watcher',procedural:true,rig:null,clips:[],states:Object.freeze(['idle','patrol','alert','attack','death']),hoverHeight:DRONE_RULES.hoverHeight,bodyBand:Object.freeze([DRONE_RULES.hoverHeight-.21,DRONE_RULES.hoverHeight+.19]),movementRadius:.55,attackWarningSeconds:.6,deathSeconds:.8,finisher:'ordinary',melee:'Requires Combat actual blade/body validation; no immunity or headshot claim'});
 export function createLowHoverDroneLibrary(){
  const pieces=[];const add=(g,color,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(x,y,z);const c=new T.Color(color),a=new Float32Array(g.attributes.position.count*3);for(let i=0;i<a.length;i+=3){a[i]=c.r;a[i+1]=c.g;a[i+2]=c.b}g.setAttribute('color',new T.BufferAttribute(a,3));pieces.push(g)};
  add(new T.BoxGeometry(.56,.24,.38),0x9b9c91);add(new T.BoxGeometry(.44,.025,.25),0x55574f,0,.132,0);add(new T.BoxGeometry(.28,.026,.06),0xb27d32,0,.15,.05);
@@ -19,7 +20,7 @@ export function createLowHoverDroneLibrary(){
    for(const x of [-.28,.28])for(const z of [-.18,.18]){const rotor=new T.Mesh(blade,bladeMat);rotor.position.set(x,.066,z);root.add(rotor);rotors.push(rotor)}
    const eyeMat=new T.MeshBasicMaterial({color:0x829885}),warnMat=new T.MeshBasicMaterial({color:0xe0a537,transparent:true,opacity:.7,depthWrite:false});const eye=new T.Mesh(sensor,eyeMat);eye.position.set(0,-.15,.229);root.add(eye);const warning=new T.Mesh(halo,warnMat);warning.rotation.x=Math.PI/2;warning.visible=false;scene.add(root,warning);users++;let released=false,state='idle';
    function update({time=0,dt=0,state:next='idle',phase=0,position:point=position,heading:yaw=heading}={}){
-    if(released)return;if(!DRONE_SUPPORT.states.includes(next)||![time,dt,phase,point.x,point.z,yaw].every(Number.isFinite)||dt<0)throw Error('Invalid drone presentation state');state=next;const p=T.MathUtils.clamp(phase,0,1),dead=state==='death';root.position.set(point.x,groundY+(dead?T.MathUtils.lerp(.45,.36,p):.45+Math.sin(time*3)*.025),point.z);root.rotation.set(dead?p*.55:Math.sin(time*2)*.025,yaw,dead?p*-.25:0);
+    if(released)return;if(!DRONE_SUPPORT.states.includes(next)||![time,dt,phase,point.x,point.z,yaw].every(Number.isFinite)||dt<0)throw Error('Invalid drone presentation state');state=next;const p=T.MathUtils.clamp(phase,0,1),dead=state==='death';root.position.set(point.x,groundY+(dead?T.MathUtils.lerp(DRONE_RULES.hoverHeight,.36,p):droneHoverHeight(time)),point.z);root.rotation.set(dead?p*.55:Math.sin(time*2)*.025,yaw,dead?p*-.25:0);
     for(const rotor of rotors)rotor.rotation.y=dead?rotor.rotation.y:time*(state==='patrol'?26:20);
     eyeMat.color.setHex(dead?0x313531:state==='alert'||state==='attack'?0xe6a340:0x829885);
     warning.visible=state==='alert';warning.position.set(point.x,groundY+.035,point.z);warning.scale.setScalar(.84+.16*p);warnMat.opacity=.4+.35*Math.sin(Math.PI*p);return{state,bodyBand:DRONE_SUPPORT.bodyBand,warningVisible:warning.visible};

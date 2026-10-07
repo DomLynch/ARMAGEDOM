@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {loadGeometry} from '../../art/donor/probe.mjs';import {createActors} from '../src/actors.js';import {disposeActorSources} from '../src/actor-resources.js';import {createGame,stepGame,attack} from '../src/combat.js';
 const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
-test('existing actor Low contact hits actual rigid drone frame, misses far body, and owns lifecycle',async t=>{
+test('existing actor Mid contact hits actual rigid drone frame, misses far body, and owns lifecycle',async t=>{
  const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
  const description=manifest.models.vagrant,gltf=await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment=await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)));
  const world={areaId:'westminster',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};
