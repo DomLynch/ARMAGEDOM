@@ -4,7 +4,8 @@ import {createGame,stepGame,enemy} from '../src/combat.js';
 import {createEffects} from '../src/effects.js';
 const tick=(g,i={})=>stepGame(g,i,1/60);
 function fixture(){
- const world={areaId:'westminster',spawn:{x:0,z:-6},layout:{characterScale:1.265},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
+ const camera=new THREE.PerspectiveCamera();camera.position.set(0,10,20);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+ const world={camera,areaId:'westminster',spawn:{x:0,z:-6},layout:{characterScale:1.265},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const g=createGame(world,{pilot:'donor-knife',pistol:true});tick(g,{actions:['pickup']});
  const e=Object.assign(enemy(0,{x:2,z:-2}),{staggerUntil:100});g.enemies=[e];g.wave=1;return {g,e,world};
 }

@@ -6,10 +6,11 @@ import * as THREE from 'three';
 import {createEffects} from '../src/effects.js';
 import {createGame,enemy,attack,stepGame} from '../src/combat.js';
 let audio={};try{audio=await import('../src/donor-audio.js');}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;}
+const camera=new THREE.PerspectiveCamera();camera.position.set(0,10,20);camera.lookAt(0,0,0);camera.updateMatrixWorld();
 const attacker={id:1,pos:{x:0,z:0},facing:{x:0,z:1},combatScale:1.265};
 test('donor Pommel is a close forward effect; legacy Special remains a shockwave',()=>{
  for(const donor of [false,true]) {
-  const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
+  const scene=new THREE.Scene(),fx=createEffects(scene,{camera,toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
   fx.events({pilot:donor?'donor-knife':undefined,time:1,events:[{type:'strike',actor:attacker,action:'special',moveId:donor?'skill_pommel':undefined,dir:attacker.facing,range:1.3}]});
   const positions=scene.children.find(o=>o.isLine).geometry.attributes.position;let radius=0;
   for(let i=0;i<positions.count;i++){radius=Math.max(radius,Math.hypot(positions.getX(i),positions.getZ(i)));if(donor)assert.ok(positions.getZ(i)<0,'Pommel sweeps behind attacker');}
@@ -17,7 +18,7 @@ test('donor Pommel is a close forward effect; legacy Special remains a shockwave
  }
 });
 test('donor impact uses victim ground metadata instead of attacker identity',()=>{
- const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
+ const scene=new THREE.Scene(),fx=createEffects(scene,{camera,toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
  const victim={id:2,pos:{x:3,z:4},facing:{x:0,z:-1}};
  fx.events({pilot:'donor-knife',time:1,events:[{type:'hit',actor:victim,attackerId:1,victimId:2,position:{x:3.2,z:4.1},amount:20}]});
  assert.equal(fx.snapshot().activeParticles,8);const particles=scene.getObjectByName('Combat pooled particles'),matrix=new THREE.Matrix4();particles.getMatrixAt(0,matrix);const position=new THREE.Vector3().setFromMatrixPosition(matrix);assert.ok(Math.abs(position.x-3.2)<1e-6);assert.ok(Math.abs(position.z+4.1)<1e-6);fx.dispose();assert.equal(scene.children.length,0);
@@ -40,7 +41,7 @@ test('selected WAV contains exactly the pinned donor PCM ranges and no extra cue
 
 for (const interrupted of [false,true]) {
  test(`enemy attack warning handles same-tick interruption: ${interrupted}`,()=>{
-  const scene=new THREE.Scene(),world={spawn:{x:0,z:0},layout:{characterScale:1},
+  const scene=new THREE.Scene(),world={camera,spawn:{x:0,z:0},layout:{characterScale:1},
    move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,
    toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
   const game=createGame(world,{pilot:'donor-knife'}),foe=Object.assign(enemy(0,{x:0,z:1.1}),
@@ -64,7 +65,7 @@ for (const interrupted of [false,true]) {
 
 test('roach low strike and mandible bite stay on the ground-level animal effect path',()=>{
  for(const [moveId,action,radius]of [['roach_low','slash',1.2],['roach_bite','bite',.6]]){
-  const scene=new THREE.Scene(),fx=createEffects(scene,{toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
+  const scene=new THREE.Scene(),fx=createEffects(scene,{camera,toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)});
   fx.events({pilot:'donor-knife',time:1,events:[{type:'strike',actor:{...attacker,rig:'original-roach'},action,moveId,dir:attacker.facing}]});
   const line=scene.children.find(o=>o.isLine),positions=line.geometry.attributes.position;
   assert.equal(line.material.color.getHex(),0xe3e9ec);let maximum=0;for(let i=0;i<positions.count;i++){assert.ok(Math.abs(positions.getY(i)-.15)<1e-7);maximum=Math.max(maximum,Math.hypot(positions.getX(i),positions.getZ(i)));}assert.ok(Math.abs(maximum-radius)<1e-6);
