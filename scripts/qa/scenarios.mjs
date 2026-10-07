@@ -44,7 +44,7 @@ function meleeProbe(code){
  return code.slice(0,open+1)+probe+code.slice(end-1);
 }
 function packProbe(code){
- const matches=[...code.matchAll(/function ([\w$]+)\(([\w$]+),([\w$]+),([\w$]+)\)\{if\(\3\.residentIntent\)\3\.packMovement="native"/g)];assert.equal(matches.length,1,'Pack native observer seam');const m=matches[0],open=code.indexOf('{',m.index);let depth=1,end=open+1,quote=null;for(;end<code.length&&depth;end++){const c=code[end];if(quote){if(c==='\\')end++;else if(c===quote)quote=null;}else if(c==='"'||c==="'")quote=c;else if(c==='{')depth++;else if(c==='}')depth--;}
+ const anchors=[...code.matchAll(/([\w$]+)\.packMovement="native"/g)];assert.equal(anchors.length,1,'Pack native observer seam');const anchor=anchors[0],m=[...code.slice(0,anchor.index).matchAll(/function ([\w$]+)\(([\w$]+),([\w$]+),([\w$]+)\)\{/g)].at(-1);assert(m&&m[3]===anchor[1],'Pack actor observer binding');const open=code.indexOf('{',m.index);let depth=1,end=open+1,quote=null;for(;end<code.length&&depth;end++){const c=code[end];if(quote){if(c==='\\')end++;else if(c===quote)quote=null;}else if(c==='"'||c==="'")quote=c;else if(c==='{')depth++;else if(c==='}')depth--;}
  return code.slice(0,open+1)+'try{'+code.slice(open+1,end-1)+'}finally{if('+m[3]+'.residentIntent)globalThis.__qaPackTick?.();}'+code.slice(end-1);
 }
 export async function installObserver(page,release,base,probes=[],options={}){
