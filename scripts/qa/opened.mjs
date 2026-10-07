@@ -14,14 +14,14 @@ async function southApproach(page){
  const entry=await page.evaluate(key=>{const q=__qa,e=q.game.enemies.find(e=>e.placementKey===key),p={x:e.pos.x,z:e.pos.z+1.4};if(!q.world.geometry.clear(p,.4)||!q.world.lineClear(p,e.pos))throw Error('Settled Opened melee point blocked');const a=q.world.geometry.point(p);return{areaId:'south',entryPoint:{x:a.x,y:a.y}};},key);
  const settled=await controlledEntry(page,entry);await resume(page);return{approached,settled};
 }
-export async function openedCutting(page,{screenshotPath}={}){
- const prerequisites=await crownKill(page);await resume(page);await legal(page);const equipped=await equipPistol(page);await pause(page);await controlledEntry(page,{areaId:'south'});
+export async function openedCutting(page,{screenshotPath,prerequisites:priorPrerequisites,beforeLethal}={}){
+ const prerequisites=priorPrerequisites??await crownKill(page);await resume(page);await legal(page);const equipped=await equipPistol(page);await pause(page);await controlledEntry(page,{areaId:'south'});
  const prepared=await inspect(page);assert.deepEqual(prepared.kits.map(e=>e.key),[key]);assert(prepared.stats.openedPrepared);assert.equal(prepared.stats.openedPreparationError,null);
- const kill=await cuttingKill(page,key,{meleeEntry:southEntry,settleMelee:southApproach});
+ const kill=await cuttingKill(page,key,{meleeEntry:southEntry,settleMelee:southApproach,beforeLethal});
  const started=await inspect(page);if(started.recipe.recipeId!=='opened'){const error=new Error('Actual South death point rejected Opened: '+JSON.stringify(started));error.diagnostic={opened:started,prerequisites,kill};throw error;}
  await waitSimulation(page,()=>{const q=__qa,e=q.game.corpses.find(e=>e.placementKey==='south-roamer-4'),v=e&&q.actors.views.get(e.id);return v?.finisher.stats().openedActive&&v.root.getObjectByName('Prepared Opened')?.visible;},null,{seconds:2,label:'opened-actual-presentation-start'});
  const rendered=await inspect(page,key,{floor:true});assert.equal(rendered.requested,'opened');assert.equal(rendered.recipe.recipeId,'opened');assert.equal(rendered.recipe.seconds,1);assert.equal(rendered.recipe.cost,1);assert.deepEqual(rendered.recipe.parts,['upper-body']);assert.equal(rendered.stats.activePartCost,1);assert.equal(rendered.stats.lethalVertexCopies,0);assert.equal(rendered.stats.opened.ownedTextures,0);assert.equal(rendered.stats.opened.floorTableEntries,363);assert.equal(rendered.headUntil,0);assert(rendered.partUntil>rendered.time);assert.equal(rendered.part.parent,true);assert.equal(rendered.part.groups.length,3);assert(rendered.floors.every(p=>p.vertices>0&&p.minimum>=-.0001));assert(rendered.player.hp>0&&rendered.live.length>0);
- await page.setViewportSize({width:393,height:852});await page.waitForFunction(()=>__qa.world.width===393&&__qa.world.height===852);await page.screenshot({path:screenshotPath});await pause(page);await page.setViewportSize({width:1180,height:744});
+ if(screenshotPath){await page.setViewportSize({width:393,height:852});await page.waitForFunction(()=>__qa.world.width===393&&__qa.world.height===852);await page.screenshot({path:screenshotPath});}await pause(page);if(screenshotPath)await page.setViewportSize({width:1180,height:744});
  return{prerequisites,equipped,prepared,kill,rendered,screenshotPath,scope:'Genuine third cutting kill/one prepared South kit/native1s actual body parts/floor and free player; component anatomy/geometry proof reused, no phone or all-finisher claim.'};
 }
 export async function openedLifecycle(page){

@@ -98,7 +98,7 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
   isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false}={}) {
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
-  const support=[], bone=model.getObjectByName('Head');
+  const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3();
   let runGrounding=null,runPreparationError=null;const runScale=new T.Vector3();
   if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=prepareVictimGrounding({model,root,clip:clips.find(c=>c.name==='Death_RunThrough')});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
   let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
@@ -166,6 +166,17 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
         const rate=spin.length();if(rate>.02){axis.copy(spin).multiplyScalar(1/rate);matrix.makeRotationAxis(axis,rate*step);head.group.matrix.premultiply(matrix);}
         head.group.matrix.setPosition(head.group.position);head.group.matrixWorldNeedsUpdate=true;
       }
+    },
+    impactAnchors(age){
+      if(disposed||expired||!chosen||recipe.id==='ordinary')return null;
+      if((recipe.id==='opened'&&!openedShown)||(recipe.id==='split-crown'&&age<=.045))return null;
+      root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);
+      const at=node=>{if(!node)return null;node.updateWorldMatrix(true,false);node.getWorldPosition(anchorPoint);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
+      const capAt=mesh=>{if(!mesh?.geometry.boundingSphere)return null;mesh.updateWorldMatrix(true,false);anchorPoint.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
+      if(recipe.id==='opened'){const upper=at(opened.group.getObjectByName('OpenedTorso')),lower=at(opened.group.getObjectByName('OpenedLegs'));return upper?{body:upper,trails:[upper,lower??upper]}:null;}
+      if(recipe.id==='split-crown'){const left=capAt(crown.caps.find(m=>m.parent===crown.halves[0])),right=capAt(crown.caps.find(m=>m.parent===crown.halves[1]));return left?{head:left,trails:[left,right??left]}:null;}
+      if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);return seam?{head:seam,trails:[at(detachedCap)??seam,seam]}:null;}
+      const body=at(torso);return body?{body,trails:[body]}:null;
     },
     stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},
     dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;opened?.dispose();opened=null;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
