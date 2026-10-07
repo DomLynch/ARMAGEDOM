@@ -50,3 +50,13 @@ test('confirmed cosmetic pistol death reserves one head; nonlethal, miss and ful
   if(!occupied)assert.ok(e.finisherHeadUntil>g.time);
  }
 });
+
+test('cutting crown reserves actual shared part cost without fabricating a detached head',()=>{
+ const g=fixture();g.kills=1;const e=victim(g);e.finisherSupport=[{id:'split-crown',clip:'Death_SplitCrown',seconds:1,cost:1,parts:['crown'],prepared:true}];
+ assert(attack(g,'slash',{x:0,z:1}));for(let i=0;i<20;i++)stepGame(g);assert.equal(e.finisher.recipeId,'split-crown');assert.equal(e.finisher.seconds,1);assert(e.finisherPartsUntil>g.time);assert.equal(e.finisherHeadUntil,undefined);assert.equal(g.kills,2);assert.equal(g.enemies.length,1);const kills=g.kills,issued=JSON.stringify(g.supplies);for(let i=0;i<25;i++)stepGame(g);stepGame(g,{move:{x:1,z:0}});assert(g.player.pos.x>0);assert.equal(g.kills,kills);assert.equal(JSON.stringify(g.supplies),issued);
+});
+test('generic crown cost consumes the same finite budget as existing heads and expires normally',()=>{
+ for(const [partsUntil,cost,expected]of [[100,2,'ordinary'],[100,1,'split-crown'],[0,2,'split-crown']]){
+  const g=fixture();g.kills=1;g.corpses=[{id:999,finisherPartsUntil:partsUntil,finisher:{cost,parts:['crown']}}];const e=victim(g);e.finisherSupport=[{id:'split-crown',clip:'Death_SplitCrown',seconds:1,cost:1,parts:['crown'],prepared:true}];assert(attack(g,'slash',{x:0,z:1}));for(let i=0;i<20;i++)stepGame(g);assert.equal(e.finisher.recipeId,expected);if(expected==='ordinary')assert.equal(e.finisherPartsUntil,undefined);
+ }
+});

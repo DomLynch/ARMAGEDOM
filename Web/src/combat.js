@@ -152,9 +152,9 @@ function kill(g,e,meta={}){
  if(!g.enemies.includes(e))return;
  if(e.rig==='low-hover-drone'){const death=recordDroneDeath(g.droneDeaths,{placementKey:e.placementKey,areaId:g.world.areaId,hp:e.hp});if(!death.grantKillCredit)return;g.droneDeaths=death.keys;e.response={clip:'drone_death',start:g.time,ticks:48};}
  if(g.finishers&&e.rig!=='low-hover-drone'&&!e.finisher){
-  const active=(g.corpses??[]).filter(c=>c.finisherHeadUntil>g.time).length;
+  const active=(g.corpses??[]).reduce((cost,c)=>cost+((c.finisherPartsUntil??c.finisherHeadUntil)>g.time?(c.finisher?.cost??1):0),0);
   e.finisher=selectFinisher({victimId:e.id,lethal:e.hp<=0,...meta},{support:e.finisherSupport??[],budget:Math.max(0,g.finishers.maxHeads-active),ordinal:g.kills,recentRecipeId:g.finishers.recentRecipeId});
-  if(e.finisher){g.finishers.recentRecipeId=e.finisher.recipeId;if(e.finisher.parts.includes('head'))e.finisherHeadUntil=g.time+6;}
+  if(e.finisher){g.finishers.recentRecipeId=e.finisher.recipeId;if(e.finisher.cost>0)e.finisherPartsUntil=g.time+6;if(e.finisher.parts.includes('head'))e.finisherHeadUntil=g.time+6;}
  }
  if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});

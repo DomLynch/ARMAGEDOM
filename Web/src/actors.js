@@ -237,7 +237,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         view.motion = new CrookedHollowMotion(view.motion);
       scene.add(root, shadow);
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation'].includes(entity.finisher?.recipeId)),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -253,7 +253,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     if(view.drone){view.drone.dispose();views.delete(id);return;}
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
-    if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;}
+    if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;view.entity.finisherPartsUntil=0;}
     view.pistolSlide.dispose();
     view.appearance?.dispose();view.humanBody?.dispose();view.bodyShape?.dispose();view.feral?.dispose();
     view.vest?.dispose();
@@ -347,16 +347,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(!contactOnly&&entity.hp<=0&&view.finisher&&entity.finisher){
           if(!view.finisherStarted){
             const recipe=view.finisher.start(entity.finisher);view.finisherStarted=true;view.finisherAge=Math.max(0,game.time-(entity.response?.start??game.time));
-            if(view.restoredCorpse&&recipe.parts.includes('head')){
+            if(view.restoredCorpse&&recipe.cost>0){
               if(view.finisherAge>=6)view.finisher.update(view.finisherAge,0);
               else for(let age=0;age<view.finisherAge;){const step=Math.min(1/60,view.finisherAge-age);age+=step;view.finisher.update(age,step);}
-              entity.finisherHeadUntil=game.time+Math.max(0,6-view.finisherAge);
+              entity.finisherPartsUntil=game.time+Math.max(0,6-view.finisherAge);if(recipe.parts.includes('head'))entity.finisherHeadUntil=entity.finisherPartsUntil;
             }
-            if(!view.finisher.stats().detached)entity.finisherHeadUntil=0;
+            const parts=view.finisher.stats();if(!parts.detached)entity.finisherHeadUntil=0;if(!parts.detached&&!parts.crownActive)entity.finisherPartsUntil=0;
           }
           else view.finisherAge=Math.max(game.time-(entity.response?.start??game.time),view.finisherAge+Math.max(0,presentationDt));
           deathPose=view.finisher.pose(view.finisherAge);view.finisher.update(view.finisherAge,presentationDt);
-          if(view.finisher.stats().expired)entity.finisherHeadUntil=0;
+          if(view.finisher.stats().expired){entity.finisherHeadUntil=0;entity.finisherPartsUntil=0;}
         }
         view.motion.update(
           entity,
