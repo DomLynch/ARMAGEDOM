@@ -18,7 +18,7 @@ import lowClip from './rat-data/low-slash.json' with {type:'json'};
 import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
-import {createFinisherPresentation,finisherVictimPoseAge} from './finisher-presentation.js';
+import {createFinisherPresentation,finisherVictimPoseAge,presentedSeverFlash} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -258,6 +258,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     const view = views.get(id);
     if (!view) return;
     if(view.drone){view.drone.dispose();views.delete(id);return;}
+    view.impactFlashLife=0;restoreFlash(view);
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;view.entity.finisherPartsUntil=0;}
@@ -387,15 +388,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.vest.setVisible(game.vest.equipped);view.vest.update();
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
+        const severFlash=presentedSeverFlash(entity,{started:!!view.finisherStarted,activePartCost:view.finisher?.stats().activePartCost??0});
         const contrast=feedbackMode==='high'&&!reducedMotion()&&(view.impactFlashLife??0)>0;
         const flash = !game.finished && entity.flashUntil > game.time||contrast;
         for (const m of view.flashMaterials) {
           if (m.material.emissive) {
             m.material.emissive.copy(
-              flash ? new THREE.Color(...(contrast?[.95,.9,.78]:[.65,.2,.05])) : m.emissive,
+              flash ? contrast&&severFlash?new THREE.Color(0x831428):new THREE.Color(...(contrast?[.95,.9,.78]:[.65,.2,.05])) : m.emissive,
             );
-            m.material.emissiveIntensity = contrast?1:flash ? 0.8 : m.intensity;
-            if(m.color)m.material.color.copy(contrast?new THREE.Color('#fff3dd'):m.color);
+            m.material.emissiveIntensity = contrast?(severFlash?.35:1):flash ? 0.8 : m.intensity;
+            if(m.color)m.material.color.copy(contrast?new THREE.Color(severFlash?0x831428:'#fff3dd'):m.color);
           }
         }
       }

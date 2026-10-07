@@ -9,6 +9,12 @@ const PART_LIFETIME = 6;
 export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
   return enabled&&!restored ? age-.25*Math.min(.2,Math.max(0,age)) : age;
 }
+export function presentedSeverFlash(entity,{started=false,activePartCost=0}={}) {
+  const recipe=entity?.finisher;
+  return Number.isFinite(entity?.hp)&&entity.hp<=0&&started===true&&activePartCost>0
+    &&recipe?.cost>0&&['decapitation','pistol-decapitation','split-crown','opened'].includes(recipe.recipeId)
+    &&Array.isArray(recipe.parts)&&recipe.parts.some(p=>['head','crown','upper-body'].includes(p));
+}
 const ordinary = duration => ({id:'ordinary', clip:'Death', seconds:duration, cost:0, parts:[], prepared:true});
 const durationOf = (clips, name) => clips.find(c => c.name === name)?.duration;
 const validDuration = n => Number.isFinite(n) && n > 0;

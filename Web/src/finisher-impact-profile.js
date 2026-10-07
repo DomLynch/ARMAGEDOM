@@ -1,14 +1,14 @@
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
 const rows={
-  decapitation:['cutting','head',16,2,.52,3.3,48],
-  'split-crown':['cutting','head',14,2,.48,2.9,65],
-  opened:['cutting','body',20,4,.60,3.6,70],
+  decapitation:['cutting','head',16,2,.75,3.3,48],
+  'split-crown':['cutting','head',14,2,.75,2.9,65],
+  opened:['cutting','body',20,4,.75,3.6,70],
   'run-through':['piercing','body',10,1,.42,2.5,16],
   'pistol-directional':['bullet','body',8,0,.34,2.6,20],
-  'pistol-decapitation':['bullet','head',16,2,.52,3.8,32],
+  'pistol-decapitation':['bullet','head',16,2,.75,3.8,32],
 };
-export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:.60});
+export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:.75});
 const palette=Object.freeze([0x650c1b,0x831428,0x430812]);
 const point=p=>p&&['x','y','z'].every(k=>Number.isFinite(p[k]));
 const victim=id=>Number.isSafeInteger(id)&&id>0||typeof id==='string'&&id.trim().length>0;

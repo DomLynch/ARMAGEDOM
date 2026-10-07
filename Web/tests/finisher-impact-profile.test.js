@@ -26,7 +26,7 @@ test('concurrent sever bursts remain within existing 48 particle capacity and ex
   assert(first&&second);assert(first.droplets+second.droplets<=FINISHER_IMPACT_LIMITS.particles);
   assert(first.trails+second.trails<=FINISHER_IMPACT_LIMITS.trails);
   assert.equal(gate.start(c,event('opened','cutting',3),anchors,{freeParticles:48,freeTrails:8,now:2}),null);
-  assert.deepEqual(gate.expire(2.59),[]);assert.equal(gate.expire(2.60).length,2);assert.deepEqual(gate.expire(3),[]);
+  assert.deepEqual(gate.expire(2.74),[]);assert.equal(gate.expire(2.75).length,2);assert.deepEqual(gate.expire(3),[]);
   assert.equal(gate.start(c,event('opened','cutting',3),anchors,{freeParticles:48,freeTrails:8,now:3}),null);
   const scarce={},fresh=createFinisherImpactGate();
   assert.equal(fresh.start(scarce,event(),anchors,{now:3,freeParticles:19,freeTrails:4}),null);
@@ -47,8 +47,10 @@ test('cancel/area clear never replay; restored corpse suppressed; dispose termin
 test('finite dark-crimson non-additive profiles; no geometry/clock/reward state mutation',()=>{
   for(const[id,type]of [['opened','cutting'],['run-through','piercing'],['pistol-directional','bullet']]){
     const input=event(id,type),before=JSON.stringify(input),p=finisherImpactProfile(input,anchors);
-    assert.equal(JSON.stringify(input),before);assert(p.lifetime<=.60&&p.lifetime>0);
+    assert.equal(JSON.stringify(input),before);assert(p.lifetime<=.75&&p.lifetime>0);
     assert(p.droplets<=24&&p.trails<=4);assert(p.depthTest&&!p.depthWrite&&!p.additive&&!p.bloom);
     for(const color of p.palette){assert((color>>16&255)<=0x83);assert((color>>16&255)>(color>>8&255));}
   }
 });
+
+test('actual sever spurts last .75s beyond the unchanged .1s flash; other impact lifetimes stay unchanged',()=>{for(const[id,type]of [['decapitation','cutting'],['split-crown','cutting'],['opened','cutting'],['pistol-decapitation','bullet']])assert.equal(finisherImpactProfile(event(id,type),anchors).lifetime,.75);assert.equal(finisherImpactProfile(event('run-through','piercing'),anchors).lifetime,.42);assert.equal(finisherImpactProfile(event('pistol-directional','bullet'),anchors).lifetime,.34);});
