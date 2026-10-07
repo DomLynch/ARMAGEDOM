@@ -55,6 +55,13 @@ export async function equipPistol(page){
  const collected=await page.evaluate(()=>!!__qa.game.pistol?.collected);const ready=await ordinaryInput(page,async()=>{},{phase:collected?'resume':'pickup',label:'pistol-pickup-prerequisite'});if(ready.snapshot.collected&&ready.snapshot.equipped)return ready;
  return ordinaryInput(page,()=>page.keyboard.press('g'),{phase:'equip',label:'ordinary-equip-acknowledgement'});
 }
+export async function holsterPistol(page){
+ const before=await readState(page);await legal(page);
+ if(before.weapon==='pistol')await ordinaryInput(page,()=>page.tap('#heavy'),{label:'ordinary-visible-holster'});
+ else await ordinaryInput(page,async()=>{},{label:'already-holstered-clock'});
+ await waitSimulation(page,()=>__qa.game.player.weapon==='knife'&&!__qa.game.pistol.equipped,null,{seconds:3,label:'ordinary-holster-acknowledgement'});
+ return{before,after:await readState(page)};
+}
 export function codeDigest(scenario){return sha([scenario.toString(),verifyCamera.toString(),installObserver.toString(),stage.toString(),readState.toString(),aimAt.toString(),legal.toString(),waitEvent.toString(),waitSimulation.toString(),evaluateSimulationWait.toString(),evaluateInputReadiness.toString(),inputReadinessSnapshot.toString(),ordinaryInput.toString(),equipPistol.toString()].join('\n'));}
 export function reuseMatches(receipt,current){
  return receipt.status==='passed'&&['identity','stageHarnessHash','moduleHash','runnerHash','observerHash','dependencies','inputHash','environment','preconditions'].every(k=>receipt[k]!==undefined&&current[k]!==undefined&&stable(receipt[k])===stable(current[k]))&&fs.existsSync(receipt.rawOutputPath)&&sha(fs.readFileSync(receipt.rawOutputPath))===receipt.rawOutputSha256;
