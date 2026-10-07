@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import * as THREE from 'three';import {createEffects} from '../src/effects.js';
 const actor={id:0,pos:{x:0,z:0},facing:{x:0,z:1},hp:150};const victim={id:1,pos:{x:2,z:3},facing:{x:0,z:-1}};
-const world={toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
+const world={camera:new THREE.PerspectiveCamera(),toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
 const game=()=>({pilot:'donor-knife',time:1,player:{...actor},pistol:{equipped:true,collected:true},events:[],enemies:[],bolts:[],loot:[]});
 const shot={type:'shot',actor,origin:actor.pos,end:victim.pos,direction:actor.facing};const hit={type:'hit',actor:victim,position:victim.pos,weapon:'pistol',amount:25};
 test('only actual shot starts reference recoil; dry/cooldown and presentation pause cannot restart it',()=>{const scene=new THREE.Scene(),fx=createEffects(scene,world),g=game();g.events=[{type:'dry',actor}];fx.events(g);assert.equal(fx.pistolRecoil(g),0);g.events=[shot];fx.events(g);assert.equal(fx.pistolRecoil(g),1);fx.advance(.05);assert.ok(Math.abs(fx.pistolRecoil(g)-Math.exp(-.60))<1e-8);const before=fx.snapshot();fx.advance(10,{paused:true});assert.deepEqual(fx.snapshot(),before);g.events=[{type:'dry',actor}];fx.events(g);assert.equal(fx.pistolRecoil(g),before.shot);for(let i=0;i<60;i++)fx.advance(1/60);assert.equal(fx.pistolRecoil(g),0);fx.dispose();});

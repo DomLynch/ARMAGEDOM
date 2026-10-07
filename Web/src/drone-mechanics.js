@@ -1,5 +1,5 @@
 // One finite phase selector for existing resident movement + projectile authority.
-export const DRONE_RULES=Object.freeze({hoverHeight:.90,hp:20,radius:.55,moveSpeed:1.6,wakeDistance:6,homeLeash:12,
+export const DRONE_RULES=Object.freeze({hoverHeight:.90,hp:20,radius:1.10,moveSpeed:1.6,wakeDistance:6,homeLeash:12,
  attackRange:3,warningSeconds:.6,recoverySeconds:1.4,damage:6,boltSpeed:8,boltRange:6});
 export const droneHoverHeight=time=>DRONE_RULES.hoverHeight+Math.sin(time*3)*.025;
 export const DRONE_KEYS=Object.freeze({'westminster-drone-1':'westminster','east-drone-1':'east','south-drone-1':'south'});
