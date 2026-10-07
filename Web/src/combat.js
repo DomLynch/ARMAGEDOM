@@ -1,6 +1,7 @@
+import {resolveBoundAnimalRole,nativeAttackCompletion} from './animal-role-bindings.js';
 import {resolveRoachNestGuard,territoryHomeStep} from './roach-territory.js';
 import {gauntHumanRecipe} from './gaunt-human-bindings.js';
-import {resolveResidentIntent,canWakeResident,recoveryMovement,observeResidentCompanions} from './creature-behaviour-intents.js';
+import {resolveResidentIntent,canWakeResident,recoveryMovement,approachRhythm,observeResidentCompanions} from './creature-behaviour-intents.js';
 import {animalPlacement} from './animal-cycle.js';
 import {AREA_DRONE_SPAWNS} from './area-drone-spawns.js';
 import {DRONE_RULES,createDroneState,droneIntent,recordDroneDeath} from './drone-mechanics.js';
@@ -96,7 +97,7 @@ function pistolIntent(g,intent){
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
-   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home){target.alerted=true;target.returning=false;}
+   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
    if(target.hp<=0){target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
@@ -150,6 +151,7 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
 }
 function kill(g,e,meta={}){
  if(!g.enemies.includes(e))return;
+ if(e.animalRole){e.completedAttack=null;e.wokeAt=null;}
  if(e.rig==='low-hover-drone'){const death=recordDroneDeath(g.droneDeaths,{placementKey:e.placementKey,areaId:g.world.areaId,hp:e.hp});if(!death.grantKillCredit)return;g.droneDeaths=death.keys;e.response={clip:'drone_death',start:g.time,ticks:48};}
  if(g.finishers&&e.rig!=='low-hover-drone'&&!e.finisher){
   const active=(g.corpses??[]).reduce((cost,c)=>cost+((c.finisherPartsUntil??c.finisherHeadUntil)>g.time?(c.finisher?.cost??1):0),0);
@@ -349,12 +351,15 @@ export function initializeAreaResidents(g){
   if(g.animalCycle==='A'&&area==='east'&&e.placementKey==='east-roamer-4'&&recipe==='dog-pack-chaser'&&rig==='original-dog')e.residentIntent=PACK_CHASER;
   e.pos={x:e.pos.x+offset.x,z:e.pos.z+offset.z};e.home={...e.pos};e.patrol=e.patrol.map(p=>({x:p.x+offset.x,z:p.z+offset.z}));
   const territory=resolveRoachNestGuard(e,{areaId:area,animalCycle:g.animalCycle});if(territory)e.residentIntent=territory;
+  const role=resolveBoundAnimalRole(e,{areaId:area,animalCycle:g.animalCycle,behaviourCapabilities:['home','lineOfSight','completedAttack','collisionMove','wakeTime','nativeLocomotion']});
+  if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
  if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(enemy(0,placement.pos),{rig:'low-hover-drone',areaId:area,placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false,weapon:'bolt',radius:DRONE_RULES.radius,hp:DRONE_RULES.hp,maxHP:DRONE_RULES.hp,moveSpeed:DRONE_RULES.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
+function alertResident(g,e){if(!e.alerted&&e.animalRole)e.wokeAt=g.time;e.alerted=true;e.returning=false;}
 function residentPatrol(g,e,dt){
  const playerHome=mag(sub(g.player.pos,e.home));
  if(e.residentIntent?.companionDistance===0){
@@ -367,7 +372,8 @@ function residentPatrol(g,e,dt){
  if(e.residentIntent?.companionDistance>0)e.packCompanions=observeResidentCompanions(e.residentIntent,e,g.enemies.filter(other=>other.placementKey==='east-roamer-9'&&other.rig==='original-dog'),{areaId:g.world.areaId,lineClear:(a,b)=>g.world.lineClear(a,b)});
  const playerDistance=mag(sub(g.player.pos,e.pos)),lineClear=g.world.lineClear(e.pos,g.player.pos);
  const wake=e.residentIntent?canWakeResident(e.residentIntent,{alive:e.hp>0,playerAlive:g.player.hp>0,sameArea:(e.areaId??g.world.areaId)===g.world.areaId,lineClear,distance:playerDistance,playerHomeDistance:playerHome,...e.packCompanions}):playerDistance<=6&&lineClear;
- if(!e.returning&&!e.alerted&&wake)e.alerted=true;
+ if(e.animalRole&&e.returning){e.completedAttack=null;e.wokeAt=null;}
+ if(!e.returning&&!e.alerted&&wake)alertResident(g,e);
  if(e.alerted)return false;
  let goal=e.returning?e.home:e.patrol[e.patrolIndex],delta=sub(goal,e.pos),distance=mag(delta);
  if(distance<.15&&!e.returning){e.patrolIndex=1-e.patrolIndex;goal=e.patrol[e.patrolIndex];delta=sub(goal,e.pos);distance=mag(delta);}
@@ -434,7 +440,7 @@ function knifeReceive(g,hit){
   p.guardRecoverAt=t+R.regenDelay/60;
   if(t<p.parryUntil-EPS&&hit.parry){
    p.parryUntil=0;p.parryReleased=false;
-   if(hit.attacker){const e=hit.attacker;e.swing=null;e.ready=e.recoverUntil=e.staggerUntil=t+R.parryStun/60;e.response={clip:'Deflected',start:t,ticks:R.parryStun};}
+   if(hit.attacker){const e=hit.attacker;e.swing=null;e.ready=e.recoverUntil=e.staggerUntil=t+R.parryStun/60;if(e.animalRole)e.completedAttack=null;e.response={clip:'Deflected',start:t,ticks:R.parryStun};}
    p.response={clip:'Parry',start:t,ticks:R.parry};notify(g,'PARRY · Counter while they recover.');event(g,'parry',{actor:p,...meta});return false;
   }
   const guardAge=(t-(p.guardStart??-Infinity))*60-R.parry;
@@ -487,21 +493,34 @@ function droneEnemy(g,e,dt){
  else if(next.direction)e.facing={...next.direction};
  if(next.bolt){g.bolts.push({id:++serial,...next.bolt});event(g,'enemy-attack',{actor:e,dir:{...next.bolt.dir},range:DRONE_RULES.boltRange,moveId:'drone_bolt',weapon:'bolt'});}
 }
+function animalRoleMovement(g,e,dt){
+ if(!e.animalRole)return false;
+ const p=e.animalRole.intent;
+ if(p.retreatSeconds&&e.completedAttack){
+  const away=normal(sub(e.pos,g.player.pos),e.facing),next=g.world.move(e.pos,{x:away.x*e.moveSpeed*dt,z:away.z*e.moveSpeed*dt},e.radius),delta=sub(next,e.pos);
+  const movement=recoveryMovement(p,{alive:e.hp>0,alerted:e.alerted,swingActive:!!e.swing,hurt:g.time<e.recoverUntil||g.time<e.staggerUntil,distance:mag(sub(g.player.pos,e.pos)),time:g.time,completedAttack:e.completedAttack,retreatPathClear:mag(delta)>EPS&&dot(delta,away)>0&&g.world.lineClear(e.pos,next)});
+  if(movement==='withdraw'){enemyMove(g,e,away,e.moveSpeed,dt,true);return true;}
+  if(movement==='hold')return true;
+ }
+ return p.burstSeconds>0&&approachRhythm(p,{alive:e.hp>0,alerted:e.alerted,swingActive:!!e.swing,hurt:g.time<e.recoverUntil||g.time<e.staggerUntil,time:g.time,wokeAt:e.wokeAt})==='hold';
+}
 function ratEnemy(g,e,dt){
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  if(e.home&&residentPatrol(g,e,dt))return;
+ if(animalRoleMovement(g,e,dt))return;
  const foot=e.contactGoalReach?g.ratContact?.calf(g,e):g.ratContact?.foot(g,e);if(!foot)return;
  const offset=sub(foot,e.pos),distance=mag(sub(g.player.pos,e.pos)),dir=normal(offset,e.facing);
- if(distance>(e.contactGoalReach?e.radius+g.player.radius:.95)+EPS||mag(offset)>(e.contactGoalReach??.35)+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,2.1,dt);return;}
+ if(distance>(e.contactGoalReach?e.radius+g.player.radius:.95)+EPS||mag(offset)>(e.contactGoalReach??.35)+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,e.animalRole?e.moveSpeed:2.1,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.06?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:e.contactGoalReach?e.radius+g.player.radius:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){const def=Number.isFinite(foot.y)&&foot.y<=.06?RAT_BITE_LOW:RAT_BITE;e.swing=knifeSwing(g,e,'bite',def);e.swing.footGoalY=foot.y;if(e.animalRole)e.completedAttack=null;e.ready=e.swing.end+(e.animalRole?e.recoveryDelay:0);event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:e.contactGoalReach?e.radius+g.player.radius:.95,arc:90,moveId:'rat_bite',clip:def.clip});}
 }
 function dogEnemy(g,e,dt){
  if(e.residentIntent?.companionDistance>0)e.packMovement='native';
  if(e.swing){knifeStepIn(g,e,dt);return;}
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  if(e.home&&residentPatrol(g,e,dt))return;
+ if(animalRoleMovement(g,e,dt))return;
  const offset=sub(g.player.pos,e.pos),distance=mag(offset),footGoal=e.rig==='original-roach'||e.contactGoalReach?g.ratContact?.calf(g,e):null;
  if(e.residentIntent?.companionDistance>0){
   const away=normal(sub(e.pos,g.player.pos),e.facing),next=g.world.move(e.pos,{x:away.x*e.moveSpeed*dt,z:away.z*e.moveSpeed*dt},e.radius),delta=sub(next,e.pos);
@@ -511,10 +530,10 @@ function dogEnemy(g,e,dt){
  }
  if(distance>e.radius+g.player.radius+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,normal(footGoal?sub(footGoal,e.pos):offset),e.moveSpeed,dt);return;}
  const calf=e.rig==='original-roach'||e.contactGoalReach?footGoal:g.ratContact?.calf(g,e);if(!calf||e.contactGoalReach&&mag(sub(calf,e.pos))>e.contactGoalReach+EPS)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='original-roach'?(e.contactGoalReach?ROACH_BITE_SCALED:ROACH_BITE):e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};e.ready=e.swing.end;event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='original-roach'?(e.contactGoalReach?ROACH_BITE_SCALED:ROACH_BITE):e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};if(e.animalRole)e.completedAttack=null;e.ready=e.swing.end+(e.animalRole?e.recoveryDelay:0);event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
 }
 function knifeContacts(g,before,ratBefore){
- const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[];
+ const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[],completed=[];
  for(const a of entities)if(a.swing)a.swing.ageTicks=Math.floor((g.time-a.swing.start)*60+EPS);
  const ratAfter=ratBefore?g.ratContact.capture(g):null;
  for(const a of entities){
@@ -532,7 +551,7 @@ function knifeContacts(g,before,ratBefore){
     if(hit){s.hitIds.add(d.id);contacts.push({a,d,def:s.def,s});}
    }
   }
-  if(g.time+EPS>=s.end)a.swing=null;
+  if(g.time+EPS>=s.end){if(a.animalRole?.intent.retreatSeconds>0)completed.push({a,s});a.swing=null;}
  }
  // Decide contacts from a shared pre-resolution snapshot. Trades do not depend
  // on which attacker was enumerated first; a dead enemy cannot cancel its hit.
@@ -540,12 +559,13 @@ function knifeContacts(g,before,ratBefore){
  for(const {a,d,def} of contacts){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
   else{
-   const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home){d.alerted=true;d.returning=false;}
-   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
+   const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
+   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
    event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
    if(d.hp<=0)kill(g,d,{...hitMetadata(a,d,def),impactDirection:sub(after.get(d.id).pos,after.get(a.id).pos)});
   }
  }
+ for(const {a,s} of completed)if(!a.swing)a.completedAttack=nativeAttackCompletion(s,{reason:'normal',time:g.time,alive:a.hp>0,hurt:g.time<a.recoverUntil||g.time<a.staggerUntil});
  if(g.player.hp<=0){g.finished=true;g.won=false;}
 }

@@ -5,7 +5,7 @@ export async function travelTo(game, request) {
     position = await game.world.loadArea(request.areaId, request.entryPoint);
   // Load succeeds before any source fight/player state is changed.
   game.areaFights ??= {};
-  for (const e of game.enemies) e.swing = null;
+  for (const e of game.enemies) {e.swing=null;if(e.animalRole)e.completedAttack=null;}
   game.areaFights[previous] = {
     initialized: !!game.areaInitialized, cleared: !!game.encounterCleared,
     enemies: game.enemies, corpses: game.corpses, bolts: game.bolts, loot: game.loot,
@@ -28,11 +28,11 @@ export async function travelTo(game, request) {
     for (const field of ['nextWave', 'nextEnemyAttackAt'])
       if (Number.isFinite(game[field])) game[field] += elapsed;
     for (const e of [...game.enemies, ...(game.corpses ?? [])]) {
-      for (const field of ['ready', 'recoverUntil', 'staggerUntil', 'guardRecoverAt', 'flashUntil'])
+      for (const field of ['ready', 'recoverUntil', 'staggerUntil', 'guardRecoverAt', 'flashUntil', 'wokeAt'])
         if (Number.isFinite(e[field])) e[field] += elapsed;
       if (Number.isFinite(e.response?.start)) e.response.start += elapsed;
       if(e.droneState){e.droneState.readyAt+=elapsed;if(e.droneState.warning){e.droneState.warning.start+=elapsed;e.droneState.warning.releaseAt+=elapsed;}}
-      e.swing = null;
+      e.swing = null;if(e.animalRole)e.completedAttack=null;
     }
     for (const bolt of game.bolts) if (Number.isFinite(bolt.expires)) bolt.expires += elapsed;
   } else initializeAreaResidents(game);
