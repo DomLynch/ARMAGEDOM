@@ -5,12 +5,13 @@ async function stash(page){await controlledEntry(page,{areaId:'westminster'});co
 export async function inspect(page,key){return page.evaluate(key=>{const q=__qa,g=q.game,e=[...g.enemies,...g.corpses].find(e=>e.placementKey===key),v=q.actors.views.get(e.id),part=v.model.getObjectByName('Prepared Split Crown');return{time:g.time,key,hp:e.hp,recipe:e.finisher,support:e.finisherSupport,partUntil:e.finisherPartsUntil??0,headUntil:e.finisherHeadUntil??0,stats:v.finisher?.stats(),age:v.finisherAge,pose:v.finisher?.pose(v.finisherAge??0),clip:(v.motion.native??v.motion).currentClip,restored:!!v.restoredCorpse,crown:part?{parent:part.parent?.name,halves:part.children.length,visible:part.visible,rotations:part.children.map(p=>p.rotation.z)}:null,live:g.enemies.map(e=>({key:e.placementKey,pos:{...e.pos},hp:e.hp,clip:(q.actors.views.get(e.id)?.motion?.native??q.actors.views.get(e.id)?.motion)?.currentClip})),player:{pos:{...g.player.pos},hp:g.player.hp},ledger:structuredClone(g.supplies),saved:JSON.parse(localStorage.getItem('armagedom:area1-run:v1'))};},key);}
 // Proven Crown kill sequence, reused by subsequent cutting finishers.
 export async function cuttingKill(page,key,{meleeEntry:entry}={}){
- const gunEntry=await near(page,key,3.5);await resume(page);const shot=await shootGaunt(page,key,25);await pause(page);
+ const gunEntry=await near(page,key,3.5);await resume(page);const shot=await shootGaunt(page,key,25);
+ // Holster at the existing safe pistol entry before an NPC can hit during UI dispatch.
+ const holster=await holsterPistol(page);assert.equal(holster.after.weapon,'knife');await pause(page);
  const meleeEntry=entry?await controlledEntry(page,typeof entry==='function'?await entry(page):entry):await near(page,key,1.4);await resume(page);
- const holster=await holsterPistol(page);assert.equal(holster.after.weapon,'knife');
  const first=await lowStrike(page,{targetKey:key,move:'light_right',damage:10});await legal(page);
  const before=await readState(page),id=before.enemies.find(e=>e.key===key).id,point=await aimAt(page,id);
- await page.mouse.click(point.x,point.y);await waitEvent(page,{type:'hit',actor:id,move:'light_left',amount:10},before.events.length);
+ await page.mouse.click(point.x,point.y);await waitEvent(page,{type:'attack',actor:0,move:'light_left'},before.events.length);await waitEvent(page,{type:'hit',actor:id,move:'light_left',amount:10},before.events.length);
  const second=await readState(page);assert(!second.enemies.some(e=>e.id===id));
  return{key,gunEntry,shot,meleeEntry,holster,first,second};
 }
