@@ -39,8 +39,8 @@ try:
     for f in source['files']:
         p=root/f['path']
         if p.stat().st_size!=f['bytes'] or hashlib.sha256(p.read_bytes()).hexdigest()!=f['sha256']:raise RuntimeError('Frozen input mismatch: '+f['path'])
-    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle','portrait-dodge','drone-melee','pack-chaser']:raise RuntimeError('Prepare selected browser profile before submission')
-    run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows','portraitDodge','droneMeleeInput','dronePistolControl'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
+    if config.get('profile') not in ['camera','hud','weapon','animal','pistol-cue','finisher-presentation','animal-appearance','drone','animal-cycle','portrait-dodge','drone-melee','pack-chaser','qa-readiness']:raise RuntimeError('Prepare selected browser profile before submission')
+    run('qa-imports',['node','--input-type=module','-e',"import assert from 'node:assert/strict';import * as qa from './scripts/qa/scenarios.mjs';for(const name of ['verifyPackage','installObserver','readState','stage','codeDigest','camera','hudMultitouch','controlledEntry','waitSimulation','incomingBite','lowStrike','pistolKill','pauseAndRetry','pistolBodyCue','finisherPrepared','animalAppearanceRows','droneEncounter','animalCycleRows','portraitDodge','droneMeleeInput','dronePistolControl','preflightCompiled','ordinaryInput','equipPistol','inputReadinessScenario'])assert.equal(typeof qa[name],'function',name);console.log('QA_NAMED_IMPORTS_PASS');"])
     run('install',['npm','ci','--no-audit','--no-fund'],root/'Web')
     if config.get('sourceReuse'):
         record=verify_source_reuse(root,source);receipts.append(record);(out/'release-stages.json').write_text(json.dumps(receipts,indent=2)+'\n')
@@ -50,7 +50,8 @@ try:
     run('assets',['node','Web/scripts/verify-assets.mjs','--actors','assets/manifest-hollow.json','--audio','audio/manifest.json'])
     assets=json.loads((out/'assets.log').read_text());release={'version':source['version'],'engine':'three0.182.0','sourceCommit':source['head'],'sourceFingerprint':source['fingerprint'],'bytes':assets['bytes'],'files':assets['files']};manifest=out/'release-manifest.json';manifest.write_text(json.dumps(release,indent=2)+'\n')
     run('package',[sys.executable,'scripts/deploy/package_preview.py','--runtime','Web/dist','--manifest',str(manifest),'--output','export'])
-    package=root/'export/release.json';config.update(packageRoot=str(root/'export'),baseURL='http://127.0.0.1:19041/',output=str(out/'browser'),expect={'source':source['head'],'fingerprint':source['fingerprint'],'packageSha256':hashlib.sha256(package.read_bytes()).hexdigest()});prepared=out/'qa-config.json';prepared.write_text(json.dumps(config,indent=2)+'\n')
+    package=root/'export/release.json';config.update(packageRoot=str(root/'export'),baseURL='http://127.0.0.1:19041/',output=str(out/'browser'),expect={'source':source['head'],'fingerprint':source['fingerprint'],'packageSha256':hashlib.sha256(package.read_bytes()).hexdigest()},observerModuleHash=next(f['sha256'] for f in source['files'] if f['path']=='scripts/qa/scenarios.mjs'));prepared=out/'qa-config.json';prepared.write_text(json.dumps(config,indent=2)+'\n')
+    run('probe-preflight',['node','scripts/qa/preflight.mjs',str(prepared)])
     with (out/'server.log').open('w') as log:server=subprocess.Popen([sys.executable,'-m','http.server','19041','--bind','127.0.0.1','--directory','export'],stdout=log,stderr=subprocess.STDOUT)
     run('browser',['node','scripts/qa/run.mjs',str(prepared)])
 finally:
