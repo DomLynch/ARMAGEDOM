@@ -74,3 +74,12 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   return {targetId:eligible?hit.id:null,ready,height:eligible?hit.rig==='low-hover-drone'?droneHoverHeight(game.time):(hit.rig==='original-rat'?.54:hit.rig==='original-dog'?(hit.contactGoalReach?.70:.35):hit.rig==='original-roach'?(hit.contactGoalReach?.24:.08):1.15)*(hit.mobSize??1):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }
+
+// Raised drones use their visible rigid surface for mouse projection. Shot
+// selection, first-body trace, cover and damage stay in the existing domain path.
+export function pistolPointerPoint(world,views,enemies,x,y){
+ const ground=world.screenToGround(x,y),frames=enemies.filter(e=>e.hp>0&&e.rig==='low-hover-drone').map(e=>views.get(e.id)?.model.getObjectByName('ARM_Drone_Rigid_Frame')).filter(Boolean);
+ if(!frames.length)return ground;
+ const hit=world.ray.intersectObjects([...(world.masks??[]),...frames],false)[0];
+ return frames.includes(hit?.object)?{x:hit.point.x,z:-hit.point.z}:ground;
+}

@@ -1,3 +1,4 @@
+import {pistolPointerPoint} from './pistol-targeting.js';
 import * as THREE from "three";
 import { createWorld } from "./world.js";
 import { loadActors, createActors } from "./actors.js";
@@ -205,10 +206,9 @@ function intent() {
     };
   if (raw.mouse) {
     const bounds = canvas.getBoundingClientRect(),
-      point = world.screenToGround(
-        ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1,
-        1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2,
-      );
+      x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
+      y=1-((raw.mouse.y-bounds.top)/bounds.height)*2,
+      point=game.pistol?.equipped?pistolPointerPoint(world,actors.views,game.enemies,x,y):world.screenToGround(x,y);
     if (point) {
       value.manualPistolAim = true;
       value.aim = {
