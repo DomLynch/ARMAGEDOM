@@ -349,3 +349,5 @@ test('Assist 100percent correction setting toggles independently without changin
 test('five-control HUD works without Special DOM; Dodge remains enabled in pistol and guard follows mode',t=>{
  const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:6,reserve:12,nextFireAt:0,reloadingUntil:0};hud.update(g);assert.equal(el('guard').disabled,true);assert.equal(el('guard').span.textContent,'NO GUARD');assert.notEqual(el('dodge').disabled,true);assert.equal(el('dodge').attributes.get('aria-label'),'Dodge Roll');g.pistol.equipped=false;hud.update(g);assert.equal(el('guard').disabled,false);assert.equal(el('guard').span.textContent,'GUARD');assert.notEqual(el('dodge').disabled,true);
 });
+
+test('disposing HUD releases owned callbacks and preserves newer replacements',t=>{const env=setup(t);const newer=()=>{};const button=document.getElementById('menu-button');button.onclick=newer;env.hud.dispose();assert.equal(button.onclick,newer);assert.equal(document.getElementById('retry').onclick,null);});

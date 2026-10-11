@@ -237,3 +237,5 @@ test('keyboard Special and Space Dodge remain available without a Special touch 
  send(env.window,'keydown',{code:'KeyE'});assert.ok(env.input.take().actions.includes('special'));send(env.window,'keyup',{code:'KeyE'});
  send(env.window,'keydown',{code:'Space'});assert.equal(env.input.take().dodge,true);send(env.window,'keyup',{code:'Space'});
 });
+
+test('disposing input removes owned gameplay and browser listeners',t=>{const env=setup(t);send(env.window,'keydown',{code:'KeyW'});assert.equal(env.input.state.keys.has('KeyW'),true);env.input.dispose();send(env.window,'keydown',{code:'KeyD'});assert.equal(env.input.state.keys.size,0);send(env.elements.slash,'pointerdown');assert.equal(env.input.take().actions.length,0);env.input.dispose();});

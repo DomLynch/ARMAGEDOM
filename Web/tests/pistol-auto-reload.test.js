@@ -18,9 +18,9 @@ test('real finite supply collection while empty enables reload only after durabl
  collectNearbySupplies(g,()=>false);advance(g);assert.equal(g.pistol.reloadingUntil,0);assert.equal(g.pistol.reserve,0);
  collectNearbySupplies(g,proposed=>{assert.equal(proposed.pistol.magazine,0);assert.equal(proposed.pistol.reserve,3);return true;});advance(g);assert.ok(g.events.some(e=>e.type==='reload-start'));advance(g,78);assert.equal(g.pistol.magazine,3);assert.equal(g.pistol.reserve,0);assert.equal(g.supplies.pending.length,0);
 });
-test('actual main cancellation callback clears reload before completion and paused ticks cannot mutate ammo',()=>{
- const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),fn=source.slice(source.indexOf('function cancelPistol(g)'),source.indexOf('function cancelPistol(g)')+source.slice(source.indexOf('function cancelPistol(g)')).indexOf('\n'));
- let actorResets=0;const cancel=new Function('stepPistol','resetMobileControls','effects','actors',`${fn};return cancelPistol;`)(stepPistol,resetMobileControls,{clearPistolFeedback(){},update(){}},{resetFeedback(){actorResets++;}});
+test('actual engine cancellation callback clears reload before completion and paused ticks cannot mutate ammo',()=>{
+ const source=readFileSync(new URL('../src/engine/run-views.js',import.meta.url),'utf8'),fn=source.slice(source.indexOf('function cancelPistol(g)'),source.indexOf('function cancelPistol(g)')+source.slice(source.indexOf('function cancelPistol(g)')).indexOf('\n'));
+ let actorResets=0;const cancel=new Function('stepPistol','resetMobileControls','s',`${fn};return cancelPistol;`)(stepPistol,resetMobileControls,{effects:{clearPistolFeedback(){},update(){}},actors:{resetFeedback(){actorResets++;}}});
  const g=game();g.pistol.magazine=0;advance(g);const time=g.time;cancel(g);assert.equal(actorResets,1);assert.equal(g.pistol.reloadingUntil,0);stepGame(g,{paused:true});assert.equal(g.time,time);assert.equal(g.pistol.magazine,0);assert.equal(g.pistol.reserve,12);
  advance(g);assert.ok(g.pistol.reloadingUntil>g.time);stepGame(g,{actions:['heavy']});assert.equal(g.pistol.equipped,false);assert.equal(g.pistol.reloadingUntil,0);advance(g,100);assert.equal(g.pistol.magazine,0);assert.equal(g.pistol.reserve,12);
  const fresh=game();assert.equal(fresh.pistol.magazine,6);assert.equal(fresh.pistol.reserve,12);assert.equal(fresh.pistol.reloadingUntil,0);

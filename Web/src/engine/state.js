@@ -1,0 +1,3 @@
+function freeze(value){if(value&&typeof value==='object'){for(const item of Object.values(value))freeze(item);Object.freeze(value);}return value;}
+export function readonlyState(game,flags={}){const data={...flags};if(game)for(const key of ['time','tick','player','enemies','corpses','pistol','supplies','vest','finished','message','kills','pilot'])data[key]=game[key];return freeze(JSON.parse(JSON.stringify(data)));}
+export function eventSnapshot(event){const data={};for(const[key,value]of Object.entries(event)){if(key==='actor')data.actorId=value?.id;else if(typeof value!=='function')data[key]=value;}return freeze(JSON.parse(JSON.stringify(data)));}

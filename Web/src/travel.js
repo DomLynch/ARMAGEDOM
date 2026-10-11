@@ -1,8 +1,10 @@
 import {initializeAreaResidents} from './combat.js';
 // Thin orchestration for the existing three-area pilot. World owns atomic loading.
-export async function travelTo(game, request) {
+export async function travelTo(game, request,{isCurrent=()=>true}={}) {
+  if(!isCurrent())return null;
   const previous = game.world.areaId,
     position = await game.world.loadArea(request.areaId, request.entryPoint);
+  if(!isCurrent())return null;
   // Load succeeds before any source fight/player state is changed.
   game.areaFights ??= {};
   for (const e of game.enemies) {e.swing=null;if(e.animalRole)e.completedAttack=null;}

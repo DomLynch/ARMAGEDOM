@@ -37,6 +37,6 @@ test('successor validates whole resource/ledger record and never migrates legacy
  const good=JSON.parse(encodeRun(g));for(const bad of ['{','null',JSON.stringify({...good,pistol:undefined}),JSON.stringify({...good,hp:151}),JSON.stringify({...good,hp:-1}),JSON.stringify({...good,supplies:{...good.supplies,issued:['unknown']}}),JSON.stringify({...good,pistol:null})])assert.equal(restoreRun(g,bad,legacy),null);
 });
 test('actual sole main writer retries a failed identical write, never sets stale cache or writes legacy key',()=>{
- const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),fn=source.slice(source.indexOf('function persistRun(g)'),source.indexOf('function restoreSavedRun'));let fail=true;const writes=[];const storage={setItem(key,raw){assert.equal(key,RUN_SAVE_KEY);if(fail)throw Error('quota');writes.push(raw);}};
+ const source=readFileSync(new URL('../src/engine/run-views.js',import.meta.url),'utf8'),fn=source.slice(source.indexOf('function persistRun(g)'),source.indexOf('function restoreSavedRun'));let fail=true;const writes=[];const storage={setItem(key,raw){assert.equal(key,RUN_SAVE_KEY);if(fail)throw Error('quota');writes.push(raw);}};
  const save=new Function('localStorage','encodeRun','RUN_SAVE_KEY',`let runSaveCache=null;${fn};return persistRun;`)(storage,encodeRun,RUN_SAVE_KEY),g=game();assert.equal(save(g),false);fail=false;assert.equal(save(g),true);assert.equal(writes.length,1);assert.equal(save(g),true);assert.equal(writes.length,1);
 });

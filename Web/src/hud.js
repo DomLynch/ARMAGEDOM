@@ -3,6 +3,8 @@ import {vestAvailable} from './vest.js';
 export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
+  const listeners=[];
+  function listen(target,type,handler){target.addEventListener(type,handler);listeners.push(()=>target.removeEventListener?.(type,handler));}
   let loaded = false,
     sound = true;
   function pause() {
@@ -20,8 +22,8 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
   }
   for (const id of ["resume", "close-menu"])
     el(id).onclick = () => menu.close();
-  menu.addEventListener("close", pause);
-  menu.addEventListener("cancel", pause);
+  listen(menu,"close", pause);
+  listen(menu,"cancel", pause);
   el("menu-button").onclick = toggleMenu;
   el("retry").onclick = () => {
     menu.close();
@@ -38,12 +40,14 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
   let assist=true;el("assist").onclick=()=>{assist=!assist;el("assist").textContent=assist?"Assist: 100%":"Assist: Off";el("assist").setAttribute("aria-pressed",String(assist));onAssist(assist);};
   const feedback=el('feedback-mode');
   feedback.onchange=()=>onFeedback(feedback.value);
-  window.addEventListener("resize", resize);
-  document.addEventListener("visibilitychange", pause);
+  listen(window,"resize", resize);
+  listen(document,"visibilitychange", pause);
+  const handlers=['resume','close-menu','menu-button','retry','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
   resize();
   let lastMessage = "",
     lastStaminaState = null, lastPistolEquipped = null;
   return {
+    dispose(){loaded=false;for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
     resize,
     ready() {

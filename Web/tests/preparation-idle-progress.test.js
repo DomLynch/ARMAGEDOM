@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 function setup(){
- const source=readFileSync(process.env.TRAVEL_MAIN_SOURCE??new URL('../src/main.js',import.meta.url),'utf8'),start=source.indexOf('function preparationTurn(state)'),end=source.indexOf('function exitDistance(',start);assert(start>=0&&end>start);
+ const source=readFileSync(process.env.TRAVEL_MAIN_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('function preparationTurn(state)'),end=source.indexOf('function exitDistance(',start);assert(start>=0&&end>start);
  const game={},state={game,cancelled:false},queue=[];let now=0;
- const context=vm.createContext({game,contextLost:false,state,performance:{now:()=>now},requestIdleCallback:(fn,options)=>queue.push({fn,options})});vm.runInContext(source.slice(start,end)+'\nglobalThis.pending=preparationTurn(state);',context);
+ const context=vm.createContext({game,contextLost:false,s:{get game(){return game},contextLost:false},state,performance:{now:()=>now},requestIdleCallback:(fn,options)=>queue.push({fn,options})});vm.runInContext(source.slice(start,end)+'\nglobalThis.pending=preparationTurn(state);',context);
  return{state,queue,pending:context.pending,advance(ms){now+=ms;},fire(){queue.shift().fn({didTimeout:false,timeRemaining:()=>2});}};
 }
 test('repeated short idle callbacks cannot reset the absolute preparation progress deadline',async()=>{

@@ -128,7 +128,8 @@ export function attachInput({
   onInteraction = () => {},
   isPistol = () => false,
 }) {
-  const state = new InputState();
+  const state = new InputState(), listeners=[];
+  function listen(target,type,handler,options){target.addEventListener(type,handler,options);listeners.push(()=>target.removeEventListener(type,handler,options));}
   const gameplayTouch = target => !isPaused() && !target?.closest?.(
     '#menu, #menu-button, #entry, #ending, #pistol-interact, a, input, select, textarea',
   ) && (target === document.body || target === document.documentElement ||
@@ -139,10 +140,10 @@ export function attachInput({
     if (event.cancelable) event.preventDefault();
   };
   for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
-    document.addEventListener(type, prevent, { passive: false, capture: true });
+    listen(document,type, prevent, { passive: false, capture: true });
   let multiTouch = false, lastTap = -Infinity;
   for (const type of ['touchstart', 'touchmove']) {
-    document.addEventListener(type, (event) => {
+    listen(document,type, (event) => {
       if (type === 'touchstart' && event.touches.length === 1) multiTouch = false;
       if (event.touches.length > 1) {
         multiTouch = true;
@@ -151,7 +152,7 @@ export function attachInput({
       } else if (gameplayTouch(event.target)) prevent(event);
     }, { passive: false, capture: true });
   }
-  document.addEventListener('touchend', (event) => {
+  listen(document,'touchend', (event) => {
     if (!gameplayTouch(event.target) || multiTouch || event.touches.length || event.changedTouches.length !== 1) {
       lastTap = -Infinity;
       return;
@@ -159,13 +160,13 @@ export function attachInput({
     if (event.timeStamp - lastTap < 350) prevent(event);
     lastTap = event.timeStamp;
   }, { passive: false, capture: true });
-  document.addEventListener('touchcancel', () => {
+  listen(document,'touchcancel', () => {
     multiTouch = false;
     lastTap = -Infinity;
   });
   // WebKit can require release/click activation even when pointerdown worked.
   for (const type of ['pointerup', 'touchend', 'click'])
-    window.addEventListener(type, () => {
+    listen(window,type, () => {
       if (!isPaused()) onInteraction();
     }, { passive: true });
   const map = {
@@ -180,7 +181,7 @@ export function attachInput({
     touch = false;
 
   const bind = (element, kind) => {
-    element.addEventListener('pointerdown', (event) => {
+    listen(element,'pointerdown', (event) => {
       if (isPaused()) return;
       onInteraction();
       event.preventDefault();
@@ -194,7 +195,7 @@ export function attachInput({
       element.style.setProperty('--aim-angle', '0rad');
       element.classList.remove('aiming');
     });
-    element.addEventListener('pointermove', (event) => {
+    listen(element,'pointermove', (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
       if (kind === 'move') {
         element.style.setProperty('--knob-x', `${state.stick.x * 36}px`);
@@ -226,20 +227,20 @@ export function attachInput({
       }
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-      element.addEventListener(type, release);
+      listen(element,type, release);
     }
   };
   bind(document.querySelector('#move'), 'move');
   for (const element of document.querySelectorAll('[data-action]'))
     bind(element, element.dataset.action);
 
-  canvas.addEventListener('pointermove', (event) => {
+  listen(canvas,'pointermove', (event) => {
     if (event.pointerType === 'mouse') {
       touch = false;
       mouse = { x: event.clientX, y: event.clientY };
     }
   });
-  canvas.addEventListener('pointerdown', (event) => {
+  listen(canvas,'pointerdown', (event) => {
     if (event.pointerType !== 'mouse' || isPaused()) return;
     onInteraction();
     event.preventDefault();
@@ -247,14 +248,14 @@ export function attachInput({
     mouse = { x: event.clientX, y: event.clientY };
     state.down(event.pointerId, event.button === 2 ? 'stab' : isPistol() ? 'fire' : 'slash', mouse);
   });
-  canvas.addEventListener('pointerup', (event) => state.up(event.pointerId));
-  canvas.addEventListener('pointercancel', (event) =>
+  listen(canvas,'pointerup', (event) => state.up(event.pointerId));
+  listen(canvas,'pointercancel', (event) =>
     state.cancel(event.pointerId),
   );
-  canvas.addEventListener('lostpointercapture', (event) =>
+  listen(canvas,'lostpointercapture', (event) =>
     state.cancel(event.pointerId),
   );
-  canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+  listen(canvas,'contextmenu', (event) => event.preventDefault());
 
   function retryAllowed() {
     if (
@@ -267,7 +268,7 @@ export function attachInput({
     return !isPaused() || document.getElementById('ending')?.hidden === false;
   }
 
-  window.addEventListener('keydown', (event) => {
+  listen(window,'keydown', (event) => {
     if (event.code === 'Escape') {
       event.preventDefault();
       if (!event.repeat) onMenu();
@@ -290,7 +291,7 @@ export function attachInput({
       state.down(event.code, map[event.code], { x: 0, y: 0 });
     }
   });
-  window.addEventListener('keyup', (event) => {
+  listen(window,'keyup', (event) => {
     state.keys.delete(event.code);
     state.up(event.code);
   });
@@ -309,11 +310,12 @@ export function attachInput({
     const move = document.querySelector('#move');
     if(!keepMovement){move.style.setProperty('--knob-x', '0px');move.style.setProperty('--knob-y', '0px');}
   }
-  window.addEventListener('blur', clear);
-  document.addEventListener('visibilitychange', clear);
+  listen(window,'blur', clear);
+  listen(document,'visibilitychange', clear);
   return {
     state,
     clear,
+    dispose(){clear();for(const remove of listeners.splice(0))remove();},
     take: () => ({ ...state.take(), mobile: touch, mouse: touch ? null : mouse }),
   };
 }
