@@ -18,7 +18,7 @@ test('painting anchors survive a cropped camera; bounded three batches without t
   const {world,scene,fx}=fixture();
   world.camera.projectionMatrix.elements[0]*=2;world.camera.projectionMatrix.elements[12]=.4;
   fx.update(.016);
-  assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);assert.equal(fx.stats().drawCalls,3);assert.equal(fx.stats().textureBytes,0);
+  assert.equal(fx.stats().quads,20);assert.equal(fx.stats().drawCalls,3);assert.equal(fx.stats().textureBytes,0);
   const smoke=scene.children[0].children.find(x=>x.name==='Atmosphere smoke');
   const positions=smoke.geometry.getAttribute('position');
   for(const [index,anchor] of [[0,WESTMINSTER_ATMOSPHERE[0]],[4*WESTMINSTER_ATMOSPHERE[0].smoke,WESTMINSTER_ATMOSPHERE[1]]]){
@@ -37,7 +37,7 @@ test('area exit disposes geometry while retaining shaders; final disposal releas
   const {world,scene,fx}=fixture();fx.update(.01);const old=[...scene.children[0].children];let released=0;
   for(const mesh of old){mesh.geometry.addEventListener('dispose',()=>released++);mesh.material.addEventListener('dispose',()=>released++);}
   world.areaId='unknown';fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,3);assert.equal(fx.stats().quads,0);
-  world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,ATMOSPHERE_BUDGET.quads);
+  world.areaId='westminster';fx.update(.01);fx.update(.01);assert.equal(scene.children.length,1);assert.equal(fx.stats().quads,20);
   fx.dispose();fx.dispose();fx.update(.01);assert.equal(scene.children.length,0);assert.equal(released,6);assert.equal(fx.stats().disposed,true);
 });
 test('bus emits smoke only with its own tint; other smoke retains its accepted colour',()=>{
@@ -52,7 +52,7 @@ test('bus emits smoke only with its own tint; other smoke retains its accepted c
 });
 
 test('five seeded presets and active three-area budgets retain approved West parameters',()=>{
- assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',28,6],['east',24,7],['south',21,6]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
+ assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',20,4],['east',24,7],['south',21,6]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
  for(const [i,a]of atmosphereForArea('westminster').entries())for(const key of Object.keys(WESTMINSTER_ATMOSPHERE[i]))assert.deepEqual(a[key],WESTMINSTER_ATMOSPHERE[i][key]);fx.dispose();fx.dispose();assert.equal(scene.children.length,0);
 });
 

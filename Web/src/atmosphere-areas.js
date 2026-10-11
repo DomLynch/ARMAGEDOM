@@ -11,7 +11,7 @@ export const ATMOSPHERE_PRESETS=Object.freeze({
 const placement=(id,preset,x,y,foot,seed,overrides={})=>Object.freeze({id,preset,x,y,foot:foot?Object.freeze(foot):null,depth:foot?null:80,seed,scale:1,intensity:1,...overrides});
 export const AREA_ATMOSPHERE=Object.freeze({
   // Exact061 footprints/numeric settings, no seeded variation of approved art.
-  westminster:Object.freeze(WESTMINSTER_ATMOSPHERE.map((a,i)=>Object.freeze({...a,preset:a.id==='bus-roof'?'light-smoulder':a.smoke?'fire-with-smoke':'small-fire',seed:100+i,scale:1,intensity:1,preserve:true}))),
+  westminster:Object.freeze(WESTMINSTER_ATMOSPHERE.map(a=>Object.freeze({...a,preset:a.id==='bus-roof'?'light-smoulder':a.smoke?'fire-with-smoke':'small-fire',seed:({'bus-roof':100,'tower-breach':101,'parliament-base-fire':104,'parliament-west-blaze':105})[a.id],scale:1,intensity:1,preserve:true}))),
   east:Object.freeze([
     placement('east-bus-smoulder','light-smoulder',.560,.275,{x:.56,y:.37},201,{width:.022,rise:.056,opacity:.30}),
     placement('east-near-drum','small-fire',.163,.625,{x:.17,y:.68},202),
