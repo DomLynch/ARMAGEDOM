@@ -49,7 +49,7 @@ function frame(ms,providedElapsed) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
       const weaponBefore = s.game.player.weapon;
-      stepGame(s.game, intent(), 1 / 60);
+      stepGame(s.game, intent(), 1 / 60,{dispatchPistol:s.dispatchPistol});
       if (weaponBefore !== s.game.player.weapon) {s.input.clear();submitted=null;resetMobileControls(s.game);}
       s.collectNearbySupplies(s.game);
       s.collectNearbyVest(s.game);

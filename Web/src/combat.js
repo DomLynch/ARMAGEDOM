@@ -1,3 +1,4 @@
+import {PISTOL_ITEM_ID} from './core/pistol-operation.js';
 import {creatureCatalogue,animalFoundationParameters,ENGINE_CREATURE_CAPABILITIES} from './engine/creature-catalogue.js';
 import {ratMeleeDefinition} from './rat-melee-definition.js';
 import {resolveBoundAnimalRole,nativeAttackCompletion} from './animal-role-bindings.js';
@@ -72,7 +73,7 @@ export function createGame(world,options={}){
 }
 function notify(g,text){g.message=text;g.messageUntil=g.time+4;}
 function event(g,type,data={}){g.events.push({type,...data});}
-function pistolIntent(g,intent){
+function pistolIntent(g,intent,dispatchPistol){
  if(!g.pistol)return intent;
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const firing=wasEquipped&&(actions.includes('fire')||intent.held?.includes('fire'));
@@ -83,9 +84,17 @@ function pistolIntent(g,intent){
  if(wasEquipped)g.pistolUserFacing={...reference};
  g.pistolTargetId=null;g.pistolTargetFacing=null;
  let shotDirection=null;
- const result=stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:reference,
-  collect:actions.includes('pickup'),equip:actions.includes('pickup'),holster:wasEquipped&&actions.includes('heavy'),reload:wasEquipped&&actions.includes('stab'),
+ const routed=typeof dispatchPistol==='function',holster=wasEquipped&&actions.includes('heavy'),eligible=canAct&&!intent.cancel;
+ let coreEvents=[];
+ if(routed&&eligible&&(holster||actions.includes('pickup'))){
+  const command=holster?{type:'equip',itemId:PISTOL_ITEM_ID,equipped:false}:g.pistol.collected?{type:'equip',itemId:PISTOL_ITEM_ID,equipped:true}:{type:'claimPickup',pickupId:PISTOL_ITEM_ID};
+  coreEvents=dispatchPistol(g,command,eligible).events;
+ }
+ // Holster has precedence over firing/reload even when its durable write fails.
+ const result=routed&&eligible&&holster?{state:g.pistol,events:coreEvents}:stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:reference,
+  collect:!routed&&actions.includes('pickup'),equip:!routed&&actions.includes('pickup'),holster:!routed&&holster,reload:wasEquipped&&actions.includes('stab'),
   fire:firing,cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
+ if(!(routed&&eligible&&holster)&&coreEvents.length)result.events.unshift(...coreEvents);
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(let e of result.events){
   if(e.type==='shot'){
@@ -228,7 +237,7 @@ function mobileControl(g,intent,dt){
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;

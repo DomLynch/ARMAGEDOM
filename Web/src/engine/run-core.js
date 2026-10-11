@@ -2,17 +2,28 @@ import {createCore} from '../core/index.js';
 import {createRunStorage} from '../core/io/local-run-storage.js';
 import {createPickupOperation} from '../core/pickup-operation.js';
 import {createRunOperation} from '../core/run-operation.js';
+import {createPistolOperation,PISTOL_ITEM_ID} from '../core/pistol-operation.js';
 import * as codec from './run-state.js';
 import {collectSupply} from '../supplies.js';
 import {collectVest,VEST_RULES} from '../vest.js';
+import {collectPistol,equipPistol} from '../pistol.js';
 
 // One session writer; render/input code supplies live-run access and fresh construction.
 export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const io=createRunStorage({storage,codec});
- const claimPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION});
- const core=createCore({executeDomain:createRunOperation({getRun,setRun,createFreshRun,applySavedRun:codec.applySavedRun,claimPickup}),
+ const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION});
+ let pistolScope=null;
+ const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
+ const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
+ const core=createCore({executeDomain:createRunOperation({getRun,setRun,createFreshRun,applySavedRun:codec.applySavedRun,claimPickup,equip:pistolOperation}),
   codec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
+ function dispatchPistol(g,command,canAct){
+  if(g!==getRun()||pistolScope)return {ok:false,code:'not-eligible',events:[]};
+  pistolScope={run:g,allowed:canAct===true};
+  try{const result=core.dispatch(command);if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}
+  finally{pistolScope=null;}
+ }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
   const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);return result.ok;
@@ -50,5 +61,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {persistRun,restoreSavedRun,retry,collectNearbySupplies,collectNearbyVest};
+ return {persistRun,restoreSavedRun,retry,collectNearbySupplies,collectNearbyVest,dispatchPistol};
 }
