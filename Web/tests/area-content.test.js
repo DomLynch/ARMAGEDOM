@@ -1,4 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {AREA_DRONE_SPAWNS} from '../src/area-drone-spawns.js';
+import {initializeAreaResidents} from '../src/combat.js';
 import {createAreaRegistry} from '../src/area-registry.js';import {validateAreaContent} from '../src/engine/area-content.js';import {createGame,stepGame} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';import {travelTo} from '../src/travel.js';import {atmosphereForArea,atmosphereBudget} from '../src/atmosphere-areas.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const manifest=read('../public/world/manifest.json'),registry=createAreaRegistry({manifest}),layouts=Object.fromEntries(registry.ids.map(id=>[registry.get(id).layoutRef,read('../public/'+registry.asset(registry.get(id).layoutRef).path)]));
@@ -13,4 +15,14 @@ test('actual game declares Hollow and Rat through existing factories, native sta
  const data=validateAreaContent(raw(),registry,layouts),world={areaId:'westminster',spawn:{x:0,z:-6},layout:{characterScale:1.265},registry,move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,async loadArea(id){this.areaId=id;return{x:0,z:-6};}};
  const g=createGame(world,{pilot:'donor-knife',pistol:true,supplies:true,areaResidents:true,openingGroup:false,rat:true,animalVariants:true,residentPlacements:data.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
  await travelTo(g,{areaId:'east-bridge'});const [h,r]=g.enemies;assert.equal(h.rig,'hollow-scavenger');assert.equal(h.hp,40);assert.equal(h.radius,.4);assert.equal(r.rig,'original-rat');assert.equal(r.hp,20);assert.equal(r.radius,1.09);assert.equal(r.animalRecipe,'rat-ash');assert.equal(r.contactGoalReach,1.050307904880233);stepGame(g);assert.equal(g.enemies.length,2);await travelTo(g,{areaId:'east'});await travelTo(g,{areaId:'east-bridge'});assert.deepEqual(g.enemies,[h,r]);assert.equal(g.supplies.issued.length,0);
+});
+
+test('declared drones cannot bypass the current persistent death-key and area boundary',()=>{
+ const c=raw();Object.assign(c.residents['east-bridge'][1],{foundationRef:'low-hover-drone',recipeRef:'low-hover-watcher'});assert.throws(()=>validateAreaContent(c,registry,layouts),/Unsupported declared drone death placement/);
+});
+test('supported declared legacy drone spawns once and saved tombstone excludes it without duplicating legacy factory output',()=>{
+ const c=raw();c.residents.east=[{key:'east-drone-1',foundationRef:'low-hover-drone',recipeRef:'low-hover-watcher',pos:AREA_DRONE_SPAWNS.east[0].pos,patrol:AREA_DRONE_SPAWNS.east[0].patrol}];
+ // Use actual legacy placement, which already has verified native-radius clearance.
+ const data=validateAreaContent(c,registry,layouts);const w={areaId:'east',layout:{characterScale:1.265}},g=createGame(w,{pilot:'donor-knife',drone:true,supplies:true,areaResidents:true,openingGroup:false,residentPlacements:data.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
+ assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,1);g.droneDeaths=['east-drone-1'];g.enemies=[];g.areaInitialized=false;initializeAreaResidents(g);assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,0);
 });

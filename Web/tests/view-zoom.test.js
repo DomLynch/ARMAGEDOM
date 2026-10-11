@@ -41,14 +41,14 @@ test('optional view zoom scales both orientations while preserving registration 
 });
 test('factory and atomic area loading retain the optional view zoom',async()=>{
  const fetchBefore=globalThis.fetch,loadBefore=THREE.TextureLoader.prototype.loadAsync;
- globalThis.fetch=async url=>({ok:true,json:async()=>String(url).endsWith('manifest.json')?manifest:layout});
+ globalThis.fetch=async url=>({ok:true,json:async()=>String(url).endsWith('manifest.json')?manifest:JSON.parse(readFileSync(new URL('../public'+new URL(url).pathname,import.meta.url)))});
  THREE.TextureLoader.prototype.loadAsync=async()=>new THREE.Texture();
  let world;
  try{
   world=await createWorld({THREE,scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(),baseUrl:'http://test/',viewZoomMultiplier:1.15});
   assert.equal(world.viewZoomMultiplier,1.15);
   world.update(world.spawn,0,390,844,true);
-  await world.loadArea('south',{x:.52,y:.78});
+  await world.loadArea('south');
   assert.equal(world.areaId,'south');assert.equal(world.viewZoomMultiplier,1.15);
  }finally{world?.dispose();globalThis.fetch=fetchBefore;THREE.TextureLoader.prototype.loadAsync=loadBefore;}
 });

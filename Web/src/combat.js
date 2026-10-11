@@ -7,7 +7,7 @@ import {gauntHumanRecipe} from './gaunt-human-bindings.js';
 import {resolveResidentIntent,canWakeResident,recoveryMovement,approachRhythm,observeResidentCompanions} from './creature-behaviour-intents.js';
 import {animalPlacement} from './animal-cycle.js';
 import {AREA_DRONE_SPAWNS} from './area-drone-spawns.js';
-import {DRONE_RULES,createDroneState,droneIntent,recordDroneDeath} from './drone-mechanics.js';
+import {DRONE_KEYS,DRONE_RULES,createDroneState,droneIntent,recordDroneDeath} from './drone-mechanics.js';
 import {createBridgeSteering} from './bridge-steering.js';
 import {createMobileAimState,stepMobileAim} from './mobile-combat-aim.js';
 import {selectFinisher} from './finisher-selection.js';
@@ -346,7 +346,7 @@ function hollowActor(g,position,index=0,mobSize=1){
 function droneResident(g,placement){const foundation=creatureCatalogue.get('low-hover-drone');return Object.assign(enemy(0,placement.pos),{rig:foundation.runtimeIdentity,areaId:g.world.areaId,weapon:foundation.stats.weapon,radius:foundation.stats.radius,hp:foundation.stats.health,maxHP:foundation.stats.health,moveSpeed:foundation.stats.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()});}
 function declaredResident(g,placement,mobSize){
  const foundation=placement.foundationRef?creatureCatalogue.get(placement.foundationRef):null;
- if(foundation?.runtimeIdentity==='low-hover-drone')return droneResident(g,placement);
+ if(foundation?.runtimeIdentity==='low-hover-drone'){if(DRONE_KEYS[placement.key]!==g.world.areaId)throw Error('Unsupported declared drone death placement');return droneResident(g,placement);}
  const actor=hollowActor(g,placement.pos,0,foundation?1:mobSize);
  if(foundation&&foundation.runtimeIdentity!=='hollow-scavenger')Object.assign(actor,animalFoundationParameters(foundation.runtimeIdentity,g.player.combatScale),{animalRecipe:placement.recipeRef});
  else if(placement.recipeRef==='human-gaunt-skulker')actor.humanBodyRecipe=placement.recipeRef;
@@ -359,7 +359,7 @@ export function initializeAreaResidents(g){
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
  const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
- const residents=placements.filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
+ const residents=placements.filter(p=>(area!=='westminster'||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
@@ -376,7 +376,7 @@ export function initializeAreaResidents(g){
   if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
- if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
+ if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key)&&!placements.some(p=>p.foundationRef==='low-hover-drone'&&p.key===placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }

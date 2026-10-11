@@ -1,6 +1,7 @@
 import {createGeometry} from '../world-geometry.js';
 import {validateAreaEntries} from '../area-registry.js';
 import {creatureCatalogue} from './creature-catalogue.js';
+import {DRONE_KEYS} from '../drone-mechanics.js';
 import {ATMOSPHERE_PRESETS} from '../atmosphere-areas.js';
 const fail=()=>{throw Error('Invalid registered area content');};
 const object=x=>x&&Object.getPrototypeOf(x)===Object.prototype;
@@ -16,7 +17,7 @@ export function validateResidentPlacements(rows,registry,layouts,{visibility='pu
   if(!registry.has(area)||registry.get(area).visibility!==visibility||!Array.isArray(placements))fail();const g=geometry.get(registry.get(area).layoutRef);
   for(const row of placements){
    closed(row,['key','foundationRef','recipeRef','pos','patrol']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-'))fail();keys.add(row.key);
-   const foundation=creatureCatalogue.get(row.foundationRef);if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
+   const foundation=creatureCatalogue.get(row.foundationRef);if(foundation.runtimeIdentity==='low-hover-drone'&&DRONE_KEYS[row.key]!==area)throw Error('Unsupported declared drone death placement');if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
    point(row.pos);if(!Array.isArray(row.patrol)||row.patrol.length<2)fail();row.patrol.forEach(point);const radius=foundation.stats.radius;
    if(!g.clear(row.pos,radius)||row.patrol.some(p=>!g.clear(p,radius)))fail();
    for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}

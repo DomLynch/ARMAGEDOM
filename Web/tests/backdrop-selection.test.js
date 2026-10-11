@@ -2,10 +2,10 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 const base=new URL('../public/world/',import.meta.url),manifest=JSON.parse(readFileSync(new URL('manifest.json',base))),layout=JSON.parse(readFileSync(new URL('westminster/layout.json',base)));
 test('world uses explicit per-area backdrop selection through initial and atomic loads',async()=>{
  const oldFetch=globalThis.fetch,oldLoad=THREE.TextureLoader.prototype.loadAsync,urls=[];
- const selected={...manifest,backdrops:{westminster:'backdrop.webp',south:'backdrop.webp',east:'backdrop.webp'}};
- globalThis.fetch=async url=>({ok:true,json:async()=>String(url).endsWith('manifest.json')?selected:layout});
+ const selected={...manifest,backdrops:{...manifest.backdrops,westminster:'backdrop.webp',south:'backdrop.webp',east:'backdrop.webp'}};
+ globalThis.fetch=async url=>({ok:true,json:async()=>String(url).endsWith('manifest.json')?selected:JSON.parse(readFileSync(new URL(new URL(url).pathname.replace('/world/',''),base)))});
  THREE.TextureLoader.prototype.loadAsync=async url=>{urls.push(String(url));return new THREE.Texture();};let world;
- try{world=await createWorld({THREE,scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(),baseUrl:'http://test/'});await world.loadArea('south',{x:.52,y:.78});await world.loadArea('east',{x:.52,y:.78});assert.deepEqual(urls,['http://test/world/westminster/backdrop.webp','http://test/world/south/backdrop.webp','http://test/world/east/backdrop.webp']);}
+ try{world=await createWorld({THREE,scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(),baseUrl:'http://test/'});await world.loadArea('south');await world.loadArea('east');assert.deepEqual(urls,['http://test/world/westminster/backdrop.webp','http://test/world/south/backdrop.webp','http://test/world/east/backdrop.webp']);}
  finally{world?.dispose();globalThis.fetch=oldFetch;THREE.TextureLoader.prototype.loadAsync=oldLoad;}
 });
 test('selected assets have accurate runtime hashes and preserve original PNGs',()=>{
