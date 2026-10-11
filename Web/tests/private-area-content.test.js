@@ -21,3 +21,8 @@ test('actual resident initialization uses existing Hollow mechanics and retains 
  await travelTo(g,{areaId:privateId});assert.equal(g.enemies.length,1);const e=g.enemies[0];assert.equal(e.placementKey,c.residents[privateId][0].key);assert.equal(e.rig,'hollow-scavenger');assert.equal(e.hp,40);assert.equal(e.radius,.4);
  const pos={...e.pos};stepGame(g);assert.notDeepEqual(e.pos,pos);await travelTo(g,{areaId:'westminster'});await travelTo(g,{areaId:privateId});assert.equal(g.enemies.length,1);assert.equal(g.enemies[0],e);assert.equal(g.supplies.issued.length,0);
 });
+
+test('accepted layout snapshot stays immutable and is the geometry source despite later input edits',()=>{
+ const input=fixture(),c=preparePrivateAreaContent(input),accepted=JSON.stringify(c.layouts['layout.westminster']);input.layouts['layout.westminster'].blockers=[];
+ assert.equal(JSON.stringify(c.layouts['layout.westminster']),accepted);assert(Object.isFrozen(c.layouts['layout.westminster'].blockers));
+});

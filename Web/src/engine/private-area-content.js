@@ -30,7 +30,7 @@ export function preparePrivateAreaContent(content){
    for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}
   }
  }
- return Object.freeze({registry,manifest:freeze(structuredClone(content.manifest)),residents:freeze(residents),namespace:content.namespace,textureBudgetBytes:content.textureBudgetBytes});
+ return Object.freeze({registry,manifest:freeze(structuredClone(content.manifest)),residents:freeze(residents),layouts:freeze(structuredClone(content.layouts)),namespace:content.namespace,textureBudgetBytes:content.textureBudgetBytes});
 }
 export function namespacedRunStorage(storage,namespace){
  if(!storage)return null;
