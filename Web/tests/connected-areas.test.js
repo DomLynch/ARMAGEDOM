@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {createAreaRegistry} from '../src/area-registry.js';import {validateAreaContent} from '../src/engine/area-content.js';import {createGame} from '../src/combat.js';import {travelTo} from '../src/travel.js';import {createHollowEncounter} from '../src/hollow-encounter.js';
+const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url))),manifest=read('../public/world/manifest.json'),registry=createAreaRegistry({manifest}),layouts=Object.fromEntries(registry.ids.map(id=>[registry.get(id).layoutRef,read('../public/'+registry.asset(registry.get(id).layoutRef).path)])),content=validateAreaContent(read('../public/world/area-content.json'),registry,layouts);
+test('six-area connected set instantiates declared existing mixed residents through the unchanged factory and retains each area state',async()=>{
+ const world={areaId:'westminster',spawn:{x:0,z:-6},layout:{characterScale:1.265},registry,async loadArea(id){this.areaId=id;return{x:0,z:-6};}},g=createGame(world,{pilot:'donor-knife',pistol:true,supplies:true,areaResidents:true,openingGroup:false,rat:true,animalVariants:true,residentPlacements:content.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
+ const references=new Map();for(const area of ['east-bridge','elephant-and-castle','lambeth']){await travelTo(g,{areaId:area});assert.equal(g.enemies.length,2);assert.deepEqual(g.enemies.map(e=>e.rig),['hollow-scavenger','original-rat']);assert.deepEqual(g.enemies.map(e=>e.placementKey),content.residents[area].map(p=>p.key));assert.deepEqual(g.enemies.map(e=>e.radius),[.4,1.09]);assert.equal(g.enemies[1].animalRecipe,'rat-ash');references.set(area,[...g.enemies]);}
+ for(const area of ['elephant-and-castle','east-bridge','lambeth']){await travelTo(g,{areaId:area});assert.equal(g.enemies[0],references.get(area)[0]);assert.equal(g.enemies[1],references.get(area)[1]);}assert.equal(g.supplies.issued.length,0);
+});
+test('each authored effect uses only shared presets and a bounded active-area allocation',()=>{
+ assert.equal(Object.keys(content.residents).length,3);assert.equal(new Set(Object.values(content.residents).flat().map(r=>r.key)).size,6);
+ for(const area of ['east-bridge','elephant-and-castle','lambeth']){assert.equal(content.atmosphere[area].anchors.length,4);assert.deepEqual(content.atmosphere[area].budget,{quads:28,drawCalls:3,textureBytes:0});}
+ assert.deepEqual(registry.links('lambeth').map(l=>l.to),['elephant-and-castle']);assert.equal(registry.links('lambeth').some(l=>l.to==='south'),false);
+});

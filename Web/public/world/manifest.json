@@ -50,28 +50,58 @@
     {
       "area": "east-bridge",
       "path": "east-bridge/layout.json",
-      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
+      "source": "Owner original / individually traced image geometry",
       "bytes": 6151,
       "sha256": "b27b1b8d38e5a26ad46490300c0b6038cb940264ad66aca28c1bd910233b034b"
     },
     {
       "area": "east-bridge",
       "path": "east-bridge/backdrop.webp",
-      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
+      "source": "Owner original / individually traced image geometry",
       "bytes": 2401738,
       "sha256": "e52f0260f4e080e4633fdb0c580f2ef6cb7291b59c3a0b6f80a5b186bad0da62"
     },
     {
+      "area": "elephant-and-castle",
+      "path": "elephant-and-castle/layout.json",
+      "source": "Owner original / individually traced image geometry",
+      "bytes": 5562,
+      "sha256": "e52aa36871d3dd7a04d9a84fc51da9f47b65e9ca3ef8f1baf18c7dd525750160"
+    },
+    {
+      "area": "elephant-and-castle",
+      "path": "elephant-and-castle/backdrop.webp",
+      "source": "Owner original / individually traced image geometry",
+      "bytes": 2461532,
+      "sha256": "d1cbf3be191cb3cc3b7308d5c19c148480527ac3b27937c375cab1b70a3dbbc1"
+    },
+    {
+      "area": "lambeth",
+      "path": "lambeth/layout.json",
+      "source": "Owner original / individually traced image geometry",
+      "bytes": 6698,
+      "sha256": "da8ff7c14b916a27e801c5b830b4e0542c3c2d9eec44fffac79fa26c7472db11"
+    },
+    {
+      "area": "lambeth",
+      "path": "lambeth/backdrop.webp",
+      "source": "Owner original / individually traced image geometry",
+      "bytes": 2523606,
+      "sha256": "79cb2611729a508c21e93c3aaf4a9186f2081c55c22fa850c47b5f28ea122543"
+    },
+    {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 3276,
-      "sha256": "e5da1896880fca307d1d42c5e2d8422a5de2783c2fae589d90af329a9d48c07a"
+      "bytes": 9680,
+      "sha256": "13e2a924fae6c300a1918c5f981af8bc6885efb353fad9dd8def2c139692795a"
     }
   ],
   "lazyAreas": [
     "south",
     "east",
-    "east-bridge"
+    "east-bridge",
+    "elephant-and-castle",
+    "lambeth"
   ],
   "entries": {
     "south": {
@@ -89,6 +119,14 @@
     "east-bridge": {
       "x": 0.07,
       "y": 0.835
+    },
+    "elephant-and-castle": {
+      "x": 0.07,
+      "y": 0.855
+    },
+    "lambeth": {
+      "x": 0.29,
+      "y": 0.11
     }
   },
   "links": [
@@ -171,13 +209,71 @@
         "x": 0.935,
         "y": 0.325
       }
+    },
+    {
+      "from": "east-bridge",
+      "to": "elephant-and-castle",
+      "condition": {
+        "xMin": 0.955,
+        "xMax": 0.985,
+        "yMin": 0.215,
+        "yMax": 0.245
+      },
+      "entry": {
+        "x": 0.07,
+        "y": 0.855
+      }
+    },
+    {
+      "from": "elephant-and-castle",
+      "to": "east-bridge",
+      "condition": {
+        "xMin": 0.025,
+        "xMax": 0.045,
+        "yMin": 0.835,
+        "yMax": 0.875
+      },
+      "entry": {
+        "x": 0.925,
+        "y": 0.255
+      }
+    },
+    {
+      "from": "elephant-and-castle",
+      "to": "lambeth",
+      "condition": {
+        "xMin": 0.95,
+        "xMax": 0.98,
+        "yMin": 0.24,
+        "yMax": 0.275
+      },
+      "entry": {
+        "x": 0.29,
+        "y": 0.11
+      }
+    },
+    {
+      "from": "lambeth",
+      "to": "elephant-and-castle",
+      "condition": {
+        "xMin": 0.22,
+        "xMax": 0.3,
+        "yMin": 0.035,
+        "yMax": 0.07
+      },
+      "entry": {
+        "x": 0.91,
+        "y": 0.28
+      }
     }
   ],
   "backdrops": {
     "westminster": "backdrop.webp",
     "south": "backdrop.webp",
     "east": "backdrop.webp",
-    "east-bridge": "backdrop.webp"
+    "east-bridge": "backdrop.webp",
+    "elephant-and-castle": "backdrop.webp",
+    "lambeth": "backdrop.webp"
   },
   "contentRef": "area-content.json"
 }

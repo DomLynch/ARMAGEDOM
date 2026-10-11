@@ -39,6 +39,86 @@
           }
         ]
       }
+    ],
+    "elephant-and-castle": [
+      {
+        "key": "elephant-and-castle-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -3.848432687809442,
+          "z": 0.8973258571657396
+        },
+        "patrol": [
+          {
+            "x": -3.848432687809442,
+            "z": 0.8973258571657396
+          },
+          {
+            "x": -2.689499753630003,
+            "z": 1.6146626278834013
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 10.705519002011172,
+          "z": 11.161654997911484
+        },
+        "patrol": [
+          {
+            "x": 10.705519002011172,
+            "z": 11.161654997911484
+          },
+          {
+            "x": 12.080612272602512,
+            "z": 11.999394451038292
+          }
+        ]
+      }
+    ],
+    "lambeth": [
+      {
+        "key": "lambeth-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -2.497039090718905,
+          "z": 13.82564142393224
+        },
+        "patrol": [
+          {
+            "x": -2.497039090718905,
+            "z": 13.82564142393224
+          },
+          {
+            "x": -1.2080612272602524,
+            "z": 11.999394451038292
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 8.264020852875369,
+          "z": -1.083536304770636
+        },
+        "patrol": [
+          {
+            "x": 8.264020852875369,
+            "z": -1.083536304770636
+          },
+          {
+            "x": 8.945590399613073,
+            "z": -2.151772662396983
+          }
+        ]
+      }
     ]
   },
   "atmosphere": {
@@ -128,6 +208,200 @@
           },
           "depth": null,
           "seed": 404,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    },
+    "elephant-and-castle": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-1",
+          "preset": "small-fire",
+          "x": 0.319,
+          "y": 0.523,
+          "foot": {
+            "x": 0.33,
+            "y": 0.565
+          },
+          "depth": null,
+          "seed": 501,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-2",
+          "preset": "fire-with-smoke",
+          "x": 0.574,
+          "y": 0.396,
+          "foot": {
+            "x": 0.585,
+            "y": 0.444
+          },
+          "depth": null,
+          "seed": 502,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-3",
+          "preset": "small-fire",
+          "x": 0.965,
+          "y": 0.639,
+          "foot": {
+            "x": 0.97,
+            "y": 0.7
+          },
+          "depth": null,
+          "seed": 503,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-4",
+          "preset": "small-fire",
+          "x": 0.88,
+          "y": 0.57,
+          "foot": {
+            "x": 0.893,
+            "y": 0.65
+          },
+          "depth": null,
+          "seed": 504,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    },
+    "lambeth": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-1",
+          "preset": "small-fire",
+          "x": 0.658,
+          "y": 0.376,
+          "foot": {
+            "x": 0.663,
+            "y": 0.45
+          },
+          "depth": null,
+          "seed": 601,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "lambeth-fire-2",
+          "preset": "fire-with-smoke",
+          "x": 0.93,
+          "y": 0.607,
+          "foot": {
+            "x": 0.935,
+            "y": 0.685
+          },
+          "depth": null,
+          "seed": 602,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-3",
+          "preset": "small-fire",
+          "x": 0.233,
+          "y": 0.5,
+          "foot": {
+            "x": 0.24,
+            "y": 0.55
+          },
+          "depth": null,
+          "seed": 603,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-4",
+          "preset": "small-fire",
+          "x": 0.074,
+          "y": 0.77,
+          "foot": {
+            "x": 0.08,
+            "y": 0.89
+          },
+          "depth": null,
+          "seed": 604,
           "scale": 1,
           "intensity": 1,
           "preserve": true
