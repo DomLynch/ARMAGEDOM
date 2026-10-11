@@ -205,15 +205,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         o.material = Array.isArray(o.material) ? copies : copies[0];
       }
     });
-    let appearance=null;
-    if(entity.kind>=0&&entity.rig==='hollow-scavenger'){
-      if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
-      appearance=faceKits.get(source.gltf.scene).apply(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
-    }
+    let appearance=null,humanBody=null,humanBodyRecipe=null;
     const humanBodyRequest=entity.kind>=0&&entity.rig==='hollow-scavenger'?entity.humanBodyRecipe:null;
-    const humanBody=humanBodyRequest==='human-gaunt-skulker'?gauntKits.get(source.gltf.scene)?.apply(model)??null:null;
-    const humanBodyRecipe=humanBody?humanBodyRequest:null;
-    const flashMaterials=[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone()}));
+    const flashMaterials=[];
     const shadow = new THREE.Mesh(
       shadowGeometry,
       new THREE.MeshBasicMaterial({
@@ -241,13 +235,22 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     store.set(entity.id, view);
     let completed=false;
     try {
+      yield 'actor-clone';
+      if(entity.kind>=0&&entity.rig==='hollow-scavenger'){
+        if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
+        appearance=yield* faceKits.get(source.gltf.scene).applySteps(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
+        view.appearance=appearance;
+      }
+      humanBody=humanBodyRequest==='human-gaunt-skulker'?gauntKits.get(source.gltf.scene)?.apply(model)??null:null;
+      humanBodyRecipe=humanBody?humanBodyRequest:null;view.humanBody=humanBody;view.humanBodyRecipe=humanBodyRecipe;
+      flashMaterials.push(...[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone()})));
       const Motion =
         ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
       renderScene.add(root, shadow);
-      yield 'actor-clone';
+      yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
         view.finisher=yield* createFinisherPresentationSteps({root,model,clips:animations,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[stageWorld.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;

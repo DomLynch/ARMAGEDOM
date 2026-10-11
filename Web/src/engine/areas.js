@@ -1,3 +1,4 @@
+import {compileTargetVariant} from './compile-target.js';
 import * as THREE from 'three';
 import {resetMobileControls,initializeAreaResidents} from '../combat.js';
 import {prepareParkedResidents} from '../parked-area-preparation.js';
@@ -93,7 +94,7 @@ async function pumpDestinations(state){
       await s.renderer.compileAsync(stage.scene,stage.camera,s.scene);await preparationTurn(state);
       const lights=s.scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);stage.scene.fog=s.scene.fog;stage.scene.environment=s.scene.environment;
       const target=new THREE.WebGLRenderTarget(1,1),previousTarget=s.renderer.getRenderTarget(),started=performance.now();
-      try{s.renderer.setRenderTarget(target);s.renderer.render(stage.scene,stage.camera);}finally{s.renderer.setRenderTarget(previousTarget);target.dispose();for(const light of lights)light.removeFromParent();}
+      try{if(!await compileTargetVariant(s.renderer,stage.scene,stage.camera,target,()=>!state.cancelled&&s.game===state.game&&!s.contextLost))throw Error('Area preparation cancelled');await preparationTurn(state);s.renderer.setRenderTarget(target);s.renderer.render(stage.scene,stage.camera);}finally{s.renderer.setRenderTarget(previousTarget);target.dispose();for(const light of lights)light.removeFromParent();}
       const gl=s.renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
       try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
       state.stats.areas[task.areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(task.areaId);task.status='ready';task.resolve();

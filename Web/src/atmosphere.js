@@ -57,11 +57,11 @@ float turbulence(vec2 p){return noise(p)*.57+noise(p*2.03+3.1)*.28+noise(p*4.11+
 export function createAtmosphere({THREE,scene,world}) {
   const group=new THREE.Group();group.name='London restrained atmosphere';
   let area=null,elapsed=0,disposed=false;
-  const resources=[];
+  const resources=[],materials=new Map();
   const right=new THREE.Vector3(),up=new THREE.Vector3();
   function clear(){
     scene.remove(group);
-    for(const mesh of resources){group.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();}
+    for(const mesh of resources){group.remove(mesh);mesh.geometry.dispose();}
     resources.length=0;
   }
   function build(){
@@ -97,7 +97,9 @@ export function createAtmosphere({THREE,scene,world}) {
       const geometry=new THREE.BufferGeometry();
       for(const [name,data,count] of [['position',positions,3],['corner',corners,2],['motion',motions,3],['size',sizes,2],['phase',phases,1],['strength',strengths,1],['tint',tints,3],['variation',variations,2]])geometry.setAttribute(name,new THREE.Float32BufferAttribute(data,count));
       geometry.setIndex(indices);
-      const material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; varying vec3 smokeTint; varying float effectClock; ${noiseShader} void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});
+      let material=materials.get(kind);
+      if(!material){material=new THREE.ShaderMaterial({vertexShader,fragmentShader:`uniform float clock; varying vec2 uvLocal; varying float age; varying float alpha; varying vec3 smokeTint; varying float effectClock; ${noiseShader} void main(){${fragments[kind]}}`,uniforms:{clock:{value:elapsed},right:{value:right},up:{value:up}},transparent:true,depthTest:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});materials.set(kind,material);}
+      material.uniforms.clock.value=elapsed;
       const mesh=new THREE.Mesh(geometry,material);mesh.name=`Atmosphere ${kind}`;
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.
@@ -118,6 +120,6 @@ export function createAtmosphere({THREE,scene,world}) {
     },
     reset(){if(disposed)return;elapsed=0;for(const mesh of resources)mesh.material.uniforms.clock.value=0;},
     stats(){return {area,visible:group.visible,budget:atmosphereBudget(area),quads:resources.reduce((n,m)=>n+m.geometry.index.count/6,0),drawCalls:resources.length,textureBytes:0,time:elapsed,disposed};},
-    dispose(){if(disposed)return;disposed=true;clear();}
+    dispose(){if(disposed)return;disposed=true;clear();for(const material of materials.values())material.dispose();materials.clear();}
   };
 }
