@@ -9,15 +9,15 @@
       "area": "westminster",
       "path": "westminster/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/west/layout.json",
-      "bytes": 6819,
-      "sha256": "e23d4b665dda7341714517f416490ddceb9307a8ca8d735b2a65ec13603015d5"
+      "bytes": 6401,
+      "sha256": "84820f3cf357865b55835195992455b9091e142b9b6041e6df8c240938903ff5"
     },
     {
       "area": "westminster",
       "path": "westminster/backdrop.webp",
       "source": "Game/Assets/StreamingAssets/London/Travel/west/backdrop.png (lossless WebP copy)",
-      "bytes": 2297404,
-      "sha256": "1f95423b29dc7defb73dbb1ad45eec200ecad2ed75beeafa4316e8446430b8e1"
+      "bytes": 2097278,
+      "sha256": "0ea3c4f6aaa54da30ea2e6ba52ffe98793b63e51c7806c2a9e460baeac44c4a2"
     },
     {
       "area": "south",
