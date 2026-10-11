@@ -54,7 +54,8 @@ export class LondonWorld {
   }
   async loadArea(areaId,entryPoint=this.registry.get(areaId)?.entry) {
     if(!this.registry.has(areaId)||!entryPoint)throw Error('Unknown London area');
-    const cache=this.areaCache??=this.createAreaCache(),generation=++cache.generation;
+    const cache=this.areaCache??=this.createAreaCache(),generation=++cache.generation,release=this.leaseArea(areaId);
+    try{
     const next=await this.prepareArea(areaId),entry=next.geometry.ground(entryPoint);
     if(!next.geometry.clear(entry,.4))throw Error('London entry is blocked');
     if(cache.disposed||generation!==cache.generation)throw Error('London load superseded');
@@ -62,16 +63,32 @@ export class LondonWorld {
     const previous=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new THREE.Scene(),camera:camera.clone(),gpuReady:cache.stages.get(this.areaId)?.gpuReady??false});
     previous.scene.add(this.group);cache.stages.set(this.areaId,previous);
     next.update(entry,0,this.width,this.height,true);camera.copy(next.camera,false);
-    Object.assign(this,next,{scene,camera,areaCache:cache,spawn:{...entry}});scene.add(this.group);return {...entry};
+    Object.assign(this,next,{scene,camera,areaCache:cache,spawn:{...entry}});cache.activeArea=areaId;scene.add(this.group);return {...entry};
+    }finally{release();}
   }
   createAreaCache(){
     const initial=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new this.THREE.Scene(),camera:this.camera.clone()});
-    return{stages:new Map([[this.areaId,initial]]),pending:new Map(),generation:0,disposed:false};
+    return{stages:new Map([[this.areaId,initial]]),pending:new Map(),leases:new Map(),usage:new Map([[this.areaId,0]]),nextUse:1,activeArea:this.areaId,evictions:0,lastEvicted:null,generation:0,disposed:false};
+  }
+  leaseArea(areaId){
+    if(!this.registry.has(areaId))throw Error('Unknown London area');
+    const cache=this.areaCache??=this.createAreaCache();if(cache.disposed)throw Error('London cache disposed');
+    cache.leases.set(areaId,(cache.leases.get(areaId)??0)+1);let released=false;
+    return()=>{if(released)return;released=true;const count=(cache.leases.get(areaId)??0)-1;if(count>0)cache.leases.set(areaId,count);else cache.leases.delete(areaId);};
+  }
+  admitTexture(bytes){
+    const cache=this.areaCache,budget=48*1024*1024;
+    let total=[...cache.stages.values()].reduce((n,stage)=>n+stage.textureBytes(),0)+bytes;
+    if(total<=budget)return;
+    const candidates=[...cache.stages].filter(([id])=>id!==cache.activeArea&&!cache.pending.has(id)&&!cache.leases.has(id)).sort(([a],[b])=>(cache.usage.get(a)??0)-(cache.usage.get(b)??0)),evict=[];
+    for(const [id,stage]of candidates){if(total<=budget)break;evict.push([id,stage]);total-=stage.textureBytes();}
+    if(total>budget)throw Error('London prepared texture budget exceeded; active or in-flight areas retained');
+    for(const [id,stage]of evict){cache.stages.delete(id);cache.usage.delete(id);stage.disposeStage();cache.evictions++;cache.lastEvicted=id;}
   }
   async prepareArea(areaId){
     if(!this.registry.has(areaId))throw Error('Unknown London area');
     const cache=this.areaCache??=this.createAreaCache();if(cache.disposed)throw Error('London cache disposed');
-    if(cache.stages.has(areaId))return cache.stages.get(areaId);
+    if(cache.stages.has(areaId)){cache.usage.set(areaId,cache.nextUse++);return cache.stages.get(areaId);}
     if(cache.pending.has(areaId))return cache.pending.get(areaId);
     const task=(async()=>{
       const row=this.registry.get(areaId),response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));
@@ -81,16 +98,15 @@ export class LondonWorld {
       let next;
       try{
         if(cache.disposed)throw Error('London cache disposed');
-        const bytes=[...cache.stages.values()].reduce((n,s)=>n+s.textureBytes(),0)+(texture.image?.width??0)*(texture.image?.height??0)*4*7/3;
-        if(bytes>48*1024*1024)throw Error('London prepared texture budget exceeded');
+        this.admitTexture((texture.image?.width??0)*(texture.image?.height??0)*4*7/3);
         next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
-        next.areaId=areaId;cache.stages.set(areaId,next);return next;
-      }catch(error){if(next)next.disposeStage();else texture.dispose();throw error;}
+        next.areaId=areaId;cache.stages.set(areaId,next);cache.usage.set(areaId,cache.nextUse++);return next;
+      }catch(error){if(next)next.disposeStage();else {texture.dispose();texture.image=null;}throw error;}
     })();
     cache.pending.set(areaId,task);try{return await task;}finally{cache.pending.delete(areaId);}
   }
   textureBytes(){return (this.texture.image?.width??0)*(this.texture.image?.height??0)*4*7/3;}
-  preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:48*1024*1024,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
+  preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:48*1024*1024,leases:c?[...c.leases.keys()]:[],evictions:c?.evictions??0,lastEvicted:c?.lastEvicted??null,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
   isAreaReady(areaId){return !!this.areaCache?.stages.get(areaId)?.gpuReady;}
   markAreaReady(areaId){const stage=this.areaCache?.stages.get(areaId);if(stage)stage.gpuReady=true;if(areaId===this.areaId)this.gpuReady=true;}
   cachedArea(areaId){return this.areaCache?.stages.get(areaId);}
@@ -131,13 +147,13 @@ export class LondonWorld {
     camera.projectionMatrix.multiplyMatrices(this.crop,this.calibrated);camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   }
   dispose() {
-    if(this.areaCache){const cache=this.areaCache;if(cache.disposed)return;cache.disposed=true;cache.generation++;for(const stage of cache.stages.values())stage.disposeStage();cache.stages.clear();this.disposed=true;return;}
+    if(this.areaCache){const cache=this.areaCache;if(cache.disposed)return;cache.disposed=true;cache.generation++;for(const stage of cache.stages.values())stage.disposeStage();cache.stages.clear();cache.usage.clear();cache.leases.clear();this.disposed=true;return;}
     this.disposeStage();
   }
   disposeStage() {
     if(this.disposed)return;this.disposed=true;
     this.group.removeFromParent();this.group.traverse(object=>object.geometry?.dispose());
-    this.backdrop.material.dispose();this.depthMaterial.dispose();this.texture.dispose();
+    this.backdrop.material.dispose();this.depthMaterial.dispose();this.texture.dispose();this.texture.image=null;
   }
 }
 export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThis.document?.baseURI,viewZoomMultiplier=1}) {

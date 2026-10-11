@@ -74,7 +74,7 @@ function startAreaPreparation(){
 function queueDestination(areaId,state=areaPreparation){
   if(s.world.isAreaReady(areaId))return Promise.resolve();
   if(!state||state.cancelled||state.game!==s.game)throw Error('Area preparation unavailable');
-  const existing=state.tasks.get(areaId);if(existing&&existing.status!=='failed')return existing.promise;
+  const existing=state.tasks.get(areaId);if(existing&&existing.status!=='failed'&&existing.status!=='ready')return existing.promise;
   let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
   state.tasks.set(areaId,{areaId,promise,resolve,reject,status:'queued'});pumpDestinations(state);return promise;
 }
@@ -84,7 +84,9 @@ async function pumpDestinations(state){
   try{for(;;){
     const queued=[...state.tasks.values()].filter(t=>t.status==='queued').sort((a,b)=>(a.areaId===state.urgent?-1:b.areaId===state.urgent?1:exitDistance(a.areaId)-exitDistance(b.areaId)));
     if(!queued.length||state.cancelled)return;const task=queued[0];task.status='running';state.current=task.areaId;
+    let release=()=>{};const retainedViews=state.actors.areaViewStats().parked?.some(row=>row.area===task.areaId&&row.count>0)??false;
     try{
+      release=s.world.leaseArea?.(task.areaId)??release;
       await preparationTurn(state);const stage=await s.world.prepareArea(task.areaId);await preparationTurn(state);
       const record=prepareParkedResidents(state.game,stage,initializeAreaResidents),iterator=state.iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);
       let done=false;
@@ -98,7 +100,7 @@ async function pumpDestinations(state){
       const gl=s.renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
       try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
       state.stats.areas[task.areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(task.areaId);task.status='ready';task.resolve();
-    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}
+    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{release();}
   }}finally{state.running=false;}
 }
 
@@ -107,7 +109,7 @@ function checkExit(){
       if (!request) {travelLatch = false;if(areaPreparation){areaPreparation.urgent=null;for(const[id,task]of areaPreparation.tasks)if(task.status==='failed')areaPreparation.tasks.delete(id);}}
       if (request && !travelLatch && s.game.player.hp>0 && !s.game.finished && !s.paused && !s.contextLost) {
         if(s.world.isAreaReady(request.areaId)){travelLatch = true;crossArea(request);return true;}
-        else if(areaPreparation){const state=areaPreparation;state.urgent=request.areaId;if(!state.tasks.has(request.areaId))queueDestination(request.areaId,state).catch(error=>{if(areaPreparation===state&&!state.cancelled){s.game.message='Could not load that area. Move away and try the exit again.';s.game.messageUntil=s.game.time+5;}});if(state.tasks.get(request.areaId)?.status!=='failed'){s.game.message=`${request.areaId.toUpperCase()} is loading. You can still move or turn back.`;s.game.messageUntil=s.game.time+1;}}
+        else if(areaPreparation){const state=areaPreparation;state.urgent=request.areaId;if(!state.tasks.has(request.areaId)||state.tasks.get(request.areaId).status==='ready')queueDestination(request.areaId,state).catch(error=>{if(areaPreparation===state&&!state.cancelled){s.game.message='Could not load that area. Move away and try the exit again.';s.game.messageUntil=s.game.time+5;}});if(state.tasks.get(request.areaId)?.status!=='failed'){s.game.message=`${request.areaId.toUpperCase()} is loading. You can still move or turn back.`;s.game.messageUntil=s.game.time+1;}}
       }
 return false;
 }
