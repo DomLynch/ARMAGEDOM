@@ -1,3 +1,4 @@
+import {createMovementTrace} from './movement-trace.js';
 import {applyAreaLighting} from './area-lighting.js';
 import * as THREE from 'three';
 import {preparePrivateAreaContent,namespacedRunStorage} from './private-area-content.js';
@@ -46,7 +47,7 @@ let renderer,
   startup = null,
   focusLost = false,
   disposed=false;
-let loop,areas,resources;
+let loop,areas,resources,diagnostics=null;
 const scene = new THREE.Scene(),
   camera = new THREE.PerspectiveCamera();
 const hemi = new THREE.HemisphereLight(0xb9bec9, 0x4b3828, 1.6),
@@ -69,7 +70,7 @@ function pause(value) {
   if (value) audio.pause();
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : loop.frame);
 }
-const context={get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun(){return createGame(world,{...pilot,residentPlacements:world.residentPlacements??pilot.residentPlacements,animalCycle:nextAnimalCycle(game.animalCycle)});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},collectNearbySupplies(g){resources.collectNearbySupplies(g);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},cancelPistol(g){resources.cancelPistol(g)},emit};
+const context={get diagnostics(){return diagnostics},get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun(){return createGame(world,{...pilot,residentPlacements:world.residentPlacements??pilot.residentPlacements,animalCycle:nextAnimalCycle(game.animalCycle)});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},collectNearbySupplies(g){resources.collectNearbySupplies(g);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},cancelPistol(g){resources.cancelPistol(g)},emit};
 resources=createRunViews(context);areas=createAreaLifecycle(context);loop=createBrowserLoop(context);
 const hud = createHUD({
   onAssist:enabled=>{mobileAssistEnabled=enabled;if(game){game.mobileAssistEnabled=enabled;resetMobileControls(game);}},
@@ -130,6 +131,8 @@ input = attachInput({
 });
 listen(document.getElementById("resume"),"click", () => audio.unlock().catch(() => {}));
 listen(document.getElementById("close-menu"),"click", () => audio.unlock().catch(() => {}));
+diagnostics=createMovementTrace(context,{enabled:new URLSearchParams(location.search).get('movementTrace')==='1'});
+if(diagnostics)fetch(new URL('release.json',baseUrl)).then(r=>{if(!r.ok)throw Error('Build identity unavailable');return r.json();}).then(r=>diagnostics?.setIdentity(r)).catch(()=>diagnostics?.setIdentity({version:'Build identity unavailable'}));
 const touchPreview = new URLSearchParams(location.search).get("touch") === "1";
 if (touchPreview) document.body.classList.add("touch");
 function resize() {
@@ -286,5 +289,5 @@ async function start() {
 listen(enter,"click",start);
 if(options.prewarm!==false)prepareEncounter();
 
-return Object.freeze({start,input(value){if(!disposed)loop.input(value);},step(seconds){if(!disposed)loop.step(seconds);},prepareArea(id){if(disposed||!loaded)return Promise.reject(Error('Session unavailable'));return areas.prepare(id);},activateArea(request){if(disposed||!loaded)return Promise.resolve(false);return areas.activate(request);},state(){return readonlyState(game,{areaId:world?.areaId,loaded,paused,traveling,disposed});},events(listener){if(disposed)throw Error('Session disposed');if(typeof listener!=='function')throw new TypeError('Event listener required');subscriptions.add(listener);return()=>subscriptions.delete(listener);},pause,retry:restart,dispose(){if(disposed)return;disposed=true;loaded=false;areas.stop();renderer?.setAnimationLoop(null);loop.reset();input?.dispose();hud.dispose();for(const remove of listeners)remove();subscriptions.clear();resources.dispose();actors?.dispose();pendingLibrary?.dispose();effects?.dispose();atmosphere?.dispose();world?.dispose();renderer?.dispose();audio.dispose?.();const pending=startup;startup=null;if(!loading)pending?.then(results=>{for(const result of results)if(result.status==='fulfilled')result.value.dispose();});}});
+return Object.freeze({start,input(value){if(!disposed)loop.input(value);},step(seconds){if(!disposed)loop.step(seconds);},prepareArea(id){if(disposed||!loaded)return Promise.reject(Error('Session unavailable'));return areas.prepare(id);},activateArea(request){if(disposed||!loaded)return Promise.resolve(false);return areas.activate(request);},state(){return readonlyState(game,{areaId:world?.areaId,loaded,paused,traveling,disposed});},events(listener){if(disposed)throw Error('Session disposed');if(typeof listener!=='function')throw new TypeError('Event listener required');subscriptions.add(listener);return()=>subscriptions.delete(listener);},pause,retry:restart,dispose(){if(disposed)return;disposed=true;diagnostics?.dispose();loaded=false;areas.stop();renderer?.setAnimationLoop(null);loop.reset();input?.dispose();hud.dispose();for(const remove of listeners)remove();subscriptions.clear();resources.dispose();actors?.dispose();pendingLibrary?.dispose();effects?.dispose();atmosphere?.dispose();world?.dispose();renderer?.dispose();audio.dispose?.();const pending=startup;startup=null;if(!loading)pending?.then(results=>{for(const result of results)if(result.status==='fulfilled')result.value.dispose();});}});
 }
