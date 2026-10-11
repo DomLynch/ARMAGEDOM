@@ -67,7 +67,7 @@ export function createGame(world,options={}){
  if(options.mobileControls)g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));
  if(options.supplies)g.supplies=createSuppliesState();
  if(options.vest)g.vest=createVestState();
- if(options.areaResidents&&encounter){g.areaResidents=true;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
+ if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
@@ -348,8 +348,9 @@ export function initializeAreaResidents(g){
  const area=g.world.areaId??'westminster';
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
- const sizes=allocateMobSizes(area,AREA_MOB_SPAWNS[area].map(placement=>placement.key));
- const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,sizes.get(placement.key)),{
+ const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
+ const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
+ const residents=placements.filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,placement.foundationRef?1:sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}

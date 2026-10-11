@@ -1,0 +1,23 @@
+{
+  "fixture-westminster-annex": [
+    {
+      "key": "fixture-westminster-annex-resident-1",
+      "foundationRef": "hollow-scavenger",
+      "recipeRef": "human-street-scavenger",
+      "pos": {
+        "x": 6.10392,
+        "z": 5.37247
+      },
+      "patrol": [
+        {
+          "x": 6.10392,
+          "z": 5.37247
+        },
+        {
+          "x": 4.10392,
+          "z": 5.37247
+        }
+      ]
+    }
+  ]
+}

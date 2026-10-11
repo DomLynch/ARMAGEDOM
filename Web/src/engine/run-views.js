@@ -6,7 +6,7 @@ import {createSupplyView} from '../supplies-view.js';
 import {createVestBagView} from '../vest-view.js';
 import {vestAvailable} from '../vest.js';
 export function createRunViews(s){
-let storage;try{storage=globalThis.localStorage;}catch{storage=null;}
+let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:()=>s.createFreshRun(),storage});
 let vestBag=null;
 function clearVestBag(){vestBag?.dispose();vestBag=null;}
