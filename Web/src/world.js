@@ -1,4 +1,5 @@
 import {createGeometry} from './world-geometry.js';
+import {createAreaRegistry} from './area-registry.js';
 const ASPECT=1672/941;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
@@ -8,12 +9,12 @@ function damp(value,target,velocity,time,dt) {
   return [target+(change+temp)*decay,(velocity-omega*temp)*decay];
 }
 export class LondonWorld {
-  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1}) {
+  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null}) {
     if(!Number.isFinite(viewZoomMultiplier)||viewZoomMultiplier<1)throw Error('View zoom multiplier must be finite and at least 1');
     this.viewZoomMultiplier=viewZoomMultiplier;
     this.THREE=THREE;this.scene=scene;this.camera=camera;this.layout=layout;this.texture=texture;
     this.geometry=createGeometry(layout);this.spawn={x:0,z:-6};this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
-    this.manifest=manifest;this.baseUrl=baseUrl;this.areaId='westminster';this.disposed=false;
+    this.manifest=manifest;this.registry=registry??createAreaRegistry({manifest});this.baseUrl=baseUrl;this.areaId=this.registry.initialArea;this.disposed=false;
     this.center={x:.5,y:.5};this.velocity={x:0,y:0};this.group=new THREE.Group();this.group.name='London registered image stage';
     camera.fov=layout.fieldOfView;camera.aspect=ASPECT;camera.near=.1;camera.far=300;
     camera.position.set(0,layout.height,layout.distance);camera.up.set(0,1,0);camera.lookAt(0,0,-layout.targetZ);
@@ -47,12 +48,12 @@ export class LondonWorld {
   lineClear(a,b){return this.geometry.lineClear(a,b);}
   get actorScale(){return this.layout.characterScale;}
   travelAt(position) {
-    const point=this.geometry.point(position),link=this.manifest?.links.find(link=>link.from===this.areaId&&
+    const point=this.geometry.point(position),link=this.registry.links(this.areaId).find(link=>
       Object.entries(link.condition).every(([key,value])=>key==='xMin'?point.x>value:key==='xMax'?point.x<value:key==='yMin'?point.y>value:point.y<value));
     return link?{areaId:link.to,entryPoint:{...link.entry}}:null;
   }
-  async loadArea(areaId,entryPoint=this.manifest?.entries[areaId]) {
-    if(!this.manifest?.files.some(file=>file.area===areaId)||!entryPoint)throw Error('Unknown London area');
+  async loadArea(areaId,entryPoint=this.registry.get(areaId)?.entry) {
+    if(!this.registry.has(areaId)||!entryPoint)throw Error('Unknown London area');
     const cache=this.areaCache??=this.createAreaCache(),generation=++cache.generation;
     const next=await this.prepareArea(areaId),entry=next.geometry.ground(entryPoint);
     if(!next.geometry.clear(entry,.4))throw Error('London entry is blocked');
@@ -68,21 +69,21 @@ export class LondonWorld {
     return{stages:new Map([[this.areaId,initial]]),pending:new Map(),generation:0,disposed:false};
   }
   async prepareArea(areaId){
-    if(!['westminster','east','south'].includes(areaId)||!this.manifest?.files.some(f=>f.area===areaId))throw Error('Unknown London area');
+    if(!this.registry.has(areaId))throw Error('Unknown London area');
     const cache=this.areaCache??=this.createAreaCache();if(cache.disposed)throw Error('London cache disposed');
     if(cache.stages.has(areaId))return cache.stages.get(areaId);
     if(cache.pending.has(areaId))return cache.pending.get(areaId);
     const task=(async()=>{
-      const url=new URL(`world/${areaId}/`,this.baseUrl),response=await fetch(new URL('layout.json',url));
+      const row=this.registry.get(areaId),response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));
       if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
       const layout=await response.json();createGeometry(layout);
-      const texture=await new this.THREE.TextureLoader().loadAsync(new URL(this.manifest.backdrops?.[areaId]??'backdrop.png',url).href);
+      const texture=await new this.THREE.TextureLoader().loadAsync(new URL(this.registry.asset(row.backdropRef).path,this.baseUrl).href);
       let next;
       try{
         if(cache.disposed)throw Error('London cache disposed');
         const bytes=[...cache.stages.values()].reduce((n,s)=>n+s.textureBytes(),0)+(texture.image?.width??0)*(texture.image?.height??0)*4*7/3;
         if(bytes>48*1024*1024)throw Error('London prepared texture budget exceeded');
-        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
+        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
         next.areaId=areaId;cache.stages.set(areaId,next);return next;
       }catch(error){if(next)next.disposeStage();else texture.dispose();throw error;}
     })();
@@ -142,9 +143,9 @@ export class LondonWorld {
 export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThis.document?.baseURI,viewZoomMultiplier=1}) {
   const manifestResponse=await fetch(new URL('world/manifest.json',baseUrl));if(!manifestResponse.ok)throw Error(`London manifest HTTP ${manifestResponse.status}`);
   const manifest=await manifestResponse.json();
-  const url=new URL('world/westminster/',baseUrl);
-  const response=await fetch(new URL('layout.json',url));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
+  const registry=createAreaRegistry({manifest}),row=registry.get(registry.initialArea);
+  const response=await fetch(new URL(registry.asset(row.layoutRef).path,baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
   const layout=await response.json();createGeometry(layout);
-  const texture=await new THREE.TextureLoader().loadAsync(new URL(manifest.backdrops?.westminster??'backdrop.png',url).href);
-  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,baseUrl,viewZoomMultiplier});} catch(e){texture.dispose();throw e;}
+  const texture=await new THREE.TextureLoader().loadAsync(new URL(registry.asset(row.backdropRef).path,baseUrl).href);
+  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier});} catch(e){texture.dispose();throw e;}
 }

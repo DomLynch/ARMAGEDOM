@@ -1,0 +1,56 @@
+{
+  "area": {
+    "id": "fixture-westminster-annex",
+    "visibility": "private",
+    "layoutRef": "layout.westminster",
+    "backdropRef": "backdrop.westminster",
+    "audioRef": "audio.combat",
+    "entry": {
+      "x": 0.52,
+      "y": 0.78
+    },
+    "exits": [
+      {
+        "id": "exit.fixture-westminster-annex.westminster",
+        "target": "westminster",
+        "condition": {
+          "xMin": 0.62,
+          "xMax": 0.66,
+          "yMin": 0.62,
+          "yMax": 0.66
+        },
+        "entry": {
+          "x": 0.52,
+          "y": 0.78
+        }
+      }
+    ],
+    "spawns": [],
+    "atmosphere": {
+      "anchors": [],
+      "budget": {
+        "quads": 0,
+        "drawCalls": 0,
+        "textureBytes": 0
+      }
+    },
+    "encounterRef": "hollow-scavengers"
+  },
+  "attach": {
+    "from": "westminster",
+    "exit": {
+      "id": "exit.westminster.fixture-westminster-annex",
+      "target": "fixture-westminster-annex",
+      "condition": {
+        "xMin": 0.62,
+        "xMax": 0.66,
+        "yMin": 0.62,
+        "yMax": 0.66
+      },
+      "entry": {
+        "x": 0.52,
+        "y": 0.78
+      }
+    }
+  }
+}

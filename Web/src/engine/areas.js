@@ -1,3 +1,4 @@
+import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
 import {resetMobileControls,initializeAreaResidents} from '../combat.js';
 import {prepareParkedResidents} from '../parked-area-preparation.js';
@@ -58,7 +59,7 @@ function preparationTurn(state){return new Promise((resolve,reject)=>{
   if(globalThis.requestIdleCallback)requestIdleCallback(idle,{timeout:16});else requestAnimationFrame(()=>setTimeout(()=>{if(check())resolve(state.urgent?12:4);},0));
 });}
 function exitDistance(areaId){
-  const link=s.world.manifest.links.find(link=>link.from===s.world.areaId&&link.to===areaId);if(!link)return Infinity;
+  const link=(s.world.registry?.links(s.world.areaId)??s.world.manifest.links.filter(link=>link.from===s.world.areaId)).find(link=>link.to===areaId);if(!link)return Infinity;
   const point=s.world.geometry.point(s.game.player.pos),goal={x:point.x,y:point.y};
   for(const[key,value]of Object.entries(link.condition))goal[key[0]]=value;
   const target=s.world.geometry.ground(goal);return Math.hypot(target.x-s.game.player.pos.x,target.z-s.game.player.pos.z);
@@ -68,7 +69,7 @@ function startAreaPreparation(){
   const state=areaPreparation={game:s.game,actors:s.actors,cancelled:false,tasks:new Map(),running:false,iterator:null,stats:{steps:0,cpuMilliseconds:0,maxStepMs:0,areas:{}}};
   s.world.preparationProgress=state.stats;
   s.world.prepareArea(s.world.areaId).catch(()=>{});s.world.markAreaReady(s.world.areaId);
-  for(const id of ['westminster','east','south'].filter(id=>id!==s.world.areaId).sort((a,b)=>exitDistance(a)-exitDistance(b)))queueDestination(id,state).catch(error=>{if(!state.cancelled)console.warn('ARMAGEDOM_AREA_PREPARATION',id,error.message);});
+  for(const id of (s.world.registry??publicAreaRegistry).reachable(s.world.areaId).filter(id=>id!==s.world.areaId).sort((a,b)=>exitDistance(a)-exitDistance(b)))queueDestination(id,state).catch(error=>{if(!state.cancelled)console.warn('ARMAGEDOM_AREA_PREPARATION',id,error.message);});
 }
 function queueDestination(areaId,state=areaPreparation){
   if(s.world.isAreaReady(areaId))return Promise.resolve();

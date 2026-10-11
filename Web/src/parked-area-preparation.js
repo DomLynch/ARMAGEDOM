@@ -1,8 +1,9 @@
+import {publicAreaRegistry} from './area-registry.js';
 // Prepare one authoritative dormant roster using the existing resident factory.
 // No simulation, events, persistence or rewards run here; travel adopts this record.
 export function prepareParkedResidents(game, areaWorld, initializeResidents) {
   const areaId = areaWorld?.areaId;
-  if (!game?.areaResidents || !['westminster', 'east', 'south'].includes(areaId)
+  if (!game?.areaResidents || !(areaWorld?.registry??game?.world?.registry??publicAreaRegistry).has(areaId)
       || areaId === game.world?.areaId || !Number.isFinite(game.time)
       || typeof initializeResidents !== 'function')
     throw new TypeError('Dormant preparation requires another existing resident area');
