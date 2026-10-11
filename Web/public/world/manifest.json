@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 9680,
-      "sha256": "13e2a924fae6c300a1918c5f981af8bc6885efb353fad9dd8def2c139692795a"
+      "bytes": 10069,
+      "sha256": "748a80031e8755b27ca6f7668c3bfae89a1868aea83231a2db96aa9574b7e82d"
     }
   ],
   "lazyAreas": [

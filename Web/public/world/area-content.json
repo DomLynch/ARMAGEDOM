@@ -413,5 +413,21 @@
         "textureBytes": 0
       }
     }
+  },
+  "lighting": {
+    "presets": {
+      "current-default": {
+        "fillIntensity": 1.6,
+        "keyIntensity": 2.3
+      }
+    },
+    "areas": {
+      "westminster": "current-default",
+      "east": "current-default",
+      "south": "current-default",
+      "east-bridge": "current-default",
+      "elephant-and-castle": "current-default",
+      "lambeth": "current-default"
+    }
   }
 }

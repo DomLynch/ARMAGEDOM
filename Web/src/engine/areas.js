@@ -1,3 +1,4 @@
+import {applyAreaLighting} from './area-lighting.js';
 import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
 import {resetMobileControls,initializeAreaResidents} from '../combat.js';
@@ -21,6 +22,7 @@ async function crossArea(request) {
     if(!owns())return false;
     const position=await travelTo(ownerGame, request,{isCurrent:owns});
     if(!position||!owns())return false;
+    applyAreaLighting(s.scene,s.world);
     s.effects.reset();
     s.actors.parkArea(previousArea);s.actors.activateArea(request.areaId);
     s.game.events = [];
@@ -97,7 +99,7 @@ async function pumpDestinations(state){
       state.iterator=null;
       const memory=s.actors.areaViewStats();if(memory.ownedFinisherGeometryBytes>memory.finisherGeometryBudgetBytes)throw Error('Prepared actor geometry budget exceeded');
       await s.renderer.compileAsync(stage.scene,stage.camera,s.scene);await preparationTurn(state);
-      const lights=s.scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);stage.scene.fog=s.scene.fog;stage.scene.environment=s.scene.environment;
+      const lights=s.scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);applyAreaLighting(stage.scene,stage);stage.scene.fog=s.scene.fog;stage.scene.environment=s.scene.environment;
       const started=performance.now();
       try{await preparationTurn(state);warmFramebuffer(s.renderer,stage.scene,stage.camera);}finally{for(const light of lights)light.removeFromParent();}
       const gl=s.renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();

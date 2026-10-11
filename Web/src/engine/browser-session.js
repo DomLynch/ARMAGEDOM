@@ -1,3 +1,4 @@
+import {applyAreaLighting} from './area-lighting.js';
 import * as THREE from 'three';
 import {preparePrivateAreaContent,namespacedRunStorage} from './private-area-content.js';
 import {createWorld} from '../world.js';
@@ -217,6 +218,7 @@ async function start() {
     const character = library.manifest.models["hollow-scavenger"];
     pilot.encounter = createHollowEncounter({rig: "hollow-scavenger", weapon: "knife", contactRig: character.contactRig, bodyScale: character.bodyScale});
     world = nextWorld;
+    applyAreaLighting(scene,world);
     pendingLibrary = library;
     game = createGame(world, {...pilot,residentPlacements:world.residentPlacements??pilot.residentPlacements});game.mobileAssistEnabled=mobileAssistEnabled;
     resources.restoreSavedRun(game);
