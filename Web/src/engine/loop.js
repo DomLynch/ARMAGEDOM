@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import {stepGame,resetMobileControls} from '../combat.js';
 import {pistolPointerPoint} from '../pistol-targeting.js';
-import {collectNearbySupplies,collectNearbyVest} from './run-state.js';
 export function createBrowserLoop(s){
 let last=0,accumulator=0,submitted=null;
 function toDomain(v) {
@@ -52,8 +51,8 @@ function frame(ms,providedElapsed) {
       const weaponBefore = s.game.player.weapon;
       stepGame(s.game, intent(), 1 / 60);
       if (weaponBefore !== s.game.player.weapon) {s.input.clear();submitted=null;resetMobileControls(s.game);}
-      collectNearbySupplies(s.game,s.persistRun);
-      collectNearbyVest(s.game,s.persistRun);
+      s.collectNearbySupplies(s.game);
+      s.collectNearbyVest(s.game);
       s.persistRun(s.game);
       s.effects.events(s.game);
       s.actors?.events(s.game);
