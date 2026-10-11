@@ -32,11 +32,11 @@ export const AREA_ATMOSPHERE=Object.freeze({
 });
 const BUDGETS=Object.freeze({westminster:Object.freeze({quads:28,drawCalls:3,textureBytes:0}),east:Object.freeze({quads:28,drawCalls:3,textureBytes:0}),south:Object.freeze({quads:28,drawCalls:3,textureBytes:0})});
 const empty=Object.freeze([]),emptyBudget=Object.freeze({quads:0,drawCalls:0,textureBytes:0});
-export const atmosphereBudget=area=>BUDGETS[area]??emptyBudget;
+export const atmosphereBudget=(area,provided)=>provided??BUDGETS[area]??emptyBudget;
 // Pure deterministic resolution: stable through re-entry, reset and reload.
-export function atmosphereForArea(area){
-  return (AREA_ATMOSPHERE[area]??empty).map(p=>{
-    if(p.preserve)return p;
+export function atmosphereForArea(area,provided){
+  return (provided??AREA_ATMOSPHERE[area]??empty).map(p=>{
+    if(p.preserve)return provided?{...ATMOSPHERE_PRESETS[p.preset],...p}:p;
     const base={...ATMOSPHERE_PRESETS[p.preset],...p};
     let state=p.seed>>>0;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
     const size=.94+random()*.12,rise=.93+random()*.14,phase=random(),offset=random()*7;

@@ -343,6 +343,15 @@ function hollowActor(g,position,index=0,mobSize=1){
   hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
   ready:g.time+index*profile.aggression}),profile.regen);
 }
+function droneResident(g,placement){const foundation=creatureCatalogue.get('low-hover-drone');return Object.assign(enemy(0,placement.pos),{rig:foundation.runtimeIdentity,areaId:g.world.areaId,weapon:foundation.stats.weapon,radius:foundation.stats.radius,hp:foundation.stats.health,maxHP:foundation.stats.health,moveSpeed:foundation.stats.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()});}
+function declaredResident(g,placement,mobSize){
+ const foundation=placement.foundationRef?creatureCatalogue.get(placement.foundationRef):null;
+ if(foundation?.runtimeIdentity==='low-hover-drone')return droneResident(g,placement);
+ const actor=hollowActor(g,placement.pos,0,foundation?1:mobSize);
+ if(foundation&&foundation.runtimeIdentity!=='hollow-scavenger')Object.assign(actor,animalFoundationParameters(foundation.runtimeIdentity,g.player.combatScale),{animalRecipe:placement.recipeRef});
+ else if(placement.recipeRef==='human-gaunt-skulker')actor.humanBodyRecipe=placement.recipeRef;
+ return actor;
+}
 export function initializeAreaResidents(g){
  if(!g.areaResidents||g.areaInitialized)return;
  const area=g.world.areaId??'westminster';
@@ -350,7 +359,7 @@ export function initializeAreaResidents(g){
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
  const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
- const residents=placements.filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,placement.foundationRef?1:sizes.get(placement.key)),{
+ const residents=placements.filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
@@ -367,8 +376,7 @@ export function initializeAreaResidents(g){
   if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
- const droneFoundation=creatureCatalogue.get('low-hover-drone');
- if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(enemy(0,placement.pos),{rig:droneFoundation.runtimeIdentity,areaId:area,placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false,weapon:droneFoundation.stats.weapon,radius:droneFoundation.stats.radius,hp:droneFoundation.stats.health,maxHP:droneFoundation.stats.health,moveSpeed:droneFoundation.stats.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()}));
+ if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }

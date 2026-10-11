@@ -46,11 +46,32 @@
       "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png (lossless WebP copy)",
       "bytes": 2374366,
       "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
+    },
+    {
+      "area": "east-bridge",
+      "path": "east-bridge/layout.json",
+      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
+      "bytes": 6151,
+      "sha256": "b27b1b8d38e5a26ad46490300c0b6038cb940264ad66aca28c1bd910233b034b"
+    },
+    {
+      "area": "east-bridge",
+      "path": "east-bridge/backdrop.webp",
+      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
+      "bytes": 2401738,
+      "sha256": "e52f0260f4e080e4633fdb0c580f2ef6cb7291b59c3a0b6f80a5b186bad0da62"
+    },
+    {
+      "area": "shared",
+      "path": "area-content.json",
+      "bytes": 3276,
+      "sha256": "e5da1896880fca307d1d42c5e2d8422a5de2783c2fae589d90af329a9d48c07a"
     }
   ],
   "lazyAreas": [
     "south",
-    "east"
+    "east",
+    "east-bridge"
   ],
   "entries": {
     "south": {
@@ -64,6 +85,10 @@
     "westminster": {
       "x": 0.52,
       "y": 0.78
+    },
+    "east-bridge": {
+      "x": 0.07,
+      "y": 0.835
     }
   },
   "links": [
@@ -118,11 +143,41 @@
         "x": 0.6,
         "y": 0.92
       }
+    },
+    {
+      "from": "east",
+      "to": "east-bridge",
+      "condition": {
+        "xMin": 0.95,
+        "xMax": 0.97,
+        "yMin": 0.325,
+        "yMax": 0.339
+      },
+      "entry": {
+        "x": 0.07,
+        "y": 0.835
+      }
+    },
+    {
+      "from": "east-bridge",
+      "to": "east",
+      "condition": {
+        "xMin": 0.025,
+        "xMax": 0.045,
+        "yMin": 0.81,
+        "yMax": 0.855
+      },
+      "entry": {
+        "x": 0.935,
+        "y": 0.325
+      }
     }
   ],
   "backdrops": {
     "westminster": "backdrop.webp",
     "south": "backdrop.webp",
-    "east": "backdrop.webp"
-  }
+    "east": "backdrop.webp",
+    "east-bridge": "backdrop.webp"
+  },
+  "contentRef": "area-content.json"
 }

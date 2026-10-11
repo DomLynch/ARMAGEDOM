@@ -31,7 +31,7 @@ async function crossArea(request) {
       "ARMAGEDOM_TRAVEL",
       JSON.stringify({ area: s.world.areaId, position: s.game.player.pos }),
     );
-    accepted=true;return true;
+    accepted=true;if(areaPreparation)queueNeighbours(areaPreparation);return true;
   } catch (error) {
     if(!owns())return false;
     console.error("ARMAGEDOM_TRAVEL_FAILED", error);
@@ -69,7 +69,10 @@ function startAreaPreparation(){
   const state=areaPreparation={game:s.game,actors:s.actors,cancelled:false,tasks:new Map(),running:false,iterator:null,stats:{steps:0,cpuMilliseconds:0,maxStepMs:0,areas:{}}};
   s.world.preparationProgress=state.stats;
   s.world.prepareArea(s.world.areaId).catch(()=>{});s.world.markAreaReady(s.world.areaId);
-  for(const id of (s.world.registry??publicAreaRegistry).reachable(s.world.areaId).filter(id=>id!==s.world.areaId).sort((a,b)=>exitDistance(a)-exitDistance(b)))queueDestination(id,state).catch(error=>{if(!state.cancelled)console.warn('ARMAGEDOM_AREA_PREPARATION',id,error.message);});
+  queueNeighbours(state);
+}
+function queueNeighbours(state){
+ for(const id of [...new Set((s.world.registry??publicAreaRegistry).links(s.world.areaId).map(link=>link.to))].sort((a,b)=>exitDistance(a)-exitDistance(b)))queueDestination(id,state).catch(error=>{if(!state.cancelled)console.warn('ARMAGEDOM_AREA_PREPARATION',id,error.message);});
 }
 function queueDestination(areaId,state=areaPreparation){
   if(s.world.isAreaReady(areaId))return Promise.resolve();

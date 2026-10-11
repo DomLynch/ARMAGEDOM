@@ -1,0 +1,143 @@
+{
+  "residents": {
+    "east-bridge": [
+      {
+        "key": "east-bridge-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -3.3673786018332614,
+          "z": 0.8973258571657396
+        },
+        "patrol": [
+          {
+            "x": -3.3673786018332614,
+            "z": 0.8973258571657396
+          },
+          {
+            "x": -2.198363813659261,
+            "z": 1.5718110007710813
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 9.70918451588038,
+          "z": 9.029059225262067
+        },
+        "patrol": [
+          {
+            "x": 9.70918451588038,
+            "z": 9.029059225262067
+          },
+          {
+            "x": 11.013924941923541,
+            "z": 9.801094496404062
+          }
+        ]
+      }
+    ]
+  },
+  "atmosphere": {
+    "east-bridge": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-near-wreck-drum",
+          "preset": "small-fire",
+          "x": 0.228,
+          "y": 0.895,
+          "foot": {
+            "x": 0.235,
+            "y": 0.925
+          },
+          "depth": null,
+          "seed": 401,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "east-bridge-left-checkpoint-fire",
+          "preset": "fire-with-smoke",
+          "x": 0.338,
+          "y": 0.723,
+          "foot": {
+            "x": 0.35,
+            "y": 0.795
+          },
+          "depth": null,
+          "seed": 402,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-right-supply-drum",
+          "preset": "small-fire",
+          "x": 0.909,
+          "y": 0.744,
+          "foot": {
+            "x": 0.918,
+            "y": 0.803
+          },
+          "depth": null,
+          "seed": 403,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-far-bus-drum",
+          "preset": "small-fire",
+          "x": 0.952,
+          "y": 0.414,
+          "foot": {
+            "x": 0.957,
+            "y": 0.455
+          },
+          "depth": null,
+          "seed": 404,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    }
+  }
+}
