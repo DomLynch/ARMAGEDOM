@@ -8,7 +8,7 @@ import {createEffects,createAudio} from '../effects.js';
 import {createHollowEncounter} from '../hollow-encounter.js';
 import {createAtmosphere} from '../atmosphere.js';
 import {nextAnimalCycle} from '../animal-cycle.js';
-import {commitFreshRun} from '../pistol-save.js';
+import {commitFreshRun} from './run-state.js';
 import {createBrowserLoop} from './loop.js';
 import {createAreaLifecycle} from './areas.js';
 import {createRunViews} from './run-views.js';

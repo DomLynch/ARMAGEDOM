@@ -1,6 +1,6 @@
 import {resetMobileControls} from '../combat.js';
 import {stepPistol} from '../pistol.js';
-import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,VEST_BAG_POSITION} from '../pistol-save.js';
+import {PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodeRun,restoreRun,applySavedRun,VEST_BAG_POSITION} from './run-state.js';
 import {createSupplyView} from '../supplies-view.js';
 import {createVestBagView} from '../vest-view.js';
 import {vestAvailable} from '../vest.js';

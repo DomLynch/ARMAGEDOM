@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {stepGame,resetMobileControls} from '../combat.js';
 import {pistolPointerPoint} from '../pistol-targeting.js';
-import {collectNearbySupplies,collectNearbyVest} from '../pistol-save.js';
+import {collectNearbySupplies,collectNearbyVest} from './run-state.js';
 export function createBrowserLoop(s){
 let last=0,accumulator=0,submitted=null;
 function toDomain(v) {

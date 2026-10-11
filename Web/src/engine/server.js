@@ -20,3 +20,5 @@ export function createSession({world,pilot}={}){
   dispose(){disposed=true;paused=true;accumulator=0;pending={};listeners.clear();},
  };return Object.freeze(assertSession(session));
 }
+
+export {VEST_BAG_POSITION,PISTOL_SAVE_KEY,RUN_SAVE_KEY,encodePistol,restorePistol,encodeRun,restoreRun,applySavedRun,commitFreshRun,collectNearbySupplies,collectNearbyVest} from './run-state.js';
