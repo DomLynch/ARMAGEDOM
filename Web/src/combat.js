@@ -1,3 +1,4 @@
+import {creatureCatalogue,animalFoundationParameters,ENGINE_CREATURE_CAPABILITIES} from './engine/creature-catalogue.js';
 import {ratMeleeDefinition} from './rat-melee-definition.js';
 import {resolveBoundAnimalRole,nativeAttackCompletion} from './animal-role-bindings.js';
 import {resolveRoachNestGuard,territoryHomeStep} from './roach-territory.js';
@@ -327,8 +328,8 @@ function hollowSpawn(g){
 }
 // The opening group and placed residents share the same Hollow factory/rules.
 function hollowActor(g,position,index=0,mobSize=1){
- const profile=g.encounter,c=profile.character;
- return knifeEnergy(Object.assign(enemy(0,position),{rig:c.rig,contactRig:c.contactRig,weapon:c.weapon,
+ const profile=g.encounter,c=profile.character,foundation=creatureCatalogue.get('hollow-scavenger');
+ return knifeEnergy(Object.assign(enemy(0,position),{rig:foundation.runtimeIdentity,contactRig:c.contactRig,weapon:c.weapon,
   ...mobSizeProfile({bodyScale:c.bodyScale,combatScale:g.player.combatScale,radius:.4*c.bodyScale},mobSize),mobSize,
   hp:profile.health,maxHP:profile.health,lastMove:null,moveSpeed:profile.moveSpeed,recoveryDelay:profile.recovery,
   ready:g.time+index*profile.aggression}),profile.regen);
@@ -342,21 +343,22 @@ export function initializeAreaResidents(g){
  const residents=AREA_MOB_SPAWNS[area].filter(p=>area!=='westminster'||!g.supplies?.issued.includes(p.key)).map(placement=>Object.assign(hollowActor(g,placement.pos,0,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
- if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,{rig:'original-rat',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.09,hp:20,maxHP:20,moveSpeed:2.1,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.050307904880233});}
- if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,{rig:'original-roach',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.59,hp:20,maxHP:20,moveSpeed:1.8,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.6063268331546576});}
- if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,{rig:'original-dog',contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:1.54,hp:30,maxHP:30,moveSpeed:2.6,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:1.635623468495986});}
+ if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
+ if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,animalFoundationParameters('original-roach',g.player.combatScale));}
+ if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,animalFoundationParameters('original-dog',g.player.combatScale));}
  if(g.animalVariants)for(const e of residents){
   const assignment=animalPlacement(g.animalCycle,e.placementKey);if(!assignment)continue;
-  const {recipe,rig,offset}=assignment,rat=rig==='original-rat',dog=rig==='original-dog';
-  Object.assign(e,{animalRecipe:recipe,rig,contactRig:null,weapon:'teeth',mobSize:1,bodyScale:1,radius:rat?1.09:dog?1.54:1.59,hp:dog?30:20,maxHP:dog?30:20,moveSpeed:rat?2.1:dog?2.6:1.8,recoveryDelay:0,combatScale:g.player.combatScale,contactGoalReach:rat?1.050307904880233:dog?1.635623468495986:1.6063268331546576});
+  const {recipe,rig,offset}=assignment;
+  Object.assign(e,{animalRecipe:recipe,...animalFoundationParameters(rig,g.player.combatScale)});
   if(g.animalCycle==='A'&&area==='east'&&e.placementKey==='east-roamer-4'&&recipe==='dog-pack-chaser'&&rig==='original-dog')e.residentIntent=PACK_CHASER;
   e.pos={x:e.pos.x+offset.x,z:e.pos.z+offset.z};e.home={...e.pos};e.patrol=e.patrol.map(p=>({x:p.x+offset.x,z:p.z+offset.z}));
   const territory=resolveRoachNestGuard(e,{areaId:area,animalCycle:g.animalCycle});if(territory)e.residentIntent=territory;
-  const role=resolveBoundAnimalRole(e,{areaId:area,animalCycle:g.animalCycle,behaviourCapabilities:['home','lineOfSight','completedAttack','collisionMove','wakeTime','nativeLocomotion']});
+  const role=resolveBoundAnimalRole(e,{areaId:area,animalCycle:g.animalCycle,behaviourCapabilities:ENGINE_CREATURE_CAPABILITIES});
   if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
- if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(enemy(0,placement.pos),{rig:'low-hover-drone',areaId:area,placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false,weapon:'bolt',radius:DRONE_RULES.radius,hp:DRONE_RULES.hp,maxHP:DRONE_RULES.hp,moveSpeed:DRONE_RULES.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()}));
+ const droneFoundation=creatureCatalogue.get('low-hover-drone');
+ if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key))residents.push(Object.assign(enemy(0,placement.pos),{rig:droneFoundation.runtimeIdentity,areaId:area,placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false,weapon:droneFoundation.stats.weapon,radius:droneFoundation.stats.radius,hp:droneFoundation.stats.health,maxHP:droneFoundation.stats.health,moveSpeed:droneFoundation.stats.moveSpeed,combatScale:g.player.combatScale,droneState:createDroneState()}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
