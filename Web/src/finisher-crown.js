@@ -2,7 +2,8 @@ import * as T from 'three';
 
 // Owned static skull buffers only. The caller's prepared head materials/maps,
 // private actor skeleton and original model remain borrowed and unchanged.
-export function prepareSplitCrown(head,{maxVertices=100000}={}){
+export function prepareSplitCrown(head,options){const steps=prepareSplitCrownSteps(head,options);for(;;){const step=steps.next();if(step.done)return step.value;}}
+export function* prepareSplitCrownSteps(head,{maxVertices=100000}={}){
  if(!head?.group||!head.center||!Number.isSafeInteger(maxVertices)||maxVertices<1)throw Error('Invalid crown preparation');
  const nodes=head.group.children.filter(n=>n.isMesh&&['Photo','PhotoEyes','PhotoTeeth','Scavenger hair'].includes(n.name));
  const photo=nodes.find(n=>n.name==='Photo');if(!photo)throw Error('Crown requires an authored human head');
@@ -13,6 +14,7 @@ export function prepareSplitCrown(head,{maxVertices=100000}={}){
  let vertices=0,triangles=0,capTriangles=0,capLoops=0,disposed=false;
  const dispose=()=>{if(disposed)return;disposed=true;group.removeFromParent();for(const g of geometries)g.dispose();cut.dispose();group.clear();};
  const eps=1e-7;
+ let completed=false,since=performance.now();
  try{
   for(const side of [-1,1]){
    const half=new T.Group();half.name=side<0?'Crown left':'Crown right';half.position.set(plane,hinge,0);group.add(half);halves.push(half);
@@ -27,6 +29,7 @@ export function prepareSplitCrown(head,{maxVertices=100000}={}){
     const push=v=>{for(const[name,a]of attrs){const values=v[name].slice();if(name==='position'){values[0]-=plane;values[1]-=hinge;}if(name==='normal'||name==='tangent'){const n=new T.Vector3(...values.slice(0,3)).normalize();values.splice(0,3,...n.toArray());}output[name].push(...values);}};
     const materialAt=i=>source.groups.find(g=>i>=g.start&&i<g.start+g.count)?.materialIndex??0;
     for(let offset=0;offset<(index?.count??position.count);offset+=3){
+     if(offset%384===0&&performance.now()-since>=4){yield 'crown-cut';since=performance.now();}
      const tri=[0,1,2].map(k=>vertex(index?index.getX(offset+k):offset+k)),polygon=[],cross=[];
      for(let k=0;k<3;k++){
       const a=tri[k],b=tri[(k+1)%3],da=distance(a),db=distance(b),inside=da>=-eps,next=db>=-eps;
@@ -75,6 +78,6 @@ export function prepareSplitCrown(head,{maxVertices=100000}={}){
    }
   }
   if(halves.some(h=>!h.children.length)||!caps.length)throw Error('Incomplete crown preparation');
-  return{group,halves,caps,open(amount){const t=T.MathUtils.clamp(amount,0,1);halves.forEach((h,i)=>{const side=i?1:-1;h.rotation.z=-side*.19*t;h.position.x=plane+side*.008*t;});},stats(){return{vertices,triangles,capTriangles,capLoops,ownedGeometries:geometries.length,ownedMaterials:1,ownedTextures:0,geometryBytes:geometries.reduce((n,g)=>n+Object.values(g.attributes).reduce((a,b)=>a+b.array.byteLength,0),0)};},dispose};
- }catch(error){dispose();throw error;}
+  completed=true;return{group,halves,caps,open(amount){const t=T.MathUtils.clamp(amount,0,1);halves.forEach((h,i)=>{const side=i?1:-1;h.rotation.z=-side*.19*t;h.position.x=plane+side*.008*t;});},stats(){return{vertices,triangles,capTriangles,capLoops,ownedGeometries:geometries.length,ownedMaterials:1,ownedTextures:0,geometryBytes:geometries.reduce((n,g)=>n+Object.values(g.attributes).reduce((a,b)=>a+b.array.byteLength,0),0)};},dispose};
+ }finally{if(!completed)dispose();}
 }

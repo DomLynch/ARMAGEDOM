@@ -53,22 +53,47 @@ export class LondonWorld {
   }
   async loadArea(areaId,entryPoint=this.manifest?.entries[areaId]) {
     if(!this.manifest?.files.some(file=>file.area===areaId)||!entryPoint)throw Error('Unknown London area');
-    const generation=this.loadGeneration=(this.loadGeneration??0)+1;
-    const {THREE,scene,camera}=this,url=new URL(`world/${areaId}/`,this.baseUrl);
-    const response=await fetch(new URL('layout.json',url));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
-    const layout=await response.json(),geometry=createGeometry(layout),entry=geometry.ground(entryPoint);
-    if(!geometry.clear(entry,.4))throw Error('London entry is blocked');
-    const texture=await new THREE.TextureLoader().loadAsync(new URL(this.manifest.backdrops?.[areaId]??'backdrop.png',url).href);
-    let next;
-    try {
-      if(this.disposed||generation!==this.loadGeneration)throw Error('London load superseded');
-      // Build against an isolated scene and camera; current art/collision stay live until ready.
-      next=new LondonWorld({THREE,scene:new THREE.Scene(),camera:camera.clone(),layout,texture,manifest:this.manifest,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
-      next.update(entry,0,this.width,this.height,true);
-      this.dispose();camera.copy(next.camera,false);next.camera=camera;next.scene=scene;scene.add(next.group);
-      Object.assign(this,next);this.areaId=areaId;this.spawn={...entry};return {...entry};
-    } catch(e){if(next)next.dispose();else texture.dispose();throw e;}
+    const cache=this.areaCache??=this.createAreaCache(),generation=++cache.generation;
+    const next=await this.prepareArea(areaId),entry=next.geometry.ground(entryPoint);
+    if(!next.geometry.clear(entry,.4))throw Error('London entry is blocked');
+    if(cache.disposed||generation!==cache.generation)throw Error('London load superseded');
+    const {scene,camera,THREE}=this;
+    const previous=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new THREE.Scene(),camera:camera.clone(),gpuReady:cache.stages.get(this.areaId)?.gpuReady??false});
+    previous.scene.add(this.group);cache.stages.set(this.areaId,previous);
+    next.update(entry,0,this.width,this.height,true);camera.copy(next.camera,false);
+    Object.assign(this,next,{scene,camera,areaCache:cache,spawn:{...entry}});scene.add(this.group);return {...entry};
   }
+  createAreaCache(){
+    const initial=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new this.THREE.Scene(),camera:this.camera.clone()});
+    return{stages:new Map([[this.areaId,initial]]),pending:new Map(),generation:0,disposed:false};
+  }
+  async prepareArea(areaId){
+    if(!['westminster','east','south'].includes(areaId)||!this.manifest?.files.some(f=>f.area===areaId))throw Error('Unknown London area');
+    const cache=this.areaCache??=this.createAreaCache();if(cache.disposed)throw Error('London cache disposed');
+    if(cache.stages.has(areaId))return cache.stages.get(areaId);
+    if(cache.pending.has(areaId))return cache.pending.get(areaId);
+    const task=(async()=>{
+      const url=new URL(`world/${areaId}/`,this.baseUrl),response=await fetch(new URL('layout.json',url));
+      if(!response.ok)throw Error(`London layout HTTP ${response.status}`);
+      const layout=await response.json();createGeometry(layout);
+      const texture=await new this.THREE.TextureLoader().loadAsync(new URL(this.manifest.backdrops?.[areaId]??'backdrop.png',url).href);
+      let next;
+      try{
+        if(cache.disposed)throw Error('London cache disposed');
+        const bytes=[...cache.stages.values()].reduce((n,s)=>n+s.textureBytes(),0)+(texture.image?.width??0)*(texture.image?.height??0)*4*7/3;
+        if(bytes>48*1024*1024)throw Error('London prepared texture budget exceeded');
+        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier});
+        next.areaId=areaId;cache.stages.set(areaId,next);return next;
+      }catch(error){if(next)next.disposeStage();else texture.dispose();throw error;}
+    })();
+    cache.pending.set(areaId,task);try{return await task;}finally{cache.pending.delete(areaId);}
+  }
+  textureBytes(){return (this.texture.image?.width??0)*(this.texture.image?.height??0)*4*7/3;}
+  preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:48*1024*1024,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
+  isAreaReady(areaId){return !!this.areaCache?.stages.get(areaId)?.gpuReady;}
+  markAreaReady(areaId){const stage=this.areaCache?.stages.get(areaId);if(stage)stage.gpuReady=true;if(areaId===this.areaId)this.gpuReady=true;}
+  cachedArea(areaId){return this.areaCache?.stages.get(areaId);}
+  invalidateReadiness(){if(this.areaCache)for(const stage of this.areaCache.stages.values())stage.gpuReady=false;this.gpuReady=false;}
   screenToGround(ndcX,ndcY) {
     this.ndc.set(ndcX,ndcY);this.ray.setFromCamera(this.ndc,this.camera);
     const hit=this.ray.ray.intersectPlane(this.plane,this.hit);
@@ -105,8 +130,12 @@ export class LondonWorld {
     camera.projectionMatrix.multiplyMatrices(this.crop,this.calibrated);camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   }
   dispose() {
-    if(this.disposed)return;this.disposed=true;this.loadGeneration=(this.loadGeneration??0)+1;
-    this.scene.remove(this.group);this.group.traverse(object=>object.geometry?.dispose());
+    if(this.areaCache){const cache=this.areaCache;if(cache.disposed)return;cache.disposed=true;cache.generation++;for(const stage of cache.stages.values())stage.disposeStage();cache.stages.clear();this.disposed=true;return;}
+    this.disposeStage();
+  }
+  disposeStage() {
+    if(this.disposed)return;this.disposed=true;
+    this.group.removeFromParent();this.group.traverse(object=>object.geometry?.dispose());
     this.backdrop.material.dispose();this.depthMaterial.dispose();this.texture.dispose();
   }
 }

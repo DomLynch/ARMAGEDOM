@@ -2,7 +2,8 @@ import {pistolPointerPoint} from './pistol-targeting.js';
 import * as THREE from "three";
 import { createWorld } from "./world.js";
 import { loadActors, createActors } from "./actors.js";
-import { createGame, stepGame, resetMobileControls } from "./combat.js";
+import { createGame, stepGame, resetMobileControls, initializeAreaResidents } from "./combat.js";
+import {prepareParkedResidents} from './parked-area-preparation.js';
 import { attachInput } from "./input.js";
 import { createHUD } from "./hud.js";
 import { createEffects, createAudio } from "./effects.js";
@@ -127,6 +128,7 @@ async function restart() {
   }
   const fresh=commitFreshRun(game,createGame(world,{...pilot,animalCycle:nextAnimalCycle(game.animalCycle)}),persistRun);
   if(fresh===game){game.message='Run saving unavailable. Retry kept the current run.';game.messageUntil=game.time+5;return;}
+  stopAreaPreparation();world.invalidateReadiness();
   input.clear();
   clearSupplies();
   clearVestBag();
@@ -137,6 +139,8 @@ async function restart() {
   game = fresh;game.mobileAssistEnabled=mobileAssistEnabled;
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);game.ratContact=actors.ratContact();
+  renderer.render(scene,camera);
+  requestAnimationFrame(()=>startAreaPreparation());
   hud.update(game);
   accumulator = 0;
   audio.unlock().catch(() => {});
@@ -223,6 +227,9 @@ function frame(ms) {
   const elapsed = last ? Math.max(0, (ms - last) / 1000) : 0, dt = Math.min(0.1, elapsed);
   last = ms;
   if (!world || !game || contextLost) return;
+  // Travel holds this frame and simulation. Re-rendering the unchanged rigs
+  // consumes the idle budget needed to finish the destination's preparation.
+  if(traveling){hud.update(game);return;}
   effects?.advance(elapsed,{paused:paused||traveling});
   if (loaded && !paused && !traveling && !game.finished) {
     accumulator += dt;
@@ -238,11 +245,10 @@ function frame(ms) {
       audio.play(game.events);
       accumulator -= 1 / 60;
       const request = world.travelAt(game.player.pos);
-      if (!request) travelLatch = false;
-      if (request && !travelLatch) {
-        travelLatch = true;
-        crossArea(request);
-        break;
+      if (!request) {travelLatch = false;if(areaPreparation){areaPreparation.urgent=null;for(const[id,task]of areaPreparation.tasks)if(task.status==='failed')areaPreparation.tasks.delete(id);}}
+      if (request && !travelLatch && game.player.hp>0 && !game.finished && !paused && !contextLost) {
+        if(world.isAreaReady(request.areaId)){travelLatch = true;crossArea(request);break;}
+        else if(areaPreparation){const state=areaPreparation;state.urgent=request.areaId;if(!state.tasks.has(request.areaId))queueDestination(request.areaId,state).catch(error=>{if(areaPreparation===state&&!state.cancelled){game.message='Could not load that area. Move away and try the exit again.';game.messageUntil=game.time+5;}});if(state.tasks.get(request.areaId)?.status!=='failed'){game.message=`${request.areaId.toUpperCase()} is loading. You can still move or turn back.`;game.messageUntil=game.time+1;}}
       }
       if (game.finished) {
         resetMobileControls(game);
@@ -266,17 +272,20 @@ function frame(ms) {
   if(effects)effects.render(renderer,camera,game,canvas.clientHeight,canvas.clientWidth);else renderer.render(scene,camera);
 }
 async function crossArea(request) {
+  const previousArea=world.areaId,keepMovement=world.isAreaReady(request.areaId);
+  let accepted=false;
   traveling = true;
   accumulator = 0;
-  input.clear();
+  input.clear({keepMovement});
   if (game.pistol) cancelPistol(game);
   game.message = `Traveling to ${request.areaId.toUpperCase()}…`;
   game.messageUntil = game.time + 4;
   try {
+    await prepareDestination(request.areaId);
     await travelTo(game, request);
     if (contextLost) return false;
     effects.reset();
-    actors.reset();
+    actors.parkArea(previousArea);actors.activateArea(request.areaId);
     game.events = [];
     world.update(game.player.pos, 0, innerWidth, innerHeight, true);
     atmosphere?.update(0, {paused: true});
@@ -285,7 +294,7 @@ async function crossArea(request) {
       "ARMAGEDOM_TRAVEL",
       JSON.stringify({ area: world.areaId, position: game.player.pos }),
     );
-    return true;
+    accepted=true;return true;
   } catch (error) {
     console.error("ARMAGEDOM_TRAVEL_FAILED", error);
     game.message =
@@ -294,13 +303,66 @@ async function crossArea(request) {
     return false;
   } finally {
     traveling = false;
-    input.clear();
+    input.clear({keepMovement:keepMovement&&accepted});
     resetMobileControls(game);
     accumulator = 0;
     last = 0;
     hud.update(game);
     if (!contextLost) renderer.render(scene, camera);
   }
+}
+let areaPreparation=null;
+function stopAreaPreparation(){const state=areaPreparation;if(!state)return;state.cancelled=true;state.iterator?.return();for(const task of state.tasks.values())task.reject(new Error('Area preparation cancelled'));areaPreparation=null;}
+function preparationTurn(state){return new Promise((resolve,reject)=>{
+  const deadlineAt=performance.now()+16;
+  const check=()=>{if(state.cancelled||game!==state.game||contextLost){reject(new Error('Area preparation cancelled'));return false;}return true;};
+  const idle=deadline=>{if(!check())return;if(deadline.didTimeout||performance.now()>=deadlineAt||deadline.timeRemaining()>=4||state.urgent)resolve(state.urgent?12:Math.min(4,Math.max(1,deadline.timeRemaining()-1)));else requestIdleCallback(idle,{timeout:Math.max(1,deadlineAt-performance.now())});};
+  // A busy renderer must not starve preparation indefinitely. Timeout grants
+  // one small unit of work; it is a scheduling bound, never an area-ready timer.
+  if(globalThis.requestIdleCallback)requestIdleCallback(idle,{timeout:16});else requestAnimationFrame(()=>setTimeout(()=>{if(check())resolve(state.urgent?12:4);},0));
+});}
+function exitDistance(areaId){
+  const link=world.manifest.links.find(link=>link.from===world.areaId&&link.to===areaId);if(!link)return Infinity;
+  const point=world.geometry.point(game.player.pos),goal={x:point.x,y:point.y};
+  for(const[key,value]of Object.entries(link.condition))goal[key[0]]=value;
+  const target=world.geometry.ground(goal);return Math.hypot(target.x-game.player.pos.x,target.z-game.player.pos.z);
+}
+function startAreaPreparation(){
+  if(contextLost||!loaded)return;if(areaPreparation?.game===game)return;
+  const state=areaPreparation={game,actors,cancelled:false,tasks:new Map(),running:false,iterator:null,stats:{steps:0,cpuMilliseconds:0,maxStepMs:0,areas:{}}};
+  world.preparationProgress=state.stats;
+  world.prepareArea(world.areaId).catch(()=>{});world.markAreaReady(world.areaId);
+  for(const id of ['westminster','east','south'].filter(id=>id!==world.areaId).sort((a,b)=>exitDistance(a)-exitDistance(b)))queueDestination(id,state).catch(error=>{if(!state.cancelled)console.warn('ARMAGEDOM_AREA_PREPARATION',id,error.message);});
+}
+function queueDestination(areaId,state=areaPreparation){
+  if(world.isAreaReady(areaId))return Promise.resolve();
+  if(!state||state.cancelled||state.game!==game)throw Error('Area preparation unavailable');
+  const existing=state.tasks.get(areaId);if(existing&&existing.status!=='failed')return existing.promise;
+  let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
+  state.tasks.set(areaId,{areaId,promise,resolve,reject,status:'queued'});pumpDestinations(state);return promise;
+}
+async function prepareDestination(areaId){if(!areaPreparation)startAreaPreparation();const state=areaPreparation;state.urgent=areaId;try{await queueDestination(areaId,state);}finally{state.urgent=null;}}
+async function pumpDestinations(state){
+  if(state.running)return;state.running=true;
+  try{for(;;){
+    const queued=[...state.tasks.values()].filter(t=>t.status==='queued').sort((a,b)=>(a.areaId===state.urgent?-1:b.areaId===state.urgent?1:exitDistance(a.areaId)-exitDistance(b.areaId)));
+    if(!queued.length||state.cancelled)return;const task=queued[0];task.status='running';state.current=task.areaId;
+    try{
+      await preparationTurn(state);const stage=await world.prepareArea(task.areaId);await preparationTurn(state);
+      const record=prepareParkedResidents(state.game,stage,initializeAreaResidents),iterator=state.iterator=actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);
+      let done=false;
+      while(!done){const budget=await preparationTurn(state),batchStart=performance.now();do{const started=performance.now(),step=iterator.next(),ms=performance.now()-started;state.stats.steps++;state.stats.cpuMilliseconds+=ms;state.stats.maxStepMs=Math.max(state.stats.maxStepMs,ms);if(!state.stats.worstStep||ms>state.stats.worstStep.ms)state.stats.worstStep={area:task.areaId,label:step.value??'done',ms};done=step.done;}while(!done&&performance.now()-batchStart<budget);}
+      state.iterator=null;
+      const memory=actors.areaViewStats();if(memory.ownedFinisherGeometryBytes>memory.finisherGeometryBudgetBytes)throw Error('Prepared actor geometry budget exceeded');
+      await renderer.compileAsync(stage.scene,stage.camera,scene);await preparationTurn(state);
+      const lights=scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);stage.scene.fog=scene.fog;stage.scene.environment=scene.environment;
+      const target=new THREE.WebGLRenderTarget(1,1),previousTarget=renderer.getRenderTarget(),started=performance.now();
+      try{renderer.setRenderTarget(target);renderer.render(stage.scene,stage.camera);}finally{renderer.setRenderTarget(previousTarget);target.dispose();for(const light of lights)light.removeFromParent();}
+      const gl=renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
+      try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
+      state.stats.areas[task.areaId]={ready:true,gpuPreparationMs:performance.now()-started};world.markAreaReady(task.areaId);task.status='ready';task.resolve();
+    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&game===state.game&&actors===state.actors)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}
+  }}finally{state.running=false;}
 }
 function prepareEncounter() {
   // Fetch and decode on page arrival, rather than making Enter start every request.
@@ -312,6 +374,8 @@ function prepareEncounter() {
 canvas.addEventListener("webglcontextlost", (event) => {
   event.preventDefault();
   contextLost = true;
+  stopAreaPreparation();world?.dispose();
+  actors?.dispose();actors=null;effects?.dispose();effects=null;
   atmosphere?.dispose();
   clearSupplies();
   clearVestBag();
@@ -383,6 +447,7 @@ enter.addEventListener("click", async () => {
       "Three.js · Starting pistol V1 · Approved006 framing";
     resize();
     renderer.render(scene, camera);
+    requestAnimationFrame(()=>startAreaPreparation());
     const enterToFirstRenderMs = Math.round(performance.now() - start);
     if (!(await audioReady) && audio.state.error)
       console.warn("ARMAGEDOM_AUDIO_FAILED", audio.state.error);

@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,spawnWave,stepGame} from '../src/combat.js';
-import {travelTo} from '../src/travel.js';
+const {travelTo}=await import(process.env.TRAVEL_TEST_MODULE??'../src/travel.js');
+for(const active of [true,false])test(`warm return keeps ${active?'active':'settled'} corpse part deadlines consistent with its paused pose`,async()=>{
+ const world={areaId:'westminster',spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,async loadArea(area){this.areaId=area;return{x:0,z:0};}},game=createGame(world,{pilot:'donor-knife'});
+ game.time=active?1:7;const departed=game.time,corpse={id:99,hp:0,response:{clip:'Death_SplitCrown',start:0},finisher:{cost:1},finisherPartsUntil:6,finisherHeadUntil:6};game.corpses=[corpse];
+ await travelTo(game,{areaId:'east'});game.time=departed+9;await travelTo(game,{areaId:'westminster'});
+ assert.equal(game.corpses[0],corpse);assert.equal(corpse.response.start,9);assert.equal(game.time-corpse.response.start,departed);
+ assert.equal(corpse.finisherPartsUntil,active?15:6);assert.equal(corpse.finisherHeadUntil,active?15:6);assert.equal(corpse.finisherPartsUntil>game.time,active,'logical pool occupancy matches visible pre-departure parts');
+});
 
 for (const group of [false,true]) test(`parked ${group?'Hollow group':'Goblin'} preserves remaining stamina and admission delays`,async()=>{
   const world={areaId:'westminster',spawn:{x:0,z:0},layout:{characterScale:1},

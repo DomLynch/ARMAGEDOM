@@ -71,10 +71,9 @@ export class InputState {
     this.up(id);
   }
 
-  clear() {
-    this.pointers.clear();
-    this.keys.clear();
-    this.stick = { x: 0, y: 0 };
+  clear({keepMovement=false}={}) {
+    if(keepMovement){for(const[id,pointer]of this.pointers)if(pointer.kind!=='move')this.pointers.delete(id);for(const key of this.keys)if(!['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight'].includes(key))this.keys.delete(key);}
+    else{this.pointers.clear();this.keys.clear();this.stick = { x: 0, y: 0 };}
     this.aimOrder = 0;
     this.pending = [];
   }
@@ -296,19 +295,19 @@ export function attachInput({
     state.up(event.code);
   });
 
-  function clear() {
+  function clear({keepMovement=false}={}) {
     multiTouch = false;
     lastTap = -Infinity;
-    state.clear();
+    state.clear({keepMovement});
     mouse = null;
     for (const element of document.querySelectorAll('.pressed')) {
+      if(keepMovement&&element.id==='move')continue;
       element.classList.remove('pressed');
       element.classList.remove('aiming');
       element.style.setProperty('--aim-angle', '0rad');
     }
     const move = document.querySelector('#move');
-    move.style.setProperty('--knob-x', '0px');
-    move.style.setProperty('--knob-y', '0px');
+    if(!keepMovement){move.style.setProperty('--knob-x', '0px');move.style.setProperty('--knob-y', '0px');}
   }
   window.addEventListener('blur', clear);
   document.addEventListener('visibilitychange', clear);

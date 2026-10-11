@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+test('a delayed compile from a cancelled run cannot discard replacement-run views',async()=>{
+ const source=readFileSync(process.env.TRAVEL_MAIN_SOURCE??new URL('../src/main.js',import.meta.url),'utf8'),start=source.indexOf('let areaPreparation=null;'),end=source.indexOf('function prepareEncounter()',start);assert(start>=0&&end>start);
+ let compileStarted,finishCompile;const started=new Promise(resolve=>compileStarted=resolve),compile=new Promise(resolve=>finishCompile=resolve),stored=new Map([['east','old-views']]),discards=[];
+ const actors={prepareAreaSteps:function*(){},areaViewStats:()=>({ownedFinisherGeometryBytes:0,finisherGeometryBudgetBytes:1}),discardArea:area=>{discards.push(area);stored.delete(area);},reset:()=>stored.clear()};
+ const game={world:{areaId:'westminster'},player:{pos:{x:0,z:0}},finishers:{}},task={areaId:'east',status:'queued',resolve(){},reject(){}};
+ const state={game,actors,cancelled:false,tasks:new Map([['east',task]]),running:false,iterator:null,stats:{steps:0,cpuMilliseconds:0,maxStepMs:0,areas:{}}};
+ const context=vm.createContext({game,actors,testState:state,scene:{children:[]},contextLost:false,loaded:true,world:{areaId:'westminster',manifest:{links:[]},prepareArea:async()=>({areaId:'east',scene:{}})},renderer:{compileAsync:()=>{compileStarted();return compile;}},prepareParkedResidents:()=>({enemies:[],corpses:[]}),initializeAreaResidents(){},performance,requestIdleCallback:callback=>queueMicrotask(()=>callback({timeRemaining:()=>50})),console});
+ vm.runInContext(source.slice(start,end)+'\nareaPreparation=testState;globalThis.pending=pumpDestinations(testState);',context);await started;
+ vm.runInContext('stopAreaPreparation();actors.reset();game={world:{areaId:"westminster"}};areaPreparation={game,actors,cancelled:false,tasks:new Map()};',context);stored.set('east','replacement-views');finishCompile();await context.pending;
+ assert.equal(stored.get('east'),'replacement-views');assert.deepEqual(discards,[]);assert.equal(task.status,'failed');
+});

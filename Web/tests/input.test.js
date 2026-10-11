@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { InputState } from '../src/input.js';
+test('a ready crossing preserves held movement but releases attacks and guard; failure clears everything',()=>{
+ const s=new InputState();s.down(1,'move',{x:20,y:20});s.move(1,{x:100,y:0});s.down(2,'slash',{x:200,y:50});s.down(3,'guard',{x:300,y:50});s.keys.add('KeyW');s.keys.add('ShiftLeft');
+ const before=s.take();s.clear({keepMovement:true});const after=s.take();assert.deepEqual(after.move,before.move);assert.equal(after.moveHeld,true);assert.equal(after.run,true);assert.equal(after.guard,false);assert.deepEqual(after.actions,[]);assert.deepEqual(after.held,[]);s.keys.delete('KeyW');s.move(1,{x:20,y:100});assert(s.take().move.y>0,'same pointer continues steering after keyboard release');s.clear();assert.equal(s.take().moveHeld,false);assert.deepEqual(s.take().move,{x:0,y:0});
+});
 test('two pointers can move and aim an attack together', () => {
   const s = new InputState();
   s.down(1, 'move', { x: 0, y: 0 });

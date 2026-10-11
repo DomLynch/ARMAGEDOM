@@ -1,7 +1,7 @@
 import * as T from 'three';
-import {prepareSplitCrown} from './finisher-crown.js';
-import {prepareOpened as prepareOpenedBody} from './finisher-opened.js';
-import {prepareVictimGrounding} from './finisher-grounding.js';
+import {prepareSplitCrownSteps} from './finisher-crown.js';
+import {prepareOpenedSteps} from './finisher-opened.js';
+import {prepareVictimGroundingSteps} from './finisher-grounding.js';
 
 const HEAD_NAMES = ['Photo', 'PhotoEyes', 'PhotoTeeth'];
 const PART_LIFETIME = 6;
@@ -25,7 +25,7 @@ function directionOf(direction) {
 
 // Spawn/loading preparation, never called from a lethal event. Own static head
 // buffers and materials; selected face geometry/maps/skeletons remain borrowed.
-function snapshotHead(model, bone, maxVertices) {
+function* snapshotHeadSteps(model, bone, maxVertices) {
   const nodes=HEAD_NAMES.map(name=>model.getObjectByName(name));
   const hair=model.getObjectByName('Scavenger hair');
   if(hair?.visible)nodes.push(hair);
@@ -37,19 +37,21 @@ function snapshotHead(model, bone, maxVertices) {
   const inverse=bone.matrixWorld.clone().invert(), group=new T.Group(), geometries=[], materials=[];
   group.name='Prepared detached Hollow head';
   const clean=()=>{geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());group.clear();};
+  let completed=false,since=performance.now();
   try {
     for(const node of nodes) {
       node.skeleton.update();
       const source=node.geometry, geometry=new T.BufferGeometry();geometries.push(geometry);
       const worldToHead=inverse.clone().multiply(node.matrixWorld), normalMatrix=new T.Matrix3().getNormalMatrix(worldToHead);
       const indices=source.attributes.skinIndex, weights=source.attributes.skinWeight;
-      if(!indices || !weights || Object.values(node.morphTargetInfluences??{}).some(n=>n!==0)) {clean();return null;}
+      if(!indices || !weights || Object.values(node.morphTargetInfluences??{}).some(n=>n!==0)) return null;
       for(const [name,attr] of Object.entries(source.attributes)) {
         if(name==='skinIndex'||name==='skinWeight')continue;
         const copy=attr.clone();
         if(name==='position'||name==='normal'||name==='tangent') {
           const v=new T.Vector3(), skin=new T.Matrix4(), joint=new T.Matrix4(), bind=node.bindMatrix, unbind=node.bindMatrixInverse;
           for(let i=0;i<attr.count;i++) {
+            if((i&127)===0&&performance.now()-since>=4){yield 'head-snapshot';since=performance.now();}
             v.fromBufferAttribute(attr,i);
             if(name==='position')node.applyBoneTransform(i,v).applyMatrix4(worldToHead);
             else {
@@ -82,7 +84,7 @@ function snapshotHead(model, bone, maxVertices) {
     }
     const rim=new T.Vector3((minX+maxX)/2,bottom,(minZ+maxZ)/2);
     const rx=(maxX-minX)/2, rz=(maxZ-minZ)/2;
-    if(!(rx>.005&&rz>.005&&rx<.15&&rz<.15)){clean();return null;}
+    if(!(rx>.005&&rz>.005&&rx<.15&&rz<.15))return null;
     let radius=0, vertices=0, triangles=0;
     for(const mesh of group.children) {
       mesh.geometry.translate(-center.x,-center.y,-center.z);
@@ -96,36 +98,42 @@ function snapshotHead(model, bone, maxVertices) {
     geometries.push(capGeometry);materials.push(capMaterial);
     const cap=new T.Mesh(capGeometry,capMaterial);cap.scale.set(rx,1,rz);cap.position.copy(rim).sub(center);group.add(cap);
     const stump=new T.Mesh(capGeometry,capMaterial);stump.scale.set(rx,1,rz);stump.position.copy(rim);stump.visible=false;bone.add(stump);
-    return {group,stump,nodes,center,radius,vertices,triangles:triangles+48,geometries,materials,
+    completed=true;return {group,stump,nodes,center,radius,vertices,triangles:triangles+48,geometries,materials,
       dispose(){stump.removeFromParent();group.removeFromParent();clean();}};
-  } catch(error) {clean();throw error;}
+  } finally {if(!completed)clean();}
 }
 
 // Presentation only: caller selects a confirmed lethal outcome and still owns
 // damage/rewards/removal and clip sampling. ARM x/z direction is converted only
 // for detached render-space motion. One actor, one head, finite lifetime.
-export function createFinisherPresentation({root,model,clips,scene,groundY=0,isBlocked,
-  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false}={}) {
+export function createFinisherPresentation(options){const steps=createFinisherPresentationSteps(options);for(;;){const step=steps.next();if(step.done)return step.value;}}
+export function* createFinisherPresentationSteps({root,model,clips,scene,groundY=0,isBlocked,
+  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null}={}) {
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3();
-  let runGrounding=null,runPreparationError=null;const runScale=new T.Vector3();
-  if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=prepareVictimGrounding({model,root,clip:clips.find(c=>c.name==='Death_RunThrough')});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
+  let runGrounding=null,runPreparationError=null,completed=false;const runScale=new T.Vector3();
   let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
+  try {
+  if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=yield* prepareVictimGroundingSteps({model,root,clip:clips.find(c=>c.name==='Death_RunThrough'),cache:groundingCache});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
   if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
-    try{head=snapshotHead(model,bone,maxVertices);}catch(error){preparationError=error.message;}
+    try{head=yield* snapshotHeadSteps(model,bone,maxVertices);}catch(error){preparationError=error.message;}
   }
   if(!isPlayer&&validDuration(death)&&validDuration(hit)) support.push({id:'pistol-directional',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:0,parts:[],prepared:true});
   if(head&&validDuration(hit))support.push({id:'pistol-decapitation',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
-  if(head&&prepareCrown&&validDuration(cut)){try{crown=prepareSplitCrown(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
-  if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=prepareOpenedBody({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
+  if(head&&prepareCrown&&validDuration(cut)){try{crown=yield* prepareSplitCrownSteps(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
+  if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=yield* prepareOpenedSteps({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
   function expire(){if(expired)return;expired=true;head?.group.removeFromParent();crown?.group.removeFromParent();opened?.group.removeFromParent();if(openedActive){for(const[node,value]of visible)node.visible=value;openedActive=false;}}
+  const ownedGeometryBytes=(head?.geometries??[]).reduce((bytes,g)=>bytes+Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength??0),0)+(crown?.stats().geometryBytes??0)+(opened?.stats().geometryBytes??0);
+  completed=true;
   return {
     support,
+    setScene(next){if(!next?.isScene)throw Error('Finisher scene missing');scene=next;},
+    setDormant(value){if(value)head?.group.removeFromParent();else if(detached&&!expired)scene.add(head.group);},
     start(outcome) {
       if(disposed||chosen)return recipe;
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
@@ -188,7 +196,8 @@ export function createFinisherPresentation({root,model,clips,scene,groundY=0,isB
       if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);return seam?{head:seam,trails:[at(detachedCap)??seam,seam]}:null;}
       const body=at(torso);return body?{body,trails:[body]}:null;
     },
-    stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},
+    stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedGeometryBytes,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},
     dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;opened?.dispose();opened=null;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
   };
+  } finally {if(!completed){opened?.dispose();crown?.dispose();head?.dispose();support.length=0;}}
 }

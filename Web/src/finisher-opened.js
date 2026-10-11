@@ -214,14 +214,16 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
 
 // ARMAGEDOM: prepare the actual native cut pose off the lethal frame, restore
 // every actor transform, preserve borrowed appearance, and own finite buffers.
-export function prepareOpened({model,root,clips,groundY=0,isBlocked,maxVertices=300000}) {
+export function prepareOpened(options){const steps=prepareOpenedSteps(options);for(;;){const step=steps.next();if(step.done)return step.value;}}
+export function* prepareOpenedSteps({model,root,clips,groundY=0,isBlocked,maxVertices=300000}) {
  const clip=clips.find(c=>c.name==='Death_SplitCrown');
  if(!Number.isFinite(groundY)||!clip||!(clip.duration>0)||!model.getObjectByName('pelvis')||!model.getObjectByName('spine_01')||!model.getObjectByName('WeaponDrawn')||!model.getObjectByName('Hollow_body_and_worn_trousers')||!model.getObjectByName('Torn_modern_canvas_jacket'))throw Error('Unsupported Opened foundation');
  const nodes=[],visible=[];model.traverse(n=>{nodes.push([n,n.position.clone(),n.quaternion.clone(),n.scale.clone()]);if(n.isMesh){let shown=true;for(let p=n;p;p=p.parent)shown&&=p.visible;if(shown)visible.push(n);}});
  const mixer=new AnimationMixer(model);let prepared=null;
- try{const action=mixer.clipAction(clip);action.play();action.paused=true;action.time=clip.duration*.045;mixer.update(0);root.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});prepared=openWaist(model,root);if(prepared.stats().vertices>maxVertices)throw Error('Opened vertex budget exceeded');}
+ const allocations={geometries:[],cut:null,group:null};
+ try{const action=mixer.clipAction(clip);action.play();action.paused=true;action.time=clip.duration*.045;mixer.update(0);root.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});prepared=yield* openWaistSteps(model,root,false,undefined,allocations);if(prepared.stats().vertices>maxVertices)throw Error('Opened vertex budget exceeded');}
  catch(error){prepared?.dispose();throw error;}
- finally{mixer.stopAllAction();mixer.uncacheRoot(model);for(const[n,p,q,s]of nodes){n.position.copy(p);n.quaternion.copy(q);n.scale.copy(s);}root.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});}
+ finally{if(!prepared){allocations.group?.removeFromParent();for(const g of allocations.geometries)g.dispose();allocations.cut?.dispose();}mixer.stopAllAction();mixer.uncacheRoot(model);for(const[n,p,q,s]of nodes){n.position.copy(p);n.quaternion.copy(q);n.scale.copy(s);}root.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});}
  prepared.group.name='Prepared Opened';let disposed=false;const originalDispose=prepared.dispose;
  const point=new Vector3(),from=new Vector3(),size=new Vector3();
  const canStart=()=>{root.updateWorldMatrix(true,false);root.getWorldPosition(point);root.getWorldScale(size);if(Math.max(size.x,size.y,size.z)-Math.min(size.x,size.y,size.z)>1e-5)return false;return typeof isBlocked==='function'&&!isBlocked({x:point.x,z:-point.z},prepared.stats().envelopeRadius*size.x,{x:point.x,z:-point.z});};

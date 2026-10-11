@@ -75,10 +75,20 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
  // Controlled real-rig stage1 renderer: prepare only at birth, separate corpse
  // poses, borrowed current face/hair, normal clock, head expiry and reset cleanup.
+ const parkedEnemies=game.enemies,parkedViews=parkedEnemies.map(e=>actors.views.get(e.id)),retainedPlayer=actors.views.get(0);
+ actors.parkArea('south');assert.equal(actors.views.size,1);assert.equal(actors.views.get(0),retainedPlayer);assert(parkedViews.every(v=>v.root.parent===null));
+ const nextEnemies=AREA_MOB_SPAWNS.east.map((row,i)=>({...parkedEnemies[i],id:1300+i,placementKey:row.key,pos:{...row.pos}})),stageWorld={...world,areaId:'east',scene:new THREE.Scene()};
+ const pending=actors.prepareAreaSteps('east',{enemies:nextEnemies,corpses:[]},stageWorld,null);while(!pending.next().done){}assert.equal(actors.views.size,1,'dormant views never enter active contact/render map');
+ world.areaId='east';game.enemies=nextEnemies;actors.activateArea('east');actors.update(game,0);assert.equal(actors.views.get(0),retainedPlayer);assert.equal(actors.views.size,1+nextEnemies.length);
+ actors.parkArea('east');world.areaId='south';game.enemies=parkedEnemies;actors.activateArea('south');actors.update(game,0);assert(parkedEnemies.every((e,i)=>actors.views.get(e.id)===parkedViews[i]),'warm return reuses exact actor, material and mixer identities');assert.equal(actors.views.get(0),retainedPlayer);
  actors.reset();world.areaId='westminster';game.finishers={maxHeads:2,recentRecipeId:null};game.corpses=[];
  game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
  actors.update(game,0);
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
+ const groundingSource=game.enemies[0],translated={...groundingSource,id:1700,pos:{x:17,z:-3},mobSize:groundingSource.mobSize*1.15},sourceGrounding=actors.views.get(groundingSource.id).finisher.stats().runGrounding;
+ game.enemies.push(translated);actors.update(game,0);const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
+ assert(reusedGrounding.cacheHitsSkinned>0,'actual cloned skinned draws at another world position and scale reuse compatible native floors');assert.equal(reusedGrounding.maxLocalLift,sourceGrounding.maxLocalLift);assert.equal(reusedGrounding.vertices,sourceGrounding.vertices);
+ game.enemies.pop();actors.update(game,0);
  // Controlled actual-rig feedback: one owner composes render flinch without
  // changing logical positions or advancing/fighting the complete finisher clock.
  const receiver=game.enemies[0],rendered=actors.views.get(receiver.id),origin=world.toRender(receiver.pos),logical={...receiver.pos};

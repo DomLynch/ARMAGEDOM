@@ -19,7 +19,7 @@ import lowClip from './rat-data/low-slash.json' with {type:'json'};
 import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
-import {createFinisherPresentation,finisherVictimPoseAge,presentedSeverFlash} from './finisher-presentation.js';
+import {createFinisherPresentationSteps,finisherVictimPoseAge,presentedSeverFlash} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -131,14 +131,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   if(humanFoundation?.getObjectByName('Hollow_body_and_worn_trousers'))try{gauntKits.set(humanFoundation,createGauntShapeLibrary(humanFoundation));}catch(error){gauntPreparationError=String(error.message??error);}
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+  const parkedViews=new Map(),groundingCache=new WeakMap();
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
-  function make(entity,finishers=false,restoreCorpses=false) {
+  function make(entity,finishers=false,restoreCorpses=false){const steps=makeSteps(entity,finishers,restoreCorpses);for(;;){const step=steps.next();if(step.done)return step.value;}}
+  function* makeSteps(entity,finishers=false,restoreCorpses=false,{stageWorld=world,renderScene=scene,store=views}={}) {
     if(entity.rig==='low-hover-drone'){
-      const drone=droneKits.spawn({scene,position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
+      const drone=droneKits.spawn({scene:renderScene,position:stageWorld.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
       const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
-      views.set(entity.id,view);return view;
+      store.set(entity.id,view);return view;
     }
     const name =
         entity.kind < 0
@@ -149,7 +151,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
     const garments=source.description.clothingMaterials??(entity.rig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
-    const palette=entity.kind>=0&&garments?hollowPaletteFor(entity,world.areaId):null;
+    const palette=entity.kind>=0&&garments?hollowPaletteFor(entity,stageWorld.areaId):null;
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
       description = source.description,
@@ -175,9 +177,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     if(pistolMount)pistolMount.visible=false;
     const knife=entity.kind<0?model.getObjectByName('WeaponDrawn'):null;
     root.name = name;
-    root.position.copy(world.toRender(entity.pos));
+    root.position.copy(stageWorld.toRender(entity.pos));
     root.scale.setScalar(
-      (world.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale * (entity.kind>=0?(entity.mobSize??1):1),
+      (stageWorld.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale * (entity.kind>=0?(entity.mobSize??1):1),
     );
     root.add(model);
     const hidden = new Set(
@@ -236,29 +238,29 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       palette,
       animalAppearanceId,pistolMount,pistolSlide:attachPistolSlide(pistolMount),knife,hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()}),
     };
-    views.set(entity.id, view);
+    store.set(entity.id, view);
+    let completed=false;
     try {
       const Motion =
         ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
-      scene.add(root, shadow);
+      renderScene.add(root, shadow);
+      yield 'actor-clone';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=createFinisherPresentation({root,model,clips:animations,scene,groundY:0,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[world.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!world.geometry.clear(point,radius)||!!from&&!world.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,clips:animations,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[stageWorld.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
-    } catch (error) {
-      remove(entity.id);
-      throw error;
-    }
+      completed=true;
+    } finally {if(!completed)remove(entity.id,store);}
     return view;
   }
-  function remove(id) {
-    const view = views.get(id);
+  function remove(id,store=views) {
+    const view = store.get(id);
     if (!view) return;
-    if(view.drone){view.drone.dispose();views.delete(id);return;}
+    if(view.drone){view.drone.dispose();store.delete(id);return;}
     view.impactFlashLife=0;restoreFlash(view);
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
@@ -272,14 +274,27 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       if (o.skeleton) skeletons.add(o.skeleton);
     });
     for (const skeleton of skeletons) skeleton.dispose();
-    scene.remove(view.root, view.shadow);
+    view.root.removeFromParent();view.shadow.removeFromParent();
     view.shadow.material.dispose();
     for (const m of view.materials) m.material.dispose();
-    views.delete(id);
+    store.delete(id);
   }
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
+    parkArea(areaId){
+      const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
+      for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}
+    },
+    *prepareAreaSteps(areaId,record,stageWorld,finishers){
+      const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
+      const added=[];let completed=false;
+      try{for(const entity of [...record.enemies,...(record.corpses??[])])if(!stored.has(entity.id)){added.push(entity.id);yield* makeSteps(entity,finishers,true,{stageWorld,renderScene:stageWorld.scene,store:stored});yield 'actor-ready';}completed=true;}
+      finally{if(!completed)for(const id of added)remove(id,stored);}
+    },
+    activateArea(areaId){const stored=parkedViews.get(areaId);if(!stored)return;for(const[id,view]of stored){views.set(id,view);scene.add(view.root);if(view.shadow)scene.add(view.shadow);view.finisher?.setScene(scene);view.finisher?.setDormant(false);}parkedViews.delete(areaId);},
+    discardArea(areaId){const stored=parkedViews.get(areaId);if(stored){for(const id of [...stored.keys()])remove(id,stored);parkedViews.delete(areaId);}},
+    areaViewStats(){const all=new Set([...views.values(),...[...parkedViews.values()].flatMap(stored=>[...stored.values()])]);return{active:views.size,parked:[...parkedViews].map(([area,stored])=>({area,count:stored.size})),ownedFinisherGeometryBytes:[...all].reduce((n,v)=>n+(v.finisher?.stats().ownedGeometryBytes??0),0),finisherGeometryBudgetBytes:128*1024*1024};},
     humanBodyStats(){return {libraries:[...gauntKits.values()].map(kit=>kit.stats()),preparationError:gauntPreparationError};},
     ratContact(){
       const point=new THREE.Vector3(),ray=new THREE.Raycaster();
@@ -333,6 +348,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
+      for(const stored of parkedViews.values())for(const id of [...stored.keys()])remove(id,stored);parkedViews.clear();
     },
     update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false}={}) {
       if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
@@ -347,6 +363,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.drone.update({time:game.time,dt:Math.max(0,dt),position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z),state,phase:dead?(game.time-(entity.response?.start??game.time))/.8:warning?(game.time-warning.start)/.6:0});
           view.root.updateWorldMatrix(true,true);continue;
         }
+        view.root.scale.setScalar((world.layout.characterScale??1.265)*(view.description.scale??1)*visualScale*(entity.kind>=0?(entity.mobSize??1):1));
         view.root.position.copy(world.toRender(entity.pos));
         view.root.rotation.y =
           Math.atan2(entity.facing.x, -entity.facing.z) +

@@ -30,6 +30,10 @@ export async function travelTo(game, request) {
     for (const e of [...game.enemies, ...(game.corpses ?? [])]) {
       for (const field of ['ready', 'recoverUntil', 'staggerUntil', 'guardRecoverAt', 'flashUntil', 'wokeAt'])
         if (Number.isFinite(e[field])) e[field] += elapsed;
+      // Retained parts pause with the resident snapshot. Shift only a part that
+      // was still alive at departure; expired parts must never reserve again.
+      for(const field of ['finisherPartsUntil','finisherHeadUntil'])
+        if(Number.isFinite(e[field])&&e[field]>parked.parkedAt)e[field]+=elapsed;
       if (Number.isFinite(e.response?.start)) e.response.start += elapsed;
       if(e.droneState){e.droneState.readyAt+=elapsed;if(e.droneState.warning){e.droneState.warning.start+=elapsed;e.droneState.warning.releaseAt+=elapsed;}}
       e.swing = null;if(e.animalRole)e.completedAttack=null;
