@@ -50,14 +50,14 @@
     {
       "area": "east-bridge",
       "path": "east-bridge/layout.json",
-      "source": "Owner original / individually traced image geometry",
+      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
       "bytes": 6151,
       "sha256": "b27b1b8d38e5a26ad46490300c0b6038cb940264ad66aca28c1bd910233b034b"
     },
     {
       "area": "east-bridge",
       "path": "east-bridge/backdrop.webp",
-      "source": "Owner original / individually traced image geometry",
+      "source": "Owner-supplied Zone4 original / image-traced authored geometry",
       "bytes": 2401738,
       "sha256": "e52f0260f4e080e4633fdb0c580f2ef6cb7291b59c3a0b6f80a5b186bad0da62"
     },
