@@ -56,3 +56,6 @@ export function createGeometry(layout) {
   }
   return {ground,point,clear,move,lineClear,road,blockers,edges};
 }
+
+// Shared polygon predicates for bounded authored effect regions.
+export {inside as insidePolygon,intersects as segmentsIntersect};

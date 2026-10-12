@@ -1,0 +1,14 @@
+{
+  "id":"bridge-water-subtle-1",
+  "regionRef":"westminster-thames-bridge-water-1",
+  "enabled":false,
+  "activationScope":"private-approved-pilot-only",
+  "flow":{"coordinateSpace":"original-image-pixels","direction":{"x":0.9889363528682975,"y":0.14834045293024462},"speedPixelsPerSecond":0.65},
+  "rippleScalePixels":12,
+  "rippleAmplitudePixelsMax":0.18,
+  "opacityMax":0.055,
+  "glint":{"alphaMax":0.022,"density":0.08,"tintLinearProposal":[1,0.67,0.4]},
+  "edgeFeatherPixels":3,
+  "seed":105401,
+  "budget":{"maxRegions":1,"maxMeshes":1,"maxDrawCalls":1,"maxVertices":96,"maxTriangles":128,"maxMaskPoints":128,"maxNewTextures":0,"originalImageAreaFractionMax":0.05}
+}
