@@ -123,6 +123,7 @@ async function prepareGraphics(areaId,state){
  try{
   const stage=await s.world.prepareArea(areaId);
   if(state.cancelled||s.game!==state.game||s.contextLost||!s.traveling)throw Error('Area preparation cancelled');
+  s.actors.bindPreparedArea(areaId,stage.scene);
       await s.renderer.compileAsync(stage.scene,stage.camera,s.scene);await preparationTurn(state);
       const lights=s.scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);applyAreaLighting(stage.scene,stage);stage.scene.fog=s.scene.fog;stage.scene.environment=s.scene.environment;
       const started=performance.now();
@@ -131,7 +132,7 @@ async function prepareGraphics(areaId,state){
       try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
       state.stats.areas[areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(areaId);task.status='ready';task.resolve();
  }catch(error){
-  if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors)state.actors.discardArea(areaId);
+  // Graphics attempts borrow prepared actors; failures must preserve them.
   task.status='failed';throw error;
  }finally{release();}
 }
