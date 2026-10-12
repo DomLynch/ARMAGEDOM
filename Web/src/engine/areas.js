@@ -18,7 +18,13 @@ async function crossArea(request) {
   s.game.message = `Traveling to ${request.areaId.toUpperCase()}…`;
   s.game.messageUntil = s.game.time + 4;
   try {
+    s.hud.update(ownerGame);
+    // Paint the entry cue before synchronous graphics work.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(!owns())return false;
     await prepareDestination(request.areaId);
+    if(!owns())return false;
+    await prepareGraphics(request.areaId,areaPreparation);
     if(!owns())return false;
     const position=await travelTo(ownerGame, request,{isCurrent:owns});
     if(!position||!owns())return false;
@@ -105,23 +111,36 @@ async function pumpDestinations(state){
       if(suspended){state.iterator=null;continue;}
       state.iterator=null;
       const memory=s.actors.areaViewStats();if(memory.ownedFinisherGeometryBytes>memory.finisherGeometryBudgetBytes)throw Error('Prepared actor geometry budget exceeded');
+      task.status='prepared';task.resolve();
+    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{if(!suspended)release();}
+  }}finally{state.running=false;}
+}
+
+async function prepareGraphics(areaId,state){
+ if(s.world.isAreaReady(areaId))return;
+ if(!state||state.cancelled||s.game!==state.game||!s.traveling)throw Error('Area preparation cancelled');
+ const task=state.tasks.get(areaId),release=s.world.leaseArea?.(areaId)??(()=>{});
+ try{
+  const stage=await s.world.prepareArea(areaId);
+  if(state.cancelled||s.game!==state.game||s.contextLost||!s.traveling)throw Error('Area preparation cancelled');
       await s.renderer.compileAsync(stage.scene,stage.camera,s.scene);await preparationTurn(state);
       const lights=s.scene.children.filter(o=>o.isLight).map(o=>o.clone());stage.scene.add(...lights);applyAreaLighting(stage.scene,stage);stage.scene.fog=s.scene.fog;stage.scene.environment=s.scene.environment;
       const started=performance.now();
       try{await preparationTurn(state);warmFramebuffer(s.renderer,stage.scene,stage.camera);}finally{for(const light of lights)light.removeFromParent();}
       const gl=s.renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
       try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
-      state.stats.areas[task.areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(task.areaId);task.status='ready';task.resolve();
-    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{if(!suspended)release();}
-  }}finally{state.running=false;}
+      state.stats.areas[areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(areaId);task.status='ready';task.resolve();
+ }catch(error){
+  if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors)state.actors.discardArea(areaId);
+  task.status='failed';throw error;
+ }finally{release();}
 }
 
 function checkExit(){
       const request = s.world.travelAt(s.game.player.pos);
       if (!request) {travelLatch = false;if(areaPreparation){areaPreparation.urgent=null;for(const[id,task]of areaPreparation.tasks)if(task.status==='failed')areaPreparation.tasks.delete(id);}}
       if (request && !travelLatch && s.game.player.hp>0 && !s.game.finished && !s.paused && !s.contextLost) {
-        if(s.world.isAreaReady(request.areaId)){travelLatch = true;crossArea(request);return true;}
-        else if(areaPreparation){const state=areaPreparation;state.urgent=request.areaId;if(!state.tasks.has(request.areaId)||state.tasks.get(request.areaId).status==='ready')queueDestination(request.areaId,state).catch(error=>{if(areaPreparation===state&&!state.cancelled){s.game.message='Could not load that area. Move away and try the exit again.';s.game.messageUntil=s.game.time+5;}});if(state.tasks.get(request.areaId)?.status!=='failed'){s.game.message=`${request.areaId.toUpperCase()} is loading. You can still move or turn back.`;s.game.messageUntil=s.game.time+1;}}
+        travelLatch=true;crossArea(request);return true;
       }
 return false;
 }
