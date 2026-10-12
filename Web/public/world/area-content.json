@@ -429,5 +429,102 @@
       "elephant-and-castle": "current-default",
       "lambeth": "current-default"
     }
+  },
+  "water": {
+    "regions": {
+      "westminster-thames-bridge-water-1": {
+        "id": "westminster-thames-bridge-water-1",
+        "points": [
+          {
+            "x": 0.669,
+            "y": 0.32
+          },
+          {
+            "x": 0.688,
+            "y": 0.32
+          },
+          {
+            "x": 0.74,
+            "y": 0.302
+          },
+          {
+            "x": 0.772,
+            "y": 0.305
+          },
+          {
+            "x": 0.772,
+            "y": 0.331
+          },
+          {
+            "x": 0.772,
+            "y": 0.385
+          },
+          {
+            "x": 0.749,
+            "y": 0.407
+          },
+          {
+            "x": 0.72,
+            "y": 0.397
+          },
+          {
+            "x": 0.713,
+            "y": 0.378
+          },
+          {
+            "x": 0.68,
+            "y": 0.365
+          },
+          {
+            "x": 0.669,
+            "y": 0.345
+          }
+        ],
+        "holes": []
+      }
+    },
+    "profiles": {
+      "bridge-water-subtle-1": {
+        "id": "bridge-water-subtle-1",
+        "regionRef": "westminster-thames-bridge-water-1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.9889363528682975,
+            "y": 0.14834045293024462
+          },
+          "speedPixelsPerSecond": 0.65
+        },
+        "rippleScalePixels": 12,
+        "rippleAmplitudePixelsMax": 0.18,
+        "opacityMax": 0.055,
+        "glint": {
+          "alphaMax": 0.022,
+          "density": 0.08,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 1,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.05
+        }
+      }
+    },
+    "areas": {
+      "westminster": "bridge-water-subtle-1"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import {createWaterEffect} from './engine/water-effect.js';
 import {atmosphereForArea, atmosphereBudget} from './atmosphere-areas.js';
 
 const vertexShader = `
@@ -56,6 +57,7 @@ float turbulence(vec2 p){return noise(p)*.57+noise(p*2.03+3.1)*.28+noise(p*4.11+
 // No independent clock/render loop. Caller uses existing RAF and dt=0 on pause.
 export function createAtmosphere({THREE,scene,world}) {
   const group=new THREE.Group();group.name='London restrained atmosphere';
+  const water=createWaterEffect({THREE,scene,world,config:null});
   let area=null,elapsed=0,disposed=false;
   const resources=[],materials=new Map();
   const right=new THREE.Vector3(),up=new THREE.Vector3();
@@ -112,14 +114,15 @@ export function createAtmosphere({THREE,scene,world}) {
   return {
     update(dt,{paused=false,enabled=true}={}){
       if(disposed)return;
-      if(area!==world.areaId){clear();area=world.areaId;elapsed=0;if(atmosphereForArea(area,world.areaAtmosphere?.[area]?.anchors).length)build();}
+      if(area!==world.areaId){clear();area=world.areaId;elapsed=0;water.setConfig(world.areaWater?.[area]);if(atmosphereForArea(area,world.areaAtmosphere?.[area]?.anchors).length)build();}
+      water.update(dt,{paused,enabled});
       group.visible=resources.length>0&&enabled;
       if(!group.visible||paused)return;
       if(Number.isFinite(dt)&&dt>0)elapsed+=Math.min(dt,.1);
       for(const mesh of resources)mesh.material.uniforms.clock.value=elapsed;
     },
-    reset(){if(disposed)return;elapsed=0;for(const mesh of resources)mesh.material.uniforms.clock.value=0;},
-    stats(){return {area,visible:group.visible,budget:atmosphereBudget(area,world.areaAtmosphere?.[area]?.budget),quads:resources.reduce((n,m)=>n+m.geometry.index.count/6,0),drawCalls:resources.length,textureBytes:0,time:elapsed,disposed};},
-    dispose(){if(disposed)return;disposed=true;clear();for(const material of materials.values())material.dispose();materials.clear();}
+    reset(){if(disposed)return;water.reset();elapsed=0;for(const mesh of resources)mesh.material.uniforms.clock.value=0;},
+    stats(){return {water:water.stats(),area,visible:group.visible,budget:atmosphereBudget(area,world.areaAtmosphere?.[area]?.budget),quads:resources.reduce((n,m)=>n+m.geometry.index.count/6,0),drawCalls:resources.length,textureBytes:0,time:elapsed,disposed};},
+    dispose(){if(disposed)return;disposed=true;water.dispose();clear();for(const material of materials.values())material.dispose();materials.clear();}
   };
 }
