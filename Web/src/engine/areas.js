@@ -51,7 +51,7 @@ async function crossArea(request) {
   }
 }
 let areaPreparation=null;
-function stopAreaPreparation(){const state=areaPreparation;if(!state)return;state.cancelled=true;state.iterator?.return();for(const task of state.tasks.values())task.reject(new Error('Area preparation cancelled'));areaPreparation=null;}
+function stopAreaPreparation(){const state=areaPreparation;if(!state)return;state.cancelled=true;state.iterator?.return();state.iterator=null;for(const task of state.tasks.values()){task.suspended?.iterator.return();task.suspended?.release();task.suspended=null;}for(const task of state.tasks.values())task.reject(new Error('Area preparation cancelled'));areaPreparation=null;}
 function preparationTurn(state){return new Promise((resolve,reject)=>{
   const deadlineAt=performance.now()+16;
   const check=()=>{if(state.cancelled||s.game!==state.game||s.contextLost){reject(new Error('Area preparation cancelled'));return false;}return true;};
@@ -89,13 +89,20 @@ async function pumpDestinations(state){
   try{for(;;){
     const queued=[...state.tasks.values()].filter(t=>t.status==='queued').sort((a,b)=>(a.areaId===state.urgent?-1:b.areaId===state.urgent?1:exitDistance(a.areaId)-exitDistance(b.areaId)));
     if(!queued.length||state.cancelled)return;const task=queued[0];task.status='running';state.current=task.areaId;
-    let release=()=>{};const retainedViews=state.actors.areaViewStats().parked?.some(row=>row.area===task.areaId&&row.count>0)??false;
+    let release=task.suspended?.release??(()=>{}),suspended=false;const retainedViews=task.suspended?.retainedViews??(state.actors.areaViewStats().parked?.some(row=>row.area===task.areaId&&row.count>0)??false);
     try{
-      release=s.world.leaseArea?.(task.areaId)??release;
-      await preparationTurn(state);const stage=await s.world.prepareArea(task.areaId);await preparationTurn(state);
-      const record=prepareParkedResidents(state.game,stage,initializeAreaResidents),iterator=state.iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);
+      let stage,iterator;
+      if(task.suspended){({stage,iterator}=task.suspended);task.suspended=null;state.iterator=iterator;}else{
+        release=s.world.leaseArea?.(task.areaId)??release;
+        await preparationTurn(state);stage=await s.world.prepareArea(task.areaId);await preparationTurn(state);
+        const record=prepareParkedResidents(state.game,stage,initializeAreaResidents);iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);state.iterator=iterator;
+      }
       let done=false;
-      while(!done){const budget=await preparationTurn(state),batchStart=performance.now();do{const started=performance.now(),step=iterator.next(),ms=performance.now()-started;state.stats.steps++;state.stats.cpuMilliseconds+=ms;state.stats.maxStepMs=Math.max(state.stats.maxStepMs,ms);if(!state.stats.worstStep||ms>state.stats.worstStep.ms)state.stats.worstStep={area:task.areaId,label:step.value??'done',ms};done=step.done;}while(!done&&performance.now()-batchStart<budget);}
+      while(!done){const budget=await preparationTurn(state),batchStart=performance.now();do{const started=performance.now(),step=iterator.next(),ms=performance.now()-started;state.stats.steps++;state.stats.cpuMilliseconds+=ms;state.stats.maxStepMs=Math.max(state.stats.maxStepMs,ms);if(!state.stats.worstStep||ms>state.stats.worstStep.ms)state.stats.worstStep={area:task.areaId,label:step.value??'done',ms};done=step.done;}while(!done&&performance.now()-batchStart<budget);
+        // Switch only between CPU batches; retain partial views and their stage lease.
+        if(!done&&state.urgent&&state.urgent!==task.areaId&&state.tasks.get(state.urgent)?.status==='queued'){task.suspended={stage,iterator,release,retainedViews};task.status='queued';suspended=true;break;}
+      }
+      if(suspended){state.iterator=null;continue;}
       state.iterator=null;
       const memory=s.actors.areaViewStats();if(memory.ownedFinisherGeometryBytes>memory.finisherGeometryBudgetBytes)throw Error('Prepared actor geometry budget exceeded');
       await s.renderer.compileAsync(stage.scene,stage.camera,s.scene);await preparationTurn(state);
@@ -105,7 +112,7 @@ async function pumpDestinations(state){
       const gl=s.renderer.getContext(),fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
       try{for(;;){await preparationTurn(state);const result=gl.clientWaitSync(fence,0,0);if(result===gl.ALREADY_SIGNALED||result===gl.CONDITION_SATISFIED)break;if(result===gl.WAIT_FAILED||gl.isContextLost())throw Error('Prepared graphics unavailable');}}finally{gl.deleteSync(fence);}
       state.stats.areas[task.areaId]={ready:true,gpuPreparationMs:performance.now()-started};s.world.markAreaReady(task.areaId);task.status='ready';task.resolve();
-    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{release();}
+    }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{if(!suspended)release();}
   }}finally{state.running=false;}
 }
 
