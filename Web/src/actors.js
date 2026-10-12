@@ -295,6 +295,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       try{for(const entity of [...record.enemies,...(record.corpses??[])])if(!stored.has(entity.id)){added.push(entity.id);yield* makeSteps(entity,finishers,true,{stageWorld,renderScene:stageWorld.scene,store:stored});yield 'actor-ready';}completed=true;}
       finally{if(!completed)for(const id of added)remove(id,stored);}
     },
+    bindPreparedArea(areaId,renderScene){const stored=parkedViews.get(areaId);if(!stored)return;for(const view of stored.values()){renderScene.add(view.root);if(view.shadow)renderScene.add(view.shadow);view.finisher?.setScene(renderScene);}},
     activateArea(areaId){const stored=parkedViews.get(areaId);if(!stored)return;for(const[id,view]of stored){views.set(id,view);scene.add(view.root);if(view.shadow)scene.add(view.shadow);view.finisher?.setScene(scene);view.finisher?.setDormant(false);}parkedViews.delete(areaId);},
     discardArea(areaId){const stored=parkedViews.get(areaId);if(stored){for(const id of [...stored.keys()])remove(id,stored);parkedViews.delete(areaId);}},
     areaViewStats(){const all=new Set([...views.values(),...[...parkedViews.values()].flatMap(stored=>[...stored.values()])]);return{active:views.size,parked:[...parkedViews].map(([area,stored])=>({area,count:stored.size})),ownedFinisherGeometryBytes:[...all].reduce((n,v)=>n+(v.finisher?.stats().ownedGeometryBytes??0),0),finisherGeometryBudgetBytes:128*1024*1024};},
