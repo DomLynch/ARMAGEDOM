@@ -130,7 +130,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
       const vestNotice = !g.finished && p.hp > 0
         ? g.vest?.equipped
           ? "VEST EQUIPPED · 10% protection"
-          : g.world?.areaId === "westminster" && vestAvailable(g.vest, g.supplies)
+          : g.world?.areaId === "westminster" && vestAvailable(g.vest, g.supplies,g.lootRules)
             ? "VEST BY PISTOL STASH · Walk near to equip"
             : ""
         : "";

@@ -65,9 +65,10 @@ export function createGame(world,options={}){
  if(options.animalVariants){g.animalVariants=true;g.animalCycle=options.animalCycle??'A';if(!['A','B'].includes(g.animalCycle))throw Error('Invalid animal cycle');}
  if(options.finishers&&g.pilot)g.finishers={maxHeads:options.finishers==='pistol-only'?0:2,recentRecipeId:null};
  if(options.mobileControls)g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));
- if(options.supplies)g.supplies=createSuppliesState();
+ g.lootRules=options.lootRules??world.lootRules;
+ if(options.supplies)g.supplies=createSuppliesState(g.lootRules);
  if(options.vest)g.vest=createVestState();
- if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
+ if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.lootRules=options.lootRules??world.lootRules;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
@@ -169,7 +170,7 @@ function kill(g,e,meta={}){
   e.finisher=selectFinisher({victimId:e.id,lethal:e.hp<=0,...meta},{support:e.finisherSupport??[],budget:Math.max(0,g.finishers.maxHeads-active),ordinal:g.kills,recentRecipeId:g.finishers.recentRecipeId});
   if(e.finisher){g.finishers.recentRecipeId=e.finisher.recipeId;g.finishers.lastVictimId=e.id;if(e.finisher.cost>0)e.finisherPartsUntil=g.time+6;if(e.finisher.parts.includes('head'))e.finisherHeadUntil=g.time+6;}
  }
- if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+ if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp,rules:g.lootRules,cycle:g.animalCycle}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -359,7 +360,7 @@ export function initializeAreaResidents(g){
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
  const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
- const residents=placements.filter(p=>(area!=='westminster'||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
+ const residents=placements.filter(p=>(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}

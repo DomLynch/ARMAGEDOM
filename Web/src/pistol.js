@@ -17,9 +17,13 @@ export function collectPistol(state, {areaId, position} = {}) {
   if (state.collected || areaId !== state.pickupAreaId || !point(position)
       || Math.hypot(position.x-state.pickupPos.x, position.z-state.pickupPos.z) > PISTOL_RULES.pickupRadius+EPS)
     return {state, events:[]};
-  return {state:{...state, collected:true, equipped:true,
-    magazine:PISTOL_RULES.capacity, reserve:PISTOL_RULES.reserve},
-    events:[{type:'pickup'}, {type:'equip'}]};
+  return grantPistol(state);
+}
+
+// Used only after an original stash or validated pending-drop eligibility check.
+export function grantPistol(state){
+  if(state.collected)return {state,events:[]};
+  return {state:{...state,collected:true,equipped:true,magazine:PISTOL_RULES.capacity,reserve:PISTOL_RULES.reserve},events:[{type:'pickup'},{type:'equip'}]};
 }
 
 export function equipPistol(state, equipped = true) {

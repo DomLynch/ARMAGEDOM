@@ -4,16 +4,21 @@ import {createPickupOperation} from '../core/pickup-operation.js';
 import {createRunOperation} from '../core/run-operation.js';
 import {createPistolOperation,PISTOL_ITEM_ID} from '../core/pistol-operation.js';
 import * as codec from './run-state.js';
-import {collectSupply} from '../supplies.js';
-import {collectVest,VEST_RULES} from '../vest.js';
-import {collectPistol,equipPistol} from '../pistol.js';
+import {collectSupply,hasExtendedLoot,collectGearSupply,GEAR_ITEMS} from '../supplies.js';
+import {collectVest,VEST_RULES,grantVest} from '../vest.js';
+import {collectPistol,equipPistol,grantPistol} from '../pistol.js';
 
 // One session writer; render/input code supplies live-run access and fresh construction.
 export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
- const io=createRunStorage({storage,codec});
- const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION});
+ const extendedKey='armagedom:area-run:v3';
+ const selectedCodec={...codec,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
+ // Evaluate context at IO time: browser persistence is created before the game loads.
+ const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
+ const io=createRunStorage({storage:selectedStorage,codec:selectedCodec});
+ let supplyScope=null;
+ const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION,collectGearSupply,gearItems:GEAR_ITEMS,grantPistol,grantVest,canCollectGear:g=>supplyScope?.run===g&&supplyScope.allowed});
  let pistolScope=null;
- const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
+ const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const core=createCore({executeDomain:createRunOperation({getRun,setRun,createFreshRun,applySavedRun:codec.applySavedRun,claimPickup,equip:pistolOperation}),
   codec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
@@ -38,21 +43,25 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   persistRun(g);
  }
  function retry(){return core.dispatch({type:'retry'}).ok;}
- function collectNearbySupplies(g){
+ function collectNearbySupplies(g,intent={}){
+  const p=g.player;
+  supplyScope={run:g,allowed:p.hp>0&&!g.finished&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil};
+  try{
   if(!g.supplies||g.runSaveInvalid||g.finished)return;
   for(const drop of g.supplies.pending.slice()){
    const result=core.dispatch({type:'claimPickup',pickupId:drop.id});
-   if(result.ok){for(const event of result.events){g.events.push({...event});g.message=event.kind==='rounds'?`Scavenged ${event.amount} spare rounds.`:`Dressing restored ${Math.ceil(event.amount)} health.`;g.messageUntil=g.time+3;}}
+   if(result.ok){for(const event of result.events){g.events.push(event.type==='vest-pickup'?{...event,actor:g.player}:{...event});if(event.type!=='supply-pickup')continue;g.message=event.kind==='westminster-start-pistol-v1'?'Pistol collected and equipped.':event.kind==='westminster-worn-vest-v1'?'Worn vest equipped · 10% protection.':event.kind==='rounds'?`Scavenged ${event.amount} spare rounds.`:`Dressing restored ${Math.ceil(event.amount)} health.`;g.messageUntil=g.time+3;}}
    else if(result.code==='storage-unavailable'){unavailable(g);}
    else if(result.code==='not-eligible'){
     const {reason}=collectSupply(g.supplies,{dropId:drop.id,areaId:g.world.areaId,position:g.player.pos,
-     resources:{hp:g.player.hp,maxHP:g.player.maxHP,pistolOwned:g.pistol.collected,reserve:g.pistol.reserve},lineClear:(a,b)=>g.world.lineClear(a,b)});
+     rules:g.lootRules,resources:{hp:g.player.hp,maxHP:g.player.maxHP,pistolOwned:g.pistol.collected,reserve:g.pistol.reserve},lineClear:(a,b)=>g.world.lineClear(a,b)});
     if(['pistol-required','reserve-full','health-full'].includes(reason)){
      const notice=drop.id+reason;if(g.supplyNotice===notice&&g.time<g.supplyNoticeUntil)continue;
      g.supplyNotice=notice;g.supplyNoticeUntil=g.time+4;g.message={'pistol-required':'Collect the pistol first. Rounds kept.','reserve-full':'Spare rounds full. Supply kept.','health-full':'Health full. Dressing kept.'}[reason];g.messageUntil=g.time+2;
     }
    }
   }
+  }finally{supplyScope=null;}
  }
  function collectNearbyVest(g){
   if(!g.vest||g.runSaveInvalid||g.finished)return;

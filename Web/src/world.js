@@ -10,10 +10,10 @@ function damp(value,target,velocity,time,dt) {
   return [target+(change+temp)*decay,(velocity-omega*temp)*decay];
 }
 export class LondonWorld {
-  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null,textureBudgetBytes=48*1024*1024,validatedLayouts=null,residentPlacements=null,areaAtmosphere=null,areaLighting=null,areaWater=null}) {
+  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null,textureBudgetBytes=48*1024*1024,validatedLayouts=null,residentPlacements=null,areaAtmosphere=null,areaLighting=null,areaWater=null,lootRules=null}) {
     if(!Number.isFinite(viewZoomMultiplier)||viewZoomMultiplier<1)throw Error('View zoom multiplier must be finite and at least 1');
     if(!Number.isFinite(textureBudgetBytes)||textureBudgetBytes<16*1024*1024||textureBudgetBytes>48*1024*1024)throw Error("Invalid texture budget");
-    this.areaWater=areaWater;this.areaLighting=areaLighting;this.residentPlacements=residentPlacements;this.areaAtmosphere=areaAtmosphere;this.validatedLayouts=validatedLayouts;this.textureBudgetBytes=textureBudgetBytes;this.viewZoomMultiplier=viewZoomMultiplier;
+    this.lootRules=lootRules;this.areaWater=areaWater;this.areaLighting=areaLighting;this.residentPlacements=residentPlacements;this.areaAtmosphere=areaAtmosphere;this.validatedLayouts=validatedLayouts;this.textureBudgetBytes=textureBudgetBytes;this.viewZoomMultiplier=viewZoomMultiplier;
     this.THREE=THREE;this.scene=scene;this.camera=camera;this.layout=layout;this.texture=texture;
     this.geometry=createGeometry(layout);this.spawn={x:0,z:-6};this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
     this.manifest=manifest;this.registry=registry??createAreaRegistry({manifest});this.baseUrl=baseUrl;this.areaId=this.registry.initialArea;this.disposed=false;
@@ -110,7 +110,7 @@ export class LondonWorld {
       try{
         if(cache.disposed)throw Error('London cache disposed');
         this.admitTexture((texture.image?.width??0)*(texture.image?.height??0)*4*7/3);
-        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier,textureBudgetBytes:this.textureBudgetBytes,validatedLayouts:this.validatedLayouts,residentPlacements:this.residentPlacements,areaAtmosphere:this.areaAtmosphere,areaLighting:this.areaLighting,areaWater:this.areaWater});
+        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier,textureBudgetBytes:this.textureBudgetBytes,validatedLayouts:this.validatedLayouts,residentPlacements:this.residentPlacements,areaAtmosphere:this.areaAtmosphere,areaLighting:this.areaLighting,areaWater:this.areaWater,lootRules:this.lootRules});
         next.areaId=areaId;cache.stages.set(areaId,next);cache.usage.set(areaId,cache.nextUse++);return next;
       }catch(error){if(next)next.disposeStage();else {texture.dispose();texture.image=null;}throw error;}
     })();
@@ -181,5 +181,5 @@ export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThi
     content=validateAreaContent(await response.json(),registry,layouts);layout=content.layouts[row.layoutRef];
   }
   const texture=await new THREE.TextureLoader().loadAsync(new URL(registry.asset(row.backdropRef).path,baseUrl).href);
-  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water});} catch(e){texture.dispose();throw e;}
+  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water,lootRules:content?.lootRules});} catch(e){texture.dispose();throw e;}
 }

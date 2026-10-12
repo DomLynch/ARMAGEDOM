@@ -53,7 +53,7 @@ function frame(ms,providedElapsed) {
       stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol});
       s.diagnostics?.afterStep();
       if (weaponBefore !== s.game.player.weapon) {s.input.clear();submitted=null;resetMobileControls(s.game);}
-      s.collectNearbySupplies(s.game);
+      s.collectNearbySupplies(s.game,value);
       s.collectNearbyVest(s.game);
       s.persistRun(s.game);
       s.effects.events(s.game);
