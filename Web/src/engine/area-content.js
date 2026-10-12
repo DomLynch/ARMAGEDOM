@@ -1,3 +1,4 @@
+import {validateAreaLoot} from './area-loot.js';
 import {validateAreaWater} from './area-water.js';
 import {validateAreaLighting} from './area-lighting.js';
 import {createGeometry} from '../world-geometry.js';
@@ -44,4 +45,4 @@ function validateAtmosphere(rows,registry){
  }
  return freeze(result);
 }
-export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water']);return Object.freeze({water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents:validateResidentPlacements(content.residents,registry,layouts),atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
+export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}

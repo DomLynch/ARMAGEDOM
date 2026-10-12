@@ -2,11 +2,16 @@ import * as T from 'three';
 import {addPickupGlow} from './pickup-glow.js';
 // Original primitive-only pickup proxies. No texture/model fetch or scene lights.
 export function createSupplyView({kind,count=3}={}){
- if(!['ammo','dressing'].includes(kind)||kind==='ammo'&&![1,2,3].includes(count))throw Error('Supply visual requires ammo1/2/3 or dressing');
+ if(!['ammo','dressing','pistol'].includes(kind)||kind==='ammo'&&![1,2,3].includes(count))throw Error('Supply visual requires ammo1/2/3 or dressing');
  const root=new T.Group();root.name='Supply_'+kind;
  const geometries=[],materials=[],glows=[];
  const geometry=g=>(geometries.push(g),g),material=m=>(materials.push(m),m);
- if(kind==='ammo'){
+ if(kind==='pistol'){
+  const steel=material(new T.MeshStandardMaterial({color:0x625b4d,metalness:.45,roughness:.65}));
+  for(const [size,pos] of [[[.30,.045,.055],[0,.065,0]],[[.06,.06,.12],[.045,.025,.035]]]){
+   const mesh=new T.Mesh(geometry(new T.BoxGeometry(...size)),steel);mesh.position.set(...pos);root.add(mesh);glows.push(addPickupGlow(mesh));
+  }
+ }else if(kind==='ammo'){
   const brass=material(new T.MeshStandardMaterial({color:0xb49a65,metalness:.3,roughness:.72})),tip=material(new T.MeshStandardMaterial({color:0x574a39,metalness:.45,roughness:.7}));
   const cases=new T.InstancedMesh(geometry(new T.CylinderGeometry(.018,.019,.11,8)),brass,count),tips=new T.InstancedMesh(geometry(new T.ConeGeometry(.017,.035,8)),tip,count),dummy=new T.Object3D(),axis=new T.Vector3(0,1,0);
   for(let i=0;i<count;i++){
