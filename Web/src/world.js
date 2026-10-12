@@ -54,6 +54,16 @@ export class LondonWorld {
       Object.entries(link.condition).every(([key,value])=>key==='xMin'?point.x>value:key==='xMax'?point.x<value:key==='yMin'?point.y>value:point.y<value));
     return link?{areaId:link.to,entryPoint:{...link.entry}}:null;
   }
+  exitHint(position) {
+    let nearest=null,distance=6;
+    for(const link of this.registry.links(this.areaId)) {
+      const c=link.condition,point=this.geometry.point(position);
+      const target={x:clamp(point.x,c.xMin??0,c.xMax??1),y:clamp(point.y,c.yMin??0,c.yMax??1)};
+      const ground=this.geometry.ground(target),gap=Math.hypot(position.x-ground.x,position.z-ground.z);
+      if(gap<distance){distance=gap;nearest=link.to;}
+    }
+    return nearest?`EXIT → ${nearest.replaceAll('-', ' ').toUpperCase()}`:'';
+  }
   async loadArea(areaId,entryPoint=this.registry.get(areaId)?.entry) {
     if(!this.registry.has(areaId)||!entryPoint)throw Error('Unknown London area');
     const cache=this.areaCache??=this.createAreaCache(),generation=++cache.generation,release=this.leaseArea(areaId);

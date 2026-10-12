@@ -134,7 +134,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
             ? "VEST BY PISTOL STASH · Walk near to equip"
             : ""
         : "";
-      const message = g.time < g.messageUntil ? g.message : vestNotice;
+      const message = g.time < g.messageUntil ? g.message : (g.world?.exitHint?.(p.pos) || vestNotice);
       if (message !== lastMessage) {
         el("notice").textContent = message;
         lastMessage = message;
