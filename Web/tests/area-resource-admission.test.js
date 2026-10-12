@@ -17,6 +17,6 @@ test('capacity failure cannot discard retained corpse presentation or logical fi
 
 test('failed entry graphics admission borrows retained actors without clearing logical finisher data',async()=>{
  const start=source.indexOf('async function prepareGraphics('),end=source.indexOf('function checkExit()',start),entity={finisherPartsUntil:50,finisherSupport:['head']},discarded=[];let releases=0;
- const game={},state={game,cancelled:false,tasks:new Map([['south',{status:'prepared'}]])},s={game,traveling:true,actors:{discardArea:id=>{discarded.push(id);entity.finisherPartsUntil=0;}},world:{isAreaReady:()=>false,leaseArea:()=>()=>releases++,prepareArea:async()=>{throw Error('texture budget exceeded');}}},context=vm.createContext({s,areaPreparation:state});
+ const game={},state={game,cancelled:false,tasks:new Map([['south',{status:'prepared'}]])},s={game,traveling:true,actors:{discardArea:id=>{discarded.push(id);entity.finisherPartsUntil=0;}},world:{isAreaReady:()=>false,leaseArea:()=>()=>releases++,prepareArea:async()=>{throw Error('texture budget exceeded');}}},context=vm.createContext({s,areaPreparation:state});state.actors=s.actors;
  vm.runInContext(source.slice(start,end)+'globalThis.graphics=prepareGraphics;',context);await assert.rejects(context.graphics('south',state),/texture budget exceeded/);assert.equal(state.tasks.get('south').status,'failed');assert.deepEqual(discarded,[]);assert.equal(entity.finisherPartsUntil,50);assert.deepEqual(entity.finisherSupport,['head']);assert.equal(releases,1);
 });
