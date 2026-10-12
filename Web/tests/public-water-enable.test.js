@@ -38,3 +38,15 @@ test('Area4 entire right-edge timber dock is excluded conservatively, leaving un
  for(const p of [{x:.265,z:.36},{x:.275,z:.37},{x:.285,z:.34},{x:.29,z:.38}])assert(!insidePolygon(p,outer));
  assert(insidePolygon({x:.22,z:.33},outer));
 });
+
+test('Area5 connected right timber pier is outside water while left open water remains active',()=>{
+ const r=validateAreaWater(data.water,publicAreaRegistry)['elephant-and-castle'].regions[0],outer=r.points.map(p=>({x:p.x,z:p.y})),holes=r.holes.map(h=>h.map(p=>({x:p.x,z:p.y})));
+ for(const p of [{x:.23,z:.34},{x:.252,z:.366},{x:.28,z:.4},{x:.21,z:.32}])assert(!insidePolygon(p,outer));
+ assert(insidePolygon({x:.15,z:.36},outer));assert(!holes.some(h=>insidePolygon({x:.15,z:.36},h)));
+});
+
+test('Area5 left-bank notch protects the entire connected timber envelope and keeps upper boat exclusions',()=>{
+ const r=validateAreaWater(data.water,publicAreaRegistry)['elephant-and-castle'].regions[0],o=r.points.map(p=>({x:p.x,z:p.y})),hs=r.holes.map(h=>h.map(p=>({x:p.x,z:p.y})));
+ for(const p of [{x:.04,z:.34},{x:.06,z:.37},{x:.08,z:.4},{x:.02,z:.31}])assert(!insidePolygon(p,o));
+ assert(insidePolygon({x:.15,z:.36},o));assert(!insidePolygon({x:.15,z:.27},o));
+});
