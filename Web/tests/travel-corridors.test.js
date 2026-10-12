@@ -12,10 +12,10 @@ for(const link of manifest.links)test(`${link.from} to ${link.to}: actual circle
  let first,best=Infinity;
  for(const [key,p] of cells){const d=Math.hypot(p.x-start.x,p.z-start.z);if(d<best&&g.lineClear(start,p)){best=d;first=key;}}
  assert.notEqual(first,undefined);const parents=new Map([[first,null]]),queue=[first];let goal;
- const triggered=p=>Object.entries(link.condition).every(([k,v])=>k==='xMin'?p.x>v:k==='xMax'?p.x<v:k==='yMin'?p.y>v:p.y<v);
+ const triggered=(p,margin=0)=>Object.entries(link.condition).every(([k,v])=>k==='xMin'?p.x>v+margin:k==='xMax'?p.x<v-margin:k==='yMin'?p.y>v+margin:p.y<v-margin);
  for(let i=0;i<queue.length;i++){
   const key=queue[i],x=key%(n+1),y=Math.floor(key/(n+1));
-  if(triggered(g.point(cells.get(key)))){goal=key;break;}
+  if(triggered(g.point(cells.get(key)),1e-6)){goal=key;break;}
   for(const [nx,ny] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]){
    if(nx<0||nx>n||ny<0||ny>n)continue;const next=ny*(n+1)+nx;
    if(cells.has(next)&&!parents.has(next)&&g.lineClear(cells.get(key),cells.get(next))){parents.set(next,key);queue.push(next);}

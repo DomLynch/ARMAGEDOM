@@ -187,9 +187,8 @@
       "to": "east-bridge",
       "condition": {
         "xMin": 0.95,
-        "xMax": 0.97,
-        "yMin": 0.325,
-        "yMax": 0.339
+        "yMin": 0.31,
+        "yMax": 0.355
       },
       "entry": {
         "x": 0.07,
@@ -200,10 +199,9 @@
       "from": "east-bridge",
       "to": "east",
       "condition": {
-        "xMin": 0.025,
         "xMax": 0.045,
-        "yMin": 0.81,
-        "yMax": 0.855
+        "yMin": 0.8,
+        "yMax": 0.865
       },
       "entry": {
         "x": 0.935,
@@ -215,9 +213,8 @@
       "to": "elephant-and-castle",
       "condition": {
         "xMin": 0.955,
-        "xMax": 0.985,
-        "yMin": 0.215,
-        "yMax": 0.245
+        "yMin": 0.2,
+        "yMax": 0.26
       },
       "entry": {
         "x": 0.07,
@@ -228,10 +225,9 @@
       "from": "elephant-and-castle",
       "to": "east-bridge",
       "condition": {
-        "xMin": 0.025,
         "xMax": 0.045,
-        "yMin": 0.835,
-        "yMax": 0.875
+        "yMin": 0.825,
+        "yMax": 0.885
       },
       "entry": {
         "x": 0.925,
@@ -243,9 +239,8 @@
       "to": "lambeth",
       "condition": {
         "xMin": 0.95,
-        "xMax": 0.98,
-        "yMin": 0.24,
-        "yMax": 0.275
+        "yMin": 0.225,
+        "yMax": 0.29
       },
       "entry": {
         "x": 0.29,
@@ -256,10 +251,9 @@
       "from": "lambeth",
       "to": "elephant-and-castle",
       "condition": {
-        "xMin": 0.22,
-        "xMax": 0.3,
-        "yMin": 0.035,
-        "yMax": 0.07
+        "xMin": 0.21,
+        "xMax": 0.31,
+        "yMax": 0.085
       },
       "entry": {
         "x": 0.91,
