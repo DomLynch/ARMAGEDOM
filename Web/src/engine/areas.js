@@ -61,6 +61,8 @@ function stopAreaPreparation(){const state=areaPreparation;if(!state)return;stat
 function preparationTurn(state){return new Promise((resolve,reject)=>{
   const deadlineAt=performance.now()+16;
   const check=()=>{if(state.cancelled||s.game!==state.game||s.contextLost){reject(new Error('Area preparation cancelled'));return false;}return true;};
+  // Entry is already announced and paused; idle scheduling can throttle this work.
+  if(s.traveling&&state.urgent){setTimeout(()=>{if(check())resolve(12);},0);return;}
   const idle=deadline=>{if(!check())return;if(deadline.didTimeout||performance.now()>=deadlineAt||deadline.timeRemaining()>=4||state.urgent)resolve(state.urgent?12:Math.min(4,Math.max(1,deadline.timeRemaining()-1)));else requestIdleCallback(idle,{timeout:Math.max(1,deadlineAt-performance.now())});};
   // A busy renderer must not starve preparation indefinitely. Timeout grants
   // one small unit of work; it is a scheduling bound, never an area-ready timer.
