@@ -1723,5 +1723,27 @@
       "east-bridge": "east-bridge-river-visible-v1",
       "elephant-and-castle": "elephant-and-castle-river-visible-v1"
     }
+  },
+  "loot": {
+    "version": 1,
+    "tables": {
+      "east-vest-pilot-v1": {
+        "outcomes": [
+          {
+            "itemId": "westminster-worn-vest-v1",
+            "quantity": 1,
+            "weight": 1,
+            "conditions": [
+              "vest-not-equipped"
+            ]
+          }
+        ]
+      }
+    },
+    "placements": {
+      "east": {
+        "east-roamer-1": "east-vest-pilot-v1"
+      }
+    }
   }
 }
