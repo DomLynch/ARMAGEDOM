@@ -43,6 +43,7 @@ let renderer,
   loading = false,
   paused = false,
   contextLost = false,
+  travelRecoveryFailed=false,
   traveling = false,
   startup = null,
   focusLost = false,
@@ -57,6 +58,7 @@ scene.add(hemi, sun);
 const rim = new THREE.PointLight(0xd4c7a5, 3.2, 5, 2);
 scene.add(rim);
 function pause(value) {
+  if(travelRecoveryFailed)value=true;
   paused = value;
   loop?.reset();
   input?.clear();
@@ -70,7 +72,7 @@ function pause(value) {
   if (value) audio.pause();
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : loop.frame);
 }
-const context={get diagnostics(){return diagnostics},get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun(){return createGame(world,{...pilot,residentPlacements:world.residentPlacements??pilot.residentPlacements,animalCycle:nextAnimalCycle(game.animalCycle)});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},collectNearbySupplies(g,intent){resources.collectNearbySupplies(g,intent);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},cancelPistol(g){resources.cancelPistol(g)},emit};
+const context={failTravelRecovery(){travelRecoveryFailed=true;pause(true);},get diagnostics(){return diagnostics},get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun(){return createGame(world,{...pilot,residentPlacements:world.residentPlacements??pilot.residentPlacements,animalCycle:nextAnimalCycle(game.animalCycle)});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},collectNearbySupplies(g,intent){resources.collectNearbySupplies(g,intent);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},cancelPistol(g){resources.cancelPistol(g)},emit};
 resources=createRunViews(context);areas=createAreaLifecycle(context);loop=createBrowserLoop(context);
 const hud = createHUD({
   onAssist:enabled=>{mobileAssistEnabled=enabled;if(game){game.mobileAssistEnabled=enabled;resetMobileControls(game);}},
@@ -89,7 +91,7 @@ const hud = createHUD({
   },
 });
 async function restart() {
-  if (!loaded || traveling || contextLost) return;
+  if (!loaded || traveling || contextLost || travelRecoveryFailed) return;
   if (world.areaId !== "westminster") {
     if (
       !(await areas.activate({

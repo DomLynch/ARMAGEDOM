@@ -66,3 +66,9 @@ test('world eviction preserves authoritative parked mob, corpse, loot and finish
  await world.prepareArea('south');await world.prepareArea('east');await world.prepareArea('fixture-westminster-annex');assert.equal(world.cachedArea('south'),undefined);assert.equal(game.areaFights,record);assert.equal(enemy.finisherHeadUntil,40);assert.equal(corpse.finisherPartsUntil,50);assert.deepEqual(enemy.finisherSupport,['head']);
  game.time=20;await travelTo(game,{areaId:'south'});assert.equal(game.enemies[0],enemy);assert.equal(game.corpses[0],corpse);assert.equal(game.loot[0],loot);assert.equal(enemy.finisherHeadUntil,60);assert.equal(corpse.finisherPartsUntil,70);assert.equal(enemy.ready,30);assert.deepEqual(enemy.finisherSupport,['head']);
 });
+
+test('destination update failure retains source scene, camera and cached stage, then retry succeeds',async t=>{
+ const {world,scene}=fixture(t);const source=world.group,matrix=world.camera.projectionMatrix.clone(),east=await world.prepareArea('east'),update=east.update;
+ east.update=()=>{throw Error('injected destination update')};await assert.rejects(world.loadArea('east'),/injected destination update/);assert.equal(world.areaId,'westminster');assert.equal(world.group,source);assert.equal(source.parent,scene);assert.deepEqual(world.camera.projectionMatrix.elements,matrix.elements);assert.deepEqual(world.preparationStats().leases,[]);
+ east.update=update;await world.loadArea('east');assert.equal(world.areaId,'east');assert.equal(world.group.parent,scene);
+});

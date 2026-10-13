@@ -1,21 +1,23 @@
 # ARMAGEDOM Three.js client
 
 Active independent browser game; official https://playarmagedom.com/.
-Canonical Web source is the reviewed three-20261004-008 baseline (5dc5610c).
-Six actions, Frankendom pilot player/Goblin, directional guarding and stamina,
-selected006 fighter size with unchanged map/camera, portrait and landscape HUD.
-Unpublished Hollow/maintenance candidates live in their owned lanes.
+The client uses directional guarding, stamina, and portrait/landscape controls.
+Current source, candidate and verified served identities are recorded separately
+in PROJECT_STATE.md and deployment receipts. Unpublished candidates remain in
+their owned lanes; a source revision alone is not evidence of publication.
 
 `npm ci`, `npm test`, `npm run test:packaging`, `npm run build`; `npm run dev`
 for local development. Serve dist as an immutable static directory with trailing
 slash and reviewed runtime allowlist. `?touch=1` is desktop layout review only.
 
-WASD/mouse/Q/E/Space/F and six touch actions: Slash, Stab, Heavy, Special, Dodge,
-Guard/timed Parry. Independent pointers allow moving while attacking; menu,
+WASD/mouse/Q/E/Space/F and five melee touch actions: Slash, Stab, Heavy, Dodge,
+Guard/timed Parry. E retains keyboard Special; the approved touch layout omits it.
+Pistol equipment switches the contextual controls. Independent pointers allow moving while attacking; menu,
 rotation and focus changes cancel held input. Audio starts on a player gesture.
 World/actor coordinates and ownership are in CONTRACT.md.
 
-Load only selected area/current actors and small local audio, never all ranks.
+World layouts load for the starting or destination area. The selected actor
+manifest loads its model foundations; the current starting roster uses all five.
 Original portable authoring assets remain private/in source; publication prunes
 unused files. Current tests/build closure and HTTPS bytes are evidence of their
 own scope. Physical iPhone/Android cold/warm loading, audio, sustained pacing,

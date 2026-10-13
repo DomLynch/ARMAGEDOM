@@ -71,11 +71,18 @@ export class LondonWorld {
     const next=await this.prepareArea(areaId),entry=next.geometry.ground(entryPoint);
     if(!next.geometry.clear(entry,.4))throw Error('London entry is blocked');
     if(cache.disposed||generation!==cache.generation)throw Error('London load superseded');
-    const {scene,camera,THREE}=this;
-    const previous=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new THREE.Scene(),camera:camera.clone(),gpuReady:cache.stages.get(this.areaId)?.gpuReady??false});
-    previous.scene.add(this.group);cache.stages.set(this.areaId,previous);
-    next.update(entry,0,this.width,this.height,true);camera.copy(next.camera,false);
-    Object.assign(this,next,{scene,camera,areaCache:cache,spawn:{...entry}});cache.activeArea=areaId;scene.add(this.group);return {...entry};
+    const {scene,camera,THREE}=this,source={...this},sourceCamera=camera.clone(),sourceStage=cache.stages.get(this.areaId);
+    const previous=Object.assign(Object.create(LondonWorld.prototype),this,{scene:new THREE.Scene(),camera:sourceCamera.clone(),gpuReady:sourceStage?.gpuReady??false});
+    try{
+      // Destination work can fail; keep the source attached until it succeeds.
+      next.update(entry,0,this.width,this.height,true);camera.copy(next.camera,false);
+      previous.scene.add(this.group);cache.stages.set(this.areaId,previous);
+      Object.assign(this,next,{scene,camera,areaCache:cache,spawn:{...entry}});cache.activeArea=areaId;scene.add(this.group);return {...entry};
+    }catch(error){
+      try{Object.assign(this,source);camera.copy(sourceCamera,false);scene.add(source.group);if(next.group!==source.group)next.scene.add(next.group);cache.activeArea=source.areaId;if(sourceStage)cache.stages.set(source.areaId,sourceStage);}
+      catch(recovery){throw new AggregateError([error,recovery],'London source recovery failed');}
+      throw error;
+    }
     }finally{release();}
   }
   createAreaCache(){

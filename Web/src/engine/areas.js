@@ -3,14 +3,14 @@ import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
 import {resetMobileControls,initializeAreaResidents} from '../combat.js';
 import {prepareParkedResidents} from '../parked-area-preparation.js';
-import {travelTo} from '../travel.js';
+import {travelTo,captureTravelState,restoreTravelState} from '../travel.js';
 export function createAreaLifecycle(s){
 let travelLatch=false;
 async function crossArea(request) {
   const previousArea=s.world.areaId,keepMovement=s.world.isAreaReady(request.areaId);
   const ownerGame=s.game,ownerActors=s.actors,ownerWorld=s.world;
   const owns=()=>!s.contextLost&&s.loaded&&s.game===ownerGame&&s.actors===ownerActors&&s.world===ownerWorld;
-  let accepted=false;
+  let accepted=false,recoveryFailed=false,travelState=null,previousPoint=null,actorParkStarted=false,actorActivationStarted=false;const releaseSource=ownerWorld.leaseArea?.(previousArea)??(()=>{});
   s.traveling = true;
   s.resetClock();
   s.input.clear({keepMovement});
@@ -26,11 +26,12 @@ async function crossArea(request) {
     if(!owns())return false;
     await prepareGraphics(request.areaId,areaPreparation);
     if(!owns())return false;
+    travelState=captureTravelState(ownerGame);previousPoint=ownerWorld.geometry?.point(ownerGame.player.pos)??ownerWorld.registry?.get(previousArea)?.entry;
     const position=await travelTo(ownerGame, request,{isCurrent:owns});
     if(!position||!owns())return false;
     applyAreaLighting(s.scene,s.world);
     s.effects.reset();
-    s.actors.parkArea(previousArea);s.actors.activateArea(request.areaId);
+    actorParkStarted=true;s.actors.parkArea(previousArea);actorActivationStarted=true;s.actors.activateArea(request.areaId);
     s.game.events = [];
     s.world.update(s.game.player.pos, 0, innerWidth, innerHeight, true);
     s.atmosphere?.update(0, {paused: true});
@@ -43,16 +44,26 @@ async function crossArea(request) {
   } catch (error) {
     if(!owns())return false;
     console.error("ARMAGEDOM_TRAVEL_FAILED", error);
+    if(travelState){
+      try{
+        if(error.message==='London source recovery failed')throw error;
+        if(actorActivationStarted)ownerActors.parkArea(request.areaId);
+        if(ownerWorld.areaId!==previousArea)await ownerWorld.loadArea(previousArea,previousPoint);
+        if(!owns())return false;
+        restoreTravelState(ownerGame,travelState);applyAreaLighting(s.scene,ownerWorld);s.effects.reset();if(actorParkStarted)ownerActors.activateArea(previousArea);
+        ownerWorld.update(ownerGame.player.pos,0,innerWidth,innerHeight,true);s.atmosphere?.update(0,{paused:true});ownerActors.update(ownerGame,0,0,{restoreCorpses:true});ownerGame.ratContact=ownerActors.ratContact();
+      }catch(recovery){if(!owns())return false;recoveryFailed=true;s.failTravelRecovery?.();console.error('ARMAGEDOM_TRAVEL_RECOVERY_FAILED',recovery);}
+    }
     s.game.message =
-      "Could not load that area. Move away and try the exit again.";
+      recoveryFailed?'Travel recovery failed. Reload the page to continue.':'Could not load that area. Move away and try the exit again.';
     s.game.messageUntil = s.game.time + 5;
     return false;
   } finally {
-    s.traveling = false;
+    releaseSource();s.traveling = false;
     if(owns()){
       s.input.clear({keepMovement:keepMovement&&accepted});
       resetMobileControls(ownerGame);s.resetClock();s.hud.update(ownerGame);
-      s.renderer.render(s.scene,s.camera);
+      if(!recoveryFailed)s.renderer.render(s.scene,s.camera);
     }
   }
 }

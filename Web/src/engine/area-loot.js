@@ -1,4 +1,4 @@
-import {closed,freeze} from './area-content.js';
+import {closed,freeze} from './content-schema.js';
 import {AREA1_SUPPLIES} from '../supplies.js';
 import {AREA_MOB_SPAWNS} from '../area-mob-spawns.js';
 const fail=()=>{throw Error('Invalid registered loot table');};

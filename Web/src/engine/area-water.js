@@ -1,4 +1,4 @@
-import {closed,freeze} from './area-content.js';
+import {closed,freeze} from './content-schema.js';
 import {insidePolygon,segmentsIntersect} from '../world-geometry.js';
 import {validateEffectRegion} from './effect-regions.js';
 const fail=()=>{throw Error('Invalid area water preset');};
