@@ -94,6 +94,34 @@
       "path": "area-content.json",
       "bytes": 37305,
       "sha256": "383810b426ad69468672cb976401913f4b01783ca211541822e972633f93466b"
+    },
+    {
+      "area": "area7",
+      "path": "area7/layout.json",
+      "source": "Owner original / image-authored street geometry",
+      "sha256": "5ceca648355f20d72157e488b96a19ac95cef4ba7dd8a30d79a4937e46b9de04",
+      "bytes": 10197
+    },
+    {
+      "area": "area7",
+      "path": "area7/backdrop.png",
+      "source": "Owner original / image-authored street geometry",
+      "sha256": "6d82e2636a48c662cf836d26c3c28ce140e67ffae506cfec27987be49d8f6e5f",
+      "bytes": 3429682
+    },
+    {
+      "area": "area8",
+      "path": "area8/layout.json",
+      "source": "Owner original / image-authored street geometry",
+      "sha256": "f7776d4247f7d7ee01f5cda429bab3e2e793a69170d51261afd3071569bc76d6",
+      "bytes": 11595
+    },
+    {
+      "area": "area8",
+      "path": "area8/backdrop.png",
+      "source": "Owner original / image-authored street geometry",
+      "sha256": "51ae9354227dd3d744c52c2ae2b0804d30cb00b4c2642ab5fe448162a29e7aa3",
+      "bytes": 3359014
     }
   ],
   "lazyAreas": [
@@ -101,7 +129,9 @@
     "east",
     "east-bridge",
     "elephant-and-castle",
-    "lambeth"
+    "lambeth",
+    "area7",
+    "area8"
   ],
   "entries": {
     "south": {
@@ -127,6 +157,14 @@
     "lambeth": {
       "x": 0.29,
       "y": 0.11
+    },
+    "area7": {
+      "x": 0.11317835,
+      "y": 0.87363397
+    },
+    "area8": {
+      "x": 0.2092118,
+      "y": 0.88603067
     }
   },
   "links": [
@@ -259,6 +297,140 @@
         "x": 0.91,
         "y": 0.28
       }
+    },
+    {
+      "from": "south",
+      "to": "area7",
+      "condition": {
+        "xMin": 0.88,
+        "xMax": 0.91,
+        "yMin": 0.715,
+        "yMax": 0.745
+      },
+      "entry": {
+        "x": 0.11317835,
+        "y": 0.87363397
+      }
+    },
+    {
+      "from": "area7",
+      "to": "south",
+      "condition": {
+        "xMax": 0.05,
+        "yMin": 0.885,
+        "yMax": 0.965
+      },
+      "entry": {
+        "x": 0.8377873659320112,
+        "y": 0.6570331623480722
+      }
+    },
+    {
+      "from": "east",
+      "to": "area7",
+      "condition": {
+        "xMin": 0.435,
+        "xMax": 0.465,
+        "yMin": 0.53,
+        "yMax": 0.56
+      },
+      "entry": {
+        "x": 0.39656639,
+        "y": 0.36885905
+      }
+    },
+    {
+      "from": "area7",
+      "to": "east",
+      "condition": {
+        "yMax": 0.355,
+        "xMin": 0.355,
+        "xMax": 0.4
+      },
+      "entry": {
+        "x": 0.39123766447530295,
+        "y": 0.5572215573812039
+      }
+    },
+    {
+      "from": "area7",
+      "to": "area8",
+      "condition": {
+        "xMin": 0.83,
+        "yMin": 0.325,
+        "yMax": 0.365
+      },
+      "entry": {
+        "x": 0.2092118,
+        "y": 0.88603067
+      }
+    },
+    {
+      "from": "area8",
+      "to": "area7",
+      "condition": {
+        "xMax": 0.15,
+        "yMin": 0.925,
+        "yMax": 0.975
+      },
+      "entry": {
+        "x": 0.81419492,
+        "y": 0.35554196
+      }
+    },
+    {
+      "from": "east-bridge",
+      "to": "area8",
+      "condition": {
+        "xMin": 0.415,
+        "xMax": 0.445,
+        "yMin": 0.6749999999999999,
+        "yMax": 0.705
+      },
+      "entry": {
+        "x": 0.47620754,
+        "y": 0.47701332
+      }
+    },
+    {
+      "from": "area8",
+      "to": "east-bridge",
+      "condition": {
+        "yMax": 0.445,
+        "xMin": 0.422,
+        "xMax": 0.458
+      },
+      "entry": {
+        "x": 0.36307082936808827,
+        "y": 0.7169575826156313
+      }
+    },
+    {
+      "from": "lambeth",
+      "to": "area8",
+      "condition": {
+        "xMin": 0.45499999999999996,
+        "xMax": 0.485,
+        "yMin": 0.52,
+        "yMax": 0.55
+      },
+      "entry": {
+        "x": 0.89769144,
+        "y": 0.3626163
+      }
+    },
+    {
+      "from": "area8",
+      "to": "lambeth",
+      "condition": {
+        "xMin": 0.9,
+        "yMin": 0.32,
+        "yMax": 0.365
+      },
+      "entry": {
+        "x": 0.44759346428158825,
+        "y": 0.4820956795537503
+      }
     }
   ],
   "backdrops": {
@@ -267,7 +439,9 @@
     "east": "backdrop.webp",
     "east-bridge": "backdrop.webp",
     "elephant-and-castle": "backdrop.webp",
-    "lambeth": "backdrop.webp"
+    "lambeth": "backdrop.webp",
+    "area7": "backdrop.png",
+    "area8": "backdrop.png"
   },
   "contentRef": "area-content.json"
 }
