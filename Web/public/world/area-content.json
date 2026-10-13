@@ -119,6 +119,46 @@
           }
         ]
       }
+    ],
+    "area7": [
+      {
+        "key": "area7-station-scavenger-v1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 3.459119742752804,
+          "z": -0.8936189375617332
+        },
+        "patrol": [
+          {
+            "x": 3.459119742752804,
+            "z": -0.8936189375617332
+          },
+          {
+            "x": 5.120299017118772,
+            "z": -0.5085145947862131
+          }
+        ]
+      },
+      {
+        "key": "area7-station-rat-v1",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": -8.1159471724032,
+          "z": -1.8261911967744275
+        },
+        "patrol": [
+          {
+            "x": -8.1159471724032,
+            "z": -1.8261911967744275
+          },
+          {
+            "x": -6.824428937637714,
+            "z": -1.458220522989972
+          }
+        ]
+      }
     ]
   },
   "atmosphere": {
@@ -1738,11 +1778,40 @@
             ]
           }
         ]
+      },
+      "area7-station-vest-v1": {
+        "outcomes": [
+          {
+            "itemId": "westminster-worn-vest-v1",
+            "quantity": 1,
+            "weight": 1,
+            "conditions": [
+              "vest-not-equipped"
+            ]
+          }
+        ]
+      },
+      "area7-station-rounds-v1": {
+        "outcomes": [
+          {
+            "itemId": "rounds",
+            "quantity": 3,
+            "weight": 1,
+            "conditions": [
+              "pistol-owned",
+              "reserve-space"
+            ]
+          }
+        ]
       }
     },
     "placements": {
       "east": {
         "east-roamer-2": "east-vest-pilot-v1"
+      },
+      "area7": {
+        "area7-station-scavenger-v1": "area7-station-vest-v1",
+        "area7-station-rat-v1": "area7-station-rounds-v1"
       }
     }
   },

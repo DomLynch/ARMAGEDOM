@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {createGeometry} from '../src/world-geometry.js';
+const layout=JSON.parse(fs.readFileSync(new URL('../public/world/east/layout.json',import.meta.url))),g=createGeometry(layout),radius=.4;
+const groups={rear:[[.81,.24],[.835,.245],[.855,.255]],near:[[.12,.74],[.155,.735],[.18,.735]],wreck:[[.35,.59],[.38,.585],[.405,.58]],far:[[.37,.365],[.39,.38],[.415,.37]]};
+for(const [name,samples]of Object.entries(groups))test(`East cleared ${name} paving permits ordinary movement at full player radius`,()=>{
+ for(const [x,y]of samples){const start=g.ground({x,y});assert(g.clear(start,radius),`${x},${y}`);for(const direction of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}]){let p=start;for(let i=0;i<12;i++)p=g.move(p,{x:direction.x*.02,z:direction.z*.02},radius);assert(g.clear(p,radius));assert(Math.hypot(p.x-start.x,p.z-start.z)>.20,`${name}: direction ${JSON.stringify(direction)}`);}}
+});
+test('East retained props and permanent architecture still reject entry',()=>{for(const b of layout.blockers){const p={x:b.points.reduce((n,p)=>n+p.x,0)/b.points.length,y:b.points.reduce((n,p)=>n+p.y,0)/b.points.length};assert(!g.clear(g.ground(p),radius),b.name);}assert(!layout.blockers.some(b=>b.name==='Bridge wreck base'));for(const name of ['Near statue pedestal','River-side statue pedestal','Far parapet statue pedestal','East building frontage','East tent and supply base'])assert(layout.blockers.some(b=>b.name===name));});
