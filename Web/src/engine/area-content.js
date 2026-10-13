@@ -1,3 +1,4 @@
+import {validateProgressionPilot} from './progression-rules.js';
 import {validateAreaLoot} from './area-loot.js';
 import {validateAreaWater} from './area-water.js';
 import {validateAreaLighting} from './area-lighting.js';
@@ -55,6 +56,6 @@ function validateAtmosphere(rows,registry){
  }
  return freeze(result);
 }
-export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
+export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot','progression']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
 
-export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}
+export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot','progression']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}

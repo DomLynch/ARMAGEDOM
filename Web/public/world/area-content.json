@@ -1745,5 +1745,22 @@
         "east-roamer-2": "east-vest-pilot-v1"
       }
     }
+  },
+  "progression": {
+    "version": 1,
+    "killScore": 20,
+    "scoreCap": 100,
+    "damagePerPoint": 0.001,
+    "hpPerVitality": 2,
+    "staminaPerEndurance": 1,
+    "damagePerAttribute": 0.01,
+    "weapons": {
+      "knife": {
+        "damageAttribute": "strength"
+      },
+      "westminster-start-pistol-v1": {
+        "damageAttribute": "dexterity"
+      }
+    }
   }
 }

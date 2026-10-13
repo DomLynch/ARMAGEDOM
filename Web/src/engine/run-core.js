@@ -1,3 +1,5 @@
+import {createProgressionComponent} from './progression-core.js';
+import {progressionOptions} from './progression-runtime.js';
 import {createCore} from '../core/index.js';
 import {createRunStorage} from '../core/io/local-run-storage.js';
 import {createPickupOperation} from '../core/pickup-operation.js';
@@ -14,14 +16,24 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
- const io=createRunStorage({storage:selectedStorage,codec:selectedCodec});
+ let component=null,wrappedDomain=null;
+ function progression(){
+  const g=getRun();if(!g?.progressionModel)return null;
+  if(!component){component=createProgressionComponent({baseCodec:selectedCodec,getRun,...progressionOptions(g)});wrappedDomain=component.wrapDomain(executeDomain);}
+  for(const packet of g.pendingProgressionDeaths??[])component.recordDeath(g,packet);g.pendingProgressionDeaths=[];
+  return component;
+ }
+ const activeCodec={...selectedCodec,get RUN_SAVE_KEY(){return progression()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(progression()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){return(progression()?.codec??selectedCodec).restoreRun(...args);}};
+ const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(progression()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
  const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION,collectGearSupply,gearItems:GEAR_ITEMS,grantPistol,grantVest,canCollectGear:g=>supplyScope?.run===g&&supplyScope.allowed});
  let pistolScope=null;
  const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
- const core=createCore({executeDomain:createRunOperation({getRun,setRun,createFreshRun,applySavedRun:codec.applySavedRun,claimPickup,equip:pistolOperation}),
-  codec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
+ const executeDomain=createRunOperation({getRun,setRun,createFreshRun,applySavedRun(g,saved){const p=progression();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);},claimPickup,equip:pistolOperation});
+ const io=createRunStorage({storage:activeStorage,codec:activeCodec});
+ const core=createCore({executeDomain(command,context){return progression()?wrappedDomain(command,context):executeDomain(command,context);},
+  codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
  function dispatchPistol(g,command,canAct){
   if(g!==getRun()||pistolScope)return {ok:false,code:'not-eligible',events:[]};
@@ -31,7 +43,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
-  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);return result.ok;
+  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events)g.events.push({...event,actor:g.player});return result.ok;
  }
  function restoreSavedRun(g){
   const result=core.dispatch({type:'restore'});

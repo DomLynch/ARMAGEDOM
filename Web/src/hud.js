@@ -1,3 +1,4 @@
+import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
 export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
@@ -127,6 +128,15 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
         : donor
           ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
           : `${area} · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
+      const progression=g.progression,model=g.progressionModel;
+      el('mastery').hidden=!model;el('progression-panel').hidden=!model;
+      if(model){
+        const weapon=p.weapon==='pistol'?'westminster-start-pistol-v1':'knife',label=weapon==='knife'?'KNIFE':'PISTOL';
+        const bonus=id=>Math.round((pilotBonuses(g.world.progressionData,DEFAULT_ATTRIBUTES,id,progression.proficiency[id]).damageMultiplier-1)*1000)/10;
+        el('mastery').textContent=`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
+        el('progression-attributes').textContent=Object.entries(progression.attributes).map(([id,value])=>`${id[0].toUpperCase()+id.slice(1)} ${value}`).join(' · ')+'. Intelligence has no effect in this pilot.';
+        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10}%.`;
+      }
       const vestNotice = !g.finished && p.hp > 0
         ? g.vest?.equipped
           ? "VEST EQUIPPED · 10% protection"

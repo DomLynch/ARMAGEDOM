@@ -1,3 +1,4 @@
+import {initializeProgression,progressionDamage,stageProgressionDeath} from './engine/progression-runtime.js';
 import {PISTOL_ITEM_ID} from './core/pistol-operation.js';
 import {creatureCatalogue,animalFoundationParameters,ENGINE_CREATURE_CAPABILITIES} from './engine/creature-catalogue.js';
 import {ratMeleeDefinition} from './rat-melee-definition.js';
@@ -68,6 +69,7 @@ export function createGame(world,options={}){
  g.lootRules=options.lootRules??world.lootRules;
  if(options.supplies)g.supplies=createSuppliesState(g.lootRules);
  if(options.vest)g.vest=createVestState();
+ initializeProgression(g);
  if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.lootRules=options.lootRules??world.lootRules;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
@@ -109,9 +111,9 @@ function pistolIntent(g,intent,dispatchPistol){
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
-   const amount=Math.min(target.hp,e.damage);target.hp=Math.max(0,target.hp-e.damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
+   const damage=e.damage*progressionDamage(g,'westminster-start-pistol-v1'),amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
-   if(target.hp<=0){target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
+   if(target.hp<=0){stageProgressionDeath(g,target,'westminster-start-pistol-v1',amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
@@ -358,9 +360,10 @@ export function initializeAreaResidents(g){
  const area=g.world.areaId??'westminster';
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
+ const dead=new Set(g.progressionModel?.deadPlacements(g.progression,area)??[]);
  const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
  const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
- const residents=placements.filter(p=>(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
+ const residents=placements.filter(p=>!dead.has(p.key)&&(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
  if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
@@ -581,7 +584,7 @@ function knifeContacts(g,before,ratBefore){
  for(const {a,d,def} of contacts){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
   else{
-   const amount=def.damage*(g.player.damage/20);d.hp=Math.max(0,d.hp-amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
+   const damage=def.damage*(g.player.damage/20)*progressionDamage(g,'knife'),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
    event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
