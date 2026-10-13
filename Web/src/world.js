@@ -1,6 +1,6 @@
 import {createGeometry} from './world-geometry.js';
 import {createAreaRegistry} from './area-registry.js';
-import {validateAreaContent} from './engine/area-content.js';
+import {validateAreaMetadata,validateAreaGeometry} from './engine/area-content.js';
 const ASPECT=1672/941;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
@@ -103,8 +103,8 @@ export class LondonWorld {
     if(cache.stages.has(areaId)){cache.usage.set(areaId,cache.nextUse++);return cache.stages.get(areaId);}
     if(cache.pending.has(areaId))return cache.pending.get(areaId);
     const task=(async()=>{
-      const row=this.registry.get(areaId);let layout=this.validatedLayouts?.[row.layoutRef];
-      if(!layout){const response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);layout=await response.json();}createGeometry(layout);
+      const row=this.registry.get(areaId);let layout=this.validatedLayouts?.[row.layoutRef]??[...cache.stages.values()].find(stage=>this.registry.get(stage.areaId).layoutRef===row.layoutRef)?.layout;
+      if(!layout){const response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);layout=await response.json();}layout=validateAreaGeometry(this.registry,areaId,layout,this.residentPlacements);
       const texture=await new this.THREE.TextureLoader().loadAsync(new URL(this.registry.asset(row.backdropRef).path,this.baseUrl).href);
       let next;
       try{
@@ -117,7 +117,7 @@ export class LondonWorld {
     cache.pending.set(areaId,task);try{return await task;}finally{cache.pending.delete(areaId);}
   }
   textureBytes(){return (this.texture.image?.width??0)*(this.texture.image?.height??0)*4*7/3;}
-  preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:this.textureBudgetBytes,leases:c?[...c.leases.keys()]:[],evictions:c?.evictions??0,lastEvicted:c?.lastEvicted??null,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
+  preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:this.textureBudgetBytes,leases:c?[...c.leases.keys()]:[],evictions:c?.evictions??0,lastEvicted:c?.lastEvicted??null,retainedLayouts:c?new Set([...c.stages.values()].map(s=>s.layout)).size:1,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
   isAreaReady(areaId){return !!this.areaCache?.stages.get(areaId)?.gpuReady;}
   markAreaReady(areaId){const stage=this.areaCache?.stages.get(areaId);if(stage)stage.gpuReady=true;if(areaId===this.areaId)this.gpuReady=true;}
   cachedArea(areaId){return this.areaCache?.stages.get(areaId);}
@@ -175,11 +175,11 @@ export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThi
   if(!layout){const response=await fetch(new URL(registry.asset(row.layoutRef).path,baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);layout=await response.json();}createGeometry(layout);
   if(!content&&manifest.contentRef){
     if(typeof manifest.contentRef!=='string'||! /^[a-z0-9-]+\.json$/.test(manifest.contentRef)||!manifest.files.some(f=>f.path===manifest.contentRef))throw Error('Unregistered area content');
-    const layouts={[row.layoutRef]:layout};
-    for(const id of registry.ids){const ref=registry.get(id).layoutRef;if(Object.hasOwn(layouts,ref))continue;const response=await fetch(new URL(registry.asset(ref).path,baseUrl));if(!response.ok)throw Error(`London content layout HTTP ${response.status}`);layouts[ref]=await response.json();}
     const response=await fetch(new URL('world/'+manifest.contentRef,baseUrl));if(!response.ok)throw Error(`London content HTTP ${response.status}`);
-    content=validateAreaContent(await response.json(),registry,layouts);layout=content.layouts[row.layoutRef];
+    content=validateAreaMetadata(await response.json(),registry);
   }
+  layout=validateAreaGeometry(registry,registry.initialArea,layout,content?.residents);
+  if(!createGeometry(layout).clear({x:0,z:-6},.4))throw Error("London starting spawn is blocked");
   const texture=await new THREE.TextureLoader().loadAsync(new URL(registry.asset(row.backdropRef).path,baseUrl).href);
   try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water,lootRules:content?.lootRules});} catch(e){texture.dispose();throw e;}
 }

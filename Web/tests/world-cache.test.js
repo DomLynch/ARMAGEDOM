@@ -34,7 +34,7 @@ test('blocked or unknown entry leaves the active camera, collision and stage int
  const {world,scene,textures}=fixture(t),group=world.group,geometry=world.geometry,matrix=world.camera.projectionMatrix.clone();
  await assert.rejects(world.loadArea('east',{x:0,y:0}),/blocked/);await assert.rejects(world.prepareArea('fourth'),/Unknown/);
  assert.equal(world.areaId,'westminster');assert.equal(world.group,group);assert.equal(world.geometry,geometry);assert.equal(group.parent,scene);assert.deepEqual(world.camera.projectionMatrix.elements,matrix.elements);assert.equal(textures[0].releases,0);
- await world.prepareArea('south');const stats=world.preparationStats();assert.equal(stats.areas.length,3);assert(stats.estimatedTextureBytes<stats.textureBudgetBytes);
+ await world.prepareArea('south');const stats=world.preparationStats();assert.equal(stats.areas.length,3);assert.equal(stats.retainedLayouts,3);assert(stats.estimatedTextureBytes<stats.textureBudgetBytes);
 });
 
 function fourthRegistry(){
@@ -46,7 +46,7 @@ function fourthRegistry(){
 test('private fourth content row evicts only least-recent inactive world resources and reloads safely',async t=>{
  const {world,textures,requests}=fixture(t,{registry:fourthRegistry()}),live=world.group;
  const south=await world.prepareArea('south'),east=await world.prepareArea('east');world.markAreaReady('south');
- await world.prepareArea('fixture-westminster-annex');assert.equal(world.group,live);assert.equal(world.areaId,'westminster');assert.equal(south.disposed,true);assert.equal(south.texture.image,null);assert.equal(east.disposed,false);assert.equal(world.isAreaReady('south'),false);assert.equal(world.cachedArea('south'),undefined);assert.equal(textures[0].releases,0);assert.equal(textures[1].releases,1);
+ await world.prepareArea('fixture-westminster-annex');assert.equal(world.group,live);assert.equal(world.areaId,'westminster');assert.equal(south.disposed,true);assert(world.preparationStats().retainedLayouts<=world.preparationStats().areas.length);assert.equal(south.texture.image,null);assert.equal(east.disposed,false);assert.equal(world.isAreaReady('south'),false);assert.equal(world.cachedArea('south'),undefined);assert.equal(textures[0].releases,0);assert.equal(textures[1].releases,1);
  await world.loadArea('south');assert.equal(world.areaId,'south');assert.notEqual(world.group,south.group);assert(world.geometry.clear(world.spawn,.4));assert.equal(requests.filter(id=>id==='south').length,2);assert(world.preparationStats().estimatedTextureBytes<=world.preparationStats().textureBudgetBytes);
  world.dispose();world.dispose();assert(textures.every(tex=>tex.releases===1));
 });

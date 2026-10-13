@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {AREA_DRONE_SPAWNS} from '../src/area-drone-spawns.js';
 import {initializeAreaResidents} from '../src/combat.js';
-import {createAreaRegistry} from '../src/area-registry.js';import {validateAreaContent} from '../src/engine/area-content.js';import {createGame,stepGame} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';import {travelTo} from '../src/travel.js';import {atmosphereForArea,atmosphereBudget} from '../src/atmosphere-areas.js';
+import {createAreaRegistry} from '../src/area-registry.js';import {validateAreaContent,validateAreaMetadata,validateAreaGeometry} from '../src/engine/area-content.js';import {createGame,stepGame} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';import {travelTo} from '../src/travel.js';import {atmosphereForArea,atmosphereBudget} from '../src/atmosphere-areas.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const manifest=read('../public/world/manifest.json'),registry=createAreaRegistry({manifest}),layouts=Object.fromEntries(registry.ids.map(id=>[registry.get(id).layoutRef,read('../public/'+registry.asset(registry.get(id).layoutRef).path)]));
 const raw=()=>read('../public/world/area-content.json');
@@ -25,4 +25,13 @@ test('supported declared legacy drone spawns once and saved tombstone excludes i
  // Use actual legacy placement, which already has verified native-radius clearance.
  const data=validateAreaContent(c,registry,layouts);const w={areaId:'east',layout:{characterScale:1.265}},g=createGame(w,{pilot:'donor-knife',drone:true,supplies:true,areaResidents:true,openingGroup:false,residentPlacements:data.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
  assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,1);g.droneDeaths=['east-drone-1'];g.enemies=[];g.areaInitialized=false;initializeAreaResidents(g);assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,0);
+});
+
+test('metadata validates globally without layouts; per-area and offline validation reject the same destination geometry',()=>{
+ const c=raw();c.residents['east-bridge'][1].pos={x:1e5,z:0};
+ const metadata=validateAreaMetadata(c,registry);assert.equal(metadata.layouts,undefined);
+ assert.doesNotThrow(()=>validateAreaGeometry(registry,'westminster',layouts['layout.westminster'],metadata.residents));
+ assert.throws(()=>validateAreaGeometry(registry,'east-bridge',layouts['layout.east-bridge'],metadata.residents),/Invalid registered area content/);
+ assert.throws(()=>validateAreaContent(c,registry,layouts),/Invalid registered area content/);
+ const missing={...layouts};delete missing['layout.area8'];assert.throws(()=>validateAreaContent(raw(),registry,missing));
 });
