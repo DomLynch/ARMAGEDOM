@@ -203,3 +203,11 @@ test('separate pistol source settles and is disposed when actor startup fails',a
  t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{if(path.endsWith('pistol.glb'))return pistol.gltf;throw Error('hero decode failed')});
  await assert.rejects(loadActors(url),/hero decode failed/);assert.deepEqual(pistol.disposed,{geometry:1,material:1,texture:1});
 });
+
+test('actual selected manifest shares one byte-identical knife source and disposes it once',async t=>{
+ const {readFileSync}=await import('node:fs'),{createHash}=await import('node:crypto');const actual=JSON.parse(readFileSync(new URL('../public/assets/manifest-hollow.json',import.meta.url)));
+ const heroKnife=actual.models.vagrant.equipment.url,hollowKnife=actual.models['hollow-scavenger'].equipment.url;assert.equal(heroKnife,hollowKnife);
+ const originals=['donor/knife.glb','hollow-scavenger/knife.glb'].map(path=>readFileSync(new URL('../public/assets/'+path,import.meta.url)));assert.deepEqual(originals[0],originals[1]);assert.equal(originals[0].length,382956);assert.equal(createHash('sha256').update(originals[0]).digest('hex'),'b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec');
+ const fetched=[],owned=[];t.mock.method(globalThis,'fetch',async()=>({ok:true,json:async()=>actual}));t.mock.method(GLTFLoader.prototype,'loadAsync',async url=>{fetched.push(url);const r=resource();owned.push(r);return r.gltf;});
+ const library=await loadActors(url,()=>{},'assets/manifest-hollow.json');assert.equal(fetched.filter(u=>u.endsWith('/donor/knife.glb')).length,1);assert.equal(library.models.get('vagrant').equipment,library.models.get('hollow-scavenger').equipment);library.dispose();assert(owned.every(r=>Object.values(r.disposed).every(count=>count===1)));
+});

@@ -1,3 +1,4 @@
+import {captureRunState,isRunStateUnchanged} from './run-save-state.js';
 import {createProgressionComponent} from './progression-core.js';
 import {progressionOptions} from './progression-runtime.js';
 import {createCore} from '../core/index.js';
@@ -13,7 +14,7 @@ import {collectPistol,equipPistol,grantPistol} from '../pistol.js';
 // One session writer; render/input code supplies live-run access and fresh construction.
 export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const extendedKey='armagedom:area-run:v3';
- const selectedCodec={...codec,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
+ const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
  let component=null,wrappedDomain=null;
@@ -23,7 +24,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const packet of g.pendingProgressionDeaths??[])component.recordDeath(g,packet);g.pendingProgressionDeaths=[];
   return component;
  }
- const activeCodec={...selectedCodec,get RUN_SAVE_KEY(){return progression()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(progression()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){return(progression()?.codec??selectedCodec).restoreRun(...args);}};
+ const activeCodec={...selectedCodec,captureRunState(g){return(progression()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(progression()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return progression()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(progression()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){return(progression()?.codec??selectedCodec).restoreRun(...args);}};
  const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(progression()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
  const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION,collectGearSupply,gearItems:GEAR_ITEMS,grantPistol,grantVest,canCollectGear:g=>supplyScope?.run===g&&supplyScope.allowed});

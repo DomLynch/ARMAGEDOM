@@ -68,3 +68,17 @@ export function continueExploring(game) {
   game.events = [];
   return true;
 }
+
+// Snapshot only logical fields touched by travel; retain actor/object identities.
+const travelFields=['areaFights','enemies','corpses','bolts','loot','areaInitialized','encounterCleared','encounterActive','wave','nextWave','nextEnemyAttackAt','message','messageUntil','events'];
+function restoreOwn(target,values){for(const key of Object.keys(target))if(!Object.hasOwn(values,key))delete target[key];Object.assign(target,values);}
+export function captureTravelState(game){
+ const entities=new Set([...(game.enemies??[]),...(game.corpses??[]),...Object.values(game.areaFights??{}).flatMap(f=>[...f.enemies,...(f.corpses??[]),...(f.bolts??[])]),...(game.bolts??[])]);
+ return{fields:Object.fromEntries(travelFields.map(key=>[key,{present:Object.hasOwn(game,key),value:game[key]}])),areaFightsEntries:game.areaFights?{...game.areaFights}:null,player:{...game.player},entities:[...entities].map(entity=>({entity,values:{...entity},response:entity.response?{...entity.response}:null,drone:entity.droneState?{...entity.droneState}:null,warning:entity.droneState?.warning?{...entity.droneState.warning}:null}))};
+}
+export function restoreTravelState(game,snapshot){
+ for(const[key,row]of Object.entries(snapshot.fields)){if(row.present)game[key]=row.value;else delete game[key];}
+ if(snapshot.areaFightsEntries)restoreOwn(game.areaFights,snapshot.areaFightsEntries);
+ restoreOwn(game.player,snapshot.player);
+ for(const row of snapshot.entities){restoreOwn(row.entity,row.values);if(row.response)restoreOwn(row.entity.response,row.response);if(row.drone)restoreOwn(row.entity.droneState,row.drone);if(row.warning)restoreOwn(row.entity.droneState.warning,row.warning);}
+}

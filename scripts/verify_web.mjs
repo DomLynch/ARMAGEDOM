@@ -46,7 +46,15 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   try {
-    verifyWeb(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+    const tooling = spawnSync(process.execPath, [join(root, "scripts/deploy/verify_tooling.mjs")], {
+      cwd: root,
+      stdio: "inherit",
+    });
+    if (tooling.error) throw tooling.error;
+    if (tooling.status !== 0)
+      throw Error(`Tooling gate failed (${tooling.signal ?? tooling.status})`);
+    verifyWeb(root);
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

@@ -1,3 +1,5 @@
+import {closed,freeze} from './content-schema.js';
+export {closed,freeze} from './content-schema.js';
 import {validateProgressionPilot} from './progression-rules.js';
 import {validateAreaLoot} from './area-loot.js';
 import {validateAreaWater} from './area-water.js';
@@ -10,9 +12,7 @@ import {ATMOSPHERE_PRESETS} from '../atmosphere-areas.js';
 const fail=()=>{throw Error('Invalid registered area content');};
 const object=x=>x&&Object.getPrototypeOf(x)===Object.prototype;
 const key=x=>typeof x==='string'&&/^[a-z][a-z0-9-]*$/.test(x);
-export function closed(x,fields,optional=[]){if(!object(x)||Object.keys(x).some(k=>!fields.includes(k)&&!optional.includes(k))||fields.some(k=>!Object.hasOwn(x,k)))fail();}
 function point(p){closed(p,['x','z']);if(!Number.isFinite(p.x)||!Number.isFinite(p.z))fail();}
-export function freeze(x){if(x&&typeof x==='object'){for(const child of Object.values(x))freeze(child);Object.freeze(x);}return x;}
 export function validateResidentPlacements(rows,registry,layouts,{visibility='public',geometryValidation=true}={}){
  if(!object(rows)||!object(layouts))fail();const residents=structuredClone(rows),keys=new Set(),geometry=new Map();
  if(geometryValidation)for(const id of registry.ids){const ref=registry.get(id).layoutRef;if(!geometry.has(ref)){if(!Object.hasOwn(layouts,ref))fail();geometry.set(ref,createGeometry(layouts[ref]));}}

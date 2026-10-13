@@ -28,3 +28,10 @@ test('real blade contact earns knife mastery; missed distant swings earn none',a
  for(let n=0;n<1500&&target.hp>0&&f.g.player.hp>0;n++)f.tick(pacedKnifeIntent({...f.g,enemies:[target,...f.g.enemies.filter(e=>e!==target)]}));
  assert.equal(target.hp,0);assert.equal(f.g.progression.proficiency.knife,20);assert.equal(f.g.progression.proficiency['westminster-start-pistol-v1'],0);assert.equal(f.g.progression.awards.length,1);
 });
+
+test('F3 fast guard persists a nonloot progression-only award before exposing its score',async()=>{
+ const f=fixture();f.p.restoreSavedRun(f.g);await travelTo(f.g,{areaId:'east',entryPoint:{x:.1,y:.72}});f.p.persistRun(f.g);const old=f.records.get('armagedom:progression-run:v4'),e=f.g.enemies.find(e=>e.placementKey==='east-roamer-8');assert(e);
+ // Controlled dead DTO exercises the codec boundary; real producers are proved above.
+ e.hp=0;f.g.enemies=f.g.enemies.filter(row=>row!==e);f.g.corpses.push(e);f.g.pendingProgressionDeaths.push({placementKey:e.placementKey,areaId:'east',weaponId:'knife',damageApplied:10});
+ assert(f.p.persistRun(f.g));const raw=f.records.get('armagedom:progression-run:v4');assert.notEqual(raw,old);assert.equal(JSON.parse(raw).progression.proficiency.knife,20);assert.equal(f.g.progression.proficiency.knife,20);
+});

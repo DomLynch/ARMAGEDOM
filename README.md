@@ -3,10 +3,12 @@
 Post-nuclear London combat game for mobile web and desktop browsers, built with
 Three.js. Play https://playarmagedom.com/.
 
-The active client is Web/. Current served version: three-20261004-008, with the
-selected006 fighter scale and unchanged map, stamina, six actions and responsive
-portrait/landscape controls. Source promoted from reviewed 5dc5610c; unpublished
-lane candidates remain separate. Read PROJECT_STATE.md and AGENTS.md for scope.
+The active client is Web/, with portrait and landscape controls. The melee touch
+layout has five actions: Slash, Stab, Heavy, Dodge and Guard/timed Parry; keyboard
+Special remains available. Pistol equipment switches the contextual controls.
+Read PROJECT_STATE.md and the current deployment receipts for separate source,
+candidate and verified served identities; this README does not pin a live version.
+Read AGENTS.md for current ownership and scope.
 
 ```sh
 cd Web
