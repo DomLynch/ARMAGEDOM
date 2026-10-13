@@ -12,21 +12,31 @@ const key=x=>typeof x==='string'&&/^[a-z][a-z0-9-]*$/.test(x);
 export function closed(x,fields,optional=[]){if(!object(x)||Object.keys(x).some(k=>!fields.includes(k)&&!optional.includes(k))||fields.some(k=>!Object.hasOwn(x,k)))fail();}
 function point(p){closed(p,['x','z']);if(!Number.isFinite(p.x)||!Number.isFinite(p.z))fail();}
 export function freeze(x){if(x&&typeof x==='object'){for(const child of Object.values(x))freeze(child);Object.freeze(x);}return x;}
-export function validateResidentPlacements(rows,registry,layouts,{visibility='public'}={}){
+export function validateResidentPlacements(rows,registry,layouts,{visibility='public',geometryValidation=true}={}){
  if(!object(rows)||!object(layouts))fail();const residents=structuredClone(rows),keys=new Set(),geometry=new Map();
- for(const id of registry.ids){const ref=registry.get(id).layoutRef;if(!geometry.has(ref)){if(!Object.hasOwn(layouts,ref))fail();geometry.set(ref,createGeometry(layouts[ref]));}}
- validateAreaEntries(registry,geometry);
+ if(geometryValidation)for(const id of registry.ids){const ref=registry.get(id).layoutRef;if(!geometry.has(ref)){if(!Object.hasOwn(layouts,ref))fail();geometry.set(ref,createGeometry(layouts[ref]));}}
+ if(geometryValidation)validateAreaEntries(registry,geometry);
  for(const [area,placements]of Object.entries(residents)){
   if(!registry.has(area)||registry.get(area).visibility!==visibility||!Array.isArray(placements))fail();const g=geometry.get(registry.get(area).layoutRef);
   for(const row of placements){
    closed(row,['key','foundationRef','recipeRef','pos','patrol']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-'))fail();keys.add(row.key);
    const foundation=creatureCatalogue.get(row.foundationRef);if(foundation.runtimeIdentity==='low-hover-drone'&&DRONE_KEYS[row.key]!==area)throw Error('Unsupported declared drone death placement');if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
    point(row.pos);if(!Array.isArray(row.patrol)||row.patrol.length<2)fail();row.patrol.forEach(point);const radius=foundation.stats.radius;
-   if(!g.clear(row.pos,radius)||row.patrol.some(p=>!g.clear(p,radius)))fail();
-   for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}
+   if(g)validateResidentGeometry(row,g,radius);
   }
  }
  return freeze(residents);
+}
+function validateResidentGeometry(row,g,radius){
+   if(!g.clear(row.pos,radius)||row.patrol.some(p=>!g.clear(p,radius)))fail();
+   for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}
+}
+export function validateAreaGeometry(registry,areaId,layout,residents=null){
+ const g=createGeometry(layout),area=registry.get(areaId);
+ const entries=[area.entry,...registry.ids.flatMap(id=>registry.links(id).filter(link=>link.to===areaId).map(link=>link.entry))];
+ if(entries.some(entry=>!g.clear(g.ground(entry),.4)))throw Error("London entry is blocked");
+ for(const row of residents?.[areaId]??[])validateResidentGeometry(row,g,creatureCatalogue.get(row.foundationRef).stats.radius);
+ return Object.isFrozen(layout)?layout:freeze(structuredClone(layout));
 }
 function validateAtmosphere(rows,registry){
  if(!object(rows))fail();const result=structuredClone(rows),ids=new Set();
@@ -46,3 +56,5 @@ function validateAtmosphere(rows,registry){
  return freeze(result);
 }
 export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
+
+export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}
