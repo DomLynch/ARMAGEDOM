@@ -444,9 +444,9 @@ summary {
   }
   .action {font-size: 10px;}
   .action.primary {width: 60px; height: 60px;}
-  #slash {left: 5px; top: 58px;}
+  #slash {left: max(5px, min(calc(var(--portrait-actions) + var(--safe-r) + 35px - 50vw), calc(100% - 114px))); top: 58px;}
   #stab {width: 56px; height: 56px; left: calc(50% - 28px); top: 0;}
-  #heavy {width: 58px; height: 58px; right: 0; top: 58px;}
+  #heavy {width: 58px; height: 58px; right: 0; top: 90px;}
   #dodge {width: 60px; height: 60px; left: calc(50% - 54px); top: 138px; font-size: 10px;}
   #guard {width: 64px; height: 64px; right: 0; bottom: 0;}
 
