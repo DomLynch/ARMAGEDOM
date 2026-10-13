@@ -506,3 +506,5 @@ summary {
 @media (orientation: landscape) {
   #pistol-interact {bottom: var(--safe-b);}
 }
+
+#mastery{font-size:10px;letter-spacing:.06em;color:#dec087;margin-top:3px}#progression-panel p{font-size:13px;line-height:1.5}
