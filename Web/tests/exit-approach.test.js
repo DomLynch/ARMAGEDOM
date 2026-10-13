@@ -14,4 +14,5 @@ for(const [from,to,x,ys] of [['east','east-bridge',.98,[.35,.315]],['east-bridge
 test('all registered arrivals stay outside every return trigger',()=>{
  for(const link of manifest.links){const w=world(link.to),p=w.geometry.ground(link.entry);assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p),null,`${link.from}→${link.to} bounces back`);}
 });
-test('exit cue stays absent away from entrances',()=>{const w=world('east');assert.equal(w.exitHint(w.geometry.ground({x:.5,y:.5})), '');});
+test('exit cue stays absent on clear road away from all eight-area entrances',()=>{const w=world('east'),p=w.geometry.ground({x:.65,y:.335});assert(w.geometry.clear(p,.4));assert.equal(w.exitHint(p),'');});
+test('the new southern Area7 entrance shows its destination cue on the existing East road',()=>{const w=world('east'),p=w.geometry.ground({x:.45,y:.545});assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p)?.areaId,'area7');assert.equal(w.exitHint(p),'EXIT → AREA7');});
