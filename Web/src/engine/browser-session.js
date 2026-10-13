@@ -141,7 +141,7 @@ function resize() {
   if (renderer) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(innerWidth, innerHeight, false);
-    world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight);
+    world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight, true);
     atmosphere?.update(0, {paused: true});
   }
   input?.clear();
