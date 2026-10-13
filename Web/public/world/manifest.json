@@ -36,16 +36,16 @@
     {
       "area": "east",
       "path": "east/layout.json",
-      "source": "Game/Assets/StreamingAssets/London/Travel/east/layout.json",
-      "bytes": 9572,
-      "sha256": "6e85438817d64ce8d5b13fc69ec5c3754f4130ad2f3c36465223964355a6df84"
+      "source": "Owner-marked East clearance / original-preserving v15 art and matching ground",
+      "bytes": 10034,
+      "sha256": "f8bedcd1b7eada2a2f3a66ffd18802f35a5192c1a93259fd9732dd387f573f06"
     },
     {
       "area": "east",
       "path": "east/backdrop.webp",
-      "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png (lossless WebP copy)",
-      "bytes": 2374366,
-      "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
+      "source": "Owner-marked East clearance / original-preserving v15 art and matching ground",
+      "bytes": 2181916,
+      "sha256": "3a546bf6b74e7745186fdfa2dfab066c617eb3b36aa007f8c8c72caaf619f876"
     },
     {
       "area": "east-bridge",
