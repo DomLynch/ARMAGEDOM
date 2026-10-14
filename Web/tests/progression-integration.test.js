@@ -7,6 +7,7 @@ function fixture(){let geometry=createGeometry(read('world/westminster/layout.js
  const tick=(intent={})=>{stepGame(g,intent,1/60,{dispatchPistol:p.dispatchPistol});p.collectNearbySupplies(g,intent);p.persistRun(g);};return{get g(){return g},world,p,records,tick,quota(value){quota=value;}};}
 async function pistolKill(f,{failedWrite=false}={}){
  f.g.player.pos={...f.g.pistol.pickupPos};f.tick({actions:['pickup']});assert(f.g.pistol.collected);await travelTo(f.g,{areaId:'east',entryPoint:{x:.1,y:.72}});const target=f.g.enemies.find(e=>e.placementKey==='east-roamer-2');assert(target);
+ const geometry=createGeometry(read('world/east/layout.json')),shot={x:target.pos.x+2,z:target.pos.z};assert(geometry.clear(shot,f.g.player.radius)&&f.world.lineClear(shot,target.pos),'pistol producer fixture needs a legal unobstructed shot');f.g.player.pos=shot;
  f.beforeRoster=Object.fromEntries(f.g.enemies.map(e=>[e.placementKey,{scale:e.combatScale,radius:e.radius}]));f.deathBoundaryRaw=f.records.get('armagedom:progression-run:v4');if(failedWrite)f.quota(true);
  for(let i=0;i<300&&target.hp>0;i++){const dx=target.pos.x-f.g.player.pos.x,dz=target.pos.z-f.g.player.pos.z;f.tick({actions:['fire'],aim:{x:dx,z:dz}});}
  assert.equal(target.hp,0);return target;
