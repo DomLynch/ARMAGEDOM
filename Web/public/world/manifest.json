@@ -36,16 +36,16 @@
     {
       "area": "east",
       "path": "east/layout.json",
-      "source": "Owner-marked East clearance / original-preserving v15 art and matching ground",
-      "bytes": 10034,
-      "sha256": "f8bedcd1b7eada2a2f3a66ffd18802f35a5192c1a93259fd9732dd387f573f06"
+      "source": "Owner-marked East136 bounded clearance and direct East/South route",
+      "bytes": 9457,
+      "sha256": "7800bca9af0d227b0d061000c0b92d788c62a9b1f6f50e412dbfba7cbfee7685"
     },
     {
       "area": "east",
       "path": "east/backdrop.webp",
-      "source": "Owner-marked East clearance / original-preserving v15 art and matching ground",
-      "bytes": 2181916,
-      "sha256": "3a546bf6b74e7745186fdfa2dfab066c617eb3b36aa007f8c8c72caaf619f876"
+      "source": "Owner-marked East136 bounded clearance and direct East/South route",
+      "bytes": 2163444,
+      "sha256": "bcc1cd56e14c7371953354006e872bda1b3a9677dcaeb12229018c7919a4d18e"
     },
     {
       "area": "east-bridge",
@@ -224,9 +224,10 @@
       "from": "east",
       "to": "east-bridge",
       "condition": {
-        "xMin": 0.95,
-        "yMin": 0.31,
-        "yMax": 0.355
+        "xMin": 0.845,
+        "xMax": 0.87,
+        "yMin": 0.245,
+        "yMax": 0.26
       },
       "entry": {
         "x": 0.07,
@@ -242,8 +243,8 @@
         "yMax": 0.865
       },
       "entry": {
-        "x": 0.935,
-        "y": 0.325
+        "x": 0.85,
+        "y": 0.275
       }
     },
     {
@@ -430,6 +431,34 @@
       "entry": {
         "x": 0.44759346428158825,
         "y": 0.4820956795537503
+      }
+    },
+    {
+      "from": "east",
+      "to": "south",
+      "condition": {
+        "xMin": 0.73,
+        "xMax": 0.78,
+        "yMin": 0.372,
+        "yMax": 0.385
+      },
+      "entry": {
+        "x": 0.62,
+        "y": 0.33
+      }
+    },
+    {
+      "from": "south",
+      "to": "east",
+      "condition": {
+        "xMin": 0.62,
+        "xMax": 0.65,
+        "yMin": 0.27,
+        "yMax": 0.3
+      },
+      "entry": {
+        "x": 0.7,
+        "y": 0.35
       }
     }
   ],

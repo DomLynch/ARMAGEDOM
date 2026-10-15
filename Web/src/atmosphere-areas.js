@@ -14,8 +14,6 @@ export const AREA_ATMOSPHERE=Object.freeze({
   westminster:Object.freeze(WESTMINSTER_ATMOSPHERE.map(a=>Object.freeze({...a,preset:a.id==='bus-roof'?'light-smoulder':a.smoke?'fire-with-smoke':'small-fire',seed:({'bus-roof':100,'tower-breach':101,'parliament-base-fire':104,'parliament-west-blaze':105})[a.id],scale:1,intensity:1,preserve:true}))),
   east:Object.freeze([
     placement('east-bus-smoulder','light-smoulder',.560,.275,{x:.56,y:.37},201,{width:.022,rise:.056,opacity:.30}),
-    placement('east-near-drum','small-fire',.163,.625,{x:.17,y:.68},202),
-    placement('east-near-lower-drum','fire-with-smoke',.156,.672,{x:.17,y:.72},203,{fireWidth:.006,fireHeight:.022,width:.013,rise:.042}),
     placement('east-midbridge-drum','fire-with-smoke',.410,.365,{x:.42,y:.40},204,{fireWidth:.006,fireHeight:.022,width:.011,rise:.035}),
     placement('east-bank-drum','small-fire',.834,.327,{x:.835,y:.37},205,{fireWidth:.006,fireHeight:.021}),
     placement('east-bank-edge-drum','fire-with-smoke',.971,.414,{x:.97,y:.46},206,{fireWidth:.006,fireHeight:.024,width:.012,rise:.040}),

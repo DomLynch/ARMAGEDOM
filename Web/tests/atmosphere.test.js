@@ -52,7 +52,7 @@ test('bus emits smoke only with its own tint; other smoke retains its accepted c
 });
 
 test('five seeded presets and active three-area budgets retain approved West parameters',()=>{
- assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',20,4],['east',24,7],['south',21,6]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
+ assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',20,4],['east',18,5],['south',21,6]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
  for(const [i,a]of atmosphereForArea('westminster').entries())for(const key of Object.keys(WESTMINSTER_ATMOSPHERE[i]))assert.deepEqual(a[key],WESTMINSTER_ATMOSPHERE[i][key]);fx.dispose();fx.dispose();assert.equal(scene.children.length,0);
 });
 
@@ -65,4 +65,12 @@ test('area transitions reuse exactly three original atmosphere materials and res
   assert.equal(materialDisposals,0);fx.update(.05);for(const mesh of meshes)assert.equal(mesh.material.uniforms.clock.value,.05);
  }
  fx.dispose();fx.dispose();assert.equal(materialDisposals,3);assert.equal(scene.children.length,0);
+});
+
+test('removed East foreground barrels leave no fire, smoke or ember origins on their cleared paving',()=>{
+ const anchors=atmosphereForArea('east');
+ const inClearedSupplyPaving=p=>p.x>=.13&&p.x<=.186&&p.y>=.61&&p.y<=.73;
+ assert(!anchors.some(a=>inClearedSupplyPaving(a)||a.foot&&inClearedSupplyPaving(a.foot)));
+ assert.deepEqual(anchors.map(a=>a.id),['east-bus-smoulder','east-midbridge-drum','east-bank-drum','east-bank-edge-drum','east-building-breach']);
+ const {fx,world}=fixture();world.areaId='east';fx.update(.01);assert.equal(fx.stats().quads,18);fx.dispose();
 });
