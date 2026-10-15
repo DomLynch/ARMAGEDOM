@@ -35,13 +35,17 @@ export function selectedPistolProfile(g){
 }
 // Compose with the existing v4 codec/Core writer, never a parallel award store.
 export function createExpeditionComponent({baseCodec,getRun,data,registry,applyBaseSaved,baseStorageAdapter=storage=>storage,canDispatch=()=>true}){
+ let legacyReadAllowed=false;
  const model=expeditionModel(data,registry),state=g=>g.expedition===undefined?model.freshState():g.expedition;
  const visited=(s,g)=>model.transition(s,{type:'visit',areaId:g.world.areaId});
  const codec={RUN_SAVE_KEY:EXPEDITION_SAVE_KEY,get PISTOL_SAVE_KEY(){return baseCodec.PISTOL_SAVE_KEY;},
   encodeRun(g){const extension=state(g);if(!model.valid(extension))throw TypeError('Invalid expedition envelope');const old=JSON.parse(baseCodec.encodeRun(g));if(old.version!==4)throw TypeError('Expedition requires existing progression envelope');return JSON.stringify({...old,version:5,expedition:model.copy(extension)});},
   restoreRun(g,raw,legacyRaw){
+   // Core IO reads then restores synchronously; consume this origin permission once.
+   const allowLegacy=legacyReadAllowed;legacyReadAllowed=false;
    let saved;try{saved=raw==null?null:JSON.parse(raw);}catch{return null;}
    if(saved?.version===5){if(!closedData(saved,envelope))return null;const extension=model.restoreState(saved.expedition);if(!extension)return null;const previous={...saved,version:4};delete previous.expedition;const restored=baseCodec.restoreRun(g,JSON.stringify(previous),null);return restored?{...restored,expedition:extension}:null;}
+   if(!allowLegacy)return null;
    const restored=baseCodec.restoreRun(g,raw,legacyRaw);return restored?{...restored,expedition:model.freshState()}:null;
   },
   captureRunState(g){return{base:baseCodec.captureRunState(g),expedition:model.copy(state(g))};},
@@ -49,6 +53,7 @@ export function createExpeditionComponent({baseCodec,getRun,data,registry,applyB
  };
  function wrapDomain(executeDomain){return(command,context)=>{
   const g=getRun();if(!g)return{ok:false,code:'not-eligible',events:[]};
+  if(command.type==='retry'&&g.runSaveInvalid)return{ok:false,code:'invalid-save',events:[]};
   if(command.type==='expedition'||command.type==='selectVariant'){
    const action=command.type==='expedition'?command.action:'select';
    if(!canDispatch(g)||!expeditionEligible(g,action,data))return{ok:false,code:'not-eligible',events:[]};
@@ -71,6 +76,6 @@ export function createExpeditionComponent({baseCodec,getRun,data,registry,applyB
   return result.ok?{...result,changed:result.changed||changed}:result;
  };}
  function applySavedRun(g,saved){if(!model.valid(saved.expedition))throw TypeError('Invalid restored expedition');g.expedition=model.copy(saved.expedition);applyBaseSaved(g,saved);}
- function storageAdapter(storage){const base=baseStorageAdapter(storage);return !base?base:{getItem(key){const raw=base.getItem(key);return key===EXPEDITION_SAVE_KEY&&raw==null?base.getItem(baseCodec.RUN_SAVE_KEY):raw;},setItem:(key,raw)=>base.setItem(key,raw)};}
+ function storageAdapter(storage){const base=baseStorageAdapter(storage);return !base?base:{getItem(key){const raw=base.getItem(key);if(key!==EXPEDITION_SAVE_KEY)return raw;legacyReadAllowed=raw==null;return legacyReadAllowed?base.getItem(baseCodec.RUN_SAVE_KEY):raw;},setItem:(key,raw)=>base.setItem(key,raw)};}
  return Object.freeze({model,codec:Object.freeze(codec),wrapDomain,applySavedRun,storageAdapter});
 }

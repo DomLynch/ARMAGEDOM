@@ -39,7 +39,7 @@ export function createExpeditionView(s,dispatch){
   if(g.expedition?.status==='claimed'&&expeditionEligible(g,'claim',catalogue)){viewGear();return true;}return false;
  }
  function update(){
-  if(disposed)return;const g=s.game,data=s.world?.expeditionData;if(!g||!data){panel.hidden=true;return;}if(!catalogue)build(data);const state=g.expedition;if(!state)return;
+  if(disposed)return;const g=s.game,data=s.world?.expeditionData;if(!g||!data){panel.hidden=true;return;}if(!catalogue)build(data);el('retry').disabled=el('again').disabled=!!g.runSaveInvalid;const state=g.expedition;if(!state){panel.hidden=true;return;}
   const c=data.contract,status=state.status,objective=expeditionObjective(g),action=stageAction[status],eligible=action&&allowed()&&expeditionEligible(g,action,data);
   paint(el('contract-status'),{available:'Optional · accept at the Westminster stash.',accepted:'Find and recover the supply case in East. Fighting Hale is optional.',recovered:'Carrying the case · return to the Westminster stash to claim.',claimed:'Reward claimed once · earned variant retained.'}[status]);
   paint(el('contract-action'),status==='claimed'?'View gear':labels[action]);el('contract-action').disabled=status!=='claimed'&&!eligible;
@@ -64,5 +64,5 @@ export function createExpeditionView(s,dispatch){
   const playerView=s.actors?.views.get(0),variant=state.selectedPistolVariant;
   if(playerView?.pistolMount){const tint=data.variants[variant].tint;playerView.pistolMount.traverse(mesh=>{for(const material of[mesh.material].flat().filter(Boolean)){if(!material.color)continue;if(!materialColors.has(material))materialColors.set(material,{base:material.color.clone(),color:material.color.clone(),variant:null});const saved=materialColors.get(material);if(saved.variant!==variant){saved.color.copy(saved.base).multiply(material.color.clone().setHex(tint));saved.variant=variant;}material.color.copy(saved.color);}});playerView.expeditionVariant=variant;}
  }
- return{update,interact,dispose(){if(disposed)return;disposed=true;for(const remove of listeners)remove();caseView?.dispose();caseView=null;el('expedition-case-label').hidden=el('expedition-guard-label').hidden=el('expedition-objective').hidden=true;panel.hidden=true;}};
+ return{update,interact,dispose(){if(disposed)return;disposed=true;for(const remove of listeners)remove();caseView?.dispose();caseView=null;el('retry').disabled=el('again').disabled=false;el('expedition-case-label').hidden=el('expedition-guard-label').hidden=el('expedition-objective').hidden=true;panel.hidden=true;}};
 }

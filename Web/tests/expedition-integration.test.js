@@ -61,3 +61,13 @@ test('malformed Core commands never mutate contract or write and F3 sees selecti
  for(const command of[{type:'expedition',action:'skip'},{type:'expedition',action:'accept',extra:1},{type:'selectVariant',variantId:reward,extra:1}])assert(!f.persistence.dispatchExpedition(f.run,command,true).ok);
  assert.equal(f.writes.length,n);assert.equal(f.run.expedition.status,'available');through(f,'accept','recover','claim');assert(f.select(reward).ok);const raw=f.records.get(EXPEDITION_SAVE_KEY);assert.equal(JSON.parse(raw).expedition.selectedPistolVariant,reward);assert(f.select(baseId).ok);assert.notEqual(f.records.get(EXPEDITION_SAVE_KEY),raw);const stable=f.writes.length;assert(f.persistence.persistRun(f.run));assert.equal(f.writes.length,stable);
 });
+
+test('occupied v5 key rejects every legacy envelope without fallback or rewriting original bytes',()=>{
+ const seed=fixture({legacy:true}),old=seed.records.get(PROGRESSION_SAVE_KEY),v3=oldCodec.encodeRun(seed.run),v2=JSON.parse(v3);v2.version=2;v2.supplies={version:1,issued:[],collected:[],pending:[]};
+ for(const raw of[old,v3,JSON.stringify(v2),'null']){const f=fixture({records:new Map([[PROGRESSION_SAVE_KEY,old],[EXPEDITION_SAVE_KEY,raw]])});f.restore();assert(f.run.runSaveInvalid);assert.equal(f.records.get(EXPEDITION_SAVE_KEY),raw);assert.equal(f.records.get(PROGRESSION_SAVE_KEY),old);assert.equal(f.writes.length,0);assert(!f.command('accept').ok);}
+});
+
+test('139 Retry cannot erase unreadable successor records; old138 recovery remains unchanged',()=>{
+ for(const raw of['{bad','',JSON.stringify({version:9})]){const f=fixture({records:new Map([[EXPEDITION_SAVE_KEY,raw]])});f.restore();const before=f.run;assert(f.run.runSaveInvalid);assert(!f.persistence.retry());assert.equal(f.run,before);assert.equal(f.records.get(EXPEDITION_SAVE_KEY),raw);assert.equal(f.writes.length,0);assert.match(f.run.message,/Original kept/);}
+ const old=fixture({extension:false,records:new Map([[PROGRESSION_SAVE_KEY,'{bad']])});old.restore();assert(old.run.runSaveInvalid);assert(old.persistence.retry(),'pre139 reset contract stays intact');assert(!old.run.runSaveInvalid);
+});

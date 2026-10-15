@@ -66,7 +66,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   const result=core.dispatch({type:'restore'});
   if(!result.ok){
    g.runSaveInvalid=true;
-   if(result.code==='invalid-save'){g.supplies=null;g.player.hp=0;g.finished=true;g.message='Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
+   if(result.code==='invalid-save'){g.supplies=null;g.player.hp=0;g.finished=true;g.message=expedition()?'Saved run invalid. Original kept; recover it before retrying.':'Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
    else{g.message='Run saving unavailable. Supplies kept.';g.messageUntil=5;}
   }
   persistRun(g);
