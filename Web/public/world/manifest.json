@@ -23,8 +23,8 @@
       "area": "south",
       "path": "south/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/south/layout.json",
-      "bytes": 7904,
-      "sha256": "d9ef498feae4d1db1270711d47190b886fa75209e774a6cc02a6db79ee0a2da7"
+      "bytes": 8157,
+      "sha256": "6e8fdf00a6470e24482e5f850b65c037e092bd21d6d24e349c9477b6c4e6aff3"
     },
     {
       "area": "south",
@@ -79,8 +79,8 @@
       "area": "lambeth",
       "path": "lambeth/layout.json",
       "source": "Owner original / individually traced image geometry",
-      "bytes": 6698,
-      "sha256": "da8ff7c14b916a27e801c5b830b4e0542c3c2d9eec44fffac79fa26c7472db11"
+      "bytes": 8246,
+      "sha256": "d02ebce661de34e76fbf0f98a4352fa7f7988a1d853ee0c06eac36aeb620ac00"
     },
     {
       "area": "lambeth",
@@ -99,8 +99,8 @@
       "area": "area7",
       "path": "area7/layout.json",
       "source": "Owner original / image-authored street geometry",
-      "sha256": "5ceca648355f20d72157e488b96a19ac95cef4ba7dd8a30d79a4937e46b9de04",
-      "bytes": 10197
+      "sha256": "58eedc438c19c487494e27fc8336dc28ef120d0ed9c58febd0c1b8d9afd940d7",
+      "bytes": 10450
     },
     {
       "area": "area7",

@@ -547,5 +547,22 @@
       ]
     }
   ],
-  "followPlayerSize": true
+  "followPlayerSize": true,
+  "guidance": [
+    {
+      "id": "east-approach",
+      "kind": "exit",
+      "to": "east",
+      "path": [
+        {
+          "x": 0.65,
+          "y": 0.32
+        },
+        {
+          "x": 0.635,
+          "y": 0.285
+        }
+      ]
+    }
+  ]
 }
