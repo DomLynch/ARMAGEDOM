@@ -1,3 +1,4 @@
+import {createRouteGuidance} from './engine/route-guidance.js';
 import {createGeometry} from './world-geometry.js';
 import {createAreaRegistry} from './area-registry.js';
 import {validateAreaMetadata,validateAreaGeometry} from './engine/area-content.js';
@@ -32,7 +33,7 @@ export class LondonWorld {
       const foot=this.geometry.ground(mask.foot),distance=this.geometry.point(foot).depth;
       const mesh=this.quad(mask.points,distance,depth,-90);mesh.name=mask.name;return mesh;
     });
-    this.depthMaterial=depth;scene.add(this.group);this.update(this.spawn,0,1672,941,true);
+    this.depthMaterial=depth;this.routeGuidance=createRouteGuidance(this);scene.add(this.group);this.update(this.spawn,0,1672,941,true);
   }
   toRender(position,height=0) {return new this.THREE.Vector3(position.x,height,-position.z);}
   quad(points,distance,material,order) {
@@ -55,6 +56,7 @@ export class LondonWorld {
     return link?{areaId:link.to,entryPoint:{...link.entry}}:null;
   }
   exitHint(position) {
+    const guidance=this.routeGuidance?.hint(position,this);if(guidance)return guidance;
     let nearest=null,distance=6;
     for(const link of this.registry.links(this.areaId)) {
       const c=link.condition,point=this.geometry.point(position);
@@ -163,6 +165,7 @@ export class LondonWorld {
     this.crop.identity();this.crop.elements[0]=zx;this.crop.elements[5]=zy;
     this.crop.elements[12]=-2*zx*(this.center.x-.5);this.crop.elements[13]=-2*zy*(this.center.y-.5);
     camera.projectionMatrix.multiplyMatrices(this.crop,this.calibrated);camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    this.routeGuidance?.update(playerPosition,this);
   }
   dispose() {
     if(this.areaCache){const cache=this.areaCache;if(cache.disposed)return;cache.disposed=true;cache.generation++;for(const stage of cache.stages.values())stage.disposeStage();cache.stages.clear();cache.usage.clear();cache.leases.clear();this.disposed=true;return;}
@@ -170,6 +173,7 @@ export class LondonWorld {
   }
   disposeStage() {
     if(this.disposed)return;this.disposed=true;
+    this.routeGuidance?.dispose();
     this.group.removeFromParent();this.group.traverse(object=>object.geometry?.dispose());
     this.backdrop.material.dispose();this.depthMaterial.dispose();this.texture.dispose();this.texture.image=null;
   }

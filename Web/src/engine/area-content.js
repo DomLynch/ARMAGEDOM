@@ -1,3 +1,4 @@
+import {validateGuidance} from './route-guidance.js';
 import {closed,freeze} from './content-schema.js';
 export {closed,freeze} from './content-schema.js';
 import {validateProgressionPilot} from './progression-rules.js';
@@ -34,6 +35,7 @@ function validateResidentGeometry(row,g,radius){
 }
 export function validateAreaGeometry(registry,areaId,layout,residents=null){
  const g=createGeometry(layout),area=registry.get(areaId);
+ validateGuidance(layout,g,registry.links(areaId));
  const entries=[area.entry,...registry.ids.flatMap(id=>registry.links(id).filter(link=>link.to===areaId).map(link=>link.entry))];
  if(entries.some(entry=>!g.clear(g.ground(entry),.4)))throw Error("London entry is blocked");
  for(const row of residents?.[areaId]??[])validateResidentGeometry(row,g,creatureCatalogue.get(row.foundationRef).stats.radius);
