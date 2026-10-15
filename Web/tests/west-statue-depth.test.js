@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as THREE from 'three';
 import {LondonWorld} from '../src/world.js';
+import {pistolPointerPoint} from '../src/pistol-targeting.js';
 
 const read=path=>JSON.parse(fs.readFileSync(new URL(path,import.meta.url)));
 const layout=read('../public/world/westminster/layout.json');
@@ -54,4 +55,21 @@ test('ordinary behind/front/adjacent samples remain full-radius clear with corre
     assert(g.point(g.ground(reference.ordinaryBehind)).depth>maskDepth);
     assert(g.point(g.ground(reference.ordinaryFront)).depth<maskDepth);
   }finally{world.dispose();}
+});
+
+test('same-screen surfaces in front of the statue win while surfaces behind it remain covered',()=>{
+  const {world,mesh}=fixture(),p={x:.905,y:.50};
+  const camera=world.camera.clone();camera.projectionMatrix.copy(world.calibrated);camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+  world.camera.copy(camera);world.camera.updateMatrixWorld(true);
+  const x=2*p.x-1,y=1-2*p.y,ground=world.screenToGround(x,y),hit=world.ray.intersectObject(mesh,false)[0];assert(hit);
+  const frame=new THREE.Mesh(new THREE.PlaneGeometry(.5,.5),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));frame.name='ARM_Drone_Rigid_Frame';
+  const model=new THREE.Group();model.add(frame);const views=new Map([[1,{model}]]),actor={id:1,rig:'low-hover-drone',hp:20};
+  try{
+    for(const [offset,covered]of [[2,true],[-2,false]]){
+      frame.position.copy(hit.point).addScaledVector(world.ray.ray.direction,offset);frame.lookAt(world.ray.ray.origin);frame.updateMatrixWorld(true);
+      const actual=pistolPointerPoint(world,views,[actor],x,y);
+      if(covered)assert.deepEqual(actual,ground,'Mask must cover the farther surface');
+      else assert(Math.hypot(actual.x-ground.x,actual.z-ground.z)>.1,'Nearer surface must remain pickable in front of the mask');
+    }
+  }finally{frame.geometry.dispose();frame.material.dispose();world.dispose();}
 });
