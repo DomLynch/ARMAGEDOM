@@ -1,3 +1,5 @@
+import {validateExpeditionData} from './expedition-core.js';
+import {AREA_MOB_SPAWNS} from '../area-mob-spawns.js';
 import {validateGuidance} from './route-guidance.js';
 import {closed,freeze} from './content-schema.js';
 export {closed,freeze} from './content-schema.js';
@@ -33,9 +35,16 @@ function validateResidentGeometry(row,g,radius){
    if(!g.clear(row.pos,radius)||row.patrol.some(p=>!g.clear(p,radius)))fail();
    for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}
 }
-export function validateAreaGeometry(registry,areaId,layout,residents=null){
+export function validateAreaGeometry(registry,areaId,layout,residents=null,expedition=null){
  const g=createGeometry(layout),area=registry.get(areaId);
  validateGuidance(layout,g,registry.links(areaId));
+ if(expedition){
+  for(const anchor of[expedition.contract.giver,expedition.contract.case])if(anchor.areaId===areaId){
+   if(!g.clear(anchor.position,.4))throw Error('Blocked expedition interaction');
+   for(let i=0;i<16;i++){const angle=i*Math.PI/8,p={x:anchor.position.x+Math.cos(angle)*anchor.radius,z:anchor.position.z+Math.sin(angle)*anchor.radius};if(!g.clear(p,.4)||!g.lineClear(p,anchor.position))throw Error('Blocked expedition interaction approach');}
+  }
+  const guard=expedition.contract.guard;if(guard.areaId===areaId&&!(residents?.[areaId]??AREA_MOB_SPAWNS[areaId]??[]).some(row=>row.key===guard.placementKey))throw Error('Unknown expedition guard placement');
+ }
  const entries=[area.entry,...registry.ids.flatMap(id=>registry.links(id).filter(link=>link.to===areaId).map(link=>link.entry))];
  if(entries.some(entry=>!g.clear(g.ground(entry),.4)))throw Error("London entry is blocked");
  for(const row of residents?.[areaId]??[])validateResidentGeometry(row,g,creatureCatalogue.get(row.foundationRef).stats.radius);
@@ -58,6 +67,6 @@ function validateAtmosphere(rows,registry){
  }
  return freeze(result);
 }
-export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot','progression']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
+export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
 
-export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot','progression']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}
+export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}

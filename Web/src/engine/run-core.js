@@ -1,3 +1,4 @@
+import {createExpeditionComponent} from './expedition-core.js';
 import {captureRunState,isRunStateUnchanged} from './run-save-state.js';
 import {createProgressionComponent} from './progression-core.js';
 import {progressionOptions} from './progression-runtime.js';
@@ -17,23 +18,32 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
- let component=null,wrappedDomain=null;
+ let component=null,wrappedDomain=null,expeditionComponent=null,expeditionDomain=null,expeditionScope=null;
  function progression(){
   const g=getRun();if(!g?.progressionModel)return null;
   if(!component){component=createProgressionComponent({baseCodec:selectedCodec,getRun,...progressionOptions(g)});wrappedDomain=component.wrapDomain(executeDomain);}
   for(const packet of g.pendingProgressionDeaths??[])component.recordDeath(g,packet);g.pendingProgressionDeaths=[];
   return component;
  }
- const activeCodec={...selectedCodec,captureRunState(g){return(progression()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(progression()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return progression()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(progression()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){return(progression()?.codec??selectedCodec).restoreRun(...args);}};
- const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(progression()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
+ function expedition(){
+  const g=getRun();if(!g?.world.expeditionData)return null;
+  const p=progression();if(!p)throw TypeError('Expedition requires registered progression');
+  if(!expeditionComponent){expeditionComponent=createExpeditionComponent({baseCodec:p.codec,getRun,data:g.world.expeditionData,registry:g.world.registry,
+   applyBaseSaved:(run,saved)=>p.applySavedRun(run,saved),baseStorageAdapter:storage=>p.storageAdapter(storage),canDispatch:run=>expeditionScope?.run===run&&expeditionScope.allowed});
+   expeditionDomain=expeditionComponent.wrapDomain(wrappedDomain);}
+  return expeditionComponent;
+ }
+ const stateComponent=()=>expedition()??progression();
+ const activeCodec={...selectedCodec,captureRunState(g){return(stateComponent()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(stateComponent()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return stateComponent()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(stateComponent()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){return(stateComponent()?.codec??selectedCodec).restoreRun(...args);}};
+ const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(stateComponent()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
  const supplyPickup=createPickupOperation({getRun,collectSupply,collectVest,vestRules:VEST_RULES,vestBagPosition:codec.VEST_BAG_POSITION,collectGearSupply,gearItems:GEAR_ITEMS,grantPistol,grantVest,canCollectGear:g=>supplyScope?.run===g&&supplyScope.allowed});
  let pistolScope=null;
  const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
- const executeDomain=createRunOperation({getRun,setRun,createFreshRun,applySavedRun(g,saved){const p=progression();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);},claimPickup,equip:pistolOperation});
+ const executeDomain=createRunOperation({getRun,setRun,createFreshRun(){const candidate=createFreshRun(),e=expedition();if(e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- const core=createCore({executeDomain(command,context){return progression()?wrappedDomain(command,context):executeDomain(command,context);},
+ const core=createCore({executeDomain(command,context){return expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
  function dispatchPistol(g,command,canAct){
@@ -41,6 +51,12 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   pistolScope={run:g,allowed:canAct===true};
   try{const result=core.dispatch(command);if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}
   finally{pistolScope=null;}
+ }
+ function dispatchExpedition(g,command,allowed){
+  if(g!==getRun()||expeditionScope)return {ok:false,code:'not-eligible',events:[]};
+  expeditionScope={run:g,allowed:allowed===true};
+  try{const result=core.dispatch(command);if(!result.ok&&result.code==='storage-unavailable'){g.message='Saving unavailable. Contract and equipment kept.';g.messageUntil=g.time+5;}return result;}
+  finally{expeditionScope=null;}
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
@@ -50,7 +66,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   const result=core.dispatch({type:'restore'});
   if(!result.ok){
    g.runSaveInvalid=true;
-   if(result.code==='invalid-save'){g.supplies=null;g.player.hp=0;g.finished=true;g.message='Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
+   if(result.code==='invalid-save'){g.supplies=null;g.player.hp=0;g.finished=true;g.message=expedition()?'Saved run invalid. Original kept; recover it before retrying.':'Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
    else{g.message='Run saving unavailable. Supplies kept.';g.messageUntil=5;}
   }
   persistRun(g);
@@ -83,5 +99,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {persistRun,restoreSavedRun,retry,collectNearbySupplies,collectNearbyVest,dispatchPistol};
+ return {persistRun,restoreSavedRun,retry,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchExpedition};
 }

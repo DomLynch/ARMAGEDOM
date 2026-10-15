@@ -49,8 +49,16 @@ export function createAreaRegistry({areas=areaDefinitions,assets=areaAssets,mani
   const paths=new Set((manifest.files??[]).map(f=>'world/'+f.path));
   for(const row of rows)for(const field of ['layoutRef','backdropRef'])if(!paths.has(references[row[field]].path))fail('manifest asset reference mismatch');
  }
+ function nextExit(from,to){
+  if(!byId.has(from)||!byId.has(to))fail('unknown route endpoint');if(from===to)return null;
+  const seen=new Set([from]),queue=[{area:from,first:null}];
+  for(let i=0;i<queue.length;i++)for(const link of links.filter(row=>row.from===queue[i].area)){
+   if(seen.has(link.to))continue;const first=queue[i].first??link;if(link.to===to)return first;seen.add(link.to);queue.push({area:link.to,first});
+  }
+  return null;
+ }
  for(const row of rows)freeze(row);freeze(links);freeze(references);
- return Object.freeze({initialArea,ids:Object.freeze(rows.map(row=>row.id)),has:areaId=>byId.has(areaId),get:areaId=>byId.get(areaId),links:areaId=>Object.freeze(links.filter(link=>link.from===areaId)),reachable,asset:ref=>references[ref]});
+ return Object.freeze({initialArea,ids:Object.freeze(rows.map(row=>row.id)),has:areaId=>byId.has(areaId),get:areaId=>byId.get(areaId),links:areaId=>Object.freeze(links.filter(link=>link.from===areaId)),reachable,nextExit,asset:ref=>references[ref]});
 }
 export const publicAreaRegistry=createAreaRegistry();
 // Authoring/entry adapters supply geometry; content contains no executable callbacks.
