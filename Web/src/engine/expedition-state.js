@@ -4,7 +4,7 @@ const statuses=['available','accepted','recovered','claimed'];
 const id=value=>typeof value==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/.test(value);
 function closed(value,keys){
  return !!value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>{
-  const d=Object.getOwnPropertyDescriptor(value,key);return !!d&&'value'in d;
+  const d=Object.getOwnPropertyDescriptor(value,key);return !!d&&d.enumerable&&'value'in d;
  });
 }
 function dense(rows){

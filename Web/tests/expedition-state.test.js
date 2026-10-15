@@ -39,8 +39,9 @@ test('restore/copy isolate caller state and reject duplicate, sparse or accessor
  const state=model.transition(model.freshState(),{type:'visit',areaId:'east'}),restored=model.restoreState(JSON.parse(JSON.stringify(state)));
  restored.visitedIds.push('south');assert.deepEqual(state.visitedIds,['east']);
  const getter={...state};Object.defineProperty(getter,'status',{get(){throw Error('must not execute');}});
+ const hidden={...state};Object.defineProperty(hidden,'status',{enumerable:false});
  const sparse=[];sparse.length=1;
- for(const bad of [getter,{...state,visitedIds:['east','east']},{...state,visitedIds:sparse},{...state,visitedIds:Object.assign(['east'],{extra:true})}])assert.equal(model.valid(bad),false);
+ for(const bad of [getter,hidden,{...state,visitedIds:['east','east']},{...state,visitedIds:sparse},{...state,visitedIds:Object.assign(['east'],{extra:true})}])assert.equal(model.valid(bad),false);
  assert.throws(()=>model.copy(null),TypeError);
  const action={};Object.defineProperty(action,'type',{get(){throw Error('must not execute');}});assert.equal(model.transition(state,action),null);
  assert.equal(model.transition(state,{type:'claim',rewardReceipt:receipt}),null);
