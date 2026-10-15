@@ -1,3 +1,4 @@
+import {createExpeditionView} from './expedition-runtime.js';
 import {resetMobileControls} from '../combat.js';
 import {stepPistol} from '../pistol.js';
 import {VEST_BAG_POSITION} from './run-state.js';
@@ -8,6 +9,7 @@ import {vestAvailable} from '../vest.js';
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:()=>s.createFreshRun(),storage});
+const expeditionView=createExpeditionView(s,(g,command,allowed)=>persistence.dispatchExpedition(g,command,allowed));
 let vestBag=null;
 function clearVestBag(){vestBag?.dispose();vestBag=null;}
 function updateVestBag(){
@@ -27,5 +29,5 @@ function updateSupplies(){
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
 function cancelPistol(g){resetMobileControls(g);s.actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;s.effects?.clearPistolFeedback();s.effects?.update(g,{paused:true});}
-return {clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){clearSupplies();clearVestBag();}};
+return {updateExpedition:expeditionView.update,interactExpedition:expeditionView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){expeditionView.dispose();clearSupplies();clearVestBag();}};
 }

@@ -77,6 +77,8 @@ export function tracePistol(origin, aim, targets, lineClear) {
 export function stepPistol(state, input = {}) {
   const {time, canAct=true} = input;
   if (!Number.isFinite(time) || time<0) throw Error('Pistol requires finite simulation time');
+  const damage=input.profile?.damage??PISTOL_RULES.damage,reload=input.profile?.reload??PISTOL_RULES.reload;
+  if(!Number.isFinite(damage)||damage<=0||!Number.isFinite(reload)||reload<=0)throw Error('Invalid authored pistol profile');
   let next = {...state};
   const events = [];
   const accept = out => {next=out.state; events.push(...out.events);};
@@ -98,7 +100,7 @@ export function stepPistol(state, input = {}) {
   }
   if ((input.reload || next.magazine===0) && !next.reloadingUntil && next.reserve>0
       && next.magazine<PISTOL_RULES.capacity && time+EPS>=next.nextFireAt) {
-    next.reloadingUntil=time+PISTOL_RULES.reload;
+    next.reloadingUntil=time+reload;
     events.push({type:'reload-start',until:next.reloadingUntil});
   }
   if (!input.fire || next.reloadingUntil || time<next.nextFireAt) return {state:next,events};
@@ -108,6 +110,6 @@ export function stepPistol(state, input = {}) {
   next.nextFireAt=time+PISTOL_RULES.cadence;
   if (!next.magazine) {events.push({type:'dry'}); return {state:next,events};}
   next.magazine--;
-  events.push({type:'shot',...trace,damage:PISTOL_RULES.damage,kind:'bullet',parry:false});
+  events.push({type:'shot',...trace,damage,kind:'bullet',parry:false});
   return {state:next,events};
 }

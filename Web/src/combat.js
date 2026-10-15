@@ -1,3 +1,4 @@
+import {selectedPistolProfile} from './engine/expedition-core.js';
 import {initializeProgression,progressionDamage,stageProgressionDeath} from './engine/progression-runtime.js';
 import {PISTOL_ITEM_ID} from './core/pistol-operation.js';
 import {creatureCatalogue,animalFoundationParameters,ENGINE_CREATURE_CAPABILITIES} from './engine/creature-catalogue.js';
@@ -94,7 +95,7 @@ function pistolIntent(g,intent,dispatchPistol){
   coreEvents=dispatchPistol(g,command,eligible).events;
  }
  // Holster has precedence over firing/reload even when its durable write fails.
- const result=routed&&eligible&&holster?{state:g.pistol,events:coreEvents}:stepPistol(g.pistol,{time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:reference,
+ const result=routed&&eligible&&holster?{state:g.pistol,events:coreEvents}:stepPistol(g.pistol,{profile:selectedPistolProfile(g),time:g.time,areaId:g.world.areaId??'westminster',position:p.pos,facing:p.facing,aim:reference,
   collect:!routed&&actions.includes('pickup'),equip:!routed&&actions.includes('pickup'),holster:!routed&&holster,reload:wasEquipped&&actions.includes('stab'),
   fire:firing,cancel:!!intent.cancel,canAct,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
  if(!(routed&&eligible&&holster)&&coreEvents.length)result.events.unshift(...coreEvents);

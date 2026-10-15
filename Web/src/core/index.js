@@ -1,10 +1,10 @@
 /**
  * @typedef {{type:'claimPickup',pickupId:string}|{type:'equip',itemId:string,equipped:boolean}|
- * {type:'retry'}|{type:'save'}|{type:'restore'}} CoreCommand
+ * {type:'retry'}|{type:'save'}|{type:'restore'}|{type:'expedition',action:'accept'|'recover'|'claim'}|{type:'selectVariant',variantId:string}} CoreCommand
  * @typedef {{ok:true,changed:boolean,events:ReadonlyArray<object>}|
  * {ok:false,code:'invalid-command'|'invalid-save'|'storage-unavailable'|'not-eligible'|'already-collected',events:ReadonlyArray<object>}} CoreResult
  */
-const fields = Object.freeze({claimPickup:['type','pickupId'],equip:['type','itemId','equipped'],retry:['type'],save:['type'],restore:['type']});
+const fields = Object.freeze({claimPickup:['type','pickupId'],equip:['type','itemId','equipped'],retry:['type'],save:['type'],restore:['type'],expedition:['type','action'],selectVariant:['type','variantId']});
 const codes = new Set(['invalid-command','invalid-save','storage-unavailable','not-eligible','already-collected']);
 const validId = id => typeof id === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/.test(id);
 function validCommand(command) {
@@ -14,6 +14,8 @@ function validCommand(command) {
   if (typeof command.type !== 'string' || !Object.hasOwn(fields, command.type)) return false;
   const expected = fields[command.type];
   return !!expected && keys.length === expected.length && keys.every(key => expected.includes(key)) &&
+    (command.type !== 'expedition' || ['accept','recover','claim'].includes(command.action)) &&
+    (command.type !== 'selectVariant' || validId(command.variantId)) &&
     (command.type !== 'claimPickup' || validId(command.pickupId)) &&
     (command.type !== 'equip' || validId(command.itemId) && typeof command.equipped === 'boolean');
 }

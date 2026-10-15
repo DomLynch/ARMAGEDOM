@@ -62,7 +62,7 @@ async function crossArea(request) {
     releaseSource();s.traveling = false;
     if(owns()){
       s.input.clear({keepMovement:keepMovement&&accepted});
-      resetMobileControls(ownerGame);s.resetClock();s.hud.update(ownerGame);
+      resetMobileControls(ownerGame);s.resetClock();s.hud.update(ownerGame);s.updateExpedition?.();
       if(!recoveryFailed)s.renderer.render(s.scene,s.camera);
     }
   }

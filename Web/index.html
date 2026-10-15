@@ -46,6 +46,9 @@
       <p id="ammo" hidden aria-live="polite"></p>
       <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
       <button id="pistol-interact" hidden>Equip pistol · G</button>
+      <p id="expedition-objective" hidden></p>
+      <span id="expedition-case-label" class="expedition-world-label" hidden>STOLEN SUPPLY CASE</span>
+      <span id="expedition-guard-label" class="expedition-world-label" hidden></span>
       <section id="boss" hidden>
         <span>ORC WARLORD</span>
         <div class="bar health"><span id="boss-fill"></span></div>
@@ -90,6 +93,20 @@
       <button id="assist" aria-pressed="true">Assist: 100%</button>
       <label for="feedback-mode">Combat feedback</label>
       <select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select>
+      <section id="expedition-panel" hidden aria-label="Expedition, equipment and discovery atlas">
+        <h3 id="contract-title">Stolen Supplies</h3>
+        <p id="contract-description"></p><p id="contract-status" role="status"></p>
+        <button id="contract-action" type="button"></button>
+        <details id="equipment-panel"><summary>Equipment</summary>
+          <p id="equipment-state"></p><p id="equipment-retry-note">Retry resets combat and ammunition. Contract progress, discovered areas and earned variants stay. Collect the pistol at the stash again to use your chosen variant.</p>
+          <div id="variant-choices"></div>
+        </details>
+        <details id="atlas-panel"><summary>Discovery atlas · schematic</summary>
+          <p>Eight areas. Lines show existing connections, not a map to scale. Pin a known area to see its next exit; movement stays manual.</p>
+          <div id="atlas-map"><svg id="atlas-links" viewBox="0 0 400 200" aria-hidden="true"></svg><div id="atlas-nodes"></div></div>
+          <p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button>
+        </details>
+      </section>
       <details id="progression-panel" hidden><summary>Attributes and weapon mastery</summary><p id="progression-attributes"></p><p id="progression-weapons"></p></details>
       <details>
         <summary>Controls</summary>

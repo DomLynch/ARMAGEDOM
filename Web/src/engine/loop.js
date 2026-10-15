@@ -43,7 +43,7 @@ function frame(ms,providedElapsed) {
   if (!s.world || !s.game || s.contextLost) return;
   // Travel holds this frame and simulation. Re-rendering the unchanged rigs
   // consumes the idle budget needed to finish the destination's preparation.
-  if(s.traveling){s.hud.update(s.game);return;}
+  if(s.traveling){s.hud.update(s.game);s.updateExpedition?.();return;}
   s.effects?.advance(elapsed,{paused:s.paused||s.traveling});
   if (s.loaded && !s.paused && !s.traveling && !s.game.finished) {
     accumulator += dt;
@@ -79,7 +79,7 @@ function frame(ms,providedElapsed) {
   s.rim.position
     .copy(s.world.toRender(s.game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));
-  s.hud.update(s.game);
+  s.hud.update(s.game);s.updateExpedition?.();
   if(s.effects)s.effects.render(s.renderer,s.camera,s.game,s.canvas.clientHeight,s.canvas.clientWidth);else s.renderer.render(s.scene,s.camera);
 }
 return {frame,intent,combatVisibleIds,reset(){last=0;accumulator=0;submitted=null;},input(value){if(!value||typeof value!=="object")throw new TypeError("Input object required");submitted=structuredClone({move:{x:0,y:0},actions:[],held:[],...value});},step(seconds){if(!Number.isFinite(seconds)||seconds<0)throw new TypeError('Finite nonnegative step required');frame(last+seconds*1000,seconds);}};

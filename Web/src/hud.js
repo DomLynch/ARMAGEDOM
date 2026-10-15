@@ -1,3 +1,4 @@
+import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
@@ -175,7 +176,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
         }
         if(equipped){el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
         el('ammo').hidden=!equipped;
-        el('ammo').textContent=`PISTOL · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
+        el('ammo').textContent=`${(selectedPistolProfile(g).name??'PISTOL').toUpperCase()} · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil?' · RELOADING':''}`;
         const fireLeft=Math.max(0,pistol.nextFireAt-g.time);
         el('slash').classList.toggle('pistol-aim',equipped);
         el('slash').classList.toggle('cooldown',equipped&&fireLeft>0);
