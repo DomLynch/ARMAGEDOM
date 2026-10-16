@@ -1,3 +1,4 @@
+import{needsUniqueDeathCommit}from'./unique-reward-runtime.js';
 import {applyAreaLighting} from './area-lighting.js';
 import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
@@ -7,6 +8,7 @@ import {travelTo,captureTravelState,restoreTravelState} from '../travel.js';
 export function createAreaLifecycle(s){
 let travelLatch=false;
 async function crossArea(request) {
+  if(needsUniqueDeathCommit(s.game)&&s.persistRun?.(s.game)!==true)return false;
   const previousArea=s.world.areaId,keepMovement=s.world.isAreaReady(request.areaId);
   const ownerGame=s.game,ownerActors=s.actors,ownerWorld=s.world;
   const owns=()=>!s.contextLost&&s.loaded&&s.game===ownerGame&&s.actors===ownerActors&&s.world===ownerWorld;
