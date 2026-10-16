@@ -19,7 +19,7 @@ import {allocateMobSizes} from './mob-size-allocation.js';
 import {mobSizeProfile} from './mob-size.js';
 import {createSuppliesState,issueSupply} from './supplies.js';
 import {createVestState,damageAfterVest} from './vest.js';
-import {AREA_MOB_SPAWNS} from './area-mob-spawns.js';
+import {AREA_MOB_SPAWNS,residentEncounterHealth} from './area-mob-spawns.js';
 import {selectCombatTarget,resolvePistolShot} from './pistol-targeting.js';
 import {createPistolState, stepPistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
@@ -360,6 +360,7 @@ function declaredResident(g,placement,mobSize){
  if(foundation&&foundation.runtimeIdentity!=='hollow-scavenger')Object.assign(actor,animalFoundationParameters(foundation.runtimeIdentity,g.player.combatScale),{animalRecipe:placement.recipeRef});
  else if(placement.recipeRef==='human-gaunt-skulker')actor.humanBodyRecipe=placement.recipeRef;
  if(placement.appearanceRef!==undefined)actor.appearanceRef=placement.appearanceRef;
+ const health=residentEncounterHealth(placement,actor.maxHP);actor.hp=actor.maxHP=health;
  return applyBossProfile(actor,placement,g.world.bossData);
 }
 export function initializeAreaResidents(g){

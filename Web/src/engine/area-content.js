@@ -1,6 +1,6 @@
 import{validateAreaBosses,mergeBossResidents,validateBossGeometry}from'./area-bosses.js';
 import {validateExpeditionData} from './expedition-core.js';
-import {AREA_MOB_SPAWNS} from '../area-mob-spawns.js';
+import {AREA_MOB_SPAWNS,residentEncounterHealth} from '../area-mob-spawns.js';
 import {validateGuidance} from './route-guidance.js';
 import {closed,freeze} from './content-schema.js';
 export {closed,freeze} from './content-schema.js';
@@ -24,8 +24,8 @@ export function validateResidentPlacements(rows,registry,layouts,{visibility='pu
  for(const [area,placements]of Object.entries(residents)){
   if(!registry.has(area)||registry.get(area).visibility!==visibility||!Array.isArray(placements))fail();const g=geometry.get(registry.get(area).layoutRef);
   for(const row of placements){
-   closed(row,['key','foundationRef','recipeRef','pos','patrol'],['appearanceRef']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-')||Object.hasOwn(row,'appearanceRef')&&!key(row.appearanceRef))fail();keys.add(row.key);
-   const foundation=creatureCatalogue.get(row.foundationRef);if(foundation.runtimeIdentity==='low-hover-drone'&&DRONE_KEYS[row.key]!==area)throw Error('Unsupported declared drone death placement');if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
+   closed(row,['key','foundationRef','recipeRef','pos','patrol'],['appearanceRef','encounter']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-')||Object.hasOwn(row,'appearanceRef')&&!key(row.appearanceRef))fail();keys.add(row.key);
+   const foundation=creatureCatalogue.get(row.foundationRef);residentEncounterHealth(row,foundation.stats.health);if(foundation.runtimeIdentity==='low-hover-drone'&&DRONE_KEYS[row.key]!==area)throw Error('Unsupported declared drone death placement');if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
    point(row.pos);if(!Array.isArray(row.patrol)||row.patrol.length<2)fail();row.patrol.forEach(point);const radius=foundation.stats.radius;
    if(g)validateResidentGeometry(row,g,radius);
   }

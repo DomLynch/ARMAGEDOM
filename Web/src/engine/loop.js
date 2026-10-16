@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import{presentationAudioEvents}from'../donor-audio.js';
 import {stepGame,resetMobileControls} from '../combat.js';
 import {pistolPointerPoint} from '../pistol-targeting.js';
 export function createBrowserLoop(s){
@@ -41,6 +42,7 @@ function frame(ms,providedElapsed) {
   const elapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0), dt = Math.min(0.1, elapsed);
   last = ms;
   if (!s.world || !s.game || s.contextLost) return;
+  const audioEvents=[];
   // Travel holds this frame and simulation. Re-rendering the unchanged rigs
   // consumes the idle budget needed to finish the destination's preparation.
   if(s.traveling){s.hud.update(s.game);s.updateExpedition?.();return;}
@@ -58,7 +60,7 @@ function frame(ms,providedElapsed) {
       s.persistRun(s.game);
       s.effects.events(s.game);
       s.actors?.events(s.game);
-      s.audio.play(s.game.events);s.emit(s.game.events);
+      audioEvents.push(...s.game.events);s.emit(s.game.events);
       accumulator -= 1 / 60;
       if(s.areas.checkExit())break;
       if (s.game.finished) {
@@ -76,6 +78,7 @@ function frame(ms,providedElapsed) {
   s.updateVestBag();
   s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game)??0,{presentationDt:s.paused||s.traveling?0:elapsed});
   s.effects?.update(s.game,{paused:s.paused||s.traveling,visibleIds:combatVisibleIds(),viewportHeight:s.canvas.clientHeight,viewportWidth:s.canvas.clientWidth});
+  const severs=s.effects?.takeSeverEvents?.()??[];if(audioEvents.length||severs.length)s.audio.play(presentationAudioEvents(audioEvents,severs));
   s.rim.position
     .copy(s.world.toRender(s.game.player.pos, 2.4))
     .add(new THREE.Vector3(0, 0, 0.8));

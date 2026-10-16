@@ -1,12 +1,12 @@
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
 const rows={
-  decapitation:['cutting','head',16,2,.75,3.3,48],
+  decapitation:['cutting','head',16,2,.75,3.8,58],
   'split-crown':['cutting','head',14,2,.75,2.9,65],
   opened:['cutting','body',20,4,.75,3.6,70],
   'run-through':['piercing','body',10,1,.42,2.5,16],
   'pistol-directional':['bullet','body',8,0,.34,2.6,20],
-  'pistol-decapitation':['bullet','head',16,2,.75,3.8,32],
+  'pistol-decapitation':['bullet','head',16,2,.75,4.2,42],
 };
 export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:.75});
 const palette=Object.freeze([0x650c1b,0x831428,0x430812]);
@@ -16,14 +16,14 @@ const victim=id=>Number.isSafeInteger(id)&&id>0||typeof id==='string'&&id.trim()
 export function finisherImpactProfile(event,anchors){
   const row=Object.hasOwn(rows,event?.recipeId)?rows[event.recipeId]:null;
   if(!row||event.lethal!==true||!victim(event.victimId)||event.damageType!==row[0])return null;
-  const d=event.impactDirection,length=d&&Math.hypot(d.x,d.z),origin=anchors?.[row[1]];
+  const d=event.impactDirection,length=d&&Math.hypot(d.x,d.z),origin=anchors?.[row[1]],headSever=['decapitation','pistol-decapitation'].includes(event.recipeId);
   if(!Number.isFinite(length)||length<=1e-8||!point(origin))return null;
   return Object.freeze({victimId:event.victimId,recipeId:event.recipeId,anchor:row[1],
     origin:Object.freeze({x:origin.x,y:origin.y,z:origin.z}),
     // ARM direction x/z -> render x/-z ONCE. Anchor is already render space.
     direction:Object.freeze({x:d.x/length,y:0,z:-d.z/length}),
     droplets:row[2],trails:row[3],lifetime:row[4],speed:row[5],spreadDegrees:row[6],
-    trailLifetime:.18,trailLength:.22,dropSize:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:8,
+    trailLifetime:headSever?.28:.18,trailLength:headSever?.34:.22,dropSize:headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:8,
     palette,depthTest:true,depthWrite:false,additive:false,bloom:false});
 }
 

@@ -1,9 +1,15 @@
+// Use the actually presented sever outcome; replace its generic impact rather than doubling it.
+export function presentationAudioEvents(events,severs){
+ if(!severs.length)return events;const victims=new Set(severs.map(e=>e.victimId));
+ return [...events.filter(e=>!(['hit','death'].includes(e.type)&&victims.has(e.actor?.id))),...severs];
+}
 // Selected donor cues only; metadata is pinned in public/audio/manifest.json.
 export function donorCues(events) {
   const impacts=[],air=[];
   for(const event of events) {
     const heavy=event.moveId==='heavy_overhead'||event.action==='heavy';
-    if(event.type==='hit'&&!event.blocked&&event.amount!==0)impacts.push({name:heavy?'hit_heavy':'hit_flesh',gain:.3});
+    if(event.type==='sever-presented')impacts.push({name:'hit_heavy',gain:.5});
+    else if(event.type==='hit'&&!event.blocked&&event.amount!==0)impacts.push({name:heavy?'hit_heavy':'hit_flesh',gain:.3});
     else if(event.type==='parry')impacts.push({name:'parry',gain:1});
     else if(event.type==='block')impacts.push({name:'block',gain:1});
     else if(event.type==='guard-break')impacts.push({name:'guard_break',gain:1});
@@ -66,7 +72,8 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
       const id=e=>e.actor?.id??e.victimId,killed=new Set(events.filter(e=>e.type==='death'&&e.weapon==='pistol'&&id(e)!=null).map(id)),playedLethal=new Set(),off=effectiveMode()==='off';
       function hitCue(lethal,countHit=true){if(countHit)hitEvents++;if(lethal)killEvents++;if(off)tone(lethal?1450:1000,lethal?550:800,lethal?.09:.035,.062,'sine');else{tone(lethal?160:280,lethal?55:130,lethal?.14:.065,.16);noise(lethal?.085:.03,.1,1700);if(lethal)tone(1000,1500,.09,.065,'sine');}}
       for(const event of events){
-        if(event.type==='shot'){shotEvents++;tone(off?240:220,off?55:48,off?.08:.11,off?.085:.22);if(!off)noise(.065,.15,900);}
+        if(event.type==='sever-presented'){hitEvents++;killEvents++;}
+        else if(event.type==='shot'){shotEvents++;tone(off?240:220,off?55:48,off?.08:.11,off?.085:.22);if(!off)noise(.065,.15,900);}
         else if(event.type==='pickup')tone(660,880,.16,.025,'sine');
         else if(event.type==='hit'&&!event.blocked&&event.amount>0&&event.weapon==='pistol'){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}
       }
