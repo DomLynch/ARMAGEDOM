@@ -10,13 +10,17 @@ function damp(value,target,velocity,time,dt) {
   const change=value-target,temp=(velocity+omega*change)*dt;
   return [target+(change+temp)*decay,(velocity-omega*temp)*decay];
 }
+function initialSpawn(geometry,registry) {
+  const row=registry.get(registry.initialArea);
+  return row.id==='westminster'||row.visibility==='private'?{x:0,z:-6}:geometry.ground(row.entry);
+}
 export class LondonWorld {
   constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null,textureBudgetBytes=48*1024*1024,validatedLayouts=null,residentPlacements=null,areaAtmosphere=null,areaLighting=null,areaWater=null,lootRules=null,progressionData=null,expeditionData=null,bossData=null}) {
     if(!Number.isFinite(viewZoomMultiplier)||viewZoomMultiplier<1)throw Error('View zoom multiplier must be finite and at least 1');
     if(!Number.isFinite(textureBudgetBytes)||textureBudgetBytes<16*1024*1024||textureBudgetBytes>48*1024*1024)throw Error("Invalid texture budget");
     this.bossData=bossData;this.expeditionData=expeditionData;this.progressionData=progressionData;this.lootRules=lootRules;this.areaWater=areaWater;this.areaLighting=areaLighting;this.residentPlacements=residentPlacements;this.areaAtmosphere=areaAtmosphere;this.validatedLayouts=validatedLayouts;this.textureBudgetBytes=textureBudgetBytes;this.viewZoomMultiplier=viewZoomMultiplier;
     this.THREE=THREE;this.scene=scene;this.camera=camera;this.layout=layout;this.texture=texture;
-    this.geometry=createGeometry(layout);this.spawn={x:0,z:-6};this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
+    this.geometry=createGeometry(layout);this.spawn=initialSpawn(this.geometry,registry??createAreaRegistry({manifest}));this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
     this.manifest=manifest;this.registry=registry??createAreaRegistry({manifest});this.baseUrl=baseUrl;this.areaId=this.registry.initialArea;this.disposed=false;
     this.center={x:.5,y:.5};this.velocity={x:0,y:0};this.group=new THREE.Group();this.group.name='London registered image stage';
     camera.fov=layout.fieldOfView;camera.aspect=ASPECT;camera.near=.1;camera.far=300;
@@ -190,7 +194,8 @@ export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThi
     content=validateAreaMetadata(await response.json(),registry);
   }
   layout=validateAreaGeometry(registry,registry.initialArea,layout,content?.residents,content?.expedition,content?.bossData);
-  if(!createGeometry(layout).clear({x:0,z:-6},.4))throw Error("London starting spawn is blocked");
+  const geometry=createGeometry(layout);
+  if(!geometry.clear(initialSpawn(geometry,registry),.4))throw Error("London starting spawn is blocked");
   const texture=await new THREE.TextureLoader().loadAsync(new URL(registry.asset(row.backdropRef).path,baseUrl).href);
   try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water,lootRules:content?.lootRules,progressionData:content?.progression,expeditionData:content?.expedition,bossData:content?.bossData});} catch(e){texture.dispose();throw e;}
 }
