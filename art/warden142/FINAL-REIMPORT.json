@@ -1,0 +1,794 @@
+{
+  "status": "PASS_SPECIFIC_ATTACHMENT_AND_FROZEN_MOTION_PROOF",
+  "finalSHA256": "f9aa42917152d967389b55139a5388f14798785551971be35bb23c79bf661b5b",
+  "allFrozenClipPayloadsExact": true,
+  "sourceMaterialsEncodedImagesExact": true,
+  "onlyAddedAttributeUntexturedBoneUV0AliasesUV1": true,
+  "frozenWeaponGeometryMaterialsExact": true,
+  "inputHashes": {
+    "frozenWarden": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+    "look": "f0e27949a27ac36be8e70d492bc14d94466b04190433d94556ab64a633390e7f"
+  },
+  "method": "Existing140 lookPlan ownIBMs/bodylocalidentity. Final reimport allgeometry/weights/index/IBM/jointorder/bind matrices sourceexact; frozenall36clip payloads exact. Independent source look references frozen carrier/actualboneposes. No derivedmatrix/retarget/hunch/scale/weapon edit.",
+  "attachment": [
+    {
+      "name": "Face",
+      "loadedFinalName": "Face_1",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 372
+    },
+    {
+      "name": "Photo",
+      "loadedFinalName": "Photo_1",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 8534
+    },
+    {
+      "name": "PhotoEyes",
+      "loadedFinalName": "PhotoEyes_1",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 1001
+    },
+    {
+      "name": "PhotoTeeth",
+      "loadedFinalName": "PhotoTeeth_1",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 729
+    },
+    {
+      "name": "Bone",
+      "loadedFinalName": "Bone",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 40
+    },
+    {
+      "name": "Pitborn_L3_Armour",
+      "loadedFinalName": "Pitborn_L3_Armour",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 43109
+    },
+    {
+      "name": "OriginalHead_Steel",
+      "loadedFinalName": "OriginalHead_Steel",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 153
+    },
+    {
+      "name": "OriginalHead_Wrap",
+      "loadedFinalName": "OriginalHead_Wrap",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 50
+    },
+    {
+      "name": "Fitted_joint_sleeves",
+      "loadedFinalName": "Fitted_joint_sleeves",
+      "uniqueGeometryVertexCountIdentity": true,
+      "ownInverseBindsAndJointOrderExact": true,
+      "allGeometryWeightsIndicesExact": true,
+      "sourceBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalBindMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "finalLocalMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "vertices": 640
+    }
+  ],
+  "boneCount": 65,
+  "clips": [
+    "Maul_Idle",
+    "Maul_Heavy"
+  ],
+  "maximumBoneMatrixDifference": 0,
+  "maximumWeaponMatrixDifference": 0,
+  "maximumWeightedSurfaceDifference": 4.577566798522237e-16,
+  "exact120TickMaulContactDifference": 0,
+  "reused72PoseProof": "HF6ad1f9fdc66288145225c045/compatibility.json; unchangedsourcegeometry/weights/IBMs andfrozenall36clips nowreimportexact; fourfinalspotposes plus121headframes only.",
+  "verticesCompared": 218512,
+  "nonfinite": 0,
+  "invalidWeights": 0,
+  "grip": [
+    {
+      "clip": "Maul_Idle",
+      "phase": 0,
+      "rightHandSurfaceDistanceToFrozenWeaponMount": 0.041398578868173316
+    },
+    {
+      "clip": "Maul_Idle",
+      "phase": 0.5,
+      "rightHandSurfaceDistanceToFrozenWeaponMount": 0.04139857874944106
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0,
+      "rightHandSurfaceDistanceToFrozenWeaponMount": 0.04139858542540501
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0.5,
+      "rightHandSurfaceDistanceToFrozenWeaponMount": 0.04137434408404084
+    }
+  ],
+  "bounds": [
+    {
+      "clip": "Maul_Idle",
+      "phase": 0,
+      "min": [
+        -0.5221535275346159,
+        -0.00728451531369749,
+        -0.47069477283788314
+      ],
+      "max": [
+        0.4256549655829083,
+        1.8423392497408855,
+        0.5282715841803527
+      ]
+    },
+    {
+      "clip": "Maul_Idle",
+      "phase": 0.5,
+      "min": [
+        -0.5603946006802883,
+        -0.008712336262466217,
+        -0.47170221949329666
+      ],
+      "max": [
+        0.4256414403845571,
+        1.8423391801031526,
+        0.5276823601882712
+      ]
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0,
+      "min": [
+        -0.5221535202301839,
+        -0.007284507732348934,
+        -0.4706948273379404
+      ],
+      "max": [
+        0.4256549522706068,
+        1.8423392981201936,
+        0.5282716462387028
+      ]
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0.5,
+      "min": [
+        -0.5221987102896917,
+        -0.007124799275200364,
+        -0.4914592760515057
+      ],
+      "max": [
+        0.40246187174323267,
+        1.7985713641643948,
+        0.7468275892008485
+      ]
+    }
+  ],
+  "bodyEnvelopes": [
+    {
+      "clip": "Maul_Idle",
+      "phase": 0,
+      "prior": {
+        "vertices": 15454,
+        "maxRadius": 0.36755722923681083,
+        "p95Radius": 0.340358032603535,
+        "worldP95Radius": 0.5694062251194913,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      },
+      "pitborn": {
+        "vertices": 6586,
+        "maxRadius": 0.35703250791659186,
+        "p95Radius": 0.335747148530288,
+        "worldP95Radius": 0.5616923889731019,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      }
+    },
+    {
+      "clip": "Maul_Idle",
+      "phase": 0.5,
+      "prior": {
+        "vertices": 15454,
+        "maxRadius": 0.3987164185561083,
+        "p95Radius": 0.37087940244342027,
+        "worldP95Radius": 0.6204673323102504,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      },
+      "pitborn": {
+        "vertices": 6586,
+        "maxRadius": 0.36459534024022905,
+        "p95Radius": 0.33968844431921547,
+        "worldP95Radius": 0.5682860290293855,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      }
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0,
+      "prior": {
+        "vertices": 15454,
+        "maxRadius": 0.36755721831188615,
+        "p95Radius": 0.3403580210500553,
+        "worldP95Radius": 0.5694062057909531,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      },
+      "pitborn": {
+        "vertices": 6586,
+        "maxRadius": 0.35703250602903697,
+        "p95Radius": 0.3357471490823091,
+        "worldP95Radius": 0.5616923898966125,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      }
+    },
+    {
+      "clip": "Maul_Heavy",
+      "phase": 0.5,
+      "prior": {
+        "vertices": 15454,
+        "maxRadius": 0.37164488503765875,
+        "p95Radius": 0.3436442849164,
+        "worldP95Radius": 0.5749040020044528,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      },
+      "pitborn": {
+        "vertices": 6586,
+        "maxRadius": 0.3511815646842957,
+        "p95Radius": 0.33415359370347364,
+        "worldP95Radius": 0.5590264315061475,
+        "unchangedWorldCollisionRadius": 0.48,
+        "unchangedWorldPistolReceiverRadius": 0.48,
+        "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+        "meleeReceiverSegmentY": [
+          0.69575,
+          1.8342499999999997
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Actual final portable GLB reimport verified; runtime portrait/maul/grip/body clearance visual acceptance still pending.",
+    "CPU image stub; texture bytes unchanged but no visual/render acceptance.",
+    "Surface equality proves exact attachment equation, not absence of self-intersection across every animation frame.",
+    "ActualsameWebportrait needed for distinctiveness/handgrip/material judgement."
+  ]
+}
