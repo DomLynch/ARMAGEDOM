@@ -231,6 +231,8 @@ async function start() {
     actors = createActors(scene, world, library, {
       visualScale: actorVisualScale,
     });
+    await actors.ensureAreaModels(game);
+    if(contextLost||disposed)return;
     pendingLibrary = null;
     effects = createEffects(scene, world, library.pistolAsset, () => actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),{hitMarker:document.getElementById("hit-marker"),getView:actor=>actors.views.get(actor.id)});
     atmosphere = createAtmosphere({THREE, scene, world});
@@ -271,6 +273,7 @@ async function start() {
       }),
     );
   } catch (error) {
+    if(contextLost||disposed)return;
     console.error("ARMAGEDOM_LOAD_FAILED", error);
     hud.failed(error.message);
     if (!loaded) {
