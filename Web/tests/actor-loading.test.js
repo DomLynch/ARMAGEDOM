@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { loadActors } from "../src/actors.js";
+import { loadActors,createActors } from "../src/actors.js";
 
 function resource() {
   const scene = new THREE.Group();
@@ -229,4 +229,18 @@ test('a transient deferred URL failure evicts only rejection and a shared retry 
  manifest(t,{vagrant:{url:'hero.glb'},'boss-one':{url:'shared-boss.glb',deferred:true},'boss-two':{url:'shared-boss.glb',deferred:true}});
  t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{if(path.endsWith('hero.glb'))return hero.gltf;if(++attempts===1)throw Error('temporary transport');return boss.gltf;});
  const library=await loadActors(url),failed=await Promise.allSettled([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert(failed.every(row=>row.status==='rejected'));assert.equal(attempts,1);assert(!library.models.has('boss-one'));await Promise.all([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert.equal(attempts,2);assert.equal(library.models.get('boss-one').gltf,library.models.get('boss-two').gltf);assert.deepEqual(hero.disposed,{geometry:0,material:0,texture:0});library.dispose();assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});
+});
+
+test('placement appearance readiness selects registered visual source without changing gameplay rig',async t=>{
+ const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
+ const calls=[],library={manifest:{pilot:'donor-knife',models:{look:{rig:'hollow-scavenger'},wrong:{rig:'boss-warden'}}},models:new Map(),ensureModels:async refs=>calls.push(refs),dispose(){}},actors=createActors(new THREE.Scene(),{layout:{},toRender:p=>new THREE.Vector3(p.x,0,-p.z)},library);t.after(()=>actors.dispose());
+ const entity={kind:0,rig:'hollow-scavenger',appearanceRef:'look'};await actors.ensureAreaModels({enemies:[entity],corpses:[{...entity}]});assert.deepEqual(calls,[['look']]);assert.equal(entity.rig,'hollow-scavenger');
+ for(const appearanceRef of ['unknown','wrong',null,'../look'])assert.throws(()=>actors.ensureAreaModels({enemies:[{...entity,appearanceRef}]}),/Invalid actor appearance reference/);assert.deepEqual(calls,[['look']]);
+ await actors.ensureAreaModels({enemies:[{kind:0,rig:'hollow-scavenger'}]});assert.deepEqual(calls[1],[],'ordinary residents keep existing ready foundation');
+});
+test('authored face and head descriptors reject invalid inputs and release owned sources',async t=>{
+ const hero=resource(),look=resource();manifest(t,{vagrant:{url:'hero.glb'},look:{url:'look.glb',faceRecipeId:'face-original',headParts:['Photo','PhotoEyes','PhotoTeeth']}});
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>path.endsWith('hero.glb')?hero.gltf:look.gltf);
+ await assert.rejects(loadActors(url),/Appearance head part missing: look\/Photo/);
+ for(const source of [hero,look])assert.deepEqual(source.disposed,{geometry:1,material:1,texture:1});
 });

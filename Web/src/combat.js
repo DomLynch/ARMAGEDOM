@@ -359,6 +359,7 @@ function declaredResident(g,placement,mobSize){
  const actor=hollowActor(g,placement.pos,0,foundation?1:mobSize);
  if(foundation&&foundation.runtimeIdentity!=='hollow-scavenger')Object.assign(actor,animalFoundationParameters(foundation.runtimeIdentity,g.player.combatScale),{animalRecipe:placement.recipeRef});
  else if(placement.recipeRef==='human-gaunt-skulker')actor.humanBodyRecipe=placement.recipeRef;
+ if(placement.appearanceRef!==undefined)actor.appearanceRef=placement.appearanceRef;
  return applyBossProfile(actor,placement,g.world.bossData);
 }
 export function initializeAreaResidents(g){

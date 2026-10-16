@@ -35,3 +35,10 @@ test('metadata validates globally without layouts; per-area and offline validati
  assert.throws(()=>validateAreaContent(c,registry,layouts),/Invalid registered area content/);
  const missing={...layouts};delete missing['layout.area8'];assert.throws(()=>validateAreaContent(raw(),registry,missing));
 });
+
+test('optional placement appearance is validated and forwarded without replacing native foundation or stats',()=>{
+ const original=validateAreaContent(raw(),registry,layouts),changed=raw();changed.residents['east-bridge'][0].appearanceRef='fixture-look';const data=validateAreaContent(changed,registry,layouts);
+ const game=content=>createGame({bossData:content.bossData,areaId:'east-bridge',layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true},{pilot:'donor-knife',areaResidents:true,openingGroup:false,residentPlacements:content.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
+ const before=game(original).enemies[0],after=game(data).enemies[0];assert.equal(after.appearanceRef,'fixture-look');for(const field of ['placementKey','rig','contactRig','weapon','hp','radius','combatScale','bodyScale','mobSize','home','patrol'])assert.deepEqual(after[field],before[field],field);
+ for(const value of [undefined,null,42,{},'../look']){const bad=raw();bad.residents['east-bridge'][0].appearanceRef=value;assert.throws(()=>validateAreaContent(bad,registry,layouts),/Invalid registered area content/);}
+});
