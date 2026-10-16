@@ -1,20 +1,18 @@
 import*as T from'three';
-import{positionBossLabel}from'./boss-label.js';
+import{createHeadLabelPositioner}from'./boss-label.js';
 export function createBossView(s){
  const host=document.getElementById('boss-labels');if(!host)return{update(){},dispose(){}};
- const labels=new Map(),patches=new Map(),heads=new WeakMap(),headPoint=new T.Vector3();let ring=null,disc=null,disposed=false;
+ const labels=new Map(),patches=new Map(),positionHead=createHeadLabelPositioner();let ring=null,disc=null,disposed=false;
  const removePatch=view=>{view.root.removeFromParent();view.fill.material.dispose();view.edge.material.dispose();};
  function update(){
   if(disposed)return;const g=s.game;if(!g)return;const active=s.loaded&&!s.contextLost&&!s.traveling&&g.player.hp>0;
   const live=new Set();for(const e of g.enemies.filter(e=>e.bossProfile&&e.hp>0)){
    live.add(e.id);let el=labels.get(e.id);if(!el){el=document.createElement('span');el.className='boss-world-label';el.dataset.bossKey=e.placementKey;host.append(el);labels.set(e.id,el);}
-   const near=Math.hypot(e.pos.x-g.player.pos.x,e.pos.z-g.player.pos.z)<12,view=s.actors?.views.get(e.id);let head=view&&heads.get(view);
-   if(view&&!head){view.model.traverse(o=>{if(o.isBone&&o.name.toLowerCase()==='head')head=o;});if(head)heads.set(view,head);}
-   el.hidden=!active||!near||!head;if(el.hidden)continue;
-   head.getWorldPosition(headPoint).project(s.camera);if(headPoint.z< -1||headPoint.z>1||Math.abs(headPoint.x)>1||Math.abs(headPoint.y)>1){el.hidden=true;continue;}
+   const near=Math.hypot(e.pos.x-g.player.pos.x,e.pos.z-g.player.pos.z)<12;
+   el.hidden=!active||!near;if(el.hidden)continue;
    if(el.textContent!==e.bossName)el.textContent=e.bossName;
-   const size=el.getBoundingClientRect(),x=(headPoint.x+1)*innerWidth/2,y=(1-headPoint.y)*innerHeight/2,margin=size.height;
-   const position=positionBossLabel({left:x-margin,right:x+margin,top:y-margin,bottom:y+margin},size,{width:innerWidth,height:innerHeight});el.style.left=`${position.left}px`;el.style.top=`${position.top}px`;
+   const position=positionHead(s.actors?.views.get(e.id),el.getBoundingClientRect(),s.camera,{width:innerWidth,height:innerHeight});
+   el.hidden=!position;if(position){el.style.left=`${position.left}px`;el.style.top=`${position.top}px`;}
   }
   for(const[id,el]of labels)if(!live.has(id)){el.remove();labels.delete(id);}
   const ids=new Set();for(const h of g.areaHazards??[]){

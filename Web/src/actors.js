@@ -19,9 +19,10 @@ import lowClip from './rat-data/low-slash.json' with {type:'json'};
 import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
-import {createFinisherPresentationSteps,finisherVictimPoseAge,presentedSeverFlash,validateHeadParts} from './finisher-presentation.js';
+import {createFinisherPresentationSteps,finisherVictimPoseAge,validateHeadParts} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
+const damageCrimson=new THREE.Color(0x831428);
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
@@ -361,7 +362,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     },
     configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
     resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
-    events(game){for(const e of game.events)if(e.type==='hit'&&!e.blocked&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
+    events(game){for(const e of game.events)if(e.type==='hit'&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;if(!e.blocked)v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
       for(const stored of parkedViews.values())for(const id of [...stored.keys()])remove(id,stored);parkedViews.clear();
@@ -423,17 +424,14 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.vest.setVisible(game.vest.equipped);view.vest.update();
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
-        const severFlash=presentedSeverFlash(entity,{started:!!view.finisherStarted,activePartCost:view.finisher?.stats().activePartCost??0});
-        const contrast=feedbackMode==='high'&&!reducedMotion()&&(view.impactFlashLife??0)>0;
-        const flash = !game.finished && entity.flashUntil > game.time||contrast;
+        // Only confirmed positive damage starts this window; legacy flashUntil also marks zero-damage blocks.
+        const flash=(view.impactFlashLife??0)>0;
         for (const m of view.flashMaterials) {
-          if (m.material.emissive) {
-            m.material.emissive.copy(
-              flash ? contrast&&severFlash?new THREE.Color(0x831428):new THREE.Color(...(contrast?[.95,.9,.78]:[.65,.2,.05])) : m.emissive,
-            );
-            m.material.emissiveIntensity = contrast?(severFlash?.35:1):flash ? 0.8 : m.intensity;
-            if(m.color)m.material.color.copy(contrast?new THREE.Color(severFlash?0x831428:'#fff3dd'):m.color);
+          if(m.material.emissive){
+            m.material.emissive.copy(flash?damageCrimson:m.emissive);
+            m.material.emissiveIntensity=flash?.35:m.intensity;
           }
+          if(m.color)m.material.color.copy(flash?damageCrimson:m.color);
         }
       }
     },

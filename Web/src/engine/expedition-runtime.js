@@ -1,5 +1,6 @@
 import {expeditionEligible,selectedPistolProfile} from './expedition-core.js';
 import {PISTOL_ITEM_ID} from '../core/pistol-operation.js';
+import {createHeadLabelPositioner} from './boss-label.js';
 import {createVestBagView} from '../vest-view.js';
 const areaName=id=>id.replace(/^area(\d+)$/,'Area $1').replaceAll('-',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const paint=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
@@ -10,7 +11,7 @@ export function expeditionObjective(g){const c=g.world.expeditionData?.contract,
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s,dispatch){
  const el=id=>document.getElementById(id),panel=el('expedition-panel');if(!panel)return{update(){},interact(){return false;},dispose(){}};
- const listeners=[],nodes=new Map(),choices=new Map(),materialColors=new WeakMap();let catalogue=null,caseView=null,pin=null,currentAction=null,disposed=false;
+ const listeners=[],nodes=new Map(),choices=new Map(),materialColors=new WeakMap(),positionHead=createHeadLabelPositioner();let catalogue=null,caseView=null,pin=null,currentAction=null,disposed=false;
  const listen=(target,handler)=>{target.addEventListener('click',handler);listeners.push(()=>target.removeEventListener('click',handler));};
  const allowed=()=>s.loaded&&!s.contextLost&&!s.traveling;
  function execute(command){const g=s.game;if(!g)return;const result=dispatch(g,command,allowed());if(result.ok){g.events.push(...result.events);if(command.type==='expedition'){g.message={accept:'Contract accepted. Find the stolen case in East.',recover:'Case recovered. Return to the Westminster stash.',claim:'Reward earned. Choose Watchman’s Pistol in Equipment.'}[command.action];g.messageUntil=g.time+4;}}update();return result;}
@@ -61,7 +62,11 @@ export function createExpeditionView(s,dispatch){
   if(caseVisible&&!caseView){caseView=createVestBagView();caseView.root.name='Stolen supply case';caseView.root.scale.setScalar(1.35);s.scene.add(caseView.root);}
   if(caseView){caseView.root.visible=caseVisible;caseView.root.position.copy(g.world.toRender(c.case.position));}
   const caseLabel=el('expedition-case-label');caseLabel.hidden=true;if(caseVisible)label(caseLabel,c.case.position,.7,'SUPPLY CASE · COLLECT');
-  const guardLabel=el('expedition-guard-label'),guard=g.enemies.find(e=>e.placementKey===c.guard.placementKey&&e.hp>0);guardLabel.hidden=true;if(allowed()&&g.world.areaId===c.guard.areaId&&guard&&Math.hypot(guard.pos.x-g.player.pos.x,guard.pos.z-g.player.pos.z)<10)label(guardLabel,guard.pos,2.1,c.guard.name);
+  const guardLabel=el('expedition-guard-label'),guard=g.enemies.find(e=>e.placementKey===c.guard.placementKey&&e.hp>0);guardLabel.hidden=true;
+  if(allowed()&&g.world.areaId===c.guard.areaId&&guard&&Math.hypot(guard.pos.x-g.player.pos.x,guard.pos.z-g.player.pos.z)<10){
+   guardLabel.hidden=false;paint(guardLabel,c.guard.name);const position=positionHead(s.actors?.views.get(guard.id),guardLabel.getBoundingClientRect(),s.camera,{width:innerWidth,height:innerHeight});
+   guardLabel.hidden=!position;if(position){guardLabel.style.left=`${position.left}px`;guardLabel.style.top=`${position.top}px`;}
+  }
   const playerView=s.actors?.views.get(0),variant=state.selectedPistolVariant;
   if(playerView?.pistolMount){const tint=data.variants[variant].tint;playerView.pistolMount.traverse(mesh=>{for(const material of[mesh.material].flat().filter(Boolean)){if(!material.color)continue;if(!materialColors.has(material))materialColors.set(material,{base:material.color.clone(),color:material.color.clone(),variant:null});const saved=materialColors.get(material);if(saved.variant!==variant){saved.color.copy(saved.base).multiply(material.color.clone().setHex(tint));saved.variant=variant;}material.color.copy(saved.color);}});playerView.expeditionVariant=variant;}
  }
