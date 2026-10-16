@@ -525,3 +525,5 @@ summary {
 #atlas-nodes button[data-current="true"] {background:#384c4d;}
 #atlas-nodes button:disabled {opacity:.6;}
 @media (orientation:landscape) {#expedition-objective {top:calc(var(--safe-t) + 154px);}}
+
+.boss-world-label {position:absolute;max-width:calc(100vw - 16px);color:#f4ead1;font-size:11px;line-height:1.25;text-align:center;text-shadow:0 1px 3px #000,0 0 4px #000;pointer-events:none;}
