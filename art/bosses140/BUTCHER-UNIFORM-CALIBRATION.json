@@ -1,0 +1,15 @@
+{
+  "atUTC": "2026-10-16T06:11:38.957002+00:00",
+  "status": "WEB_MEASURED_UNIFORM_BUTCHER_SCALE_CALIBRATION_ACTUAL_CONTACT_TEST_PENDING",
+  "supersedes": "THREE-BOSS-PORTABLE-HANDOFF.json descriptor.scale1 for boss-butcher only",
+  "modelSHA256": "849d62249dd737ec4eb8df5f313604cf407fcd9ae8d63e9808817808385606b1",
+  "traceSHA256": "7af4bfb05361a8f2a5c29b3ad73686b84c6f4ba243818a9b1e0d31008030d523",
+  "descriptorScale": 0.75,
+  "forwardCorrection": 0,
+  "layoutScale": 1.265,
+  "visualWrapper": 1.3225,
+  "actualWorldContactScale": 1.254721875,
+  "measurement": "NativecleaverbladeY1.731..1.738 atactivephases; unscaledworld2.896m exceedsplayercapsulecap2.227m. Uniform.75\u2192~2.17m andsilhouette~2.70m comparableSurgeon2.77m.",
+  "qualification": "Yrange alone isnotfullcapsulecontact; Web actualcontinuoussegmentcapsuletest +nativevisualgrip required. Rawtraceassetunitsunchanged anddescriptorScale1intracewasbaseline, notauthorityovercalibratedprofile.",
+  "constraints": "No GLB/tracebytes/rig/weapon/hitbox/reachpad changes. Allpreservation/nativeassetproofreused; finalordinaryviews useactualprofile.75. DoctorandWardenscale1unchanged."
+}

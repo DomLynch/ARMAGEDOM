@@ -1,0 +1,49 @@
+{
+  "validator": "2.0.0-dev.3.10",
+  "maxIssues": 0,
+  "rows": [
+    {
+      "name": "boss-surgeon",
+      "sha256": "872880e1986a1e61f8102b1d366ca9f8f7b7808c9f29236613fd47e273ddbff8",
+      "bytes": 3812840,
+      "errors": 0,
+      "warnings": 9305,
+      "infos": 12,
+      "codes": {
+        "NODE_EMPTY": 6,
+        "NODE_SKINNED_MESH_NON_ROOT": 2,
+        "UNUSED_OBJECT": 6,
+        "ACCESSOR_JOINTS_USED_ZERO_WEIGHT": 9303
+      }
+    },
+    {
+      "name": "boss-butcher",
+      "sha256": "2afc6d13f60dfbdceda0c039455aac57d439ed1a5da225979d428f0bb0634921",
+      "bytes": 4835112,
+      "errors": 0,
+      "warnings": 14739,
+      "infos": 12,
+      "codes": {
+        "NODE_EMPTY": 9,
+        "NODE_SKINNED_MESH_NON_ROOT": 7,
+        "UNUSED_OBJECT": 3,
+        "ACCESSOR_JOINTS_USED_ZERO_WEIGHT": 14732
+      }
+    },
+    {
+      "name": "boss-warden",
+      "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+      "bytes": 6047764,
+      "errors": 0,
+      "warnings": 8498,
+      "infos": 23,
+      "codes": {
+        "UNUSED_OBJECT": 21,
+        "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 2,
+        "NODE_EMPTY": 2,
+        "NODE_SKINNED_MESH_NON_ROOT": 2,
+        "ACCESSOR_JOINTS_USED_ZERO_WEIGHT": 8494
+      }
+    }
+  ]
+}

@@ -378,14 +378,16 @@
       "url": "bosses/boss-surgeon.glb",
       "rig": "boss-surgeon",
       "deferred": true,
-      "bytes": 3892748,
-      "sha256": "1dbd9f575f8e05fbf562f13e515c438a71d0058054342452f763ee74356993cb",
+      "bytes": 3812840,
+      "sha256": "872880e1986a1e61f8102b1d366ca9f8f7b7808c9f29236613fd47e273ddbff8",
       "provenance": {
         "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
         "levelSelection": "L2 browncloth/leather mask",
         "originalUnprunedSHA256": "dd5e955f0fe1cfe045e9b7c2b2b5c9bf97f6ba0d5ff8c194e3345f0d195d1079",
         "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "c7cac409d8e7bdf345c63b504c2fbf9f79d4bb1cbb583bd3a34bc69f2ded80ab"
+        "contactSHA256": "dfd786d6844a6095494713cbf89eb0173f2a5061ff55a6302c09b6a31509f24e",
+        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
+        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
       }
     },
     "boss-butcher": {
@@ -412,14 +414,16 @@
       "url": "bosses/boss-butcher.glb",
       "rig": "boss-butcher",
       "deferred": true,
-      "bytes": 4915204,
-      "sha256": "849d62249dd737ec4eb8df5f313604cf407fcd9ae8d63e9808817808385606b1",
+      "bytes": 4835112,
+      "sha256": "2afc6d13f60dfbdceda0c039455aac57d439ed1a5da225979d428f0bb0634921",
       "provenance": {
         "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
         "levelSelection": "L2 hood/cloth+cleaverreplacingScythegeometry",
         "originalUnprunedSHA256": "32742783a84a89c61445bd27dffaa870599e648823f18a1dead588bbbdd9acc1",
         "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "7af4bfb05361a8f2a5c29b3ad73686b84c6f4ba243818a9b1e0d31008030d523"
+        "contactSHA256": "08f2ccd4a2dd1e8d8925cb9f2da6e8bd2e0e211411342d3087bac72b23358a94",
+        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
+        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
       }
     },
     "boss-warden": {
@@ -446,14 +450,16 @@
       "url": "bosses/boss-warden.glb",
       "rig": "boss-warden",
       "deferred": true,
-      "bytes": 6127220,
-      "sha256": "3ac71c8513f8f0516ea14d506cadeb243fa2e083a91a691b9c93112d2d561385",
+      "bytes": 6047764,
+      "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
       "provenance": {
         "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
         "levelSelection": "L6 ironarmour+nativeheavymaul",
         "originalUnprunedSHA256": "c3ba3ad829c6194e3fe8b4327681aae7c675d45b8a52c8de118ee2275a7918c7",
         "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "718107d206f33119f9d4dc1fcc67f1be98aef47a9e53f10b959dd52b5735b890"
+        "contactSHA256": "e0a54a4d8f359810ee44d4e73e04c6b75380266ddb284f16c5cbd0b352f3b12a",
+        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
+        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
       }
     }
   },
