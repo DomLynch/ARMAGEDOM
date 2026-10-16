@@ -1,3 +1,4 @@
+import{meleeContactPosePhase}from'./engine/melee-equipment-data.js';
 // Only the selected original-rat Stab/Heavy gets the existing low pose.
 // Preserve action authority/cadence. This pose is explicitly retimed, NOT 1x.
 export function ratMeleeDefinition(action,base,low,{rig}={}){
@@ -13,6 +14,7 @@ export function ratMeleeDefinition(action,base,low,{rig}={}){
 // Same phase for actual rendered pose and contact metadata. Fractional bake
 // endpoints are NOT used: caller captures the actual posed WeaponDrawn blade.
 export function ratMeleePosePhase(swing,phaseSampler){
+ if(swing?.def?.contactPose)return meleeContactPosePhase(swing);
  if(!swing?.def?.ratRetimed)return phaseSampler(swing.ageTicks,swing.timing,swing.sourceContact);
  if(swing.clip!=='RatLowSlash'||swing.native!==false||typeof phaseSampler!=='function')
    throw Error('Retimed rat melee requires its displayed low-pose sampler');
