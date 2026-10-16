@@ -1,0 +1,754 @@
+{
+  "atUTC": "2026-10-16T10:33:12.925292+00:00",
+  "status": "PORTABLE_PITBORN_APPEARANCE_READY_FOR_WEB_RUNTIME_VISUAL_NOT_PUBLISHED",
+  "model": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/reimport-receipt/src/export/boss-warden.glb",
+    "sha256": "f9aa42917152d967389b55139a5388f14798785551971be35bb23c79bf661b5b",
+    "bytes": 6174132,
+    "activeDraws": 21,
+    "activeVertices": 56844,
+    "activeTriangles": 57261,
+    "materials": 7,
+    "images": 8,
+    "bones": 65,
+    "clips": 36
+  },
+  "appearanceSource": {
+    "path": "/opt/frankendom-shadow/repo/public/looks/pitborn-L3-phone.glb",
+    "sha256": "f0e27949a27ac36be8e70d492bc14d94466b04190433d94556ab64a633390e7f",
+    "bytes": 1948492,
+    "clips": [],
+    "jointCount": 65,
+    "jointNames": [
+      "root",
+      "pelvis",
+      "spine_01",
+      "spine_02",
+      "spine_03",
+      "neck_01",
+      "Head",
+      "clavicle_l",
+      "upperarm_l",
+      "lowerarm_l",
+      "hand_l",
+      "index_01_l",
+      "index_02_l",
+      "index_03_l",
+      "index_04_leaf_l",
+      "middle_01_l",
+      "middle_02_l",
+      "middle_03_l",
+      "middle_04_leaf_l",
+      "pinky_01_l",
+      "pinky_02_l",
+      "pinky_03_l",
+      "pinky_04_leaf_l",
+      "ring_01_l",
+      "ring_02_l",
+      "ring_03_l",
+      "ring_04_leaf_l",
+      "thumb_01_l",
+      "thumb_02_l",
+      "thumb_03_l",
+      "thumb_04_leaf_l",
+      "clavicle_r",
+      "upperarm_r",
+      "lowerarm_r",
+      "hand_r",
+      "index_01_r",
+      "index_02_r",
+      "index_03_r",
+      "index_04_leaf_r",
+      "middle_01_r",
+      "middle_02_r",
+      "middle_03_r",
+      "middle_04_leaf_r",
+      "pinky_01_r",
+      "pinky_02_r",
+      "pinky_03_r",
+      "pinky_04_leaf_r",
+      "ring_01_r",
+      "ring_02_r",
+      "ring_03_r",
+      "ring_04_leaf_r",
+      "thumb_01_r",
+      "thumb_02_r",
+      "thumb_03_r",
+      "thumb_04_leaf_r",
+      "thigh_l",
+      "calf_l",
+      "foot_l",
+      "ball_l",
+      "ball_leaf_l",
+      "thigh_r",
+      "calf_r",
+      "foot_r",
+      "ball_r",
+      "ball_leaf_r"
+    ],
+    "sceneExtras": {
+      "keep": [],
+      "rebaked": [
+        "Face",
+        "OriginalHead_Steel",
+        "OriginalHead_Wrap",
+        "Photo",
+        "PhotoEyes",
+        "PhotoTeeth",
+        "Pitborn_L3_Armour"
+      ]
+    },
+    "materials": [
+      "Bone",
+      "Fitted dark leather joint sleeves",
+      "L3_Rebaked"
+    ],
+    "meshes": [
+      {
+        "name": "Face",
+        "skin": 10,
+        "vertices": 372
+      },
+      {
+        "name": "Photo",
+        "skin": 11,
+        "vertices": 8534
+      },
+      {
+        "name": "PhotoEyes",
+        "skin": 12,
+        "vertices": 1001
+      },
+      {
+        "name": "PhotoTeeth",
+        "skin": 13,
+        "vertices": 729
+      },
+      {
+        "name": "Bone",
+        "skin": 14,
+        "vertices": 40
+      },
+      {
+        "name": "Pitborn_L3_Armour",
+        "skin": 9,
+        "vertices": 43109
+      },
+      {
+        "name": "OriginalHead_Steel",
+        "skin": 0,
+        "vertices": 153
+      },
+      {
+        "name": "OriginalHead_Wrap",
+        "skin": 7,
+        "vertices": 50
+      },
+      {
+        "name": "Fitted joint sleeves",
+        "skin": 9,
+        "vertices": 640
+      }
+    ],
+    "weaponNodes": [
+      {
+        "rotation": [
+          0.7071067811865475,
+          0,
+          0,
+          0.7071067811865476
+        ],
+        "translation": [
+          0,
+          0.08,
+          0.015
+        ],
+        "name": "WeaponDrawn",
+        "extras": {
+          "name": "WeaponDrawn",
+          "contact": {
+            "from": 0.14,
+            "to": 0.86
+          },
+          "weapon": "cleaver",
+          "variant": "trellis"
+        },
+        "children": [
+          59,
+          60
+        ]
+      }
+    ]
+  },
+  "sourceRevision": "836aa5f3dab0755d033ee23ad6d1b2a85de874c0",
+  "frozenCarrier": {
+    "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+    "clip": "Maul_Heavy",
+    "retimedTicks": 120,
+    "all36ClipsExact": true,
+    "descriptorScale": 1,
+    "forwardCorrection": 0,
+    "stride": 1,
+    "layoutScale": 1.265,
+    "visualWrapper": 1.3225,
+    "minimumAttackDistance": 1.2,
+    "unchangedReceivers": {
+      "collisionAndPistolRadius": 0.48,
+      "meleeRadius": 0.39215,
+      "meleeSegmentY": [
+        0.69575,
+        1.83425
+      ]
+    },
+    "contract": "SAMEboss-warden/modelref/boss-warden-v1placement/save/rewards/routes/AI/spacing/timing/contactpaths. ONLY appearanceGLBchanges. No1.13/hunch ornativecleaverclips."
+  },
+  "attachment": "Proven140 helper/bodylocalIDENTITY/OWNlookIBMs/jointorder preserved; actualsource/frozenLoaderbindsIDENTITY. No derivedadapter. Inactiveanchors retained; loadedFace/Photo_1 names mappedbyuniquegeometrysignatures, notassumedrawnames.",
+  "strictFormat": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/format-receipt/src/results/FORMAT-FULL.json",
+    "sha256": "4e32cd297070f89b7ba9ade220927f8aea9fff79a2e78ba66f90bb35dd466313",
+    "summary": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/reimport-receipt/src/results/FORMAT-SUMMARY.json",
+      "sha256": "8a85543b0d009f0438b5331925521fcdae1139a51073d5d948f6a9661d425c52"
+    },
+    "validator": "2.0.0-dev.3.10",
+    "maxIssues": 0,
+    "errors": 0,
+    "warnings": 21825,
+    "truncated": false,
+    "qualification": "Strictformat0errors raninsideoriginaljobwhoseoverallEXIT1waslaterQAnamefailure; originalfailurekept."
+  },
+  "metadataRepair": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/reimport-receipt/src/results/UV-ALIAS-REPAIR.json",
+    "sha256": "d4c07ff38a420f9d7e5badbe4eef47935b8cdc9b740c1ec850f1bffca0a1b727",
+    "scope": "Bone40vertices: aliasUV0=existingUV1, retain1/allbinarybytes/PBRconstantuntexturedmaterial/noextensions. No newtextureinput."
+  },
+  "finalReimport": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/reimport-receipt/src/results/FINAL-REIMPORT.json",
+    "sha256": "6db814ab2d3cac546712a3e2041c5e0f1fd2551950ddf7861b9bbb2fafe7a8cd",
+    "job": "6ad1fcbc5ccb47ba0f7b1ebf",
+    "identity": "cde88d47111c324d9a9f5bf2d0866a55f0a5ab0bd938818db578732be2f928f8",
+    "terminal": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/reimport-receipt/result.json",
+      "sha256": "321121260a85d74776b39b71a2312d59339ed28bb37199a46a92245666707075"
+    },
+    "exit": 0,
+    "elapsedSeconds": 2.545541524887085,
+    "allFiveRecoveredOutputHashesVerified": true,
+    "sourceAllGeometryWeightsIndicesOwnIBMsJointOrderEncodedImagesMaterialsExact": true,
+    "frozenAll36ClipsAndRigidMaulGeometryMaterialsExact": true,
+    "boneMatrixDelta": 0,
+    "weaponMatrixDelta": 0,
+    "actual120TickHeadTraceDelta": 0,
+    "finalFourPoseVerticesCompared": 218512,
+    "maxSurfaceDelta": 4.577566798522237e-16
+  },
+  "reused72PoseProof": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/compatibility-receipt/src/results/compatibility.json",
+    "sha256": "1d347eac18306988000242de9ba02c360b59fb94934445f27738b5553e999271",
+    "job": "6ad1f9fdc66288145225c045",
+    "exit": 0,
+    "elapsedSeconds": 7.0403687953948975,
+    "weightedComparisons": 3933216,
+    "qualification": "Exactsourcegeometry/weights/IBMs+frozen36clips provenonfinalreimport; prototypeunnecessarylocalmatrixnotretained (attachedskinmatrixWorldinversecancels). Final4spotposes/121trace verifiedexport; no3.93MrepeatforUVmetadata."
+  },
+  "gripQualification": "Right-handweighted surface nearestFROZENmount3.89\u20134.15cmasset; mountdistanceNOTfinger/shaftclearance/baselinegripPASS. ActualSAMEportrait/Maulmotionmustjudgegrip.",
+  "bodyExtent": {
+    "measurement": "Vertices>75%pelvis/spineweighted radialdistancefromactororigin, worldfactor1.6729625; compareagainstoldKnight andactualreceiversseparately.",
+    "rows": [
+      {
+        "clip": "Maul_Idle",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.36755722923681083,
+          "p95Radius": 0.340358032603535,
+          "worldP95Radius": 0.5694062251194913,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.35703250791659186,
+          "p95Radius": 0.335747148530288,
+          "worldP95Radius": 0.5616923889731019,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Idle",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.3987164185561083,
+          "p95Radius": 0.37087940244342027,
+          "worldP95Radius": 0.6204673323102504,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.36459534024022905,
+          "p95Radius": 0.3396884443192154,
+          "worldP95Radius": 0.5682860290293853,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Walk",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.34696185282674913,
+          "p95Radius": 0.28103641437589905,
+          "worldP95Radius": 0.47016338238533995,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.32181085789663577,
+          "p95Radius": 0.2910847415714988,
+          "worldP95Radius": 0.4869738569713085,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Walk",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.3570680485560857,
+          "p95Radius": 0.27335598836605646,
+          "worldP95Radius": 0.4573143176868487,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.33250660968838447,
+          "p95Radius": 0.294468425764581,
+          "worldP95Radius": 0.49263463373817784,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Heavy",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.36755721831188615,
+          "p95Radius": 0.3403580210500553,
+          "worldP95Radius": 0.5694062057909531,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.35703250602903697,
+          "p95Radius": 0.3357471490823091,
+          "worldP95Radius": 0.5616923898966125,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Heavy",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.37164488503765875,
+          "p95Radius": 0.3436442849164,
+          "worldP95Radius": 0.5749040020044528,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.3511815646842957,
+          "p95Radius": 0.33415359370347364,
+          "worldP95Radius": 0.5590264315061475,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Guard",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.36755721957470633,
+          "p95Radius": 0.3403580211867797,
+          "worldP95Radius": 0.5694062060196879,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.3570325061116854,
+          "p95Radius": 0.33574714915091075,
+          "worldP95Radius": 0.5616923900113805,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Guard",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.37784822814723634,
+          "p95Radius": 0.35559841915078966,
+          "worldP95Radius": 0.5949028202985529,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.3561852660129483,
+          "p95Radius": 0.3373698171813768,
+          "worldP95Radius": 0.564407052776299,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Hit",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.3626806637045972,
+          "p95Radius": 0.3390166759435705,
+          "worldP95Radius": 0.5671621857282455,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.40727454775448757,
+          "p95Radius": 0.3561169895323503,
+          "worldP95Radius": 0.5957703691005146,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Hit",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.3477479170824638,
+          "p95Radius": 0.3221701744828418,
+          "worldP95Radius": 0.5389786205282512,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.3551612435700562,
+          "p95Radius": 0.30214213578245774,
+          "worldP95Radius": 0.50547246283396,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Death",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.36221836669578117,
+          "p95Radius": 0.3135608461843024,
+          "worldP95Radius": 0.5245755371346059,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.3354074242324631,
+          "p95Radius": 0.2947531279514425,
+          "worldP95Radius": 0.49311092982046506,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Maul_Death",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 1.1494477670566017,
+          "p95Radius": 1.0823554205996768,
+          "worldP95Radius": 1.8107400303349868,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 1.2961170695716242,
+          "p95Radius": 1.2051090746878503,
+          "worldP95Radius": 2.016102290362473,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Roll",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.4556167090170883,
+          "p95Radius": 0.37461334829889575,
+          "worldP95Radius": 0.6267140837034914,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.37224187147407384,
+          "p95Radius": 0.3315095136071621,
+          "worldP95Radius": 0.5546029846580218,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Roll",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.43110190869828696,
+          "p95Radius": 0.38967722450307835,
+          "worldP95Radius": 0.6519153836977312,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.4840843720023037,
+          "p95Radius": 0.4316168893627467,
+          "worldP95Radius": 0.7220788702705241,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Kick",
+        "phase": 0,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.4570920745983511,
+          "p95Radius": 0.3920915663056256,
+          "worldP95Radius": 0.6559544869955751,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.35390770413007755,
+          "p95Radius": 0.33717799331483644,
+          "worldP95Radius": 0.564086138640972,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      },
+      {
+        "clip": "Kick",
+        "phase": 0.5,
+        "prior": {
+          "vertices": 15454,
+          "maxRadius": 0.4713849606256551,
+          "p95Radius": 0.40729354914528565,
+          "worldP95Radius": 0.6813868342119699,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        },
+        "pitborn": {
+          "vertices": 6586,
+          "maxRadius": 0.37511130724005576,
+          "p95Radius": 0.34429024579210366,
+          "worldP95Radius": 0.5759846703259722,
+          "unchangedWorldCollisionRadius": 0.48,
+          "unchangedWorldPistolReceiverRadius": 0.48,
+          "unchangedWorldMeleeReceiverRadius": 0.39214999999999994,
+          "meleeReceiverSegmentY": [
+            0.69575,
+            1.8342499999999997
+          ]
+        }
+      }
+    ],
+    "qualification": "Mainidle/walk/heavy/guardMAXtorsoextents smallerthanKnight; hitphase0maxold.607/new.681m (+7.5cm), deathfallenmax+24.5cm(notlivingreceiver), p95walk+3.5cmpossible. No scale/capsulepadding; notuniversalhitfairnessclaim."
+  },
+  "failuresRetained": {
+    "prototypeCarrierName": "299c53a1/EXIT1/1.67s",
+    "preFormat": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/pre-format-receipt/result.json",
+      "sha256": "1f34ba14c99ab299b80e645a66b7d6fb4122b5cb6b62305867ea92b5672b1463"
+    },
+    "strictPassedThenQAName": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-warden-replacement-art-20261016/format-receipt/result.json",
+      "sha256": "5d795c27be1171e390d158c4422e504abe47614f51ada2cfd6014d72df1286bc"
+    }
+  },
+  "next": "Web appearance-only successor onlabel141parent: exactGLB, ONEordinaryWardenattack/grip/bodyvisibility+exit sample, SAMEactualLondonportrait forArt/Audit/Lead. No newAI/hitbox/routes/save orArtbeautyrenders. Publicationonlyafteracceptance;141/140rollbackretained.",
+  "constraints": "Frankendom/Claude/liveoriginalsREADONLY; noGPU/generation/newframework; allownedHFterminal/noactivecompute."
+}

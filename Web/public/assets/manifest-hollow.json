@@ -450,16 +450,19 @@
       "url": "bosses/boss-warden.glb",
       "rig": "boss-warden",
       "deferred": true,
-      "bytes": 6047764,
-      "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+      "bytes": 6174132,
+      "sha256": "f9aa42917152d967389b55139a5388f14798785551971be35bb23c79bf661b5b",
       "provenance": {
-        "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
-        "levelSelection": "L6 ironarmour+nativeheavymaul",
-        "originalUnprunedSHA256": "c3ba3ad829c6194e3fe8b4327681aae7c675d45b8a52c8de118ee2275a7918c7",
-        "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
+        "sourceFrankendomHEAD": "836aa5f3dab0755d033ee23ad6d1b2a85de874c0",
+        "levelSelection": "Pitborn L3 pale bone/hide appearance on frozen Warden Maul carrier",
+        "appearanceSourceSHA256": "f0e27949a27ac36be8e70d492bc14d94466b04190433d94556ab64a633390e7f",
+        "frozenCarrierSHA256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+        "frozenCarrierFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
+        "frozenCarrierLineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
         "contactSHA256": "e0a54a4d8f359810ee44d4e73e04c6b75380266ddb284f16c5cbd0b352f3b12a",
-        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
-        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
+        "portableHandoffSHA256": "45a37288865fe5645eaf764f1df9bff02640330703850cb94accf02b5f698fd1",
+        "finalReimportSHA256": "6db814ab2d3cac546712a3e2041c5e0f1fd2551950ddf7861b9bbb2fafe7a8cd",
+        "qualification": "Appearance only; own inverse binds, frozen36clips/maul/bones/contact preserved; Bone40 UV0 aliases existing UV1 without binary change. 21825 validator warnings retained. Grip/body extent/runtime portrait acceptance recorded in portable handoff."
       }
     }
   },

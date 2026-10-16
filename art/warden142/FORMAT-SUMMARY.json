@@ -1,0 +1,16 @@
+{
+  "sha256": "f9aa42917152d967389b55139a5388f14798785551971be35bb23c79bf661b5b",
+  "bytes": 6174132,
+  "validator": "2.0.0-dev.3.10",
+  "maxIssues": 0,
+  "errors": 0,
+  "warnings": 21825,
+  "truncated": false,
+  "codes": {
+    "UNUSED_OBJECT": 23,
+    "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE": 2,
+    "NODE_EMPTY": 2,
+    "NODE_SKINNED_MESH_NON_ROOT": 9,
+    "ACCESSOR_JOINTS_USED_ZERO_WEIGHT": 21814
+  }
+}
