@@ -224,3 +224,9 @@ test('late deferred completion after disposal is released and cannot publish a s
  t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>path.endsWith('hero.glb')?hero.gltf:new Promise(resolve=>finish=()=>resolve(boss.gltf)));
  const library=await loadActors(url),pending=library.ensureModels(['boss']);await Promise.resolve();library.dispose();finish();await assert.rejects(pending,/disposed/);assert.equal(library.models.size,0);assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});await assert.rejects(library.ensureModels(['boss']),/disposed/);
 });
+test('a transient deferred URL failure evicts only rejection and a shared retry can succeed',async(t)=>{
+ const hero=resource(),boss=resource();let attempts=0;
+ manifest(t,{vagrant:{url:'hero.glb'},'boss-one':{url:'shared-boss.glb',deferred:true},'boss-two':{url:'shared-boss.glb',deferred:true}});
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{if(path.endsWith('hero.glb'))return hero.gltf;if(++attempts===1)throw Error('temporary transport');return boss.gltf;});
+ const library=await loadActors(url),failed=await Promise.allSettled([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert(failed.every(row=>row.status==='rejected'));assert.equal(attempts,1);assert(!library.models.has('boss-one'));await Promise.all([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert.equal(attempts,2);assert.equal(library.models.get('boss-one').gltf,library.models.get('boss-two').gltf);assert.deepEqual(hero.disposed,{geometry:0,material:0,texture:0});library.dispose();assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});
+});

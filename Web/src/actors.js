@@ -58,15 +58,13 @@ export async function loadActors(
   const urls = new Map();
   const sources = new Set();
   function load(url) {
-    if (!urls.has(url))
-      urls.set(
-        url,
-        loader.loadAsync(url).then((gltf) => {
-          if(disposed){disposeActorSources(new Set([gltf]));throw Error('Actor library disposed');}
-          sources.add(gltf);
-          return gltf;
-        }),
-      );
+    if(!urls.has(url)){
+      const pending=loader.loadAsync(url).then(gltf=>{
+        if(disposed){disposeActorSources(new Set([gltf]));throw Error('Actor library disposed');}
+        sources.add(gltf);return gltf;
+      }).catch(error=>{if(urls.get(url)===pending)urls.delete(url);throw error;});
+      urls.set(url,pending);
+    }
     return urls.get(url);
   }
   let disposed = false;
