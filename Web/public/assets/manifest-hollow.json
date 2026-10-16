@@ -637,6 +637,37 @@
         "OriginalHead_Steel",
         "OriginalHead_Wrap"
       ]
+    },
+    "vagrant-cleaver": {
+      "url": "donor/warrior.glb",
+      "rig": "hero",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
+        "special": "Skill_Pommel",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "parry": "Parry",
+        "block": "BlockImpact",
+        "deflected": "Deflected"
+      },
+      "equipment": {
+        "url": "weapons/pitborn-cleaver.glb",
+        "bytes": 410920,
+        "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"
+      },
+      "deferred": true
     }
   },
   "files": {

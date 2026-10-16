@@ -1,3 +1,4 @@
+import{syncMeleeEquipment}from'../melee-equipment.js';
 import{createUniqueRewardModel}from'./unique-reward-state.js';
 import{createUniqueRewardComponent}from'./unique-reward-core.js';
 import{uniqueRewardSourceDead,uniqueRewardDropPosition}from'./unique-reward-runtime.js';
@@ -51,7 +52,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  let pistolScope=null;
  const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
- const executeDomain=createRunOperation({getRun,setRun,createFreshRun(){const candidate=createFreshRun(),e=expedition();if(e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);},claimPickup,equip:pistolOperation});
+ const executeDomain=createRunOperation({getRun,setRun,createFreshRun(){const candidate=createFreshRun(),e=expedition();if(e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
  const core=createCore({executeDomain(command,context){return uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
@@ -71,7 +72,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  function dispatchUniqueReward(g,command,allowed){
   if(g!==getRun()||uniqueScope||!uniqueReward())return{ok:false,code:'not-eligible',events:[]};
   uniqueScope={run:g,allowed:allowed===true};
-  try{const result=core.dispatch(command);if(!result.ok&&result.code==='storage-unavailable'){g.message='Saving unavailable. Equipment kept.';g.messageUntil=g.time+5;}return result;}
+  try{const result=core.dispatch(command);if(result.ok&&g.world.uniqueRewardData)syncMeleeEquipment(g);if(!result.ok&&result.code==='storage-unavailable'){g.message='Saving unavailable. Equipment kept.';g.messageUntil=g.time+5;}return result;}
   finally{uniqueScope=null;}
  }
  function persistRun(g){
@@ -87,7 +88,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   }
   persistRun(g);
  }
- function retry(){return core.dispatch({type:'retry'}).ok;}
+ function retry(){const result=core.dispatch({type:'retry'});if(result.ok&&getRun().world.uniqueRewardData)syncMeleeEquipment(getRun());return result.ok;}
  function collectNearbySupplies(g,intent={}){
   const p=g.player;
   supplyScope={run:g,allowed:p.hp>0&&!g.finished&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil};

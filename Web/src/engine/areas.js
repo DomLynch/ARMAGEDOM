@@ -116,7 +116,7 @@ async function pumpDestinations(state){
       if(task.suspended){({stage,iterator}=task.suspended);task.suspended=null;state.iterator=iterator;}else{
         release=s.world.leaseArea?.(task.areaId)??release;
         await preparationTurn(state);stage=await s.world.prepareArea(task.areaId);await preparationTurn(state);
-        const record=prepareParkedResidents(state.game,stage,initializeAreaResidents);await s.actors.ensureAreaModels?.(record);
+        const record=prepareParkedResidents(state.game,stage,initializeAreaResidents);await s.actors.ensureAreaModels?.(record,task.areaId);
         if(state.cancelled||s.game!==state.game||s.actors!==state.actors||s.contextLost)throw Error('Area model preparation cancelled');
         iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);state.iterator=iterator;
       }

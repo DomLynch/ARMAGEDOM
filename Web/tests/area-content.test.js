@@ -21,7 +21,8 @@ test('declared drones cannot bypass the current persistent death-key and area bo
  const c=raw();Object.assign(c.residents['east-bridge'][1],{foundationRef:'low-hover-drone',recipeRef:'low-hover-watcher'});assert.throws(()=>validateAreaContent(c,registry,layouts),/Unsupported declared drone death placement/);
 });
 test('supported declared legacy drone spawns once and saved tombstone excludes it without duplicating legacy factory output',()=>{
- const c=raw();if(c.loot?.placements.east)delete c.loot.placements.east;c.residents.east=[{key:'east-drone-1',foundationRef:'low-hover-drone',recipeRef:'low-hover-watcher',pos:AREA_DRONE_SPAWNS.east[0].pos,patrol:AREA_DRONE_SPAWNS.east[0].patrol}];
+ const c=raw();delete c.uniqueReward; // Isolated legacy-drone fixture replaces the entire Hale source roster.
+ if(c.loot?.placements.east)delete c.loot.placements.east;c.residents.east=[{key:'east-drone-1',foundationRef:'low-hover-drone',recipeRef:'low-hover-watcher',pos:AREA_DRONE_SPAWNS.east[0].pos,patrol:AREA_DRONE_SPAWNS.east[0].patrol}];
  // Use actual legacy placement, which already has verified native-radius clearance.
  const data=validateAreaContent(c,registry,layouts);const w={areaId:'east',layout:{characterScale:1.265}},g=createGame(w,{pilot:'donor-knife',drone:true,supplies:true,areaResidents:true,openingGroup:false,residentPlacements:data.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1})});
  assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,1);g.droneDeaths=['east-drone-1'];g.enemies=[];g.areaInitialized=false;initializeAreaResidents(g);assert.equal(g.enemies.filter(e=>e.placementKey==='east-drone-1').length,0);

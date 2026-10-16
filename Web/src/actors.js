@@ -1,3 +1,5 @@
+import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
+import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
 import {withPresentedRecipe} from './finisher-selection.js';
 import {createGauntShapeLibrary} from './gaunt-shape.js';
@@ -174,7 +176,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           source.equipment,
         ).animations
       : source.gltf.animations;
-    if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip),THREE.AnimationClip.parse(dogMidClip)];
+    if(entity.kind<0)animations=[...animations,THREE.AnimationClip.parse(lowClip),THREE.AnimationClip.parse(dogMidClip),...(library.manifest.models?.['vagrant-cleaver']?[THREE.AnimationClip.parse(cleaverLowClip)]:[])];
     if(entity.rig==='original-roach'&&(description.scale===3||description.scale===4))animations=[...animations,THREE.AnimationClip.parse(roachBite)];
     let feral=null;
     if(entity.rig==='original-dog'&&description.scale===2){
@@ -297,7 +299,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
-    ensureAreaModels(record){return library.ensureModels?.([...new Set([...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest)))])??Promise.resolve();},
+    ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
+    meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
+    ensureAreaModels(record,areaId=world.areaId){
+      const reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
+      if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
+      return library.ensureModels?.([...new Set(refs)])??Promise.resolve();
+    },
     parkArea(areaId){
       const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
       for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}
@@ -336,7 +344,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           }
           const rats=new Map();
           for(const e of game.enemies)if(['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);if(view.drone){rats.set(e.id,{view,root:view.root.matrixWorld.clone()});continue;}const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
-          const playerBlade=game.player.swing?.def.ratRetimed?[.12,.52].map(y=>player.model.getObjectByName('WeaponDrawn').localToWorld(point.set(0,y,0)).toArray()):null,playerBladePhase=playerBlade?ratMeleePosePhase(game.player.swing,donorSwingPhase):null;
+          const swing=game.player.swing,posedMelee=game.player.meleeVariantId&&game.player.meleeVariantId!=='knife'&&swing?.def.ratLow,contact=posedMelee?MELEE_VARIANTS[game.player.meleeVariantId].contact:[.12,.52],playerBlade=swing?.def.ratRetimed||posedMelee?contact.map(y=>player.model.getObjectByName('WeaponDrawn').localToWorld(point.set(0,y,0)).toArray()):null,playerBladePhase=playerBlade?swing.native?Math.max(0,Math.min(1,(game.time-swing.start)/(swing.end-swing.start))):ratMeleePosePhase(swing,donorSwingPhase):null;
           return {playerBlade,playerBladePhase,player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
         },
         foot:(game,rat)=>{
@@ -355,7 +363,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
           if(a.rig==='original-dog'||a.rig==='original-roach'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,receiver=scaled?views.get(0).dogReceiver:views.get(0).footReceiver;return old&&now&&now.teeth.some((to,i)=>receiver.sweep(scaled?before.playerDog:before.player,scaled?after.playerDog:after.player,old.teeth[i],to).hit);}
           if(!['original-rat','original-dog','original-roach','low-hover-drone'].includes(d.rig)||!s.def.ratLow)return false;
-          const view=after.rats.get(d.id)?.view;if(!view||s.def.ratRetimed&&!after.playerBlade)return false;const [from,to]=s.def.ratRetimed?after.playerBlade:ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
+          const view=after.rats.get(d.id)?.view;if(!view||s.def.ratRetimed&&!after.playerBlade)return false;const [from,to]=after.playerBlade??ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
           const meshes=[];view.model.traverse(m=>{if(visible(m)&&(view.drone?m.isMesh&&m.name==='ARM_Drone_Rigid_Frame':m.isSkinnedMesh)){if(m.isSkinnedMesh)m.computeBoundingSphere();else{m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();}meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
       };
@@ -375,6 +383,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const entity of entities) {
         if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);
+        if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
           view.drone.update({time:game.time,dt:Math.max(0,dt),position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z),state,phase:dead?(game.time-(entity.response?.start??game.time))/.8:warning?(game.time-warning.start)/.6:0});

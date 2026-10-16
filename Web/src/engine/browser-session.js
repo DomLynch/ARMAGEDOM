@@ -81,7 +81,7 @@ const hud = createHUD({
   onPause: pause,
   onPistol: () => {
     if (!loaded || paused || traveling || contextLost || game.finished) return;
-    if(resources.interactExpedition()){audio.unlock().catch(()=>{});return;}
+    if(resources.interactExpedition()||resources.interactUniqueReward()){audio.unlock().catch(()=>{});return;}
     input.state.down("pickup", "pickup", {x:0,y:0});
     input.state.up("pickup");
     audio.unlock().catch(() => {});

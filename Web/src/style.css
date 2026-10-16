@@ -515,7 +515,7 @@ summary {
 #expedition-panel p {font-size:12px;line-height:1.4;}
 #expedition-panel button {min-height:44px;font-size:12px;}
 #equipment-retry-note {color:#bdb8a8;}
-#variant-choices {display:grid;gap:8px;}
+#variant-choices, #melee-choices {display:grid;gap:8px;}
 #atlas-map {position:relative;width:100%;aspect-ratio:2;min-height:180px;}
 #atlas-links {position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
 #atlas-links line {stroke:#837e6c;stroke-width:2;}
