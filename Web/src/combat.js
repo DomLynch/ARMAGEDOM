@@ -1,3 +1,4 @@
+import{populationPlacements,populationAllowsDrone}from'./engine/area-population.js';
 import{applyBossProfile,bossMove,bossHazardPosition}from'./engine/area-bosses.js';
 import{createAreaHazard,stepAreaHazards}from'./engine/area-hazards.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
@@ -73,7 +74,7 @@ export function createGame(world,options={}){
  if(options.supplies)g.supplies=createSuppliesState(g.lootRules);
  if(options.vest)g.vest=createVestState();
  initializeProgression(g);
- if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.lootRules=options.lootRules??world.lootRules;g.areaFights={};g.areaInitialized=false;g.openingGroup=options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
+ if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.lootRules=options.lootRules??world.lootRules;g.areaFights={};g.areaInitialized=false;g.openingGroup=world.populationData?false:options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
 }
@@ -369,15 +370,15 @@ export function initializeAreaResidents(g){
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const dead=new Set(g.progressionModel?.deadPlacements(g.progression,area)??[]);
- const placements=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
- const sizes=allocateMobSizes(area,placements.map(placement=>placement.key));
+ const canonical=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[],policy=g.world.populationData;
+ const placements=populationPlacements(policy,area,g.animalCycle,canonical),sizes=allocateMobSizes(area,canonical.map(placement=>placement.key));
  const residents=placements.filter(p=>!dead.has(p.key)&&(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
- if(g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
- if(g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,animalFoundationParameters('original-roach',g.player.combatScale));}
- if(g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,animalFoundationParameters('original-dog',g.player.combatScale));}
- if(g.animalVariants)for(const e of residents){
+ if(!policy?.areas[area]&&g.rat){const rat=residents.find(e=>['westminster-roamer-4','east-roamer-7','south-roamer-3'].includes(e.placementKey));if(rat)Object.assign(rat,animalFoundationParameters('original-rat',g.player.combatScale));}
+ if(!policy?.areas[area]&&g.roach){const roach=residents.find(e=>e.placementKey==='westminster-roamer-2');if(roach)Object.assign(roach,animalFoundationParameters('original-roach',g.player.combatScale));}
+ if(!policy?.areas[area]&&g.dog){const dog=residents.find(e=>['westminster-roamer-6','east-roamer-4','south-roamer-8'].includes(e.placementKey));if(dog)Object.assign(dog,animalFoundationParameters('original-dog',g.player.combatScale));}
+ if(!policy?.areas[area]&&g.animalVariants)for(const e of residents){
   const assignment=animalPlacement(g.animalCycle,e.placementKey);if(!assignment)continue;
   const {recipe,rig,offset}=assignment;
   Object.assign(e,{animalRecipe:recipe,...animalFoundationParameters(rig,g.player.combatScale)});
@@ -388,7 +389,7 @@ export function initializeAreaResidents(g){
   if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
- if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(!g.droneDeaths.includes(placement.key)&&!placements.some(p=>p.foundationRef==='low-hover-drone'&&p.key===placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
+ if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(populationAllowsDrone(policy,area,placement.key)&&!dead.has(placement.key)&&!g.droneDeaths.includes(placement.key)&&!placements.some(p=>p.foundationRef==='low-hover-drone'&&p.key===placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
  if(area!=='westminster'||g.openingGroup===false){g.wave=1;g.nextWave=Infinity;g.nextEnemyAttackAt=g.time;}
 }
