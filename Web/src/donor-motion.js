@@ -19,6 +19,7 @@ export function donorSwingPhase(age,timing,source){
  for(let i=1;i<keys.length;i++)if(p<=keys[i][0]){const [x,y]=keys[i-1],[end,value]=keys[i];return y+(value-y)*(p-x)/(end-x);}return 1;
 }
 
+const responseKeys={Hit:'hit',Death:'death',Deflected:'deflected',BlockImpact:'block',Parry:'parry'};
 // Presentation only. Combat supplies the authoritative clip, ticks and response.
 // Attack sampling has weight 1, preserving the baked contact geometry.
 export class DonorMotion{
@@ -37,7 +38,8 @@ export class DonorMotion{
   this.sample(description.clips.idle,0);
  }
  sample(name,phase,guardOverlay=false){
-  if(!this.actions.has(name))name=this.description.clips[name.toLowerCase()]??name;
+  const response=responseKeys[name];if(response&&this.description.clips[response])name=this.description.clips[response];
+  else if(!this.actions.has(name))name=this.description.clips[name.toLowerCase()]??name;
   const selected=this.actions.get(guardOverlay?name+'GuardLegs':name);if(!selected)throw Error('Donor clip missing: '+name);
   for(const action of this.actions.values())action.setEffectiveWeight(action===selected?1:0);
   this.guardUpper?.setEffectiveWeight(guardOverlay?1:0);
