@@ -36,7 +36,7 @@ export function createExpeditionModel({areaIds,expeditionId,rewardVariantId,base
    case 'visit':if(!areas.has(action.areaId))return null;if(!next.visitedIds.includes(action.areaId))next.visitedIds.push(action.areaId);break;
    case 'select':if(!ownsVariant(state,action.variantId))return null;next.selectedPistolVariant=action.variantId;break;
    case 'accept':if(state.status!=='available')return null;next.status='accepted';break;
-   case 'recover':if(state.status!=='accepted')return null;next.status='recovered';break;
+   case 'recover':if(!['available','accepted'].includes(state.status))return null;next.status='recovered';break;
    case 'claim':if(state.status!=='recovered')return null;next.status='claimed';next.rewardReceipt=receiptId;break;
    default:return null;
   }

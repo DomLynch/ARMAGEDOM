@@ -14,7 +14,7 @@ test('missing legacy extension defaults safely; present corrupt/future/unknown d
 });
 test('ordered stages reject skips and repeats; claim owns reward and receipt together, selection stays base',()=>{
  let state=model.freshState();const original=model.copy(state);
- assert.equal(model.transition(state,{type:'claim'}),null);assert.equal(model.transition(state,{type:'recover'}),null);
+ assert.equal(model.transition(state,{type:'claim'}),null);
  state=model.transition(state,{type:'accept'});assert.equal(model.transition(state,{type:'accept'}),null);
  state=model.transition(state,{type:'recover'});assert.equal(model.transition(state,{type:'recover'}),null);
  const claimed=model.transition(state,{type:'claim'});
@@ -95,4 +95,11 @@ test('actual Core restore: missing old extension upgrades; corrupt present exten
  const old=fixture(JSON.stringify({version:4,hp:44,ammo:3}));assert.ok(old.core.dispatch({type:'restore'}).ok);assert.deepEqual(old.run.expedition,model.freshState());assert.equal(old.run.hp,44);
  const raw=JSON.stringify({version:4,hp:44,ammo:3,expedition:{...model.freshState(),selectedPistolVariant:'unknown'}}),bad=fixture(raw);
  assert.equal(bad.core.dispatch({type:'restore'}).code,'invalid-save');assert.equal(bad.core.dispatch({type:'save'}).ok,false);assert.equal(bad.records.get('armagedom:progression-run:v4'),raw);
+});
+
+test('case collected before acceptance uses original recovered DTO and claims once without another fetch',()=>{
+ const fresh=model.freshState(),owned=model.transition(fresh,{type:'recover'});
+ assert.equal(owned.status,'recovered');assert.equal(owned.version,1);assert.equal(owned.rewardReceipt,null);assert.equal(owned.selectedPistolVariant,base);
+ const resumed=model.restoreState(JSON.parse(JSON.stringify(owned)));assert.deepEqual(resumed,owned);assert.equal(model.transition(resumed,{type:'accept'}),null);assert.equal(model.transition(resumed,{type:'recover'}),null);
+ const claimed=model.transition(resumed,{type:'claim'});assert.equal(claimed.rewardReceipt,receipt);assert.equal(model.transition(claimed,{type:'claim'}),null);assert.equal(fresh.status,'available');
 });
