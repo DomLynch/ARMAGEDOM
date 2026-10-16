@@ -24,7 +24,7 @@ export function validateResidentPlacements(rows,registry,layouts,{visibility='pu
  for(const [area,placements]of Object.entries(residents)){
   if(!registry.has(area)||registry.get(area).visibility!==visibility||!Array.isArray(placements))fail();const g=geometry.get(registry.get(area).layoutRef);
   for(const row of placements){
-   closed(row,['key','foundationRef','recipeRef','pos','patrol']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-'))fail();keys.add(row.key);
+   closed(row,['key','foundationRef','recipeRef','pos','patrol'],['appearanceRef']);if(!key(row.key)||keys.has(row.key)||visibility==='private'&&!row.key.startsWith('fixture-')||Object.hasOwn(row,'appearanceRef')&&!key(row.appearanceRef))fail();keys.add(row.key);
    const foundation=creatureCatalogue.get(row.foundationRef);if(foundation.runtimeIdentity==='low-hover-drone'&&DRONE_KEYS[row.key]!==area)throw Error('Unsupported declared drone death placement');if(creatureCatalogue.forRecipe(row.recipeRef).id!==foundation.id)fail();
    point(row.pos);if(!Array.isArray(row.patrol)||row.patrol.length<2)fail();row.patrol.forEach(point);const radius=foundation.stats.radius;
    if(g)validateResidentGeometry(row,g,radius);

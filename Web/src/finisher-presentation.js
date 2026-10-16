@@ -4,6 +4,10 @@ import {prepareOpenedSteps} from './finisher-opened.js';
 import {prepareVictimGroundingSteps} from './finisher-grounding.js';
 
 const HEAD_NAMES = ['Photo', 'PhotoEyes', 'PhotoTeeth'];
+export function validateHeadParts(parts=HEAD_NAMES){
+  if(!Array.isArray(parts)||parts.length<3||parts.length>12||parts[0]!=='Photo'||new Set(parts).size!==parts.length||HEAD_NAMES.some(name=>!parts.includes(name))||Array.from(parts).some(name=>typeof name!=='string'||!/^\w{1,64}$/.test(name)))throw new TypeError('Invalid authored head parts');
+  return [...parts];
+}
 const PART_LIFETIME = 6;
 // Brief victim pose emphasis. Detached-part physics and expiry use real age.
 export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
@@ -25,8 +29,8 @@ function directionOf(direction) {
 
 // Spawn/loading preparation, never called from a lethal event. Own static head
 // buffers and materials; selected face geometry/maps/skeletons remain borrowed.
-function* snapshotHeadSteps(model, bone, maxVertices) {
-  const nodes=HEAD_NAMES.map(name=>model.getObjectByName(name));
+function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
+  const nodes=headParts.map(name=>model.getObjectByName(name));
   const hair=model.getObjectByName('Scavenger hair');
   if(hair?.visible)nodes.push(hair);
   if(nodes.some(n=>!n?.isSkinnedMesh || !n.visible) ||
@@ -98,7 +102,7 @@ function* snapshotHeadSteps(model, bone, maxVertices) {
     geometries.push(capGeometry);materials.push(capMaterial);
     const cap=new T.Mesh(capGeometry,capMaterial);cap.scale.set(rx,1,rz);cap.position.copy(rim).sub(center);group.add(cap);
     const stump=new T.Mesh(capGeometry,capMaterial);stump.scale.set(rx,1,rz);stump.position.copy(rim);stump.visible=false;bone.add(stump);
-    completed=true;return {group,stump,nodes,center,radius,vertices,triangles:triangles+48,geometries,materials,
+    completed=true;return {group,stump,nodes,headParts,center,radius,vertices,triangles:triangles+48,geometries,materials,
       dispose(){stump.removeFromParent();group.removeFromParent();clean();}};
   } finally {if(!completed)clean();}
 }
@@ -108,7 +112,8 @@ function* snapshotHeadSteps(model, bone, maxVertices) {
 // for detached render-space motion. One actor, one head, finite lifetime.
 export function createFinisherPresentation(options){const steps=createFinisherPresentationSteps(options);for(;;){const step=steps.next();if(step.done)return step.value;}}
 export function* createFinisherPresentationSteps({root,model,clips,scene,groundY=0,isBlocked,
-  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null}={}) {
+  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null,headParts=HEAD_NAMES}={}) {
+  headParts=validateHeadParts(headParts);
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3();
@@ -117,7 +122,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   try {
   if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=yield* prepareVictimGroundingSteps({model,root,clip:clips.find(c=>c.name==='Death_RunThrough'),cache:groundingCache});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
   if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
-    try{head=yield* snapshotHeadSteps(model,bone,maxVertices);}catch(error){preparationError=error.message;}
+    try{head=yield* snapshotHeadSteps(model,bone,maxVertices,headParts);}catch(error){preparationError=error.message;}
   }
   if(!isPlayer&&validDuration(death)&&validDuration(hit)) support.push({id:'pistol-directional',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:0,parts:[],prepared:true});
   if(head&&validDuration(hit))support.push({id:'pistol-decapitation',clip:'Death',reactionClip:'Hit',reactionSeconds:hit,seconds:hit+death,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});

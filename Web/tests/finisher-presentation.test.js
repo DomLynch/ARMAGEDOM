@@ -47,3 +47,13 @@ for(const recipeId of ['decapitation','pistol-decapitation'])test(`${recipeId} u
  p.dispose();p.dispose();assert.equal(source.visible,true);assert.equal(ownedDisposed,2);assert.equal(borrowedDisposed,0);
  geometry.dispose();material.dispose();texture.dispose();skeleton.dispose();
 });
+test('complete authored head parts detach together, leave the real neck and restore visibility on disposal',()=>{
+ const f=fixture(),bone=f.model.getObjectByName('Head');bone.position.y=1.7;
+ const geometry=new T.CylinderGeometry(.08,.08,.3,12);geometry.translate(0,1.7,0);const count=geometry.attributes.position.count,indices=new Uint16Array(count*4),weights=new Float32Array(count*4);for(let i=0;i<count;i++)weights[i*4]=1;
+ geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(indices,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));const material=new T.MeshStandardMaterial(),skeleton=new T.Skeleton([bone]),headParts=['Photo','PhotoEyes','PhotoTeeth','Bone','OriginalHead_Steel','OriginalHead_Wrap'];
+ for(const name of [...headParts,'Recovered_donor_lower_neck']){const mesh=new T.SkinnedMesh(geometry,material);mesh.name=name;f.model.add(mesh);mesh.bind(skeleton);}
+ const p=createFinisherPresentation({...f,clips,headParts,isBlocked:()=>false});assert(p.support.some(row=>row.id==='decapitation'));p.start({recipeId:'decapitation',damageType:'cutting',direction:{x:1,z:0}});const detached=f.scene.getObjectByName('Prepared detached Hollow head');
+ for(const name of headParts){assert(detached.getObjectByName(name),name+' included');assert.equal(f.model.getObjectByName(name).visible,false,name+' removed from body');}assert(f.model.getObjectByName('Recovered_donor_lower_neck').visible);p.dispose();for(const name of headParts)assert(f.model.getObjectByName(name).visible);geometry.dispose();material.dispose();skeleton.dispose();
+});
+
+test('invalid explicit head lists cannot silently reduce finisher anatomy',()=>{for(const headParts of [[],['Photo','PhotoEyes','PhotoEyes'],['Bone','Photo','PhotoEyes','PhotoTeeth'],['Photo','PhotoEyes','PhotoTeeth',null],Object.assign(new Array(4),{0:'Photo',1:'PhotoEyes',2:'PhotoTeeth'})])assert.throws(()=>createFinisherPresentation({...fixture(),clips,headParts}),/Invalid authored head parts/);});

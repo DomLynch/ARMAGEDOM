@@ -1,0 +1,244 @@
+{
+  "atUTC": "2026-10-16T15:11:25.049000+00:00",
+  "status": "PORTABLE_ART_READY_NATIVE_VISUAL_PENDING",
+  "authority": "Full recognizable Pitborn Hale at East case TOO; all3existingbosses/locations unchanged; latest direct Dom via Lead supersedes historical STOP.",
+  "model": {
+    "sha256": "50a11568aa2e0140836fa2b39921f276c9ac28408af768ded764adbf9d2d81a4",
+    "bytes": 4547252,
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-hale-target-intake-20261016/portable-final-receipt/export/hale-pitborn.glb"
+  },
+  "descriptor": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-hale-target-intake-20261016/HALE-PITBORN-DESCRIPTOR.json",
+    "sha256": "753f5f0b0009440366ed08128e4479c023637f4744bbbf9e88aaa500def7993c"
+  },
+  "job": {
+    "job": "portable-job-2278d5103380",
+    "hostname": "Brain",
+    "source_files_verified": 24,
+    "command": [
+      "bash",
+      "run.sh"
+    ],
+    "exit_code": 0,
+    "stopped_for_disk_reserve": false,
+    "elapsed_seconds": 5.02,
+    "finished_epoch": 1792163377.459543,
+    "lane": "small-release",
+    "started_epoch": 1792163372.444066,
+    "submission": {
+      "lane": "small-release",
+      "input_bytes": 11619657,
+      "upload_lock_seconds": 2.03,
+      "upload_seconds": 9.64,
+      "staged_epoch": 1792163366.922946,
+      "submitted_epoch": 1792163352.316767
+    },
+    "admission_seconds": 5.52,
+    "submission_to_result_seconds": 25.14,
+    "capacity_at_start": {
+      "idle_cores": 14.424242424242424,
+      "idle_core_samples": [
+        14.424242424242424,
+        14.538071065989847,
+        14.424242424242424
+      ],
+      "online_cores": 16,
+      "available_memory_bytes": 29553975296,
+      "free_disk_bytes": 66585583616,
+      "checked_epoch": 1792163372.4440107,
+      "allocation": {
+        "cpu_cores": 13,
+        "cpu_quota_percent": 1300,
+        "cpu_weight": 10,
+        "reserved_idle_cores": 1,
+        "numerical_threads": 13,
+        "browser_workers": 1
+      }
+    },
+    "cpu_cores": 13,
+    "cpu_quota_percent": 1300,
+    "cpu_weight": 10,
+    "reserved_idle_cores": 1,
+    "numerical_threads": 13,
+    "browser_workers": 1,
+    "memory_max_bytes": 4294967296
+  },
+  "recoveredFilesVerifiedAgainstRemoteSHA256": {
+    "result.json": "52ee2468dac971c67c99fcc30d6e8572a5fc02c7973e5ebd7abc4ba8a58b8396",
+    "run.log": "8c93c98864b04c9f9391df65b1e4bed935a5fab3d41616619e2187c9aa2a37ca",
+    "results/REIMPORT.json": "e4af6fe693670d0cbad1a82ffeabe228de81271a07b220d8d96b8914f622ae87",
+    "results/EMPTY-SAMPLERS-REPAIR.json": "2242c5324a3f1e92f1b3c4c63267d098cefa16212362df959f652741f3579245",
+    "results/VALIDATOR.json": "3f3d5ba996944cc74f311fd0bcd424a813921c17a4f1ebe9f97a953cc7c42df0",
+    "export/hale-pitborn.glb": "50a11568aa2e0140836fa2b39921f276c9ac28408af768ded764adbf9d2d81a4"
+  },
+  "strictValidator": {
+    "version": "2.0.0-dev.3.10",
+    "maxIssues": 0,
+    "errors": 0,
+    "warnings": 21823,
+    "infos": 6,
+    "truncated": false,
+    "codes": {
+      "UNUSED_OBJECT": 2,
+      "NODE_EMPTY": 4,
+      "NODE_SKINNED_MESH_NON_ROOT": 9,
+      "ACCESSOR_JOINTS_USED_ZERO_WEIGHT": 21814
+    }
+  },
+  "reimport": {
+    "status": "PASS_PORTABLE_FULL_PITBORN_HALE_KNIFE",
+    "three": "182",
+    "limitations": [
+      "CPU bitmap stub; no actual London visual/physical phone acceptance.",
+      "Source attachment/108 pose/full head/crown/grounding/neck diagnostics reused for exact source inputs; six final roundtrip spot poses only."
+    ],
+    "frozen30ClipsExact": true,
+    "encodedSourceImagesExact": true,
+    "draws": [
+      {
+        "source": "Face",
+        "target": "Recovered_donor_lower_neck",
+        "vertices": 372,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "Photo",
+        "target": "Photo",
+        "vertices": 8534,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "PhotoEyes",
+        "target": "PhotoEyes",
+        "vertices": 1001,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "PhotoTeeth",
+        "target": "PhotoTeeth",
+        "vertices": 729,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "Bone",
+        "target": "Bone",
+        "vertices": 40,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "Pitborn_L3_Armour",
+        "target": "Pitborn_L3_Armour",
+        "vertices": 43109,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "OriginalHead_Steel",
+        "target": "OriginalHead_Steel",
+        "vertices": 153,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "OriginalHead_Wrap",
+        "target": "OriginalHead_Wrap",
+        "vertices": 50,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      },
+      {
+        "source": "Fitted_joint_sleeves",
+        "target": "Fitted_joint_sleeves",
+        "vertices": 640,
+        "ownGeometryIndexWeightsIBMsOrderMaterialsExact": true
+      }
+    ],
+    "equippedKnifeOverridesExact": true,
+    "poses": [
+      {
+        "clip": "HollowIdle",
+        "phase": 0.5
+      },
+      {
+        "clip": "HollowWalk",
+        "phase": 0.5
+      },
+      {
+        "clip": "Heavy",
+        "phase": 0.6
+      },
+      {
+        "clip": "Guard",
+        "phase": 0.5
+      },
+      {
+        "clip": "Death_QuietOne",
+        "phase": 0.5
+      },
+      {
+        "clip": "Death_QuietOne",
+        "phase": 1
+      }
+    ],
+    "roundtrip": {
+      "weightedVertexComparisons": 327768,
+      "maxWorldVertexDelta": 0,
+      "maxBoneMatrixDelta": 0,
+      "maxKnifeHeelTipDelta": 0
+    },
+    "headParts": [
+      "Photo",
+      "PhotoEyes",
+      "PhotoTeeth",
+      "Bone",
+      "OriginalHead_Steel",
+      "OriginalHead_Wrap"
+    ],
+    "model": {
+      "sha256": "50a11568aa2e0140836fa2b39921f276c9ac28408af768ded764adbf9d2d81a4",
+      "bytes": 4547252
+    }
+  },
+  "rawMaterialTextureBindingsAndEncodedImagesExact": true,
+  "reusedFeasibility": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-hale-target-intake-20261016/neck-receipt/src/results/FEASIBILITY.json",
+    "sha256": "116266fb50c506e59eaa3f95c46a5711fa8a779f6ce39b35ce74aabd2063fe02",
+    "originalExit": 0,
+    "poses": 108,
+    "weightedVertices": 5899824,
+    "actualHaleKnifeContactDelta": 0,
+    "headPartsComplete": [
+      "Photo",
+      "PhotoEyes",
+      "PhotoTeeth",
+      "Bone",
+      "OriginalHead_Steel",
+      "OriginalHead_Wrap"
+    ],
+    "headCrownHideDisposal": true,
+    "runThroughGrounding": true,
+    "neckQualification": "Actual upperneck boundary mostly lies inside actual head surface; at Death_QuietOne endpoint outside diagnostic13mm vs11mm baseline. Ray parity heuristic not visual acceptance."
+  },
+  "preservedFailures": [
+    "portable-first-receipt: EXIT1 sole EMPTY_ENTITY /samplers, before metadata-only fix",
+    "knife-pilot-partial-receipt: native multi-primitive/crown QA assumptions corrected",
+    "head-structural-receipt: actual complete sixhead proof passes, subsequent QA neck helper undefined triangle retained"
+  ],
+  "runtimeContract": {
+    "rig": "hollow-scavenger",
+    "motion": "donor-knife",
+    "contactRig": "hero",
+    "mobSize": 1.1,
+    "visualRootScale": 1.84025875,
+    "combatScale": 1.3915,
+    "collisionRadius": 0.44,
+    "meleeRadius": 0.431365,
+    "equipment": "original external knife with Heavy/Death_QuietOne overrides",
+    "sameCaseQuestLootSaveAIContactCamera": true
+  },
+  "nextOwner": "Web sole runtime integrator: actual East/case/knife ordinary motion+attack and complete native finisher SAME frames for Art/Auditor/Lead; Deploy after acceptance; no new Art capture job.",
+  "limitations": [
+    "NOT actual London visual acceptance; CPUbitmap stub only",
+    "Strict warnings retained: zero-weight joint slots21814/non-root skinned9; no weight/bind/scale edits",
+    "Grip numbers inside shaft do not prove fine fingers or continuous visual clearance",
+    "Full5finisher capabilities/headcrown/grounding structural proof reused; actual native visual remains",
+    "144 live until acceptance/publication/served verification; no changes to other3bosses/locations or original144rollback"
+  ]
+}

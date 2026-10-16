@@ -19,7 +19,7 @@ import lowClip from './rat-data/low-slash.json' with {type:'json'};
 import lowBlade from './rat-data/blade-path.json' with {type:'json'};
 import {attachPistolSlide} from './pistol-slide.js';
 import {createHitReaction} from './combat-impact.js';
-import {createFinisherPresentationSteps,finisherVictimPoseAge,presentedSeverFlash} from './finisher-presentation.js';
+import {createFinisherPresentationSteps,finisherVictimPoseAge,presentedSeverFlash,validateHeadParts} from './finisher-presentation.js';
 import {createVestView} from './vest-view.js';
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -33,10 +33,18 @@ import { disposeActorSources } from "./actor-resources.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import {createFaceAppearanceLibrary} from './face-appearance.js';
-import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID} from './face-recipes.js';
+import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID,faceRecipeFor} from './face-recipes.js';
 import {allocateFaceRecipes} from './face-allocator.js';
 const residentFaces=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});
 const names = ["revenant", "orc", "warlock", "warlord"];
+function actorModelRef(entity,manifest){
+  if(entity.appearanceRef!==undefined){
+    const ref=entity.appearanceRef;
+    if(entity.kind<0||typeof ref!=='string'||!/^[a-z][a-z0-9-]*$/.test(ref)||!manifest.models||!Object.hasOwn(manifest.models,ref)||manifest.models[ref].rig!==entity.rig)throw Error('Invalid actor appearance reference');
+    return ref;
+  }
+  return entity.kind<0?'vagrant':manifest.pilot==='donor-knife'?entity.rig:names[entity.kind];
+}
 // Keep an already-presented corpse age through registered area reconstruction.
 export function finisherPresentationAge(entity,time){
  const elapsed=Math.max(0,time-(entity.response?.start??time)),shown=entity.finisherPresentationAge;
@@ -84,10 +92,14 @@ export async function loadActors(
     if(!Object.hasOwn(manifest.models,name))return Promise.reject(Error('Unknown actor model: '+name));
     const description=manifest.models[name];
     const pending=(async()=>{
+      if(description.faceRecipeId!==undefined)faceRecipeFor(description.faceRecipeId);
+      const headParts=description.headParts===undefined?null:validateHeadParts(description.headParts);
       const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null)]);
       const failed=parts.find(part=>part.status==='rejected');if(failed)throw failed.reason;
       if(disposed)throw Error('Actor library disposed');
-      const[gltf,equipment]=parts.map(part=>part.value);onProgress(name);
+      const[gltf,equipment]=parts.map(part=>part.value);
+      const missing=headParts?.find(part=>!gltf.scene.getObjectByName(part)?.isSkinnedMesh);if(missing)throw Error('Appearance head part missing: '+name+'/'+missing);
+      onProgress(name);
       const value={gltf,description,equipment};models.set(name,value);return value;
     })().finally(()=>pendingModels.delete(name));
     pendingModels.set(name,pending);return pending;
@@ -146,12 +158,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
       store.set(entity.id,view);return view;
     }
-    const name =
-        entity.kind < 0
-          ? "vagrant"
-          : library.manifest.pilot === "donor-knife"
-            ? entity.rig
-            : names[entity.kind],
+    const name = actorModelRef(entity,library.manifest),
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
     const garments=source.description.clothingMaterials??(entity.rig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
@@ -242,7 +249,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       yield 'actor-clone';
       if(entity.kind>=0&&entity.rig==='hollow-scavenger'){
         if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
-        appearance=yield* faceKits.get(source.gltf.scene).applySteps(model,residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
+        appearance=yield* faceKits.get(source.gltf.scene).applySteps(model,description.faceRecipeId??residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
         view.appearance=appearance;
       }
       humanBody=humanBodyRequest==='human-gaunt-skulker'?gauntKits.get(source.gltf.scene)?.apply(model)??null:null;
@@ -256,7 +263,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       renderScene.add(root, shadow);
       yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=yield* createFinisherPresentationSteps({root,model,clips:animations,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[stageWorld.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[stageWorld.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -289,7 +296,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
-    ensureAreaModels(record){return library.ensureModels?.([...new Set([...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile).map(e=>e.rig))])??Promise.resolve();},
+    ensureAreaModels(record){return library.ensureModels?.([...new Set([...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest)))])??Promise.resolve();},
     parkArea(areaId){
       const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
       for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}

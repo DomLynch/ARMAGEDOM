@@ -5,7 +5,8 @@ import * as T from 'three';
 export function prepareSplitCrown(head,options){const steps=prepareSplitCrownSteps(head,options);for(;;){const step=steps.next();if(step.done)return step.value;}}
 export function* prepareSplitCrownSteps(head,{maxVertices=100000}={}){
  if(!head?.group||!head.center||!Number.isSafeInteger(maxVertices)||maxVertices<1)throw Error('Invalid crown preparation');
- const nodes=head.group.children.filter(n=>n.isMesh&&['Photo','PhotoEyes','PhotoTeeth','Scavenger hair'].includes(n.name));
+ const names=[...(head.headParts??['Photo','PhotoEyes','PhotoTeeth']),'Scavenger hair'];
+ const nodes=head.group.children.filter(n=>n.isMesh&&names.includes(n.name));
  const photo=nodes.find(n=>n.name==='Photo');if(!photo)throw Error('Crown requires an authored human head');
  photo.geometry.computeBoundingBox();const bounds=photo.geometry.boundingBox,plane=-head.center.x,hinge=bounds.min.y;
  if(!(plane>bounds.min.x&&plane<bounds.max.x))throw Error('Crown plane outside supported head');
