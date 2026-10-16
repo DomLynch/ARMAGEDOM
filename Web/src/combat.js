@@ -1,3 +1,5 @@
+import{applyBossProfile,bossMove,bossHazardPosition}from'./engine/area-bosses.js';
+import{createAreaHazard,stepAreaHazards}from'./engine/area-hazards.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
 import {initializeProgression,progressionDamage,stageProgressionDeath} from './engine/progression-runtime.js';
 import {PISTOL_ITEM_ID} from './core/pistol-operation.js';
@@ -173,7 +175,8 @@ function kill(g,e,meta={}){
   e.finisher=selectFinisher({victimId:e.id,lethal:e.hp<=0,...meta},{support:e.finisherSupport??[],budget:Math.max(0,g.finishers.maxHeads-active),ordinal:g.kills,recentRecipeId:g.finishers.recentRecipeId});
   if(e.finisher){g.finishers.recentRecipeId=e.finisher.recipeId;g.finishers.lastVictimId=e.id;if(e.finisher.cost>0)e.finisherPartsUntil=g.time+6;if(e.finisher.parts.includes('head'))e.finisherHeadUntil=g.time+6;}
  }
- if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp,rules:g.lootRules,cycle:g.animalCycle}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
+ if(g.supplies)g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:e.hp,rules:g.lootRules,cycle:g.animalCycle}).state;g.enemies=g.enemies.filter(x=>x!==e);g.kills++;event(g,'death',{actor:e,...meta});if(g.pilot){g.corpses.push(e);if(!g.enemies.length){if(g.areaResidents){g.encounterCleared=true;g.encounterActive=false;}else{g.finished=true;g.won=g.player.hp>0;}notify(g,g.encounter?'LONDON · Hollow encounter cleared.':'LONDON · Knife encounter cleared.');}
+ if(e.bossProfile){notify(g,e.bossName+' defeated.'+(g.supplies?.pending.some(row=>row.placementKey===e.placementKey)?' Supplies await near the body.':''));event(g,'boss-defeated',{actor:e,placementKey:e.placementKey,name:e.bossName});}return;}if(e.kind===3){g.finished=true;g.won=true;return;}
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
@@ -282,8 +285,10 @@ export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.i
  if(g.encounterActive!==false&&g.started&&!g.enemies.length&&t+EPS>=g.nextWave){if(g.wave>=3){g.finished=true;g.won=true;}else spawnWave(g);}
  for(const e of [...g.enemies]){enemyTick(g,e,dt);if(g.finished)break;}
  if(g.pilot)knifeContacts(g,before,ratBefore);
+ if(g.areaHazards){const next=stepAreaHazards(g.areaHazards,{time:g.time,areaId:g.world.areaId,owners:g.enemies,player:g.player,lineClear:(a,b)=>g.world.lineClear(a,b)});g.areaHazards=next.hazards;for(const hit of next.hits){const attacker=g.enemies.find(e=>e.id===hit.ownerId);knifeReceive(g,{amount:hit.damage,origin:hit.position,attacker,block:false,parry:false,moveId:'area-poison',def:{stagger:0,chip:0}});if(g.finished){g.areaHazards=[];break;}}}
  if(!g.finished){projectiles(g,dt);collect(g);}
  }
+ if(g.finished&&g.areaHazards)g.areaHazards=[];
  if(g.mobileAim){
   if(g.finished)resetMobileControls(g);
   else if(!g.enemies.some(e=>e.placementKey===g.mobileAim.targetId&&e.hp>0))g.mobileAim={...g.mobileAim,targetId:null,bearing:null};
@@ -354,7 +359,7 @@ function declaredResident(g,placement,mobSize){
  const actor=hollowActor(g,placement.pos,0,foundation?1:mobSize);
  if(foundation&&foundation.runtimeIdentity!=='hollow-scavenger')Object.assign(actor,animalFoundationParameters(foundation.runtimeIdentity,g.player.combatScale),{animalRecipe:placement.recipeRef});
  else if(placement.recipeRef==='human-gaunt-skulker')actor.humanBodyRecipe=placement.recipeRef;
- return actor;
+ return applyBossProfile(actor,placement,g.world.bossData);
 }
 export function initializeAreaResidents(g){
  if(!g.areaResidents||g.areaInitialized)return;
@@ -424,6 +429,7 @@ function knifeSpawnPosition(g){
 // The pilot uses the same entity/world loop, with a focused move/contact profile.
 // Explicit activation lets Lead integrate the matching assets atomically.
 function knifeMove(entity,action){
+ const selected=bossMove(entity,action);if(selected)return selected;
  const id=action==='slash'?(entity.lastMove==='light_right'?'light_left':'light_right'):({stab:'thrust',heavy:'heavy_overhead',special:'skill_pommel'})[action];
  return KNIFE_MOVES[id];
 }
@@ -459,7 +465,7 @@ function knifeGuard(g,intent,swinging,dodging){
 }
 function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,weapon:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
 function knifeReceive(g,hit){
- const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId];
+ const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.def??(hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId]);
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}
  const meta=hitMetadata(hit.attacker,p,def);let amount=hit.amount,blocked=false;
  if(p.guarding&&hit.block&&inside(p.facing,sub(hit.origin,p.pos),R.guardArc)){
@@ -499,12 +505,23 @@ function knifeEnemy(g,e,dt){
  if(g.time<e.recoverUntil||g.time<e.staggerUntil)return;
  if(e.home&&residentPatrol(g,e,dt))return;
  const delta=sub(g.player.pos,e.pos),distance=mag(delta),dir=normal(delta,e.facing);
- const action=['slash','stab','slash','heavy'][e.pattern%4],def=knifeMove(e,action);
+ const pattern=e.bossProfile?.attackPattern??['slash','stab','slash','heavy'],action=pattern[e.pattern%pattern.length],def=knifeMove(e,action);
+ // Native long weapons keep their measured inner reach through ordinary movement.
+ const minimum=(e.bossProfile?.minimumAttackDistance??0)*e.combatScale;
+ const spacing=minimum>0&&(distance<minimum||!!e.attackSpacing&&distance<minimum+.1*e.combatScale);
+ if(minimum>0)e.attackSpacing=spacing;
+ if(spacing){
+  e.facing=turn(e.facing,dir,360*dt);
+  const away={x:-dir.x,z:-dir.z},next=g.world.move(e.pos,{x:away.x*e.moveSpeed*dt,z:away.z*e.moveSpeed*dt},e.radius),delta=sub(next,e.pos);
+  if(dot(delta,away)>EPS&&g.world.lineClear(e.pos,next)&&!g.world.travelAt?.(next)&&(!e.home||mag(sub(next,e.home))<=e.bossProfile.homeLeash)&&![g.player,...g.enemies].some(other=>other!==e&&other.hp>0&&mag(sub(next,other.pos))<e.radius+other.radius))moveBody(g,e,delta);
+  return;
+ }
  if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,e.moveSpeed??R.walkSpeed*1.2,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
  if(g.time+EPS>=e.ready&&(!g.encounter||g.time+EPS>=g.nextEnemyAttackAt)&&dot(e.facing,dir)>.96&&knifeAffordable(e,def.stamina)){
   knifeSpend(g,e,def.stamina);
   e.swing=knifeSwing(g,e,action,def);e.ready=e.swing.end+(e.recoveryDelay??0);e.pattern++;
+  if(e.bossProfile?.hazard){const position=bossHazardPosition(g,e);if(position){const patch=createAreaHazard({ownerId:e.id,areaId:g.world.areaId,position,time:g.time,config:e.bossProfile.hazard},g.areaHazards??[]);if(patch)(g.areaHazards??=[]).push(patch);}}
   if(g.encounter)g.nextEnemyAttackAt=g.time+g.encounter.aggression;
   event(g,'enemy-attack',{actor:e,dir:{...e.facing},range:def.range*e.combatScale,arc:def.arc,moveId:def.moveId,clip:def.clip});
  }
@@ -583,7 +600,7 @@ function knifeContacts(g,before,ratBefore){
  // on which attacker was enumerated first; a dead enemy cannot cancel its hit.
  contacts.sort((a,b)=>a.a.id-b.a.id||a.d.id-b.d.id);
  for(const {a,d,def} of contacts){
-  if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId});
+  if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId,...(a.bossProfile?{def}:{})});
   else{
    const damage=def.damage*(g.player.damage/20)*progressionDamage(g,'knife'),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};

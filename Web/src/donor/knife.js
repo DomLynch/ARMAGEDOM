@@ -40,15 +40,15 @@ export function segmentDistance(a,b,c,d){
   if(t<0){t=0;s=aa<1e-12?0:clamp(-dd/aa);}else if(t>1){t=1;s=aa<1e-12?0:clamp((bb-dd)/aa);}
   return Math.hypot(...sub(mix(a,b,s),mix(c,d,t)));
 }
-export function bladePose(rig,path,age){
-  const frames=knifePaths[rig]?.[path];if(!frames)throw Error(`no knife ${path} bake on ${rig}`);
+export function bladePose(rig,path,age,paths=null){
+  const frames=paths?.[path]??knifePaths[rig]?.[path];if(!frames)throw Error(`no knife ${path} bake on ${rig}`);
   const frame=Math.max(0,Math.min(frames.length-1,age)),index=Math.floor(frame);
   return mix(frames[index],frames[Math.min(index+1,frames.length-1)],frame-index);
 }
 // Domain reflection matches actors.js yaw atan2(facing.x,-facing.z) and world
 // toRender(x,y,-z). Local +Z points forward; local +X points to domain -X at +Z.
 export function worldBlade(body,path,age){
-  const pose=bladePose(body.rig,path,age),f=body.facing,k=body.combatScale??1;
+  const pose=bladePose(body.rig,path,age,body.contactPaths),f=body.facing,k=body.contactScale??body.combatScale??1;
   return [0,3].map(o=>{const [x,y,z]=pose.slice(o,o+3);return [body.pos.x+k*(-x*f.z+z*f.x),y*k,body.pos.z+k*(x*f.x+z*f.z)];});
 }
 export function bladeContact(attackerBefore,attackerAfter,targetBefore,targetAfter,path,fromAge,toAge){

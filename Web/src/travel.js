@@ -6,6 +6,7 @@ export async function travelTo(game, request,{isCurrent=()=>true}={}) {
     position = await game.world.loadArea(request.areaId, request.entryPoint);
   if(!isCurrent())return null;
   // Load succeeds before any source fight/player state is changed.
+  if(game.areaHazards)game.areaHazards=[];
   game.areaFights ??= {};
   for (const e of game.enemies) {e.swing=null;if(e.animalRole)e.completedAttack=null;}
   game.areaFights[previous] = {
@@ -70,7 +71,7 @@ export function continueExploring(game) {
 }
 
 // Snapshot only logical fields touched by travel; retain actor/object identities.
-const travelFields=['areaFights','enemies','corpses','bolts','loot','areaInitialized','encounterCleared','encounterActive','wave','nextWave','nextEnemyAttackAt','message','messageUntil','events'];
+const travelFields=['areaHazards','areaFights','enemies','corpses','bolts','loot','areaInitialized','encounterCleared','encounterActive','wave','nextWave','nextEnemyAttackAt','message','messageUntil','events'];
 function restoreOwn(target,values){for(const key of Object.keys(target))if(!Object.hasOwn(values,key))delete target[key];Object.assign(target,values);}
 export function captureTravelState(game){
  const entities=new Set([...(game.enemies??[]),...(game.corpses??[]),...Object.values(game.areaFights??{}).flatMap(f=>[...f.enemies,...(f.corpses??[]),...(f.bolts??[])]),...(game.bolts??[])]);

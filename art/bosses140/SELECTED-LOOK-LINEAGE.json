@@ -1,0 +1,90 @@
+{
+  "atUTC": "2026-10-16T05:40:01.667875+00:00",
+  "status": "BOUNDED_SELECTED_FILE_LINEAGE_WITH_SPECIFIC_UNKNOWN_TERMS",
+  "sourceHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
+  "receipts": [
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/plaguedoctor-ranks/src/assets/source/creatures/plaguedoctor-L2-donor.trellis.json",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/doctor-L2-settings.json",
+      "sha256": "d1e28116caa3e9eb6a4c6a6b1443c6ffdbcfe35e8ab73e94b26be20415c59f9c"
+    },
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/plaguedoctor-ranks/manifest.json",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/doctor-pack-manifest.json",
+      "sha256": "7e99ebe701acad69e22f072377de92a717067475d65a671f425260698d7a5abd"
+    },
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/plaguedoctor-ranks/HANDOFF.md",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/doctor-pack-handoff.md",
+      "sha256": "408ac3d406b29b6e3e8155774acd66221ba31c7cd2af9d200ad2596c7ccf1583"
+    },
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/knight-ranks-20260928/src/assets/source/creatures/knight-L6-detail-donor.trellis.json",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/knight-L6-settings.json",
+      "sha256": "fa10edd6c74bcd159e6c54d106e0b739947e05f2a74b9abe69c15c90f5f1fb89"
+    },
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/knight-ranks-20260928/final/manifest.json",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/knight-final-manifest.json",
+      "sha256": "d1537faa0b6d9b7b96ff947481e83bed3921903d5a1bca47a075b500bd542e05"
+    },
+    {
+      "original": "/Users/domininclynch/Desktop/Business/artifacts/knight-ranks-20260928/source/originals.json",
+      "copy": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/knight-originals.json",
+      "sha256": "87644ad6b4b6365edca23723370932a09557c3e20d8f02fd098ef5300ab1f539"
+    }
+  ],
+  "selectedLooks": [
+    {
+      "file": "public/looks/plaguedoctor-L2-phone.glb",
+      "phoneHistory": "f0fd914fb Sep28 phoneLOD from documentedownGPTplaguedoctor-ranks/models pack; docs/state/armour.md283 records exactfamily pack/fit/decimation.",
+      "generation": {
+        "service": "microsoft/TRELLIS.2",
+        "seed": 280902,
+        "resolution": "1024",
+        "targetFaces": 100000,
+        "textures": 2048,
+        "reference": "plaguedoctor-ranks/source/L2-reference.png",
+        "savedDonorSHA256": "95d91569be784d919a344d160ac043bf4d156c36d9090e361e29e4f56fa66ca0",
+        "providerCommit": "Not recorded in savedsettings"
+      },
+      "referenceLineage": "TeamGPT rankreference fromownbrief, sourceDoctorbeakedmaskreferenceincludesFLUX.1-Kontext-Dev poseedit sidecar; referenceimageprecursorpass1 notfullypreserved. No finding of namedthirdpartycommercialgamegeometry.",
+      "unknown": "Exactgeneration-time service/outputterms+Space/dependencyrevision receipt and complete imagepass chain not archived withselectedlook."
+    },
+    {
+      "file": "public/looks/knight-L6-phone.glb",
+      "phoneHistory": "0e58239ff Sep28 phone rebatlas from40aa17047 acceptedKnightL2-L10 ownGPTrankpack. Knownlocalroot knight-ranks-20260928/final; selectedL6detail receipt retained.",
+      "generation": {
+        "service": "microsoft/TRELLIS.2",
+        "seed": 280906,
+        "resolution": "1536",
+        "targetFaces": 200000,
+        "textures": 2048,
+        "stepsEachStage": 36,
+        "reference": "knight-ranks-20260928/source/L6-reference.png",
+        "savedDonorSHA256": "1b39081d6c813a1720e4d551d2bc8de49753c19310ba04a5052359691d200b62",
+        "providerCommit": "Not recorded in savedsettings"
+      },
+      "unknown": "Historicalservice/outputterms+dependencyrevision receipt and imagegenerator/version forL6reference not established."
+    },
+    {
+      "file": "public/looks/executioner-L2-phone.glb",
+      "phoneHistory": "09ddbb94d Sep29 acceptsArmourhandover-l2l10 fromownerGPTredo;2c54cc50f Oct1 liftshoodtexels only, meshunchanged. docs/briefs/executioner-redo.md ownerbrief; docs/state/armour.md namedacceptedhandover.",
+      "generation": {
+        "provider": "Unknown foractualacceptedSep29redo",
+        "reference": "Owner/teamGPTredo referencedbybrief; exactsavedreference/receiptpath unestablished"
+      },
+      "excludedWrongSource": "Localartifacts/executioner-ranks initial/revision2 areknownrejectedpre-redopacks; doNOTattachtheirgenerationmetadata toacceptedlook.",
+      "unknown": "Actualacceptedredooriginalgenerationreceipt/service/modelversion/outputterms and sourcepackhashchain to09ddbb94d."
+    }
+  ],
+  "termsChecked": {
+    "fluxKontextOfficial": "https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev/blob/main/LICENSE.md",
+    "fluxCurrentMeaning": "Currentv1.1.1 §2d permitscommercialOutputuse subjecttootherterms; modelweightnoncommercialrestriction isnotblanketoutputban. ThisdoesnotestablishhistoricalSpaceuseoralllookrights.",
+    "trellisOfficial": "https://github.com/microsoft/TRELLIS.2/blob/main/LICENSE",
+    "trellisCurrentMeaning": "MITsoftwarelicenceverified, not blanketclaim that all referencedpipelinecomponents/historicaloutputs/inputs areCC0. Exacthistoricalgenerationdependencyversion notrecorded.",
+    "scope": "Primarytermscheckedonlyforactuallyidentifiedproviders; no newproviderinference/modeldownload/generation."
+  },
+  "decisionBoundary": "Userexplicitlyownsproject/authorizesselectedreuse. ConcreteunknownfactsretainedforLead; no restrictedcommercialgame-ripidentified, no abstractapprovalgate introduced. Continuecompatibilitywhilepreservingoriginals.",
+  "constraints": "Bounded selected3files/ownreceipts/docs only; Frankendom/Claude untouched; no wholesalelicenceassumption."
+}

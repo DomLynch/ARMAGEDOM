@@ -1,3 +1,4 @@
+import{validateAreaBosses,mergeBossResidents,validateBossGeometry}from'./area-bosses.js';
 import {validateExpeditionData} from './expedition-core.js';
 import {AREA_MOB_SPAWNS} from '../area-mob-spawns.js';
 import {validateGuidance} from './route-guidance.js';
@@ -35,8 +36,9 @@ function validateResidentGeometry(row,g,radius){
    if(!g.clear(row.pos,radius)||row.patrol.some(p=>!g.clear(p,radius)))fail();
    for(let i=0;i<row.patrol.length;i++){const a=row.patrol[i],b=row.patrol[(i+1)%row.patrol.length],steps=Math.max(1,Math.ceil(Math.hypot(a.x-b.x,a.z-b.z)/.2));for(let n=0;n<=steps;n++)if(!g.clear({x:a.x+(b.x-a.x)*n/steps,z:a.z+(b.z-a.z)*n/steps},radius))fail();}
 }
-export function validateAreaGeometry(registry,areaId,layout,residents=null,expedition=null){
+export function validateAreaGeometry(registry,areaId,layout,residents=null,expedition=null,bossData=null){
  const g=createGeometry(layout),area=registry.get(areaId);
+ validateBossGeometry(bossData,areaId,g,registry);
  validateGuidance(layout,g,registry.links(areaId));
  if(expedition){
   for(const anchor of[expedition.contract.giver,expedition.contract.case])if(anchor.areaId===areaId){
@@ -67,6 +69,6 @@ function validateAtmosphere(rows,registry){
  }
  return freeze(result);
 }
-export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition']);const residents=validateResidentPlacements(content.residents,registry,layouts);return Object.freeze({...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
+export function validateAreaContent(content,registry,layouts){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition','bosses']);const original=validateResidentPlacements(content.residents,registry,layouts),bossData=validateAreaBosses(content.bosses,registry,original),residents=mergeBossResidents(original,bossData,registry);return Object.freeze({...(bossData?{bossData}:{}),...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry),layouts:freeze(structuredClone(layouts))});}
 
-export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition']);const residents=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false});return Object.freeze({...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}
+export function validateAreaMetadata(content,registry){closed(content,['residents','atmosphere'],['lighting','water','loot','progression','expedition','bosses']);const original=validateResidentPlacements(content.residents,registry,{}, {geometryValidation:false}),bossData=validateAreaBosses(content.bosses,registry,original),residents=mergeBossResidents(original,bossData,registry);return Object.freeze({...(bossData?{bossData}:{}),...(content.expedition===undefined?{}:{expedition:validateExpeditionData(content.expedition,registry)}),progression:content.progression===undefined?null:validateProgressionPilot(content.progression),lootRules:validateAreaLoot(content.loot,registry,residents),water:validateAreaWater(content.water,registry),lighting:validateAreaLighting(content.lighting,registry),residents,atmosphere:validateAtmosphere(content.atmosphere,registry)});}

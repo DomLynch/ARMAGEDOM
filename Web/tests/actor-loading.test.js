@@ -211,3 +211,22 @@ test('actual selected manifest shares one byte-identical knife source and dispos
  const fetched=[],owned=[];t.mock.method(globalThis,'fetch',async()=>({ok:true,json:async()=>actual}));t.mock.method(GLTFLoader.prototype,'loadAsync',async url=>{fetched.push(url);const r=resource();owned.push(r);return r.gltf;});
  const library=await loadActors(url,()=>{},'assets/manifest-hollow.json');assert.equal(fetched.filter(u=>u.endsWith('/donor/knife.glb')).length,1);assert.equal(library.models.get('vagrant').equipment,library.models.get('hollow-scavenger').equipment);library.dispose();assert(owned.every(r=>Object.values(r.disposed).every(count=>count===1)));
 });
+
+test('deferred boss sources do not preload globally; concurrent affected-area requests share one load',async(t)=>{
+ const hero=resource(),boss=resource(),other=resource(),fetched=[];
+ manifest(t,{vagrant:{url:'hero.glb'},'boss-one':{url:'boss.glb',deferred:true},'boss-two':{url:'other.glb',deferred:true}});
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{fetched.push(path);return path.endsWith('hero.glb')?hero.gltf:path.endsWith('boss.glb')?boss.gltf:other.gltf;});
+ const library=await loadActors(url);assert.equal(fetched.length,1);assert(!library.models.has('boss-one'));await Promise.all([library.ensureModels(['boss-one']),library.ensureModels(['boss-one'])]);assert.equal(fetched.filter(p=>p.endsWith('boss.glb')).length,1);assert(library.models.has('boss-one'));assert(!library.models.has('boss-two'));await assert.rejects(library.ensureModels(['unknown']),/Unknown actor model/);library.dispose();assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});assert.deepEqual(other.disposed,{geometry:0,material:0,texture:0});
+});
+test('late deferred completion after disposal is released and cannot publish a stale model',async(t)=>{
+ const hero=resource(),boss=resource();let finish;
+ manifest(t,{vagrant:{url:'hero.glb'},boss:{url:'boss.glb',deferred:true}});
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>path.endsWith('hero.glb')?hero.gltf:new Promise(resolve=>finish=()=>resolve(boss.gltf)));
+ const library=await loadActors(url),pending=library.ensureModels(['boss']);await Promise.resolve();library.dispose();finish();await assert.rejects(pending,/disposed/);assert.equal(library.models.size,0);assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});await assert.rejects(library.ensureModels(['boss']),/disposed/);
+});
+test('a transient deferred URL failure evicts only rejection and a shared retry can succeed',async(t)=>{
+ const hero=resource(),boss=resource();let attempts=0;
+ manifest(t,{vagrant:{url:'hero.glb'},'boss-one':{url:'shared-boss.glb',deferred:true},'boss-two':{url:'shared-boss.glb',deferred:true}});
+ t.mock.method(GLTFLoader.prototype,'loadAsync',async path=>{if(path.endsWith('hero.glb'))return hero.gltf;if(++attempts===1)throw Error('temporary transport');return boss.gltf;});
+ const library=await loadActors(url),failed=await Promise.allSettled([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert(failed.every(row=>row.status==='rejected'));assert.equal(attempts,1);assert(!library.models.has('boss-one'));await Promise.all([library.ensureModels(['boss-one']),library.ensureModels(['boss-two'])]);assert.equal(attempts,2);assert.equal(library.models.get('boss-one').gltf,library.models.get('boss-two').gltf);assert.deepEqual(hero.disposed,{geometry:0,material:0,texture:0});library.dispose();assert.deepEqual(boss.disposed,{geometry:1,material:1,texture:1});
+});

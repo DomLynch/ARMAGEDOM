@@ -21,7 +21,7 @@ import {createRunStorage as createF3RunStorage} from './fixtures/progression-f3-
 const componentURL=process.env.PROGRESSION_COMPONENT_URL??new URL('../src/engine/progression-core.js',import.meta.url).href;
 const {createProgressionComponent,PROGRESSION_SAVE_KEY}=await import(componentURL);
 const pistol='westminster-start-pistol-v1',v3='armagedom:area-run:v3';
-const content=JSON.parse(readFileSync(new URL('../public/world/area-content.json',import.meta.url)));
+const content=JSON.parse(readFileSync(new URL('./fixtures/original139-area-content.json',import.meta.url)));
 const placements={...AREA_MOB_SPAWNS,...content.residents};
 const row=()=>({version:1,killScore:20,scoreCap:100,damagePerPoint:.001,hpPerVitality:2,staminaPerEndurance:1,damagePerAttribute:.01,weapons:{knife:{damageAttribute:'strength'},[pistol]:{damageAttribute:'dexterity'}}});
 function fixture({records=new Map(),nullInitially=false,data=row(),guard={}}={}){

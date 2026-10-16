@@ -28,8 +28,9 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  function expedition(){
   const g=getRun();if(!g?.world.expeditionData)return null;
   const p=progression();if(!p)throw TypeError('Expedition requires registered progression');
-  if(!expeditionComponent){expeditionComponent=createExpeditionComponent({baseCodec:p.codec,getRun,data:g.world.expeditionData,registry:g.world.registry,
-   applyBaseSaved:(run,saved)=>p.applySavedRun(run,saved),baseStorageAdapter:storage=>p.storageAdapter(storage),canDispatch:run=>expeditionScope?.run===run&&expeditionScope.allowed});
+  if(!expeditionComponent){const options=progressionOptions(g),bossKeys=new Set(Object.values(g.world.residentPlacements??{}).flat().filter(row=>row.bossRef).map(row=>row.key));
+   expeditionComponent=createExpeditionComponent({baseCodec:p.codec,getRun,data:g.world.expeditionData,registry:g.world.registry,
+   saveVersion:g.world.bossData?6:5,previousPlacementIds:g.world.bossData?Object.values(options.placements).flat().map(row=>row.key).filter(key=>!bossKeys.has(key)):null,applyBaseSaved:(run,saved)=>p.applySavedRun(run,saved),baseStorageAdapter:storage=>p.storageAdapter(storage),canDispatch:run=>expeditionScope?.run===run&&expeditionScope.allowed});
    expeditionDomain=expeditionComponent.wrapDomain(wrappedDomain);}
   return expeditionComponent;
  }
