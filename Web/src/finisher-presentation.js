@@ -116,7 +116,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   headParts=validateHeadParts(headParts);
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
-  const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3();
+  const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3(),anchorNormal=new T.Vector3();
   let runGrounding=null,runPreparationError=null,completed=false;const runScale=new T.Vector3();
   let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
   try {
@@ -198,7 +198,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       const capAt=mesh=>{if(!mesh?.geometry.boundingSphere)return null;mesh.updateWorldMatrix(true,false);anchorPoint.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
       if(recipe.id==='opened'){const upper=at(opened.group.getObjectByName('OpenedTorso')),lower=at(opened.group.getObjectByName('OpenedLegs'));return upper?{body:upper,trails:[upper,lower??upper]}:null;}
       if(recipe.id==='split-crown'){const left=capAt(crown.caps.find(m=>m.parent===crown.halves[0])),right=capAt(crown.caps.find(m=>m.parent===crown.halves[1]));return left?{head:left,trails:[left,right??left]}:null;}
-      if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);return seam?{head:seam,trails:[at(detachedCap)??seam,seam]}:null;}
+      if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);if(!seam)return null;anchorNormal.set(0,1,0).transformDirection(head.stump.matrixWorld);return{head:seam,neckNormal:{x:anchorNormal.x,y:anchorNormal.y,z:anchorNormal.z},trails:[at(detachedCap)??seam,seam]};}
       const body=at(torso);return body?{body,trails:[body]}:null;
     },
     stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedGeometryBytes,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},

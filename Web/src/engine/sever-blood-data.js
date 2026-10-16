@@ -3,7 +3,7 @@ import {insidePolygon} from '../world-geometry.js';
 export const SEVER_BLOOD_DATA=Object.freeze({
  jet:Object.freeze({capacity:2,duration:.22,length:.9,radius:.055}),
  pool:Object.freeze({capacity:4,lifetime:4,spreadSeconds:.4,radius:.5,opacity:.7}),
- headDropletLifetime:1.25,
+ headDropletLifetime:1.25,headDropletGravity:4,
 });
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 function distanceSquared(p,a,b){

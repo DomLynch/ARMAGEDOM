@@ -1,3 +1,4 @@
+import{SEVER_BLOOD_DATA}from'./engine/sever-blood-data.js';
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
 const rows={
@@ -8,7 +9,7 @@ const rows={
   'pistol-directional':['bullet','body',8,0,.34,2.6,20],
   'pistol-decapitation':['bullet','head',16,2,.75,4.2,42],
 };
-export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:.75});
+export const FINISHER_IMPACT_LIMITS=Object.freeze({bursts:2,particles:48,trails:8,lifetime:SEVER_BLOOD_DATA.headDropletLifetime});
 const palette=Object.freeze([0x650c1b,0x831428,0x430812]);
 const point=p=>p&&['x','y','z'].every(k=>Number.isFinite(p[k]));
 const victim=id=>Number.isSafeInteger(id)&&id>0||typeof id==='string'&&id.trim().length>0;
@@ -22,8 +23,8 @@ export function finisherImpactProfile(event,anchors){
     origin:Object.freeze({x:origin.x,y:origin.y,z:origin.z}),
     // ARM direction x/z -> render x/-z ONCE. Anchor is already render space.
     direction:Object.freeze({x:d.x/length,y:0,z:-d.z/length}),
-    droplets:row[2],trails:row[3],lifetime:row[4],speed:row[5],spreadDegrees:row[6],
-    trailLifetime:headSever?.28:.18,trailLength:headSever?.34:.22,dropSize:headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:8,
+    droplets:row[2],trails:row[3],lifetime:headSever?SEVER_BLOOD_DATA.headDropletLifetime:row[4],speed:row[5],spreadDegrees:row[6],
+    trailLifetime:headSever?.28:.18,trailLength:headSever?.34:.22,dropSize:headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:headSever?SEVER_BLOOD_DATA.headDropletGravity:8,groundClip:headSever,
     palette,depthTest:true,depthWrite:false,additive:false,bloom:false});
 }
 
