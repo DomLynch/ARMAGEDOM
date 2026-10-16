@@ -11,6 +11,11 @@ for(const row of content.bossData.placements)test('actual '+row.profileRef+' exa
   const frames=content.bossData.paths[a.path];assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);const attacker={pos:{x:0,z:0},facing:{x:0,z:1},rig:p.modelRef,combatScale:1.265,contactScale:1.265*p.contactScale,contactPaths:content.bossData.paths};let hit=false;
   for(let distance=.5;distance<=a.range*1.265;distance+=.025){const target={pos:{x:0,z:distance},combatScale:1.265,bodyScale:1};for(let tick=a.windupTicks;tick<a.windupTicks+a.activeTicks;tick++)if(bladeContact(attacker,attacker,target,target,a.path,tick,tick+1))hit=true;}
   assert(hit,'actual active native blade must reach unmodified player torso');
+  if(row.profileRef==='butcher'){
+   const oldAttacker={...attacker,contactScale:1.265*1.3225};let oldHit=false;
+   for(let distance=.5;distance<=3.2;distance+=.025){const target={pos:{x:0,z:distance},combatScale:1.265,bodyScale:1};for(let tick=a.windupTicks;tick<a.windupTicks+a.activeTicks;tick++)if(bladeContact(oldAttacker,oldAttacker,target,target,a.path,tick,tick+1))oldHit=true;}
+   assert.equal(oldHit,false,'original uncalibrated scale1 blade sails above real player capsule');
+  }
   const far={pos:{x:0,z:8},combatScale:1.265};assert.equal(bladeContact(attacker,attacker,far,far,a.path,a.windupTicks,a.windupTicks+1),false);
  }
  const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:p.wakeDistance+.4});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);assert.deepEqual(route.missingExits,[]);}

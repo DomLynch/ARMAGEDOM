@@ -1,0 +1,572 @@
+{
+  "atUTC": "2026-10-16T06:06:49.458109+00:00",
+  "status": "THREE_PORTABLE_FINAL_EXPORTS_CPU_PRESERVATION_PASS_NATIVE_ENCOUNTERS_AND_FORMAT_PENDING",
+  "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
+  "rows": [
+    {
+      "id": "boss-surgeon",
+      "label": "Lambeth Surgeon",
+      "area": "lambeth",
+      "model": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-surgeon.glb",
+        "sha256": "1dbd9f575f8e05fbf562f13e515c438a71d0058054342452f763ee74356993cb",
+        "bytes": 3892748,
+        "activeDraws": [
+          {
+            "name": "WeaponDrawn_1",
+            "vertices": 3551,
+            "triangles": 3116,
+            "material": "WeaponKnife",
+            "skinned": false
+          },
+          {
+            "name": "WeaponDrawn_2",
+            "vertices": 84,
+            "triangles": 78,
+            "material": "WeaponKnifeShaft",
+            "skinned": false
+          },
+          {
+            "name": "L2_Armour",
+            "vertices": 40164,
+            "triangles": 42645,
+            "material": "Material_0",
+            "skinned": true
+          },
+          {
+            "name": "L2_FittedGloves",
+            "vertices": 1264,
+            "triangles": 982,
+            "material": "Material_0",
+            "skinned": true
+          }
+        ],
+        "activeVertices": 45063,
+        "activeTriangles": 46821,
+        "skinnedVertices": 41428,
+        "materialCount": 3
+      },
+      "descriptor": {
+        "motion": "donor-knife",
+        "scale": 1,
+        "forwardCorrection": 0,
+        "stride": 1,
+        "clips": {
+          "idle": "Armed",
+          "walk": "ArmedWalk",
+          "run": "Run",
+          "strafeLeft": "StrafeLeft",
+          "strafeRight": "StrafeRight",
+          "guard": "Guard",
+          "dodge": "Roll",
+          "hit": "Hit",
+          "death": "Death",
+          "deflected": "Deflected",
+          "blockImpact": "BlockImpact",
+          "attack": "Attack"
+        }
+      },
+      "contact": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-surgeon-attack.json",
+        "sha256": "c7cac409d8e7bdf345c63b504c2fbf9f79d4bb1cbb583bd3a34bc69f2ded80ab",
+        "weaponNode": "WeaponDrawn",
+        "heelLocal": [
+          0,
+          0.12,
+          0
+        ],
+        "tipLocal": [
+          0,
+          0.52,
+          0
+        ],
+        "nativeClip": "Attack",
+        "clipDuration": 1,
+        "retimedTicks": 80,
+        "frameCount": 81,
+        "windupTicks": 24,
+        "activeTicks": 10,
+        "clipRecoveryTicks": 46,
+        "sourcePhaseWindow": [
+          0.3,
+          0.425
+        ],
+        "activeMarkers": [
+          [
+            -0.10619945386178373,
+            1.2935702928853907,
+            0.3737949634649692,
+            -0.14424238980868945,
+            1.3201628222508242,
+            0.7587046519954448
+          ],
+          [
+            0.09679995321637233,
+            1.2800901879419628,
+            0.3656896548655841,
+            0.21120249275197514,
+            1.282960039854244,
+            0.7335653379012695
+          ]
+        ],
+        "coordinateContract": "Actual native Mixer at everyphasei/N. Assetrootincluded; no layout1.265/visual1.3225/descScale applied. WebworldBlade applieslayout then explicitdescScale*1.3225 once."
+      },
+      "preservation": {
+        "originalUnprunedSHA256": "dd5e955f0fe1cfe045e9b7c2b2b5c9bf97f6ba0d5ff8c194e3345f0d195d1079",
+        "originalBytes": 7912192,
+        "activeGeometrySkinAnimationSemanticHash": "11855c5a77de27ff45655d6ba0fc85718030f7868d150478553402b4a116278f",
+        "activeMaterialEncodedImageSemanticHash": "ea429fdf476c53468b2d25f42b18a40566a729a584afa0be9e40754f1787e75e",
+        "boneCount": 65,
+        "clipCount": 25,
+        "sampledBoneMatrices": 4875,
+        "maximumBoneDelta": 0,
+        "exactContactDelta": 0,
+        "originalAndFinalTraceHashes": [
+          "797799d2a34f80aca4146617652273be523f99f49c6c8bddc07382f9942f6b87",
+          "797799d2a34f80aca4146617652273be523f99f49c6c8bddc07382f9942f6b87"
+        ],
+        "invalidWeights": 0,
+        "nonfinitePosedVertices": 0,
+        "idleBounds": {
+          "min": [
+            -0.6451139054759062,
+            0.017969455878880238,
+            -0.5229648702219342
+          ],
+          "max": [
+            0.4817747242953811,
+            1.6578898866823688,
+            0.5520265405945247
+          ]
+        }
+      },
+      "validation": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-surgeon-validation.json",
+        "sha256": "c350bc8e4ad46a43f3e4bf12307d6705984a46baa813be8210e5efe9e3eceb06"
+      },
+      "levelSelection": "L2 browncloth/leather mask"
+    },
+    {
+      "id": "boss-butcher",
+      "label": "Borough Butcher",
+      "area": "elephant-and-castle",
+      "model": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-butcher.glb",
+        "sha256": "849d62249dd737ec4eb8df5f313604cf407fcd9ae8d63e9808817808385606b1",
+        "bytes": 4915204,
+        "activeDraws": [
+          {
+            "name": "WeaponDrawn_1",
+            "vertices": 4230,
+            "triangles": 3883,
+            "material": "WeaponCleaver",
+            "skinned": false
+          },
+          {
+            "name": "WeaponDrawn_2",
+            "vertices": 102,
+            "triangles": 96,
+            "material": "WeaponCleaverShaft",
+            "skinned": false
+          },
+          {
+            "name": "L2_Original_Skin",
+            "vertices": 1150,
+            "triangles": 1062,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_Body",
+            "vertices": 29035,
+            "triangles": 28000,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_BracerL",
+            "vertices": 1856,
+            "triangles": 1499,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_BracerR",
+            "vertices": 1630,
+            "triangles": 1498,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_GreaveL",
+            "vertices": 2244,
+            "triangles": 2499,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_GreaveR",
+            "vertices": 2199,
+            "triangles": 2500,
+            "material": "L2_Rebaked",
+            "skinned": true
+          },
+          {
+            "name": "L2_Hood",
+            "vertices": 7755,
+            "triangles": 6998,
+            "material": "L2_Rebaked",
+            "skinned": true
+          }
+        ],
+        "activeVertices": 50201,
+        "activeTriangles": 48035,
+        "skinnedVertices": 45869,
+        "materialCount": 3
+      },
+      "descriptor": {
+        "motion": "donor-knife",
+        "scale": 1,
+        "forwardCorrection": 0,
+        "stride": 1,
+        "clips": {
+          "idle": "Armed",
+          "walk": "ArmedWalk",
+          "run": "Run",
+          "strafeLeft": "StrafeLeft",
+          "strafeRight": "StrafeRight",
+          "guard": "Guard",
+          "dodge": "Roll",
+          "hit": "Hit",
+          "death": "Death",
+          "deflected": "Deflected",
+          "blockImpact": "BlockImpact",
+          "attack": "Attack"
+        }
+      },
+      "contact": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-butcher-attack.json",
+        "sha256": "7af4bfb05361a8f2a5c29b3ad73686b84c6f4ba243818a9b1e0d31008030d523",
+        "weaponNode": "WeaponDrawn",
+        "heelLocal": [
+          0,
+          0.14,
+          0
+        ],
+        "tipLocal": [
+          0,
+          0.86,
+          0
+        ],
+        "nativeClip": "Attack",
+        "clipDuration": 1,
+        "retimedTicks": 106,
+        "frameCount": 107,
+        "windupTicks": 36,
+        "activeTicks": 12,
+        "clipRecoveryTicks": 58,
+        "sourcePhaseWindow": [
+          0.33962264150943394,
+          0.4528301886792453
+        ],
+        "activeMarkers": [
+          [
+            -0.0546121883993583,
+            1.7318835074462648,
+            0.5415091337098836,
+            -0.055510565799784896,
+            1.7323963339206265,
+            1.491331747922256
+          ],
+          [
+            0.1984435191528246,
+            1.7311793264379114,
+            0.5035740176152189,
+            0.5638937757764015,
+            1.737781771452562,
+            1.3678562838790849
+          ]
+        ],
+        "coordinateContract": "Actual native Mixer at everyphasei/N. Assetrootincluded; no layout1.265/visual1.3225/descScale applied. WebworldBlade applieslayout then explicitdescScale*1.3225 once."
+      },
+      "preservation": {
+        "originalUnprunedSHA256": "32742783a84a89c61445bd27dffaa870599e648823f18a1dead588bbbdd9acc1",
+        "originalBytes": 8997416,
+        "activeGeometrySkinAnimationSemanticHash": "1b12c0591877193bcc8d6899b70fb6193fcb529fac8466c4425956cccd2dc386",
+        "activeMaterialEncodedImageSemanticHash": "2c823ebca695e38f00e191ecbf9a184062ffc5e223e1d6f08b68da53e5515a13",
+        "boneCount": 65,
+        "clipCount": 38,
+        "sampledBoneMatrices": 7410,
+        "maximumBoneDelta": 0,
+        "exactContactDelta": 0,
+        "originalAndFinalTraceHashes": [
+          "78a22539085a7b4733cc8f2508d8f803c228fa339c8a5702fefad0e1b02c6ab2",
+          "78a22539085a7b4733cc8f2508d8f803c228fa339c8a5702fefad0e1b02c6ab2"
+        ],
+        "invalidWeights": 0,
+        "nonfinitePosedVertices": 0,
+        "idleBounds": {
+          "min": [
+            -1.1590068733291883,
+            -0.013236491927595836,
+            -0.7335453583150447
+          ],
+          "max": [
+            0.6098472029176266,
+            2.1534851691903856,
+            0.625987580876829
+          ]
+        }
+      },
+      "validation": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-butcher-validation.json",
+        "sha256": "fea19e5832872f9f1326c9b9a95d83c51710d2d616ae4d22714236143708493f"
+      },
+      "levelSelection": "L2 hood/cloth+cleaverreplacingScythegeometry"
+    },
+    {
+      "id": "boss-warden",
+      "label": "Bridge Warden",
+      "area": "east-bridge",
+      "model": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-warden.glb",
+        "sha256": "3ac71c8513f8f0516ea14d506cadeb243fa2e083a91a691b9c93112d2d561385",
+        "bytes": 6127220,
+        "activeDraws": [
+          {
+            "name": "mesh_0",
+            "vertices": 64,
+            "triangles": 40,
+            "material": "MaulAshHaft",
+            "skinned": false
+          },
+          {
+            "name": "mesh_1",
+            "vertices": 76,
+            "triangles": 48,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_2",
+            "vertices": 76,
+            "triangles": 48,
+            "material": "Leather",
+            "skinned": false
+          },
+          {
+            "name": "mesh_3",
+            "vertices": 1764,
+            "triangles": 588,
+            "material": "WeatheredStone",
+            "skinned": false
+          },
+          {
+            "name": "mesh_4",
+            "vertices": 24,
+            "triangles": 12,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_5",
+            "vertices": 24,
+            "triangles": 12,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_6",
+            "vertices": 24,
+            "triangles": 12,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_7",
+            "vertices": 35,
+            "triangles": 36,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_8",
+            "vertices": 35,
+            "triangles": 36,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_9",
+            "vertices": 24,
+            "triangles": 12,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_10",
+            "vertices": 35,
+            "triangles": 36,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "mesh_11",
+            "vertices": 35,
+            "triangles": 36,
+            "material": "MaulIronBands",
+            "skinned": false
+          },
+          {
+            "name": "Knight_L6_Armour",
+            "vertices": 48579,
+            "triangles": 43997,
+            "material": "Knight_L6_Armour",
+            "skinned": true
+          },
+          {
+            "name": "Knight_L6_Gloves",
+            "vertices": 2039,
+            "triangles": 2260,
+            "material": "Knight exact original gauntlets",
+            "skinned": true
+          }
+        ],
+        "activeVertices": 52834,
+        "activeTriangles": 47173,
+        "skinnedVertices": 50618,
+        "materialCount": 6
+      },
+      "descriptor": {
+        "motion": "donor-knife",
+        "scale": 1,
+        "forwardCorrection": 0,
+        "stride": 1,
+        "clips": {
+          "idle": "Maul_Idle",
+          "walk": "Maul_Walk",
+          "run": "Maul_Walk",
+          "strafeLeft": "Maul_StrafeLeft",
+          "strafeRight": "Maul_StrafeRight",
+          "guard": "Maul_Guard",
+          "dodge": "Roll",
+          "hit": "Maul_Hit",
+          "death": "Maul_Death",
+          "deflected": "Maul_Deflected",
+          "blockImpact": "Maul_BlockImpact",
+          "attack": "Maul_Heavy"
+        }
+      },
+      "contact": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-warden-attack.json",
+        "sha256": "718107d206f33119f9d4dc1fcc67f1be98aef47a9e53f10b959dd52b5735b890",
+        "weaponNode": "WeaponDrawn",
+        "heelLocal": [
+          0,
+          0.65,
+          0
+        ],
+        "tipLocal": [
+          0,
+          0.87,
+          0
+        ],
+        "nativeClip": "Maul_Heavy",
+        "clipDuration": 1,
+        "retimedTicks": 120,
+        "frameCount": 121,
+        "windupTicks": 54,
+        "activeTicks": 12,
+        "clipRecoveryTicks": 54,
+        "sourcePhaseWindow": [
+          0.45,
+          0.55
+        ],
+        "activeMarkers": [
+          [
+            -0.06068644993655138,
+            1.1405871557697589,
+            0.9560208496897924,
+            -0.01921866750922327,
+            1.101187549955803,
+            1.2006826979815508
+          ],
+          [
+            -0.11045686871231392,
+            0.8266521726652936,
+            0.8828354287355642,
+            -0.08857045844164826,
+            0.7162258407940869,
+            1.107910529127741
+          ]
+        ],
+        "coordinateContract": "Actual native Mixer at everyphasei/N. Assetrootincluded; no layout1.265/visual1.3225/descScale applied. WebworldBlade applieslayout then explicitdescScale*1.3225 once."
+      },
+      "preservation": {
+        "originalUnprunedSHA256": "c3ba3ad829c6194e3fe8b4327681aae7c675d45b8a52c8de118ee2275a7918c7",
+        "originalBytes": 9066504,
+        "activeGeometrySkinAnimationSemanticHash": "2c1b4c02fd725266d3336c4bea464c340d4f68fc5b811a31b2cdf918db73cb85",
+        "activeMaterialEncodedImageSemanticHash": "d94080cf8fe7a146531521581e46ebc834f808bf2f5ab0fae76d3bfcf465efeb",
+        "boneCount": 65,
+        "clipCount": 37,
+        "sampledBoneMatrices": 7215,
+        "maximumBoneDelta": 0,
+        "exactContactDelta": 0,
+        "originalAndFinalTraceHashes": [
+          "ddbe751c6cac3880d7b11d9747938bf9a5fb6b9ce4866f6f4186f3bef771b958",
+          "ddbe751c6cac3880d7b11d9747938bf9a5fb6b9ce4866f6f4186f3bef771b958"
+        ],
+        "invalidWeights": 0,
+        "nonfinitePosedVertices": 0,
+        "idleBounds": {
+          "min": [
+            -0.5609387350723622,
+            0.013523139492158285,
+            -0.5110924184822403
+          ],
+          "max": [
+            0.4933178397255107,
+            1.868010756162314,
+            0.9052923340487049
+          ]
+        }
+      },
+      "validation": {
+        "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/production/boss-warden-validation.json",
+        "sha256": "bbf4111009cff2e25d5a71e644b1862b969434d33902d8eee8be9b2a5619d434"
+      },
+      "levelSelection": "L6 ironarmour+nativeheavymaul"
+    }
+  ],
+  "totalPortableGLBBytes": 14935172,
+  "sameDoctor81NativeFrameValuesExact": true,
+  "packing": "Originaldd5eSurgeonkeptimmutable; final3 losslessMeshoptbufferdecode→inactive-nodeMESHrefsremovedonly→unchangednativecreature_pack.compact(). Nodes/hierarchy/animationtargetskept; noimageencodeorquantization. Activegeometry/binds/clips/materialencodedimage/signatures andallnativesampledjointposes/actualcontactequalbeforeafter. FinalWardencontinuationassertednode-order/hierarchyidentitybeforesortingunnamedmeshbyindex.",
+  "receipts": [
+    {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/final-pack-receipt/result.json",
+      "sha256": "12ba81555c391d747765d9857b9d9d9608f7c09151d3af7717acbc05802b7e62",
+      "originalExit": 1,
+      "scope": "Doctor+ButcherCPUgatesPASS; Wardenmaterialauditsortfailedonundefinednodename, kept."
+    },
+    {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/warden-validation-receipt/result.json",
+      "sha256": "7298fda5fb1ebe8908d46e16801289439c9462f5a3b7cba694e2ec4aec2db404",
+      "originalExit": 0,
+      "scope": "OnlyWardenexistingbeforeaftermodels validated; no re-export/DoctorButcherrepeat."
+    }
+  ],
+  "provenance": {
+    "lineage": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/SELECTED-LOOK-LINEAGE.json",
+    "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
+    "knifeOrigin": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/provenance/SURGEON-KNIFE-ORIGIN.json",
+    "unknownFacts": "Historicalexactgeneration/outputterms/Space-dependencyrevision receipts notcomplete, acceptedExecutionerredogenerationreceiptunknown; ownteamGPTsourcepacks/acceptedphonegitlineage documented, no restrictedthirdpartygameripfound, no blanketCC0claim ornewapprovalgate."
+  },
+  "pockets": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/BOSS-POCKET-RECOMMENDATIONS.json",
+  "pilotVisual": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-boss140-art-intake-20261016/ART-SURGEON-PILOT-VISUAL.json",
+  "remaining": [
+    "Khronosformatvalidationoffinalrawrepresentation (isolatedVPSonly, no gameplayrepeat).",
+    "Web final3ordinarynativeencounterframes (actualsilhouette/weapon/grip/hit/death/visiblewarning/range/return/bypass), conformanceboundfinal3modelhashes.",
+    "IndependentAuditor/Leadfinalacceptance/soleDeploypublicationandservedverification."
+  ],
+  "constraints": "NoFrankendom/Claude/live changes; noGPU/HF/newgeneration/Artcapture; onlyselected3bosses. Keepallfailedreceipts/originalmodels."
+}
