@@ -9,10 +9,11 @@ export function validateAreaBosses(input,registry,residents={}){
  if(input===undefined)return null;closed(input,['version','profiles','placements','paths']);if(input.version!==1||!input.profiles||Object.getPrototypeOf(input.profiles)!==Object.prototype||!input.paths||Object.getPrototypeOf(input.paths)!==Object.prototype||!Array.isArray(input.placements)||input.placements.length!==3)fail();
  const data=structuredClone(input),profiles=Object.entries(data.profiles);if(profiles.length!==3)fail();const paths=new Set(),models=new Set();
  for(const[id,p]of profiles){
-  closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard']);
+  closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard'],['minimumAttackDistance']);
   if(!key(id)||!text(p.name)||!key(p.modelRef)||models.has(p.modelRef))fail();models.add(p.modelRef);
   for(const[field,min,max]of[['health',40,140],['radius',.35,.6],['moveSpeed',.7,2.5],['wakeDistance',2,5],['homeLeash',3,8],['recoveryDelay',.4,2.5],['contactScale',.2,3]])if(!number(p[field],min,max))fail();
   if(p.homeLeash<p.wakeDistance||!Array.isArray(p.attackPattern)||p.attackPattern.length<1||p.attackPattern.length>4||!p.attacks||Object.getPrototypeOf(p.attacks)!==Object.prototype)fail();
+  if(p.minimumAttackDistance!==undefined&&(!number(p.minimumAttackDistance,.2,2.9)||Object.values(p.attacks).some(a=>!Number.isFinite(a.range)||p.minimumAttackDistance+.1>=a.range)))fail();
   if(Object.keys(p.attacks).length<1||Object.keys(p.attacks).length>3||p.attackPattern.some(action=>!Object.hasOwn(p.attacks,action)))fail();
   for(const[action,a]of Object.entries(p.attacks)){
    closed(a,['clip','path','windupTicks','activeTicks','recoveryTicks','damage','staminaDamage','staggerTicks','chip','range','stepIn','knockback','stamina','parryable']);

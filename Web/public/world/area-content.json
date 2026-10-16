@@ -2051,7 +2051,8 @@
             "parryable": true
           }
         },
-        "hazard": null
+        "hazard": null,
+        "minimumAttackDistance": 1.2
       }
     },
     "placements": [

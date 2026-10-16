@@ -506,6 +506,16 @@ function knifeEnemy(g,e,dt){
  if(e.home&&residentPatrol(g,e,dt))return;
  const delta=sub(g.player.pos,e.pos),distance=mag(delta),dir=normal(delta,e.facing);
  const pattern=e.bossProfile?.attackPattern??['slash','stab','slash','heavy'],action=pattern[e.pattern%pattern.length],def=knifeMove(e,action);
+ // Native long weapons keep their measured inner reach through ordinary movement.
+ const minimum=(e.bossProfile?.minimumAttackDistance??0)*e.combatScale;
+ const spacing=minimum>0&&(distance<minimum||!!e.attackSpacing&&distance<minimum+.1*e.combatScale);
+ if(minimum>0)e.attackSpacing=spacing;
+ if(spacing){
+  e.facing=turn(e.facing,dir,360*dt);
+  const away={x:-dir.x,z:-dir.z},next=g.world.move(e.pos,{x:away.x*e.moveSpeed*dt,z:away.z*e.moveSpeed*dt},e.radius),delta=sub(next,e.pos);
+  if(dot(delta,away)>EPS&&g.world.lineClear(e.pos,next)&&!g.world.travelAt?.(next)&&(!e.home||mag(sub(next,e.home))<=e.bossProfile.homeLeash)&&![g.player,...g.enemies].some(other=>other!==e&&other.hp>0&&mag(sub(next,other.pos))<e.radius+other.radius))moveBody(g,e,delta);
+  return;
+ }
  if(distance>def.range*e.combatScale||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,dir,e.moveSpeed??R.walkSpeed*1.2,dt);return;}
  e.facing=turn(e.facing,dir,360*dt);
  if(g.time+EPS>=e.ready&&(!g.encounter||g.time+EPS>=g.nextEnemyAttackAt)&&dot(e.facing,dir)>.96&&knifeAffordable(e,def.stamina)){
