@@ -7,7 +7,7 @@ const layout=area=>JSON.parse(readFileSync(new URL('../public/world/'+area+'/lay
 const west=layout('westminster'),westGeometry=createGeometry(west),roadPoint=westGeometry.ground({x:.52,y:.78});
 function paintedRectangle(x1,x2,z1,z2){return{name:'Test painted silhouette on real road',points:[{x:x1,z:z1},{x:x2,z:z1},{x:x2,z:z2},{x:x1,z:z2}].map(p=>{const q=westGeometry.point(p);return{x:q.x,y:q.y};})};}
 test('approved finite presentation profile is deeply frozen, with no lifecycle or clock state',()=>{
- assert.deepEqual(SEVER_BLOOD_DATA,{jet:{capacity:2,duration:.22,length:.9,radius:.055},pool:{capacity:4,lifetime:4,spreadSeconds:.4,radius:.5,opacity:.7},headDropletLifetime:1.25});
+ assert.deepEqual(SEVER_BLOOD_DATA,{jet:{capacity:2,duration:.22,length:.9,radius:.055},pool:{capacity:4,lifetime:4,spreadSeconds:.4,radius:.5,opacity:.7},headDropletLifetime:1.25,headDropletGravity:4});
  for(const value of[SEVER_BLOOD_DATA,SEVER_BLOOD_DATA.jet,SEVER_BLOOD_DATA.pool])assert.equal(Object.isFrozen(value),true);
  assert.throws(()=>{SEVER_BLOOD_DATA.pool.capacity=999;},TypeError);
 });
