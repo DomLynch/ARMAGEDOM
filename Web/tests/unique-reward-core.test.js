@@ -14,7 +14,7 @@ const data={contract:{id:'west-east-stolen-supply-v1',rewardVariantId:'watchmans
 function fixture({records=new Map(),legal=true}={}){
  let g,quota=false,scoped=true,writes=0,legalPoint=legal;
  const registry={ids:['westminster','east'],has:id=>['westminster','east'].includes(id)},world={areaId:'east',lineClear:()=>true};
- const fresh=()=>({world,time:10,finished:false,player:{hp:150,maxHP:150,maxStamina:100,weapon:'knife',pos:{x:2,z:-3},hurtUntil:0,dodgeUntil:0,swing:null},pistol:{collected:true,equipped:false,magazine:4,reserve:5,reloadingUntil:0,nextFireAt:3},supplies:{version:1,issued:[],pending:[],collected:[]},vest:{version:1,itemId:'westminster-worn-vest-v1',equipped:false},droneDeaths:[],animalCycle:'A',lootRules:{[placementKey]:{}},enemies:[{placementKey,areaId:'east',hp:100,maxHP:100,pos:{x:2,z:-3}}],corpses:[]});
+ const fresh=()=>({world,time:10,finished:false,player:{hp:150,maxHP:150,maxStamina:100,weapon:'knife',pos:{x:2,z:-3},hurtUntil:0,dodgeUntil:0,swing:null},pistol:{collected:true,equipped:false,magazine:4,reserve:5,reloadingUntil:0,nextFireAt:3},supplies:{version:1,issued:[],pending:[],collected:[]},vest:{version:1,itemId:'westminster-worn-vest-v1',equipped:false},droneDeaths:[],animalCycle:'A',lootRules:{[placementKey]:{},'east-roamer-1':{}},enemies:[{placementKey,areaId:'east',hp:100,maxHP:100,pos:{x:2,z:-3}},{placementKey:'east-roamer-1',areaId:'east',hp:100,maxHP:100,pos:{x:3,z:-3}}],corpses:[]});
  g=fresh();
  // Only the lowest combat codec is a fixture. Core/IO, progression, expedition
  // and this outer unique wrapper are the actual components in the real order.
@@ -25,7 +25,7 @@ function fixture({records=new Map(),legal=true}={}){
   captureRunState:run=>JSON.stringify({hp:run.player.hp,pistol:run.pistol,supplies:run.supplies,vest:run.vest,droneDeaths:run.droneDeaths,animalCycle:run.animalCycle}),
   isRunStateUnchanged(run,snapshot){return this.captureRunState(run)===snapshot;},
  };
- const progression=createProgressionComponent({baseCodec:combat,getRun:()=>g,data:rules,placements:{east:[{key:placementKey}],westminster:[]}});
+ const progression=createProgressionComponent({baseCodec:combat,getRun:()=>g,data:rules,placements:{east:[{key:placementKey},{key:'east-roamer-1'}],westminster:[]}});
  const expedition=createExpeditionComponent({baseCodec:progression.codec,getRun:()=>g,data,registry,saveVersion:6,applyBaseSaved:progression.applySavedRun,baseStorageAdapter:progression.storageAdapter});
  const sourceDead=saved=>(saved.progression?.awards??[]).some(r=>r.placementKey===placementKey&&r.areaId==='east')||(saved.supplies?.issued??[]).includes(placementKey);
  const component=createUniqueRewardComponent({baseCodec:expedition.codec,getRun:()=>g,model,placementKey,areaId:'east',itemId:item,baseVariantId:'knife',applyBaseSaved:expedition.applySavedRun,baseStorageAdapter:expedition.storageAdapter,canDispatch:()=>scoped,sourceDead,validatedDropPosition:(run,corpse)=>legalPoint?{...corpse.pos}:null});
@@ -34,7 +34,7 @@ function fixture({records=new Map(),legal=true}={}){
  const core=createCore({executeDomain:component.wrapDomain(expedition.wrapDomain(progression.wrapDomain(domain))),codec:component.codec,readRun:()=>io.restore(g),writeRun:io.write});
  return{core,component,progression,expedition,combat,records,world,get run(){return g;},get writes(){return writes;},quota:value=>quota=value,scope:value=>scoped=value,legal:value=>legalPoint=value,
   save:()=>core.dispatch({type:'save'}),restore:()=>core.dispatch({type:'restore'}),retry:()=>core.dispatch({type:'retry'}),pickup:()=>core.dispatch({type:'claimPickup',pickupId:item}),select:variantId=>core.dispatch({type:'equip',itemId:variantId,equipped:true}),
-  kill(){const victim=g.enemies.find(e=>e.placementKey===placementKey);victim.hp=0;if(!g.supplies.issued.includes(placementKey))g.supplies.issued.push(placementKey);return progression.recordDeath(g,{placementKey,areaId:'east',weaponId:'knife',damageApplied:20});},
+  kill(key=placementKey){const victim=g.enemies.find(e=>e.placementKey===key);victim.hp=0;if(!g.supplies.issued.includes(key))g.supplies.issued.push(key);return progression.recordDeath(g,{placementKey:key,areaId:'east',weaponId:'knife',damageApplied:20});},
  };
 }
 test('actual nested codecs fresh→v7 and v6 migration preserve exact old raw, absent-only',()=>{
@@ -66,7 +66,7 @@ test('illegal drop placement blocks complete write; same retained progression in
 });
 test('old dead Hale migrates without reward/resurrection, then real new Retry kill can earn once',()=>{
  const seed=fixture();assert.ok(seed.restore().ok);assert.ok(seed.kill());assert.ok(seed.save().ok);const old=seed.expedition.codec.encodeRun(seed.run),f=fixture({records:new Map([[AREA_BOSS_SAVE_KEY,old]])});
- assert.ok(f.restore().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.equal(f.run.enemies.length,0);assert.equal(f.pickup().ok,false);assert.ok(f.save().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.ok(f.retry().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.ok(f.kill());assert.ok(f.save().ok);assert.equal(f.run.uniqueReward.status,'pending');assert.equal(f.records.get(AREA_BOSS_SAVE_KEY),old);
+ assert.ok(f.restore().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.equal(f.run.enemies.some(e=>e.placementKey===placementKey),false);assert.equal(f.pickup().ok,false);assert.ok(f.save().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.ok(f.retry().ok);assert.equal(f.run.uniqueReward.status,'legacy-dead');assert.ok(f.kill());assert.ok(f.save().ok);assert.equal(f.run.uniqueReward.status,'pending');assert.equal(f.records.get(AREA_BOSS_SAVE_KEY),old);
 });
 test('pending reload/reentry and Retry retain one saved position; owned never reissues on a new kill',()=>{
  const f=fixture();assert.ok(f.restore().ok);assert.ok(f.kill());assert.ok(f.save().ok);const position={...f.run.uniqueReward.dropPosition};
@@ -85,4 +85,22 @@ test('safe explicit equip preserves player identity, all ammo/reload/shot clocks
 });
 test('failed Retry preserves run/raw; successful Retry retains selected gear but resets old mastery/combat',()=>{
  const f=fixture();assert.ok(f.restore().ok);assert.ok(f.kill());assert.ok(f.save().ok);assert.ok(f.pickup().ok);assert.ok(f.select(item).ok);const before=f.run,raw=f.records.get(UNIQUE_REWARD_SAVE_KEY);f.quota(true);assert.equal(f.retry().ok,false);assert.equal(f.run,before);assert.equal(f.records.get(UNIQUE_REWARD_SAVE_KEY),raw);f.quota(false);assert.ok(f.retry().ok);assert.equal(f.run.progression.awards.length,0);assert.equal(f.run.uniqueReward.selectedMeleeVariant,item);assert.equal(f.run.uniqueReward.status,'owned');assert.equal(f.run.enemies[0].hp,100);
+});
+
+test('claim/equip flush another retained death through inner progression in their single write',()=>{
+ for(const operation of ['claim','equip']){
+  const f=fixture();assert.ok(f.restore().ok);assert.ok(f.kill());assert.ok(f.save().ok);if(operation==='equip')assert.ok(f.pickup().ok);
+  assert.ok(f.kill('east-roamer-1'));f.quota(true);assert.equal(f.save().code,'storage-unavailable');assert.equal(f.run.progression.awards.length,1);const raw=f.records.get(UNIQUE_REWARD_SAVE_KEY);
+  const invoke=()=>operation==='claim'?f.pickup():f.select(item);assert.equal(invoke().ok,false);assert.equal(f.run.progression.awards.length,1);assert.equal(f.records.get(UNIQUE_REWARD_SAVE_KEY),raw);
+  f.quota(false);const before=f.writes,result=invoke();assert.ok(result.ok);assert.equal(f.writes,before+1);
+  const saved=JSON.parse(f.records.get(UNIQUE_REWARD_SAVE_KEY));assert.ok(saved.supplies.issued.includes('east-roamer-1'));assert.ok(saved.progression.awards.some(row=>row.placementKey==='east-roamer-1'));assert.equal(f.run.progression.awards.length,2);assert.equal(result.events.filter(e=>e.type==='proficiency-gain'&&e.placementKey==='east-roamer-1').length,1);
+  assert.ok(f.save().ok);assert.equal(f.run.progression.awards.length,2);
+ }
+});
+test('selecting base melee also derives a newly pending Hale drop in the same composed write',()=>{
+ const f=fixture();assert.ok(f.restore().ok);assert.ok(f.kill());f.run.pistol.equipped=true;f.run.player.weapon='pistol';const before=f.writes,result=f.select('knife');assert.ok(result.ok);assert.equal(f.writes,before+1);assert.equal(f.run.uniqueReward.status,'pending');assert.equal(f.run.progression.awards.length,1);assert.equal(result.events.filter(e=>e.type==='unique-reward-drop').length,1);
+});
+test('repeating the already selected variant flushes retained other death without another equip event',()=>{
+ const f=fixture();assert.ok(f.restore().ok);assert.ok(f.kill());assert.ok(f.save().ok);assert.ok(f.pickup().ok);assert.ok(f.select(item).ok);assert.ok(f.kill('east-roamer-1'));f.quota(true);assert.equal(f.save().ok,false);f.quota(false);
+ const before=f.writes,result=f.select(item);assert.ok(result.ok);assert.equal(f.writes,before+1);assert.equal(f.run.progression.awards.length,2);assert.equal(result.events.filter(e=>e.type==='proficiency-gain').length,1);assert.equal(result.events.filter(e=>e.type==='melee-variant-selected').length,0);
 });

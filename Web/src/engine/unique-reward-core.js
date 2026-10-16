@@ -29,6 +29,23 @@ export function createUniqueRewardComponent({baseCodec,getRun,model,placementKey
  function wrapDomain(executeDomain){return(command,context)=>{
   const g=getRun();if(!g)return fail('not-eligible');
   if(command.type!=='restore'&&(g.runSaveInvalid||!model.valid(state(g))))return fail('invalid-save');
+  let changed=false,committedReward=null;const drops=[];
+  function writeCandidate(candidate,{reward=state(g),pistol,player}={}){
+   const current=state(g);if(!model.valid(current)||candidate.uniqueReward!==undefined&&(!model.valid(candidate.uniqueReward)||!same(candidate.uniqueReward,current)))return false;
+   let next=model.copy(reward);
+   const award=row=>row.placementKey===placementKey&&row.areaId===areaId;
+   if(command.type!=='restore'&&command.type!=='retry'&&['eligible','legacy-dead'].includes(current.status)&&(candidate.progression?.awards??[]).some(award)&&!(g.progression?.awards??[]).some(award)){
+    const corpse=g.world.areaId===areaId?[...(g.enemies??[]),...(g.corpses??[])].find(e=>e.placementKey===placementKey&&(e.areaId??g.world.areaId)===areaId&&Number.isFinite(e.hp)&&e.hp<=0):null;
+    if(!corpse)return false;
+    let position;try{position=validatedDropPosition(g,corpse);}catch{return false;}
+    next=model.transition(next,{type:'drop',placementKey,areaId,position});if(!next)return false;
+   }
+   const proposal={...candidate,uniqueReward:next};if(pistol!==undefined)proposal.pistol=pistol;if(player!==undefined)proposal.player=player;
+   if(!context.writeRun(proposal))return false;
+   changed ||= !same(current,next);committedReward=model.copy(next);candidate.uniqueReward=model.copy(next);if(command.type!=='retry')g.uniqueReward=model.copy(next);
+   if(current.status!==next.status&&next.status==='pending')drops.push({type:'unique-reward-drop',itemId,areaId,position:{...next.dropPosition}});
+   return true;
+  }
   const claim=command.type==='claimPickup'&&command.pickupId===itemId,select=command.type==='equip'&&[baseVariantId,itemId].includes(command.itemId);
   if(claim||select){
    if(!safe(g))return fail('not-eligible');
@@ -41,27 +58,15 @@ export function createUniqueRewardComponent({baseCodec,getRun,model,placementKey
    const next=model.transition(current,claim?{type:'pickup'}:{type:'select',variantId:command.itemId});if(!next)return fail('not-eligible');
    if(select&&!g.pistol)return fail('not-eligible');
    const pistol=claim?g.pistol:{...g.pistol,equipped:false},player=claim?g.player:{...g.player,weapon:'knife'};
-   if(!claim&&same(current,next)&&!g.pistol.equipped&&g.player.weapon==='knife')return{ok:true,changed:false,events:[]};
-   if(!context.writeRun({...g,uniqueReward:next,pistol,player}))return fail('storage-unavailable');
-   g.uniqueReward=model.copy(next);if(!claim){g.pistol=pistol;g.player.weapon=player.weapon;}
-   return{ok:true,changed:true,events:[{type:claim?'unique-reward-pickup':'melee-variant-selected',itemId:claim?itemId:command.itemId}]};
+   const ownChanged=claim||!same(current,next)||g.pistol.equipped||g.player.weapon!=='knife';
+   // Reconcile all retained progression/expedition intent before this ONE write.
+   const result=executeDomain({type:'save'},{...context,writeRun:candidate=>writeCandidate(candidate,select?{reward:next,pistol,player}:{reward:next})});
+   if(!result.ok)return result;
+   if(select&&ownChanged){g.pistol=pistol;g.player.weapon=player.weapon;}
+   const ownEvents=ownChanged?[{type:claim?'unique-reward-pickup':'melee-variant-selected',itemId:claim?itemId:command.itemId}]:[];
+   return{...result,changed:result.changed||changed||ownChanged,events:[...result.events,...drops,...ownEvents]};
   }
-  let changed=false,committedReward=null;const drops=[];
-  const result=executeDomain(command,{...context,writeRun(candidate){
-   const current=state(g);if(!model.valid(current)||candidate.uniqueReward!==undefined&&(!model.valid(candidate.uniqueReward)||!same(candidate.uniqueReward,current)))return false;
-   let next=model.copy(current);
-   const award=row=>row.placementKey===placementKey&&row.areaId===areaId;
-   if(command.type!=='restore'&&command.type!=='retry'&&['eligible','legacy-dead'].includes(current.status)&&(candidate.progression?.awards??[]).some(award)&&!(g.progression?.awards??[]).some(award)){
-    const corpse=g.world.areaId===areaId?[...(g.enemies??[]),...(g.corpses??[])].find(e=>e.placementKey===placementKey&&(e.areaId??g.world.areaId)===areaId&&Number.isFinite(e.hp)&&e.hp<=0):null;
-    if(!corpse)return false;
-    let position;try{position=validatedDropPosition(g,corpse);}catch{return false;}
-    next=model.transition(current,{type:'drop',placementKey,areaId,position});if(!next)return false;
-   }
-   if(!context.writeRun({...candidate,uniqueReward:next}))return false;
-   changed ||= !same(current,next);committedReward=model.copy(next);candidate.uniqueReward=model.copy(next);if(command.type!=='retry')g.uniqueReward=model.copy(next);
-   if(current.status!==next.status&&next.status==='pending')drops.push({type:'unique-reward-drop',itemId,areaId,position:{...next.dropPosition}});
-   return true;
-  }});
+  const result=executeDomain(command,{...context,writeRun:writeCandidate});
   // Inner codecs clone their candidates. The domain swaps the original fresh run
   // only after durable success; attach the committed DTO to that new live owner.
   if(result.ok&&command.type==='retry'&&committedReward)getRun().uniqueReward=model.copy(committedReward);
