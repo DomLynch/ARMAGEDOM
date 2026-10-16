@@ -1,0 +1,22 @@
+{
+  "sourceClipSHA256": "53e3e5604b5078c5f95ee730800275ca9baf4e38d4f4729f6ad3534414d3aa3d",
+  "geometrySHA256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d",
+  "logicalClip": "RatLowSlash",
+  "renderClip": "CleaverRatLowSlash",
+  "handBone": "hand_r",
+  "axisHandLocal": [
+    -0.9999999999999634,
+    2.6928701675298733e-07,
+    -2.4620527214266775e-08
+  ],
+  "windowSeconds": {
+    "start": 0.13333334028720856,
+    "plateauStart": 0.2325,
+    "plateauEnd": 0.5775,
+    "end": 0.6833333373069763,
+    "peak": 0.21702366219999
+  },
+  "peakDegrees": 12.434539898532286,
+  "canonicalAsset": "cleaver-rat-low.json",
+  "warning": "Window describesanalyticalderivation; canonicalproof/bakes useexportedkeyframedclip interpolation. Do notreplacewithdifferentcontinuous runtimepostcorrection withoutmatchingbake/verification. Neveraccumulatea correction ontoalreadycorrectedhand."
+}

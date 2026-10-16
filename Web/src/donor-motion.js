@@ -38,6 +38,7 @@ export class DonorMotion{
   this.sample(description.clips.idle,0);
  }
  sample(name,phase,guardOverlay=false){
+  const logicalName=name;name=this.equipmentClips?.[name]??name;
   const response=responseKeys[name];if(response&&this.description.clips[response])name=this.description.clips[response];
   else if(!this.actions.has(name))name=this.description.clips[name.toLowerCase()]??name;
   const selected=this.actions.get(guardOverlay?name+'GuardLegs':name);if(!selected)throw Error('Donor clip missing: '+name);
@@ -46,10 +47,11 @@ export class DonorMotion{
   selected.time=THREE.MathUtils.clamp(phase,0,.999999)*selected.getClip().duration;
   if(this.guardUpper)this.guardUpper.time=0;
   this.mixer.update(0);this.model.updateWorldMatrix(true,true);this.model.traverse(node=>{if(node.isSkinnedMesh)node.skeleton.update();});
-  this.currentClip=name;this.currentPhase=phase;
+  this.currentClip=name;this.currentLogicalClip=logicalName;this.currentPhase=phase;
  }
  update(entity,time,dt,deathPose=null){
   if(this.disposed)return;
+  this.equipmentClips=entity.kind<0&&entity.weapon==='knife'?entity.meleeClipOverrides:null;
   const noTick=time===this.lastSampleTime,elapsed=this.lastSampleTime===null?dt:Math.max(0,time-this.lastSampleTime);this.lastSampleTime=time;
   const delta=this.root.position.clone().sub(this.last);delta.y=0;this.last.copy(this.root.position);this.visualTime+=Math.max(0,dt);
   const response=entity.response;

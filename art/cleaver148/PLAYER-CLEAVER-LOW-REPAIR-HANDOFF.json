@@ -1,0 +1,850 @@
+{
+  "atUTC": "2026-10-16T18:29:08.000733+00:00",
+  "status": "PORTABLE_ACTUAL_PLAYER_CLEAVER_LOWPOSE_NUMERIC_READY_NATIVE_EQUIP_VISUAL_PENDING",
+  "itemID": "hale-pitborn-cleaver-v1",
+  "files": {
+    "cleaver-low-derivation.json": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/handoff/cleaver-low-derivation.json",
+      "bytes": 899,
+      "sha256": "da56bc45f307c7ec036e2c89676b963207fb06da5608c9070cb06569916ecafb"
+    },
+    "cleaver-low-endpoints.json": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/handoff/cleaver-low-endpoints.json",
+      "bytes": 34758,
+      "sha256": "44b86169716bf0b33fd017480089aa7c4b3261282fdd14c08dbceedb0ff312b4"
+    },
+    "cleaver-rat-low.json": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/handoff/cleaver-rat-low.json",
+      "bytes": 109767,
+      "sha256": "394bcda89d31fa5c4ca0a974820021baab5f9fc359847ddcf6b78db7f0cdb279"
+    },
+    "hero-cleaver-contact-paths.json": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/handoff/hero-cleaver-contact-paths.json",
+      "bytes": 19502,
+      "sha256": "1e46a383ad134771241397d629d622b35df20a66145b7baafc25259b431c331e"
+    },
+    "player-cleaver.glb": {
+      "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/handoff/player-cleaver.glb",
+      "bytes": 410920,
+      "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"
+    }
+  },
+  "rootModel": "Currentvagrant/hero originalbodyURL andbones unchanged. Only rigidWeaponDrawn subtree new; no NPCcharacter substitution.",
+  "modelPreservation": {
+    "sourceCleaverGeometryAttributesIndicesBytesExact": true,
+    "sourceCleaverMaterialsAndEncodedImagesExact": true,
+    "all70OriginalCarrierNodesTRSChildrenExact": true,
+    "validShippedKnifeHeavyQuietStreamsExact": true
+  },
+  "strictPortableModel": "Officialunlimitedgltf2.0.0-dev.3.10 errors0warnings0; validshippedKnifeHeavy+Quiet preserved, source95invalidQuietqfailure retained.",
+  "mainProofReuse": {
+    "receipt": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/PLAYER-CLEAVER-PILOT-ASSESSMENT.json",
+    "sha256": "7da7d1aed61b6d75df9c6d5ec5a147dfe98c3edddea02c983c7c92b79a27f165",
+    "poses": 220,
+    "mainPathsSchema": "{hero:{light_right:37x6,light_left:37x6,thrust:37x6,heavy_overhead:54x6}}; body.contactPaths=loaded.hero; originalcarrierroot included, actorwrapperexcluded asKnife oracle. Keep currentbody.contactScale/combatScale.",
+    "guardDodgePommel": "5phases each Guard/Roll/Skill_Pommel included, allalivefloorpositive/gripdiagnostic; no newbroadjob needed."
+  },
+  "lowRepair": {
+    "axisHandLocal": [
+      -0.9999999999999634,
+      2.6928701675298733e-07,
+      -2.4620527214266775e-08
+    ],
+    "window": {
+      "start": 0.13333334028720856,
+      "plateauStart": 0.2325,
+      "plateauEnd": 0.5775,
+      "end": 0.6833333373069763,
+      "peak": 0.21702366219999
+    },
+    "peakDegrees": 12.434539898532286,
+    "deriveFloorCarrier": 0.008,
+    "verifyFloorCarrier": 0.004,
+    "originalBaselineFloors": [
+      {
+        "phase": 0,
+        "y": 0.8024306418718704
+      },
+      {
+        "phase": 0.008333333333333333,
+        "y": 0.8007078320038349
+      },
+      {
+        "phase": 0.016666666666666666,
+        "y": 0.7990128409736185
+      },
+      {
+        "phase": 0.025,
+        "y": 0.7948817852750778
+      },
+      {
+        "phase": 0.03333333333333333,
+        "y": 0.790277193462787
+      },
+      {
+        "phase": 0.041666666666666664,
+        "y": 0.7842285833905799
+      },
+      {
+        "phase": 0.05,
+        "y": 0.7775018248626877
+      },
+      {
+        "phase": 0.058333333333333334,
+        "y": 0.7702218588736756
+      },
+      {
+        "phase": 0.06666666666666667,
+        "y": 0.7619218050717316
+      },
+      {
+        "phase": 0.075,
+        "y": 0.7559134426076857
+      },
+      {
+        "phase": 0.08333333333333333,
+        "y": 0.7499127301372956
+      },
+      {
+        "phase": 0.09166666666666666,
+        "y": 0.743730150267128
+      },
+      {
+        "phase": 0.1,
+        "y": 0.7381063976654307
+      },
+      {
+        "phase": 0.10833333333333334,
+        "y": 0.7324976064175359
+      },
+      {
+        "phase": 0.11666666666666667,
+        "y": 0.727053698236924
+      },
+      {
+        "phase": 0.125,
+        "y": 0.7215671370622936
+      },
+      {
+        "phase": 0.13333333333333333,
+        "y": 0.7160580374382184
+      },
+      {
+        "phase": 0.14166666666666666,
+        "y": 0.7104480619489766
+      },
+      {
+        "phase": 0.15,
+        "y": 0.7044838304855925
+      },
+      {
+        "phase": 0.15833333333333333,
+        "y": 0.6945021588194867
+      },
+      {
+        "phase": 0.16666666666666666,
+        "y": 0.6758677204262121
+      },
+      {
+        "phase": 0.175,
+        "y": 0.656181542548801
+      },
+      {
+        "phase": 0.18333333333333332,
+        "y": 0.6174265493662711
+      },
+      {
+        "phase": 0.19166666666666668,
+        "y": 0.5685533024296403
+      },
+      {
+        "phase": 0.2,
+        "y": 0.5181309696281577
+      },
+      {
+        "phase": 0.20833333333333334,
+        "y": 0.45877798453579344
+      },
+      {
+        "phase": 0.21666666666666667,
+        "y": 0.38940885968418226
+      },
+      {
+        "phase": 0.225,
+        "y": 0.3213720085096741
+      },
+      {
+        "phase": 0.23333333333333334,
+        "y": 0.2561738397337304
+      },
+      {
+        "phase": 0.24166666666666667,
+        "y": 0.1927567436213009
+      },
+      {
+        "phase": 0.25,
+        "y": 0.1352907254488413
+      },
+      {
+        "phase": 0.25833333333333336,
+        "y": 0.07938510941629867
+      },
+      {
+        "phase": 0.26666666666666666,
+        "y": 0.03547535652474021
+      },
+      {
+        "phase": 0.275,
+        "y": -0.008236350192693864
+      },
+      {
+        "phase": 0.2833333333333333,
+        "y": -0.043446470249009106
+      },
+      {
+        "phase": 0.2916666666666667,
+        "y": -0.07327610885638303
+      },
+      {
+        "phase": 0.3,
+        "y": -0.09790503654701976
+      },
+      {
+        "phase": 0.30833333333333335,
+        "y": -0.11618695552749614
+      },
+      {
+        "phase": 0.31666666666666665,
+        "y": -0.1314600285972009
+      },
+      {
+        "phase": 0.325,
+        "y": -0.13770740840694962
+      },
+      {
+        "phase": 0.3333333333333333,
+        "y": -0.14388409557534276
+      },
+      {
+        "phase": 0.3416666666666667,
+        "y": -0.14400499372603148
+      },
+      {
+        "phase": 0.35,
+        "y": -0.14392812607479966
+      },
+      {
+        "phase": 0.35833333333333334,
+        "y": -0.14472554098910329
+      },
+      {
+        "phase": 0.36666666666666664,
+        "y": -0.14447578257203103
+      },
+      {
+        "phase": 0.375,
+        "y": -0.14532753364465867
+      },
+      {
+        "phase": 0.38333333333333336,
+        "y": -0.14552111272931745
+      },
+      {
+        "phase": 0.39166666666666666,
+        "y": -0.14514956878510643
+      },
+      {
+        "phase": 0.4,
+        "y": -0.14642246560297267
+      },
+      {
+        "phase": 0.4083333333333333,
+        "y": -0.14425981948755584
+      },
+      {
+        "phase": 0.4166666666666667,
+        "y": -0.14643267184862618
+      },
+      {
+        "phase": 0.425,
+        "y": -0.14448415620038213
+      },
+      {
+        "phase": 0.43333333333333335,
+        "y": -0.14470615363870865
+      },
+      {
+        "phase": 0.44166666666666665,
+        "y": -0.1450851630220144
+      },
+      {
+        "phase": 0.45,
+        "y": -0.13985560189700275
+      },
+      {
+        "phase": 0.4583333333333333,
+        "y": -0.14233125352043186
+      },
+      {
+        "phase": 0.4666666666666667,
+        "y": -0.1355295890305943
+      },
+      {
+        "phase": 0.475,
+        "y": -0.12890786790170716
+      },
+      {
+        "phase": 0.48333333333333334,
+        "y": -0.13017822923406708
+      },
+      {
+        "phase": 0.49166666666666664,
+        "y": -0.12315589008015326
+      },
+      {
+        "phase": 0.5,
+        "y": -0.11593836902956339
+      },
+      {
+        "phase": 0.5083333333333333,
+        "y": -0.11332764184728517
+      },
+      {
+        "phase": 0.5166666666666667,
+        "y": -0.11069375821403804
+      },
+      {
+        "phase": 0.525,
+        "y": -0.11010544490750807
+      },
+      {
+        "phase": 0.5333333333333333,
+        "y": -0.11010544490750818
+      },
+      {
+        "phase": 0.5416666666666666,
+        "y": -0.11010544490750818
+      },
+      {
+        "phase": 0.55,
+        "y": -0.11010544490750818
+      },
+      {
+        "phase": 0.5583333333333333,
+        "y": -0.1089416701644762
+      },
+      {
+        "phase": 0.5666666666666667,
+        "y": -0.10545900473369385
+      },
+      {
+        "phase": 0.575,
+        "y": -0.10122608576827519
+      },
+      {
+        "phase": 0.5833333333333334,
+        "y": -0.0909532530000538
+      },
+      {
+        "phase": 0.5916666666666667,
+        "y": -0.08078454029839005
+      },
+      {
+        "phase": 0.6,
+        "y": -0.06455337965662972
+      },
+      {
+        "phase": 0.6083333333333333,
+        "y": -0.04780509493472196
+      },
+      {
+        "phase": 0.6166666666666667,
+        "y": -0.0264475144622468
+      },
+      {
+        "phase": 0.625,
+        "y": -0.0030827401585967196
+      },
+      {
+        "phase": 0.6333333333333333,
+        "y": 0.023235549322591864
+      },
+      {
+        "phase": 0.6416666666666667,
+        "y": 0.0532167457774087
+      },
+      {
+        "phase": 0.65,
+        "y": 0.08423857183487571
+      },
+      {
+        "phase": 0.6583333333333333,
+        "y": 0.12063003934989475
+      },
+      {
+        "phase": 0.6666666666666666,
+        "y": 0.15599236681088635
+      },
+      {
+        "phase": 0.675,
+        "y": 0.19819395785643273
+      },
+      {
+        "phase": 0.6833333333333333,
+        "y": 0.2390521372338928
+      },
+      {
+        "phase": 0.6916666666666667,
+        "y": 0.2844619468630261
+      },
+      {
+        "phase": 0.7,
+        "y": 0.32991678492894616
+      },
+      {
+        "phase": 0.7083333333333334,
+        "y": 0.37749770840270785
+      },
+      {
+        "phase": 0.7166666666666667,
+        "y": 0.4262046692050042
+      },
+      {
+        "phase": 0.725,
+        "y": 0.4747732519702605
+      },
+      {
+        "phase": 0.7333333333333333,
+        "y": 0.5143731729131052
+      },
+      {
+        "phase": 0.7416666666666667,
+        "y": 0.5486733532689422
+      },
+      {
+        "phase": 0.75,
+        "y": 0.5844331821138676
+      },
+      {
+        "phase": 0.7583333333333333,
+        "y": 0.6169456731722176
+      },
+      {
+        "phase": 0.7666666666666667,
+        "y": 0.6422387107304853
+      },
+      {
+        "phase": 0.775,
+        "y": 0.6552740790165724
+      },
+      {
+        "phase": 0.7833333333333333,
+        "y": 0.6680983908393345
+      },
+      {
+        "phase": 0.7916666666666666,
+        "y": 0.6804882018137728
+      },
+      {
+        "phase": 0.8,
+        "y": 0.6847491348425822
+      },
+      {
+        "phase": 0.8083333333333333,
+        "y": 0.688419417867592
+      },
+      {
+        "phase": 0.8166666666666667,
+        "y": 0.6921874636254677
+      },
+      {
+        "phase": 0.825,
+        "y": 0.6960842895835655
+      },
+      {
+        "phase": 0.8333333333333334,
+        "y": 0.7001913587745445
+      },
+      {
+        "phase": 0.8416666666666667,
+        "y": 0.7044665332373773
+      },
+      {
+        "phase": 0.85,
+        "y": 0.7090280726974462
+      },
+      {
+        "phase": 0.8583333333333333,
+        "y": 0.7135038351389726
+      },
+      {
+        "phase": 0.8666666666666667,
+        "y": 0.7220666220166403
+      },
+      {
+        "phase": 0.875,
+        "y": 0.7313734570062375
+      },
+      {
+        "phase": 0.8833333333333333,
+        "y": 0.7394754921525489
+      },
+      {
+        "phase": 0.8916666666666667,
+        "y": 0.7476336613753843
+      },
+      {
+        "phase": 0.9,
+        "y": 0.7543160602254637
+      },
+      {
+        "phase": 0.9083333333333333,
+        "y": 0.761057524194886
+      },
+      {
+        "phase": 0.9166666666666666,
+        "y": 0.7654558115511623
+      },
+      {
+        "phase": 0.925,
+        "y": 0.7725212146886676
+      },
+      {
+        "phase": 0.9333333333333333,
+        "y": 0.7773879191619804
+      },
+      {
+        "phase": 0.9416666666666667,
+        "y": 0.7828664267709706
+      },
+      {
+        "phase": 0.95,
+        "y": 0.7875362172625877
+      },
+      {
+        "phase": 0.9583333333333334,
+        "y": 0.7917144146952575
+      },
+      {
+        "phase": 0.9666666666666667,
+        "y": 0.7953609087130528
+      },
+      {
+        "phase": 0.975,
+        "y": 0.7980863836304104
+      },
+      {
+        "phase": 0.9833333333333333,
+        "y": 0.8004817844344763
+      },
+      {
+        "phase": 0.9916666666666667,
+        "y": 0.8014516748025979
+      },
+      {
+        "phase": 1,
+        "y": 0.802430563208701
+      }
+    ],
+    "method": "Exact pervertex RodriguesY angularinterval intersection; chooseone minimumcommonpitch, C1 window. No anglefitting loop."
+  },
+  "lowClipIdentityRenameOnly": {
+    "original": "69b4ad1e5ea3712a86562a335770a342830254705882c935df975664c6f70bdd",
+    "final": "394bcda89d31fa5c4ca0a974820021baab5f9fc359847ddcf6b78db7f0cdb279",
+    "change": "Only top-level name RatLowSlash\u2192CleaverRatLowSlash. UUID/duration/all195tracks/time/value bytes otherwise identical, no newfit/rebake."
+  },
+  "floorVerification": {
+    "denseSourcePhaseSamples": 721,
+    "originalMinCarrierY": -0.1464945917329764,
+    "repairedMinCarrierY": 0.007923953434496145,
+    "repairedMinActualDefaultWorldY": 0.013256476947658255,
+    "actualRootScale": 1.6729625,
+    "plane": "Existingflatworld floorY0; no inventedterrain/slope support.",
+    "outsideWindowBoneDelta": 0,
+    "handToWeaponMatrixDelta": 5.551115123125783e-16,
+    "angleStepDiagnostics": {
+      "slash": {
+        "ticks": 54,
+        "maxAnalyticCorrectionDegreesPerNativeTick": 3.0253296998957344
+      },
+      "thrust": {
+        "ticks": 36,
+        "maxAnalyticCorrectionDegreesPerNativeTick": 4.562344934854505
+      },
+      "heavy_overhead": {
+        "ticks": 53,
+        "maxAnalyticCorrectionDegreesPerNativeTick": 3.135020302606226
+      }
+    },
+    "qualification": "Analytic C1 pitchwindow serialized120Hz+originalkeys; poseoutsidewindow exact. KeyframeSLERP approximation andsampling are not continuous-time proof. Finehand/wrist/slopefeel nativevisualpending."
+  },
+  "exactReceiverProof": {
+    "cases": 51,
+    "failed": 0,
+    "triangles": "Actualposedsource skin geometry/winding/material sides, nativeferaldog/width/roachhelpers andproceduraldrone rigidframe; offlineBVHaccelerates exacttriangle rays only.",
+    "sizes": [
+      0.85,
+      1.15
+    ],
+    "poses": "Idle0/Walk.5, yaw0/pi2, thin/heavyvariants; drone actualhover3samples. Not allmovingtargettrajectories/allheadings.",
+    "reachBandsWorldUnits": {
+      "rat:slash": {
+        "observedNearMin": 0.2,
+        "observedFarMax": 2.9999999999999973,
+        "commonBandAcrossTestedCases": [
+          0.44999999999999996,
+          1.800000000000001
+        ],
+        "cases": 16
+      },
+      "rat:thrust": {
+        "observedNearMin": 0.2,
+        "observedFarMax": 1.900000000000001,
+        "commonBandAcrossTestedCases": [
+          0.44999999999999996,
+          1.7000000000000008
+        ],
+        "cases": 16
+      },
+      "rat:heavy_overhead": {
+        "observedNearMin": 0.2,
+        "observedFarMax": 2.9999999999999973,
+        "commonBandAcrossTestedCases": [
+          0.49999999999999994,
+          1.800000000000001
+        ],
+        "cases": 16
+      },
+      "dog:slash": {
+        "observedNearMin": 0.2,
+        "observedFarMax": 2.9999999999999973,
+        "commonBandAcrossTestedCases": [
+          0.9000000000000002,
+          1.4500000000000006
+        ],
+        "cases": 16
+      },
+      "roach:slash": {
+        "observedNearMin": 0.2,
+        "observedFarMax": 2.6999999999999984,
+        "commonBandAcrossTestedCases": [
+          0.65,
+          2.3
+        ],
+        "cases": 16
+      },
+      "drone:slash": {
+        "observedNearMin": 0.44999999999999996,
+        "observedFarMax": 1.850000000000001,
+        "commonBandAcrossTestedCases": [
+          0.44999999999999996,
+          1.800000000000001
+        ],
+        "cases": 3
+      },
+      "drone:thrust": {
+        "observedNearMin": 0.44999999999999996,
+        "observedFarMax": 1.850000000000001,
+        "commonBandAcrossTestedCases": [
+          0.44999999999999996,
+          1.800000000000001
+        ],
+        "cases": 3
+      },
+      "drone:heavy_overhead": {
+        "observedNearMin": 0.44999999999999996,
+        "observedFarMax": 1.850000000000001,
+        "commonBandAcrossTestedCases": [
+          0.44999999999999996,
+          1.800000000000001
+        ],
+        "cases": 3
+      }
+    },
+    "far4mAndLateral4mMiss": true,
+    "integerAndSubframeSweep": "Allrequiredcases haveinteger hits; .02m endpoint-motion actualpose substeps also measured andreported. Adjacentnativeframes preserveprev/current; no bodycapsule padding.",
+    "report": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-player-cleaver-pilot-20261016/low-repair-receipt/src/results/LOW-POSE-REPAIR.json",
+    "reportSHA256": "597381781f4adc1980c0f6238a38c1ebf13ac197ecc4fba4f81f4f2b26e196ed"
+  },
+  "existingDogMidDecision": {
+    "ratMinDiagnostic": "ExistingDogMid did hit tested rats; it wasnotfalselydeclaredincompatible withrats.",
+    "fullLowRejectedCases": [
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-skitter",
+          "clip": "roach_idle",
+          "phase": 0,
+          "yaw": 0
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-skitter",
+          "clip": "roach_idle",
+          "phase": 0,
+          "yaw": 1.5707963267948966
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-skitter",
+          "clip": "roach_walk",
+          "phase": 0.5,
+          "yaw": 0
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-skitter",
+          "clip": "roach_walk",
+          "phase": 0.5,
+          "yaw": 1.5707963267948966
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-heavy-shell",
+          "clip": "roach_idle",
+          "phase": 0,
+          "yaw": 0
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-heavy-shell",
+          "clip": "roach_idle",
+          "phase": 0,
+          "yaw": 1.5707963267948966
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-heavy-shell",
+          "clip": "roach_walk",
+          "phase": 0.5,
+          "yaw": 0
+        },
+        "actions": [
+          "slash"
+        ]
+      },
+      {
+        "spec": {
+          "kind": "roach",
+          "factor": 0.85,
+          "recipe": "roach-heavy-shell",
+          "clip": "roach_walk",
+          "phase": 0.5,
+          "yaw": 1.5707963267948966
+        },
+        "actions": [
+          "slash"
+        ]
+      }
+    ],
+    "decision": "DogMid-only reuse misses smallroach lowreceiver cases. Onehand-onlyRatLowvariant coversnativeRat+Roach lowpath withtheiroriginalbodypose; unchangedDogMid retainedforDog/Drone."
+  },
+  "job": {
+    "job": "low-repair-job-cf95aa73dd49",
+    "hostname": "Brain",
+    "source_files_verified": 25,
+    "command": [
+      "bash",
+      "run.sh"
+    ],
+    "exit_code": 0,
+    "stopped_for_disk_reserve": false,
+    "elapsed_seconds": 7.01,
+    "finished_epoch": 1792174908.5366352,
+    "lane": "small-release",
+    "started_epoch": 1792174901.5237575,
+    "submission": {
+      "lane": "small-release",
+      "input_bytes": 9898036,
+      "upload_lock_seconds": 2.52,
+      "upload_seconds": 10.68,
+      "staged_epoch": 1792174895.643091,
+      "submitted_epoch": 1792174878.904026
+    },
+    "admission_seconds": 5.88,
+    "submission_to_result_seconds": 29.63,
+    "capacity_at_start": {
+      "idle_cores": 14.424242424242424,
+      "idle_core_samples": [
+        14.697201017811706,
+        14.750629722921914,
+        14.424242424242424
+      ],
+      "online_cores": 16,
+      "available_memory_bytes": 29262127104,
+      "free_disk_bytes": 50232233984,
+      "checked_epoch": 1792174901.52371,
+      "allocation": {
+        "cpu_cores": 13,
+        "cpu_quota_percent": 1300,
+        "cpu_weight": 10,
+        "reserved_idle_cores": 1,
+        "numerical_threads": 13,
+        "browser_workers": 1
+      }
+    },
+    "cpu_cores": 13,
+    "cpu_quota_percent": 1300,
+    "cpu_weight": 10,
+    "reserved_idle_cores": 1,
+    "numerical_threads": 13,
+    "browser_workers": 1,
+    "memory_max_bytes": 4294967296
+  },
+  "all5RecoveredOutputSHAverified": true,
+  "localPreflight": "Exactanalyticinterval andsidedtriangleBVH tiny syntheticfixture PASS1.06ms; no realassets local.",
+  "webIntegration": [
+    "Deferredvagrant-cleaver descriptor canreusebodyURL/cache andvalidcleaverequipment, cloneonlyWeaponDrawn ontocurrenthand_r; privateoldKnife/ownedmaterials retained.",
+    "Appendderivedclip once; logicalRatLowSlash\u2192CleaverRatLowSlash mapping onlyforplayerusingitem, originalKnife/othersunmapped. Samekeyframedasset MUSTdrive renderedposeandreceiverbake. No additiveaccumulation; other194tracks/currentotherclips unchanged.",
+    "Existingbody.contactPaths=mainJSON.hero; phase/timing unchanged. Damage/stamina tradeoffalone doesnotchangebakes; anycadence/pose change needsfreshtrace.",
+    "Cleaver lowreceiver capturesactualWeaponDrawn contact.14/.86 forANYs.def.ratLow. NativeRAT_LOW/DogMidphase age/total; ratRetimedStab/Heavy retains originalratMeleePosePhase logicalname before samplerclipremap.",
+    "Refreshview.knife/hotweaponownedmaterial/flashregistry andpistolhide reference; cacheoriginalKnifegeometry/materials. No wholeplayer/mixer/GPU rebuild necessary.",
+    "SourceoriginalKnife low/contact logic remains. Do notclaim unsupported dog/roach StabHeavy; preserveexistingactionrouting orrequestseparatebehavior scope.",
+    "Actualnativeproof stillneeds equip\u2192attack/lowreceiver/finegrip\u2192Knife/pistol swap\u2192materialrestore/save/reload/rewardonce; Websoleowner handlesexistingflow."
+  ],
+  "limitations": [
+    "Numericpilot andboundedonecliprepair, not production/nativecamera acceptance.",
+    "Stronghand/weaponboneattachment continuous andunchangedweights/geometry; finefingers/wristcuff visiblegripnotyetaccepted.",
+    "One inheriteddegenerateblade triangle preserved; modelstrict0errors/0warnings.",
+    "Originalrawsource95badQuiet+packing3emptyarrayEXIT1 failures preserved; oneanalyticalwristcandidate only, no fittingloop.",
+    "147effects/Hale120 acceptance/publication independent;M3 notdone until nativeequippedrewardproof/Leadacceptance/served."
+  ],
+  "next": "Webintegrateexactportablemodel/mainpaths/derivedclip viaexistingcontroller; sameactualplayer nativeproof/Artreview, Backend reward/savecontract andLeadbalance. Art no additionalfitjob."
+}

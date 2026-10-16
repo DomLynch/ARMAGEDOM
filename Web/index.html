@@ -48,6 +48,7 @@
       <button id="pistol-interact" hidden>Equip pistol · G</button>
       <p id="expedition-objective" hidden></p>
       <span id="expedition-case-label" class="expedition-world-label" hidden>STOLEN SUPPLY CASE</span>
+      <span id="unique-reward-label" class="expedition-world-label" hidden></span>
       <div id="boss-labels" aria-live="off"></div>
       <span id="expedition-guard-label" class="boss-world-label" hidden></span>
       <section id="boss" hidden>
@@ -99,8 +100,9 @@
         <p id="contract-description"></p><p id="contract-status" role="status"></p>
         <button id="contract-action" type="button"></button>
         <details id="equipment-panel"><summary>Equipment</summary>
-          <p id="equipment-state"></p><p id="equipment-retry-note">Retry resets combat and ammunition. Contract progress, discovered areas and earned variants stay. Collect the pistol at the stash again to use your chosen variant.</p>
+          <p id="equipment-state"></p><p id="equipment-retry-note">Retry resets combat, ammunition and weapon mastery. Contract progress, discovered areas and earned variants stay. Collect the pistol at the stash again to use your chosen variant.</p>
           <div id="variant-choices"></div>
+          <section id="melee-equipment" hidden><h4>Melee weapon</h4><p id="melee-state" role="status"></p><p>Cleaver: higher damage and stamina per swing, longer blade. Same attack timing and Knife mastery. Pommel remains 20 damage / 40 stamina.</p><div id="melee-choices"></div></section>
         </details>
         <details id="atlas-panel"><summary>Discovery atlas · schematic</summary>
           <p>Eight areas. Lines show existing connections, not a map to scale. Pin a known area to see its next exit; movement stays manual.</p>

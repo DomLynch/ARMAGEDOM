@@ -4594,5 +4594,9 @@
         ]
       ]
     }
+  },
+  "uniqueReward": {
+    "version": 1,
+    "itemId": "hale-pitborn-cleaver-v1"
   }
 }
