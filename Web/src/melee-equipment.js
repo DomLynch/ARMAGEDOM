@@ -14,7 +14,7 @@ export function meleeModelRef(g){return selectedMeleeVariant(g).modelRef??null;}
 // Clone only the rigid weapon subtree; the live player rig, mixer and body buffers stay owners.
 export function cloneMeleeWeapon(source,variantId){
  const profile=MELEE_VARIANTS[variantId],weapon=source?.equipment?.scene?.getObjectByName('WeaponDrawn');
- if(!profile?.modelRef||!weapon||JSON.stringify(weapon.userData.contact)!==JSON.stringify(profile.contact))throw Error('Melee equipment source/contact mismatch');
+ if(!profile?.modelRef||!weapon||weapon.userData.contact?.from!==profile.contact[0]||weapon.userData.contact?.to!==profile.contact[1])throw Error('Melee equipment source/contact mismatch');
  const root=weapon.clone(true),materials=[];let meshes=0;
  try{root.traverse(node=>{if(!node.isMesh)return;if(node.isSkinnedMesh)throw Error('Player melee equipment must be rigid on its hand mount');meshes++;node.frustumCulled=false;const own=[node.material].flat().map(source=>{if(!source?.isMeshStandardMaterial)throw Error('Melee PBR material required');const material=source.clone();materials.push({material,color:material.color?.clone(),emissive:material.emissive?.clone(),intensity:material.emissiveIntensity});return material;});node.material=Array.isArray(node.material)?own:own[0];});if(!meshes)throw Error('Empty player melee weapon');return{root,materials};}
  catch(error){for(const m of materials)m.material.dispose();throw error;}
