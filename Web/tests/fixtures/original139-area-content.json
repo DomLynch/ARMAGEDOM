@@ -1,0 +1,1914 @@
+{
+  "residents": {
+    "east-bridge": [
+      {
+        "key": "east-bridge-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -3.3673786018332614,
+          "z": 0.8973258571657396
+        },
+        "patrol": [
+          {
+            "x": -3.3673786018332614,
+            "z": 0.8973258571657396
+          },
+          {
+            "x": -2.198363813659261,
+            "z": 1.5718110007710813
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 9.70918451588038,
+          "z": 9.029059225262067
+        },
+        "patrol": [
+          {
+            "x": 9.70918451588038,
+            "z": 9.029059225262067
+          },
+          {
+            "x": 11.013924941923541,
+            "z": 9.801094496404062
+          }
+        ]
+      }
+    ],
+    "elephant-and-castle": [
+      {
+        "key": "elephant-and-castle-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -3.848432687809442,
+          "z": 0.8973258571657396
+        },
+        "patrol": [
+          {
+            "x": -3.848432687809442,
+            "z": 0.8973258571657396
+          },
+          {
+            "x": -2.689499753630003,
+            "z": 1.6146626278834013
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 10.705519002011172,
+          "z": 11.161654997911484
+        },
+        "patrol": [
+          {
+            "x": 10.705519002011172,
+            "z": 11.161654997911484
+          },
+          {
+            "x": 12.080612272602512,
+            "z": 11.999394451038292
+          }
+        ]
+      }
+    ],
+    "lambeth": [
+      {
+        "key": "lambeth-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -2.497039090718905,
+          "z": 13.82564142393224
+        },
+        "patrol": [
+          {
+            "x": -2.497039090718905,
+            "z": 13.82564142393224
+          },
+          {
+            "x": -1.2080612272602524,
+            "z": 11.999394451038292
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-2",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": 8.264020852875369,
+          "z": -1.083536304770636
+        },
+        "patrol": [
+          {
+            "x": 8.264020852875369,
+            "z": -1.083536304770636
+          },
+          {
+            "x": 8.945590399613073,
+            "z": -2.151772662396983
+          }
+        ]
+      }
+    ],
+    "area7": [
+      {
+        "key": "area7-station-scavenger-v1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 3.459119742752804,
+          "z": -0.8936189375617332
+        },
+        "patrol": [
+          {
+            "x": 3.459119742752804,
+            "z": -0.8936189375617332
+          },
+          {
+            "x": 5.120299017118772,
+            "z": -0.5085145947862131
+          }
+        ]
+      },
+      {
+        "key": "area7-station-rat-v1",
+        "foundationRef": "original-rat",
+        "recipeRef": "rat-ash",
+        "pos": {
+          "x": -8.1159471724032,
+          "z": -1.8261911967744275
+        },
+        "patrol": [
+          {
+            "x": -8.1159471724032,
+            "z": -1.8261911967744275
+          },
+          {
+            "x": -6.824428937637714,
+            "z": -1.458220522989972
+          }
+        ]
+      }
+    ]
+  },
+  "atmosphere": {
+    "east-bridge": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-near-wreck-drum",
+          "preset": "small-fire",
+          "x": 0.228,
+          "y": 0.895,
+          "foot": {
+            "x": 0.235,
+            "y": 0.925
+          },
+          "depth": null,
+          "seed": 401,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "east-bridge-left-checkpoint-fire",
+          "preset": "fire-with-smoke",
+          "x": 0.338,
+          "y": 0.723,
+          "foot": {
+            "x": 0.35,
+            "y": 0.795
+          },
+          "depth": null,
+          "seed": 402,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-right-supply-drum",
+          "preset": "small-fire",
+          "x": 0.909,
+          "y": 0.744,
+          "foot": {
+            "x": 0.918,
+            "y": 0.803
+          },
+          "depth": null,
+          "seed": 403,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "east-bridge-far-bus-drum",
+          "preset": "small-fire",
+          "x": 0.952,
+          "y": 0.414,
+          "foot": {
+            "x": 0.957,
+            "y": 0.455
+          },
+          "depth": null,
+          "seed": 404,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    },
+    "elephant-and-castle": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-1",
+          "preset": "small-fire",
+          "x": 0.319,
+          "y": 0.523,
+          "foot": {
+            "x": 0.33,
+            "y": 0.565
+          },
+          "depth": null,
+          "seed": 501,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-2",
+          "preset": "fire-with-smoke",
+          "x": 0.574,
+          "y": 0.396,
+          "foot": {
+            "x": 0.585,
+            "y": 0.444
+          },
+          "depth": null,
+          "seed": 502,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-3",
+          "preset": "small-fire",
+          "x": 0.965,
+          "y": 0.639,
+          "foot": {
+            "x": 0.97,
+            "y": 0.7
+          },
+          "depth": null,
+          "seed": 503,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "elephant-and-castle-fire-4",
+          "preset": "small-fire",
+          "x": 0.88,
+          "y": 0.57,
+          "foot": {
+            "x": 0.893,
+            "y": 0.65
+          },
+          "depth": null,
+          "seed": 504,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    },
+    "lambeth": {
+      "anchors": [
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-1",
+          "preset": "small-fire",
+          "x": 0.658,
+          "y": 0.376,
+          "foot": {
+            "x": 0.663,
+            "y": 0.45
+          },
+          "depth": null,
+          "seed": 601,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.016,
+          "rise": 0.048,
+          "smoke": 2,
+          "opacity": 0.22,
+          "fireWidth": 0.008,
+          "fireHeight": 0.032,
+          "embers": 1,
+          "id": "lambeth-fire-2",
+          "preset": "fire-with-smoke",
+          "x": 0.93,
+          "y": 0.607,
+          "foot": {
+            "x": 0.935,
+            "y": 0.685
+          },
+          "depth": null,
+          "seed": 602,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-3",
+          "preset": "small-fire",
+          "x": 0.233,
+          "y": 0.5,
+          "foot": {
+            "x": 0.24,
+            "y": 0.55
+          },
+          "depth": null,
+          "seed": 603,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        },
+        {
+          "width": 0.011,
+          "rise": 0.035,
+          "smoke": 0,
+          "opacity": 0,
+          "fireWidth": 0.007,
+          "fireHeight": 0.026,
+          "embers": 1,
+          "id": "lambeth-fire-4",
+          "preset": "small-fire",
+          "x": 0.074,
+          "y": 0.77,
+          "foot": {
+            "x": 0.08,
+            "y": 0.89
+          },
+          "depth": null,
+          "seed": 604,
+          "scale": 1,
+          "intensity": 1,
+          "preserve": true
+        }
+      ],
+      "budget": {
+        "quads": 28,
+        "drawCalls": 3,
+        "textureBytes": 0
+      }
+    }
+  },
+  "lighting": {
+    "presets": {
+      "current-default": {
+        "fillIntensity": 1.6,
+        "keyIntensity": 2.3
+      }
+    },
+    "areas": {
+      "westminster": "current-default",
+      "east": "current-default",
+      "south": "current-default",
+      "east-bridge": "current-default",
+      "elephant-and-castle": "current-default",
+      "lambeth": "current-default"
+    }
+  },
+  "water": {
+    "regions": {
+      "westminster-main-river": {
+        "id": "westminster-main-river",
+        "points": [
+          {
+            "x": 0.6423445,
+            "y": 0.3198725
+          },
+          {
+            "x": 0.7296651,
+            "y": 0.3294368
+          },
+          {
+            "x": 0.826555,
+            "y": 0.3506908
+          },
+          {
+            "x": 0.8552632,
+            "y": 0.3719447
+          },
+          {
+            "x": 0.90311,
+            "y": 0.3453773
+          },
+          {
+            "x": 0.9449761,
+            "y": 0.3188098
+          },
+          {
+            "x": 0.9868421,
+            "y": 0.2869288
+          },
+          {
+            "x": 0.9898325,
+            "y": 0.2986185
+          },
+          {
+            "x": 0.9330144,
+            "y": 0.3368757
+          },
+          {
+            "x": 0.8492823,
+            "y": 0.3889479
+          },
+          {
+            "x": 0.8259569,
+            "y": 0.4048884
+          },
+          {
+            "x": 0.8229665,
+            "y": 0.3974495
+          },
+          {
+            "x": 0.8116029,
+            "y": 0.360255
+          },
+          {
+            "x": 0.7936603,
+            "y": 0.3645058
+          },
+          {
+            "x": 0.7864833,
+            "y": 0.4399575
+          },
+          {
+            "x": 0.7236842,
+            "y": 0.477152
+          },
+          {
+            "x": 0.6698565,
+            "y": 0.445271
+          },
+          {
+            "x": 0.6423445,
+            "y": 0.4250797
+          }
+        ],
+        "holes": []
+      },
+      "westminster-left-river": {
+        "id": "westminster-left-river",
+        "points": [
+          {
+            "x": 0.4910287,
+            "y": 0.3028693
+          },
+          {
+            "x": 0.5155502,
+            "y": 0.3092455
+          },
+          {
+            "x": 0.6034689,
+            "y": 0.3188098
+          },
+          {
+            "x": 0.6034689,
+            "y": 0.4017003
+          },
+          {
+            "x": 0.5699761,
+            "y": 0.3825717
+          },
+          {
+            "x": 0.5651914,
+            "y": 0.3273114
+          },
+          {
+            "x": 0.5161483,
+            "y": 0.325186
+          },
+          {
+            "x": 0.5035885,
+            "y": 0.3411265
+          },
+          {
+            "x": 0.4910287,
+            "y": 0.3347503
+          }
+        ],
+        "holes": []
+      },
+      "westminster-below-bridge": {
+        "id": "westminster-below-bridge",
+        "points": [
+          {
+            "x": 0.9976077,
+            "y": 0.4707758
+          },
+          {
+            "x": 0.9976077,
+            "y": 0.6004251
+          },
+          {
+            "x": 0.9677033,
+            "y": 0.58661
+          },
+          {
+            "x": 0.9342105,
+            "y": 0.5738576
+          },
+          {
+            "x": 0.9300239,
+            "y": 0.5472901
+          },
+          {
+            "x": 0.9599282,
+            "y": 0.5196599
+          },
+          {
+            "x": 0.9832536,
+            "y": 0.4888417
+          }
+        ],
+        "holes": []
+      },
+      "east-left-river": {
+        "id": "east-left-river",
+        "points": [
+          {
+            "x": 0.0011962,
+            "y": 0.3092455
+          },
+          {
+            "x": 0.2003589,
+            "y": 0.3549416
+          },
+          {
+            "x": 0.2685407,
+            "y": 0.3432519
+          },
+          {
+            "x": 0.2960526,
+            "y": 0.34644
+          },
+          {
+            "x": 0.3133971,
+            "y": 0.3676939
+          },
+          {
+            "x": 0.3050239,
+            "y": 0.3857598
+          },
+          {
+            "x": 0.2697368,
+            "y": 0.4165781
+          },
+          {
+            "x": 0.2350478,
+            "y": 0.4357067
+          },
+          {
+            "x": 0.2063397,
+            "y": 0.4633369
+          },
+          {
+            "x": 0.1746411,
+            "y": 0.4867163
+          },
+          {
+            "x": 0.0861244,
+            "y": 0.5398512
+          },
+          {
+            "x": 0.0855263,
+            "y": 0.4909671
+          },
+          {
+            "x": 0.0825359,
+            "y": 0.4303932
+          },
+          {
+            "x": 0.0735646,
+            "y": 0.4091392
+          },
+          {
+            "x": 0.0645933,
+            "y": 0.4303932
+          },
+          {
+            "x": 0.062799,
+            "y": 0.5302869
+          },
+          {
+            "x": 0.0478469,
+            "y": 0.5345377
+          },
+          {
+            "x": 0.0466507,
+            "y": 0.4707758
+          },
+          {
+            "x": 0.0370813,
+            "y": 0.41339
+          },
+          {
+            "x": 0.0293062,
+            "y": 0.4250797
+          },
+          {
+            "x": 0.02811,
+            "y": 0.533475
+          },
+          {
+            "x": 0.0215311,
+            "y": 0.5356004
+          },
+          {
+            "x": 0.0185407,
+            "y": 0.4473964
+          },
+          {
+            "x": 0.0107656,
+            "y": 0.4155154
+          },
+          {
+            "x": 0.0047847,
+            "y": 0.4293305
+          },
+          {
+            "x": 0.0041866,
+            "y": 0.5419766
+          },
+          {
+            "x": 0.0011962,
+            "y": 0.5419766
+          }
+        ],
+        "holes": []
+      },
+      "east-under-bridge-river": {
+        "id": "east-under-bridge-river",
+        "points": [
+          {
+            "x": 0.2972488,
+            "y": 0.9904357
+          },
+          {
+            "x": 0.319378,
+            "y": 0.9309245
+          },
+          {
+            "x": 0.3456938,
+            "y": 0.9054198
+          },
+          {
+            "x": 0.3642344,
+            "y": 0.8682253
+          },
+          {
+            "x": 0.3708134,
+            "y": 0.7938363
+          },
+          {
+            "x": 0.3893541,
+            "y": 0.7258236
+          },
+          {
+            "x": 0.4162679,
+            "y": 0.7003188
+          },
+          {
+            "x": 0.4407895,
+            "y": 0.6822529
+          },
+          {
+            "x": 0.472488,
+            "y": 0.6450584
+          },
+          {
+            "x": 0.5047847,
+            "y": 0.6163656
+          },
+          {
+            "x": 0.5376794,
+            "y": 0.607864
+          },
+          {
+            "x": 0.5562201,
+            "y": 0.5611052
+          },
+          {
+            "x": 0.5759569,
+            "y": 0.533475
+          },
+          {
+            "x": 0.590311,
+            "y": 0.5196599
+          },
+          {
+            "x": 0.6124402,
+            "y": 0.5217853
+          },
+          {
+            "x": 0.6291866,
+            "y": 0.4899044
+          },
+          {
+            "x": 0.6309809,
+            "y": 0.5770457
+          },
+          {
+            "x": 0.6393541,
+            "y": 0.5982997
+          },
+          {
+            "x": 0.645933,
+            "y": 0.6110521
+          },
+          {
+            "x": 0.6860048,
+            "y": 0.6195537
+          },
+          {
+            "x": 0.7141148,
+            "y": 0.6153029
+          },
+          {
+            "x": 0.7511962,
+            "y": 0.6025505
+          },
+          {
+            "x": 0.7619617,
+            "y": 0.6312434
+          },
+          {
+            "x": 0.7852871,
+            "y": 0.6514346
+          },
+          {
+            "x": 0.7811005,
+            "y": 0.6811902
+          },
+          {
+            "x": 0.7236842,
+            "y": 0.6928799
+          },
+          {
+            "x": 0.7344498,
+            "y": 0.7630181
+          },
+          {
+            "x": 0.715311,
+            "y": 0.8034006
+          },
+          {
+            "x": 0.6088517,
+            "y": 0.9373007
+          },
+          {
+            "x": 0.5813397,
+            "y": 0.9946865
+          }
+        ],
+        "holes": [
+          [
+            {
+              "x": 0.5239234,
+              "y": 0.6907545
+            },
+            {
+              "x": 0.5490431,
+              "y": 0.6843783
+            },
+            {
+              "x": 0.5663876,
+              "y": 0.6588735
+            },
+            {
+              "x": 0.569378,
+              "y": 0.6907545
+            },
+            {
+              "x": 0.5741627,
+              "y": 0.7162593
+            },
+            {
+              "x": 0.5675837,
+              "y": 0.7300744
+            },
+            {
+              "x": 0.5311005,
+              "y": 0.7268863
+            }
+          ],
+          [
+            {
+              "x": 0.4246411,
+              "y": 0.9043571
+            },
+            {
+              "x": 0.4683014,
+              "y": 0.8947928
+            },
+            {
+              "x": 0.4994019,
+              "y": 0.9192349
+            },
+            {
+              "x": 0.4766746,
+              "y": 0.9543039
+            },
+            {
+              "x": 0.4455742,
+              "y": 0.9606801
+            }
+          ]
+        ]
+      },
+      "east-right-foreground-river": {
+        "id": "east-right-foreground-river",
+        "points": [
+          {
+            "x": 0.8498804,
+            "y": 0.7332625
+          },
+          {
+            "x": 0.8911483,
+            "y": 0.7343252
+          },
+          {
+            "x": 0.9240431,
+            "y": 0.7715197
+          },
+          {
+            "x": 0.9982057,
+            "y": 0.805526
+          },
+          {
+            "x": 0.9982057,
+            "y": 0.9968119
+          },
+          {
+            "x": 0.9312201,
+            "y": 0.9968119
+          },
+          {
+            "x": 0.9007177,
+            "y": 0.9107333
+          },
+          {
+            "x": 0.8732057,
+            "y": 0.837407
+          }
+        ],
+        "holes": []
+      },
+      "south-edge-river": {
+        "id": "south-edge-river",
+        "points": [
+          {
+            "x": 0.9467703,
+            "y": 0.0021254
+          },
+          {
+            "x": 0.9982057,
+            "y": 0.0021254
+          },
+          {
+            "x": 0.9982057,
+            "y": 0.4473964
+          },
+          {
+            "x": 0.9742823,
+            "y": 0.4537726
+          },
+          {
+            "x": 0.9659091,
+            "y": 0.4091392
+          },
+          {
+            "x": 0.9575359,
+            "y": 0.3793836
+          },
+          {
+            "x": 0.9479665,
+            "y": 0.3836344
+          },
+          {
+            "x": 0.9240431,
+            "y": 0.3453773
+          },
+          {
+            "x": 0.9210526,
+            "y": 0.2731137
+          },
+          {
+            "x": 0.944378,
+            "y": 0.261424
+          },
+          {
+            "x": 0.9527512,
+            "y": 0.2210414
+          },
+          {
+            "x": 0.9712919,
+            "y": 0.2199787
+          },
+          {
+            "x": 0.9814593,
+            "y": 0.1955367
+          },
+          {
+            "x": 0.9844498,
+            "y": 0.141339
+          },
+          {
+            "x": 0.9736842,
+            "y": 0.1190223
+          },
+          {
+            "x": 0.9569378,
+            "y": 0.0967056
+          },
+          {
+            "x": 0.9473684,
+            "y": 0.042508
+          }
+        ],
+        "holes": []
+      },
+      "east-bridge-main-river": {
+        "id": "east-bridge-main-river",
+        "points": [
+          {
+            "x": 0.0011962,
+            "y": 0.2029756
+          },
+          {
+            "x": 0.1411483,
+            "y": 0.2252922
+          },
+          {
+            "x": 0.1417464,
+            "y": 0.2624867
+          },
+          {
+            "x": 0.1776316,
+            "y": 0.2922423
+          },
+          {
+            "x": 0.2117225,
+            "y": 0.2996812
+          },
+          {
+            "x": 0.2278708,
+            "y": 0.2709883
+          },
+          {
+            "x": 0.2308612,
+            "y": 0.2911796
+          },
+          {
+            "x": 0.2673445,
+            "y": 0.2943677
+          },
+          {
+            "x": 0.2739234,
+            "y": 0.2646121
+          },
+          {
+            "x": 0.2769139,
+            "y": 0.2444208
+          },
+          {
+            "x": 0.3289474,
+            "y": 0.2465462
+          },
+          {
+            "x": 0.3289474,
+            "y": 0.2943677
+          },
+          {
+            "x": 0.3732057,
+            "y": 0.2986185
+          },
+          {
+            "x": 0.3797847,
+            "y": 0.2624867
+          },
+          {
+            "x": 0.4186603,
+            "y": 0.2497343
+          },
+          {
+            "x": 0.4144737,
+            "y": 0.2837407
+          },
+          {
+            "x": 0.4252392,
+            "y": 0.3028693
+          },
+          {
+            "x": 0.430622,
+            "y": 0.31
+          },
+          {
+            "x": 0.409689,
+            "y": 0.31
+          },
+          {
+            "x": 0.4055024,
+            "y": 0.3060574
+          },
+          {
+            "x": 0.3983254,
+            "y": 0.2879915
+          },
+          {
+            "x": 0.3869617,
+            "y": 0.3028693
+          },
+          {
+            "x": 0.3863636,
+            "y": 0.31
+          },
+          {
+            "x": 0.354067,
+            "y": 0.31
+          },
+          {
+            "x": 0.34689,
+            "y": 0.31
+          },
+          {
+            "x": 0.3450957,
+            "y": 0.31
+          },
+          {
+            "x": 0.3349282,
+            "y": 0.31
+          },
+          {
+            "x": 0.3337321,
+            "y": 0.31
+          },
+          {
+            "x": 0.3277512,
+            "y": 0.31
+          },
+          {
+            "x": 0.3199761,
+            "y": 0.31
+          },
+          {
+            "x": 0.3014354,
+            "y": 0.293305
+          },
+          {
+            "x": 0.2936603,
+            "y": 0.2986185
+          },
+          {
+            "x": 0.2948565,
+            "y": 0.31
+          },
+          {
+            "x": 0.2852871,
+            "y": 0.31
+          },
+          {
+            "x": 0.2613636,
+            "y": 0.31
+          },
+          {
+            "x": 0.2458134,
+            "y": 0.31
+          },
+          {
+            "x": 0.2392344,
+            "y": 0.3390011
+          },
+          {
+            "x": 0.2278708,
+            "y": 0.3411265
+          },
+          {
+            "x": 0.2266746,
+            "y": 0.3878852
+          },
+          {
+            "x": 0.2200957,
+            "y": 0.3900106
+          },
+          {
+            "x": 0.2183014,
+            "y": 0.3560043
+          },
+          {
+            "x": 0.2087321,
+            "y": 0.3538789
+          },
+          {
+            "x": 0.208134,
+            "y": 0.3974495
+          },
+          {
+            "x": 0.1955742,
+            "y": 0.4102019
+          },
+          {
+            "x": 0.1716507,
+            "y": 0.4303932
+          },
+          {
+            "x": 0.135,
+            "y": 0.423
+          },
+          {
+            "x": 0.12,
+            "y": 0.421
+          },
+          {
+            "x": 0.097,
+            "y": 0.422
+          },
+          {
+            "x": 0.08,
+            "y": 0.425
+          },
+          {
+            "x": 0.066,
+            "y": 0.426
+          },
+          {
+            "x": 0.048,
+            "y": 0.432
+          },
+          {
+            "x": 0.025,
+            "y": 0.439
+          },
+          {
+            "x": 0.0011962,
+            "y": 0.44
+          }
+        ],
+        "holes": [
+          [
+            {
+              "x": 0.084,
+              "y": 0.393
+            },
+            {
+              "x": 0.087,
+              "y": 0.289
+            },
+            {
+              "x": 0.139,
+              "y": 0.278
+            },
+            {
+              "x": 0.1715,
+              "y": 0.29
+            },
+            {
+              "x": 0.174,
+              "y": 0.4
+            },
+            {
+              "x": 0.122,
+              "y": 0.405
+            }
+          ]
+        ]
+      },
+      "elephant-main-river": {
+        "id": "elephant-main-river",
+        "points": [
+          {
+            "x": 0.0011962,
+            "y": 0.2337938
+          },
+          {
+            "x": 0.0687799,
+            "y": 0.2348565
+          },
+          {
+            "x": 0.0909091,
+            "y": 0.229543
+          },
+          {
+            "x": 0.1106459,
+            "y": 0.2199787
+          },
+          {
+            "x": 0.1483254,
+            "y": 0.2263549
+          },
+          {
+            "x": 0.187799,
+            "y": 0.2210414
+          },
+          {
+            "x": 0.1997608,
+            "y": 0.2199787
+          },
+          {
+            "x": 0.2177033,
+            "y": 0.2231668
+          },
+          {
+            "x": 0.2649522,
+            "y": 0.2221041
+          },
+          {
+            "x": 0.2816986,
+            "y": 0.2242295
+          },
+          {
+            "x": 0.3080144,
+            "y": 0.2263549
+          },
+          {
+            "x": 0.3241627,
+            "y": 0.2252922
+          },
+          {
+            "x": 0.3373206,
+            "y": 0.2306057
+          },
+          {
+            "x": 0.3564593,
+            "y": 0.2231668
+          },
+          {
+            "x": 0.375,
+            "y": 0.2210414
+          },
+          {
+            "x": 0.3881579,
+            "y": 0.229543
+          },
+          {
+            "x": 0.3995215,
+            "y": 0.2337938
+          },
+          {
+            "x": 0.4072967,
+            "y": 0.2465462
+          },
+          {
+            "x": 0.4019139,
+            "y": 0.2752391
+          },
+          {
+            "y": 0.285,
+            "x": 0.39716956
+          },
+          {
+            "y": 0.285,
+            "x": 0.35152796
+          },
+          {
+            "x": 0.347488,
+            "y": 0.2699256
+          },
+          {
+            "x": 0.3337321,
+            "y": 0.2741764
+          },
+          {
+            "x": 0.3181818,
+            "y": 0.2656748
+          },
+          {
+            "x": 0.3032297,
+            "y": 0.2678002
+          },
+          {
+            "y": 0.285,
+            "x": 0.30636145
+          },
+          {
+            "x": 0.195,
+            "y": 0.285
+          },
+          {
+            "x": 0.195,
+            "y": 0.41756392
+          },
+          {
+            "x": 0.187201,
+            "y": 0.4261424
+          },
+          {
+            "x": 0.1632775,
+            "y": 0.4410202
+          },
+          {
+            "x": 0.1549043,
+            "y": 0.4272051
+          },
+          {
+            "x": 0.1471292,
+            "y": 0.3953241
+          },
+          {
+            "x": 0.1399522,
+            "y": 0.3963868
+          },
+          {
+            "x": 0.1339713,
+            "y": 0.4218916
+          },
+          {
+            "x": 0.1345694,
+            "y": 0.4580234
+          },
+          {
+            "x": 0.1184211,
+            "y": 0.4697131
+          },
+          {
+            "x": 0.1064593,
+            "y": 0.4782147
+          },
+          {
+            "x": 0.0998804,
+            "y": 0.4569607
+          },
+          {
+            "x": 0.0915072,
+            "y": 0.4505845
+          },
+          {
+            "x": 0.0837321,
+            "y": 0.4654623
+          },
+          {
+            "x": 0.0807416,
+            "y": 0.4920298
+          },
+          {
+            "x": 0.069378,
+            "y": 0.5026567
+          },
+          {
+            "x": 0.0633971,
+            "y": 0.4750266
+          },
+          {
+            "x": 0.0538278,
+            "y": 0.4729012
+          },
+          {
+            "x": 0.0460526,
+            "y": 0.5005313
+          },
+          {
+            "x": 0.0364833,
+            "y": 0.5090329
+          },
+          {
+            "x": 0.0011962,
+            "y": 0.5100956
+          },
+          {
+            "x": 0.0011962,
+            "y": 0.45
+          },
+          {
+            "x": 0.105,
+            "y": 0.45
+          },
+          {
+            "x": 0.105,
+            "y": 0.30889302
+          },
+          {
+            "x": 0.1471292,
+            "y": 0.3156217
+          },
+          {
+            "x": 0.1848086,
+            "y": 0.3018066
+          },
+          {
+            "x": 0.1949761,
+            "y": 0.2763018
+          },
+          {
+            "x": 0.1854067,
+            "y": 0.2603613
+          },
+          {
+            "x": 0.1740431,
+            "y": 0.2263549
+          },
+          {
+            "x": 0.1136364,
+            "y": 0.2274176
+          },
+          {
+            "x": 0.0849282,
+            "y": 0.2539851
+          },
+          {
+            "y": 0.285,
+            "x": 0.07776717
+          },
+          {
+            "x": 0.0011962,
+            "y": 0.285
+          }
+        ],
+        "holes": [
+          [
+            {
+              "x": 0.2111244,
+              "y": 0.2412327
+            },
+            {
+              "x": 0.2284689,
+              "y": 0.2306057
+            },
+            {
+              "x": 0.2643541,
+              "y": 0.2380446
+            },
+            {
+              "x": 0.2805024,
+              "y": 0.2571732
+            },
+            {
+              "x": 0.2751196,
+              "y": 0.2752391
+            },
+            {
+              "x": 0.2446172,
+              "y": 0.2794899
+            },
+            {
+              "x": 0.2135167,
+              "y": 0.2678002
+            }
+          ]
+        ]
+      }
+    },
+    "profiles": {
+      "westminster-river-visible-v1": {
+        "id": "westminster-river-visible-v1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.8,
+            "y": 0.6
+          },
+          "speedPixelsPerSecond": 2
+        },
+        "rippleScalePixels": 6,
+        "rippleAmplitudePixelsMax": 0.4,
+        "opacityMax": 0.25,
+        "glint": {
+          "alphaMax": 0.04,
+          "density": 0.2,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 3,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.05
+        },
+        "regionRefs": [
+          "westminster-main-river",
+          "westminster-left-river",
+          "westminster-below-bridge"
+        ]
+      },
+      "east-river-visible-v1": {
+        "id": "east-river-visible-v1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.8,
+            "y": 0.6
+          },
+          "speedPixelsPerSecond": 2
+        },
+        "rippleScalePixels": 6,
+        "rippleAmplitudePixelsMax": 0.4,
+        "opacityMax": 0.25,
+        "glint": {
+          "alphaMax": 0.04,
+          "density": 0.2,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 3,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.2
+        },
+        "regionRefs": [
+          "east-left-river",
+          "east-under-bridge-river",
+          "east-right-foreground-river"
+        ]
+      },
+      "south-river-visible-v1": {
+        "id": "south-river-visible-v1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.8,
+            "y": 0.6
+          },
+          "speedPixelsPerSecond": 2
+        },
+        "rippleScalePixels": 6,
+        "rippleAmplitudePixelsMax": 0.4,
+        "opacityMax": 0.25,
+        "glint": {
+          "alphaMax": 0.04,
+          "density": 0.2,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 1,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.03
+        },
+        "regionRefs": [
+          "south-edge-river"
+        ]
+      },
+      "east-bridge-river-visible-v1": {
+        "id": "east-bridge-river-visible-v1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.8,
+            "y": 0.6
+          },
+          "speedPixelsPerSecond": 2
+        },
+        "rippleScalePixels": 6,
+        "rippleAmplitudePixelsMax": 0.4,
+        "opacityMax": 0.25,
+        "glint": {
+          "alphaMax": 0.04,
+          "density": 0.2,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 1,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.08
+        },
+        "regionRefs": [
+          "east-bridge-main-river"
+        ]
+      },
+      "elephant-and-castle-river-visible-v1": {
+        "id": "elephant-and-castle-river-visible-v1",
+        "enabled": true,
+        "activationScope": "approved-public-region",
+        "flow": {
+          "coordinateSpace": "original-image-pixels",
+          "direction": {
+            "x": 0.8,
+            "y": 0.6
+          },
+          "speedPixelsPerSecond": 2
+        },
+        "rippleScalePixels": 6,
+        "rippleAmplitudePixelsMax": 0.4,
+        "opacityMax": 0.25,
+        "glint": {
+          "alphaMax": 0.04,
+          "density": 0.2,
+          "tintLinearProposal": [
+            1,
+            0.67,
+            0.4
+          ]
+        },
+        "edgeFeatherPixels": 3,
+        "seed": 105401,
+        "budget": {
+          "maxRegions": 1,
+          "maxMeshes": 1,
+          "maxDrawCalls": 1,
+          "maxVertices": 96,
+          "maxTriangles": 128,
+          "maxMaskPoints": 128,
+          "maxNewTextures": 0,
+          "originalImageAreaFractionMax": 0.08
+        },
+        "regionRefs": [
+          "elephant-main-river"
+        ]
+      }
+    },
+    "areas": {
+      "westminster": "westminster-river-visible-v1",
+      "east": "east-river-visible-v1",
+      "south": "south-river-visible-v1",
+      "east-bridge": "east-bridge-river-visible-v1",
+      "elephant-and-castle": "elephant-and-castle-river-visible-v1"
+    }
+  },
+  "loot": {
+    "version": 1,
+    "tables": {
+      "east-vest-pilot-v1": {
+        "outcomes": [
+          {
+            "itemId": "westminster-worn-vest-v1",
+            "quantity": 1,
+            "weight": 1,
+            "conditions": [
+              "vest-not-equipped"
+            ]
+          }
+        ]
+      },
+      "area7-station-vest-v1": {
+        "outcomes": [
+          {
+            "itemId": "westminster-worn-vest-v1",
+            "quantity": 1,
+            "weight": 1,
+            "conditions": [
+              "vest-not-equipped"
+            ]
+          }
+        ]
+      },
+      "area7-station-rounds-v1": {
+        "outcomes": [
+          {
+            "itemId": "rounds",
+            "quantity": 3,
+            "weight": 1,
+            "conditions": [
+              "pistol-owned",
+              "reserve-space"
+            ]
+          }
+        ]
+      }
+    },
+    "placements": {
+      "east": {
+        "east-roamer-2": "east-vest-pilot-v1"
+      },
+      "area7": {
+        "area7-station-scavenger-v1": "area7-station-vest-v1",
+        "area7-station-rat-v1": "area7-station-rounds-v1"
+      }
+    }
+  },
+  "progression": {
+    "version": 1,
+    "killScore": 20,
+    "scoreCap": 100,
+    "damagePerPoint": 0.001,
+    "hpPerVitality": 2,
+    "staminaPerEndurance": 1,
+    "damagePerAttribute": 0.01,
+    "weapons": {
+      "knife": {
+        "damageAttribute": "strength"
+      },
+      "westminster-start-pistol-v1": {
+        "damageAttribute": "dexterity"
+      }
+    }
+  },
+  "expedition": {
+    "version": 1,
+    "contract": {
+      "id": "west-east-stolen-supply-v1",
+      "title": "Stolen Supplies",
+      "summary": "Recover the stolen case in East and return it to the Westminster stash. Hale guards the road; fighting him is optional.",
+      "giver": {
+        "areaId": "westminster",
+        "position": {
+          "x": -0.85,
+          "z": -6
+        },
+        "radius": 1.3
+      },
+      "case": {
+        "areaId": "east",
+        "position": {
+          "x": -15.5042955,
+          "z": -0.11622013
+        },
+        "radius": 1.3
+      },
+      "guard": {
+        "areaId": "east",
+        "placementKey": "east-roamer-2",
+        "name": "Hale, the Watchman"
+      },
+      "rewardVariantId": "watchmans-pistol-v1",
+      "receiptId": "west-east-stolen-supply-v1:watchmans-pistol-v1"
+    },
+    "variants": {
+      "westminster-start-pistol-v1": {
+        "name": "Starting Pistol",
+        "damage": 25,
+        "reload": 1.3,
+        "tint": 16777215
+      },
+      "watchmans-pistol-v1": {
+        "name": "Watchman\u2019s Pistol",
+        "damage": 30,
+        "reload": 1.6,
+        "tint": 14263910
+      }
+    },
+    "atlas": {
+      "westminster": {
+        "column": 0,
+        "row": 0
+      },
+      "east": {
+        "column": 1,
+        "row": 0
+      },
+      "east-bridge": {
+        "column": 2,
+        "row": 0
+      },
+      "elephant-and-castle": {
+        "column": 3,
+        "row": 0
+      },
+      "south": {
+        "column": 0,
+        "row": 1
+      },
+      "area7": {
+        "column": 1,
+        "row": 1
+      },
+      "area8": {
+        "column": 2,
+        "row": 1
+      },
+      "lambeth": {
+        "column": 3,
+        "row": 1
+      }
+    }
+  }
+}
