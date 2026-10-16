@@ -13,7 +13,7 @@ function fixture(){
 }
 test('posed jet follows the neck and pool grows on safe real West ground, then independently expires',()=>{
  const f=fixture();assert.deepEqual(f.fx.start(f.token,f.effect,f.anchors),{jet:true,pool:true});
- f.fx.update(.1);f.fx.update(.11);let s=f.fx.snapshot();assert.equal(s.jets.length,1);assert.ok(Math.abs(s.jets[0].scale[1]-.9)<1e-12);assert.ok(s.pools[0].radius>0&&s.pools[0].radius<.5);
+ f.fx.update(.1);f.fx.update(.11);let s=f.fx.snapshot();assert.equal(s.jets.length,1);assert.ok(Math.abs(s.jets[0].scale[1]-1.2*Math.sin(Math.PI*.11/.5))<1e-12);assert.ok(s.pools[0].radius>0&&s.pools[0].radius<.5);
  const paused=structuredClone(s);f.fx.update(.11);assert.deepEqual(f.fx.snapshot(),paused);
  f.setAnchors({...f.anchors,head:{...f.anchors.head,x:f.anchors.head.x+.25}});f.fx.update(.12);s=f.fx.snapshot();assert.equal(s.jets[0].position[0],f.anchors.head.x+.25);assert.equal(s.pools[0].position[0],f.anchors.head.x);
  f.fx.update(.5);s=f.fx.snapshot();assert.equal(s.jets.length,0);assert.equal(s.pools[0].radius,.5);assert.ok(s.pools[0].opacity>0);

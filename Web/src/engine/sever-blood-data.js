@@ -1,7 +1,7 @@
 import {insidePolygon} from '../world-geometry.js';
 // Presentation values only. Existing FX pools own clocks, slots and disposal.
 export const SEVER_BLOOD_DATA=Object.freeze({
- jet:Object.freeze({capacity:2,duration:.22,length:.9,radius:.055}),
+ jet:Object.freeze({capacity:2,duration:.5,length:1.2,radius:.075}),
  pool:Object.freeze({settleSeconds:.1,capacity:4,lifetime:4,spreadSeconds:.4,radius:.5,opacity:.7}),
  headDropletLifetime:1.25,headDropletGravity:4,
 });
