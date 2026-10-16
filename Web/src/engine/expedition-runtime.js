@@ -4,7 +4,8 @@ import {createVestBagView} from '../vest-view.js';
 const areaName=id=>id.replace(/^area(\d+)$/,'Area $1').replaceAll('-',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const paint=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
 const stageAction={available:'accept',accepted:'recover',recovered:'claim'};
-const labels={accept:'Accept contract',recover:'Recover supply case',claim:'Return case & claim reward'};
+const nearbyAction=(g,data)=>g.expedition?.status==='available'&&expeditionEligible(g,'recover',data)?'recover':stageAction[g.expedition?.status];
+const labels={accept:'Accept contract',recover:'Recover supply case',claim:'Complete contract & claim reward'};
 export function expeditionObjective(g){const c=g.world.expeditionData?.contract,s=g.expedition?.status;return !c?null:s==='accepted'?c.case.areaId:s==='claimed'?null:c.giver.areaId;}
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s,dispatch){
@@ -32,20 +33,20 @@ export function createExpeditionView(s,dispatch){
   const p=s.world.toRender(position,height).project(s.camera),visible=Math.abs(p.x)<1&&Math.abs(p.y)<1&&p.z>=-1&&p.z<=1;element.hidden=!visible;if(!visible)return;
   element.textContent=text;const portrait=innerWidth<innerHeight;element.style.left=`${Math.max(95,Math.min(innerWidth-95,(p.x+1)*innerWidth/2))}px`;element.style.top=`${Math.max(portrait?185:150,Math.min(innerHeight-110,(1-p.y)*innerHeight/2))}px`;
  }
- function originalPistolAction(g){const p=g.pistol;return p&&(!p.collected&&g.world.areaId===p.pickupAreaId&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3||p.collected&&!p.equipped);}
+ function originalPistolAction(g){const p=g.pistol;return p&&(!p.collected&&g.world.areaId===p.pickupAreaId&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3);}
  function interact(){
   const g=s.game;if(!g||!allowed()||s.paused||originalPistolAction(g))return false;
-  const action=stageAction[g.expedition?.status];if(action&&expeditionEligible(g,action,catalogue)){execute({type:'expedition',action});return true;}
+  const action=nearbyAction(g,catalogue);if(action&&expeditionEligible(g,action,catalogue)){execute({type:'expedition',action});return true;}
   if(g.expedition?.status==='claimed'&&expeditionEligible(g,'claim',catalogue)){viewGear();return true;}return false;
  }
  function update(){
   if(disposed)return;const g=s.game,data=s.world?.expeditionData;if(!g||!data){panel.hidden=true;return;}if(!catalogue)build(data);el('retry').disabled=el('again').disabled=!!g.runSaveInvalid;const state=g.expedition;if(!state){panel.hidden=true;return;}
-  const c=data.contract,status=state.status,objective=expeditionObjective(g),action=stageAction[status],eligible=action&&allowed()&&expeditionEligible(g,action,data);
-  paint(el('contract-status'),{available:'Optional · accept at the Westminster stash.',accepted:'Find and recover the supply case in East. Fighting Hale is optional.',recovered:'Carrying the case · return to the Westminster stash to claim.',claimed:'Reward claimed once · earned variant retained.'}[status]);
+  const c=data.contract,status=state.status,objective=expeditionObjective(g),action=stageAction[status],eligible=action&&allowed()&&expeditionEligible(g,action,data),fieldAction=nearbyAction(g,data),fieldEligible=fieldAction&&allowed()&&expeditionEligible(g,fieldAction,data);
+  paint(el('contract-status'),{available:'Optional · accept at the Westminster stash, or collect the case if you find it first.',accepted:'Find and recover the supply case in East. Fighting Hale is optional.',recovered:'You have the supply case · return to the Westminster stash to complete the contract and claim.',claimed:'Reward claimed once · earned variant retained.'}[status]);
   paint(el('contract-action'),status==='claimed'?'View gear':labels[action]);el('contract-action').disabled=status!=='claimed'&&!eligible;
   const field=el('pistol-interact');currentAction=null;
   if(allowed()&&!s.paused&&!g.finished&&g.player.hp>0&&!originalPistolAction(g)){
-   if(eligible){field.hidden=false;field.textContent=labels[action];currentAction=action;}
+   if(fieldEligible){field.hidden=false;field.textContent=labels[fieldAction];currentAction=fieldAction;}
    else if(status==='claimed'&&expeditionEligible(g,'claim',data)){field.hidden=false;field.textContent='View earned gear';currentAction='view';}
   }
   field.toggleAttribute('data-expedition-action',!!currentAction);
@@ -59,7 +60,7 @@ export function createExpeditionView(s,dispatch){
   const caseVisible=allowed()&&g.world.areaId===c.case.areaId&&['available','accepted'].includes(status);
   if(caseVisible&&!caseView){caseView=createVestBagView();caseView.root.name='Stolen supply case';caseView.root.scale.setScalar(1.35);s.scene.add(caseView.root);}
   if(caseView){caseView.root.visible=caseVisible;caseView.root.position.copy(g.world.toRender(c.case.position));}
-  const caseLabel=el('expedition-case-label');caseLabel.hidden=true;if(caseVisible)label(caseLabel,c.case.position,.7,status==='accepted'?'STOLEN SUPPLY CASE · RECOVER':'SUPPLY CASE · CONTRACT AT WEST STASH');
+  const caseLabel=el('expedition-case-label');caseLabel.hidden=true;if(caseVisible)label(caseLabel,c.case.position,.7,'SUPPLY CASE · COLLECT');
   const guardLabel=el('expedition-guard-label'),guard=g.enemies.find(e=>e.placementKey===c.guard.placementKey&&e.hp>0);guardLabel.hidden=true;if(allowed()&&g.world.areaId===c.guard.areaId&&guard&&Math.hypot(guard.pos.x-g.player.pos.x,guard.pos.z-g.player.pos.z)<10)label(guardLabel,guard.pos,2.1,c.guard.name);
   const playerView=s.actors?.views.get(0),variant=state.selectedPistolVariant;
   if(playerView?.pistolMount){const tint=data.variants[variant].tint;playerView.pistolMount.traverse(mesh=>{for(const material of[mesh.material].flat().filter(Boolean)){if(!material.color)continue;if(!materialColors.has(material))materialColors.set(material,{base:material.color.clone(),color:material.color.clone(),variant:null});const saved=materialColors.get(material);if(saved.variant!==variant){saved.color.copy(saved.base).multiply(material.color.clone().setHex(tint));saved.variant=variant;}material.color.copy(saved.color);}});playerView.expeditionVariant=variant;}
