@@ -53,7 +53,7 @@ export async function loadActors(
   if (!response.ok) throw Error(`Character manifest HTTP ${response.status}`);
   const manifest = await response.json();
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const models = new Map();
+  const models = new Map(),pendingModels=new Map();
   let pistolAsset=null;
   const urls = new Map();
   const sources = new Set();
@@ -62,6 +62,7 @@ export async function loadActors(
       urls.set(
         url,
         loader.loadAsync(url).then((gltf) => {
+          if(disposed){disposeActorSources(new Set([gltf]));throw Error('Actor library disposed');}
           sources.add(gltf);
           return gltf;
         }),
@@ -74,35 +75,40 @@ export async function loadActors(
     disposed = true;
     disposeActorSources(sources);
     sources.clear();
-    models.clear();
+    models.clear();pendingModels.clear();
     urls.clear();
   };
 
-  // Settle every request before releasing sources: late successful loads also
-  // belong to this attempt, including the shared Orc/Warlord GLB.
-  const results = await Promise.allSettled(
-    [...Object.entries(manifest.models).map(async ([name, description]) => {
-      const url = new URL(description.url, manifestURL).href;
-      const parts = await Promise.allSettled([
-        load(url),
-        description.equipment
-          ? load(new URL(description.equipment.url, manifestURL).href)
-          : Promise.resolve(null),
-      ]);
-      const failed = parts.find(part => part.status === "rejected");
-      if (failed) throw failed.reason;
-      const [gltf, equipment] = parts.map(part => part.value);
-      models.set(name, { gltf, description, equipment });
-      onProgress(name);
-    }), ...(manifest.pistol?[load(new URL(manifest.pistol.url,manifestURL).href).then(asset=>{pistolAsset=asset})]:[])],
-  );
+  function loadModel(name){
+    if(disposed)return Promise.reject(Error('Actor library disposed'));
+    if(models.has(name))return Promise.resolve(models.get(name));
+    if(pendingModels.has(name))return pendingModels.get(name);
+    if(!Object.hasOwn(manifest.models,name))return Promise.reject(Error('Unknown actor model: '+name));
+    const description=manifest.models[name];
+    const pending=(async()=>{
+      const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null)]);
+      const failed=parts.find(part=>part.status==='rejected');if(failed)throw failed.reason;
+      if(disposed)throw Error('Actor library disposed');
+      const[gltf,equipment]=parts.map(part=>part.value);onProgress(name);
+      const value={gltf,description,equipment};models.set(name,value);return value;
+    })().finally(()=>pendingModels.delete(name));
+    pendingModels.set(name,pending);return pending;
+  }
+  async function ensureModels(names){
+    const settled=await Promise.allSettled([...new Set(names)].map(loadModel)),failed=settled.find(row=>row.status==='rejected');if(failed)throw failed.reason;
+  }
+  // Initial source settlement keeps existing ownership; area-scoped models stay deferred.
+  const results=await Promise.allSettled([
+    ...Object.entries(manifest.models).filter(([,description])=>description.deferred!==true).map(([name])=>loadModel(name)),
+    ...(manifest.pistol?[load(new URL(manifest.pistol.url,manifestURL).href).then(asset=>{pistolAsset=asset})]:[]),
+  ]);
   const failure = results.find((result) => result.status === "rejected");
   if (failure || !models.has("vagrant")) {
     dispose();
     throw failure?.reason ?? Error("Survivor export missing");
   }
   return {
-    models,
+    models,ensureModels,
     manifest,
     pistolAsset,
     complete:
@@ -285,6 +291,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
   return {
     views,
+    ensureAreaModels(record){return library.ensureModels?.([...new Set([...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile).map(e=>e.rig))])??Promise.resolve();},
     parkArea(areaId){
       const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
       for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}

@@ -114,7 +114,9 @@ async function pumpDestinations(state){
       if(task.suspended){({stage,iterator}=task.suspended);task.suspended=null;state.iterator=iterator;}else{
         release=s.world.leaseArea?.(task.areaId)??release;
         await preparationTurn(state);stage=await s.world.prepareArea(task.areaId);await preparationTurn(state);
-        const record=prepareParkedResidents(state.game,stage,initializeAreaResidents);iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);state.iterator=iterator;
+        const record=prepareParkedResidents(state.game,stage,initializeAreaResidents);await s.actors.ensureAreaModels?.(record);
+        if(state.cancelled||s.game!==state.game||s.actors!==state.actors||s.contextLost)throw Error('Area model preparation cancelled');
+        iterator=s.actors.prepareAreaSteps(task.areaId,record,stage,state.game.finishers);state.iterator=iterator;
       }
       let done=false;
       while(!done){const budget=await preparationTurn(state),batchStart=performance.now();do{const started=performance.now(),step=iterator.next(),ms=performance.now()-started;state.stats.steps++;state.stats.cpuMilliseconds+=ms;state.stats.maxStepMs=Math.max(state.stats.maxStepMs,ms);if(!state.stats.worstStep||ms>state.stats.worstStep.ms)state.stats.worstStep={area:task.areaId,label:step.value??'done',ms};done=step.done;}while(!done&&performance.now()-batchStart<budget);
