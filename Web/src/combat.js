@@ -174,7 +174,7 @@ function flameHit(g,target,damage,{source}){
  const amount=Math.min(target.hp,damage);if(!(amount>0))return;
  target.hp=Math.max(0,target.hp-amount);target.flashUntil=g.time+.12;target.flameBurnUntil=g.time+FLAME_VISUAL_DATA.burnSeconds;target.flameBurnFrom={x:source.position.x,z:source.position.z};if(target.home)alertResident(g,target);
  const direction=normal({x:source.direction.x,z:source.direction.z});event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'flamethrower',attackClass:'fire',impactDirection:direction,material:'fire'});
- if(target.hp<=0){stageProgressionDeath(g,target,'flamethrower-area8-v1',amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'flamethrower',attackClass:'fire',impactDirection:direction});}
+ if(target.hp<=0){stageProgressionDeath(g,target,g.world.flameData.pickupId,amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'flamethrower',attackClass:'fire',impactDirection:direction});}
 }
 function kill(g,e,meta={}){
  if(!g.enemies.includes(e))return;
