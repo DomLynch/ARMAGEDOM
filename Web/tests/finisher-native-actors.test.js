@@ -3,9 +3,11 @@ import {loadGeometry} from '../../art/donor/probe.mjs';import {createActors} fro
 import {applyFlameCorpseChar} from '../src/engine/flame-presentation.js';
 import {createGame,enemy,stepGame} from '../src/combat.js';import {createDroneState} from '../src/drone-mechanics.js';import {createFlameEffect} from '../src/engine/flame-effect.js';
 const root=new URL('../public/assets/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',root)));
-test('actual current human, three animal, three boss and drone render owners present zero-part lethal cosmetics and finite posed corpse fire',async t=>{
- const old=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(old===undefined)delete globalThis.document;else globalThis.document=old;});
+test('actual current human, three animal, three boss and drone render owners present zero-part lethal cosmetics and finite posed corpse fire (geometry-only white-texel shim)',async t=>{
+ const old=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){},drawImage(){},getImageData:()=>({data:new Uint8Array([255,255,255,255])})})})};t.after(()=>{if(old===undefined)delete globalThis.document;else globalThis.document=old;});
  const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL(description.url,root))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL(description.equipment.url,root))):null});
+ // Reuse the maintained animal-view-cycle geometry parser's coat shim; pigment remains a native-browser claim.
+ models.get('original-dog').gltf.scene.traverse(m=>{if(m.isSkinnedMesh&&m.material.name==='Weathered brindle coat')m.material.map=new T.Texture({width:1,height:1});});
  const sources=new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean)));
  const scene=new T.Scene(),world={areaId:'westminster',layout:{characterScale:1.265},spawn:{x:0,z:0},geometry:{clear:()=>true,lineClear:()=>true},lineClear:()=>true,move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z),camera:new T.PerspectiveCamera()},actors=createActors(scene,world,{models,manifest,dispose:()=>disposeActorSources(sources)});t.after(()=>actors.dispose());world.camera.rotation.x=-.6;world.camera.updateMatrixWorld(true);
  for(const rig of['hollow-scavenger','original-rat','original-dog','original-roach','boss-surgeon','boss-butcher','boss-warden','low-hover-drone']){
