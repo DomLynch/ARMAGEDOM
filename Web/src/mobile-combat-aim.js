@@ -19,20 +19,20 @@ export function createMobileAimState(heading=0){
 }
 // Move has already been mapped through ARM's camera basis, in domain x/z.
 export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],areaId,
-  lineClear,mobile=false,moveHeld=false,pointerHeading=null,cancel=false,alive=true,deliberateExit=false,assistEnabled=true,pistolEquipped=false,flameRange=null,fireHeld=false,manualHeading=null,flameReach=0,flameEligible}={}){
+  lineClear,mobile=false,moveHeld=false,pointerHeading=null,cancel=false,alive=true,deliberateExit=false,assistEnabled=true,pistolEquipped=false,flameRange=null,fireHeld=false,manualHeading=null,flameEligible}={}){
   if(!state||!Number.isFinite(state.heading)||!Number.isFinite(state.rawHeading)||!Number.isFinite(dt)||dt<0||dt>.1||!point(move))throw RangeError('Invalid aim step');
   const pointer=Number.isFinite(pointerHeading),active=mobile&&moveHeld&&!pointer&&!cancel&&alive;
   const assistEligible=mobile&&!pointer&&!cancel&&alive&&assistEnabled;
   const moving=Math.hypot(move.x,move.z)>.01,strength=Math.min(1,Math.hypot(move.x,move.z));
   let steering=active?(moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):state.steering):null;
   const movement=cancel||!alive||mobile&&!moveHeld?{x:0,z:0}:steering!==null?{x:Math.sin(steering)*strength,z:Math.cos(steering)*strength}:{...move};
-  const flame=Number.isFinite(flameRange)&&flameRange>0,pistol=pistolEquipped===true,range=flame?flameRange+(Number.isFinite(flameReach)&&flameReach>0?flameReach:0):pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
+  const flame=Number.isFinite(flameRange)&&flameRange>0,pistol=pistolEquipped===true,range=flame?flameRange:pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
   if(assistEligible&&(!flame||locking)&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
     const counts=new Map();for(const t of targets)if(typeof t?.id==='string')counts.set(t.id,(counts.get(t.id)??0)+1);
     for(const t of targets){
       if(typeof t?.id!=='string'||!t.id||counts.get(t.id)!==1||!point(t.pos)||!Number.isFinite(t.hp)||t.hp<=0||t.hostile!==true||t.visible!==true||t.areaId!==areaId)continue;
       const distance=Math.hypot(t.pos.x-position.x,t.pos.z-position.z);
-      if(distance<.01||distance>=range-1e-8||!lineClear(position,t.pos))continue;
+      if(distance<.01||(!(flame&&typeof flameEligible==='function')&&distance>=range-1e-8)||!lineClear(position,t.pos))continue;
       if(flame&&typeof flameEligible==='function'&&flameEligible(t.id)!==true)continue;
       if(pistol&&(!Number.isFinite(t.radius)||t.radius<=0))continue;
       const acquire=flame?FLAME_AIM.acquire:pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.acquire,Math.asin(Math.min(1,MOBILE_AIM.acquireMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.acquire,retain=flame?FLAME_AIM.retain:pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.retain,Math.asin(Math.min(1,MOBILE_AIM.retainMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.retain;

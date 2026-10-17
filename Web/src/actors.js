@@ -303,7 +303,6 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     ensureFlame(){const data=world.flameData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Flamethrower unavailable'));},
     flameAsset(){return library.models.get(world.flameData?.modelRef)?.gltf??null;},
     flameReady(){return !!library.models.get(world.flameData?.modelRef);},
-    flameAimReach(g){const b=views.get(0)?.flameAimBasis;return b?.areaId===g.world.areaId?b.reach:0;},
     flameAimEligible(g,target){return flameAimEligible(views.get(0)?.flameAimBasis,g,target);},
     flameSource(){const mount=views.get(0)?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},

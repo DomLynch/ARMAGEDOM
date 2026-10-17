@@ -251,7 +251,7 @@ function mobileControl(g,intent,dt,services){
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
   areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,
   flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:flame&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
-  flameReach:flame?services.flameAimReach?.(g):0,flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
+  flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
  g.mobileAim=result.state;g.mobileAiming=true;
  if(!intent.moveHeld)p.velocity={x:0,z:0};
  if(!busy)p.facing={...result.direction};
