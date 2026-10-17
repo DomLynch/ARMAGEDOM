@@ -4,6 +4,7 @@ import * as T from 'three';
 import {attachPistol,PISTOL_ARM_EXTENSION} from '../pistol-pose.js';
 import {FLAME_AIM} from '../mobile-combat-aim.js';
 import profile from '../donor/flame-right-digit-profile.json' with {type:'json'};
+export const FLAME_DOWN_PITCH=85*Math.PI/180;
 const names=['middle','ring','pinky','index','thumb'].flatMap(f=>[1,2,3].map(i=>`${f}_0${i}_r`));
 const validated=new WeakMap();
 // The one accepted profile is bound to this exact hero, not retargeted or fitted.
@@ -29,7 +30,7 @@ export function flameTargetPitch(model,mount,target){
 }
 function projectedPitch({shoulder,muzzle,axis,forward},target){
  const down=new T.Vector3().crossVectors(axis,forward).normalize(),to=target.clone().sub(shoulder),offset=muzzle.clone().sub(shoulder).dot(down),along=to.dot(forward),below=to.dot(down),radius=Math.hypot(along,below);
- const pitch=radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;return Math.max(-Math.PI/6,Math.min(Math.PI/3,pitch));
+ const pitch=radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;return Math.max(-Math.PI/6,Math.min(FLAME_DOWN_PITCH,pitch));
 }
 // Read-only prediction of the SAME shoulder transform used by the renderer.
 // Capture before pitching; prospective yaw follows the ordinary body facing.
@@ -71,7 +72,7 @@ export function applyFlamePitch(model,mount,pitch){
  if(!Number.isFinite(pitch))throw Error('Finite flame pitch required');
  const upper=model.getObjectByName('upperarm_r');if(!upper||mount.parent!==model)throw Error('Flame aim mount mismatch');
  if(pitched.has(model))throw Error('Restore flame pitch before gait/sample');
- pitch=Math.max(-Math.PI/6,Math.min(Math.PI/3,pitch));if(Math.abs(pitch)<1e-8)return;
+ pitch=Math.max(-Math.PI/6,Math.min(FLAME_DOWN_PITCH,pitch));if(Math.abs(pitch)<1e-8)return;
  model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),shoulder=upper.getWorldPosition(new T.Vector3()),axis=new T.Vector3(1,0,0).applyQuaternion(basis),rotation=new T.Matrix4().makeRotationAxis(axis.normalize(),pitch),delta=new T.Matrix4().makeTranslation(shoulder.x,shoulder.y,shoulder.z).multiply(rotation).multiply(new T.Matrix4().makeTranslation(-shoulder.x,-shoulder.y,-shoulder.z));
  const state=[upper,mount].map(node=>({node,matrix:node.matrix.clone(),auto:node.matrixAutoUpdate,world:node.matrixWorld.clone()}));pitched.set(model,state);
  for(const{node,world}of state){node.matrix.copy(node.parent.matrixWorld).invert().multiply(delta).multiply(world);node.matrixAutoUpdate=false;node.matrixWorldNeedsUpdate=true;}

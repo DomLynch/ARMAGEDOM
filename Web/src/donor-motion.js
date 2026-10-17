@@ -35,23 +35,21 @@ export class DonorMotion{
   }
   const guard=clips.find(clip=>clip.name===description.clips.guard);
   if(guard){const tracks=guard.tracks.filter(track=>upper.has(THREE.PropertyBinding.parseTrackName(track.name).nodeName));this.guardUpper=this.mixer.clipAction(new THREE.AnimationClip('DonorGuardUpper',guard.duration,tracks));this.guardUpper.play();this.guardUpper.paused=true;this.guardUpper.setEffectiveWeight(0);}
-  const ready=clips.find(clip=>clip.name===description.clips.idle);if(ready){const tracks=ready.tracks.filter(track=>upper.has(THREE.PropertyBinding.parseTrackName(track.name).nodeName));this.readyUpper=this.mixer.clipAction(new THREE.AnimationClip('DonorReadyUpper',ready.duration,tracks));this.readyUpper.play();this.readyUpper.paused=true;this.readyUpper.setEffectiveWeight(0);}
   this.sample(description.clips.idle,0);
  }
- sample(name,phase,guardOverlay=false,readyOverlay=false){
+ sample(name,phase,guardOverlay=false){
   const logicalName=name;name=this.equipmentClips?.[name]??name;
   const response=responseKeys[name];if(response&&this.description.clips[response])name=this.description.clips[response];
   else if(!this.actions.has(name))name=this.description.clips[name.toLowerCase()]??name;
-  const selected=this.actions.get(guardOverlay||readyOverlay?name+'GuardLegs':name);if(!selected)throw Error('Donor clip missing: '+name);
+  const selected=this.actions.get(guardOverlay?name+'GuardLegs':name);if(!selected)throw Error('Donor clip missing: '+name);
   for(const action of this.actions.values())action.setEffectiveWeight(action===selected?1:0);
   this.guardUpper?.setEffectiveWeight(guardOverlay?1:0);
-  this.readyUpper?.setEffectiveWeight(readyOverlay&&!guardOverlay?1:0);if(this.readyUpper)this.readyUpper.time=0;
   selected.time=THREE.MathUtils.clamp(phase,0,.999999)*selected.getClip().duration;
   if(this.guardUpper)this.guardUpper.time=0;
   this.mixer.update(0);this.model.updateWorldMatrix(true,true);this.model.traverse(node=>{if(node.isSkinnedMesh)node.skeleton.update();});
   this.currentClip=name;this.currentLogicalClip=logicalName;this.currentPhase=phase;
  }
- update(entity,time,dt,deathPose=null,{ready=false}={}){
+ update(entity,time,dt,deathPose=null){
   if(this.disposed)return;
   this.equipmentClips=entity.kind<0&&entity.weapon==='knife'?entity.meleeClipOverrides:null;
   const noTick=time===this.lastSampleTime,elapsed=this.lastSampleTime===null?dt:Math.max(0,time-this.lastSampleTime);this.lastSampleTime=time;
@@ -75,7 +73,7 @@ export class DonorMotion{
    // of the approved visual enlargement. Other locomotion stays unchanged.
    const cycleDistance=name===run&&entity.running?5.2*this.actions.get(name).getClip().duration:rate*stride*this.root.scale.x;
    this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+(strafe?distance:Math.sign(along)*distance)/cycleDistance,1);
-   this.sample(name,this.cycle,!!entity.guarding,ready);
+   this.sample(name,this.cycle,!!entity.guarding);
   }else this.sample(entity.guarding?this.description.clips.guard:this.description.clips.idle,0);
  }
  dispose(){if(this.disposed)return;this.disposed=true;this.mixer.stopAllAction();this.mixer.uncacheRoot(this.model);this.actions.clear();}
