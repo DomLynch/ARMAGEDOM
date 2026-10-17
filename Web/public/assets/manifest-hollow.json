@@ -668,6 +668,15 @@
         "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"
       },
       "deferred": true
+    },
+    "player-flamethrower": {
+      "url": "weapons/flamethrower.glb",
+      "bytes": 4253028,
+      "sha256": "858eff807c441f49e56cfd1c80fb9b470b862a5af815e918d56dc2b419d08a99",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1
     }
   },
   "files": {

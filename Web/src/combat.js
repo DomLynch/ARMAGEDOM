@@ -1,3 +1,5 @@
+import{FLAME_VISUAL_DATA}from'./engine/flame-data.js';
+import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./engine/flame-runtime.js';
 import{populationPlacements,populationAllowsDrone}from'./engine/area-population.js';
 import{posedMeleeMove}from'./engine/melee-equipment-data.js';
 import{applyBossProfile,bossMove,bossHazardPosition}from'./engine/area-bosses.js';
@@ -74,7 +76,7 @@ export function createGame(world,options={}){
  g.lootRules=options.lootRules??world.lootRules;
  if(options.supplies)g.supplies=createSuppliesState(g.lootRules);
  if(options.vest)g.vest=createVestState();
- initializeProgression(g);
+ initializeProgression(g);initializeFlame(g);
  if(options.areaResidents&&encounter){g.areaResidents=true;g.residentPlacements=options.residentPlacements;g.lootRules=options.lootRules??world.lootRules;g.areaFights={};g.areaInitialized=false;g.openingGroup=world.populationData?false:options.openingGroup!==false;if(!g.openingGroup)initializeAreaResidents(g);}
  if(options.pistol)g.pistol=createPistolState({pickupPos:{x:-.85,z:-6.15},pickupAreaId:'westminster'});
  return g;
@@ -168,6 +170,12 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
+function flameHit(g,target,damage,{source}){
+ const amount=Math.min(target.hp,damage);if(!(amount>0))return;
+ target.hp=Math.max(0,target.hp-amount);target.flashUntil=g.time+.12;target.flameBurnUntil=g.time+FLAME_VISUAL_DATA.burnSeconds;target.flameBurnFrom={x:source.position.x,z:source.position.z};if(target.home)alertResident(g,target);
+ const direction=normal({x:source.direction.x,z:source.direction.z});event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'flamethrower',attackClass:'fire',impactDirection:direction,material:'fire'});
+ if(target.hp<=0){stageProgressionDeath(g,target,g.world.flameData.pickupId,amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'flamethrower',attackClass:'fire',impactDirection:direction});}
+}
 function kill(g,e,meta={}){
  if(!g.enemies.includes(e))return;
  if(e.animalRole){e.completedAttack=null;e.wokeAt=null;}
@@ -236,17 +244,17 @@ function mobileControl(g,intent,dt){
   if(intent.cancel)p.velocity={x:0,z:0};return intent;
  }
  const areaId=g.world.areaId,visible=intent.combatVisibleIds??intent.pistolVisibleIds;
- const busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!g.pistol?.equipped;
+ const ranged=!!g.pistol?.equipped||!!g.flame?.equipped,busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!ranged;
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
-  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:!!g.pistol?.equipped});
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged});
  g.mobileAim=result.state;g.mobileAiming=true;
  if(!intent.moveHeld)p.velocity={x:0,z:0};
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=g.flame?.equipped?flameIntent(g,intent):pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -283,6 +291,7 @@ export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.i
  // Defer only a possible sprint tick until collision has proved displacement.
  // Unchanged non-sprint input retains the existing action/regen ordering.
  if(sprintCandidate&&!p.running)knifeRegen(g,p,dt,!!p.swing||dodging||t<p.hurtUntil);
+ stepFlame(g,dt,services,(target,amount,hit)=>flameHit(g,target,amount,hit));
  if(mag(sub(p.pos,g.world.spawn??{x:0,z:-6}))>=1)g.started=true;
  if(g.encounterActive!==false&&g.started&&!g.enemies.length&&t+EPS>=g.nextWave){if(g.wave>=3){g.finished=true;g.won=true;}else spawnWave(g);}
  for(const e of [...g.enemies]){enemyTick(g,e,dt);if(g.finished)break;}
@@ -290,7 +299,7 @@ export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.i
  if(g.areaHazards){const next=stepAreaHazards(g.areaHazards,{time:g.time,areaId:g.world.areaId,owners:g.enemies,player:g.player,lineClear:(a,b)=>g.world.lineClear(a,b)});g.areaHazards=next.hazards;for(const hit of next.hits){const attacker=g.enemies.find(e=>e.id===hit.ownerId);knifeReceive(g,{amount:hit.damage,origin:hit.position,attacker,block:false,parry:false,moveId:'area-poison',def:{stagger:0,chip:0}});if(g.finished){g.areaHazards=[];break;}}}
  if(!g.finished){projectiles(g,dt);collect(g);}
  }
- if(g.finished&&g.areaHazards)g.areaHazards=[];
+ if(g.finished){stopFlame(g);if(g.areaHazards)g.areaHazards=[];}
  if(g.mobileAim){
   if(g.finished)resetMobileControls(g);
   else if(!g.enemies.some(e=>e.placementKey===g.mobileAim.targetId&&e.hp>0))g.mobileAim={...g.mobileAim,targetId:null,bearing:null};
@@ -614,5 +623,5 @@ function knifeContacts(g,before,ratBefore){
   }
  }
  for(const {a,s} of completed)if(!a.swing)a.completedAttack=nativeAttackCompletion(s,{reason:'normal',time:g.time,alive:a.hp>0,hurt:g.time<a.recoverUntil||g.time<a.staggerUntil});
- if(g.player.hp<=0){g.finished=true;g.won=false;}
+ if(g.player.hp<=0){g.finished=true;g.won=false;stopFlame(g);}
 }

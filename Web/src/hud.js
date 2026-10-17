@@ -47,7 +47,7 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
   const handlers=['resume','close-menu','menu-button','retry','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
   resize();
   let lastMessage = "",
-    lastStaminaState = null, lastPistolEquipped = null;
+    lastStaminaState = null, lastPistolEquipped = null, lastFlameEquipped=false;
   return {
     dispose(){loaded=false;for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
@@ -167,12 +167,13 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
           left > 0 ? `${left.toFixed(1)}s` : "";
       }
       el("guard").classList.toggle("pressed", p.guarding);
+      const flameEquipped=!!g.flame?.equipped;if(flameEquipped!==lastFlameEquipped){lastPistolEquipped=null;lastFlameEquipped=flameEquipped;}
       const pistol=g.pistol;
       if(pistol){
         const equipped=pistol.equipped;
         if(equipped!==lastPistolEquipped){
           for(const [id,label] of Object.entries(equipped?{slash:'FIRE',stab:'RELOAD',heavy:'MELEE',guard:'NO GUARD'}:{slash:'SLASH',stab:'STAB',heavy:'HEAVY',guard:'GUARD'}))el(id).querySelector('span').textContent=label;
-          el('guard').disabled=equipped;lastPistolEquipped=equipped;
+          el('guard').disabled=equipped;if(!equipped)el('guard').setAttribute('aria-label','Guard');lastPistolEquipped=equipped;
         }
         if(equipped){el('guard').setAttribute('aria-label','Guard unavailable with pistol');}
         el('ammo').hidden=!equipped;
@@ -189,6 +190,13 @@ export function createHUD({ onRetry, onPause, onSound, onPistol = () => {}, onFe
         el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';
         const icon=el('pistol-icon');icon.hidden=pistol.collected||(g.world.areaId??'westminster')!==pistol.pickupAreaId;
         if(!icon.hidden&&g.world.camera){const at=g.world.toRender(pistol.pickupPos,.65).project(g.world.camera);icon.style.left=`${(at.x+1)*innerWidth/2}px`;icon.style.top=`${(1-at.y)*innerHeight/2}px`;}
+      }
+      if(flameEquipped){
+        const percent=Math.ceil(g.flameFuel.fuelUnits/g.world.flameData.capacity*100);el('ammo').hidden=false;el('ammo').textContent=`FLAMETHROWER · FUEL ${percent}%`;
+        for(const[id,text]of Object.entries({slash:'FLAME',stab:'RETURN',heavy:'RETURN',guard:'NO GUARD'}))el(id).querySelector('span').textContent=text;
+        el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with flamethrower');
+        for(const id of ['slash','stab','heavy']){el(id).classList.toggle('cooldown',false);el(id).classList.toggle('low-energy',false);el(id).querySelector('small').textContent=id==='slash'?`${percent}%`:'';el(id).setAttribute('aria-label',id==='slash'?`Hold to fire flamethrower; fuel ${percent} percent`:'Return to normal weapon');}
+        el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready','1');
       }
       const boss = g.enemies.find((e) => e.kind === 3);
       el("boss").hidden = !boss;

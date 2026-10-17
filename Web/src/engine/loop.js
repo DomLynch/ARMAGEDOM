@@ -20,13 +20,13 @@ function intent() {
       manualPistolAim: !!raw.fireAim,
       combatVisibleIds: combatVisibleIds(),
       move: toDomain(raw.move),
-      aim: s.game.pistol?.equipped ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
+      aim: (s.game.pistol?.equipped||s.game.flame?.equipped) ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };
   if (raw.mouse) {
     const bounds = s.canvas.getBoundingClientRect(),
       x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
       y=1-((raw.mouse.y-bounds.top)/bounds.height)*2,
-      point=s.game.pistol?.equipped?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
+      point=(s.game.pistol?.equipped||s.game.flame?.equipped)?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
     if (point) {
       value.manualPistolAim = true;
       value.aim = {
@@ -50,11 +50,11 @@ function frame(ms,providedElapsed) {
   if (s.loaded && !s.paused && !s.traveling && !s.game.finished) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
-      const weaponBefore = s.game.player.weapon;
+      const weaponBefore = s.game.player.weapon,flameBefore=!!s.game.flame?.equipped;
       const value=intent();s.diagnostics?.beforeStep(value);
-      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol});
+      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchFlame:s.dispatchFlame,flameSource:s.flameSource});
       s.diagnostics?.afterStep();
-      if (weaponBefore !== s.game.player.weapon) {s.input.clear();submitted=null;resetMobileControls(s.game);}
+      if (weaponBefore !== s.game.player.weapon||flameBefore!==!!s.game.flame?.equipped) {s.input.clear();submitted=null;resetMobileControls(s.game);}
       s.collectNearbySupplies(s.game,value);
       s.collectNearbyVest(s.game);
       s.persistRun(s.game);

@@ -4859,5 +4859,15 @@
         "allowDroneFallback": false
       }
     }
+  },
+  "flame": {
+    "version": 1,
+    "pickupId": "flamethrower-area8-v1",
+    "areaId": "area8",
+    "position": {
+      "x": -8.3,
+      "z": -8.1
+    },
+    "modelRef": "player-flamethrower"
   }
 }

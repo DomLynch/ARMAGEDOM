@@ -1,3 +1,4 @@
+import{deathWeaponDescriptor}from'./weapon-credit-policy.js';
 import {createProgressionModel,closedData,copyProgression} from './progression-state.js';
 import {AREA1_SUPPLIES} from '../supplies.js';
 import {DRONE_KEYS} from '../drone-mechanics.js';
@@ -14,10 +15,11 @@ export function createProgressionComponent({baseCodec,getRun,...options}){
  function recordDeath(run,packet){
   const current=sync();
   if(run!==current||!run||run.runSaveInvalid||!closedData(packet,packetFields)||!Number.isFinite(packet.damageApplied)||packet.damageApplied<=0||!model.hasPlacement(packet.placementKey,packet.areaId)||run.world?.areaId!==packet.areaId)return false;
-  const state=currentState(run);if(!model.valid(state)||!Object.hasOwn(state.proficiency,packet.weaponId)||state.awards.some(r=>r.placementKey===packet.placementKey)||pending.has(packet.placementKey))return false;
+  const state=currentState(run);if(!model.valid(state)||!deathWeaponDescriptor(packet.weaponId)||state.awards.some(r=>r.placementKey===packet.placementKey)||pending.has(packet.placementKey))return false;
   const victim=[...(run.enemies??[]),...(run.corpses??[])].find(e=>e.placementKey===packet.placementKey&&(e.areaId??packet.areaId)===packet.areaId);
   if(!victim||!Number.isFinite(victim.hp)||victim.hp>0||!Number.isFinite(victim.maxHP)||packet.damageApplied>victim.maxHP)return false;
-  if(packet.weaponId==='knife'?run.player.weapon!=='knife':run.player.weapon!=='pistol'||!run.pistol?.collected||!run.pistol.equipped)return false;
+  if(deathWeaponDescriptor(packet.weaponId).creditPolicy==='none'){if(run.world.flameData?.pickupId!==packet.weaponId||run.flame?.lastDamageTick!==run.tick||run.flame?.paidTick!==run.tick||!(run.flame.paidSeconds>0))return false;}
+  else if(packet.weaponId==='knife'?run.player.weapon!=='knife':run.player.weapon!=='pistol'||!run.pistol?.collected||!run.pistol.equipped)return false;
   if(pending.size+state.awards.length>=model.placementCount)return false;
   pending.set(packet.placementKey,{placementKey:packet.placementKey,areaId:packet.areaId,weaponId:packet.weaponId});
   return true;

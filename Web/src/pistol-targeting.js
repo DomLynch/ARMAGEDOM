@@ -1,6 +1,7 @@
 import {droneHoverHeight} from './drone-mechanics.js';
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 
+export function combatTargetHeight(target,time){return target.rig==='low-hover-drone'?droneHoverHeight(time):(target.rig==='original-rat'?.54:target.rig==='original-dog'?(target.contactGoalReach?.70:.35):target.rig==='original-roach'?(target.contactGoalReach?.24:.08):1.15)*(target.mobSize??1);}
 export const PISTOL_TARGETING = Object.freeze({acquireDegrees:12, retainDegrees:18});
 export const COMBAT_TARGETING = Object.freeze({meleeDegrees:45});
 const EPS = 1e-8;
@@ -71,7 +72,7 @@ export function pistolCue(game,{paused=false,visibleIds}={}) {
   const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
   // The resolved ray already identifies the first body hit, including body edges.
   const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId);
-  return {targetId:eligible?hit.id:null,ready,height:eligible?hit.rig==='low-hover-drone'?droneHoverHeight(game.time):(hit.rig==='original-rat'?.54:hit.rig==='original-dog'?(hit.contactGoalReach?.70:.35):hit.rig==='original-roach'?(hit.contactGoalReach?.24:.08):1.15)*(hit.mobSize??1):1.05,position:eligible?hit.pos:
+  return {targetId:eligible?hit.id:null,ready,height:eligible?combatTargetHeight(hit,game.time):1.05,position:eligible?hit.pos:
     {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
 }
 
