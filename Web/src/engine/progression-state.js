@@ -1,4 +1,5 @@
 import {ATTRIBUTE_IDS,DEFAULT_ATTRIBUTES,DEFAULT_PROFICIENCY,validateProgressionPilot,pilotBonuses,nextProficiencyScore} from './progression-rules.js';
+import {deathWeaponDescriptor} from './weapon-credit-policy.js';
 const weaponIds=Object.keys(DEFAULT_PROFICIENCY);
 export function closedData(value,keys){
  return !!value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>{const d=Object.getOwnPropertyDescriptor(value,key);return !!d&&'value'in d;});
@@ -22,8 +23,8 @@ export function createProgressionModel({data,placements,baseMaxHP=150,baseMaxSta
    for(const id of weaponIds)pilotBonuses(data,state.attributes,id,state.proficiency[id]);
    const seen=new Set(),scores={...DEFAULT_PROFICIENCY};
    for(const row of state.awards){
-    if(!closedData(row,awardFields)||!registry.has(row.placementKey)||registry.get(row.placementKey)!==row.areaId||!Object.hasOwn(scores,row.weaponId)||seen.has(row.placementKey))return false;
-    seen.add(row.placementKey);scores[row.weaponId]=nextProficiencyScore(data,scores[row.weaponId]);
+    if(!closedData(row,awardFields)||!registry.has(row.placementKey)||registry.get(row.placementKey)!==row.areaId||!deathWeaponDescriptor(row.weaponId)||seen.has(row.placementKey))return false;
+    seen.add(row.placementKey);if(deathWeaponDescriptor(row.weaponId).creditPolicy==='mastery')scores[row.weaponId]=nextProficiencyScore(data,scores[row.weaponId]);
    }
    return weaponIds.every(id=>scores[id]===state.proficiency[id]);
   }catch{return false;}
@@ -36,10 +37,12 @@ export function createProgressionModel({data,placements,baseMaxHP=150,baseMaxSta
   if(!valid(state))throw TypeError('Invalid progression state');
   const next=copyProgression(state),events=[];
   for(const row of rows){
-   if(!closedData(row,awardFields)||!registry.has(row.placementKey)||registry.get(row.placementKey)!==row.areaId||!Object.hasOwn(next.proficiency,row.weaponId))throw TypeError('Invalid award identity');
+   if(!closedData(row,awardFields)||!registry.has(row.placementKey)||registry.get(row.placementKey)!==row.areaId||!deathWeaponDescriptor(row.weaponId))throw TypeError('Invalid award identity');
    if(next.awards.some(r=>r.placementKey===row.placementKey))continue;
+   next.awards.push({...row});
+   if(deathWeaponDescriptor(row.weaponId).creditPolicy==='none')continue;
    const previous=next.proficiency[row.weaponId],score=nextProficiencyScore(data,previous);
-   next.proficiency[row.weaponId]=score;next.awards.push({...row});
+   next.proficiency[row.weaponId]=score;
    if(score>previous)events.push({type:'proficiency-gain',...row,score,amount:score-previous});
   }
   return {state:next,events};
