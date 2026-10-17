@@ -4,7 +4,7 @@ import {FINISHER_DATA,flameDeathSeconds} from '../src/engine/finisher-data.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from '../src/engine/finisher-cosmetics.js';
 import {createLowHoverDroneLibrary} from '../src/low-hover-drone.js';
 import {createGame,enemy,stepGame} from '../src/combat.js';
-const families=[['pistol',null,'bullet-native-collapse'],['knife','light_right','cutting-native-collapse'],['knife','thrust','piercing-native-collapse'],['knife','skill_pommel','blunt-native-collapse'],['flamethrower',null,'flame-charred-collapse']];
+const families=[['pistol',null,'bullet-native-collapse'],['knife','light_right','cutting-native-collapse'],...['rat_low','dog_low','roach_low','drone_low'].map(move=>['knife',move,'cutting-native-collapse']),['knife','thrust','piercing-native-collapse'],['knife','skill_pommel','blunt-native-collapse'],['flamethrower',null,'flame-charred-collapse']];
 test('every current weapon family gets a native zero-part special even at zero capacity and without humanoid preparation',()=>{
  for(const [weapon,moveId,recipeId]of families)for(const clip of['rat_death','dog_death','roach_death','Maul_Death','Death','drone_death'])for(const budget of[0,2]){
   const result=selectFinisher({victimId:'victim',lethal:true,weapon,moveId,attackClass:'fire',nativeDeath:{clip,seconds:1},impactDirection:{x:0,z:1}},{support:[],budget,ordinal:1});assert.equal(result.recipeId,recipeId);assert.equal(result.clip,clip);assert.deepEqual(result.parts,[]);assert.equal(result.cost,0);assert(result.admission.admitted);assert.equal(result.admission.reason,'native-fallback');

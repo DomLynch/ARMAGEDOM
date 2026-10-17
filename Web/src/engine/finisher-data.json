@@ -183,7 +183,11 @@
       "moveIds": [
         "light_right",
         "light_left",
-        "heavy_overhead"
+        "heavy_overhead",
+        "rat_low",
+        "dog_low",
+        "roach_low",
+        "drone_low"
       ],
       "recipes": [
         {
