@@ -2,7 +2,7 @@ import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
-export function createHUD({ onRetry, onReset=async()=>({ok:false}), readResetBackup=()=>null, onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
+export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
   const listeners=[];
@@ -31,17 +31,16 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), readResetBac
     if(resetBusy)return;menu.close();
     onRetry();
   };
-  const resetPanel=el('reset-confirmation'),resetStatus=el('reset-status'),confirmReset=el('confirm-reset'),cancelReset=el('cancel-reset'),resetButton=el('reset-game'),downloadBackup=el('download-run-backup');resetPanel.hidden=true;
-  resetButton.onclick=()=>{if(!loaded||resetBusy)return;resetPanel.hidden=false;resetStatus.textContent='';downloadBackup.hidden=!readResetBackup();};
+  const resetPanel=el('reset-confirmation'),resetStatus=el('reset-status'),confirmReset=el('confirm-reset'),cancelReset=el('cancel-reset'),resetButton=el('reset-game');resetPanel.hidden=true;
+  resetButton.onclick=()=>{if(!loaded||resetBusy)return;resetPanel.hidden=false;resetStatus.textContent='';};
   cancelReset.onclick=()=>{if(!resetBusy){resetPanel.hidden=true;resetStatus.textContent='';}};
   listen(menu,'cancel',event=>{if(resetBusy)event.preventDefault();});
   confirmReset.onclick=async()=>{
-    if(resetBusy||resetPanel.hidden)return;resetBusy=true;confirmReset.disabled=cancelReset.disabled=resetButton.disabled=true;resetStatus.textContent='Saving a backup and starting fresh…';
+    if(resetBusy||resetPanel.hidden)return;resetBusy=true;confirmReset.disabled=cancelReset.disabled=resetButton.disabled=true;resetStatus.textContent='Starting fresh…';
     let result;try{result=await onReset();}catch{result={ok:false,message:'Reset failed. Your current run was kept.'};}
     if(!loaded)return;resetStatus.textContent=result?.message??'Reset failed. Your current run was kept.';
-    if(!result?.ok){resetBusy=false;confirmReset.disabled=cancelReset.disabled=resetButton.disabled=false;downloadBackup.hidden=!readResetBackup();}
+    if(!result?.ok){resetBusy=false;confirmReset.disabled=cancelReset.disabled=resetButton.disabled=false;}
   };
-  downloadBackup.onclick=()=>{const raw=readResetBackup();if(!raw){resetStatus.textContent='No reset backup exists yet.';return;}const url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='armagedom-run-backups.json';a.hidden=true;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0);};
   el("again").onclick = onRetry;
   el("pistol-interact").onclick = onPistol;
   el("sound").onclick = () => {
@@ -55,7 +54,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), readResetBac
   feedback.onchange=()=>onFeedback(feedback.value);
   listen(window,"resize", resize);
   listen(document,"visibilitychange", pause);
-  const handlers=['resume','close-menu','menu-button','retry','reset-game','confirm-reset','cancel-reset','download-run-backup','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
+  const handlers=['resume','close-menu','menu-button','retry','reset-game','confirm-reset','cancel-reset','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
   resize();
   let lastMessage = "",
     lastStaminaState = null, lastPistolEquipped = null, lastFlameEquipped=false;
