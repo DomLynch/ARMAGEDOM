@@ -1,6 +1,9 @@
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 const DEG=Math.PI/180;
 export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:1,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
+// Flame lock changes orientation, never contact range or hit eligibility.
+// The barrel extends beyond the player; final range/LOS use the posed muzzle.
+export const FLAME_AIM=Object.freeze({gain:1,acquire:45*DEG,retain:70*DEG,switchCone:12*DEG,switchAdvantage:8*DEG,steeringChange:.2*DEG});
 const arc=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const vector=angle=>({x:Math.sin(angle),z:Math.cos(angle)});
@@ -16,44 +19,54 @@ export function createMobileAimState(heading=0){
 }
 // Move has already been mapped through ARM's camera basis, in domain x/z.
 export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],areaId,
-  lineClear,mobile=false,moveHeld=false,pointerHeading=null,cancel=false,alive=true,deliberateExit=false,assistEnabled=true,pistolEquipped=false}={}){
+  lineClear,mobile=false,moveHeld=false,pointerHeading=null,cancel=false,alive=true,deliberateExit=false,assistEnabled=true,pistolEquipped=false,flameRange=null,fireHeld=false,manualHeading=null,flameReach=0,flameEligible}={}){
   if(!state||!Number.isFinite(state.heading)||!Number.isFinite(state.rawHeading)||!Number.isFinite(dt)||dt<0||dt>.1||!point(move))throw RangeError('Invalid aim step');
   const pointer=Number.isFinite(pointerHeading),active=mobile&&moveHeld&&!pointer&&!cancel&&alive;
   const assistEligible=mobile&&!pointer&&!cancel&&alive&&assistEnabled;
   const moving=Math.hypot(move.x,move.z)>.01,strength=Math.min(1,Math.hypot(move.x,move.z));
   let steering=active?(moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):state.steering):null;
   const movement=cancel||!alive||mobile&&!moveHeld?{x:0,z:0}:steering!==null?{x:Math.sin(steering)*strength,z:Math.cos(steering)*strength}:{...move};
-  const pistol=pistolEquipped===true,range=pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[];
-  if(assistEligible&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
+  const flame=Number.isFinite(flameRange)&&flameRange>0,pistol=pistolEquipped===true,range=flame?flameRange+(Number.isFinite(flameReach)&&flameReach>0?flameReach:0):pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
+  if(assistEligible&&(!flame||locking)&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
     const counts=new Map();for(const t of targets)if(typeof t?.id==='string')counts.set(t.id,(counts.get(t.id)??0)+1);
     for(const t of targets){
       if(typeof t?.id!=='string'||!t.id||counts.get(t.id)!==1||!point(t.pos)||!Number.isFinite(t.hp)||t.hp<=0||t.hostile!==true||t.visible!==true||t.areaId!==areaId)continue;
       const distance=Math.hypot(t.pos.x-position.x,t.pos.z-position.z);
       if(distance<.01||distance>=range-1e-8||!lineClear(position,t.pos))continue;
+      if(flame&&typeof flameEligible==='function'&&flameEligible(t.id)!==true)continue;
       if(pistol&&(!Number.isFinite(t.radius)||t.radius<=0))continue;
-      const acquire=pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.acquire,Math.asin(Math.min(1,MOBILE_AIM.acquireMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.acquire,retain=pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.retain,Math.asin(Math.min(1,MOBILE_AIM.retainMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.retain;
+      const acquire=flame?FLAME_AIM.acquire:pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.acquire,Math.asin(Math.min(1,MOBILE_AIM.acquireMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.acquire,retain=flame?FLAME_AIM.retain:pistol&&MOBILE_AIM.pistolGain<1?Math.min(MOBILE_AIM.retain,Math.asin(Math.min(1,MOBILE_AIM.retainMargin*t.radius/distance))/(1-MOBILE_AIM.pistolGain)):MOBILE_AIM.retain;
       cohort.push({id:t.id,distance,acquire,retain,bearing:Math.atan2(t.pos.x-position.x,t.pos.z-position.z)});
     }
   }
-  let retained=!active||deliberateExit?null:cohort.find(t=>t.id===state.targetId),raw=state.rawHeading;
+  let retained=!locking||deliberateExit?null:cohort.find(t=>t.id===state.targetId),raw=state.rawHeading;
   if(pointer)raw=pointerHeading;
+  else if(flame&&Number.isFinite(manualHeading))raw=manualHeading;
   else if(active){
     if(retained&&Number.isFinite(state.bearing)){
       raw+=arc(retained.bearing-state.bearing);
       if(steering!==null&&state.previousMove!==null)raw+=arc(steering-state.previousMove);
     }else if(steering!==null)raw=steering;
-  }else if(assistEligible)raw=state.rawHeading;
+  }else if(flame&&retained&&Number.isFinite(state.bearing))raw+=arc(retained.bearing-state.bearing);
+  else if(assistEligible)raw=state.rawHeading;
   else raw=moving&&!mobile&&!cancel&&alive?Math.atan2(move.x,move.z):state.heading;
   if(retained&&Math.abs(arc(retained.bearing-raw))>=retained.retain-1e-10)retained=null;
-  if(!retained&&!deliberateExit&&(!active||moving)){
+  const userHeading=Number.isFinite(manualHeading)?manualHeading:steering,
+    deliberate=flame&&(Number.isFinite(manualHeading)?Math.abs(arc(manualHeading-state.rawHeading))>FLAME_AIM.steeringChange:active&&moving&&state.previousMove!==null&&Math.abs(arc(steering-state.previousMove))>FLAME_AIM.steeringChange);
+  if(retained&&deliberate){
+    const error=t=>Math.abs(arc(t.bearing-userHeading)),challengers=cohort.filter(t=>t.id!==retained.id&&error(t)<FLAME_AIM.switchCone&&error(t)+FLAME_AIM.switchAdvantage<error(retained));
+    challengers.sort((a,b)=>error(a)-error(b)||a.distance-b.distance||(a.id<b.id?-1:1));
+    if(challengers.length){retained=challengers[0];raw=userHeading;}
+  }
+  if(!retained&&!deliberateExit&&(!active||moving||flame&&fireHeld)){
     const candidates=cohort.filter(t=>Math.abs(arc(t.bearing-raw))<t.acquire-1e-10);
     candidates.sort((a,b)=>Math.abs(arc(a.bearing-raw))-Math.abs(arc(b.bearing-raw))||a.distance-b.distance||(a.id<b.id?-1:a.id>b.id?1:0));
     retained=candidates[0]??null;
   }
-  const correction=retained?arc(retained.bearing-raw)*(pistol?MOBILE_AIM.pistolGain:MOBILE_AIM.gain*Math.max(0,Math.min(1,(MOBILE_AIM.far-retained.distance)/(MOBILE_AIM.far-MOBILE_AIM.near)))):0;
+  const correction=retained?arc(retained.bearing-raw)*(flame?FLAME_AIM.gain:pistol?MOBILE_AIM.pistolGain:MOBILE_AIM.gain*Math.max(0,Math.min(1,(MOBILE_AIM.far-retained.distance)/(MOBILE_AIM.far-MOBILE_AIM.near)))):0;
   const heading=cancel||!alive?state.heading:followMobileAngle(state.heading,raw+correction,dt,24);
   return {state:{rawHeading:raw,heading,steering,previousMove:active?steering:null,
-    targetId:active?retained?.id??null:null,bearing:active?retained?.bearing??null:null},move:movement,direction:vector(heading),correction};
+    targetId:locking?retained?.id??null:null,bearing:locking?retained?.bearing??null:null},move:movement,direction:vector(heading),correction};
 }
 // Visible body heading drives the actual unchanged ARM ray; no second aim snap.
 export function mobileAimRay(position,heading,targets,lineClear){return tracePistol(position,vector(heading),targets,lineClear);}

@@ -85,3 +85,20 @@ test('pistol full correction finite cap boundaries preserve retention, intention
  const lift=step(createMobileAimState(),{targets:[valid],pistolEquipped:true,moveHeld:false});assert.equal(lift.state.targetId,null);near(lift.correction,rad(2)*1);
  assert.equal(step(createMobileAimState(),{targets:[valid],pistolEquipped:false}).state.targetId,null);near(step().correction,rad(4)*.4125,'knife correction remains original');
 });
+
+test('flame full-strength lock acquires near targets, persists while firing at rest and releases invalid receivers',()=>{
+ const t=target('near',35,1.1),options={flameRange:3,fireHeld:true,moveHeld:false,move:{x:0,z:0},pistolEquipped:true,targets:[t]};let state=createMobileAimState(),out;
+ for(let i=0;i<30;i++){out=step(state,options);state=out.state;assert.equal(state.targetId,'near');near(state.rawHeading,0);near(out.correction,rad(35));assert.deepEqual(out.move,{x:0,z:0});}assert(Math.abs(state.heading-rad(35))<1e-5);
+ out=step(state,{...options,targets:[target('near',42,1.1),target('aligned-far',0,12)]});assert.equal(out.state.targetId,'near');near(out.state.rawHeading,rad(7));near(out.correction,rad(35));
+ for(const extra of[{assistEnabled:false},{lineClear:()=>false},{targets:[{...t,visible:false}]},{targets:[{...t,hp:0}]},{targets:[{...t,areaId:'east'}]},{targets:[target('near',35,5)]},{cancel:true},{alive:false},{pointerHeading:0}])assert.equal(step(state,{...options,...extra}).state.targetId,null);
+ assert.equal(step(state,{...options,fireHeld:false}).state.targetId,null);
+});
+test('flame touch drag selects the intended facing while preserving full lock and manual escape; pistol and knife policies unchanged',()=>{
+ const options={flameRange:3,fireHeld:true,moveHeld:false,move:{x:0,z:0},pistolEquipped:true,targets:[target('near',35,2)]},state=step(createMobileAimState(),options).state;
+ const drag=step(state,{...options,manualHeading:rad(20)});assert.equal(drag.state.targetId,'near');near(drag.state.rawHeading,rad(20));near(drag.correction,rad(15));
+ const escape=step(drag.state,{...options,manualHeading:rad(-90)});assert.equal(escape.state.targetId,null);near(escape.correction,0);
+ assert.equal(step(createMobileAimState(),{...options,flameRange:null}).state.targetId,null,'pistol does not inherit wide flame lock');
+ near(step().correction,rad(4)*.4125,'knife remains partial gain');
+});
+
+test('held flame deliberate raw steering switches among live targets before retention limit, while neutral jitter and infeasible far targets cannot steal lock',()=>{const targets=[target('a',0,2),target('b',25,2.5),target('c',-25,2.5),target('unreachable',40,4.4)],opts={flameRange:3,flameReach:2.5,flameEligible:id=>id!=='unreachable',fireHeld:true,moveHeld:false,move:{x:0,z:0},targets};let state=step(createMobileAimState(),opts).state;assert.equal(state.targetId,'a');state=step(state,{...opts,manualHeading:rad(25)}).state;assert.equal(state.targetId,'b');state=step(state,{...opts,manualHeading:rad(-25)}).state;assert.equal(state.targetId,'c');state=step(state,{...opts,manualHeading:rad(-24.8)}).state;assert.equal(state.targetId,'c');assert.equal(step(state,{...opts,manualHeading:rad(40)}).state.targetId,'c','unreachable aligned target is filtered before ranking/retention');assert.equal(step(state,{...opts,fireHeld:false}).state.targetId,null);});

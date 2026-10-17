@@ -62,3 +62,5 @@ test('releasing one of two guard pointers does not cancel remaining held guard',
   s.up(2);
   assert.equal(s.take().guard, false);
 });
+
+test('flame Fire explicitly permits dragging without changing legacy pistol Fire or creating extra shots',()=>{const f=new InputState();f.down(1,'fire',{x:100,y:100},{aimable:true});f.move(1,{x:130,y:100});const a=f.take();assert.deepEqual(a.fireAim,{x:1,y:0});assert.deepEqual(a.actions,['fire']);assert.deepEqual(f.take().actions,[]);assert.deepEqual(f.take().held,['fire']);f.up(1);assert.equal(f.take().fireAim,null);const p=new InputState();p.down(1,'fire',{x:100,y:100});p.move(1,{x:130,y:100});assert.equal(p.take().fireAim,null);});

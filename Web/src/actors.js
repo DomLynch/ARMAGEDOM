@@ -1,4 +1,4 @@
-import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPitch}from'./engine/flame-presentation.js';
+import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPitch,flameAimBasis,flameAimEligible}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
@@ -303,6 +303,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     ensureFlame(){const data=world.flameData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Flamethrower unavailable'));},
     flameAsset(){return library.models.get(world.flameData?.modelRef)?.gltf??null;},
     flameReady(){return !!library.models.get(world.flameData?.modelRef);},
+    flameAimReach(g){const b=views.get(0)?.flameAimBasis;return b?.areaId===g.world.areaId?b.reach:0;},
+    flameAimEligible(g,target){return flameAimEligible(views.get(0)?.flameAimBasis,g,target);},
     flameSource(){const mount=views.get(0)?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
@@ -437,7 +439,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           const equipped=!!game.flame?.equipped,pose=equipped&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!equipped&&entity.weapon!=='pistol';
           if(pose&&!view.flameMount){const source=library.models.get(world.flameData?.modelRef);if(source){const record=Object.values(library.manifest.files??{}).find(r=>r.file===library.manifest.models.vagrant.url);view.flameGrip=flameGripProfile(view.model,record?.sha256);view.flameMount=attachFlame(view.model,source.gltf);}}
-          if(view.flameMount){view.flameMount.visible=pose;if(pose){applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip});const pitch=flameAimPitch(view.model,view.flameMount,game);game.flame.aimPitch=pitch;applyFlamePitch(view.model,view.flameMount,pitch);}}
+          if(view.flameMount){view.flameMount.visible=pose;if(pose){applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const pitch=flameAimPitch(view.model,view.flameMount,game);game.flame.aimPitch=pitch;applyFlamePitch(view.model,view.flameMount,pitch);}}
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);
