@@ -5,7 +5,7 @@ const paint=(el,text)=>{if(el.textContent!==text)el.textContent=text;};
 export function createFlamePickupView(source){
  const root=new T.Group(),contours=[];root.name='Flamethrower world pickup';
  let ring=null;
- if(source?.scene){const display=source.scene.clone(true);root.add(display);root.updateMatrixWorld(true);let box=new T.Box3().setFromObject(display),size=box.getSize(new T.Vector3());display.scale.setScalar(Math.min(1,.72/Math.hypot(size.x,size.z)));root.updateMatrixWorld(true);box=new T.Box3().setFromObject(display);const center=box.getCenter(new T.Vector3());display.position.set(-center.x,.025-box.min.y,-center.z);display.traverse(mesh=>{if(mesh.isMesh)contours.push(addPickupGlow(mesh));});}
+ if(source?.scene){const display=source.scene.clone(true);root.add(display);root.updateMatrixWorld(true);let box=new T.Box3().setFromObject(display),size=box.getSize(new T.Vector3());display.scale.setScalar(Math.min(1,.72/Math.hypot(size.x,size.z)));root.updateMatrixWorld(true);box=new T.Box3().setFromObject(display);const center=box.getCenter(new T.Vector3());display.position.set(-center.x,.025-box.min.y,-center.z);const meshes=[];display.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});for(const mesh of meshes)contours.push(addPickupGlow(mesh));}
  else{ring=new T.Mesh(new T.TorusGeometry(.35,.025,4,20),new T.MeshBasicMaterial({color:0xffbd62,depthTest:true}));ring.rotation.x=-Math.PI/2;ring.position.y=.025;root.add(ring);}
  let disposed=false;return{root,dispose(){if(disposed)return;disposed=true;root.removeFromParent();for(const c of contours)c.dispose();if(ring){ring.geometry.dispose();ring.material.dispose();}}};
 }
