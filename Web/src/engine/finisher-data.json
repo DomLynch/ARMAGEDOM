@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "chance": 0.78,
+  "chance": 1,
   "seed": "weapon-finishers-v1",
   "ordinary": {
     "id": "ordinary",
@@ -112,6 +112,30 @@
       "damageType": "flame",
       "parts": [],
       "avoidRepeat": false
+    },
+    {
+      "id": "bullet-native-collapse",
+      "damageType": "bullet",
+      "parts": [],
+      "avoidRepeat": true
+    },
+    {
+      "id": "cutting-native-collapse",
+      "damageType": "cutting",
+      "parts": [],
+      "avoidRepeat": true
+    },
+    {
+      "id": "piercing-native-collapse",
+      "damageType": "piercing",
+      "parts": [],
+      "avoidRepeat": true
+    },
+    {
+      "id": "blunt-native-collapse",
+      "damageType": "blunt",
+      "parts": [],
+      "avoidRepeat": true
     }
   ],
   "bindings": [
@@ -126,7 +150,9 @@
           "id": "pistol-decapitation",
           "weight": 1
         }
-      ]
+      ],
+      "fallback": "bullet-native-collapse",
+      "rotate": true
     },
     {
       "weapon": "knife",
@@ -148,7 +174,9 @@
           "id": "opened",
           "weight": 1
         }
-      ]
+      ],
+      "fallback": "cutting-native-collapse",
+      "rotate": true
     },
     {
       "weapon": "knife",
@@ -160,7 +188,9 @@
           "id": "run-through",
           "weight": 1
         }
-      ]
+      ],
+      "fallback": "piercing-native-collapse",
+      "rotate": true
     },
     {
       "weapon": "flamethrower",
@@ -172,20 +202,31 @@
           "id": "flame-charred-collapse",
           "weight": 1
         }
-      ]
+      ],
+      "fallback": "flame-charred-collapse",
+      "rotate": true
+    },
+    {
+      "weapon": "knife",
+      "moveIds": [
+        "skill_pommel"
+      ],
+      "recipes": [
+        {
+          "id": "blunt-native-collapse",
+          "weight": 1
+        }
+      ],
+      "fallback": "blunt-native-collapse",
+      "rotate": true
     }
   ],
   "flameDeath": {
     "recipeId": "flame-charred-collapse",
-    "rigs": [
-      "hollow-scavenger"
-    ],
-    "anchorBone": "spine_01",
-    "burnSeconds": 1.4,
-    "fadeSeconds": 0.35,
-    "anchorLift": 0.13,
-    "charBegin": 0.15,
-    "charSettle": 1.15,
+    "fadeSeconds": 0.75,
+    "anchorLift": 0.16,
+    "charBegin": 0.3,
+    "charSettle": 2.4,
     "tint": 4208431,
     "blend": 0.9,
     "roughnessFloor": 0.95,
@@ -193,7 +234,7 @@
     "flickerRate": 13,
     "flickerSize": 0.16,
     "riseRate": 2.5,
-    "rise": 0.12,
+    "rise": 0.18,
     "wisps": [
       {
         "offset": [
@@ -201,10 +242,11 @@
           0.06,
           0
         ],
-        "width": 0.24,
+        "width": 0.46,
         "aspect": 1.8,
         "color": 13579276,
-        "phase": 0
+        "phase": 0,
+        "anchor": "torso"
       },
       {
         "offset": [
@@ -212,10 +254,11 @@
           0.12,
           0
         ],
-        "width": 0.28,
+        "width": 0.5,
         "aspect": 1.9,
         "color": 15817232,
-        "phase": 1.7
+        "phase": 1.7,
+        "anchor": "pelvis"
       },
       {
         "offset": [
@@ -223,10 +266,11 @@
           0.26,
           0.04
         ],
-        "width": 0.24,
+        "width": 0.42,
         "aspect": 2,
         "color": 16758851,
-        "phase": 3.4
+        "phase": 3.4,
+        "anchor": "torso"
       },
       {
         "offset": [
@@ -234,10 +278,11 @@
           0.38,
           -0.04
         ],
-        "width": 0.22,
+        "width": 0.38,
         "aspect": 1.9,
         "color": 15817232,
-        "phase": 5.1
+        "phase": 5.1,
+        "anchor": "pelvis"
       },
       {
         "offset": [
@@ -245,10 +290,11 @@
           0.45,
           0
         ],
-        "width": 0.18,
+        "width": 0.34,
         "aspect": 2,
         "color": 13579276,
-        "phase": 6.8
+        "phase": 6.8,
+        "anchor": "torso"
       },
       {
         "offset": [
@@ -256,12 +302,37 @@
           0.1,
           0.04
         ],
-        "width": 0.16,
+        "width": 0.3,
         "aspect": 1.7,
         "color": 16766057,
-        "phase": 8.5
+        "phase": 8.5,
+        "anchor": "pelvis"
       }
-    ]
+    ],
+    "holdSeconds": 3.5,
+    "maxSeconds": 8,
+    "anchorBones": [
+      "spine_01",
+      "spine",
+      "Spine",
+      "Spine1",
+      "body",
+      "Body",
+      "pelvis",
+      "Hips",
+      "root"
+    ],
+    "pelvisBones": [
+      "pelvis",
+      "Hips",
+      "hips",
+      "abdomen",
+      "body",
+      "root"
+    ],
+    "flareColor": 11869957,
+    "flareIntensity": 0.12,
+    "collapseTailSeconds": 0.05
   },
   "impactLimits": {
     "bursts": 2,
@@ -274,5 +345,47 @@
       "east-roamer-3",
       "south-roamer-4"
     ]
-  }
+  },
+  "cosmetics": [
+    {
+      "damageType": "bullet",
+      "seconds": 0.7,
+      "pulseHz": 16,
+      "color": 16742464,
+      "emissive": 16742464,
+      "intensity": 1.4,
+      "settleTint": 5509147,
+      "settleBlend": 0.22
+    },
+    {
+      "damageType": "cutting",
+      "seconds": 1.1,
+      "pulseHz": 8,
+      "color": 11866152,
+      "emissive": 11866152,
+      "intensity": 0.8,
+      "settleTint": 5244952,
+      "settleBlend": 0.35
+    },
+    {
+      "damageType": "piercing",
+      "seconds": 0.9,
+      "pulseHz": 11,
+      "color": 9573432,
+      "emissive": 9573432,
+      "intensity": 1.1,
+      "settleTint": 4329508,
+      "settleBlend": 0.3
+    },
+    {
+      "damageType": "blunt",
+      "seconds": 0.8,
+      "pulseHz": 13,
+      "color": 12150083,
+      "emissive": 12150083,
+      "intensity": 0.85,
+      "settleTint": 3679279,
+      "settleBlend": 0.25
+    }
+  ]
 }

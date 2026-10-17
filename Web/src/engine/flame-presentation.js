@@ -1,4 +1,4 @@
-import {FLAME_DEATH_DATA} from './finisher-data.js';
+import {FLAME_DEATH_DATA,flameDeathSeconds} from './finisher-data.js';
 import{combatTargetHeight}from'../pistol-targeting.js';
 import{flameTouches}from'./flame-contact.js';
 import * as T from 'three';
@@ -89,10 +89,11 @@ export function applyFlamePitch(model,mount,pitch,yaw=0){
 }
 
 // Only private cloned corpse materials change, after the existing flash restore.
-const soot=new T.Color(FLAME_DEATH_DATA.tint);
+const soot=new T.Color(FLAME_DEATH_DATA.tint),flare=new T.Color(FLAME_DEATH_DATA.flareColor);
 export function applyFlameCorpseChar(view,entity){
  if(!(entity.hp<=0)||entity.finisher?.recipeId!==FLAME_DEATH_DATA.recipeId)return false;
  const f=FLAME_DEATH_DATA,age=view.restoredCorpse?f.charSettle:view.finisherAge??0,progress=Math.max(0,Math.min(1,(age-f.charBegin)/(f.charSettle-f.charBegin)));
- for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color).lerp(soot,progress*f.blend);if(Number.isFinite(m.roughness))m.material.roughness=m.roughness+(Math.max(m.roughness,f.roughnessFloor)-m.roughness)*progress;if(m.emissive)m.material.emissive.copy(m.emissive).multiplyScalar(1-progress);if(Number.isFinite(m.intensity))m.material.emissiveIntensity=m.intensity*(1-progress);}
+ const life=view.restoredCorpse?0:Math.max(0,Math.min(1,(flameDeathSeconds(view.finisherDeathSeconds)-age)/f.fadeSeconds));
+ for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color).lerp(soot,progress*f.blend);if(Number.isFinite(m.roughness))m.material.roughness=m.roughness+(Math.max(m.roughness,f.roughnessFloor)-m.roughness)*progress;if(m.emissive)m.material.emissive.copy(m.emissive).multiplyScalar(1-progress).lerp(flare,life);if(Number.isFinite(m.intensity))m.material.emissiveIntensity=m.intensity*(1-progress)*(1-life)+f.flareIntensity*life;}
  return true;
 }
