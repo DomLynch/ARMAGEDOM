@@ -1,6 +1,6 @@
 import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
-import {FINISHER_DATA,remainingFinisherPartSeconds} from './engine/finisher-data.js';
+import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds} from './engine/finisher-data.js';
 import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
@@ -455,7 +455,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         // Only confirmed positive damage starts this window; legacy flashUntil also marks zero-damage blocks.
-        const flash=(view.impactFlashLife??0)>0;
+        const flash=(view.impactFlashLife??0)>0&&!(entity.hp<=0&&goreProfile(entity.finisher?.recipeId));
         for (const m of view.flashMaterials) {
           if(m.material.emissive){
             m.material.emissive.copy(flash?damageCrimson:m.emissive);
