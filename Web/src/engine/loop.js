@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import{presentationAudioEvents}from'../donor-audio.js';
 import {stepGame,resetMobileControls} from '../combat.js';
-import {pistolPointerPoint} from '../pistol-targeting.js';
+import {pistolPointerPoint,flamePointerPoint} from '../pistol-targeting.js';
 export function createBrowserLoop(s){
 let last=0,accumulator=0,submitted=null;
 function toDomain(v) {
@@ -27,9 +27,10 @@ function intent() {
     const bounds = s.canvas.getBoundingClientRect(),
       x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
       y=1-((raw.mouse.y-bounds.top)/bounds.height)*2,
-      point=(s.game.pistol?.equipped||s.game.flame?.equipped)?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
+      point=s.game.flame?.equipped?flamePointerPoint(s.world,s.actors.views,s.game.enemies,x,y,{assist:s.game.mobileAssistEnabled!==false,time:s.game.time,visibleIds:value.combatVisibleIds}):s.game.pistol?.equipped?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
     if (point) {
       value.manualPistolAim = true;
+      value.manualFlameAim = !!s.game.flame?.equipped;
       value.aim = {
         x: point.x - s.game.player.pos.x,
         z: point.z - s.game.player.pos.z,
@@ -77,7 +78,7 @@ function frame(ms,providedElapsed) {
   s.atmosphere?.update(dt, {paused: s.paused || s.traveling});
   s.updateSupplies();
   s.updateVestBag();
-  s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game)??0,{presentationDt:s.paused||s.traveling?0:elapsed});
+  s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game)??0,{presentationDt:s.paused||s.traveling?0:elapsed,combatVisibleIds:combatVisibleIds()});
   s.effects?.update(s.game,{paused:s.paused||s.traveling,visibleIds:combatVisibleIds(),viewportHeight:s.canvas.clientHeight,viewportWidth:s.canvas.clientWidth});
   const severs=s.effects?.takeSeverEvents?.()??[];if(audioEvents.length||severs.length)s.audio.play(presentationAudioEvents(audioEvents,severs));
   s.rim.position

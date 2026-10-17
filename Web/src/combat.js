@@ -240,7 +240,7 @@ function mobileControl(g,intent,dt,services){
  const p=g.player,heading=Math.atan2(p.facing.x,p.facing.z);
  if(intent.mobile&&!intent.moveHeld)p.velocity={x:0,z:0};
  const flame=!!g.flame?.equipped,manualFlame=flame&&intent.manualFlameAim&&validDirection(intent.aim);
- if(!intent.mobile||intent.cancel||validDirection(intent.aim)&&!manualFlame){
+ if(!intent.mobile&&!flame||intent.cancel||validDirection(intent.aim)&&!manualFlame){
   g.mobileAim=createMobileAimState(heading);g.mobileAiming=false;
   if(intent.cancel)p.velocity={x:0,z:0};return intent;
  }
@@ -249,11 +249,11 @@ function mobileControl(g,intent,dt,services){
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
-  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:!!intent.mobile,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,
   flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:flame&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
   flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
- g.mobileAim=result.state;g.mobileAiming=true;
- if(!intent.moveHeld)p.velocity={x:0,z:0};
+ g.mobileAim=result.state;g.mobileAiming=!!intent.mobile;
+ if(intent.mobile&&!intent.moveHeld)p.velocity={x:0,z:0};
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }

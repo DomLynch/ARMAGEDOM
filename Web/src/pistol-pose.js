@@ -1,5 +1,6 @@
 import * as T from 'three';
 const activeDigitOverlay=new WeakMap();
+export const PISTOL_ARM_EXTENSION=.92;
 // Remove only our temporary finger locals before the next native gait/equip.
 export function restoreGripProfile(model){const state=activeDigitOverlay.get(model);if(!state)return false;for(const[bone,q]of state)bone.quaternion.copy(q);activeDigitOverlay.delete(model);return true;}
 // Presentation overlay on a private cloned donor scene. Source clips stay intact.
@@ -13,12 +14,13 @@ function pointBone(bone,child,target){
  const q=new T.Quaternion().setFromUnitVectors(from,to).multiply(bone.getWorldQuaternion(new T.Quaternion()));
  bone.quaternion.copy(bone.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(q));bone.updateWorldMatrix(true,true);
 }
-export function applyPistolAim(model,mount,{recoil=0,gripProfile}={}){
+export function applyPistolAim(model,mount,{recoil=0,gripProfile,armExtension=PISTOL_ARM_EXTENSION}={}){
+ if(!Number.isFinite(armExtension)||armExtension<.35||armExtension>.98)throw RangeError('Invalid arm extension');
  const upper=model.getObjectByName('upperarm_r'),fore=model.getObjectByName('lowerarm_r'),hand=model.getObjectByName('hand_r');
  if(!upper||!fore||!hand||mount.parent!==model)throw Error('Pistol rig/mount mismatch');
  model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),scale=model.getWorldScale(new T.Vector3()).x;
  const shoulder=upper.getWorldPosition(new T.Vector3()),elbow=fore.getWorldPosition(new T.Vector3()),wrist=hand.getWorldPosition(new T.Vector3());
- const a=shoulder.distanceTo(elbow),b=elbow.distanceTo(wrist),d=(a+b)*(.92-Math.max(0,Math.min(1,recoil))*.22);
+ const a=shoulder.distanceTo(elbow),b=elbow.distanceTo(wrist),requested=(a+b)*(armExtension-Math.max(0,Math.min(1,recoil))*.22),d=Math.max(Math.abs(a-b)+1e-6,Math.min(a+b-1e-6,requested));
  const dir=new T.Vector3(0,-.07,1).normalize().applyQuaternion(basis),bend=new T.Vector3(.25,-1,-.07).normalize().applyQuaternion(basis);
  bend.addScaledVector(dir,-bend.dot(dir)).normalize();
  const along=(a*a-b*b+d*d)/(2*d),height=Math.sqrt(Math.max(0,a*a-along*along));

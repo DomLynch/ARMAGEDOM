@@ -3,7 +3,7 @@ const DEG=Math.PI/180;
 export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:1,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
 // Flame lock changes orientation, never contact range or hit eligibility.
 // The barrel extends beyond the player; final range/LOS use the posed muzzle.
-export const FLAME_AIM=Object.freeze({gain:1,acquire:45*DEG,retain:70*DEG,switchCone:12*DEG,switchAdvantage:8*DEG,steeringChange:.2*DEG});
+export const FLAME_AIM=Object.freeze({gain:1,acquire:45*DEG,retain:70*DEG,switchCone:12*DEG,switchAdvantage:8*DEG,steeringChange:.2*DEG,closeExtension:.5,closeEnterGap:.8,closeExitGap:1,extensionRate:24});
 const arc=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const vector=angle=>({x:Math.sin(angle),z:Math.cos(angle)});
@@ -21,12 +21,12 @@ export function createMobileAimState(heading=0){
 export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],areaId,
   lineClear,mobile=false,moveHeld=false,pointerHeading=null,cancel=false,alive=true,deliberateExit=false,assistEnabled=true,pistolEquipped=false,flameRange=null,fireHeld=false,manualHeading=null,flameEligible}={}){
   if(!state||!Number.isFinite(state.heading)||!Number.isFinite(state.rawHeading)||!Number.isFinite(dt)||dt<0||dt>.1||!point(move))throw RangeError('Invalid aim step');
-  const pointer=Number.isFinite(pointerHeading),active=mobile&&moveHeld&&!pointer&&!cancel&&alive;
-  const assistEligible=mobile&&!pointer&&!cancel&&alive&&assistEnabled;
+  const flame=Number.isFinite(flameRange)&&flameRange>0,pointer=Number.isFinite(pointerHeading),active=mobile&&moveHeld&&!pointer&&!cancel&&alive;
+  const assistEligible=(mobile||flame)&&!pointer&&!cancel&&alive&&assistEnabled;
   const moving=Math.hypot(move.x,move.z)>.01,strength=Math.min(1,Math.hypot(move.x,move.z));
   let steering=active?(moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):state.steering):null;
   const movement=cancel||!alive||mobile&&!moveHeld?{x:0,z:0}:steering!==null?{x:Math.sin(steering)*strength,z:Math.cos(steering)*strength}:{...move};
-  const flame=Number.isFinite(flameRange)&&flameRange>0,pistol=pistolEquipped===true,range=flame?flameRange:pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
+  const pistol=pistolEquipped===true,range=flame?flameRange:pistol?MOBILE_AIM.pistolRange:MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
   if(assistEligible&&(!flame||locking)&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
     const counts=new Map();for(const t of targets)if(typeof t?.id==='string')counts.set(t.id,(counts.get(t.id)??0)+1);
     for(const t of targets){
@@ -64,7 +64,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
     retained=candidates[0]??null;
   }
   const correction=retained?arc(retained.bearing-raw)*(flame?FLAME_AIM.gain:pistol?MOBILE_AIM.pistolGain:MOBILE_AIM.gain*Math.max(0,Math.min(1,(MOBILE_AIM.far-retained.distance)/(MOBILE_AIM.far-MOBILE_AIM.near)))):0;
-  const heading=cancel||!alive?state.heading:followMobileAngle(state.heading,raw+correction,dt,24);
+  const heading=cancel||!alive?state.heading:flame&&!mobile&&!retained&&Number.isFinite(manualHeading)?raw:followMobileAngle(state.heading,raw+correction,dt,24);
   return {state:{rawHeading:raw,heading,steering,previousMove:active?steering:null,
     targetId:locking?retained?.id??null:null,bearing:locking?retained?.bearing??null:null},move:movement,direction:vector(heading),correction};
 }

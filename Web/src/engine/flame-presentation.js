@@ -1,7 +1,8 @@
-import{selectCombatTarget,combatTargetHeight}from'../pistol-targeting.js';
+import{combatTargetHeight}from'../pistol-targeting.js';
 import{flameTouches}from'./flame-contact.js';
 import * as T from 'three';
-import {attachPistol} from '../pistol-pose.js';
+import {attachPistol,PISTOL_ARM_EXTENSION} from '../pistol-pose.js';
+import {FLAME_AIM} from '../mobile-combat-aim.js';
 import profile from '../donor/flame-right-digit-profile.json' with {type:'json'};
 const names=['middle','ring','pinky','index','thumb'].flatMap(f=>[1,2,3].map(i=>`${f}_0${i}_r`));
 const validated=new WeakMap();
@@ -45,12 +46,20 @@ export function flameAimEligible(basis,g,target){
  if(!basis||!target||basis.areaId!==g.world.areaId||(target.areaId??g.world.areaId)!==g.world.areaId||target.visible===false||!(target.hp>0))return false;
  return flameTouches({source:projectedFlameSource(basis,g,target),target,time:g.time,profile:g.world.flameData.contact,lineClear:(a,b)=>g.world.lineClear(a,b),playerPosition:g.player.pos});
 }
+// Physical ready stance precedes lock eligibility. A close body must not have
+// to win a lock while it is already wholly behind the extended nozzle.
+export function flameArmStance(g,wasClose=false,visibleIds){
+ let gap=Infinity;const p=g.player;
+ for(const e of g.enemies){if(e.visible===false||visibleIds&&!visibleIds.includes(e.id)||!(e.hp>0)||!Number.isFinite(e.radius)||(e.areaId??g.world.areaId)!==g.world.areaId||!g.world.lineClear(p.pos,e.pos))continue;const dx=e.pos.x-p.pos.x,dz=e.pos.z-p.pos.z,d=Math.hypot(dx,dz);if(d<1e-8||(dx*p.facing.x+dz*p.facing.z)/d<0)continue;gap=Math.min(gap,d-p.radius-e.radius);}
+ const close=gap<(wasClose?FLAME_AIM.closeExitGap:FLAME_AIM.closeEnterGap);
+ return{close,extension:close?FLAME_AIM.closeExtension:PISTOL_ARM_EXTENSION,gap,rate:FLAME_AIM.extensionRate};
+}
 
 // Touch lock supplies one stable receiver for body yaw and weapon elevation.
 // Do not reselect from the unpitched muzzle: a close low body may be behind
 // that muzzle until the shoulder pose lowers the barrel toward it.
 export function flameAimPitch(model,mount,g){
- const p=mount.getObjectByName('Muzzle').getWorldPosition(new T.Vector3()),data=g.world.flameData,selected=g.mobileAiming?null:selectCombatTarget({position:{x:p.x,z:-p.z},aim:g.player.facing,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b),range:data.contact.range,rangeOffset:e=>e.radius,coneDegrees:data.contact.coneDegrees/2,areaId:g.world.areaId}),enemy=g.mobileAiming?g.mobileAssistEnabled!==false&&g.enemies.find(e=>e.placementKey===g.mobileAim?.targetId&&e.hp>0&&(e.areaId??g.world.areaId)===g.world.areaId&&g.world.lineClear(g.player.pos,e.pos)):selected&&g.enemies.find(e=>e.id===selected.targetId);
+ const enemy=g.mobileAssistEnabled!==false&&g.enemies.find(e=>e.placementKey===g.mobileAim?.targetId&&e.visible!==false&&e.hp>0&&(e.areaId??g.world.areaId)===g.world.areaId&&g.world.lineClear(g.player.pos,e.pos));
  return enemy?flameTargetPitch(model,mount,g.world.toRender(enemy.pos,combatTargetHeight(enemy,g.time))):0;
 }
 

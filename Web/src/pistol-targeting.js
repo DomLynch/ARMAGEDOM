@@ -84,3 +84,18 @@ export function pistolPointerPoint(world,views,enemies,x,y){
  const hit=world.ray.intersectObjects([...(world.masks??[]),...frames],false)[0];
  return frames.includes(hit?.object)?{x:hit.point.x,z:-hit.point.z}:ground;
 }
+
+// Flame mouse intent may point at the visible body rather than its feet.
+// Use the existing registered body envelope, not an enlarged hit volume.
+// This selects intent only; the actual posed flame/LOS still owns damage.
+export function flamePointerPoint(world,views,enemies,x,y,{assist=true,time=0,visibleIds}={}){
+ const ground=pistolPointerPoint(world,views,enemies,x,y);if(!assist)return ground;
+ const ray=world.ray.ray,mask=world.ray.intersectObjects(world.masks??[],false)[0]?.distance??Infinity;let best=null;
+ for(const e of enemies){
+  if(e.visible===false||visibleIds&&!visibleIds.includes(e.id)||!(e.hp>0)||!Number.isFinite(e.radius)||e.radius<=0||(e.areaId??world.areaId)!==world.areaId)continue;
+  const height=combatTargetHeight(e,time),r=e.radius,v=Math.max(.1,height*.65),o={x:ray.origin.x-e.pos.x,y:ray.origin.y-height,z:ray.origin.z+e.pos.z},d=ray.direction,a=(d.x/r)**2+(d.y/v)**2+(d.z/r)**2,b=o.x*d.x/r**2+o.y*d.y/v**2+o.z*d.z/r**2,c=(o.x/r)**2+(o.y/v)**2+(o.z/r)**2-1,disc=b*b-a*c;
+  if(!Number.isFinite(disc)||disc<0)continue;const near=(-b-Math.sqrt(disc))/a,far=(-b+Math.sqrt(disc))/a,at=near>=0?near:far;
+  if(at<0||at>=mask||best&&at>=best.distance)continue;best={position:e.pos,distance:at};
+ }
+ return best?{...best.position}:ground;
+}
