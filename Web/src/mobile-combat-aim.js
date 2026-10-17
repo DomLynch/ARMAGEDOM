@@ -3,7 +3,7 @@ const DEG=Math.PI/180;
 export const MOBILE_AIM=Object.freeze({steeringRate:10,headingRate:24,gain:.4125,acquire:6*DEG,retain:9*DEG,near:2,far:6,deadzone:.13,pistolGain:1,pistolRange:PISTOL_RULES.range,acquireMargin:.60,retainMargin:.90});
 // Flame lock changes orientation, never contact range or hit eligibility.
 // The barrel extends beyond the player; final range/LOS use the posed muzzle.
-export const FLAME_AIM=Object.freeze({gain:1,acquire:45*DEG,retain:70*DEG,switchCone:12*DEG,switchAdvantage:8*DEG,steeringChange:.2*DEG,closeExtension:.5,closeEnterGap:.8,closeExitGap:1,extensionRate:24});
+export const FLAME_AIM=Object.freeze({gain:1,acquire:45*DEG,retain:70*DEG,switchCone:12*DEG,switchAdvantage:8*DEG,steeringChange:.2*DEG,closeExtension:.5,yawLimit:Math.PI/3,downPitch:75*Math.PI/180,closeEnterGap:.8,closeExitGap:1,extensionRate:24});
 const arc=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
 const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const vector=angle=>({x:Math.sin(angle),z:Math.cos(angle)});
