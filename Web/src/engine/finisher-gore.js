@@ -18,7 +18,8 @@ export function createFinisherGore({root,model,rig,camera}){
   }
  });
  for(const region of ['body','head']){const a=groups[region];if(a.length>data.sampleLimit)groups[region]=Array.from({length:data.sampleLimit},(_,i)=>a[Math.floor(i*a.length/data.sampleLimit)]);}
- const wound=createLocalWound({THREE:T,parent:root,profile:data.wound}),p=new T.Vector3(),n=new T.Vector3(),centre=new T.Vector3(),toward=new T.Vector3(),d=new T.Vector3(),tangent=new T.Vector3(),vertical=new T.Vector3(),localNormal=new T.Vector3(),skin=new T.Matrix4(),joint=new T.Matrix4(),worldSkin=new T.Matrix4(),normalMatrix=new T.Matrix3();
+ const woundData=anatomy.material==='flesh'?data.wound:{...data.wound,styles:Object.fromEntries(Object.entries(data.wound.styles).map(([id,row])=>[id,{...row,palette:data.wound.styles.shell.palette}]))};
+ const wound=createLocalWound({THREE:T,parent:root,profile:woundData}),p=new T.Vector3(),n=new T.Vector3(),centre=new T.Vector3(),toward=new T.Vector3(),d=new T.Vector3(),tangent=new T.Vector3(),vertical=new T.Vector3(),localNormal=new T.Vector3(),skin=new T.Matrix4(),joint=new T.Matrix4(),worldSkin=new T.Matrix4(),normalMatrix=new T.Matrix3();
  let disposed=false,started=false,selected=null,recipe=null,entityId=null,anchors=null;
  function posed(sample){
   const {mesh,index}=sample;mesh.getVertexPosition(index,p);p.applyMatrix4(mesh.matrixWorld);localNormal.fromBufferAttribute(mesh.geometry.attributes.normal,index);
@@ -40,7 +41,7 @@ export function createFinisherGore({root,model,rig,camera}){
  function update(entity){
   if(disposed)return false;const profile=entity?.hp<=0&&goreProfile(entity.finisher?.recipeId);if(!profile){if(started){wound.reset();started=false;selected=recipe=anchors=null;}return false;}
   d.set(entity.finisher.impactDirection?.x??entity.facing?.x??0,0,-(entity.finisher.impactDirection?.z??entity.facing?.z??1));if(d.lengthSq()<1e-8)d.set(0,0,1);d.normalize();preparePose();
-  const styleId=anatomy.material==='flesh'?profile.style:'shell',style=data.wound.styles[styleId];
+  const styleId=profile.style,style=woundData.styles[styleId];
   if(!started){recipe=profile;selected=choose(profile.region,style)??choose('body',style);if(!selected)return false;const hit=surface(selected.mark,style);if(!wound.start({victimId:entity.id,styleId,anchor:hit}))return false;started=true;entityId=entity.id;}
   const hit=surface(selected.mark,style),exitHit=surface(selected.exit,style);wound.update(hit);const origin=recipe.mode==='exit'?exitHit:hit;if(!hit||!origin){anchors=null;return false;}
   const at={x:origin.position.x,y:origin.position.y,z:origin.position.z},direction={x:d.x,y:0,z:d.z};anchors={body:at,head:at,trails:[at],gore:{recipeId:entity.finisher.recipeId,material:anatomy.material,palette:data.palettes[anatomy.material],mode:recipe.mode,spreadDegrees:recipe.spreadDegrees,emitSeconds:recipe.emitSeconds,verticalSpeed:recipe.verticalSpeed,dropSize:recipe.dropSize,jet:recipe.jet&&anatomy.material!=='machine',pool:recipe.pool&&anatomy.material!=='machine',jetOrigin:at,jetDirection:direction,woundVisible:wound.stats().visible,surface:hit}};return true;
