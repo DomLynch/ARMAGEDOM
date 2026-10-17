@@ -235,11 +235,12 @@ export function resetMobileControls(g){
  if(!g?.mobileAim)return;
  g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));g.mobileAiming=false;g.player.velocity={x:0,z:0};
 }
-function mobileControl(g,intent,dt){
+function mobileControl(g,intent,dt,services){
  if(!g.mobileAim)return intent;
  const p=g.player,heading=Math.atan2(p.facing.x,p.facing.z);
  if(intent.mobile&&!intent.moveHeld)p.velocity={x:0,z:0};
- if(!intent.mobile||intent.cancel||validDirection(intent.aim)){
+ const flame=!!g.flame?.equipped,manualFlame=flame&&intent.manualFlameAim&&validDirection(intent.aim);
+ if(!intent.mobile||intent.cancel||validDirection(intent.aim)&&!manualFlame){
   g.mobileAim=createMobileAimState(heading);g.mobileAiming=false;
   if(intent.cancel)p.velocity={x:0,z:0};return intent;
  }
@@ -248,13 +249,15 @@ function mobileControl(g,intent,dt){
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
-  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged});
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:true,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,
+  flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:flame&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
+  flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
  g.mobileAim=result.state;g.mobileAiming=true;
  if(!intent.moveHeld)p.velocity={x:0,z:0};
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt);intent=g.flame?.equipped?flameIntent(g,intent):pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt,services);intent=g.flame?.equipped?flameIntent(g,intent):pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;

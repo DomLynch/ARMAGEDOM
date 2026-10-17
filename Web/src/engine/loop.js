@@ -18,6 +18,7 @@ function intent() {
     value = {
       ...raw,
       manualPistolAim: !!raw.fireAim,
+      manualFlameAim: !!raw.fireAim&&!!s.game.flame?.equipped,
       combatVisibleIds: combatVisibleIds(),
       move: toDomain(raw.move),
       aim: (s.game.pistol?.equipped||s.game.flame?.equipped) ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
@@ -52,7 +53,7 @@ function frame(ms,providedElapsed) {
     while (accumulator >= 1 / 60) {
       const weaponBefore = s.game.player.weapon,flameBefore=!!s.game.flame?.equipped;
       const value=intent();s.diagnostics?.beforeStep(value);
-      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchFlame:s.dispatchFlame,flameSource:s.flameSource});
+      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchFlame:s.dispatchFlame,flameSource:s.flameSource,flameAimEligible:s.flameAimEligible});
       s.diagnostics?.afterStep();
       if (weaponBefore !== s.game.player.weapon||flameBefore!==!!s.game.flame?.equipped) {s.input.clear();submitted=null;resetMobileControls(s.game);}
       s.collectNearbySupplies(s.game,value);

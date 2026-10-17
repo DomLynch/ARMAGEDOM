@@ -12,14 +12,14 @@ export class InputState {
     this.clear();
   }
 
-  down(id, kind, at) {
+  down(id, kind, at, {aimable=false}={}) {
     if (this.pointers.has(id)) return;
     // One thumb owns movement until release; extra pad contacts cannot steer it.
     if (kind === 'move' && [...this.pointers.values()].some(p => p.kind === 'move'))
       return;
     if (kind === 'fire' && [...this.pointers.values()].some(p => p.kind === 'fire')) return;
     const alreadyGuarding = this.guardHeld();
-    const pointer = { kind, start: { ...at }, at: { ...at } };
+    const pointer = { kind, start: { ...at }, at: { ...at }, aimable };
     this.pointers.set(id, pointer);
     if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
       this.pending.push({ pointer, kind });
@@ -51,7 +51,7 @@ export class InputState {
       const raw = Math.hypot(delta.x, delta.y) / 46;
       this.stick = mobileStickVector(delta.x, delta.y, 46);
       pointer.run = raw > 1.4 + 1e-10;
-    } else if (pointer.kind !== 'fire' && Math.hypot(delta.x, delta.y) > 12) {
+    } else if ((pointer.kind !== 'fire' || pointer.aimable) && Math.hypot(delta.x, delta.y) > 12) {
       pointer.aim = clampStick(delta, 1);
       pointer.aimOrder = ++this.aimOrder;
     }
@@ -128,6 +128,7 @@ export function attachInput({
   onInteraction = () => {},
   onPickup = () => false,
   isPistol = () => false,
+  isFlame = () => false,
 }) {
   const state = new InputState(), listeners=[];
   function listen(target,type,handler,options){target.addEventListener(type,handler,options);listeners.push(()=>target.removeEventListener(type,handler,options));}
@@ -190,7 +191,7 @@ export function attachInput({
       document.body.classList.add('touch');
       element.setPointerCapture(event.pointerId);
       const fire = isPistol() && kind === 'slash';
-      state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY });
+      state.down(event.pointerId, fire ? 'fire' : kind, { x: event.clientX, y: event.clientY }, {aimable:fire&&isFlame()});
       if (!state.pointers.has(event.pointerId)) return;
       element.classList.add('pressed');
       element.style.setProperty('--aim-angle', '0rad');
