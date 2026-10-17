@@ -23,7 +23,7 @@ export function attachFlame(model,source){
 export function flameTargetPitch(model,mount,target){
  model.updateWorldMatrix(true,true);const shoulder=model.getObjectByName('upperarm_r')?.getWorldPosition(new T.Vector3()),muzzle=mount.getObjectByName('Muzzle');if(!shoulder||!muzzle||!target?.isVector3||!target.toArray().every(Number.isFinite))throw Error('Finite flame target and native shoulder/muzzle required');
  const axis=new T.Vector3(1,0,0).applyQuaternion(model.getWorldQuaternion(new T.Quaternion())).normalize(),forward=muzzle.getWorldDirection(new T.Vector3()).normalize(),down=new T.Vector3().crossVectors(axis,forward).normalize(),to=target.clone().sub(shoulder),offset=muzzle.getWorldPosition(new T.Vector3()).sub(shoulder).dot(down),along=to.dot(forward),below=to.dot(down),radius=Math.hypot(along,below);
- return radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;
+ const pitch=radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;return Math.max(-Math.PI/6,Math.min(Math.PI/3,pitch));
 }
 
 // The donor has non-uniform scale. Retain the exact affine transform instead
