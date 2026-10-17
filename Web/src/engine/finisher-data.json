@@ -388,9 +388,19 @@
       "surfaceOffset": 0.003,
       "styles": {
         "bullet": {
-          "width": 0.16,
-          "height": 0.14,
-          "reliefScale": 0.6
+          "width": 0.24,
+          "height": 0.22,
+          "reliefScale": 0.6,
+          "palette": [
+            2360330,
+            6624034,
+            10110544,
+            6897737
+          ],
+          "nonOrganicSize": [
+            0.16,
+            0.14
+          ]
         },
         "slash": {
           "width": 0.36,
@@ -426,7 +436,7 @@
         "verticalSpeed": 0.25,
         "dropSize": 0.09,
         "jet": true,
-        "pool": true,
+        "pool": false,
         "spreadDegrees": 18
       },
       {
@@ -438,7 +448,7 @@
         "verticalSpeed": 0.4,
         "dropSize": 0.09,
         "jet": true,
-        "pool": true,
+        "pool": false,
         "spreadDegrees": 40
       },
       {
@@ -450,7 +460,7 @@
         "verticalSpeed": 0.25,
         "dropSize": 0.085,
         "jet": false,
-        "pool": true,
+        "pool": false,
         "spreadDegrees": 150
       },
       {
@@ -462,7 +472,7 @@
         "verticalSpeed": 0.7,
         "dropSize": 0.095,
         "jet": false,
-        "pool": true,
+        "pool": false,
         "spreadDegrees": 360
       }
     ],

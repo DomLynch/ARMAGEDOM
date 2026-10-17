@@ -18,7 +18,7 @@ export function createFinisherGore({root,model,rig,camera}){
   }
  });
  for(const region of ['body','head']){const a=groups[region];if(a.length>data.sampleLimit)groups[region]=Array.from({length:data.sampleLimit},(_,i)=>a[Math.floor(i*a.length/data.sampleLimit)]);}
- const woundData=anatomy.material==='flesh'?data.wound:{...data.wound,styles:Object.fromEntries(Object.entries(data.wound.styles).map(([id,row])=>[id,{...row,palette:data.wound.styles.shell.palette}]))};
+ const woundData=anatomy.material==='flesh'?data.wound:{...data.wound,styles:Object.fromEntries(Object.entries(data.wound.styles).map(([id,row])=>[id,{...row,width:row.nonOrganicSize?.[0]??row.width,height:row.nonOrganicSize?.[1]??row.height,palette:data.wound.styles.shell.palette}]))};
  const wound=createLocalWound({THREE:T,parent:root,profile:woundData}),p=new T.Vector3(),n=new T.Vector3(),centre=new T.Vector3(),toward=new T.Vector3(),d=new T.Vector3(),tangent=new T.Vector3(),vertical=new T.Vector3(),localNormal=new T.Vector3(),skin=new T.Matrix4(),joint=new T.Matrix4(),worldSkin=new T.Matrix4(),normalMatrix=new T.Matrix3();
  let disposed=false,started=false,selected=null,recipe=null,entityId=null,anchors=null;
  function posed(sample){
@@ -35,7 +35,7 @@ export function createFinisherGore({root,model,rig,camera}){
  }
  function choose(region,style){
   const origin=centres[region]??centres.body;if(!origin||!groups[region].length)return null;origin.getWorldPosition(centre);camera.getWorldPosition(toward);toward.sub(centre).normalize();let mark=null,exit=null,best=-Infinity,far=-Infinity;
-  for(const sample of groups[region]){const hit=surface(sample,style);if(!hit)continue;const delta=hit.position.clone().sub(centre),offset=delta.clone().addScaledVector(toward,-delta.dot(toward)).length(),score=delta.dot(toward)-offset*.35;if(hit.visible&&hit.normal.dot(toward)>.05&&score>best){mark=sample;best=score;}const along=delta.dot(d);if(along>far){far=along;exit=sample;}}
+  for(const sample of groups[region]){const hit=surface(sample,style);if(!hit)continue;const delta=hit.position.clone().sub(centre),offset=delta.clone().addScaledVector(toward,-delta.dot(toward)).length(),score=region==='body'&&anatomy.material==='flesh'?-delta.length()/anatomy.radius-offset/anatomy.radius*.5+hit.normal.dot(toward)*.15:delta.dot(toward)-offset*.35;if(hit.visible&&hit.normal.dot(toward)>.05&&score>best){mark=sample;best=score;}const along=delta.dot(d);if(along>far){far=along;exit=sample;}}
   return mark?{mark,exit:exit??mark,region}:null;
  }
  function update(entity){
