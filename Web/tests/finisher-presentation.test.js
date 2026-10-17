@@ -4,7 +4,7 @@ const clips=[new T.AnimationClip('Death',2.4,[]),new T.AnimationClip('Hit',1/3,[
 function fixture(){const scene=new T.Scene(),root=new T.Group(),model=new T.Group(),bone=new T.Bone();bone.name='Head';model.add(bone);root.add(model);scene.add(root);return{scene,root,model};}
 test('native pistol sequence advances at1x, directional recoil is bounded and ordinary fallback remains',()=>{
  const f=fixture(),p=createFinisherPresentation({...f,clips,isBlocked:()=>false});
- assert.equal(p.support.length,1);assert.equal(p.support[0].seconds,1/3+2.4);
+ assert.equal(p.support.find(r=>r.id==='pistol-directional').seconds,1/3+2.4);
  const recipe=p.start({recipeId:'pistol-directional',damageType:'bullet',direction:{x:3,z:4}});
  assert.equal(recipe.id,'pistol-directional');let pose=p.pose(1/6);assert.equal(pose.clip,'Hit');assert.equal(pose.phase,.5);assert.ok(Math.abs(Math.hypot(pose.offset.x,pose.offset.z)-.1)<1e-12);
  pose=p.pose(1/3+.6);assert.equal(pose.clip,'Death');assert.ok(Math.abs(pose.phase-.25)<1e-12);
@@ -58,4 +58,4 @@ test('complete authored head parts detach together, leave the real neck and rest
 
 test('invalid explicit head lists cannot silently reduce finisher anatomy',()=>{for(const headParts of [[],['Photo','PhotoEyes','PhotoEyes'],['Bone','Photo','PhotoEyes','PhotoTeeth'],['Photo','PhotoEyes','PhotoTeeth',null],Object.assign(new Array(4),{0:'Photo',1:'PhotoEyes',2:'PhotoTeeth'})])assert.throws(()=>createFinisherPresentation({...fixture(),clips,headParts}),/Invalid authored head parts/);});
 
-test('flame prepared support requires its actual configured skeletal anchor and approved carrier rig',()=>{for(const [present,rig,expected]of[[false,'hollow-scavenger',false],[true,'hollow-scavenger',true],[true,'boss-warden',false]]){const f=fixture();if(present){const torso=new T.Bone();torso.name='spine_01';f.model.add(torso);}const p=createFinisherPresentation({...f,rig,clips,prepareHead:false,prepareRunThrough:false});assert.equal(p.support.some(r=>r.id==='flame-charred-collapse'),expected);const chosen=p.start({recipeId:'flame-charred-collapse',damageType:'flame',impactDirection:{x:0,z:1}});assert.equal(chosen.id,expected?'flame-charred-collapse':'ordinary');assert.equal(p.stats().detached,false);p.dispose();}});
+test('flame native support is available without humanoid anatomy or detached buffers',()=>{for(const [present,rig,expected]of[[false,'hollow-scavenger',true],[true,'hollow-scavenger',true],[true,'boss-warden',true]]){const f=fixture();if(present){const torso=new T.Bone();torso.name='spine_01';f.model.add(torso);}const p=createFinisherPresentation({...f,rig,clips,prepareHead:false,prepareRunThrough:false});assert.equal(p.support.some(r=>r.id==='flame-charred-collapse'),expected);const chosen=p.start({recipeId:'flame-charred-collapse',damageType:'flame',impactDirection:{x:0,z:1}});assert.equal(chosen.id,expected?'flame-charred-collapse':'ordinary');assert.equal(p.stats().detached,false);p.dispose();}});

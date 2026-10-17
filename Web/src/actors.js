@@ -1,3 +1,4 @@
+import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
 import {FINISHER_DATA,remainingFinisherPartSeconds} from './engine/finisher-data.js';
 import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
@@ -50,7 +51,7 @@ function actorModelRef(entity,manifest){
   }
   return entity.kind<0?'vagrant':manifest.pilot==='donor-knife'?entity.rig:names[entity.kind];
 }
-export function restoreActorFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;}applyFlameCorpseChar(view,view.entity);}
+export function restoreActorFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;}applyFinisherCorpseCosmetic(view,view.entity);applyFlameCorpseChar(view,view.entity);}
 // Keep an already-presented corpse age through registered area reconstruction.
 export function finisherPresentationAge(entity,time){
  const elapsed=Math.max(0,time-(entity.response?.start??time)),shown=entity.finisherPresentationAge;
@@ -162,7 +163,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     if(entity.rig==='low-hover-drone'){
       const drone=droneKits.spawn({scene:renderScene,position:stageWorld.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
       const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
-      store.set(entity.id,view);return view;
+      const seen=new Set();drone.root.traverse(n=>{if(n.isMesh)for(const material of Array.isArray(n.material)?n.material:[n.material])if(!seen.has(material)){seen.add(material);view.flashMaterials.push({material,color:material.color?.clone(),emissive:material.emissive?.clone(),intensity:material.emissiveIntensity,roughness:material.roughness});}});view.finisherDeathSeconds=.8;view.restoredCorpse=restoreCorpses&&entity.hp<=0;if(finishers)entity.finisherSupport=nativeFinisherSupport({clip:'drone_death',seconds:.8});store.set(entity.id,view);return view;
     }
     const name = actorModelRef(entity,library.manifest),
       source = library.models.get(name);
@@ -264,6 +265,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       const Motion =
         ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
+      view.finisherDeathSeconds=animations.find(c=>c.name===description.clips.death)?.duration??2.4;view.restoredCorpse=restoreCorpses&&entity.hp<=0;
+      if(finishers&&entity.kind>=0)entity.finisherSupport=nativeFinisherSupport({clip:description.clips.death,seconds:view.finisherDeathSeconds});
       if (view.locomotionVariant === 'crooked-hollow')
         view.motion = new CrookedHollowMotion(view.motion);
       renderScene.add(root, shadow);
@@ -395,7 +398,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
           view.drone.update({time:game.time,dt:Math.max(0,dt),position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z),state,phase:dead?(game.time-(entity.response?.start??game.time))/.8:warning?(game.time-warning.start)/.6:0});
-          view.root.updateWorldMatrix(true,true);continue;
+          view.root.updateWorldMatrix(true,true);if(dead){view.finisherAge=finisherPresentationAge(entity,game.time);restoreActorFlash(view);}continue;
         }
         view.root.scale.setScalar((world.layout.characterScale??1.265)*(view.description.scale??1)*visualScale*(entity.kind>=0?(entity.mobSize??1):1));
         view.root.position.copy(world.toRender(entity.pos));
@@ -404,7 +407,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           (view.description.forwardCorrection ?? 0);
         if(entity.hp<=0)view.root.rotation.x=view.root.rotation.z=0;
         view.root.updateMatrixWorld(true);
-        let deathPose=null;
+        let deathPose=null;if(entity.hp<=0&&!view.finisher)view.finisherAge=finisherPresentationAge(entity,game.time);
         if(!contactOnly&&entity.hp<=0&&view.finisher&&entity.finisher){
           if(!view.finisherStarted){
             view.finisherRequestedRecipeId=entity.finisher.recipeId;const recipe=view.finisher.start(entity.finisher),chosen=entity.finisher;entity.finisher=withPresentedRecipe(chosen,recipe);if(entity.finisher!==chosen&&game.finishers?.lastVictimId===entity.id)game.finishers.recentRecipeId=recipe.id;view.finisherStarted=true;view.finisherAge=finisherPresentationAge(entity,game.time);
@@ -458,7 +461,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           if(m.color)m.material.color.copy(flash?damageCrimson:m.color);
           if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;
         }
-        applyFlameCorpseChar(view,entity);
+        applyFinisherCorpseCosmetic(view,entity);applyFlameCorpseChar(view,entity);
       }
     },
     dispose() {

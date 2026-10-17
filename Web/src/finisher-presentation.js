@@ -1,5 +1,6 @@
 import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition} from './engine/finisher-data.js';
 import * as T from 'three';
+import {nativeFinisherSupport} from './engine/finisher-cosmetics.js';
 import {prepareSplitCrownSteps} from './finisher-crown.js';
 import {prepareOpenedSteps} from './finisher-opened.js';
 import {prepareVictimGroundingSteps} from './finisher-grounding.js';
@@ -117,7 +118,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   headParts=validateHeadParts(headParts);
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
-  const support=[], bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3(),anchorNormal=new T.Vector3();
+  const support=isPlayer?[]:nativeFinisherSupport({clip:'Death',seconds:death}), bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3(),anchorNormal=new T.Vector3();
   let runGrounding=null,runPreparationError=null,completed=false;const runScale=new T.Vector3();
   let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
   try {
@@ -130,7 +131,6 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   if(head&&prepareCrown&&validDuration(cut)){try{crown=yield* prepareSplitCrownSteps(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
   if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=yield* prepareOpenedSteps({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
-  if(!isPlayer&&FLAME_DEATH_DATA.rigs.includes(rig)&&validDuration(death)&&model.getObjectByName(FLAME_DEATH_DATA.anchorBone)?.isBone)support.push({id:FLAME_DEATH_DATA.recipeId,clip:'Death',seconds:death,cost:0,parts:[],prepared:true});
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
@@ -145,8 +145,9 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       if(disposed||chosen)return recipe;
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
       const candidate=support.find(s=>s.id===outcome?.recipeId);
-      const eligible=direction&&candidate&&outcome.damageType===finisherDefinition(candidate.id)?.damageType;
-      recipe=eligible&&!(candidate.id==='opened'&&!opened.canStart())?candidate:ordinary(validDuration(death)?death:2.4);
+      const nativeFallback=FINISHER_DATA.bindings.some(b=>b.fallback===candidate?.id),eligible=candidate&&(direction||nativeFallback)&&outcome.damageType===finisherDefinition(candidate.id)?.damageType;
+      const fallbackId=FINISHER_DATA.bindings.find(b=>finisherDefinition(b.fallback)?.damageType===outcome?.damageType)?.fallback;
+      recipe=eligible&&!(candidate.id==='opened'&&!opened.canStart())?candidate:direction&&outcome?.damageType?support.find(r=>r.id===fallbackId)??ordinary(death):ordinary(death);
       if(recipe.id==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
       if(recipe.id==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
       if(recipe.parts.includes('head')) {
