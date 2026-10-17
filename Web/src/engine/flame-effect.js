@@ -1,18 +1,19 @@
+import {FLAME_DEATH_DATA} from './finisher-data.js';
 import {FLAME_VISUAL_DATA as DATA} from './flame-data.js';
 import {combatTargetHeight} from '../pistol-targeting.js';
 // One private draw with fixed slots. Cosmetic victim fire never dispatches damage.
-export function createFlameEffect({THREE:T,scene,world,getSource,reducedMotion=()=>false}){
+export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>null,reducedMotion=()=>false}){
  const size=DATA.textureSize,pixels=new Uint8Array(size*size*4);
  for(let y=0;y<size;y++)for(let x=0;x<size;x++){const at=(y*size+x)*4,r=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2));pixels[at]=pixels[at+1]=pixels[at+2]=255;pixels[at+3]=Math.round(Math.max(0,1-r)**1.6*240);}
  const texture=new T.DataTexture(pixels,size,size,T.RGBAFormat);texture.needsUpdate=true;
- const geometry=new T.PlaneGeometry(1,1),material=new T.MeshBasicMaterial({map:texture,transparent:true,blending:T.AdditiveBlending,forceSinglePass:true,depthTest:true,depthWrite:false,toneMapped:false,side:T.DoubleSide,alphaTest:.01}),capacity=DATA.emitterCount+DATA.burnSlots*DATA.burnPerVictim,mesh=new T.InstancedMesh(geometry,material,capacity),pose=new T.Object3D(),color=new T.Color(),direction=new T.Vector3(),u=new T.Vector3(),v=new T.Vector3(),up=new T.Vector3(0,1,0);
+ const geometry=new T.PlaneGeometry(1,1),material=new T.MeshBasicMaterial({map:texture,transparent:true,blending:T.AdditiveBlending,forceSinglePass:true,depthTest:true,depthWrite:false,toneMapped:false,side:T.DoubleSide,alphaTest:.01}),capacity=DATA.emitterCount+DATA.burnSlots*DATA.burnPerVictim,mesh=new T.InstancedMesh(geometry,material,capacity),pose=new T.Object3D(),color=new T.Color(),direction=new T.Vector3(),u=new T.Vector3(),v=new T.Vector3(),up=new T.Vector3(0,1,0),anchor=new T.Vector3();
  mesh.name='Flamethrower pooled flame and cosmetic fire';mesh.renderOrder=2;mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);scene.add(mesh);for(let i=0;i<capacity;i++)mesh.setColorAt(i,color.setHex(DATA.palette[i%DATA.palette.length]));
- let disposed=false,owner=null,area=world.areaId,emitter=0,burn=0,victims=0,source=null;
+ let disposed=false,owner=null,area=world.areaId,emitter=0,burn=0,victims=0,source=null,corpseAnchors=[];
  const hide=i=>{pose.scale.setScalar(0);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);};
- function reset(){for(let i=0;i<capacity;i++)hide(i);mesh.instanceMatrix.needsUpdate=true;mesh.visible=false;emitter=burn=victims=0;source=null;}
+ function reset(){for(let i=0;i<capacity;i++)hide(i);mesh.instanceMatrix.needsUpdate=true;mesh.visible=false;emitter=burn=victims=0;source=null;corpseAnchors=[];}
  function put(i,x,y,z,r,palette,aspect=1){if(y<=.02)return false;const q=world.camera.quaternion,halfHeight=r*(Math.abs(2*(q.x*q.y+q.w*q.z))+aspect*Math.abs(1-2*(q.x*q.x+q.z*q.z)))/2,floorScale=halfHeight>0?Math.min(1,(y-.02)/halfHeight):1;pose.position.set(x,y,-z);pose.quaternion.copy(q);pose.scale.set(r*floorScale,r*aspect*floorScale,r*floorScale);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,color.setHex(palette));return true;}
  function update(g,{paused=false}={}){
-  if(disposed)return;if(owner!==g||area!==world.areaId){reset();owner=g;area=world.areaId;}for(let i=0;i<capacity;i++)hide(i);emitter=burn=victims=0;source=null;
+  if(disposed)return;if(owner!==g||area!==world.areaId){reset();owner=g;area=world.areaId;}for(let i=0;i<capacity;i++)hide(i);emitter=burn=victims=0;source=null;corpseAnchors=[];
   if(paused||g.player.hp<=0||g.finished){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}
   const data=g.world?.flameData;if(!data){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}const light=reducedMotion(),count=light?DATA.reducedCount:DATA.emitterCount;
   if(data&&g.flame?.equipped&&g.flame.active){const s=getSource?.();if(s){source=s;direction.set(s.direction.x,s.direction.y,s.direction.z).normalize();u.crossVectors(direction,up);if(u.lengthSq()<1e-8)u.set(1,0,0);else u.normalize();v.crossVectors(u,direction).normalize();
@@ -20,8 +21,15 @@ export function createFlameEffect({THREE:T,scene,world,getSource,reducedMotion=(
     if(world.lineClear(g.player.pos,{x:s.position.x,z:s.position.z})&&world.lineClear({x:s.position.x,z:s.position.z},{x,z})&&put(i,x,y,z,width,DATA.palette[Math.min(2,Math.floor(phase*3))]))emitter++;
    }
   }}
-  if(!light)for(const e of [...g.enemies,...(g.corpses??[])]){if(victims>=DATA.burnSlots)break;if(!(e.flameBurnUntil>g.time))continue;const life=Math.min(1,(e.flameBurnUntil-g.time)/DATA.burnSeconds),height=combatTargetHeight(e,g.time),from=e.flameBurnFrom??g.player.pos,dx=from.x-e.pos.x,dz=from.z-e.pos.z,n=Math.hypot(dx,dz)||1,surface=Math.min(.8,(e.radius??.4)*(e.combatScale??1)+.05),front={x:e.pos.x+dx/n*surface,z:e.pos.z+dz/n*surface};if(!world.lineClear(e.pos,front))continue;for(let j=0;j<DATA.burnPerVictim;j++){const i=DATA.emitterCount+victims*DATA.burnPerVictim+j,offset=(j-.5)*.24,x=front.x+offset,y=height+.13+Math.sin(g.time*14+j)*.08,z=front.z;if(put(i,x,y,z,DATA.burnWidth[j]*life,DATA.palette[j],DATA.burnAspect))burn++;}victims++;}
+  const burnBudget=DATA.burnSlots*DATA.burnPerVictim,corpses=g.corpses??[];let used=0;const candidates=FLAME_DEATH_DATA.prioritizeCorpses?[...corpses.filter(e=>e.finisher?.recipeId===FLAME_DEATH_DATA.recipeId),...g.enemies,...corpses.filter(e=>e.finisher?.recipeId!==FLAME_DEATH_DATA.recipeId)]:[...g.enemies,...corpses];
+  if(!light)for(const e of candidates){
+   if(victims>=DATA.burnSlots)break;const view=getView(e),death=e.hp<=0&&e.finisher?.recipeId===FLAME_DEATH_DATA.recipeId,count=death?FLAME_DEATH_DATA.wisps.length:DATA.burnPerVictim,age=view?.finisherAge,bone=death&&view?.model.getObjectByName(FLAME_DEATH_DATA.anchorBone);let life,front,height;if(used+count>burnBudget)continue;
+   if(death){if(view?.restoredCorpse||!bone?.isBone||!Number.isFinite(age)||age<0||age>=FLAME_DEATH_DATA.burnSeconds)continue;bone.getWorldPosition(anchor);front={x:anchor.x,z:-anchor.z};height=anchor.y;life=Math.min(1,(FLAME_DEATH_DATA.burnSeconds-age)/FLAME_DEATH_DATA.fadeSeconds);if(!world.lineClear(e.pos,front))continue;corpseAnchors.push({victimId:e.id,age,position:{x:anchor.x,y:anchor.y,z:-anchor.z}});}
+   else{if(!(e.flameBurnUntil>g.time))continue;life=Math.min(1,(e.flameBurnUntil-g.time)/DATA.burnSeconds);height=combatTargetHeight(e,g.time);const from=e.flameBurnFrom??g.player.pos,dx=from.x-e.pos.x,dz=from.z-e.pos.z,n=Math.hypot(dx,dz)||1,surface=Math.min(.8,(e.radius??.4)*(e.combatScale??1)+.05);front={x:e.pos.x+dx/n*surface,z:e.pos.z+dz/n*surface};if(!world.lineClear(e.pos,front))continue;}
+   for(let j=0;j<count;j++){const i=DATA.emitterCount+used+j,w=death?FLAME_DEATH_DATA.wisps[j]:null,offset=(j-.5)*.24,x=front.x+(w?w.offset[0]:offset),y=height+(w?FLAME_DEATH_DATA.anchorLift+w.offset[1]+FLAME_DEATH_DATA.rise*((g.time*FLAME_DEATH_DATA.riseRate+w.phase)%1):.13+Math.sin(g.time*14+j)*.08),z=front.z+(w?w.offset[2]:0),width=w?w.width*(1+FLAME_DEATH_DATA.flickerSize*Math.sin(g.time*FLAME_DEATH_DATA.flickerRate+w.phase)):DATA.burnWidth[j];if(put(i,x,y,z,width*life,w?w.color:DATA.palette[j],w?w.aspect:DATA.burnAspect))burn++;}used+=count;victims++;
+
+  }
   mesh.visible=emitter+burn>0;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
  }
- reset();return{update,reset,snapshot(){return{emitterCapacity:1,particleCapacity:capacity,emitterParticles:emitter,cosmeticVictims:victims,burnParticles:burn,drawCalls:mesh.visible?1:0,depthTest:material.depthTest,depthWrite:material.depthWrite,source};},dispose(){if(disposed)return;reset();disposed=true;mesh.removeFromParent();mesh.dispose();geometry.dispose();material.dispose();texture.dispose();}};
+ reset();return{update,reset,snapshot(){return{emitterCapacity:1,particleCapacity:capacity,emitterParticles:emitter,cosmeticVictims:victims,corpseAnchors,burnParticles:burn,drawCalls:mesh.visible?1:0,depthTest:material.depthTest,depthWrite:material.depthWrite,source};},dispose(){if(disposed)return;reset();disposed=true;mesh.removeFromParent();mesh.dispose();geometry.dispose();material.dispose();texture.dispose();}};
 }

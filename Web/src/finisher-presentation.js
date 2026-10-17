@@ -1,3 +1,4 @@
+import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition} from './engine/finisher-data.js';
 import * as T from 'three';
 import {prepareSplitCrownSteps} from './finisher-crown.js';
 import {prepareOpenedSteps} from './finisher-opened.js';
@@ -8,7 +9,7 @@ export function validateHeadParts(parts=HEAD_NAMES){
   if(!Array.isArray(parts)||parts.length<3||parts.length>12||parts[0]!=='Photo'||new Set(parts).size!==parts.length||HEAD_NAMES.some(name=>!parts.includes(name))||Array.from(parts).some(name=>typeof name!=='string'||!/^\w{1,64}$/.test(name)))throw new TypeError('Invalid authored head parts');
   return [...parts];
 }
-const PART_LIFETIME = 6;
+const PART_LIFETIME = FINISHER_DATA.limits.partLifetime;
 // Brief victim pose emphasis. Detached-part physics and expiry use real age.
 export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
   return enabled&&!restored ? age-.25*Math.min(.2,Math.max(0,age)) : age;
@@ -112,7 +113,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
 // for detached render-space motion. One actor, one head, finite lifetime.
 export function createFinisherPresentation(options){const steps=createFinisherPresentationSteps(options);for(;;){const step=steps.next();if(step.done)return step.value;}}
 export function* createFinisherPresentationSteps({root,model,clips,scene,groundY=0,isBlocked,
-  isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null,headParts=HEAD_NAMES}={}) {
+  rig=null,isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null,headParts=HEAD_NAMES}={}) {
   headParts=validateHeadParts(headParts);
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
@@ -129,6 +130,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   if(head&&prepareCrown&&validDuration(cut)){try{crown=yield* prepareSplitCrownSteps(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
   if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=yield* prepareOpenedSteps({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
+  if(!isPlayer&&FLAME_DEATH_DATA.rigs.includes(rig)&&validDuration(death)&&model.getObjectByName(FLAME_DEATH_DATA.anchorBone)?.isBone)support.push({id:FLAME_DEATH_DATA.recipeId,clip:'Death',seconds:death,cost:0,parts:[],prepared:true});
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
@@ -143,7 +145,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       if(disposed||chosen)return recipe;
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
       const candidate=support.find(s=>s.id===outcome?.recipeId);
-      const eligible=direction&&candidate&&(candidate.id.startsWith('pistol-')?outcome.damageType==='bullet':candidate.id==='run-through'?outcome.damageType==='piercing':outcome.damageType==='cutting');
+      const eligible=direction&&candidate&&outcome.damageType===finisherDefinition(candidate.id)?.damageType;
       recipe=eligible&&!(candidate.id==='opened'&&!opened.canStart())?candidate:ordinary(validDuration(death)?death:2.4);
       if(recipe.id==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
       if(recipe.id==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
