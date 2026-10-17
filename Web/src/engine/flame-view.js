@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {setFlameEquipped,stopFlame,flameCanAct} from './flame-runtime.js';
-import {addPickupGlow} from './pickup-glow.js';
+import {addPickupGlow} from '../pickup-glow.js';
 const paint=(el,text)=>{if(el.textContent!==text)el.textContent=text;};
 export function createFlamePickupView(source){
  const root=new T.Group(),contours=[];root.name='Flamethrower world pickup';

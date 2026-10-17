@@ -6,7 +6,7 @@ import {createAreaRegistry} from '../src/area-registry.js';
 import {createGeometry} from '../src/world-geometry.js';
 import {validateAreaMetadata,validateAreaGeometry} from '../src/engine/area-content.js';
 import {createRunPersistence} from '../src/engine/run-core.js';
-import {setFlameEquipped,stopFlame} from '../src/flame-runtime.js';
+import {setFlameEquipped,stopFlame} from '../src/engine/flame-runtime.js';
 import {FLAME_SAVE_KEY} from '../src/engine/flame-core.js';
 import {travelTo} from '../src/travel.js';
 import {nextAnimalCycle} from '../src/animal-cycle.js';

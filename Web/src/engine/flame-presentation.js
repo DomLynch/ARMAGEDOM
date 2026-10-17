@@ -1,6 +1,6 @@
 import * as T from 'three';
-import {attachPistol} from './pistol-pose.js';
-import profile from './donor/flame-right-digit-profile.json' with {type:'json'};
+import {attachPistol} from '../pistol-pose.js';
+import profile from '../donor/flame-right-digit-profile.json' with {type:'json'};
 const names=['middle','ring','pinky','index','thumb'].flatMap(f=>[1,2,3].map(i=>`${f}_0${i}_r`));
 const validated=new WeakMap();
 // The one accepted profile is bound to this exact hero, not retargeted or fitted.

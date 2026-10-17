@@ -1,5 +1,5 @@
-import{flameTouches}from'./engine/flame-contact.js';
-import {createFlameFuelModel} from './engine/flame-fuel-state.js';
+import{flameTouches}from'./flame-contact.js';
+import {createFlameFuelModel} from './flame-fuel-state.js';
 const EPS=1e-8;
 export function initializeFlame(g){
  if(!g.world.flameData)return;

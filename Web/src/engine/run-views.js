@@ -1,5 +1,5 @@
-import{createFlameView}from'../flame-view.js';
-import{stopFlame}from'../flame-runtime.js';
+import{createFlameView}from'./flame-view.js';
+import{stopFlame}from'./flame-runtime.js';
 import{createUniqueRewardView}from'../unique-reward-view.js';
 import{createBossView}from'./boss-view.js';
 import {createExpeditionView} from './expedition-runtime.js';

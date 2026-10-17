@@ -1,5 +1,5 @@
 import{FLAME_VISUAL_DATA}from'./engine/flame-data.js';
-import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./flame-runtime.js';
+import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./engine/flame-runtime.js';
 import{populationPlacements,populationAllowsDrone}from'./engine/area-population.js';
 import{posedMeleeMove}from'./engine/melee-equipment-data.js';
 import{applyBossProfile,bossMove,bossHazardPosition}from'./engine/area-bosses.js';
