@@ -94,6 +94,6 @@ export function applyFlameCorpseChar(view,entity){
  if(!(entity.hp<=0)||entity.finisher?.recipeId!==FLAME_DEATH_DATA.recipeId)return false;
  const f=FLAME_DEATH_DATA,age=view.restoredCorpse?f.charSettle:view.finisherAge??0,progress=Math.max(0,Math.min(1,(age-f.charBegin)/(f.charSettle-f.charBegin)));
  const life=view.restoredCorpse?0:Math.max(0,Math.min(1,(flameDeathSeconds(view.finisherDeathSeconds)-age)/f.fadeSeconds));
- for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color).lerp(soot,progress*f.blend);if(Number.isFinite(m.roughness))m.material.roughness=m.roughness+(Math.max(m.roughness,f.roughnessFloor)-m.roughness)*progress;if(m.emissive)m.material.emissive.copy(m.emissive).multiplyScalar(1-progress).lerp(flare,life);if(Number.isFinite(m.intensity))m.material.emissiveIntensity=m.intensity*(1-progress)+f.flareIntensity*life;}
+ for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color).lerp(soot,progress*f.blend);if(Number.isFinite(m.roughness))m.material.roughness=m.roughness+(Math.max(m.roughness,f.roughnessFloor)-m.roughness)*progress;if(m.emissive)m.material.emissive.copy(m.emissive).multiplyScalar(1-progress).lerp(flare,life);if(Number.isFinite(m.intensity))m.material.emissiveIntensity=m.intensity*(1-progress)*(1-life)+f.flareIntensity*life;}
  return true;
 }
