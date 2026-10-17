@@ -10,7 +10,7 @@ export function createFlameEffect({THREE:T,scene,world,getSource,reducedMotion=(
  let disposed=false,owner=null,area=world.areaId,emitter=0,burn=0,victims=0,source=null;
  const hide=i=>{pose.scale.setScalar(0);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);};
  function reset(){for(let i=0;i<capacity;i++)hide(i);mesh.instanceMatrix.needsUpdate=true;mesh.visible=false;emitter=burn=victims=0;source=null;}
- function put(i,x,y,z,r,palette,aspect=1){if(y<r*.35)return false;pose.position.set(x,y,-z);pose.quaternion.copy(world.camera.quaternion);pose.scale.set(r,r*aspect,r);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,color.setHex(palette));return true;}
+ function put(i,x,y,z,r,palette,aspect=1){if(y<=.02)return false;const q=world.camera.quaternion,halfHeight=r*(Math.abs(2*(q.x*q.y+q.w*q.z))+aspect*Math.abs(1-2*(q.x*q.x+q.z*q.z)))/2,floorScale=halfHeight>0?Math.min(1,(y-.02)/halfHeight):1;pose.position.set(x,y,-z);pose.quaternion.copy(q);pose.scale.set(r*floorScale,r*aspect*floorScale,r*floorScale);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,color.setHex(palette));return true;}
  function update(g,{paused=false}={}){
   if(disposed)return;if(owner!==g||area!==world.areaId){reset();owner=g;area=world.areaId;}for(let i=0;i<capacity;i++)hide(i);emitter=burn=victims=0;source=null;
   if(paused||g.player.hp<=0||g.finished){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}
