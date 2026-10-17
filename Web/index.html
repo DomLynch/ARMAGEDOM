@@ -146,6 +146,16 @@
         </p>
       </details>
       <button id="retry">Retry encounter</button>
+      <button id="reset-game" type="button">Reset game</button>
+      <section id="reset-confirmation" hidden aria-label="Confirm game reset">
+        <h3>Start a completely fresh game?</h3>
+        <p>This resets the map and all enemies and bosses, health, quests, mastery, discoveries, earned weapons and pickups. Spent flamethrower fuel is reset: collect a full flamethrower again near the Westminster bridge. Retry keeps your retained progress; Reset replaces it.</p>
+        <p>Your previous run and original save records will be backed up locally before anything is replaced. The game will reload at the Westminster start screen. Only this game’s run records are replaced; other app data and accounts stay untouched.</p>
+        <button id="confirm-reset" type="button">Back up &amp; reset game</button>
+        <button id="cancel-reset" type="button">Keep current game</button>
+        <button id="download-run-backup" type="button" hidden>Download previous run backups</button>
+        <p id="reset-status" role="status" aria-live="polite"></p>
+      </section>
       <p class="version" id="version">Three.js conversion preview</p>
     </dialog>
     <section id="ending" class="overlay" hidden>

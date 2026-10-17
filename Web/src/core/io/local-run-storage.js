@@ -1,5 +1,5 @@
 /** Synchronous guest IO only. Inject the EXISTING unified-run codec; no ledger here. */
-export function createRunStorage({storage, codec}) {
+export function createRunStorage({storage, codec, resetSnapshot}) {
   if (!codec || typeof codec.encodeRun !== 'function' || typeof codec.restoreRun !== 'function' ||
       typeof codec.RUN_SAVE_KEY !== 'string' || typeof codec.PISTOL_SAVE_KEY !== 'string')
     throw TypeError('Existing run codec and both legacy/current keys required');
@@ -21,7 +21,8 @@ export function createRunStorage({storage, codec}) {
       blocked = null;
       return {status: 'ok', source: raw != null ? 'run' : legacyRaw != null ? 'legacy' : 'fresh', saved};
     },
-    write(candidate, {fresh = false} = {}) {
+    readResetBackup(){try{return storage?.getItem(codec.RUN_SAVE_KEY+':reset-backups')??null;}catch{return null;}},
+    write(candidate, {fresh = false, reset = false} = {}) {
       // Only Core Retry may pass fresh; normal save cannot erase unreadable data.
       if (blocked && !fresh) return {status: blocked, ok: false};
       if (!storage) return {status: 'unavailable', ok: false};
@@ -43,10 +44,21 @@ export function createRunStorage({storage, codec}) {
       if (typeof codec.captureRunState === 'function' && typeof codec.isRunStateUnchanged === 'function') {
         try { state = codec.captureRunState(candidate); } catch { /* Unsupported shapes use full validation. */ }
       }
-      if (!blocked && key === committedKey && raw === committedRaw) {
+      if (!reset && !blocked && key === committedKey && raw === committedRaw) {
         committedState = state;return {status: 'unchanged', ok: true};
       }
-      try { storage.setItem(key, raw); }
+      try {
+        if(reset){
+          if(!fresh||typeof resetSnapshot!=='function')return {status:'invalid',ok:false};
+          const backupKey=key+':reset-backups',previous=storage.getItem(backupKey),history=previous===null?{version:1,snapshots:[]}:JSON.parse(previous);
+          if(history.version!==1||!Array.isArray(history.snapshots))return {status:'invalid',ok:false};
+          const snapshot=resetSnapshot();if(!snapshot||typeof snapshot!=='object')return {status:'invalid',ok:false};
+          const backup=JSON.stringify({version:1,snapshots:[...history.snapshots,{savedAt:new Date().toISOString(),currentKey:key,...snapshot}]});
+          storage.setItem(backupKey,backup);
+          if(storage.getItem(backupKey)!==backup)return {status:'unavailable',ok:false};
+        }
+        storage.setItem(key, raw);
+      }
       catch { committedState = null;return {status: 'unavailable', ok: false}; }
       committedRaw = raw; committedKey = key; committedState = state; blocked = null;
       return {status: 'saved', ok: true};

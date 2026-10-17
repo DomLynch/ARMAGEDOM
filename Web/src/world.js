@@ -110,6 +110,7 @@ export class LondonWorld {
     if(total>budget)throw Error('London prepared texture budget exceeded; active or in-flight areas retained');
     for(const [id,stage]of evict){cache.stages.delete(id);cache.usage.delete(id);stage.disposeStage();cache.evictions++;cache.lastEvicted=id;}
   }
+  startingPoint(){return initialSpawn(this.geometry,this.registry);}
   async prepareArea(areaId){
     if(!this.registry.has(areaId))throw Error('Unknown London area');
     const cache=this.areaCache??=this.createAreaCache();if(cache.disposed)throw Error('London cache disposed');
