@@ -1,4 +1,5 @@
-import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance}from'./engine/flame-presentation.js';
+import {FINISHER_DATA,remainingFinisherPartSeconds} from './engine/finisher-data.js';
+import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
@@ -258,7 +259,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       }
       humanBody=humanBodyRequest==='human-gaunt-skulker'?gauntKits.get(source.gltf.scene)?.apply(model)??null:null;
       humanBodyRecipe=humanBody?humanBodyRequest:null;view.humanBody=humanBody;view.humanBodyRecipe=humanBodyRecipe;
-      flashMaterials.push(...[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone()})));
+      flashMaterials.push(...[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone(),roughness:m.material.roughness})));
       const Motion =
         ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
@@ -267,7 +268,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       renderScene.add(root, shadow);
       yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=yield* createFinisherPresentationSteps({root,model,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&entity.placementKey===({westminster:'westminster-roamer-3',east:'east-roamer-3',south:'south-roamer-4'})[stageWorld.areaId]&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -297,7 +298,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     for (const m of view.materials) m.material.dispose();
     store.delete(id);
   }
-  function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;}}
+  function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;}}
   return {
     views,
     ensureFlame(){const data=world.flameData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Flamethrower unavailable'));},
@@ -407,9 +408,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           if(!view.finisherStarted){
             view.finisherRequestedRecipeId=entity.finisher.recipeId;const recipe=view.finisher.start(entity.finisher),chosen=entity.finisher;entity.finisher=withPresentedRecipe(chosen,recipe);if(entity.finisher!==chosen&&game.finishers?.lastVictimId===entity.id)game.finishers.recentRecipeId=recipe.id;view.finisherStarted=true;view.finisherAge=finisherPresentationAge(entity,game.time);
             if(view.restoredCorpse&&recipe.cost>0){
-              if(view.finisherAge>=6)view.finisher.update(view.finisherAge,0);
+              if(view.finisherAge>=FINISHER_DATA.limits.partLifetime)view.finisher.update(view.finisherAge,0);
               else for(let age=0;age<view.finisherAge;){const step=Math.min(1/60,view.finisherAge-age);age+=step;view.finisher.update(age,step);}
-              entity.finisherPartsUntil=game.time+Math.max(0,6-view.finisherAge);if(recipe.parts.includes('head'))entity.finisherHeadUntil=entity.finisherPartsUntil;
+              entity.finisherPartsUntil=game.time+remainingFinisherPartSeconds(view.finisherAge);if(recipe.parts.includes('head'))entity.finisherHeadUntil=entity.finisherPartsUntil;
             }
             const parts=view.finisher.stats();if(!parts.detached)entity.finisherHeadUntil=0;if(!parts.activePartCost)entity.finisherPartsUntil=0;
           }
@@ -454,7 +455,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
             m.material.emissiveIntensity=flash?.35:m.intensity;
           }
           if(m.color)m.material.color.copy(flash?damageCrimson:m.color);
+          if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;
         }
+        applyFlameCorpseChar(view,entity);
       }
     },
     dispose() {

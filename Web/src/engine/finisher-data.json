@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "chance": 0.78,
+  "seed": "weapon-finishers-v1",
+  "ordinary": {
+    "id": "ordinary",
+    "clip": "Death",
+    "seconds": 2.4,
+    "cost": 0,
+    "parts": []
+  },
+  "limits": {
+    "partBudget": 2,
+    "partLifetime": 6,
+    "maxRecipeSeconds": 10
+  },
+  "recipes": [
+    {
+      "id": "pistol-directional",
+      "damageType": "bullet",
+      "parts": [],
+      "avoidRepeat": false,
+      "impact": [
+        "body",
+        8,
+        0,
+        0.34,
+        2.6,
+        20
+      ]
+    },
+    {
+      "id": "pistol-decapitation",
+      "damageType": "bullet",
+      "parts": [
+        "head"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        16,
+        2,
+        0.75,
+        4.2,
+        42
+      ]
+    },
+    {
+      "id": "decapitation",
+      "damageType": "cutting",
+      "parts": [
+        "head"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        16,
+        2,
+        0.75,
+        3.8,
+        58
+      ]
+    },
+    {
+      "id": "split-crown",
+      "damageType": "cutting",
+      "parts": [
+        "crown"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        14,
+        2,
+        0.75,
+        2.9,
+        65
+      ]
+    },
+    {
+      "id": "opened",
+      "damageType": "cutting",
+      "parts": [
+        "upper-body"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "body",
+        20,
+        4,
+        0.75,
+        3.6,
+        70
+      ]
+    },
+    {
+      "id": "run-through",
+      "damageType": "piercing",
+      "parts": [],
+      "avoidRepeat": false,
+      "impact": [
+        "body",
+        10,
+        1,
+        0.42,
+        2.5,
+        16
+      ]
+    },
+    {
+      "id": "flame-charred-collapse",
+      "damageType": "flame",
+      "parts": [],
+      "avoidRepeat": false
+    }
+  ],
+  "bindings": [
+    {
+      "weapon": "pistol",
+      "recipes": [
+        {
+          "id": "pistol-directional",
+          "weight": 2
+        },
+        {
+          "id": "pistol-decapitation",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "weapon": "knife",
+      "moveIds": [
+        "light_right",
+        "light_left",
+        "heavy_overhead"
+      ],
+      "recipes": [
+        {
+          "id": "decapitation",
+          "weight": 2
+        },
+        {
+          "id": "split-crown",
+          "weight": 1
+        },
+        {
+          "id": "opened",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "weapon": "knife",
+      "moveIds": [
+        "thrust"
+      ],
+      "recipes": [
+        {
+          "id": "run-through",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "weapon": "flamethrower",
+      "attackClasses": [
+        "fire"
+      ],
+      "recipes": [
+        {
+          "id": "flame-charred-collapse",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "flameDeath": {
+    "recipeId": "flame-charred-collapse",
+    "rigs": [
+      "hollow-scavenger"
+    ],
+    "anchorBone": "spine_01",
+    "burnSeconds": 1.4,
+    "fadeSeconds": 0.35,
+    "anchorLift": 0.13,
+    "charBegin": 0.15,
+    "charSettle": 1.15,
+    "tint": 4208431,
+    "blend": 0.9,
+    "roughnessFloor": 0.95
+  },
+  "impactLimits": {
+    "bursts": 2,
+    "particles": 48,
+    "trails": 8
+  },
+  "preparation": {
+    "openedPlacements": [
+      "westminster-roamer-3",
+      "east-roamer-3",
+      "south-roamer-4"
+    ]
+  }
+}
