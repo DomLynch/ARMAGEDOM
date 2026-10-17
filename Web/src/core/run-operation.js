@@ -20,8 +20,9 @@ export function createRunOperation({getRun,setRun,createFreshRun,applySavedRun,c
     applySavedRun(g,saved);
     return success(true);
    }
+   case 'reset':
    case 'retry':{
-    const candidate=createFreshRun();
+    const candidate=createFreshRun({reset:command.type==='reset'});
     if(!candidate||candidate===g)return deny('not-eligible');
     if(!context.writeRun(candidate))return deny('storage-unavailable');
     setRun(candidate);

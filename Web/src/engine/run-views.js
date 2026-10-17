@@ -12,7 +12,7 @@ import {createVestBagView} from '../vest-view.js';
 import {vestAvailable} from '../vest.js';
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
-const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:()=>s.createFreshRun(),storage});
+const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:options=>s.createFreshRun(options),storage});
 const bossView=createBossView(s),flameView=createFlameView(s,persistence);
 const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{if(command.type==='equip')stopFlame(g,{unequip:true});const result=persistence.dispatchUniqueReward(g,command,allowed);if(result.ok&&command.type==='equip')resetMobileControls(g);return result;});
 const expeditionView=createExpeditionView(s,(g,command,allowed)=>{if(command.type==='equip'||command.type==='selectVariant')stopFlame(g,{unequip:true});return persistence.dispatchExpedition(g,command,allowed);});

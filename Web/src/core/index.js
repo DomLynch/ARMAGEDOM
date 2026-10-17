@@ -1,10 +1,10 @@
 /**
  * @typedef {{type:'claimPickup',pickupId:string}|{type:'equip',itemId:string,equipped:boolean}|
- * {type:'retry'}|{type:'save'}|{type:'restore'}|{type:'expedition',action:'accept'|'recover'|'claim'}|{type:'selectVariant',variantId:string}} CoreCommand
+ * {type:'retry'}|{type:'reset'}|{type:'save'}|{type:'restore'}|{type:'expedition',action:'accept'|'recover'|'claim'}|{type:'selectVariant',variantId:string}} CoreCommand
  * @typedef {{ok:true,changed:boolean,events:ReadonlyArray<object>}|
  * {ok:false,code:'invalid-command'|'invalid-save'|'storage-unavailable'|'not-eligible'|'already-collected',events:ReadonlyArray<object>}} CoreResult
  */
-const fields = Object.freeze({claimPickup:['type','pickupId'],equip:['type','itemId','equipped'],retry:['type'],save:['type'],restore:['type'],expedition:['type','action'],selectVariant:['type','variantId']});
+const fields = Object.freeze({claimPickup:['type','pickupId'],equip:['type','itemId','equipped'],retry:['type'],reset:['type'],save:['type'],restore:['type'],expedition:['type','action'],selectVariant:['type','variantId']});
 const codes = new Set(['invalid-command','invalid-save','storage-unavailable','not-eligible','already-collected']);
 const validId = id => typeof id === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/.test(id);
 function validCommand(command) {
@@ -42,7 +42,7 @@ export function createCore({executeDomain,readRun,writeRun,codec,account} = {}) 
       try {
         const result = executeDomain(Object.freeze({...command}), Object.freeze({codec,account,
           writeRun(candidate) {
-            let written;try { written = writeRun(candidate,{fresh:command.type === 'retry'}); }
+            let written;try { written = writeRun(candidate,{fresh:command.type === 'retry'||command.type === 'reset',...(command.type==='reset'?{reset:true}:{})}); }
             catch { written = {ok:false,status:'unavailable'}; }
             if (!written?.ok) { error = ioCode(written?.status);return false; }
             committed = true;return true;
