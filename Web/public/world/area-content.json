@@ -159,6 +159,84 @@
           }
         ]
       }
+    ],
+    "area8": [
+      {
+        "key": "area8-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -14,
+          "z": 18
+        },
+        "patrol": [
+          {
+            "x": -14,
+            "z": 18
+          },
+          {
+            "x": -14,
+            "z": 19
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-2",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 11,
+          "z": 6
+        },
+        "patrol": [
+          {
+            "x": 11,
+            "z": 6
+          },
+          {
+            "x": 12,
+            "z": 6
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-3",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-gaunt-skulker",
+        "pos": {
+          "x": -2,
+          "z": -4
+        },
+        "patrol": [
+          {
+            "x": -2,
+            "z": -4
+          },
+          {
+            "x": -2,
+            "z": -3
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-4",
+        "foundationRef": "original-roach",
+        "recipeRef": "roach-ash",
+        "pos": {
+          "x": 5.5,
+          "z": 0
+        },
+        "patrol": [
+          {
+            "x": 5.5,
+            "z": 0
+          },
+          {
+            "x": 5.5,
+            "z": 1
+          }
+        ]
+      }
     ]
   },
   "atmosphere": {
@@ -4598,5 +4676,188 @@
   "uniqueReward": {
     "version": 1,
     "itemId": "hale-pitborn-cleaver-v1"
+  },
+  "population": {
+    "version": 1,
+    "maxHostilesPerArea": 6,
+    "areas": {
+      "westminster": {
+        "activePlacementIds": [
+          "westminster-roamer-1",
+          "westminster-roamer-2",
+          "westminster-roamer-3",
+          "westminster-roamer-4",
+          "westminster-roamer-5",
+          "westminster-roamer-6"
+        ],
+        "creatureSlot": {
+          "placementKey": "westminster-roamer-2",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-roach",
+              "recipeRef": "roach-ash"
+            },
+            "B": {
+              "foundationRef": "original-rat",
+              "recipeRef": "rat-soot"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "east": {
+        "activePlacementIds": [
+          "east-roamer-1",
+          "east-roamer-2",
+          "east-roamer-3",
+          "east-roamer-4",
+          "east-roamer-6",
+          "east-roamer-8"
+        ],
+        "creatureSlot": {
+          "placementKey": "east-roamer-4",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-dog",
+              "recipeRef": "dog-street-mongrel"
+            },
+            "B": {
+              "foundationRef": "original-roach",
+              "recipeRef": "roach-ash"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "south": {
+        "activePlacementIds": [
+          "south-roamer-1",
+          "south-roamer-4",
+          "south-roamer-5",
+          "south-roamer-6",
+          "south-roamer-9",
+          "south-drone-1"
+        ],
+        "creatureSlot": {
+          "placementKey": "south-drone-1",
+          "cycles": {
+            "A": {
+              "foundationRef": "low-hover-drone",
+              "recipeRef": null
+            },
+            "B": {
+              "foundationRef": "low-hover-drone",
+              "recipeRef": null
+            }
+          }
+        },
+        "allowDroneFallback": true
+      },
+      "east-bridge": {
+        "activePlacementIds": [
+          "east-bridge-resident-1",
+          "east-bridge-resident-2",
+          "boss-warden-v1"
+        ],
+        "creatureSlot": {
+          "placementKey": "east-bridge-resident-2",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-rat",
+              "recipeRef": "rat-soot"
+            },
+            "B": {
+              "foundationRef": "original-dog",
+              "recipeRef": "dog-street-mongrel"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "elephant-and-castle": {
+        "activePlacementIds": [
+          "elephant-and-castle-resident-1",
+          "elephant-and-castle-resident-2",
+          "boss-butcher-v1"
+        ],
+        "creatureSlot": {
+          "placementKey": "elephant-and-castle-resident-2",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-dog",
+              "recipeRef": "dog-street-mongrel"
+            },
+            "B": {
+              "foundationRef": "original-roach",
+              "recipeRef": "roach-ash"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "lambeth": {
+        "activePlacementIds": [
+          "lambeth-resident-1",
+          "lambeth-resident-2",
+          "boss-surgeon-v1"
+        ],
+        "creatureSlot": {
+          "placementKey": "lambeth-resident-2",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-roach",
+              "recipeRef": "roach-ash"
+            },
+            "B": {
+              "foundationRef": "original-rat",
+              "recipeRef": "rat-soot"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "area7": {
+        "activePlacementIds": [
+          "area7-station-scavenger-v1",
+          "area7-station-rat-v1"
+        ],
+        "creatureSlot": {
+          "placementKey": "area7-station-rat-v1",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-rat",
+              "recipeRef": "rat-soot"
+            },
+            "B": {
+              "foundationRef": "original-dog",
+              "recipeRef": "dog-street-mongrel"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      },
+      "area8": {
+        "activePlacementIds": [
+          "area8-resident-1",
+          "area8-resident-2",
+          "area8-resident-3",
+          "area8-resident-4"
+        ],
+        "creatureSlot": {
+          "placementKey": "area8-resident-4",
+          "cycles": {
+            "A": {
+              "foundationRef": "original-roach",
+              "recipeRef": "roach-ash"
+            },
+            "B": {
+              "foundationRef": "original-dog",
+              "recipeRef": "dog-street-mongrel"
+            }
+          }
+        },
+        "allowDroneFallback": false
+      }
+    }
   }
 }
