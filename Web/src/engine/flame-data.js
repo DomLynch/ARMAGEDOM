@@ -1,6 +1,6 @@
 import {closed,freeze} from './content-schema.js';
 import {FLAME_PILOT_PROFILE} from './flame-fuel-state.js';
-export const FLAME_VISUAL_DATA=freeze({emitterCount:24,reducedCount:6,burnSlots:6,burnPerVictim:2,burnSeconds:.35,textureSize:32,palette:[0xffd58a,0xff8d32,0xd74315]});
+export const FLAME_VISUAL_DATA=freeze({emitterCount:24,reducedCount:6,burnSlots:6,burnPerVictim:2,burnSeconds:.35,textureSize:32,emitterWidth:[.26,.5],burnWidth:[.5,.7],burnAspect:1.65,palette:[0xfff6ce,0xffb843,0xf15a10]});
 export const FLAME_MODEL_REF='player-flamethrower';
 export function validateFlameData(input,registry){
  if(input===undefined)return null;
