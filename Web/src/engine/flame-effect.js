@@ -21,11 +21,13 @@ export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>nul
     if(world.lineClear(g.player.pos,{x:s.position.x,z:s.position.z})&&world.lineClear({x:s.position.x,z:s.position.z},{x,z})&&put(i,x,y,z,width,DATA.palette[Math.min(2,Math.floor(phase*3))]))emitter++;
    }
   }}
-  if(!light)for(const e of [...g.enemies,...(g.corpses??[])]){
-   if(victims>=DATA.burnSlots)break;const view=getView(e),death=e.hp<=0&&e.finisher?.recipeId===FLAME_DEATH_DATA.recipeId,age=view?.finisherAge,bone=death&&view?.model.getObjectByName(FLAME_DEATH_DATA.anchorBone);let life,front,height;
+  const burnBudget=DATA.burnSlots*DATA.burnPerVictim,corpses=g.corpses??[];let used=0;const candidates=FLAME_DEATH_DATA.prioritizeCorpses?[...corpses.filter(e=>e.finisher?.recipeId===FLAME_DEATH_DATA.recipeId),...g.enemies,...corpses.filter(e=>e.finisher?.recipeId!==FLAME_DEATH_DATA.recipeId)]:[...g.enemies,...corpses];
+  if(!light)for(const e of candidates){
+   if(victims>=DATA.burnSlots)break;const view=getView(e),death=e.hp<=0&&e.finisher?.recipeId===FLAME_DEATH_DATA.recipeId,count=death?FLAME_DEATH_DATA.wisps.length:DATA.burnPerVictim,age=view?.finisherAge,bone=death&&view?.model.getObjectByName(FLAME_DEATH_DATA.anchorBone);let life,front,height;if(used+count>burnBudget)continue;
    if(death){if(view?.restoredCorpse||!bone?.isBone||!Number.isFinite(age)||age<0||age>=FLAME_DEATH_DATA.burnSeconds)continue;bone.getWorldPosition(anchor);front={x:anchor.x,z:-anchor.z};height=anchor.y;life=Math.min(1,(FLAME_DEATH_DATA.burnSeconds-age)/FLAME_DEATH_DATA.fadeSeconds);if(!world.lineClear(e.pos,front))continue;corpseAnchors.push({victimId:e.id,age,position:{x:anchor.x,y:anchor.y,z:-anchor.z}});}
    else{if(!(e.flameBurnUntil>g.time))continue;life=Math.min(1,(e.flameBurnUntil-g.time)/DATA.burnSeconds);height=combatTargetHeight(e,g.time);const from=e.flameBurnFrom??g.player.pos,dx=from.x-e.pos.x,dz=from.z-e.pos.z,n=Math.hypot(dx,dz)||1,surface=Math.min(.8,(e.radius??.4)*(e.combatScale??1)+.05);front={x:e.pos.x+dx/n*surface,z:e.pos.z+dz/n*surface};if(!world.lineClear(e.pos,front))continue;}
-   for(let j=0;j<DATA.burnPerVictim;j++){const i=DATA.emitterCount+victims*DATA.burnPerVictim+j,offset=(j-.5)*.24,x=front.x+offset,y=height+(death?FLAME_DEATH_DATA.anchorLift:.13)+Math.sin(g.time*14+j)*.08,z=front.z;if(put(i,x,y,z,DATA.burnWidth[j]*life,DATA.palette[j],DATA.burnAspect))burn++;}victims++;
+   for(let j=0;j<count;j++){const i=DATA.emitterCount+used+j,w=death?FLAME_DEATH_DATA.wisps[j]:null,offset=(j-.5)*.24,x=front.x+(w?w.offset[0]:offset),y=height+(w?FLAME_DEATH_DATA.anchorLift+w.offset[1]+FLAME_DEATH_DATA.rise*((g.time*FLAME_DEATH_DATA.riseRate+w.phase)%1):.13+Math.sin(g.time*14+j)*.08),z=front.z+(w?w.offset[2]:0),width=w?w.width*(1+FLAME_DEATH_DATA.flickerSize*Math.sin(g.time*FLAME_DEATH_DATA.flickerRate+w.phase)):DATA.burnWidth[j];if(put(i,x,y,z,width*life,w?w.color:DATA.palette[j],w?w.aspect:DATA.burnAspect))burn++;}used+=count;victims++;
+
   }
   mesh.visible=emitter+burn>0;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
  }
