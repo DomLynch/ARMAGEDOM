@@ -1,5 +1,6 @@
+import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
-import {FINISHER_DATA,remainingFinisherPartSeconds} from './engine/finisher-data.js';
+import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds} from './engine/finisher-data.js';
 import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
@@ -154,7 +155,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   if(humanFoundation?.getObjectByName('Hollow_body_and_worn_trousers'))try{gauntKits.set(humanFoundation,createGauntShapeLibrary(humanFoundation));}catch(error){gauntPreparationError=String(error.message??error);}
   let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
-  const parkedViews=new Map(),groundingCache=new WeakMap();
+  const parkedViews=new Map(),groundingCache=new WeakMap(),goreOwners=new Set();
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -163,7 +164,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     if(entity.rig==='low-hover-drone'){
       const drone=droneKits.spawn({scene:renderScene,position:stageWorld.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
       const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
-      const seen=new Set();drone.root.traverse(n=>{if(n.isMesh)for(const material of Array.isArray(n.material)?n.material:[n.material])if(!seen.has(material)){seen.add(material);view.flashMaterials.push({material,color:material.color?.clone(),emissive:material.emissive?.clone(),intensity:material.emissiveIntensity,roughness:material.roughness});}});view.finisherDeathSeconds=.8;view.restoredCorpse=restoreCorpses&&entity.hp<=0;if(finishers)entity.finisherSupport=nativeFinisherSupport({clip:'drone_death',seconds:.8});store.set(entity.id,view);return view;
+      const seen=new Set();drone.root.traverse(n=>{if(n.isMesh)for(const material of Array.isArray(n.material)?n.material:[n.material])if(!seen.has(material)){seen.add(material);view.flashMaterials.push({material,color:material.color?.clone(),emissive:material.emissive?.clone(),intensity:material.emissiveIntensity,roughness:material.roughness});}});view.gore=finishers?createFinisherGore({root:view.root,model:view.model,rig:entity.rig,camera:stageWorld.camera}):null;if(view.gore)goreOwners.add(view.gore);view.finisherDeathSeconds=.8;view.restoredCorpse=restoreCorpses&&entity.hp<=0;if(finishers)entity.finisherSupport=nativeFinisherSupport({clip:'drone_death',seconds:.8});store.set(entity.id,view);return view;
     }
     const name = actorModelRef(entity,library.manifest),
       source = library.models.get(name);
@@ -276,6 +277,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
+      if(finishers&&entity.kind>=0)view.gore=createFinisherGore({root,model,rig:entity.rig,camera:stageWorld.camera});if(view.gore)goreOwners.add(view.gore);
       completed=true;
     } finally {if(!completed)remove(entity.id,store);}
     return view;
@@ -283,6 +285,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   function remove(id,store=views) {
     const view = store.get(id);
     if (!view) return;
+    view.gore?.dispose();goreOwners.delete(view.gore);
     if(view.drone){view.drone.dispose();store.delete(id);return;}
     view.impactFlashLife=0;restoreActorFlash(view);
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
@@ -330,7 +333,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     bindPreparedArea(areaId,renderScene){const stored=parkedViews.get(areaId);if(!stored)return;for(const view of stored.values()){renderScene.add(view.root);if(view.shadow)renderScene.add(view.shadow);view.finisher?.setScene(renderScene);}},
     activateArea(areaId){const stored=parkedViews.get(areaId);if(!stored)return;for(const[id,view]of stored){views.set(id,view);scene.add(view.root);if(view.shadow)scene.add(view.shadow);view.finisher?.setScene(scene);view.finisher?.setDormant(false);}parkedViews.delete(areaId);},
     discardArea(areaId){const stored=parkedViews.get(areaId);if(stored){for(const id of [...stored.keys()])remove(id,stored);parkedViews.delete(areaId);}},
-    areaViewStats(){const all=new Set([...views.values(),...[...parkedViews.values()].flatMap(stored=>[...stored.values()])]);return{active:views.size,parked:[...parkedViews].map(([area,stored])=>({area,count:stored.size})),ownedFinisherGeometryBytes:[...all].reduce((n,v)=>n+(v.finisher?.stats().ownedGeometryBytes??0),0),finisherGeometryBudgetBytes:128*1024*1024};},
+    areaViewStats(){const all=new Set([...views.values(),...[...parkedViews.values()].flatMap(stored=>[...stored.values()])]);return{active:views.size,ownedWoundViews:goreOwners.size,woundResidentBudget:FINISHER_DATA.gore.residentViewBudget,parked:[...parkedViews].map(([area,stored])=>({area,count:stored.size})),ownedFinisherGeometryBytes:[...all].reduce((n,v)=>n+(v.finisher?.stats().ownedGeometryBytes??0),0),finisherGeometryBudgetBytes:128*1024*1024};},
     humanBodyStats(){return {libraries:[...gauntKits.values()].map(kit=>kit.stats()),preparationError:gauntPreparationError};},
     ratContact(){
       const point=new THREE.Vector3(),ray=new THREE.Raycaster();
@@ -398,7 +401,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
           view.drone.update({time:game.time,dt:Math.max(0,dt),position:world.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z),state,phase:dead?(game.time-(entity.response?.start??game.time))/.8:warning?(game.time-warning.start)/.6:0});
-          view.root.updateWorldMatrix(true,true);if(dead){view.finisherAge=finisherPresentationAge(entity,game.time);restoreActorFlash(view);}continue;
+          view.root.updateWorldMatrix(true,true);if(dead){view.finisherAge=finisherPresentationAge(entity,game.time);restoreActorFlash(view);view.gore?.update(entity);}continue;
         }
         view.root.scale.setScalar((world.layout.characterScale??1.265)*(view.description.scale??1)*visualScale*(entity.kind>=0?(entity.mobSize??1):1));
         view.root.position.copy(world.toRender(entity.pos));
@@ -452,7 +455,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         }
         view.shadow.position.copy(world.toRender(entity.pos, 0.016));
         // Only confirmed positive damage starts this window; legacy flashUntil also marks zero-damage blocks.
-        const flash=(view.impactFlashLife??0)>0;
+        const flash=(view.impactFlashLife??0)>0&&!(entity.hp<=0&&goreProfile(entity.finisher?.recipeId));
         for (const m of view.flashMaterials) {
           if(m.material.emissive){
             m.material.emissive.copy(flash?damageCrimson:m.emissive);
@@ -461,7 +464,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           if(m.color)m.material.color.copy(flash?damageCrimson:m.color);
           if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;
         }
-        applyFinisherCorpseCosmetic(view,entity);applyFlameCorpseChar(view,entity);
+        applyFinisherCorpseCosmetic(view,entity);applyFlameCorpseChar(view,entity);view.gore?.update(entity);
       }
     },
     dispose() {

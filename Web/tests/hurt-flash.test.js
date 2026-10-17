@@ -13,3 +13,8 @@ test('misses/zero-damage blocks never become damage flashes; overlap, reset and 
 });
 
 test('damage keeps crimson in low/off feedback modes and restores when settings change',t=>{const f=fixture(t);for(const mode of ['low','off']){f.actors.configureFeedback(mode);f.g.events=[{type:'hit',actor:f.g.player,amount:3}];f.actors.events(f.g);f.tick();assert.equal(f.view(f.g.player).flashMaterials[0].material.color.getHex(),0x831428);f.actors.configureFeedback('high');original(f.view(f.g.player),f.material);}});
+
+test('the four replacement corpses retain original materials so their local wound and burst are not masked by a whole-body flash',t=>{
+ const f=fixture(t);for(const recipeId of['pistol-directional','bullet-native-collapse','cutting-native-collapse','blunt-native-collapse']){f.mob.finisher={recipeId};f.mob.hp=0;f.g.events=[{type:'hit',actor:f.mob,amount:10,weapon:'knife'}];f.actors.events(f.g);f.tick(1/60);original(f.view(f.mob),f.material);f.mob.hp=20;f.actors.events(f.g);f.tick(1/60);assert.equal(f.view(f.mob).flashMaterials[0].material.color.getHex(),0x831428,'living damage flash remains');f.actors.resetFeedback();}
+ f.mob.finisher={recipeId:'pistol-decapitation'};f.mob.hp=0;f.g.events=[{type:'hit',actor:f.mob,amount:10,weapon:'pistol'}];f.actors.events(f.g);f.tick(1/60);assert.equal(f.view(f.mob).flashMaterials[0].material.color.getHex(),0x831428,'approved lethal presentation remains');
+});
