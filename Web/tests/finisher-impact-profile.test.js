@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {finisherImpactProfile,createFinisherImpactGate,FINISHER_IMPACT_LIMITS} from '../src/finisher-impact-profile.js';
-const anchors={head:{x:4,y:2,z:-3},body:{x:4,y:1,z:-3}};
+const anchors={head:{x:4,y:2,z:-3},body:{x:4,y:1,z:-3},gore:{palette:[0x650c1b,0x831428,0x430812],mode:'exit',emitSeconds:.16,verticalSpeed:.25,dropSize:.09,jet:true,pool:true}};
 const event=(recipeId='opened',damageType='cutting',victimId=1)=>({lethal:true,victimId,recipeId,damageType,impactDirection:{x:3,z:4}});
 
-test('actual presented recipe and anatomy determine emission; ordinary/fallback unchanged',()=>{
+test('actual presented recipe and anatomy determine emission; approved severs stay distinct from explicit posed wound profiles',()=>{
   for(const[id,type,anchor]of [['decapitation','cutting','head'],['split-crown','cutting','head'],['opened','cutting','body'],['run-through','piercing','body'],['pistol-directional','bullet','body'],['pistol-decapitation','bullet','head']]){
     const p=finisherImpactProfile(event(id,type),anchors);assert.equal(p.anchor,anchor);assert.deepEqual(p.origin,anchors[anchor]);
     assert.equal(finisherImpactProfile(event(id,type==='bullet'?'cutting':'bullet'),anchors),null);
@@ -53,4 +53,4 @@ test('finite dark-crimson non-additive profiles; no geometry/clock/reward state 
   }
 });
 
-test('head sever droplets linger1.25s with cosmetic lower gravity while other finisher lifetimes stay unchanged',()=>{for(const[id,type]of [['decapitation','cutting'],['pistol-decapitation','bullet']]){const p=finisherImpactProfile(event(id,type),anchors);assert.equal(p.lifetime,1.25);assert.equal(p.gravity,4);assert.equal(p.groundClip,true);}for(const id of['split-crown','opened'])assert.equal(finisherImpactProfile(event(id,'cutting'),anchors).lifetime,.75);assert.equal(finisherImpactProfile(event('run-through','piercing'),anchors).lifetime,.42);assert.equal(finisherImpactProfile(event('pistol-directional','bullet'),anchors).lifetime,.34);});
+test('head sever droplets linger1.25s with cosmetic lower gravity and approved prepared lifetimes stay unchanged; replacement torso burst is bounded',()=>{for(const[id,type]of [['decapitation','cutting'],['pistol-decapitation','bullet']]){const p=finisherImpactProfile(event(id,type),anchors);assert.equal(p.lifetime,1.25);assert.equal(p.gravity,4);assert.equal(p.groundClip,true);}for(const id of['split-crown','opened'])assert.equal(finisherImpactProfile(event(id,'cutting'),anchors).lifetime,.75);assert.equal(finisherImpactProfile(event('run-through','piercing'),anchors).lifetime,.42);assert.equal(finisherImpactProfile(event('pistol-directional','bullet'),anchors).lifetime,.75);});

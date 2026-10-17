@@ -1,4 +1,4 @@
-import {FINISHER_DATA} from './engine/finisher-data.js';
+import {FINISHER_DATA,goreProfile} from './engine/finisher-data.js';
 import{SEVER_BLOOD_DATA}from'./engine/sever-blood-data.js';
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
@@ -11,6 +11,7 @@ const victim=id=>Number.isSafeInteger(id)&&id>0||typeof id==='string'&&id.trim()
 export function finisherImpactProfile(event,anchors){
   const row=Object.hasOwn(rows,event?.recipeId)?rows[event.recipeId]:null;
   if(!row||event.lethal!==true||!victim(event.victimId)||event.damageType!==row[0])return null;
+  const gore=goreProfile(event.recipeId)&&anchors?.gore;if(goreProfile(event.recipeId)&&!gore)return null;
   const d=event.impactDirection,length=d&&Math.hypot(d.x,d.z),origin=anchors?.[row[1]],headSever=['decapitation','pistol-decapitation'].includes(event.recipeId);
   if(!Number.isFinite(length)||length<=1e-8||!point(origin))return null;
   return Object.freeze({victimId:event.victimId,recipeId:event.recipeId,anchor:row[1],
@@ -18,8 +19,8 @@ export function finisherImpactProfile(event,anchors){
     // ARM direction x/z -> render x/-z ONCE. Anchor is already render space.
     direction:Object.freeze({x:d.x/length,y:0,z:-d.z/length}),
     droplets:row[2],trails:row[3],lifetime:headSever?SEVER_BLOOD_DATA.headDropletLifetime:row[4],speed:row[5],spreadDegrees:row[6],
-    trailLifetime:headSever?.28:.18,trailLength:headSever?.34:.22,dropSize:headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055,gravity:headSever?SEVER_BLOOD_DATA.headDropletGravity:8,groundClip:headSever,
-    palette,depthTest:true,depthWrite:false,additive:false,bloom:false});
+    trailLifetime:headSever?.28:.18,trailLength:headSever?.34:.22,dropSize:gore?.dropSize??(headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055),gravity:headSever?SEVER_BLOOD_DATA.headDropletGravity:8,groundClip:headSever,
+    palette:gore?.palette??palette,...(gore?{gore:{mode:gore.mode,spreadDegrees:gore.spreadDegrees,emitSeconds:gore.emitSeconds,verticalSpeed:gore.verticalSpeed,jet:gore.jet,pool:gore.pool},groundClip:true}:{}),depthTest:true,depthWrite:false,additive:false,bloom:false});
 }
 
 // One gate per scene. Weak identity prevents duplicate/replayed corpse starts

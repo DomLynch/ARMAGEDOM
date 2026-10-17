@@ -22,11 +22,11 @@
       "avoidRepeat": false,
       "impact": [
         "body",
-        8,
-        0,
-        0.34,
-        2.6,
-        20
+        18,
+        2,
+        0.75,
+        4.4,
+        18
       ]
     },
     {
@@ -117,13 +117,29 @@
       "id": "bullet-native-collapse",
       "damageType": "bullet",
       "parts": [],
-      "avoidRepeat": true
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        16,
+        2,
+        0.8,
+        3.5,
+        40
+      ]
     },
     {
       "id": "cutting-native-collapse",
       "damageType": "cutting",
       "parts": [],
-      "avoidRepeat": true
+      "avoidRepeat": true,
+      "impact": [
+        "body",
+        18,
+        2,
+        0.75,
+        3.4,
+        90
+      ]
     },
     {
       "id": "piercing-native-collapse",
@@ -135,7 +151,15 @@
       "id": "blunt-native-collapse",
       "damageType": "blunt",
       "parts": [],
-      "avoidRepeat": true
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        14,
+        1,
+        0.65,
+        2.8,
+        90
+      ]
     }
   ],
   "bindings": [
@@ -348,26 +372,6 @@
   },
   "cosmetics": [
     {
-      "damageType": "bullet",
-      "seconds": 0.7,
-      "pulseHz": 16,
-      "color": 16742464,
-      "emissive": 16742464,
-      "intensity": 1.4,
-      "settleTint": 5509147,
-      "settleBlend": 0.22
-    },
-    {
-      "damageType": "cutting",
-      "seconds": 1.1,
-      "pulseHz": 8,
-      "color": 11866152,
-      "emissive": 11866152,
-      "intensity": 0.8,
-      "settleTint": 5244952,
-      "settleBlend": 0.35
-    },
-    {
       "damageType": "piercing",
       "seconds": 0.9,
       "pulseHz": 11,
@@ -376,16 +380,221 @@
       "intensity": 1.1,
       "settleTint": 4329508,
       "settleBlend": 0.3
-    },
-    {
-      "damageType": "blunt",
-      "seconds": 0.8,
-      "pulseHz": 13,
-      "color": 12150083,
-      "emissive": 12150083,
-      "intensity": 0.85,
-      "settleTint": 3679279,
-      "settleBlend": 0.25
     }
-  ]
+  ],
+  "gore": {
+    "wound": {
+      "maxZoneFraction": 0.8,
+      "surfaceOffset": 0.003,
+      "styles": {
+        "bullet": {
+          "width": 0.16,
+          "height": 0.14,
+          "reliefScale": 0.6
+        },
+        "slash": {
+          "width": 0.36,
+          "height": 0.09,
+          "reliefScale": 0.7
+        },
+        "blunt": {
+          "width": 0.23,
+          "height": 0.2,
+          "reliefScale": 0.8
+        },
+        "shell": {
+          "width": 0.18,
+          "height": 0.1,
+          "reliefScale": 0.6,
+          "palette": [
+            526860,
+            1843236,
+            4672338,
+            1514010
+          ]
+        }
+      }
+    },
+    "sampleLimit": 64,
+    "profiles": [
+      {
+        "recipeId": "pistol-directional",
+        "region": "body",
+        "style": "bullet",
+        "mode": "exit",
+        "emitSeconds": 0.16,
+        "verticalSpeed": 0.25,
+        "dropSize": 0.09,
+        "jet": true,
+        "pool": true,
+        "spreadDegrees": 18
+      },
+      {
+        "recipeId": "bullet-native-collapse",
+        "region": "head",
+        "style": "bullet",
+        "mode": "directed",
+        "emitSeconds": 0.12,
+        "verticalSpeed": 0.4,
+        "dropSize": 0.09,
+        "jet": true,
+        "pool": true,
+        "spreadDegrees": 40
+      },
+      {
+        "recipeId": "cutting-native-collapse",
+        "region": "body",
+        "style": "slash",
+        "mode": "fan",
+        "emitSeconds": 0.12,
+        "verticalSpeed": 0.25,
+        "dropSize": 0.085,
+        "jet": false,
+        "pool": true,
+        "spreadDegrees": 150
+      },
+      {
+        "recipeId": "blunt-native-collapse",
+        "region": "head",
+        "style": "blunt",
+        "mode": "radial",
+        "emitSeconds": 0.06,
+        "verticalSpeed": 0.7,
+        "dropSize": 0.095,
+        "jet": false,
+        "pool": true,
+        "spreadDegrees": 360
+      }
+    ],
+    "rigs": [
+      {
+        "id": "hollow-scavenger",
+        "material": "flesh",
+        "bodyBones": [
+          "spine_02",
+          "spine_01",
+          "spine_03"
+        ],
+        "headBones": [
+          "Head",
+          "neck_01"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-surgeon",
+        "material": "flesh",
+        "bodyBones": [
+          "spine_02",
+          "spine_01",
+          "spine_03"
+        ],
+        "headBones": [
+          "Head",
+          "neck_01"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-butcher",
+        "material": "flesh",
+        "bodyBones": [
+          "spine_02",
+          "spine_01",
+          "spine_03"
+        ],
+        "headBones": [
+          "Head",
+          "neck_01"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-warden",
+        "material": "flesh",
+        "bodyBones": [
+          "spine_02",
+          "spine_01",
+          "spine_03"
+        ],
+        "headBones": [
+          "Head",
+          "neck_01"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "original-rat",
+        "material": "flesh",
+        "bodyBones": [
+          "chest",
+          "spine"
+        ],
+        "headBones": [
+          "head",
+          "neck"
+        ],
+        "radius": 0.1
+      },
+      {
+        "id": "original-dog",
+        "material": "flesh",
+        "bodyBones": [
+          "chest",
+          "spine"
+        ],
+        "headBones": [
+          "head",
+          "neck"
+        ],
+        "radius": 0.14
+      },
+      {
+        "id": "original-roach",
+        "material": "chitin",
+        "bodyBones": [
+          "body"
+        ],
+        "headBones": [
+          "head"
+        ],
+        "radius": 0.09
+      },
+      {
+        "id": "low-hover-drone",
+        "material": "machine",
+        "bodyBones": [],
+        "headBones": [],
+        "mesh": "ARM_Drone_Rigid_Frame",
+        "radius": 0.12
+      }
+    ],
+    "palettes": {
+      "flesh": [
+        6622235,
+        8590376,
+        4392978
+      ],
+      "chitin": [
+        3158554,
+        5198119,
+        7497014
+      ],
+      "machine": [
+        2698284,
+        7760205,
+        15185510
+      ]
+    },
+    "excludedSurfaceTokens": [
+      "eye",
+      "teeth",
+      "tooth",
+      "hair",
+      "weapon",
+      "blade",
+      "muzzle"
+    ],
+    "residentViewBudget": 33
+  }
 }
