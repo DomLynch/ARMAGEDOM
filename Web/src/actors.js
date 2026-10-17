@@ -422,6 +422,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           game.time,
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
           deathPose,
+          {ready:entity===game.player&&!!game.flame?.equipped},
         );
         const reaction=view.hitReaction.update(contactOnly||view.hitReactionFresh?0:Math.min(.05,presentationDt),{paused:presentationDt===0});
         if(!contactOnly&&!view.hitReactionFresh)view.impactFlashLife=Math.max(0,(view.impactFlashLife??0)-Math.min(.05,Math.max(0,presentationDt)));if(!contactOnly)view.hitReactionFresh=false;
