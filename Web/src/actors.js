@@ -50,6 +50,7 @@ function actorModelRef(entity,manifest){
   }
   return entity.kind<0?'vagrant':manifest.pilot==='donor-knife'?entity.rig:names[entity.kind];
 }
+export function restoreActorFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;}applyFlameCorpseChar(view,view.entity);}
 // Keep an already-presented corpse age through registered area reconstruction.
 export function finisherPresentationAge(entity,time){
  const elapsed=Math.max(0,time-(entity.response?.start??time)),shown=entity.finisherPresentationAge;
@@ -280,7 +281,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     const view = store.get(id);
     if (!view) return;
     if(view.drone){view.drone.dispose();store.delete(id);return;}
-    view.impactFlashLife=0;restoreFlash(view);
+    view.impactFlashLife=0;restoreActorFlash(view);
     view.footReceiver?.dispose();view.dogReceiver?.dispose();view.ratReceiver?.dispose();
     view.finisher?.dispose();
     if(view.finisher){view.entity.finisherSupport=[];view.entity.finisherHeadUntil=0;view.entity.finisherPartsUntil=0;}
@@ -298,7 +299,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     for (const m of view.materials) m.material.dispose();
     store.delete(id);
   }
-  function restoreFlash(view){for(const m of view.flashMaterials){if(m.color)m.material.color.copy(m.color);if(m.emissive)m.material.emissive.copy(m.emissive);m.material.emissiveIntensity=m.intensity;if(Number.isFinite(m.roughness))m.material.roughness=m.roughness;}}
+
   return {
     views,
     ensureFlame(){const data=world.flameData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Flamethrower unavailable'));},
@@ -315,7 +316,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     },
     parkArea(areaId){
       const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
-      for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}
+      for(const[id,view]of [...views])if(id!==0){view.impactFlashLife=0;view.hitReactionFresh=false;restoreActorFlash(view);view.hitReaction.reset();view.pistolSlide.reset();view.finisher?.setDormant(true);view.root.removeFromParent();view.shadow?.removeFromParent();stored.set(id,view);views.delete(id);}
     },
     *prepareAreaSteps(areaId,record,stageWorld,finishers){
       const stored=parkedViews.get(areaId)??new Map();parkedViews.set(areaId,stored);
@@ -375,8 +376,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         },
       };
     },
-    configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
-    resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreFlash(v);v.pistolSlide.reset();}},
+    configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;restoreActorFlash(v);v.pistolSlide.reset();}},
+    resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreActorFlash(v);v.pistolSlide.reset();}},
     events(game){for(const e of game.events)if(e.type==='hit'&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;if(!e.blocked)v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       for (const id of [...views.keys()]) remove(id);
