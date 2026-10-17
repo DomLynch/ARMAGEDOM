@@ -21,7 +21,7 @@ function fixture({records=new Map(),flame=true}={}){
  const tick=(intent={held:['fire'],aim:{x:-1,z:0}})=>{stepGame(g,intent,1/60,{dispatchFlame:p.dispatchFlame,dispatchPistol:p.dispatchPistol,flameSource:source});p.persistRun(g);};
  return{get g(){return g},world,p,records,tick,source,get writes(){return writes},quota:v=>quota=v,allowWrites:n=>remainingWrites=n};
 }
-async function pickup(f){await travelTo(f.g,{areaId:'area8'});f.g.player.pos={...f.world.flameData.position};assert(f.p.dispatchFlame(f.g,{type:'claimPickup',pickupId:f.world.flameData.pickupId},null,true).ok);}
+async function pickup(f){await travelTo(f.g,{areaId:f.world.flameData.areaId});f.g.player.pos={...f.world.flameData.position};assert(f.p.dispatchFlame(f.g,{type:'claimPickup',pickupId:f.world.flameData.pickupId},null,true).ok);}
 test('actual whole v7→v8 migration preserves raw earned save; pickup once and Retry/cold reload retain partial fuel',async()=>{
  const records=new Map([[oldKey,earned]]),f=fixture({records});f.p.restoreSavedRun(f.g);assert(!f.g.runSaveInvalid);assert.equal(records.get(oldKey),earned);assert.equal(JSON.parse(records.get(FLAME_SAVE_KEY)).version,8);assert.equal(f.g.uniqueReward.status,'owned');
  await pickup(f);assert.equal(f.g.flameFuel.fuelUnits,1000);assert.equal(f.g.flame.equipped,false);assert(setFlameEquipped(f.g,true));f.tick();assert(f.g.flameFuel.fuelUnits<1000);const fuel=f.g.flameFuel.fuelUnits;
@@ -54,3 +54,5 @@ test('ten seconds exhaust fuel once, return to prior pistol without touching amm
  for(let i=0;i<600;i++)f.tick();assert.equal(f.g.flameFuel.fuelUnits,0);f.tick({held:[]});assert.equal(f.g.flame.equipped,false);assert.equal(f.g.player.weapon,'pistol');for(const k of ['magazine','reserve','reloadingUntil','nextFireAt'])assert.equal(f.g.pistol[k],gun[k],k);
  assert(f.p.retry());assert.deepEqual(f.g.flameFuel,{version:1,collected:true,fuelUnits:0});assert.equal(setFlameEquipped(f.g,true),false);assert.equal(f.p.dispatchFlame(f.g,{type:'claimPickup',pickupId:f.world.flameData.pickupId},null,true).code,'already-collected');
 });
+
+test('moving the same pickup preserves real154 collected and empty v8 saves without duplicate or refill',async()=>{for(const name of['flame154-collected-v8.json','flame154-empty-v8.json']){const raw=fs.readFileSync(new URL('./fixtures/'+name,import.meta.url),'utf8'),fuel=JSON.parse(raw).flameFuel,records=new Map([[FLAME_SAVE_KEY,raw]]),f=fixture({records});f.p.restoreSavedRun(f.g);assert.equal(f.world.flameData.areaId,'westminster');assert.deepEqual(f.g.flameFuel,fuel);assert.equal(f.g.flame.equipped,false);f.g.player.pos={...f.world.flameData.position};const before=f.writes,r=f.p.dispatchFlame(f.g,{type:'claimPickup',pickupId:f.world.flameData.pickupId},null,true);assert.equal(r.ok,false);assert.equal(r.code,'already-collected');assert.equal(f.writes,before);assert.equal(records.get(FLAME_SAVE_KEY),raw);assert.deepEqual(f.g.flameFuel,fuel);}});

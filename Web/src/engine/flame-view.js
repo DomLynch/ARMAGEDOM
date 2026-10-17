@@ -37,7 +37,7 @@ export function createFlameView(s,persistence){
  function update(){
   if(disposed)return;const g=s.game,data=g?.world.flameData;if(!data){panel.hidden=true;label.hidden=true;clearDrop();return;}panel.hidden=false;
   const owned=!!g.flameFuel?.collected,fuel=Math.ceil((g.flameFuel?.fuelUnits??0)/data.capacity*100),equipped=!!g.flame?.equipped;
-  paint(status,!owned?'Find the flamethrower in Area 8.':fuel<=0?'Fuel exhausted. Your normal weapon remains available.':`Fuel ${fuel}% · spent fuel stays spent after Retry.`);
+  paint(status,!owned?'Find the flamethrower near the bridge in Westminster.':fuel<=0?'Fuel exhausted. Your normal weapon remains available.':`Fuel ${fuel}% · spent fuel stays spent after Retry.`);
   button.disabled=!owned||fuel<=0||!safe(g)||!!load;paint(button,load?'Loading flamethrower…':equipped?'Return to normal weapon':failed?'Retry loading & equip flamethrower':fuel<=0&&owned?'Empty flamethrower':'Equip flamethrower');button.setAttribute('aria-pressed',String(equipped));
   const visible=available()&&!owned&&g.world.areaId===data.areaId;
   if(visible){const ready=s.actors.flameReady();if(!drop||ready!==dropReady){clearDrop();drop=createFlamePickupView(s.actors.flameAsset());dropReady=ready;s.scene.add(drop.root);}drop.root.position.copy(g.world.toRender(data.position));}else clearDrop();

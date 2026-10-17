@@ -4863,10 +4863,10 @@
   "flame": {
     "version": 1,
     "pickupId": "flamethrower-area8-v1",
-    "areaId": "area8",
+    "areaId": "westminster",
     "position": {
-      "x": -8.3,
-      "z": -8.1
+      "x": 16.1272772472317,
+      "z": 6
     },
     "modelRef": "player-flamethrower"
   }

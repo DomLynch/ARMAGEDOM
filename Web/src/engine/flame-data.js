@@ -5,7 +5,7 @@ export const FLAME_MODEL_REF='player-flamethrower';
 export function validateFlameData(input,registry){
  if(input===undefined)return null;
  closed(input,['version','pickupId','areaId','position','modelRef']);closed(input.position,['x','z']);
- if(input.version!==1||input.pickupId!==FLAME_PILOT_PROFILE.pickupId||input.areaId!==FLAME_PILOT_PROFILE.areaId||input.modelRef!==FLAME_MODEL_REF||registry.get(input.areaId)?.visibility!=='public'||!Object.values(input.position).every(n=>Number.isFinite(n)&&Math.abs(n)<=200))throw Error('Invalid registered flamethrower');
+ if(input.version!==1||input.pickupId!==FLAME_PILOT_PROFILE.pickupId||input.modelRef!==FLAME_MODEL_REF||registry.get(input.areaId)?.visibility!=='public'||!Object.values(input.position).every(n=>Number.isFinite(n)&&Math.abs(n)<=200))throw Error('Invalid registered flamethrower');
  return freeze({...FLAME_PILOT_PROFILE,...structuredClone(input),pickupRadius:1.3});
 }
 export function validateFlameGeometry(data,registry,areaId,geometry){
