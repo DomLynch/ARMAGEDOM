@@ -1,3 +1,4 @@
+import{selectCombatTarget,combatTargetHeight}from'../pistol-targeting.js';
 import * as T from 'three';
 import {attachPistol} from '../pistol-pose.js';
 import profile from '../donor/flame-right-digit-profile.json' with {type:'json'};
@@ -24,6 +25,12 @@ export function flameTargetPitch(model,mount,target){
  model.updateWorldMatrix(true,true);const shoulder=model.getObjectByName('upperarm_r')?.getWorldPosition(new T.Vector3()),muzzle=mount.getObjectByName('Muzzle');if(!shoulder||!muzzle||!target?.isVector3||!target.toArray().every(Number.isFinite))throw Error('Finite flame target and native shoulder/muzzle required');
  const axis=new T.Vector3(1,0,0).applyQuaternion(model.getWorldQuaternion(new T.Quaternion())).normalize(),forward=muzzle.getWorldDirection(new T.Vector3()).normalize(),down=new T.Vector3().crossVectors(axis,forward).normalize(),to=target.clone().sub(shoulder),offset=muzzle.getWorldPosition(new T.Vector3()).sub(shoulder).dot(down),along=to.dot(forward),below=to.dot(down),radius=Math.hypot(along,below);
  const pitch=radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;return Math.max(-Math.PI/6,Math.min(Math.PI/3,pitch));
+}
+
+// Both acquisition and contact measure the short cone from the real muzzle.
+export function flameAimPitch(model,mount,g){
+ const p=mount.getObjectByName('Muzzle').getWorldPosition(new T.Vector3()),data=g.world.flameData,selected=selectCombatTarget({position:{x:p.x,z:-p.z},aim:g.player.facing,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b),range:data.contact.range,rangeOffset:e=>e.radius,coneDegrees:data.contact.coneDegrees/2,areaId:g.world.areaId}),enemy=selected&&g.enemies.find(e=>e.id===selected.targetId);
+ return enemy?flameTargetPitch(model,mount,g.world.toRender(enemy.pos,combatTargetHeight(enemy,g.time))):0;
 }
 
 // The donor has non-uniform scale. Retain the exact affine transform instead
