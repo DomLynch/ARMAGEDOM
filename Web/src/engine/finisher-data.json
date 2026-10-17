@@ -24,9 +24,9 @@
         "body",
         18,
         2,
-        0.75,
-        4.4,
-        18
+        0.7,
+        3.8,
+        22
       ]
     },
     {
@@ -122,9 +122,9 @@
         "head",
         16,
         2,
-        0.8,
-        3.5,
-        40
+        0.6,
+        2.8,
+        60
       ]
     },
     {
@@ -136,8 +136,8 @@
         "body",
         18,
         2,
-        0.75,
-        3.4,
+        0.55,
+        3.2,
         90
       ]
     },
@@ -156,8 +156,8 @@
         "head",
         14,
         1,
-        0.65,
-        2.8,
+        0.45,
+        2.4,
         90
       ]
     }
@@ -436,12 +436,32 @@
         "region": "body",
         "style": "bullet",
         "mode": "exit",
-        "emitSeconds": 0.16,
+        "emitSeconds": 0.12,
         "verticalSpeed": 0.25,
         "dropSize": 0.09,
         "jet": true,
         "pool": false,
-        "spreadDegrees": 18
+        "spreadDegrees": 22,
+        "burst": {
+          "leadingCount": 6,
+          "leadingSize": [
+            0.11,
+            0.14
+          ],
+          "tailSize": [
+            0.04,
+            0.07
+          ],
+          "extent": [
+            0.7,
+            1
+          ],
+          "trailSeconds": 0.24,
+          "tailDelays": [
+            0.06,
+            0.12
+          ]
+        }
       },
       {
         "recipeId": "bullet-native-collapse",
@@ -453,7 +473,27 @@
         "dropSize": 0.09,
         "jet": true,
         "pool": false,
-        "spreadDegrees": 40
+        "spreadDegrees": 60,
+        "burst": {
+          "leadingCount": 6,
+          "leadingSize": [
+            0.08,
+            0.11
+          ],
+          "tailSize": [
+            0.04,
+            0.07
+          ],
+          "extent": [
+            0.4,
+            0.65
+          ],
+          "trailSeconds": 0.22,
+          "tailDelays": [
+            0.06,
+            0.12
+          ]
+        }
       },
       {
         "recipeId": "cutting-native-collapse",
@@ -465,19 +505,59 @@
         "dropSize": 0.085,
         "jet": false,
         "pool": false,
-        "spreadDegrees": 150
+        "spreadDegrees": 100,
+        "burst": {
+          "leadingCount": 6,
+          "leadingSize": [
+            0.09,
+            0.12
+          ],
+          "tailSize": [
+            0.04,
+            0.07
+          ],
+          "extent": [
+            0.55,
+            0.85
+          ],
+          "trailSeconds": 0.2,
+          "tailDelays": [
+            0.06,
+            0.12
+          ]
+        }
       },
       {
         "recipeId": "blunt-native-collapse",
         "region": "head",
         "style": "blunt",
         "mode": "radial",
-        "emitSeconds": 0.06,
+        "emitSeconds": 0.12,
         "verticalSpeed": 0.7,
         "dropSize": 0.095,
         "jet": false,
         "pool": false,
-        "spreadDegrees": 360
+        "spreadDegrees": 360,
+        "burst": {
+          "leadingCount": 6,
+          "leadingSize": [
+            0.1,
+            0.13
+          ],
+          "tailSize": [
+            0.04,
+            0.07
+          ],
+          "extent": [
+            0.25,
+            0.45
+          ],
+          "trailSeconds": 0.16,
+          "tailDelays": [
+            0.06,
+            0.12
+          ]
+        }
       }
     ],
     "rigs": [
@@ -567,12 +647,15 @@
         "id": "original-roach",
         "material": "chitin",
         "bodyBones": [
+          "thorax",
+          "abdomen",
           "body"
         ],
         "headBones": [
           "head"
         ],
-        "radius": 0.09
+        "radius": 0.09,
+        "upperRegion": "body"
       },
       {
         "id": "low-hover-drone",
