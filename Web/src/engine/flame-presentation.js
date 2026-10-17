@@ -18,6 +18,14 @@ export function attachFlame(model,source){
  mount.children[0].position.add({x:-.01262174057948523,y:.07164552251435374,z:.014197067151910436});mount.visible=false;return mount;
 }
 
+// Solve the barrel ray about the shoulder pivot, including the muzzle's
+// perpendicular offset. Aiming from the old muzzle before moving it undershoots.
+export function flameTargetPitch(model,mount,target){
+ model.updateWorldMatrix(true,true);const shoulder=model.getObjectByName('upperarm_r')?.getWorldPosition(new T.Vector3()),muzzle=mount.getObjectByName('Muzzle');if(!shoulder||!muzzle||!target?.isVector3||!target.toArray().every(Number.isFinite))throw Error('Finite flame target and native shoulder/muzzle required');
+ const axis=new T.Vector3(1,0,0).applyQuaternion(model.getWorldQuaternion(new T.Quaternion())).normalize(),forward=muzzle.getWorldDirection(new T.Vector3()).normalize(),down=new T.Vector3().crossVectors(axis,forward).normalize(),to=target.clone().sub(shoulder),offset=muzzle.getWorldPosition(new T.Vector3()).sub(shoulder).dot(down),along=to.dot(forward),below=to.dot(down),radius=Math.hypot(along,below);
+ return radius>1e-8?Math.atan2(below,along)-Math.asin(Math.max(-1,Math.min(1,offset/radius))):0;
+}
+
 // The donor has non-uniform scale. Retain the exact affine transform instead
 // of decomposing it into a quaternion, which can move the hand off the handle.
 const pitched=new WeakMap();
