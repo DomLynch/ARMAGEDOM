@@ -79,7 +79,6 @@ const hud = createHUD({
   onFeedback:mode=>{effects?.configureFeedback(mode);actors?.configureFeedback(mode);audio.setMode?.(mode);},
   onRetry: restart,
   onReset: resetGame,
-  readResetBackup:()=>resources.readResetBackup(),
   onPause: pause,
   onPistol: () => {
     if (!loaded || paused || traveling || contextLost || game.finished) return;
@@ -101,11 +100,11 @@ async function resetGame(){
   if(disposed||contextLost||game!==owner)return{ok:false,message:'Reset cancelled because the session changed. The previous run was kept.'};
   resetWorld=Object.assign(Object.create(target),{spawn:target.startingPoint()});
   const result=resources.resetRun();
-  if(!result.ok)return{ok:false,message:'Reset could not save a backup or the fresh run. Your current run and saves were kept. Check available storage and try again.'};
+  if(!result.ok)return{ok:false,message:'Reset could not save the fresh run. Your current run and saves were kept. Check available storage and try again.'};
   // Durable current-schema save shadows all retained legacy records. Reload
   // starts the ordinary Westminster session with no old actors or async owners.
   committed=true;traveling=true;renderer.setAnimationLoop(null);input.clear();location.reload();return{ok:true,message:'Fresh game saved. Reloading Westminster…'};
- }catch{return{ok:false,message:committed?'Fresh game saved. Reload this page to start in Westminster. Your previous run backup was kept.':'Reset could not prepare Westminster. Your current run and saves were kept. Try again.'};}
+ }catch{return{ok:false,message:committed?'Fresh game saved. Reload this page to start in Westminster.':'Reset could not prepare Westminster. Your current run and saves were kept. Try again.'};}
  finally{resetWorld=null;if(!committed){traveling=false;resetting=false;if(game===owner&&!disposed&&!contextLost){areas.start();hud.update(owner);}}}
 }
 async function restart() {
@@ -146,7 +145,6 @@ input = attachInput({
   },
   onRetry: restart,
   onReset: resetGame,
-  readResetBackup:()=>resources.readResetBackup(),
   onPickup:()=>resources.interactFlame(),
   isPistol: () => !!game?.pistol?.equipped||!!game?.flame?.equipped,
   isFlame: () => !!game?.flame?.equipped,

@@ -65,11 +65,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
- const io=createRunStorage({storage:activeStorage,codec:activeCodec,resetSnapshot(){
-  const keys=[FLAME_SAVE_KEY,UNIQUE_REWARD_SAVE_KEY,AREA_BOSS_SAVE_KEY,EXPEDITION_SAVE_KEY,PROGRESSION_SAVE_KEY,extendedKey,codec.RUN_SAVE_KEY,codec.PISTOL_SAVE_KEY],records=Object.fromEntries(keys.map(key=>[key,storage.getItem(key)]));
-  let liveRaw=null;try{liveRaw=activeCodec.encodeRun(getRun());}catch{/* Unreadable originals remain verbatim in records. */}
-  return{records,liveRaw};
- }});
+ const io=createRunStorage({storage:activeStorage,codec:activeCodec});
  const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
@@ -141,5 +137,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {persistRun,restoreSavedRun,retry,resetRun,readResetBackup:()=>io.readResetBackup(),collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
+ return {persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
 }
