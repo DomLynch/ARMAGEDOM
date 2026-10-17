@@ -122,9 +122,9 @@
         "head",
         16,
         2,
-        0.6,
-        2.8,
-        60
+        0.95,
+        4.2,
+        75
       ]
     },
     {
@@ -136,8 +136,8 @@
         "body",
         18,
         2,
-        0.55,
-        3.2,
+        0.9,
+        4,
         90
       ]
     },
@@ -156,8 +156,8 @@
         "head",
         14,
         1,
-        0.45,
-        2.4,
+        0.8,
+        3,
         90
       ]
     }
@@ -468,31 +468,60 @@
         "region": "head",
         "style": "bullet",
         "mode": "directed",
-        "emitSeconds": 0.12,
-        "verticalSpeed": 0.4,
+        "emitSeconds": 0.14,
+        "verticalSpeed": 2,
         "dropSize": 0.09,
         "jet": true,
         "pool": false,
-        "spreadDegrees": 60,
+        "spreadDegrees": 75,
         "burst": {
-          "leadingCount": 6,
+          "leadingCount": 8,
           "leadingSize": [
+            0.2,
+            0.26
+          ],
+          "tailSize": [
             0.08,
             0.11
           ],
-          "tailSize": [
-            0.04,
-            0.07
-          ],
           "extent": [
-            0.4,
-            0.65
+            0.85,
+            1.25
           ],
-          "trailSeconds": 0.22,
+          "trailSeconds": 0.32,
           "tailDelays": [
-            0.06,
-            0.12
-          ]
+            0.08,
+            0.14
+          ],
+          "leadingDelays": [
+            0,
+            0.04
+          ],
+          "holdSeconds": 0.18,
+          "gravity": 4.5,
+          "markerLiftPx": 44,
+          "leadingPaletteIndices": [
+            0,
+            0,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2
+          ],
+          "palettes": {
+            "flesh": [
+              3802640,
+              9376813,
+              13712208
+            ],
+            "chitin": [
+              3417611,
+              10583072,
+              15126619
+            ]
+          }
         }
       },
       {
@@ -500,31 +529,60 @@
         "region": "body",
         "style": "slash",
         "mode": "fan",
-        "emitSeconds": 0.12,
-        "verticalSpeed": 0.25,
+        "emitSeconds": 0.14,
+        "verticalSpeed": 1.5,
         "dropSize": 0.085,
         "jet": false,
         "pool": false,
-        "spreadDegrees": 100,
+        "spreadDegrees": 140,
         "burst": {
-          "leadingCount": 6,
+          "leadingCount": 8,
           "leadingSize": [
-            0.09,
-            0.12
+            0.18,
+            0.24
           ],
           "tailSize": [
-            0.04,
-            0.07
+            0.075,
+            0.1
           ],
           "extent": [
-            0.55,
-            0.85
+            0.75,
+            1.2
           ],
-          "trailSeconds": 0.2,
+          "trailSeconds": 0.3,
           "tailDelays": [
-            0.06,
-            0.12
-          ]
+            0.08,
+            0.14
+          ],
+          "leadingDelays": [
+            0,
+            0.04
+          ],
+          "holdSeconds": 0.18,
+          "gravity": 4.5,
+          "markerLiftPx": 44,
+          "leadingPaletteIndices": [
+            0,
+            0,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2
+          ],
+          "palettes": {
+            "flesh": [
+              3802640,
+              9376813,
+              13712208
+            ],
+            "chitin": [
+              3417611,
+              10583072,
+              15126619
+            ]
+          }
         }
       },
       {
@@ -532,31 +590,60 @@
         "region": "head",
         "style": "blunt",
         "mode": "radial",
-        "emitSeconds": 0.12,
-        "verticalSpeed": 0.7,
+        "emitSeconds": 0.14,
+        "verticalSpeed": 1.4,
         "dropSize": 0.095,
         "jet": false,
         "pool": false,
         "spreadDegrees": 360,
         "burst": {
-          "leadingCount": 6,
+          "leadingCount": 8,
           "leadingSize": [
-            0.1,
-            0.13
+            0.2,
+            0.27
           ],
           "tailSize": [
-            0.04,
-            0.07
+            0.08,
+            0.11
           ],
           "extent": [
-            0.25,
-            0.45
+            0.4,
+            0.7
           ],
-          "trailSeconds": 0.16,
+          "trailSeconds": 0.24,
           "tailDelays": [
-            0.06,
-            0.12
-          ]
+            0.08,
+            0.14
+          ],
+          "leadingDelays": [
+            0,
+            0.04
+          ],
+          "holdSeconds": 0.18,
+          "gravity": 5,
+          "markerLiftPx": 44,
+          "leadingPaletteIndices": [
+            0,
+            0,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2
+          ],
+          "palettes": {
+            "flesh": [
+              3802640,
+              9376813,
+              13712208
+            ],
+            "chitin": [
+              3417611,
+              10583072,
+              15126619
+            ]
+          }
         }
       }
     ],

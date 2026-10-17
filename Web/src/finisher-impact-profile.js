@@ -19,7 +19,7 @@ export function finisherImpactProfile(event,anchors){
     // ARM direction x/z -> render x/-z ONCE. Anchor is already render space.
     direction:Object.freeze({x:d.x/length,y:0,z:-d.z/length}),
     droplets:row[2],trails:row[3],lifetime:headSever?SEVER_BLOOD_DATA.headDropletLifetime:row[4],speed:row[5],spreadDegrees:row[6],
-    trailLifetime:gore?.burst?.trailSeconds??(headSever?.28:.18),trailLength:headSever?.34:.22,dropSize:gore?.dropSize??(headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055),gravity:headSever?SEVER_BLOOD_DATA.headDropletGravity:8,groundClip:headSever,
+    trailLifetime:gore?.burst?.trailSeconds??(headSever?.28:.18),trailLength:headSever?.34:.22,dropSize:gore?.dropSize??(headSever?.13:row[1]==='head'||event.recipeId==='opened'?.10:.055),gravity:gore?.burst?.gravity??(headSever?SEVER_BLOOD_DATA.headDropletGravity:8),groundClip:headSever,
     palette:gore?.palette??palette,...(gore?{gore:{mode:gore.mode,spreadDegrees:gore.spreadDegrees,emitSeconds:gore.emitSeconds,burst:gore.burst,verticalSpeed:gore.verticalSpeed,jet:gore.jet,pool:gore.pool},groundClip:true}:{}),depthTest:true,depthWrite:false,additive:false,bloom:false});
 }
 
