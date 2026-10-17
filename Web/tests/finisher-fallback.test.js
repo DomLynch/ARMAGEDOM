@@ -30,3 +30,5 @@ test('actual pistol death with no prepared rig support is special once while dea
 test('native fallback rows carry actual clip duration and collapse plus ground hold plus fade is finite',()=>{
  assert.deepEqual(nativeFinisherSupport({clip:'rat_death',seconds:.9}).map(r=>r.parts),Array(5).fill([]));assert(Math.abs(flameDeathSeconds(2.4)-6.7)<1e-10);assert.equal(flameDeathSeconds(9),8);assert.equal(nativeFinisherSupport({clip:'',seconds:1}).length,0);assert.equal(FINISHER_DATA.flameDeath.holdSeconds,3.5);
 });
+
+test('existing prepared finisher crimson/impact feedback is left untouched by the native fallback owner',()=>{const material=new T.MeshStandardMaterial({color:0x831428,emissive:0x831428,emissiveIntensity:.35}),baseline={material,color:new T.Color(0xababab),emissive:new T.Color(0),intensity:0};for(const recipeId of['pistol-directional','pistol-decapitation','decapitation','split-crown','opened','run-through']){assert.equal(applyFinisherCorpseCosmetic({flashMaterials:[baseline],finisherAge:.1},{hp:0,finisher:{recipeId}}),false);assert.equal(material.color.getHex(),0x831428);assert.equal(material.emissiveIntensity,.35);}material.dispose();});
