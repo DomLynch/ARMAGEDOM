@@ -1,5 +1,4 @@
 import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPitch}from'./engine/flame-presentation.js';
-import{selectCombatTarget,combatTargetHeight}from'./pistol-targeting.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
