@@ -1,4 +1,4 @@
-import{attachFlame,flameGripProfile,applyFlamePitch}from'./engine/flame-presentation.js';
+import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch}from'./engine/flame-presentation.js';
 import{selectCombatTarget,combatTargetHeight}from'./pistol-targeting.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
@@ -388,7 +388,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
         if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
-        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0)restoreGripProfile(view.model);
+        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){restoreFlamePitch(view.model);restoreGripProfile(view.model);}
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';

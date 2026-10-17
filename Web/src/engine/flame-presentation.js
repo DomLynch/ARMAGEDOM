@@ -18,12 +18,17 @@ export function attachFlame(model,source){
  mount.children[0].position.add({x:-.01262174057948523,y:.07164552251435374,z:.014197067151910436});mount.visible=false;return mount;
 }
 
-// Rigidly pitch the already-proved arm+weapon around the shoulder. Finger/handle
-// relationships remain exact; normal pistol aim never calls this overlay.
+// The donor has non-uniform scale. Retain the exact affine transform instead
+// of decomposing it into a quaternion, which can move the hand off the handle.
+const pitched=new WeakMap();
+export function restoreFlamePitch(model){const state=pitched.get(model);if(!state)return false;for(const{node,matrix,auto}of state){node.matrix.copy(matrix);node.matrixAutoUpdate=auto;node.matrixWorldNeedsUpdate=true;}pitched.delete(model);return true;}
 export function applyFlamePitch(model,mount,pitch){
  if(!Number.isFinite(pitch))throw Error('Finite flame pitch required');
  const upper=model.getObjectByName('upperarm_r');if(!upper||mount.parent!==model)throw Error('Flame aim mount mismatch');
+ if(pitched.has(model))throw Error('Restore flame pitch before gait/sample');
  pitch=Math.max(-Math.PI/6,Math.min(Math.PI/3,pitch));if(Math.abs(pitch)<1e-8)return;
- model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),shoulder=upper.getWorldPosition(new T.Vector3()),axis=new T.Vector3(1,0,0).applyQuaternion(basis),rotation=new T.Quaternion().setFromAxisAngle(axis,pitch),position=mount.getWorldPosition(new T.Vector3()).sub(shoulder).applyQuaternion(rotation).add(shoulder),orientation=rotation.clone().multiply(mount.getWorldQuaternion(new T.Quaternion()));
- const arm=rotation.clone().multiply(upper.getWorldQuaternion(new T.Quaternion()));upper.quaternion.copy(upper.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(arm));upper.updateWorldMatrix(true,true);mount.position.copy(model.worldToLocal(position));mount.quaternion.copy(model.getWorldQuaternion(new T.Quaternion()).invert().multiply(orientation));model.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
+ model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),shoulder=upper.getWorldPosition(new T.Vector3()),axis=new T.Vector3(1,0,0).applyQuaternion(basis),rotation=new T.Matrix4().makeRotationAxis(axis.normalize(),pitch),delta=new T.Matrix4().makeTranslation(shoulder.x,shoulder.y,shoulder.z).multiply(rotation).multiply(new T.Matrix4().makeTranslation(-shoulder.x,-shoulder.y,-shoulder.z));
+ const state=[upper,mount].map(node=>({node,matrix:node.matrix.clone(),auto:node.matrixAutoUpdate,world:node.matrixWorld.clone()}));pitched.set(model,state);
+ for(const{node,world}of state){node.matrix.copy(node.parent.matrixWorld).invert().multiply(delta).multiply(world);node.matrixAutoUpdate=false;node.matrixWorldNeedsUpdate=true;}
+ model.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
 }
