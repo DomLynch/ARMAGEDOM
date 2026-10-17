@@ -1,3 +1,5 @@
+import{createFlameView}from'../flame-view.js';
+import{stopFlame}from'../flame-runtime.js';
 import{createUniqueRewardView}from'../unique-reward-view.js';
 import{createBossView}from'./boss-view.js';
 import {createExpeditionView} from './expedition-runtime.js';
@@ -11,9 +13,9 @@ import {vestAvailable} from '../vest.js';
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:()=>s.createFreshRun(),storage});
-const bossView=createBossView(s);
-const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=persistence.dispatchUniqueReward(g,command,allowed);if(result.ok&&command.type==='equip')resetMobileControls(g);return result;});
-const expeditionView=createExpeditionView(s,(g,command,allowed)=>persistence.dispatchExpedition(g,command,allowed));
+const bossView=createBossView(s),flameView=createFlameView(s,persistence);
+const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{if(command.type==='equip')stopFlame(g,{unequip:true});const result=persistence.dispatchUniqueReward(g,command,allowed);if(result.ok&&command.type==='equip')resetMobileControls(g);return result;});
+const expeditionView=createExpeditionView(s,(g,command,allowed)=>{if(command.type==='equip'||command.type==='selectVariant')stopFlame(g,{unequip:true});return persistence.dispatchExpedition(g,command,allowed);});
 let vestBag=null;
 function clearVestBag(){vestBag?.dispose();vestBag=null;}
 function updateVestBag(){
@@ -32,6 +34,6 @@ function updateSupplies(){
  }
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
-function cancelPistol(g){resetMobileControls(g);s.actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;s.effects?.clearPistolFeedback();s.effects?.update(g,{paused:true});}
-return {updateExpedition(){expeditionView.update();uniqueView.update();bossView.update();},interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
+function cancelPistol(g){stopFlame(g);s.effects?.clearFlameFeedback?.();resetMobileControls(g);s.actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;if(!g.flame?.equipped)g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;s.effects?.clearPistolFeedback();s.effects?.update(g,{paused:true});}
+return {updateExpedition(){expeditionView.update();uniqueView.update();bossView.update();flameView.update();},interactFlame:flameView.interact,interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){flameView.dispose();uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
 }

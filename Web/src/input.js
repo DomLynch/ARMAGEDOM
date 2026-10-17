@@ -126,6 +126,7 @@ export function attachInput({
   onRetry,
   isPaused,
   onInteraction = () => {},
+  onPickup = () => false,
   isPistol = () => false,
 }) {
   const state = new InputState(), listeners=[];
@@ -286,6 +287,7 @@ export function attachInput({
       touch = false;
       state.keys.add(event.code);
     }
+    if(event.code==='KeyG'&&!event.repeat&&onPickup()){event.preventDefault();return;}
     if (map[event.code] && !event.repeat) {
       event.preventDefault();
       state.down(event.code, map[event.code], { x: 0, y: 0 });

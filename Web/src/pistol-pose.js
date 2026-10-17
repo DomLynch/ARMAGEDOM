@@ -1,4 +1,7 @@
 import * as T from 'three';
+const activeDigitOverlay=new WeakMap();
+// Remove only our temporary finger locals before the next native gait/equip.
+export function restoreGripProfile(model){const state=activeDigitOverlay.get(model);if(!state)return false;for(const[bone,q]of state)bone.quaternion.copy(q);activeDigitOverlay.delete(model);return true;}
 // Presentation overlay on a private cloned donor scene. Source clips stay intact.
 export function attachPistol(model, scene) {
  const hand=model.getObjectByName('hand_r');if(!hand)throw Error('Pistol requires hand_r');
@@ -10,7 +13,7 @@ function pointBone(bone,child,target){
  const q=new T.Quaternion().setFromUnitVectors(from,to).multiply(bone.getWorldQuaternion(new T.Quaternion()));
  bone.quaternion.copy(bone.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(q));bone.updateWorldMatrix(true,true);
 }
-export function applyPistolAim(model,mount,{recoil=0}={}){
+export function applyPistolAim(model,mount,{recoil=0,gripProfile}={}){
  const upper=model.getObjectByName('upperarm_r'),fore=model.getObjectByName('lowerarm_r'),hand=model.getObjectByName('hand_r');
  if(!upper||!fore||!hand||mount.parent!==model)throw Error('Pistol rig/mount mismatch');
  model.updateWorldMatrix(true,true);const basis=model.getWorldQuaternion(new T.Quaternion()),scale=model.getWorldScale(new T.Vector3()).x;
@@ -33,5 +36,6 @@ export function applyPistolAim(model,mount,{recoil=0}={}){
  const gunQ=basis.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(-Math.max(0,Math.min(1,recoil))*.22,0,0)));
  const grip=hand.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,-.045,.13).multiplyScalar(scale).applyQuaternion(basis));
  mount.position.copy(model.worldToLocal(grip));mount.quaternion.copy(model.getWorldQuaternion(new T.Quaternion()).invert().multiply(gunQ));
+ if(gripProfile){if(activeDigitOverlay.has(model))throw Error('Restore digit overlay before gait/sample');const state=[];for(const[name,q]of Object.entries(gripProfile.digitLocalQuaternions)){const bone=model.getObjectByName(name);state.push([bone,bone.quaternion.clone()]);bone.quaternion.fromArray(q);}activeDigitOverlay.set(model,state);}
  model.updateWorldMatrix(true,true);model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});return mount.getObjectByName('Muzzle');
 }

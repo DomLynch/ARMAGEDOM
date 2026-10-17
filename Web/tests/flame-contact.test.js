@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {flameTouches} from '../src/engine/flame-contact.js';
+const profile={range:3,coneDegrees:40},source={position:{x:0,y:1.15,z:0},direction:{x:0,y:0,z:1}},human=(x,z)=>({hp:40,pos:{x,z},rig:'hollow-scavenger',radius:.4,mobSize:1}),args=(target,s=source)=>({source:s,target,time:0,profile,lineClear:()=>true,playerPosition:{x:0,z:0}});
+test('emitted short cone touches front bodies but excludes rear, distant and side bodies',()=>{assert(flameTouches(args(human(0,2))));for(const p of[[0,-1],[0,8],[4,2]])assert.equal(flameTouches(args(human(...p))),false);});
+test('cover blocks real flame contact from player to muzzle and muzzle to target',()=>{let calls=0;assert.equal(flameTouches({...args(human(0,2)),lineClear:()=>++calls!==1}),false);calls=0;assert.equal(flameTouches({...args(human(0,2)),lineClear:()=>++calls!==2}),false);});
+test('low target requires the emitted cone to reach its vertical body envelope',()=>{const rat={hp:20,pos:{x:0,z:1},rig:'original-roach',contactGoalReach:1,radius:.3,mobSize:1},high={position:{x:0,y:1.8,z:0},direction:{x:0,y:0,z:1}};assert.equal(flameTouches(args(rat,high)),false);const pitched={...high,direction:{x:0,y:-1.56,z:1}};assert(flameTouches(args(rat,pitched)));});
+test('invalid source, body or radius cannot grant a hit',()=>{for(const s of[null,{position:{x:0,y:1,z:0},direction:{x:0,y:0,z:0}},{position:{x:NaN,y:1,z:0},direction:{x:0,y:0,z:1}}])assert.equal(flameTouches(args(human(0,2),s)),false);assert.equal(flameTouches(args({...human(0,2),radius:NaN})),false);assert.equal(flameTouches(args({...human(0,2),hp:Infinity})),false);});
