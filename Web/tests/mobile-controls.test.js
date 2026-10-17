@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {createGame,enemy,stepGame,resetMobileControls} from '../src/combat.js';
 import {createMobileAimState} from '../src/mobile-combat-aim.js';
 import {InputState} from '../src/input.js';
+import {FLAME_PILOT_PROFILE} from '../src/engine/flame-fuel-state.js';
+import {initializeFlame,setFlameEquipped} from '../src/engine/flame-runtime.js';
 import {pistolCue} from '../src/pistol-targeting.js';
 const world={areaId:'westminster',spawn:{x:0,z:0},layout:{characterScale:1.3225},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true};
 const tick=(g,intent,n=1)=>{for(let i=0;i<n;i++)stepGame(g,intent);};
@@ -70,3 +72,5 @@ test('real touch state and equipped-pistol mode produce medium/long body-ray25 h
   for(let i=0;i<15;i++)frame();assert.equal(g.mobileAim.targetId,enabled?e.placementKey:null);input.down(21,'fire',{x:100,y:0});frame();const shot=g.events.find(e=>e.type==='shot');assert.ok(shot);assert.deepEqual(shot.direction,g.player.facing);assert.equal(shot.targetId,enabled?e.id:null);assert.equal(e.hp,enabled?975:1000);assert.equal(g.pistol.magazine,5);assert.equal(g.pistol.reserve,12);input.clear();resetMobileControls(g);assert.equal(g.mobileAim.targetId,null);
  }
 });
+
+test('desktop flame uses the shared full lock without zeroing ordinary keyboard translation; Off and normal pistol retain their policies',()=>{for(const enabled of[true,false]){const{g,e}=fixture(20*Math.PI/180,2);g.world={...world,flameData:FLAME_PILOT_PROFILE};initializeFlame(g);g.flameFuel={version:1,collected:true,fuelUnits:1000};assert(setFlameEquipped(g,true));g.mobileAssistEnabled=enabled;const before={...g.player.pos};for(let i=0;i<15;i++)stepGame(g,{mobile:false,move:{x:.2,z:0},aim:{x:0,z:1},manualFlameAim:true,held:['fire'],combatVisibleIds:[e.id]},1/60,{flameAimEligible:()=>true});assert(g.player.pos.x>before.x,'desktop keyboard movement cannot depend on touch moveHeld');assert.equal(g.mobileAiming,false);assert.equal(g.mobileAim.targetId,enabled?e.placementKey:null);if(enabled)assert(g.player.facing.x>.25);else assert(Math.abs(g.player.facing.x)<1e-8);}const p=fixture(10*Math.PI/180);stepGame(p.g,{mobile:false,aim:{x:0,z:1},actions:['fire']});assert.equal(p.e.hp,975,'normal desktop pistol keeps its own original small-snap policy');});

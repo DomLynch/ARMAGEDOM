@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {selectPistolTarget,selectCombatTarget} from '../src/pistol-targeting.js';
+import * as T from 'three';
+import {selectPistolTarget,selectCombatTarget,flamePointerPoint,pistolPointerPoint} from '../src/pistol-targeting.js';
 import {tracePistol,stepPistol,createPistolState,collectPistol} from '../src/pistol.js';
 
 const position={x:0,z:0}, facing={x:0,z:1};
@@ -146,3 +147,7 @@ test('nearest mode ignores facing and chooses stable distance/ID ties without by
  const bad=[target('dead',180,.3,{hp:0}),target('hidden',180,.3,{visible:false}),target('area',180,.3,{areaId:'east'}),target('blocked',180,.4),target('far',180,2.01)];
  assert.equal(melee(bad,{nearest:true,areaId:'westminster',lineClear:(_a,p)=>Math.hypot(p.x,p.z)>.5}),null);
 });
+
+test('flame mouse body intent resolves the normal body in every quadrant while Off/pistol preserve ground aim and masks block selection',()=>{const camera=new T.PerspectiveCamera(45,1,.1,100);camera.position.set(0,10,10);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);const ray=new T.Raycaster(),plane=new T.Plane(new T.Vector3(0,1,0),0),world={areaId:'westminster',ray,masks:[],screenToGround(x,y){ray.setFromCamera(new T.Vector2(x,y),camera);const p=ray.ray.intersectPlane(plane,new T.Vector3());return{x:p.x,z:-p.z};}};for(const pos of[{x:0,z:-.5},{x:.5,z:0},{x:-.5,z:0},{x:0,z:.5}]){const e={id:1,pos,radius:.36,hp:40,rig:'hollow-scavenger',mobSize:.9,areaId:'westminster'},screen=new T.Vector3(pos.x,1.035,-pos.z).project(camera),ground=pistolPointerPoint(world,new Map(),[e],screen.x,screen.y),picked=flamePointerPoint(world,new Map(),[e],screen.x,screen.y);assert.deepEqual(picked,pos);assert.deepEqual(flamePointerPoint(world,new Map(),[e],screen.x,screen.y,{assist:false}),ground);if(pos.z===-.5)assert(ground.z>0,'floor projection points to opposite side of player when cursor is on a near body');const mask=new T.Mesh(new T.BoxGeometry(2,2,2),new T.MeshBasicMaterial());mask.position.copy(camera.position).add(new T.Vector3(pos.x,1.035,-pos.z)).multiplyScalar(.5);mask.updateMatrixWorld(true);world.masks=[mask];assert.deepEqual(flamePointerPoint(world,new Map(),[e],screen.x,screen.y),ground);mask.geometry.dispose();mask.material.dispose();world.masks=[];}});
+
+test('flame body cursor excludes hidden and non-visible cohort bodies before picking the visible body behind them',()=>{const ray=new T.Raycaster(new T.Vector3(0,1.15,5),new T.Vector3(0,0,-1)),world={areaId:'westminster',ray,masks:[],screenToGround:()=>({x:9,z:9})},near={id:1,hp:40,radius:.36,pos:{x:0,z:-2},visible:false},far={...near,id:2,pos:{x:0,z:0},visible:true};assert.deepEqual(flamePointerPoint(world,new Map(),[near,far],0,0),far.pos);near.visible=true;assert.deepEqual(flamePointerPoint(world,new Map(),[near,far],0,0,{visibleIds:[2]}),far.pos);assert.deepEqual(flamePointerPoint(world,new Map(),[near,far],0,0,{visibleIds:[]}),{x:9,z:9});});

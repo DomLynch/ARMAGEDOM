@@ -1,4 +1,4 @@
-import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPitch,flameAimBasis,flameAimEligible}from'./engine/flame-presentation.js';
+import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
@@ -381,7 +381,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const id of [...views.keys()]) remove(id);
       for(const stored of parkedViews.values())for(const id of [...stored.keys()])remove(id,stored);parkedViews.clear();
     },
-    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false}={}) {
+    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false,combatVisibleIds}={}) {
       if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
@@ -436,9 +436,10 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         }
         if(entity===game.player){
           const equipped=!!game.flame?.equipped,pose=equipped&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          if(!equipped){view.flameClose=false;view.flameExtension=null;}
           if(view.knife)view.knife.visible=!equipped&&entity.weapon!=='pistol';
           if(pose&&!view.flameMount){const source=library.models.get(world.flameData?.modelRef);if(source){const record=Object.values(library.manifest.files??{}).find(r=>r.file===library.manifest.models.vagrant.url);view.flameGrip=flameGripProfile(view.model,record?.sha256);view.flameMount=attachFlame(view.model,source.gltf);}}
-          if(view.flameMount){view.flameMount.visible=pose;if(pose){applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const pitch=flameAimPitch(view.model,view.flameMount,game);game.flame.aimPitch=pitch;applyFlamePitch(view.model,view.flameMount,pitch);}}
+          if(view.flameMount){view.flameMount.visible=pose;if(pose){const stance=flameArmStance(game,view.flameClose,combatVisibleIds);view.flameClose=stance.close;view.flameExtension??=stance.extension;view.flameExtension+=(stance.extension-view.flameExtension)*(1-Math.exp(-Math.min(.1,Math.max(0,presentationDt))*stance.rate));applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip,armExtension:view.flameExtension});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const aim=flameAimPose(view.model,view.flameMount,game);game.flame.aimPitch=aim.pitch;game.flame.aimYaw=aim.yaw;applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}}
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);
