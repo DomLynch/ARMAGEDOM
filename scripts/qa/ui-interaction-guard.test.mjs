@@ -36,6 +36,13 @@ test('missing acknowledgement has finite deadline, retains before/after diagnost
 test('dispatch hang/failure remains dispatch failure and always attempts release, no retry',async()=>{
  for(const variation of[{dispatchHang:true},{dispatchError:true}]){const f=fixture(variation);await assert.rejects(checkedControl(f.page,{...options,timeoutMs:10}),error=>error.phase==='dispatch'&&error.dispatched===true);assert.equal(f.calls.filter(c=>c.method==='click').length,1);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);}
 });
+test('diagnostic grace preserves native timeout call log without extending Playwright action timeout',async()=>{
+ const f=fixture();let nativeTimeout;f.page.click=async(selector,opts)=>{nativeTimeout=opts.timeout;f.calls.push({method:'click',selector,opts});await new Promise(resolve=>setTimeout(resolve,opts.timeout+10));throw Error('page.click: Timeout exceeded.\nCall log:\n- element did not become stable');};
+ const started=Date.now();await assert.rejects(checkedControl(f.page,{...options,timeoutMs:20}),error=>error.phase==='dispatch'&&error.dispatched===true&&/Call log:/.test(error.message)&&/did not become stable/.test(error.message));assert.ok(nativeTimeout>0&&nativeTimeout<=20);assert.ok(Date.now()-started<1000);assert.equal(f.calls.filter(c=>c.method==='click').length,1);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);
+});
+test('dispatch success arriving during diagnostic grace is rejected, no late acknowledgement acceptance',async()=>{
+ const f=fixture();f.page.click=async(selector,opts)=>{f.calls.push({method:'click',selector,opts});await new Promise(resolve=>setTimeout(resolve,opts.timeout+10));f.state.ack=true;};await assert.rejects(checkedControl(f.page,{...options,timeoutMs:20}),error=>error.phase==='dispatch'&&/after action deadline/.test(error.message));assert.equal(f.calls.filter(c=>c.method==='waitForFunction').length,0);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);
+});
 test('tap uses normal touch and cancels residual protocol touch in finally',async()=>{
  const f=fixture();await checkedControl(f.page,{...options,method:'tap'});assert.equal(f.calls.filter(c=>c.method==='tap').length,1);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);assert.deepEqual(f.calls.find(c=>c.method==='Input.dispatchTouchEvent').args,{type:'touchCancel',touchPoints:[]});assert.equal(f.calls.filter(c=>c.method==='detach').length,1);
 });

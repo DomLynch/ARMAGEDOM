@@ -1,5 +1,6 @@
 // Shared Playwright guard: read-only prerequisite snapshots, one ordinary input,
 // bounded acknowledgement, and unconditional bounded input-release attempts.
+const DISPATCH_DIAGNOSTIC_GRACE_MS=250;
 async function bounded(work,ms,phase){
  let timer;try{return await Promise.race([Promise.resolve().then(work),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(phase+' wall limit exceeded')),Math.max(1,ms));})]);}finally{clearTimeout(timer);}
 }
@@ -36,10 +37,13 @@ async function perform(page,{kind,selector=null,method='click',url,reload=false,
    phase='baseline-acknowledgement';
    if(await bounded(()=>page.evaluate(ack),remaining(),'initial acknowledgement')){phase='precondition';classification='driver/setup';throw Error('acknowledgement already true before input; cannot prove this action');}
   }
-  phase='dispatch';dispatched=true;const options={timeout:remaining()};
-  if(kind==='control'){if(method==='tap')await bounded(()=>page.tap(selector,{...options,strict:true}),remaining(),'tap dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),remaining(),'click dispatch');}
-  else if(reload)await bounded(()=>page.reload({...options,waitUntil:'domcontentloaded'}),remaining(),'reload dispatch');
-  else await bounded(()=>page.goto(url,{...options,waitUntil:'domcontentloaded'}),remaining(),'navigation dispatch');
+  phase='dispatch';if(Date.now()>=deadline)throw Error('action deadline expired before dispatch');dispatched=true;const options={timeout:remaining()},dispatchWallMs=options.timeout+DISPATCH_DIAGNOSTIC_GRACE_MS;
+  // Preserve the native action timeout; the outer wall cap only gives its error
+  // call log time to arrive. A late success is still outside functional limits.
+  if(kind==='control'){if(method==='tap')await bounded(()=>page.tap(selector,{...options,strict:true}),dispatchWallMs,'tap dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),dispatchWallMs,'click dispatch');}
+  else if(reload)await bounded(()=>page.reload({...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'reload dispatch');
+  else await bounded(()=>page.goto(url,{...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'navigation dispatch');
+  if(Date.now()>deadline)throw Error('dispatch completed after action deadline; acknowledgement not attempted');
   phase='acknowledgement';
   const handle=await bounded(()=>page.waitForFunction(ack,null,{timeout:remaining(),polling:50}),remaining(),'acknowledgement');
   let acknowledgement;try{acknowledgement=await bounded(()=>handle.jsonValue(),remaining(),'acknowledgement value');}finally{try{await bounded(()=>handle.dispose(),cleanupMs,'acknowledgement handle release');}catch{}}
