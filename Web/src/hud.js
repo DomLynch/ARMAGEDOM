@@ -148,9 +148,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       if(model){
         const weapon=p.weapon==='pistol'?'westminster-start-pistol-v1':'knife',label=weapon==='knife'?'KNIFE':'PISTOL';
         const bonus=id=>Math.round((pilotBonuses(g.world.progressionData,DEFAULT_ATTRIBUTES,id,progression.proficiency[id]).damageMultiplier-1)*1000)/10;
-        el('mastery').textContent=['rifle','shotgun','grenade'].includes(p.weapon)?`${p.weapon.toUpperCase()} · no mastery bonus`:`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
+        el('mastery').textContent=['rifle','shotgun','grenade','rocket'].includes(p.weapon)?`${p.weapon.toUpperCase()} · no mastery bonus`:`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
         el('progression-attributes').textContent=Object.entries(progression.attributes).map(([id,value])=>`${id[0].toUpperCase()+id.slice(1)} ${value}`).join(' · ')+'. Intelligence has no effect in this pilot.';
-        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${(['rifle','shotgun','grenade'].includes(p.weapon)?0:Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10)}%.`;
+        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${(['rifle','shotgun','grenade','rocket'].includes(p.weapon)?0:Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10)}%.`;
       }
       const vestNotice = !g.finished && p.hp > 0
         ? g.vest?.equipped

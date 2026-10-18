@@ -2,13 +2,28 @@ import * as T from 'three';
 // Actor-owned queries only: visible triangle contact, never an aim-target snap.
 const visible=mesh=>{for(let n=mesh;n;n=n.parent)if(!n.visible)return false;return true;};
 const vertex=(mesh,index)=>mesh.getVertexPosition(index,new T.Vector3()).applyMatrix4(mesh.matrixWorld);
+// Reuse exact posed positions across bounds and indexed triangle tests in one query.
+// Float64 preserves JS coordinates; no geometry, skeleton or cross-frame cache changes.
+function queryVertices(){
+ let positions=new Float64Array(0),seen=new Uint8Array(0);
+ return(mesh,query)=>{
+  if(!mesh.isSkinnedMesh)return query();
+  const count=mesh.geometry.attributes.position.count;
+  if(seen.length<count){positions=new Float64Array(count*3);seen=new Uint8Array(count);}else seen.fill(0,0,count);
+  const descriptor=Object.getOwnPropertyDescriptor(mesh,'getVertexPosition'),original=mesh.getVertexPosition;
+  mesh.getVertexPosition=function(index,target){const offset=index*3;if(!seen[index]){original.call(this,index,target);positions[offset]=target.x;positions[offset+1]=target.y;positions[offset+2]=target.z;seen[index]=1;}return target.set(positions[offset],positions[offset+1],positions[offset+2]);};
+  try{return query();}finally{if(descriptor)Object.defineProperty(mesh,'getVertexPosition',descriptor);else delete mesh.getVertexPosition;}
+ };
+}
 export function traceGrenadeSurface(views,enemies,start,end){
  const from=new T.Vector3(start.x,start.y,start.z),to=new T.Vector3(end.x,end.y,end.z),delta=to.clone().sub(from),distance=delta.length();if(distance<1e-9)return null;
  const ray=new T.Raycaster(from,delta.normalize(),0,distance),meshes=[],owners=new Map();
  for(const enemy of enemies){if(enemy.hp<=0)continue;const view=views.get(enemy.id);if(!view)continue;view.root.updateWorldMatrix(true,true);
-  view.model.traverse(mesh=>{if(!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;if(mesh.isSkinnedMesh){mesh.skeleton.update();mesh.computeBoundingSphere();if(mesh.boundingBox!==null)mesh.computeBoundingBox();}meshes.push(mesh);owners.set(mesh,enemy);});
+  view.model.traverse(mesh=>{if(!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;meshes.push(mesh);owners.set(mesh,enemy);});
  }
- const hit=ray.intersectObjects(meshes,false)[0];if(!hit?.face)return null;
+ const memo=queryVertices(),hits=[];
+ for(const mesh of meshes)memo(mesh,()=>{if(mesh.isSkinnedMesh){mesh.skeleton.update();mesh.computeBoundingSphere();if(mesh.boundingBox!==null)mesh.computeBoundingBox();}ray.intersectObject(mesh,false,hits);});
+ hits.sort((a,b)=>a.distance-b.distance);const hit=hits[0];if(!hit?.face)return null;
  const mesh=hit.object,indices=[hit.face.a,hit.face.b,hit.face.c],triangle=indices.map(i=>vertex(mesh,i)),bary=T.Triangle.getBarycoord(hit.point,...triangle,new T.Vector3());if(!bary)return null;
  return{enemy:owners.get(mesh),position:{x:hit.point.x,y:hit.point.y,z:hit.point.z},anchor:{mesh,indices,weights:bary.toArray()}};
 }
