@@ -55,7 +55,8 @@ export function validateAreaGeometry(registry,areaId,layout,residents=null,exped
  const population=populationData?.areas[areaId];if(population){const slot=population.creatureSlot,row=[...(residents?.[areaId]??AREA_MOB_SPAWNS[areaId]??[]),...(AREA_DRONE_SPAWNS[areaId]??[])].find(row=>row.key===slot.placementKey),radius=Math.max(...Object.values(slot.cycles).map(spec=>creatureCatalogue.get(spec.foundationRef).stats.radius));if(!row)fail();validateResidentGeometry(row,g,radius);}
  const entries=[area.entry,...registry.ids.flatMap(id=>registry.links(id).filter(link=>link.to===areaId).map(link=>link.entry))];
  if(entries.some(entry=>!g.clear(g.ground(entry),.4)))throw Error("London entry is blocked");
- for(const row of residents?.[areaId]??[])validateResidentGeometry(row,g,creatureCatalogue.get(row.foundationRef).stats.radius);
+ // Boss merging also exposes the trusted legacy human rows used by declaredResident.
+ for(const row of residents?.[areaId]??[])validateResidentGeometry(row,g,creatureCatalogue.get(row.foundationRef??'hollow-scavenger').stats.radius);
  return Object.isFrozen(layout)?layout:freeze(structuredClone(layout));
 }
 function validateAtmosphere(rows,registry){
