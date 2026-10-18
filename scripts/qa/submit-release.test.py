@@ -1,22 +1,63 @@
 import hashlib,importlib.util,io,json,pathlib,shutil,subprocess,sys,tempfile,unittest
 spec=importlib.util.spec_from_file_location('submit_release',pathlib.Path(__file__).with_name('submit-release.py'));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class SubmissionRegression(unittest.TestCase):
- def prepared_stage(self,root):
+ def prepared_stage(self,root,run_source="import '../../driver.mjs';\n",preflight_ok=True):
   stage=root/'stage';stage.mkdir();qa=pathlib.Path(__file__).parent
   fixture=qa/'fixtures/driver-preflight/valid'
   for name in ('driver.mjs','read-state.mjs','fixtures/earned.json','scripts/qa/weapon-action-guard.mjs'):
    target=stage/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(fixture/name,target)
   for name in ('release-run.sh','release-run.py','driver-preflight.mjs','package.json','package-lock.json'):
    target=stage/'scripts/qa'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(qa/name,target)
-  (stage/'scripts/qa/run.mjs').write_text("import '../../driver.mjs';\n")
+  (stage/'scripts/qa/run.mjs').write_text(run_source)
   (stage/'scripts/qa/preflight.mjs').write_text('export const ready=true;\n')
   rows=[{'path':p.relative_to(stage).as_posix(),'bytes':p.stat().st_size,'sha256':module.digest(p)} for p in sorted(stage.rglob('*')) if p.is_file()]
   fingerprint=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest();expect={'source':'a'*40,'fingerprint':fingerprint,'packageSha256':None}
   (stage/'source-manifest.json').write_text(json.dumps({'version':1,'head':expect['source'],'fingerprint':fingerprint,'files':rows}))
   (stage/'driver-preflight-config.json').write_text(json.dumps({'stageRoot':'.','entrypoints':['scripts/qa/run.mjs','scripts/qa/preflight.mjs'],'sourceManifest':'source-manifest.json','expect':expect}))
-  subprocess.run(['node',str(qa/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,check=True,capture_output=True)
+  preflight=subprocess.run(['node',str(qa/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,capture_output=True)
+  self.assertEqual(preflight.returncode,0 if preflight_ok else 1,preflight.stderr)
   command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','bash','scripts/qa/release-run.sh']
   return stage,command
+
+ def prepared_checked_stage(self,root):
+  stage=root/'checked';stage.mkdir();qa=pathlib.Path(__file__).parent
+  names=('run-checked.sh','run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs','driver-preflight.mjs','package.json','package-lock.json')
+  for name in names:
+   target=stage/'scripts/qa'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(qa/name,target)
+  export=stage/'export';export.mkdir();(export/'index.html').write_text('exact game')
+  source='b'*40;fingerprint='c'*64
+  release={'sourceCommit':source,'sourceFingerprint':fingerprint,'files':[{'path':'index.html','bytes':10,'sha256':module.digest(export/'index.html')}]}
+  (export/'release.json').write_text(json.dumps(release))
+  expect={'source':source,'fingerprint':fingerprint,'packageSha256':module.digest(export/'release.json')}
+  driver_files={'scripts/qa/'+name:module.digest(stage/'scripts/qa'/name) for name in ('run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs')}
+  (stage/'qa-checked-config.json').write_text(json.dumps({'expect':expect,'driverFiles':driver_files,'baseURL':'https://example.invalid/exact/'}))
+  config={'stageRoot':'.','entrypoints':['scripts/qa/run-checked.mjs'],'dataFiles':['qa-checked-config.json'],'packageRoot':'export','expect':expect,'externals':[{'specifier':'playwright','manifest':'scripts/qa/package-lock.json','version':'1.63.0'}]}
+  (stage/'driver-preflight-config.json').write_text(json.dumps(config))
+  preflight=subprocess.run(['node',str(qa/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,capture_output=True)
+  self.assertEqual(preflight.returncode,0,preflight.stderr+(stage/'driver-preflight.json').read_bytes())
+  command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','bash','scripts/qa/run-checked.sh']
+  return stage,command
+
+ def test_checked_export_command_binds_package_and_runtime_config_before_launch(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage,command=self.prepared_checked_stage(root)
+   self.assertEqual(module.validate_driver_preflight(stage,command)['status'],'PASS_STATIC_DRIVER_PREFLIGHT')
+   original_popen=subprocess.Popen;launches=[]
+   class FakeLauncher:
+    stdout=io.StringIO('')
+    def wait(self):return 0
+   def launch_once(argv,*args,**kwargs):
+    if argv[0]=='node':return original_popen(argv,*args,**kwargs)
+    launches.append(argv);return FakeLauncher()
+   with patch.object(module.subprocess,'Popen',side_effect=launch_once):
+    self.assertEqual(module.submit(command,stage,root/'valid',validate_stage=module.validate_driver_preflight),0)
+   self.assertEqual(launches,[command]);self.assertEqual(json.loads((root/'valid/driver-preflight-submission.json').read_text())['status'],'PASS_STATIC_DRIVER_PREFLIGHT')
+   runtime=json.loads((stage/'qa-checked-config.json').read_text());runtime['expect']['packageSha256']='0'*64;(stage/'qa-checked-config.json').write_text(json.dumps(runtime))
+   out=root/'attempt'
+   with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
+    with self.assertRaisesRegex(RuntimeError,'Checked runtime/package identity mismatch'):module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+   self.assertFalse(out.exists())
 
  def test_real_static_receipt_valid_and_changed_fixture_rejects_without_launch(self):
   from unittest.mock import patch
@@ -53,6 +94,21 @@ class SubmissionRegression(unittest.TestCase):
     else:(stage/'scripts/qa/driver-preflight.mjs').write_text('// changed candidate validator\n')
     with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
      with self.assertRaisesRegex(RuntimeError,expected):module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+    self.assertFalse(out.exists())
+
+ def test_process_and_cdp_aliases_reject_before_launcher(self):
+  from unittest.mock import patch
+  sources=["import {spawn as launch} from 'node:child_process';launch('node',['unscanned.mjs']);",
+   "const dispatch=cdp.send.bind(cdp);await dispatch('Input.dispatchMouseEvent',{type:'mousePressed',x:0,y:0});"]
+  for source in sources:
+   with self.subTest(source=source),tempfile.TemporaryDirectory() as temp:
+    root=pathlib.Path(temp);stage,command=self.prepared_stage(root,run_source=source,preflight_ok=False);out=root/'attempt'
+    original_popen=subprocess.Popen
+    def only_preflight(argv,*args,**kwargs):
+     if argv[0]=='node':return original_popen(argv,*args,**kwargs)
+     raise AssertionError('launcher must not start')
+    with patch.object(module.subprocess,'Popen',side_effect=only_preflight):
+     with self.assertRaisesRegex(RuntimeError,'Driver preflight failed'):module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
     self.assertFalse(out.exists())
 
  def test_success_and_failure_both_recover_and_keep_partial_outputs(self):
@@ -94,10 +150,11 @@ class SubmissionRegression(unittest.TestCase):
   from unittest.mock import patch
   with tempfile.TemporaryDirectory() as temp:
    root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();out=root/'out'
-   command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','node','unlisted-driver.mjs']
-   with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
-    with self.assertRaisesRegex(RuntimeError,'Unbound release-test command'):
-     module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+   for remote in (['node','unlisted-driver.mjs'],['node','scripts/qa/run-checked.mjs'],['env','QA_CHROMIUM_EXECUTABLE=/tmp/other','node','scripts/qa/run-checked.mjs']):
+    command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--',*remote]
+    with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
+     with self.assertRaisesRegex(RuntimeError,'Unbound release-test command'):
+      module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
    self.assertFalse(out.exists())
 
 class RecoveryFailureRegression(unittest.TestCase):

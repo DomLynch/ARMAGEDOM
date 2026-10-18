@@ -12,8 +12,9 @@ Prepare from the stage root:
   (`source`, `fingerprint`, `packageSha256`) and `driverFiles` mapping the three
   consumer/helper paths to actual SHA256: `run-checked.mjs`, `run-controls.mjs`,
   `ui-interaction-guard.mjs`, each under `scripts/qa/`.
-- The installed pinned `playwright` package and its actual lockfile in the stage;
-  declare it through the static preflight external-package contract.
+- The pinned QA `package.json` and lockfile in the stage; declare Playwright
+  through the static preflight external-package contract. The maintained wrapper
+  installs them on the VPS because `vps-run.py` excludes `node_modules` on upload.
 - Static entrypoint `scripts/qa/run-checked.mjs`; include the config as declared
   data. Consumer/helper paths and literal file reads are discovered by the AST
   preflight. The trusted helper hash must be in maintained policy, never added
@@ -21,8 +22,10 @@ Prepare from the stage root:
 - `QA_CHROMIUM_EXECUTABLE` set to the verified existing non-Snap browser binary.
   The runner checks its existence and records the actual browser version; it never
   downloads a browser or falls back to a default executable.
-- The exact maintained command `node scripts/qa/run-checked.mjs`, through the
-  checked submission launcher. A direct command is not release-gate evidence.
+- The exact maintained command `bash scripts/qa/run-checked.sh`, through the
+  checked submission launcher. It checks the known non-Snap Chromium, installs
+  pinned QA dependencies without a browser download, then executes the runner.
+  A direct command is not release-gate evidence.
 
 The runtime receipt binds its config SHA and actual three driver hashes; the
 static report binds the same files. It does not read the static report itself:

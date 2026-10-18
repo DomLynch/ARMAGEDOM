@@ -10,9 +10,9 @@ def validate_driver_preflight(stage,command):
     separator=command.index('--');prefix=command[:separator];remote_command=command[separator+1:]
     if len(prefix) not in (5,6) or prefix[:3]!=[sys.executable,RUNNER,'--timeout'] or not prefix[3].isdigit() or int(prefix[3])<1 or prefix[-1]!=str(stage.resolve()) or (len(prefix)==6 and prefix[4]!='--small-release'):raise RuntimeError('Unbound release-test launcher rejected')
     build=remote_command==['bash','scripts/qa/release-run.sh']
-    checked=remote_command==['node','scripts/qa/run-checked.mjs']
+    checked=remote_command==['bash','scripts/qa/run-checked.sh']
     if not (build or checked):raise RuntimeError('Unbound release-test command rejected')
-    maintained_files=('driver-preflight.mjs','package.json','package-lock.json')+(('release-run.sh','release-run.py') if build else ('run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs'))
+    maintained_files=('driver-preflight.mjs','package.json','package-lock.json')+(('release-run.sh','release-run.py') if build else ('run-checked.sh','run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs'))
     for name in maintained_files:
         relative=pathlib.Path('scripts/qa')/name
         staged=stage/relative;maintained=pathlib.Path(__file__).resolve().with_name(name)
@@ -30,6 +30,11 @@ def validate_driver_preflight(stage,command):
     if not isinstance(expect,dict) or not all(isinstance(expect.get(k),str) and expect[k] for k in ('source','fingerprint')):raise RuntimeError('Missing driver preflight source identity')
     if config.get('packageRoot') and not expect.get('packageSha256'):raise RuntimeError('Missing driver preflight package identity')
     if checked and not config.get('packageRoot'):raise RuntimeError('Checked export requires exact package identity')
+    if checked:
+        runtime=json.loads((stage/'qa-checked-config.json').read_text())
+        if runtime.get('expect')!=expect:raise RuntimeError('Checked runtime/package identity mismatch')
+        expected_files={'scripts/qa/'+name:digest(stage/'scripts/qa'/name) for name in ('run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs')}
+        if runtime.get('driverFiles')!=expected_files:raise RuntimeError('Checked runtime driver identity mismatch')
     if build and not config.get('packageRoot') and config.get('sourceManifest')!='source-manifest.json':raise RuntimeError('Missing exact source manifest preflight input')
     manifest=stage/'source-manifest.json'
     if manifest.is_file():
