@@ -30,6 +30,7 @@ class Element extends EventTarget {
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
   }
+  focus() { this.focused = true; }
   showModal() {
     this.open = true;
   }
@@ -355,3 +356,12 @@ test('disposing HUD releases owned callbacks and preserves newer replacements',t
 
 test('separate Reset requires visible confirmation, cancel never resets, failure remains explicit and Retry stays separate',async t=>{let resets=0;const{hud,el,actions}=setup(t,{onReset:async()=>{resets++;return{ok:false,message:'Storage unavailable; current run kept.'};}});hud.ready();assert.equal(el('reset-confirmation').hidden,true);el('reset-game').onclick();assert.equal(el('reset-confirmation').hidden,false);el('cancel-reset').onclick();assert.equal(resets,0);assert.equal(el('reset-confirmation').hidden,true);await el('confirm-reset').onclick();assert.equal(resets,0);el('reset-game').onclick();await el('confirm-reset').onclick();assert.equal(resets,1);assert.equal(el('reset-status').textContent,'Storage unavailable; current run kept.');assert.equal(el('confirm-reset').disabled,false);el('retry').onclick();assert.equal(actions.retries,1);assert.equal(resets,1);});
 test('pending Reset rejects repeated confirmation, Retry and menu-close until the durable reset result',async t=>{let finish,resets=0;const{hud,el,actions}=setup(t,{onReset:()=>{resets++;return new Promise(resolve=>finish=resolve);}});hud.ready();el('menu').showModal();el('reset-game').onclick();const pending=el('confirm-reset').onclick();el('retry').onclick();el('resume').onclick();await el('confirm-reset').onclick();assert.equal(actions.retries,0);assert.equal(resets,1);assert.equal(el('menu').open,true);finish({ok:false,message:'Kept.'});await pending;assert.equal(el('confirm-reset').disabled,false);});
+
+
+test('Fieldtabs navigate one panel, reset only content scroll and preserve existing pause/close ownership',t=>{
+ const {hud,el,actions}=setup(t);hud.ready();hud.toggleMenu();assert(el('menu').open);assert.equal(actions.paused,true);el('menu-content').scrollTop=180;
+ el('menu-tab-journal').dispatchEvent(new Event('click'));assert.equal(el('menu-journal').hidden,false);assert.equal(el('menu-gear').hidden,true);assert.equal(el('menu-content').scrollTop,0);assert.equal(el('menu-tab-journal').attributes.get('aria-selected'),'true');assert.equal(actions.paused,true);
+ const event=new Event('keydown',{cancelable:true});Object.defineProperty(event,'key',{value:'End'});el('menu-tab-journal').dispatchEvent(event);assert.equal(el('menu-map').hidden,false);assert.equal(el('menu-tab-map').focused,true);assert(event.defaultPrevented);
+ el('menu-settings-button').dispatchEvent(new Event('click'));assert.equal(el('menu-settings').hidden,false);assert.equal(el('menu-tab-gear').tabIndex,0);assert.equal(el('menu-map').hidden,true);
+ assert.equal(hud.showMenuPage('unknown'),false);assert.equal(el('menu-settings').hidden,false);el('close-menu').onclick();assert.equal(el('menu').open,false);assert.equal(actions.paused,false);hud.toggleMenu();assert.equal(el('menu-settings').hidden,false,'reopen retains the selected destination');hud.showMenuPage('gear');assert.equal(el('menu-gear').hidden,false);hud.dispose();el('menu-tab-map').dispatchEvent(new Event('click'));assert.equal(el('menu-gear').hidden,false,'disposed tab handlers cannot mutate the menu');
+});

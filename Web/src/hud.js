@@ -1,3 +1,4 @@
+import{createMenuTabs}from'./menu-tabs.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
@@ -9,6 +10,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
   function listen(target,type,handler){target.addEventListener(type,handler);listeners.push(()=>target.removeEventListener?.(type,handler));}
   let loaded = false,
     sound = true, resetBusy=false;
+  const menuTabs=createMenuTabs(el,{canSelect:()=>!resetBusy});
   function pause() {
     onPause(menu.open || document.hidden);
     document.body.classList.toggle("menu-open", menu.open);
@@ -59,8 +61,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
   let lastMessage = "",
     lastStaminaState = null, lastPistolEquipped = null, lastFlameEquipped=false;
   return {
-    dispose(){loaded=false;for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
+    dispose(){loaded=false;menuTabs.dispose();for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
+    showMenuPage(id){if(!loaded||resetBusy)return false;const selected=menuTabs.select(id);if(selected&&!menu.open)toggleMenu();return selected;},
     resize,
     ready() {
       loaded = true;

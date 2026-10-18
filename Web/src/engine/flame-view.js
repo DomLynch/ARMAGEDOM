@@ -32,7 +32,7 @@ export function createFlameView(s,persistence){
   if(setFlameEquipped(g,true)){s.input?.clear();g.message='Flamethrower ready · hold Flame to fire.';g.messageUntil=g.time+4;repaint();}
  }
  function interact(){const g=s.game;if(!g?.world.flameData||!available()||s.paused)return false;if(g.flame?.equipped){lower(g);return true;}if(!nearby(g))return false;
-  const result=persistence.dispatchFlame(g,{type:'claimPickup',pickupId:g.world.flameData.pickupId},null,true);if(result.ok){g.events.push(...result.events);g.message='Flamethrower collected. Equip it in Equipment.';g.messageUntil=g.time+4;}repaint();return true;
+  const result=persistence.dispatchFlame(g,{type:'claimPickup',pickupId:g.world.flameData.pickupId},null,true);if(result.ok){g.events.push(...result.events);g.message='Flamethrower collected. Equip it in Gear.';g.messageUntil=g.time+4;}repaint();return true;
  }
  function update(){
   if(disposed)return;const g=s.game,data=g?.world.flameData;if(!data){panel.hidden=true;label.hidden=true;clearDrop();return;}panel.hidden=false;

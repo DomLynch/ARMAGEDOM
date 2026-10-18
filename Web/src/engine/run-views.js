@@ -1,3 +1,6 @@
+import{selectedPistolProfile}from'./expedition-core.js';
+import{selectedMeleeVariant}from'../melee-equipment.js';
+import{effectiveWeaponDamage}from'./progression-runtime.js';
 import{createFlameView}from'./flame-view.js';
 import{stopFlame}from'./flame-runtime.js';
 import{createUniqueRewardView}from'../unique-reward-view.js';
@@ -18,7 +21,7 @@ const bossView=createBossView(s),flameView=createFlameView(s,persistence);
 const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);s.updateExpedition?.();return result;});
 const expeditionView=createExpeditionView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchExpedition);s.updateExpedition?.();return result;});
 let vestBag=null;
-function updateVestEquipment(){const node=document.getElementById('vest-state'),g=s.game;if(!node||!g)return;const text=g.vest?.equipped?`Worn vest equipped · ${Math.round(VEST_RULES.reduction*100)}% less incoming hit damage. Automatic protection; Retry resets this vest.`:`No vest equipped · after ${VEST_RULES.requiredKills} kills, collect the supply bag by the Westminster pistol stash. Picking it up equips it.`;if(node.textContent!==text)node.textContent=text;}
+function updateVestEquipment(){const node=document.getElementById('vest-state'),g=s.game;if(!node||!g)return;const text=g.vest?.equipped?`Worn vest · ${Math.round(VEST_RULES.reduction*100)}% hit protection`:`No vest · Westminster stash after ${VEST_RULES.requiredKills} kills; pickup equips it.`;if(node.textContent!==text)node.textContent=text;const active=document.getElementById('active-weapon');if(!active)return;let weapon;if(g.flame?.equipped){const data=g.world.flameData;weapon=`Flamethrower · ${Math.ceil(g.flameFuel.fuelUnits/data.capacity*100)}% fuel · ${data.contact.damage} damage per ${data.contact.interval}s contact`;}else if(g.pistol?.equipped){const profile=selectedPistolProfile(g);weapon=`${profile.name??'Starting Pistol'} · ${+effectiveWeaponDamage(g,'westminster-start-pistol-v1',profile.damage).toFixed(1)} damage · ${g.pistol.magazine}/${profile.capacity} loaded · ${g.pistol.reserve} reserve`;}else{const profile=selectedMeleeVariant(g);weapon=`${profile.name} · Slash ${+effectiveWeaponDamage(g,'knife',profile.moves.light_right.damage).toFixed(1)} · Heavy ${+effectiveWeaponDamage(g,'knife',profile.moves.heavy_overhead.damage).toFixed(1)}`;}if(active.textContent!==weapon)active.textContent=weapon;}
 function clearVestBag(){vestBag?.dispose();vestBag=null;}
 function updateVestBag(){
  const available=!s.contextLost&&!s.traveling&&!s.game.finished&&s.world.areaId==='westminster'&&vestAvailable(s.game.vest,s.game.supplies,s.game.lootRules);

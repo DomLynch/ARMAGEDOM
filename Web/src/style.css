@@ -527,3 +527,26 @@ summary {
 @media (orientation:landscape) {#expedition-objective {top:calc(var(--safe-t) + 154px);}}
 
 .boss-world-label {position:absolute;max-width:calc(100vw - 16px);color:#f4ead1;font-size:11px;line-height:1.25;text-align:center;text-shadow:0 1px 3px #000,0 0 4px #000;pointer-events:none;}
+
+/* Fieldtabs: persistent exit/navigation; this is the only menu content scroller. */
+#menu{box-sizing:border-box;width:min(600px,calc(100vw - 24px));height:min(760px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:0;overflow:hidden;}
+#menu[open]{display:flex;flex-direction:column;}
+#menu-header{display:flex;align-items:center;gap:8px;flex:none;padding:14px 16px;border-bottom:1px solid #546c6d;}
+#menu-header .menu-brand{flex:1;min-width:0;}#menu-header h2{font-size:18px;letter-spacing:1px;margin:0;}#menu-header .eyebrow{font-size:9px;line-height:1.4;margin:5px 0 0;}
+#menu #resume{width:auto;flex:none;min-height:44px;padding:9px 12px;margin:0;color:var(--gold);}
+#menu .close{float:none;flex:none;margin:0;width:44px;min-width:44px;height:44px;}
+#menu-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));flex:none;border-bottom:1px solid #546c6d;padding:0 12px;gap:8px;}
+#menu-tabs button{margin:0;padding:10px 4px;min-height:48px;border:0;border-radius:0;background:transparent;color:#b8c8c5;}
+#menu-tabs button[aria-selected="true"]{color:var(--gold);border-bottom:3px solid var(--gold);}
+#menu-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:18px;touch-action:pan-y;}
+#menu-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:8px 16px;border-top:1px solid #546c6d;}
+#menu #menu-settings-button{width:auto;min-height:44px;margin:0;padding:8px 14px;}#menu-footer span{font-size:11px;color:#b8c8c5;}
+#menu #expedition-panel{border:0;margin:0;padding:0;}#menu h3{margin:0 0 14px;font-size:20px;color:#eee9df;}#menu h4{margin:8px 0;color:var(--gold);font-size:16px;}
+#menu #expedition-panel p{font-size:14px;line-height:1.5;}#menu details{font-size:14px;}#menu summary{color:var(--gold);}
+#equipment-panel,#atlas-panel{margin:0;}#equipment-panel>summary,#atlas-panel>summary{display:none;}
+.active-loadout,.journal-next{background:#253c40;border:1px solid #546c6d;border-radius:10px;padding:14px;margin-bottom:20px;}
+#menu .active-loadout .eyebrow,#menu .journal-next .eyebrow{font-size:11px;color:var(--gold);margin:0 0 7px;}#active-weapon{font-weight:600;margin:0 0 12px;}#vest-state{border-top:1px solid #546c6d;padding-top:10px;margin:0;}
+#menu #variant-choices,#menu #melee-choices{gap:0;}#menu #variant-choices button,#menu #melee-choices button,#menu #flame-equip{margin:0 0 9px;min-height:48px;text-align:left;padding:12px 14px;font-size:14px;}
+#menu #variant-choices button[aria-pressed="true"],#menu #melee-choices button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);}
+#menu-content:focus-visible,#menu button:focus-visible,#menu summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+@media(orientation:landscape) and (max-height:500px){#menu{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);}#menu-header{padding:8px 16px;}#menu-content{padding:14px 18px;}#menu-footer{padding:4px 16px;}}
