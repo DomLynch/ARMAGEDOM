@@ -1,0 +1,6 @@
+import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';
+import{fixture}from'./helpers/rifle-fixture.js';import{BOSS_EQUIPMENT_PROFILES}from'../src/engine/boss-equipment-data.js';import{BOSS_EQUIPMENT_SAVE_KEY}from'../src/engine/boss-equipment-core.js';import{RIFLE_SAVE_KEY}from'../src/engine/rifle-core.js';import{FLAME_SAVE_KEY}from'../src/engine/flame-core.js';
+const seed=JSON.parse(fs.readFileSync(new URL('./fixtures/rifle166-earned-v9.json',import.meta.url)));
+for(const [version,key,raw]of[[8,FLAME_SAVE_KEY,seed.rawV8],[9,RIFLE_SAVE_KEY,seed.rawV9]])for(const field of['shotgun','grenade'])test('historicalv'+version+' cannot contain new '+field+' attribution or write a successor',()=>{
+ const corrupt=JSON.parse(raw),award=corrupt.progression.awards.find(row=>row.weaponId==='bridge-warden-rifle-v1')??corrupt.progression.awards[0];assert(award);award.weaponId=BOSS_EQUIPMENT_PROFILES[field].itemId;const mutated=JSON.stringify(corrupt),records=new Map([[key,mutated]]),f=fixture({records,extraWorld:{bossEquipmentData:BOSS_EQUIPMENT_PROFILES}});f.restore();assert.equal(f.g.runSaveInvalid,true);assert.equal(records.get(key),mutated);assert.equal(records.has(BOSS_EQUIPMENT_SAVE_KEY),false);assert.equal(f.writes.length,0);
+});
