@@ -39,6 +39,14 @@ test('dispatch hang/failure remains dispatch failure and always attempts release
 test('tap uses normal touch and cancels residual protocol touch in finally',async()=>{
  const f=fixture();await checkedControl(f.page,{...options,method:'tap'});assert.equal(f.calls.filter(c=>c.method==='tap').length,1);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);assert.deepEqual(f.calls.find(c=>c.method==='Input.dispatchTouchEvent').args,{type:'touchCancel',touchPoints:[]});assert.equal(f.calls.filter(c=>c.method==='detach').length,1);
 });
+test('only exact no-active-touch protocol response is a completed release, other touch errors remain fatal',async()=>{
+ for(const message of['cdpSession.send: Protocol error (Input.dispatchTouchEvent): Must send a TouchStart first to start a new touch.','Must send a TouchStart first to start a new touch.','Protocol error (Input.dispatchTouchEvent): Target closed','cdpSession.send: Protocol error (Input.dispatchTouchEvent): Must send a TouchStart first to start a new touch. unexpected suffix']){
+  const f=fixture();let detached=0;f.page.context=()=>({newCDPSession:async()=>({send:async()=>{throw Error(message);},detach:async()=>{detached++;}})});
+  if(message==='cdpSession.send: Protocol error (Input.dispatchTouchEvent): Must send a TouchStart first to start a new touch.')assert.deepEqual((await checkedControl(f.page,{...options,method:'tap'})).releaseErrors,[]);
+  else await assert.rejects(checkedControl(f.page,{...options,method:'tap'}),error=>error.phase==='release'&&error.releaseErrors.length===1);
+  assert.equal(detached,1);assert.equal(f.calls.filter(c=>c.method==='tap').length,1);assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);
+ }
+});
 test('navigation/reload use bounded DOM-content-loaded dispatch plus actual acknowledgement',async()=>{
  for(const settings of[{url:'https://example.invalid/next'},{reload:true}]){const f=fixture(),result=await checkedNavigation(f.page,{...settings,ack:()=>document.getElementById('enter')!==null,timeoutMs:50});assert.equal(result.phase,'acknowledged');assert.equal(f.calls.filter(c=>['goto','reload'].includes(c.method)).length,1);assert.equal(f.calls[0].opts.waitUntil,'domcontentloaded');assert.equal(f.calls.filter(c=>c.method==='mouse-up').length,1);}
 });

@@ -23,7 +23,7 @@ async function controlSnapshot(page,selector){
 }
 async function releaseInputs(page,method,ms){
  const work=[bounded(()=>page.mouse.up({button:'left'}),ms,'mouse release')];
- if(method==='tap')work.push(bounded(async()=>{let session;try{session=await page.context().newCDPSession(page);await session.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});}finally{if(session)await bounded(()=>session.detach(),ms,'touch session detach');}},ms,'touch release'));
+ if(method==='tap')work.push(bounded(async()=>{let session;try{session=await page.context().newCDPSession(page);try{await session.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});}catch(error){if(error?.message!=='cdpSession.send: Protocol error (Input.dispatchTouchEvent): Must send a TouchStart first to start a new touch.')throw error;}}finally{if(session)await bounded(()=>session.detach(),ms,'touch session detach');}},ms,'touch release'));
  const results=await Promise.allSettled(work);return results.flatMap(result=>result.status==='rejected'?[String(result.reason?.message??result.reason)]:[]);
 }
 async function perform(page,{kind,selector=null,method='click',url,reload=false,ack,timeoutMs=3000,label=kind}){
