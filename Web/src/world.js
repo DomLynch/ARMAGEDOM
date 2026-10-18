@@ -1,3 +1,4 @@
+import{safehouseCrosses}from'./engine/safehouse.js';
 import {createRouteGuidance} from './engine/route-guidance.js';
 import {createGeometry} from './world-geometry.js';
 import {createAreaRegistry} from './area-registry.js';
@@ -15,10 +16,10 @@ function initialSpawn(geometry,registry) {
   return row.id==='westminster'||row.visibility==='private'?{x:0,z:-6}:geometry.ground(row.entry);
 }
 export class LondonWorld {
-  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null,textureBudgetBytes=48*1024*1024,validatedLayouts=null,residentPlacements=null,areaAtmosphere=null,areaLighting=null,areaWater=null,lootRules=null,progressionData=null,expeditionData=null,bossData=null,uniqueRewardData=null,populationData=null,flameData=null,rifleData=null,bossEquipmentData=null}) {
+  constructor({THREE,scene,camera,layout,texture,manifest=null,baseUrl=null,viewZoomMultiplier=1,registry=null,textureBudgetBytes=48*1024*1024,validatedLayouts=null,residentPlacements=null,areaAtmosphere=null,areaLighting=null,areaWater=null,lootRules=null,progressionData=null,expeditionData=null,bossData=null,uniqueRewardData=null,populationData=null,flameData=null,rifleData=null,bossEquipmentData=null,safehouseData=null}) {
     if(!Number.isFinite(viewZoomMultiplier)||viewZoomMultiplier<1)throw Error('View zoom multiplier must be finite and at least 1');
     if(!Number.isFinite(textureBudgetBytes)||textureBudgetBytes<16*1024*1024||textureBudgetBytes>48*1024*1024)throw Error("Invalid texture budget");
-    this.bossEquipmentData=bossEquipmentData;this.rifleData=rifleData;this.flameData=flameData;this.populationData=populationData;this.uniqueRewardData=uniqueRewardData;this.bossData=bossData;this.expeditionData=expeditionData;this.progressionData=progressionData;this.lootRules=lootRules;this.areaWater=areaWater;this.areaLighting=areaLighting;this.residentPlacements=residentPlacements;this.areaAtmosphere=areaAtmosphere;this.validatedLayouts=validatedLayouts;this.textureBudgetBytes=textureBudgetBytes;this.viewZoomMultiplier=viewZoomMultiplier;
+    this.safehouseData=safehouseData;this.bossEquipmentData=bossEquipmentData;this.rifleData=rifleData;this.flameData=flameData;this.populationData=populationData;this.uniqueRewardData=uniqueRewardData;this.bossData=bossData;this.expeditionData=expeditionData;this.progressionData=progressionData;this.lootRules=lootRules;this.areaWater=areaWater;this.areaLighting=areaLighting;this.residentPlacements=residentPlacements;this.areaAtmosphere=areaAtmosphere;this.validatedLayouts=validatedLayouts;this.textureBudgetBytes=textureBudgetBytes;this.viewZoomMultiplier=viewZoomMultiplier;
     this.THREE=THREE;this.scene=scene;this.camera=camera;this.layout=layout;this.texture=texture;
     this.geometry=createGeometry(layout);this.spawn=initialSpawn(this.geometry,registry??createAreaRegistry({manifest}));this.cameraRight={x:1,z:0};this.cameraForward={x:0,z:1};
     this.manifest=manifest;this.registry=registry??createAreaRegistry({manifest});this.baseUrl=baseUrl;this.areaId=this.registry.initialArea;this.disposed=false;
@@ -52,7 +53,7 @@ export class LondonWorld {
     const mesh=new THREE.Mesh(geometry,material);mesh.renderOrder=order;mesh.frustumCulled=false;this.group.add(mesh);return mesh;
   }
   move(position,delta,radius){return this.geometry.move(position,delta,radius);}
-  lineClear(a,b){return this.geometry.lineClear(a,b);}
+  lineClear(a,b){return !safehouseCrosses({world:this},a,b)&&this.geometry.lineClear(a,b);}
   get actorScale(){return this.layout.characterScale;}
   travelAt(position) {
     const point=this.geometry.point(position),link=this.registry.links(this.areaId).find(link=>
@@ -118,13 +119,13 @@ export class LondonWorld {
     if(cache.pending.has(areaId))return cache.pending.get(areaId);
     const task=(async()=>{
       const row=this.registry.get(areaId);let layout=this.validatedLayouts?.[row.layoutRef]??[...cache.stages.values()].find(stage=>this.registry.get(stage.areaId).layoutRef===row.layoutRef)?.layout;
-      if(!layout){const response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);layout=await response.json();}layout=validateAreaGeometry(this.registry,areaId,layout,this.residentPlacements,this.expeditionData,this.bossData,this.populationData,this.flameData);
+      if(!layout){const response=await fetch(new URL(this.registry.asset(row.layoutRef).path,this.baseUrl));if(!response.ok)throw Error(`London layout HTTP ${response.status}`);layout=await response.json();}layout=validateAreaGeometry(this.registry,areaId,layout,this.residentPlacements,this.expeditionData,this.bossData,this.populationData,this.flameData,this.safehouseData);
       const texture=await new this.THREE.TextureLoader().loadAsync(new URL(this.registry.asset(row.backdropRef).path,this.baseUrl).href);
       let next;
       try{
         if(cache.disposed)throw Error('London cache disposed');
         this.admitTexture((texture.image?.width??0)*(texture.image?.height??0)*4*7/3);
-        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier,textureBudgetBytes:this.textureBudgetBytes,validatedLayouts:this.validatedLayouts,residentPlacements:this.residentPlacements,areaAtmosphere:this.areaAtmosphere,areaLighting:this.areaLighting,areaWater:this.areaWater,lootRules:this.lootRules,progressionData:this.progressionData,expeditionData:this.expeditionData,bossData:this.bossData,uniqueRewardData:this.uniqueRewardData,populationData:this.populationData,bossEquipmentData:this.bossEquipmentData,rifleData:this.rifleData,flameData:this.flameData});
+        next=new LondonWorld({THREE:this.THREE,scene:new this.THREE.Scene(),camera:this.camera.clone(),layout,texture,manifest:this.manifest,registry:this.registry,baseUrl:this.baseUrl,viewZoomMultiplier:this.viewZoomMultiplier,textureBudgetBytes:this.textureBudgetBytes,validatedLayouts:this.validatedLayouts,residentPlacements:this.residentPlacements,areaAtmosphere:this.areaAtmosphere,areaLighting:this.areaLighting,areaWater:this.areaWater,lootRules:this.lootRules,progressionData:this.progressionData,expeditionData:this.expeditionData,bossData:this.bossData,uniqueRewardData:this.uniqueRewardData,populationData:this.populationData,bossEquipmentData:this.bossEquipmentData,safehouseData:this.safehouseData,rifleData:this.rifleData,flameData:this.flameData});
         next.areaId=areaId;cache.stages.set(areaId,next);cache.usage.set(areaId,cache.nextUse++);return next;
       }catch(error){if(next)next.disposeStage();else {texture.dispose();texture.image=null;}throw error;}
     })();
@@ -194,9 +195,9 @@ export async function createWorld({THREE,renderer,scene,camera,baseUrl=globalThi
     const response=await fetch(new URL('world/'+manifest.contentRef,baseUrl));if(!response.ok)throw Error(`London content HTTP ${response.status}`);
     content=validateAreaMetadata(await response.json(),registry);
   }
-  layout=validateAreaGeometry(registry,registry.initialArea,layout,content?.residents,content?.expedition,content?.bossData,content?.populationData,content?.flameData);
+  layout=validateAreaGeometry(registry,registry.initialArea,layout,content?.residents,content?.expedition,content?.bossData,content?.populationData,content?.flameData,content?.safehouseData);
   const geometry=createGeometry(layout);
   if(!geometry.clear(initialSpawn(geometry,registry),.4))throw Error("London starting spawn is blocked");
   const texture=await new THREE.TextureLoader().loadAsync(new URL(registry.asset(row.backdropRef).path,baseUrl).href);
-  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water,lootRules:content?.lootRules,progressionData:content?.progression,expeditionData:content?.expedition,bossData:content?.bossData,uniqueRewardData:content?.uniqueRewardData,populationData:content?.populationData,bossEquipmentData:content?.bossEquipmentData,rifleData:content?.rifleData,flameData:content?.flameData});} catch(e){texture.dispose();throw e;}
+  try {return new LondonWorld({THREE,renderer,scene,camera,layout,texture,manifest,registry,baseUrl,viewZoomMultiplier,textureBudgetBytes:content?.textureBudgetBytes,validatedLayouts:content?.layouts,residentPlacements:content?.residents,areaAtmosphere:content?.atmosphere,areaLighting:content?.lighting,areaWater:content?.water,lootRules:content?.lootRules,progressionData:content?.progression,expeditionData:content?.expedition,bossData:content?.bossData,uniqueRewardData:content?.uniqueRewardData,populationData:content?.populationData,bossEquipmentData:content?.bossEquipmentData,safehouseData:content?.safehouseData,rifleData:content?.rifleData,flameData:content?.flameData});} catch(e){texture.dispose();throw e;}
 }

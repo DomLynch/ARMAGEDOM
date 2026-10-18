@@ -550,3 +550,7 @@ summary {
 #menu #variant-choices button[aria-pressed="true"],#menu #melee-choices button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);}
 #menu-content:focus-visible,#menu button:focus-visible,#menu summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 @media(orientation:landscape) and (max-height:500px){#menu{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);}#menu-header{padding:8px 16px;}#menu-content{padding:14px 18px;}#menu-footer{padding:4px 16px;}}
+
+.safehouse-label{position:fixed;transform:translate(-50%,-100%);padding:4px 7px;border:1px solid #b08a43;background:#17130eeb;color:#e0c18b;font-size:11px;pointer-events:none;z-index:8;white-space:nowrap}
+#safehouse-status{position:absolute;top:115px;left:50%;transform:translateX(-50%);font-size:10px;color:#e0c18b;pointer-events:none;white-space:nowrap}
+.locker-row{padding:10px 0;border-bottom:1px solid #514630;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.locker-row p{flex-basis:100%;margin:0}.locker-row input{width:80px;min-height:40px}.locker-row button{min-height:42px}
