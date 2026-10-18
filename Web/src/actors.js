@@ -105,13 +105,13 @@ export async function loadActors(
     const pending=(async()=>{
       if(description.faceRecipeId!==undefined)faceRecipeFor(description.faceRecipeId);
       const headParts=description.headParts===undefined?null:validateHeadParts(description.headParts);
-      const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null)]);
+      const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null),description.armSever?load(new URL(description.armSever.url,manifestURL).href):Promise.resolve(null)]);
       const failed=parts.find(part=>part.status==='rejected');if(failed)throw failed.reason;
       if(disposed)throw Error('Actor library disposed');
-      const[gltf,equipment]=parts.map(part=>part.value);
+      const[gltf,equipment,armSever]=parts.map(part=>part.value);
       const missing=headParts?.find(part=>!gltf.scene.getObjectByName(part)?.isSkinnedMesh);if(missing)throw Error('Appearance head part missing: '+name+'/'+missing);
       onProgress(name);
-      const value={gltf,description,equipment};models.set(name,value);return value;
+      const value={gltf,description,equipment,armSever};models.set(name,value);return value;
     })().finally(()=>pendingModels.delete(name));
     pendingModels.set(name,pending);return pending;
   }
@@ -276,7 +276,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       renderScene.add(root, shadow);
       yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(finisherPresentationId(entity.finisher?.recipeId))),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&finisherPresentationId(entity.finisher?.recipeId)==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,armAsset:!humanBody?source.armSever:null,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(finisherPresentationId(entity.finisher?.recipeId))),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&finisherPresentationId(entity.finisher?.recipeId)==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
