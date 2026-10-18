@@ -1,3 +1,4 @@
+import {startStickyGrenade,stepStickyGrenade} from './sticky-grenade-runtime.js';
 import {tracePistol} from '../pistol.js';
 import {traceShotgun} from './shotgun-pattern.js';
 import {createGrenadeModel} from './grenade-state.js';
@@ -13,12 +14,13 @@ function throwTarget(g,intent,reference){
  const distance=point(intent.aimPoint)?Math.min(range-EPS,length(raw)):Math.min(range,g.grenadeThrowRange??5)-EPS,direction=normal(raw,reference),position={x:p.x+direction.x*distance,z:p.z+direction.z*distance};
  return distance>0&&g.world.geometry?.clear(position,.05)&&g.world.lineClear(p,position)?{position,direction}:null;
 }
-export function bossEquipmentIntent(g,intent,dispatch,applyHit){
+export function bossEquipmentIntent(g,intent,dispatch,applyHit,services={}){
  const field=selectedBossRanged(g);if(!field)return intent;
  const p=g.player,data=g.world.bossEquipmentData[field],clock=bossEquipmentClock(g,field),actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!g.runSaveInvalid&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=(p.ready??0)&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const explicit=point(intent.aim)&&length(intent.aim)>EPS,moving=length(intent.move)>.01,reference=explicit?normal(intent.aim):moving?normal(intent.move):g.bossWeaponFacing??{...p.facing};g.bossWeaponFacing={...reference};g.pistolTargetId=null;g.pistolTargetFacing=null;
  if(!canAct)clock.reloadingUntil=0;
  if(canAct&&actions.includes('heavy')){dispatch?.(g,{type:'equip',itemId:data.itemId,equipped:false},true);return{...intent,actions:[],held:[],guard:false,guardPressed:false};}
+ if(field==='grenade'&&canAct&&intent.guardPressed){g.grenadeMode=g.grenadeMode==='sticky'?'standard':'sticky';emit(g,'grenade-mode',{mode:g.grenadeMode});}
  let state=g.bossEquipment[field];if(field==='grenade'&&canAct&&actions.includes('stab')){const choices=[3,5,8],index=choices.indexOf(g.grenadeThrowRange??5);g.grenadeThrowRange=choices[(index+1)%choices.length];}
  if(field==='shotgun'){
   if(canAct&&clock.reloadingUntil>0&&g.time+EPS>=clock.reloadingUntil){const result=dispatch?.(g,{type:'reload',field},true);if(!result?.ok)clock.reloadingUntil=0;state=g.bossEquipment[field];}
@@ -34,19 +36,20 @@ export function bossEquipmentIntent(g,intent,dispatch,applyHit){
   }else{
    const target=throwTarget(g,intent,reference);g.grenadeAim=target?.position??null;
    if(target){const id='grenade:'+g.tick+':'+(g.grenadeSequence??0),proposal=grenadeModel(g).proposeThrow({charges:state.magazine,time:g.time},p.pos,target.position,g.world.areaId,id);
-    if(proposal){const paid=dispatch?.(g,{type:'fire',field},true);if(paid?.ok){g.grenadeSequence=(g.grenadeSequence??0)+1;(g.activeGrenades??=[]).push({intent:proposal.active,origin:{...p.pos},direction:{...target.direction},paidTick:g.tick,paidTime:g.time});emit(g,'grenade-throw',{actor:p,weapon:'grenade',id,origin:{...p.pos},position:{...target.position},detonateAt:proposal.active.detonateAt});}}
+    if(proposal){const row={intent:proposal.active,origin:{...p.pos},direction:{...target.direction},paidTick:g.tick,paidTime:g.time},ready=g.grenadeMode!=='sticky'||startStickyGrenade(g,row,services);const paid=ready&&dispatch?.(g,{type:'fire',field},true);if(paid?.ok){g.grenadeSequence=(g.grenadeSequence??0)+1;(g.activeGrenades??=[]).push(row);emit(g,'grenade-throw',{actor:p,weapon:'grenade',id,origin:{...p.pos},position:{...target.position},detonateAt:proposal.active.detonateAt});}}
    }
   }
  }
  if(field==='grenade')g.grenadeAim=throwTarget(g,intent,reference)?.position??null;
  p.buffer=null;p.guarding=false;p.parryUntil=0;return{...intent,aim:explicit||moving?reference:null,guard:false,guardPressed:false,actions:[],held:[]};
 }
-export function stepBossGrenades(g,applyHit){
+export function stepBossGrenades(g,applyHit,services={}){
  const pending=g.activeGrenades??[];if(!pending.length)return;
  g.activeGrenades=[];if(g.finished||g.player.hp<=0)return;
  const data=g.world.bossEquipmentData?.grenade;if(!data)return;
  for(const row of pending){
   if(row.intent.areaId!==g.world.areaId)continue;
+  if(row.mode==='sticky'&&!stepStickyGrenade(g,row,services))continue;
   const victims=g.enemies.map(e=>({victimId:e.placementKey??String(e.id),areaId:g.world.areaId,position:{x:e.pos.x,z:e.pos.z},hp:e.hp,eligible:g.world.lineClear(row.intent.position,e.pos)}));
   const proposed=grenadeModel(g).proposeDetonation(row.intent,g.time,g.world.areaId,victims);if(!proposed)continue;
   if(proposed.active){g.activeGrenades.push({...row,intent:proposed.active});continue;}

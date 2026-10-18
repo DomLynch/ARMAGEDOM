@@ -133,7 +133,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
           "aria-label",
           `${id === "dodge" ? "Dodge Roll" : id}${lowEnergy ? " · Low stamina" : ""}`,
         );
-        if (id === "slash" || id === "stab")
+        if (id === "slash" || id === "stab" || id === "guard")
           button.querySelector("small").textContent = "";
       }
       const area = (g.world?.areaId ?? "westminster").toUpperCase();
@@ -216,8 +216,8 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       }
       if(bossWeapon&&!flameEquipped){
         const state=g.bossEquipment[bossWeapon],data=g.world.bossEquipmentData[bossWeapon],clock=g.bossEquipmentAction?.[bossWeapon]??{},left=Math.max(0,(clock.nextFireAt??0)-g.time),grenade=bossWeapon==='grenade';
-        for(const[id,text]of Object.entries({slash:grenade?'THROW':'FIRE',stab:grenade?'RANGE':'RELOAD',heavy:'MELEE',guard:'NO GUARD'}))el(id).querySelector('span').textContent=text;
-        el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with '+data.name);el('ammo').hidden=false;el('ammo').textContent=grenade?`GRENADES · ${state.magazine} LEFT · 1s FUSE`:`SHOTGUN · ${state.magazine}/2 · ${state.reserve} RESERVE${clock.reloadingUntil?' · RELOADING':''}`;
+        for(const[id,text]of Object.entries({slash:grenade?'THROW':'FIRE',stab:grenade?'RANGE':'RELOAD',heavy:'MELEE',guard:grenade?'MODE':'NO GUARD'}))el(id).querySelector('span').textContent=text;
+        el('guard').disabled=!grenade;el('guard').setAttribute('aria-label',grenade?'Switch grenade mode; '+(g.grenadeMode==='sticky'?'Sticky':'Standard')+' selected':'Guard unavailable with '+data.name);if(grenade){el('guard').classList.remove('low-energy','cooldown','pressed');el('guard').querySelector('small').textContent=g.grenadeMode==='sticky'?'STICKY':'STANDARD';}el('ammo').hidden=false;el('ammo').textContent=grenade?`${g.grenadeMode==='sticky'?'STICKY':'STANDARD'} GRENADES · ${state.magazine} LEFT · 1s FUSE`:`SHOTGUN · ${state.magazine}/2 · ${state.reserve} RESERVE${clock.reloadingUntil?' · RELOADING':''}`;
         for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&state.magazine===0);el(id).classList.toggle('cooldown',id==='slash'&&left>0);el(id).querySelector('small').textContent=id==='slash'?grenade?`${state.magazine} left`:`${state.magazine}/2`:id==='stab'?grenade?`${g.grenadeThrowRange??5}m`:clock.reloadingUntil?`${Math.max(0,clock.reloadingUntil-g.time).toFixed(1)}s`:'':'';}
         el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready',String(1-Math.min(1,left/data.rules.cadence)));el('slash').setAttribute('aria-label',grenade?`Throw one grenade; ${state.magazine} left`:`Fire shotgun once; ${state.magazine} loaded`);el('stab').setAttribute('aria-label',grenade?'Cycle touch throw range: 3, 5 or 8 metres':'Reload shotgun');
       }
