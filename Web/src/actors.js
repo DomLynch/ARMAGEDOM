@@ -1,3 +1,4 @@
+import {traceGrenadeSurface,followGrenadeSurface} from './engine/grenade-surface.js';
 import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
 import{createRiflePose}from'./rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
@@ -314,6 +315,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     ensureEquipment(field){const data=world.bossEquipmentData?.[field];return !data?Promise.reject(Error('Equipment unavailable')):data.modelRef?library.ensureModels([data.modelRef]):Promise.resolve();},
     equipmentReady(field){const data=world.bossEquipmentData?.[field];return !!data&&(data.modelRef?library.models.has(data.modelRef):data.family==='pistols'?!!library.pistolAsset:!!library.models.get('vagrant')?.equipment);},
     equipmentAsset(field){const data=world.bossEquipmentData?.[field];if(!data)return null;if(data.modelRef)return library.models.get(data.modelRef);return data.family==='pistols'?{gltf:library.pistolAsset,description:{pose:{root:null}}}:{gltf:library.models.get('vagrant')?.equipment,description:{pose:{root:'WeaponDrawn'}}};},
+    grenadeSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true});const point=this.equipmentOrigin('grenade');return point?{x:point.x,y:point.y,z:point.z}:null;},
+    grenadeTrace(game,start,end){const ids=new Set(game.enemies.filter(e=>e.hp>0).map(e=>e.id));this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:ids});return traceGrenadeSurface(views,game.enemies,start,end);},
+    grenadeFollow(game,anchor,enemy){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([enemy.id])});return followGrenadeSurface(anchor,views.get(enemy.id));},
     equipmentOrigin(field){const view=views.get(0),mount=field==='grenade'?view?.grenadeEquipment?.mount:field==='shotgun'?view?.shotgunPose?.muzzle:null;return mount?.getWorldPosition(new THREE.Vector3())??null;},
     ensureRifle(){const data=world.rifleData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Rifle unavailable'));},
     rifleReady(){return !!library.models.get(world.rifleData?.modelRef);},
@@ -400,13 +404,13 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const id of [...views.keys()]) remove(id);
       for(const stored of parkedViews.values())for(const id of [...stored.keys()])remove(id,stored);parkedViews.clear();
     },
-    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false,combatVisibleIds}={}) {
+    update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false,projectileContactIds,combatVisibleIds}={}) {
       if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
+        if(contactOnly&&entity.kind>=0&&!projectileContactIds?.has(entity.id)&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){view.riflePose?.restore();view.shotgunPose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
