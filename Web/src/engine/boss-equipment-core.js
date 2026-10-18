@@ -1,24 +1,37 @@
+import {closedData} from './progression-state.js';
 import{syncMeleeEquipment}from'../melee-equipment.js';
 import{createUnlockRewardModel}from'./unlock-reward-state.js';
 import {createAmmoRewardModel} from './rifle-state.js';
 import {createRewardCollectionModel} from './reward-collection-state.js';
-export const BOSS_EQUIPMENT_SAVE_KEY='armagedom:boss-equipment-run:v10';
+export const BOSS_EQUIPMENT_SAVE_KEY='armagedom:boss-equipment-run:v11';
+export const PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY='armagedom:boss-equipment-run:v10';
+const previousFields=['shotgun','grenade','surgicalKnife','commanderPistol','emberProjector'];
+const envelope=['version','pistol','hp','supplies','vest','droneDeaths','animalCycle','progression','expedition','uniqueReward','flameFuel','rifle','bossEquipment'];
 const fail=code=>({ok:false,code,events:[]});
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-// One outer envelope uses the existing Core IO; retained v9/v8 are migration inputs only.
+// One outer envelope uses existing Core IO; retained v10/v9/v8 are read-only migration inputs.
 export function createBossEquipmentComponent({baseCodec,getRun,profiles,applyBaseSaved,baseStorageAdapter=storage=>storage,canDispatch,getAction=()=>null,validatedDropPosition,sourceDead}){
  if([baseCodec?.encodeRun,baseCodec?.restoreRun,getRun,applyBaseSaved,canDispatch,getAction,validatedDropPosition,sourceDead].some(fn=>typeof fn!=='function'))throw TypeError('Existing v9 and runtime authorities required');
- const models=Object.fromEntries(Object.entries(profiles).map(([field,data])=>[field,['shotguns','grenades'].includes(data.family)?createAmmoRewardModel(data):createUnlockRewardModel({itemId:data.itemId,source:data.source})])),model=createRewardCollectionModel(models),fields=Object.keys(models),byItem=new Map(fields.map(field=>[profiles[field].itemId,field]));let legacyRead=false;
+ if(!closedData(profiles,[...previousFields,'rocketLauncher'])||profiles.rocketLauncher.itemId!=='borough-butchers-rocket-launcher-v1'||profiles.rocketLauncher.family!=='launchers'||profiles.rocketLauncher.weaponKey!=='rocket'||!closedData(profiles.rocketLauncher.source,['placementKey','areaId','receiptId'])||profiles.rocketLauncher.source.placementKey!=='boss-butcher-v1'||profiles.rocketLauncher.source.areaId!=='elephant-and-castle'||profiles.rocketLauncher.source.receiptId!=='boss-butcher-v1:borough-butchers-rocket-launcher-v1')throw TypeError('Six registered reward profiles required');
+ const models=Object.fromEntries(Object.entries(profiles).map(([field,data])=>[field,['shotguns','grenades','launchers'].includes(data.family)?createAmmoRewardModel(data):createUnlockRewardModel({itemId:data.itemId,source:data.source})])),model=createRewardCollectionModel(models),fields=Object.keys(models),byItem=new Map(fields.map(field=>[profiles[field].itemId,field]));const previousModel=createRewardCollectionModel(Object.fromEntries(previousFields.map(field=>[field,models[field]])));let readOrigin=null;
  const state=g=>g.bossEquipment===undefined?model.freshState():g.bossEquipment;
  const selected=s=>fields.find(field=>s[field].selected)??null;
- const selectedValid=(g,s)=>{const field=selected(s);return field?(profiles[field].family==='pistols'?g.pistol?.collected&&g.pistol.equipped:!g.pistol?.equipped)&&!g.rifle?.selected&&(profiles[field].family==='flamethrowers'?g.flameFuel?.collected&&g.flame?.equipped:!g.flame?.equipped)&&g.player?.weapon===profiles[field].weaponKey:!fields.some(field=>['shotguns','grenades'].includes(profiles[field].family)&&g.player?.weapon===profiles[field].weaponKey);};
+ const selectedValid=(g,s)=>{const field=selected(s);return field?(profiles[field].family==='pistols'?g.pistol?.collected&&g.pistol.equipped:!g.pistol?.equipped)&&!g.rifle?.selected&&(profiles[field].family==='flamethrowers'?g.flameFuel?.collected&&g.flame?.equipped:!g.flame?.equipped)&&g.player?.weapon===profiles[field].weaponKey:!fields.some(field=>['shotguns','grenades','launchers'].includes(profiles[field].family)&&g.player?.weapon===profiles[field].weaponKey);};
  const codec={RUN_SAVE_KEY:BOSS_EQUIPMENT_SAVE_KEY,get PISTOL_SAVE_KEY(){return baseCodec.PISTOL_SAVE_KEY;},
-  encodeRun(g){const equipment=state(g);if(!model.valid(equipment)||!selectedValid(g,equipment))throw TypeError('Invalid boss equipment envelope');const old=JSON.parse(baseCodec.encodeRun(g));if(old.version!==9)throw TypeError('Boss equipment requires existing v9');return JSON.stringify({...old,version:10,bossEquipment:model.copy(equipment)});},
-  restoreRun(g,raw,legacyRaw){const legacy=legacyRead;legacyRead=false;try{
-   if(legacy){const historical=raw==null?null:JSON.parse(raw),introduced=new Set(Object.values(profiles).map(data=>data.itemId));if((historical?.progression?.awards??[]).some(row=>introduced.has(row?.weaponId)))return null;const restored=baseCodec.restoreRun(g,raw,legacyRaw);if(!restored)return null;const equipment={};for(const field of fields){const next=models[field].restoreState(undefined,{sourceDead:sourceDead(restored,profiles[field].source)});if(!next)return null;equipment[field]=next;}return{...restored,bossEquipment:equipment};}
-   const saved=JSON.parse(raw);if(saved?.version!==10||!Object.hasOwn(saved,'bossEquipment')||!model.valid(saved.bossEquipment))return null;
+  encodeRun(g){const equipment=state(g);if(!model.valid(equipment)||!selectedValid(g,equipment))throw TypeError('Invalid boss equipment envelope');const old=JSON.parse(baseCodec.encodeRun(g));if(old.version!==9)throw TypeError('Boss equipment requires existing v9');return JSON.stringify({...old,version:11,bossEquipment:model.copy(equipment)});},
+  restoreRun(g,raw,legacyRaw){const origin=readOrigin;readOrigin=null;try{
+   const saved=raw==null?null:JSON.parse(raw);
+   // Reject the impossible launcher receipt before any historical codec can normalize it.
+   if(origin!==null&&(saved?.progression?.awards??[]).some(row=>row?.weaponId===profiles.rocketLauncher.itemId))return null;
+   if(origin==='legacy'){
+    const introduced=new Set(Object.values(profiles).map(data=>data.itemId));if((saved?.progression?.awards??[]).some(row=>introduced.has(row?.weaponId)))return null;
+    const restored=baseCodec.restoreRun(g,raw,legacyRaw);if(!restored)return null;const equipment={};for(const field of fields){const next=models[field].restoreState(undefined,{sourceDead:sourceDead(restored,profiles[field].source)});if(!next)return null;equipment[field]=next;}return model.valid(equipment)?{...restored,bossEquipment:equipment}:null;
+   }
+   const historical=origin==='v10';
+   if(saved?.version!==(historical?10:11)||!closedData(saved,envelope)||!(historical?previousModel:model).valid(saved.bossEquipment))return null;
    const old={...saved,version:9};delete old.bossEquipment;const restored=baseCodec.restoreRun(g,JSON.stringify(old),null);if(!restored)return null;
-   const equipment=model.copy(saved.bossEquipment),field=selected(equipment);if(field&&((profiles[field].family==='pistols'?!saved.pistol?.collected||!saved.pistol.equipped:saved.pistol?.equipped)||saved.rifle?.selected||profiles[field].family==='flamethrowers'&&!saved.flameFuel?.collected))return null;return{...restored,bossEquipment:equipment};
+   const equipment=historical?{...previousModel.copy(saved.bossEquipment),rocketLauncher:models.rocketLauncher.restoreState(undefined,{sourceDead:sourceDead(restored,profiles.rocketLauncher.source)})}:model.copy(saved.bossEquipment);
+   if(!model.valid(equipment))return null;const field=selected(equipment);if(field&&((profiles[field].family==='pistols'?!saved.pistol?.collected||!saved.pistol.equipped:saved.pistol?.equipped)||saved.rifle?.selected||profiles[field].family==='flamethrowers'&&!saved.flameFuel?.collected))return null;return{...restored,bossEquipment:equipment};
   }catch{return null;}},
   captureRunState(g){const equipment=state(g);if(!model.valid(equipment)||!selectedValid(g,equipment))throw TypeError('Invalid equipment snapshot');return{base:baseCodec.captureRunState(g),bossEquipment:model.copy(equipment)};},
   isRunStateUnchanged(g,s){const equipment=state(g);return model.valid(equipment)&&selectedValid(g,equipment)&&equal(equipment,s.bossEquipment)&&baseCodec.isRunStateUnchanged(g,s.base);},
@@ -65,7 +78,11 @@ export function createBossEquipmentComponent({baseCodec,getRun,profiles,applyBas
   if(claim)events.push({type:'boss-equipment-pickup',itemId:profiles[field].itemId});if(select)events.push({type:'boss-equipment-selected',itemId:profiles[field].itemId,equipped:command.equipped});if(action?.type==='sharedPistol')events.push({type:'boss-pistol-resource-commit',itemId:profiles[action.field].itemId});else if(action)events.push({type:'boss-equipment-'+(action.type==='fire'?'ammo-spent':'reloaded'),field:action.field,itemId:profiles[action.field].itemId});
   return{...result,changed:result.changed||!!committed&&!equal(current,committed.bossEquipment),events:[...result.events,...events]};
  };}
- function applySavedRun(g,saved){if(!model.valid(saved.bossEquipment))throw TypeError('Invalid restored boss equipment');applyBaseSaved(g,saved);applyCommitted(g,{bossEquipment:saved.bossEquipment});g.bossEquipmentAction={};g.activeGrenades=[];}
- function storageAdapter(storage){const base=baseStorageAdapter(storage);return!base?base:{getItem(key){if(key!==BOSS_EQUIPMENT_SAVE_KEY)return base.getItem(key);legacyRead=false;const raw=base.getItem(key);if(raw!=null)return raw;legacyRead=true;return base.getItem(baseCodec.RUN_SAVE_KEY);},setItem:(key,raw)=>base.setItem(key,raw)};}
+ function applySavedRun(g,saved){if(!model.valid(saved.bossEquipment))throw TypeError('Invalid restored boss equipment');applyBaseSaved(g,saved);applyCommitted(g,{bossEquipment:saved.bossEquipment});g.bossEquipmentAction={};g.activeGrenades=[];g.activeRockets=[];}
+ function storageAdapter(storage){const base=baseStorageAdapter(storage);return!base?base:{getItem(key){
+  if(key!==BOSS_EQUIPMENT_SAVE_KEY)return base.getItem(key);readOrigin=null;const raw=base.getItem(key);if(raw!=null)return raw;
+  const previous=base.getItem(PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY);if(previous!=null){readOrigin='v10';return previous;}
+  readOrigin='legacy';return base.getItem(baseCodec.RUN_SAVE_KEY);
+ },setItem:(key,raw)=>base.setItem(key,raw)};}
  return Object.freeze({model,models,codec:Object.freeze(codec),wrapDomain,applySavedRun,storageAdapter});
 }

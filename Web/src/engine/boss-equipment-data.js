@@ -1,8 +1,8 @@
-import {SHOTGUN_PROFILE,GRENADE_PROFILE,MARSHAL_PISTOL_PROFILE} from './weapon-catalog.js';
+import {SHOTGUN_PROFILE,GRENADE_PROFILE,MARSHAL_PISTOL_PROFILE,ROCKET_PROFILE} from './weapon-catalog.js';
 import {closedData} from './progression-state.js';
 export const SURGEON_KNIFE_PROFILE=Object.freeze({itemId:'surgeons-knife-v1',name:'Surgeon’s Knife',family:'blades',weaponKey:'knife',delivery:'melee',modelRef:null,finisherBinding:'knife',rules:Object.freeze({damage:12,stabDamage:16,heavyDamage:16,pickupRadius:1.3}),source:Object.freeze({placementKey:'boss-surgeon-v1',areaId:'lambeth',receiptId:'boss-surgeon-v1:surgeons-knife-v1'})});
 export const EMBER_PROJECTOR_PROFILE=Object.freeze({itemId:'ember-flamethrower-v1',name:'Ember Projector',family:'flamethrowers',weaponKey:'knife',delivery:'cone',modelRef:'player-flamethrower',finisherBinding:'flamethrower',rules:Object.freeze({damage:10,interval:.2,range:3,fuelCapacity:1000,unitsPerSecond:10,pickupRadius:1.3}),source:Object.freeze({placementKey:'boss-witch-v1',areaId:'westminster',receiptId:'boss-witch-v1:ember-flamethrower-v1'})});
-export const BOSS_EQUIPMENT_PROFILES=Object.freeze({shotgun:SHOTGUN_PROFILE,grenade:GRENADE_PROFILE,surgicalKnife:SURGEON_KNIFE_PROFILE,commanderPistol:MARSHAL_PISTOL_PROFILE,emberProjector:EMBER_PROJECTOR_PROFILE});
+export const BOSS_EQUIPMENT_PROFILES=Object.freeze({shotgun:SHOTGUN_PROFILE,grenade:GRENADE_PROFILE,surgicalKnife:SURGEON_KNIFE_PROFILE,commanderPistol:MARSHAL_PISTOL_PROFILE,emberProjector:EMBER_PROJECTOR_PROFILE,rocketLauncher:ROCKET_PROFILE});
 export function validateBossEquipmentData(input,registry,residents){
  if(input===undefined)return null;
  if(!closedData(input,['version'])||input.version!==1)throw TypeError('Invalid boss equipment selection');

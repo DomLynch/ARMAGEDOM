@@ -75,6 +75,7 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
       for(const event of events){
         if(event.type==='sever-presented'){hitEvents++;killEvents++;}
         else if(event.type==='shot'){shotEvents++;const cue=WEAPON_AUDIO[event.weapon];tone(off?240:cue?.from??220,off?55:cue?.to??48,off?.08:cue?.seconds??.11,off?.085:cue?.gain??.22);if(!off)noise(cue?.noiseSeconds??.065,cue?.noiseGain??.15,cue?.cutoff??900);}
+        else if(event.type==='rocket-launch'){shotEvents++;tone(160,55,.12,.22);if(!off)noise(.09,.18,850);}
         else if(event.type==='grenade-blast'){const cue=WEAPON_AUDIO.grenade;tone(cue.from,cue.to,off?.1:cue.seconds,off?.06:cue.gain);if(!off)noise(cue.noiseSeconds,cue.noiseGain,cue.cutoff);}
         else if(event.type==='pickup')tone(660,880,.16,.025,'sine');
         else if(event.type==='hit'&&!event.blocked&&event.amount>0&&['pistol','rifle','shotgun'].includes(event.weapon)){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}

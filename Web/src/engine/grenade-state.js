@@ -1,3 +1,4 @@
+import{radialBlastHits}from'./radial-blast.js';
 // Pure standard grenade proposals. Host commits charges before spawning and
 // consumes each active grenade once; this module owns no IO, clock or damage.
 const profileFields=['itemId','capacity','maxRange','fuseSeconds','radius','maxDamage'];
@@ -31,13 +32,7 @@ export function createGrenadeModel({profile,areaIds}){
    seen.add(victim.victimId);
   }
   if(time<active.detonateAt)return{active:copyActive(active),blast:null};
-  const hits=[];
-  for(const victim of victims){
-   if(victim.areaId!==areaId||victim.hp===0||!victim.eligible)continue;
-   const distance=Math.hypot(victim.position.x-active.position.x,victim.position.z-active.position.z);
-   const damage=data.maxDamage*Math.max(0,1-distance/data.radius);
-   if(damage>0)hits.push({victimId:victim.victimId,damage});
-  }
+  const hits=radialBlastHits(active.position,areaId,victims,data);
   return{active:null,blast:{id:active.id,areaId,position:{...active.position},hits}};
  }
  return Object.freeze({proposeThrow,proposeDetonation});
