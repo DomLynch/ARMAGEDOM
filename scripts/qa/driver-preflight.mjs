@@ -186,7 +186,9 @@ export async function driverPreflight(config={}){
  report.closureSHA256=hash(JSON.stringify(report.files));report.status=report.errors.length?'FAIL_STATIC_DRIVER_PREFLIGHT':'PASS_STATIC_DRIVER_PREFLIGHT';return report;
 }
 
-if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+let invokedAsMain=false;
+try{invokedAsMain=!!process.argv[1]&&fs.realpathSync(process.argv[1])===fs.realpathSync(fileURLToPath(import.meta.url));}catch{ /* An imported module may have a non-file eval argument. */ }
+if(invokedAsMain){
  let report;
  try{report=await driverPreflight(JSON.parse(fs.readFileSync(process.argv[2],'utf8')));}catch(e){report={schemaVersion:1,status:'FAIL_STATIC_DRIVER_PREFLIGHT',phase:'static',errors:[{code:'INVALID_CONFIG',message:e.message}]};}
  if(process.argv[3])fs.writeFileSync(process.argv[3],JSON.stringify(report,null,2)+'\n');else console.log(JSON.stringify(report,null,2));
