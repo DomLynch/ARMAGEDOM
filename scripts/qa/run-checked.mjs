@@ -38,5 +38,5 @@ try{
  await openMenu(page,{touch:true});
  report.observations.push({stage:'cold-settings-details-retry',result:await retryEncounter(page,{touch:true})});save();
  assert.deepEqual(report.errors,[],'browser errors');report.status='PASS_CHECKED_UI';
-}catch(error){report.status='FAIL_CHECKED_UI';report.failure={message:error.message,stack:error.stack};throw error;}
+}catch(error){report.status='FAIL_CHECKED_UI';report.failure={message:error.message,stack:error.stack,phase:error.phase??null,dispatched:error.dispatched??null,classification:error.classification??null,label:error.label??null,before:error.before??null,after:error.after??null,diagnosticError:error.diagnosticError??null,releaseErrors:error.releaseErrors??[],causeMessage:error.cause?.message??null};throw error;}
 finally{save();await browser.close();}

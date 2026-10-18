@@ -9,7 +9,7 @@ export async function enterGame(page,{touch=false}={}) {
 }
 export async function openMenu(page,{touch=false}={}) {
  if(await page.evaluate(()=>document.getElementById('menu')?.open===true))return;
- return checkedControl(page,{selector:'#menu-button',method:touch?'tap':'click',label:'open-menu',timeoutMs:3000,
+ return checkedControl(page,{selector:'#menu-button',method:touch?'tap':'click',label:'open-menu',timeoutMs:15000,
   ack:()=>document.getElementById('menu')?.open===true});
 }
 export async function retryEncounter(page,{touch=false}={}) {

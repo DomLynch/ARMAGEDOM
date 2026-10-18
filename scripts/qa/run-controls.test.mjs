@@ -28,6 +28,7 @@ function fixture({menuOpen=false,settingsHidden=true,detailsOpen=false,missingSe
 test('touch UI route uses ordinary taps for menu, Settings, disclosure and Retry',async()=>{
  const f=fixture();await controls.retryEncounter(f.page,{touch:true});
  assert.deepEqual(f.optionsLog.map(option=>option.method),['tap','tap','tap','tap']);
+ assert.equal(f.optionsLog[0].timeoutMs,15000);assert.deepEqual(f.optionsLog.slice(1).map(option=>option.timeoutMs),[3000,3000,3000]);
 });
 test('closed menu Retry follows actual Settings and disclosure sequence before dispatch',async()=>{
  const f=fixture();await controls.retryEncounter(f.page);
