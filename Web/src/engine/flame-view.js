@@ -17,7 +17,7 @@ export function createFlameView(s,persistence){
  const safe=g=>available()&&flameCanAct(g);
  const nearby=g=>safe(g)&&!s.paused&&!g.flameFuel?.collected&&g.world.areaId===g.world.flameData?.areaId&&Math.hypot(g.player.pos.x-g.world.flameData.position.x,g.player.pos.z-g.world.flameData.position.z)<=g.world.flameData.pickupRadius&&g.world.lineClear(g.player.pos,g.world.flameData.position);
  function clearDrop(){drop?.dispose();drop=null;dropReady=null;}
- function repaint(){if(s.game)s.hud?.update(s.game);update();}
+ function repaint(){if(s.game)s.hud?.update(s.game);if(s.updateExpedition)s.updateExpedition();else update();}
  function lower(g){stopFlame(g,{unequip:true});s.input?.clear();s.effects?.clearFlameFeedback?.();repaint();}
  async function equip(){
   const g=s.game;if(!g?.world.flameData||!safe(g)||load)return;
@@ -37,7 +37,7 @@ export function createFlameView(s,persistence){
  function update(){
   if(disposed)return;const g=s.game,data=g?.world.flameData;if(!data){panel.hidden=true;label.hidden=true;clearDrop();return;}panel.hidden=false;
   const owned=!!g.flameFuel?.collected,fuel=Math.ceil((g.flameFuel?.fuelUnits??0)/data.capacity*100),equipped=!!g.flame?.equipped;
-  paint(status,!owned?'Find the flamethrower near the bridge in Westminster.':fuel<=0?'Fuel exhausted. Your normal weapon remains available.':`Fuel ${fuel}% · spent fuel stays spent after Retry.`);
+  const benefit=`${data.contact.damage} damage per ${data.contact.interval}s contact · ${data.contact.range}m range`;paint(status,!owned?`Find the flamethrower near the bridge in Westminster. ${benefit}.`:fuel<=0?'Fuel exhausted. Your normal weapon remains available.':`${equipped?'Equipped':'Stored'} · ${benefit} · fuel ${fuel}% (${(g.flameFuel.fuelUnits/data.unitsPerSecond).toFixed(1)}s left). Spent fuel stays spent after Retry.`);
   button.disabled=!owned||fuel<=0||!safe(g)||!!load;paint(button,load?'Loading flamethrower…':equipped?'Return to normal weapon':failed?'Retry loading & equip flamethrower':fuel<=0&&owned?'Empty flamethrower':'Equip flamethrower');button.setAttribute('aria-pressed',String(equipped));
   const visible=available()&&!owned&&g.world.areaId===data.areaId;
   if(visible){const ready=s.actors.flameReady();if(!drop||ready!==dropReady){clearDrop();drop=createFlamePickupView(s.actors.flameAsset());dropReady=ready;s.scene.add(drop.root);}drop.root.position.copy(g.world.toRender(data.position));}else clearDrop();

@@ -6,7 +6,7 @@ import{posedMeleeMove}from'./engine/melee-equipment-data.js';
 import{applyBossProfile,bossMove,bossHazardPosition}from'./engine/area-bosses.js';
 import{createAreaHazard,stepAreaHazards}from'./engine/area-hazards.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
-import {initializeProgression,progressionDamage,stageProgressionDeath} from './engine/progression-runtime.js';
+import {initializeProgression,effectiveWeaponDamage,stageProgressionDeath} from './engine/progression-runtime.js';
 import {PISTOL_ITEM_ID} from './core/pistol-operation.js';
 import {creatureCatalogue,animalFoundationParameters,ENGINE_CREATURE_CAPABILITIES} from './engine/creature-catalogue.js';
 import {ratMeleeDefinition} from './rat-melee-definition.js';
@@ -119,7 +119,7 @@ function pistolIntent(g,intent,dispatchPistol){
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
-   const damage=e.damage*progressionDamage(g,'westminster-start-pistol-v1'),amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
+   const damage=effectiveWeaponDamage(g,'westminster-start-pistol-v1',e.damage),amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
    event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
    if(target.hp<=0){stageProgressionDeath(g,target,'westminster-start-pistol-v1',amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
   }
@@ -619,7 +619,7 @@ function knifeContacts(g,before,ratBefore){
  for(const {a,d,def} of contacts){
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId,...(a.bossProfile?{def}:{})});
   else{
-   const damage=def.damage*(g.player.damage/20)*progressionDamage(g,'knife'),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
+   const damage=effectiveWeaponDamage(g,'knife',def.damage),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
    d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
    event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}

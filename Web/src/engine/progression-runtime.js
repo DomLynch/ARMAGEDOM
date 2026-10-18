@@ -11,6 +11,8 @@ export function initializeProgression(g){
  g.progressionBaseCaps={hp:g.player.maxHP,stamina:g.player.maxStamina};g.progressionModel=createProgressionModel(progressionOptions(g));g.progression=g.progressionModel.freshState();g.pendingProgressionDeaths=[];
 }
 export function progressionDamage(g,weaponId){return g.progressionModel?g.progressionModel.bonuses(g.progression,weaponId).damageMultiplier:1;}
+// Shared by combat and equipment comparisons; keep existing per-family scaling.
+export function effectiveWeaponDamage(g,weaponId,baseDamage){return baseDamage*(weaponId==='knife'?(g.player.damage/20):1)*progressionDamage(g,weaponId);}
 export function stageProgressionDeath(g,e,weaponId,damageApplied){
  if(!g.progressionModel||!Number.isFinite(damageApplied)||damageApplied<=0||!g.progressionModel.hasPlacement(e.placementKey,g.world.areaId)||g.pendingProgressionDeaths.some(row=>row.placementKey===e.placementKey)||g.progression.awards.some(row=>row.placementKey===e.placementKey))return;
  if(g.pendingProgressionDeaths.length>=g.progressionModel.placementCount)throw Error('Progression pending bound exceeded');

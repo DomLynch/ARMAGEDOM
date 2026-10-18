@@ -9,14 +9,16 @@ import {VEST_BAG_POSITION} from './run-state.js';
 import {createRunPersistence} from './run-core.js';
 import {createSupplyView} from '../supplies-view.js';
 import {createVestBagView} from '../vest-view.js';
-import {vestAvailable} from '../vest.js';
+import {vestAvailable,VEST_RULES} from '../vest.js';
+export function dispatchEquipmentSelection(g,command,allowed,dispatch){const result=dispatch(g,command,allowed);if(result.ok&&(command.type==='equip'||command.type==='selectVariant'))stopFlame(g,{unequip:true});return result;}
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:options=>s.createFreshRun(options),storage});
 const bossView=createBossView(s),flameView=createFlameView(s,persistence);
-const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{if(command.type==='equip')stopFlame(g,{unequip:true});const result=persistence.dispatchUniqueReward(g,command,allowed);if(result.ok&&command.type==='equip')resetMobileControls(g);return result;});
-const expeditionView=createExpeditionView(s,(g,command,allowed)=>{if(command.type==='equip'||command.type==='selectVariant')stopFlame(g,{unequip:true});return persistence.dispatchExpedition(g,command,allowed);});
+const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);s.updateExpedition?.();return result;});
+const expeditionView=createExpeditionView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchExpedition);s.updateExpedition?.();return result;});
 let vestBag=null;
+function updateVestEquipment(){const node=document.getElementById('vest-state'),g=s.game;if(!node||!g)return;const text=g.vest?.equipped?`Worn vest equipped · ${Math.round(VEST_RULES.reduction*100)}% less incoming hit damage. Automatic protection; Retry resets this vest.`:`No vest equipped · after ${VEST_RULES.requiredKills} kills, collect the supply bag by the Westminster pistol stash. Picking it up equips it.`;if(node.textContent!==text)node.textContent=text;}
 function clearVestBag(){vestBag?.dispose();vestBag=null;}
 function updateVestBag(){
  const available=!s.contextLost&&!s.traveling&&!s.game.finished&&s.world.areaId==='westminster'&&vestAvailable(s.game.vest,s.game.supplies,s.game.lootRules);
@@ -35,5 +37,5 @@ function updateSupplies(){
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
 function cancelPistol(g){stopFlame(g);s.effects?.clearFlameFeedback?.();resetMobileControls(g);s.actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;if(!g.flame?.equipped)g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;s.effects?.clearPistolFeedback();s.effects?.update(g,{paused:true});}
-return {updateExpedition(){expeditionView.update();uniqueView.update();bossView.update();flameView.update();},interactFlame:flameView.interact,interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){flameView.dispose();uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
+return {updateExpedition(){updateVestEquipment();expeditionView.update();uniqueView.update();bossView.update();flameView.update();},interactFlame:flameView.interact,interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){flameView.dispose();uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
 }
