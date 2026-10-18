@@ -15,8 +15,8 @@ export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:options=>s.createFreshRun(options),storage});
 const bossView=createBossView(s),flameView=createFlameView(s,persistence);
-const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);return result;});
-const expeditionView=createExpeditionView(s,(g,command,allowed)=>{return dispatchEquipmentSelection(g,command,allowed,persistence.dispatchExpedition);});
+const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);s.updateExpedition?.();return result;});
+const expeditionView=createExpeditionView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchExpedition);s.updateExpedition?.();return result;});
 let vestBag=null;
 function updateVestEquipment(){const node=document.getElementById('vest-state'),g=s.game;if(!node||!g)return;const text=g.vest?.equipped?`Worn vest equipped · ${Math.round(VEST_RULES.reduction*100)}% less incoming hit damage. Automatic protection; Retry resets this vest.`:`No vest equipped · after ${VEST_RULES.requiredKills} kills, collect the supply bag by the Westminster pistol stash. Picking it up equips it.`;if(node.textContent!==text)node.textContent=text;}
 function clearVestBag(){vestBag?.dispose();vestBag=null;}

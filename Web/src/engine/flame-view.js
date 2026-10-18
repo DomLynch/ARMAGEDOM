@@ -17,7 +17,7 @@ export function createFlameView(s,persistence){
  const safe=g=>available()&&flameCanAct(g);
  const nearby=g=>safe(g)&&!s.paused&&!g.flameFuel?.collected&&g.world.areaId===g.world.flameData?.areaId&&Math.hypot(g.player.pos.x-g.world.flameData.position.x,g.player.pos.z-g.world.flameData.position.z)<=g.world.flameData.pickupRadius&&g.world.lineClear(g.player.pos,g.world.flameData.position);
  function clearDrop(){drop?.dispose();drop=null;dropReady=null;}
- function repaint(){if(s.game)s.hud?.update(s.game);update();}
+ function repaint(){if(s.game)s.hud?.update(s.game);if(s.updateExpedition)s.updateExpedition();else update();}
  function lower(g){stopFlame(g,{unequip:true});s.input?.clear();s.effects?.clearFlameFeedback?.();repaint();}
  async function equip(){
   const g=s.game;if(!g?.world.flameData||!safe(g)||load)return;
