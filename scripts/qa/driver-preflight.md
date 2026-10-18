@@ -7,8 +7,10 @@ browser adapters, actual readiness and ordinary-input acknowledgement/results.
 This component does not intercept other shell, HF, legacy or direct submit routes.
 Existing frozen172 work is not restarted by this tool.
 
-Install the tiny pinned parser with `npm ci --prefix scripts/qa --ignore-scripts
---no-audit --no-fund`. Acorn8.15 parses JavaScript; there is no regex-only JavaScript
+Install pinned Node dependencies with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
+--prefix scripts/qa --ignore-scripts --no-audit --no-fund` (no browser download).
+Acorn8.15 parses JavaScript; Playwright1.63 is pinned for the checked consumer.
+There is no regex-only JavaScript
 scanner or script execution. Only explicit `.js/.mjs/.cjs/.json` local imports
 are supported. Literal imports, JSON/data reads, `new URL(...,import.meta.url)`
 and unambiguous constant/path expressions resolve within the exact staged root.
@@ -64,6 +66,15 @@ wrapper bytes to the maintained source.** Trusting a candidate-generated report
 or modified validator is not an authority boundary. Exact launch command and
 entrypoint binding is also required; a static PASS never authorizes launching
 an unscanned script. Those launcher guards belong to Deploy, not this module.
+
+All candidate child_process imports/requires, including aliased spawn, fail closed.
+Protocol send extraction/destructuring/bind/call/apply fails; unresolved protocol
+method names also fail. These bounded capability rules cover the independently
+reported aliases, not arbitrary whole-program JavaScript data flow. Original
+earlier reports remain historical scoped evidence, not proof of these new cases.
+The UI guard policy binds exact checkedControl/checkedNavigation exports and two
+reviewed internals. Only the explicit `ack` parameter is allowed as a non-inline
+browser callback in those ranges; candidate callbacks elsewhere remain rejected.
 
 ## Shared tiny fixtures
 

@@ -14,7 +14,7 @@ const reads=new Set(['readFile','readFileSync','createReadStream']);
 const processes=new Set(['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork']);
 // Maintained authority, not a candidate-supplied exemption. Submission must bind
 // THIS module's bytes to its independently maintained copy, not merely a report.
-export const MAINTAINED_ADAPTER_POLICY=Object.freeze([Object.freeze({path:'scripts/qa/weapon-action-guard.mjs',sha256:'0f86143254648d07b41d452b0221593807b3a65b26b147adc358257e1b5624a4',exports:Object.freeze(['weaponAction']),callbackSlots:Object.freeze(['press','release']),callbackArguments:Object.freeze([])})]);
+export const MAINTAINED_ADAPTER_POLICY=Object.freeze([Object.freeze({path:'scripts/qa/weapon-action-guard.mjs',sha256:'0f86143254648d07b41d452b0221593807b3a65b26b147adc358257e1b5624a4',exports:Object.freeze(['weaponAction']),callbackSlots:Object.freeze(['press','release']),callbackArguments:Object.freeze([])}),Object.freeze({path:'scripts/qa/ui-interaction-guard.mjs',sha256:'9aa60e605e9a9515e78366779d3c9deef9a7a03b5dc67e8ae8ffaa7805329a49',exports:Object.freeze(['checkedControl','checkedNavigation']),internals:Object.freeze(['perform','releaseInputs']),browserCallbacks:Object.freeze(['ack']),callbackSlots:Object.freeze([]),callbackArguments:Object.freeze([])})]);
 const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
 const manifestJSON=value=>JSON.stringify(canonical(value)).replace(/[\u007f-\uffff]/g,char=>'\\u'+char.charCodeAt(0).toString(16).padStart(4,'0'));
 const patternNames=node=>!node?[]:node.type==='Identifier'?[node.name]:node.type==='RestElement'?patternNames(node.argument):node.type==='AssignmentPattern'?patternNames(node.left):node.type==='ObjectPattern'?node.properties.flatMap(p=>patternNames(p.value??p.argument)):node.type==='ArrayPattern'?node.elements.flatMap(patternNames):[];
@@ -68,7 +68,7 @@ export async function driverPreflight(config={}){
   try{const lock=JSON.parse(fs.readFileSync(file.absolute,'utf8')),entry=lock.packages?.['node_modules/'+external.specifier];if(!external.specifier||typeof external.version!=='string'||entry?.version!==external.version||!entry.integrity)throw Error('Matching resolved lockfile version/integrity required');externals.set(external.specifier,{specifier:external.specifier,version:entry.version,integrity:entry.integrity,manifest:file.relative});}catch(e){error('UNPINNED_EXTERNAL',external.manifest,e.message);}
  }
  // Parse first, resolving only syntax-declared local imports and literal fixtures.
- const imports=new Map(),exportsByFile=new Map();
+ const imports=new Map(),exportsByFile=new Map(),definitionsByFile=new Map();
  while(queue.length){
   const file=queue.shift();let ast;
   try{ast=parse(file.code,{ecmaVersion:'latest',sourceType:file.relative.endsWith('.cjs')?'script':'module',locations:true,allowHashBang:true});asts.set(file.relative,ast);}catch(e){error('SYNTAX_ERROR',file.relative,e.message,{loc:{start:{line:e.loc?.line}}});continue;}
@@ -96,7 +96,7 @@ export async function driverPreflight(config={}){
   function dependency(spec,node){
    if(typeof spec!=='string'){error('DYNAMIC_DEPENDENCY',file.relative,'Import/require must have a literal specifier',node);return null;}
    if(spec.startsWith('.')){if(!/\.(js|mjs|cjs|json)$/.test(spec)){error('UNSUPPORTED_MODULE_SYNTAX',file.relative,'Only explicit JS/JSON module paths are supported: '+spec,node);return null;}return add(spec,'local-module',file.relative,path.dirname(file.absolute),'import')?.relative;}
-   if(isBuiltin(spec))return'node:'+spec.replace(/^node:/,'');
+   if(isBuiltin(spec)){const builtin='node:'+spec.replace(/^node:/,'');if(builtin==='node:child_process')error('UNSUPPORTED_PROCESS_CAPABILITY',file.relative,'Child-process import/require cannot be a submitted driver dependency, including aliases',node);return builtin;}
    const external=externals.get(spec);if(external){report.graph.push({from:file.relative,to:spec,kind:'pinned-external'});return spec;}
    error('UNRESOLVED_EXTERNAL',file.relative,'Not a builtin or explicit pinned external: '+spec,node);return null;
   }
@@ -115,14 +115,14 @@ export async function driverPreflight(config={}){
    if(node.type==='CallExpression'&&node.callee.type==='Identifier'&&node.callee.name==='require')dependency(literal(node.arguments[0]),node);
    if(node.type==='CallExpression'&&(reads.has(property(node.callee))||readAliases.has(node.callee.name))){const value=evaluate(node.arguments[0]);if(typeof value==='string'||value?.file)add(value?.file??value,'data-fixture',file.relative,root,'fixture');else error('DYNAMIC_FIXTURE',file.relative,'Data read cannot be resolved statically; declare/refactor a literal fixture path',node);}
   });
-  imports.set(file.relative,bindings);exportsByFile.set(file.relative,exported);
+  imports.set(file.relative,bindings);exportsByFile.set(file.relative,exported);definitionsByFile.set(file.relative,definitions);
  }
  for(const item of MAINTAINED_ADAPTER_POLICY)if(records.has(item.path)){
   if(records.get(item.path).sha256!==item.sha256)error('TRUSTED_HELPER_HASH_MISMATCH',item.path,'Maintained adapter bytes differ; no exemptions granted');
   else trust.set(item.path,item);
  }
  const ranges=new Map();
- for(const [file,item]of trust){const approved=[];for(const name of item.exports){const fn=exportsByFile.get(file)?.get(name);if(!fn)error('TRUST_EXPORT_UNRESOLVED',file,'Approved export is not a directly resolved function: '+name);else approved.push({start:fn.start,end:fn.end,reason:'trusted-export:'+name});}ranges.set(file,approved);}
+ for(const [file,item]of trust){const approved=[];for(const name of item.exports){const fn=exportsByFile.get(file)?.get(name);if(!fn)error('TRUST_EXPORT_UNRESOLVED',file,'Approved export is not a directly resolved function: '+name);else approved.push({start:fn.start,end:fn.end,reason:'trusted-export:'+name,browserCallbacks:item.browserCallbacks??[]});}for(const name of item.internals??[]){const fn=definitionsByFile.get(file)?.get(name);if(!fn)error('TRUST_INTERNAL_UNRESOLVED',file,'Reviewed internal is not a directly resolved function: '+name);else approved.push({start:fn.start,end:fn.end,reason:'trusted-internal:'+name,browserCallbacks:item.browserCallbacks??[]});}ranges.set(file,approved);}
  for(const [file,ast]of asts){
   const bindings=imports.get(file),approved=ranges.get(file)??[],shadowed=new Set();
   walk(ast,node=>{let names=[];if(functions.has(node.type))names=node.params.flatMap(patternNames);if(node.type==='VariableDeclarator')names.push(...patternNames(node.id));if(node.type==='CatchClause')names.push(...patternNames(node.param));if(node.type==='FunctionDeclaration'&&node.id)names.push(node.id.name);for(const name of names)if(bindings.has(name))shadowed.add(name);});
@@ -141,13 +141,19 @@ export async function driverPreflight(config={}){
     const callee=node.callee,method=property(callee);
     if(callee.type==='Identifier'&&['eval','Function'].includes(callee.name))error('UNSUPPORTED_DYNAMIC_CODE',file,'Dynamic code cannot be statically verified',node);
     if(callee.type==='MemberExpression'&&callee.computed&&typeof method!=='string')error('UNRESOLVED_COMPUTED_CALL',file,'Computed call has no literal method name',node);
-    if(['evaluate','evaluateHandle','waitForFunction','addInitScript'].includes(method)&&!functions.has(node.arguments[0]?.type)&&!(node.arguments[0]?.type==='Identifier'&&asts.get(file)&&exportsByFile.get(file)?.has(node.arguments[0].name)))error('UNSUPPORTED_BROWSER_EVALUATION',file,'Browser callback is not a directly inspectable inline function',node);
+    const reviewedCallback=node.arguments[0]?.type==='Identifier'&&['evaluate','waitForFunction'].includes(method)&&approved.some(range=>node.start>=range.start&&node.end<=range.end&&(range.browserCallbacks??[]).includes(node.arguments[0].name));
+    if(['evaluate','evaluateHandle','waitForFunction','addInitScript'].includes(method)&&!functions.has(node.arguments[0]?.type)&&!reviewedCallback)error('UNSUPPORTED_BROWSER_EVALUATION',file,'Browser callback is not inline or an exact reviewed internal predicate parameter',node);
     if(processes.has(method)||callee.type==='Identifier'&&processes.has(callee.name))error('UNSUPPORTED_PROCESS_DISPATCH',file,'Child-process/shell dispatch is outside supported closure',node);
     const cdp=method==='send'?literal(node.arguments[0]):null;
+    if(method==='getBuiltinModule'&&['child_process','node:child_process'].includes(literal(node.arguments[0])))error('UNSUPPORTED_PROCESS_CAPABILITY',file,'Child-process builtin capability is outside supported drivers',node);
+    if(method==='require'&&['child_process','node:child_process'].includes(literal(node.arguments[0])))error('UNSUPPORTED_PROCESS_CAPABILITY',file,'Child-process require capability is outside supported drivers',node);
+    if(method==='send'&&typeof cdp!=='string'&&!allowed(node))error('UNRESOLVED_PROTOCOL_CALL',file,'Protocol method must be a statically inspectable literal',node);
     if(cdp==='Runtime.evaluate'||cdp==='Runtime.callFunctionOn')error('UNSUPPORTED_DYNAMIC_CODE',file,'CDP evaluation is not statically verified',node);
     if((interactions.has(method)||typeof cdp==='string'&&cdp.startsWith('Input.'))&&!allowed(node))error('UNGUARDED_INTERACTION',file,'Interaction is outside an exact trusted export or direct guarded callback: '+(cdp??method),node);
    }
    if(node.type==='MemberExpression'&&interactions.has(property(node))){const parent=ancestors.at(-1);if(!(parent?.type==='CallExpression'&&parent.callee===node)&&!allowed(node))error('UNGUARDED_INTERACTION_REFERENCE',file,'Interaction method extraction/alias is not guarded',node);}
+   if(node.type==='MemberExpression'&&property(node)==='send'){const parent=ancestors.at(-1);if(!(parent?.type==='CallExpression'&&parent.callee===node)&&!allowed(node))error('UNSUPPORTED_PROTOCOL_ALIAS',file,'Protocol send extraction/bind/call/apply is not supported',node);}
+   if(node.type==='ObjectPattern'&&!allowed(node))for(const prop of node.properties)if(prop.type==='Property'&&(prop.computed?literal(prop.key):prop.key.name??prop.key.value)==='send')error('UNSUPPORTED_PROTOCOL_ALIAS',file,'Protocol send destructuring is not supported',node);
    if(node.type==='ObjectPattern'&&!allowed(node))for(const prop of node.properties)if(prop.type==='Property'&&interactions.has(prop.computed?literal(prop.key):prop.key.name??prop.key.value))error('UNGUARDED_INTERACTION_DESTRUCTURE',file,'Interaction method destructuring/alias is not guarded',node);
   });
   for(const name of shadowed)if(trust.has(bindings.get(name)?.source))error('ADAPTER_BINDING_SHADOWED',file,'Trusted imported adapter name is shadowed: '+name);
