@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 // Maintained runner consumers. The shared guard owns visibility/actionability,
 // dispatch deadlines and acknowledgement; these functions own the real UI route.
 import {checkedControl,checkedNavigation} from './ui-interaction-guard.mjs';
@@ -33,4 +34,18 @@ export async function navigateGame(page,url) {
 export async function holsterViaControl(page) {
  return checkedControl(page,{selector:'#heavy',method:'tap',label:'holster-weapon',timeoutMs:3000,
   ack:()=>globalThis.__qa?.game?.player?.weapon==='knife'});
+}
+
+export async function rejectHiddenRetry(page) {
+ const started=Date.now();let rejection;
+ try{await checkedControl(page,{selector:'#retry',method:'click',label:'negative-hidden-retry',timeoutMs:1000,
+  ack:()=>document.getElementById('menu')?.open===false});}
+ catch(error){rejection={message:error.message,phase:error.phase,dispatched:error.dispatched};}
+ const elapsedMs=Date.now()-started;
+ assert(rejection,'Hidden Retry must reject before dispatch');
+ assert.equal(rejection.phase,'precondition','Only prerequisite rejection proves hidden control protection');
+ assert.equal(rejection.dispatched,false,'Hidden Retry must not dispatch');
+ assert(elapsedMs<2000,'Hidden control must reject promptly, without a long auto-wait');
+ assert.equal(await page.evaluate(()=>document.getElementById('menu')?.open),true,'Rejected Retry must leave menu open');
+ return{rejection,elapsedMs};
 }

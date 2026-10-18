@@ -18,6 +18,9 @@ Prepare from the stage root:
   data. Consumer/helper paths and literal file reads are discovered by the AST
   preflight. The trusted helper hash must be in maintained policy, never added
   by the candidate.
+- `QA_CHROMIUM_EXECUTABLE` set to the verified existing non-Snap browser binary.
+  The runner checks its existence and records the actual browser version; it never
+  downloads a browser or falls back to a default executable.
 - The exact maintained command `node scripts/qa/run-checked.mjs`, through the
   checked submission launcher. A direct command is not release-gate evidence.
 

@@ -45,3 +45,18 @@ test('cold reload returns through guarded entry before subsequent Retry',async()
  await controls.retryEncounter(f.page);await controls.reloadGame(f.page);await controls.enterGame(f.page,{touch:true});await controls.retryEncounter(f.page);
  assert.equal(f.calls.filter(x=>x==='#retry').length,2);assert.equal(f.calls.filter(x=>x==='reload').length,1);assert.equal(f.nodes.entry.hidden,true);
 });
+
+test('hidden Retry proof accepts only prompt precondition rejection without dispatch',async()=>{
+ const f=fixture({menuOpen:true});f.page.checkedControl=async()=>{throw Object.assign(Error('Retry hidden'),{phase:'precondition',dispatched:false});};
+ const result=await controls.rejectHiddenRetry(f.page);assert.equal(result.rejection.dispatched,false);assert(result.elapsedMs<2000);
+});
+test('a timeout or post-dispatch failure cannot count as hidden Retry protection',async()=>{
+ for(const failure of [{phase:'acknowledgement',dispatched:true},{phase:'precondition',dispatched:true},{phase:'dispatch',dispatched:false}]){
+  const f=fixture({menuOpen:true});f.page.checkedControl=async()=>{throw Object.assign(Error('different error'),failure);};
+  await assert.rejects(controls.rejectHiddenRetry(f.page));
+ }
+});
+test('successful hidden Retry click cannot pass the negative case',async()=>{
+ const f=fixture({menuOpen:true});f.page.checkedControl=async()=>({phase:'acknowledged'});
+ await assert.rejects(controls.rejectHiddenRetry(f.page),/must reject/);
+});
