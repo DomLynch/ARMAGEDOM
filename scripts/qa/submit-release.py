@@ -1,9 +1,75 @@
 #!/usr/bin/env python3
 """Submit one bounded job and recover its owned result immediately, including EXIT1."""
-import argparse, datetime, hashlib, shutil, json, pathlib, re, shlex, subprocess, sys
+import argparse, datetime, hashlib, shutil, json, pathlib, re, shlex, subprocess, sys, tempfile
 RUNNER='/Users/domininclynch/Desktop/Business/Vibe Coding Management/scripts/vps-run.py'
 SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=8','-i','/Users/domininclynch/.ssh/binance_futures_tool','root@49.12.7.18']
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def validate_driver_preflight(stage,command):
+    """Recheck the frozen static receipt before any VPS launcher or upload."""
+    if '--' not in command:raise RuntimeError('Unbound release-test command rejected')
+    separator=command.index('--');prefix=command[:separator];remote_command=command[separator+1:]
+    if len(prefix) not in (5,6) or prefix[:3]!=[sys.executable,RUNNER,'--timeout'] or not prefix[3].isdigit() or int(prefix[3])<1 or prefix[-1]!=str(stage.resolve()) or (len(prefix)==6 and prefix[4]!='--small-release'):raise RuntimeError('Unbound release-test launcher rejected')
+    build=remote_command==['bash','scripts/qa/release-run.sh']
+    checked=remote_command==['node','scripts/qa/run-checked.mjs']
+    if not (build or checked):raise RuntimeError('Unbound release-test command rejected')
+    maintained_files=('driver-preflight.mjs','package.json','package-lock.json')+(('release-run.sh','release-run.py') if build else ('run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs'))
+    for name in maintained_files:
+        relative=pathlib.Path('scripts/qa')/name
+        staged=stage/relative;maintained=pathlib.Path(__file__).resolve().with_name(name)
+        if not staged.is_file() or digest(staged)!=digest(maintained):raise RuntimeError('Maintained release-test wrapper mismatch: '+str(relative))
+    config_path=stage/'driver-preflight-config.json';receipt_path=stage/'driver-preflight.json'
+    if not config_path.is_file() or not receipt_path.is_file():raise RuntimeError('Missing mandatory driver preflight config or receipt')
+    config=json.loads(config_path.read_text());receipt=json.loads(receipt_path.read_text())
+    if not isinstance(config,dict) or not isinstance(receipt,dict):raise RuntimeError('Invalid driver preflight config or receipt')
+    root=config.get('stageRoot')
+    if not isinstance(root,str) or (stage/root).resolve()!=stage.resolve():raise RuntimeError('Driver preflight stage identity mismatch')
+    if not isinstance(config.get('entrypoints'),list) or not config['entrypoints']:raise RuntimeError('Missing driver preflight entrypoints')
+    required_entries={'scripts/qa/run.mjs','scripts/qa/preflight.mjs'} if build else {'scripts/qa/run-checked.mjs'}
+    if not required_entries.issubset(config['entrypoints']):raise RuntimeError('Release-test driver entrypoints not covered')
+    expect=config.get('expect')
+    if not isinstance(expect,dict) or not all(isinstance(expect.get(k),str) and expect[k] for k in ('source','fingerprint')):raise RuntimeError('Missing driver preflight source identity')
+    if config.get('packageRoot') and not expect.get('packageSha256'):raise RuntimeError('Missing driver preflight package identity')
+    if checked and not config.get('packageRoot'):raise RuntimeError('Checked export requires exact package identity')
+    if build and not config.get('packageRoot') and config.get('sourceManifest')!='source-manifest.json':raise RuntimeError('Missing exact source manifest preflight input')
+    manifest=stage/'source-manifest.json'
+    if manifest.is_file():
+        source=json.loads(manifest.read_text())
+        if source.get('head')!=expect['source'] or source.get('fingerprint')!=expect['fingerprint']:raise RuntimeError('Driver preflight source manifest mismatch')
+        rows=source.get('files')
+        if not isinstance(rows,list) or not rows or source['fingerprint']!=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest():raise RuntimeError('Invalid source manifest fingerprint')
+        records={f['path']:f for f in rows}
+        if len(records)!=len(rows):raise RuntimeError('Duplicate source manifest path')
+        required_source={'scripts/qa/'+name for name in maintained_files}|required_entries
+        for name in required_source:
+            row=records.get(name)
+            if not row or row.get('sha256')!=digest(stage/name) or row.get('bytes')!=(stage/name).stat().st_size:raise RuntimeError('Release-test wrapper or driver source identity mismatch: '+name)
+    elif not config.get('packageRoot'):raise RuntimeError('Missing source manifest or exact export')
+    validator=pathlib.Path(__file__).resolve().with_name('driver-preflight.mjs')
+    if not validator.is_file():raise RuntimeError('Maintained driver preflight validator unavailable')
+    with tempfile.TemporaryDirectory(prefix='armagedom-driver-preflight-') as temp:
+        result=pathlib.Path(temp)/'report.json'
+        run=subprocess.run(['node',str(validator),str(config_path),str(result)],cwd=stage,capture_output=True,text=True)
+        if not result.is_file():raise RuntimeError('Driver preflight produced no result')
+        current=json.loads(result.read_text())
+    if run.returncode!=0 or current.get('status')!='PASS_STATIC_DRIVER_PREFLIGHT':raise RuntimeError('Driver preflight failed: '+str(current.get('errors',run.stderr))[:600])
+    if config.get('packageRoot'):
+        if current.get('identity')!=expect:raise RuntimeError('Driver preflight package report identity mismatch')
+        if checked:
+            for file in current.get('files',[]):
+                name=file.get('path')
+                if file.get('kind') in ('package-release','package-payload') or not isinstance(name,str) or not name.endswith(('.js','.mjs','.cjs')):continue
+                maintained=pathlib.Path(__file__).resolve().parents[2]/name
+                if not maintained.is_file() or file.get('sha256')!=digest(maintained):raise RuntimeError('Checked driver dependency differs from maintained source: '+name)
+    else:
+        if current.get('identity')!={**expect,'packageSha256':None}:raise RuntimeError('Driver preflight source report identity mismatch')
+        for file in current.get('files',[]):
+            name=file.get('path')
+            row=records.get(name)
+            if name=='source-manifest.json' and file.get('kind')=='source-manifest' and file.get('sha256')==digest(manifest):continue
+            if row is None and file.get('kind')=='declared-data':continue
+            if not row or row.get('sha256')!=file.get('sha256') or row.get('bytes')!=file.get('bytes'):raise RuntimeError('Driver dependency outside frozen source identity: '+str(name))
+    if current!=receipt:raise RuntimeError('Driver preflight receipt mismatch')
+    return current
 def validate_export(export):
     if export.is_symlink() or not export.is_dir():raise RuntimeError('Invalid export directory')
     release=json.loads((export/'release.json').read_text());files=release.get('files')
@@ -53,9 +119,12 @@ def recover_job(job,stage,out):
     subprocess.run(SSH+['rm -rf '+shlex.quote(remote)],check=True)
     recovery=json.loads((out/'recovery.json').read_text());recovery['remoteCleanupCompletedUTC']=datetime.datetime.now(datetime.timezone.utc).isoformat();(out/'recovery.json').write_text(json.dumps(recovery,indent=2)+'\n')
     return result['exit_code']
-def submit(command,stage,out,recover=recover_job):
+def submit(command,stage,out,recover=recover_job,validate_stage=None):
+    if validate_stage is None:raise RuntimeError('Mandatory driver preflight validator missing')
+    validated=validate_stage(stage,command)
     out.mkdir(parents=True,exist_ok=True)
     if any(out.iterdir()): raise RuntimeError('Attempt output already exists; preserve earlier results')
+    if validated is not None:(out/'driver-preflight-submission.json').write_text(json.dumps(validated,indent=2)+'\n')
     job=None
     with (out/'submit.log').open('w') as log:
         process=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1)
@@ -96,6 +165,6 @@ if __name__=='__main__':
     command=a.command[1:] if a.command[:1]==['--'] else a.command
     if not command: p.error('remote command required')
     argv=[sys.executable,RUNNER,'--timeout',str(a.timeout)]+(['--small-release'] if a.small_release else [])+[str(a.stage.resolve()),'--']+command
-    code=submit(argv,a.stage.resolve(),a.output.resolve())
+    code=submit(argv,a.stage.resolve(),a.output.resolve(),validate_stage=validate_driver_preflight)
     if a.handoff_stage:handoff_export(a.output.resolve(),a.handoff_stage.resolve())
     sys.exit(code)

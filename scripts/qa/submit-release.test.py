@@ -1,6 +1,60 @@
-import importlib.util,pathlib,subprocess,sys,tempfile,unittest
+import hashlib,importlib.util,io,json,pathlib,shutil,subprocess,sys,tempfile,unittest
 spec=importlib.util.spec_from_file_location('submit_release',pathlib.Path(__file__).with_name('submit-release.py'));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class SubmissionRegression(unittest.TestCase):
+ def prepared_stage(self,root):
+  stage=root/'stage';stage.mkdir();qa=pathlib.Path(__file__).parent
+  fixture=qa/'fixtures/driver-preflight/valid'
+  for name in ('driver.mjs','read-state.mjs','fixtures/earned.json','scripts/qa/weapon-action-guard.mjs'):
+   target=stage/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(fixture/name,target)
+  for name in ('release-run.sh','release-run.py','driver-preflight.mjs','package.json','package-lock.json'):
+   target=stage/'scripts/qa'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(qa/name,target)
+  (stage/'scripts/qa/run.mjs').write_text("import '../../driver.mjs';\n")
+  (stage/'scripts/qa/preflight.mjs').write_text('export const ready=true;\n')
+  rows=[{'path':p.relative_to(stage).as_posix(),'bytes':p.stat().st_size,'sha256':module.digest(p)} for p in sorted(stage.rglob('*')) if p.is_file()]
+  fingerprint=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest();expect={'source':'a'*40,'fingerprint':fingerprint,'packageSha256':None}
+  (stage/'source-manifest.json').write_text(json.dumps({'version':1,'head':expect['source'],'fingerprint':fingerprint,'files':rows}))
+  (stage/'driver-preflight-config.json').write_text(json.dumps({'stageRoot':'.','entrypoints':['scripts/qa/run.mjs','scripts/qa/preflight.mjs'],'sourceManifest':'source-manifest.json','expect':expect}))
+  subprocess.run(['node',str(qa/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,check=True,capture_output=True)
+  command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','bash','scripts/qa/release-run.sh']
+  return stage,command
+
+ def test_real_static_receipt_valid_and_changed_fixture_rejects_without_launch(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage,command=self.prepared_stage(root)
+   report=module.validate_driver_preflight(stage,command)
+   self.assertEqual(report['status'],'PASS_STATIC_DRIVER_PREFLIGHT')
+   original_popen=subprocess.Popen;launches=[]
+   class FakeLauncher:
+    stdout=io.StringIO('VPS job: qa-valid Remote outputs: /srv/dev-jobs/qa-valid\n')
+    def wait(self):return 0
+   def launch_once(argv,*args,**kwargs):
+    if argv[0]=='node':return original_popen(argv,*args,**kwargs)
+    launches.append(argv);return FakeLauncher()
+   with patch.object(module.subprocess,'Popen',side_effect=launch_once):
+    self.assertEqual(module.submit(command,stage,root/'valid',recover=lambda *_:0,validate_stage=module.validate_driver_preflight),0)
+   self.assertEqual(launches,[command]);self.assertEqual(json.loads((root/'valid/driver-preflight-submission.json').read_text())['status'],'PASS_STATIC_DRIVER_PREFLIGHT')
+   (stage/'fixtures/earned.json').write_text('{"changed":true}')
+   out=root/'attempt'
+   def only_preflight(argv,*args,**kwargs):
+    if argv[0]=='node':return original_popen(argv,*args,**kwargs)
+    raise AssertionError('launcher must not start')
+   with patch.object(module.subprocess,'Popen',side_effect=only_preflight):
+    with self.assertRaisesRegex(RuntimeError,'Driver preflight failed'):
+     module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+   self.assertFalse(out.exists())
+
+ def test_missing_receipt_or_changed_maintained_validator_rejects_before_launch(self):
+  from unittest.mock import patch
+  for change,expected in [('receipt','Missing mandatory driver preflight'),('validator','Maintained release-test wrapper mismatch')]:
+   with self.subTest(change=change),tempfile.TemporaryDirectory() as temp:
+    root=pathlib.Path(temp);stage,command=self.prepared_stage(root);out=root/'attempt'
+    if change=='receipt':(stage/'driver-preflight.json').unlink()
+    else:(stage/'scripts/qa/driver-preflight.mjs').write_text('// changed candidate validator\n')
+    with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
+     with self.assertRaisesRegex(RuntimeError,expected):module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+    self.assertFalse(out.exists())
+
  def test_success_and_failure_both_recover_and_keep_partial_outputs(self):
   with tempfile.TemporaryDirectory() as temp:
    root=pathlib.Path(temp)
@@ -9,8 +63,42 @@ class SubmissionRegression(unittest.TestCase):
     def recover(job,stage,result):
      calls.append(job);(result/'partial.json').write_text('{"stage":"gate","passed":true}')
     command=[sys.executable,'-c',f'print("VPS job: own-{code} Remote outputs: /srv/dev-jobs/own-{code}",flush=True);raise SystemExit({code})']
-    self.assertEqual(module.submit(command,root,out,recover),code);self.assertEqual(calls,[f'own-{code}']);self.assertTrue((out/'partial.json').exists());self.assertTrue((out/'submit.log').exists())
-   with self.assertRaisesRegex(RuntimeError,'already exists'):module.submit(command,root,out,recover)
+    self.assertEqual(module.submit(command,root,out,recover,validate_stage=lambda _stage,_command:None),code);self.assertEqual(calls,[f'own-{code}']);self.assertTrue((out/'partial.json').exists());self.assertTrue((out/'submit.log').exists())
+   with self.assertRaisesRegex(RuntimeError,'already exists'):module.submit(command,root,out,recover,validate_stage=lambda _stage,_command:None)
+ def test_missing_validator_rejects_before_launcher(self):
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);out=root/'out';marker=root/'launched'
+   command=[sys.executable,'-c',f'from pathlib import Path;Path({str(marker)!r}).write_text("launched")']
+   with self.assertRaisesRegex(RuntimeError,'Mandatory driver preflight'):module.submit(command,root,out)
+   self.assertFalse(marker.exists());self.assertFalse(out.exists())
+
+ def test_preflight_rejection_never_starts_launcher_or_creates_attempt(self):
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();out=root/'out';launched=root/'launched'
+   command=[sys.executable,'-c',f'from pathlib import Path;Path({str(launched)!r}).write_text("launched")']
+   def reject(_stage,_command):raise RuntimeError('preflight identity mismatch')
+   with self.assertRaisesRegex(RuntimeError,'preflight identity mismatch'):
+    module.submit(command,stage,out,validate_stage=reject)
+   self.assertFalse(launched.exists());self.assertFalse(out.exists())
+
+ def test_valid_preflight_runs_before_launcher_and_recovery(self):
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();out=root/'out';order=[]
+   command=[sys.executable,'-c','print("VPS job: own-valid Remote outputs: /srv/dev-jobs/own-valid",flush=True)']
+   def validate(actual,actual_command):self.assertEqual(actual,stage);self.assertEqual(actual_command,command);order.append('preflight');return {'status':'PASS_STATIC_DRIVER_PREFLIGHT'}
+   def recover(job,_stage,_out):self.assertEqual(job,'own-valid');self.assertEqual(json.loads((_out/'driver-preflight-submission.json').read_text())['status'],'PASS_STATIC_DRIVER_PREFLIGHT');order.append('recovery');return 0
+   self.assertEqual(module.submit(command,stage,out,recover,validate_stage=validate),0)
+   self.assertEqual(order,['preflight','recovery'])
+
+ def test_unlisted_remote_driver_rejects_before_launcher(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();out=root/'out'
+   command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','node','unlisted-driver.mjs']
+   with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
+    with self.assertRaisesRegex(RuntimeError,'Unbound release-test command'):
+     module.submit(command,stage,out,validate_stage=module.validate_driver_preflight)
+   self.assertFalse(out.exists())
 
 class RecoveryFailureRegression(unittest.TestCase):
  def test_copy_or_missing_result_or_ssh_error_never_cleanup(self):
