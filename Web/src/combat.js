@@ -1,3 +1,4 @@
+import{rifleActionState}from'./engine/rifle-runtime.js';
 import {FINISHER_DATA} from './engine/finisher-data.js';
 import{FLAME_VISUAL_DATA}from'./engine/flame-data.js';
 import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./engine/flame-runtime.js';
@@ -26,7 +27,7 @@ import {createSuppliesState,issueSupply} from './supplies.js';
 import {createVestState,damageAfterVest} from './vest.js';
 import {AREA_MOB_SPAWNS,residentEncounterHealth} from './area-mob-spawns.js';
 import {selectCombatTarget,resolvePistolShot} from './pistol-targeting.js';
-import {createPistolState, stepPistol} from './pistol.js';
+import {createPistolState, stepPistol,tracePistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
@@ -84,6 +85,29 @@ export function createGame(world,options={}){
 }
 function notify(g,text){g.message=text;g.messageUntil=g.time+4;}
 function event(g,type,data={}){g.events.push({type,...data});}
+function rangedHit(g,shot,weapon,itemId,damage){
+ const target=g.enemies.find(t=>t.id===shot.targetId&&t.hp>0);if(!target)return;
+ const amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
+ event(g,'hit',{actor:target,amount,position:{...target.pos},weapon,attackClass:'bullet',impactDirection:{...shot.direction},parry:false});
+ if(weapon==='rifle')rifleActionState(g).lastDamageTick=g.tick;
+ if(target.hp<=0){stageProgressionDeath(g,target,itemId,amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon,attackClass:'bullet',impactDirection:{...shot.direction}});}
+}
+function rifleIntent(g,intent,dispatch){
+ const p=g.player,profile=g.world.rifleData,rules=profile.rules,clock=rifleActionState(g),actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=p.ready&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
+ let state=g.rifle;
+ const explicit=validDirection(intent.aim),moving=mag(intent.move??{x:0,z:0})>.01,reference=g.mobileAiming?{...p.facing}:explicit?normal(intent.aim):moving?normal(intent.move):g.rifleUserFacing??{...p.facing};g.rifleUserFacing={...reference};g.pistolTargetId=null;g.pistolTargetFacing=null;
+ if(!canAct)clock.reloadingUntil=0;
+ if(canAct&&actions.includes('heavy')){dispatch?.(g,{type:'equip',itemId:profile.itemId,equipped:false},true);return{...intent,actions:[],held:[],guard:false,guardPressed:false};}
+ if(canAct&&clock.reloadingUntil>0&&g.time+EPS>=clock.reloadingUntil){const result=dispatch?.(g,{type:'reload'},true);if(!result?.ok)clock.reloadingUntil=0;state=g.rifle;}
+ if(canAct&&g.rifleAssetReady&&(actions.includes('stab')||state.magazine===0)&&!clock.reloadingUntil&&state.magazine<rules.capacity&&state.reserve>0&&g.time+EPS>=clock.nextFireAt){clock.reloadingUntil=g.time+rules.reload;event(g,'reload-start',{until:clock.reloadingUntil,weapon:'rifle'});}
+ const firing=actions.includes('fire')||actions.includes('slash')||profile.fireMode==='held'&&intent.held?.includes('fire');let shotDirection=null;
+ if(firing&&canAct&&g.rifleAssetReady&&!clock.reloadingUntil&&g.time+EPS>=clock.nextFireAt){
+  const visible=intent.combatVisibleIds??intent.pistolVisibleIds,targets=g.enemies.filter(e=>!visible||visible.includes(e.id));
+  const shot=g.mobileAssistEnabled!==false&&!g.mobileAiming?resolvePistolShot({position:p.pos,aim:reference,targets,visibleIds:visible,lineClear:(a,b)=>g.world.lineClear(a,b),areaId:g.world.areaId,rules}):tracePistol(p.pos,reference,targets,(a,b)=>g.world.lineClear(a,b),rules);
+  if(shot){const result=dispatch?.(g,{type:'fire'},true);if(result?.ok){shotDirection=shot.direction;event(g,'shot',{...shot,damage:rules.damage,kind:'bullet',weapon:'rifle',actor:p});if(shot.targetId!=null)rangedHit(g,shot,'rifle',profile.itemId,rules.damage);}}
+ }
+ p.buffer=null;p.guarding=false;p.parryUntil=0;return{...intent,aim:shotDirection??(explicit||moving?reference:null),guard:false,guardPressed:false,actions:[],held:[]};
+}
 function pistolIntent(g,intent,dispatchPistol){
  if(!g.pistol)return intent;
  const p=g.player,wasEquipped=g.pistol.equipped,actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.dodge&&!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
@@ -119,9 +143,7 @@ function pistolIntent(g,intent,dispatchPistol){
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
   if(e.type==='shot'&&e.targetId!==null&&e.targetId!==undefined){const target=g.enemies.find(t=>t.id===e.targetId&&t.hp>0);if(!target)continue;
-   const damage=effectiveWeaponDamage(g,'westminster-start-pistol-v1',e.damage),amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
-   event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction},parry:false});
-   if(target.hp<=0){stageProgressionDeath(g,target,'westminster-start-pistol-v1',amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'pistol',attackClass:'bullet',impactDirection:{...e.direction}});}
+   rangedHit(g,e,'pistol','westminster-start-pistol-v1',effectiveWeaponDamage(g,'westminster-start-pistol-v1',e.damage));
   }
  }
  if(g.finished||!g.enemies.some(e=>e.id===g.pistolTargetId&&e.hp>0)){g.pistolTargetId=null;g.pistolTargetFacing=null;}
@@ -246,7 +268,7 @@ function mobileControl(g,intent,dt,services){
   if(intent.cancel)p.velocity={x:0,z:0};return intent;
  }
  const areaId=g.world.areaId,visible=intent.combatVisibleIds??intent.pistolVisibleIds;
- const ranged=!!g.pistol?.equipped||!!g.flame?.equipped,busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!ranged;
+ const ranged=!!g.pistol?.equipped||!!g.rifle?.selected||!!g.flame?.equipped,busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!ranged;
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
@@ -258,7 +280,7 @@ function mobileControl(g,intent,dt,services){
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt,services);intent=g.flame?.equipped?flameIntent(g,intent):pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished||intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.flame?.equipped?flameIntent(g,intent):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;

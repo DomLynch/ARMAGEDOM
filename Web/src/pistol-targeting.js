@@ -52,10 +52,10 @@ export function selectPistolTarget({retainedTargetId=null, switchTarget=false, .
 
 // The actual shot and its presentation share selection AND the first-hit trace.
 // Selection may favour a far aligned enemy; its ray can hit a nearer body first.
-export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,areaId}) {
+export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,areaId,rules=PISTOL_RULES}) {
   const selected=selectCombatTarget({position,aim,targets:targets.filter(t=>!visibleIds||visibleIds.includes(t.id)),
-    lineClear,areaId,range:PISTOL_RULES.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
-  return tracePistol(position,selected?.direction??aim,targets,lineClear);
+    lineClear,areaId,range:rules.range,coneDegrees:PISTOL_TARGETING.acquireDegrees});
+  return tracePistol(position,selected?.direction??aim,targets,lineClear,rules);
 }
 
 // Read-only preview of the current unassisted intent. No retained ID/body turn.

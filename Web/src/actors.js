@@ -1,3 +1,4 @@
+import{createRiflePose}from'./rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
 import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds} from './engine/finisher-data.js';
@@ -302,12 +303,16 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     for (const skeleton of skeletons) skeleton.dispose();
     view.root.removeFromParent();view.shadow.removeFromParent();
     view.shadow.material.dispose();
+    view.riflePose?.dispose();
     for (const m of view.materials) m.material.dispose();
     store.delete(id);
   }
 
   return {
     views,
+    ensureRifle(){const data=world.rifleData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Rifle unavailable'));},
+    rifleReady(){return !!library.models.get(world.rifleData?.modelRef);},
+    rifleAsset(){return library.models.get(world.rifleData?.modelRef);},
     ensureFlame(){const data=world.flameData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Flamethrower unavailable'));},
     flameAsset(){return library.models.get(world.flameData?.modelRef)?.gltf??null;},
     flameReady(){return !!library.models.get(world.flameData?.modelRef);},
@@ -317,6 +322,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
     ensureAreaModels(record,areaId=world.areaId){
       const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
+      if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});
     },
@@ -396,7 +402,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
         if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
-        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){restoreFlamePitch(view.model);restoreGripProfile(view.model);}
+        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){view.riflePose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
@@ -445,9 +451,14 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(entity===game.player){
           const equipped=!!game.flame?.equipped,pose=equipped&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(!equipped){view.flameClose=false;view.flameExtension=null;}
-          if(view.knife)view.knife.visible=!equipped&&entity.weapon!=='pistol';
+          if(view.knife)view.knife.visible=!equipped&&entity.weapon!=='pistol'&&entity.weapon!=='rifle';
           if(pose&&!view.flameMount){const source=library.models.get(world.flameData?.modelRef);if(source){const record=Object.values(library.manifest.files??{}).find(r=>r.file===library.manifest.models.vagrant.url);view.flameGrip=flameGripProfile(view.model,record?.sha256);view.flameMount=attachFlame(view.model,source.gltf);}}
           if(view.flameMount){view.flameMount.visible=pose;if(pose){const stance=flameArmStance(game,view.flameClose,combatVisibleIds);view.flameClose=stance.close;view.flameExtension??=stance.extension;view.flameExtension+=(stance.extension-view.flameExtension)*(1-Math.exp(-Math.min(.1,Math.max(0,presentationDt))*stance.rate));applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip,armExtension:view.flameExtension});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const aim=flameAimPose(view.model,view.flameMount,game);game.flame.aimPitch=aim.pitch;game.flame.aimYaw=aim.yaw;applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}}
+        }
+        if(entity===game.player){
+          const holding=!!game.rifle?.selected&&!game.flame?.equipped,pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil,source=library.models.get(world.rifleData?.modelRef);
+          if(source&&!view.riflePose){view.riflePose=createRiflePose(view.model,source);view.flashMaterials.push(...view.riflePose.materials);}
+          if(view.riflePose){view.riflePose.mount.visible=pose;if(pose){const clock=game.rifleAction??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.riflePose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2-(clock.reloadingUntil-game.time):firing?game.time-clock.firedAt:0);}}
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);
