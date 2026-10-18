@@ -1,3 +1,4 @@
+import{dispatchEquipmentSelection}from'../src/engine/run-views.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -67,4 +68,17 @@ test('primary Reset write failure retains old owner/raw and recovery requires ex
 });
 test('explicit Reset replaces corrupt primary without reading or writing blocked backup history',()=>{
  const bad='{bad-v8',records=new Map([[oldKey,earned],[FLAME_SAVE_KEY,bad]]),f=fixture({records,blockHistory:true});f.p.restoreSavedRun(f.g);assert(f.g.runSaveInvalid);assert.equal(f.p.retry(),false);assert(f.p.resetRun().ok);assert.deepEqual(f.writeKeys,[FLAME_SAVE_KEY]);assert.equal(records.get(oldKey),earned);assert.equal(JSON.parse(records.get(FLAME_SAVE_KEY)).version,8);assert.equal(f.g.runSaveInvalid,undefined);
+});
+
+
+test('failed equipment selection preserves active flame and resources; only committed swaps lower it',async()=>{
+ for(const family of ['pistol','melee']){
+  const f=fixture({records:new Map([[oldKey,earned]])});f.p.restoreSavedRun(f.g);await pickup(f);assert(setFlameEquipped(f.g,true));f.tick();assert(f.g.flameFuel.fuelUnits<1000);
+  const command=family==='pistol'?{type:'selectVariant',variantId:'westminster-start-pistol-v1'}:{type:'equip',itemId:'knife',equipped:true},dispatch=family==='pistol'?f.p.dispatchExpedition:f.p.dispatchUniqueReward;
+  const snapshot=()=>JSON.stringify({flame:f.g.flame,fuel:f.g.flameFuel,pistol:f.g.pistol,unique:f.g.uniqueReward,expedition:f.g.expedition,weapon:f.g.player.weapon});
+  let before=snapshot();assert.equal(dispatchEquipmentSelection(f.g,command,false,dispatch).ok,false);assert.equal(snapshot(),before,'denied selection must not lower or mutate current weapon');
+  f.quota(true);before=snapshot();assert.equal(dispatchEquipmentSelection(f.g,command,true,dispatch).code,'storage-unavailable');assert.equal(snapshot(),before,'quota failure must preserve flame, ammo, fuel and selection');
+  f.quota(false);const fuel=f.g.flameFuel.fuelUnits,ammo=[f.g.pistol.magazine,f.g.pistol.reserve];assert(dispatchEquipmentSelection(f.g,command,true,dispatch).ok);assert.equal(f.g.flame.equipped,false);assert.equal(f.g.flameFuel.fuelUnits,fuel);assert.deepEqual([f.g.pistol.magazine,f.g.pistol.reserve],ammo);
+  assert(dispatchEquipmentSelection(f.g,command,true,dispatch).ok,'duplicate selection is idempotent');assert.equal(f.g.flameFuel.fuelUnits,fuel);assert.deepEqual([f.g.pistol.magazine,f.g.pistol.reserve],ammo);
+ }
 });
