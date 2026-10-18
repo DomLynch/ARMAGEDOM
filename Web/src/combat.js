@@ -153,7 +153,7 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
  p.swing={action,def,dir:{...p.facing},start:g.time,hitAt:g.time+def.windup,end:g.time+def.windup+def.recovery,resolved:false};p.ready=p.swing.end;if(g.pilot){Object.assign(p.swing,knifeSwing(g,p,action,def));p.ready=p.swing.end;if(lowTargetId!==null)p.swing.lowTargetId=lowTargetId;}
  if(selected&&!nearest){p.swing.turnTo={...selected.direction};p.swing.assistUntil=g.time+Math.min(def.windup-1/60,8/60);}
  if(action==='heavy')p.heavyReady=g.time+def.cooldown;if(action==='special')p.specialReady=g.time+def.cooldown;
- g.started=true;event(g,'attack',{actor:p,action,...(g.pilot?{moveId:def.moveId,clip:def.clip,weapon:'knife',material:'iron'}:{})});return true;
+ g.started=true;event(g,'attack',{actor:p,action,...(g.pilot?{moveId:def.moveId,clip:def.clip,audioWeight:def.audioWeight,weapon:'knife',material:'iron'}:{})});return true;
 }
 function dodge(g,move,aim){if(g.pilot){knifeDodge(g,move,aim);return;}const p=g.player;if(g.finished||p.hp<=0||p.dodgeReady>g.time+EPS)return;
  p.swing=null;p.buffer=null;p.guarding=false;p.parryUntil=0;p.velocity={x:0,z:0};p.dodgeDirection=normal(move??p.facing,p.facing);p.facing={...p.dodgeDirection};p.dodgeUntil=g.time+.22;p.invulnerableUntil=g.time+.25;p.dodgeReady=g.time+1.05;g.started=true;event(g,'dodge',{actor:p});
@@ -480,7 +480,7 @@ function knifeGuard(g,intent,swinging,dodging){
  }else if(p.parryUntil>t&& !intent.cancel){p.parryReleased=true;}
  if(p.parryReleased&&t+EPS>=p.parryUntil&&p.parryUntil>0){p.parryUntil=0;p.guardExposedUntil=t+R.parryRecovery/60;p.parryReleased=false;}
 }
-function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,weapon:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
+function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
 function knifeReceive(g,hit){
  const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.def??(hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId]);
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}

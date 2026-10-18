@@ -7,7 +7,7 @@ export function presentationAudioEvents(events,severs){
 export function donorCues(events) {
   const impacts=[],air=[];
   for(const event of events) {
-    const heavy=event.moveId==='heavy_overhead'||event.action==='heavy';
+    const heavy=event.audioWeight==='heavy'||event.moveId==='heavy_overhead'||event.action==='heavy';
     if(event.type==='sever-presented')impacts.push({name:'hit_heavy',gain:.5});
     else if(event.type==='hit'&&!event.blocked&&event.amount!==0)impacts.push({name:heavy?'hit_heavy':'hit_flesh',gain:.3});
     else if(event.type==='parry')impacts.push({name:'parry',gain:1});
