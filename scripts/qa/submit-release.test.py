@@ -199,6 +199,8 @@ class PackageClosureRegression(unittest.TestCase):
   import json
   with tempfile.TemporaryDirectory() as temp:
    root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();(stage/'data').write_text('x');out=root/'out';out.mkdir();cleaned=[]
+   (out/'driver-preflight-submission.json').write_text('{"status":"PASS_STATIC_DRIVER_PREFLIGHT"}')
+   (out/'submission-chain.json').write_text('{"status":"PRIOR_RECOVERY_FAILED"}')
    def fake_run(argv,**kwargs):
     if argv[0]=='rsync':
      for name,value in [('request.json',{'files_sha256':{'data':module.digest(stage/'data')}}),('result.json',{'job':'own-0','exit_code':0,'finished_epoch':1}),('submission.json',{})]:(out/name).write_text(json.dumps(value))
@@ -206,7 +208,9 @@ class PackageClosureRegression(unittest.TestCase):
     if any('test -d' in v for v in argv):return subprocess.CompletedProcess(argv,1)
     if any('rm -rf' in v for v in argv):cleaned.append(argv)
     return subprocess.CompletedProcess(argv,0)
-   def fake_hashes(*args,**kwargs):return json.dumps({p.name:module.digest(p) for p in out.iterdir() if p.is_file()})
+   def fake_hashes(*args,**kwargs):
+    self.assertNotIn('driver-preflight-submission.json',args[0][-1]);self.assertNotIn('submission-chain.json',args[0][-1])
+    return json.dumps({name:module.digest(out/name) for name in ('request.json','result.json','submission.json','run.log')})
    with patch.object(module.subprocess,'run',fake_run),patch.object(module.subprocess,'check_output',fake_hashes):self.assertEqual(module.recover_job('own-0',stage,out),0)
    self.assertEqual(len(cleaned),1);self.assertEqual((out/'run.log').stat().st_size,0);self.assertTrue((out/'recovery.json').exists())
 

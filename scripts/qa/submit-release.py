@@ -114,7 +114,12 @@ def recover_job(job,stage,out):
     if not isinstance(request,dict) or not isinstance(request.get('files_sha256'),dict) or not request['files_sha256']: raise RuntimeError('Missing frozen input hashes')
     for rel,sha in request['files_sha256'].items():
         if digest(stage/rel)!=sha: raise RuntimeError('Input changed: '+rel)
-    paths={p.relative_to(out).as_posix():remote+('/src/' if p.relative_to(out).parts[0] in ['results','export'] else '/')+p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and p.name!='submit.log'}
+    paths={}
+    for p in out.rglob('*'):
+        if not p.is_file():continue
+        rel=p.relative_to(out);name=rel.as_posix()
+        if len(rel.parts)==1 and name in ('request.json','result.json','submission.json','run.log'):paths[name]=remote+'/'+name
+        elif rel.parts[0] in ('results','export'):paths[name]=remote+'/src/'+name
     code='import json,hashlib,pathlib; d='+repr(paths)+'; print(json.dumps({k:hashlib.sha256(pathlib.Path(v).read_bytes()).hexdigest() for k,v in d.items()}))'
     hashes=json.loads(subprocess.check_output(SSH+['python3 -c '+shlex.quote(code)],text=True))
     for rel,sha in hashes.items():
