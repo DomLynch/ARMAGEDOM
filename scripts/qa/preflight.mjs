@@ -1,7 +1,8 @@
 // Fast exact-package observer check before browser launch. Never turns failure into success.
 import fs from 'node:fs';import path from 'node:path';import {preflightCompiled} from './scenarios.mjs';
 import {spawnSync} from 'node:child_process';
-const guard=spawnSync(process.execPath,['--test',new URL('./weapon-action-guard.test.mjs',import.meta.url).pathname],{stdio:'inherit'});
+import {fileURLToPath} from 'node:url';
+const guard=spawnSync(process.execPath,['--test',fileURLToPath(new URL('./weapon-action-guard.test.mjs',import.meta.url))],{stdio:'inherit'});
 if(guard.error)throw guard.error;
 if(guard.status!==0)process.exit(guard.status??1);
 const config=JSON.parse(fs.readFileSync(process.argv[2])),target=path.join(path.dirname(config.output),'probe-preflight.json');fs.mkdirSync(path.dirname(target),{recursive:true});
