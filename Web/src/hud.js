@@ -94,6 +94,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       );
       const exhausted = p.exhausted === true;
       const unaffordable = (id) => {
+        if(g.weaponsLowered&&id!=='dodge')return true;
         const cost = g.staminaCosts?.[id];
         return id === "guard"
           ? stamina <= 0 || exhausted
@@ -237,6 +238,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         el("result").textContent = "THE ASH CLAIMS YOU";
         el("result-hint").textContent = g.runSaveInvalid ? "Saved run invalid. Retry to start fresh." : "Watch their wind-up. Dodge, then strike.";
       }
+
+      el('safehouse-status').hidden=!g.weaponsLowered;
+      if(g.weaponsLowered){el('ammo').hidden=false;el('ammo').textContent='SAFEHOUSE · WEAPONS LOWERED';}
 
     },
   };

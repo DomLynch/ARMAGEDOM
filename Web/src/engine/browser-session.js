@@ -83,7 +83,7 @@ const hud = createHUD({
   onPause: pause,
   onPistol: () => {
     if (!loaded || paused || traveling || contextLost || game.finished) return;
-    if(resources.interactFlame()||resources.interactExpedition()||resources.interactUniqueReward()){audio.unlock().catch(()=>{});return;}
+    if(resources.interactSafehouse()||resources.interactFlame()||resources.interactExpedition()||resources.interactUniqueReward()){audio.unlock().catch(()=>{});return;}
     input.state.down("pickup", "pickup", {x:0,y:0});
     input.state.up("pickup");
     audio.unlock().catch(() => {});
@@ -159,7 +159,7 @@ input = attachInput({
   },
   onRetry: restart,
   onReset: resetGame,
-  onPickup:()=>resources.interactFlame(),
+  onPickup:()=>resources.interactSafehouse()||resources.interactFlame(),
   isPistol: () => !!(game&&selectedBossRanged(game))||!!game?.rifle?.selected||!!game?.pistol?.equipped||!!game?.flame?.equipped,
   isFlame: () => !!game?.flame?.equipped,
   isPaused: () =>

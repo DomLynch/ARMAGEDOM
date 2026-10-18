@@ -47,6 +47,7 @@
       <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
       <button id="pistol-interact" hidden>Equip pistol · G</button>
       <p id="expedition-objective" hidden></p>
+      <span id="safehouse-status" hidden>SAFEHOUSE · WEAPONS LOWERED</span>
       <span id="expedition-case-label" class="expedition-world-label" hidden>STOLEN SUPPLY CASE</span>
       <span id="flame-pickup-label" class="expedition-world-label" hidden></span>
       <span id="unique-reward-label" class="expedition-world-label" hidden></span>
@@ -104,13 +105,14 @@
               <section id="rifle-equipment" hidden><h3>Bridge Rifle</h3><p id="rifle-state"></p><button id="rifle-equip" type="button">Equip rifle</button></section>
 <section id="melee-equipment" hidden><div id="melee-choices"></div></section>
               <section id="flame-equipment" hidden><button id="flame-equip" type="button">Equip flamethrower</button></section>
-              <details id="weapon-details"><summary>Weapon details &amp; progress</summary><p id="equipment-state"></p><p id="pistol-comparison"></p><p id="melee-state" role="status"></p><p id="melee-comparison"></p><p>Cleaver trades more stamina for higher damage and reach. Knife mastery applies; attack timing stays the same.</p><p id="flame-state" role="status"></p><p id="equipment-retry-note">Retry resets combat, ammunition, vest and weapon mastery. Contract progress, discovered areas, earned variants and cleaver stay unlocked. Collected flamethrower and remaining fuel stay; spent fuel stays spent. Collect the pistol again to use your chosen variant.</p></details>
+              <details id="weapon-details"><summary>Weapon details &amp; progress</summary><p id="equipment-state"></p><p id="pistol-comparison"></p><p id="melee-state" role="status"></p><p id="melee-comparison"></p><p>Cleaver trades more stamina for higher damage and reach. Knife mastery applies; attack timing stays the same.</p><p id="flame-state" role="status"></p><p id="equipment-retry-note">Retry resets combat, vest and weapon mastery. Locker contents and their owned weapons and ammunition stay. Contract progress, discovered areas, earned variants and cleaver stay unlocked. Collected flamethrower and remaining fuel stay; spent fuel stays spent. Collect the pistol again to use your chosen variant.</p></details>
             </details>
             <details id="progression-panel" hidden><summary>Character &amp; mastery</summary><p id="progression-attributes"></p><p id="progression-weapons"></p></details>
           </section>
           <section id="menu-journal" role="tabpanel" aria-labelledby="menu-tab-journal" hidden><h3>Journal</h3><div class="journal-next"><p class="eyebrow">Your next step</p><h4 id="contract-title">Stolen Supplies</h4><p id="contract-status" role="status"></p></div><p id="contract-reward"></p><button id="contract-action" type="button"></button><details id="contract-details"><summary>Contract details</summary><p id="contract-description"></p></details></section>
           <section id="menu-map" role="tabpanel" aria-labelledby="menu-tab-map" hidden><h3>Discovery atlas</h3><details id="atlas-panel" open><summary>Discovery atlas · schematic</summary><p>Eight areas. Existing connections, not a map to scale. Pin a known area to see its next exit; movement stays manual.</p><div id="atlas-map"><svg id="atlas-links" viewBox="0 0 400 200" aria-hidden="true"></svg><div id="atlas-nodes"></div></div><p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button></details></section>
         </section>
+        <section id="menu-locker" hidden aria-label="Safehouse locker"><h3>Safehouse locker</h3><p id="locker-status" role="status"></p><div id="locker-items"></div></section>
         <section id="menu-settings" role="region" aria-labelledby="menu-settings-button" hidden><h3>Settings</h3><button id="sound" aria-pressed="true">Sound on</button><button id="assist" aria-pressed="true">Assist: 100%</button><label for="feedback-mode">Combat feedback</label><select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select>
       <details>
         <summary>Controls</summary>

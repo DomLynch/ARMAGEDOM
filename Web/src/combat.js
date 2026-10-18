@@ -1,3 +1,4 @@
+import{safehouseProtected,safehouseTouches,safehouseBlocksSegment,safehouseWeaponBlocked,prepareSafehouseStep}from'./engine/safehouse.js';
 import{stepRockets}from'./engine/rocket-runtime.js';
 import{bossEquipmentIntent,selectedBossRanged,stepBossGrenades}from'./engine/boss-weapon-runtime.js';
 import{bossEquipmentClock}from'./engine/boss-equipment-data.js';
@@ -89,7 +90,7 @@ export function createGame(world,options={}){
 function notify(g,text){g.message=text;g.messageUntil=g.time+4;}
 function event(g,type,data={}){g.events.push({type,...data});}
 function rangedHit(g,shot,weapon,itemId,damage,attackClass='bullet'){
- const target=g.enemies.find(t=>t.id===shot.targetId&&t.hp>0);if(!target)return;
+ const target=g.enemies.find(t=>t.id===shot.targetId&&t.hp>0);if(!target||safehouseWeaponBlocked(g)||safehouseTouches(g,target.pos,target.radius))return;
  const amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
  event(g,'hit',{actor:target,amount,position:{...target.pos},weapon,attackClass,impactDirection:{...shot.direction},parry:false});
  if(weapon==='rifle')rifleActionState(g).lastDamageTick=g.tick;else if(['shotgun','grenade','rocket'].includes(weapon))bossEquipmentClock(g,weapon==='rocket'?'rocketLauncher':weapon).lastDamageTick=g.tick;
@@ -157,9 +158,10 @@ function pistolIntent(g,intent,dispatchPistol,dispatchMarshalPistol){
 }
 function moveBody(g,body,d){let next=g.world.move(body.pos,d,body.radius); // World owns static collision.
  for(const other of [g.player,...g.enemies]){if(other===body||other.hp<=0)continue;const delta=sub(next,other.pos),n=mag(delta),r=body.radius+other.radius;if(n<r&&n>.001){next=g.world.move(body.pos,{x:next.x-body.pos.x+delta.x/n*(r-n),z:next.z-body.pos.z+delta.z/n*(r-n)},body.radius);}}
+ if(body!==g.player&&safehouseTouches(g,next,(body.radius??.4)+.03))next=body.pos;
  body.pos=next;
 }
-export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.player;let def=g.pilot?knifeMove(p,action):attacks[action],lowTargetId=null,slashTarget=null;
+export function attack(g,action,direction=g.player.facing,visibleIds){if(safehouseWeaponBlocked(g))return false;const p=g.player;let def=g.pilot?knifeMove(p,action):attacks[action],lowTargetId=null,slashTarget=null;
  if(p.weapon==='pistol'||!def||g.pilot&&p.hurtUntil>g.time||p.hp<=0||g.finished||p.dodgeUntil>g.time||p.guardBrokenUntil>g.time)return false;
  if((action==='heavy'&&p.heavyReady>g.time+EPS)||(action==='special'&&p.specialReady>g.time+EPS))return false;
  if(g.pilot&&!knifeAffordable(p,def.stamina)){p.buffer=null;return false;}
@@ -183,7 +185,7 @@ export function attack(g,action,direction=g.player.facing,visibleIds){const p=g.
 function dodge(g,move,aim){if(g.pilot){knifeDodge(g,move,aim);return;}const p=g.player;if(g.finished||p.hp<=0||p.dodgeReady>g.time+EPS)return;
  p.swing=null;p.buffer=null;p.guarding=false;p.parryUntil=0;p.velocity={x:0,z:0};p.dodgeDirection=normal(move??p.facing,p.facing);p.facing={...p.dodgeDirection};p.dodgeUntil=g.time+.22;p.invulnerableUntil=g.time+.25;p.dodgeReady=g.time+1.05;g.started=true;event(g,'dodge',{actor:p});
 }
-export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceive(g,hit);const p=g.player,t=g.time;if(g.finished||p.hp<=0||t<p.invulnerableUntil)return false;
+export function receiveHit(g,hit){if(safehouseProtected(g)||safehouseBlocksSegment(g,hit.origin,g.player.pos))return false;if(g.pilot)return g.finished?false:knifeReceive(g,hit);const p=g.player,t=g.time;if(g.finished||p.hp<=0||t<p.invulnerableUntil)return false;
  let amount=hit.amount;
  if(p.guarding&&hit.block&&inside(p.facing,sub(hit.origin,p.pos),140)){
   p.guardRecoverAt=t+.45;
@@ -196,7 +198,7 @@ export function receiveHit(g,hit){if(g.pilot)return g.finished?false:knifeReceiv
  }
  p.hp=Math.max(0,p.hp-amount);p.flashUntil=t+.12;event(g,'hit',{actor:p,amount});if(p.hp<=0){g.activeGrenades=[];g.finished=true;g.won=false;event(g,'death',{actor:p});}return true;
 }
-function flameHit(g,target,damage,{source}){
+function flameHit(g,target,damage,{source}){if(safehouseWeaponBlocked(g)||safehouseBlocksSegment(g,source.position,target.pos))return;
  const amount=Math.min(target.hp,damage);if(!(amount>0))return;
  target.hp=Math.max(0,target.hp-amount);target.flashUntil=g.time+.12;target.flameBurnUntil=g.time+FLAME_VISUAL_DATA.burnSeconds;target.flameBurnFrom={x:source.position.x,z:source.position.z};if(target.home)alertResident(g,target);
  const direction=normal({x:source.direction.x,z:source.direction.z});event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'flamethrower',attackClass:'fire',impactDirection:direction,material:'fire'});
@@ -216,7 +218,7 @@ function kill(g,e,meta={}){
  if(g.kills%2===0)g.loot.push({id:++serial,pos:{...e.pos},kind:(g.kills/2-1)%3,tier:Math.min(2,g.wave-1)});
  if(!g.enemies.length){g.player.hp=Math.min(g.player.maxHP,g.player.hp+25);g.nextWave=g.time+4;notify(g,'WAVE CLEARED · +25 HP');}
 }
-function strike(g,s){const p=g.player,def=s.def;event(g,'strike',{actor:p,action:s.action,dir:s.dir,range:def.range});
+function strike(g,s){if(safehouseWeaponBlocked(g))return;const p=g.player,def=s.def;event(g,'strike',{actor:p,action:s.action,dir:s.dir,range:def.range});
  const candidates=g.enemies.filter(e=>e.hp>0&&mag(sub(e.pos,p.pos))<=def.range+EPS&&inside(s.dir,sub(e.pos,p.pos),def.arc)&&g.world.lineClear(p.pos,e.pos));
  if(def.single)candidates.sort((a,b)=>mag(sub(a.pos,p.pos))-mag(sub(b.pos,p.pos)));
  for(const e of def.single?candidates.slice(0,1):candidates){const delta=normal(sub(e.pos,p.pos));e.hp=Math.max(0,e.hp-p.damage*def.multiplier);e.flashUntil=g.time+.12;event(g,'hit',{actor:e,amount:p.damage*def.multiplier});
@@ -227,7 +229,7 @@ export function spawnWave(g){if(g.encounter)return hollowSpawn(g);if(g.pilot){co
 const radius=e=>e.kind===3?(e.pattern===1?4:3.5):e.kind===1?2.8:1.8;
 const arc=e=>e.kind===3&&e.pattern===1?360:e.kind===1?110:90;
 function bolt(g,pos,dir,amount){g.bolts.push({id:++serial,pos:{...pos},dir:{...dir},amount,expires:g.time+4});}
-function enemyTick(g,e,dt){if(g.pilot){knifeEnemy(g,e,dt);return;}if(e.hp<=0)return;const t=g.time,offset=sub(g.player.pos,e.pos),distance=mag(offset),dir=normal(offset,e.facing);
+function enemyTick(g,e,dt){if(e.hp>0&&safehouseProtected(g)){e.swing=null;e.completedAttack=null;if(e.droneState&&!e.safehouseSuppressed)e.droneState=createDroneState();e.safehouseSuppressed=true;if(e.home){e.alerted=false;e.returning=true;residentPatrol(g,e,dt);}return;}e.safehouseSuppressed=false;if(g.pilot){knifeEnemy(g,e,dt);return;}if(e.hp<=0)return;const t=g.time,offset=sub(g.player.pos,e.pos),distance=mag(offset),dir=normal(offset,e.facing);
  if(!e.alerted&&distance>12)return;e.alerted=true;
  if(e.swing){if(t+EPS>=e.swing.hitAt){const s=e.swing;e.swing=null;const ranged=e.kind===2||e.kind===3&&e.pattern===2,amount=e.kind===3?25:e.kind===1?23:e.kind===2?12:9;
    if(ranged){bolt(g,s.pos,s.dir,amount);if(e.kind===3){bolt(g,s.pos,rotate(s.dir,Math.PI/10),amount);bolt(g,s.pos,rotate(s.dir,-Math.PI/10),amount);}}
@@ -283,7 +285,7 @@ function mobileControl(g,intent,dt,services){
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -320,6 +322,7 @@ export function stepGame(g,intent={},dt=1/60,services={}){if(g.pilot&&(!Number.i
  // Defer only a possible sprint tick until collision has proved displacement.
  // Unchanged non-sprint input retains the existing action/regen ordering.
  if(sprintCandidate&&!p.running)knifeRegen(g,p,dt,!!p.swing||dodging||t<p.hurtUntil);
+ intent=prepareSafehouseStep(g,intent);
  stepFlame(g,dt,services,(target,amount,hit)=>flameHit(g,target,amount,hit));
  if(mag(sub(p.pos,g.world.spawn??{x:0,z:-6}))>=1)g.started=true;
  if(g.encounterActive!==false&&g.started&&!g.enemies.length&&t+EPS>=g.nextWave){if(g.wave>=3){g.finished=true;g.won=true;}else spawnWave(g);}
@@ -444,7 +447,7 @@ function residentPatrol(g,e,dt){
  }
  if(e.residentIntent?.companionDistance>0)e.packCompanions=observeResidentCompanions(e.residentIntent,e,g.enemies.filter(other=>other.placementKey==='east-roamer-9'&&other.rig==='original-dog'),{areaId:g.world.areaId,lineClear:(a,b)=>g.world.lineClear(a,b)});
  const playerDistance=mag(sub(g.player.pos,e.pos)),lineClear=g.world.lineClear(e.pos,g.player.pos);
- const wake=e.residentIntent?canWakeResident(e.residentIntent,{alive:e.hp>0,playerAlive:g.player.hp>0,sameArea:(e.areaId??g.world.areaId)===g.world.areaId,lineClear,distance:playerDistance,playerHomeDistance:playerHome,...e.packCompanions}):playerDistance<=6&&lineClear;
+ const wake=!safehouseProtected(g)&&(e.residentIntent?canWakeResident(e.residentIntent,{alive:e.hp>0,playerAlive:g.player.hp>0,sameArea:(e.areaId??g.world.areaId)===g.world.areaId,lineClear,distance:playerDistance,playerHomeDistance:playerHome,...e.packCompanions}):playerDistance<=6&&lineClear);
  if(e.animalRole&&e.returning){e.completedAttack=null;e.wokeAt=null;}
  if(!e.returning&&!e.alerted&&wake)alertResident(g,e);
  if(e.alerted)return false;
@@ -506,7 +509,7 @@ function knifeGuard(g,intent,swinging,dodging){
  if(p.parryReleased&&t+EPS>=p.parryUntil&&p.parryUntil>0){p.parryUntil=0;p.guardExposedUntil=t+R.parryRecovery/60;p.parryReleased=false;}
 }
 function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
-function knifeReceive(g,hit){
+function knifeReceive(g,hit){if(safehouseProtected(g)||safehouseBlocksSegment(g,hit.origin,g.player.pos))return false;
  const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.def??(hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId]);
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}
  const meta=hitMetadata(hit.attacker,p,def);let amount=hit.amount,blocked=false;
@@ -641,7 +644,7 @@ function knifeContacts(g,before,ratBefore){
  // Decide contacts from a shared pre-resolution snapshot. Trades do not depend
  // on which attacker was enumerated first; a dead enemy cannot cancel its hit.
  contacts.sort((a,b)=>a.a.id-b.a.id||a.d.id-b.d.id);
- for(const {a,d,def} of contacts){
+ for(const {a,d,def} of contacts){if(a===g.player&&safehouseWeaponBlocked(g)||safehouseBlocksSegment(g,a.pos,d.pos))continue;
   if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId,...(a.bossProfile?{def}:{})});
   else{
    const damage=effectiveWeaponDamage(g,'knife',def.damage),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);

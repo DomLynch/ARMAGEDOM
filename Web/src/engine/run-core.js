@@ -1,3 +1,5 @@
+import{createLockerComponent,lockerStored}from'./locker-core.js';
+import{safehouseWeaponBlocked}from'./safehouse.js';
 import{stepPistol}from'../pistol.js';
 import{selectedPistolProfile}from'./expedition-core.js';
 import{createBossEquipmentComponent}from'./boss-equipment-core.js';
@@ -33,6 +35,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
+ let lockerComponent=null,lockerDomain=null,lockerScope=null;
  let bossEquipmentComponent=null,bossEquipmentDomain=null,bossEquipmentScope=null;
  let rifleComponent=null,rifleDomain=null,rifleScope=null;
  let flameComponent=null,flameDomain=null,flameScope=null,lastFuelOwner=null,lastFuelTick=-1;
@@ -78,7 +81,8 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   if(!bossEquipmentComponent){bossEquipmentComponent=createBossEquipmentComponent({baseCodec:base.codec,getRun,profiles,applyBaseSaved:(run,saved)=>base.applySavedRun(run,saved),baseStorageAdapter:storage=>base.storageAdapter(storage),canDispatch:run=>bossEquipmentScope?.run===run&&bossEquipmentScope.allowed,getAction:run=>bossEquipmentScope?.run===run?bossEquipmentScope.action:null,validatedDropPosition:uniqueRewardDropPosition,sourceDead:uniqueRewardSourceDead});bossEquipmentDomain=bossEquipmentComponent.wrapDomain(rifleDomain);}
   return bossEquipmentComponent;
  }
- const stateComponent=()=>bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
+ function locker(){const g=getRun();if(!g?.world.safehouseData)return null;const base=bossEquipment();if(!base)throw TypeError('Locker requires current v11 run');if(!lockerComponent){lockerComponent=createLockerComponent({baseCodec:base.codec,getRun,applyBaseSaved:(run,saved)=>base.applySavedRun(run,saved),baseStorageAdapter:storage=>base.storageAdapter(storage),canDispatch:run=>lockerScope?.run===run&&lockerScope.allowed,getAction:run=>lockerScope?.run===run?lockerScope.action:null});lockerDomain=lockerComponent.wrapDomain(bossEquipmentDomain);}return lockerComponent;}
+ const stateComponent=()=>locker()??bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
  const activeCodec={...selectedCodec,captureRunState(g){return(stateComponent()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(stateComponent()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return stateComponent()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(stateComponent()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){try{const raw=args[1]==null?null:JSON.parse(args[1]);if(raw?.version<=7&&(raw.progression?.awards??[]).some(row=>deathWeaponDescriptor(row.weaponId)?.creditPolicy==='none'))return null;}catch{return null;}return(stateComponent()?.codec??selectedCodec).restoreRun(...args);}};
  const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(stateComponent()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
@@ -86,13 +90,14 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  let pistolScope=null;
  const pistolOperation=createPistolOperation({getRun,collectPistol,equipPistol,grantPistol,canAct:g=>pistolScope?.run===g&&pistolScope.allowed});
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
- const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
+ const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(candidate?.world.safehouseData)candidate.locker=locker().model.freshState();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
+ const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
+ function dispatchLocker(g,action,allowed=false){if(g!==getRun()||lockerScope||!locker())return{ok:false,code:'not-eligible',events:[]};lockerScope={run:g,action,allowed:allowed===true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{lockerScope=null;}}
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
  function dispatchPistol(g,command,canAct){
-  if(g!==getRun()||pistolScope)return {ok:false,code:'not-eligible',events:[]};
+  if(g!==getRun()||pistolScope||lockerStored(g,'westminster-start-pistol-v1')||safehouseWeaponBlocked(g)&&['fire','reload'].includes(command?.type))return {ok:false,code:'not-eligible',events:[]};
   pistolScope={run:g,allowed:canAct===true};
   try{const result=core.dispatch(command);if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}
   finally{pistolScope=null;}
@@ -112,13 +117,14 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  function dispatchFlame(g,command,request=null,allowed=false){
   if(g!==getRun()||flameScope||!flame())return{ok:false,code:'not-eligible',events:[]};
   if(lastFuelOwner!==g){lastFuelOwner=g;lastFuelTick=-1;}
+  if(request&&(safehouseWeaponBlocked(g)||lockerStored(g,'flamethrower-area8-v1')))return{ok:false,code:'not-eligible',events:[]};
   if(request&&(request.active!==true||!Number.isFinite(request.seconds)||Math.abs(request.seconds-1/60)>1e-8||lastFuelTick===g.tick||!Number.isInteger(g.tick)||!g.flame?.equipped||g.player.hp<=0||g.finished||g.runSaveInvalid||g.player.swing||g.time<g.player.ready||g.time<g.player.hurtUntil||g.time<g.player.dodgeUntil))return{ok:false,code:'not-eligible',events:[]};
   flameScope={run:g,request,allowed:allowed===true};
   try{const result=core.dispatch(command);if(result.ok&&result.events.some(e=>e.type==='flame-fuel-spent'))lastFuelTick=g.tick;if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}
   finally{flameScope=null;}
  }
  function dispatchRifle(g,command,allowed=false){
-  if(g!==getRun()||rifleScope||!rifle())return{ok:false,code:'not-eligible',events:[]};
+  if(g!==getRun()||rifleScope||!rifle()||['fire','reload'].includes(command?.type)&&(safehouseWeaponBlocked(g)||lockerStored(g,'bridge-warden-rifle-v1')))return{ok:false,code:'not-eligible',events:[]};
   const descriptor=Object.getOwnPropertyDescriptor(command??{},'type'),type=descriptor&&'value'in descriptor?descriptor.value:null;
   const action=['fire','reload'].includes(type)?{type}:null,clock=rifleActionState(g);
   if(action&&(!closedData(command,['type'])||!g.rifle?.selected||g.flame?.equipped||type==='fire'&&(clock.reloadingUntil>0||g.time<clock.nextFireAt)||type==='reload'&&(!(clock.reloadingUntil>0)||g.time+1e-8<clock.reloadingUntil)))return{ok:false,code:'not-eligible',events:[]};
@@ -133,7 +139,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   }finally{rifleScope=null;}
  }
  function dispatchBossEquipment(g,command,allowed=false){
-  if(g!==getRun()||bossEquipmentScope||!bossEquipment())return{ok:false,code:'not-eligible',events:[]};
+  if(g!==getRun()||bossEquipmentScope||!bossEquipment()||['fire','reload'].includes(command?.type)&&(safehouseWeaponBlocked(g)||lockerStored(g,g.world.bossEquipmentData?.[command.field]?.itemId)))return{ok:false,code:'not-eligible',events:[]};
   const action=['fire','reload'].includes(command?.type)?{field:command.field,type:command.type}:null;
   let clock=null;if(action){const data=g.world.bossEquipmentData[action.field];if(!data||!closedData(command,['type','field'])||!g.bossEquipment?.[action.field]?.selected)return{ok:false,code:'not-eligible',events:[]};clock=bossEquipmentClock(g,action.field);
    if(action.type==='fire'&&(clock.reloadingUntil>0||g.time<clock.nextFireAt)||action.type==='reload'&&(data.rules.reload<=0||!(clock.reloadingUntil>0)||g.time+1e-8<clock.reloadingUntil))return{ok:false,code:'not-eligible',events:[]};
@@ -145,7 +151,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  }
  function dispatchMarshalPistol(g,request){
   const deny=()=>({ok:false,state:g.pistol,events:[]});
-  if(g!==getRun()||bossEquipmentScope||!bossEquipment()||!g.bossEquipment?.commanderPistol?.selected||!closedData(request,['aim','fire','reload','cancel','canAct'])||!closedData(request.aim,['x','z'])||![request.aim.x,request.aim.z].every(Number.isFinite)||['fire','reload','cancel','canAct'].some(key=>typeof request[key]!=='boolean'))return deny();
+  if(g!==getRun()||bossEquipmentScope||!bossEquipment()||safehouseWeaponBlocked(g)||lockerStored(g,'westminster-start-pistol-v1')||!g.bossEquipment?.commanderPistol?.selected||!closedData(request,['aim','fire','reload','cancel','canAct'])||!closedData(request.aim,['x','z'])||![request.aim.x,request.aim.z].every(Number.isFinite)||['fire','reload','cancel','canAct'].some(key=>typeof request[key]!=='boolean'))return deny();
   const p=g.player,allowed=request.canAct&&p.hp>0&&!g.finished&&!g.runSaveInvalid&&!p.swing&&g.time>=p.ready&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
   const next=stepPistol(g.pistol,{profile:selectedPistolProfile(g),time:g.time,areaId:g.world.areaId,position:p.pos,facing:p.facing,aim:request.aim,fire:request.fire,reload:request.reload,cancel:request.cancel,canAct:allowed,targets:g.enemies,lineClear:(a,b)=>g.world.lineClear(a,b)});
   const changed=['magazine','reserve','collected','equipped'].some(key=>next.state[key]!==g.pistol[key]);
@@ -195,5 +201,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchRifle,dispatchBossEquipment,dispatchMarshalPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
+ return {dispatchLocker,persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchRifle,dispatchBossEquipment,dispatchMarshalPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
 }

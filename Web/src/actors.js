@@ -458,31 +458,31 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(entity.hp>0){const lean=reaction.energy*.30;view.root.rotation.x=-reaction.z*lean;view.root.rotation.z=-reaction.x*lean;const flinch={x:entity.pos.x+reaction.x*reaction.energy*.10,z:entity.pos.z+reaction.z*reaction.energy*.10};if((!world.geometry?.clear||world.geometry.clear(flinch,entity.radius))&&(!world.lineClear||world.lineClear(entity.pos,flinch)))view.root.position.copy(world.toRender(flinch));}else{view.root.rotation.x=view.root.rotation.z=0;}
         if(deathPose){view.root.position.y+=deathPose.groundLift??0;view.root.position.x+=deathPose.offset.x;view.root.position.z-=deathPose.offset.z;view.root.updateMatrixWorld(true);}
         if(view.pistolMount){
-          const holding=entity.weapon==='pistol'&&!(entity===game.player&&game.flame?.equipped),pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          const holding=entity.weapon==='pistol'&&!(entity===game.player&&game.flame?.equipped),pose=holding&&!(entity===game.player&&game.weaponsLowered)&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(view.knife)view.knife.visible=!holding;view.pistolMount.visible=pose;
           if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:pistolRecoil});
           view.pistolSlide.setRecoil(pose?pistolRecoil:0);
         }
         if(entity===game.player){
-          const equipped=!!game.flame?.equipped,pose=equipped&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          const equipped=!!game.flame?.equipped,pose=equipped&&!game.weaponsLowered&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(!equipped){view.flameClose=false;view.flameExtension=null;}
-          if(view.knife)view.knife.visible=!equipped&&!['pistol','rifle','shotgun','grenade','rocket'].includes(entity.weapon);
+          if(view.knife)view.knife.visible=!game.weaponsLowered&&!equipped&&!['pistol','rifle','shotgun','grenade','rocket'].includes(entity.weapon);
           if(pose&&!view.flameMount){const source=library.models.get(world.flameData?.modelRef);if(source){const record=Object.values(library.manifest.files??{}).find(r=>r.file===library.manifest.models.vagrant.url);view.flameGrip=flameGripProfile(view.model,record?.sha256);view.flameMount=attachFlame(view.model,source.gltf);}}
           if(view.flameMount){view.flameMount.visible=pose;if(pose){const stance=flameArmStance(game,view.flameClose,combatVisibleIds);view.flameClose=stance.close;view.flameExtension??=stance.extension;view.flameExtension+=(stance.extension-view.flameExtension)*(1-Math.exp(-Math.min(.1,Math.max(0,presentationDt))*stance.rate));applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip,armExtension:view.flameExtension});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const aim=flameAimPose(view.model,view.flameMount,game);game.flame.aimPitch=aim.pitch;game.flame.aimYaw=aim.yaw;applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}}
         }
         if(entity===game.player){
-          const holding=!!game.rifle?.selected&&!game.flame?.equipped,pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil,source=library.models.get(world.rifleData?.modelRef);
+          const holding=!!game.rifle?.selected&&!game.flame?.equipped,pose=holding&&!(entity===game.player&&game.weaponsLowered)&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil,source=library.models.get(world.rifleData?.modelRef);
           if(source&&!view.riflePose){view.riflePose=createRiflePose(view.model,source);view.flashMaterials.push(...view.riflePose.materials);}
           if(view.riflePose){view.riflePose.mount.visible=pose;if(pose){const clock=game.rifleAction??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.riflePose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2-(clock.reloadingUntil-game.time):firing?game.time-clock.firedAt:0);}}
         }
         if(entity===game.player){
-          const shotgun=world.bossEquipmentData?.shotgun,shotgunSource=library.models.get(shotgun?.modelRef),holding=!!game.bossEquipment?.shotgun?.selected,pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          const shotgun=world.bossEquipmentData?.shotgun,shotgunSource=library.models.get(shotgun?.modelRef),holding=!!game.bossEquipment?.shotgun?.selected,pose=holding&&!(entity===game.player&&game.weaponsLowered)&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(shotgunSource&&!view.shotgunPose){view.shotgunPose=createRiflePose(view.model,shotgunSource);view.flashMaterials.push(...view.shotgunPose.materials);}
           if(view.shotgunPose){view.shotgunPose.mount.visible=pose;if(pose){const clock=game.bossEquipmentAction?.shotgun??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.shotgunPose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2*(1-(clock.reloadingUntil-game.time)/shotgun.rules.reload):firing?game.time-clock.firedAt:0);}}
-          const rocket=world.bossEquipmentData?.rocketLauncher,rocketSource=library.models.get(rocket?.modelRef),rocketHolding=!!game.bossEquipment?.rocketLauncher?.selected,rocketPose=rocketHolding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          const rocket=world.bossEquipmentData?.rocketLauncher,rocketSource=library.models.get(rocket?.modelRef),rocketHolding=!!game.bossEquipment?.rocketLauncher?.selected,rocketPose=rocketHolding&&!game.weaponsLowered&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(rocketSource&&!view.rocketPose){view.rocketPose=createRiflePose(view.model,rocketSource);view.rocketPose.mount.name='RocketLauncherMount';view.flashMaterials.push(...view.rocketPose.materials);}
           if(view.rocketPose){view.rocketPose.mount.visible=rocketPose;if(rocketPose){const clock=game.bossEquipmentAction?.rocketLauncher??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.rocketPose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2*(1-(clock.reloadingUntil-game.time)/rocket.rules.reload):firing?game.time-clock.firedAt:0);}}
-          const grenade=world.bossEquipmentData?.grenade,grenadeSource=library.models.get(grenade?.modelRef);if(grenadeSource&&!view.grenadeEquipment){view.grenadeEquipment=createRigidHandEquipment(view.model,grenadeSource);view.flashMaterials.push(...view.grenadeEquipment.materials);}if(view.grenadeEquipment)view.grenadeEquipment.mount.visible=!!game.bossEquipment?.grenade?.selected&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          const grenade=world.bossEquipmentData?.grenade,grenadeSource=library.models.get(grenade?.modelRef);if(grenadeSource&&!view.grenadeEquipment){view.grenadeEquipment=createRigidHandEquipment(view.model,grenadeSource);view.flashMaterials.push(...view.grenadeEquipment.materials);}if(view.grenadeEquipment)view.grenadeEquipment.mount.visible=!!game.bossEquipment?.grenade?.selected&&!game.weaponsLowered&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);

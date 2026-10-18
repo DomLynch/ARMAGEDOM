@@ -1,3 +1,4 @@
+import{lockerStored}from'./locker-core.js';
 import{createRocketView}from'./rocket-view.js';
 import * as T from 'three';
 import {createPickupModel} from './pickup-model-view.js';
@@ -33,7 +34,7 @@ export function createBossEquipmentView(s,dispatch){
    if((state?.status==='pending'||state?.selected)&&!ready&&!loads.has(field)&&!failed.has(field))prepare(field).catch(()=>{});
    const placement=g.world.bossData.placements.find(row=>row.key===profile.source.placementKey),boss=placement&&g.world.bossData.profiles[placement.profileRef]?.name;
    card.label.textContent=state?.status==='owned'?stats(profile,state,g):state?.status==='pending'?'Dropped by '+boss+'. Approach and collect it.':state?.status==='legacy-dead'?boss+' was already defeated. A new defeat after Retry can earn this reward.':'Defeat '+boss+' to earn this weapon.';
-   card.button.hidden=state?.status!=='owned'&&!(state?.status==='pending'&&failed.has(field));card.button.disabled=!safe(g)||loads.has(field);card.button.textContent=loads.has(field)?'Loading weapon…':failed.has(field)?'Retry weapon loading':state?.selected?'Return to normal weapon':'Equip '+profile.name;
+   card.button.hidden=state?.status!=='owned'&&!(state?.status==='pending'&&failed.has(field));card.button.disabled=lockerStored(g,profile.itemId)||!safe(g)||loads.has(field);card.button.textContent=lockerStored(g,profile.itemId)?'Stored in safehouse':loads.has(field)?'Loading weapon…':failed.has(field)?'Retry weapon loading':state?.selected?'Return to normal weapon':'Equip '+profile.name;
    if(state?.status!=='pending'||g.world.areaId!==profile.source.areaId||!ready){drops.get(field)?.dispose();drops.delete(field);continue;}
    let drop=drops.get(field);if(!drop){const source=s.actors.equipmentAsset(field);drop=createPickupModel(source.gltf,{rootName:source.description?.pose?.root??null,rotate:['shotguns','blades'].includes(profile.family)});s.scene.add(drop.root);drops.set(field,drop);}drop.root.position.copy(s.world.toRender(state.dropPosition));
    const at=s.world.toRender(state.dropPosition,.35).project(s.world.camera);card.pickup.hidden=s.paused||s.contextLost||s.traveling||Math.abs(at.x)>1||Math.abs(at.y)>1||at.z< -1||at.z>1;card.pickup.style.left=(at.x+1)*innerWidth/2+'px';card.pickup.style.top=(1-at.y)*innerHeight/2+'px';const near=Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)<=profile.rules.pickupRadius&&g.world.lineClear(g.player.pos,state.dropPosition);card.pickup.disabled=!safe(g)||!near;card.pickup.textContent=near?'PICK UP '+profile.name.toUpperCase():profile.name.toUpperCase()+' · APPROACH';

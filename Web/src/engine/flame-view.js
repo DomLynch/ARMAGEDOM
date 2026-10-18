@@ -1,3 +1,4 @@
+import{lockerStored}from'./locker-core.js';
 import * as T from 'three';
 import {setFlameEquipped,stopFlame,flameCanAct} from './flame-runtime.js';
 import {addPickupGlow} from '../pickup-glow.js';
@@ -19,7 +20,7 @@ export function createFlameView(s,persistence){
  function clearDrop(){drop?.dispose();drop=null;dropReady=null;}
  function repaint(){if(s.game)s.hud?.update(s.game);if(s.updateExpedition)s.updateExpedition();else update();}
  function lower(g){if(g.bossEquipment?.emberProjector?.selected){const result=persistence.dispatchBossEquipment(g,{type:'equip',itemId:g.world.bossEquipmentData.emberProjector.itemId,equipped:false},true);if(!result.ok)return;}else stopFlame(g,{unequip:true});s.input?.clear();s.effects?.clearFlameFeedback?.();repaint();}
- async function equip(){
+ async function equip(){if(lockerStored(s.game,'flamethrower-area8-v1'))return;
   const g=s.game;if(!g?.world.flameData||!safe(g)||load)return;
   if(g.flame.equipped&&!g.bossEquipment?.emberProjector?.selected){lower(g);return;}
   if(g.bossEquipment?.emberProjector?.selected){const result=persistence.dispatchBossEquipment(g,{type:'equip',itemId:g.world.bossEquipmentData.emberProjector.itemId,equipped:false},true);if(!result.ok)return;}
@@ -39,7 +40,7 @@ export function createFlameView(s,persistence){
   if(disposed)return;const g=s.game,data=g?.world.flameData;if(!data){panel.hidden=true;label.hidden=true;clearDrop();return;}panel.hidden=false;
   const owned=!!g.flameFuel?.collected,fuel=Math.ceil((g.flameFuel?.fuelUnits??0)/data.capacity*100),equipped=!!g.flame?.equipped&&!g.bossEquipment?.emberProjector?.selected;
   const benefit=`${data.contact.damage} damage per ${data.contact.interval}s contact · ${data.contact.range}m range`;paint(status,!owned?`Find the flamethrower near the bridge in Westminster. ${benefit}.`:fuel<=0?'Fuel exhausted. Your normal weapon remains available.':`${equipped?'Equipped':'Stored'} · ${benefit} · fuel ${fuel}% (${(g.flameFuel.fuelUnits/data.unitsPerSecond).toFixed(1)}s left). Spent fuel stays spent after Retry.`);
-  button.disabled=!owned||fuel<=0||!safe(g)||!!load;paint(button,load?'Loading flamethrower…':equipped?'Return to normal weapon':failed?'Retry loading & equip flamethrower':fuel<=0&&owned?'Empty flamethrower':'Equip flamethrower');button.setAttribute('aria-pressed',String(equipped));
+  button.disabled=lockerStored(g,'flamethrower-area8-v1')||!owned||fuel<=0||!safe(g)||!!load;paint(button,lockerStored(g,'flamethrower-area8-v1')?'Stored in safehouse':load?'Loading flamethrower…':equipped?'Return to normal weapon':failed?'Retry loading & equip flamethrower':fuel<=0&&owned?'Empty flamethrower':'Equip flamethrower');button.setAttribute('aria-pressed',String(equipped));
   const visible=available()&&!owned&&g.world.areaId===data.areaId;
   if(visible){const ready=s.actors.flameReady();if(!drop||ready!==dropReady){clearDrop();drop=createFlamePickupView(s.actors.flameAsset());dropReady=ready;s.scene.add(drop.root);}drop.root.position.copy(g.world.toRender(data.position));}else clearDrop();
   label.hidden=!visible;if(visible){const p=g.world.toRender(data.position,.4).project(s.camera);label.hidden=Math.abs(p.x)>1||Math.abs(p.y)>1||p.z< -1||p.z>1;if(!label.hidden){paint(label,'FLAMETHROWER · PICK UP');label.style.left=`${Math.max(100,Math.min(innerWidth-100,(p.x+1)*innerWidth/2))}px`;label.style.top=`${Math.max(100,Math.min(innerHeight-110,(1-p.y)*innerHeight/2))}px`;}}
