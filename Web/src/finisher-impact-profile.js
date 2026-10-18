@@ -1,4 +1,4 @@
-import {FINISHER_DATA,goreProfile} from './engine/finisher-data.js';
+import {FINISHER_DATA,goreProfile,finisherPresentationId} from './engine/finisher-data.js';
 import{SEVER_BLOOD_DATA}from'./engine/sever-blood-data.js';
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
@@ -12,7 +12,7 @@ export function finisherImpactProfile(event,anchors){
   const row=Object.hasOwn(rows,event?.recipeId)?rows[event.recipeId]:null;
   if(!row||event.lethal!==true||!victim(event.victimId)||event.damageType!==row[0])return null;
   const gore=goreProfile(event.recipeId)&&anchors?.gore;if(goreProfile(event.recipeId)&&!gore)return null;
-  const d=event.impactDirection,length=d&&Math.hypot(d.x,d.z),origin=anchors?.[row[1]],headSever=['decapitation','pistol-decapitation'].includes(event.recipeId);
+  const d=event.impactDirection,length=d&&Math.hypot(d.x,d.z),origin=anchors?.[row[1]],headSever=['decapitation','pistol-decapitation'].includes(finisherPresentationId(event.recipeId));
   if(!Number.isFinite(length)||length<=1e-8||!point(origin))return null;
   return Object.freeze({victimId:event.victimId,recipeId:event.recipeId,anchor:row[1],
     origin:Object.freeze({x:origin.x,y:origin.y,z:origin.z}),

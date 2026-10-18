@@ -1,3 +1,4 @@
+import{WEAPON_AUDIO}from'./engine/weapon-catalog.js';
 // Use the actually presented sever outcome; replace its generic impact rather than doubling it.
 export function presentationAudioEvents(events,severs){
  if(!severs.length)return events;const victims=new Set(severs.map(e=>e.victimId));
@@ -69,16 +70,17 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
     play(events) {
       if(!enabled||!buffer||context?.state!=='running')return;
       try{
-      const id=e=>e.actor?.id??e.victimId,killed=new Set(events.filter(e=>e.type==='death'&&['pistol','rifle'].includes(e.weapon)&&id(e)!=null).map(id)),playedLethal=new Set(),off=effectiveMode()==='off';
+      const id=e=>e.actor?.id??e.victimId,killed=new Set(events.filter(e=>e.type==='death'&&['pistol','rifle','shotgun'].includes(e.weapon)&&id(e)!=null).map(id)),playedLethal=new Set(),off=effectiveMode()==='off';
       function hitCue(lethal,countHit=true){if(countHit)hitEvents++;if(lethal)killEvents++;if(off)tone(lethal?1450:1000,lethal?550:800,lethal?.09:.035,.062,'sine');else{tone(lethal?160:280,lethal?55:130,lethal?.14:.065,.16);noise(lethal?.085:.03,.1,1700);if(lethal)tone(1000,1500,.09,.065,'sine');}}
       for(const event of events){
         if(event.type==='sever-presented'){hitEvents++;killEvents++;}
-        else if(event.type==='shot'){shotEvents++;tone(off?240:220,off?55:48,off?.08:.11,off?.085:.22);if(!off)noise(.065,.15,900);}
+        else if(event.type==='shot'){shotEvents++;const cue=WEAPON_AUDIO[event.weapon];tone(off?240:cue?.from??220,off?55:cue?.to??48,off?.08:cue?.seconds??.11,off?.085:cue?.gain??.22);if(!off)noise(cue?.noiseSeconds??.065,cue?.noiseGain??.15,cue?.cutoff??900);}
+        else if(event.type==='grenade-blast'){const cue=WEAPON_AUDIO.grenade;tone(cue.from,cue.to,off?.1:cue.seconds,off?.06:cue.gain);if(!off)noise(cue.noiseSeconds,cue.noiseGain,cue.cutoff);}
         else if(event.type==='pickup')tone(660,880,.16,.025,'sine');
-        else if(event.type==='hit'&&!event.blocked&&event.amount>0&&['pistol','rifle'].includes(event.weapon)){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}
+        else if(event.type==='hit'&&!event.blocked&&event.amount>0&&['pistol','rifle','shotgun'].includes(event.weapon)){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}
       }
       for(const key of killed)if(!playedLethal.has(key))hitCue(true,false);
-      for(const cue of donorCues(events.filter(e=>!['pistol','rifle'].includes(e.weapon)))) {
+      for(const cue of donorCues(events.filter(e=>!['pistol','rifle','shotgun'].includes(e.weapon)))) {
         const variants=manifest.cues[cue.name];if(!variants?.length)continue;
         // Rotate existing takes without repeating the preceding take; no new sound/pitch layers.
         const index=((lastVariants.get(cue.name)??-1)+1)%variants.length;lastVariants.set(cue.name,index);

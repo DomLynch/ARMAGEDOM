@@ -5,6 +5,11 @@ const point=p=>closed(p,['x','z'])&&Object.values(p).every(n=>Number.isFinite(n)
 export function createRifleModel(profile=RIFLE_PROFILE){
  const data=validateRangedWeaponCatalog({[profile.itemId]:profile})[profile.itemId];
  if(data.family!=='rifles'||!data.source)throw TypeError('Rifle reward source required');
+ return createAmmoRewardModel(data);
+}
+export function createAmmoRewardModel(profile){
+ const data=validateRangedWeaponCatalog({[profile.itemId]:profile})[profile.itemId];
+ if(!data.source)throw TypeError('Boss reward source required');
  const{placementKey,areaId,receiptId}=data.source,{capacity,reserve:initialReserve}=data.rules;
  const clone=s=>({...s,dropPosition:s.dropPosition===null?null:{...s.dropPosition}});
  const freshState=()=>({version:1,status:'eligible',dropPosition:null,rewardReceipt:null,magazine:0,reserve:0,selected:false});

@@ -8323,5 +8323,8 @@
   "rifle": {
     "version": 1,
     "itemId": "bridge-warden-rifle-v1"
+  },
+  "bossEquipment": {
+    "version": 1
   }
 }

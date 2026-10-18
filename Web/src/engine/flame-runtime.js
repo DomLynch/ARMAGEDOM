@@ -1,3 +1,4 @@
+import{selectedFlameProfile}from'./boss-equipment-data.js';
 import{flameTouches}from'./flame-contact.js';
 import {createFlameFuelModel} from './flame-fuel-state.js';
 const EPS=1e-8;
@@ -24,7 +25,7 @@ export function flameIntent(g,intent){
  return{...intent,guard:false,guardPressed:false,actions:[],held:[]};
 }
 export function stepFlame(g,dt,services,applyHit){
- const f=g.flame,data=g.world.flameData;if(!f||!data)return;
+ const f=g.flame,data=selectedFlameProfile(g);if(!f||!data)return;
  if(f.pendingReturn&&flameCanAct(g)){
   if(g.player.weapon==='pistol'&&(!g.pistol?.collected||g.pistol.magazine+g.pistol.reserve<=0)){
    const result=services.dispatchPistol?.(g,{type:'equip',itemId:'westminster-start-pistol-v1',equipped:false},true);if(!result?.ok)return;

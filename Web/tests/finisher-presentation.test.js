@@ -1,3 +1,4 @@
+import{finisherDefinition}from'../src/engine/finisher-data.js';
 import test from 'node:test';import assert from 'node:assert/strict';import * as T from 'three';
 import {createFinisherPresentation} from '../src/finisher-presentation.js';
 const clips=[new T.AnimationClip('Death',2.4,[]),new T.AnimationClip('Hit',1/3,[]),new T.AnimationClip('Death_SplitCrown',1,[])];
@@ -18,7 +19,7 @@ test('player/missing anatomy/missing direction/ineligible pistol cut never detac
  assert.throws(()=>createFinisherPresentation({...fixture(),clips:[]}),TypeError);
 });
 
-for(const recipeId of ['decapitation','pistol-decapitation'])test(`${recipeId} uses refreshed world binds, owned snapshots and bounded elapsed motion`,()=>{
+for(const recipeId of ['decapitation','pistol-decapitation','flame-headburst','grenade-headburst'])test(`${recipeId} uses refreshed world binds, owned snapshots and bounded elapsed motion`,()=>{
  const f=fixture(),bone=f.model.getObjectByName('Head');bone.position.y=1.7;
  const geometry=new T.CylinderGeometry(.08,.08,.3,12);geometry.translate(0,1.7,0);
  const count=geometry.attributes.position.count,indices=new Uint16Array(count*4),weights=new Float32Array(count*4);
@@ -30,11 +31,11 @@ for(const recipeId of ['decapitation','pistol-decapitation'])test(`${recipeId} u
  f.root.position.set(1,0,6);f.root.scale.setScalar(1.9);
  let borrowedDisposed=0,calls=0;for(const r of [geometry,material,texture])r.addEventListener('dispose',()=>borrowedDisposed++);
  const disposeSkeleton=skeleton.dispose.bind(skeleton);skeleton.dispose=()=>{borrowedDisposed++;disposeSkeleton();};
- const preparedClips=recipeId==='pistol-decapitation'?clips.filter(c=>c.name!=='Death_SplitCrown'):clips;
+ const preparedClips=recipeId!=='decapitation'?clips.filter(c=>c.name!=='Death_SplitCrown'):clips;
  const p=createFinisherPresentation({...f,clips:preparedClips,isBlocked:()=>{calls++;return false;}});
  assert.ok(p.support.some(s=>s.id===recipeId));
  if(recipeId==='pistol-decapitation')assert.ok(!p.support.some(s=>s.id==='decapitation'));
- p.start({recipeId,damageType:recipeId==='pistol-decapitation'?'bullet':'cutting',impactDirection:{x:1,z:0}});
+ p.start({recipeId,damageType:finisherDefinition(recipeId).damageType,impactDirection:{x:1,z:0}});
  if(recipeId==='pistol-decapitation'){assert.equal(p.pose(1/6).clip,'Hit');assert.equal(p.pose(1/6).phase,.5);assert.ok(Math.abs(p.pose(1/3+.6).phase-.25)<1e-12);assert.equal(p.pose(1/3+.6).clip,'Death');}
  const part=f.scene.children.find(o=>o.name==='Prepared detached Hollow head');assert.ok(part);part.updateMatrixWorld(true);
  const source=f.model.getObjectByName('Photo'),copied=part.getObjectByName('Photo');

@@ -1,7 +1,8 @@
+import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
 import{createRiflePose}from'./rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
-import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds} from './engine/finisher-data.js';
+import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds,finisherPresentationId} from './engine/finisher-data.js';
 import{attachFlame,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
@@ -274,7 +275,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       renderScene.add(root, shadow);
       yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(entity.finisher?.recipeId)),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(finisherPresentationId(entity.finisher?.recipeId))),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&finisherPresentationId(entity.finisher?.recipeId)==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -303,13 +304,17 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     for (const skeleton of skeletons) skeleton.dispose();
     view.root.removeFromParent();view.shadow.removeFromParent();
     view.shadow.material.dispose();
-    view.riflePose?.dispose();
+    view.riflePose?.dispose();view.shotgunPose?.dispose();view.grenadeEquipment?.dispose();
     for (const m of view.materials) m.material.dispose();
     store.delete(id);
   }
 
   return {
     views,
+    ensureEquipment(field){const data=world.bossEquipmentData?.[field];return !data?Promise.reject(Error('Equipment unavailable')):data.modelRef?library.ensureModels([data.modelRef]):Promise.resolve();},
+    equipmentReady(field){const data=world.bossEquipmentData?.[field];return !!data&&(data.modelRef?library.models.has(data.modelRef):data.family==='pistols'?!!library.pistolAsset:!!library.models.get('vagrant')?.equipment);},
+    equipmentAsset(field){const data=world.bossEquipmentData?.[field];if(!data)return null;if(data.modelRef)return library.models.get(data.modelRef);return data.family==='pistols'?{gltf:library.pistolAsset,description:{pose:{root:null}}}:{gltf:library.models.get('vagrant')?.equipment,description:{pose:{root:'WeaponDrawn'}}};},
+    equipmentOrigin(field){const view=views.get(0),mount=field==='grenade'?view?.grenadeEquipment?.mount:field==='shotgun'?view?.shotgunPose?.muzzle:null;return mount?.getWorldPosition(new THREE.Vector3())??null;},
     ensureRifle(){const data=world.rifleData;return data?library.ensureModels([data.modelRef]):Promise.reject(Error('Rifle unavailable'));},
     rifleReady(){return !!library.models.get(world.rifleData?.modelRef);},
     rifleAsset(){return library.models.get(world.rifleData?.modelRef);},
@@ -322,7 +327,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
     ensureAreaModels(record,areaId=world.areaId){
       const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
-      if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);
+      if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);for(const[field,data]of Object.entries(world.bossEquipmentData??{}))if(record.bossEquipment?.[field]?.selected&&data.modelRef)refs.push(data.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});
     },
@@ -402,7 +407,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
         if(contactOnly&&entity.kind>=0&&!['original-rat','original-dog','original-roach','low-hover-drone'].includes(entity.rig))continue;
-        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){view.riflePose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}
+        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){view.riflePose?.restore();view.shotgunPose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
@@ -451,7 +456,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         if(entity===game.player){
           const equipped=!!game.flame?.equipped,pose=equipped&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
           if(!equipped){view.flameClose=false;view.flameExtension=null;}
-          if(view.knife)view.knife.visible=!equipped&&entity.weapon!=='pistol'&&entity.weapon!=='rifle';
+          if(view.knife)view.knife.visible=!equipped&&!['pistol','rifle','shotgun','grenade'].includes(entity.weapon);
           if(pose&&!view.flameMount){const source=library.models.get(world.flameData?.modelRef);if(source){const record=Object.values(library.manifest.files??{}).find(r=>r.file===library.manifest.models.vagrant.url);view.flameGrip=flameGripProfile(view.model,record?.sha256);view.flameMount=attachFlame(view.model,source.gltf);}}
           if(view.flameMount){view.flameMount.visible=pose;if(pose){const stance=flameArmStance(game,view.flameClose,combatVisibleIds);view.flameClose=stance.close;view.flameExtension??=stance.extension;view.flameExtension+=(stance.extension-view.flameExtension)*(1-Math.exp(-Math.min(.1,Math.max(0,presentationDt))*stance.rate));applyPistolAim(view.model,view.flameMount,{recoil:0,gripProfile:view.flameGrip,armExtension:view.flameExtension});view.flameAimBasis=flameAimBasis(view.model,view.flameMount,game);const aim=flameAimPose(view.model,view.flameMount,game);game.flame.aimPitch=aim.pitch;game.flame.aimYaw=aim.yaw;applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}}
         }
@@ -459,6 +464,12 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           const holding=!!game.rifle?.selected&&!game.flame?.equipped,pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil,source=library.models.get(world.rifleData?.modelRef);
           if(source&&!view.riflePose){view.riflePose=createRiflePose(view.model,source);view.flashMaterials.push(...view.riflePose.materials);}
           if(view.riflePose){view.riflePose.mount.visible=pose;if(pose){const clock=game.rifleAction??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.riflePose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2-(clock.reloadingUntil-game.time):firing?game.time-clock.firedAt:0);}}
+        }
+        if(entity===game.player){
+          const shotgun=world.bossEquipmentData?.shotgun,shotgunSource=library.models.get(shotgun?.modelRef),holding=!!game.bossEquipment?.shotgun?.selected,pose=holding&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
+          if(shotgunSource&&!view.shotgunPose){view.shotgunPose=createRiflePose(view.model,shotgunSource);view.flashMaterials.push(...view.shotgunPose.materials);}
+          if(view.shotgunPose){view.shotgunPose.mount.visible=pose;if(pose){const clock=game.bossEquipmentAction?.shotgun??{},reloading=clock.reloadingUntil>game.time,firing=clock.firedAt>=0&&game.time-clock.firedAt<.25;view.shotgunPose.apply(reloading?'Rifle_Reload':firing?'Rifle_Fire':'Rifle_Aim',reloading?2*(1-(clock.reloadingUntil-game.time)/shotgun.rules.reload):firing?game.time-clock.firedAt:0);}}
+          const grenade=world.bossEquipmentData?.grenade,grenadeSource=library.models.get(grenade?.modelRef);if(grenadeSource&&!view.grenadeEquipment){view.grenadeEquipment=createRigidHandEquipment(view.model,grenadeSource);view.flashMaterials.push(...view.grenadeEquipment.materials);}if(view.grenadeEquipment)view.grenadeEquipment.mount.visible=!!game.bossEquipment?.grenade?.selected&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
         }
         if(entity===game.player&&game.vest){
           view.vest??=createVestView(view.model);
