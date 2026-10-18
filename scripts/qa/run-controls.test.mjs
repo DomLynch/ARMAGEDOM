@@ -7,10 +7,10 @@ const source=fs.readFileSync(new URL('./run-controls.mjs',import.meta.url),'utf8
 const controls=await import('data:text/javascript,'+encodeURIComponent(source));
 function fixture({menuOpen=false,settingsHidden=true,detailsOpen=false,missingSettings=false,rejectRetry=false}={}) {
  const nodes={menu:{open:menuOpen},'menu-settings':{hidden:settingsHidden},'testing-tools':{open:detailsOpen},entry:{hidden:false},enter:{}};
- const calls=[];
+ const calls=[],optionsLog=[];
  const evaluate=async fn=>{const prior=globalThis.document;globalThis.document={getElementById:id=>nodes[id]??null};try{return fn();}finally{globalThis.document=prior;}};
  const page={evaluate,async checkedControl(options){
-  const {selector,ack}=options;calls.push(selector);
+  const {selector,ack}=options;calls.push(selector);optionsLog.push(options);
   if(selector==='#menu-button')nodes.menu.open=true;
   else if(selector==='#menu-settings-button'){
    assert(nodes.menu.open,'menu must be open');if(missingSettings)throw Error('missing Settings control');nodes['menu-settings'].hidden=false;
@@ -23,8 +23,12 @@ function fixture({menuOpen=false,settingsHidden=true,detailsOpen=false,missingSe
   else throw Error('unexpected control '+selector);
   assert(await evaluate(ack),'action acknowledgement required');return{selector,phase:'acknowledged'};
  },async checkedNavigation(options){calls.push(options.reload?'reload':options.url);nodes.entry.hidden=false;assert(await evaluate(options.ack));return{phase:'acknowledged'};}};
- return{page,calls,nodes};
+ return{page,calls,nodes,optionsLog};
 }
+test('touch UI route uses ordinary taps for menu, Settings, disclosure and Retry',async()=>{
+ const f=fixture();await controls.retryEncounter(f.page,{touch:true});
+ assert.deepEqual(f.optionsLog.map(option=>option.method),['tap','tap','tap','tap']);
+});
 test('closed menu Retry follows actual Settings and disclosure sequence before dispatch',async()=>{
  const f=fixture();await controls.retryEncounter(f.page);
  assert.deepEqual(f.calls,['#menu-button','#menu-settings-button','#testing-tools > summary','#retry']);assert.equal(f.nodes.menu.open,false);

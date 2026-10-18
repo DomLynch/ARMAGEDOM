@@ -7,20 +7,20 @@ export async function enterGame(page,{touch=false}={}) {
  return checkedControl(page,{selector:'#enter',method:touch?'tap':'click',label:'enter-game',timeoutMs:90000,
   ack:()=>document.getElementById('entry')?.hidden===true});
 }
-export async function openMenu(page) {
+export async function openMenu(page,{touch=false}={}) {
  if(await page.evaluate(()=>document.getElementById('menu')?.open===true))return;
- return checkedControl(page,{selector:'#menu-button',method:'click',label:'open-menu',timeoutMs:3000,
+ return checkedControl(page,{selector:'#menu-button',method:touch?'tap':'click',label:'open-menu',timeoutMs:3000,
   ack:()=>document.getElementById('menu')?.open===true});
 }
-export async function retryEncounter(page) {
- await openMenu(page);
+export async function retryEncounter(page,{touch=false}={}) {
+ await openMenu(page,{touch});
  if(await page.evaluate(()=>document.getElementById('menu-settings')?.hidden!==false))
-  await checkedControl(page,{selector:'#menu-settings-button',method:'click',label:'open-settings',timeoutMs:3000,
+  await checkedControl(page,{selector:'#menu-settings-button',method:touch?'tap':'click',label:'open-settings',timeoutMs:3000,
    ack:()=>document.getElementById('menu-settings')?.hidden===false});
  if(await page.evaluate(()=>document.getElementById('testing-tools')?.open!==true))
-  await checkedControl(page,{selector:'#testing-tools > summary',method:'click',label:'open-retry-details',timeoutMs:3000,
+  await checkedControl(page,{selector:'#testing-tools > summary',method:touch?'tap':'click',label:'open-retry-details',timeoutMs:3000,
    ack:()=>document.getElementById('testing-tools')?.open===true});
- return checkedControl(page,{selector:'#retry',method:'click',label:'retry-encounter',timeoutMs:3000,
+ return checkedControl(page,{selector:'#retry',method:touch?'tap':'click',label:'retry-encounter',timeoutMs:3000,
   ack:()=>document.getElementById('menu')?.open===false});
 }
 export async function reloadGame(page) {

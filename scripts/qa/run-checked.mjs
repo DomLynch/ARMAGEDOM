@@ -30,13 +30,13 @@ try{
  page.on('pageerror',error=>report.errors.push(error.message));
  await navigateGame(page,new URL('?touch=1',config.baseURL).href);
  report.observations.push({stage:'enter',result:await enterGame(page,{touch:true})});save();
- await openMenu(page);
+ await openMenu(page,{touch:true});
  // Actual default menu keeps Retry inside hidden Settings and closed details.
  report.observations.push({stage:'hidden-retry-rejected',...await rejectHiddenRetry(page)});save();
- report.observations.push({stage:'settings-details-retry',result:await retryEncounter(page)});save();
+ report.observations.push({stage:'settings-details-retry',result:await retryEncounter(page,{touch:true})});save();
  await reloadGame(page);await enterGame(page,{touch:true});
- await openMenu(page);
- report.observations.push({stage:'cold-settings-details-retry',result:await retryEncounter(page)});save();
+ await openMenu(page,{touch:true});
+ report.observations.push({stage:'cold-settings-details-retry',result:await retryEncounter(page,{touch:true})});save();
  assert.deepEqual(report.errors,[],'browser errors');report.status='PASS_CHECKED_UI';
 }catch(error){report.status='FAIL_CHECKED_UI';report.failure={message:error.message,stack:error.stack};throw error;}
 finally{save();await browser.close();}
