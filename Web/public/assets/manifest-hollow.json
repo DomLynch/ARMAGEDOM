@@ -1037,6 +1037,121 @@
         "source": "Original ARMAGEDOM rigid standard Grenade",
         "intakeSHA256": "f9e5a5dade8a4c69af776f4c8862d38a377f844fb27c151b42309acc50cf65b4"
       }
+    },
+    "player-rocket-launcher": {
+      "url": "weapons/rocket-launcher.glb",
+      "bytes": 146004,
+      "sha256": "d7514b587a450479a95b49f8c6f57d616b5802be350f39dc9069e4a6276eb5a3",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1,
+      "pose": {
+        "root": "RocketLauncher",
+        "mount": {
+          "bone": "hand_r",
+          "wrapper": "RocketLauncherMount",
+          "root": "RocketLauncher",
+          "translation": [
+            0,
+            0.085,
+            0.025
+          ],
+          "quaternion": [
+            -0.7071067811865475,
+            0,
+            0,
+            0.7071067811865476
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "units": "metres",
+          "forward": "+Z",
+          "up": "+Y"
+        },
+        "allowlist": [
+          "spine_01",
+          "spine_02",
+          "spine_03",
+          "clavicle_l",
+          "upperarm_l",
+          "lowerarm_l",
+          "hand_l",
+          "index_01_l",
+          "index_02_l",
+          "index_03_l",
+          "middle_01_l",
+          "middle_02_l",
+          "middle_03_l",
+          "pinky_01_l",
+          "pinky_02_l",
+          "pinky_03_l",
+          "ring_01_l",
+          "ring_02_l",
+          "ring_03_l",
+          "thumb_01_l",
+          "thumb_02_l",
+          "thumb_03_l",
+          "clavicle_r",
+          "upperarm_r",
+          "lowerarm_r",
+          "hand_r",
+          "index_01_r",
+          "index_02_r",
+          "index_03_r",
+          "middle_01_r",
+          "middle_02_r",
+          "middle_03_r",
+          "pinky_01_r",
+          "pinky_02_r",
+          "pinky_03_r",
+          "ring_01_r",
+          "ring_02_r",
+          "ring_03_r",
+          "thumb_01_r",
+          "thumb_02_r",
+          "thumb_03_r"
+        ],
+        "clips": [
+          {
+            "name": "Rifle_Hold",
+            "duration": 1.667
+          },
+          {
+            "name": "Rifle_Aim",
+            "duration": 1
+          },
+          {
+            "name": "Rifle_Fire",
+            "duration": 0.25
+          },
+          {
+            "name": "Rifle_Reload",
+            "duration": 2
+          }
+        ]
+      },
+      "provenance": {
+        "source": "Original ARMAGEDOM procedural launcher/rocket, own Rifle grip and four unchanged pose tracks",
+        "sourceRifleSHA256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9"
+      },
+      "projectileRef": "rocket-projectile"
+    },
+    "rocket-projectile": {
+      "url": "weapons/rocket-projectile.glb",
+      "bytes": 13704,
+      "sha256": "3584271b6446fd7abc498b5587e12c1fff8230f7ba49e8a3641af3ca121ef3de",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1,
+      "provenance": {
+        "source": "Original ARMAGEDOM procedural launcher/rocket, own Rifle grip and four unchanged pose tracks",
+        "sourceRifleSHA256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9"
+      }
     }
   },
   "files": {
@@ -1099,6 +1214,16 @@
       "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
       "errors": 0,
       "warnings": 0
+    },
+    "player-rocket-launcher": {
+      "file": "weapons/rocket-launcher.glb",
+      "bytes": 146004,
+      "sha256": "d7514b587a450479a95b49f8c6f57d616b5802be350f39dc9069e4a6276eb5a3"
+    },
+    "rocket-projectile": {
+      "file": "weapons/rocket-projectile.glb",
+      "bytes": 13704,
+      "sha256": "3584271b6446fd7abc498b5587e12c1fff8230f7ba49e8a3641af3ca121ef3de"
     }
   },
   "pistol": {

@@ -13,8 +13,8 @@ export function validateRangedWeaponCatalog(input){
  const entries=Reflect.ownKeys(input).map(id=>{const d=Object.getOwnPropertyDescriptor(input,id);if(typeof id!=='string'||!d?.enumerable||!('value'in d))fail();return[id,d.value];}),weapons=new Set();
  if(!entries.length||entries.length>16)fail();
  for(const[id,row]of entries){
-  const payloadFamily=['shotguns','grenades'].includes(row.family);
-  if(!key(id)||!closed(row,payloadFamily?[...fields,'payload']:fields)||row.itemId!==id||typeof row.name!=='string'||!row.name||row.name.length>80||!['pistols','rifles','shotguns','grenades'].includes(row.family)||!key(row.weaponKey)||weapons.has(row.weaponKey)&&row.family!=='pistols'||row.damageType!==(row.family==='grenades'?'blast':'bullet')||row.delivery!==(row.family==='grenades'?'projectile':'ray')||row.guidance!=='none'||!['held','press'].includes(row.fireMode)||!['model-root','hand_r'].includes(row.attachment)||row.modelRef!==null&&!key(row.modelRef)||!key(row.finisherBinding)||!closed(row.rules,ruleFields))fail();
+  const payloadFamily=['shotguns','grenades','launchers'].includes(row.family);
+  if(!key(id)||!closed(row,payloadFamily?[...fields,'payload']:fields)||row.itemId!==id||typeof row.name!=='string'||!row.name||row.name.length>80||!['pistols','rifles','shotguns','grenades','launchers'].includes(row.family)||!key(row.weaponKey)||weapons.has(row.weaponKey)&&row.family!=='pistols'||row.damageType!==(['grenades','launchers'].includes(row.family)?'blast':'bullet')||row.delivery!==(['grenades','launchers'].includes(row.family)?'projectile':'ray')||row.guidance!=='none'||!['held','press'].includes(row.fireMode)||!['model-root','hand_r'].includes(row.attachment)||row.modelRef!==null&&!key(row.modelRef)||!key(row.finisherBinding)||!closed(row.rules,ruleFields))fail();
   if(row.family==='pistols'&&row.weaponKey!=='pistol')fail();
   weapons.add(row.weaponKey);
   for(const[name,min,max,integer]of[['capacity',1,64,true],['reserve',0,512,true],['damage',1,500,false],['range',1,100,false],['cadence',.1,10,false],['reload',.1,10,false],['pickupRadius',.2,3,false]]){
@@ -22,6 +22,7 @@ export function validateRangedWeaponCatalog(input){
   }
   if(row.family==='shotguns'&&(!closed(row.payload,['pelletCount','pelletDamage','range','spreadDegrees'])||row.payload.pelletCount!==8||row.payload.pelletDamage!==8||row.payload.range!==6||row.payload.spreadDegrees!==12))fail();
   if(row.family==='grenades'&&(!closed(row.payload,['itemId','capacity','maxRange','fuseSeconds','radius','maxDamage'])||row.payload.itemId!==row.itemId||row.payload.capacity!==3||row.payload.maxRange!==8||row.payload.fuseSeconds!==1||row.payload.radius!==3||row.payload.maxDamage!==60||row.rules.reload!==0||row.rules.reserve!==0))fail();
+  if(row.family==='launchers'&&(id!=='borough-butchers-rocket-launcher-v1'||row.weaponKey!=='rocket'||row.rules.capacity!==1||row.rules.reserve!==3||row.rules.damage!==80||row.rules.range!==20||row.rules.cadence!==.8||row.rules.reload!==3.2||row.rules.pickupRadius!==1.3||!closed(row.payload,['maxDamage','radius','maxRange','speed'])||row.payload.maxDamage!==80||row.payload.radius!==3||row.payload.maxRange!==20||row.payload.speed!==14||!closed(row.source,['placementKey','areaId','receiptId'])||row.source.placementKey!=='boss-butcher-v1'||row.source.areaId!=='elephant-and-castle'))fail();
   if(row.source!==null){
    const source=row.source;if(!closed(source,['placementKey','areaId','receiptId'])||!key(source.placementKey)||!key(source.areaId)||source.receiptId!==source.placementKey+':'+id)fail();
   }
@@ -29,6 +30,7 @@ export function validateRangedWeaponCatalog(input){
  return freeze(structuredClone(input));
 }
 export const RANGED_WEAPON_CATALOG=validateRangedWeaponCatalog({
+ 'borough-butchers-rocket-launcher-v1':{itemId:'borough-butchers-rocket-launcher-v1',name:'Butcher’s Rocket Launcher',family:'launchers',weaponKey:'rocket',damageType:'blast',delivery:'projectile',guidance:'none',fireMode:'press',attachment:'hand_r',modelRef:'player-rocket-launcher',finisherBinding:'grenade',rules:{capacity:1,reserve:3,damage:80,range:20,cadence:.8,reload:3.2,pickupRadius:1.3},source:{placementKey:'boss-butcher-v1',areaId:'elephant-and-castle',receiptId:'boss-butcher-v1:borough-butchers-rocket-launcher-v1'},payload:{maxDamage:80,radius:3,maxRange:20,speed:14}},
  'westminster-start-pistol-v1':{itemId:'westminster-start-pistol-v1',name:'Pistol',family:'pistols',weaponKey:'pistol',damageType:'bullet',delivery:'ray',guidance:'none',fireMode:'held',attachment:'model-root',modelRef:null,finisherBinding:'pistol',rules:{capacity:6,reserve:12,damage:25,range:18,cadence:1.2,reload:1.3,pickupRadius:1.3},source:null},
  [RIFLE_ITEM_ID]:{itemId:RIFLE_ITEM_ID,name:'Bridge Rifle',family:'rifles',weaponKey:'rifle',damageType:'bullet',delivery:'ray',guidance:'none',fireMode:'press',attachment:'hand_r',modelRef:'player-rifle',finisherBinding:'pistol',rules:{capacity:8,reserve:16,damage:45,range:12,cadence:.65,reload:2,pickupRadius:1.3},source:{placementKey:'boss-warden-v1',areaId:'east-bridge',receiptId:'boss-warden-v1:'+RIFLE_ITEM_ID}},
  'south-stalker-shotgun-v1':{itemId:'south-stalker-shotgun-v1',name:'Southbank Shotgun',family:'shotguns',weaponKey:'shotgun',damageType:'bullet',delivery:'ray',guidance:'none',fireMode:'press',attachment:'hand_r',modelRef:'player-shotgun',finisherBinding:'pistol',rules:{capacity:2,reserve:12,damage:64,range:6,cadence:.8,reload:2.4,pickupRadius:1.3},source:{placementKey:'boss-nightborn-v1',areaId:'south',receiptId:'boss-nightborn-v1:south-stalker-shotgun-v1'},payload:{pelletCount:8,pelletDamage:8,range:6,spreadDegrees:12}},
@@ -38,6 +40,7 @@ export const RANGED_WEAPON_CATALOG=validateRangedWeaponCatalog({
 export const RIFLE_PROFILE=RANGED_WEAPON_CATALOG[RIFLE_ITEM_ID];
 
 export const SHOTGUN_PROFILE=RANGED_WEAPON_CATALOG['south-stalker-shotgun-v1'];
+export const ROCKET_PROFILE=RANGED_WEAPON_CATALOG['borough-butchers-rocket-launcher-v1'];
 export const GRENADE_PROFILE=RANGED_WEAPON_CATALOG['standard-grenade-v1'];
 
 export const MARSHAL_PISTOL_PROFILE=RANGED_WEAPON_CATALOG['borough-marshals-pistol-v1'];

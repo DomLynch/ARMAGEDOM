@@ -1,8 +1,9 @@
+import{createRocketView}from'./rocket-view.js';
 import * as T from 'three';
 import {createPickupModel} from './pickup-model-view.js';
 export function createBossEquipmentView(s,dispatch){
  const panel=document.getElementById('boss-equipment');if(!panel)return{update(){},dispose(){}};
- const cards=new Map(),drops=new Map(),projectiles=new Map(),blasts=new Map(),loads=new Map(),failed=new Set(),listeners=[];let disposed=false,lastGame=null,lastArea=null;
+ const rockets=createRocketView(s),cards=new Map(),drops=new Map(),projectiles=new Map(),blasts=new Map(),loads=new Map(),failed=new Set(),listeners=[];let disposed=false,lastGame=null,lastArea=null;
  const safe=g=>s.loaded&&!s.contextLost&&!s.traveling&&!g.finished&&!g.runSaveInvalid&&g.player.hp>0&&!g.player.swing&&g.time>=(g.player.ready??0)&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil;
  function prepare(field){if(s.actors.equipmentReady(field))return Promise.resolve();if(loads.has(field))return loads.get(field);failed.delete(field);const owner=s.game,p=s.actors.ensureEquipment(field).catch(error=>{failed.add(field);if(s.game===owner){owner.message='Weapon loading unavailable. Your reward is kept; retry in Gear.';owner.messageUntil=owner.time+4;}throw error;}).finally(()=>loads.delete(field));loads.set(field,p);return p;}
  function execute(field,command){const g=s.game;if(!safe(g))return;const result=dispatch(g,command,true);if(result.ok){g.events.push(...result.events);g.message=command.type==='claimPickup'?g.world.bossEquipmentData[field].name+' collected. Equip it in Gear.':command.equipped?g.world.bossEquipmentData[field].name+' equipped.':'Returned to your normal weapon.';g.messageUntil=g.time+3;s.input.clear();}s.updateExpedition?.();}
@@ -12,12 +13,13 @@ export function createBossEquipmentView(s,dispatch){
   const claim=()=>{if(!s.paused&&s.game.bossEquipment?.[field]?.status==='pending')execute(field,{type:'claimPickup',pickupId:data.itemId});};button.addEventListener('click',equip);pickup.addEventListener('click',claim);listeners.push(()=>{button.removeEventListener('click',equip);pickup.removeEventListener('click',claim);section.remove();pickup.remove();});return{label,button,pickup};
  }
  function stats(data,state,g){if(data.family==='shotguns')return`8 pellets × 8 damage · 6m · ${state?.magazine??0}/2 loaded · ${state?.reserve??0} reserve`;
+  if(data.family==='launchers')return`80 blast damage · 3m radius · ${state?.magazine??0}/1 loaded · ${state?.reserve??0} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`;
   if(data.family==='grenades')return`${state?.magazine??0} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`;
   if(data.family==='blades')return'Slash 12 · Stab 16 · Heavy 16 · original Knife motion';
   if(data.family==='pistols')return`35 damage · 1.8s reload · shared pistol ammunition (${g.pistol.magazine}/6, ${g.pistol.reserve} reserve)`;
   return`10 damage per 0.2s · 3m · ${Math.ceil((g.flameFuel?.fuelUnits??0)/1000*100)}% shared fuel`;
  }
- function clearWorld(){for(const view of drops.values())view.dispose();drops.clear();for(const row of projectiles.values()){row.view.dispose();row.warning.geometry.dispose();row.warning.material.dispose();row.warning.removeFromParent();}projectiles.clear();for(const row of blasts.values()){row.mesh.removeFromParent();row.mesh.geometry.dispose();row.mesh.material.dispose();}blasts.clear();}
+ function clearWorld(){rockets.clear();for(const view of drops.values())view.dispose();drops.clear();for(const row of projectiles.values()){row.view.dispose();row.warning.geometry.dispose();row.warning.material.dispose();row.warning.removeFromParent();}projectiles.clear();for(const row of blasts.values()){row.mesh.removeFromParent();row.mesh.geometry.dispose();row.mesh.material.dispose();}blasts.clear();}
  function updateProjectiles(g){
   const active=(g.activeGrenades??[]).filter(row=>row.intent.areaId===g.world.areaId),ids=new Set(active.map(row=>row.intent.id));for(const[id,row]of projectiles)if(!ids.has(id)){row.view.dispose();if(g.events.some(event=>event.type==='grenade-blast'&&event.id===id)){row.warning.material.color.setHex(0xffe5a0);blasts.set(id,{mesh:row.warning,start:g.time});}else{row.warning.geometry.dispose();row.warning.material.dispose();row.warning.removeFromParent();}projectiles.delete(id);}
   for(const[id,row]of blasts){const age=g.time-row.start;if(age>.35){row.mesh.removeFromParent();row.mesh.geometry.dispose();row.mesh.material.dispose();blasts.delete(id);continue;}row.mesh.scale.setScalar(.2+age/.35*.8);row.mesh.material.opacity=.8*(1-age/.35);}
@@ -36,7 +38,7 @@ export function createBossEquipmentView(s,dispatch){
    let drop=drops.get(field);if(!drop){const source=s.actors.equipmentAsset(field);drop=createPickupModel(source.gltf,{rootName:source.description?.pose?.root??null,rotate:['shotguns','blades'].includes(profile.family)});s.scene.add(drop.root);drops.set(field,drop);}drop.root.position.copy(s.world.toRender(state.dropPosition));
    const at=s.world.toRender(state.dropPosition,.35).project(s.world.camera);card.pickup.hidden=s.paused||s.contextLost||s.traveling||Math.abs(at.x)>1||Math.abs(at.y)>1||at.z< -1||at.z>1;card.pickup.style.left=(at.x+1)*innerWidth/2+'px';card.pickup.style.top=(1-at.y)*innerHeight/2+'px';const near=Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)<=profile.rules.pickupRadius&&g.world.lineClear(g.player.pos,state.dropPosition);card.pickup.disabled=!safe(g)||!near;card.pickup.textContent=near?'PICK UP '+profile.name.toUpperCase():profile.name.toUpperCase()+' · APPROACH';
   }
-  updateProjectiles(g);
+  updateProjectiles(g);rockets.update(g);
  }
  return{update,dispose(){disposed=true;clearWorld();for(const remove of listeners)remove();cards.clear();}};
 }

@@ -1,3 +1,4 @@
+import {rocketIntent} from './rocket-runtime.js';
 import {startStickyGrenade,stepStickyGrenade} from './sticky-grenade-runtime.js';
 import {tracePistol} from '../pistol.js';
 import {traceShotgun} from './shotgun-pattern.js';
@@ -6,7 +7,7 @@ import {bossEquipmentClock} from './boss-equipment-data.js';
 const EPS=1e-8,length=v=>Math.hypot(v?.x??0,v?.z??0),point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const normal=(v,fallback={x:0,z:1})=>length(v)>EPS?{x:v.x/length(v),z:v.z/length(v)}:{...fallback};
 const emit=(g,type,data)=>g.events.push({type,...data});
-export function selectedBossRanged(g){return['shotgun','grenade'].find(field=>g.bossEquipment?.[field]?.selected)??null;}
+export function selectedBossRanged(g){return['shotgun','grenade','rocketLauncher'].find(field=>g.bossEquipment?.[field]?.selected)??null;}
 function grenadeModel(g){return g.grenadeProposalModel??(g.grenadeProposalModel=createGrenadeModel({profile:g.world.bossEquipmentData.grenade.payload,areaIds:g.world.registry.ids}));}
 function throwTarget(g,intent,reference){
  const range=g.world.bossEquipmentData.grenade.rules.range,p=g.player.pos;
@@ -15,7 +16,7 @@ function throwTarget(g,intent,reference){
  return distance>0&&g.world.geometry?.clear(position,.05)&&g.world.lineClear(p,position)?{position,direction}:null;
 }
 export function bossEquipmentIntent(g,intent,dispatch,applyHit,services={}){
- const field=selectedBossRanged(g);if(!field)return intent;
+ const field=selectedBossRanged(g);if(!field)return intent;if(field==='rocketLauncher')return rocketIntent(g,intent,dispatch,services);
  const p=g.player,data=g.world.bossEquipmentData[field],clock=bossEquipmentClock(g,field),actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!g.runSaveInvalid&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=(p.ready??0)&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
  const explicit=point(intent.aim)&&length(intent.aim)>EPS,moving=length(intent.move)>.01,reference=explicit?normal(intent.aim):moving?normal(intent.move):g.bossWeaponFacing??{...p.facing};g.bossWeaponFacing={...reference};g.pistolTargetId=null;g.pistolTargetFacing=null;
  if(!canAct)clock.reloadingUntil=0;
@@ -61,7 +62,7 @@ export function stepBossGrenades(g,applyHit,services={}){
 export function paidBossEquipmentDeath(g,itemId){
  const field=Object.keys(g.world.bossEquipmentData??{}).find(field=>g.world.bossEquipmentData[field].itemId===itemId),clock=field&&g.bossEquipmentAction?.[field];if(!clock||clock.lastDamageTick!==g.tick)return false;
  if(field==='shotgun')return g.player.weapon==='shotgun'&&g.bossEquipment?.shotgun?.selected&&clock.paidTick===g.tick&&clock.paidRounds===1;
- return field==='grenade'&&clock.lastBlast?.tick===g.tick&&Number.isInteger(clock.lastBlast.paidTick)&&clock.lastBlast.paidTick>=0&&clock.lastBlast.paidTick<g.tick&&Number.isFinite(clock.lastBlast.paidTime)&&clock.lastBlast.paidTime<g.time;
+ return ['grenade','rocketLauncher'].includes(field)&&clock.lastBlast?.tick===g.tick&&Number.isInteger(clock.lastBlast.paidTick)&&clock.lastBlast.paidTick>=0&&clock.lastBlast.paidTick<g.tick&&Number.isFinite(clock.lastBlast.paidTime)&&clock.lastBlast.paidTime<g.time;
 }
 
-export function bossWeaponCue(g,{paused=false}={}){const field=selectedBossRanged(g);if(!field||paused||g.finished||g.player.hp<=0)return null;const data=g.world.bossEquipmentData[field],clock=bossEquipmentClock(g,field),state=g.bossEquipment[field],direction=g.bossWeaponFacing??g.player.facing,position=field==='grenade'?g.grenadeAim:{x:g.player.pos.x+direction.x*data.rules.range,z:g.player.pos.z+direction.z*data.rules.range};return position?{position,height:field==='grenade'?.08:1.1,targetId:null,ready:!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;}
+export function bossWeaponCue(g,{paused=false}={}){const field=selectedBossRanged(g);if(!field||paused||g.finished||g.player.hp<=0)return null;const data=g.world.bossEquipmentData[field],clock=bossEquipmentClock(g,field),state=g.bossEquipment[field],direction=g.bossWeaponFacing??g.player.facing,position=field==='grenade'?g.grenadeAim:field==='rocketLauncher'?g.rocketAim:{x:g.player.pos.x+direction.x*data.rules.range,z:g.player.pos.z+direction.z*data.rules.range};return position?{position,height:['grenade','rocketLauncher'].includes(field)?.08:1.1,targetId:null,ready:!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;}
