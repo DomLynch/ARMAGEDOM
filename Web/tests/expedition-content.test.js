@@ -1,3 +1,4 @@
+import{journalPresentation}from'../src/engine/expedition-runtime.js';
 import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';
 import{publicAreaRegistry as registry}from'../src/area-registry.js';import{validateExpeditionData}from'../src/engine/expedition-core.js';import{validateAreaGeometry,validateAreaMetadata}from'../src/engine/area-content.js';import{createGeometry}from'../src/world-geometry.js';
 const gate=(g,area,p)=>{const n=g.point(p);return registry.links(area).find(link=>Object.entries(link.condition).every(([k,v])=>k==='xMin'?n.x>v:k==='xMax'?n.x<v:k==='yMin'?n.y>v:n.y<v))??null;};
@@ -17,4 +18,12 @@ test('atlas uses all actual eight areas and twenty-two directed links; each pin 
  assert.equal(registry.ids.length,8);assert.equal(registry.ids.reduce((n,id)=>n+registry.links(id).length,0),22);
  for(const from of registry.ids)for(const to of registry.ids){const first=registry.nextExit(from,to);if(from===to){assert.equal(first,null);continue;}assert(registry.links(from).includes(first));let at=from;const seen=new Set([at]);while(at!==to){at=registry.nextExit(at,to).to;assert(!seen.has(at));seen.add(at);}assert(seen.size<=8);}
  assert.equal(registry.nextExit('south','east').to,'east');assert.throws(()=>registry.nextExit('unknown','east'));assert.throws(()=>registry.nextExit('east','unknown'));
+});
+
+
+test('Journal offers Claim only at the real eligible stash, and carrying a case elsewhere names the return step without mutation',()=>{
+ const data=validateExpeditionData(raw().expedition,registry),g={time:1,finished:false,player:{hp:100,pos:{...data.contract.giver.position},hurtUntil:0,dodgeUntil:0},world:{areaId:'east',lineClear:()=>true},expedition:{status:'recovered'}};const before=JSON.stringify(g);let view=journalPresentation(g,data,true);assert.equal(view.showAction,false);assert.match(view.next,/return to the Westminster stash/);assert.equal(JSON.stringify(g),before);
+ g.world.areaId=data.contract.giver.areaId;view=journalPresentation(g,data,true);assert.equal(view.showAction,true);assert.equal(view.eligible,true);assert.match(view.next,/claim your reward/);
+ for(const change of[()=>g.player.pos.x+=2,()=>g.player.hp=0,()=>g.player.swing={},()=>g.runSaveInvalid=true]){const old=structuredClone({player:g.player,runSaveInvalid:g.runSaveInvalid});change();assert.equal(journalPresentation(g,data,true).showAction,false);g.player=old.player;g.runSaveInvalid=old.runSaveInvalid;}
+ assert.equal(journalPresentation(g,data,false).showAction,false);g.world.lineClear=()=>false;assert.equal(journalPresentation(g,data,true).showAction,false);
 });

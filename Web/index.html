@@ -87,33 +87,29 @@
       </div>
     </section>
     <div id="hit-marker" class="combat-hit" hidden aria-hidden="true"></div>
-    <dialog id="menu">
-      <button id="close-menu" class="close" aria-label="Resume">×</button>
-      <p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p>
-      <h2>ARMAGEDOM</h2>
-      <button id="resume">Resume fight</button
-      ><button id="sound" aria-pressed="true">Sound on</button>
-      <button id="assist" aria-pressed="true">Assist: 100%</button>
-      <label for="feedback-mode">Combat feedback</label>
-      <select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select>
-      <section id="expedition-panel" hidden aria-label="Expedition, equipment and discovery atlas">
-        <h3 id="contract-title">Stolen Supplies</h3>
-        <p id="contract-description"></p><p id="contract-status" role="status"></p>
-        <button id="contract-action" type="button"></button>
-        <details id="equipment-panel"><summary>Equipment</summary>
-          <p id="equipment-state"></p><p id="equipment-retry-note">Retry resets combat, ammunition, vest and weapon mastery. Contract progress, discovered areas, earned variants and cleaver stay unlocked. Collected flamethrower and remaining fuel stay; spent fuel stays spent. Collect the pistol again to use your chosen variant.</p>
-          <div id="variant-choices"></div>
-          <section id="melee-equipment" hidden><h4>Melee weapon</h4><p id="melee-state" role="status"></p><p>Cleaver trades more stamina for higher damage and reach. Knife mastery applies; attack timing stays the same.</p><div id="melee-choices"></div></section>
-          <section id="vest-equipment"><h4>Body armour</h4><p id="vest-state" role="status"></p></section>
-          <section id="flame-equipment" hidden><h4>Flamethrower</h4><p id="flame-state" role="status"></p><button id="flame-equip" type="button">Equip flamethrower</button></section>
-        </details>
-        <details id="atlas-panel"><summary>Discovery atlas · schematic</summary>
-          <p>Eight areas. Lines show existing connections, not a map to scale. Pin a known area to see its next exit; movement stays manual.</p>
-          <div id="atlas-map"><svg id="atlas-links" viewBox="0 0 400 200" aria-hidden="true"></svg><div id="atlas-nodes"></div></div>
-          <p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button>
-        </details>
-      </section>
-      <details id="progression-panel" hidden><summary>Attributes and weapon mastery</summary><p id="progression-attributes"></p><p id="progression-weapons"></p></details>
+    <dialog id="menu" aria-labelledby="menu-title">
+      <header id="menu-header"><div class="menu-brand"><h2 id="menu-title">ARMAGEDOM</h2><p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p></div><button id="resume" type="button">Back to game</button><button id="close-menu" class="close" aria-label="Close menu">×</button></header>
+      <nav id="menu-tabs" role="tablist" aria-label="Field menu">
+        <button id="menu-tab-gear" type="button" role="tab" aria-controls="menu-gear" aria-selected="true">Gear</button>
+        <button id="menu-tab-journal" type="button" role="tab" aria-controls="menu-journal" aria-selected="false" tabindex="-1">Journal</button>
+        <button id="menu-tab-map" type="button" role="tab" aria-controls="menu-map" aria-selected="false" tabindex="-1">Map</button>
+      </nav>
+      <div id="menu-content">
+        <section id="expedition-panel" hidden aria-label="Gear, journal and discovery atlas">
+          <section id="menu-gear" role="tabpanel" aria-labelledby="menu-tab-gear">
+            <details id="equipment-panel" open><summary>Equipment</summary>
+              <h3>Your loadout</h3><div class="active-loadout"><p class="eyebrow">Active weapon</p><p id="active-weapon" role="status"></p><section id="vest-equipment"><p id="vest-state" role="status"></p></section></div>
+              <h3>Weapons</h3><div id="variant-choices"></div>
+              <section id="melee-equipment" hidden><div id="melee-choices"></div></section>
+              <section id="flame-equipment" hidden><button id="flame-equip" type="button">Equip flamethrower</button></section>
+              <details id="weapon-details"><summary>Weapon details &amp; progress</summary><p id="equipment-state"></p><p id="pistol-comparison"></p><p id="melee-state" role="status"></p><p id="melee-comparison"></p><p>Cleaver trades more stamina for higher damage and reach. Knife mastery applies; attack timing stays the same.</p><p id="flame-state" role="status"></p><p id="equipment-retry-note">Retry resets combat, ammunition, vest and weapon mastery. Contract progress, discovered areas, earned variants and cleaver stay unlocked. Collected flamethrower and remaining fuel stay; spent fuel stays spent. Collect the pistol again to use your chosen variant.</p></details>
+            </details>
+            <details id="progression-panel" hidden><summary>Character &amp; mastery</summary><p id="progression-attributes"></p><p id="progression-weapons"></p></details>
+          </section>
+          <section id="menu-journal" role="tabpanel" aria-labelledby="menu-tab-journal" hidden><h3>Journal</h3><div class="journal-next"><p class="eyebrow">Your next step</p><h4 id="contract-title">Stolen Supplies</h4><p id="contract-status" role="status"></p></div><p id="contract-reward"></p><button id="contract-action" type="button"></button><details id="contract-details"><summary>Contract details</summary><p id="contract-description"></p></details></section>
+          <section id="menu-map" role="tabpanel" aria-labelledby="menu-tab-map" hidden><h3>Discovery atlas</h3><details id="atlas-panel" open><summary>Discovery atlas · schematic</summary><p>Eight areas. Existing connections, not a map to scale. Pin a known area to see its next exit; movement stays manual.</p><div id="atlas-map"><svg id="atlas-links" viewBox="0 0 400 200" aria-hidden="true"></svg><div id="atlas-nodes"></div></div><p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button></details></section>
+        </section>
+        <section id="menu-settings" role="region" aria-labelledby="menu-settings-button" hidden><h3>Settings</h3><button id="sound" aria-pressed="true">Sound on</button><button id="assist" aria-pressed="true">Assist: 100%</button><label for="feedback-mode">Combat feedback</label><select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select>
       <details>
         <summary>Controls</summary>
         <p>
@@ -146,6 +142,7 @@
           and rear hits bypass defence.
         </p>
       </details>
+          <details id="testing-tools"><summary>Retry &amp; Reset</summary>
       <button id="retry">Retry encounter</button>
       <button id="reset-game" type="button">Reset game</button>
       <section id="reset-confirmation" hidden aria-label="Confirm game reset">
@@ -156,6 +153,10 @@
         <p id="reset-status" role="status" aria-live="polite"></p>
       </section>
       <p class="version" id="version">Three.js conversion preview</p>
+          </details>
+        </section>
+      </div>
+      <footer id="menu-footer"><button id="menu-settings-button" type="button" aria-controls="menu-settings" aria-pressed="false">Settings</button><span>Field menu</span></footer>
     </dialog>
     <section id="ending" class="overlay" hidden>
       <div class="card">
