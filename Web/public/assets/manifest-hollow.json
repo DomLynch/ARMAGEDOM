@@ -202,6 +202,12 @@
           "archive": "art/hollow-scavenger/archive/hollow-before-neck-037.glb",
           "receipt": "art/hollow-scavenger/neck-repair-037.json"
         }
+      },
+      "armSever": {
+        "url": "hollow-scavenger/left-arm-parts.glb",
+        "bytes": 1093144,
+        "sha256": "65ca424e6235a21dc6f194f4e41f99ccaea341cc28d330b0b5702ded02b78199",
+        "sourceModelSHA256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
       }
     },
     "original-rat": {
@@ -1224,6 +1230,11 @@
       "file": "weapons/rocket-projectile.glb",
       "bytes": 13704,
       "sha256": "3584271b6446fd7abc498b5587e12c1fff8230f7ba49e8a3641af3ca121ef3de"
+    },
+    "hollow-left-arm-parts": {
+      "file": "hollow-scavenger/left-arm-parts.glb",
+      "bytes": 1093144,
+      "sha256": "65ca424e6235a21dc6f194f4e41f99ccaea341cc28d330b0b5702ded02b78199"
     }
   },
   "pistol": {

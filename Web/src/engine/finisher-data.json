@@ -210,6 +210,22 @@
         42
       ],
       "presentationRecipeId": "pistol-decapitation"
+    },
+    {
+      "id": "left-arm-sever",
+      "damageType": "cutting",
+      "parts": [
+        "left-arm"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "body",
+        12,
+        2,
+        0.65,
+        3.2,
+        60
+      ]
     }
   ],
   "bindings": [
@@ -250,6 +266,10 @@
         },
         {
           "id": "opened",
+          "weight": 1
+        },
+        {
+          "id": "left-arm-sever",
           "weight": 1
         }
       ],

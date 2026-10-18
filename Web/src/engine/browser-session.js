@@ -119,8 +119,14 @@ async function restart() {
     )
       return;
   }
+  const owner=game;traveling=true;areas.stop();input.clear();
+  try{
+    // Retry can revive a declared resident whose deferred model was skipped in
+    // the saved run. Prepare before the durable retry or any actor replacement.
+    await actors.ensureAreaModels(owner,world.areaId,{fresh:true});
+    if(disposed||contextLost||game!==owner)return false;
   if(!resources.retry()){game.message='Run saving unavailable. Retry kept the current run.';game.messageUntil=game.time+5;return;}
-  areas.stop();world.invalidateReadiness();
+  world.invalidateReadiness();
   input.clear();
   resources.clearSupplies();
   resources.clearVestBag();
@@ -132,10 +138,17 @@ async function restart() {
   world.update(game.player.pos, 0, innerWidth, innerHeight, true);
   actors.update(game, 0);game.ratContact=actors.ratContact();
   renderer.render(scene,camera);
-  requestAnimationFrame(()=>areas.start());
   hud.update(game);
   loop?.reset();
   audio.unlock().catch(() => {});
+    return true;
+  }catch(error){
+    if(!disposed&&!contextLost&&game===owner){owner.message='Could not prepare Retry. Your current run was kept. Try again.';owner.messageUntil=owner.time+5;hud.update(owner);}
+    console.error('ARMAGEDOM_RETRY_PREPARATION_FAILED',error);return false;
+  }finally{
+    traveling=false;
+    if(loaded&&!disposed&&!contextLost){requestAnimationFrame(()=>areas.start());if(!paused)renderer.setAnimationLoop(loop.frame);}
+  }
 }
 input = attachInput({
   canvas,

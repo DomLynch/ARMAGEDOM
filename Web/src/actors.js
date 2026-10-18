@@ -105,13 +105,13 @@ export async function loadActors(
     const pending=(async()=>{
       if(description.faceRecipeId!==undefined)faceRecipeFor(description.faceRecipeId);
       const headParts=description.headParts===undefined?null:validateHeadParts(description.headParts);
-      const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null)]);
+      const parts=await Promise.allSettled([load(new URL(description.url,manifestURL).href),description.equipment?load(new URL(description.equipment.url,manifestURL).href):Promise.resolve(null),description.armSever?load(new URL(description.armSever.url,manifestURL).href):Promise.resolve(null)]);
       const failed=parts.find(part=>part.status==='rejected');if(failed)throw failed.reason;
       if(disposed)throw Error('Actor library disposed');
-      const[gltf,equipment]=parts.map(part=>part.value);
+      const[gltf,equipment,armSever]=parts.map(part=>part.value);
       const missing=headParts?.find(part=>!gltf.scene.getObjectByName(part)?.isSkinnedMesh);if(missing)throw Error('Appearance head part missing: '+name+'/'+missing);
       onProgress(name);
-      const value={gltf,description,equipment};models.set(name,value);return value;
+      const value={gltf,description,equipment,armSever};models.set(name,value);return value;
     })().finally(()=>pendingModels.delete(name));
     pendingModels.set(name,pending);return pending;
   }
@@ -276,7 +276,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       renderScene.add(root, shadow);
       yield 'actor-motion';
       if(finishers&&entity.kind>=0&&entity.rig==='hollow-scavenger'){
-        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(finisherPresentationId(entity.finisher?.recipeId))),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&finisherPresentationId(entity.finisher?.recipeId)==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
+        view.finisher=yield* createFinisherPresentationSteps({root,model,rig:entity.rig,clips:animations,headParts:description.headParts,armAsset:!humanBody?source.armSever:null,scene:renderScene,groundY:0,groundingCache,prepareRunThrough:entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='run-through',prepareHead:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&['decapitation','pistol-decapitation','split-crown'].includes(finisherPresentationId(entity.finisher?.recipeId))),prepareCrown:finishers.maxHeads>0&&(entity.hp>0||restoreCorpses&&finisherPresentationId(entity.finisher?.recipeId)==='split-crown'),prepareOpened:finishers.maxHeads>0&&FINISHER_DATA.preparation.openedPlacements.includes(entity.placementKey)&&(entity.hp>0||restoreCorpses&&entity.finisher?.recipeId==='opened'),isBlocked:(point,radius,from)=>!stageWorld.geometry.clear(point,radius)||!!from&&!stageWorld.geometry.lineClear(from,point)});
         entity.finisherSupport=view.finisher.support;
         view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       }
@@ -331,8 +331,12 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     flameSource(){const mount=views.get(0)?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
-    ensureAreaModels(record,areaId=world.areaId){
+    ensureAreaModels(record,areaId=world.areaId,{fresh=false}={}){
       const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
+      if(fresh){
+        refs.push(...(world.residentPlacements?.[areaId]??[]).filter(row=>row.appearanceRef!==undefined).map(row=>row.appearanceRef));
+        refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).map(row=>world.bossData.profiles[row.profileRef].modelRef));
+      }
       if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);for(const[field,data]of Object.entries(world.bossEquipmentData??{}))if(record.bossEquipment?.[field]?.selected&&data.modelRef)refs.push(data.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});

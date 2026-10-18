@@ -1,3 +1,4 @@
+import {prepareArmSever} from './finisher-arm.js';
 import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition,finisherPresentationId,withFinisherAliases} from './engine/finisher-data.js';
 import * as T from 'three';
 import {nativeFinisherSupport} from './engine/finisher-cosmetics.js';
@@ -18,8 +19,8 @@ export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
 export function presentedSeverFlash(entity,{started=false,activePartCost=0}={}) {
   const recipe=entity?.finisher;
   return Number.isFinite(entity?.hp)&&entity.hp<=0&&started===true&&activePartCost>0
-    &&recipe?.cost>0&&['decapitation','pistol-decapitation','split-crown','opened'].includes(finisherPresentationId(recipe.recipeId))
-    &&Array.isArray(recipe.parts)&&recipe.parts.some(p=>['head','crown','upper-body'].includes(p));
+    &&recipe?.cost>0&&['decapitation','pistol-decapitation','split-crown','opened','left-arm-sever'].includes(finisherPresentationId(recipe.recipeId))
+    &&Array.isArray(recipe.parts)&&recipe.parts.some(p=>['head','crown','upper-body','left-arm'].includes(p));
 }
 const ordinary = duration => ({id:'ordinary', clip:'Death', seconds:duration, cost:0, parts:[], prepared:true});
 const durationOf = (clips, name) => clips.find(c => c.name === name)?.duration;
@@ -114,13 +115,13 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
 // for detached render-space motion. One actor, one head, finite lifetime.
 export function createFinisherPresentation(options){const steps=createFinisherPresentationSteps(options);for(;;){const step=steps.next();if(step.done)return step.value;}}
 export function* createFinisherPresentationSteps({root,model,clips,scene,groundY=0,isBlocked,
-  rig=null,isPlayer=false,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null,headParts=HEAD_NAMES}={}) {
+  rig=null,isPlayer=false,armAsset=null,prepareHead=true,maxVertices=24000,prepareCrown=false,maxCrownVertices=100000,prepareOpened=false,maxOpenedVertices=300000,prepareRunThrough=false,groundingCache=null,headParts=HEAD_NAMES}={}) {
   headParts=validateHeadParts(headParts);
   const death=durationOf(clips,'Death'), hit=durationOf(clips,'Hit'), cut=durationOf(clips,'Death_SplitCrown'), runThrough=durationOf(clips,'Death_RunThrough');
   if(!validDuration(death))throw new TypeError('Finisher presentation requires a native Death clip');
   const support=isPlayer?[]:nativeFinisherSupport({clip:'Death',seconds:death}), bone=model.getObjectByName('Head'),torso=model.getObjectByName('spine_01'),anchorPoint=new T.Vector3(),anchorNormal=new T.Vector3();
   let runGrounding=null,runPreparationError=null,completed=false;const runScale=new T.Vector3();
-  let head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
+  let arm=null,armPreparationError=null,armActive=false,head=null, crown=null, opened=null, openedActive=false, openedShown=false, openedPreparationError=null, crownActive=false, crownPreparationError=null, preparationError=null;
   try {
   if(!isPlayer&&prepareRunThrough&&model.getObjectByName('Photo')&&model.getObjectByName('pelvis')&&validDuration(runThrough)&&runThrough<=1.25){try{runGrounding=yield* prepareVictimGroundingSteps({model,root,clip:clips.find(c=>c.name==='Death_RunThrough'),cache:groundingCache});support.push({id:'run-through',clip:'Death_RunThrough',seconds:runThrough,cost:0,parts:[],prepared:true,requiresGroundLift:true});}catch(error){runPreparationError=error.message;}}
   if(!isPlayer&&prepareHead&&bone&&scene?.isScene&&Number.isFinite(groundY)&&typeof isBlocked==='function') {
@@ -131,17 +132,18 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   if(head&&prepareCrown&&validDuration(cut)){try{crown=yield* prepareSplitCrownSteps(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
   if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=yield* prepareOpenedSteps({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
+  if(!isPlayer&&armAsset&&validDuration(cut)){try{arm=prepareArmSever({model,asset:armAsset,scene,groundY,isBlocked,lifetime:PART_LIFETIME});support.push({id:'left-arm-sever',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['left-arm'],prepared:true,lifetime:PART_LIFETIME});yield 'arm-prepared';}catch(error){armPreparationError=error.message;}}
   support.splice(0,support.length,...withFinisherAliases(support));
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
-  function expire(){if(expired)return;expired=true;head?.group.removeFromParent();crown?.group.removeFromParent();opened?.group.removeFromParent();if(openedActive){for(const[node,value]of visible)node.visible=value;openedActive=false;}}
+  function expire(){if(expired)return;expired=true;arm?.update(PART_LIFETIME,0);head?.group.removeFromParent();crown?.group.removeFromParent();opened?.group.removeFromParent();if(openedActive){for(const[node,value]of visible)node.visible=value;openedActive=false;}}
   const ownedGeometryBytes=(head?.geometries??[]).reduce((bytes,g)=>bytes+Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength??0),0)+(crown?.stats().geometryBytes??0)+(opened?.stats().geometryBytes??0);
   completed=true;
   return {
     support,
-    setScene(next){if(!next?.isScene)throw Error('Finisher scene missing');scene=next;},
-    setDormant(value){if(value)head?.group.removeFromParent();else if(detached&&!expired)scene.add(head.group);},
+    setScene(next){if(!next?.isScene)throw Error('Finisher scene missing');scene=next;arm?.setScene(next);},
+    setDormant(value){arm?.setDormant(value);if(value)head?.group.removeFromParent();else if(detached&&!expired)scene.add(head.group);},
     start(outcome) {
       if(disposed||chosen)return recipe;
       chosen=outcome;direction=directionOf(outcome?.direction??outcome?.impactDirection);
@@ -149,6 +151,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       const nativeFallback=FINISHER_DATA.bindings.some(b=>b.fallback===candidate?.id),eligible=candidate&&(direction||nativeFallback)&&outcome.damageType===finisherDefinition(candidate.id)?.damageType;
       const fallbackId=FINISHER_DATA.bindings.find(b=>finisherDefinition(b.fallback)?.damageType===outcome?.damageType)?.fallback;
       recipe=eligible&&!(finisherPresentationId(candidate.id)==='opened'&&!opened.canStart())?candidate:direction&&outcome?.damageType?support.find(r=>r.id===fallbackId)??ordinary(death):ordinary(death);
+      if(recipe.id==='left-arm-sever'){if(arm.start(direction))armActive=true;else recipe=support.find(r=>r.id===fallbackId)??ordinary(death);}
       if(finisherPresentationId(recipe.id)==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
       if(finisherPresentationId(recipe.id)==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
       if(recipe.parts.includes('head')) {
@@ -177,6 +180,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
     },
     update(age,dt) {
       if(disposed||expired)return;
+      if(armActive){arm.update(age,dt);if(age>=PART_LIFETIME)expire();return;}
       if(openedActive){if(age>=PART_LIFETIME){expire();return;}if(age>=.045){if(!openedShown){for(const node of opened.nodes){visible.push([node,node.visible]);node.visible=false;}openedShown=true;opened.group.visible=true;}opened.update(T.MathUtils.clamp(age/cut,0,1));}return;}
       if(crownActive){if(age>=PART_LIFETIME){expire();return;}const t=T.MathUtils.clamp((age-.045)/.12,0,1);crown.open(t*t*(3-2*t));return;}
       if(!detached)return;
@@ -200,13 +204,14 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);
       const at=node=>{if(!node)return null;node.updateWorldMatrix(true,false);node.getWorldPosition(anchorPoint);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
       const capAt=mesh=>{if(!mesh?.geometry.boundingSphere)return null;mesh.updateWorldMatrix(true,false);anchorPoint.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
+      if(armActive)return arm.anchors();
       if(finisherPresentationId(recipe.id)==='opened'){const upper=at(opened.group.getObjectByName('OpenedTorso')),lower=at(opened.group.getObjectByName('OpenedLegs'));return upper?{body:upper,trails:[upper,lower??upper]}:null;}
       if(finisherPresentationId(recipe.id)==='split-crown'){const left=capAt(crown.caps.find(m=>m.parent===crown.halves[0])),right=capAt(crown.caps.find(m=>m.parent===crown.halves[1]));return left?{head:left,trails:[left,right??left]}:null;}
       if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);if(!seam)return null;anchorNormal.set(0,1,0).transformDirection(head.stump.matrixWorld);return{head:seam,neckNormal:{x:anchorNormal.x,y:anchorNormal.y,z:anchorNormal.z},trails:[at(detachedCap)??seam,seam]};}
       const body=at(torso);return body?{body,trails:[body]}:null;
     },
-    stats(){return {prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedGeometryBytes,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(openedActive||crownActive||detached?recipe.cost:0)};},
-    dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;opened?.dispose();opened=null;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
+    stats(){return {armPrepared:!!arm,armActive,armPreparationError,arm:arm?.stats()??null,prepared:!!head,preparationError,vertices:head?.vertices??0,triangles:head?.triangles??0,ownedGeometries:head?.geometries.length??0,ownedGeometryBytes,ownedMaterials:head?.materials.length??0,lethalVertexCopies:0,detached,expired,crownPrepared:!!crown,crownActive,crownPreparationError,crown:crown?.stats()??null,openedPrepared:!!opened,openedActive,openedPreparationError,opened:opened?.stats()??null,runGrounding:runGrounding?.stats()??null,runPreparationError,activePartCost:expired?0:(armActive||openedActive||crownActive||detached?recipe.cost:0)};},
+    dispose(){if(disposed)return;disposed=true;expire();for(const[node,value]of visible)node.visible=value;arm?.dispose();arm=null;opened?.dispose();opened=null;crown?.dispose();crown=null;head?.dispose();head=null;support.length=0;},
   };
-  } finally {if(!completed){opened?.dispose();crown?.dispose();head?.dispose();support.length=0;}}
+  } finally {if(!completed){arm?.dispose();opened?.dispose();crown?.dispose();head?.dispose();support.length=0;}}
 }

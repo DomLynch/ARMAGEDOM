@@ -16,3 +16,29 @@ test('posed skinned triangle anchor follows current vertices without cloning or 
  geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(indices,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));const mesh=new T.SkinnedMesh(geometry,new T.MeshStandardMaterial()),bone=new T.Bone();mesh.add(bone);mesh.bind(new T.Skeleton([bone]));const root=new T.Group();root.add(mesh);root.position.set(0,1,-1);const view={root,model:root},enemy={id:1,hp:40},before=geometry.attributes.position.array.slice();
  const hit=traceGrenadeSurface(new Map([[1,view]]),[enemy],{x:0,y:1,z:0},{x:0,y:1,z:-2});assert(hit);bone.position.x=.25;const moved=followGrenadeSurface(hit.anchor,view);assert(Math.abs(moved.x-.25)<1e-6);assert.deepEqual(geometry.attributes.position.array,before);
 });
+function weightedBody(id,z){
+ const geometry=new T.BoxGeometry(1,2,.2,2,2,1),count=geometry.attributes.position.count,indices=new Uint16Array(count*4),weights=new Float32Array(count*4);
+ for(let i=0;i<count;i++){indices[i*4+1]=1;weights[i*4]=.25;weights[i*4+1]=.75;}
+ geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(indices,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+ const mesh=new T.SkinnedMesh(geometry,new T.MeshStandardMaterial({side:T.DoubleSide})),base=new T.Bone(),tip=new T.Bone();base.add(tip);mesh.add(base);mesh.bind(new T.Skeleton([base,tip]));mesh.boundingBox=new T.Box3();
+ const root=new T.Group();root.add(mesh);root.position.set(0,1,z);return{enemy:{id,hp:40},view:{root,model:root},mesh,tip};
+}
+function ordinaryRay(rows,from,to){
+ const start=new T.Vector3(from.x,from.y,from.z),delta=new T.Vector3(to.x,to.y,to.z).sub(start),ray=new T.Raycaster(start,delta.clone().normalize(),0,delta.length());
+ for(const r of rows){r.view.root.updateWorldMatrix(true,true);r.mesh.skeleton.update();r.mesh.computeBoundingSphere();r.mesh.computeBoundingBox();}
+ return ray.intersectObjects(rows.map(r=>r.mesh),false)[0];
+}
+test('memoized queries exactly match ordinary posed Three rays across weighted motion and nonuniform transforms',()=>{
+ const rows=[weightedBody(2,-2),weightedBody(1,-1)],views=new Map(rows.map(r=>[r.enemy.id,r.view])),enemies=rows.map(r=>r.enemy);
+ for(let frame=0;frame<8;frame++){
+  for(const r of rows){r.tip.position.x=frame*.025;r.tip.rotation.z=frame*.025;r.view.root.rotation.y=frame*.02;r.view.root.scale.set(1+frame*.02,1-frame*.01,1.2);}
+  for(const x of [-.6,0,.3]){const from={x,y:1,z:0},to={x,y:1,z:-3},reference=ordinaryRay(rows,from,to),result=traceGrenadeSurface(views,enemies,from,to);assert.equal(!!result,!!reference);if(result){assert.equal(result.anchor.mesh,reference.object);assert.deepEqual(result.anchor.indices,[reference.face.a,reference.face.b,reference.face.c]);assert(new T.Vector3(result.position.x,result.position.y,result.position.z).distanceTo(reference.point)<1e-12);}}
+ }
+});
+test('one query skins each vertex once across bounds/triangles and restores the original method and geometry',t=>{
+ const r=weightedBody(1,-1),mesh=r.mesh,original=mesh.getVertexPosition,position=mesh.geometry.attributes.position.array.slice(),from={x:0,y:1,z:0},to={x:0,y:1,z:-3};let calls=0;
+ const counted=function(...args){calls++;return original.apply(this,args);};mesh.getVertexPosition=counted;
+ ordinaryRay([r],from,to);const baseline=calls;calls=0;
+ const hit=traceGrenadeSurface(new Map([[1,r.view]]),[r.enemy],from,to);assert(hit);assert.equal(calls,mesh.geometry.attributes.position.count+3);assert(calls<baseline);t.diagnostic('exact skin evaluations baseline='+baseline+' memoized='+calls);assert.equal(mesh.getVertexPosition,counted);assert.deepEqual(mesh.geometry.attributes.position.array,position);
+ mesh.getVertexPosition=function(){throw Error('skin failure');};const failing=mesh.getVertexPosition;assert.throws(()=>traceGrenadeSurface(new Map([[1,r.view]]),[r.enemy],from,to),/skin failure/);assert.equal(mesh.getVertexPosition,failing);
+});
