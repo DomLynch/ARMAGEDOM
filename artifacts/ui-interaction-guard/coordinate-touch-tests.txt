@@ -1,0 +1,35 @@
+✔ valid maintained guarded driver resolves real AST imports/fixture and deterministic hashes without execution (24.014458ms)
+✔ missing local module or literal data fixture rejects before any submission (5.600416ms)
+✔ direct bypass, method alias/destructuring and computed method reject with zero submission (4.283416ms)
+✔ candidate cannot self-approve custom adapter or modified maintained helper (3.882834ms)
+✔ audited aliased process launch and CDP send escapes reject with zero submission (3.947541ms)
+✔ reviewed UI guard ack parameter resolves only inside exact approved helper internals (14.551667ms)
+✔ trusted binding shadow and callbacks outside direct approved call are not exemptions (5.796666ms)
+✔ syntax, unresolved dynamic imports/data/code and process launch report unsupported rather than claiming PASS (4.078083ms)
+✔ fixture paths do not use ambiguous lexical constants or fake path methods; unsupported source extensions reject (4.729292ms)
+✔ local import cycles resolve once and stage escapes/symlinks fail closed (3.757667ms)
+✔ source-build manifest binds actual files/fingerprint, allows null package hash; tamper rejects (5.904916ms)
+✔ existing-package retry binds actual release/payload/hash, identity mismatch rejects (7.008084ms)
+✔ CLI emits stable report and nonzero for missing fixture, no driver execution/submission side effects (259.807916ms)
+✔ absolute symlinked CLI invocation from a separate stage CWD runs main and writes PASS/FAIL reports (181.117959ms)
+✔ missing/hidden/disabled/covered/offscreen/inert/closed-details controls reject before primary input with prompt actual snapshot (2.938375ms)
+✔ one valid control dispatch waits for true acknowledgement and releases input without force (1.216667ms)
+✔ already satisfied predicate rejects without input instead of falsely proving an action (0.200875ms)
+✔ observation transport failures cannot masquerade as hidden-control precondition proof (0.311458ms)
+✔ missing acknowledgement has finite deadline, retains before/after diagnostics and releases once (10.80925ms)
+✔ dispatch hang/failure remains dispatch failure and always attempts release, no retry (261.682416ms)
+✔ diagnostic grace preserves native timeout call log without extending Playwright action timeout (31.756333ms)
+✔ dispatch success arriving during diagnostic grace is rejected, no late acknowledgement acceptance (31.636209ms)
+✔ tap uses the freshly hit-tested visible coordinate, not selector tap post-handler waiting (0.46ms)
+✔ coordinate touch rejects changed readiness/geometry, still requires independent acknowledgement (21.934666ms)
+✔ only exact no-active-touch protocol response is a completed release, other touch errors remain fatal (0.760167ms)
+✔ navigation/reload use bounded DOM-content-loaded dispatch plus actual acknowledgement (0.717875ms)
+✔ release transport failure is explicit, invalid options cannot dispatch (0.255292ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 615.362333

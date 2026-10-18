@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-18",
+  "originalReport": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-qa-checked171-evidence-20261018/attempt-4/results/checked-ui.json",
+    "sha256": "214e5ff15cdfe55e56932d25ffd023fac918481089b20f80d9c0876f56db7f30",
+    "recoveryHashVerified": true,
+    "status": "FAIL_CHECKED_UI",
+    "originalExit": 1
+  },
+  "change": "Touch rechecks actionable target and stable rect, then dispatches ordinary coordinate touchscreen.tap at actual hit-tested visible point; independently bounded acknowledgement and cleanup retained. No timeout widening or forced input.",
+  "command": "node --test scripts/qa/ui-interaction-guard.test.mjs scripts/qa/driver-preflight.test.mjs",
+  "exitCode": 0,
+  "passed": 27,
+  "failed": 0,
+  "durationMs": 615.362333,
+  "helperSha256": "da80a0f8ba98617ae70dfd36e7e1dc914491ab1aead5c3a52e033c9a9c76be0b",
+  "preflightSha256": "719aec3b70d7053d90348134875396cc9170f1c048225494e4d6854fc51f3892",
+  "testLogSha256": "eb99c81c8e27426c268ab268ed103706d8f48183bc8d9ff9547b98fbecd0189b",
+  "scope": "Controlled DOM/Playwright API fixture and AST/CLI checks only; actual browser continuation belongs to Deploy. No runtime game payload change or browser job by Backend."
+}

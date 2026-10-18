@@ -8,7 +8,10 @@ There is no force click, route guessing, retry loop or game-state mutation.
 Control selectors are ordinary CSS. Before input, a read-only browser snapshot
 checks one matching element, current document visibility, ancestor hidden/style,
 closed details, viewport intersection, disabled/inert state and pointer hit-test.
-Native Playwright actionability checks still run during the bounded click/tap.
+Click retains native Playwright actionability checks. Touch takes a second
+read-only snapshot immediately before dispatch, rejects changed geometry or
+readiness, and uses `page.touchscreen.tap` at the tested visible-intersection
+centre. It does not use selector tap or wait for its post-handler action phase.
 The acknowledgement must be false before control dispatch and truthy afterward;
 an already-true predicate cannot prove a new action. Navigation uses bounded
 DOMContentLoaded plus the supplied predicate; it may start on an already loaded
@@ -45,3 +48,21 @@ with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --prefix scripts/qa
 --ignore-scripts --no-audit --no-fund`. Browser binaries are not downloaded.
 The checked runner owns the explicitly selected, verified Chromium executable;
 this helper never chooses a global/default/Snap browser.
+
+A successful atomic Playwright tap may leave no touch sequence to cancel. Only
+the exact observed `cdpSession.send: Protocol error (Input.dispatchTouchEvent):
+Must send a TouchStart first to start a new touch.` response counts as already
+released. Bare lookalikes, suffixed messages and other transport errors remain
+fatal; mouse cleanup and session detach are still attempted. The original
+checked171 EXIT1/report is preserved, not relabelled PASS.
+
+Click/navigation dispatch uses the original remaining Playwright action timeout. Only its outer
+wall race has a fixed250ms diagnostic grace so a native timeout call log can
+arrive. A success arriving after the original action deadline is still rejected
+before acknowledgement. The native functional budget and acceptance criteria
+are unchanged; a stalled transport remains bounded. This does not establish the
+cause or correction of an observed menu click failure.
+
+Coordinate touch uses the original remaining wall budget with no diagnostic
+grace. Independent acknowledgement and finally cleanup remain mandatory.
+A timed-out selector attempt remains failed even if its handler changed the UI.

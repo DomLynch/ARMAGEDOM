@@ -17,9 +17,10 @@ async function controlSnapshot(page,selector){
   const left=Math.max(0,rect.left),right=Math.min(innerWidth,rect.right),top=Math.max(0,rect.top),bottom=Math.min(innerHeight,rect.bottom);
   const onScreen=right>left&&bottom>top,visible=document.visibilityState==='visible'&&!hiddenAncestor&&!closedDetails&&rect.width>0&&rect.height>0&&el.getClientRects().length>0&&onScreen;
   const enabled=!el.matches(':disabled')&&el.getAttribute('aria-disabled')!=='true'&&!el.closest('[inert]');
-  const hit=onScreen?document.elementFromPoint((left+right)/2,(top+bottom)/2):null,uncovered=!!hit&&(hit===el||el.contains(hit));
+  const point=onScreen?{x:(left+right)/2,y:(top+bottom)/2}:null;
+  const hit=point?document.elementFromPoint(point.x,point.y):null,uncovered=!!hit&&(hit===el||el.contains(hit));
   const actionable=nodes.length===1&&visible&&enabled&&uncovered&&style.pointerEvents!=='none';
-  return{...snapshot,visible,enabled,actionable,blockedBy:uncovered?null:hit?{tag:hit.tagName,id:hit.id??null}:null,reason:nodes.length!==1?'control selector is ambiguous':!visible?'control hidden/offscreen or document not visible':!enabled?'control disabled/inert':!uncovered?'control covered or not hit-testable':style.pointerEvents==='none'?'control rejects pointer events':null};
+  return{...snapshot,visible,enabled,actionable,point,blockedBy:uncovered?null:hit?{tag:hit.tagName,id:hit.id??null}:null,reason:nodes.length!==1?'control selector is ambiguous':!visible?'control hidden/offscreen or document not visible':!enabled?'control disabled/inert':!uncovered?'control covered or not hit-testable':style.pointerEvents==='none'?'control rejects pointer events':null};
  },selector);
 }
 async function releaseInputs(page,method,ms){
@@ -36,11 +37,15 @@ async function perform(page,{kind,selector=null,method='click',url,reload=false,
    if(!before.actionable){phase='precondition';classification='driver/setup';throw Error(before.reason??'control not actionable');}
    phase='baseline-acknowledgement';
    if(await bounded(()=>page.evaluate(ack),remaining(),'initial acknowledgement')){phase='precondition';classification='driver/setup';throw Error('acknowledgement already true before input; cannot prove this action');}
+   if(method==='tap'){
+    phase='touch-snapshot';const previousRect=before.rect,current=await bounded(()=>controlSnapshot(page,selector),remaining(),'touch pre-dispatch snapshot');before={...current,previousRect};
+    if(!current.actionable||!['x','y','width','height'].every(key=>Math.abs(current.rect[key]-previousRect[key])<=.5)){phase='precondition';classification='driver/setup';throw Error(current.reason??'control geometry changed before touch dispatch');}
+   }
   }
   phase='dispatch';if(Date.now()>=deadline)throw Error('action deadline expired before dispatch');dispatched=true;const options={timeout:remaining()},dispatchWallMs=options.timeout+DISPATCH_DIAGNOSTIC_GRACE_MS;
   // Preserve the native action timeout; the outer wall cap only gives its error
   // call log time to arrive. A late success is still outside functional limits.
-  if(kind==='control'){if(method==='tap')await bounded(()=>page.tap(selector,{...options,strict:true}),dispatchWallMs,'tap dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),dispatchWallMs,'click dispatch');}
+  if(kind==='control'){if(method==='tap')await bounded(()=>page.touchscreen.tap(before.point.x,before.point.y),options.timeout,'coordinate touch dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),dispatchWallMs,'click dispatch');}
   else if(reload)await bounded(()=>page.reload({...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'reload dispatch');
   else await bounded(()=>page.goto(url,{...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'navigation dispatch');
   if(Date.now()>deadline)throw Error('dispatch completed after action deadline; acknowledgement not attempted');
