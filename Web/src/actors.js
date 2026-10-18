@@ -331,8 +331,12 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     flameSource(){const mount=views.get(0)?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
-    ensureAreaModels(record,areaId=world.areaId){
+    ensureAreaModels(record,areaId=world.areaId,{fresh=false}={}){
       const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
+      if(fresh){
+        refs.push(...(world.residentPlacements?.[areaId]??[]).filter(row=>row.appearanceRef!==undefined).map(row=>row.appearanceRef));
+        refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).map(row=>world.bossData.profiles[row.profileRef].modelRef));
+      }
       if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);for(const[field,data]of Object.entries(world.bossEquipmentData??{}))if(record.bossEquipment?.[field]?.selected&&data.modelRef)refs.push(data.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});

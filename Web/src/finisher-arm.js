@@ -22,7 +22,7 @@ export function prepareArmSever({model,asset,scene,groundY=0,isBlocked,lifetime=
   start(direction){
    if(disposed||active||!initialVisibility)return false;
    original.parent.updateWorldMatrix(true,true);native.skeleton.bones.forEach((bone,i)=>{bones[i].position.copy(bone.position);bones[i].quaternion.copy(bone.quaternion);bones[i].scale.copy(bone.scale);});
-   assembly.matrix.copy(original.parent.matrixWorld);assembly.matrixWorldNeedsUpdate=true;container.updateWorldMatrix(true,true);owned.update();bounds.setFromObject(container,true);if(bounds.isEmpty())return false;
+   assembly.matrix.copy(original.parent.matrixWorld);assembly.matrixWorldNeedsUpdate=true;container.updateMatrixWorld(true);owned.update();bounds.setFromObject(container,true);if(bounds.isEmpty())return false;
    bounds.getCenter(center);radius=bounds.getSize(new T.Vector3()).length()/2;if(!Number.isFinite(radius)||radius<=0)return false;
    container.position.copy(center);assembly.matrix.premultiply(new T.Matrix4().makeTranslation(-center.x,-center.y,-center.z));assembly.matrixWorldNeedsUpdate=true;
    body.visible=true;original.visible=false;scene.add(container);velocity.set(direction.x*1.35,1.5,-direction.z*1.35);spin.set(-direction.z,0,-direction.x).normalize().multiplyScalar(5);active=true;return true;
