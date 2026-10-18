@@ -12,8 +12,8 @@ export function validateUniqueRewardData(input,registry,residents){
  return row;
 }
 export function uniqueRewardSourceDead(saved,data){return !!(saved.progression?.awards?.some(row=>row.placementKey===data.placementKey&&row.areaId===data.areaId)||saved.supplies?.issued?.includes(data.placementKey));}
-export function uniqueRewardDropPosition(g,corpse){
- const data=g.world.uniqueRewardData,origin=corpse.pos,w=g.world;
+export function uniqueRewardDropPosition(g,corpse,data=g.world.uniqueRewardData){
+ const origin=corpse.pos,w=g.world;
  if(!data||w.areaId!==data.areaId||corpse.placementKey!==data.placementKey||corpse.hp>0||![origin?.x,origin?.z].every(Number.isFinite))return null;
  const legal=p=>w.geometry.clear(p,.4)&&!w.travelAt?.(p)&&w.lineClear(origin,p);
  if(legal(origin))return{x:origin.x,z:origin.z};

@@ -59,7 +59,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
   const handlers=['resume','close-menu','menu-button','retry','reset-game','confirm-reset','cancel-reset','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
   resize();
   let lastMessage = "",
-    lastStaminaState = null, lastPistolEquipped = null, lastFlameEquipped=false;
+    lastStaminaState = null,lastRifleEquipped=null, lastPistolEquipped = null, lastFlameEquipped=false;
   return {
     dispose(){loaded=false;menuTabs.dispose();for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
@@ -147,9 +147,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       if(model){
         const weapon=p.weapon==='pistol'?'westminster-start-pistol-v1':'knife',label=weapon==='knife'?'KNIFE':'PISTOL';
         const bonus=id=>Math.round((pilotBonuses(g.world.progressionData,DEFAULT_ATTRIBUTES,id,progression.proficiency[id]).damageMultiplier-1)*1000)/10;
-        el('mastery').textContent=`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
+        el('mastery').textContent=p.weapon==='rifle'?'RIFLE · no mastery bonus':`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
         el('progression-attributes').textContent=Object.entries(progression.attributes).map(([id,value])=>`${id[0].toUpperCase()+id.slice(1)} ${value}`).join(' · ')+'. Intelligence has no effect in this pilot.';
-        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10}%.`;
+        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${(p.weapon==='rifle'?0:Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10)}%.`;
       }
       const vestNotice = !g.finished && p.hp > 0
         ? g.vest?.equipped
@@ -181,6 +181,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       }
       el("guard").classList.toggle("pressed", p.guarding);
       const flameEquipped=!!g.flame?.equipped;if(flameEquipped!==lastFlameEquipped){lastPistolEquipped=null;lastFlameEquipped=flameEquipped;}
+      if(!!g.rifle?.selected!==lastRifleEquipped){lastPistolEquipped=null;lastRifleEquipped=!!g.rifle?.selected;}
       const pistol=g.pistol;
       if(pistol){
         const equipped=pistol.equipped;
@@ -203,6 +204,13 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';
         const icon=el('pistol-icon');icon.hidden=pistol.collected||(g.world.areaId??'westminster')!==pistol.pickupAreaId;
         if(!icon.hidden&&g.world.camera){const at=g.world.toRender(pistol.pickupPos,.65).project(g.world.camera);icon.style.left=`${(at.x+1)*innerWidth/2}px`;icon.style.top=`${(1-at.y)*innerHeight/2}px`;}
+      }
+      if(g.rifle?.selected&&!flameEquipped){
+        const rifle=g.rifle,rules=g.world.rifleData.rules,clock=g.rifleAction??{},left=Math.max(0,(clock.nextFireAt??0)-g.time);
+        for(const[id,text]of Object.entries({slash:'FIRE',stab:'RELOAD',heavy:'MELEE',guard:'NO GUARD'}))el(id).querySelector('span').textContent=text;
+        el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with rifle');el('ammo').hidden=false;el('ammo').textContent=`RIFLE · ${rifle.magazine}/${rules.capacity} · ${rifle.reserve} RESERVE${clock.reloadingUntil?' · RELOADING':''}`;
+        for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',false);el(id).classList.toggle('cooldown',id==='slash'&&left>0);el(id).querySelector('small').textContent=id==='slash'?`${rifle.magazine}/${rules.capacity}`:id==='stab'&&clock.reloadingUntil?`${Math.max(0,clock.reloadingUntil-g.time).toFixed(1)}s`:'';}
+        el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready',String(1-Math.min(1,left/rules.cadence)));el('slash').setAttribute('aria-label',`Fire rifle once; ${rifle.magazine} loaded and ${rifle.reserve} reserve`);el('stab').setAttribute('aria-label','Reload rifle');
       }
       if(flameEquipped){
         const percent=Math.ceil(g.flameFuel.fuelUnits/g.world.flameData.capacity*100);el('ammo').hidden=false;el('ammo').textContent=`FLAMETHROWER · FUEL ${percent}%`;

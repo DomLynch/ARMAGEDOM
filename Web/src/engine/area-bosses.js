@@ -6,8 +6,8 @@ const text=v=>typeof v==='string'&&v.length>0&&v.length<=80;
 const number=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max;
 const point=p=>{closed(p,['x','z']);if(!Object.values(p).every(Number.isFinite))fail();};
 export function validateAreaBosses(input,registry,residents={}){
- if(input===undefined)return null;closed(input,['version','profiles','placements','paths']);if(input.version!==1||!input.profiles||Object.getPrototypeOf(input.profiles)!==Object.prototype||!input.paths||Object.getPrototypeOf(input.paths)!==Object.prototype||!Array.isArray(input.placements)||input.placements.length!==3)fail();
- const data=structuredClone(input),profiles=Object.entries(data.profiles);if(profiles.length!==3)fail();const paths=new Set(),models=new Set();
+ if(input===undefined)return null;closed(input,['version','profiles','placements','paths']);if(input.version!==1||!input.profiles||Object.getPrototypeOf(input.profiles)!==Object.prototype||!input.paths||Object.getPrototypeOf(input.paths)!==Object.prototype||!Array.isArray(input.placements)||![3,7].includes(input.placements.length))fail();
+ const data=structuredClone(input),profiles=Object.entries(data.profiles);if(![3,7].includes(profiles.length)||profiles.length!==data.placements.length)fail();const paths=new Set(),models=new Set();
  for(const[id,p]of profiles){
   closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard'],['minimumAttackDistance']);
   if(!key(id)||!text(p.name)||!key(p.modelRef)||models.has(p.modelRef))fail();models.add(p.modelRef);

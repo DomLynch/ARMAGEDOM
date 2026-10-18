@@ -133,7 +133,7 @@ export function attachInput({
   const state = new InputState(), listeners=[];
   function listen(target,type,handler,options){target.addEventListener(type,handler,options);listeners.push(()=>target.removeEventListener(type,handler,options));}
   const gameplayTouch = target => !isPaused() && !target?.closest?.(
-    '#menu, #menu-button, #entry, #ending, #pistol-interact, a, input, select, textarea',
+    '#menu, #menu-button, #entry, #ending, #pistol-interact, #rifle-pickup, #rifle-equipment, a, input, select, textarea',
   ) && (target === document.body || target === document.documentElement ||
     !!target?.closest?.('#world, #hud, #move, #action-cluster, [data-action]'));
   // Safari may ignore viewport zoom hints. Cancel browser gestures, not game

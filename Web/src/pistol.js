@@ -1,8 +1,6 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
-export const PISTOL_RULES = Object.freeze({
-  capacity: 6, reserve: 12, damage: 25, range: 18,
-  cadence: 1.2, reload: 1.3, pickupRadius: 1.3,
-});
+import {RANGED_WEAPON_CATALOG} from './engine/weapon-catalog.js';
+export const PISTOL_RULES=RANGED_WEAPON_CATALOG['westminster-start-pistol-v1'].rules;
 const EPS = 1e-8;
 const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const copy = p => ({ x: p.x, z: p.z });
@@ -35,14 +33,15 @@ export function equipPistol(state, equipped = true) {
 
 // First circle along an explicit ray; walls are checked before target selection.
 // lineClear must test the whole segment (World's existing collision contract).
-export function tracePistol(origin, aim, targets, lineClear) {
+export function tracePistol(origin, aim, targets, lineClear, rules = PISTOL_RULES) {
   if (!point(origin) || !point(aim) || typeof lineClear !== 'function') return null;
   const length = Math.hypot(aim.x, aim.z);
   if (length < EPS || !Number.isFinite(length)) return null;
   const direction = {x:aim.x/length, z:aim.z/length};
   const at = distance => ({x:origin.x+direction.x*distance, z:origin.z+direction.z*distance});
   if (!lineClear(origin, origin)) return null;
-  let limit = PISTOL_RULES.range;
+  let limit = rules?.range;
+  if (!Number.isFinite(limit) || limit<=0) throw Error('Invalid ranged trace rules');
   if (!lineClear(origin, at(limit))) {
     let low = 0, high = limit;
     for (let i=0; i<20; i++) {

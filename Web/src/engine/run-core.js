@@ -1,3 +1,7 @@
+import{createRifleComponent}from'./rifle-core.js';
+import{createRifleModel}from'./rifle-state.js';
+import{rifleActionState}from'./rifle-runtime.js';
+import{closedData}from'./progression-state.js';
 import{deathWeaponDescriptor}from'./weapon-credit-policy.js';
 import{FLAME_SAVE_KEY,createFlameComponent}from'./flame-core.js';
 import{createFlameFuelModel}from'./flame-fuel-state.js';
@@ -25,6 +29,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
+ let rifleComponent=null,rifleDomain=null,rifleScope=null;
  let flameComponent=null,flameDomain=null,flameScope=null,lastFuelOwner=null,lastFuelTick=-1;
  let component=null,wrappedDomain=null,expeditionComponent=null,expeditionDomain=null,expeditionScope=null,uniqueComponent=null,uniqueDomain=null,uniqueScope=null;
  function progression(){
@@ -56,7 +61,13 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
    getConsumption:run=>flameScope?.run===run&&flameScope.allowed?flameScope.request:null});flameDomain=flameComponent.wrapDomain(uniqueDomain);}
   return flameComponent;
  }
- const stateComponent=()=>flame()??uniqueReward()??expedition()??progression();
+ function rifle(){
+  const g=getRun(),data=g?.world.rifleData;if(!data)return null;
+  const base=flame();if(!base)throw TypeError('Rifle requires the existing v8 run');
+  if(!rifleComponent){rifleComponent=createRifleComponent({baseCodec:base.codec,getRun,model:createRifleModel(data),profile:data,applyBaseSaved:(run,saved)=>base.applySavedRun(run,saved),baseStorageAdapter:storage=>base.storageAdapter(storage),canDispatch:run=>rifleScope?.run===run&&rifleScope.allowed,getAction:run=>rifleScope?.run===run?rifleScope.action:null,validatedDropPosition:(run,corpse)=>uniqueRewardDropPosition(run,corpse,data.source),sourceDead:saved=>uniqueRewardSourceDead(saved,data.source)});rifleDomain=rifleComponent.wrapDomain(flameDomain);}
+  return rifleComponent;
+ }
+ const stateComponent=()=>rifle()??flame()??uniqueReward()??expedition()??progression();
  const activeCodec={...selectedCodec,captureRunState(g){return(stateComponent()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(stateComponent()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return stateComponent()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(stateComponent()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){try{const raw=args[1]==null?null:JSON.parse(args[1]);if(raw?.version<=7&&(raw.progression?.awards??[]).some(row=>deathWeaponDescriptor(row.weaponId)?.creditPolicy==='none'))return null;}catch{return null;}return(stateComponent()?.codec??selectedCodec).restoreRun(...args);}};
  const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(stateComponent()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
@@ -66,7 +77,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
+ const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
  function dispatchPistol(g,command,canAct){
@@ -94,6 +105,21 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   flameScope={run:g,request,allowed:allowed===true};
   try{const result=core.dispatch(command);if(result.ok&&result.events.some(e=>e.type==='flame-fuel-spent'))lastFuelTick=g.tick;if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}
   finally{flameScope=null;}
+ }
+ function dispatchRifle(g,command,allowed=false){
+  if(g!==getRun()||rifleScope||!rifle())return{ok:false,code:'not-eligible',events:[]};
+  const descriptor=Object.getOwnPropertyDescriptor(command??{},'type'),type=descriptor&&'value'in descriptor?descriptor.value:null;
+  const action=['fire','reload'].includes(type)?{type}:null,clock=rifleActionState(g);
+  if(action&&(!closedData(command,['type'])||!g.rifle?.selected||g.flame?.equipped||type==='fire'&&(clock.reloadingUntil>0||g.time<clock.nextFireAt)||type==='reload'&&(!(clock.reloadingUntil>0)||g.time+1e-8<clock.reloadingUntil)))return{ok:false,code:'not-eligible',events:[]};
+  rifleScope={run:g,allowed:allowed===true,action};
+  try{
+   const result=core.dispatch(action?{type:'save'}:command);
+   if(result.ok){
+    if(result.events.some(e=>e.type==='rifle-ammo-spent')){clock.nextFireAt=g.time+g.world.rifleData.rules.cadence;clock.firedAt=g.time;clock.paidTick=g.tick;clock.paidRounds=1;}
+    if(result.events.some(e=>e.type==='rifle-reloaded'||e.type==='rifle-selected'))clock.reloadingUntil=0;
+   }else if(result.code==='storage-unavailable'){g.message='Saving unavailable. Rifle and ammunition kept.';g.messageUntil=g.time+5;}
+   return result;
+  }finally{rifleScope=null;}
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
@@ -137,5 +163,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
+ return {persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchRifle,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
 }

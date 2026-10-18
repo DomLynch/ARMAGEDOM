@@ -21,13 +21,13 @@ function intent() {
       manualFlameAim: !!raw.fireAim&&!!s.game.flame?.equipped,
       combatVisibleIds: combatVisibleIds(),
       move: toDomain(raw.move),
-      aim: (s.game.pistol?.equipped||s.game.flame?.equipped) ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
+      aim: (s.game.pistol?.equipped||s.game.rifle?.selected||s.game.flame?.equipped) ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };
   if (raw.mouse) {
     const bounds = s.canvas.getBoundingClientRect(),
       x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
       y=1-((raw.mouse.y-bounds.top)/bounds.height)*2,
-      point=s.game.flame?.equipped?flamePointerPoint(s.world,s.actors.views,s.game.enemies,x,y,{assist:s.game.mobileAssistEnabled!==false,time:s.game.time,visibleIds:value.combatVisibleIds}):s.game.pistol?.equipped?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
+      point=s.game.flame?.equipped?flamePointerPoint(s.world,s.actors.views,s.game.enemies,x,y,{assist:s.game.mobileAssistEnabled!==false,time:s.game.time,visibleIds:value.combatVisibleIds}):(s.game.pistol?.equipped||s.game.rifle?.selected)?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
     if (point) {
       value.manualPistolAim = true;
       value.manualFlameAim = !!s.game.flame?.equipped;
@@ -54,7 +54,7 @@ function frame(ms,providedElapsed) {
     while (accumulator >= 1 / 60) {
       const weaponBefore = s.game.player.weapon,flameBefore=!!s.game.flame?.equipped;
       const value=intent();s.diagnostics?.beforeStep(value);
-      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchFlame:s.dispatchFlame,flameSource:s.flameSource,flameAimEligible:s.flameAimEligible});
+      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchRifle:s.dispatchRifle,dispatchFlame:s.dispatchFlame,flameSource:s.flameSource,flameAimEligible:s.flameAimEligible});
       s.diagnostics?.afterStep();
       if (weaponBefore !== s.game.player.weapon||flameBefore!==!!s.game.flame?.equipped) {s.input.clear();submitted=null;resetMobileControls(s.game);}
       s.collectNearbySupplies(s.game,value);

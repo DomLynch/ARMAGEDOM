@@ -100,7 +100,8 @@
             <details id="equipment-panel" open><summary>Equipment</summary>
               <h3>Your loadout</h3><div class="active-loadout"><p class="eyebrow">Active weapon</p><p id="active-weapon" role="status"></p><section id="vest-equipment"><p id="vest-state" role="status"></p></section></div>
               <h3>Weapons</h3><div id="variant-choices"></div>
-              <section id="melee-equipment" hidden><div id="melee-choices"></div></section>
+              <section id="rifle-equipment" hidden><h3>Bridge Rifle</h3><p id="rifle-state"></p><button id="rifle-equip" type="button">Equip rifle</button></section>
+<section id="melee-equipment" hidden><div id="melee-choices"></div></section>
               <section id="flame-equipment" hidden><button id="flame-equip" type="button">Equip flamethrower</button></section>
               <details id="weapon-details"><summary>Weapon details &amp; progress</summary><p id="equipment-state"></p><p id="pistol-comparison"></p><p id="melee-state" role="status"></p><p id="melee-comparison"></p><p>Cleaver trades more stamina for higher damage and reach. Knife mastery applies; attack timing stays the same.</p><p id="flame-state" role="status"></p><p id="equipment-retry-note">Retry resets combat, ammunition, vest and weapon mastery. Contract progress, discovered areas, earned variants and cleaver stay unlocked. Collected flamethrower and remaining fuel stay; spent fuel stays spent. Collect the pistol again to use your chosen variant.</p></details>
             </details>
@@ -167,5 +168,6 @@
       </div>
     </section>
     <script type="module" src="/src/main.js"></script>
-  </body>
+  <button id="rifle-pickup" type="button" hidden style="position:fixed;z-index:8;transform:translate(-50%,-100%);padding:.4rem .6rem;background:#392a16;color:#f6d281;border:1px solid #c6a75d;border-radius:.4rem">PICK UP RIFLE</button>
+</body>
 </html>

@@ -450,19 +450,12 @@
       "url": "bosses/boss-warden.glb",
       "rig": "boss-warden",
       "deferred": true,
-      "bytes": 6174132,
-      "sha256": "f9aa42917152d967389b55139a5388f14798785551971be35bb23c79bf661b5b",
+      "bytes": 6026368,
+      "sha256": "1377cc18c0bfbb9917d222e27c83a9353fd8e27446216e80609754b4e5883873",
       "provenance": {
-        "sourceFrankendomHEAD": "836aa5f3dab0755d033ee23ad6d1b2a85de874c0",
-        "levelSelection": "Pitborn L3 pale bone/hide appearance on frozen Warden Maul carrier",
-        "appearanceSourceSHA256": "f0e27949a27ac36be8e70d492bc14d94466b04190433d94556ab64a633390e7f",
-        "frozenCarrierSHA256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
-        "frozenCarrierFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
-        "frozenCarrierLineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "e0a54a4d8f359810ee44d4e73e04c6b75380266ddb284f16c5cbd0b352f3b12a",
-        "portableHandoffSHA256": "45a37288865fe5645eaf764f1df9bff02640330703850cb94accf02b5f698fd1",
-        "finalReimportSHA256": "6db814ab2d3cac546712a3e2041c5e0f1fd2551950ddf7861b9bbb2fafe7a8cd",
-        "qualification": "Appearance only; own inverse binds, frozen36clips/maul/bones/contact preserved; Bone40 UV0 aliases existing UV1 without binary change. 21825 validator warnings retained. Grip/body extent/runtime portrait acceptance recorded in portable handoff."
+        "source": "Shieldmaiden appearance on frozen Warden maul carrier",
+        "intakeSHA256": "9888d24390461befb354111fc80e104735ef4e7a24e894791acb46cdc1d57b64",
+        "qualification": "Own inverse binds, carrier clips/contact preserved; native game-camera validation pending"
       }
     },
     "hale-pitborn": {
@@ -677,6 +670,236 @@
       "rig": "rigid-equipment",
       "motion": "rigid",
       "scale": 1
+    },
+    "player-rifle": {
+      "url": "weapons/rifle.glb",
+      "bytes": 110568,
+      "sha256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1,
+      "pose": {
+        "root": "Rifle",
+        "mount": {
+          "bone": "hand_r",
+          "wrapper": "RifleMount",
+          "root": "Rifle",
+          "translation": [
+            0,
+            0.085,
+            0.025
+          ],
+          "quaternion": [
+            -0.7071067811865475,
+            0,
+            0,
+            0.7071067811865476
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "units": "metres",
+          "forward": "+Z",
+          "up": "+Y"
+        },
+        "allowlist": [
+          "spine_01",
+          "spine_02",
+          "spine_03",
+          "clavicle_l",
+          "upperarm_l",
+          "lowerarm_l",
+          "hand_l",
+          "index_01_l",
+          "index_02_l",
+          "index_03_l",
+          "middle_01_l",
+          "middle_02_l",
+          "middle_03_l",
+          "pinky_01_l",
+          "pinky_02_l",
+          "pinky_03_l",
+          "ring_01_l",
+          "ring_02_l",
+          "ring_03_l",
+          "thumb_01_l",
+          "thumb_02_l",
+          "thumb_03_l",
+          "clavicle_r",
+          "upperarm_r",
+          "lowerarm_r",
+          "hand_r",
+          "index_01_r",
+          "index_02_r",
+          "index_03_r",
+          "middle_01_r",
+          "middle_02_r",
+          "middle_03_r",
+          "pinky_01_r",
+          "pinky_02_r",
+          "pinky_03_r",
+          "ring_01_r",
+          "ring_02_r",
+          "ring_03_r",
+          "thumb_01_r",
+          "thumb_02_r",
+          "thumb_03_r"
+        ],
+        "clips": [
+          {
+            "name": "Rifle_Hold",
+            "duration": 1.667
+          },
+          {
+            "name": "Rifle_Aim",
+            "duration": 1
+          },
+          {
+            "name": "Rifle_Fire",
+            "duration": 0.25
+          },
+          {
+            "name": "Rifle_Reload",
+            "duration": 2
+          }
+        ]
+      },
+      "provenance": {
+        "source": "Original ARMAGEDOM procedural rifle",
+        "playerSHA256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
+        "intakeSHA256": "9888d24390461befb354111fc80e104735ef4e7a24e894791acb46cdc1d57b64"
+      }
+    },
+    "boss-westminster-witch": {
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run",
+        "strafeLeft": "StrafeLeft",
+        "strafeRight": "StrafeRight",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "deflected": "Deflected",
+        "blockImpact": "BlockImpact",
+        "attack": "Attack",
+        "block": "BlockImpact",
+        "slash": "Attack"
+      },
+      "url": "bosses/boss-westminster-witch.glb",
+      "rig": "boss-westminster-witch",
+      "deferred": true,
+      "bytes": 4096528,
+      "sha256": "e1ce64920190aaa7c52279688dd09f5a37fea9cd48a4e746631fa69462c67300",
+      "provenance": {
+        "portableIntake": "four-boss-portable-20261018",
+        "carrier": "boss-surgeon",
+        "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
+      }
+    },
+    "boss-south-nightborn": {
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run",
+        "strafeLeft": "StrafeLeft",
+        "strafeRight": "StrafeRight",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "deflected": "Deflected",
+        "blockImpact": "BlockImpact",
+        "attack": "Attack",
+        "block": "BlockImpact",
+        "slash": "Attack"
+      },
+      "url": "bosses/boss-south-nightborn.glb",
+      "rig": "boss-south-nightborn",
+      "deferred": true,
+      "bytes": 4092996,
+      "sha256": "5f25a36b96a6a47aa996faecb4d2305f93a365ed989f3d1b5c1887660935ee2d",
+      "provenance": {
+        "portableIntake": "four-boss-portable-20261018",
+        "carrier": "boss-surgeon",
+        "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
+      }
+    },
+    "boss-area8-veteran": {
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "clips": {
+        "idle": "Maul_Idle",
+        "walk": "Maul_Walk",
+        "run": "Maul_Walk",
+        "strafeLeft": "Maul_StrafeLeft",
+        "strafeRight": "Maul_StrafeRight",
+        "guard": "Maul_Guard",
+        "dodge": "Roll",
+        "hit": "Maul_Hit",
+        "death": "Maul_Death",
+        "deflected": "Maul_Deflected",
+        "blockImpact": "Maul_BlockImpact",
+        "attack": "Maul_Heavy",
+        "block": "Maul_BlockImpact",
+        "heavy": "Maul_Heavy"
+      },
+      "url": "bosses/boss-area8-veteran.glb",
+      "rig": "boss-area8-veteran",
+      "deferred": true,
+      "bytes": 6028384,
+      "sha256": "25c5b0599938fccbf1c086fdba22bbded996716dd5f050cef08d7af944c4d45c",
+      "provenance": {
+        "portableIntake": "four-boss-portable-20261018",
+        "carrier": "boss-warden",
+        "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
+      }
+    },
+    "boss-area7-knight": {
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "clips": {
+        "idle": "Maul_Idle",
+        "walk": "Maul_Walk",
+        "run": "Maul_Walk",
+        "strafeLeft": "Maul_StrafeLeft",
+        "strafeRight": "Maul_StrafeRight",
+        "guard": "Maul_Guard",
+        "dodge": "Roll",
+        "hit": "Maul_Hit",
+        "death": "Maul_Death",
+        "deflected": "Maul_Deflected",
+        "blockImpact": "Maul_BlockImpact",
+        "attack": "Maul_Heavy",
+        "block": "Maul_BlockImpact",
+        "heavy": "Maul_Heavy"
+      },
+      "url": "bosses/boss-area7-knight.glb",
+      "rig": "boss-area7-knight",
+      "deferred": true,
+      "bytes": 6047764,
+      "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+      "provenance": {
+        "portableIntake": "four-boss-portable-20261018",
+        "carrier": "boss-warden",
+        "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
+      }
     }
   },
   "files": {
@@ -704,6 +927,41 @@
       "file": "hollow-scavenger/hollow-scavenger.glb",
       "bytes": 4329068,
       "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
+    },
+    "player-rifle": {
+      "file": "weapons/rifle.glb",
+      "bytes": 110568,
+      "sha256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9",
+      "errors": 0,
+      "warnings": 0
+    },
+    "boss-westminster-witch": {
+      "file": "bosses/boss-westminster-witch.glb",
+      "bytes": 4096528,
+      "sha256": "e1ce64920190aaa7c52279688dd09f5a37fea9cd48a4e746631fa69462c67300",
+      "errors": 0,
+      "warnings": 45723
+    },
+    "boss-south-nightborn": {
+      "file": "bosses/boss-south-nightborn.glb",
+      "bytes": 4092996,
+      "sha256": "5f25a36b96a6a47aa996faecb4d2305f93a365ed989f3d1b5c1887660935ee2d",
+      "errors": 0,
+      "warnings": 3893
+    },
+    "boss-area8-veteran": {
+      "file": "bosses/boss-area8-veteran.glb",
+      "bytes": 6028384,
+      "sha256": "25c5b0599938fccbf1c086fdba22bbded996716dd5f050cef08d7af944c4d45c",
+      "errors": 0,
+      "warnings": 1131
+    },
+    "boss-area7-knight": {
+      "file": "bosses/boss-area7-knight.glb",
+      "bytes": 6047764,
+      "sha256": "a67abce640e25c68c7ab80edec78f963ec01b999be58836991309f160deed478",
+      "errors": 0,
+      "warnings": 0
     }
   },
   "pistol": {
