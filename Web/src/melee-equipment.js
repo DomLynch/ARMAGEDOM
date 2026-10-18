@@ -1,6 +1,6 @@
 import{MELEE_VARIANTS,CLEAVER_MOVES}from'./engine/melee-equipment-data.js';
 export{MELEE_VARIANTS,CLEAVER_MOVES}from'./engine/melee-equipment-data.js';
-export function selectedMeleeVariant(g){const data=g.world?.uniqueRewardData,state=g.uniqueReward;return data&&state?.status==='owned'&&state.rewardReceipt===data.receiptId&&state.selectedMeleeVariant===data.itemId?MELEE_VARIANTS[data.itemId]:MELEE_VARIANTS.knife;}
+export function selectedMeleeVariant(g){const special=g.world?.bossEquipmentData?.surgicalKnife,reward=g.bossEquipment?.surgicalKnife;if(special&&reward?.status==='owned'&&reward.selected&&reward.rewardReceipt===special.source.receiptId)return MELEE_VARIANTS[special.itemId];const data=g.world?.uniqueRewardData,state=g.uniqueReward;return data&&state?.status==='owned'&&state.rewardReceipt===data.receiptId&&state.selectedMeleeVariant===data.itemId?MELEE_VARIANTS[data.itemId]:MELEE_VARIANTS.knife;}
 // Derived presentation/contact fields; the validated unique DTO remains equipment authority.
 export function syncMeleeEquipment(g){const profile=selectedMeleeVariant(g),p=g.player;p.meleeVariantId=profile.itemId;p.meleeMoves=profile.itemId==='knife'?null:profile.moves;p.contactPaths=profile.contactPaths;p.contactScale=p.combatScale;p.meleeClipOverrides=profile.clipOverrides;p.meleeTargeting=profile.targeting??null;p.meleeLowMoves=profile.lowMoves??null;g.staminaCosts=profile.costs;return profile;}
 export function meleeModelRef(g){return selectedMeleeVariant(g).modelRef??null;}
@@ -14,9 +14,10 @@ export function cloneMeleeWeapon(source,variantId){
 }
 export function setPlayerMeleeWeapon(view,source,variantId){
  if(view.meleeVariantId===variantId)return false;
- if(variantId==='knife'&&!view.meleeEquipment){view.meleeVariantId='knife';return false;}
+ const displayId=MELEE_VARIANTS[variantId]?.modelVariantId??variantId;
+ if(displayId==='knife'&&!view.meleeEquipment){view.meleeVariantId='knife';return false;}
  if(!Object.hasOwn(MELEE_VARIANTS,variantId)||!view.knife?.parent)throw Error('Player melee hand mount unavailable');
  view.meleeEquipment??=new Map([['knife',view.knife]]);view.meleeWeaponParent??=view.knife.parent;
- if(!view.meleeEquipment.has(variantId)){const clone=cloneMeleeWeapon(source,variantId);view.meleeEquipment.set(variantId,clone.root);view.materials.push(...clone.materials);view.flashMaterials.push(...clone.materials);}
- const next=view.meleeEquipment.get(variantId);view.knife.removeFromParent();view.meleeWeaponParent.add(next);view.knife=next;view.meleeVariantId=variantId;return true;
+ if(!view.meleeEquipment.has(displayId)){const clone=cloneMeleeWeapon(source,variantId);view.meleeEquipment.set(displayId,clone.root);view.materials.push(...clone.materials);view.flashMaterials.push(...clone.materials);}
+ const next=view.meleeEquipment.get(displayId);view.knife.removeFromParent();view.meleeWeaponParent.add(next);view.knife=next;view.meleeVariantId=variantId;return true;
 }

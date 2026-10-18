@@ -900,6 +900,143 @@
         "carrier": "boss-warden",
         "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
       }
+    },
+    "player-shotgun": {
+      "url": "weapons/shotgun.glb",
+      "bytes": 111032,
+      "sha256": "82ecc788d9c2d6c7b30951a62de173ce9e98bea189978ae75e2ee10afa158d78",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1,
+      "pose": {
+        "root": "Shotgun",
+        "mount": {
+          "bone": "hand_r",
+          "wrapper": "ShotgunMount",
+          "root": "Shotgun",
+          "translation": [
+            0,
+            0.085,
+            0.025
+          ],
+          "quaternion": [
+            -0.7071067811865475,
+            0,
+            0,
+            0.7071067811865476
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "units": "metres",
+          "forward": "+Z",
+          "up": "+Y"
+        },
+        "allowlist": [
+          "spine_01",
+          "spine_02",
+          "spine_03",
+          "clavicle_l",
+          "upperarm_l",
+          "lowerarm_l",
+          "hand_l",
+          "index_01_l",
+          "index_02_l",
+          "index_03_l",
+          "middle_01_l",
+          "middle_02_l",
+          "middle_03_l",
+          "pinky_01_l",
+          "pinky_02_l",
+          "pinky_03_l",
+          "ring_01_l",
+          "ring_02_l",
+          "ring_03_l",
+          "thumb_01_l",
+          "thumb_02_l",
+          "thumb_03_l",
+          "clavicle_r",
+          "upperarm_r",
+          "lowerarm_r",
+          "hand_r",
+          "index_01_r",
+          "index_02_r",
+          "index_03_r",
+          "middle_01_r",
+          "middle_02_r",
+          "middle_03_r",
+          "pinky_01_r",
+          "pinky_02_r",
+          "pinky_03_r",
+          "ring_01_r",
+          "ring_02_r",
+          "ring_03_r",
+          "thumb_01_r",
+          "thumb_02_r",
+          "thumb_03_r"
+        ],
+        "clips": [
+          {
+            "name": "Rifle_Hold",
+            "duration": 1.667
+          },
+          {
+            "name": "Rifle_Aim",
+            "duration": 1
+          },
+          {
+            "name": "Rifle_Fire",
+            "duration": 0.25
+          },
+          {
+            "name": "Rifle_Reload",
+            "duration": 2
+          }
+        ]
+      },
+      "provenance": {
+        "source": "Original ARMAGEDOM twin-barrel Shotgun, shared existing Rifle upper-body tracks",
+        "playerSHA256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
+        "intakeSHA256": "f9e5a5dade8a4c69af776f4c8862d38a377f844fb27c151b42309acc50cf65b4"
+      }
+    },
+    "player-grenade": {
+      "url": "weapons/grenade.glb",
+      "bytes": 8400,
+      "sha256": "803a99866bed775780fc1d57cd5c6635d6e87ed81ddf43c47c04a7dd90354511",
+      "deferred": true,
+      "rig": "rigid-equipment",
+      "motion": "rigid",
+      "scale": 1,
+      "pose": {
+        "root": "Grenade",
+        "mount": {
+          "bone": "hand_r",
+          "translation": [
+            0,
+            0.06,
+            0.025
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "provenance": {
+        "source": "Original ARMAGEDOM rigid standard Grenade",
+        "intakeSHA256": "f9e5a5dade8a4c69af776f4c8862d38a377f844fb27c151b42309acc50cf65b4"
+      }
     }
   },
   "files": {

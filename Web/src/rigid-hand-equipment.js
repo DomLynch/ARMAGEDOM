@@ -1,0 +1,5 @@
+import * as T from 'three';
+export function createRigidHandEquipment(model,source){
+ const data=source.description.pose,hand=model.getObjectByName(data.mount.bone),original=source.gltf.scene.getObjectByName(data.root);if(!hand?.isBone||!original)throw Error('Rigid hand equipment unavailable');
+ const mount=new T.Group(),root=original.clone(true),materials=[];mount.add(root);root.traverse(mesh=>{if(!mesh.isMesh)return;if(mesh.isSkinnedMesh)throw Error('Rigid hand equipment required');const own=[mesh.material].flat().map(material=>{const clone=material.clone();materials.push({material:clone,color:clone.color.clone(),emissive:clone.emissive.clone(),intensity:clone.emissiveIntensity});return clone;});mesh.material=Array.isArray(mesh.material)?own:own[0];});mount.position.fromArray(data.mount.translation);mount.quaternion.fromArray(data.mount.quaternion);hand.add(mount);mount.visible=false;let disposed=false;return{mount,materials,dispose(){if(disposed)return;disposed=true;mount.removeFromParent();for(const row of materials)row.material.dispose();}};
+}

@@ -160,6 +160,56 @@
         3,
         90
       ]
+    },
+    {
+      "id": "flame-headburst",
+      "damageType": "flame",
+      "parts": [
+        "head"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        16,
+        2,
+        0.75,
+        4.2,
+        42
+      ],
+      "presentationRecipeId": "pistol-decapitation"
+    },
+    {
+      "id": "grenade-body-burst",
+      "damageType": "blast",
+      "parts": [],
+      "avoidRepeat": false,
+      "impact": [
+        "body",
+        18,
+        2,
+        0.7,
+        3.8,
+        22
+      ],
+      "presentationRecipeId": "pistol-directional",
+      "goreRecipeId": "blunt-native-collapse"
+    },
+    {
+      "id": "grenade-headburst",
+      "damageType": "blast",
+      "parts": [
+        "head"
+      ],
+      "avoidRepeat": true,
+      "impact": [
+        "head",
+        16,
+        2,
+        0.75,
+        4.2,
+        42
+      ],
+      "presentationRecipeId": "pistol-decapitation"
     }
   ],
   "bindings": [
@@ -229,6 +279,10 @@
         {
           "id": "flame-charred-collapse",
           "weight": 1
+        },
+        {
+          "id": "flame-headburst",
+          "weight": 1
         }
       ],
       "fallback": "flame-charred-collapse",
@@ -246,6 +300,24 @@
         }
       ],
       "fallback": "blunt-native-collapse",
+      "rotate": true
+    },
+    {
+      "weapon": "grenade",
+      "attackClasses": [
+        "blast"
+      ],
+      "recipes": [
+        {
+          "id": "grenade-body-burst",
+          "weight": 2
+        },
+        {
+          "id": "grenade-headburst",
+          "weight": 1
+        }
+      ],
+      "fallback": "grenade-body-burst",
       "rotate": true
     }
   ],

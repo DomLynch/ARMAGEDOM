@@ -5,7 +5,7 @@ const envelope=['version','pistol','hp','supplies','vest','droneDeaths','animalC
 const same=(a,b)=>a.version===b.version&&a.collected===b.collected&&a.fuelUnits===b.fuelUnits;
 const fail=code=>({ok:false,code,events:[]});
 // Outer flame(unique(expedition(progression(domain)))); the existing Core writes once.
-export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,baseStorageAdapter=storage=>storage,canPickup,getConsumption,unitsPerSecond}){
+export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,baseStorageAdapter=storage=>storage,canPickup,getConsumption,unitsPerSecond,getUnitsPerSecond=()=>unitsPerSecond}){
  if([getRun,applyBaseSaved,baseStorageAdapter,canPickup,getConsumption,baseCodec?.encodeRun,baseCodec?.restoreRun,baseCodec?.captureRunState,baseCodec?.isRunStateUnchanged,model?.freshState,model?.valid,model?.copy,model?.pickup,model?.consume].some(fn=>typeof fn!=='function')||!Number.isFinite(unitsPerSecond)||unitsPerSecond<=0)throw TypeError('Existing codec, fuel model and explicit runtime authorities required');
  let legacyRead=false;
  const state=g=>g.flameFuel===undefined?model.freshState():g.flameFuel;
@@ -44,7 +44,7 @@ export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,base
     // Caller scopes this callback to one dispatch and clears it in finally,
     // including failures. Ordinary saves return null; no retained elapsed queue.
     const request=getConsumption(g);
-    if(request!==null){const proposal=model.consume(current,request);if(!proposal)return false;next=proposal.state;if(proposal.spent>0)spent={type:'flame-fuel-spent',spent:proposal.spent,activeSeconds:Math.min(request.seconds,proposal.spent/unitsPerSecond),empty:proposal.empty};}
+    if(request!==null){const rate=getUnitsPerSecond(g);if(!Number.isFinite(rate)||rate<=0||rate>1000)return false;const proposal=model.consume(current,{...request,seconds:request.seconds*rate/unitsPerSecond});if(!proposal)return false;next=proposal.state;if(proposal.spent>0)spent={type:'flame-fuel-spent',spent:proposal.spent,activeSeconds:Math.min(request.seconds,proposal.spent/rate),empty:proposal.empty};}
    }
    if(!context.writeRun({...candidate,flameFuel:next}))return false;
    changed ||= !same(current,next);committedFuel=model.copy(next);candidate.flameFuel=model.copy(next);if(command.type!=='retry')g.flameFuel=model.copy(next);

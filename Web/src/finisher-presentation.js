@@ -1,4 +1,4 @@
-import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition} from './engine/finisher-data.js';
+import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition,finisherPresentationId,withFinisherAliases} from './engine/finisher-data.js';
 import * as T from 'three';
 import {nativeFinisherSupport} from './engine/finisher-cosmetics.js';
 import {prepareSplitCrownSteps} from './finisher-crown.js';
@@ -18,7 +18,7 @@ export function finisherVictimPoseAge(age,{enabled=true,restored=false}={}) {
 export function presentedSeverFlash(entity,{started=false,activePartCost=0}={}) {
   const recipe=entity?.finisher;
   return Number.isFinite(entity?.hp)&&entity.hp<=0&&started===true&&activePartCost>0
-    &&recipe?.cost>0&&['decapitation','pistol-decapitation','split-crown','opened'].includes(recipe.recipeId)
+    &&recipe?.cost>0&&['decapitation','pistol-decapitation','split-crown','opened'].includes(finisherPresentationId(recipe.recipeId))
     &&Array.isArray(recipe.parts)&&recipe.parts.some(p=>['head','crown','upper-body'].includes(p));
 }
 const ordinary = duration => ({id:'ordinary', clip:'Death', seconds:duration, cost:0, parts:[], prepared:true});
@@ -131,6 +131,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
   if(head&&prepareCrown&&validDuration(cut)){try{crown=yield* prepareSplitCrownSteps(head,{maxVertices:maxCrownVertices});support.push({id:'split-crown',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['crown'],prepared:true,lifetime:PART_LIFETIME});}catch(error){crownPreparationError=error.message;}}
   if(!isPlayer&&prepareOpened&&validDuration(cut)){try{opened=yield* prepareOpenedSteps({model,root,clips,groundY,isBlocked,maxVertices:maxOpenedVertices});support.push({id:'opened',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['upper-body'],prepared:true,lifetime:PART_LIFETIME});}catch(error){openedPreparationError=error.message;}}
   if(head&&validDuration(cut))support.push({id:'decapitation',clip:'Death_SplitCrown',seconds:cut,cost:1,parts:['head'],prepared:true,lifetime:PART_LIFETIME});
+  support.splice(0,support.length,...withFinisherAliases(support));
   let chosen=null, recipe=ordinary(validDuration(death)?death:2.4), direction=null, disposed=false, detached=false, expired=false;
   const velocity=new T.Vector3(), spin=new T.Vector3(), axis=new T.Vector3(), matrix=new T.Matrix4();
   const visible=[];
@@ -147,9 +148,9 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
       const candidate=support.find(s=>s.id===outcome?.recipeId);
       const nativeFallback=FINISHER_DATA.bindings.some(b=>b.fallback===candidate?.id),eligible=candidate&&(direction||nativeFallback)&&outcome.damageType===finisherDefinition(candidate.id)?.damageType;
       const fallbackId=FINISHER_DATA.bindings.find(b=>finisherDefinition(b.fallback)?.damageType===outcome?.damageType)?.fallback;
-      recipe=eligible&&!(candidate.id==='opened'&&!opened.canStart())?candidate:direction&&outcome?.damageType?support.find(r=>r.id===fallbackId)??ordinary(death):ordinary(death);
-      if(recipe.id==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
-      if(recipe.id==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
+      recipe=eligible&&!(finisherPresentationId(candidate.id)==='opened'&&!opened.canStart())?candidate:direction&&outcome?.damageType?support.find(r=>r.id===fallbackId)??ordinary(death):ordinary(death);
+      if(finisherPresentationId(recipe.id)==='opened'){root.add(opened.group);opened.group.visible=false;openedActive=true;}
+      if(finisherPresentationId(recipe.id)==='split-crown'){bone.add(crown.group);crown.open(0);for(const node of head.nodes){visible.push([node,node.visible]);node.visible=false;}crownActive=true;}
       if(recipe.parts.includes('head')) {
         root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
         matrix.copy(bone.matrixWorld).multiply(new T.Matrix4().makeTranslation(...head.center.toArray()));
@@ -164,7 +165,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
     },
     pose(age) {
       const elapsed=Math.max(0,Number.isFinite(age)?age:0);
-      if(expired&&recipe.id==='opened')return{clip:'Death',phase:.999999,offset:{x:0,z:0}};
+      if(expired&&finisherPresentationId(recipe.id)==='opened')return{clip:'Death',phase:.999999,offset:{x:0,z:0}};
       if(recipe.reactionClip==='Hit'&&elapsed<hit) {
         const amount=.1*Math.sin(Math.PI*elapsed/hit), proposed={x:direction.x*amount,z:direction.z*amount};
         const origin={x:root.position.x,z:-root.position.z};
@@ -172,7 +173,7 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
         return {clip:'Hit',phase:Math.min(.999999,elapsed/hit),offset};
       }
       const offset={x:0,z:0}, clip=recipe.clip, clipSeconds=durationOf(clips,clip);
-      const phase=Math.min(.999999,Math.max(0,elapsed-(recipe.reactionClip==='Hit'?hit:0))/clipSeconds);root.getWorldScale(runScale);return {clip,phase,offset,groundLift:recipe.id==='run-through'?runGrounding.lift(phase)*runScale.y:0};
+      const phase=Math.min(.999999,Math.max(0,elapsed-(recipe.reactionClip==='Hit'?hit:0))/clipSeconds);root.getWorldScale(runScale);return {clip,phase,offset,groundLift:finisherPresentationId(recipe.id)==='run-through'?runGrounding.lift(phase)*runScale.y:0};
     },
     update(age,dt) {
       if(disposed||expired)return;
@@ -195,12 +196,12 @@ export function* createFinisherPresentationSteps({root,model,clips,scene,groundY
     },
     impactAnchors(age){
       if(disposed||expired||!chosen||recipe.id==='ordinary')return null;
-      if((recipe.id==='opened'&&!openedShown)||(recipe.id==='split-crown'&&age<=.045))return null;
+      if((finisherPresentationId(recipe.id)==='opened'&&!openedShown)||(finisherPresentationId(recipe.id)==='split-crown'&&age<=.045))return null;
       root.updateWorldMatrix(true,true);root.updateMatrixWorld(true);
       const at=node=>{if(!node)return null;node.updateWorldMatrix(true,false);node.getWorldPosition(anchorPoint);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
       const capAt=mesh=>{if(!mesh?.geometry.boundingSphere)return null;mesh.updateWorldMatrix(true,false);anchorPoint.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);return{x:anchorPoint.x,y:anchorPoint.y,z:anchorPoint.z};};
-      if(recipe.id==='opened'){const upper=at(opened.group.getObjectByName('OpenedTorso')),lower=at(opened.group.getObjectByName('OpenedLegs'));return upper?{body:upper,trails:[upper,lower??upper]}:null;}
-      if(recipe.id==='split-crown'){const left=capAt(crown.caps.find(m=>m.parent===crown.halves[0])),right=capAt(crown.caps.find(m=>m.parent===crown.halves[1]));return left?{head:left,trails:[left,right??left]}:null;}
+      if(finisherPresentationId(recipe.id)==='opened'){const upper=at(opened.group.getObjectByName('OpenedTorso')),lower=at(opened.group.getObjectByName('OpenedLegs'));return upper?{body:upper,trails:[upper,lower??upper]}:null;}
+      if(finisherPresentationId(recipe.id)==='split-crown'){const left=capAt(crown.caps.find(m=>m.parent===crown.halves[0])),right=capAt(crown.caps.find(m=>m.parent===crown.halves[1]));return left?{head:left,trails:[left,right??left]}:null;}
       if(recipe.parts.includes('head')){const seam=at(head.stump),detachedCap=head.group.children.find(n=>n.geometry===head.stump.geometry);if(!seam)return null;anchorNormal.set(0,1,0).transformDirection(head.stump.matrixWorld);return{head:seam,neckNormal:{x:anchorNormal.x,y:anchorNormal.y,z:anchorNormal.z},trails:[at(detachedCap)??seam,seam]};}
       const body=at(torso);return body?{body,trails:[body]}:null;
     },

@@ -1,3 +1,4 @@
+import{selectedBossRanged}from'./boss-weapon-runtime.js';
 import {createMovementTrace} from './movement-trace.js';
 import {applyAreaLighting} from './area-lighting.js';
 import * as THREE from 'three';
@@ -72,7 +73,7 @@ function pause(value) {
   if (value) audio.pause();
   if (renderer && loaded) renderer.setAnimationLoop(value ? null : loop.frame);
 }
-const context={failTravelRecovery(){travelRecoveryFailed=true;pause(true);},get diagnostics(){return diagnostics},get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun({reset=false}={}){const target=reset?resetWorld:world;if(!target)throw Error('Reset destination unavailable');return createGame(target,{...pilot,residentPlacements:target.residentPlacements??pilot.residentPlacements,...(reset?{}:{animalCycle:nextAnimalCycle(game.animalCycle)})});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get resetting(){return resetting},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},dispatchRifle(g,command,allowed){return resources.dispatchRifle(g,command,allowed);},dispatchFlame(g,command,request,allowed){return resources.dispatchFlame(g,command,request,allowed);},flameSource(){return actors?.flameSource();},flameAimEligible(g,target){return actors?.flameAimEligible(g,target)??false;},collectNearbySupplies(g,intent){resources.collectNearbySupplies(g,intent);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},updateExpedition(){resources.updateExpedition()},cancelPistol(g){resources.cancelPistol(g)},emit};
+const context={failTravelRecovery(){travelRecoveryFailed=true;pause(true);},get diagnostics(){return diagnostics},get storage(){return runStorage},get renderer(){return renderer},get world(){return world},get actors(){return actors},get effects(){return effects},get atmosphere(){return atmosphere},get game(){return game},setGame(value){game=value;},createFreshRun({reset=false}={}){const target=reset?resetWorld:world;if(!target)throw Error('Reset destination unavailable');return createGame(target,{...pilot,residentPlacements:target.residentPlacements??pilot.residentPlacements,...(reset?{}:{animalCycle:nextAnimalCycle(game.animalCycle)})});},get input(){return input},get loaded(){return loaded},get paused(){return paused},get contextLost(){return contextLost||disposed},get scene(){return scene},get camera(){return camera},get rim(){return rim},get canvas(){return canvas},get audio(){return audio},get hud(){return hud},get resetting(){return resetting},get traveling(){return traveling},set traveling(v){traveling=v},get areas(){return areas},resetClock(){loop?.reset()},persistRun(g){return resources.persistRun(g)},dispatchPistol(g,command,canAct){return resources.dispatchPistol(g,command,canAct);},dispatchRifle(g,command,allowed){return resources.dispatchRifle(g,command,allowed);},dispatchMarshalPistol(g,request){return resources.dispatchMarshalPistol(g,request);},dispatchBossEquipment(g,command,allowed){return resources.dispatchBossEquipment(g,command,allowed);},dispatchFlame(g,command,request,allowed){return resources.dispatchFlame(g,command,request,allowed);},flameSource(){return actors?.flameSource();},flameAimEligible(g,target){return actors?.flameAimEligible(g,target)??false;},collectNearbySupplies(g,intent){resources.collectNearbySupplies(g,intent);},collectNearbyVest(g){resources.collectNearbyVest(g);},updateSupplies(){resources.updateSupplies()},updateVestBag(){resources.updateVestBag()},updateExpedition(){resources.updateExpedition()},cancelPistol(g){resources.cancelPistol(g)},emit};
 resources=createRunViews(context);areas=createAreaLifecycle(context);loop=createBrowserLoop(context);
 const hud = createHUD({
   onAssist:enabled=>{mobileAssistEnabled=enabled;if(game){game.mobileAssistEnabled=enabled;resetMobileControls(game);}},
@@ -146,7 +147,7 @@ input = attachInput({
   onRetry: restart,
   onReset: resetGame,
   onPickup:()=>resources.interactFlame(),
-  isPistol: () => !!game?.pistol?.equipped||!!game?.flame?.equipped,
+  isPistol: () => !!(game&&selectedBossRanged(game))||!!game?.rifle?.selected||!!game?.pistol?.equipped||!!game?.flame?.equipped,
   isFlame: () => !!game?.flame?.equipped,
   isPaused: () =>
     !loaded || paused || traveling || contextLost || game?.finished,
@@ -253,7 +254,7 @@ async function start() {
     await actors.ensureAreaModels(game);
     if(contextLost||disposed)return;
     pendingLibrary = null;
-    effects = createEffects(scene, world, library.pistolAsset, () => game.rifle?.selected?actors.views.get(0)?.riflePose?.muzzle:actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),{hitMarker:document.getElementById("hit-marker"),getView:actor=>actors.views.get(actor.id),getFlameSource:()=>actors.flameSource()});
+    effects = createEffects(scene, world, library.pistolAsset, () => game.bossEquipment?.shotgun?.selected?actors.views.get(0)?.shotgunPose?.muzzle:game.rifle?.selected?actors.views.get(0)?.riflePose?.muzzle:actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),{hitMarker:document.getElementById("hit-marker"),getView:actor=>actors.views.get(actor.id),getFlameSource:()=>actors.flameSource()});
     atmosphere = createAtmosphere({THREE, scene, world});
     actors.update(game, 0);game.ratContact=actors.ratContact();
     renderer.setAnimationLoop(loop.frame);

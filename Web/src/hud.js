@@ -1,3 +1,4 @@
+import{selectedBossRanged}from'./engine/boss-weapon-runtime.js';
 import{createMenuTabs}from'./menu-tabs.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
@@ -59,7 +60,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
   const handlers=['resume','close-menu','menu-button','retry','reset-game','confirm-reset','cancel-reset','again','pistol-interact','sound','assist'].map(id=>({element:el(id),key:'onclick',handler:el(id).onclick}));handlers.push({element:feedback,key:'onchange',handler:feedback.onchange});
   resize();
   let lastMessage = "",
-    lastStaminaState = null,lastRifleEquipped=null, lastPistolEquipped = null, lastFlameEquipped=false;
+    lastStaminaState = null,lastRifleEquipped=null,lastBossWeapon=null, lastPistolEquipped = null, lastFlameEquipped=false;
   return {
     dispose(){loaded=false;menuTabs.dispose();for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
@@ -147,9 +148,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       if(model){
         const weapon=p.weapon==='pistol'?'westminster-start-pistol-v1':'knife',label=weapon==='knife'?'KNIFE':'PISTOL';
         const bonus=id=>Math.round((pilotBonuses(g.world.progressionData,DEFAULT_ATTRIBUTES,id,progression.proficiency[id]).damageMultiplier-1)*1000)/10;
-        el('mastery').textContent=p.weapon==='rifle'?'RIFLE · no mastery bonus':`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
+        el('mastery').textContent=['rifle','shotgun','grenade'].includes(p.weapon)?`${p.weapon.toUpperCase()} · no mastery bonus`:`${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
         el('progression-attributes').textContent=Object.entries(progression.attributes).map(([id,value])=>`${id[0].toUpperCase()+id.slice(1)} ${value}`).join(' · ')+'. Intelligence has no effect in this pilot.';
-        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${(p.weapon==='rifle'?0:Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10)}%.`;
+        el('progression-weapons').textContent=`Knife ${progression.proficiency.knife}/100 (+${bonus('knife')}% mastery damage) · Pistol ${progression.proficiency['westminster-start-pistol-v1']}/100 (+${bonus('westminster-start-pistol-v1')}% mastery damage). Combined damage bonus: +${(['rifle','shotgun','grenade'].includes(p.weapon)?0:Math.round((model.bonuses(progression,weapon).damageMultiplier-1)*1000)/10)}%.`;
       }
       const vestNotice = !g.finished && p.hp > 0
         ? g.vest?.equipped
@@ -182,6 +183,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       el("guard").classList.toggle("pressed", p.guarding);
       const flameEquipped=!!g.flame?.equipped;if(flameEquipped!==lastFlameEquipped){lastPistolEquipped=null;lastFlameEquipped=flameEquipped;}
       if(!!g.rifle?.selected!==lastRifleEquipped){lastPistolEquipped=null;lastRifleEquipped=!!g.rifle?.selected;}
+      const bossWeapon=selectedBossRanged(g);if(bossWeapon!==lastBossWeapon){lastPistolEquipped=null;lastBossWeapon=bossWeapon;}
       const pistol=g.pistol;
       if(pistol){
         const equipped=pistol.equipped;
@@ -211,6 +213,13 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with rifle');el('ammo').hidden=false;el('ammo').textContent=`RIFLE · ${rifle.magazine}/${rules.capacity} · ${rifle.reserve} RESERVE${clock.reloadingUntil?' · RELOADING':''}`;
         for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',false);el(id).classList.toggle('cooldown',id==='slash'&&left>0);el(id).querySelector('small').textContent=id==='slash'?`${rifle.magazine}/${rules.capacity}`:id==='stab'&&clock.reloadingUntil?`${Math.max(0,clock.reloadingUntil-g.time).toFixed(1)}s`:'';}
         el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready',String(1-Math.min(1,left/rules.cadence)));el('slash').setAttribute('aria-label',`Fire rifle once; ${rifle.magazine} loaded and ${rifle.reserve} reserve`);el('stab').setAttribute('aria-label','Reload rifle');
+      }
+      if(bossWeapon&&!flameEquipped){
+        const state=g.bossEquipment[bossWeapon],data=g.world.bossEquipmentData[bossWeapon],clock=g.bossEquipmentAction?.[bossWeapon]??{},left=Math.max(0,(clock.nextFireAt??0)-g.time),grenade=bossWeapon==='grenade';
+        for(const[id,text]of Object.entries({slash:grenade?'THROW':'FIRE',stab:grenade?'RANGE':'RELOAD',heavy:'MELEE',guard:'NO GUARD'}))el(id).querySelector('span').textContent=text;
+        el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with '+data.name);el('ammo').hidden=false;el('ammo').textContent=grenade?`GRENADES · ${state.magazine} LEFT · 1s FUSE`:`SHOTGUN · ${state.magazine}/2 · ${state.reserve} RESERVE${clock.reloadingUntil?' · RELOADING':''}`;
+        for(const id of ['slash','stab','heavy']){el(id).classList.toggle('low-energy',id==='slash'&&state.magazine===0);el(id).classList.toggle('cooldown',id==='slash'&&left>0);el(id).querySelector('small').textContent=id==='slash'?grenade?`${state.magazine} left`:`${state.magazine}/2`:id==='stab'?grenade?`${g.grenadeThrowRange??5}m`:clock.reloadingUntil?`${Math.max(0,clock.reloadingUntil-g.time).toFixed(1)}s`:'':'';}
+        el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready',String(1-Math.min(1,left/data.rules.cadence)));el('slash').setAttribute('aria-label',grenade?`Throw one grenade; ${state.magazine} left`:`Fire shotgun once; ${state.magazine} loaded`);el('stab').setAttribute('aria-label',grenade?'Cycle touch throw range: 3, 5 or 8 metres':'Reload shotgun');
       }
       if(flameEquipped){
         const percent=Math.ceil(g.flameFuel.fuelUnits/g.world.flameData.capacity*100);el('ammo').hidden=false;el('ammo').textContent=`FLAMETHROWER · FUEL ${percent}%`;
