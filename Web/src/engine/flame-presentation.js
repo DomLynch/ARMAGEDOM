@@ -2,7 +2,7 @@ import {FLAME_DEATH_DATA,flameDeathSeconds,isFlameRecipe} from './finisher-data.
 import{combatTargetHeight}from'../pistol-targeting.js';
 import{flameTouches}from'./flame-contact.js';
 import * as T from 'three';
-import {attachPistol,PISTOL_ARM_EXTENSION} from '../pistol-pose.js';
+import {attachPistol,applyPistolAim,PISTOL_ARM_EXTENSION} from '../pistol-pose.js';
 import {FLAME_AIM} from '../mobile-combat-aim.js';
 import profile from '../donor/flame-right-digit-profile.json' with {type:'json'};
 export const FLAME_DOWN_PITCH=FLAME_AIM.downPitch;
@@ -16,11 +16,30 @@ export function flameGripProfile(model,heroSHA){
  let skin;model.traverse(n=>{if(!skin&&n.isSkinnedMesh)skin=n;});if(!skin||profile.source.jointOrder.some((name,i)=>skin.skeleton.bones[i]?.name!==name)||skin.skeleton.bones.length!==profile.source.jointOrder.length)throw Error('Flame grip joint order mismatch');
  validated.set(model,profile);return profile;
 }
-export function attachFlame(model,source){
+const heldFlameBindings=new WeakMap();
+export function attachFlame(model,source,{bindHand=false}={}){
  if(!source?.scene?.getObjectByName('Grip')||!source.scene.getObjectByName('Muzzle'))throw Error('Flame grip/muzzle source missing');
  const mount=attachPistol(model,source.scene);mount.name='FlamethrowerMount';
  // Art's one measured scene-child offset is not baked into the immutable GLB.
- mount.children[0].position.add({x:-.01262174057948523,y:.07164552251435374,z:.014197067151910436});mount.visible=false;return mount;
+ mount.children[0].position.add({x:-.01262174057948523,y:.07164552251435374,z:.014197067151910436});mount.visible=false;
+ if(bindHand){
+  // Calibrate the existing ready grip once, then restore the native pose exactly.
+  // Even a first-frame hurt actor keeps its own Hit pose; no ready IK is rendered.
+  const bones=[];model.traverse(node=>{if(node.isBone)bones.push({node,q:node.quaternion.clone(),matrix:node.matrix.clone(),auto:node.matrixAutoUpdate});});
+  try{applyPistolAim(model,mount,{recoil:0});rememberFlameHand(model,mount);}
+  finally{for(const{node,q,matrix,auto}of bones){node.quaternion.copy(q);node.matrix.copy(matrix);node.matrixAutoUpdate=auto;node.matrixWorldNeedsUpdate=true;}model.updateWorldMatrix(true,true);model.traverse(node=>{if(node.isSkinnedMesh)node.skeleton.update();});}
+ }
+ return mount;
+}
+
+export function rememberFlameHand(model,mount){
+ model.updateWorldMatrix(true,true);heldFlameBindings.set(mount,model.getObjectByName('hand_r').matrixWorld.clone().invert().multiply(mount.matrixWorld));
+}
+// Keep the model-owned mount affine-exact on the native hurt/idle hand, without IK.
+export function followFlameHand(model,mount){
+ const binding=heldFlameBindings.get(mount),hand=model.getObjectByName('hand_r');
+ if(!binding||!hand||mount.parent!==model)throw Error('Held flame hand binding unavailable');
+ model.updateWorldMatrix(true,true);mount.matrix.copy(model.matrixWorld).invert().multiply(hand.matrixWorld).multiply(binding);mount.matrixAutoUpdate=false;mount.matrixWorldNeedsUpdate=true;mount.updateWorldMatrix(true,true);
 }
 
 // Solve the barrel ray about the shoulder pivot, including the muzzle's

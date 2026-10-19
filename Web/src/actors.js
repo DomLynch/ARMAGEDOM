@@ -4,7 +4,7 @@ import{createRiflePose}from'./rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
 import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds,finisherPresentationId} from './engine/finisher-data.js';
-import{attachFlame,flameTargetAim,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
+import{attachFlame,followFlameHand,rememberFlameHand,flameTargetAim,flameGripProfile,applyFlamePitch,restoreFlamePitch,flameAimPose,flameAimBasis,flameAimEligible,flameArmStance,applyFlameCorpseChar}from'./engine/flame-presentation.js';
 import{MELEE_VARIANTS,selectedMeleeVariant,setPlayerMeleeWeapon}from'./melee-equipment.js';
 import cleaverLowClip from'./donor/cleaver-rat-low.json'with{type:'json'};
 import {ratMeleePosePhase} from './rat-melee-definition.js';
@@ -269,6 +269,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       const Motion =
         ["donor-knife","rat","dog","roach"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
+      // Seed the existing grip on the private Armed initialization, before Hit/gait.
+      if(entity.hp>0&&entity.bossProfile?.weapon?.kind==='flame'){const flame=library.models.get(entity.bossProfile.weapon.modelRef);if(flame)view.flameMount=attachFlame(model,flame.gltf,{bindHand:true});}
       view.finisherDeathSeconds=animations.find(c=>c.name===description.clips.death)?.duration??2.4;view.restoredCorpse=restoreCorpses&&entity.hp<=0;
       if(finishers&&entity.kind>=0)entity.finisherSupport=nativeFinisherSupport({clip:description.clips.death,seconds:view.finisherDeathSeconds});
       if (view.locomotionVariant === 'crooked-hollow')
@@ -465,10 +467,10 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.pistolSlide.setRecoil(pose?pistolRecoil:0);
         }
         if(entity.bossProfile?.weapon?.kind==='flame'){
-          const pose=entity.hp>0&&game.time>=entity.recoverUntil&&game.time>=entity.staggerUntil;
+          const holding=entity.hp>0,pose=holding&&game.time>=entity.recoverUntil&&game.time>=entity.staggerUntil;
           if(view.knife)view.knife.visible=false;
-          if(pose&&!view.flameMount){const source=library.models.get(entity.bossProfile.weapon.modelRef);if(source)view.flameMount=attachFlame(view.model,source.gltf);}
-          if(view.flameMount){view.flameMount.visible=pose;if(pose){applyPistolAim(view.model,view.flameMount,{recoil:0});const target=entity.bossWeapon?.aimPoint;if(target){const aim=flameTargetAim(view.model,view.flameMount,new THREE.Vector3(target.x,target.y,-target.z));applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}}}
+          if(holding&&!view.flameMount){const source=library.models.get(entity.bossProfile.weapon.modelRef);if(source)view.flameMount=attachFlame(view.model,source.gltf,{bindHand:true});}
+          if(view.flameMount){view.flameMount.visible=holding;if(pose){view.flameMount.matrixAutoUpdate=true;applyPistolAim(view.model,view.flameMount,{recoil:0});const target=entity.bossWeapon?.aimPoint;if(target){const aim=flameTargetAim(view.model,view.flameMount,new THREE.Vector3(target.x,target.y,-target.z));applyFlamePitch(view.model,view.flameMount,aim.pitch,aim.yaw);}rememberFlameHand(view.model,view.flameMount);}else if(holding)followFlameHand(view.model,view.flameMount);}
         }
         if(entity===game.player){
           const equipped=!!game.flame?.equipped,pose=equipped&&!game.weaponsLowered&&entity.hp>0&&game.time>=entity.dodgeUntil&&game.time>=entity.hurtUntil;
