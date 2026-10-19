@@ -571,4 +571,5 @@ summary {
 
 #weapon-tiles-track .weapon-page{display:flex;flex:0 0 110px;width:110px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
 #weapon-tiles .weapon-browse{flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#e1bb65;font-size:22px;line-height:44px;text-align:center;touch-action:manipulation;}
+#weapon-tiles-prev{position:absolute;left:0;bottom:100%;}
 @media(orientation:portrait)and(max-width:374px){#weapon-tiles{bottom:calc(var(--safe-b) + 232px);}}
