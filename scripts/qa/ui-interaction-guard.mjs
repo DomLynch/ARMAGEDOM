@@ -1,5 +1,5 @@
 // Shared Playwright guard: read-only prerequisite snapshots, one ordinary input,
-// bounded acknowledgement, and unconditional bounded input-release attempts.
+// bounded acknowledgement, and bounded release of possibly incomplete input.
 const DISPATCH_DIAGNOSTIC_GRACE_MS=250;
 async function bounded(work,ms,phase){
  let timer;try{return await Promise.race([Promise.resolve().then(work),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(phase+' wall limit exceeded')),Math.max(1,ms));})]);}finally{clearTimeout(timer);}
@@ -24,13 +24,13 @@ async function controlSnapshot(page,selector){
  },selector);
 }
 async function releaseInputs(page,method,ms){
- const work=[bounded(()=>page.mouse.up({button:'left'}),ms,'mouse release')];
+ const work=[];if(method==='click')work.push(bounded(()=>page.mouse.up({button:'left'}),ms,'mouse release'));
  if(method==='tap')work.push(bounded(async()=>{let session;try{session=await page.context().newCDPSession(page);try{await session.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});}catch(error){if(error?.message!=='cdpSession.send: Protocol error (Input.dispatchTouchEvent): Must send a TouchStart first to start a new touch.')throw error;}}finally{if(session)await bounded(()=>session.detach(),ms,'touch session detach');}},ms,'touch release'));
  const results=await Promise.allSettled(work);return results.flatMap(result=>result.status==='rejected'?[String(result.reason?.message??result.reason)]:[]);
 }
 async function perform(page,{kind,selector=null,method='click',url,reload=false,ack,timeoutMs=3000,label=kind}){
  const deadline=Date.now()+timeoutMs,remaining=()=>Math.max(1,deadline-Date.now()),cleanupMs=Math.min(1000,timeoutMs);
- let phase='snapshot',classification='unknown',dispatched=false,before=null,after=null,result,error,releaseErrors=[];
+ let phase='snapshot',classification='unknown',dispatched=false,pendingInput=null,atomicInputCompleted=false,before=null,after=null,result,error,releaseErrors=[];
  try{
   before=await bounded(()=>controlSnapshot(page,selector),remaining(),'prerequisite snapshot');
   if(kind==='control'){
@@ -45,7 +45,7 @@ async function perform(page,{kind,selector=null,method='click',url,reload=false,
   phase='dispatch';if(Date.now()>=deadline)throw Error('action deadline expired before dispatch');dispatched=true;const options={timeout:remaining()},dispatchWallMs=options.timeout+DISPATCH_DIAGNOSTIC_GRACE_MS;
   // Preserve the native action timeout; the outer wall cap only gives its error
   // call log time to arrive. A late success is still outside functional limits.
-  if(kind==='control'){if(method==='tap')await bounded(()=>page.touchscreen.tap(before.point.x,before.point.y),options.timeout,'coordinate touch dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),dispatchWallMs,'click dispatch');}
+  if(kind==='control'){pendingInput=method;if(method==='tap')await bounded(()=>page.touchscreen.tap(before.point.x,before.point.y),options.timeout,'coordinate touch dispatch');else await bounded(()=>page.click(selector,{...options,strict:true}),dispatchWallMs,'click dispatch');atomicInputCompleted=true;pendingInput=null;}
   else if(reload)await bounded(()=>page.reload({...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'reload dispatch');
   else await bounded(()=>page.goto(url,{...options,waitUntil:'domcontentloaded'}),dispatchWallMs,'navigation dispatch');
   if(Date.now()>deadline)throw Error('dispatch completed after action deadline; acknowledgement not attempted');
@@ -54,12 +54,12 @@ async function perform(page,{kind,selector=null,method='click',url,reload=false,
   let acknowledgement;try{acknowledgement=await bounded(()=>handle.jsonValue(),remaining(),'acknowledgement value');}finally{try{await bounded(()=>handle.dispose(),cleanupMs,'acknowledgement handle release');}catch{}}
   if(!acknowledgement)throw Error('actual acknowledgement predicate did not pass');
   after=await bounded(()=>controlSnapshot(page,selector),remaining(),'result snapshot');
-  result={phase:'acknowledged',dispatched,label,kind,selector,method:kind==='control'?method:reload?'reload':'goto',before,after,acknowledgement};
+  result={phase:'acknowledged',dispatched,atomicInputCompleted,label,kind,selector,method:kind==='control'?method:reload?'reload':'goto',before,after,acknowledgement};
  }catch(cause){
-  error=Object.assign(new Error('QA_UI_'+phase.toUpperCase()+': '+cause.message,{cause}),{name:'QAInteractionError',phase,dispatched,classification,label,before});
+  error=Object.assign(new Error('QA_UI_'+phase.toUpperCase()+': '+cause.message,{cause}),{name:'QAInteractionError',phase,dispatched,atomicInputCompleted,classification,label,before});
   try{after=await bounded(()=>controlSnapshot(page,selector),cleanupMs,'failure snapshot');}catch(diagnosticError){error.diagnosticError=String(diagnosticError.message??diagnosticError);}error.after=after;
  }finally{
-  releaseErrors=await releaseInputs(page,kind==='control'?method:null,cleanupMs);
+  releaseErrors=await releaseInputs(page,pendingInput,cleanupMs);
  }
  if(error){error.releaseErrors=releaseErrors;throw error;}
  if(releaseErrors.length)throw Object.assign(Error('QA_UI_RELEASE: '+releaseErrors.join('; ')),{name:'QAInteractionError',phase:'release',dispatched,classification:'infrastructure',label,before,after,releaseErrors});

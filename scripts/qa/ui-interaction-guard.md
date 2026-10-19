@@ -26,11 +26,19 @@ they cannot masquerade as a successful hidden-Retry negative. Post-dispatch
 failures report their actual dispatch/acknowledgement phase and `dispatched:true`.
 No unknown failure is labelled a product defect.
 
-Every entered guard attempts bounded mouse release in finally. Tap also attempts
-Chromium CDP touchCancel and session detach. A broken transport cannot guarantee
-physical delivery; release errors are explicit, never swallowed as success.
-The helper does not press/release keyboard keys it never owned. It emits no
-screenshot, browser launch, capture or submission job.
+Cleanup tracks only possibly incomplete input dispatched by this guard. Before a
+control action the pending kind is click or touch; it is cleared only when the
+native atomic action returns successfully. Pinned Playwright1.63.0 Chromium tap
+awaits both touchStart and touchEnd, so a completed tap owns no held touch.
+Completed click/tap, navigation and before-input failures do not issue unrelated
+mouse-up or create a new touch-cancel session. `atomicInputCompleted` records the
+observed native completion independently of later acknowledgement failure.
+
+A rejected/timed-out dispatch remains uncertain: click attempts bounded mouse-up;
+touch attempts bounded CDP touchCancel and detach. An actual cleanup failure or
+timeout remains explicit in the original error, never converted to success.
+No deadline is increased. The helper never releases keyboard keys it did not own.
+It emits no screenshot, browser launch, capture or submission job.
 
 The AST policy binds exact helper bytes, the two exported functions, reviewed
 internals `perform` and `releaseInputs`, and only their `ack` parameter for
@@ -49,11 +57,11 @@ with `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --prefix scripts/qa
 The checked runner owns the explicitly selected, verified Chromium executable;
 this helper never chooses a global/default/Snap browser.
 
-A successful atomic Playwright tap may leave no touch sequence to cancel. Only
+For an uncertain tap dispatch, cleanup may find no touch sequence to cancel. Only
 the exact observed `cdpSession.send: Protocol error (Input.dispatchTouchEvent):
 Must send a TouchStart first to start a new touch.` response counts as already
 released. Bare lookalikes, suffixed messages and other transport errors remain
-fatal; mouse cleanup and session detach are still attempted. The original
+fatal; touch session detach is still attempted. The original
 checked171 EXIT1/report is preserved, not relabelled PASS.
 
 Click/navigation dispatch uses the original remaining Playwright action timeout. Only its outer
@@ -64,5 +72,5 @@ are unchanged; a stalled transport remains bounded. This does not establish the
 cause or correction of an observed menu click failure.
 
 Coordinate touch uses the original remaining wall budget with no diagnostic
-grace. Independent acknowledgement and finally cleanup remain mandatory.
+grace. Independent acknowledgement and finally cleanup of possibly incomplete input remain mandatory.
 A timed-out selector attempt remains failed even if its handler changed the UI.

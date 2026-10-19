@@ -1,0 +1,40 @@
+✔ missing/hidden/disabled/covered/offscreen/inert/closed-details controls reject before primary input with prompt actual snapshot (7.850667ms)
+✔ one valid control dispatch waits for true acknowledgement and releases input without force (2.158334ms)
+✔ already satisfied predicate rejects without input instead of falsely proving an action (0.546041ms)
+✔ observation transport failures cannot masquerade as hidden-control precondition proof (0.907375ms)
+✔ missing acknowledgement has finite deadline, retains before/after diagnostics and releases once (10.515375ms)
+✔ dispatch hang/failure remains dispatch failure and always attempts release, no retry (262.461042ms)
+✔ diagnostic grace preserves native timeout call log without extending Playwright action timeout (31.884958ms)
+✔ dispatch success arriving during diagnostic grace is rejected, no late acknowledgement acceptance (30.72775ms)
+✔ tap uses the freshly hit-tested visible coordinate, not selector tap post-handler waiting (1.233125ms)
+✔ coordinate touch rejects changed readiness/geometry, still requires independent acknowledgement (24.194459ms)
+✔ only exact no-active-touch protocol response is a completed release, other touch errors remain fatal (2.298333ms)
+✔ navigation/reload use bounded DOM-content-loaded dispatch plus actual acknowledgement (3.143791ms)
+✔ release transport failure is explicit, invalid options cannot dispatch (1.885416ms)
+✖ completed atomic touch owns no held input and never probes blocked cleanup transports (1.430334ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 583.048875
+
+✖ failing tests:
+
+test at scripts/qa/ui-interaction-guard.test.mjs:68:1
+✖ completed atomic touch owns no held input and never probes blocked cleanup transports (1.430334ms)
+  Error [QAInteractionError]: QA_UI_RELEASE: unowned mouse release; unowned touch session
+      at perform (file:///Users/domininclynch/Library/Mobile%20Documents/com%7Eapple%7ECloudDocs/Desktop/Business/ARMAGEDOM-driver-preflight-20261018/scripts/qa/ui-interaction-guard.mjs:65:46)
+      at async TestContext.<anonymous> (file:///Users/domininclynch/Library/Mobile%20Documents/com%7Eapple%7ECloudDocs/Desktop/Business/ARMAGEDOM-driver-preflight-20261018/scripts/qa/ui-interaction-guard.test.mjs:70:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    phase: 'release',
+    dispatched: true,
+    classification: 'infrastructure',
+    label: 'retry',
+    before: { url: 'https://example.invalid/', readyState: 'complete', visibility: 'visible', viewport: { width: 393, height: 852 }, selector: '#retry', menu: { open: true, settingsHidden: false, testingToolsOpen: true }, game: { time: 5, tick: 300, hp: 150, finished: false, weapon: 'knife' }, count: 1, exists: true, rect: { x: 10, y: 20, width: 100, height: 40 }, style: { display: 'block', visibility: 'visible', opacity: '1', pointerEvents: 'auto' }, visible: true, enabled: true, actionable: true, point: { x: 60, y: 40 }, blockedBy: null, reason: null, previousRect: { x: 10, y: 20, width: 100, height: 40 } },
+    after: { url: 'https://example.invalid/', readyState: 'complete', visibility: 'visible', viewport: { width: 393, height: 852 }, selector: '#retry', menu: { open: true, settingsHidden: false, testingToolsOpen: true }, game: { time: 5, tick: 300, hp: 150, finished: false, weapon: 'knife' }, count: 1, exists: true, rect: { x: 10, y: 20, width: 100, height: 40 }, style: { display: 'block', visibility: 'visible', opacity: '1', pointerEvents: 'auto' }, visible: true, enabled: true, actionable: true, point: { x: 60, y: 40 }, blockedBy: null, reason: null },
+    releaseErrors: [ 'unowned mouse release', 'unowned touch session' ]
+  }

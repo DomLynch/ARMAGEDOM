@@ -1,0 +1,38 @@
+✔ valid maintained guarded driver resolves real AST imports/fixture and deterministic hashes without execution (39.030542ms)
+✔ missing local module or literal data fixture rejects before any submission (8.062791ms)
+✔ direct bypass, method alias/destructuring and computed method reject with zero submission (5.804083ms)
+✔ candidate cannot self-approve custom adapter or modified maintained helper (5.819833ms)
+✔ audited aliased process launch and CDP send escapes reject with zero submission (5.936666ms)
+✔ reviewed UI guard ack parameter resolves only inside exact approved helper internals (23.500083ms)
+✔ trusted binding shadow and callbacks outside direct approved call are not exemptions (6.133ms)
+✔ syntax, unresolved dynamic imports/data/code and process launch report unsupported rather than claiming PASS (5.159916ms)
+✔ fixture paths do not use ambiguous lexical constants or fake path methods; unsupported source extensions reject (6.853542ms)
+✔ local import cycles resolve once and stage escapes/symlinks fail closed (4.600625ms)
+✔ source-build manifest binds actual files/fingerprint, allows null package hash; tamper rejects (10.146167ms)
+✔ existing-package retry binds actual release/payload/hash, identity mismatch rejects (10.655875ms)
+✔ CLI emits stable report and nonzero for missing fixture, no driver execution/submission side effects (365.284709ms)
+✔ absolute symlinked CLI invocation from a separate stage CWD runs main and writes PASS/FAIL reports (242.204208ms)
+✔ narrow gameplay adapter closes static imports without legacy exemption and rejects tamper/callback bypass (26.493459ms)
+✔ missing/hidden/disabled/covered/offscreen/inert/closed-details controls reject before primary input with prompt actual snapshot (4.846459ms)
+✔ completed atomic click waits for true acknowledgement without extra unowned input (1.252667ms)
+✔ already satisfied predicate rejects without input instead of falsely proving an action (0.252167ms)
+✔ observation transport failures cannot masquerade as hidden-control precondition proof (0.441541ms)
+✔ missing acknowledgement after completed click fails with diagnostics and no unowned release (12.017ms)
+✔ dispatch hang/failure remains dispatch failure and always attempts release, no retry (261.864042ms)
+✔ diagnostic grace preserves native timeout call log without extending Playwright action timeout (30.670416ms)
+✔ dispatch success arriving during diagnostic grace is rejected, no late acknowledgement acceptance (31.671542ms)
+✔ tap uses the freshly hit-tested visible coordinate, not selector tap post-handler waiting (0.469083ms)
+✔ coordinate touch rejects changed readiness/geometry, still requires independent acknowledgement (23.752667ms)
+✔ uncertain touch dispatch cancels only touch, exact already-released response is benign but other release failures stay explicit (1.248375ms)
+✔ navigation/reload use bounded DOM-content-loaded dispatch plus actual acknowledgement (0.432834ms)
+✔ release transport failure is explicit, invalid options cannot dispatch (0.324791ms)
+✔ completed atomic touch owns no held input and never probes blocked cleanup transports (0.180709ms)
+✔ uncertain dispatch cleanup timeouts stay fatal with original phase and finite limits (10.405541ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 901.654083

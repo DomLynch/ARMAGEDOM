@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-19",
+  "originalReport": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-witch173-evidence-20261019/vps-native/results/witch173.json",
+    "sha256": "9dcaa917c1cd3ee448515a89737ae8b681ffe8a7b3f7f7ded69eee2b6bcc9804",
+    "recoveryVerified": true,
+    "exitCode": 1,
+    "status": "FAIL",
+    "firstFailure": "QA_UI_RELEASE mouse/touch release wall limit after completed Enter atomic tap+ack, boot stage"
+  },
+  "diagnosis": "Actual helper matches staged da80a0f8. perform reaches release after native dispatch returns, acknowledgement passes, result snapshot completes. Pinned Chromium tap awaits both touchStart and touchEnd, so completed tap owns no held touch. Unconditional cleanup creates extra unowned transport calls; report does not establish why those calls stalled.",
+  "implementationEvidence": {
+    "path": "scripts/qa/node_modules/playwright-core/lib/coreBundle.js",
+    "sha256": "549070af3acabb3efcc4f55bfe6210f9f7c2fcf633cf7eaa59bfe60719969171",
+    "lines": "35895-35911",
+    "version": "1.63.0"
+  },
+  "change": "Track possibly incomplete input per dispatch. Clear only on successful atomic return. Release uncertain click via mouse only; uncertain tap via touch cancel+detach only. Never compensate preconditions/navigation/completed atomic actions. No timeout swallowing or deadline increase.",
+  "command": "node --test scripts/qa/ui-interaction-guard.test.mjs scripts/qa/driver-preflight.test.mjs",
+  "exitCode": 0,
+  "tests": 30,
+  "failed": 0,
+  "durationMs": 901.654083,
+  "regression": "New completed-atomic-touch regression failed before change with QA_UI_RELEASE and passes afterward; original red log retained. Incomplete mouse/touch dispatches still release and cleanup timeout/error negatives stay fatal.",
+  "helperSha256": "f4b402be03105cccfc342ce3b3fdd1d341630cdba0619eeff70673942f8dca0c",
+  "preflightSha256": "5d9c19aea25c7e071494bf4099ff6a44ec0769bef32e4e411f766a84012bf9d5",
+  "testLogSha256": "7bb0554f20249b960dbe315b26a0dd19068e521f1aee52f05d1d398ca4ac09f8",
+  "remaining": "Controlled fixtures/static proof only. Web/Deploy own next necessary unchanged-package browser continuation. Existing movement/fire held-input release unchanged. OriginalEXIT1 retained; no runtime/release/observer changes by Backend."
+}
