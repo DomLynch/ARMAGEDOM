@@ -23,13 +23,16 @@ export function createFlameView(s,persistence){
  async function equip(){if(lockerStored(s.game,'flamethrower-area8-v1'))return;
   const g=s.game;if(!g?.world.flameData||!safe(g)||load)return;
   if(g.flame.equipped&&!g.bossEquipment?.emberProjector?.selected){lower(g);return;}
-  if(g.bossEquipment?.emberProjector?.selected){const result=persistence.dispatchBossEquipment(g,{type:'equip',itemId:g.world.bossEquipmentData.emberProjector.itemId,equipped:false},true);if(!result.ok)return;}
   if(!g.flameFuel?.collected||g.flameFuel.fuelUnits<=0)return;
   const before={weapon:g.player.weapon,variant:g.uniqueReward?.selectedMeleeVariant,pistol:g.pistol?.equipped};failed=false;
   if(!s.actors.flameReady()){
    load=s.actors.ensureFlame();repaint();try{await load;}catch{if(!disposed&&s.game===g){failed=true;g.message='Could not load flamethrower. Try Equip again.';g.messageUntil=g.time+4;}return;}finally{load=null;if(!disposed)repaint();}
   }
   if(disposed||s.game!==g||!safe(g)||g.player.weapon!==before.weapon||g.uniqueReward?.selectedMeleeVariant!==before.variant||g.pistol?.equipped!==before.pistol)return;
+  // Commit the previous boss selection through its owner before the base Flame overlay.
+  // Keep the prior selection while its replacement asset is still loading.
+  const previousBoss=Object.keys(g.bossEquipment??{}).find(field=>g.bossEquipment[field].selected);
+  if(previousBoss){const result=persistence.dispatchBossEquipment(g,{type:'equip',itemId:g.world.bossEquipmentData[previousBoss].itemId,equipped:false},true);if(!result.ok)return;}
   if(!persistence.persistRun(g))return;
   if(setFlameEquipped(g,true)){s.input?.clear();g.message='Flamethrower ready · hold Flame to fire.';g.messageUntil=g.time+4;repaint();}
  }
