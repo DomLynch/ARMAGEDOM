@@ -36,13 +36,12 @@ test('ordinary dodge moves out of locked burst and existing vest mitigation rema
  const s=setup(),start=warning(s);while(s.g.tick<start+34)s.step();const dir=s.e.bossWeapon.direction;s.step({dodge:true,move:{x:-dir.z,z:dir.x}});while(s.g.tick<start+66)s.step();assert.equal(s.g.player.hp,150);
  const armoured=setup();armoured.g.vest={version:1,itemId:'westminster-worn-vest-v1',equipped:true};const t=warning(armoured);while(armoured.g.tick<t+66)armoured.step();assert(Math.abs(armoured.g.player.hp-142.8)<1e-8);
 });
-test('stagger, pause, death, safehouse and return cancel the transient attack; reacquisition remains possible',()=>{
- for(const mode of['stagger','pause','death','safehouse','return']){const s=setup();warning(s);
+test('stagger, pause, death and safehouse cancel the transient attack; area departure is covered by pursuit tests',()=>{
+ for(const mode of['stagger','pause','death','safehouse']){const s=setup();warning(s);
   if(mode==='stagger')s.e.staggerUntil=s.g.time+.5;
   if(mode==='death')s.e.hp=0;
   if(mode==='safehouse')s.g.player.pos=s.g.world.geometry.ground({x:.09,y:.575});
-  if(mode==='return')s.g.player.pos={x:s.e.home.x+s.e.bossProfile.homeLeash+3,z:s.e.home.z};
   s.step(mode==='pause'?{paused:true}:{});assert.equal(s.e.bossWeapon,null,mode);assert.equal(s.g.player.hp,150,mode);
-  if(mode==='return'){assert(s.e.returning||Math.hypot(s.e.pos.x-s.e.home.x,s.e.pos.z-s.e.home.z)<.2);assert(!s.e.alerted);for(let n=0;n<300;n++)s.step();const p=s.g.world.geometry.ground({x:.81,y:.52});s.g.player.pos=p;for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert(s.e.alerted);}
+
  }
 });
