@@ -42,10 +42,11 @@ export function createSafehouseView(s,dispatch,readComms){
  const inArea=w.areaId===data.areaId;if(!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
  if(inArea&&texture&&owner!==w.group)build(w,data);for(const mesh of meshes)mesh.visible=inArea;
  const near=nearest(g),active=nearest(g,true),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){const prop=mesh.userData.prop;if(!prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:prop.phase,near:near?.id===prop.id,selected:active?.id===prop.id,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
- label.hidden=!near||!allowed();if(near&&allowed()){const v=planePoint(w,near.visual.x,near.visual.y).project(s.camera),rect=s.canvas.getBoundingClientRect();label.hidden=Math.abs(v.x)>1||Math.abs(v.y)>1;label.textContent=near.label+(active?.id===near.id?' · G':'');label.style.left=Math.max(70,Math.min(innerWidth-70,rect.left+(v.x+1)*rect.width/2))+'px';label.style.top=Math.max(140,Math.min(innerHeight-120,rect.top+(1-v.y)*rect.height/2-22))+'px';}
- const control=document.getElementById('pistol-interact');if(active&&allowed()&&!s.paused){control.hidden=false;control.textContent=active.label.toUpperCase()+' · G';promptOwned=true;}else if(promptOwned){promptOwned=false;control.hidden=true;}
+ label.hidden=true;
+
  renderPanel();
  }
  function interact(){if(!allowed()||s.paused)return false;const prop=nearest(s.game,true);if(!prop)return false;lastError='';if(prop.id==='comms'&&readComms){const result=readComms(s.game,allowed());if(!result.ok){s.game.message='Signal could not be saved. Try the terminal again.';s.game.messageUntil=s.game.time+5;return true;}s.updateExpedition?.();}renderPanel(true);s.hud.showMenuPage(prop.id==='locker'?'locker':prop.id==='comms'?'journal':'map');return true;}
- return{update,interact,dispose(){disposed=true;clear();texture?.dispose();label?.remove();panel?.replaceChildren?.();}};
+ function interaction(){const g=s.game;if(!g||!allowed()||s.paused)return null;const prop=nearest(g,true);return prop?{id:'safehouse-'+prop.id,label:'Use '+prop.label,position:g.world.geometry.ground(prop.standing),run:interact}:null;}
+ return{update,interact,interaction,dispose(){disposed=true;clear();texture?.dispose();label?.remove();panel?.replaceChildren?.();}};
 }

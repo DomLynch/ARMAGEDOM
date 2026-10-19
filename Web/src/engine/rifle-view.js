@@ -20,8 +20,8 @@ export function createRifleView(s,dispatch){
   button.hidden=!owned&&!(state?.status==='pending'&&failed);button.disabled=lockerStored(g,data.itemId)||!safe(g)||!!pending;button.textContent=lockerStored(g,data.itemId)?'Stored in safehouse':pending?'Preparing rifle…':failed?'Retry rifle loading':state?.selected&&!g.flame?.equipped?'Return to melee':'Equip rifle';
   if(state?.status!=='pending'||g.world.areaId!==data.source.areaId||!ready){clear();return;}
   drop??=createDrop(s.actors.rifleAsset());drop.root.position.copy(s.world.toRender(state.dropPosition));
-  const point=s.world.toRender(state.dropPosition,.35).project(s.world.camera);pickup.hidden=s.paused||s.contextLost||s.traveling||Math.abs(point.x)>1||Math.abs(point.y)>1;pickup.style.left=(point.x+1)*innerWidth/2+'px';pickup.style.top=(1-point.y)*innerHeight/2+'px';
-  const near=Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)<=data.rules.pickupRadius&&g.world.lineClear(g.player.pos,state.dropPosition);pickup.disabled=!safe(g)||!near;pickup.textContent=near?'PICK UP RIFLE':'RIFLE · APPROACH TO COLLECT';
+
  }
- return{update,dispose(){disposed=true;clear();button.removeEventListener('click',equip);pickup.removeEventListener('click',claim);}};
+ function interaction(){const g=s.game,data=g?.world.rifleData,state=g?.rifle;if(!data||state?.status!=='pending'||s.paused||!safe(g)||!s.actors?.rifleReady()||g.world.areaId!==data.source.areaId||Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)>data.rules.pickupRadius||!g.world.lineClear(g.player.pos,state.dropPosition))return null;return{id:data.itemId,label:'Collect '+data.name,position:state.dropPosition,run(){claim();return true;}};}
+ return{update,interaction,dispose(){disposed=true;clear();button.removeEventListener('click',equip);pickup.removeEventListener('click',claim);}};
 }

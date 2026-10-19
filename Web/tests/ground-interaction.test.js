@@ -1,0 +1,12 @@
+import test from'node:test';import assert from'node:assert/strict';
+import{nearestInteraction}from'../src/engine/run-views.js';
+import{createBossEquipmentView}from'../src/engine/boss-equipment-view.js';
+import{BOSS_EQUIPMENT_PROFILES as profiles}from'../src/engine/boss-equipment-data.js';
+const target=(id,x,z)=>({id,label:'Collect '+id,position:{x,z},run:()=>true});
+test('one shared target is nearest independent of producer order; equal distances have stable item identity',()=>{
+ const a=target('z',1,0),b=target('a',0,1),c=target('closer',.25,0);assert.equal(nearestInteraction({x:0,z:0},[a,b,c]).id,'closer');assert.equal(nearestInteraction({x:0,z:0},[c,b,a]).id,'closer');assert.equal(nearestInteraction({x:0,z:0},[a,b]).id,'a');assert.equal(nearestInteraction({x:0,z:0},[b,a]).id,'a');assert.equal(nearestInteraction({x:0,z:0},[null,{...c,position:{x:NaN,z:0}}]),null);
+});
+test('actual boss reward producer offers only loaded in-range live actionable pickup, shares its real dispatch and grants no remote pickup',()=>{
+ const previous=globalThis.document;globalThis.document={getElementById:()=>({})};let ready=true,calls=[];const g={time:1,events:[],player:{hp:150,pos:{x:0,z:0},hurtUntil:0,dodgeUntil:0,ready:0},world:{areaId:'westminster',bossEquipmentData:{emberProjector:profiles.emberProjector},lineClear:()=>true},bossEquipment:{emberProjector:{status:'pending',dropPosition:{x:1,z:0}}}};const s={game:g,loaded:true,paused:false,actors:{equipmentReady:()=>ready},input:{clear(){}}};const view=createBossEquipmentView(s,(run,command,allowed)=>{calls.push({run,command,allowed});return{ok:true,events:[]};});
+ try{const [candidate]=view.interaction();assert.equal(candidate.id,'ember-flamethrower-v1');assert.equal(candidate.label,'Collect Ember Projector');assert.equal(calls.length,0);assert(candidate.run());assert.equal(calls.length,1);assert.equal(calls[0].run,g);assert.deepEqual(calls[0].command,{type:'claimPickup',pickupId:'ember-flamethrower-v1'});assert(calls[0].allowed);g.player.pos.x=4;assert.deepEqual(view.interaction(),[]);g.player.pos.x=0;s.paused=true;assert.equal(view.interaction(),null);s.paused=false;ready=false;assert.deepEqual(view.interaction(),[]);ready=true;g.world.lineClear=()=>false;assert.deepEqual(view.interaction(),[]);g.world.lineClear=()=>true;g.player.hp=0;assert.equal(view.interaction(),null);g.player.hp=150;g.bossEquipment.emberProjector.status='owned';assert.deepEqual(view.interaction(),[]);}finally{view.dispose();globalThis.document=previous;}
+});

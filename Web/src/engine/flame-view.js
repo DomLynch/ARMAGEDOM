@@ -43,10 +43,10 @@ export function createFlameView(s,persistence){
   button.disabled=lockerStored(g,'flamethrower-area8-v1')||!owned||fuel<=0||!safe(g)||!!load;paint(button,lockerStored(g,'flamethrower-area8-v1')?'Stored in safehouse':load?'Loading flamethrower…':equipped?'Return to normal weapon':failed?'Retry loading & equip flamethrower':fuel<=0&&owned?'Empty flamethrower':'Equip flamethrower');button.setAttribute('aria-pressed',String(equipped));
   const visible=available()&&!owned&&g.world.areaId===data.areaId;
   if(visible){const ready=s.actors.flameReady();if(!drop||ready!==dropReady){clearDrop();drop=createFlamePickupView(s.actors.flameAsset());dropReady=ready;s.scene.add(drop.root);}drop.root.position.copy(g.world.toRender(data.position));}else clearDrop();
-  const attackWarning=(g.enemies??[]).some(e=>e.hp>0&&['warning','active'].includes(e.bossWeapon?.phase)&&Math.hypot(e.pos.x-g.player.pos.x,e.pos.z-g.player.pos.z)<=e.bossProfile.weapon.range+2);
-  label.hidden=!visible||attackWarning;if(visible&&!attackWarning){const p=g.world.toRender(data.position,.4).project(s.camera);label.hidden=Math.abs(p.x)>1||Math.abs(p.y)>1||p.z< -1||p.z>1;if(!label.hidden){paint(label,'FLAMETHROWER · PICK UP');label.style.left=`${Math.max(100,Math.min(innerWidth-100,(p.x+1)*innerWidth/2))}px`;label.style.top=`${Math.max(100,Math.min(innerHeight-110,(1-p.y)*innerHeight/2))}px`;}}
-  const action=equipped&&available()&&!s.paused?'return':nearby(g)?'pickup':null;field.toggleAttribute('data-flame-action',!!action);if(action){field.hidden=false;field.textContent=action==='pickup'?'PICK UP FLAMETHROWER · G':'RETURN TO NORMAL WEAPON · G';}
+  label.hidden=true;
+
  }
  button.addEventListener?.('click',equip);
- return{update,interact,dispose(){if(disposed)return;disposed=true;clearDrop();button.removeEventListener?.('click',equip);field.removeAttribute('data-flame-action');label.hidden=true;panel.hidden=true;}};
+ function interaction(){const g=s.game;if(!g?.world.flameData||!nearby(g))return null;return{id:g.world.flameData.pickupId,label:'Collect Flamethrower',position:g.world.flameData.position,run:interact};}
+ return{update,interact,interaction,dispose(){if(disposed)return;disposed=true;clearDrop();button.removeEventListener?.('click',equip);field.removeAttribute('data-flame-action');label.hidden=true;panel.hidden=true;}};
 }

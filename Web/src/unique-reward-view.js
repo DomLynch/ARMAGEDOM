@@ -32,8 +32,9 @@ export function createUniqueRewardView(s,dispatch){
   const visible=available()&&state.status==='pending'&&g.world.areaId===data.areaId;
   if(visible&&!source(data.itemId)&&!loads.has(data.itemId)&&!failed.has(data.itemId))prepare(data.itemId).catch(()=>{});
   if(visible&&source(data.itemId)){if(!drop)drop=createDrop(data);drop.root.position.copy(g.world.toRender(state.dropPosition));}else clearDrop();
-  label.hidden=!visible;if(visible){const p=g.world.toRender(state.dropPosition,.35).project(s.camera);label.hidden=Math.abs(p.x)>1||Math.abs(p.y)>1||p.z< -1||p.z>1;if(!label.hidden){label.textContent=missing?(retry?'PITBORN CLEAVER · GEAR: RETRY LOADING':'PITBORN CLEAVER · LOADING'):'PITBORN CLEAVER · COLLECT';label.style.left=`${Math.max(95,Math.min(innerWidth-95,(p.x+1)*innerWidth/2))}px`;label.style.top=`${Math.max(100,Math.min(innerHeight-110,(1-p.y)*innerHeight/2))}px`;}}
-  const field=el('pistol-interact'),canCollect=eligible(g)&&!field.hasAttribute('data-expedition-action');field.toggleAttribute('data-unique-reward-action',canCollect);if(canCollect){field.hidden=false;field.textContent='Collect Pitborn Cleaver';}
+  label.hidden=true;
+
  }
- return{update,interact,dispose(){if(disposed)return;disposed=true;clearDrop();for(const remove of listeners)remove();for(const button of buttons.values())button.remove();buttons.clear();panel.hidden=true;label.hidden=true;el('pistol-interact').removeAttribute('data-unique-reward-action');}};
+ function interaction(){const g=s.game;if(!g||!eligible(g))return null;return{id:g.world.uniqueRewardData.itemId,label:'Collect Pitborn Cleaver',position:g.uniqueReward.dropPosition,run(){interact();return true;}};}
+ return{update,interact,interaction,dispose(){if(disposed)return;disposed=true;clearDrop();for(const remove of listeners)remove();for(const button of buttons.values())button.remove();buttons.clear();panel.hidden=true;label.hidden=true;el('pistol-interact').removeAttribute('data-unique-reward-action');}};
 }

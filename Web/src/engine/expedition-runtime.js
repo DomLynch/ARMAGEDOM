@@ -53,12 +53,6 @@ export function createExpeditionView(s,dispatch){
   const c=data.contract,status=state.status,objective=expeditionObjective(g),action=stageAction[status],eligible=action&&allowed()&&expeditionEligible(g,action,data),fieldAction=nearbyAction(g,data),fieldEligible=fieldAction&&allowed()&&expeditionEligible(g,fieldAction,data);
   const journal=journalPresentation(g,data,allowed());paint(el('contract-status'),journal.next);el('contract-action').hidden=!journal.showAction;
   paint(el('contract-action'),status==='claimed'?'View Gear':labels[action]);el('contract-action').disabled=status!=='claimed'&&!eligible;
-  const field=el('pistol-interact');currentAction=null;
-  if(allowed()&&!s.paused&&!g.finished&&g.player.hp>0&&!originalPistolAction(g)){
-   if(fieldEligible){field.hidden=false;field.textContent=labels[fieldAction];currentAction=fieldAction;}
-   else if(status==='claimed'&&expeditionEligible(g,'claim',data)){field.hidden=false;field.textContent='View earned gear';currentAction='view';}
-  }
-  field.toggleAttribute('data-expedition-action',!!currentAction);
   const known=new Set([...(state.visitedIds??[]),g.world.areaId,...(objective?[objective]:[])]);if(pin&&!known.has(pin))pin=null;
   for(const[id,button]of nodes){const visible=known.has(id),current=id===g.world.areaId,visited=state.visitedIds.includes(id),target=id===objective;button.disabled=!visible;button.dataset.current=String(current);button.setAttribute('aria-pressed',String(pin===id));paint(button,visible?`${current?'● ':''}${areaName(id)}${visited?' ✓':''}${target?' ⚑':''}${pin===id?' · PIN':''}`:'? Undiscovered');button.setAttribute('aria-label',visible?`${areaName(id)}${current?', current area':''}${visited?', visited':''}${target?', objective':''}${pin===id?', pinned':''}`:'Undiscovered area');}
   const next=pin?g.world.registry.nextExit(g.world.areaId,pin):null,route=pin?next?`Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}`:`Pinned ${areaName(pin)} · you are here.`:(story?story.location+' · ':'')+'Pin a known area. ● Current · ✓ Visited · ⚑ Objective';paint(el('atlas-route'),route);el('atlas-objective').disabled=!objective;
@@ -70,7 +64,7 @@ export function createExpeditionView(s,dispatch){
   const caseVisible=allowed()&&g.world.areaId===c.case.areaId&&['available','accepted'].includes(status);
   if(caseVisible&&!caseView){caseView=createVestBagView();caseView.root.name='Stolen supply case';caseView.root.scale.setScalar(1.35);s.scene.add(caseView.root);}
   if(caseView){caseView.root.visible=caseVisible;caseView.root.position.copy(g.world.toRender(c.case.position));}
-  const caseLabel=el('expedition-case-label');caseLabel.hidden=true;if(caseVisible)label(caseLabel,c.case.position,.7,'SUPPLY CASE · COLLECT');
+  const caseLabel=el('expedition-case-label');caseLabel.hidden=true;
   const guardLabel=el('expedition-guard-label'),guard=g.enemies.find(e=>e.placementKey===c.guard.placementKey&&e.hp>0);guardLabel.hidden=true;
   if(allowed()&&g.world.areaId===c.guard.areaId&&guard&&Math.hypot(guard.pos.x-g.player.pos.x,guard.pos.z-g.player.pos.z)<10){
    guardLabel.hidden=false;paint(guardLabel,c.guard.name);const position=positionHead(s.actors?.views.get(guard.id),guardLabel.getBoundingClientRect(),s.camera,{width:innerWidth,height:innerHeight});
@@ -79,5 +73,6 @@ export function createExpeditionView(s,dispatch){
   const playerView=s.actors?.views.get(0),variant=state.selectedPistolVariant;
   if(playerView?.pistolMount){const tint=data.variants[variant].tint;playerView.pistolMount.traverse(mesh=>{for(const material of[mesh.material].flat().filter(Boolean)){if(!material.color)continue;if(!materialColors.has(material))materialColors.set(material,{base:material.color.clone(),color:material.color.clone(),variant:null});const saved=materialColors.get(material);if(saved.variant!==variant){saved.color.copy(saved.base).multiply(material.color.clone().setHex(tint));saved.variant=variant;}material.color.copy(saved.color);}});playerView.expeditionVariant=variant;}
  }
- return{update,interact,dispose(){if(disposed)return;disposed=true;for(const remove of listeners)remove();caseView?.dispose();caseView=null;el('retry').disabled=el('again').disabled=false;el('expedition-case-label').hidden=el('expedition-guard-label').hidden=el('expedition-objective').hidden=true;panel.hidden=true;}};
+ function interaction(){const g=s.game;if(!g||!catalogue||!allowed()||s.paused||g.finished||g.player.hp<=0)return null;const action=nearbyAction(g,catalogue),claimed=g.expedition?.status==='claimed';if(!action&&!claimed||!expeditionEligible(g,claimed?'claim':action,catalogue))return null;return{id:'expedition-'+(claimed?'gear':action),label:claimed?'View earned gear':labels[action],position:action==='recover'?catalogue.contract.case.position:catalogue.contract.giver.position,run:interact};}
+ return{update,interact,interaction,dispose(){if(disposed)return;disposed=true;for(const remove of listeners)remove();caseView?.dispose();caseView=null;el('retry').disabled=el('again').disabled=false;el('expedition-case-label').hidden=el('expedition-guard-label').hidden=el('expedition-objective').hidden=true;panel.hidden=true;}};
 }

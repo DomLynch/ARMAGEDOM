@@ -207,8 +207,8 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         const nearby=!pistol.collected&&(g.world.areaId??'westminster')===pistol.pickupAreaId&&Math.hypot(p.pos.x-pistol.pickupPos.x,p.pos.z-pistol.pickupPos.z)<=1.3;
         el('pistol-interact').hidden=g.finished||(!nearby&&(!pistol.collected||equipped));
         el('pistol-interact').textContent=nearby?'PICK UP & EQUIP PISTOL · G':'EQUIP PISTOL · G';
-        const icon=el('pistol-icon');icon.hidden=pistol.collected||(g.world.areaId??'westminster')!==pistol.pickupAreaId;
-        if(!icon.hidden&&g.world.camera){const at=g.world.toRender(pistol.pickupPos,.65).project(g.world.camera);icon.style.left=`${(at.x+1)*innerWidth/2}px`;icon.style.top=`${(1-at.y)*innerHeight/2}px`;}
+        el('pistol-icon').hidden=true;
+
       }
       if(g.rifle?.selected&&!flameEquipped){
         const rifle=g.rifle,rules=g.world.rifleData.rules,clock=g.rifleAction??{},left=Math.max(0,(clock.nextFireAt??0)-g.time);
