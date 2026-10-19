@@ -71,7 +71,7 @@ test('blocked lifecycle activation cannot begin loading, and Journal retains the
 
 test('actual relocated Witch remains on clear East approach, outside travel triggers and safe return arrival',()=>{
  const g=createGeometry(read('../public/world/westminster/layout.json')),row=content.bosses.placements.find(row=>row.key==='boss-witch-v1');
- assert(Math.abs(g.point(row.pos).x-.82)<1e-9);assert(Math.abs(g.point(row.pos).y-.455)<1e-9);
+ assert(Math.abs(g.point(row.pos).x-.835)<1e-9);assert(Math.abs(g.point(row.pos).y-.545)<1e-9);
  assert(g.clear(row.pos,.4));validateBossGeometry(content.bosses,'westminster',g,registry);
  const returning=g.ground(registry.links('east').find(l=>l.to==='westminster').entry),profile=content.bosses.profiles[row.profileRef];
  assert(Math.hypot(returning.x-row.pos.x,returning.z-row.pos.z)>profile.homeLeash+.8);
