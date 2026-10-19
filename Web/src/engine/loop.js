@@ -2,7 +2,7 @@ import{selectedBossRanged}from'./boss-weapon-runtime.js';
 import * as THREE from 'three';
 import{presentationAudioEvents}from'../donor-audio.js';
 import {stepGame,resetMobileControls} from '../combat.js';
-import {pistolPointerPoint,flamePointerPoint} from '../pistol-targeting.js';
+import {selectedRangedProfile,rangedPointerPoint,flamePointerPoint} from '../pistol-targeting.js';
 export function createBrowserLoop(s){
 let last=0,accumulator=0,submitted=null;
 function toDomain(v) {
@@ -28,9 +28,10 @@ function intent() {
     const bounds = s.canvas.getBoundingClientRect(),
       x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
       y=1-((raw.mouse.y-bounds.top)/bounds.height)*2,
-      point=s.game.flame?.equipped?flamePointerPoint(s.world,s.actors.views,s.game.enemies,x,y,{assist:s.game.mobileAssistEnabled!==false,time:s.game.time,visibleIds:value.combatVisibleIds}):(s.game.pistol?.equipped||s.game.rifle?.selected)?pistolPointerPoint(s.world,s.actors.views,s.game.enemies,x,y):s.world.screenToGround(x,y);
+      point=s.game.flame?.equipped?flamePointerPoint(s.world,s.actors.views,s.game.enemies,x,y,{assist:s.game.mobileAssistEnabled!==false,time:s.game.time,visibleIds:value.combatVisibleIds}):selectedRangedProfile(s.game)?rangedPointerPoint(s.game,s.actors.views,x,y,{visibleIds:value.combatVisibleIds}):s.world.screenToGround(x,y);
     if (point) {
       value.aimPoint={x:point.x,z:point.z};
+      value.aimTargetId=point.targetId??null;
       value.manualPistolAim = true;
       value.manualFlameAim = !!s.game.flame?.equipped;
       value.aim = {

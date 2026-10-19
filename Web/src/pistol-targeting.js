@@ -58,27 +58,45 @@ export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,are
   return tracePistol(position,selected?.direction??aim,targets,lineClear,rules);
 }
 
-// Read-only preview of the current unassisted intent. No retained ID/body turn.
-export function pistolCue(game,{paused=false,visibleIds}={}) {
-  const p=game.player,pistol=game.pistol;
-  if(paused||game.finished||!(p.hp>0)||!pistol?.equipped)return null;
-  const aim=game.mobileAiming?p.facing:game.pistolUserFacing??p.facing,length=Math.hypot(aim.x,aim.z);
-  if(!Number.isFinite(length)||length<.001)return null;
-  const direction={x:aim.x/length,z:aim.z/length};
-  const ready=pistol.magazine>0&&!pistol.reloadingUntil&&game.time>=pistol.nextFireAt
-    &&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=p.dodgeUntil;
-  const trace=typeof game.world?.lineClear==='function'?(game.mobileAiming?tracePistol(p.pos,direction,game.enemies,game.world.lineClear.bind(game.world)):resolvePistolShot({position:p.pos,aim:direction,targets:game.enemies,
-    visibleIds,lineClear:game.world.lineClear?.bind(game.world),areaId:game.world.areaId})):null;
-  const hit=trace&&game.enemies.find(t=>t.id===trace.targetId&&(!visibleIds||visibleIds.includes(t.id)));
-  // The resolved ray already identifies the first body hit, including body edges.
-  const eligible=hit&&hit.visible!==false&&(hit.areaId==null||hit.areaId===game.world.areaId);
-  return {targetId:eligible?hit.id:null,ready,height:eligible?combatTargetHeight(hit,game.time):1.05,position:eligible?hit.pos:
-    {x:p.pos.x+direction.x*4,z:p.pos.z+direction.z*4}};
+// One selected profile and first-body resolution for presentation and paid shots.
+export function selectedRangedProfile(g){
+ if(g.flame?.equipped)return null;
+ const field=['shotgun','grenade','rocketLauncher'].find(k=>g.bossEquipment?.[k]?.selected);
+ if(field)return{...g.world.bossEquipmentData[field],field};
+ if(g.rifle?.selected)return{...g.world.rifleData,field:'rifle'};
+ if(g.pistol?.equipped)return{field:'pistol',rules:g.bossEquipment?.commanderPistol?.selected?g.world.bossEquipmentData.commanderPistol.rules:PISTOL_RULES};
+ return null;
+}
+export function rangedTargets(g,visibleIds){return(g.enemies??[]).filter(t=>t.hp>0&&t.hostile!==false&&t.visible!==false&&(!visibleIds||visibleIds.includes(t.id))&&(t.areaId==null||t.areaId===g.world.areaId));}
+export function resolveRangedAim(g,aim,{visibleIds,aimPoint,aimTargetId,assist=g.mobileAssistEnabled!==false&&!g.mobileAiming}={}){
+ if(typeof g.world?.lineClear!=='function')return null;
+ const profile=selectedRangedProfile(g),p=g.player.pos,length=Math.hypot(aim?.x??0,aim?.z??0);if(!profile||length<EPS||!Number.isFinite(length))return null;
+ const direction={x:aim.x/length,z:aim.z/length},targets=rangedTargets(g,visibleIds),lineClear=g.world.lineClear.bind(g.world),projectile=['grenade','rocketLauncher'].includes(profile.field),rules=profile.rules;
+ const trace=assist?resolvePistolShot({position:p,aim:direction,targets,visibleIds,lineClear,areaId:g.world.areaId,rules}):tracePistol(p,direction,targets,lineClear,rules);if(!trace)return null;
+ let target=targets.find(t=>t.id===trace.targetId)??null,position=target?{...target.pos}:{...trace.end},height=target?combatTargetHeight(target,g.time):1.05;
+ if(projectile){
+  if(g.mobileAssistEnabled===false)target=null;
+  if(point(aimPoint)){
+   const x=aimPoint.x-p.x,z=aimPoint.z-p.z,n=Math.hypot(x,z);if(n<EPS)return null;const distance=Math.min(rules.range,n);position={x:p.x+x/n*distance,z:p.z+z/n*distance};
+   target=g.mobileAssistEnabled!==false?targets.find(t=>t.id===aimTargetId&&Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<1e-6&&lineClear(p,t.pos))??null:null;
+   if(target&&profile.field==='rocketLauncher'&&trace.targetId!==target.id){const first=targets.find(t=>t.id===trace.targetId);if(first){target=first;position={...first.pos};}}
+  }else if(target&&Math.hypot(target.pos.x-p.x,target.pos.z-p.z)>rules.range+EPS)target=null;
+  if(!point(aimPoint)&&!target){const distance=profile.field==='grenade'?Math.min(rules.range,g.grenadeThrowRange??5)-EPS:rules.range;position={x:p.x+direction.x*distance,z:p.z+direction.z*distance};}
+  height=profile.field==='grenade'?.08:target?combatTargetHeight(target,g.time):.05;
+ }
+ return{profile,trace,target,targetId:target?.id??null,position,height,direction:target?trace.direction:direction};
+}
+// Preview uses the exact resolver used when an actual round is paid.
+export function pistolCue(game,{paused=false,visibleIds}={}){
+ const profile=selectedRangedProfile(game),p=game.player;if(paused||game.finished||!(p.hp>0)||!['pistol','rifle'].includes(profile?.field))return null;
+ const rifle=profile.field==='rifle',state=rifle?game.rifle:game.pistol,clock=rifle?game.rifleAction??{}:state,aim=game.mobileAiming?p.facing:(rifle?game.rifleUserFacing:game.pistolUserFacing)??p.facing;
+ const result=resolveRangedAim(game,aim,{visibleIds});if(!result)return null;
+ return{targetId:result.targetId,position:result.position,height:result.height,ready:state.magazine>0&&!clock.reloadingUntil&&game.time>=(clock.nextFireAt??0)&&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=(p.dodgeUntil??0)&&(!rifle||game.rifleAssetReady)};
 }
 
 // Raised drones use their visible rigid surface for mouse projection. Shot
 // selection, first-body trace, cover and damage stay in the existing domain path.
-export function pistolPointerPoint(world,views,enemies,x,y){
+function groundPointerPoint(world,views,enemies,x,y){
  const ground=world.screenToGround(x,y),frames=enemies.filter(e=>e.hp>0&&e.rig==='low-hover-drone').map(e=>views.get(e.id)?.model.getObjectByName('ARM_Drone_Rigid_Frame')).filter(Boolean);
  if(!frames.length)return ground;
  const hit=world.ray.intersectObjects([...(world.masks??[]),...frames],false)[0];
@@ -89,7 +107,7 @@ export function pistolPointerPoint(world,views,enemies,x,y){
 // Use the existing registered body envelope, not an enlarged hit volume.
 // This selects intent only; the actual posed flame/LOS still owns damage.
 export function flamePointerPoint(world,views,enemies,x,y,{assist=true,time=0,visibleIds}={}){
- const ground=pistolPointerPoint(world,views,enemies,x,y);if(!assist)return ground;
+ const ground=groundPointerPoint(world,views,enemies,x,y);if(!assist)return ground;
  const ray=world.ray.ray,mask=world.ray.intersectObjects(world.masks??[],false)[0]?.distance??Infinity;let best=null;
  for(const e of enemies){
   if(e.visible===false||visibleIds&&!visibleIds.includes(e.id)||!(e.hp>0)||!Number.isFinite(e.radius)||e.radius<=0||(e.areaId??world.areaId)!==world.areaId)continue;
@@ -98,4 +116,11 @@ export function flamePointerPoint(world,views,enemies,x,y,{assist=true,time=0,vi
   if(at<0||at>=mask||best&&at>=best.distance)continue;best={position:e.pos,distance:at};
  }
  return best?{...best.position}:ground;
+}
+
+// Guns share the existing posed-body intent envelope; damage still uses real traces.
+export function pistolPointerPoint(world,views,enemies,x,y,options={}){return flamePointerPoint(world,views,enemies,x,y,options);}
+export function rangedPointerPoint(g,views,x,y,{visibleIds}={}){
+ const profile=selectedRangedProfile(g),assist=g.mobileAssistEnabled!==false,targets=rangedTargets(g,visibleIds).filter(t=>Math.hypot(t.pos.x-g.player.pos.x,t.pos.z-g.player.pos.z)<=profile.rules.range+EPS&&g.world.lineClear(g.player.pos,t.pos)),position=pistolPointerPoint(g.world,views,targets,x,y,{assist,time:g.time,visibleIds});
+ const target=assist&&targets.find(t=>Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<EPS);return{...position,targetId:target?target.id:null};
 }

@@ -1,3 +1,4 @@
+import {resolveRangedAim,rangedTargets} from '../pistol-targeting.js';
 import {rocketIntent} from './rocket-runtime.js';
 import {startStickyGrenade,stepStickyGrenade} from './sticky-grenade-runtime.js';
 import {tracePistol} from '../pistol.js';
@@ -10,10 +11,9 @@ const emit=(g,type,data)=>g.events.push({type,...data});
 export function selectedBossRanged(g){return['shotgun','grenade','rocketLauncher'].find(field=>g.bossEquipment?.[field]?.selected)??null;}
 function grenadeModel(g){return g.grenadeProposalModel??(g.grenadeProposalModel=createGrenadeModel({profile:g.world.bossEquipmentData.grenade.payload,areaIds:g.world.registry.ids}));}
 function throwTarget(g,intent,reference){
- const range=g.world.bossEquipmentData.grenade.rules.range,p=g.player.pos;
- const raw=point(intent.aimPoint)?{x:intent.aimPoint.x-p.x,z:intent.aimPoint.z-p.z}:reference;
- const distance=point(intent.aimPoint)?Math.min(range-EPS,length(raw)):Math.min(range,g.grenadeThrowRange??5)-EPS,direction=normal(raw,reference),position={x:p.x+direction.x*distance,z:p.z+direction.z*distance};
- return distance>0&&g.world.geometry?.clear(position,.05)&&g.world.lineClear(p,position)?{position,direction}:null;
+ const result=resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,aimPoint:intent.aimPoint,aimTargetId:intent.aimTargetId});g.grenadeAimTargetId=result?.targetId??null;
+ if(!result)return null;const p=g.player.pos,position=result.position,distance=Math.hypot(position.x-p.x,position.z-p.z);
+ return distance>0&&g.world.geometry?.clear(position,.05)&&g.world.lineClear(p,position)?{position,direction:normal({x:position.x-p.x,z:position.z-p.z},reference)}:null;
 }
 export function bossEquipmentIntent(g,intent,dispatch,applyHit,services={}){
  const field=selectedBossRanged(g);if(!field)return intent;if(field==='rocketLauncher')return rocketIntent(g,intent,dispatch,services);
@@ -30,9 +30,9 @@ export function bossEquipmentIntent(g,intent,dispatch,applyHit,services={}){
  const pressed=actions.includes('fire')||actions.includes('slash');
  if(pressed&&canAct&&g.bossEquipmentAssetReady?.[field]&&!clock.reloadingUntil&&g.time+EPS>=clock.nextFireAt){
   if(field==='shotgun'){
-   const targets=g.enemies.map(e=>({id:e.id,pos:{x:e.pos.x,z:e.pos.z},hp:e.hp,radius:e.radius})),trace=traceShotgun(p.pos,reference,targets,(a,b)=>g.world.lineClear(a,b),data.payload,tracePistol);
-   if(trace){const paid=dispatch?.(g,{type:'fire',field},true);if(paid?.ok){emit(g,'shot',{origin:{...p.pos},direction:{...reference},end:{x:p.pos.x+reference.x*data.rules.range,z:p.pos.z+reference.z*data.rules.range},distance:data.rules.range,damage:data.rules.damage,pellets:trace.pellets,kind:'bullet',weapon:'shotgun',actor:p});
-    for(const hit of trace.hits){const rays=trace.pellets.filter(ray=>ray.targetId===hit.targetId),direction=normal(rays.reduce((sum,ray)=>({x:sum.x+ray.direction.x,z:sum.z+ray.direction.z}),{x:0,z:0}),reference);applyHit({targetId:hit.targetId,direction},'shotgun',data.itemId,hit.damage,'bullet');}
+   const resolved=resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds}),bearing=resolved?.trace.direction??reference,targets=rangedTargets(g,intent.combatVisibleIds??intent.pistolVisibleIds).map(e=>({id:e.id,pos:{x:e.pos.x,z:e.pos.z},hp:e.hp,radius:e.radius})),trace=traceShotgun(p.pos,bearing,targets,(a,b)=>g.world.lineClear(a,b),data.payload,tracePistol);
+   if(trace){const paid=dispatch?.(g,{type:'fire',field},true);if(paid?.ok){emit(g,'shot',{origin:{...p.pos},direction:{...bearing},end:{x:p.pos.x+bearing.x*data.rules.range,z:p.pos.z+bearing.z*data.rules.range},distance:data.rules.range,damage:data.rules.damage,pellets:trace.pellets,kind:'bullet',weapon:'shotgun',actor:p});
+    for(const hit of trace.hits){const rays=trace.pellets.filter(ray=>ray.targetId===hit.targetId),direction=normal(rays.reduce((sum,ray)=>({x:sum.x+ray.direction.x,z:sum.z+ray.direction.z}),{x:0,z:0}),bearing);applyHit({targetId:hit.targetId,direction},'shotgun',data.itemId,hit.damage,'bullet');}
    }}
   }else{
    const target=throwTarget(g,intent,reference);g.grenadeAim=target?.position??null;
@@ -65,4 +65,9 @@ export function paidBossEquipmentDeath(g,itemId){
  return ['grenade','rocketLauncher'].includes(field)&&clock.lastBlast?.tick===g.tick&&Number.isInteger(clock.lastBlast.paidTick)&&clock.lastBlast.paidTick>=0&&clock.lastBlast.paidTick<g.tick&&Number.isFinite(clock.lastBlast.paidTime)&&clock.lastBlast.paidTime<g.time;
 }
 
-export function bossWeaponCue(g,{paused=false}={}){const field=selectedBossRanged(g);if(!field||paused||g.finished||g.player.hp<=0)return null;const data=g.world.bossEquipmentData[field],clock=bossEquipmentClock(g,field),state=g.bossEquipment[field],direction=g.bossWeaponFacing??g.player.facing,position=field==='grenade'?g.grenadeAim:field==='rocketLauncher'?g.rocketAim:{x:g.player.pos.x+direction.x*data.rules.range,z:g.player.pos.z+direction.z*data.rules.range};return position?{position,height:['grenade','rocketLauncher'].includes(field)?.08:1.1,targetId:null,ready:!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;}
+export function bossWeaponCue(g,{paused=false,visibleIds}={}){
+ const field=selectedBossRanged(g);if(!field||paused||g.finished||g.player.hp<=0)return null;
+ const clock=bossEquipmentClock(g,field),state=g.bossEquipment[field],result=field==='shotgun'?resolveRangedAim(g,g.bossWeaponFacing??g.player.facing,{visibleIds}):null;
+ const position=field==='grenade'?g.grenadeAim:field==='rocketLauncher'?g.rocketAim:result?.position,targetId=field==='grenade'?g.grenadeAimTargetId:field==='rocketLauncher'?g.rocketAimTargetId:result?.targetId;
+ return position?{position,height:field==='grenade'?.08:field==='rocketLauncher'?g.rocketAimHeight??.05:result.height,ground:field==='grenade',heightLocked:field==='rocketLauncher',targetId:targetId??null,ready:!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;
+}

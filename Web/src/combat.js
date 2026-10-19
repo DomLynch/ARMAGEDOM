@@ -31,7 +31,7 @@ import {mobSizeProfile} from './mob-size.js';
 import {createSuppliesState,issueSupply} from './supplies.js';
 import {createVestState,damageAfterVest} from './vest.js';
 import {AREA_MOB_SPAWNS,residentEncounterHealth} from './area-mob-spawns.js';
-import {selectCombatTarget,resolvePistolShot} from './pistol-targeting.js';
+import {selectCombatTarget,resolvePistolShot,resolveRangedAim,selectedRangedProfile} from './pistol-targeting.js';
 import {createPistolState, stepPistol,tracePistol} from './pistol.js';
 import {createHollowEncounter} from './hollow-encounter.js';
 import {KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact} from './donor/knife.js';
@@ -108,7 +108,7 @@ function rifleIntent(g,intent,dispatch){
  const firing=actions.includes('fire')||actions.includes('slash')||profile.fireMode==='held'&&intent.held?.includes('fire');let shotDirection=null;
  if(firing&&canAct&&g.rifleAssetReady&&!clock.reloadingUntil&&g.time+EPS>=clock.nextFireAt){
   const visible=intent.combatVisibleIds??intent.pistolVisibleIds,targets=g.enemies.filter(e=>!visible||visible.includes(e.id));
-  const shot=g.mobileAssistEnabled!==false&&!g.mobileAiming?resolvePistolShot({position:p.pos,aim:reference,targets,visibleIds:visible,lineClear:(a,b)=>g.world.lineClear(a,b),areaId:g.world.areaId,rules}):tracePistol(p.pos,reference,targets,(a,b)=>g.world.lineClear(a,b),rules);
+  const shot=resolveRangedAim(g,reference,{visibleIds:visible})?.trace;
   if(shot){const result=dispatch?.(g,{type:'fire'},true);if(result?.ok){shotDirection=shot.direction;event(g,'shot',{...shot,damage:rules.damage,kind:'bullet',weapon:'rifle',actor:p});if(shot.targetId!=null)rangedHit(g,shot,'rifle',profile.itemId,rules.damage);}}
  }
  p.buffer=null;p.guarding=false;p.parryUntil=0;return{...intent,aim:shotDirection??(explicit||moving?reference:null),guard:false,guardPressed:false,actions:[],held:[]};
@@ -138,8 +138,7 @@ function pistolIntent(g,intent,dispatchPistol,dispatchMarshalPistol){
  g.pistol=result.state;p.weapon=g.pistol.equipped?'pistol':'knife';
  for(let e of result.events){
   if(e.type==='shot'){
-   if(!g.mobileAiming)e={...e,...resolvePistolShot({position:e.origin,aim:reference,targets:g.enemies,
-    visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,lineClear:(a,b)=>g.world.lineClear(a,b),areaId:g.world.areaId})};
+   e={...e,...resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds})?.trace};
    shotDirection=e.direction;
   }
   event(g,e.type,{...e,actor:p});
@@ -278,8 +277,8 @@ function mobileControl(g,intent,dt,services){
  const ranged=!!selectedBossRanged(g)||!!g.pistol?.equipped||!!g.rifle?.selected||!!g.flame?.equipped,busy=!!p.swing||g.time<p.dodgeUntil||g.time<p.hurtUntil||!!intent.guard&&!ranged;
  if(busy)g.mobileAim={...g.mobileAim,heading};
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
-  targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:true,visible:!visible||visible.includes(e.id),areaId:e.areaId??areaId,radius:e.radius})),
-  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:!!intent.mobile,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,
+  targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:e.hostile!==false,visible:e.visible!==false&&(!visible||visible.includes(e.id)),areaId:e.areaId??areaId,radius:e.radius})),
+  areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:!!intent.mobile,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,rangedRange:!flame?selectedRangedProfile(g)?.rules.range:null,
   flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:flame&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
   flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
  g.mobileAim=result.state;g.mobileAiming=!!intent.mobile;
