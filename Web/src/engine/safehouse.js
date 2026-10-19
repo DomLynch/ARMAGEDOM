@@ -9,7 +9,9 @@ export function validateSafehouseData(data,registry){
  if(data.version!==1||!registry.has(data.areaId)||!Array.isArray(data.boundary)||data.boundary.length<3||data.boundary.length>12||!data.boundary.every(art)||!finite(data.interactionRadius,.5,1.5)||!finite(data.nearbyRadius,2,6)||data.pulseSeconds!==3.5)throw Error('Invalid safehouse data');
  closed(data.patch,['path','x','y','width','height']);if(data.patch.path!==data.areaId+'/safehouse-patch.png'||!['x','y','width','height'].every(k=>finite(data.patch[k],0,1)))throw Error('Invalid safehouse patch');
  if(!Array.isArray(data.props)||data.props.length!==3||new Set(data.props.map(p=>p.id)).size!==3)throw Error('Three safehouse props required');
- for(const p of data.props){closed(p,['id','label','visual','standing','bounds','phase']);closed(p.bounds,['x','y','width','height']);if(!['locker','comms','map'].includes(p.id)||typeof p.label!=='string'||!p.label.trim()||!art(p.visual)||!art(p.standing)||!Object.values(p.bounds).every(n=>finite(n,0,1))||!finite(p.phase,0,1))throw Error('Invalid safehouse prop');}
+ for(const p of data.props){closed(p,['id','label','visual','standing','bounds','phase'],['outlines']);closed(p.bounds,['x','y','width','height']);if(!['locker','comms','map'].includes(p.id)||typeof p.label!=='string'||!p.label.trim()||!art(p.visual)||!art(p.standing)||!Object.values(p.bounds).every(n=>finite(n,0,1))||!finite(p.phase,0,1))throw Error('Invalid safehouse prop');
+  if(p.outlines!==undefined){if(!Array.isArray(p.outlines)||p.outlines.length<1||p.outlines.length>4)throw Error('Invalid safehouse outlines');for(const line of p.outlines){closed(line,['closed','points']);if(typeof line.closed!=='boolean'||!Array.isArray(line.points)||line.points.length<2||line.points.length>24||!line.points.every(p=>Array.isArray(p)&&p.length===2&&p.every(n=>finite(n,0,1))))throw Error('Invalid safehouse outline');}}
+ }
  return freeze(structuredClone(data));
 }
 const caches=new WeakMap();
