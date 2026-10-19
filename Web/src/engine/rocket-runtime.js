@@ -5,7 +5,9 @@ const EPS=1e-8,tip=.18,flat=p=>({x:p.x,z:-p.z}),point=p=>p&&Number.isFinite(p.x)
 const lerp=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:a.z+(b.z-a.z)*t});
 function aimPoint(g,intent,reference,data,services){
  const result=resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,aimPoint:intent.aimPoint,aimTargetId:intent.aimTargetId});g.rocketAimTargetId=result?.targetId??null;let height=result?.height??.05;
- if(result?.targetId!=null&&services.grenadeTrace){
+ if(result?.targetId!=null&&services.rocketAimHeight){
+  const source=services.rocketSource?.(g);if(source)height=services.rocketAimHeight(g,source,{x:result.position.x,y:height,z:-result.position.z},result.targetId);g.rocketAimValidation=null;
+ }else if(result?.targetId!=null&&services.grenadeTrace){
   const p=g.player.pos,c=g.rocketAimValidation,position=result.position,same=c&&c.targetId===result.targetId&&c.areaId===g.world.areaId&&Math.abs(c.ruleHeight-height)<1e-6&&Math.hypot(c.player.x-p.x,c.player.z-p.z)<.01&&Math.hypot(c.target.x-position.x,c.target.z-position.z)<.01&&g.time>=c.at&&g.time-c.at<.25;
   if(same)height=c.height;
   else{const source=services.rocketSource?.(g);if(source){const hit=services.grenadeTrace(g,source,{x:position.x,y:height,z:-position.z});if(!hit)height=.05;g.rocketAimValidation={targetId:result.targetId,areaId:g.world.areaId,player:{...p},target:{...position},ruleHeight:result.height,height,at:g.time};}}

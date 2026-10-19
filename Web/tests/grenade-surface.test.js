@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
-import {traceGrenadeSurface,followGrenadeSurface} from '../src/engine/grenade-surface.js';
+import {traceGrenadeSurface,followGrenadeSurface,surfaceAimHeight} from '../src/engine/grenade-surface.js';
 function body(id,z){const root=new T.Group(),mesh=new T.Mesh(new T.BoxGeometry(1,2,.2),new T.MeshStandardMaterial());root.add(mesh);root.position.set(0,1,z);root.updateWorldMatrix(true,true);return{enemy:{id,hp:40},view:{root,model:root},mesh};}
 test('actual first visible triangle wins, with bone-independent local surface follow and no nearest-target snap',()=>{
  const front=body(1,-1),back=body(2,-2),views=new Map([[1,front.view],[2,back.view]]),enemies=[back.enemy,front.enemy],from={x:0,y:1,z:0},to={x:0,y:1,z:-3};
@@ -41,4 +41,24 @@ test('one query skins each vertex once across bounds/triangles and restores the 
  ordinaryRay([r],from,to);const baseline=calls;calls=0;
  const hit=traceGrenadeSurface(new Map([[1,r.view]]),[r.enemy],from,to);assert(hit);assert.equal(calls,mesh.geometry.attributes.position.count+3);assert(calls<baseline);t.diagnostic('exact skin evaluations baseline='+baseline+' memoized='+calls);assert.equal(mesh.getVertexPosition,counted);assert.deepEqual(mesh.geometry.attributes.position.array,position);
  mesh.getVertexPosition=function(){throw Error('skin failure');};const failing=mesh.getVertexPosition;assert.throws(()=>traceGrenadeSurface(new Map([[1,r.view]]),[r.enemy],from,to),/skin failure/);assert.equal(mesh.getVertexPosition,failing);
+});
+
+test('posed rendered envelope keeps low fallback, extended bones and close segment intent without granting a triangle hit',()=>{
+ const r=weightedBody(1,-2),views=new Map([[1,r.view]]);r.view.root.scale.set(1.673,.2,1);r.view.root.updateWorldMatrix(true,true);
+ assert.equal(surfaceAimHeight(views,r.enemy,{x:0,y:1.2,z:0},{x:0,y:1.2,z:-2}),.05);
+ r.view.root.scale.set(1.673,1.673,1.673);r.tip.position.x=1.5;r.view.root.updateMatrixWorld(true);const h=surfaceAimHeight(views,r.enemy,{x:1.8,y:1,z:0},{x:1.8,y:1,z:-2});assert.equal(h,1);
+ assert.equal(traceGrenadeSurface(views,[r.enemy],{x:1.8,y:1,z:0},{x:1.8,y:1,z:-.1}),null);
+});
+test('bounds retain exact ray parity with translated binds, nonuniform scale, active morphs, unnormalized/negative weights and changed positions',()=>{
+ for(const variant of ['bind','nonunit','negative','morph','mutated']){
+  const r=weightedBody(1,-2),mesh=r.mesh,views=new Map([[1,r.view]]);
+  mesh.position.set(.2,.1,0);r.view.root.scale.set(1.673,.85,1.2);r.tip.position.x=.35;r.tip.rotation.z=.2;
+  if(variant==='bind'){mesh.bindMatrix.makeTranslation(.3,.1,0);mesh.bindMatrixInverse.copy(mesh.bindMatrix).invert();}
+  if(variant==='nonunit'||variant==='negative'){const w=mesh.geometry.attributes.skinWeight;for(let i=0;i<w.count;i++)w.setXYZW(i,variant==='negative'?-.25:.1,.75,0,0);w.needsUpdate=true;}
+  if(variant==='morph'){const p=mesh.geometry.attributes.position.clone();for(let i=0;i<p.count;i++)p.setX(i,p.getX(i)+2);mesh.geometry.morphAttributes.position=[p];mesh.updateMorphTargets();mesh.morphTargetInfluences[0]=.5;}
+  for(let pass=0;pass<2;pass++){
+   if(variant==='mutated'&&pass){const p=mesh.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setX(i,p.getX(i)+2);p.needsUpdate=true;}
+   for(const x of[-1,0,.5,1,1.5,2,2.5,3]){const from={x,y:1,z:0},to={x,y:1,z:-4},reference=ordinaryRay([r],from,to),hit=traceGrenadeSurface(views,[r.enemy],from,to);assert.equal(!!hit,!!reference,variant+' '+pass+' '+x);if(hit)assert(new T.Vector3(hit.position.x,hit.position.y,hit.position.z).distanceTo(reference.point)<1e-10,variant);}
+  }
+ }
 });
