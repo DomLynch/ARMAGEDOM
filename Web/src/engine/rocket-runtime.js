@@ -3,12 +3,18 @@ import {bossEquipmentClock} from './boss-equipment-data.js';
 import {radialBlastHits} from './radial-blast.js';
 const EPS=1e-8,tip=.18,flat=p=>({x:p.x,z:-p.z}),point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z),length=p=>Math.hypot(p.x,p.z),normal=p=>{const n=length(p);return n>EPS?{x:p.x/n,z:p.z/n}:null;},emit=(g,type,data)=>g.events.push({type,...data});
 const lerp=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:a.z+(b.z-a.z)*t});
-function aimPoint(g,intent,reference,data){
- const result=resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,aimPoint:intent.aimPoint,aimTargetId:intent.aimTargetId});g.rocketAimTargetId=result?.targetId??null;g.rocketAimHeight=result?.height??.05;return result?.position??null;
+function aimPoint(g,intent,reference,data,services){
+ const result=resolveRangedAim(g,reference,{visibleIds:intent.combatVisibleIds??intent.pistolVisibleIds,aimPoint:intent.aimPoint,aimTargetId:intent.aimTargetId});g.rocketAimTargetId=result?.targetId??null;let height=result?.height??.05;
+ if(result?.targetId!=null&&services.grenadeTrace){
+  const p=g.player.pos,c=g.rocketAimValidation,position=result.position,same=c&&c.targetId===result.targetId&&c.areaId===g.world.areaId&&Math.abs(c.ruleHeight-height)<1e-6&&Math.hypot(c.player.x-p.x,c.player.z-p.z)<.01&&Math.hypot(c.target.x-position.x,c.target.z-position.z)<.01&&g.time>=c.at&&g.time-c.at<.25;
+  if(same)height=c.height;
+  else{const source=services.rocketSource?.(g);if(source){const hit=services.grenadeTrace(g,source,{x:position.x,y:height,z:-position.z});if(!hit)height=.05;g.rocketAimValidation={targetId:result.targetId,areaId:g.world.areaId,player:{...p},target:{...position},ruleHeight:result.height,height,at:g.time};}}
+ }else g.rocketAimValidation=null;
+ g.rocketAimHeight=height;return result?.position??null;
 }
 export function rocketIntent(g,intent,dispatch,services={}){
  const data=g.world.bossEquipmentData.rocketLauncher,p=g.player,clock=bossEquipmentClock(g,'rocketLauncher'),actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!g.runSaveInvalid&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=(p.ready??0)&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
- const explicit=point(intent.aim)&&length(intent.aim)>EPS,moving=length(intent.move??{x:0,z:0})>.01,reference=explicit?normal(intent.aim):moving?normal(intent.move):g.bossWeaponFacing??p.facing;g.bossWeaponFacing={...reference};g.pistolTargetId=g.pistolTargetFacing=null;g.rocketAim=aimPoint(g,intent,reference,data);
+ const explicit=point(intent.aim)&&length(intent.aim)>EPS,moving=length(intent.move??{x:0,z:0})>.01,reference=explicit?normal(intent.aim):moving?normal(intent.move):g.bossWeaponFacing??p.facing;g.bossWeaponFacing={...reference};g.pistolTargetId=g.pistolTargetFacing=null;if(canAct&&(explicit||moving))p.facing={...reference};g.rocketAim=aimPoint(g,intent,reference,data,services);
  if(!canAct)clock.reloadingUntil=0;
  if(canAct&&actions.includes('heavy')){const result=dispatch?.(g,{type:'equip',itemId:data.itemId,equipped:false},true);if(result?.ok)clock.reloadingUntil=0;return{...intent,actions:[],held:[],guard:false,guardPressed:false};}
  let state=g.bossEquipment.rocketLauncher;
@@ -16,9 +22,7 @@ export function rocketIntent(g,intent,dispatch,services={}){
  if(canAct&&g.bossEquipmentAssetReady?.rocketLauncher&&(actions.includes('stab')||state.magazine===0&&(actions.includes('fire')||actions.includes('slash')))&&!clock.reloadingUntil&&state.magazine<data.rules.capacity&&state.reserve>0&&g.time+EPS>=clock.nextFireAt){clock.reloadingUntil=g.time+data.rules.reload;emit(g,'reload-start',{until:clock.reloadingUntil,weapon:'rocket'});}
  if(canAct&&g.bossEquipmentAssetReady?.rocketLauncher&&(actions.includes('fire')||actions.includes('slash'))&&!clock.reloadingUntil&&g.time+EPS>=clock.nextFireAt&&g.rocketAim){
   p.facing={...reference};const source=services.rocketSource?.(g),target=g.rocketAim;
-  // Validate assisted body elevation against real posed triangles once per launch.
-  // A low body with a mismatched logical height keeps the proven ground path.
-  if(source&&g.rocketAimTargetId!=null&&services.grenadeTrace){const hit=services.grenadeTrace(g,source,{x:target.x,y:g.rocketAimHeight,z:-target.z});if(!hit)g.rocketAimHeight=.05;}
+
   if(source&&[source.x,source.y,source.z].every(Number.isFinite)&&g.world.lineClear(p.pos,flat(source))){
    const raw={x:target.x-source.x,z:target.z+source.z},ahead=raw.x*reference.x+raw.z*reference.z>EPS,closeDistance=Math.max(EPS,Math.hypot(target.x-p.pos.x,target.z-p.pos.z));
    const vector={x:ahead?raw.x:reference.x*closeDistance,y:g.rocketAimHeight-source.y,z:ahead?-raw.z:-reference.z*closeDistance},size=Math.hypot(vector.x,vector.y,vector.z);
