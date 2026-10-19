@@ -11,7 +11,7 @@ test('registered visible-edge paths validate without changing gameplay anchors; 
  for(const mutate of[p=>p.outlines[0].points[0][0]=-1,p=>p.outlines[0].closed='yes',p=>p.outlines[0].points=[[0,0]],p=>p.outlines=Array(5).fill(p.outlines[0])]){const bad=data();mutate(bad.props[0]);assert.throws(()=>validateSafehouseData(bad,publicAreaRegistry));}
 });
 test('actual view builds one screen-width contour draw per prop on registered image coordinates and disposes its own resources',()=>{
- const previous=globalThis.document,label={style:{},setAttribute(){},remove(){}},control={};globalThis.document={createElement:()=>label,body:{append(){}},getElementById:id=>id==='pistol-interact'?control:null};
+ const previous=globalThis.document,label={style:{},setAttribute(){},addEventListener(){},removeEventListener(){},remove(){}},control={};globalThis.document={createElement:()=>label,body:{append(){}},getElementById:id=>id==='pistol-interact'?control:null};
  const geometry=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute([-5,-2.5,0,5,-2.5,0,5,2.5,0,-5,2.5,0],3)),group=new T.Group(),world={THREE:{...T,TextureLoader:class{load(url,done){done(new T.Texture());}}},backdrop:{geometry},layout:{exposure:1},baseUrl:'http://test/',areaId:'westminster',group,safehouseData:data(),geometry:{ground:p=>({x:p.x,z:p.y})},lineClear:()=>true};
  const game={world,time:0,player:{hp:100,pos:{x:100,z:100},radius:.4}},view=createSafehouseView({world,game,camera:new T.PerspectiveCamera(),canvas:{getBoundingClientRect:()=>({width:393,height:852})},loaded:true},()=>{});
  try{view.update();const lines=group.children.filter(n=>n.isLineSegments2);assert.equal(lines.length,3);

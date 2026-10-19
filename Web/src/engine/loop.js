@@ -89,6 +89,7 @@ function frame(ms,providedElapsed) {
     .add(new THREE.Vector3(0, 0, 0.8));
   s.hud.update(s.game);s.updateExpedition?.();
   if(s.effects)s.effects.render(s.renderer,s.camera,s.game,s.canvas.clientHeight,s.canvas.clientWidth);else s.renderer.render(s.scene,s.camera);
+  if(s.storyCapturePending?.()){try{s.captureStoryArrival();}finally{if(s.paused)s.renderer.setAnimationLoop(null);}}
 }
 return {frame,intent,combatVisibleIds,reset(){last=0;accumulator=0;submitted=null;},input(value){if(!value||typeof value!=="object")throw new TypeError("Input object required");submitted=structuredClone({move:{x:0,y:0},actions:[],held:[],...value});},step(seconds){if(!Number.isFinite(seconds)||seconds<0)throw new TypeError('Finite nonnegative step required');frame(last+seconds*1000,seconds);}};
 }
