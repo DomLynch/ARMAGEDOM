@@ -14,7 +14,7 @@ export function territoryHomeStep(p,o){
  const result=action=>({alerted,returning,action});
  if(o.alive!==true||o.swingActive===true||o.hurt===true)return result('native');
  if(!Number.isFinite(o.playerHomeDistance)||o.playerHomeDistance<0||!Number.isFinite(o.homeDistance)||o.homeDistance<0)return result('hold');
- if(alerted&&o.playerHomeDistance>p.homeLeash){alerted=false;returning=true;}
+ if(p.pursuitScope!=='area'&&alerted&&o.playerHomeDistance>p.homeLeash){alerted=false;returning=true;}
  if(returning&&o.homeDistance<=.2)returning=false;
  return result(returning?(o.returnPathClear===false?'hold':'return'):'native');
 }

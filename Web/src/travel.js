@@ -1,3 +1,5 @@
+import{resetBossPursuit}from'./engine/area-bosses.js';
+import{stopBossFlame}from'./engine/boss-flame.js';
 import {initializeAreaResidents} from './combat.js';
 // Thin orchestration for the existing three-area pilot. World owns atomic loading.
 export async function travelTo(game, request,{isCurrent=()=>true}={}) {
@@ -9,7 +11,7 @@ export async function travelTo(game, request,{isCurrent=()=>true}={}) {
   if(game.areaHazards)game.areaHazards=[];
   game.activeGrenades=[];game.activeRockets=[];
   game.areaFights ??= {};
-  for (const e of game.enemies) {e.swing=null;if(e.animalRole)e.completedAttack=null;}
+  for (const e of game.enemies) {if(e.residentIntent?.pursuitScope==='area'){stopBossFlame(game,e,'area-exit');resetBossPursuit(e);}e.swing=null;if(e.animalRole)e.completedAttack=null;}
   game.areaFights[previous] = {
     initialized: !!game.areaInitialized, cleared: !!game.encounterCleared,
     enemies: game.enemies, corpses: game.corpses, bolts: game.bolts, loot: game.loot,

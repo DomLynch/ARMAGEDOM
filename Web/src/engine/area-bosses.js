@@ -43,8 +43,10 @@ export function mergeBossResidents(residents,data,registry){
 export function applyBossProfile(actor,row,data){
  if(!row.bossRef)return actor;const p=data?.profiles[row.bossRef];if(!p)fail();
  return Object.assign(actor,{rig:p.modelRef,bossProfile:p,bossName:p.name,contactPaths:data.paths,contactScale:actor.combatScale*p.contactScale,mobSize:1,hp:p.health,maxHP:p.health,radius:p.radius,moveSpeed:p.moveSpeed,recoveryDelay:p.recoveryDelay,
-  residentIntent:Object.freeze({wakeDistance:p.wakeDistance,homeLeash:p.homeLeash,holdUntilWake:true,retreatSeconds:0,companionDistance:0,isolationDistance:0,burstSeconds:0,pauseSeconds:0})});
+  residentIntent:Object.freeze({pursuitScope:'area',wakeDistance:p.wakeDistance,homeLeash:p.homeLeash,holdUntilWake:true,retreatSeconds:0,companionDistance:0,isolationDistance:0,burstSeconds:0,pauseSeconds:0})});
 }
+// Reset only the shared boss policy; health, rewards and nonboss intent stay owned elsewhere.
+export function resetBossPursuit(actor){if(actor.residentIntent?.pursuitScope!=='area')return;actor.alerted=false;actor.returning=actor.hp>0&&!!actor.home;actor.swing=null;actor.completedAttack=null;}
 export function bossMove(actor,action){return actor.bossProfile?.attacks[action]??null;}
 // Read the existing committed reward state. A corpse or an uncommitted kill
 // cannot open an exit; pickup and equipment selection are not prerequisites.
