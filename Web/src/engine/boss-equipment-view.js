@@ -1,8 +1,9 @@
+import{ownsEmberReward}from'./boss-equipment-data.js';
 import{lockerStored}from'./locker-core.js';
 import{createRocketView}from'./rocket-view.js';
 import * as T from 'three';
 import {createPickupModel} from './pickup-model-view.js';
-export function createBossEquipmentView(s,dispatch){
+export function createBossEquipmentView(s,dispatch,legacyFlameEquip=null){
  const panel=document.getElementById('boss-equipment');if(!panel)return{update(){},dispose(){}};
  const rockets=createRocketView(s),cards=new Map(),equipHandlers=new Map(),drops=new Map(),projectiles=new Map(),blasts=new Map(),loads=new Map(),failed=new Set(),listeners=[];let disposed=false,lastGame=null,lastArea=null;
  const safe=g=>s.loaded&&!s.contextLost&&!s.traveling&&!g.finished&&!g.runSaveInvalid&&g.player.hp>0&&!g.player.swing&&g.time>=(g.player.ready??0)&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil;
@@ -10,7 +11,7 @@ export function createBossEquipmentView(s,dispatch){
  function execute(field,command){const g=s.game;if(!safe(g))return;const result=dispatch(g,command,true);if(result.ok){g.events.push(...result.events);g.message=command.type==='claimPickup'?g.world.bossEquipmentData[field].name+' collected. Equip it in Gear.':command.equipped?g.world.bossEquipmentData[field].name+' equipped.':'Returned to your normal weapon.';g.messageUntil=g.time+3;s.input.clear();}s.updateExpedition?.();return result;}
  function createCard(field,data){
   const section=document.createElement('section'),title=document.createElement('h4'),label=document.createElement('p'),button=document.createElement('button');title.textContent=data.name;button.type='button';button.id='boss-equip-'+field;section.append(title,label,button);panel.append(section);
-  const equip=async()=>{const owner=s.game;if(!safe(owner))return;try{await prepare(field);if(!disposed&&s.game===owner&&safe(owner)&&owner.bossEquipment?.[field]?.status==='owned')execute(field,{type:'equip',itemId:data.itemId,equipped:!owner.bossEquipment[field].selected});}catch{}update();};
+  const equip=async()=>{const owner=s.game;if(!safe(owner))return;if(field==='emberProjector'&&typeof legacyFlameEquip==='function'&&(!ownsEmberReward(owner)||owner.flame?.equipped&&!owner.bossEquipment.emberProjector.selected)){await legacyFlameEquip();update();return;}try{await prepare(field);if(!disposed&&s.game===owner&&safe(owner)&&owner.bossEquipment?.[field]?.status==='owned')execute(field,{type:'equip',itemId:data.itemId,equipped:!owner.bossEquipment[field].selected});}catch{}update();};
   equipHandlers.set(field,equip);button.addEventListener('click',equip);listeners.push(()=>{button.removeEventListener('click',equip);section.remove();});return{label,button};
  }
  function stats(data,state,g){if(data.family==='shotguns')return`8 pellets × 8 damage · 6m · ${state?.magazine??0}/2 loaded · ${state?.reserve??0} reserve`;
@@ -33,8 +34,9 @@ export function createBossEquipmentView(s,dispatch){
   g.bossEquipmentAssetReady??={};for(const[field,profile]of Object.entries(data)){let card=cards.get(field);if(!card){card=createCard(field,profile);cards.set(field,card);}const state=g.bossEquipment?.[field],ready=s.actors.equipmentReady(field);g.bossEquipmentAssetReady[field]=ready;
    if((state?.status==='pending'||state?.selected)&&!ready&&!loads.has(field)&&!failed.has(field))prepare(field).catch(()=>{});
    const placement=g.world.bossData.placements.find(row=>row.key===profile.source.placementKey),boss=placement&&g.world.bossData.profiles[placement.profileRef]?.name;
-   card.label.textContent=state?.status==='owned'?stats(profile,state,g):state?.status==='pending'?'Dropped by '+boss+'. Approach and collect it.':state?.status==='legacy-dead'?boss+' was already defeated. A new defeat after Retry can earn this reward.':'Defeat '+boss+' to earn this weapon.';
-   card.button.hidden=state?.status!=='owned'&&!(state?.status==='pending'&&failed.has(field));card.button.disabled=lockerStored(g,profile.itemId)||!safe(g)||loads.has(field);card.button.textContent=lockerStored(g,profile.itemId)?'Stored in safehouse':loads.has(field)?'Loading weapon…':failed.has(field)?'Retry weapon loading':state?.selected?'Return to normal weapon':'Equip '+profile.name;
+   const legacyAccess=field==='emberProjector'&&!!g.flameFuel?.collected&&!ownsEmberReward(g),owned=state?.status==='owned'||legacyAccess;
+   card.label.textContent=legacyAccess?stats(profile,state,g)+(state?.status==='pending'?' · Witch drop awaiting collection.':' · Witch reward unclaimed.'):state?.status==='owned'?stats(profile,state,g):state?.status==='pending'?'Dropped by '+boss+'. Approach and collect it.':state?.status==='legacy-dead'?boss+' was already defeated. A new defeat after Retry can earn this reward.':'Defeat '+boss+' to earn this weapon.';
+   card.button.hidden=!owned&&!(state?.status==='pending'&&failed.has(field));card.button.disabled=lockerStored(g,profile.itemId)||!safe(g)||loads.has(field)||legacyAccess&&!!document.getElementById('flame-equip')?.disabled;card.button.textContent=lockerStored(g,profile.itemId)?'Stored in safehouse':loads.has(field)?'Loading weapon…':failed.has(field)?'Retry weapon loading':(field==='emberProjector'?g.flame?.equipped:state?.selected)?'Return to normal weapon':'Equip '+profile.name;
    if(state?.status!=='pending'||g.world.areaId!==profile.source.areaId||!ready){drops.get(field)?.dispose();drops.delete(field);continue;}
    let drop=drops.get(field);if(!drop){const source=s.actors.equipmentAsset(field);drop=createPickupModel(source.gltf,{rootName:source.description?.pose?.root??null,rotate:['shotguns','blades'].includes(profile.family)});s.scene.add(drop.root);drops.set(field,drop);}drop.root.position.copy(s.world.toRender(state.dropPosition));
 

@@ -9,7 +9,8 @@ import {createUniqueRewardModel} from '../src/engine/unique-reward-state.js';
 import {createUniqueRewardComponent,UNIQUE_REWARD_SAVE_KEY} from '../src/engine/unique-reward-core.js';
 import {createFlameFuelModel,FLAME_PILOT_PROFILE} from '../src/engine/flame-fuel-state.js';
 const {createFlameComponent,FLAME_SAVE_KEY}=await import(process.env.FLAME_CORE_URL??new URL('../src/engine/flame-core.js',import.meta.url).href);
-const fuel=createFlameFuelModel(FLAME_PILOT_PROFILE),flameId=FLAME_PILOT_PROFILE.pickupId;
+// Generic composed-writer conservation fixture retains its explicit100/s test rate.
+const fuel=createFlameFuelModel({...FLAME_PILOT_PROFILE,unitsPerSecond:100}),flameId=FLAME_PILOT_PROFILE.pickupId;
 const item='hale-pitborn-cleaver-v1',placementKey='east-roamer-2',pistolId='westminster-start-pistol-v1';
 const model=createUniqueRewardModel({placementKey,areaId:'east',itemId:item,baseVariantId:'knife',receiptId:placementKey+':'+item});
 const rules={version:1,killScore:20,scoreCap:100,damagePerPoint:.001,hpPerVitality:2,staminaPerEndurance:1,damagePerAttribute:.01,weapons:{knife:{damageAttribute:'strength'},[pistolId]:{damageAttribute:'dexterity'}}};

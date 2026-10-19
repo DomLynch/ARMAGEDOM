@@ -226,7 +226,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready',String(1-Math.min(1,left/data.rules.cadence)));el('slash').setAttribute('aria-label',grenade?`Throw one grenade; ${state.magazine} left`:`Fire ${rocket?'rocket':'shotgun'} once; ${state.magazine} loaded`);el('stab').setAttribute('aria-label',grenade?'Cycle touch throw range: 3, 5 or 8 metres':rocket?'Reload rocket launcher':'Reload shotgun');
       }
       if(flameEquipped){
-        const percent=Math.ceil(g.flameFuel.fuelUnits/g.world.flameData.capacity*100);el('ammo').hidden=false;el('ammo').textContent=`FLAMETHROWER · FUEL ${percent}%`;
+        const percent=Math.ceil(g.flameFuel.fuelUnits/g.world.flameData.capacity*100);el('ammo').hidden=false;el('ammo').textContent=`EMBER · FUEL ${percent}%`;
         for(const[id,text]of Object.entries({slash:'FLAME',stab:'RETURN',heavy:'RETURN',guard:'NO GUARD'}))el(id).querySelector('span').textContent=text;
         el('guard').disabled=true;el('guard').setAttribute('aria-label','Guard unavailable with flamethrower');
         for(const id of ['slash','stab','heavy']){el(id).classList.toggle('cooldown',false);el(id).classList.toggle('low-energy',false);el(id).querySelector('small').textContent=id==='slash'?`${percent}%`:'';el(id).setAttribute('aria-label',id==='slash'?`Hold to fire flamethrower; fuel ${percent} percent`:'Return to normal weapon');}

@@ -24,7 +24,7 @@ export function nearestInteraction(position,candidates){return candidates.filter
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
 const persistence=createRunPersistence({getRun:()=>s.game,setRun:value=>s.setGame(value),createFreshRun:options=>s.createFreshRun(options),storage});
-const bossEquipmentView=createBossEquipmentView(s,persistence.dispatchBossEquipment);
+const bossEquipmentView=createBossEquipmentView(s,persistence.dispatchBossEquipment,()=>flameView.equip());
 const bossView=createBossView(s),flameView=createFlameView(s,persistence);
 const rifleView=createRifleView(s,(g,command,allowed)=>dispatchEquipmentSelection(g,command,allowed,persistence.dispatchRifle));
 const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);s.updateExpedition?.();return result;});

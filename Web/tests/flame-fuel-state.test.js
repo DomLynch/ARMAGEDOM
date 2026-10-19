@@ -4,9 +4,10 @@ import {createCore} from '../src/core/index.js';
 import {createRunStorage} from '../src/core/io/local-run-storage.js';
 import {createRunOperation} from '../src/core/run-operation.js';
 const {createFlameFuelModel,FLAME_PILOT_PROFILE:profile}=await import(process.env.FLAME_FUEL_STATE_URL??new URL('../src/engine/flame-fuel-state.js',import.meta.url).href);
-const model=createFlameFuelModel(profile),full=()=>model.pickup(model.freshState(),profile.pickupId).state;
-test('config is required; approved pilot data is finite/frozen and carries no source coordinate',()=>{
- assert.equal(profile.capacity/profile.unitsPerSecond,10);assert.equal(profile.pickupId,'flamethrower-area8-v1');assert.equal(profile.areaId,'area8');assert.deepEqual(profile.contact,{range:3,coneDegrees:40,interval:.2,damage:8,afterburnDamage:0});assert.deepEqual(profile.presentation,{emitterCapacity:1,dynamicLights:false,recoil:0});
+// Generic conservation cases deliberately use an explicit100/s configuration; actual canonical10/s is asserted below and through the runtime family tests.
+const fixtureProfile={...profile,unitsPerSecond:100},model=createFlameFuelModel(fixtureProfile),full=()=>model.pickup(model.freshState(),profile.pickupId).state;
+test('config is required; canonical Ember data is finite/frozen and carries no source coordinate',()=>{
+ assert.equal(profile.capacity/profile.unitsPerSecond,100);assert.equal(profile.groundPickupEnabled,false);assert.equal(profile.name,'Ember Projector');assert.equal(profile.pickupId,'flamethrower-area8-v1');assert.equal(profile.areaId,'area8');assert.deepEqual(profile.contact,{range:3,coneDegrees:40,interval:.2,damage:10,afterburnDamage:0});assert.deepEqual(profile.presentation,{emitterCapacity:1,dynamicLights:false,recoil:0});
  for(const p of[profile,profile.contact,profile.presentation])assert(Object.isFrozen(p));
  for(const config of[undefined,{}, {...profile,capacity:0},{...profile,capacity:Infinity},{...profile,unitsPerSecond:0},{...profile,unitsPerSecond:NaN},{...profile,pickupId:''}])assert.throws(()=>createFlameFuelModel(config),TypeError);
 });
@@ -29,7 +30,7 @@ test('inactive release/menu/blur/death slices and zero elapsed consume nothing; 
 });
 test('fractional elapsed fuel, bounded final slice and empty intent preserve pure inputs',()=>{
  const before=full(),part=model.consume(before,{seconds:.00125,active:true});assert.equal(part.spent,.125);assert.equal(part.remaining,999.875);assert.equal(before.fuelUnits,1000);
- const last=model.consume({version:1,collected:true,fuelUnits:3.5},{seconds:1,active:true});assert.equal(last.spent,3.5);assert.equal(last.remaining,0);assert.equal(last.empty,true);assert.equal(last.state.collected,true);assert.equal(last.spent/profile.unitsPerSecond,.035);
+ const last=model.consume({version:1,collected:true,fuelUnits:3.5},{seconds:1,active:true});assert.equal(last.spent,3.5);assert.equal(last.remaining,0);assert.equal(last.empty,true);assert.equal(last.state.collected,true);assert.equal(last.spent/fixtureProfile.unitsPerSecond,.035);
  assert.equal(model.consume(last.state,{seconds:1,active:true}).spent,0);assert.equal(model.consume(before,{seconds:20,active:true}).spent,1000);
 });
 test('elapsed consumption has the same ten-second empty boundary across frame rates',()=>{

@@ -13,7 +13,7 @@ const paths={
 const styles={
  knife:['knife','KNIFE'],'hale-pitborn-cleaver-v1':['cleaver','CLEAVER'],'surgeons-knife-v1':['scalpel','SURGEON'],
  'westminster-start-pistol-v1':['pistol','PISTOL'],'watchmans-pistol-v1':['pistol','WATCHMAN'],'borough-marshals-pistol-v1':['pistol','MARSHAL'],
- 'bridge-warden-rifle-v1':['rifle','RIFLE'],'flamethrower-area8-v1':['flame','FLAME'],'ember-flamethrower-v1':['flame','EMBER'],
+ 'bridge-warden-rifle-v1':['rifle','RIFLE'],'flamethrower-area8-v1':['flame','EMBER'],'ember-flamethrower-v1':['flame','EMBER'],
  'south-stalker-shotgun-v1':['shotgun','SHOTGUN'],'standard-grenade-v1':['grenade','GRENADE'],'borough-butchers-rocket-launcher-v1':['rocket','ROCKET'],
 };
 const icons=Object.fromEntries(Object.entries(paths).map(([id,d])=>[id,'url("data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 44"><path d="${d}"/></svg>`)+'")']));

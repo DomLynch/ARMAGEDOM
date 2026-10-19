@@ -13,3 +13,6 @@ export function validateBossEquipmentData(input,registry,residents){
 export function bossEquipmentClock(g,field){const clocks=g.bossEquipmentAction??(g.bossEquipmentAction={});return clocks[field]??(clocks[field]={nextFireAt:0,reloadingUntil:0,firedAt:-1});}
 
 export function selectedFlameProfile(g){const base=g.world.flameData,data=g.world.bossEquipmentData?.emberProjector,state=g.bossEquipment?.emberProjector;return data&&state?.status==='owned'&&state.selected&&state.rewardReceipt===data.source.receiptId?{...base,name:data.name,unitsPerSecond:data.rules.unitsPerSecond,contact:{...base.contact,damage:data.rules.damage}}:base;}
+
+// Access to the shared historical fuel family never proves the Witch reward.
+export function ownsEmberReward(g){const p=g.world?.bossEquipmentData?.emberProjector,s=g.bossEquipment?.emberProjector;return !!p&&s?.status==='owned'&&s.rewardReceipt===p.source.receiptId;}

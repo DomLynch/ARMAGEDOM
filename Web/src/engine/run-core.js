@@ -68,7 +68,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   const g=getRun(),data=g?.world.flameData;if(!data)return null;
   const base=uniqueReward();if(!base)throw TypeError('Flame requires registered v7 run');
   if(!flameComponent){flameComponent=createFlameComponent({baseCodec:base.codec,getRun,model:createFlameFuelModel(data),unitsPerSecond:data.unitsPerSecond,getUnitsPerSecond:run=>selectedFlameProfile(run).unitsPerSecond,applyBaseSaved:(run,saved)=>base.applySavedRun(run,saved),baseStorageAdapter:storage=>base.storageAdapter(storage),
-   canPickup:run=>{const p=run.player;return flameScope?.run===run&&flameScope.allowed&&p.hp>0&&!run.finished&&!run.runSaveInvalid&&!p.swing&&run.time>=p.hurtUntil&&run.time>=p.dodgeUntil&&run.world.areaId===data.areaId&&Math.hypot(p.pos.x-data.position.x,p.pos.z-data.position.z)<=data.pickupRadius+1e-8&&run.world.lineClear(p.pos,data.position);},
+   canPickup:run=>{const p=run.player;return data.groundPickupEnabled===true&&flameScope?.run===run&&flameScope.allowed&&p.hp>0&&!run.finished&&!run.runSaveInvalid&&!p.swing&&run.time>=p.hurtUntil&&run.time>=p.dodgeUntil&&run.world.areaId===data.areaId&&Math.hypot(p.pos.x-data.position.x,p.pos.z-data.position.z)<=data.pickupRadius+1e-8&&run.world.lineClear(p.pos,data.position);},
    getConsumption:run=>flameScope?.run===run&&flameScope.allowed?flameScope.request:null});flameDomain=flameComponent.wrapDomain(uniqueDomain);}
   return flameComponent;
  }
