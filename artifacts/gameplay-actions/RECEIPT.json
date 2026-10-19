@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-19",
+  "status": "PASS_FOCUSED_HELPER_AND_STATIC_ONLY",
+  "command": "node --test scripts/qa/gameplay-actions.test.mjs scripts/qa/driver-preflight.test.mjs",
+  "exitCode": 0,
+  "tests": 22,
+  "failed": 0,
+  "durationMs": 2133.444667,
+  "helperSha256": "fd9965d011ad620c92083e8acea40536e211801b0af92b8d51dcf6ae312f0459",
+  "preflightSha256": "71225bcb184b4f2ee4d23aea7d5e23bff71404b60ff470a56a2b7053909d0db7",
+  "testLogSha256": "1ccf4b151cd569154e78e713f0c7488e385a7e5266f1be505a9021b64bfd654f",
+  "consumer": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-witch173-native-20261019/proof.mjs",
+  "consumerStatus": "PREPARING; actual adoption/static closure and browser proof pending Web",
+  "reusedEvidence": "UI guard unchanged; prior27-test evidence retained for unchanged UI inputs. New static policy has its15 tests rerun. No browser launched.",
+  "sourceReference": {
+    "path": "/Users/domininclynch/Desktop/Business/ARMAGEDOM-safehouse172-controlled-boundary-20261018/movement-input.mjs",
+    "sha256": "7ad9083982fa540d9913e9b759faefaefff5566a1ef839a368da7b3757181877"
+  },
+  "remaining": "Actual173 consumer+observer closure, native movement/Pistol/fight/outward-return/cold-restore proof remain Web responsibility. No game/release payload or launcher edit."
+}

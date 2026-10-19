@@ -73,3 +73,10 @@ test('absolute symlinked CLI invocation from a separate stage CWD runs main and 
  let run=spawnSync(process.execPath,[alias,cfg,out],{cwd:root,encoding:'utf8'});assert.equal(run.status,0,run.stderr);assert.ok(fs.existsSync(out),'CLI must write report even when argv uses an alias');assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).status,'PASS_STATIC_DRIVER_PREFLIGHT');
  fs.unlinkSync(path.join(root,'fixtures/earned.json'));run=spawnSync(process.execPath,[alias,cfg,out],{cwd:root,encoding:'utf8'});assert.equal(run.status,1,run.stderr);assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).status,'FAIL_STATIC_DRIVER_PREFLIGHT');
 });
+test('narrow gameplay adapter closes static imports without legacy exemption and rejects tamper/callback bypass',async t=>{
+ const root=stage(t);fs.copyFileSync(new URL('./gameplay-actions.mjs',import.meta.url),path.join(root,'scripts/qa/gameplay-actions.mjs'));
+ const code="import {waitSimulation,aimAt,equipPistol,moveToPoint} from './scripts/qa/gameplay-actions.mjs';await equipPistol(page);await aimAt(page,7);await moveToPoint(page,{x:.5,y:.5});await waitSimulation(page,()=>__qa.game.time>1);";
+ fs.writeFileSync(path.join(root,'game.mjs'),code);const cfg={...config(root),entrypoints:['game.mjs']};let r=await driverPreflight(cfg);assert.equal(r.status,'PASS_STATIC_DRIVER_PREFLIGHT',JSON.stringify(r.errors));assert.equal(r.trustedAdapters.length,1);assert.deepEqual(r.trustedAdapters[0].exports,['waitSimulation','aimAt','equipPistol','moveToPoint']);
+ fs.writeFileSync(path.join(root,'game.mjs'),code+"await waitSimulation(page,()=>page.keyboard.press('g'));");r=await driverPreflight(cfg);assert.ok(codes(r).includes('UNGUARDED_INTERACTION'),'predicate slots never authorize caller input');
+ fs.writeFileSync(path.join(root,'game.mjs'),code);fs.appendFileSync(path.join(root,'scripts/qa/gameplay-actions.mjs'),'\n// candidate changed bytes\n');r=await driverPreflight(cfg);assert.ok(codes(r).includes('TRUSTED_HELPER_HASH_MISMATCH'));assert.equal(r.status,'FAIL_STATIC_DRIVER_PREFLIGHT');
+});

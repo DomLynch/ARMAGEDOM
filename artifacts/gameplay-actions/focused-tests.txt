@@ -1,0 +1,30 @@
+✔ valid maintained guarded driver resolves real AST imports/fixture and deterministic hashes without execution (23.037292ms)
+✔ missing local module or literal data fixture rejects before any submission (6.4935ms)
+✔ direct bypass, method alias/destructuring and computed method reject with zero submission (4.177333ms)
+✔ candidate cannot self-approve custom adapter or modified maintained helper (4.416708ms)
+✔ audited aliased process launch and CDP send escapes reject with zero submission (4.509041ms)
+✔ reviewed UI guard ack parameter resolves only inside exact approved helper internals (15.148958ms)
+✔ trusted binding shadow and callbacks outside direct approved call are not exemptions (4.689ms)
+✔ syntax, unresolved dynamic imports/data/code and process launch report unsupported rather than claiming PASS (3.6585ms)
+✔ fixture paths do not use ambiguous lexical constants or fake path methods; unsupported source extensions reject (3.968958ms)
+✔ local import cycles resolve once and stage escapes/symlinks fail closed (3.25275ms)
+✔ source-build manifest binds actual files/fingerprint, allows null package hash; tamper rejects (5.180334ms)
+✔ existing-package retry binds actual release/payload/hash, identity mismatch rejects (6.85125ms)
+✔ CLI emits stable report and nonzero for missing fixture, no driver execution/submission side effects (234.9795ms)
+✔ absolute symlinked CLI invocation from a separate stage CWD runs main and writes PASS/FAIL reports (150.298667ms)
+✔ narrow gameplay adapter closes static imports without legacy exemption and rejects tamper/callback bypass (17.07425ms)
+✔ simulation wait retains value API and rejects bounded false/stalled predicate without dynamic code (18.901625ms)
+✔ pistol pickup/equip uses ordinary G once and observes actual selected family; mismatch is not PASS (1.332833ms)
+✔ pistol missing selection acknowledgement fails and releases G (1010.167709ms)
+✔ aim binds actual pistol/target, uses FEET projection and actual ready cue (0.526083ms)
+✔ touch movement reuses46px mapping, observes goal and releases held contact/session (0.592416ms)
+✔ covered/wrong-mode movement rejects before dispatch, failed dispatch releases without retry (0.651375ms)
+✔ paused/frozen simulation prevents dispatch and missing aim cue remains failed (1028.535042ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2133.444667
