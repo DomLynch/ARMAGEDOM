@@ -14,7 +14,7 @@ function setup(distance=2.5){
 }
 function warning(s){for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert.equal(s.e.bossWeapon?.phase,'warning');return s.e.bossWeapon.startTick;}
 test('actual Witch alone opts into validated flame capability and expanded wake; other profile attacks remain melee',()=>{
- const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,4.62);assert.equal(c.bossData.profiles.witch.homeLeash,5);
+ const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,6);assert.equal(c.bossData.profiles.witch.homeLeash,8);
  assert.equal(c.bossData.profiles.witch.weapon.modelRef,BOSS_EQUIPMENT_PROFILES.emberProjector.modelRef);for(const[id,p]of Object.entries(c.bossData.profiles))if(id!=='witch')assert.equal(p.weapon,undefined);
  for(const mutate of[w=>w.kind='invented',w=>w.modelRef='foreign-model',w=>w.damage=5,w=>w.windupTicks=1,w=>w.activeTicks=25,w=>w.intervalTicks=1,w=>w.recoveryTicks=1,w=>w.coneDegrees=180]){const b=raw();mutate(b.bosses.profiles.witch.weapon);assert.throws(()=>validateAreaMetadata(b,publicAreaRegistry));}
 });
@@ -41,7 +41,7 @@ test('stagger, pause, death, safehouse and return cancel the transient attack; r
   if(mode==='stagger')s.e.staggerUntil=s.g.time+.5;
   if(mode==='death')s.e.hp=0;
   if(mode==='safehouse')s.g.player.pos=s.g.world.geometry.ground({x:.09,y:.575});
-  if(mode==='return')s.g.player.pos={x:s.e.home.x+8,z:s.e.home.z};
+  if(mode==='return')s.g.player.pos={x:s.e.home.x+s.e.bossProfile.homeLeash+3,z:s.e.home.z};
   s.step(mode==='pause'?{paused:true}:{});assert.equal(s.e.bossWeapon,null,mode);assert.equal(s.g.player.hp,150,mode);
   if(mode==='return'){assert(s.e.returning||Math.hypot(s.e.pos.x-s.e.home.x,s.e.pos.z-s.e.home.z)<.2);assert(!s.e.alerted);for(let n=0;n<300;n++)s.step();const p=s.g.world.geometry.ground({x:.81,y:.52});s.g.player.pos=p;for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert(s.e.alerted);}
  }

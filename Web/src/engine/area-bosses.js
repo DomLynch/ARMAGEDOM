@@ -11,7 +11,7 @@ export function validateAreaBosses(input,registry,residents={}){
  for(const[id,p]of profiles){
   closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard'],['minimumAttackDistance','weapon']);
   if(!key(id)||!text(p.name)||!key(p.modelRef)||models.has(p.modelRef))fail();models.add(p.modelRef);
-  for(const[field,min,max]of[['health',40,140],['radius',.35,.6],['moveSpeed',.7,2.5],['wakeDistance',2,5],['homeLeash',3,8],['recoveryDelay',.4,2.5],['contactScale',.2,3]])if(!number(p[field],min,max))fail();
+  for(const[field,min,max]of[['health',40,140],['radius',.35,.6],['moveSpeed',.7,2.5],['wakeDistance',2,6],['homeLeash',3,8],['recoveryDelay',.4,2.5],['contactScale',.2,3]])if(!number(p[field],min,max))fail();
   if(p.homeLeash<p.wakeDistance||!Array.isArray(p.attackPattern)||p.attackPattern.length<1||p.attackPattern.length>4||!p.attacks||Object.getPrototypeOf(p.attacks)!==Object.prototype)fail();
   if(p.minimumAttackDistance!==undefined&&(!number(p.minimumAttackDistance,.2,2.9)||Object.values(p.attacks).some(a=>!Number.isFinite(a.range)||p.minimumAttackDistance+.1>=a.range)))fail();
   if(Object.keys(p.attacks).length<1||Object.keys(p.attacks).length>3||p.attackPattern.some(action=>!Object.hasOwn(p.attacks,action)))fail();

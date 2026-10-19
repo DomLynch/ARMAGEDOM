@@ -2138,8 +2138,8 @@
         "health": 120,
         "radius": 0.4,
         "moveSpeed": 1.4,
-        "wakeDistance": 4.62,
-        "homeLeash": 5,
+        "wakeDistance": 6,
+        "homeLeash": 8,
         "recoveryDelay": 0.7,
         "contactScale": 1.3225,
         "attackPattern": [

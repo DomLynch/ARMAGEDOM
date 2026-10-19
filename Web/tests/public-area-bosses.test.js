@@ -23,7 +23,7 @@ for(const row of content.bossData.placements)test('actual '+row.profileRef+' exa
  }
  const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:p.wakeDistance+.4});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);
   const missing=route.missingExits.filter(to=>!registry.links(row.areaId).some(link=>link.to===to&&link.requiresDefeat===row.key));
-  // Dom's +40% Witch wake intentionally covers this formerly quiet crossing.
+  // Dom's expanded Witch threat intentionally covers this formerly quiet crossing.
   // Preserve physical escape and the ungated South link, not a silent radius cut.
   if(row.profileRef==='witch'&&route.from==='east'){
    assert.deepEqual(missing.filter(to=>to!=='south'),[]);assert.equal(registry.links(row.areaId).find(l=>l.to==='south').requiresDefeat,undefined);
