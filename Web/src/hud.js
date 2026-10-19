@@ -1,4 +1,5 @@
 import{selectedBossRanged}from'./engine/boss-weapon-runtime.js';
+import{bossExitGate}from'./engine/area-bosses.js';
 import{createMenuTabs}from'./menu-tabs.js';
 import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
@@ -139,7 +140,8 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       }
       const area = (g.world?.areaId ?? "westminster").toUpperCase();
       el("menu-area").textContent = `${area} · LONDON 2030`;
-      el("objective").textContent = g.encounterCleared
+      const exitGate=bossExitGate(g);
+      el("objective").textContent = exitGate&&!exitGate.allowed ? `${area} · ${exitGate.message}` : g.encounterCleared
         ? `${area} · CLEARED · EXPLORE LONDON`
         : donor
           ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`

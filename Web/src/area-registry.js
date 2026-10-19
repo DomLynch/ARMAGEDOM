@@ -13,7 +13,7 @@ function point(value){closed(value,['x','y']);if(!Object.values(value).every(n=>
 function freeze(value){if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;}
 const id=value=>typeof value==='string'&&/^[a-z][a-z0-9.-]*$/.test(value);
 const canonical=value=>value&&typeof value==='object'?JSON.stringify(Object.fromEntries(Object.entries(value).sort())):JSON.stringify(value);
-function equalLink(a,b){return a.from===b.from&&a.to===b.to&&canonical(a.condition)===canonical(b.condition)&&canonical(a.entry)===canonical(b.entry);}
+function equalLink(a,b){return a.from===b.from&&a.to===b.to&&canonical(a.condition)===canonical(b.condition)&&canonical(a.entry)===canonical(b.entry)&&(a.requiresDefeat??null)===(b.requiresDefeat??null);}
 export function createAreaRegistry({areas=areaDefinitions,assets=areaAssets,manifest=null,includePrivate=false}={}){
  dataOnly({areas,assets});if(!Array.isArray(areas)||!areas.length||!object(assets))fail('empty definitions');
  const rows=structuredClone(areas),references=structuredClone(assets),byId=new Map(),exitIds=new Set();
@@ -31,13 +31,14 @@ export function createAreaRegistry({areas=areaDefinitions,assets=areaAssets,mani
  }
  const links=[];
  for(const row of rows)for(const exit of row.exits){
-  closed(exit,['id','target','condition','entry']);
+  closed(exit,['id','target','condition','entry','requiresDefeat'],['id','target','condition','entry']);
+  if(exit.requiresDefeat!==undefined&&!id(exit.requiresDefeat))fail('invalid exit defeat requirement');
   if(!id(exit.id)||exitIds.has(exit.id))fail('invalid or duplicate exit ID');exitIds.add(exit.id);
   if(!byId.has(exit.target))fail('unknown exit target');point(exit.entry);
   closed(exit.condition,['xMin','xMax','yMin','yMax'],[]);
   if(!Object.keys(exit.condition).length||!Object.values(exit.condition).every(n=>Number.isFinite(n)&&n>=0&&n<=1))fail('invalid exit condition');
   for(const axis of ['x','y'])if(exit.condition[axis+'Min']!==undefined&&exit.condition[axis+'Max']!==undefined&&exit.condition[axis+'Min']>=exit.condition[axis+'Max'])fail('invalid exit bounds');
-  links.push({id:exit.id,from:row.id,to:exit.target,condition:exit.condition,entry:exit.entry});
+  links.push({id:exit.id,from:row.id,to:exit.target,condition:exit.condition,entry:exit.entry,...(exit.requiresDefeat===undefined?{}:{requiresDefeat:exit.requiresDefeat})});
  }
  for(const link of links)if(!links.some(back=>back.from===link.to&&back.to===link.from))fail('missing return exit');
  const initialArea=manifest?.initialArea??rows[0].id;if(!byId.has(initialArea))fail('unknown initial area');

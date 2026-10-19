@@ -41,6 +41,16 @@ export function applyBossProfile(actor,row,data){
   residentIntent:Object.freeze({wakeDistance:p.wakeDistance,homeLeash:p.homeLeash,holdUntilWake:true,retreatSeconds:0,companionDistance:0,isolationDistance:0,burstSeconds:0,pauseSeconds:0})});
 }
 export function bossMove(actor,action){return actor.bossProfile?.attacks[action]??null;}
+// Read the existing committed reward state. A corpse or an uncommitted kill
+// cannot open an exit; pickup and equipment selection are not prerequisites.
+export function bossExitGate(game,target=null){
+ const world=game?.world,link=world?.registry?.links?.(world.areaId)?.find(row=>row.requiresDefeat&&(target===null||row.to===target));
+ if(!link)return null;
+ const key=link.requiresDefeat,placement=world.bossData?.placements?.find(row=>row.areaId===world.areaId&&row.key===key),name=world.bossData?.profiles?.[placement?.profileRef]?.name??'the boss';
+ const field=Object.keys(world.bossEquipmentData??{}).find(field=>{const source=world.bossEquipmentData[field].source;return source.areaId===world.areaId&&source.placementKey===key;});
+ const allowed=!game.runSaveInvalid&&field!==undefined&&['pending','owned','legacy-dead'].includes(game.bossEquipment?.[field]?.status);
+ return{allowed,key,message:allowed?'':`Defeat ${name} to open the ${link.to.replaceAll('-',' ')} exit.`};
+}
 export function bossHazardPosition(game,actor){
  const h=actor.bossProfile?.hazard,w=game.world;if(!h||!w.geometry)return null;
  const entries=[w.registry.get(w.areaId).entry,...w.registry.ids.flatMap(id=>w.registry.links(id).filter(link=>link.to===w.areaId).map(link=>link.entry))].map(p=>w.geometry.ground(p));
