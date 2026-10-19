@@ -65,6 +65,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
   return {
     dispose(){loaded=false;menuTabs.dispose();for(const remove of listeners.splice(0))remove();for(const row of handlers)if(row.element[row.key]===row.handler)row.element[row.key]=null;},
     toggleMenu,
+    get menuPage(){return menuTabs.current;},
     showMenuPage(id){if(!loaded||resetBusy)return false;const selected=menuTabs.select(id);if(selected&&!menu.open)toggleMenu();return selected;},
     resize,
     ready() {

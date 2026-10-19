@@ -1,7 +1,7 @@
 import{LineSegments2}from'three/addons/lines/LineSegments2.js';
 import{LineSegmentsGeometry}from'three/addons/lines/LineSegmentsGeometry.js';
 import{LineMaterial}from'three/addons/lines/LineMaterial.js';
-import{safehouseProp}from'./safehouse.js';
+import{safehouseProp,safehouseInteraction,safehouseAnchor}from'./safehouse.js';
 import{lockerInventory,lockerStored}from'./locker-core.js';
 import{LOCKER_WEAPON_IDS,LOCKER_RESOURCE_RULES}from'./locker-state.js';
 const names=['Starting pistol · shared variants','Bridge Rifle','Flamethrower · shared variants','Pitborn Cleaver','Stalker Shotgun','Grenades','Surgeon’s Knife','Rocket Launcher'];
@@ -13,8 +13,10 @@ export function safehouseCueOpacity(time,{period=3.5,phase=0,near=false,selected
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
 export function createSafehouseView(s,dispatch,readComms){
  let owner=null,meshes=[],texture=null,loading=false,failed=false,disposed=false,lastPanel='',lastError='',promptOwned=false;
- let label=null;
- function ensureLabel(){if(label)return;label=document.createElement('div');label.className='safehouse-label';label.hidden=true;label.setAttribute('aria-live','polite');document.body.append(label);}
+ let target=null,lastHubPage=null;
+ function ensureTarget(){if(target)return;target=document.createElement('button');target.type='button';target.id='safehouse-interact';target.setAttribute('aria-label','Open safehouse');target.hidden=true;target.style.cssText='position:fixed;z-index:5;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;touch-action:manipulation';target.addEventListener('click',interact);document.body.append(target);}
+ function positionTarget(w,data,enabled){target.hidden=!enabled;if(!enabled)return;const rect=s.canvas.getBoundingClientRect(),points=data.props.flatMap(prop=>{const b=prop.bounds;return[[b.x,b.y],[b.x+b.width,b.y],[b.x,b.y+b.height],[b.x+b.width,b.y+b.height]].map(([x,y])=>planePoint(w,x,y).project(s.camera));}).filter(p=>p.z>=-1&&p.z<=1);if(!points.length){target.hidden=true;return;}const xs=points.map(p=>rect.left+(p.x+1)*rect.width/2),ys=points.map(p=>rect.top+(1-p.y)*rect.height/2),left=Math.max(rect.left,Math.min(...xs)),top=Math.max(rect.top,Math.min(...ys)),right=Math.min(rect.right,Math.max(...xs)),bottom=Math.min(rect.bottom,Math.max(...ys));target.hidden=right<=left||bottom<=top;target.style.left=left+'px';target.style.top=top+'px';target.style.width=Math.max(0,right-left)+'px';target.style.height=Math.max(0,bottom-top)+'px';}
+
  const panel=document.getElementById('locker-items'),status=document.getElementById('locker-status');
  const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
  function clear(){for(const mesh of meshes){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();}meshes=[];owner=null;}
@@ -30,23 +32,24 @@ export function createSafehouseView(s,dispatch,readComms){
   line.name='Safehouse '+prop.id+' painted contour';line.renderOrder=-98;line.frustumCulled=false;line.userData.prop=prop;owner.add(line);meshes.push(line);
  }
  }
- function nearest(g,usable=false){const data=g.world.safehouseData;if(!data||g.world.areaId!==data.areaId)return null;return data.props.map(prop=>({prop,dist:Math.hypot(g.player.pos.x-g.world.geometry.ground(prop.standing).x,g.player.pos.z-g.world.geometry.ground(prop.standing).z)})).filter(row=>usable?safehouseProp(g,row.prop.id):row.dist<=data.nearbyRadius).sort((a,b)=>a.dist-b.dist)[0]?.prop??null;}
+
  function allowed(){return s.loaded&&!s.traveling&&!s.contextLost&&!s.resetting&&s.game?.player.hp>0&&!s.game.finished&&!s.game.runSaveInvalid;}
- function renderPanel(force=false){const g=s.game;if(!g||!panel)return;const inv=lockerInventory(g),locker=g.locker,key=JSON.stringify([inv,locker,allowed(),safehouseProp(g,'locker'),lastError]);if(!force&&key===lastPanel)return;lastPanel=key;panel.replaceChildren();const can=allowed()&&safehouseProp(g,'locker');status.textContent=lastError||(!can?'Approach the locker on the safehouse landing.':'Transfers save immediately. Equipped weapons must be put away first.');
+ function renderPanel(force=false){const g=s.game;if(!g||!panel)return;const inv=lockerInventory(g),locker=g.locker,key=JSON.stringify([inv,locker,allowed(),safehouseProp(g,'locker'),lastError]);if(!force&&key===lastPanel)return;lastPanel=key;panel.replaceChildren();const can=allowed()&&safehouseProp(g,'locker');status.textContent=lastError||(!can?'Storage is available anywhere on the safehouse landing.':'Transfers save immediately. Equipped weapons must be put away first.');
  const button=(row,text,action,enabled)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=!can||!enabled;b.addEventListener('click',()=>{const result=dispatch(s.game,action,allowed()&&safehouseProp(s.game,'locker'));lastError=result.ok?'':result.code==='storage-unavailable'?'Saving unavailable. Everything was kept.':'Transfer unavailable. Your equipment was kept.';renderPanel(true);s.updateExpedition?.();});row.append(b);};
  for(const[id,i]of LOCKER_WEAPON_IDS.map((id,i)=>[id,i])){const item=inv.weapons[id];if(!item.owned)continue;const row=document.createElement('div');row.className='locker-row';const text=document.createElement('p'),stored=lockerStored(g,id);text.textContent=`${names[i]} · ${stored?'Stored':item.equipped?'Equipped':'Carried'}`;row.append(text);button(row,stored?'Retrieve':'Store',{type:stored?'withdrawWeapon':'depositWeapon',itemId:id},!item.equipped);panel.append(row);}
  for(const[resource,title]of Object.entries(resources)){const carry=inv.ammo[resource],stash=locker?.ammo[resource]??0,rule=LOCKER_RESOURCE_RULES[resource],row=document.createElement('div');row.className='locker-row';const text=document.createElement('p');text.textContent=`${title} · carried ${+carry.toFixed(2)} · stored ${+stash.toFixed(2)}`;row.append(text);const amount=document.createElement('input');amount.type='number';amount.min=resource==='flame-fuel'?'.01':'1';amount.step=resource==='flame-fuel'?'.01':'1';amount.value=resource==='flame-fuel'?'10':'1';amount.max=String(Math.max(rule.carryCap,rule.stashCap));amount.setAttribute('aria-label',title+' transfer amount');row.append(amount);
  for(const type of ['depositSupply','withdrawSupply']){const b=document.createElement('button');b.type='button';b.textContent=type==='depositSupply'?'Store':'Retrieve';b.disabled=!can||!(type==='depositSupply'?carry:stash);b.addEventListener('click',()=>{const result=dispatch(s.game,{type,resource,amount:Number(amount.value)},allowed()&&safehouseProp(s.game,'locker'));lastError=result.ok?'':result.code==='storage-unavailable'?'Saving unavailable. Everything was kept.':'Choose an available amount within the carrying and locker limits.';renderPanel(true);});row.append(b);}panel.append(row);}
  }
- function update(){const g=s.game,w=s.world,data=w?.safehouseData;if(!g||!w||!data)return;ensureLabel();
+ function update(){const g=s.game,w=s.world,data=w?.safehouseData;if(!g||!w||!data){if(target)target.hidden=true;return;}ensureTarget();
  const inArea=w.areaId===data.areaId;if(!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
  if(inArea&&texture&&owner!==w.group)build(w,data);for(const mesh of meshes)mesh.visible=inArea;
- const near=nearest(g),active=nearest(g,true),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){const prop=mesh.userData.prop;if(!prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:prop.phase,near:near?.id===prop.id,selected:active?.id===prop.id,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
- label.hidden=true;
+ const anchor=safehouseAnchor(g),near=!!anchor&&Math.hypot(g.player.pos.x-anchor.x,g.player.pos.z-anchor.z)<=data.nearbyRadius,active=safehouseInteraction(g),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){if(!mesh.userData.prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:0,near,selected:active,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
+ positionTarget(w,data,inArea&&allowed()&&!s.paused&&active);
 
  renderPanel();
  }
- function interact(){if(!allowed()||s.paused)return false;const prop=nearest(s.game,true);if(!prop)return false;lastError='';if(prop.id==='comms'&&readComms){const result=readComms(s.game,allowed());if(!result.ok){s.game.message='Signal could not be saved. Try the terminal again.';s.game.messageUntil=s.game.time+5;return true;}s.updateExpedition?.();}renderPanel(true);s.hud.showMenuPage(prop.id==='locker'?'locker':prop.id==='comms'?'journal':'map');return true;}
- function interaction(){const g=s.game;if(!g||!allowed()||s.paused)return null;const prop=nearest(g,true);return prop?{id:'safehouse-'+prop.id,label:'Use '+prop.label,position:g.world.geometry.ground(prop.standing),run:interact}:null;}
- return{update,interact,interaction,dispose(){disposed=true;clear();texture?.dispose();label?.remove();panel?.replaceChildren?.();}};
+ function interact(){if(!allowed()||s.paused||!safehouseInteraction(s.game))return false;lastError='';const first=!s.game.openingStory?.commsRead;if(first&&readComms){const result=readComms(s.game,allowed());if(!result.ok){s.game.message='Signal could not be saved. Try the safehouse again.';s.game.messageUntil=s.game.time+5;return true;}s.updateExpedition?.();}renderPanel(true);const pages=['locker','gear','journal','map'],page=first?'journal':lastHubPage?(pages.includes(s.hud.menuPage)?s.hud.menuPage:lastHubPage):'locker';if(s.hud.showMenuPage(page)!==false)lastHubPage=page;return true;}
+ function interaction(){const g=s.game;if(!g||!allowed()||s.paused||!safehouseInteraction(g))return null;return{id:'safehouse',label:'Open Safehouse',position:safehouseAnchor(g),run:interact};}
+
+ return{update,interact,interaction,dispose(){disposed=true;clear();texture?.dispose();target?.removeEventListener('click',interact);target?.remove();panel?.replaceChildren?.();}};
 }
