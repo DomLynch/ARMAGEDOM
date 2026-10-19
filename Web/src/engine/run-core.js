@@ -1,3 +1,5 @@
+import{openingStoryPresentation}from'./opening-story.js';
+import{createOpeningStoryComponent}from'./opening-story-core.js';
 import{createLockerComponent,lockerStored}from'./locker-core.js';
 import{safehouseWeaponBlocked}from'./safehouse.js';
 import{stepPistol}from'../pistol.js';
@@ -35,6 +37,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
+ let storyComponent=null,storyDomain=null,storyScope=null;
  let lockerComponent=null,lockerDomain=null,lockerScope=null;
  let bossEquipmentComponent=null,bossEquipmentDomain=null,bossEquipmentScope=null;
  let rifleComponent=null,rifleDomain=null,rifleScope=null;
@@ -82,7 +85,8 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   return bossEquipmentComponent;
  }
  function locker(){const g=getRun();if(!g?.world.safehouseData)return null;const base=bossEquipment();if(!base)throw TypeError('Locker requires current v11 run');if(!lockerComponent){lockerComponent=createLockerComponent({baseCodec:base.codec,getRun,applyBaseSaved:(run,saved)=>base.applySavedRun(run,saved),baseStorageAdapter:storage=>base.storageAdapter(storage),canDispatch:run=>lockerScope?.run===run&&lockerScope.allowed,getAction:run=>lockerScope?.run===run?lockerScope.action:null});lockerDomain=lockerComponent.wrapDomain(bossEquipmentDomain);}return lockerComponent;}
- const stateComponent=()=>locker()??bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
+ function story(){const base=locker();if(!base)return null;if(!storyComponent){storyComponent=createOpeningStoryComponent({base,getRun,readRequested:run=>storyScope?.run===run&&storyScope.allowed});storyDomain=storyComponent.wrapDomain(lockerDomain);}return storyComponent;}
+ const stateComponent=()=>story()??locker()??bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
  const activeCodec={...selectedCodec,captureRunState(g){return(stateComponent()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(stateComponent()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return stateComponent()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(stateComponent()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){try{const raw=args[1]==null?null:JSON.parse(args[1]);if(raw?.version<=7&&(raw.progression?.awards??[]).some(row=>deathWeaponDescriptor(row.weaponId)?.creditPolicy==='none'))return null;}catch{return null;}return(stateComponent()?.codec??selectedCodec).restoreRun(...args);}};
  const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(stateComponent()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
@@ -92,8 +96,9 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(candidate?.world.safehouseData)candidate.locker=locker().model.freshState();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
+ const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return story()?storyDomain(command,context):locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
+ function dispatchStory(g,allowed=false){if(g!==getRun()||storyScope||!story()||allowed!==true)return{ok:false,code:'not-eligible',events:[]};storyScope={run:g,allowed:true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{storyScope=null;}}
  function dispatchLocker(g,action,allowed=false){if(g!==getRun()||lockerScope||!locker())return{ok:false,code:'not-eligible',events:[]};lockerScope={run:g,action,allowed:allowed===true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{lockerScope=null;}}
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
  function dispatchPistol(g,command,canAct){
@@ -161,7 +166,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
-  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events)g.events.push({...event,actor:g.player});return result.ok;
+  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events){g.events.push({...event,actor:g.player});if(event.type==='story-message-recovered'){g.message='Message recovered — read in Journal.';g.messageUntil=g.time+5;}}return result.ok;
  }
  function restoreSavedRun(g){
   const result=core.dispatch({type:'restore'});
@@ -171,6 +176,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
    else{g.message='Run saving unavailable. Supplies kept.';g.messageUntil=5;}
   }
   persistRun(g);
+  if(result.ok&&g.world.safehouseData&&openingStoryPresentation(g).stage==='safehouse'){g.message=openingStoryPresentation(g).opening;g.messageUntil=g.time+6;}
  }
  function resetRun(){return core.dispatch({type:'reset'});}
  function retry(){const result=core.dispatch({type:'retry'});if(result.ok&&getRun().world.uniqueRewardData)syncMeleeEquipment(getRun());return result.ok;}
@@ -201,5 +207,5 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
   for(const event of result.events)g.events.push({...event,actor:g.player});
   g.message='Worn vest equipped · 10% protection from unblocked hits.';g.messageUntil=g.time+4;
  }
- return {dispatchLocker,persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchRifle,dispatchBossEquipment,dispatchMarshalPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
+ return {dispatchStory,dispatchLocker,persistRun,restoreSavedRun,retry,resetRun,collectNearbySupplies,collectNearbyVest,dispatchPistol,dispatchRifle,dispatchBossEquipment,dispatchMarshalPistol,dispatchExpedition,dispatchUniqueReward,dispatchFlame};
 }

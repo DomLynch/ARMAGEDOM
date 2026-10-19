@@ -1,3 +1,4 @@
+import{openingStoryPresentation}from'./opening-story.js';
 import{lockerStored}from'./locker-core.js';
 import{bossExitGate}from'./area-bosses.js';
 import{effectiveWeaponDamage}from'./progression-runtime.js';
@@ -11,7 +12,7 @@ const stageAction={available:'accept',accepted:'recover',recovered:'claim'};
 const nearbyAction=(g,data)=>g.expedition?.status==='available'&&expeditionEligible(g,'recover',data)?'recover':stageAction[g.expedition?.status];
 const labels={accept:'Accept contract',recover:'Recover supply case',claim:'Complete contract & claim reward'};
 export function journalPresentation(g,data,allowed=true){const status=g.expedition?.status,action=stageAction[status],eligible=!!(action&&allowed&&expeditionEligible(g,action,data)),gate=bossExitGate(g),next={available:'Optional · accept at the Westminster stash, or recover the case in East.',accepted:'Next: recover the supply case in East. Fighting Hale is optional.',recovered:eligible?'At the Westminster stash · claim your reward.':'Case recovered · return to the Westminster stash.',claimed:'Reward claimed once · choose your earned weapon in Gear.'}[status]??'';return{eligible,showAction:status==='claimed'||eligible,next:gate&&!gate.allowed?`${gate.message}\n${next}`:next};}
-export function expeditionObjective(g){const c=g.world.expeditionData?.contract,s=g.expedition?.status;return !c?null:s==='accepted'?c.case.areaId:s==='claimed'?null:c.giver.areaId;}
+export function expeditionObjective(g){if(g.world.safehouseData)return openingStoryPresentation(g).target;const c=g.world.expeditionData?.contract,s=g.expedition?.status;return !c?null:s==='accepted'?c.case.areaId:s==='claimed'?null:c.giver.areaId;}
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s,dispatch){
  const el=id=>document.getElementById(id),panel=el('expedition-panel');if(!panel)return{update(){},interact(){return false;},dispose(){}};
@@ -47,6 +48,8 @@ export function createExpeditionView(s,dispatch){
  }
  function update(){
   if(disposed)return;const g=s.game,data=s.world?.expeditionData;if(!g||!data){panel.hidden=true;return;}if(!catalogue)build(data);el('retry').disabled=el('again').disabled=!!g.runSaveInvalid;const state=g.expedition;if(!state){panel.hidden=true;return;}
+  const story=g.world.safehouseData?openingStoryPresentation(g):null;
+  if(el('opening-story')){el('opening-story').hidden=!story;if(story){paint(el('story-objective'),story.objective);paint(el('story-opening'),story.stage==='safehouse'?story.opening:story.location);for(const[id,value]of [['story-signal',story.signal],['story-reaction',story.reaction],['story-fragment',story.fragment],['story-intercepted',story.intercepted],['story-question',story.question]]){const node=el(id);node.hidden=!value;if(value)paint(node,value);}el('story-signal-title').hidden=!story.signal;el('story-fragment-title').hidden=!story.fragment;el('story-intercepted-title').hidden=!story.intercepted;}}
   const c=data.contract,status=state.status,objective=expeditionObjective(g),action=stageAction[status],eligible=action&&allowed()&&expeditionEligible(g,action,data),fieldAction=nearbyAction(g,data),fieldEligible=fieldAction&&allowed()&&expeditionEligible(g,fieldAction,data);
   const journal=journalPresentation(g,data,allowed());paint(el('contract-status'),journal.next);el('contract-action').hidden=!journal.showAction;
   paint(el('contract-action'),status==='claimed'?'View Gear':labels[action]);el('contract-action').disabled=status!=='claimed'&&!eligible;
@@ -58,12 +61,12 @@ export function createExpeditionView(s,dispatch){
   field.toggleAttribute('data-expedition-action',!!currentAction);
   const known=new Set([...(state.visitedIds??[]),g.world.areaId,...(objective?[objective]:[])]);if(pin&&!known.has(pin))pin=null;
   for(const[id,button]of nodes){const visible=known.has(id),current=id===g.world.areaId,visited=state.visitedIds.includes(id),target=id===objective;button.disabled=!visible;button.dataset.current=String(current);button.setAttribute('aria-pressed',String(pin===id));paint(button,visible?`${current?'● ':''}${areaName(id)}${visited?' ✓':''}${target?' ⚑':''}${pin===id?' · PIN':''}`:'? Undiscovered');button.setAttribute('aria-label',visible?`${areaName(id)}${current?', current area':''}${visited?', visited':''}${target?', objective':''}${pin===id?', pinned':''}`:'Undiscovered area');}
-  const next=pin?g.world.registry.nextExit(g.world.areaId,pin):null,route=pin?next?`Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}`:`Pinned ${areaName(pin)} · you are here.`:'Pin a known area. ● Current · ✓ Visited · ⚑ Objective';paint(el('atlas-route'),route);el('atlas-objective').disabled=!objective;
+  const next=pin?g.world.registry.nextExit(g.world.areaId,pin):null,route=pin?next?`Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}`:`Pinned ${areaName(pin)} · you are here.`:(story?story.location+' · ':'')+'Pin a known area. ● Current · ✓ Visited · ⚑ Objective';paint(el('atlas-route'),route);el('atlas-objective').disabled=!objective;
   const profile=selectedPistolProfile(g),name=data.variants[state.selectedPistolVariant]?.name??data.variants[PISTOL_ITEM_ID].name;
   paint(el('equipment-state'),`${g.flame?.equipped?'Stored pistol':g.pistol.equipped?'Equipped pistol':'Holstered pistol'}: ${name} · damage ${+effectiveWeaponDamage(g,PISTOL_ITEM_ID,profile.damage).toFixed(1)} · reload ${profile.reload.toFixed(1)}s · ${g.pistol.magazine}/6 loaded, ${g.pistol.reserve} reserve.${g.pistol.collected?'':' Collect the pistol at the stash to use your retained variant.'}`);
   for(const[id,button]of choices){const row=data.variants[id],owned=id===PISTOL_ITEM_ID||status==='claimed';button.disabled=lockerStored(g,id)||!owned||!g.pistol.collected||!allowed()||g.finished||g.player.hp<=0;button.setAttribute('aria-pressed',String(state.selectedPistolVariant===id&&g.pistol.equipped&&!g.flame?.equipped));paint(button,lockerStored(g,id)?`Stored · ${row.name}`:`${state.selectedPistolVariant===id&&g.pistol.equipped&&!g.flame?.equipped?'Equipped':owned?'Equip':'Locked'} · ${row.name}`);}
   if(el('pistol-comparison'))paint(el('pistol-comparison'),Object.values(data.variants).map(row=>`${row.name}: ${+effectiveWeaponDamage(g,PISTOL_ITEM_ID,row.damage).toFixed(1)} damage · ${row.reload.toFixed(1)}s reload`).join(' / '));
-  const objectiveLine=el('expedition-objective');objectiveLine.hidden=!allowed()||g.player.hp<=0;paint(objectiveLine,(status==='available'?'Optional contract · Westminster stash':status==='accepted'?'Stolen Supplies · recover in East':status==='recovered'?'Carrying case · return to Westminster':'Watchman’s Pistol earned · Gear in menu')+(pin?'\n'+route:''));
+  const objectiveLine=el('expedition-objective');objectiveLine.hidden=!allowed()||g.player.hp<=0;paint(objectiveLine,(story?story.objective:status==='available'?'Optional contract · Westminster stash':status==='accepted'?'Stolen Supplies · recover in East':status==='recovered'?'Carrying case · return to Westminster':'Watchman’s Pistol earned · Gear in menu')+(pin?'\n'+route:''));
   const caseVisible=allowed()&&g.world.areaId===c.case.areaId&&['available','accepted'].includes(status);
   if(caseVisible&&!caseView){caseView=createVestBagView();caseView.root.name='Stolen supply case';caseView.root.scale.setScalar(1.35);s.scene.add(caseView.root);}
   if(caseView){caseView.root.visible=caseVisible;caseView.root.position.copy(g.world.toRender(c.case.position));}

@@ -11,7 +11,7 @@ export function safehouseCueOpacity(time,{period=3.5,phase=0,near=false,selected
  if(reduced)return .75;const pulse=Math.pow((1+Math.sin(2*Math.PI*(time/period-phase)))/2,8),floor=selected?.82:near?.70:.40;return floor+(1-floor)*pulse;
 }
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
-export function createSafehouseView(s,dispatch){
+export function createSafehouseView(s,dispatch,readComms){
  let owner=null,meshes=[],texture=null,loading=false,failed=false,disposed=false,lastPanel='',lastError='',promptOwned=false;
  let label=null;
  function ensureLabel(){if(label)return;label=document.createElement('div');label.className='safehouse-label';label.hidden=true;label.setAttribute('aria-live','polite');document.body.append(label);}
@@ -46,6 +46,6 @@ export function createSafehouseView(s,dispatch){
  const control=document.getElementById('pistol-interact');if(active&&allowed()&&!s.paused){control.hidden=false;control.textContent=active.label.toUpperCase()+' · G';promptOwned=true;}else if(promptOwned){promptOwned=false;control.hidden=true;}
  renderPanel();
  }
- function interact(){if(!allowed()||s.paused)return false;const prop=nearest(s.game,true);if(!prop)return false;lastError='';renderPanel(true);s.hud.showMenuPage(prop.id==='locker'?'locker':prop.id==='comms'?'journal':'map');return true;}
+ function interact(){if(!allowed()||s.paused)return false;const prop=nearest(s.game,true);if(!prop)return false;lastError='';if(prop.id==='comms'&&readComms){const result=readComms(s.game,allowed());if(!result.ok){s.game.message='Signal could not be saved. Try the terminal again.';s.game.messageUntil=s.game.time+5;return true;}s.updateExpedition?.();}renderPanel(true);s.hud.showMenuPage(prop.id==='locker'?'locker':prop.id==='comms'?'journal':'map');return true;}
  return{update,interact,dispose(){disposed=true;clear();texture?.dispose();label?.remove();panel?.replaceChildren?.();}};
 }
