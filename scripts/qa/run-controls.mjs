@@ -20,7 +20,8 @@ export async function retryEncounter(page,{touch=false}={}) {
  if(await page.evaluate(()=>document.getElementById('testing-tools')?.open!==true))
   await checkedControl(page,{selector:'#testing-tools > summary',method:touch?'tap':'click',label:'open-retry-details',timeoutMs:3000,
    ack:()=>document.getElementById('testing-tools')?.open===true});
- return checkedControl(page,{selector:'#retry',method:touch?'tap':'click',label:'retry-encounter',timeoutMs:3000,
+ // Retry prepares area models before its handler yields; keep this single action bounded.
+ return checkedControl(page,{selector:'#retry',method:touch?'tap':'click',label:'retry-encounter',timeoutMs:15000,
   ack:()=>document.getElementById('menu')?.open===false});
 }
 export async function reloadGame(page) {
