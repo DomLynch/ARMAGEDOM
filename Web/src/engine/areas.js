@@ -1,3 +1,4 @@
+import{stopBossFlames}from'./boss-flame.js';
 import{needsUniqueDeathCommit}from'./unique-reward-runtime.js';
 import{bossExitGate}from'./area-bosses.js';
 import {applyAreaLighting} from './area-lighting.js';
@@ -16,6 +17,7 @@ async function crossArea(request) {
   const ownerGame=s.game,ownerActors=s.actors,ownerWorld=s.world;
   const owns=()=>!s.contextLost&&s.loaded&&s.game===ownerGame&&s.actors===ownerActors&&s.world===ownerWorld;
   let accepted=false,recoveryFailed=false,travelState=null,previousPoint=null,actorParkStarted=false,actorActivationStarted=false;const releaseSource=ownerWorld.leaseArea?.(previousArea)??(()=>{});
+  stopBossFlames(ownerGame,'travel');
   s.traveling = true;
   s.resetClock();
   s.input.clear({keepMovement});

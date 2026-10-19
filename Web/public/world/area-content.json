@@ -2138,7 +2138,7 @@
         "health": 120,
         "radius": 0.4,
         "moveSpeed": 1.4,
-        "wakeDistance": 3.3,
+        "wakeDistance": 4.62,
         "homeLeash": 5,
         "recoveryDelay": 0.7,
         "contactScale": 1.3225,
@@ -2163,7 +2163,18 @@
             "parryable": true
           }
         },
-        "hazard": null
+        "hazard": null,
+        "weapon": {
+          "kind": "flame",
+          "modelRef": "player-flamethrower",
+          "windupTicks": 42,
+          "activeTicks": 24,
+          "recoveryTicks": 72,
+          "range": 3,
+          "coneDegrees": 40,
+          "intervalTicks": 12,
+          "damage": 4
+        }
       },
       "nightborn": {
         "name": "Southbank Stalker",

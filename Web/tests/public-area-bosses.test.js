@@ -21,5 +21,14 @@ for(const row of content.bossData.placements)test('actual '+row.profileRef+' exa
   }
   const far={pos:{x:0,z:8},combatScale:1.265};assert.equal(bladeContact(attacker,attacker,far,far,a.path,a.windupTicks,a.windupTicks+1),false);
  }
- const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:p.wakeDistance+.4});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);assert.deepEqual(route.missingExits.filter(to=>!registry.links(row.areaId).some(link=>link.to===to&&link.requiresDefeat===row.key)),[]);}
+ const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:p.wakeDistance+.4});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);
+  const missing=route.missingExits.filter(to=>!registry.links(row.areaId).some(link=>link.to===to&&link.requiresDefeat===row.key));
+  // Dom's +40% Witch wake intentionally covers this formerly quiet crossing.
+  // Preserve physical escape and the ungated South link, not a silent radius cut.
+  if(row.profileRef==='witch'&&route.from==='east'){
+   assert.deepEqual(missing.filter(to=>to!=='south'),[]);assert.equal(registry.links(row.areaId).find(l=>l.to==='south').requiresDefeat,undefined);
+   const physical=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:0}).find(r=>r.from===route.from);
+   assert(physical.startClear&&physical.entryOutsideBoss);assert.deepEqual(physical.missingExits,[]);
+  }else assert.deepEqual(missing,[]);
+ }
 });

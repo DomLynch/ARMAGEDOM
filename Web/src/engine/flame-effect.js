@@ -2,7 +2,7 @@ import {FLAME_DEATH_DATA,flameDeathSeconds,isFlameRecipe} from './finisher-data.
 import {FLAME_VISUAL_DATA as DATA} from './flame-data.js';
 import {combatTargetHeight} from '../pistol-targeting.js';
 // One private draw with fixed slots. Cosmetic victim fire never dispatches damage.
-export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>null,reducedMotion=()=>false}){
+export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>null,getEmission=null,cosmeticBurn=true,reducedMotion=()=>false}){
  const size=DATA.textureSize,pixels=new Uint8Array(size*size*4);
  for(let y=0;y<size;y++)for(let x=0;x<size;x++){const at=(y*size+x)*4,r=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2));pixels[at]=pixels[at+1]=pixels[at+2]=255;pixels[at+3]=Math.round(Math.max(0,1-r)**1.6*240);}
  const texture=new T.DataTexture(pixels,size,size,T.RGBAFormat);texture.needsUpdate=true;
@@ -15,14 +15,14 @@ export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>nul
  function update(g,{paused=false}={}){
   if(disposed)return;if(owner!==g||area!==world.areaId){reset();owner=g;area=world.areaId;}for(let i=0;i<capacity;i++)hide(i);emitter=burn=victims=0;source=null;corpseAnchors=[];
   if(paused||g.player.hp<=0||g.finished){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}
-  const data=g.world?.flameData;if(!data){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}const light=reducedMotion(),count=light?DATA.reducedCount:DATA.emitterCount;
-  if(data&&g.flame?.equipped&&g.flame.active){const s=getSource?.();if(s){source=s;direction.set(s.direction.x,s.direction.y,s.direction.z).normalize();u.crossVectors(direction,up);if(u.lengthSq()<1e-8)u.set(1,0,0);else u.normalize();v.crossVectors(u,direction).normalize();
+  const emission=getEmission?.(g),data=getEmission?(emission?{contact:emission.contact}:null):g.world?.flameData;if(!data){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}const light=reducedMotion(),count=light?DATA.reducedCount:DATA.emitterCount;
+  if(data&&(getEmission?!!emission:!!g.flame?.equipped&&g.flame.active)){const s=emission?.source??getSource?.();if(s){source=s;direction.set(s.direction.x,s.direction.y,s.direction.z).normalize();u.crossVectors(direction,up);if(u.lengthSq()<1e-8)u.set(1,0,0);else u.normalize();v.crossVectors(u,direction).normalize();
    for(let i=0;i<count;i++){const phase=light?(i+.5)/count:(g.time*4+i/count)%1,distance=data.contact.range*phase,theta=i*2.399963229728653,radius=Math.tan(data.contact.coneDegrees*Math.PI/360)*distance*.55,radial=light?0:Math.sin(i*19.3)*radius,x=s.position.x+direction.x*distance+(u.x*Math.cos(theta)+v.x*Math.sin(theta))*radial,y=s.position.y+direction.y*distance+(u.y*Math.cos(theta)+v.y*Math.sin(theta))*radial,z=s.position.z+direction.z*distance+(u.z*Math.cos(theta)+v.z*Math.sin(theta))*radial,width=(DATA.emitterWidth[0]+DATA.emitterWidth[1]*phase)*Math.sin(Math.PI*Math.max(.03,Math.min(.97,phase)));
-    if(world.lineClear(g.player.pos,{x:s.position.x,z:s.position.z})&&world.lineClear({x:s.position.x,z:s.position.z},{x,z})&&put(i,x,y,z,width,DATA.palette[Math.min(2,Math.floor(phase*3))]))emitter++;
+    if(world.lineClear(emission?.origin??g.player.pos,{x:s.position.x,z:s.position.z})&&world.lineClear({x:s.position.x,z:s.position.z},{x,z})&&put(i,x,y,z,width,DATA.palette[Math.min(2,Math.floor(phase*3))]))emitter++;
    }
   }}
   const burnBudget=DATA.burnSlots*DATA.burnPerVictim,corpses=g.corpses??[];let used=0;const candidates=FLAME_DEATH_DATA.prioritizeCorpses?[...corpses.filter(e=>isFlameRecipe(e.finisher?.recipeId)),...g.enemies,...corpses.filter(e=>!isFlameRecipe(e.finisher?.recipeId))]:[...g.enemies,...corpses];
-  if(!light)for(const e of candidates){
+  if(cosmeticBurn&&!light)for(const e of candidates){
    if(victims>=DATA.burnSlots)break;const view=getView(e),death=e.hp<=0&&isFlameRecipe(e.finisher?.recipeId),count=death?FLAME_DEATH_DATA.wisps.length:DATA.burnPerVictim,age=view?.finisherAge,bone=death&&FLAME_DEATH_DATA.anchorBones.map(name=>view?.model.getObjectByName(name)).find(Boolean)||death&&view?.model,pelvisBone=death&&FLAME_DEATH_DATA.pelvisBones.map(name=>view?.model.getObjectByName(name)).find(Boolean)||bone;let life,front,height;if(used+count>burnBudget)continue;
    if(death){const end=flameDeathSeconds(view?.finisherDeathSeconds);if(view?.restoredCorpse||!bone||!Number.isFinite(age)||age<0||age>=end)continue;bone.getWorldPosition(anchor);pelvisBone.getWorldPosition(pelvisAnchor);front={x:anchor.x,z:-anchor.z};height=anchor.y;life=Math.min(1,(end-age)/FLAME_DEATH_DATA.fadeSeconds);if(!world.lineClear(e.pos,front))continue;corpseAnchors.push({victimId:e.id,age,position:{x:anchor.x,y:anchor.y,z:-anchor.z},pelvisPosition:{x:pelvisAnchor.x,y:pelvisAnchor.y,z:-pelvisAnchor.z},expiresAge:end,nativeDeathSeconds:view.finisherDeathSeconds??2.4});}
    else{if(!(e.flameBurnUntil>g.time))continue;life=Math.min(1,(e.flameBurnUntil-g.time)/DATA.burnSeconds);height=combatTargetHeight(e,g.time);const from=e.flameBurnFrom??g.player.pos,dx=from.x-e.pos.x,dz=from.z-e.pos.z,n=Math.hypot(dx,dz)||1,surface=Math.min(.8,(e.radius??.4)*(e.combatScale??1)+.05);front={x:e.pos.x+dx/n*surface,z:e.pos.z+dz/n*surface};if(!world.lineClear(e.pos,front))continue;}

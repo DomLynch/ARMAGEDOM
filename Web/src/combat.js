@@ -1,3 +1,4 @@
+import{stepBossFlame,stopBossFlame,stopBossFlames}from'./engine/boss-flame.js';
 import{safehouseProtected,safehouseTouches,safehouseBlocksSegment,safehouseWeaponBlocked,prepareSafehouseStep}from'./engine/safehouse.js';
 import{stepRockets}from'./engine/rocket-runtime.js';
 import{bossEquipmentIntent,selectedBossRanged,stepBossGrenades}from'./engine/boss-weapon-runtime.js';
@@ -206,6 +207,7 @@ function flameHit(g,target,damage,{source}){if(safehouseWeaponBlocked(g)||safeho
 }
 function kill(g,e,meta={}){
  if(!g.enemies.includes(e))return;
+ stopBossFlame(g,e,'death');
  if(e.animalRole){e.completedAttack=null;e.wokeAt=null;}
  if(e.rig==='low-hover-drone'){const death=recordDroneDeath(g.droneDeaths,{placementKey:e.placementKey,areaId:g.world.areaId,hp:e.hp});if(!death.grantKillCredit)return;g.droneDeaths=death.keys;e.response={clip:'drone_death',start:g.time,ticks:48};}
  if(g.finishers&&!e.finisher){
@@ -229,7 +231,7 @@ export function spawnWave(g){if(g.encounter)return hollowSpawn(g);if(g.pilot){co
 const radius=e=>e.kind===3?(e.pattern===1?4:3.5):e.kind===1?2.8:1.8;
 const arc=e=>e.kind===3&&e.pattern===1?360:e.kind===1?110:90;
 function bolt(g,pos,dir,amount){g.bolts.push({id:++serial,pos:{...pos},dir:{...dir},amount,expires:g.time+4});}
-function enemyTick(g,e,dt){if(e.hp>0&&safehouseProtected(g)){e.swing=null;e.completedAttack=null;if(e.droneState&&!e.safehouseSuppressed)e.droneState=createDroneState();e.safehouseSuppressed=true;if(e.home){e.alerted=false;e.returning=true;residentPatrol(g,e,dt);}return;}e.safehouseSuppressed=false;if(g.pilot){knifeEnemy(g,e,dt);return;}if(e.hp<=0)return;const t=g.time,offset=sub(g.player.pos,e.pos),distance=mag(offset),dir=normal(offset,e.facing);
+function enemyTick(g,e,dt,services={}){if(e.hp>0&&safehouseProtected(g)){stopBossFlame(g,e);e.swing=null;e.completedAttack=null;if(e.droneState&&!e.safehouseSuppressed)e.droneState=createDroneState();e.safehouseSuppressed=true;if(e.home){e.alerted=false;e.returning=true;residentPatrol(g,e,dt);}return;}e.safehouseSuppressed=false;if(g.pilot){knifeEnemy(g,e,dt,services);return;}if(e.hp<=0)return;const t=g.time,offset=sub(g.player.pos,e.pos),distance=mag(offset),dir=normal(offset,e.facing);
  if(!e.alerted&&distance>12)return;e.alerted=true;
  if(e.swing){if(t+EPS>=e.swing.hitAt){const s=e.swing;e.swing=null;const ranged=e.kind===2||e.kind===3&&e.pattern===2,amount=e.kind===3?25:e.kind===1?23:e.kind===2?12:9;
    if(ranged){bolt(g,s.pos,s.dir,amount);if(e.kind===3){bolt(g,s.pos,rotate(s.dir,Math.PI/10),amount);bolt(g,s.pos,rotate(s.dir,-Math.PI/10),amount);}}
@@ -285,7 +287,7 @@ function mobileControl(g,intent,dt,services){
  if(!busy)p.facing={...result.direction};
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
-export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused)return;const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){stopBossFlames(g,'finished');g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused){stopBossFlames(g,'pause');return;}const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -326,12 +328,12 @@ export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehous
  stepFlame(g,dt,services,(target,amount,hit)=>flameHit(g,target,amount,hit));
  if(mag(sub(p.pos,g.world.spawn??{x:0,z:-6}))>=1)g.started=true;
  if(g.encounterActive!==false&&g.started&&!g.enemies.length&&t+EPS>=g.nextWave){if(g.wave>=3){g.finished=true;g.won=true;}else spawnWave(g);}
- for(const e of [...g.enemies]){enemyTick(g,e,dt);if(g.finished)break;}
+ for(const e of [...g.enemies]){enemyTick(g,e,dt,services);if(g.finished)break;}
  if(g.pilot)knifeContacts(g,before,ratBefore);
  if(g.areaHazards){const next=stepAreaHazards(g.areaHazards,{time:g.time,areaId:g.world.areaId,owners:g.enemies,player:g.player,lineClear:(a,b)=>g.world.lineClear(a,b)});g.areaHazards=next.hazards;for(const hit of next.hits){const attacker=g.enemies.find(e=>e.id===hit.ownerId);knifeReceive(g,{amount:hit.damage,origin:hit.position,attacker,block:false,parry:false,moveId:'area-poison',def:{stagger:0,chip:0}});if(g.finished){g.areaHazards=[];break;}}}
  if(!g.finished){projectiles(g,dt);collect(g);}
  }
- if(g.finished){g.activeGrenades=[];stopFlame(g);if(g.areaHazards)g.areaHazards=[];}
+ if(g.finished){stopBossFlames(g,'finished');g.activeGrenades=[];stopFlame(g);if(g.areaHazards)g.areaHazards=[];}
  if(g.mobileAim){
   if(g.finished)resetMobileControls(g);
   else if(!g.enemies.some(e=>e.placementKey===g.mobileAim.targetId&&e.hp>0))g.mobileAim={...g.mobileAim,targetId:null,bearing:null};
@@ -508,7 +510,7 @@ function knifeGuard(g,intent,swinging,dodging){
  }else if(p.parryUntil>t&& !intent.cancel){p.parryReleased=true;}
  if(p.parryReleased&&t+EPS>=p.parryUntil&&p.parryUntil>0){p.parryUntil=0;p.guardExposedUntil=t+R.parryRecovery/60;p.parryReleased=false;}
 }
-function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife',material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
+function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:def?.weapon??(['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife'),material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
 function knifeReceive(g,hit){if(safehouseProtected(g)||safehouseBlocksSegment(g,hit.origin,g.player.pos))return false;
  const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.def??(hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId]);
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}
@@ -539,8 +541,9 @@ function knifeStepIn(g,e,dt){
  const s=e.swing;if(!s)return;const age=Math.floor((g.time-s.start)*60+EPS);s.ageTicks=age;
  if(age>R.stepInFrom&&age<s.def.windupTicks)moveBody(g,e,{x:s.dir.x*R.walkSpeed*s.def.stepIn*(e.moveSpeed!==undefined?e.moveSpeed/R.walkSpeed:e.rig==='goblin'?1.2:1)*dt,z:s.dir.z*R.walkSpeed*s.def.stepIn*(e.moveSpeed!==undefined?e.moveSpeed/R.walkSpeed:e.rig==='goblin'?1.2:1)*dt});
 }
-function knifeEnemy(g,e,dt){
- if(e.hp<=0)return;
+function knifeEnemy(g,e,dt,services){
+ if(e.hp<=0){stopBossFlame(g,e);return;}
+ if(stepBossFlame(g,e,dt,{patrol:residentPatrol,move:enemyMove,source:services?.bossFlameSource,receive:knifeReceive,emit:event}))return;
  if(e.rig==='low-hover-drone'){droneEnemy(g,e,dt);return;}
  if(e.rig==='original-rat'){ratEnemy(g,e,dt);return;}
  if(e.rig==='original-dog'||e.rig==='original-roach'){dogEnemy(g,e,dt);return;}

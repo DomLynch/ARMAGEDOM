@@ -9,7 +9,7 @@ export function validateAreaBosses(input,registry,residents={}){
  if(input===undefined)return null;closed(input,['version','profiles','placements','paths']);if(input.version!==1||!input.profiles||Object.getPrototypeOf(input.profiles)!==Object.prototype||!input.paths||Object.getPrototypeOf(input.paths)!==Object.prototype||!Array.isArray(input.placements)||![3,7].includes(input.placements.length))fail();
  const data=structuredClone(input),profiles=Object.entries(data.profiles);if(![3,7].includes(profiles.length)||profiles.length!==data.placements.length)fail();const paths=new Set(),models=new Set();
  for(const[id,p]of profiles){
-  closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard'],['minimumAttackDistance']);
+  closed(p,['name','modelRef','health','radius','moveSpeed','wakeDistance','homeLeash','recoveryDelay','contactScale','attackPattern','attacks','hazard'],['minimumAttackDistance','weapon']);
   if(!key(id)||!text(p.name)||!key(p.modelRef)||models.has(p.modelRef))fail();models.add(p.modelRef);
   for(const[field,min,max]of[['health',40,140],['radius',.35,.6],['moveSpeed',.7,2.5],['wakeDistance',2,5],['homeLeash',3,8],['recoveryDelay',.4,2.5],['contactScale',.2,3]])if(!number(p[field],min,max))fail();
   if(p.homeLeash<p.wakeDistance||!Array.isArray(p.attackPattern)||p.attackPattern.length<1||p.attackPattern.length>4||!p.attacks||Object.getPrototypeOf(p.attacks)!==Object.prototype)fail();
@@ -22,6 +22,11 @@ export function validateAreaBosses(input,registry,residents={}){
    const frames=data.paths[a.path],total=a.windupTicks+a.activeTicks+a.recoveryTicks;
    if(!Array.isArray(frames)||frames.length!==total+1||!frames.every(row=>Array.isArray(row)&&row.length===6&&row.every(n=>number(n,-5,5))))fail();
    Object.assign(a,{moveId:id+'-'+action,native:true,windup:a.windupTicks/60,active:a.activeTicks/60,recovery:a.recoveryTicks/60,stagger:a.staggerTicks/60,arc:action==='stab'?60:120});
+  }
+  if(p.weapon!==undefined){const w=p.weapon;closed(w,['kind','modelRef','windupTicks','activeTicks','recoveryTicks','range','coneDegrees','intervalTicks','damage']);
+   if(w.kind!=='flame'||w.modelRef!=='player-flamethrower')fail();
+   for(const[field,min,max]of[['windupTicks',42,90],['activeTicks',12,24],['recoveryTicks',72,150],['range',1,3],['coneDegrees',20,40],['intervalTicks',12,24],['damage',1,4]])if(!number(w[field],min,max)||field.endsWith('Ticks')&&!Number.isInteger(w[field]))fail();
+   if(w.activeTicks!==2*w.intervalTicks)fail();
   }
   if(p.hazard!==null){closed(p.hazard,['warning','radius','duration','interval','damage']);for(const[field,min,max]of[['warning',.65,1.5],['radius',.7,1.2],['duration',1,3],['interval',.6,1.5],['damage',1,3]])if(!number(p.hazard[field],min,max))fail();}
  }
