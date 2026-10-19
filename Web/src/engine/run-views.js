@@ -20,6 +20,7 @@ import {createSupplyView} from '../supplies-view.js';
 import {createVestBagView} from '../vest-view.js';
 import {vestAvailable,VEST_RULES} from '../vest.js';
 export function dispatchEquipmentSelection(g,command,allowed,dispatch){const result=dispatch(g,command,allowed);if(result.ok&&(command.type==='equip'||command.type==='selectVariant'))stopFlame(g,{unequip:true});return result;}
+export function claimStartingPistol(g,dispatch,clearInput){const result=dispatch(g,{type:'claimPickup',pickupId:'westminster-start-pistol-v1'},true);if(result.ok){g.events.push(...result.events);g.message=`Starting Pistol · ${g.pistol.magazine} loaded · ${g.pistol.reserve} spare.`;g.messageUntil=g.time+3;clearInput();}return true;}
 export function nearestInteraction(position,candidates){return candidates.filter(c=>c&&typeof c.id==='string'&&typeof c.run==='function'&&Number.isFinite(c.position?.x)&&Number.isFinite(c.position?.z)).map(c=>({...c,distance:Math.hypot(position.x-c.position.x,position.z-c.position.z)})).sort((a,b)=>a.distance-b.distance||a.id.localeCompare(b.id))[0]??null;}
 export function createRunViews(s){
 let storage;if("storage" in s)storage=s.storage;else try{storage=globalThis.localStorage;}catch{storage=null;}
@@ -32,7 +33,7 @@ const expeditionView=createExpeditionView(s,(g,command,allowed)=>{const result=d
 const safehouseView=createSafehouseView(s,persistence.dispatchLocker,persistence.dispatchStory);
 function interaction(){const g=s.game;if(!g||!s.loaded||s.contextLost||s.traveling||s.paused||g.finished||g.runSaveInvalid||g.player.hp<=0)return null;
  const candidates=[safehouseView,flameView,expeditionView,uniqueView,rifleView,bossEquipmentView].flatMap(view=>view.interaction?.()??[]);
- const p=g.pistol;if(p&&!p.collected&&g.world.areaId===p.pickupAreaId&&!g.player.swing&&g.time>=g.player.ready&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3&&g.world.lineClear(g.player.pos,p.pickupPos))candidates.push({id:'westminster-start-pistol-v1',label:'Collect Starting Pistol',position:p.pickupPos,run(){const result=persistence.dispatchPistol(g,{type:'claimPickup',pickupId:'westminster-start-pistol-v1'},true);if(result.ok){g.events.push(...result.events);g.message='Starting Pistol collected.';g.messageUntil=g.time+3;s.input.clear();}return true;}});
+ const p=g.pistol;if(p&&!p.collected&&g.world.areaId===p.pickupAreaId&&!g.player.swing&&g.time>=g.player.ready&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3&&g.world.lineClear(g.player.pos,p.pickupPos))candidates.push({id:'westminster-start-pistol-v1',label:'Collect Starting Pistol',position:p.pickupPos,run:()=>claimStartingPistol(g,persistence.dispatchPistol,()=>s.input.clear())});
  return nearestInteraction(g.player.pos,candidates);
 }
 function interactNearby(){const target=interaction();return target?target.run():!!s.game?.flame?.equipped&&flameView.interact();}

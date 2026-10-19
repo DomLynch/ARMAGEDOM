@@ -33,3 +33,10 @@ test('actual historical v12 migration preserves rewards/sidequest/locker and doe
 test('East arrival and previously visited East keep forward objective after return and preserve parallel contract',()=>{
  const f=make(new Map(),'east');assert.equal(view(f.g).stage,'trace');assert.equal(view(f.g).target,'east');assert.equal(f.g.expedition.status,'available');assert(f.p.persistRun(f.g));const cold=make(f.records);assert.equal(view(cold.g).stage,'trace');assert.equal(cold.g.expedition.status,'available');assert.match(view(cold.g).question,/Who sent the signal/);
 });
+test('fresh introduction does not replay for returning preread v13 or migrated preread v12 saves',()=>{
+ const fresh=make();assert.equal(fresh.g.message,view(fresh.g).opening);const cold=make(fresh.records);assert.equal(view(cold.g).stage,'safehouse');assert.notEqual(cold.g.message,view(cold.g).opening);
+ const old=JSON.parse(fresh.records.get(key));old.version=12;delete old.openingStory;const records=new Map([[LOCKER_SAVE_KEY,JSON.stringify(old)]]),migrated=make(records);assert.equal(view(migrated.g).stage,'safehouse');assert.notEqual(migrated.g.message,view(migrated.g).opening);for(const field of ['pistol','supplies','expedition','bossEquipment','locker'])assert.deepEqual(JSON.parse(records.get(key))[field],old[field]);
+});
+test('failed fresh or returning restore persist keeps saving warning instead of covering it with intro',()=>{
+ const saved=make();for(const records of[new Map(),new Map(saved.records)]){const f=fixture({records,areaId:'westminster',extraWorld:{bossEquipmentData:profiles,safehouseData:data.safehouse}});const before=[...records];f.quota(true);f.restore();assert.equal(f.g.message,'Run saving unavailable. Supplies kept.');assert.deepEqual([...records],before);assert.equal(view(f.g).stage,'safehouse');}
+});
