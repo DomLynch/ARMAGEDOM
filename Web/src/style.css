@@ -555,14 +555,16 @@ summary {
 #safehouse-status{display:none;position:absolute;top:115px;left:50%;transform:translateX(-50%);font-size:10px;color:#e0c18b;pointer-events:none;white-space:nowrap}
 .locker-row{padding:10px 0;border-bottom:1px solid #514630;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.locker-row p{flex-basis:100%;margin:0}.locker-row input{width:80px;min-height:40px}.locker-row button{min-height:42px}
 
-/* Carried weapon browsing owns its own horizontal gesture above the movement pad. */
-#weapon-tiles{position:absolute;left:calc(var(--safe-l) + 4px);bottom:calc(var(--safe-b) + 154px);width:186px;pointer-events:auto;color:#ece3cb;}
-#weapon-tiles-current{font-size:10px;line-height:1.3;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;}
-#weapon-tiles-track{display:flex;gap:8px;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x proximity;}
+/* Approved C silhouette tiles. Input and existing top-HUD ammo remain owners. */
+#weapon-tiles{position:absolute;left:var(--safe-l);bottom:calc(var(--safe-b) + 158px);width:142px;pointer-events:auto;color:#dedbd0;}
+#weapon-tiles-current,#weapon-tiles-position{display:none;}
+#weapon-tiles-track{display:flex;gap:6px;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x proximity;}
 #weapon-tiles-track::-webkit-scrollbar{display:none;}
-#weapon-tiles-track button{flex:0 0 68px;min-width:68px;min-height:56px;padding:5px 3px;border:1px solid #7b817b;border-radius:6px;background:#172326e8;color:#deddd0;scroll-snap-align:start;touch-action:pan-x;font-size:10px;line-height:1.15;white-space:normal;}
-#weapon-tiles-track button[aria-pressed="true"]{border-color:#ddba70;background:#51442be8;color:#ffe3a0;}
+#weapon-tiles-track button{flex:0 0 52px;min-width:52px;width:52px;height:52px;min-height:52px;padding:4px 3px 2px;border:1px solid #85877f;border-radius:7px;background:rgba(17,23,23,.78);color:#d7d5ca;scroll-snap-align:start;touch-action:pan-x;white-space:nowrap;font-size:9px;line-height:1;}
+#weapon-tiles-track button::before{content:"";display:block;width:40px;height:24px;margin:0 auto 3px;background-color:#96968b;-webkit-mask:var(--weapon-icon) center/contain no-repeat;mask:var(--weapon-icon) center/contain no-repeat;pointer-events:none;}
+#weapon-tiles-track button[aria-pressed="true"]{border-color:#e1bb65;color:#e1bb65;}
+#weapon-tiles-track button[aria-pressed="true"]::before{background-color:#e1bb65;}
 #weapon-tiles-track button:disabled{opacity:.45;}
-#weapon-tiles-track span{display:block;min-height:24px;}
-#weapon-tiles-track small{font-size:9px;display:block;margin-top:3px;}
-#weapon-tiles-position{display:block;font-size:9px;margin-top:3px;color:#d2c29d;}
+#weapon-tiles-track span{display:block;font-size:8px;font-weight:600;letter-spacing:.09em;line-height:10px;}
+#weapon-tiles-track small{font-size:8px;line-height:9px;display:block;margin:0;letter-spacing:.02em;}
+@media(orientation:portrait){#weapon-tiles{bottom:calc(var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);}}
