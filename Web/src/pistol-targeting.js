@@ -91,7 +91,7 @@ export function pistolCue(game,{paused=false,visibleIds}={}){
  const profile=selectedRangedProfile(game),p=game.player;if(paused||game.finished||!(p.hp>0)||!['pistol','rifle'].includes(profile?.field))return null;
  const rifle=profile.field==='rifle',state=rifle?game.rifle:game.pistol,clock=rifle?game.rifleAction??{}:state,aim=game.mobileAiming?p.facing:(rifle?game.rifleUserFacing:game.pistolUserFacing)??p.facing;
  const result=resolveRangedAim(game,aim,{visibleIds});if(!result)return null;
- return{targetId:result.targetId,position:result.position,height:result.height,ready:state.magazine>0&&!clock.reloadingUntil&&game.time>=(clock.nextFireAt??0)&&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=(p.dodgeUntil??0)&&(!rifle||game.rifleAssetReady)};
+ return{targetId:result.targetId,position:result.position,height:result.height,ready:state.magazine>0&&!clock.reloadingUntil&&game.time>=(clock.nextFireAt??0)&&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=(p.dodgeUntil??0)&&(!rifle||game.rifleAssetReady&&game.time>=(p.ready??0))};
 }
 
 // Raised drones use their visible rigid surface for mouse projection. Shot
@@ -118,9 +118,10 @@ export function flamePointerPoint(world,views,enemies,x,y,{assist=true,time=0,vi
  return best?{...best.position}:ground;
 }
 
-// Guns share the existing posed-body intent envelope; damage still uses real traces.
+// Guns share the posed-body intent envelope. Registered render scale affects
+// pointer intent only; original domain radii and actual damage traces stay unchanged.
 export function pistolPointerPoint(world,views,enemies,x,y,options={}){return flamePointerPoint(world,views,enemies,x,y,options);}
 export function rangedPointerPoint(g,views,x,y,{visibleIds}={}){
- const profile=selectedRangedProfile(g),assist=g.mobileAssistEnabled!==false,targets=rangedTargets(g,visibleIds).filter(t=>Math.hypot(t.pos.x-g.player.pos.x,t.pos.z-g.player.pos.z)<=profile.rules.range+EPS&&g.world.lineClear(g.player.pos,t.pos)),position=pistolPointerPoint(g.world,views,targets,x,y,{assist,time:g.time,visibleIds});
+ const profile=selectedRangedProfile(g),assist=g.mobileAssistEnabled!==false,targets=rangedTargets(g,visibleIds).filter(t=>Math.hypot(t.pos.x-g.player.pos.x,t.pos.z-g.player.pos.z)<=profile.rules.range+EPS&&g.world.lineClear(g.player.pos,t.pos)),projectionTargets=targets.map(t=>{const scale=views.get(t.id)?.root?.scale?.y;return Number.isFinite(scale)&&scale>0?{...t,mobSize:scale}:t;}),position=pistolPointerPoint(g.world,views,projectionTargets,x,y,{assist,time:g.time,visibleIds});
  const target=assist&&targets.find(t=>Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<EPS);return{...position,targetId:target?target.id:null};
 }

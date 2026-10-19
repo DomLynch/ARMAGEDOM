@@ -69,5 +69,5 @@ export function bossWeaponCue(g,{paused=false,visibleIds}={}){
  const field=selectedBossRanged(g);if(!field||paused||g.finished||g.player.hp<=0)return null;
  const clock=bossEquipmentClock(g,field),state=g.bossEquipment[field],result=field==='shotgun'?resolveRangedAim(g,g.bossWeaponFacing??g.player.facing,{visibleIds}):null;
  const position=field==='grenade'?g.grenadeAim:field==='rocketLauncher'?g.rocketAim:result?.position,targetId=field==='grenade'?g.grenadeAimTargetId:field==='rocketLauncher'?g.rocketAimTargetId:result?.targetId;
- return position?{position,height:field==='grenade'?.08:field==='rocketLauncher'?g.rocketAimHeight??.05:result.height,ground:field==='grenade',heightLocked:field==='rocketLauncher',targetId:targetId??null,ready:!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;
+ return position?{position,height:field==='grenade'?.08:field==='rocketLauncher'?g.rocketAimHeight??.05:result.height,ground:field==='grenade',heightLocked:field==='rocketLauncher',targetId:targetId??null,ready:!g.runSaveInvalid&&!g.player.swing&&g.time>=(g.player.ready??0)&&g.time>=(g.player.hurtUntil??0)&&g.time>=(g.player.dodgeUntil??0)&&!!g.bossEquipmentAssetReady?.[field]&&state.magazine>0&&!clock.reloadingUntil&&g.time>=clock.nextFireAt}:null;
 }
