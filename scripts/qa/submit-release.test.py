@@ -38,6 +38,73 @@ class SubmissionRegression(unittest.TestCase):
   command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','bash','scripts/qa/run-checked.sh']
   return stage,command
 
+ def prepared_native_stage(self,root):
+  stage=root/'native';stage.mkdir();qa=pathlib.Path(__file__).parent
+  names=('run-native-proof.sh','gameplay-actions.mjs','weapon-action-guard.mjs','ui-interaction-guard.mjs','driver-preflight.mjs','package.json','package-lock.json')
+  for name in names:
+   target=stage/'scripts/qa'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(qa/name,target)
+  for name in ('package.json','package-lock.json'):shutil.copy2(qa/name,stage/name)
+  shutil.copy2(qa/'fixtures/observer-preflight173.mjs',stage/'observer-preflight.mjs')
+  (stage/'proof.mjs').write_text("import {chromium} from 'playwright';\nimport {moveToPoint} from './scripts/qa/gameplay-actions.mjs';\nimport {weaponAction} from './scripts/qa/weapon-action-guard.mjs';\nimport {checkedControl} from './scripts/qa/ui-interaction-guard.mjs';\nimport {observed} from './observer.mjs';\nimport fs from 'node:fs';\nconst config=JSON.parse(fs.readFileSync('qa-173-config.json'));\n")
+  (stage/'observer.mjs').write_text('export const observed=true;\n')
+  export=stage/'export';export.mkdir();(export/'index.html').write_text('exact game')
+  source='d'*40;fingerprint='e'*64
+  release={'sourceCommit':source,'sourceFingerprint':fingerprint,'files':[{'path':'index.html','bytes':10,'sha256':module.digest(export/'index.html')}]}
+  (export/'release.json').write_text(json.dumps(release))
+  expect={'source':source,'fingerprint':fingerprint,'packageSha256':module.digest(export/'release.json')}
+  paths=('proof.mjs','observer.mjs','scripts/qa/gameplay-actions.mjs','scripts/qa/weapon-action-guard.mjs','scripts/qa/ui-interaction-guard.mjs')
+  (stage/'qa-173-config.json').write_text(json.dumps({'expect':expect,'driverFiles':{name:module.digest(stage/name) for name in paths},'baseURL':'http://127.0.0.1:19413/'}))
+  config={'stageRoot':'.','entrypoints':['proof.mjs'],'dataFiles':['qa-173-config.json'],'packageRoot':'export','expect':expect,'externals':[{'specifier':'playwright','manifest':'scripts/qa/package-lock.json','version':'1.63.0'}]}
+  (stage/'driver-preflight-config.json').write_text(json.dumps(config))
+  preflight=subprocess.run(['node',str(qa/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,capture_output=True)
+  self.assertEqual(preflight.returncode,0,preflight.stderr+(stage/'driver-preflight.json').read_bytes())
+  command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--','bash','scripts/qa/run-native-proof.sh']
+  return stage,command
+
+ def test_native_proof_command_binds_exact_consumer_observer_helpers_and_package(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage,command=self.prepared_native_stage(root)
+   self.assertEqual(module.validate_driver_preflight(stage,command)['status'],'PASS_STATIC_DRIVER_PREFLIGHT')
+   original_popen=subprocess.Popen;launches=[]
+   class FakeLauncher:
+    stdout=io.StringIO('')
+    def wait(self):return 0
+   def launch_once(argv,*args,**kwargs):
+    if argv[0]=='node':return original_popen(argv,*args,**kwargs)
+    launches.append(argv);return FakeLauncher()
+   with patch.object(module.subprocess,'Popen',side_effect=launch_once):
+    self.assertEqual(module.submit(command,stage,root/'valid',validate_stage=module.validate_driver_preflight),0)
+   self.assertEqual(launches,[command])
+   for change,expected in [('proof','Driver preflight receipt mismatch'),('observer','Driver preflight receipt mismatch'),('package','Driver preflight failed'),('wrapper','Maintained release-test wrapper mismatch'),('observer-preflight','Native observer preparation differs from reviewed exact bytes')]:
+    with self.subTest(change=change),tempfile.TemporaryDirectory() as other:
+     other_root=pathlib.Path(other);candidate,argv=self.prepared_native_stage(other_root)
+     target=candidate/('proof.mjs' if change=='proof' else 'observer.mjs' if change=='observer' else 'export/index.html' if change=='package' else 'observer-preflight.mjs' if change=='observer-preflight' else 'scripts/qa/run-native-proof.sh')
+     target.write_text(target.read_text()+'// changed\n')
+     def only_preflight(cmd,*args,**kwargs):
+      if cmd[0]=='node':return original_popen(cmd,*args,**kwargs)
+      raise AssertionError('launcher must not start')
+     with patch.object(module.subprocess,'Popen',side_effect=only_preflight):
+      with self.assertRaisesRegex(RuntimeError,expected):module.submit(argv,candidate,other_root/'attempt',validate_stage=module.validate_driver_preflight)
+     self.assertFalse((other_root/'attempt').exists())
+
+ def test_native_proof_requires_actual_observer_import_even_with_matching_receipt(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as temp:
+   root=pathlib.Path(temp);stage,command=self.prepared_native_stage(root);proof=stage/'proof.mjs'
+   proof.write_text(proof.read_text().replace("import {observed} from './observer.mjs';\n",''))
+   runtime=stage/'qa-173-config.json';config=json.loads(runtime.read_text());config['driverFiles']['proof.mjs']=module.digest(proof);runtime.write_text(json.dumps(config))
+   preflight=subprocess.run(['node',str(pathlib.Path(__file__).parent/'driver-preflight.mjs'),'driver-preflight-config.json','driver-preflight.json'],cwd=stage,capture_output=True)
+   self.assertEqual(preflight.returncode,0,preflight.stderr)
+   original_popen=subprocess.Popen
+   def only_preflight(cmd,*args,**kwargs):
+    if cmd[0]=='node':return original_popen(cmd,*args,**kwargs)
+    raise AssertionError('launcher must not start')
+   with patch.object(module.subprocess,'Popen',side_effect=only_preflight):
+    with self.assertRaisesRegex(RuntimeError,'Native proof missing exact config or guarded dependency closure'):
+     module.submit(command,stage,root/'attempt',validate_stage=module.validate_driver_preflight)
+   self.assertFalse((root/'attempt').exists())
+
  def test_checked_export_command_binds_package_and_runtime_config_before_launch(self):
   from unittest.mock import patch
   with tempfile.TemporaryDirectory() as temp:
@@ -150,7 +217,7 @@ class SubmissionRegression(unittest.TestCase):
   from unittest.mock import patch
   with tempfile.TemporaryDirectory() as temp:
    root=pathlib.Path(temp);stage=root/'stage';stage.mkdir();out=root/'out'
-   for remote in (['node','unlisted-driver.mjs'],['node','scripts/qa/run-checked.mjs'],['env','QA_CHROMIUM_EXECUTABLE=/tmp/other','node','scripts/qa/run-checked.mjs']):
+   for remote in (['node','unlisted-driver.mjs'],['node','scripts/qa/run-checked.mjs'],['env','QA_CHROMIUM_EXECUTABLE=/tmp/other','node','scripts/qa/run-checked.mjs'],['bash','run.sh'],['node','proof.mjs']):
     command=[sys.executable,module.RUNNER,'--timeout','1',str(stage.resolve()),'--',*remote]
     with patch.object(module.subprocess,'Popen',side_effect=AssertionError('launcher must not start')):
      with self.assertRaisesRegex(RuntimeError,'Unbound release-test command'):

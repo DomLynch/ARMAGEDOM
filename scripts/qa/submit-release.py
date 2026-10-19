@@ -11,12 +11,18 @@ def validate_driver_preflight(stage,command):
     if len(prefix) not in (5,6) or prefix[:3]!=[sys.executable,RUNNER,'--timeout'] or not prefix[3].isdigit() or int(prefix[3])<1 or prefix[-1]!=str(stage.resolve()) or (len(prefix)==6 and prefix[4]!='--small-release'):raise RuntimeError('Unbound release-test launcher rejected')
     build=remote_command==['bash','scripts/qa/release-run.sh']
     checked=remote_command==['bash','scripts/qa/run-checked.sh']
-    if not (build or checked):raise RuntimeError('Unbound release-test command rejected')
-    maintained_files=('driver-preflight.mjs','package.json','package-lock.json')+(('release-run.sh','release-run.py') if build else ('run-checked.sh','run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs'))
+    native=remote_command==['bash','scripts/qa/run-native-proof.sh']
+    if not (build or checked or native):raise RuntimeError('Unbound release-test command rejected')
+    maintained_files=('driver-preflight.mjs','package.json','package-lock.json')+(('release-run.sh','release-run.py') if build else ('run-checked.sh','run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs') if checked else ('run-native-proof.sh','gameplay-actions.mjs','weapon-action-guard.mjs','ui-interaction-guard.mjs'))
     for name in maintained_files:
         relative=pathlib.Path('scripts/qa')/name
         staged=stage/relative;maintained=pathlib.Path(__file__).resolve().with_name(name)
         if not staged.is_file() or digest(staged)!=digest(maintained):raise RuntimeError('Maintained release-test wrapper mismatch: '+str(relative))
+    if native:
+        for name in ('package.json','package-lock.json'):
+            if not (stage/name).is_file() or digest(stage/name)!=digest(pathlib.Path(__file__).resolve().with_name(name)):raise RuntimeError('Native root dependency pin mismatch: '+name)
+        preparation=stage/'observer-preflight.mjs';maintained_preparation=pathlib.Path(__file__).resolve().parent/'fixtures/observer-preflight173.mjs'
+        if not preparation.is_file() or digest(preparation)!=digest(maintained_preparation):raise RuntimeError('Native observer preparation differs from reviewed exact bytes')
     config_path=stage/'driver-preflight-config.json';receipt_path=stage/'driver-preflight.json'
     if not config_path.is_file() or not receipt_path.is_file():raise RuntimeError('Missing mandatory driver preflight config or receipt')
     config=json.loads(config_path.read_text());receipt=json.loads(receipt_path.read_text())
@@ -24,17 +30,22 @@ def validate_driver_preflight(stage,command):
     root=config.get('stageRoot')
     if not isinstance(root,str) or (stage/root).resolve()!=stage.resolve():raise RuntimeError('Driver preflight stage identity mismatch')
     if not isinstance(config.get('entrypoints'),list) or not config['entrypoints']:raise RuntimeError('Missing driver preflight entrypoints')
-    required_entries={'scripts/qa/run.mjs','scripts/qa/preflight.mjs'} if build else {'scripts/qa/run-checked.mjs'}
+    required_entries={'scripts/qa/run.mjs','scripts/qa/preflight.mjs'} if build else {'scripts/qa/run-checked.mjs'} if checked else {'proof.mjs'}
     if not required_entries.issubset(config['entrypoints']):raise RuntimeError('Release-test driver entrypoints not covered')
     expect=config.get('expect')
     if not isinstance(expect,dict) or not all(isinstance(expect.get(k),str) and expect[k] for k in ('source','fingerprint')):raise RuntimeError('Missing driver preflight source identity')
     if config.get('packageRoot') and not expect.get('packageSha256'):raise RuntimeError('Missing driver preflight package identity')
-    if checked and not config.get('packageRoot'):raise RuntimeError('Checked export requires exact package identity')
-    if checked:
-        runtime=json.loads((stage/'qa-checked-config.json').read_text())
+    if (checked or native) and not config.get('packageRoot'):raise RuntimeError('Checked export requires exact package identity')
+    if checked or native:
+        runtime_name='qa-checked-config.json' if checked else 'qa-173-config.json'
+        if runtime_name not in config.get('dataFiles',[]):raise RuntimeError('Runtime config missing from static dependency closure')
+        runtime=json.loads((stage/runtime_name).read_text())
         if runtime.get('expect')!=expect:raise RuntimeError('Checked runtime/package identity mismatch')
-        expected_files={'scripts/qa/'+name:digest(stage/'scripts/qa'/name) for name in ('run-checked.mjs','run-controls.mjs','ui-interaction-guard.mjs')}
-        if runtime.get('driverFiles')!=expected_files:raise RuntimeError('Checked runtime driver identity mismatch')
+        if native and runtime.get('baseURL')!='http://127.0.0.1:19413/':raise RuntimeError('Native proof requires exact owned local export server')
+        if checked:
+            paths=('scripts/qa/run-checked.mjs','scripts/qa/run-controls.mjs','scripts/qa/ui-interaction-guard.mjs')
+            expected_files={name:digest(stage/name) for name in paths}
+            if runtime.get('driverFiles')!=expected_files:raise RuntimeError('Checked runtime driver identity mismatch')
     if build and not config.get('packageRoot') and config.get('sourceManifest')!='source-manifest.json':raise RuntimeError('Missing exact source manifest preflight input')
     manifest=stage/'source-manifest.json'
     if manifest.is_file():
@@ -57,12 +68,20 @@ def validate_driver_preflight(stage,command):
         if not result.is_file():raise RuntimeError('Driver preflight produced no result')
         current=json.loads(result.read_text())
     if run.returncode!=0 or current.get('status')!='PASS_STATIC_DRIVER_PREFLIGHT':raise RuntimeError('Driver preflight failed: '+str(current.get('errors',run.stderr))[:600])
+    if native:
+        required_graph={('proof.mjs',name,kind) for name,kind in [('qa-173-config.json','fixture'),('observer.mjs','import'),('scripts/qa/gameplay-actions.mjs','import'),('scripts/qa/weapon-action-guard.mjs','import'),('scripts/qa/ui-interaction-guard.mjs','import')]}
+        actual_graph={(edge.get('from'),edge.get('to'),edge.get('kind')) for edge in current.get('graph',[])}
+        if not required_graph.issubset(actual_graph):raise RuntimeError('Native proof missing exact config or guarded dependency closure')
+        required_files={'proof.mjs','observer.mjs','qa-173-config.json','scripts/qa/gameplay-actions.mjs','scripts/qa/weapon-action-guard.mjs','scripts/qa/ui-interaction-guard.mjs'}
+        actual_files={file.get('path'):file.get('sha256') for file in current.get('files',[])}
+        if any(actual_files.get(name)!=digest(stage/name) for name in required_files):raise RuntimeError('Native proof file identity absent from static receipt')
     if config.get('packageRoot'):
         if current.get('identity')!=expect:raise RuntimeError('Driver preflight package report identity mismatch')
-        if checked:
+        if checked or native:
             for file in current.get('files',[]):
                 name=file.get('path')
                 if file.get('kind') in ('package-release','package-payload') or not isinstance(name,str) or not name.endswith(('.js','.mjs','.cjs')):continue
+                if native and not name.startswith('scripts/qa/'):continue
                 maintained=pathlib.Path(__file__).resolve().parents[2]/name
                 if not maintained.is_file() or file.get('sha256')!=digest(maintained):raise RuntimeError('Checked driver dependency differs from maintained source: '+name)
     else:
