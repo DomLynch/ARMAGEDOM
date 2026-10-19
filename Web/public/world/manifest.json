@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 205067,
-      "sha256": "3731e00a4be943e47f7e91623090989dbd4369186cd968bb1f81ceeab75fc1d5"
+      "bytes": 205121,
+      "sha256": "4978f035db76f525203cbd0d1e3187a68dd5afa35f98576993e21661187e5ff5"
     },
     {
       "area": "area7",
@@ -186,7 +186,8 @@
       "entry": {
         "x": 0.1,
         "y": 0.72
-      }
+      },
+      "requiresDefeat": "boss-witch-v1"
     },
     {
       "from": "east",

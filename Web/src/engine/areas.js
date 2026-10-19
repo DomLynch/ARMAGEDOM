@@ -1,4 +1,5 @@
 import{needsUniqueDeathCommit}from'./unique-reward-runtime.js';
+import{bossExitGate}from'./area-bosses.js';
 import {applyAreaLighting} from './area-lighting.js';
 import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
@@ -9,6 +10,7 @@ export function createAreaLifecycle(s){
 let travelLatch=false;
 async function crossArea(request) {
   if(s.resetting)return false;
+  const gate=bossExitGate(s.game,request.areaId);if(gate&&!gate.allowed){s.game.message=gate.message;s.game.messageUntil=s.game.time+4;return false;}
   if(needsUniqueDeathCommit(s.game)&&s.persistRun?.(s.game)!==true)return false;
   const previousArea=s.world.areaId,keepMovement=s.world.isAreaReady(request.areaId);
   const ownerGame=s.game,ownerActors=s.actors,ownerWorld=s.world;
@@ -159,6 +161,7 @@ function checkExit(){
       const request = s.world.travelAt(s.game.player.pos);
       if (!request) {travelLatch = false;if(areaPreparation){areaPreparation.urgent=null;for(const[id,task]of areaPreparation.tasks)if(task.status==='failed')areaPreparation.tasks.delete(id);}}
       if (request && !travelLatch && s.game.player.hp>0 && !s.game.finished && !s.paused && !s.contextLost) {
+        const gate=bossExitGate(s.game,request.areaId);if(gate&&!gate.allowed){s.game.message=gate.message;s.game.messageUntil=s.game.time+4;return false;}
         travelLatch=true;crossArea(request);return true;
       }
 return false;

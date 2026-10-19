@@ -1,4 +1,5 @@
 import{lockerStored}from'./locker-core.js';
+import{bossExitGate}from'./area-bosses.js';
 import{effectiveWeaponDamage}from'./progression-runtime.js';
 import {expeditionEligible,selectedPistolProfile} from './expedition-core.js';
 import {PISTOL_ITEM_ID} from '../core/pistol-operation.js';
@@ -9,7 +10,7 @@ const paint=(element,value)=>{if(element.textContent!==value)element.textContent
 const stageAction={available:'accept',accepted:'recover',recovered:'claim'};
 const nearbyAction=(g,data)=>g.expedition?.status==='available'&&expeditionEligible(g,'recover',data)?'recover':stageAction[g.expedition?.status];
 const labels={accept:'Accept contract',recover:'Recover supply case',claim:'Complete contract & claim reward'};
-export function journalPresentation(g,data,allowed=true){const status=g.expedition?.status,action=stageAction[status],eligible=!!(action&&allowed&&expeditionEligible(g,action,data));return{eligible,showAction:status==='claimed'||eligible,next:{available:'Optional · accept at the Westminster stash, or recover the case in East.',accepted:'Next: recover the supply case in East. Fighting Hale is optional.',recovered:eligible?'At the Westminster stash · claim your reward.':'Case recovered · return to the Westminster stash.',claimed:'Reward claimed once · choose your earned weapon in Gear.'}[status]??''};}
+export function journalPresentation(g,data,allowed=true){const status=g.expedition?.status,action=stageAction[status],eligible=!!(action&&allowed&&expeditionEligible(g,action,data)),gate=bossExitGate(g),next={available:'Optional · accept at the Westminster stash, or recover the case in East.',accepted:'Next: recover the supply case in East. Fighting Hale is optional.',recovered:eligible?'At the Westminster stash · claim your reward.':'Case recovered · return to the Westminster stash.',claimed:'Reward claimed once · choose your earned weapon in Gear.'}[status]??'';return{eligible,showAction:status==='claimed'||eligible,next:gate&&!gate.allowed?`${gate.message}\n${next}`:next};}
 export function expeditionObjective(g){const c=g.world.expeditionData?.contract,s=g.expedition?.status;return !c?null:s==='accepted'?c.case.areaId:s==='claimed'?null:c.giver.areaId;}
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s,dispatch){
