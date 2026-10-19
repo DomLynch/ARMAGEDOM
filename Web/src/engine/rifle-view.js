@@ -23,5 +23,5 @@ export function createRifleView(s,dispatch){
 
  }
  function interaction(){const g=s.game,data=g?.world.rifleData,state=g?.rifle;if(!data||state?.status!=='pending'||s.paused||!safe(g)||!s.actors?.rifleReady()||g.world.areaId!==data.source.areaId||Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)>data.rules.pickupRadius||!g.world.lineClear(g.player.pos,state.dropPosition))return null;return{id:data.itemId,label:'Collect '+data.name,position:state.dropPosition,run(){claim();return true;}};}
- return{update,interaction,dispose(){disposed=true;clear();button.removeEventListener('click',equip);pickup.removeEventListener('click',claim);}};
+ return{update,interaction,equip,dispose(){disposed=true;clear();button.removeEventListener('click',equip);pickup.removeEventListener('click',claim);}};
 }

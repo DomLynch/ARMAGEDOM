@@ -4,14 +4,14 @@ import * as T from 'three';
 import {createPickupModel} from './pickup-model-view.js';
 export function createBossEquipmentView(s,dispatch){
  const panel=document.getElementById('boss-equipment');if(!panel)return{update(){},dispose(){}};
- const rockets=createRocketView(s),cards=new Map(),drops=new Map(),projectiles=new Map(),blasts=new Map(),loads=new Map(),failed=new Set(),listeners=[];let disposed=false,lastGame=null,lastArea=null;
+ const rockets=createRocketView(s),cards=new Map(),equipHandlers=new Map(),drops=new Map(),projectiles=new Map(),blasts=new Map(),loads=new Map(),failed=new Set(),listeners=[];let disposed=false,lastGame=null,lastArea=null;
  const safe=g=>s.loaded&&!s.contextLost&&!s.traveling&&!g.finished&&!g.runSaveInvalid&&g.player.hp>0&&!g.player.swing&&g.time>=(g.player.ready??0)&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil;
  function prepare(field){if(s.actors.equipmentReady(field))return Promise.resolve();if(loads.has(field))return loads.get(field);failed.delete(field);const owner=s.game,p=s.actors.ensureEquipment(field).catch(error=>{failed.add(field);if(s.game===owner){owner.message='Weapon loading unavailable. Your reward is kept; retry in Gear.';owner.messageUntil=owner.time+4;}throw error;}).finally(()=>loads.delete(field));loads.set(field,p);return p;}
  function execute(field,command){const g=s.game;if(!safe(g))return;const result=dispatch(g,command,true);if(result.ok){g.events.push(...result.events);g.message=command.type==='claimPickup'?g.world.bossEquipmentData[field].name+' collected. Equip it in Gear.':command.equipped?g.world.bossEquipmentData[field].name+' equipped.':'Returned to your normal weapon.';g.messageUntil=g.time+3;s.input.clear();}s.updateExpedition?.();return result;}
  function createCard(field,data){
   const section=document.createElement('section'),title=document.createElement('h4'),label=document.createElement('p'),button=document.createElement('button');title.textContent=data.name;button.type='button';button.id='boss-equip-'+field;section.append(title,label,button);panel.append(section);
   const equip=async()=>{const owner=s.game;if(!safe(owner))return;try{await prepare(field);if(!disposed&&s.game===owner&&safe(owner)&&owner.bossEquipment?.[field]?.status==='owned')execute(field,{type:'equip',itemId:data.itemId,equipped:!owner.bossEquipment[field].selected});}catch{}update();};
-  button.addEventListener('click',equip);listeners.push(()=>{button.removeEventListener('click',equip);section.remove();});return{label,button};
+  equipHandlers.set(field,equip);button.addEventListener('click',equip);listeners.push(()=>{button.removeEventListener('click',equip);section.remove();});return{label,button};
  }
  function stats(data,state,g){if(data.family==='shotguns')return`8 pellets × 8 damage · 6m · ${state?.magazine??0}/2 loaded · ${state?.reserve??0} reserve`;
   if(data.family==='launchers')return`80 blast damage · 3m radius · ${state?.magazine??0}/1 loaded · ${state?.reserve??0} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`;
@@ -42,5 +42,5 @@ export function createBossEquipmentView(s,dispatch){
   updateProjectiles(g);rockets.update(g);
  }
  function interaction(){const g=s.game;if(!g||s.paused||!safe(g))return null;return Object.entries(g.world.bossEquipmentData??{}).map(([field,data])=>{const state=g.bossEquipment?.[field];if(state?.status!=='pending'||g.world.areaId!==data.source.areaId||!s.actors.equipmentReady(field)||Math.hypot(g.player.pos.x-state.dropPosition.x,g.player.pos.z-state.dropPosition.z)>data.rules.pickupRadius||!g.world.lineClear(g.player.pos,state.dropPosition))return null;return{id:data.itemId,label:'Collect '+data.name,position:state.dropPosition,run(){execute(field,{type:'claimPickup',pickupId:data.itemId});return true;}};}).filter(Boolean);}
- return{update,interaction,dispose(){disposed=true;clearWorld();for(const remove of listeners)remove();cards.clear();}};
+ return{update,interaction,equip:field=>equipHandlers.get(field)?.(),dispose(){disposed=true;clearWorld();for(const remove of listeners)remove();cards.clear();equipHandlers.clear();}};
 }

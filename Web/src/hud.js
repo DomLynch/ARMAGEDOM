@@ -185,7 +185,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
           left > 0 ? `${left.toFixed(1)}s` : "";
       }
       el("guard").classList.toggle("pressed", p.guarding);
-      const flameEquipped=!!g.flame?.equipped;if(flameEquipped!==lastFlameEquipped){lastPistolEquipped=null;lastFlameEquipped=flameEquipped;}
+      const flameEquipped=!!g.flame?.equipped;for(const id of ['stab','heavy'])el(id).hidden=flameEquipped;if(flameEquipped!==lastFlameEquipped){lastPistolEquipped=null;lastFlameEquipped=flameEquipped;}
       if(!!g.rifle?.selected!==lastRifleEquipped){lastPistolEquipped=null;lastRifleEquipped=!!g.rifle?.selected;}
       const bossWeapon=selectedBossRanged(g);if(bossWeapon!==lastBossWeapon){lastPistolEquipped=null;lastBossWeapon=bossWeapon;}
       const pistol=g.pistol;

@@ -48,5 +48,5 @@ export function createFlameView(s,persistence){
  }
  button.addEventListener?.('click',equip);
  function interaction(){const g=s.game;if(!g?.world.flameData||!nearby(g))return null;return{id:g.world.flameData.pickupId,label:'Collect Flamethrower',position:g.world.flameData.position,run:interact};}
- return{update,interact,interaction,dispose(){if(disposed)return;disposed=true;clearDrop();button.removeEventListener?.('click',equip);field.removeAttribute('data-flame-action');label.hidden=true;panel.hidden=true;}};
+ return{update,interact,interaction,equip,dispose(){if(disposed)return;disposed=true;clearDrop();button.removeEventListener?.('click',equip);field.removeAttribute('data-flame-action');label.hidden=true;panel.hidden=true;}};
 }
