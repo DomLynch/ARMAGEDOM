@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 205121,
-      "sha256": "4978f035db76f525203cbd0d1e3187a68dd5afa35f98576993e21661187e5ff5"
+      "bytes": 205124,
+      "sha256": "fad28e008f2aba0168f96692ac959a4b0cd418e818344d19ca466864c3d1cf97"
     },
     {
       "area": "area7",
