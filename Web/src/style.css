@@ -583,4 +583,4 @@ summary {
 .story-transmission-actions{display:flex;gap:10px;flex-wrap:wrap;}
 #story-replay{margin-bottom:16px;}
 
-.story-transmission-actions button{flex:1;width:auto;min-width:88px;margin:0;}
+#story-transmission .story-transmission-actions button{flex:1;width:auto;min-width:88px;margin:0;}
