@@ -40,9 +40,8 @@ export function createExpeditionView(s,dispatch){
   const p=s.world.toRender(position,height).project(s.camera),visible=Math.abs(p.x)<1&&Math.abs(p.y)<1&&p.z>=-1&&p.z<=1;element.hidden=!visible;if(!visible)return;
   element.textContent=text;const portrait=innerWidth<innerHeight;element.style.left=`${Math.max(95,Math.min(innerWidth-95,(p.x+1)*innerWidth/2))}px`;element.style.top=`${Math.max(portrait?185:150,Math.min(innerHeight-110,(1-p.y)*innerHeight/2))}px`;
  }
- function originalPistolAction(g){const p=g.pistol;return p&&(!p.collected&&g.world.areaId===p.pickupAreaId&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3);}
  function interact(){
-  const g=s.game;if(!g||!allowed()||s.paused||originalPistolAction(g))return false;
+  const g=s.game;if(!g||!allowed()||s.paused)return false;
   const action=nearbyAction(g,catalogue);if(action&&expeditionEligible(g,action,catalogue)){execute({type:'expedition',action});return true;}
   if(g.expedition?.status==='claimed'&&expeditionEligible(g,'claim',catalogue)){viewGear();return true;}return false;
  }
