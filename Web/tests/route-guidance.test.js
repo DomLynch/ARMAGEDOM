@@ -5,7 +5,8 @@ function setup(area,point){const l=layout(area),scene=new THREE.Scene(),camera=n
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 test('guidance preserves137 roads,blockers,art,camera and all22 gate/arrival rows',()=>{
  for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area);delete l.guidance;assert.equal(hash(l),fixture.baselineLayouts[area]);}
- assert.equal(hash([manifest.entries,manifest.links]),'66f7ec10186f371eee9e409c2e23c5ec5101885e53588308668cc98fb597744e');
+ assert.equal(hash([manifest.entries,manifest.links.map(({requiresDefeat,...link})=>link)]),'66f7ec10186f371eee9e409c2e23c5ec5101885e53588308668cc98fb597744e');
+ assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'east',requiresDefeat:'boss-witch-v1'}]);
 });
 test('five authored rows have capsule-clear paths ending inside an existing destination trigger',()=>{
  let count=0;for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area),g=createGeometry(l),rows=validateGuidance(l,g,manifest.links.filter(r=>r.from===area));count+=rows.length;for(const row of rows){assert(row.path.every(p=>g.clear(p,.4)));assert(row.path.slice(1).every((p,i)=>capsuleSegmentClear(g,row.path[i],p)));}}
