@@ -1,3 +1,4 @@
+import{combatTargetHeight}from'../pistol-targeting.js';
 import{bossEquipmentClock}from'./boss-equipment-data.js';
 import{safehouseWeaponBlocked,safehouseBlocksSegment}from'./safehouse.js';
 import{RAILGUN_ITEM_ID}from'./railgun-core.js';
@@ -21,8 +22,8 @@ export function railgunIntent(g,intent,dispatch,applyHit,services={}){
  if(!released){if(!held)stopRailgun(g,'cancel');return clear;}
  if(g.time+EPS<charge.readyAt||!bearing){stopRailgun(g,'early-release');return clear;}
  const source=services.railgunSource?.(g);if(!source||![source.x,source.y,source.z].every(Number.isFinite)){stopRailgun(g,'source-unavailable');return clear;}
- const full={x:source.x+bearing.x*data.rules.range,y:source.y,z:source.z-bearing.z*data.rules.range};full.y=selected?(services.rocketAimHeight?.(g,source,full,selected.id)??source.y):source.y;
- const origin={x:source.x,z:-source.z},point=t=>({x:origin.x+bearing.x*data.rules.range*t,z:origin.z+bearing.z*data.rules.range*t}),line=t=>g.world.lineClear(origin,point(t))&&!safehouseBlocksSegment(g,origin,point(t));let fraction=1;
+ const target=selected?(services.railgunAimPoint?.(g,selected.id)??{x:selected.pos.x,y:combatTargetHeight(selected,g.time),z:-selected.pos.z}):{x:source.x+bearing.x,y:source.y,z:source.z-bearing.z},dx=target.x-source.x,dy=target.y-source.y,dz=target.z-source.z,length=Math.hypot(dx,dy,dz);if(!(length>EPS)){stopRailgun(g,'invalid-aim');return clear;}const full={x:source.x+dx/length*data.rules.range,y:source.y+dy/length*data.rules.range,z:source.z+dz/length*data.rules.range};
+ const origin={x:source.x,z:-source.z},point=t=>({x:origin.x+(full.x-source.x)*t,z:origin.z-(full.z-source.z)*t}),line=t=>g.world.lineClear(origin,point(t))&&!safehouseBlocksSegment(g,origin,point(t));let fraction=1;
  if(!g.world.lineClear(p.pos,origin))fraction=0;else if(!line(1)){let low=0,high=1;for(let i=0;i<12;i++){const mid=(low+high)/2;if(line(mid))low=mid;else high=mid;}fraction=low;}
  const end={x:source.x+(full.x-source.x)*fraction,y:source.y+(full.y-source.y)*fraction,z:source.z+(full.z-source.z)*fraction};
  const paid=dispatch?.(g,{type:'fire',field:'commanderPistol'},true);stopRailgun(g,paid?.ok?'released':'save-failed');if(!paid?.ok)return clear;

@@ -1,7 +1,7 @@
 import{createRailgunCoils}from'./engine/railgun-coils.js';
 import{reaperSelected}from'./engine/reaper.js';
 import{createBoneSaw,animateBoneSaw,boneSawContact}from'./engine/bone-saw-view.js';
-import {traceGrenadeSurface,traceRailgunSurface,followGrenadeSurface,surfaceAimHeight} from './engine/grenade-surface.js';
+import {traceGrenadeSurface,traceRailgunSurface,posedActorBounds,followGrenadeSurface,surfaceAimHeight} from './engine/grenade-surface.js';
 import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
 import{createRiflePose}from'./rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
@@ -329,6 +329,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     grenadeFollow(game,anchor,enemy){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([enemy.id])});return followGrenadeSurface(anchor,views.get(enemy.id));},
     clearRailgunCharge(){const v=views.get(0);v?.railgunCoils?.update({charging:false,visible:!!v.railgunPose?.mount.visible});},
     railgunSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const p=this.equipmentOrigin('commanderPistol');return p?{x:p.x,y:p.y,z:p.z}:null;},
+    railgunAimPoint(game,id){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([id])});const view=views.get(id),box=posedActorBounds(view,{skinnedOnly:true})??posedActorBounds(view),p=box?.getCenter(new THREE.Vector3());return p?{x:p.x,y:p.y,z:p.z}:null;},
     railgunTrace(game,start,end){const targets=game.enemies.filter(e=>e.hp>0&&e.hostile!==false&&(e.areaId==null||e.areaId===game.world.areaId)).sort((a,b)=>Math.hypot(a.pos.x-start.x,a.pos.z+start.z)-Math.hypot(b.pos.x-start.x,b.pos.z+start.z)).slice(0,32);this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set(targets.map(e=>e.id))});return traceRailgunSurface(views,targets,start,end);},
     rocketSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const point=this.equipmentOrigin('rocketLauncher');return point?{x:point.x,y:point.y,z:point.z}:null;},
     equipmentProjectileAsset(field){const data=world.bossEquipmentData?.[field],ref=library.models.get(data?.modelRef)?.description.projectileRef;return library.models.get(ref)??null;},
