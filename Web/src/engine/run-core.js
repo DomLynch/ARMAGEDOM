@@ -1,4 +1,3 @@
-import{openingStoryPresentation}from'./opening-story.js';
 import{createOpeningStoryComponent}from'./opening-story-core.js';
 import{createLockerComponent,lockerStored}from'./locker-core.js';
 import{safehouseWeaponBlocked}from'./safehouse.js';
@@ -96,9 +95,8 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(candidate?.world.safehouseData)candidate.locker=locker().model.freshState();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- let restoreSource=null;
  const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return story()?storyDomain(command,context):locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
-  codec:activeCodec,readRun:()=>{const loaded=io.restore(getRun());restoreSource=loaded.status==='ok'?loaded.source:null;return loaded;},writeRun:(candidate,options)=>io.write(candidate,options)});
+  codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function dispatchStory(g,allowed=false){if(g!==getRun()||storyScope||!story()||allowed!==true)return{ok:false,code:'not-eligible',events:[]};storyScope={run:g,allowed:true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{storyScope=null;}}
  function dispatchLocker(g,action,allowed=false){if(g!==getRun()||lockerScope||!locker())return{ok:false,code:'not-eligible',events:[]};lockerScope={run:g,action,allowed:allowed===true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{lockerScope=null;}}
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
@@ -167,18 +165,16 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
-  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events){g.events.push({...event,actor:g.player});if(event.type==='story-message-recovered'){g.message='Message recovered — read in Journal.';g.messageUntil=g.time+5;}}return result.ok;
+  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events){g.events.push({...event,actor:g.player});}return result.ok;
  }
  function restoreSavedRun(g){
-  restoreSource=null;
   const result=core.dispatch({type:'restore'});
   if(!result.ok){
    g.runSaveInvalid=true;
    if(result.code==='invalid-save'){g.supplies=null;g.player.hp=0;g.finished=true;g.message=expedition()?'Saved run invalid. Original kept; recover it before retrying.':'Saved run invalid. Retry to start fresh.';g.messageUntil=5;}
    else{g.message='Run saving unavailable. Supplies kept.';g.messageUntil=5;}
   }
-  const persisted=persistRun(g);
-  if(result.ok&&persisted&&restoreSource==='fresh'&&g.world.safehouseData&&openingStoryPresentation(g).stage==='safehouse'){g.message=openingStoryPresentation(g).opening;g.messageUntil=g.time+6;}
+  persistRun(g);
  }
  function resetRun(){return core.dispatch({type:'reset'});}
  function retry(){const result=core.dispatch({type:'retry'});if(result.ok&&getRun().world.uniqueRewardData)syncMeleeEquipment(getRun());return result.ok;}

@@ -584,3 +584,7 @@ summary {
 #story-replay{margin-bottom:16px;}
 
 #story-transmission .story-transmission-actions button{flex:1;width:auto;min-width:88px;margin:0;}
+
+.guide-drone-label{position:fixed;z-index:4;box-sizing:border-box;width:168px;max-width:calc(100vw - 24px);white-space:pre-line;pointer-events:none;color:#bd975a;background:#101815b8;border:1px solid #685536;border-radius:4px;padding:5px 7px;font-size:11px;line-height:1.35;opacity:.72;}
+.guide-drone-label[data-bright="true"]{color:#f3c66d;border-color:#d7aa55;opacity:1;}
+#story-transmission-text,#story-conflict{white-space:pre-line;}

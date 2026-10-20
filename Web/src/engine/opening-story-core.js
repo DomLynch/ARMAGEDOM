@@ -1,32 +1,43 @@
-import{safehouseProp}from'./safehouse.js';
+import{safehouseProp,safehouseProtected}from'./safehouse.js';
 import{closedData}from'./progression-state.js';
-import{storyState,validStory,matronDefeated}from'./opening-story.js';
-export const OPENING_STORY_SAVE_KEY='armagedom:opening-story-run:v13';
-const fields=['version','pistol','hp','supplies','vest','droneDeaths','animalCycle','progression','expedition','uniqueReward','flameFuel','rifle','bossEquipment','locker','openingStory'];
-const copy=s=>({...s}),same=(a,b)=>a.commsRead===b.commsRead&&a.messageRecovered===b.messageRecovered;
+import{storyState,validStory}from'./opening-story.js';
+export const OPENING_STORY_SAVE_KEY='armagedom:opening-story-run:v14';
+const previousKey='armagedom:opening-story-run:v13',fields=['version','pistol','hp','supplies','vest','droneDeaths','animalCycle','progression','expedition','uniqueReward','flameFuel','rifle','bossEquipment','locker','openingStory'];
+const copy=s=>({...s}),same=(a,b)=>a.commsRead===b.commsRead&&a.bountyStage===b.bountyStage;
 export function createOpeningStoryComponent({base,getRun,readRequested}){
- let legacy=false;
+ let format='current',owner=null,insideCommitted=false;
+ const migrate=(saved,commsRead=false)=>({...saved,openingStory:{commsRead,bountyStage:commsRead?2:saved.progression?.awards?.length?1:0}});
  const codec={RUN_SAVE_KEY:OPENING_STORY_SAVE_KEY,get PISTOL_SAVE_KEY(){return base.codec.PISTOL_SAVE_KEY;},
-  encodeRun(g){if(!validStory(storyState(g)))throw TypeError('Invalid opening story');const old=JSON.parse(base.codec.encodeRun(g));if(old.version!==12)throw TypeError('Opening story requires v12');return JSON.stringify({...old,version:13,openingStory:copy(storyState(g))});},
-  restoreRun(g,raw,legacyRaw){const oldRead=legacy;legacy=false;try{
-   if(oldRead){const saved=base.codec.restoreRun(g,raw,legacyRaw);return saved?{...saved,openingStory:{commsRead:false,messageRecovered:matronDefeated(saved)}}:null;}
-   const saved=JSON.parse(raw);if(saved?.version!==13||!closedData(saved,fields)||!validStory(saved.openingStory))return null;
-   const old={...saved,version:12};delete old.openingStory;const restored=base.codec.restoreRun(g,JSON.stringify(old),null);return restored?{...restored,openingStory:copy(saved.openingStory)}:null;
+  encodeRun(g){if(!validStory(storyState(g)))throw TypeError('Invalid bounty story');const old=JSON.parse(base.codec.encodeRun(g));if(old.version!==12)throw TypeError('Bounty story requires v12 foundation');return JSON.stringify({...old,version:14,openingStory:copy(storyState(g))});},
+  restoreRun(g,raw,legacyRaw){const source=format;format='current';try{
+   if(source==='older'){const saved=base.codec.restoreRun(g,raw,legacyRaw);return saved?migrate(saved):null;}
+   const saved=JSON.parse(raw);if(!closedData(saved,fields))return null;
+   if(source==='v13'){if(saved.version!==13||!closedData(saved.openingStory,['commsRead','messageRecovered'])||typeof saved.openingStory.commsRead!=='boolean'||typeof saved.openingStory.messageRecovered!=='boolean')return null;}
+   else if(saved.version!==14||!validStory(saved.openingStory))return null;
+   const old={...saved,version:12};delete old.openingStory;const restored=base.codec.restoreRun(g,JSON.stringify(old),null);return!restored?null:source==='v13'?migrate(restored,saved.openingStory.commsRead):{...restored,openingStory:copy(saved.openingStory)};
   }catch{return null;}},
   captureRunState(g){return{base:base.codec.captureRunState(g),openingStory:copy(storyState(g))};},
   isRunStateUnchanged(g,s){return validStory(storyState(g))&&same(storyState(g),s.openingStory)&&base.codec.isRunStateUnchanged(g,s.base);}};
  function wrapDomain(execute){return(command,context)=>{
-  const g=getRun(),current=storyState(g),read=command.type==='save'&&readRequested(g);
+  const g=getRun();if(owner!==g){owner=g;insideCommitted=false;}const current=storyState(g),read=command.type==='save'&&readRequested(g);
   if(command.type!=='restore'&&!validStory(current))return{ok:false,code:'invalid-save',events:[]};
   if(read&&(!safehouseProp(g,'comms')||g.runSaveInvalid||g.player.hp<=0||g.finished||g.player.swing||g.time<g.player.hurtUntil||g.time<g.player.dodgeUntil))return{ok:false,code:'not-eligible',events:[]};
-  let committed=null,notify=false;
+  let committed=null;
   const result=execute(command,{...context,writeRun(candidate){
-   const next=command.type==='reset'?{commsRead:false,messageRecovered:false}:{commsRead:current.commsRead||read,messageRecovered:current.messageRecovered||matronDefeated(candidate)};
+   const retry=command.type==='retry',inside=!retry&&safehouseProtected(candidate),alive=candidate.player.hp>0&&!candidate.finished;
+   // This is an existing validated player-earned death receipt, not XP, a corpse
+   // count or a per-kill currency. Its first commit advances one durable stage.
+   const awards=candidate.progression?.awards??[],prior=g.progression?.awards??[];
+   const awarded=!retry&&awards.length>prior.length&&awards.some(row=>!prior.some(old=>old.placementKey===row.placementKey));
+   const departed=!retry&&alive&&current.commsRead&&insideCommitted&&!inside&&candidate.world.areaId==='westminster';
+   const next={commsRead:current.commsRead||read,bountyStage:Math.max(current.bountyStage,departed?2:awarded?1:0)};
    if(!context.writeRun({...candidate,openingStory:next}))return false;
-   committed=next;candidate.openingStory=copy(next);notify=!current.messageRecovered&&next.messageRecovered;return true;
+   committed=next;candidate.openingStory=copy(next);insideCommitted=alive&&inside&&next.commsRead;return true;
   }});
   if(result.ok&&committed)getRun().openingStory=copy(committed);
-  return result.ok?{...result,changed:result.changed||!!committed&&!same(current,committed),events:[...result.events,...(notify?[{type:'story-message-recovered'}]:[])]}:result;
+  if(result.ok&&command.type==='restore')insideCommitted=false;
+  const raised=committed&&committed.bountyStage>current.bountyStage;
+  return result.ok?{...result,changed:result.changed||!!committed&&!same(current,committed),events:[...result.events,...(raised?[{type:'bounty-raised',amount:[250,400,750][committed.bountyStage]}]:[])]}:result;
  };}
- return{codec,wrapDomain,storageAdapter(storage){const b=base.storageAdapter(storage);return!b?b:{getItem(key){if(key!==OPENING_STORY_SAVE_KEY)return b.getItem(key);legacy=false;const raw=b.getItem(key);if(raw!=null)return raw;legacy=true;return b.getItem(base.codec.RUN_SAVE_KEY);},setItem:(key,raw)=>b.setItem(key,raw)};},applySavedRun(g,saved){base.applySavedRun(g,saved);g.openingStory=copy(saved.openingStory);}};
+ return{codec,wrapDomain,storageAdapter(storage){const b=base.storageAdapter(storage);return!b?b:{getItem(key){if(key!==OPENING_STORY_SAVE_KEY)return b.getItem(key);format='current';const raw=b.getItem(key);if(raw!=null)return raw;const prior=b.getItem(previousKey);if(prior!=null){format='v13';return prior;}format='older';return b.getItem(base.codec.RUN_SAVE_KEY);},setItem:(key,raw)=>b.setItem(key,raw)};},applySavedRun(g,saved){base.applySavedRun(g,saved);g.openingStory=copy(saved.openingStory);}};
 }
