@@ -1,6 +1,6 @@
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
-export const LOCKER_WEAPON_IDS=Object.freeze(['westminster-start-pistol-v1','bridge-warden-rifle-v1','flamethrower-area8-v1','hale-pitborn-cleaver-v1','south-stalker-shotgun-v1','standard-grenade-v1','surgeons-knife-v1','borough-butchers-rocket-launcher-v1']);
+export const LOCKER_WEAPON_IDS=Object.freeze(['westminster-start-pistol-v1','bridge-warden-rifle-v1','flamethrower-area8-v1','hale-pitborn-cleaver-v1','south-stalker-shotgun-v1','standard-grenade-v1','surgeons-knife-v1','borough-butchers-rocket-launcher-v1','watchmans-pistol-v1']);
 const weaponIdsAllowed=LOCKER_WEAPON_IDS;
 const resourceOwner={'pistol-reserve':weaponIdsAllowed[0],'rifle-reserve':weaponIdsAllowed[1],'shotgun-reserve':weaponIdsAllowed[4],'rocket-reserve':weaponIdsAllowed[7],'grenade-charges':weaponIdsAllowed[5],'flame-fuel':weaponIdsAllowed[2]};
 const resources=Object.keys(resourceOwner);

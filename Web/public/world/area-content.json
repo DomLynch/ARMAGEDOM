@@ -1982,7 +1982,7 @@
         "tint": 16777215
       },
       "watchmans-pistol-v1": {
-        "name": "Watchman\u2019s Pistol",
+        "name": "Reaper Drone",
         "damage": 30,
         "reload": 1.6,
         "tint": 14263910
@@ -2029,7 +2029,17 @@
       "surgeon": {
         "name": "Lambeth Surgeon",
         "modelRef": "boss-surgeon",
-        "weapon": {"kind":"saw","modelRef":"bone-saw","windupTicks":48,"activeTicks":60,"recoveryTicks":84,"range":1.55,"coneDegrees":38,"intervalTicks":12,"damage":3},
+        "weapon": {
+          "kind": "saw",
+          "modelRef": "bone-saw",
+          "windupTicks": 48,
+          "activeTicks": 60,
+          "recoveryTicks": 84,
+          "range": 1.55,
+          "coneDegrees": 38,
+          "intervalTicks": 12,
+          "damage": 3
+        },
         "health": 80,
         "radius": 0.4,
         "moveSpeed": 1.4,
@@ -8638,5 +8648,22 @@
         ]
       }
     ]
+  },
+  "reaper": {
+    "version": 1,
+    "itemId": "watchmans-pistol-v1",
+    "name": "Reaper Drone",
+    "receiptId": "west-east-stolen-supply-v1:watchmans-pistol-v1",
+    "visual": "low-hover-watcher",
+    "rules": {
+      "damage": 6,
+      "range": 6,
+      "cadence": 1.4,
+      "windup": 0.2,
+      "boltSpeed": 8,
+      "boltRange": 6,
+      "orbitRadius": 1.4,
+      "followSpeed": 8
+    }
   }
 }

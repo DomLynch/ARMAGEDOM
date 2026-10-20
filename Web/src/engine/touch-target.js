@@ -1,9 +1,10 @@
+import{reaperSelected,reaperLegalTarget}from'./reaper.js';
 import{Vector3,Raycaster,Box3,Matrix4}from'three';
 import{posedActorBounds}from'./grenade-surface.js';
 import{selectedRangedProfile,rangedTargets,combatTargetHeight}from'../pistol-targeting.js';
 import{safehouseWeaponBlocked,safehouseTouches}from'./safehouse.js';
 const padding=8,EPS=1e-8,visibilityQueries=new WeakMap();
-export function touchGun(g){const field=selectedRangedProfile(g)?.field;return g.flame?.equipped?'flame':['pistol','rifle','shotgun','rocketLauncher'].includes(field)?field:null;}
+export function touchGun(g){const field=selectedRangedProfile(g)?.field;return g.flame?.equipped?'flame':['pistol','rifle','shotgun','rocketLauncher'].includes(field)?field:reaperSelected(g)?'reaper':null;}
 // Query only on a completed world tap. Damage still uses unchanged domain rays,
 // flame contact and finite rocket flight, never this modest screen padding.
 export function pickTouchTarget(g,views,camera,canvas,tap){
@@ -39,7 +40,7 @@ export function touchTargetVisible(g,views,camera){
 export function selectedTouchTarget(g){const selected=g.touchTarget;return selected?.areaId===g.world.areaId?(g.enemies??[]).find(e=>e.id===selected.id&&(e.placementKey??String(e.id))===selected.key&&e.hp>0&&e.hostile!==false&&e.visible!==false&&(e.areaId==null||e.areaId===g.world.areaId))??null:null;}
 export function touchTargetReady(g,target,{flameAimEligible,allowReload=false}={}){
  const gun=touchGun(g),p=g.player;if(!gun||!target||g.runSaveInvalid||g.finished||!(p.hp>0)||g.weaponsLowered||safehouseWeaponBlocked(g)||safehouseTouches(g,target.pos,target.radius)||p.swing||g.time<(p.ready??0)||g.time<(p.hurtUntil??0)||g.time<(p.dodgeUntil??0)||!g.world.lineClear(p.pos,target.pos))return false;
- if(gun==='flame')return g.flameFuel?.fuelUnits>0&&typeof flameAimEligible==='function'&&flameAimEligible(g,target)===true;
+ if(gun==='reaper')return reaperLegalTarget(g,target,g.reaper?.actor.pos??p.pos);if(gun==='flame')return g.flameFuel?.fuelUnits>0&&typeof flameAimEligible==='function'&&flameAimEligible(g,target)===true;
  const profile=selectedRangedProfile(g),state=gun==='pistol'?g.pistol:gun==='rifle'?g.rifle:g.bossEquipment?.[gun],clock=gun==='pistol'?state:gun==='rifle'?g.rifleAction:g.bossEquipmentAction?.[gun];
  return !!state&&(state.magazine>0||allowReload&&state.magazine===0&&state.reserve>0)&&!clock?.reloadingUntil&&g.time>=(clock?.nextFireAt??0)&&Math.hypot(target.pos.x-p.pos.x,target.pos.z-p.pos.z)<=profile.rules.range+EPS&&(gun==='pistol'||gun==='rifle'?gun==='pistol'||!!g.rifleAssetReady:!!g.bossEquipmentAssetReady?.[gun]);
 }
@@ -51,6 +52,7 @@ export function applyTouchTarget(g,intent,services={}){
  const target=selectedTouchTarget(g);
  if(!target){g.touchTarget=null;g.touchTargetReady=false;return intent;}
  const visible=intent.combatVisibleIds??intent.pistolVisibleIds,ready=(!visible||visible.includes(target.id))&&touchTargetReady(g,target,services),p=g.player,dx=target.pos.x-p.pos.x,dz=target.pos.z-p.pos.z,n=Math.hypot(dx,dz),aim=n>EPS?{x:dx/n,z:dz/n}:{...p.facing};
+ if(touchGun(g)==='reaper'){g.touchTargetReady=ready;return{...intent,touchTargetReady:ready};}
  const actions=(intent.actions??[]).filter(a=>!['fire','slash'].includes(a)),held=(intent.held??[]).filter(a=>a!=='fire'),gun=touchGun(g),requested=!!intent.touchTargetSelection&&gun!=='flame'||(intent.actions??[]).includes('fire')||(intent.held??[]).includes('fire');
  g.touchTargetReady=ready&&!intent.dodge;
  const canTurn=!p.swing&&g.time>=(p.hurtUntil??0)&&g.time>=(p.dodgeUntil??0)&&!intent.dodge;

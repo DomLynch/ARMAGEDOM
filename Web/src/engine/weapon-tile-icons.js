@@ -1,5 +1,6 @@
 // Small local silhouettes of the carried weapon families; no model/image requests.
 const paths={
+ drone:'M18 11H35L42 17H58L65 11H82V21H65L58 27H42L35 21H18Z M8 5H30V9H8Z M70 5H92V9H70Z M8 27H30V31H8Z M70 27H92V31H70Z M45 27H55V36H45Z',
  knife:'M8 30 35 22 91 10C85 23 63 33 40 33L37 28 12 39Z M34 20 38 19 43 36 39 37Z',
  cleaver:'M9 33 33 25 29 14 78 6 90 11 89 29 39 35 36 31 14 41Z M30 23 35 22 40 38 35 39Z',
  saw:'M8 24H29V14H49V20H93L96 24 91 28 87 25 83 28 79 25 75 28 71 25 67 28 63 25H49V33H27V29H8Z',
@@ -13,7 +14,7 @@ const paths={
 };
 const styles={
  knife:['knife','KNIFE'],'hale-pitborn-cleaver-v1':['cleaver','CLEAVER'],'surgeons-knife-v1':['saw','BONE SAW'],
- 'westminster-start-pistol-v1':['pistol','PISTOL'],'watchmans-pistol-v1':['pistol','WATCHMAN'],'borough-marshals-pistol-v1':['pistol','MARSHAL'],
+ 'westminster-start-pistol-v1':['pistol','PISTOL'],'watchmans-pistol-v1':['drone','REAPER'],'borough-marshals-pistol-v1':['pistol','MARSHAL'],
  'bridge-warden-rifle-v1':['rifle','RIFLE'],'flamethrower-area8-v1':['flame','EMBER'],'ember-flamethrower-v1':['flame','EMBER'],
  'south-stalker-shotgun-v1':['shotgun','SHOTGUN'],'standard-grenade-v1':['grenade','GRENADE'],'borough-butchers-rocket-launcher-v1':['rocket','ROCKET'],
 };

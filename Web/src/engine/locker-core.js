@@ -1,3 +1,4 @@
+import{REAPER_ITEM_ID,REAPER_RECEIPT}from'./reaper.js';
 import{createLockerModel,LOCKER_WEAPON_IDS,LOCKER_RESOURCE_RULES}from'./locker-state.js';
 import{closedData}from'./progression-state.js';
 import{safehouseProp}from'./safehouse.js';
@@ -12,9 +13,10 @@ export function lockerInventory(g){
  set(2,g.flameFuel?.collected,g.flame?.equipped||g.bossEquipment?.emberProjector?.selected);
  set(3,g.uniqueReward?.status==='owned',g.uniqueReward?.selectedMeleeVariant===LOCKER_WEAPON_IDS[3]);
  for(const[i,field]of Object.entries(bossFields))set(+i,g.bossEquipment?.[field]?.status==='owned',g.bossEquipment?.[field]?.selected);
+ set(8,g.expedition?.status==='claimed'&&g.expedition.rewardReceipt===REAPER_RECEIPT,g.expedition?.status==='claimed'&&g.expedition.selectedPistolVariant===REAPER_ITEM_ID);
  return{weapons,ammo:{'pistol-reserve':g.pistol?.reserve??0,'rifle-reserve':g.rifle?.reserve??0,'shotgun-reserve':g.bossEquipment?.shotgun?.reserve??0,'rocket-reserve':g.bossEquipment?.rocketLauncher?.reserve??0,'grenade-charges':g.bossEquipment?.grenade?.magazine??0,'flame-fuel':g.flameFuel?.fuelUnits??0}};
 }
-export function lockerStored(g,id){let physical=id;const profiles=g.world?.bossEquipmentData??{},profile=Object.values(profiles).find(p=>p.itemId===id);if(profile?.family==='pistols'||Object.hasOwn(g.world?.expeditionData?.variants??{},id)||id==='watchmans-pistol-v1')physical=LOCKER_WEAPON_IDS[0];if(profile?.family==='flamethrowers')physical=LOCKER_WEAPON_IDS[2];return(g.locker?.weapons??[]).includes(physical);}
+export function lockerStored(g,id){let physical=id;const profiles=g.world?.bossEquipmentData??{},profile=Object.values(profiles).find(p=>p.itemId===id);if(!(g.world?.reaperData&&id===REAPER_ITEM_ID)&&(profile?.family==='pistols'||Object.hasOwn(g.world?.expeditionData?.variants??{},id)||id==='watchmans-pistol-v1'))physical=LOCKER_WEAPON_IDS[0];if(profile?.family==='flamethrowers')physical=LOCKER_WEAPON_IDS[2];return(g.locker?.weapons??[]).includes(physical);}
 function withAmmo(g,ammo){const next={...g};if(g.pistol)next.pistol={...g.pistol,reserve:ammo['pistol-reserve']};if(g.rifle)next.rifle={...g.rifle,reserve:ammo['rifle-reserve']};if(g.flameFuel)next.flameFuel={...g.flameFuel,fuelUnits:ammo['flame-fuel']};if(g.bossEquipment)next.bossEquipment={...g.bossEquipment,shotgun:{...g.bossEquipment.shotgun,reserve:ammo['shotgun-reserve']},rocketLauncher:{...g.bossEquipment.rocketLauncher,reserve:ammo['rocket-reserve']},grenade:{...g.bossEquipment.grenade,magazine:ammo['grenade-charges']}};return next;}
 const state=g=>g.locker===undefined?model.freshState():g.locker;
 const valid=g=>model.validInventory(state(g),lockerInventory(g));

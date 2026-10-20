@@ -59,7 +59,7 @@ function frame(ms,providedElapsed) {
     while (accumulator >= 1 / 60) {
       const weaponBefore = s.game.player.weapon,flameBefore=!!s.game.flame?.equipped;
       const value=intent();s.diagnostics?.beforeStep(value);
-      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchRifle:s.dispatchRifle,dispatchBossEquipment:s.dispatchBossEquipment,dispatchMarshalPistol:s.dispatchMarshalPistol,dispatchFlame:s.dispatchFlame,sawContact:s.sawContact,rocketSource:s.rocketSource,rocketAimHeight:s.rocketAimHeight,grenadeSource:s.grenadeSource,grenadeTrace:s.grenadeTrace,grenadeFollow:s.grenadeFollow,flameSource:s.flameSource,bossFlameSource:s.bossFlameSource,flameAimEligible:s.flameAimEligible});
+      stepGame(s.game, value, 1 / 60,{dispatchPistol:s.dispatchPistol,dispatchRifle:s.dispatchRifle,dispatchBossEquipment:s.dispatchBossEquipment,dispatchMarshalPistol:s.dispatchMarshalPistol,dispatchFlame:s.dispatchFlame,reaperSource:s.reaperSource,sawContact:s.sawContact,rocketSource:s.rocketSource,rocketAimHeight:s.rocketAimHeight,grenadeSource:s.grenadeSource,grenadeTrace:s.grenadeTrace,grenadeFollow:s.grenadeFollow,flameSource:s.flameSource,bossFlameSource:s.bossFlameSource,flameAimEligible:s.flameAimEligible});
       s.diagnostics?.afterStep();
       if (weaponBefore !== s.game.player.weapon||flameBefore!==!!s.game.flame?.equipped) {s.input.clear();submitted=null;resetMobileControls(s.game);}
       s.collectNearbySupplies(s.game,value);

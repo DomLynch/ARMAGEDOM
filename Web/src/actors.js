@@ -1,3 +1,4 @@
+import{reaperSelected}from'./engine/reaper.js';
 import{createBoneSaw,animateBoneSaw,boneSawContact}from'./engine/bone-saw-view.js';
 import {traceGrenadeSurface,followGrenadeSurface,surfaceAimHeight} from './engine/grenade-surface.js';
 import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
@@ -157,7 +158,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
   const gauntKits=new Map(),humanFoundation=library.models.get('hollow-scavenger')?.gltf.scene;
   let gauntPreparationError=null;
   if(humanFoundation?.getObjectByName('Hollow_body_and_worn_trousers'))try{gauntKits.set(humanFoundation,createGauntShapeLibrary(humanFoundation));}catch(error){gauntPreparationError=String(error.message??error);}
-  let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+  let reaperView=null;let feedbackMode='high',lastReduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
   const parkedViews=new Map(),groundingCache=new WeakMap(),goreOwners=new Set();
   const views = new Map(),
@@ -315,6 +316,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
 
   return {
     views,
+    get reaperView(){return reaperView;},
+    reaperSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const p=reaperView?.muzzle.getWorldPosition(new THREE.Vector3());return p?{x:p.x,y:p.y,z:p.z}:null;},
     ensureEquipment(field){const data=world.bossEquipmentData?.[field];return !data?Promise.reject(Error('Equipment unavailable')):data.modelRef?library.ensureModels([data.modelRef,...(library.manifest.models[data.modelRef]?.projectileRef?[library.manifest.models[data.modelRef].projectileRef]:[])]):Promise.resolve();},
     equipmentReady(field){const data=world.bossEquipmentData?.[field];return !!data&&(data.modelRef?library.models.has(data.modelRef)&&(!library.manifest.models[data.modelRef]?.projectileRef||library.models.has(library.manifest.models[data.modelRef].projectileRef)):data.family==='pistols'?!!library.pistolAsset:!!library.models.get('vagrant')?.equipment);},
     equipmentAsset(field){const data=world.bossEquipmentData?.[field];if(!data)return null;if(data.modelRef)return library.models.get(data.modelRef);return data.family==='pistols'?{gltf:library.pistolAsset,description:{pose:{root:null}}}:{gltf:library.models.get('vagrant')?.equipment,description:{pose:{root:'WeaponDrawn'}}};},
@@ -413,10 +416,12 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreActorFlash(v);v.pistolSlide.reset();}},
     events(game){for(const e of game.events)if(e.type==='hit'&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;if(!e.blocked)v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
+      reaperView?.dispose();reaperView=null;
       for (const id of [...views.keys()]) remove(id);
       for(const stored of parkedViews.values())for(const id of [...stored.keys()])remove(id,stored);parkedViews.clear();
     },
     update(game, dt, pistolRecoil=0, {presentationDt=dt,restoreCorpses=false,contactOnly=false,projectileContactIds,combatVisibleIds}={}) {
+      if(reaperSelected(game)&&game.player.hp>0&&!game.finished&&(!game.reaper||game.reaper.areaId===game.world.areaId)){const r=game.reaper,actor=r?.actor??game.player;if(!reaperView){reaperView=droneKits.spawn({scene,position:world.toRender(actor.pos)});reaperView.root.name='Reaper Drone companion';}reaperView.update({time:game.time,dt:Math.max(0,presentationDt),state:r?.warning?'alert':r?.targetId!=null?'attack':'patrol',phase:r?.warning?Math.min(1,(game.time-r.warning.start)/game.world.reaperData.rules.windup):0,position:world.toRender(actor.pos),heading:Math.atan2(actor.facing.x,-actor.facing.z)});}else{reaperView?.dispose();reaperView=null;}
       if(lastReduced!==reducedMotion()){lastReduced=reducedMotion();this.configureFeedback(feedbackMode);}
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));

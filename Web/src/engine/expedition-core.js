@@ -1,3 +1,4 @@
+import{REAPER_ITEM_ID,ownsReaper}from'./reaper.js';
 import {freeze} from './content-schema.js';
 import {closedData} from './progression-state.js';
 import {createExpeditionModel} from './expedition-state.js';
@@ -25,14 +26,14 @@ export function validateExpeditionData(input,registry){
 }
 export function expeditionEligible(g,action,data){
  const p=g.player;if(!p||p.hp<=0||g.finished||g.runSaveInvalid||p.swing||g.time<p.hurtUntil||g.time<p.dodgeUntil)return false;
- if(action==='select')return g.pistol?.collected===true;
+ if(action==='reaper')return ownsReaper(g);if(action==='select')return g.pistol?.collected===true;
  const anchor=action==='recover'?data.contract.case:data.contract.giver;
  return ['accept','recover','claim'].includes(action)&&g.world.areaId===anchor.areaId&&distance(p.pos,anchor.position)<=anchor.radius+1e-8&&g.world.lineClear(p.pos,anchor.position);
 }
 export function selectedPistolProfile(g){
  const special=g.world?.bossEquipmentData?.commanderPistol,reward=g.bossEquipment?.commanderPistol;if(special&&reward?.status==='owned'&&reward.selected&&reward.rewardReceipt===special.source.receiptId)return{...PISTOL_RULES,...special.rules,name:special.name};
  const data=g.world?.expeditionData,state=g.expedition;
- if(!data||!state||state.selectedPistolVariant===PISTOL_ITEM_ID)return PISTOL_RULES;
+ if(!data||!state||g.world.reaperData||state.selectedPistolVariant===PISTOL_ITEM_ID)return PISTOL_RULES;
  return state.status==='claimed'&&state.rewardReceipt===data.contract.receiptId&&state.selectedPistolVariant===data.contract.rewardVariantId?{...PISTOL_RULES,...data.variants[state.selectedPistolVariant]}:PISTOL_RULES;
 }
 // Compose with the existing v4 codec/Core writer, never a parallel award store.
@@ -59,18 +60,18 @@ export function createExpeditionComponent({baseCodec,getRun,data,registry,applyB
  function wrapDomain(executeDomain){return(command,context)=>{
   const g=getRun();if(!g)return{ok:false,code:'not-eligible',events:[]};
   if(command.type==='retry'&&g.runSaveInvalid)return{ok:false,code:'invalid-save',events:[]};
-  if(command.type==='expedition'||command.type==='selectVariant'){
-   const action=command.type==='expedition'?command.action:'select';
-   if(!canDispatch(g)||!expeditionEligible(g,action,data))return{ok:false,code:'not-eligible',events:[]};
-   const current=state(g),proposal=model.transition(current,action==='select'?{type:'select',variantId:command.variantId}:{type:action});
+  if(command.type==='expedition'||command.type==='selectVariant'||(command.type==='equip'&&command.itemId===REAPER_ITEM_ID&&g.world.reaperData)){
+   const reaper=command.type==='equip',companion=!!g.world.reaperData;if(reaper&&(!companion||!closedData(command,['type','itemId','equipped'])||typeof command.equipped!=='boolean'||!ownsReaper(g)||command.equipped&&(g.locker?.weapons??[]).includes(REAPER_ITEM_ID)))return{ok:false,code:'not-eligible',events:[]};const action=command.type==='expedition'?command.action:'select';
+   if(!canDispatch(g)||!expeditionEligible(g,reaper?'reaper':action,data))return{ok:false,code:'not-eligible',events:[]};
+   const current=state(g),proposal=companion&&!reaper&&action==='select'&&command.variantId===PISTOL_ITEM_ID?model.copy(current):model.transition(current,action==='select'?{type:'select',variantId:reaper?(command.equipped?REAPER_ITEM_ID:PISTOL_ITEM_ID):command.variantId}:{type:action});
    if(!proposal)return{ok:false,code:action==='claim'&&current.status==='claimed'?'already-collected':'not-eligible',events:[]};
    const next=visited(proposal,g);if(!next)return{ok:false,code:'invalid-save',events:[]};
-   const select=action==='select',pistol=select?{...g.pistol,equipped:true}:g.pistol;
+   const select=action==='select'&&!reaper,pistol=select?{...g.pistol,equipped:true}:g.pistol;
    const changed=!same(current,next)||select&&!g.pistol.equipped;if(!changed)return{ok:true,changed:false,events:[]};
    const candidate={...g,expedition:next,pistol,player:select?{...g.player,weapon:'pistol'}:g.player};
    if(!context.writeRun(candidate))return{ok:false,code:'storage-unavailable',events:[]};
    g.expedition=model.copy(next);if(select){g.pistol=pistol;g.player.weapon='pistol';}
-   return{ok:true,changed:true,events:[{type:select?'pistol-variant-selected':'expedition-'+action,contractId:data.contract.id,variantId:next.selectedPistolVariant}]};
+   return{ok:true,changed:true,events:[{type:reaper?'reaper-selected':select?'pistol-variant-selected':'expedition-'+action,contractId:data.contract.id,variantId:next.selectedPistolVariant}]};
   }
   let changed=false;
   const result=executeDomain(command,{...context,writeRun(candidate){
