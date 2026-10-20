@@ -2,6 +2,7 @@
 const paths={
  knife:'M8 30 35 22 91 10C85 23 63 33 40 33L37 28 12 39Z M34 20 38 19 43 36 39 37Z',
  cleaver:'M9 33 33 25 29 14 78 6 90 11 89 29 39 35 36 31 14 41Z M30 23 35 22 40 38 35 39Z',
+ saw:'M8 24H29V14H49V20H93L96 24 91 28 87 25 83 28 79 25 75 28 71 25 67 28 63 25H49V33H27V29H8Z',
  scalpel:'M9 32 47 21 49 25 13 39Z M47 20 91 7 85 18 51 27Z',
  pistol:'M12 10H79L87 14V23H54L43 39H26L33 21H12Z M53 22H63V28H48Z',
  rifle:'M3 16H19L25 20H47V13H67V17H96V21H69V25H53L49 38H41L44 25H29L25 34H18L22 24H13L7 30H3Z M55 10H63V14H55Z',
@@ -11,7 +12,7 @@ const paths={
  rocket:'M3 15H11V11H17V15H75L83 10 97 20 83 30 75 25H54L50 39H43L46 25H29V31H22V25H17V29H11V25H3Z M36 9H48V15H36Z',
 };
 const styles={
- knife:['knife','KNIFE'],'hale-pitborn-cleaver-v1':['cleaver','CLEAVER'],'surgeons-knife-v1':['scalpel','SURGEON'],
+ knife:['knife','KNIFE'],'hale-pitborn-cleaver-v1':['cleaver','CLEAVER'],'surgeons-knife-v1':['saw','BONE SAW'],
  'westminster-start-pistol-v1':['pistol','PISTOL'],'watchmans-pistol-v1':['pistol','WATCHMAN'],'borough-marshals-pistol-v1':['pistol','MARSHAL'],
  'bridge-warden-rifle-v1':['rifle','RIFLE'],'flamethrower-area8-v1':['flame','EMBER'],'ember-flamethrower-v1':['flame','EMBER'],
  'south-stalker-shotgun-v1':['shotgun','SHOTGUN'],'standard-grenade-v1':['grenade','GRENADE'],'borough-butchers-rocket-launcher-v1':['rocket','ROCKET'],

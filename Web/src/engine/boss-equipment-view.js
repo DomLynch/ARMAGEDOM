@@ -17,7 +17,7 @@ export function createBossEquipmentView(s,dispatch,legacyFlameEquip=null){
  function stats(data,state,g){if(data.family==='shotguns')return`8 pellets × 8 damage · 6m · ${state?.magazine??0}/2 loaded · ${state?.reserve??0} reserve`;
   if(data.family==='launchers')return`80 blast damage · 3m radius · ${state?.magazine??0}/1 loaded · ${state?.reserve??0} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`;
   if(data.family==='grenades')return`${state?.magazine??0} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`;
-  if(data.family==='blades')return'Slash 12 · Stab 16 · Heavy 16 · original Knife motion';
+  if(data.family==='blades')return`Hold CUT · close saw contact · ${data.rules.damage} damage / ${data.rules.interval}s · slowed while cutting · sustained contact staggers`;
   if(data.family==='pistols')return`35 damage · 1.8s reload · shared pistol ammunition (${g.pistol.magazine}/6, ${g.pistol.reserve} reserve)`;
   return`10 damage per 0.2s · 3m · ${Math.ceil((g.flameFuel?.fuelUnits??0)/1000*100)}% shared fuel`;
  }

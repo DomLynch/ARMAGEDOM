@@ -1,3 +1,4 @@
+import{createBoneSaw}from'./engine/bone-saw-view.js';
 import{MELEE_VARIANTS,CLEAVER_MOVES}from'./engine/melee-equipment-data.js';
 export{MELEE_VARIANTS,CLEAVER_MOVES}from'./engine/melee-equipment-data.js';
 export function selectedMeleeVariant(g){const special=g.world?.bossEquipmentData?.surgicalKnife,reward=g.bossEquipment?.surgicalKnife;if(special&&reward?.status==='owned'&&reward.selected&&reward.rewardReceipt===special.source.receiptId)return MELEE_VARIANTS[special.itemId];const data=g.world?.uniqueRewardData,state=g.uniqueReward;return data&&state?.status==='owned'&&state.rewardReceipt===data.receiptId&&state.selectedMeleeVariant===data.itemId?MELEE_VARIANTS[data.itemId]:MELEE_VARIANTS.knife;}
@@ -18,6 +19,6 @@ export function setPlayerMeleeWeapon(view,source,variantId){
  if(displayId==='knife'&&!view.meleeEquipment){view.meleeVariantId='knife';return false;}
  if(!Object.hasOwn(MELEE_VARIANTS,variantId)||!view.knife?.parent)throw Error('Player melee hand mount unavailable');
  view.meleeEquipment??=new Map([['knife',view.knife]]);view.meleeWeaponParent??=view.knife.parent;
- if(!view.meleeEquipment.has(displayId)){const clone=cloneMeleeWeapon(source,variantId);view.meleeEquipment.set(displayId,clone.root);view.materials.push(...clone.materials);view.flashMaterials.push(...clone.materials);}
+ if(!view.meleeEquipment.has(displayId)){const clone=displayId==='bone-saw'?{root:createBoneSaw(),materials:[]}:cloneMeleeWeapon(source,variantId);if(displayId==='bone-saw'){clone.root.position.copy(view.knife.position);clone.root.quaternion.copy(view.knife.quaternion);clone.root.scale.copy(view.knife.scale);}view.meleeEquipment.set(displayId,clone.root);view.materials.push(...clone.materials);view.flashMaterials.push(...clone.materials);}
  const next=view.meleeEquipment.get(displayId);view.knife.removeFromParent();view.meleeWeaponParent.add(next);view.knife=next;view.meleeVariantId=variantId;return true;
 }

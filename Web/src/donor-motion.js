@@ -59,6 +59,7 @@ export class DonorMotion{
   const responseAge=response?Math.max(time-response.start,this.visualTime-this.responseTime):0;
   if(entity.hp<=0){this.sample(deathPose?.clip??this.description.clips.death,deathPose?.phase??(response?responseAge/(response.ticks/60):1));return;}
   if(time<entity.dodgeUntil){this.sample(this.description.clips.dodge,(time-entity.dodgeStart)/(entity.dodgeUntil-entity.dodgeStart));return;}
+  if(entity.saw?.active||entity.sawPhase){const phase=entity.sawPhase?.phase;this.sample(this.description.clips.stab??this.description.clips.slash,phase==='windup'?.25:phase==='recovery'?.9:.58);return;}
   const swing=entity.swing;
   if(swing&&time<swing.end){this.sample(swing.clip,swing.native?(time-swing.start)/(swing.end-swing.start):ratMeleePosePhase(swing,donorSwingPhase));return;}
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}

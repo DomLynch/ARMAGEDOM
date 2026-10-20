@@ -1,3 +1,4 @@
+import{createBoneSaw,animateBoneSaw,boneSawContact}from'./engine/bone-saw-view.js';
 import {traceGrenadeSurface,followGrenadeSurface,surfaceAimHeight} from './engine/grenade-surface.js';
 import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
 import{createRiflePose}from'./rifle-pose.js';
@@ -299,7 +300,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     view.pistolSlide.dispose();
     view.appearance?.dispose();view.humanBody?.dispose();view.bodyShape?.dispose();view.feral?.dispose();
     view.vest?.dispose();
-    view.motion?.dispose();
+    view.motion?.dispose();for(const weapon of view.meleeEquipment?.values()??[])weapon.userData.dispose?.();view.knife?.userData.dispose?.();
     const skeletons = new Set();
     view.model.traverse((o) => {
       if (o.skeleton) skeletons.add(o.skeleton);
@@ -318,6 +319,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     equipmentReady(field){const data=world.bossEquipmentData?.[field];return !!data&&(data.modelRef?library.models.has(data.modelRef)&&(!library.manifest.models[data.modelRef]?.projectileRef||library.models.has(library.manifest.models[data.modelRef].projectileRef)):data.family==='pistols'?!!library.pistolAsset:!!library.models.get('vagrant')?.equipment);},
     equipmentAsset(field){const data=world.bossEquipmentData?.[field];if(!data)return null;if(data.modelRef)return library.models.get(data.modelRef);return data.family==='pistols'?{gltf:library.pistolAsset,description:{pose:{root:null}}}:{gltf:library.models.get('vagrant')?.equipment,description:{pose:{root:'WeaponDrawn'}}};},
     grenadeSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const point=this.equipmentOrigin('grenade');return point?{x:point.x,y:point.y,z:point.z}:null;},
+    sawContact(game,actor,target){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([actor.id,target.id])});return boneSawContact(views.get(actor.id)?.knife,views,target);},
     rocketAimHeight(game,start,end,targetId){const target=game.enemies.find(e=>e.id===targetId&&e.hp>0);if(!target)return .05;this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([targetId])});return surfaceAimHeight(views,target,start,end);},
     grenadeTrace(game,start,end){const ids=new Set(game.enemies.filter(e=>e.hp>0).map(e=>e.id));this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:ids});return traceGrenadeSurface(views,game.enemies,start,end);},
     grenadeFollow(game,anchor,enemy){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([enemy.id])});return followGrenadeSurface(anchor,views.get(enemy.id));},
@@ -450,6 +452,8 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
           view.finisher.update(view.finisherAge,presentationDt);view.finisherPoseAge=finisherVictimPoseAge(view.finisherAge,{enabled:feedbackMode!=='off'&&!reducedMotion(),restored:!!view.restoredCorpse});deathPose=view.finisher.pose(view.finisherPoseAge);entity.finisherPresentationAge=view.finisherAge;
           if(view.finisher.stats().expired){entity.finisherHeadUntil=0;entity.finisherPartsUntil=0;}
         }
+        if(entity.bossProfile?.weapon?.kind==='saw'&&!view.knife?.userData.saw){const old=view.knife;if(old?.parent){const saw=createBoneSaw();saw.position.copy(old.position);saw.quaternion.copy(old.quaternion);saw.scale.copy(old.scale);old.parent.add(saw);old.removeFromParent();view.surgeonOriginalKnife=old;view.knife=saw;}}
+        animateBoneSaw(view.knife,game.time,!!entity.saw?.active);
         view.motion.update(
           entity,
           game.time,

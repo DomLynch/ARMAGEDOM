@@ -1,3 +1,4 @@
+import{boneSawEquipped}from'./engine/bone-saw.js';
 import{selectedBossRanged}from'./engine/boss-weapon-runtime.js';
 import{bossExitGate}from'./engine/area-bosses.js';
 import{createMenuTabs}from'./menu-tabs.js';
@@ -234,6 +235,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
         for(const id of ['slash','stab','heavy']){el(id).classList.toggle('cooldown',false);el(id).classList.toggle('low-energy',false);el(id).querySelector('small').textContent=id==='slash'?`${percent}%`:'';el(id).setAttribute('aria-label',id==='slash'?`Hold to fire flamethrower; fuel ${percent} percent`:'Return to normal weapon');}
         el('slash').classList.toggle('pistol-aim',true);el('slash').style.setProperty('--ready','1');
       }
+      if(boneSawEquipped(g)){el('slash').querySelector('span').textContent='CUT';el('slash').querySelector('small').textContent='HOLD';el('slash').classList.toggle('low-energy',p.stamina<=0);el('slash').classList.toggle('cooldown',false);el('slash').setAttribute('aria-label','Hold to cut with the Bone Saw; movement slows while cutting');el('stab').hidden=el('heavy').hidden=true;lastPistolEquipped=null;}
       const boss = g.enemies.find((e) => e.kind === 3);
       el("boss").hidden = !boss;
       if (boss)
