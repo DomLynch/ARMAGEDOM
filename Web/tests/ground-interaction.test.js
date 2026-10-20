@@ -1,5 +1,5 @@
 import test from'node:test';import assert from'node:assert/strict';
-import{nearestInteraction,claimStartingPistol}from'../src/engine/run-views.js';
+import{nearestInteraction,claimStartingPistol,meleeWeaponSummary}from'../src/engine/run-views.js';
 import{createBossEquipmentView}from'../src/engine/boss-equipment-view.js';
 import{BOSS_EQUIPMENT_PROFILES as profiles}from'../src/engine/boss-equipment-data.js';
 const target=(id,x,z)=>({id,label:'Collect '+id,position:{x,z},run:()=>true});
@@ -22,4 +22,8 @@ test('starting pistol confirmation follows one real committed claim, preserves q
  const{fixture}=await import('./helpers/rifle-fixture.js'),fs=await import('node:fs'),data=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),options={areaId:'westminster',extraWorld:{spawn:{x:0,z:-6},bossEquipmentData:profiles,safehouseData:data.safehouse}},f=fixture(options);f.restore();let clears=0;f.quota(true);claimStartingPistol(f.g,f.p.dispatchPistol,()=>clears++);assert(!f.g.pistol.collected);assert.equal(f.g.message,'Run saving unavailable. Supplies kept.');assert.equal(clears,0);
  f.quota(false);claimStartingPistol(f.g,f.p.dispatchPistol,()=>clears++);assert.equal(f.g.message,'Starting Pistol · 6 loaded · 12 spare.');assert(f.g.pistol.equipped);assert.equal(clears,1);assert.equal(f.g.events.filter(e=>e.type==='pickup').length,1);const writes=f.writes.length,until=f.g.messageUntil;f.g.time+=10;claimStartingPistol(f.g,f.p.dispatchPistol,()=>clears++);assert.equal(clears,1);assert.equal(f.writes.length,writes);assert.equal(f.g.messageUntil,until);
  const cold=fixture({...options,records:f.records});cold.restore();assert.equal(cold.g.pistol.magazine,6);assert.equal(cold.g.pistol.reserve,12);assert(cold.g.pistol.equipped);assert(!cold.g.events.some(e=>e.type==='pickup'));assert.doesNotMatch(cold.g.message,/Starting Pistol/);
+});
+
+test('selected Bone Saw summary reports its held finite contact mode rather than unavailable Knife attacks',async()=>{
+ const{armedBossEquipment}=await import('./helpers/boss-equipment-fixture.js'),{effectiveWeaponDamage}=await import('../src/engine/progression-runtime.js'),f=armedBossEquipment('surgicalKnife'),g=f.g,r=g.world.bossEquipmentData.surgicalKnife.rules,actual=meleeWeaponSummary(g);assert.match(actual,/The Bone Saw.*Hold CUT/);assert(actual.includes(`${+effectiveWeaponDamage(g,'knife',r.damage).toFixed(1)} damage / ${r.interval}s contact`));assert(!/Slash|Heavy/.test(actual));g.bossEquipment.surgicalKnife.selected=false;assert.match(meleeWeaponSummary(g),/^Knife · Slash/);g.bossEquipment.surgicalKnife.selected=true;g.bossEquipment.surgicalKnife.rewardReceipt='invalid';assert.match(meleeWeaponSummary(g),/^Knife · Slash/);
 });
