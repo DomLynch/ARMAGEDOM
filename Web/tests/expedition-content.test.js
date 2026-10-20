@@ -6,7 +6,7 @@ const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url))),raw=()=>read(
 test('catalogue rejects bad references, unsafe profiles, aliases and duplicate atlas cells',()=>{
  const good=raw().expedition;assert(Object.isFrozen(validateExpeditionData(good,registry).contract));
  for(const mutate of[c=>c.contract.giver.areaId='unknown',c=>c.contract.guard.areaId='south',c=>c.contract.case.radius=3,c=>c.variants[c.contract.rewardVariantId].damage=Infinity,c=>c.variants[c.contract.rewardVariantId].extra=true,c=>c.variants['westminster-start-pistol-v1'].reload=1.6,c=>c.atlas.east={...c.atlas.westminster},c=>c.atlas.extra={column:0,row:0},c=>c.contract.case.position.z=NaN]){const c=structuredClone(good);mutate(c);assert.throws(()=>validateExpeditionData(c,registry));}
- const old=raw();delete old.expedition;assert(!Object.hasOwn(validateAreaMetadata(old,registry),'expedition'));
+ const old=raw();delete old.expedition;assert.throws(()=>validateAreaMetadata(old,registry),/Invalid Reaper/);delete old.reaper;assert(!Object.hasOwn(validateAreaMetadata(old,registry),'expedition'));
 });
 test('actual existing anchors have full capsule-clear approach rings and stable guard; no gate overlap',()=>{
  const c=raw(),data=validateExpeditionData(c.expedition,registry);

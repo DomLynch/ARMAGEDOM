@@ -7,7 +7,7 @@ const model=()=>createLockerModel({weaponIds:ids,resourceRules:rules});
 const inventory=()=>({weapons:Object.fromEntries(ids.map(id=>[id,{owned:true,equipped:false}])),ammo:{'pistol-reserve':12,'rifle-reserve':16,'shotgun-reserve':12,'rocket-reserve':3,'grenade-charges':3,'flame-fuel':611.6666666666755}});
 const sum=(locker,view,key)=>locker.ammo[key]+view.ammo[key];
 test('fixed physical catalogue and six shared finite pools, no base Knife/variant duplication',()=>{
- const m=model();assert.ok(m.valid(m.freshState()));assert.equal(ids.length,8);assert.equal(Object.keys(rules).length,6);assert.ok(!ids.includes('knife'));assert.ok(!ids.includes('borough-marshals-pistol-v1'));assert.ok(!ids.includes('ember-flamethrower-v1'));
+ const m=model();assert.ok(m.valid(m.freshState()));assert.equal(ids.length,9);assert.equal(Object.keys(rules).length,6);assert.ok(!ids.includes('knife'));assert.ok(!ids.includes('borough-marshals-pistol-v1'));assert.ok(!ids.includes('ember-flamethrower-v1'));
  for(const weaponIds of[[...ids,'knife'],ids.slice(1),[...ids.slice(0,-1),ids[0]],['unknown']])assert.throws(()=>createLockerModel({weaponIds,resourceRules:rules}),TypeError);
  for(const rule of[{...rules['pistol-reserve'],carryCap:NaN},{...rules['pistol-reserve'],integer:false}])assert.throws(()=>createLockerModel({weaponIds:ids,resourceRules:{...rules,'pistol-reserve':rule}}),TypeError);
 });
@@ -15,7 +15,7 @@ test('deposit/retrieve spare weapon changes only location, roundtrip preserves i
  const m=model(),locker=m.freshState(),view=inventory(),before=structuredClone(view),id=ids[1],receipt={status:'owned',rewardReceipt:'boss-warden-v1:bridge-warden-rifle-v1',magazine:5,reserve:16};Object.freeze(receipt);
  const bank=m.propose(locker,view,{type:'depositWeapon',itemId:id});assert.deepEqual(bank.locker.weapons,[id]);assert.deepEqual(bank.ammo,view.ammo);assert.deepEqual(view,before);assert.deepEqual(locker,m.freshState());assert.equal(receipt.magazine,5);assert.equal(receipt.rewardReceipt,'boss-warden-v1:bridge-warden-rifle-v1');
  assert.equal(m.propose(bank.locker,view,{type:'depositWeapon',itemId:id}),null);const back=m.propose(bank.locker,view,{type:'withdrawWeapon',itemId:id});assert.deepEqual(back.locker,locker);assert.deepEqual(back.ammo,view.ammo);assert.equal(m.propose(locker,view,{type:'withdrawWeapon',itemId:id}),null);
- for(const bad of['knife','watchmans-pistol-v1','borough-marshals-pistol-v1','ember-flamethrower-v1','unknown'])assert.equal(m.propose(locker,view,{type:'depositWeapon',itemId:bad}),null);
+ for(const bad of['knife','borough-marshals-pistol-v1','ember-flamethrower-v1','unknown'])assert.equal(m.propose(locker,view,{type:'depositWeapon',itemId:bad}),null);
 });
 test('all ammo/reserve/charges/fractional fuel roundtrip conserves counts and loaded ammo is outside API',()=>{
  const m=model();for(const resource of Object.keys(rules)){
