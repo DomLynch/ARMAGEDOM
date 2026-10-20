@@ -80,7 +80,7 @@ function queryVertices(){
   try{return query();}finally{if(descriptor)Object.defineProperty(mesh,'getVertexPosition',descriptor);else delete mesh.getVertexPosition;}
  };
 }
-export function traceGrenadeSurface(views,enemies,start,end){
+export function traceGrenadeSurface(views,enemies,start,end,{pierce=false}={}){
  const from=new T.Vector3(start.x,start.y,start.z),to=new T.Vector3(end.x,end.y,end.z),delta=to.clone().sub(from),distance=delta.length();if(distance<1e-9)return null;
  const ray=new T.Raycaster(from,delta.normalize(),0,distance),meshes=[],owners=new Map();
  for(const enemy of enemies){if(enemy.hp<=0)continue;const view=views.get(enemy.id);if(!view)continue;view.root.updateWorldMatrix(true,true);
@@ -91,7 +91,7 @@ export function traceGrenadeSurface(views,enemies,start,end){
   let bounds=null;if(mesh.isSkinnedMesh){mesh.skeleton.update();bounds=posedBounds(mesh);if(bounds){localRay.copy(ray.ray).applyMatrix4(boundMatrix.copy(mesh.matrixWorld).invert());const at=localRay.intersectBox(bounds,boundPoint);if(!bounds.containsPoint(localRay.origin)&&(!at||at.applyMatrix4(mesh.matrixWorld).distanceTo(from)>distance+1e-7))continue;}}
   memo(mesh,()=>{if(mesh.isSkinnedMesh){if(bounds){mesh.boundingSphere??=new T.Sphere();bounds.getBoundingSphere(mesh.boundingSphere);if(mesh.boundingBox!==null)mesh.boundingBox.copy(bounds);}else{mesh.computeBoundingSphere();if(mesh.boundingBox!==null)mesh.computeBoundingBox();}}ray.intersectObject(mesh,false,hits);});
  }
- hits.sort((a,b)=>a.distance-b.distance);const hit=hits[0];if(!hit?.face)return null;
+ hits.sort((a,b)=>a.distance-b.distance);if(pierce){const seen=new Set(),result=[];for(const hit of hits){const enemy=owners.get(hit.object);if(!enemy||seen.has(enemy.id))continue;seen.add(enemy.id);result.push({enemy,position:{x:hit.point.x,y:hit.point.y,z:hit.point.z},distance:hit.distance});if(result.length>=32)break;}return result;}const hit=hits[0];if(!hit?.face)return null;
  const mesh=hit.object,indices=[hit.face.a,hit.face.b,hit.face.c],triangle=indices.map(i=>vertex(mesh,i)),bary=T.Triangle.getBarycoord(hit.point,...triangle,new T.Vector3());if(!bary)return null;
  return{enemy:owners.get(mesh),position:{x:hit.point.x,y:hit.point.y,z:hit.point.z},anchor:{mesh,indices,weights:bary.toArray()}};
 }
@@ -101,3 +101,5 @@ export function followGrenadeSurface(anchor,view){
  view.root.updateWorldMatrix(true,true);anchor.mesh.skeleton?.update();const point=new T.Vector3();anchor.indices.forEach((index,i)=>point.addScaledVector(vertex(anchor.mesh,index),anchor.weights[i]));
  return Number.isFinite(point.x)&&Number.isFinite(point.y)&&Number.isFinite(point.z)?{x:point.x,y:point.y,z:point.z}:null;
 }
+
+export function traceRailgunSurface(views,enemies,start,end){return traceGrenadeSurface(views,enemies,start,end,{pierce:true})??[];}

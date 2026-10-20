@@ -4,7 +4,7 @@ import{posedActorBounds}from'./grenade-surface.js';
 import{selectedRangedProfile,rangedTargets,combatTargetHeight}from'../pistol-targeting.js';
 import{safehouseWeaponBlocked,safehouseTouches}from'./safehouse.js';
 const padding=8,EPS=1e-8,visibilityQueries=new WeakMap();
-export function touchGun(g){const field=selectedRangedProfile(g)?.field;return g.flame?.equipped?'flame':['pistol','rifle','shotgun','rocketLauncher'].includes(field)?field:reaperSelected(g)?'reaper':null;}
+export function touchGun(g){const field=selectedRangedProfile(g)?.field;return g.flame?.equipped?'flame':['pistol','rifle','shotgun','rocketLauncher','commanderPistol'].includes(field)?field:reaperSelected(g)?'reaper':null;}
 // Query only on a completed world tap. Damage still uses unchanged domain rays,
 // flame contact and finite rocket flight, never this modest screen padding.
 export function pickTouchTarget(g,views,camera,canvas,tap){
@@ -47,11 +47,12 @@ export function touchTargetReady(g,target,{flameAimEligible,allowReload=false}={
 // Runs after existing stick mapping, before any weapon pays a round. No queued
 // tap, timer, save field, aim smoothing delay or synthetic damage is introduced.
 export function applyTouchTarget(g,intent,services={}){
- if(!intent.mobile||intent.cancel||intent.paused||g.finished||g.player.hp<=0||!touchGun(g)){g.touchTarget=null;g.touchTargetReady=false;return intent;}
+ if(!intent.mobile&&touchGun(g)!=='commanderPistol'||intent.cancel||intent.paused||g.finished||g.player.hp<=0||!touchGun(g)){g.touchTarget=null;g.touchTargetReady=false;return intent;}
  if(intent.touchTargetSelection)g.touchTarget={...intent.touchTargetSelection};
  const target=selectedTouchTarget(g);
  if(!target){g.touchTarget=null;g.touchTargetReady=false;return intent;}
  const visible=intent.combatVisibleIds??intent.pistolVisibleIds,ready=(!visible||visible.includes(target.id))&&touchTargetReady(g,target,services),p=g.player,dx=target.pos.x-p.pos.x,dz=target.pos.z-p.pos.z,n=Math.hypot(dx,dz),aim=n>EPS?{x:dx/n,z:dz/n}:{...p.facing};
+ if(touchGun(g)==='commanderPistol'){g.touchTargetReady=ready;if(!p.swing&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil&&!intent.dodge)p.facing={...aim};return{...intent,touchTargetReady:ready};}
  if(touchGun(g)==='reaper'){g.touchTargetReady=ready;return{...intent,touchTargetReady:ready};}
  const actions=(intent.actions??[]).filter(a=>!['fire','slash'].includes(a)),held=(intent.held??[]).filter(a=>a!=='fire'),gun=touchGun(g),requested=!!intent.touchTargetSelection&&gun!=='flame'||(intent.actions??[]).includes('fire')||(intent.held??[]).includes('fire');
  g.touchTargetReady=ready&&!intent.dodge;

@@ -4,8 +4,8 @@ import{LineMaterial}from'three/addons/lines/LineMaterial.js';
 import{safehouseProp,safehouseInteraction,safehouseAnchor}from'./safehouse.js';
 import{lockerInventory,lockerStored}from'./locker-core.js';
 import{LOCKER_WEAPON_IDS,LOCKER_RESOURCE_RULES}from'./locker-state.js';
-const names=['Starting pistol · shared variants','Bridge Rifle','Ember Projector','Pitborn Cleaver','Stalker Shotgun','Grenades','The Bone Saw','Rocket Launcher','Reaper Drone'];
-const resources={'pistol-reserve':'Pistol reserve','rifle-reserve':'Rifle reserve','shotgun-reserve':'Shotgun reserve','rocket-reserve':'Rocket reserve','grenade-charges':'Grenade charges','flame-fuel':'Flame fuel'};
+const names=['Starting pistol · shared variants','Bridge Rifle','Ember Projector','Pitborn Cleaver','Stalker Shotgun','Grenades','The Bone Saw','Rocket Launcher','Reaper Drone','Thundercoil Railgun'];
+const resources={'railgun-reserve':'Railgun reserve','pistol-reserve':'Pistol reserve','rifle-reserve':'Rifle reserve','shotgun-reserve':'Shotgun reserve','rocket-reserve':'Rocket reserve','grenade-charges':'Grenade charges','flame-fuel':'Flame fuel'};
 // A short wall-clock presentation pulse; gameplay and storage clocks are untouched.
 export function safehouseCueOpacity(time,{period=3.5,phase=0,near=false,selected=false,reduced=false}={}){
  if(reduced)return .75;const pulse=Math.pow((1+Math.sin(2*Math.PI*(time/period-phase)))/2,8),floor=selected?.82:near?.70:.40;return floor+(1-floor)*pulse;

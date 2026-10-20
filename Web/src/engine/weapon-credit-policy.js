@@ -1,5 +1,6 @@
 // Exact registered attribution policies, not new proficiency families.
 export const WEAPON_CREDIT_DESCRIPTORS=Object.freeze({
+ 'borough-marshals-pistol-v1':Object.freeze({id:'borough-marshals-pistol-v1',creditPolicy:'none'}),
  'watchmans-pistol-v1':Object.freeze({id:'watchmans-pistol-v1',creditPolicy:'none'}),
  'borough-butchers-rocket-launcher-v1':Object.freeze({id:'borough-butchers-rocket-launcher-v1',creditPolicy:'none'}),
  'south-stalker-shotgun-v1':Object.freeze({id:'south-stalker-shotgun-v1',creditPolicy:'none'}),

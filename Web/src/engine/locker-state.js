@@ -1,10 +1,10 @@
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
-export const LOCKER_WEAPON_IDS=Object.freeze(['westminster-start-pistol-v1','bridge-warden-rifle-v1','flamethrower-area8-v1','hale-pitborn-cleaver-v1','south-stalker-shotgun-v1','standard-grenade-v1','surgeons-knife-v1','borough-butchers-rocket-launcher-v1','watchmans-pistol-v1']);
+export const LOCKER_WEAPON_IDS=Object.freeze(['westminster-start-pistol-v1','bridge-warden-rifle-v1','flamethrower-area8-v1','hale-pitborn-cleaver-v1','south-stalker-shotgun-v1','standard-grenade-v1','surgeons-knife-v1','borough-butchers-rocket-launcher-v1','watchmans-pistol-v1','borough-marshals-pistol-v1']);
 const weaponIdsAllowed=LOCKER_WEAPON_IDS;
-const resourceOwner={'pistol-reserve':weaponIdsAllowed[0],'rifle-reserve':weaponIdsAllowed[1],'shotgun-reserve':weaponIdsAllowed[4],'rocket-reserve':weaponIdsAllowed[7],'grenade-charges':weaponIdsAllowed[5],'flame-fuel':weaponIdsAllowed[2]};
+const resourceOwner={'railgun-reserve':weaponIdsAllowed[9],'pistol-reserve':weaponIdsAllowed[0],'rifle-reserve':weaponIdsAllowed[1],'shotgun-reserve':weaponIdsAllowed[4],'rocket-reserve':weaponIdsAllowed[7],'grenade-charges':weaponIdsAllowed[5],'flame-fuel':weaponIdsAllowed[2]};
 const resources=Object.keys(resourceOwner);
-export const LOCKER_RESOURCE_RULES=Object.freeze(Object.fromEntries(Object.entries({'pistol-reserve':12,'rifle-reserve':16,'shotgun-reserve':12,'rocket-reserve':3,'grenade-charges':3,'flame-fuel':1000}).map(([key,cap])=>[key,Object.freeze({carryCap:cap,stashCap:cap,integer:key!=='flame-fuel'})])));
+export const LOCKER_RESOURCE_RULES=Object.freeze(Object.fromEntries(Object.entries({'railgun-reserve':3,'pistol-reserve':12,'rifle-reserve':16,'shotgun-reserve':12,'rocket-reserve':3,'grenade-charges':3,'flame-fuel':1000}).map(([key,cap])=>[key,Object.freeze({carryCap:cap,stashCap:cap,integer:key!=='flame-fuel'})])));
 const closed=(value,keys)=>!!value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>{const d=Object.getOwnPropertyDescriptor(value,key);return d?.enumerable&&'value'in d;});
 const dense=rows=>Array.isArray(rows)&&Object.getPrototypeOf(rows)===Array.prototype&&Reflect.ownKeys(rows).length===rows.length+1&&Array.from({length:rows.length},(_,i)=>Object.getOwnPropertyDescriptor(rows,String(i))).every(d=>d?.enumerable&&'value'in d);
 export function createLockerModel({weaponIds,resourceRules}){

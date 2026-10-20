@@ -8,6 +8,7 @@ const clampStick = (value, radius) => {
 export class InputState {
   constructor() {
     this.pointers = new Map();
+    this.nextLifetime = 0;
     this.keys = new Set();
     this.clear();
   }
@@ -19,7 +20,7 @@ export class InputState {
       return;
     if (kind === 'fire' && [...this.pointers.values()].some(p => p.kind === 'fire')) return;
     const alreadyGuarding = this.guardHeld();
-    const pointer = { kind, start: { ...at }, at: { ...at }, aimable };
+    const pointer = { kind, lifetime: ++this.nextLifetime, start: { ...at }, at: { ...at }, aimable };
     this.pointers.set(id, pointer);
     if (kind !== 'move' && (kind !== 'guard' || !alreadyGuarding)) {
       this.pending.push({ pointer, kind });
@@ -57,8 +58,9 @@ export class InputState {
     }
   }
 
-  up(id) {
+  up(id, {cancelled=false}={}) {
     const pointer = this.pointers.get(id);
+    if(pointer&&!cancelled&&['fire','slash'].includes(pointer.kind))this.normalUps.push(pointer);
     if (pointer?.kind === 'move') this.stick = { x: 0, y: 0 };
     this.pointers.delete(id);
   }
@@ -68,7 +70,7 @@ export class InputState {
     if (!this.pointers.has(id)) return;
     const pointer = this.pointers.get(id);
     this.pending = this.pending.filter((press) => press.pointer !== pointer);
-    this.up(id);
+    this.up(id,{cancelled:true});
   }
 
   clear({keepMovement=false}={}) {
@@ -76,9 +78,10 @@ export class InputState {
     else{this.pointers.clear();this.keys.clear();this.stick = { x: 0, y: 0 };}
     this.aimOrder = 0;
     this.pending = [];
+    this.normalUps = [];
   }
 
-  take() {
+  take({actionEdges=false}={}) {
     const held = [
       ...new Set(
         [...this.pointers.values()]
@@ -101,9 +104,10 @@ export class InputState {
       move.x /= length;
       move.y /= length;
     }
-    const presses = this.pending.splice(0);
+    const presses = this.pending.splice(0),ups=this.normalUps.splice(0),edge=p=>({kind:p.kind,lifetime:p.lifetime}),attack=p=>['fire','slash'].includes(p.kind);
     return {
       move,
+      ...(actionEdges?{actionEdges:{started:presses.filter(attack).map(p=>edge(p.pointer)),held:[...this.pointers.values()].filter(attack).map(edge),released:ups.map(edge)}}:{}),
       moveHeld: [...this.pointers.values()].some(p => p.kind === 'move'),
       run: [...this.pointers.values()].some(p => p.kind === 'move' && p.run) ||
         this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
@@ -130,6 +134,7 @@ export function attachInput({
   isPistol = () => false,
   isFlame = () => false,
   isWorldGun = () => false,
+  isSelectOnly = () => false,
   onTargetClear = () => {},
 }) {
   const state = new InputState(), listeners=[];
@@ -265,6 +270,7 @@ export function attachInput({
       worldContacts.set(event.pointerId,{x:event.clientX,y:event.clientY,at:event.timeStamp,cancelled:false});canvas.setPointerCapture(event.pointerId);return;
     }
     if (event.pointerType !== 'mouse' || isPaused()) return;
+    if(isSelectOnly()&&event.button!==2){onInteraction();event.preventDefault();touch=false;mouse={x:event.clientX,y:event.clientY};worldContacts.set(event.pointerId,{x:event.clientX,y:event.clientY,at:event.timeStamp,cancelled:false});canvas.setPointerCapture(event.pointerId);return;}
     touch=false;worldTap=null;worldContacts.clear();onTargetClear();
     onInteraction();
     event.preventDefault();
@@ -308,7 +314,7 @@ export function attachInput({
       return;
     }
     if (isPaused()) return;
-    touch=false;worldTap=null;worldContacts.clear();onTargetClear();
+    touch=false;worldTap=null;worldContacts.clear();if(!isSelectOnly())onTargetClear();
     onInteraction();
     if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight'].includes(event.code)) {
       event.preventDefault();
@@ -347,6 +353,6 @@ export function attachInput({
     state,
     clear,
     dispose(){clear();for(const remove of listeners.splice(0))remove();},
-    take: () => {const tap=worldTap;worldTap=null;return{...state.take(),mobile:touch,mouse:touch?null:mouse,...(tap?{worldTap:tap}:{})};},
+    take: () => {const tap=worldTap;worldTap=null;return{...state.take({actionEdges:true}),mobile:touch,mouse:touch?null:mouse,...(tap?{worldTap:tap}:{})};},
   };
 }

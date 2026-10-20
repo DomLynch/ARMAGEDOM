@@ -31,7 +31,7 @@ export function expeditionEligible(g,action,data){
  return ['accept','recover','claim'].includes(action)&&g.world.areaId===anchor.areaId&&distance(p.pos,anchor.position)<=anchor.radius+1e-8&&g.world.lineClear(p.pos,anchor.position);
 }
 export function selectedPistolProfile(g){
- const special=g.world?.bossEquipmentData?.commanderPistol,reward=g.bossEquipment?.commanderPistol;if(special&&reward?.status==='owned'&&reward.selected&&reward.rewardReceipt===special.source.receiptId)return{...PISTOL_RULES,...special.rules,name:special.name};
+ const special=g.world?.bossEquipmentData?.commanderPistol,reward=g.bossEquipment?.commanderPistol;if(special?.family==='pistols'&&reward?.status==='owned'&&reward.selected&&reward.rewardReceipt===special.source.receiptId)return{...PISTOL_RULES,...special.rules,name:special.name};
  const data=g.world?.expeditionData,state=g.expedition;
  if(!data||!state||g.world.reaperData||state.selectedPistolVariant===PISTOL_ITEM_ID)return PISTOL_RULES;
  return state.status==='claimed'&&state.rewardReceipt===data.contract.receiptId&&state.selectedPistolVariant===data.contract.rewardVariantId?{...PISTOL_RULES,...data.variants[state.selectedPistolVariant]}:PISTOL_RULES;

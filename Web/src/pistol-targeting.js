@@ -61,7 +61,7 @@ export function resolvePistolShot({position,aim,targets,visibleIds,lineClear,are
 // One selected profile and first-body resolution for presentation and paid shots.
 export function selectedRangedProfile(g){
  if(g.flame?.equipped)return null;
- const field=['shotgun','grenade','rocketLauncher'].find(k=>g.bossEquipment?.[k]?.selected);
+ const field=['shotgun','grenade','rocketLauncher','commanderPistol'].find(k=>g.bossEquipment?.[k]?.selected);
  if(field)return{...g.world.bossEquipmentData[field],field};
  if(g.rifle?.selected)return{...g.world.rifleData,field:'rifle'};
  if(g.pistol?.equipped)return{field:'pistol',rules:g.bossEquipment?.commanderPistol?.selected?g.world.bossEquipmentData.commanderPistol.rules:PISTOL_RULES};
