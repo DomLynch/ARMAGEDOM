@@ -26,7 +26,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
   const moving=Math.hypot(move.x,move.z)>.01,strength=Math.min(1,Math.hypot(move.x,move.z));
   let steering=active?(moving?(state.steering===null?Math.atan2(move.x,move.z):followMobileAngle(state.steering,Math.atan2(move.x,move.z),dt,10)):state.steering):null;
   const movement=cancel||!alive||mobile&&!moveHeld?{x:0,z:0}:steering!==null?{x:Math.sin(steering)*strength,z:Math.cos(steering)*strength}:{...move};
-  const pistol=pistolEquipped===true,range=flame?flameRange:pistol?(Number.isFinite(rangedRange)&&rangedRange>0?rangedRange:MOBILE_AIM.pistolRange):MOBILE_AIM.far,cohort=[],locking=active||flame&&assistEligible&&fireHeld;
+  const pistol=pistolEquipped===true,range=flame?flameRange:pistol?(Number.isFinite(rangedRange)&&rangedRange>0?rangedRange:MOBILE_AIM.pistolRange):MOBILE_AIM.far,cohort=[],locking=active||assistEligible&&fireHeld;
   if(assistEligible&&(!flame||locking)&&point(position)&&typeof areaId==='string'&&typeof lineClear==='function'){
     const counts=new Map();for(const t of targets)if(typeof t?.id==='string')counts.set(t.id,(counts.get(t.id)??0)+1);
     for(const t of targets){
@@ -48,7 +48,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
       raw+=arc(retained.bearing-state.bearing);
       if(steering!==null&&state.previousMove!==null)raw+=arc(steering-state.previousMove);
     }else if(steering!==null)raw=steering;
-  }else if(flame&&retained&&Number.isFinite(state.bearing))raw+=arc(retained.bearing-state.bearing);
+  }else if(retained&&assistEligible&&fireHeld&&Number.isFinite(state.bearing))raw+=arc(retained.bearing-state.bearing);
   else if(assistEligible)raw=state.rawHeading;
   else raw=moving&&!mobile&&!cancel&&alive?Math.atan2(move.x,move.z):state.heading;
   if(retained&&Math.abs(arc(retained.bearing-raw))>=retained.retain-1e-10)retained=null;
@@ -59,7 +59,7 @@ export function stepMobileAim(state,{dt=1/60,move={x:0,z:0},position,targets=[],
     challengers.sort((a,b)=>error(a)-error(b)||a.distance-b.distance||(a.id<b.id?-1:1));
     if(challengers.length){retained=challengers[0];raw=userHeading;}
   }
-  if(!retained&&!deliberateExit&&(!active||moving||flame&&fireHeld)){
+  if(!retained&&!deliberateExit&&(!active||moving||assistEligible&&fireHeld)){
     const candidates=cohort.filter(t=>Math.abs(arc(t.bearing-raw))<t.acquire-1e-10);
     candidates.sort((a,b)=>Math.abs(arc(a.bearing-raw))-Math.abs(arc(b.bearing-raw))||a.distance-b.distance||(a.id<b.id?-1:a.id>b.id?1:0));
     retained=candidates[0]??null;

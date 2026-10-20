@@ -88,7 +88,7 @@ export function flameArmStance(g,wasClose=false,visibleIds){
 // that muzzle until the shoulder pose lowers the barrel toward it.
 export function flameAimPitch(model,mount,g){return flameAimPose(model,mount,g).pitch;}
 export function flameAimPose(model,mount,g){
- const enemy=g.mobileAssistEnabled!==false&&g.enemies.find(e=>e.placementKey===g.mobileAim?.targetId&&e.visible!==false&&e.hp>0&&(e.areaId??g.world.areaId)===g.world.areaId&&g.world.lineClear(g.player.pos,e.pos));
+ const enemy=(g.mobileAssistEnabled!==false||!!g.touchTarget)&&g.enemies.find(e=>e.placementKey===g.mobileAim?.targetId&&e.visible!==false&&e.hp>0&&(e.areaId??g.world.areaId)===g.world.areaId&&g.world.lineClear(g.player.pos,e.pos));
  return enemy?flameTargetAim(model,mount,g.world.toRender(enemy.pos,combatTargetHeight(enemy,g.time))):{pitch:0,yaw:0};
 }
 

@@ -20,10 +20,10 @@ class Element extends EventTarget {
 }
 function send(target, type, values = {}) {
   const event = new Event(type, { cancelable: true });
-  Object.assign(event, { clientX: 0, clientY: 0, pointerId: 1, ...values });
+  const {timeStamp,...rest}=values;Object.assign(event,{clientX:0,clientY:0,pointerId:1,...rest});if(timeStamp!==undefined)Object.defineProperty(event,'timeStamp',{value:timeStamp});
   target.dispatchEvent(event);
 }
-function setup(t, pistol = false) {
+function setup(t, pistol = false, hybrid = false) {
   const oldWindow = globalThis.window,
     oldDocument = globalThis.document;
   const window = new EventTarget(),
@@ -65,9 +65,11 @@ function setup(t, pistol = false) {
     retries: 0,
     menus: 0,
   };
+  document.elementFromPoint=()=>env.surface??env.canvas;env.uiRects=[];const previousQuery=document.querySelectorAll;document.querySelectorAll=selector=>selector.startsWith('#vitals,')?env.uiRects:previousQuery(selector);
   env.input = attachInput({
     canvas: env.canvas,
     isPistol: () => pistol,
+    isWorldGun:()=>hybrid,
     isPaused: () => env.paused,
     onRetry: () => env.retries++,
     onMenu: () => env.menus++,
@@ -239,3 +241,13 @@ test('keyboard Special and Space Dodge remain available without a Special touch 
 });
 
 test('disposing input removes owned gameplay and browser listeners',t=>{const env=setup(t);send(env.window,'keydown',{code:'KeyW'});assert.equal(env.input.state.keys.has('KeyW'),true);env.input.dispose();send(env.window,'keydown',{code:'KeyD'});assert.equal(env.input.state.keys.size,0);send(env.elements.slash,'pointerdown');assert.equal(env.input.take().actions.length,0);env.input.dispose();});
+
+const worldEvent=(env,type,values={})=>send(env.canvas,type,{pointerType:'touch',pointerId:31,clientX:200,clientY:300,...values});
+test('world touch only emits one completed short tap, never held Fire; successful lostcapture preserves completed tap',t=>{const env=setup(t,true,true);worldEvent(env,'pointerdown');assert.equal(env.input.take().worldTap,undefined);worldEvent(env,'pointerup');worldEvent(env,'lostpointercapture');const out=env.input.take();assert.deepEqual(out.worldTap,{x:200,y:300});assert.deepEqual(out.actions,[]);assert.deepEqual(out.held,[]);assert(out.mobile);assert.equal(env.input.take().worldTap,undefined);});
+for(const mode of ['drag','cancel','lost','long','pause','blur','background','touchcancel','release-over-UI'])test('world '+mode+' cannot generate a target/shot intent',t=>{const env=setup(t,true,true);worldEvent(env,'pointerdown',{timeStamp:10});if(mode==='drag'){worldEvent(env,'pointermove',{clientX:230});worldEvent(env,'pointermove');}if(mode==='cancel')worldEvent(env,'pointercancel');if(mode==='lost')worldEvent(env,'lostpointercapture');if(mode==='pause')env.paused=true;if(mode==='blur')send(env.window,'blur');if(mode==='background')send(env.document,'visibilitychange');if(mode==='touchcancel')send(env.document,'touchcancel');if(mode==='release-over-UI')env.surface=env.elements.slash;worldEvent(env,'pointerup',{timeStamp:mode==='long'?500:30});assert.equal(env.input.take().worldTap,undefined);});
+test('visual readout clickthrough blocks world tap without treating the entire fullscreen HUD as UI',t=>{const env=setup(t,true,true),node={hidden:false,getClientRects:()=>[1],getBoundingClientRect:()=>({left:180,right:220,top:280,bottom:320,width:40,height:40})};env.uiRects=[node];worldEvent(env,'pointerdown');worldEvent(env,'pointerup');assert.equal(env.input.take().worldTap,undefined);worldEvent(env,'pointerdown',{clientX:260});worldEvent(env,'pointerup',{clientX:260});assert.deepEqual(env.input.take().worldTap,{x:260,y:300});});
+for(const moveFirst of[true,false])test('separate movement thumb and world tap are independent, order '+moveFirst,t=>{const env=setup(t,true,true);const move=()=>{send(env.elements.move,'pointerdown',{pointerId:7,pointerType:'touch'});send(env.elements.move,'pointermove',{pointerId:7,clientX:30,clientY:0});};if(moveFirst)move();worldEvent(env,'pointerdown');if(!moveFirst)move();worldEvent(env,'pointerup');const out=env.input.take();assert(out.moveHeld&&out.move.x>0);assert.deepEqual(out.worldTap,{x:200,y:300});assert.equal(env.input.state.pointers.size,1);send(env.elements.move,'pointerup',{pointerId:7});assert(!env.input.take().moveHeld);});
+test('two world contacts form a gesture, not two shots; controls never bubble into world tap',t=>{const env=setup(t,true,true);worldEvent(env,'pointerdown');worldEvent(env,'pointerdown',{pointerId:32});worldEvent(env,'pointerup');worldEvent(env,'pointerup',{pointerId:32});assert.equal(env.input.take().worldTap,undefined);send(env.elements.dodge,'pointerdown',{pointerId:5,pointerType:'touch'});send(env.elements.dodge,'pointerup',{pointerId:5,pointerType:'touch'});const out=env.input.take();assert(out.dodge);assert.equal(out.worldTap,undefined);});
+test('grenade/melee world tap remains disabled and cancelled reused pointer cannot erase prior completed world tap',t=>{const disabled=setup(t,true,false);worldEvent(disabled,'pointerdown');worldEvent(disabled,'pointerup');assert.equal(disabled.input.take().worldTap,undefined);disabled.input.dispose();const env=setup(t,true,true);worldEvent(env,'pointerdown');worldEvent(env,'pointerup');worldEvent(env,'pointerdown',{clientX:250});worldEvent(env,'pointercancel',{clientX:250});assert.deepEqual(env.input.take().worldTap,{x:200,y:300});});
+
+test('direct mouse press and keyboard action return to existing desktop input after touch, without needing a pointermove',t=>{const env=setup(t,true,true);worldEvent(env,'pointerdown');worldEvent(env,'pointerup');assert(env.input.take().mobile);send(env.canvas,'pointerdown',{pointerType:'mouse',button:0,pointerId:88,clientX:250,clientY:350});const mouse=env.input.take();assert(!mouse.mobile);assert.deepEqual(mouse.mouse,{x:250,y:350});assert.deepEqual(mouse.actions,['fire']);send(env.canvas,'pointerup',{pointerType:'mouse',pointerId:88});worldEvent(env,'pointerdown');worldEvent(env,'pointerup');env.input.take();send(env.window,'keydown',{code:'Space'});const keyboard=env.input.take();assert(!keyboard.mobile);assert(keyboard.dodge);assert.equal(keyboard.worldTap,undefined);});

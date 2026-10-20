@@ -129,8 +129,20 @@ export function attachInput({
   onPickup = () => false,
   isPistol = () => false,
   isFlame = () => false,
+  isWorldGun = () => false,
+  onTargetClear = () => {},
 }) {
   const state = new InputState(), listeners=[];
+  const worldContacts=new Map();let worldTap=null;
+  // Check visible UI leaves only at contact/release, including readouts whose
+  // pointer-events:none would otherwise let a canvas tap pass through them.
+  function worldSurface(x,y){
+    if(document.elementFromPoint?.(x,y)!==canvas)return false;
+    for(const node of document.querySelectorAll('#vitals,#notice,#ammo,#pistol-icon,#expedition-objective,#safehouse-status,#boss,#boss-labels > *,#expedition-guard-label,#expedition-case-label,#flame-pickup-label,#unique-reward-label,#move,#action-cluster,#weapon-tiles,#menu-button,#safehouse-interact,#pistol-interact')){
+      if(node.hidden||!node.getClientRects().length)continue;const r=node.getBoundingClientRect();
+      if(r.width>0&&r.height>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return false;
+    }return true;
+  }
   function listen(target,type,handler,options){target.addEventListener(type,handler,options);listeners.push(()=>target.removeEventListener(type,handler,options));}
   const gameplayTouch = target => !isPaused() && !target?.closest?.(
     '#weapon-tiles, #safehouse-interact, #menu, #menu-button, #entry, #ending, #pistol-interact, #rifle-pickup, #rifle-equipment, #boss-equipment, [data-boss-equipment-control], a, input, select, textarea',
@@ -163,6 +175,7 @@ export function attachInput({
     lastTap = event.timeStamp;
   }, { passive: false, capture: true });
   listen(document,'touchcancel', () => {
+    worldContacts.clear();worldTap=null;
     multiTouch = false;
     lastTap = -Infinity;
   });
@@ -185,6 +198,7 @@ export function attachInput({
   const bind = (element, kind) => {
     listen(element,'pointerdown', (event) => {
       if (isPaused()) return;
+      if(kind!=='move'){worldTap=null;worldContacts.clear();}
       onInteraction();
       event.preventDefault();
       touch = true;
@@ -237,25 +251,37 @@ export function attachInput({
     bind(element, element.dataset.action);
 
   listen(canvas,'pointermove', (event) => {
+    const contact=worldContacts.get(event.pointerId);if(contact&&Math.hypot(event.clientX-contact.x,event.clientY-contact.y)>10)contact.cancelled=true;
     if (event.pointerType === 'mouse') {
       touch = false;
       mouse = { x: event.clientX, y: event.clientY };
     }
   });
   listen(canvas,'pointerdown', (event) => {
+    if(event.pointerType==='touch'){
+      if(isPaused()||!isWorldGun()||!worldSurface(event.clientX,event.clientY))return;
+      onInteraction();event.preventDefault();touch=true;mouse=null;document.body.classList.add('touch');
+      if(worldContacts.size){for(const contact of worldContacts.values())contact.cancelled=true;worldContacts.set(event.pointerId,{cancelled:true});return;}
+      worldContacts.set(event.pointerId,{x:event.clientX,y:event.clientY,at:event.timeStamp,cancelled:false});canvas.setPointerCapture(event.pointerId);return;
+    }
     if (event.pointerType !== 'mouse' || isPaused()) return;
+    touch=false;worldTap=null;worldContacts.clear();onTargetClear();
     onInteraction();
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
     mouse = { x: event.clientX, y: event.clientY };
     state.down(event.pointerId, event.button === 2 ? 'stab' : isPistol() ? 'fire' : 'slash', mouse);
   });
-  listen(canvas,'pointerup', (event) => state.up(event.pointerId));
+  listen(canvas,'pointerup', (event) => {
+    const contact=worldContacts.get(event.pointerId);worldContacts.delete(event.pointerId);
+    if(contact&&!contact.cancelled&&!isPaused()&&isWorldGun()&&event.timeStamp-contact.at<=350&&Math.hypot(event.clientX-contact.x,event.clientY-contact.y)<=10&&worldSurface(event.clientX,event.clientY))worldTap={x:event.clientX,y:event.clientY};
+    state.up(event.pointerId);
+  });
   listen(canvas,'pointercancel', (event) =>
-    state.cancel(event.pointerId),
+    {worldContacts.delete(event.pointerId);state.cancel(event.pointerId);},
   );
   listen(canvas,'lostpointercapture', (event) =>
-    state.cancel(event.pointerId),
+    {worldContacts.delete(event.pointerId);state.cancel(event.pointerId);},
   );
   listen(canvas,'contextmenu', (event) => event.preventDefault());
 
@@ -282,6 +308,7 @@ export function attachInput({
       return;
     }
     if (isPaused()) return;
+    touch=false;worldTap=null;worldContacts.clear();onTargetClear();
     onInteraction();
     if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight'].includes(event.code)) {
       event.preventDefault();
@@ -300,6 +327,7 @@ export function attachInput({
   });
 
   function clear({keepMovement=false}={}) {
+    worldContacts.clear();worldTap=null;onTargetClear();
     multiTouch = false;
     lastTap = -Infinity;
     state.clear({keepMovement});
@@ -319,6 +347,6 @@ export function attachInput({
     state,
     clear,
     dispose(){clear();for(const remove of listeners.splice(0))remove();},
-    take: () => ({ ...state.take(), mobile: touch, mouse: touch ? null : mouse }),
+    take: () => {const tap=worldTap;worldTap=null;return{...state.take(),mobile:touch,mouse:touch?null:mouse,...(tap?{worldTap:tap}:{})};},
   };
 }

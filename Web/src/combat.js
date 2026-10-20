@@ -1,4 +1,5 @@
 import{stepBossFlame,stopBossFlame,stopBossFlames}from'./engine/boss-flame.js';
+import{applyTouchTarget}from'./engine/touch-target.js';
 import{safehouseProtected,safehouseTouches,safehouseBlocksSegment,safehouseWeaponBlocked,prepareSafehouseStep}from'./engine/safehouse.js';
 import{stepRockets}from'./engine/rocket-runtime.js';
 import{bossEquipmentIntent,selectedBossRanged,stepBossGrenades}from'./engine/boss-weapon-runtime.js';
@@ -142,7 +143,7 @@ function pistolIntent(g,intent,dispatchPistol,dispatchMarshalPistol){
    shotDirection=e.direction;
   }
   event(g,e.type,{...e,actor:p});
-  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Left stick aims; hold Fire to shoot. Mouse aims on desktop.');
+  if(e.type==='pickup')notify(g,'PISTOL EQUIPPED · Tap an enemy to select and fire; hold Fire to keep shooting. Mouse aims on desktop.');
   if(e.type==='holster')notify(g,'KNIFE EQUIPPED · Equip pistol with the equipment button or G.');
   if(e.type==='equip')notify(g,'PISTOL EQUIPPED');
   if(e.type==='dry')notify(g,g.pistol.reserve?'EMPTY · Reload.':'OUT OF AMMO · Switch to melee.');
@@ -261,6 +262,7 @@ function collect(g){const p=g.player;for(const l of g.loot){if(mag(sub(l.pos,p.p
  else if(l.kind===1){const hp=15+l.tier*5;p.maxHP+=hp;p.hp=Math.min(p.maxHP,p.hp+hp);p.armourLevel++;notify(g,`ARMOUR +${hp} max HP`);}else{const hp=30+l.tier*10;p.hp=Math.min(p.maxHP,p.hp+hp);notify(g,`TONIC +${hp} HP`);}event(g,'loot',{actor:p});
  }g.loot=g.loot.filter(l=>!l.collected);}
 export function resetMobileControls(g){
+ if(g){g.touchTarget=null;g.touchTargetReady=false;}
  if(!g?.mobileAim)return;
  g.mobileAim=createMobileAimState(Math.atan2(g.player.facing.x,g.player.facing.z));g.mobileAiming=false;g.player.velocity={x:0,z:0};
 }
@@ -279,7 +281,7 @@ function mobileControl(g,intent,dt,services){
  const result=stepMobileAim(g.mobileAim,{dt,move:intent.move??{x:0,z:0},position:p.pos,
   targets:g.enemies.map(e=>({id:e.placementKey,pos:e.pos,hp:e.hp,hostile:e.hostile!==false,visible:e.visible!==false&&(!visible||visible.includes(e.id)),areaId:e.areaId??areaId,radius:e.radius})),
   areaId,lineClear:(a,b)=>g.world.lineClear(a,b),mobile:!!intent.mobile,moveHeld:!!intent.moveHeld,alive:p.hp>0,assistEnabled:g.mobileAssistEnabled,pistolEquipped:ranged,rangedRange:!flame?selectedRangedProfile(g)?.rules.range:null,
-  flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:flame&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
+  flameRange:flame?g.world.flameData?.contact.range:null,fireHeld:ranged&&selectedBossRanged(g)!=='grenade'&&((intent.held??[]).includes('fire')||(intent.actions??[]).includes('fire')),manualHeading:manualFlame?Math.atan2(intent.aim.x,intent.aim.z):null,
   flameEligible:services.flameAimEligible?key=>services.flameAimEligible(g,g.enemies.find(e=>e.placementKey===key)):undefined});
  g.mobileAim=result.state;g.mobileAiming=!!intent.mobile;
  if(intent.mobile&&!intent.moveHeld)p.velocity={x:0,z:0};
@@ -287,7 +289,7 @@ function mobileControl(g,intent,dt,services){
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
 function resetDeadPlayerBossPursuit(g){if(g.player.hp>0)return;for(const e of g.enemies){stopBossFlame(g,e,'player-death');resetBossPursuit(e);}}
-export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){resetDeadPlayerBossPursuit(g);stopBossFlames(g,'finished');g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused){stopBossFlames(g,'pause');return;}const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){resetDeadPlayerBossPursuit(g);stopBossFlames(g,'finished');g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused){stopBossFlames(g,'pause');return;}const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);intent=applyTouchTarget(g,intent,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;

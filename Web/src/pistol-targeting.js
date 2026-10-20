@@ -72,13 +72,14 @@ export function resolveRangedAim(g,aim,{visibleIds,aimPoint,aimTargetId,assist=g
  if(typeof g.world?.lineClear!=='function')return null;
  const profile=selectedRangedProfile(g),p=g.player.pos,length=Math.hypot(aim?.x??0,aim?.z??0);if(!profile||length<EPS||!Number.isFinite(length))return null;
  const direction={x:aim.x/length,z:aim.z/length},targets=rangedTargets(g,visibleIds),lineClear=g.world.lineClear.bind(g.world),projectile=['grenade','rocketLauncher'].includes(profile.field),rules=profile.rules;
+ const explicitTarget=g.touchTarget?.areaId===g.world.areaId?targets.find(t=>t.id===g.touchTarget.id&&(t.placementKey??String(t.id))===g.touchTarget.key):null;if(explicitTarget){const dx=explicitTarget.pos.x-p.x,dz=explicitTarget.pos.z-p.z,n=Math.hypot(dx,dz);if(n>EPS){direction.x=dx/n;direction.z=dz/n;}assist=false;}
  const trace=assist?resolvePistolShot({position:p,aim:direction,targets,visibleIds,lineClear,areaId:g.world.areaId,rules}):tracePistol(p,direction,targets,lineClear,rules);if(!trace)return null;
  let target=targets.find(t=>t.id===trace.targetId)??null,position=target?{...target.pos}:{...trace.end},height=target?combatTargetHeight(target,g.time):1.05;
  if(projectile){
-  if(g.mobileAssistEnabled===false)target=null;
+  if(g.mobileAssistEnabled===false&&!explicitTarget)target=null;
   if(point(aimPoint)){
    const x=aimPoint.x-p.x,z=aimPoint.z-p.z,n=Math.hypot(x,z);if(n<EPS)return null;const distance=Math.min(rules.range,n);position={x:p.x+x/n*distance,z:p.z+z/n*distance};
-   target=g.mobileAssistEnabled!==false?targets.find(t=>t.id===aimTargetId&&Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<1e-6&&lineClear(p,t.pos))??null:null;
+   target=g.mobileAssistEnabled!==false||explicitTarget?targets.find(t=>t.id===aimTargetId&&Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<1e-6&&lineClear(p,t.pos))??null:null;
    if(target&&profile.field==='rocketLauncher'&&trace.targetId!==target.id){const first=targets.find(t=>t.id===trace.targetId);if(first){target=first;position={...first.pos};}}
   }else if(target&&Math.hypot(target.pos.x-p.x,target.pos.z-p.z)>rules.range+EPS)target=null;
   if(!point(aimPoint)&&!target){const distance=profile.field==='grenade'?Math.min(rules.range,g.grenadeThrowRange??5)-EPS:rules.range;position={x:p.x+direction.x*distance,z:p.z+direction.z*distance};}

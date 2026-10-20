@@ -37,6 +37,20 @@ function posedBounds(mesh){
  result.expandByScalar(saved.error*extent+1e-7).applyMatrix4(mesh.bindMatrixInverse);
  return result;
 }
+// Tap-only selection query. Reuse the cached bone envelopes from projectile
+// broad phase; never replace the mesh's collision bounds or skin every frame.
+export function posedActorBounds(view){
+ if(!view?.model)return null;view.root.updateWorldMatrix(true,false);view.root.updateMatrixWorld(true);
+ const result=new T.Box3(),worldBox=new T.Box3();let found=false;
+ view.model.traverse(mesh=>{
+  if(!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;
+  let bounds;
+  if(mesh.isSkinnedMesh){mesh.skeleton.update();bounds=posedBounds(mesh);if(!bounds){mesh.computeBoundingBox();bounds=mesh.boundingBox;}}
+  else{if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();bounds=mesh.geometry.boundingBox;}
+  if(!bounds||bounds.isEmpty())return;worldBox.copy(bounds).applyMatrix4(mesh.matrixWorld);result.union(worldBox);found=true;
+ });
+ return found?result:null;
+}
 // Aim is an intent envelope, never a collision or damage result. Derive it from
 // the current rendered bones/geometry; low bodies still fall back to ground.
 export function surfaceAimHeight(views,enemy,start,end){

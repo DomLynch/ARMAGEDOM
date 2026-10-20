@@ -1,4 +1,5 @@
 import{stopBossFlames}from'./boss-flame.js';
+import{touchGun}from'./touch-target.js';
 import{selectedBossRanged}from'./boss-weapon-runtime.js';
 import {createMovementTrace} from './movement-trace.js';
 import {applyAreaLighting} from './area-lighting.js';
@@ -163,6 +164,8 @@ input = attachInput({
   onPickup:()=>resources.interactNearby(),
   isPistol: () => !!(game&&selectedBossRanged(game))||!!game?.rifle?.selected||!!game?.pistol?.equipped||!!game?.flame?.equipped,
   isFlame: () => !!game?.flame?.equipped,
+  isWorldGun:()=>!!game&&touchGun(game)!==null,
+  onTargetClear:()=>{if(game){game.touchTarget=null;game.touchTargetReady=false;}},
   isPaused: () =>
     !loaded || paused || traveling || contextLost || game?.finished,
 });

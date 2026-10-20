@@ -1,4 +1,5 @@
 import{selectedBossRanged}from'./boss-weapon-runtime.js';
+import{pickTouchTarget,touchTargetVisible}from'./touch-target.js';
 import * as THREE from 'three';
 import{presentationAudioEvents}from'../donor-audio.js';
 import {stepGame,resetMobileControls} from '../combat.js';
@@ -12,7 +13,7 @@ function toDomain(v) {
   };
 }
 function combatVisibleIds() {
-  return s.game.enemies.filter(e => {const v=s.world.toRender(e.pos,1).project(s.world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1;}).map(e=>e.id);
+  return s.game.enemies.filter(e => {const v=s.world.toRender(e.pos,1).project(s.world.camera);return Math.abs(v.x)<=1&&Math.abs(v.y)<=1&&v.z>=-1&&v.z<=1||s.game.touchTarget?.id===e.id&&s.actors?.views&&touchTargetVisible(s.game,s.actors.views,s.camera);}).map(e=>e.id);
 }
 function intent() {
   const raw = submitted ?? s.input.take(),
@@ -24,6 +25,7 @@ function intent() {
       move: toDomain(raw.move),
       aim: (selectedBossRanged(s.game)||s.game.pistol?.equipped||s.game.rifle?.selected||s.game.flame?.equipped) ? raw.fireAim ? toDomain(raw.fireAim) : null : raw.aim ? toDomain(raw.aim) : null,
     };
+  if(raw.mobile&&raw.worldTap){const selected=pickTouchTarget(s.game,s.actors.views,s.camera,s.canvas,raw.worldTap);if(selected){value.touchTargetSelection=selected;if(!value.combatVisibleIds.includes(selected.id))value.combatVisibleIds.push(selected.id);}}
   if (raw.mouse) {
     const bounds = s.canvas.getBoundingClientRect(),
       x=((raw.mouse.x-bounds.left)/bounds.width)*2-1,
@@ -40,7 +42,7 @@ function intent() {
       };
     }
   }
-  if(submitted)submitted={...submitted,actions:[],guardPressed:false,dodge:false};
+  if(submitted)submitted={...submitted,worldTap:null,actions:[],guardPressed:false,dodge:false};
   return value;
 }
 function frame(ms,providedElapsed) {
