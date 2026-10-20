@@ -141,11 +141,11 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       }
       const area = (g.world?.areaId ?? "westminster").toUpperCase();
       el("menu-area").textContent = `${area} · LONDON 2030`;
-      // The existing story line owns next-step guidance; this line keeps region
+      // The expedition objective owns next-step guidance; this line keeps region
       // status. Actual crossing checks and transient warnings remain unchanged.
-      const story=!!g.world?.safehouseData,exitGate=story?null:bossExitGate(g);
+      const guided=!!g.world?.safehouseData,exitGate=guided?null:bossExitGate(g);
       el("objective").textContent = exitGate&&!exitGate.allowed ? `${area} · ${exitGate.message}` : g.encounterCleared
-        ? `${area} · CLEARED${story?'':' · EXPLORE LONDON'}`
+        ? `${area} · CLEARED${guided?'':' · EXPLORE LONDON'}`
         : donor
           ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
           : `${area} · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;

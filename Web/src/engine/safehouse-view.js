@@ -1,4 +1,3 @@
-import{createOpeningTransmission}from'./opening-transmission.js';
 import{LineSegments2}from'three/addons/lines/LineSegments2.js';
 import{LineSegmentsGeometry}from'three/addons/lines/LineSegmentsGeometry.js';
 import{LineMaterial}from'three/addons/lines/LineMaterial.js';
@@ -12,9 +11,8 @@ export function safehouseCueOpacity(time,{period=3.5,phase=0,near=false,selected
  if(reduced)return .75;const pulse=Math.pow((1+Math.sin(2*Math.PI*(time/period-phase)))/2,8),floor=selected?.82:near?.70:.40;return floor+(1-floor)*pulse;
 }
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
-export function createSafehouseView(s,dispatch,readComms){
+export function createSafehouseView(s,dispatch){
  let owner=null,meshes=[],texture=null,loading=false,failed=false,disposed=false,lastPanel='',lastError='',promptOwned=false;
- const transmission=createOpeningTransmission(s);
  let target=null,lastHubPage=null;
  function ensureTarget(){if(target)return;target=document.createElement('button');target.type='button';target.id='safehouse-interact';target.setAttribute('aria-label','Open safehouse');target.hidden=true;target.style.cssText='position:fixed;z-index:5;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;touch-action:manipulation';target.addEventListener('click',interact);document.body.append(target);}
  function positionTarget(w,data,enabled){target.hidden=!enabled;if(!enabled)return;const rect=s.canvas.getBoundingClientRect(),points=data.props.flatMap(prop=>{const b=prop.bounds;return[[b.x,b.y],[b.x+b.width,b.y],[b.x,b.y+b.height],[b.x+b.width,b.y+b.height]].map(([x,y])=>planePoint(w,x,y).project(s.camera));}).filter(p=>p.z>=-1&&p.z<=1);if(!points.length){target.hidden=true;return;}const xs=points.map(p=>rect.left+(p.x+1)*rect.width/2),ys=points.map(p=>rect.top+(1-p.y)*rect.height/2),left=Math.max(rect.left,Math.min(...xs)),top=Math.max(rect.top,Math.min(...ys)),right=Math.min(rect.right,Math.max(...xs)),bottom=Math.min(rect.bottom,Math.max(...ys));target.hidden=right<=left||bottom<=top;target.style.left=left+'px';target.style.top=top+'px';target.style.width=Math.max(0,right-left)+'px';target.style.height=Math.max(0,bottom-top)+'px';}
@@ -48,10 +46,10 @@ export function createSafehouseView(s,dispatch,readComms){
  const anchor=safehouseAnchor(g),near=!!anchor&&Math.hypot(g.player.pos.x-anchor.x,g.player.pos.z-anchor.z)<=data.nearbyRadius,active=safehouseInteraction(g),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){if(!mesh.userData.prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:0,near,selected:active,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
  positionTarget(w,data,inArea&&allowed()&&!s.paused&&active);
 
- transmission.update();renderPanel();
+ renderPanel();
  }
- function interact(){if(!allowed()||s.paused||!safehouseInteraction(s.game))return false;lastError='';const first=!s.game.openingStory?.commsRead;if(first&&readComms){const result=readComms(s.game,allowed());if(!result.ok){s.game.message='Signal could not be saved. Try the safehouse again.';s.game.messageUntil=s.game.time+5;return true;}s.updateExpedition?.();}renderPanel(true);const pages=['locker','gear','journal','map'],page=first?'journal':lastHubPage?(pages.includes(s.hud.menuPage)?s.hud.menuPage:lastHubPage):'locker';if(first)transmission.firstRead();if(s.hud.showMenuPage(page)!==false)lastHubPage=page;return true;}
+ function interact(){if(!allowed()||s.paused||!safehouseInteraction(s.game))return false;lastError='';renderPanel(true);const pages=['locker','gear','journal','map'],page=lastHubPage?(pages.includes(s.hud.menuPage)?s.hud.menuPage:lastHubPage):'locker';if(s.hud.showMenuPage(page)!==false)lastHubPage=page;return true;}
  function interaction(){const g=s.game;if(!g||!allowed()||s.paused||!safehouseInteraction(g))return null;return{id:'safehouse',label:'Open Safehouse',position:safehouseAnchor(g),run:interact};}
 
- return{update,interact,interaction,captureStoryArrival:transmission.captureArrival,storyCapturePending:transmission.pending,dispose(){transmission.dispose();disposed=true;clear();texture?.dispose();target?.removeEventListener('click',interact);target?.remove();panel?.replaceChildren?.();}};
+ return{update,interact,interaction,dispose(){disposed=true;clear();texture?.dispose();target?.removeEventListener('click',interact);target?.remove();panel?.replaceChildren?.();}};
 }
