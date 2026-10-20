@@ -379,7 +379,8 @@
         "blockImpact": "BlockImpact",
         "attack": "Attack",
         "block": "BlockImpact",
-        "slash": "Attack"
+        "slash": "Attack",
+        "stab": "Riposte"
       },
       "url": "bosses/boss-surgeon.glb",
       "rig": "boss-surgeon",

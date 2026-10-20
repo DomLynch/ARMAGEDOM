@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as THREE from 'three';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
+import {createBoneSaw} from '../src/engine/bone-saw-view.js';
 import {DonorMotion,equipDonorPlayer,donorSwingPhase} from '../src/donor-motion.js';
 import {loadGeometry,endpoints,sha} from '../../art/donor/probe.mjs';
 const manifest=JSON.parse(fs.readFileSync(new URL('../public/assets/donor/manifest.json',import.meta.url)));
@@ -35,4 +36,10 @@ test('ordinary 3m/s uses ArmedWalk and no-tick 120Hz frames retain it with the s
  assert.equal(samples[0].wrong,0);assert.equal(samples[1].wrong,0);
  assert.ok(Math.abs(samples[0].phase-samples[1].phase)<1e-10);
  assert.ok(Math.abs(samples[0].z-samples[1].z)<1e-10);
+});
+
+test('authored Surgeon saw samples its real forward thrust clip instead of a side slash',async()=>{
+ const catalog=JSON.parse(fs.readFileSync(new URL('../public/assets/manifest-hollow.json',import.meta.url))),description=catalog.models['boss-surgeon'],source=await loadGeometry(fs.readFileSync(new URL('../public/assets/'+description.url,import.meta.url))),root=new THREE.Group();root.scale.setScalar(1.265*1.3225);root.rotation.y=Math.atan2(-.9396926207859082,.3420201433256691);root.add(source.scene);
+ assert(source.animations.some(c=>c.name==='Riposte'),'existing source thrust clip must be present');const original=source.scene.getObjectByName('WeaponDrawn'),saw=createBoneSaw();assert(original?.parent);saw.position.copy(original.position);saw.quaternion.copy(original.quaternion);saw.scale.copy(original.scale);original.parent.add(saw);original.removeFromParent();
+ const motion=new DonorMotion(root,source.scene,source.animations,description);try{motion.update({kind:0,hp:80,dodgeUntil:0,saw:{active:true},sawPhase:{phase:'active'}},1,0);root.updateMatrixWorld(true);const a=saw.localToWorld(new THREE.Vector3(0,.4,0)),b=saw.localToWorld(new THREE.Vector3(0,.9,0)),direction=b.clone().sub(a).normalize(),forward=new THREE.Vector3(-.9396926207859082,0,.3420201433256691),dot=direction.dot(forward);console.log('SURGEON_SAW_POSE',JSON.stringify({clip:motion.currentClip,phase:motion.currentPhase,rail:[a.toArray(),b.toArray()],forwardDot:dot}));assert.equal(motion.currentClip,'Riposte');assert(dot>.9,'active blade must point along the declared attack facing');}finally{motion.dispose();saw.userData.dispose();}
 });
