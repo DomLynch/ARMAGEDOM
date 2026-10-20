@@ -1,4 +1,5 @@
 import test from "node:test";
+import {readFileSync} from "node:fs";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -248,4 +249,14 @@ test('fresh Retry readiness includes declared dead bosses and appearances from o
  const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
  const calls=[],library={manifest:{pilot:'donor-knife',models:{}},models:new Map(),ensureModels:async refs=>calls.push(refs),dispose(){}},world={areaId:'westminster',layout:{},toRender:p=>new THREE.Vector3(p.x,0,-p.z),residentPlacements:{westminster:[{appearanceRef:'west-look'}],south:[{appearanceRef:'south-look'}]},bossData:{profiles:{witch:{modelRef:'boss-westminster-witch'},south:{modelRef:'boss-south'}},placements:[{areaId:'westminster',profileRef:'witch'},{areaId:'south',profileRef:'south'}]}},actors=createActors(new THREE.Scene(),world,library);t.after(()=>actors.dispose());
  await actors.ensureAreaModels({enemies:[]});assert.deepEqual(calls[0],[],'dead boss remains deferred for ordinary saved entry');await actors.ensureAreaModels({enemies:[]},'westminster',{fresh:true});assert.deepEqual(calls[1],['west-look','boss-westminster-witch'],'Retry prepares fresh residents even though old run has no live actors');
+});
+
+test('procedural Surgeon saw does not request an unregistered downloadable model during area readiness',async t=>{
+ const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
+ const manifest=JSON.parse(readFileSync(new URL('../public/assets/manifest-hollow.json',import.meta.url))),content=JSON.parse(readFileSync(new URL('../public/world/area-content.json',import.meta.url))),calls=[],library={manifest,models:new Map(),ensureModels:async refs=>{calls.push(refs);for(const ref of refs)assert(Object.hasOwn(manifest.models,ref),'Unknown actor model: '+ref);},dispose(){}},world={areaId:'westminster',layout:{},toRender:p=>new THREE.Vector3(p.x,0,-p.z),bossData:content.bosses},actors=createActors(new THREE.Scene(),world,library);t.after(()=>actors.dispose());
+ assert.equal(content.bosses.profiles.surgeon.weapon.kind,'saw');assert(!Object.hasOwn(manifest.models,'bone-saw'));
+ await actors.ensureAreaModels({enemies:[]},'lambeth');assert.deepEqual(calls.at(-1),[],'dead Surgeon needs no external saw asset');
+ const rig=content.bosses.profiles.surgeon.modelRef;await actors.ensureAreaModels({enemies:[{kind:0,rig,bossProfile:content.bosses.profiles.surgeon}]},'lambeth');assert.deepEqual(calls.at(-1),[rig],'living Surgeon still loads its registered actor body');
+ await actors.ensureAreaModels({enemies:[]},'westminster');assert(calls.at(-1).includes(content.bosses.profiles.witch.weapon.modelRef),'downloaded boss Flame asset remains required');
+ world.bossData={profiles:{unsupported:{weapon:{kind:'flame',modelRef:'unregistered-download'}}},placements:[{areaId:'lambeth',profileRef:'unsupported'}]};await assert.rejects(actors.ensureAreaModels({enemies:[]},'lambeth'),/Unknown actor model: unregistered-download/,'unsupported external models still reject');
 });

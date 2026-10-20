@@ -344,7 +344,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       }
       if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);for(const[field,data]of Object.entries(world.bossEquipmentData??{}))if(record.bossEquipment?.[field]?.selected&&data.modelRef)refs.push(data.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
-      refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).flatMap(row=>{const w=world.bossData.profiles[row.profileRef].weapon;return w?[w.modelRef]:[];}));
+      refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).flatMap(row=>{const w=world.bossData.profiles[row.profileRef].weapon;return w&&w.kind!=='saw'?[w.modelRef]:[];}));
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});
     },
     parkArea(areaId){
