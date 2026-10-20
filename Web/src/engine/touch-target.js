@@ -53,9 +53,10 @@ export function applyTouchTarget(g,intent,services={}){
  const visible=intent.combatVisibleIds??intent.pistolVisibleIds,ready=(!visible||visible.includes(target.id))&&touchTargetReady(g,target,services),p=g.player,dx=target.pos.x-p.pos.x,dz=target.pos.z-p.pos.z,n=Math.hypot(dx,dz),aim=n>EPS?{x:dx/n,z:dz/n}:{...p.facing};
  const actions=(intent.actions??[]).filter(a=>!['fire','slash'].includes(a)),held=(intent.held??[]).filter(a=>a!=='fire'),gun=touchGun(g),requested=!!intent.touchTargetSelection&&gun!=='flame'||(intent.actions??[]).includes('fire')||(intent.held??[]).includes('fire');
  g.touchTargetReady=ready&&!intent.dodge;
- if(!p.swing&&g.time>=(p.hurtUntil??0)&&g.time>=(p.dodgeUntil??0)&&!intent.dodge){p.facing={...aim};if(g.mobileAim)Object.assign(g.mobileAim,{heading:Math.atan2(aim.x,aim.z),targetId:target.placementKey??String(target.id),bearing:Math.atan2(aim.x,aim.z)});}
+ const canTurn=!p.swing&&g.time>=(p.hurtUntil??0)&&g.time>=(p.dodgeUntil??0)&&!intent.dodge;
+ if(canTurn){p.facing={...aim};if(g.mobileAim)Object.assign(g.mobileAim,{heading:Math.atan2(aim.x,aim.z),targetId:target.placementKey??String(target.id),bearing:Math.atan2(aim.x,aim.z)});}
  const reloadHeld=gun==='rocketLauncher'&&(intent.held??[]).includes('fire')&&(!visible||visible.includes(target.id))&&!intent.dodge&&touchTargetReady(g,target,{...services,allowReload:true});
  if(g.touchTargetReady&&requested||reloadHeld)actions.push('fire');
- return{...intent,aim,aimPoint:{...target.pos},aimTargetId:target.id,actions,held,touchTargetReady:ready};
+ return{...intent,aim:canTurn?aim:null,aimPoint:{...target.pos},aimTargetId:target.id,actions,held,touchTargetReady:ready};
 }
 export function touchTargetCue(g,{paused=false,visibleIds}={}){const target=selectedTouchTarget(g);return !paused&&g.player.hp>0&&!g.finished&&touchGun(g)&&target&&(!visibleIds||visibleIds.includes(target.id))?{targetId:target.id,position:{...target.pos},height:combatTargetHeight(target,g.time),ready:g.touchTargetReady===true&&(touchGun(g)==='flame'?g.flameFuel?.fuelUnits>0:touchTargetReady(g,target)),selection:true}:null;}
