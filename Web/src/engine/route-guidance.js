@@ -1,3 +1,4 @@
+import{areaDisplayName}from'../area-registry.js';
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const pointOnSegment=(p,a,b)=>{const dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz)));return{x:a.x+t*dx,z:a.z+t*dz};};
@@ -25,6 +26,13 @@ export function validateGuidance(layout,g,links=null){
   return {...row,path,segment};
  });
 }
+// An intra-area tutorial path is not an exit and never changes the travel graph.
+export function validateTutorialPath(layout,g){
+ const path=layout.tutorialPath;if(path===undefined)return null;
+ if(!Array.isArray(path)||path.length<2||path.length>12||path.some(p=>!p||Object.keys(p).length!==2||!['x','y'].every(k=>Number.isFinite(p[k])&&p[k]>=0&&p[k]<=1)))throw Error('Invalid shelter tutorial path');
+ const points=path.map(g.ground);if(points.some(p=>!g.clear(p,.4))||points.slice(1).some((p,i)=>!capsuleSegmentClear(g,points[i],p)))throw Error('Blocked shelter tutorial path');
+ return{id:'westminster-shelter-tutorial',kind:'tutorial',to:'westminster',path:points};
+}
 export function resolveGuidance(rows,g,position){
  let selected=null;
  for(const row of rows){
@@ -39,7 +47,7 @@ export function resolveGuidance(rows,g,position){
  return selected;
 }
 export function createRouteGuidance(world){
- const rows=validateGuidance(world.layout,world.geometry);if(!rows.length)return null;
+ const rows=validateGuidance(world.layout,world.geometry),tutorial=validateTutorialPath(world.layout,world.geometry);if(!rows.length&&!tutorial)return null;
  const {THREE,geometry:g}=world,group=new THREE.Group();group.name='Registered road guidance';world.group.add(group);
  const positions=[],colors=[],indices=[],box=new THREE.BoxGeometry(1,1,1),v=new THREE.Vector3(),matrix=new THREE.Matrix4(),rotation=new THREE.Quaternion(),scale=new THREE.Vector3();
  function cuboid(center,size,yaw,color){
@@ -58,9 +66,19 @@ export function createRouteGuidance(world){
  if(positions.length){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);barrier=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,toneMapped:false}));barrier.name='Road closed rail outside authored boundary';group.add(barrier);}
  const arrowGeometry=new THREE.BufferGeometry();arrowGeometry.setAttribute('position',new THREE.Float32BufferAttribute([-.13,0,-.35,.13,0,-.35,.13,0,.1,-.13,0,-.35,.13,0,.1,-.13,0,.1,-.32,0,.02,.32,0,.02,0,0,.48],3));
  const arrow=new THREE.Mesh(arrowGeometry,new THREE.MeshBasicMaterial({color:0xf1d28c,side:THREE.DoubleSide,depthWrite:false,toneMapped:false}));arrow.name='Safe route direction';arrow.visible=false;group.add(arrow);
- let cachedPosition=null,cached=null,disposed=false;
- function resolve(position){if(!cachedPosition||distance(cachedPosition,position)>1e-8){cachedPosition={...position};cached=resolveGuidance(rows,g,position);}return cached;}
+ // Mark the actual side threshold; the marker never expands its trigger.
+ const entrance=rows.find(row=>row.to==='central-hub'),marker=entrance?new THREE.Group():null;
+ if(marker){const at=entrance.path.at(-1);marker.name='Central Safehouse side entrance';marker.position.copy(world.toRender(at,.045));
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.48,.62,32),new THREE.MeshBasicMaterial({color:0xdfba59,side:THREE.DoubleSide,depthWrite:false,toneMapped:false}));ring.rotation.x=-Math.PI/2;marker.add(ring);
+  if(typeof document!=='undefined'){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext?.('2d');if(ctx){ctx.fillStyle='rgba(22,23,20,.92)';ctx.fillRect(0,0,512,128);ctx.strokeStyle='#dfba59';ctx.lineWidth=5;ctx.strokeRect(3,3,506,122);ctx.textAlign='center';ctx.fillStyle='#f1d28c';ctx.font='bold 34px sans-serif';ctx.fillText('CENTRAL SAFEHOUSE',256,53);ctx.font='26px sans-serif';ctx.fillText('SIDE ENTRANCE',256,96);const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Sprite(new THREE.SpriteMaterial({map,depthWrite:false,toneMapped:false}));sign.scale.set(3.6,.9,1);sign.position.y=1.65;marker.add(sign);}}
+  group.add(marker);
+ }
+ let cachedPosition=null,cached=null,disposed=false,tutorialActive=false,arrival=null;
+ function setTutorial(active){if(tutorialActive!==!!active){tutorialActive=!!active;cachedPosition=null;}}
+ function arrive(from,position){arrival={from,position:{...position}};cachedPosition=null;}
+ function resolve(position){if(!cachedPosition||distance(cachedPosition,position)>1e-8){cachedPosition={...position};if(arrival&&distance(position,arrival.position)>4)arrival=null;cached=resolveGuidance(tutorialActive&&tutorial?[tutorial]:rows.filter(row=>row.to!==arrival?.from),g,position);}return cached;}
  function update(position,activeWorld=world){
+  if(marker)marker.visible=distance(position,entrance.path.at(-1))<9;
   const cue=activeWorld.travelAt(position)?null:resolve(position);arrow.visible=!!cue;if(!cue)return;
   const dx=cue.target.x-position.x,dz=cue.target.z-position.z,length=Math.hypot(dx,dz),step=Math.min(.9,length*.5),p=g.move(position,{x:dx/length*step,z:dz/length*step},.4);
   arrow.position.copy(world.toRender(p,.04));arrow.rotation.y=Math.atan2(dx,-dz);
@@ -68,9 +86,9 @@ export function createRouteGuidance(world){
  function hint(position,activeWorld=world){
   const cue=resolve(position);if(!cue)return'';
   if(activeWorld.travelAt(position))return'';
-  const a=activeWorld.toRender(position).project(activeWorld.camera),b=activeWorld.toRender(cue.target).project(activeWorld.camera),angle=Math.atan2(b.y-a.y,b.x-a.x),arrows=['→','↗','↑','↖','←','↙','↓','↘'],direction=arrows[(Math.round(angle/(Math.PI/4))+8)%8],name=cue.row.to.replaceAll('-',' ').replace(' and ',' & ').toUpperCase();
+  const a=activeWorld.toRender(position).project(activeWorld.camera),b=activeWorld.toRender(cue.target).project(activeWorld.camera),angle=Math.atan2(b.y-a.y,b.x-a.x),arrows=['→','↗','↑','↖','←','↙','↓','↘'],direction=arrows[(Math.round(angle/(Math.PI/4))+8)%8],name=cue.row.kind==='tutorial'?'WESTMINSTER SHELTER':areaDisplayName(cue.row.to).toUpperCase();
   if(cue.row.kind==='exit'&&cue.index===cue.row.path.length-1&&cue.remaining<1.2)return`EXIT → ${name}`;
   return`${cue.row.kind==='boundary'?'ROAD CLOSED · ':''}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;
  }
- return{rows,group,barrier,arrow,update,hint,resolve,dispose(){if(disposed)return;disposed=true;group.removeFromParent();group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}};
+ return{rows,group,barrier,arrow,update,hint,resolve,setTutorial,arrive,allowsExitHint:to=>!tutorialActive&&to!==arrival?.from,dispose(){if(disposed)return;disposed=true;group.removeFromParent();group.traverse(o=>{o.geometry?.dispose();o.material?.map?.dispose();o.material?.dispose();});}};
 }

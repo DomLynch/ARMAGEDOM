@@ -1,7 +1,7 @@
 import{LineSegments2}from'three/addons/lines/LineSegments2.js';
 import{LineSegmentsGeometry}from'three/addons/lines/LineSegmentsGeometry.js';
 import{LineMaterial}from'three/addons/lines/LineMaterial.js';
-import{safehouseProp,safehouseInteraction,safehouseAnchor,safehouseSite}from'./safehouse.js';
+import{safehouseProp,safehouseInteraction,safehouseAnchor,safehouseSite,safehouseProtected}from'./safehouse.js';
 import{lockerInventory,lockerStored}from'./locker-core.js';
 import{LOCKER_WEAPON_IDS,LOCKER_RESOURCE_RULES}from'./locker-state.js';
 const names=['Starting pistol · shared variants','Bridge Rifle','Ember Projector','Pitborn Cleaver','Stalker Shotgun','Grenades','The Bone Saw','Rocket Launcher','Reaper Drone','Thundercoil Railgun'];
@@ -13,7 +13,7 @@ export function safehouseCueOpacity(time,{period=3.5,phase=0,near=false,selected
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
 export function createSafehouseView(s,dispatch){
  let owner=null,meshes=[],texture=null,loading=false,failed=false,disposed=false,lastPanel='',lastError='',promptOwned=false;
- let target=null,lastHubPage=null;
+ let target=null,lastHubPage=null;const tutorialDone=new WeakSet();
  function ensureTarget(){if(target)return;target=document.createElement('button');target.type='button';target.id='safehouse-interact';target.setAttribute('aria-label','Open safehouse');target.hidden=true;target.style.cssText='position:fixed;z-index:5;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;touch-action:none';target.addEventListener('click',interact);document.body.append(target);}
  function positionTarget(w,data,enabled){target.hidden=!enabled;if(!enabled)return;const rect=s.canvas.getBoundingClientRect(),points=data.props.flatMap(prop=>{const b=prop.bounds;return[[b.x,b.y],[b.x+b.width,b.y],[b.x,b.y+b.height],[b.x+b.width,b.y+b.height]].map(([x,y])=>planePoint(w,x,y).project(s.camera));}).filter(p=>p.z>=-1&&p.z<=1);if(!points.length){target.hidden=true;return;}const xs=points.map(p=>rect.left+(p.x+1)*rect.width/2),ys=points.map(p=>rect.top+(1-p.y)*rect.height/2),left=Math.max(rect.left,Math.min(...xs)),top=Math.max(rect.top,Math.min(...ys)),right=Math.min(rect.right,Math.max(...xs)),bottom=Math.min(rect.bottom,Math.max(...ys));target.hidden=right<=left||bottom<=top;target.style.left=left+'px';target.style.top=top+'px';target.style.width=Math.max(0,right-left)+'px';target.style.height=Math.max(0,bottom-top)+'px';}
 
@@ -41,7 +41,7 @@ export function createSafehouseView(s,dispatch){
  for(const type of ['depositSupply','withdrawSupply']){const b=document.createElement('button');b.type='button';b.textContent=type==='depositSupply'?'Store':'Retrieve';b.disabled=!can||!(type==='depositSupply'?carry:stash);b.addEventListener('click',()=>{const result=dispatch(s.game,{type,resource,amount:Number(amount.value)},allowed()&&safehouseProp(s.game,'locker'));lastError=result.ok?'':result.code==='storage-unavailable'?'Saving unavailable. Everything was kept.':'Choose an available amount within the carrying and locker limits.';renderPanel(true);});row.append(b);}panel.append(row);}
  }
  function update(){const g=s.game,w=s.world,data=safehouseSite(w);if(!g||!w||!data){if(target)target.hidden=true;return;}ensureTarget();
- const inArea=w.areaId===data.areaId;if(data.patch&&!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
+ const inArea=w.areaId===data.areaId;if(safehouseProtected(g)||g.expedition?.visitedIds?.some(id=>id!=='westminster')||g.pistol?.collected)tutorialDone.add(g);w.routeGuidance?.setTutorial?.(w.areaId==='westminster'&&!tutorialDone.has(g));if(data.patch&&!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
  if(inArea&&data.patch&&texture&&owner!==w.group)build(w,data);for(const mesh of meshes)mesh.visible=inArea&&!!data.patch;
  const anchor=safehouseAnchor(g),near=!!anchor&&Math.hypot(g.player.pos.x-anchor.x,g.player.pos.z-anchor.z)<=data.nearbyRadius,active=safehouseInteraction(g),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){if(!mesh.userData.prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:0,near,selected:active,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
  positionTarget(w,data,!!data.patch&&inArea&&allowed()&&!s.paused&&active);

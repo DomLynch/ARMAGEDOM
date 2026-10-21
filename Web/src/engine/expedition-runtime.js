@@ -5,7 +5,12 @@ import {expeditionEligible,selectedPistolProfile} from './expedition-core.js';
 import {PISTOL_ITEM_ID} from '../core/pistol-operation.js';
 import {createHeadLabelPositioner} from './boss-label.js';
 import {createVestBagView} from '../vest-view.js';
-const areaName=id=>id.replace(/^area(\d+)$/,'Area $1').replaceAll('-',' ').replace(/\b\w/g,c=>c.toUpperCase());
+import{areaDisplayName as areaName}from'../area-registry.js';
+export function selectedAtlasRoute(registry,from,to){
+ const route=[];if(!to||from===to)return route;const seen=new Set([from]);
+ while(from!==to){const link=registry.nextExit(from,to);if(!link||seen.has(link.to))return[];route.push(link);from=link.to;seen.add(from);}
+ return route;
+}
 const paint=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
 // Long schematic links use the gaps between cards, so crossing an unrelated
 // area never looks like a connection to it. Endpoints remain the real graph.
@@ -41,9 +46,9 @@ export function createExpeditionView(s,dispatch){
   for(const[id,row]of Object.entries(data.variants)){if(s.world.reaperData&&id===data.contract.rewardVariantId)continue;const button=document.createElement('button');button.type='button';button.id='variant-'+id;choices.set(id,button);el('variant-choices').append(button);listen(button,()=>execute({type:'selectVariant',variantId:id}));}
   const registry=s.world.registry,drawn=new Set();for(const from of registry.ids)for(const link of registry.links(from)){
    const key=[from,link.to].sort().join(':');if(drawn.has(key))continue;drawn.add(key);const points=atlasConnectionPoints(data.atlas[from],data.atlas[link.to]),line=document.createElementNS('http://www.w3.org/2000/svg','path');
-   line.setAttribute('d',points.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));line.setAttribute('data-from',from);line.setAttribute('data-to',link.to);el('atlas-links').append(line);
+   line.setAttribute('d',points.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));line.setAttribute('data-from',from);line.setAttribute('data-to',link.to);line.style.display='none';el('atlas-links').append(line);
   }
-  el('atlas-map').setAttribute('aria-label',`${registry.ids.length} areas and ${registry.ids.reduce((n,id)=>n+registry.links(id).length,0)} directed exits shown as ${drawn.size} two-way connections`);
+  el('atlas-map').setAttribute('aria-label',`${registry.ids.length} areas. Select a destination to show only its route. Tile positions are schematic.`);
   for(const id of registry.ids){const button=document.createElement('button'),at=data.atlas[id];button.type='button';button.id='atlas-pin-'+id;button.style.gridColumn=String(at.column+1);button.style.gridRow=String(at.row+1);el('atlas-nodes').append(button);nodes.set(id,button);listen(button,()=>{if(button.disabled)return;pin=pin===id?null:id;update();});}
   listen(el('atlas-objective'),()=>{const target=expeditionObjective(s.game);if(target){pin=target;update();}});
   listen(el('contract-action'),()=>{const g=s.game;if(g?.expedition?.status==='claimed'){viewGear();return;}const action=stageAction[g?.expedition?.status];if(action)execute({type:'expedition',action});});
@@ -65,7 +70,9 @@ export function createExpeditionView(s,dispatch){
   paint(el('contract-action'),status==='claimed'?'View Gear':labels[action]);el('contract-action').disabled=status!=='claimed'&&!eligible;
   const known=new Set([...(state.visitedIds??[]),g.world.areaId,...(objective?[objective]:[])]);if(pin&&!known.has(pin))pin=null;
   for(const[id,button]of nodes){const visible=known.has(id),current=id===g.world.areaId,visited=state.visitedIds.includes(id),target=id===objective;button.disabled=!visible;button.dataset.current=String(current);button.setAttribute('aria-pressed',String(pin===id));paint(button,visible?`${current?'● ':''}${areaName(id)}${visited?' ✓':''}${target?' ⚑':''}${pin===id?' · PIN':''}`:'? Undiscovered');button.setAttribute('aria-label',visible?`${areaName(id)}${current?', current area':''}${visited?', visited':''}${target?', objective':''}${pin===id?', pinned':''}`:'Undiscovered area');}
-  const next=pin?g.world.registry.nextExit(g.world.areaId,pin):null,gate=next?bossExitGate(g,next.to):null,route=pin?next?`Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}${gate&&!gate.allowed?' · '+gate.message:''}`:`Pinned ${areaName(pin)} · you are here.`:'Pin a known area. ● Current · ✓ Visited · ⚑ Objective';paint(el('atlas-route'),route);el('atlas-objective').disabled=!objective;
+  const selectedRoute=selectedAtlasRoute(g.world.registry,g.world.areaId,pin),routePairs=new Set(selectedRoute.map(link=>[link.from,link.to].sort().join(':')));
+  for(const line of el('atlas-links').children){const selected=routePairs.has([line.dataset.from,line.dataset.to].sort().join(':'));line.style.display=selected?'':'none';line.setAttribute('aria-hidden',String(!selected));}
+  const next=selectedRoute[0]??null,gate=next?bossExitGate(g,next.to):null,route=pin?next?`Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}${gate&&!gate.allowed?' · '+gate.message:''}`:`Pinned ${areaName(pin)} · you are here.`:'Choose a known destination to show its route. Tile positions are schematic. ● Current · ✓ Visited · ⚑ Objective';paint(el('atlas-route'),route);el('atlas-objective').disabled=!objective;
   const profile=selectedPistolProfile(g),name=g.world.reaperData?data.variants[PISTOL_ITEM_ID].name:data.variants[state.selectedPistolVariant]?.name??data.variants[PISTOL_ITEM_ID].name;
   paint(el('equipment-state'),`${g.flame?.equipped?'Stored pistol':g.pistol.equipped?'Equipped pistol':'Holstered pistol'}: ${name} · damage ${+effectiveWeaponDamage(g,PISTOL_ITEM_ID,profile.damage).toFixed(1)} · reload ${profile.reload.toFixed(1)}s · ${g.pistol.magazine}/6 loaded, ${g.pistol.reserve} reserve.${g.pistol.collected?'':' Collect the pistol at the stash to use your retained variant.'}`);
   for(const[id,button]of choices){const row=data.variants[id],owned=id===PISTOL_ITEM_ID||status==='claimed';button.disabled=lockerStored(g,id)||!owned||!g.pistol.collected||!allowed()||g.finished||g.player.hp<=0;button.setAttribute('aria-pressed',String((g.world.reaperData?id===PISTOL_ITEM_ID:state.selectedPistolVariant===id)&&g.pistol.equipped&&!g.flame?.equipped));paint(button,lockerStored(g,id)?`Stored · ${row.name}`:`${(g.world.reaperData?id===PISTOL_ITEM_ID:state.selectedPistolVariant===id)&&g.pistol.equipped&&!g.flame?.equipped?'Equipped':owned?'Equip':'Locked'} · ${row.name}`);}

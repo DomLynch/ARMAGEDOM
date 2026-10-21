@@ -1,7 +1,7 @@
 import{safehouseCrosses}from'./engine/safehouse.js';
 import {createRouteGuidance} from './engine/route-guidance.js';
 import {createGeometry} from './world-geometry.js';
-import {createAreaRegistry} from './area-registry.js';
+import {areaDisplayName,createAreaRegistry} from './area-registry.js';
 import {validateAreaMetadata,validateAreaGeometry} from './engine/area-content.js';
 const ASPECT=1672/941;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -65,12 +65,13 @@ export class LondonWorld {
     const guidance=this.routeGuidance?.hint(position,this);if(guidance)return guidance;
     let nearest=null,distance=6;
     for(const link of this.registry.links(this.areaId)) {
+      if(this.routeGuidance?.allowsExitHint?.(link.to)===false)continue;
       const c=link.condition,point=this.geometry.point(position);
       const target={x:clamp(point.x,c.xMin??0,c.xMax??1),y:clamp(point.y,c.yMin??0,c.yMax??1)};
       const ground=this.geometry.ground(target),gap=Math.hypot(position.x-ground.x,position.z-ground.z);
       if(gap<distance){distance=gap;nearest=link.to;}
     }
-    return nearest?`EXIT → ${nearest.replaceAll('-', ' ').toUpperCase()}`:'';
+    return nearest?`EXIT → ${areaDisplayName(nearest).toUpperCase()}`:'';
   }
   async loadArea(areaId,entryPoint=this.registry.get(areaId)?.entry) {
     if(!this.registry.has(areaId)||!entryPoint)throw Error('Unknown London area');

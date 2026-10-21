@@ -1,4 +1,5 @@
 import {areaDefinitions,areaAssets} from './area-definitions.js';
+export const areaDisplayName=id=>id==='central-hub'?'Central Safehouse':id.replace(/^area(\d+)$/,'Area $1').replaceAll('-',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const fail=message=>{throw new TypeError(`Area registry: ${message}`);};
 const object=value=>value&&typeof value==='object'&&!Array.isArray(value);
 function dataOnly(value){

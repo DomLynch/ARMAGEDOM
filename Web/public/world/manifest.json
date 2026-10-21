@@ -9,8 +9,8 @@
       "area": "westminster",
       "path": "westminster/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/west/layout.json",
-      "bytes": 10388,
-      "sha256": "7e17567724841603353844645fac98fd608e7b30d0062e9dc0202203deeb6705"
+      "bytes": 10703,
+      "sha256": "1afae8d70524a0d3fa021d760099985b4378031f1c3fbcbd822e0b52443678b4"
     },
     {
       "area": "westminster",
@@ -23,8 +23,8 @@
       "area": "south",
       "path": "south/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/south/layout.json",
-      "bytes": 8397,
-      "sha256": "242d3a4e978aaa171f0aa1446d1f4aba0ffc9cc22d9d63c870c25b021ef6e03e"
+      "bytes": 8399,
+      "sha256": "e62b317c1cb0741166c47699317d56202ba511f83a718a7070ce45bf71086819"
     },
     {
       "area": "south",
@@ -37,8 +37,8 @@
       "area": "east",
       "path": "east/layout.json",
       "source": "Owner-marked East136 bounded clearance and direct East/South route",
-      "bytes": 9713,
-      "sha256": "855923213605659e92288e318ff7b62160748ea9ec5b530fcfbb80f85324e8db"
+      "bytes": 9911,
+      "sha256": "5886ddf717a42e29b61f9d9a4e5d8924fa0c693f53d921282b189031b3569208"
     },
     {
       "area": "east",
@@ -99,8 +99,8 @@
       "area": "area7",
       "path": "area7/layout.json",
       "source": "Owner original / image-authored street geometry",
-      "sha256": "d4016de684a211773ea9030feddbe9f47e1b9aaa34e9ecc84b1fc48b7a119e7a",
-      "bytes": 10688
+      "sha256": "06750bbd1be118ec5ecd0f0b4930dea63a2494319e6498c5acf3b792e180852c",
+      "bytes": 10911
     },
     {
       "area": "area7",
@@ -232,10 +232,10 @@
       "from": "westminster",
       "to": "central-hub",
       "condition": {
-        "xMin": 0.368,
-        "xMax": 0.392,
-        "yMin": 0.948,
-        "yMax": 0.972
+        "xMin": 0.33299999999999996,
+        "xMax": 0.357,
+        "yMin": 0.953,
+        "yMax": 0.977
       },
       "entry": {
         "x": 0.075,
@@ -301,10 +301,10 @@
       "from": "east",
       "to": "central-hub",
       "condition": {
-        "xMin": 0.388,
-        "xMax": 0.41200000000000003,
-        "yMin": 0.488,
-        "yMax": 0.512
+        "xMin": 0.773,
+        "xMax": 0.797,
+        "yMin": 0.40299999999999997,
+        "yMax": 0.427
       },
       "entry": {
         "x": 0.925,
@@ -356,10 +356,10 @@
       "from": "south",
       "to": "central-hub",
       "condition": {
-        "xMin": 0.518,
-        "xMax": 0.542,
-        "yMin": 0.638,
-        "yMax": 0.662
+        "xMin": 0.20099999999999998,
+        "xMax": 0.221,
+        "yMin": 0.6839999999999999,
+        "yMax": 0.704
       },
       "entry": {
         "x": 0.495,
@@ -502,10 +502,10 @@
       "from": "area7",
       "to": "central-hub",
       "condition": {
-        "xMin": 0.288,
-        "xMax": 0.312,
-        "yMin": 0.738,
-        "yMax": 0.762
+        "xMin": 0.27,
+        "xMax": 0.29000000000000004,
+        "yMin": 0.525,
+        "yMax": 0.545
       },
       "entry": {
         "x": 0.5,
@@ -560,7 +560,7 @@
         "yMax": 0.49
       },
       "entry": {
-        "x": 0.38,
+        "x": 0.44,
         "y": 0.92
       }
     },
@@ -573,8 +573,8 @@
         "xMax": 0.525
       },
       "entry": {
-        "x": 0.53,
-        "y": 0.69
+        "x": 0.265,
+        "y": 0.665
       },
       "requiresVisited": true
     },
@@ -587,8 +587,8 @@
         "yMax": 0.49
       },
       "entry": {
-        "x": 0.35,
-        "y": 0.5
+        "x": 0.785,
+        "y": 0.365
       },
       "requiresDefeat": "boss-witch-v1",
       "requiresVisited": true
@@ -602,8 +602,8 @@
         "xMax": 0.515
       },
       "entry": {
-        "x": 0.3,
-        "y": 0.79
+        "x": 0.375,
+        "y": 0.415
       },
       "requiresVisited": true
     }

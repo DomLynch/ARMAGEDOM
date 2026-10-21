@@ -13,7 +13,7 @@ async function crossArea(request) {
   if(s.resetting)return false;
   const gate=bossExitGate(s.game,request.areaId);if(gate&&!gate.allowed){s.game.message=gate.message;s.game.messageUntil=s.game.time+4;return false;}
   if(needsUniqueDeathCommit(s.game)&&s.persistRun?.(s.game)!==true)return false;
-  const previousArea=s.world.areaId,keepMovement=s.world.isAreaReady(request.areaId);
+  const previousArea=s.world.areaId,hubHandoff=previousArea==='central-hub'||request.areaId==='central-hub',keepMovement=!hubHandoff&&s.world.isAreaReady(request.areaId);
   const ownerGame=s.game,ownerActors=s.actors,ownerWorld=s.world;
   const owns=()=>!s.contextLost&&s.loaded&&s.game===ownerGame&&s.actors===ownerActors&&s.world===ownerWorld;
   let accepted=false,recoveryFailed=false,travelState=null,previousPoint=null,actorParkStarted=false,actorActivationStarted=false;const releaseSource=ownerWorld.leaseArea?.(previousArea)??(()=>{});
@@ -36,6 +36,7 @@ async function crossArea(request) {
     travelState=captureTravelState(ownerGame);previousPoint=ownerWorld.geometry?.point(ownerGame.player.pos)??ownerWorld.registry?.get(previousArea)?.entry;
     const position=await travelTo(ownerGame, request,{isCurrent:owns});
     if(!position||!owns())return false;
+    s.world.routeGuidance?.arrive?.(previousArea,position);
     applyAreaLighting(s.scene,s.world);
     s.effects.reset();
     actorParkStarted=true;s.actors.parkArea(previousArea);actorActivationStarted=true;s.actors.activateArea(request.areaId);
