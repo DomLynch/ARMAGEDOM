@@ -139,3 +139,13 @@ test('Shift sprint reaches the adapter and blur releases keyboard intent', t => 
   assert.equal(f.input.take().run, false);
   f.win.dispatchEvent(new Event('blur')); assert.deepEqual(f.input.take().move, {x: 0, y: 0});
 });
+
+test('menu and HUD double-click zoom defaults cancel while both clicks and pointer actions survive; dispose removes the guard', t => {
+ const f=fixture(t);f.pause(true);let clicks=0;f.doc.addEventListener('click',()=>clicks++);
+ for(let n=0;n<2;n++)f.doc.dispatchEvent(new Event('click',{cancelable:true}));
+ const double=new Event('dblclick',{cancelable:true});f.doc.dispatchEvent(double);
+ assert.equal(clicks,2);assert.equal(double.defaultPrevented,true);
+ assert.equal(f.touch('touchmove',f.menu,200,1).defaultPrevented,false);
+ f.input.dispose();const after=new Event('dblclick',{cancelable:true});f.doc.dispatchEvent(after);assert.equal(after.defaultPrevented,false);
+ for(const type of ['gesturestart','touchstart','touchmove']){const event=type==='gesturestart'?new Event(type,{cancelable:true}):f.touch(type,f.body,300,2);if(type==='gesturestart')f.doc.dispatchEvent(event);assert.equal(event.defaultPrevented,false);}
+});

@@ -160,6 +160,8 @@ export function attachInput({
   };
   for (const type of ['gesturestart', 'gesturechange', 'gestureend'])
     listen(document,type, prevent, { passive: false, capture: true });
+  // Keep click-driven menus usable: cancel the zoom default, not either click.
+  listen(document,'dblclick', prevent, { passive: false, capture: true });
   let multiTouch = false, lastTap = -Infinity;
   for (const type of ['touchstart', 'touchmove']) {
     listen(document,type, (event) => {
