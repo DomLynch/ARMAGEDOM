@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 214447,
-      "sha256": "d7fe38cea3039acbd859242fd2928ef5803065542bfe2f23355677452dd3851d"
+      "bytes": 215016,
+      "sha256": "7b9e12f5f547d41fc46299b7daa0fcafeff6c28a07c21d32df4a237dadcbd038"
     },
     {
       "area": "area7",
@@ -143,6 +143,13 @@
       "source": "Owner approved central courtyard image 2026-10-21; original PNG retained byte-exact",
       "sha256": "9a0f7ab78931a1eabdca03de759eabf87cf93e98ac6cf7be326d651d0511f267",
       "bytes": 3349648
+    },
+    {
+      "area": "westminster",
+      "path": "westminster/wanted-portrait.png",
+      "source": "Existing accepted195 warrior head cached CPU portrait; Art portrait/INTAKE.json",
+      "bytes": 43285,
+      "sha256": "6f80a1aa9c5768eeb4e3e564066eb7bec0a37f309cef4320515aa0d07ee48f26"
     }
   ],
   "lazyAreas": [

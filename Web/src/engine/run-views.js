@@ -1,3 +1,4 @@
+import{createWantedProjection}from'./wanted-projection.js';
 import{createMarkedView}from'./marked-view.js';
 import{createReaperView}from'./reaper-view.js';
 import{createWeaponTiles}from'./weapon-tiles.js';
@@ -35,7 +36,7 @@ const rifleView=createRifleView(s,(g,command,allowed)=>dispatchEquipmentSelectio
 const uniqueView=createUniqueRewardView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchUniqueReward);if(result.ok&&command.type==='equip')resetMobileControls(g);s.updateExpedition?.();return result;});
 const expeditionView=createExpeditionView(s,(g,command,allowed)=>{const result=dispatchEquipmentSelection(g,command,allowed,persistence.dispatchExpedition);s.updateExpedition?.();return result;});
 const safehouseView=createSafehouseView(s,persistence.dispatchLocker);
-const markedView=createMarkedView(s,persistence.dispatchMarked);
+const markedView=createMarkedView(s,persistence.dispatchMarked),wantedProjection=createWantedProjection(s);
 function interaction(){const g=s.game;if(!g||!s.loaded||s.contextLost||s.traveling||s.paused||g.finished||g.runSaveInvalid||g.player.hp<=0)return null;
  const candidates=[safehouseView,flameView,expeditionView,uniqueView,rifleView,bossEquipmentView].flatMap(view=>view.interaction?.()??[]);
  const p=g.pistol;if(p&&!p.collected&&g.world.areaId===p.pickupAreaId&&!g.player.swing&&g.time>=g.player.ready&&g.time>=g.player.hurtUntil&&g.time>=g.player.dodgeUntil&&Math.hypot(g.player.pos.x-p.pickupPos.x,g.player.pos.z-p.pickupPos.z)<=1.3&&g.world.lineClear(g.player.pos,p.pickupPos))candidates.push({id:'westminster-start-pistol-v1',label:'Collect Starting Pistol',position:p.pickupPos,run:()=>claimStartingPistol(g,persistence.dispatchPistol,()=>s.input.clear())});
@@ -64,5 +65,5 @@ function updateSupplies(){
 }
 function clearSupplies(){for(const v of supplyViews.values())v.view.dispose();supplyViews.clear();}
 function cancelPistol(g){for(const clock of Object.values(g.bossEquipmentAction??{}))clock.reloadingUntil=0;if(g.rifleAction)g.rifleAction.reloadingUntil=0;stopFlame(g);s.effects?.clearFlameFeedback?.();resetMobileControls(g);s.actors?.resetFeedback();g.pistolTargetId=null;g.pistolTargetFacing=null;if(!g.flame?.equipped)g.pistol=stepPistol(g.pistol,{time:g.time,cancel:true,canAct:false}).state;s.effects?.clearPistolFeedback();s.effects?.update(g,{paused:true});}
-return {updateExpedition(){updateVestEquipment();reaperView.update();expeditionView.update();uniqueView.update();bossView.update();flameView.update();rifleView.update();bossEquipmentView.update();safehouseView.update();markedView.update();updateInteraction();weaponTiles.update();},interactNearby,interactSafehouse:safehouseView.interact,interactFlame:flameView.interact,interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){markedView.dispose();weaponTiles.dispose();reaperView.dispose();safehouseView.dispose();bossEquipmentView.dispose();rifleView.dispose();flameView.dispose();uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
+return {updateExpedition(){updateVestEquipment();reaperView.update();expeditionView.update();uniqueView.update();bossView.update();flameView.update();rifleView.update();bossEquipmentView.update();safehouseView.update();markedView.update();wantedProjection.update();updateInteraction();weaponTiles.update();},interactNearby,interactSafehouse:safehouseView.interact,interactFlame:flameView.interact,interactExpedition:expeditionView.interact,interactUniqueReward:uniqueView.interact,clearVestBag,updateVestBag,...persistence,updateSupplies,clearSupplies,cancelPistol,dispose(){wantedProjection.dispose();markedView.dispose();weaponTiles.dispose();reaperView.dispose();safehouseView.dispose();bossEquipmentView.dispose();rifleView.dispose();flameView.dispose();uniqueView.dispose();bossView.dispose();expeditionView.dispose();clearSupplies();clearVestBag();}};
 }

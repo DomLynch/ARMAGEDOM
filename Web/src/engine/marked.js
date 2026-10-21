@@ -2,11 +2,15 @@ import {closed,freeze} from './content-schema.js';
 import {LOCKER_RESOURCE_RULES} from './locker-state.js';
 export const MARKED_DEFAULTS=freeze({version:1,cashPerKill:100,bossCash:200,maxMoney:1000000000,hunterBounty:300,maxHunters:1,hostileBudget:6,minSpawnDistance:8,warningSeconds:2,spawnCooldown:30,arrivalDelay:6,hunterHealth:80,hunterSpeed:3.2,shop:{pistol:{price:100,amount:6},rifle:{price:150,amount:4},dressing:{price:100,amount:25}}});
 export function validateMarkedData(input){
- if(input===undefined)return null;closed(input,Object.keys(MARKED_DEFAULTS));
+ if(input===undefined)return null;closed(input,Object.keys(MARKED_DEFAULTS),['projection']);
  for(const key of Object.keys(MARKED_DEFAULTS).filter(k=>k!=='shop'))if(!Number.isFinite(input[key])||input[key]<=0)throw TypeError('Invalid Marked rule');
  if(input.version!==1||input.maxHunters!==1||input.hostileBudget!==6||input.maxMoney>1e9||!Number.isSafeInteger(input.maxMoney)||input.minSpawnDistance<8||input.warningSeconds<2||input.spawnCooldown<30||input.arrivalDelay<6||input.hunterHealth>120||input.hunterSpeed>4)throw TypeError('Invalid bounded Marked rules');
  for(const k of ['cashPerKill','bossCash','hunterBounty'])if(!Number.isSafeInteger(input[k]))throw TypeError('Integer cash required');
  closed(input.shop,['pistol','rifle','dressing']);for(const row of Object.values(input.shop)){closed(row,['price','amount']);if(!Number.isSafeInteger(row.price)||row.price<=0||!Number.isSafeInteger(row.amount)||row.amount<=0)throw TypeError('Invalid Marked shop');}
+ if(input.projection!==undefined){const p=input.projection;closed(p,['version','areaId','portrait','points','opacity','flicker']);if(p.version!==1||p.areaId!=='westminster'||p.portrait!=='westminster/wanted-portrait.png'||!Number.isFinite(p.opacity)||p.opacity<.4||p.opacity>.9||!Number.isFinite(p.flicker)||p.flicker<0||p.flicker>.03||!Array.isArray(p.points)||p.points.length!==4)throw TypeError('Invalid one-wall WANTED pilot');
+  for(const q of p.points){closed(q,['x','y']);if(![q.x,q.y].every(n=>Number.isFinite(n)&&n>0&&n<1))throw TypeError('Invalid WANTED quad');}
+  const crosses=p.points.map((a,i)=>{const b=p.points[(i+1)%4],c=p.points[(i+2)%4];return(b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x);});if(crosses.some(n=>!Number.isFinite(n)||Math.abs(n)<1e-6||Math.sign(n)!==Math.sign(crosses[0])))throw TypeError('Non-convex WANTED quad');
+ }
  return freeze(structuredClone(input));
 }
 export const freshMarked=()=>({version:1,carried:0,bank:0,bounty:0});

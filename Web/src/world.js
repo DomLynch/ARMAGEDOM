@@ -41,10 +41,11 @@ export class LondonWorld {
     this.depthMaterial=depth;this.routeGuidance=createRouteGuidance(this);scene.add(this.group);this.update(this.spawn,0,1672,941,true);
   }
   toRender(position,height=0) {return new this.THREE.Vector3(position.x,height,-position.z);}
-  quad(points,distance,material,order) {
+  quad(points,distance,material,order,registered=false) {
     const {THREE,camera}=this,positions=[],uv=[],indices=[];
     for(const p of points) {
-      const v=new THREE.Vector3(2*p.x-1,1-2*p.y,.5).unproject(camera).applyMatrix4(camera.matrixWorldInverse);
+      const v=new THREE.Vector3(2*p.x-1,1-2*p.y,.5);
+      if(registered)v.applyMatrix4(this.calibrated.clone().invert());else v.unproject(camera).applyMatrix4(camera.matrixWorldInverse);
       v.multiplyScalar(distance/-v.z).applyMatrix4(camera.matrixWorld);
       positions.push(v.x,v.y,v.z);uv.push(p.x,1-p.y);
     }
