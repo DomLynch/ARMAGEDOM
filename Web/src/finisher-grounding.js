@@ -8,17 +8,37 @@ function underRoot(node,root){for(let p=node;p;p=p.parent)if(p===root)return tru
 // weighted vertex. A sampled pose is immutable until the next mixer update.
 // Keep its double-precision matrices private to this draw and this invocation;
 // retain the native morph, bind and weighted-vector arithmetic unchanged.
-function poseSkinSampler(node){
+function poseSkinSampler(node,vertexCount,reuseInputs){
  if(!node.isSkinnedMesh||node.getVertexPosition!==T.SkinnedMesh.prototype.getVertexPosition||node.applyBoneTransform!==T.SkinnedMesh.prototype.applyBoneTransform)return null;
  const skeleton=node.skeleton,matrices=skeleton.bones.map(()=>new T.Matrix4());
  const indices=new T.Vector4(),weights=new T.Vector4(),base=new T.Vector3(),weighted=new T.Vector3();
+ const inputs=reuseInputs?new Float64Array(vertexCount*11):null,filled=reuseInputs?new Uint8Array(vertexCount):null;
+ let signature=null,cacheInputs=false,nativeSkin=true;
+ const nativeAttribute=attribute=>attribute&&['getX','getY','getZ','getW'].every(name=>attribute[name]===T.BufferAttribute.prototype[name]||attribute[name]===T.InterleavedBufferAttribute.prototype[name]);
+ function refresh(){
+  nativeSkin=node.skeleton===skeleton&&skeleton.bones.length===matrices.length&&skeleton.bones.every((bone,i)=>bone?.matrixWorld?.isMatrix4&&skeleton.boneInverses[i]?.isMatrix4)&&node.getVertexPosition===T.SkinnedMesh.prototype.getVertexPosition&&node.applyBoneTransform===T.SkinnedMesh.prototype.applyBoneTransform;
+  const g=node.geometry,attributes=[g.attributes.position,g.attributes.skinIndex,g.attributes.skinWeight];
+  cacheInputs=!!inputs&&nativeSkin&&!g.morphAttributes.position?.length&&attributes.every(nativeAttribute);
+  if(cacheInputs){
+   const next=[g,...attributes.flatMap(a=>[a,a.version,a.array,a.count,a.itemSize,a.normalized,a.offset,a.data,a.data?.version,a.data?.array,a.data?.stride]),...node.bindMatrix.elements];
+   if(!signature||next.some((value,i)=>!Object.is(value,signature[i]))){filled.fill(0);signature=next;}
+  }else{filled?.fill(0);signature=null;}
+  if(nativeSkin)for(let i=0;i<matrices.length;i++)matrices[i].multiplyMatrices(skeleton.bones[i].matrixWorld,skeleton.boneInverses[i]);
+ }
  return {
-  update(){for(let i=0;i<matrices.length;i++)matrices[i].multiplyMatrices(skeleton.bones[i].matrixWorld,skeleton.boneInverses[i]);},
-  vertex(id,target){
-   T.Mesh.prototype.getVertexPosition.call(node,id,target);
-   indices.fromBufferAttribute(node.geometry.attributes.skinIndex,id);
-   weights.fromBufferAttribute(node.geometry.attributes.skinWeight,id);
-   base.copy(target).applyMatrix4(node.bindMatrix);target.set(0,0,0);
+  update:refresh,
+  vertex(id,target,slot){
+   if(!nativeSkin)return node.getVertexPosition(id,target);
+   const offset=slot*11;
+   if(cacheInputs&&filled[slot]){base.fromArray(inputs,offset);indices.fromArray(inputs,offset+3);weights.fromArray(inputs,offset+7);}
+   else{
+    T.Mesh.prototype.getVertexPosition.call(node,id,target);
+    indices.fromBufferAttribute(node.geometry.attributes.skinIndex,id);
+    weights.fromBufferAttribute(node.geometry.attributes.skinWeight,id);
+    base.copy(target).applyMatrix4(node.bindMatrix);
+    if(cacheInputs){base.toArray(inputs,offset);indices.toArray(inputs,offset+3);weights.toArray(inputs,offset+7);filled[slot]=1;}
+   }
+   target.set(0,0,0);
    for(let i=0;i<4;i++){const weight=weights.getComponent(i);if(weight!==0)target.addScaledVector(weighted.copy(base).applyMatrix4(matrices[indices.getComponent(i)]),weight);}
    return target.applyMatrix4(node.bindMatrixInverse);
   },
@@ -59,16 +79,19 @@ export function* prepareVictimGroundingSteps({model,root,clip,samples=120,maxVer
   draw.cacheable=underRoot(node,root)&&(!node.isSkinnedMesh||node.bindMode===T.AttachedBindMode&&node.skeleton.bones.every(b=>underRoot(b,root)));
   const entry=draw.cacheable?cache?.get(g)?.get(clip):null;draw.bucket=entry?.signature===clipSignature?entry.rows:null;draw.cached=draw.bucket?.get(draw.key);draw.floors=draw.cached??new Float64Array(samples+1);if(draw.cached){cacheHits++;if(node.isSkinnedMesh)cacheHitsSkinned++;}
  }
- for(const draw of draws)if(!draw.cached)draw.sampler=poseSkinSampler(draw.node);
+ // The cap is across ALL draws, including repeated references, and temporary.
+ // Larger callers retain native input reads rather than allocating beyond it.
+ const reuseInputs=vertices<=150000;
+ for(const draw of draws)if(!draw.cached)draw.sampler=poseSkinSampler(draw.node,draw.ids.length,reuseInputs);
  const table=new Float32Array(samples+1),mixer=new T.AnimationMixer(model),point=new T.Vector3(),inverse=new T.Matrix4();let worstFloor=Infinity;
  let since=performance.now(),prepMilliseconds=0;
  try{const action=mixer.clipAction(clip);action.play();action.paused=true;for(let i=0;i<=samples;i++){
   action.time=Math.min(.999999,i/samples)*clip.duration;mixer.update(0);root.updateWorldMatrix(true,false);root.updateMatrixWorld(true);model.traverse(n=>{if(n.skeleton)n.skeleton.update();});inverse.copy(root.matrixWorld).invert();let floor=Infinity;
   let reads=0;
-  for(const draw of draws){let localFloor=draw.cached?draw.floors[i]:Infinity;if(!draw.cached){draw.sampler?.update();for(const id of draw.ids){(draw.sampler?draw.sampler.vertex(id,point):draw.node.getVertexPosition(id,point)).applyMatrix4(draw.node.matrixWorld).applyMatrix4(inverse);if(!Number.isFinite(point.y))throw Error('Nonfinite victim floor');localFloor=Math.min(localFloor,point.y);if((++reads&127)===0&&performance.now()-since>=4){prepMilliseconds+=performance.now()-since;yield 'victim-floor';since=performance.now();}}}draw.floors[i]=localFloor;floor=Math.min(floor,localFloor);}
+  for(const draw of draws){let localFloor=draw.cached?draw.floors[i]:Infinity;if(!draw.cached){draw.sampler?.update();for(let slot=0;slot<draw.ids.length;slot++){const id=draw.ids[slot];(draw.sampler?draw.sampler.vertex(id,point,slot):draw.node.getVertexPosition(id,point)).applyMatrix4(draw.node.matrixWorld).applyMatrix4(inverse);if(!Number.isFinite(point.y))throw Error('Nonfinite victim floor');localFloor=Math.min(localFloor,point.y);if((++reads&127)===0&&performance.now()-since>=4){prepMilliseconds+=performance.now()-since;yield 'victim-floor';since=performance.now();draw.sampler?.update();}}}draw.floors[i]=localFloor;floor=Math.min(floor,localFloor);}
   worstFloor=Math.min(worstFloor,floor);table[i]=Math.max(0,.004-floor);
   if(performance.now()-since>=4){prepMilliseconds+=performance.now()-since;yield 'victim-pose';since=performance.now();}
- }}finally{mixer.stopAllAction();mixer.uncacheRoot(model);for(const[n,p,q,s]of transforms){n.position.copy(p);n.quaternion.copy(q);n.scale.copy(s);}root.updateWorldMatrix(true,false);root.updateMatrixWorld(true);model.traverse(n=>{if(n.skeleton)n.skeleton.update();});}
+ }}finally{for(const draw of draws)draw.sampler=null;mixer.stopAllAction();mixer.uncacheRoot(model);for(const[n,p,q,s]of transforms){n.position.copy(p);n.quaternion.copy(q);n.scale.copy(s);}root.updateWorldMatrix(true,false);root.updateMatrixWorld(true);model.traverse(n=>{if(n.skeleton)n.skeleton.update();});}
  prepMilliseconds+=performance.now()-since;
  if(cache)for(const draw of draws)if(draw.cacheable&&!draw.cached){let clips=cache.get(draw.node.geometry);if(!clips)cache.set(draw.node.geometry,clips=new WeakMap());let entry=clips.get(clip);if(!entry||entry.signature!==clipSignature)clips.set(clip,entry={signature:clipSignature,rows:new Map()});entry.rows.set(draw.key,draw.floors);}
  return{lift(phase){const t=T.MathUtils.clamp(phase,0,1)*samples,i=Math.min(samples-1,Math.floor(t));return Math.max(table[i],table[i+1]);},stats(){return{clip:clip.name,samples:samples+1,vertices,bytes:table.byteLength,worstLocalFloor:worstFloor,maxLocalLift:Math.max(...table),prepMilliseconds,cacheHits,cacheHitsSkinned,draws:draws.length};}};

@@ -54,3 +54,45 @@ test('cancellation after a skinned pose update and nonfinite skin failure restor
  mesh.skeleton.boneInverses[0].elements[0]=NaN;assert.throws(()=>prepareVictimGrounding({root,model,clip,cache}),/Nonfinite victim floor/);assert.deepEqual(bone.position.toArray(),pose);assert.equal(cache.has(geometry),false);
  geometry.dispose();mesh.material.dispose();
 });
+
+test('invocation-local native inputs invalidate on generator resume after attribute, interleaved, geometry and bind changes',()=>{
+ function run(change,forceNative){
+  const root=new T.Group(),model=new T.Group(),bone=new T.Bone(),geometry=new T.BoxGeometry(.4,.4,.4,4,4,4);bone.name='Hip';root.add(model);model.add(bone);
+  const count=geometry.attributes.position.count,weights=new Float32Array(count*4);for(let i=0;i<count;i++)weights[i*4]=1;
+  geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(new Uint16Array(count*4),4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+  if(change==='interleaved'){
+   const data=new Float32Array(count*4),p=geometry.attributes.position;for(let i=0;i<count;i++)data.set([p.getX(i),p.getY(i),p.getZ(i),0],i*4);
+   geometry.setAttribute('position',new T.InterleavedBufferAttribute(new T.InterleavedBuffer(data,4),3,0));
+  }
+  const mesh=new T.SkinnedMesh(geometry,new T.MeshBasicMaterial());model.add(mesh);root.updateMatrixWorld(true);mesh.bind(new T.Skeleton([bone]));
+  if(forceNative){const original=mesh.getVertexPosition;mesh.getVertexPosition=function(...args){return original.apply(this,args);};}
+  const clip=new T.AnimationClip('Death_RunThrough',1,[new T.VectorKeyframeTrack('Hip.position',[0,1],[0,0,0,0,-1,0])]),original=globalThis.performance;let clock=0,floors=0,mutated=false,result;
+  try{
+   globalThis.performance={now:()=>clock+=5};const iterator=prepareVictimGroundingSteps({root,model,clip,samples:3});
+   for(;;){const step=iterator.next();if(step.done){result=step.value;break;}
+    // First pose fills the input slots; change while the second pose is yielded.
+    if(step.value==='victim-floor'&&++floors===2){
+     const g=mesh.geometry,p=g.attributes.position;
+     if(change==='bind')mesh.bindMatrix.makeTranslation(0,-.2,0);
+     else if(change==='weights'){for(let i=0;i<count;i++)g.attributes.skinWeight.setX(i,.3);g.attributes.skinWeight.needsUpdate=true;}
+     else if(change==='geometry'){mesh.geometry=g.clone();for(let i=0;i<count;i++)mesh.geometry.attributes.position.setY(i,p.getY(i)-.2);}
+     else{for(let i=0;i<count;i++)p.setY(i,p.getY(i)-.2);if(change==='interleaved')p.data.needsUpdate=true;else p.needsUpdate=true;}
+     mutated=true;
+    }
+   }
+  }finally{globalThis.performance=original;}
+  assert(mutated);geometry.dispose();if(mesh.geometry!==geometry)mesh.geometry.dispose();mesh.material.dispose();return result;
+ }
+ for(const change of ['position','weights','geometry','bind','interleaved']){
+  const actual=run(change,false),expected=run(change,true);for(let i=0;i<=12;i++)assert.equal(actual.lift(i/12),expected.lift(i/12),change+' at-yield native floor');assert.equal(actual.stats().worstLocalFloor,expected.stats().worstLocalFloor,change);
+ }
+});
+
+test('input reuse allocation is capped by total selected vertices across draws',()=>{
+ const root=new T.Group(),model=new T.Group(),bone=new T.Bone(),geometry=new T.BufferGeometry(),count=42000,weights=new Float32Array(count*4);bone.name='Hip';root.add(model);model.add(bone);
+ geometry.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(count*3),3));geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(new Uint16Array(count*4),4));for(let i=0;i<count;i++)weights[i*4]=1;geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+ const material=new T.MeshBasicMaterial();for(let i=0;i<4;i++){const mesh=new T.SkinnedMesh(geometry,material);model.add(mesh);root.updateMatrixWorld(true);mesh.bind(new T.Skeleton([bone]));}
+ const clip=new T.AnimationClip('Death_RunThrough',1,[]),original=globalThis.Float64Array,lengths=[];
+ try{globalThis.Float64Array=class extends original{constructor(size){super(size);lengths.push(size);}};const result=prepareVictimGrounding({root,model,clip,samples:1,maxVertices:200000});assert.equal(result.stats().vertices,168000);assert(lengths.length>0);assert(lengths.every(n=>n===2),'over-total-budget draws keep native input reads, no per-draw input arrays');}
+ finally{globalThis.Float64Array=original;geometry.dispose();material.dispose();}
+});
