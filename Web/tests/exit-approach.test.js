@@ -15,7 +15,7 @@ test('all registered arrivals stay outside every return trigger',()=>{
  for(const link of manifest.links){const w=world(link.to),p=w.geometry.ground(link.entry);assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p),null,`${link.from}→${link.to} bounces back`);}
 });
 test('exit cue stays absent on clear road away from all eight-area entrances',()=>{const w=world('east'),p=w.geometry.ground({x:.5,y:.42});assert(w.geometry.clear(p,.4));assert.equal(w.exitHint(p),'');});
-test('the new southern Area7 entrance shows its destination cue on the existing East road',()=>{const w=world('east'),p=w.geometry.ground({x:.45,y:.545});assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p)?.areaId,'area7');assert.equal(w.exitHint(p),'EXIT → AREA7');});
+test('the new southern Area7 entrance shows its destination cue on the existing East road',()=>{const w=world('east'),p=w.geometry.ground({x:.45,y:.545});assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p)?.areaId,'area7');assert.equal(w.exitHint(p),'EXIT → AREA 7');});
 
 test('direct East/South shortcut cues match both actual destinations',()=>{
  for(const [id,point,target,cue]of [['east',{x:.755,y:.3785},'south','EXIT → SOUTH'],['south',{x:.635,y:.285},'east','EXIT → EAST']]){const w=world(id),p=w.geometry.ground(point);assert(w.geometry.clear(p,.4));assert.equal(w.travelAt(p)?.areaId,target);assert.equal(w.exitHint(p),cue);}

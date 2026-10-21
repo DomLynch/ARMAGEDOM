@@ -50,7 +50,7 @@ export function validateAreaGeometry(registry,areaId,layout,residents=null,exped
  validateSafehouseGeometry(safehouseData,areaId,g,residents?.[areaId]??[]);
  validateBossGeometry(bossData,areaId,g,registry);validateFlameGeometry(flameData,registry,areaId,g);
  validateGuidance(layout,g,registry.links(areaId));
- const tutorial=validateTutorialPath(layout,g);if(tutorial){const site=safehouseData,anchor=site?.props.find(p=>p.id==='comms')?.standing,end=layout.tutorialPath.at(-1);if(areaId!=='westminster'||site?.areaId!==areaId||!anchor||Math.hypot(anchor.x-end.x,anchor.y-end.y)>1e-8)throw Error('Tutorial must reach original Westminster shelter');}
+ const tutorial=validateTutorialPath(layout,g);if(tutorial){if(areaId!=='westminster')throw Error('Tutorial must belong to Westminster');if(safehouseData){const anchor=safehouseData.props.find(p=>p.id==='comms')?.standing,end=layout.tutorialPath.at(-1);if(safehouseData.areaId!==areaId||!anchor||Math.hypot(anchor.x-end.x,anchor.y-end.y)>1e-8)throw Error('Tutorial must reach original Westminster shelter');}}
  if(expedition){
   for(const anchor of[expedition.contract.giver,expedition.contract.case])if(anchor.areaId===areaId){
    if(!g.clear(anchor.position,.4))throw Error('Blocked expedition interaction');
