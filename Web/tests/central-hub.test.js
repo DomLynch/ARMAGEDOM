@@ -42,7 +42,7 @@ test('registry rejects forged visit predicates and manifest omission of a real g
 
 test('all actual new mouth paths fit full player capsules, target arrivals are legal and never land in their return triggers',()=>{
  for(const id of registry.ids)assert.doesNotThrow(()=>validateAreaGeometry(registry,id,layout(id),data.residents,data.expedition,data.bossData,data.populationData,data.flameData,data.safehouseData));
- const hub=layout('central-hub'),g=createGeometry(hub);assert.equal(hub.guidance.length,4);
+ const hub=layout('central-hub'),g=createGeometry(hub);assert.equal(hub.guidance.length,3);
  for(const row of hub.guidance){const pts=row.path.map(g.ground);for(const p of pts)assert(g.clear(p,.4));for(let i=1;i<pts.length;i++)assert(capsuleSegmentClear(g,pts[i-1],pts[i]),row.to);}
  for(const link of registry.links('central-hub')){const dest=createGeometry(layout(link.to));assert(dest.clear(dest.ground(link.entry),.4));const back=registry.links(link.to).find(e=>e.to==='central-hub');assert(!Object.entries(back.condition).every(([k,v])=>k==='xMin'?link.entry.x>v:k==='xMax'?link.entry.x<v:k==='yMin'?link.entry.y>v:link.entry.y<v));}
  assert.deepEqual(Object.keys(data.expedition.atlas).sort(),registry.ids.slice().sort());assert.deepEqual(data.expedition.atlas['central-hub'],{column:1,row:1});

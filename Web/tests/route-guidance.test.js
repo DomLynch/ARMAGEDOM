@@ -5,7 +5,7 @@ function setup(area,point){const l=layout(area),scene=new THREE.Scene(),camera=n
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 test('guidance preserves accepted road geometry including the202 stair pocket; gates match registry',()=>{
  for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area);delete l.guidance;assert.equal(hash(l),fixture.baselineLayouts[area]);}
- assert.equal(manifest.links.length,30);
+ assert.equal(manifest.links.length,28);
  assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'east',requiresDefeat:'boss-witch-v1'},{from:'central-hub',to:'east',requiresDefeat:'boss-witch-v1'}]);
 });
 test('authored rows have capsule-clear paths ending inside an existing destination trigger',()=>{

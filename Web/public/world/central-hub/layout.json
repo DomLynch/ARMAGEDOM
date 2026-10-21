@@ -262,25 +262,6 @@
   "followPlayerSize": true,
   "guidance": [
     {
-      "id": "hub-westminster",
-      "kind": "exit",
-      "to": "westminster",
-      "path": [
-        {
-          "x": 0.5,
-          "y": 0.46
-        },
-        {
-          "x": 0.075,
-          "y": 0.45
-        },
-        {
-          "x": 0.025,
-          "y": 0.45
-        }
-      ]
-    },
-    {
       "id": "hub-south",
       "kind": "exit",
       "to": "south",

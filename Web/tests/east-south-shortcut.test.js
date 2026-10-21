@@ -11,7 +11,7 @@ const matches=(p,c)=>Object.entries(c).every(([key,value])=>key==='xMin'?p.x>val
 const affected=manifest.links.filter(l=>(l.from==='east'&&['south','east-bridge'].includes(l.to))||(l.to==='east'&&['south','east-bridge'].includes(l.from)));
 
 test('Direct East/South shortcut extends shared adjacency and retains the Area7 route',()=>{
-  assert.equal(manifest.links.length,30);
+  assert.equal(manifest.links.length,28);
   for(const [from,to] of [['east','south'],['south','east'],['east','area7'],['area7','east']]){
     const link=manifest.links.find(l=>l.from===from&&l.to===to);
     assert(link,`${from}>${to}`);

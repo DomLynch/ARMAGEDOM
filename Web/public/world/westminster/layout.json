@@ -624,23 +624,7 @@
     }
   ],
   "followPlayerSize": true,
-  "guidance": [
-    {
-      "id": "westminster-hub-entry",
-      "kind": "exit",
-      "to": "central-hub",
-      "path": [
-        {
-          "x": 0.38,
-          "y": 0.92
-        },
-        {
-          "x": 0.345,
-          "y": 0.965
-        }
-      ]
-    }
-  ],
+  "guidance": [],
   "tutorialPath": [
     {
       "x": 0.5,
