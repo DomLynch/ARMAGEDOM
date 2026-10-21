@@ -52,12 +52,13 @@ export function bossMove(actor,action){return actor.bossProfile?.attacks[action]
 // Read the existing committed reward state. A corpse or an uncommitted kill
 // cannot open an exit; pickup and equipment selection are not prerequisites.
 export function bossExitGate(game,target=null){
- const world=game?.world,link=world?.registry?.links?.(world.areaId)?.find(row=>row.requiresDefeat&&(target===null||row.to===target));
+ const world=game?.world,link=world?.registry?.links?.(world.areaId)?.find(row=>(row.requiresDefeat||row.requiresVisited)&&(target===null||row.to===target));
  if(!link)return null;
- const key=link.requiresDefeat,placement=world.bossData?.placements?.find(row=>row.areaId===world.areaId&&row.key===key),name=world.bossData?.profiles?.[placement?.profileRef]?.name??'the boss';
- const field=Object.keys(world.bossEquipmentData??{}).find(field=>{const source=world.bossEquipmentData[field].source;return source.areaId===world.areaId&&source.placementKey===key;});
- const allowed=!game.runSaveInvalid&&field!==undefined&&['pending','owned','legacy-dead'].includes(game.bossEquipment?.[field]?.status);
- return{allowed,key,message:allowed?'':`Defeat ${name} to open the ${link.to.replaceAll('-',' ')} exit.`};
+ const key=link.requiresDefeat,placement=world.bossData?.placements?.find(row=>row.key===key),name=world.bossData?.profiles?.[placement?.profileRef]?.name??'the boss';
+ const field=key&&Object.keys(world.bossEquipmentData??{}).find(field=>world.bossEquipmentData[field].source.placementKey===key);
+ const defeated=!key||field!==undefined&&['pending','owned','legacy-dead'].includes(game.bossEquipment?.[field]?.status),visited=!link.requiresVisited||game.expedition?.visitedIds?.includes(link.to)===true;
+ const allowed=!game.runSaveInvalid&&defeated&&visited,destination=link.to.replaceAll('-',' ');
+ return{allowed,key,message:allowed?'':!defeated?`Defeat ${name} to open the ${destination} exit.`:!visited?`Discover ${destination} on foot before using this safehouse exit.`:'Saving unavailable. Exit remains locked.'};
 }
 export function bossHazardPosition(game,actor){
  const h=actor.bossProfile?.hazard,w=game.world;if(!h||!w.geometry)return null;

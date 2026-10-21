@@ -21,7 +21,7 @@ export function validateExpeditionData(input,registry){
  exact(c.guard,['areaId','placementKey','name']);if(!registry.has(c.guard.areaId)||!text(c.guard.placementKey)||!text(c.guard.name)||c.guard.areaId!==c.case.areaId)fail();
  exact(input.variants,[PISTOL_ITEM_ID,c.rewardVariantId]);
  for(const[id,row]of Object.entries(input.variants)){exact(row,['name','damage','reload','tint']);if(!text(row.name)||!Number.isFinite(row.damage)||row.damage<1||row.damage>40||!Number.isFinite(row.reload)||row.reload<1||row.reload>3||!Number.isInteger(row.tint)||row.tint<0||row.tint>0xffffff)fail();if(id===PISTOL_ITEM_ID&&(row.damage!==PISTOL_RULES.damage||row.reload!==PISTOL_RULES.reload))fail();}
- exact(input.atlas,registry.ids);const cells=new Set();for(const node of Object.values(input.atlas)){exact(node,['column','row']);if(!Number.isInteger(node.column)||node.column<0||node.column>3||!Number.isInteger(node.row)||node.row<0||node.row>1||cells.has(node.column+':'+node.row))fail();cells.add(node.column+':'+node.row);}
+ exact(input.atlas,registry.ids);const cells=new Set();for(const node of Object.values(input.atlas)){exact(node,['column','row']);if(!Number.isInteger(node.column)||node.column<0||node.column>2||!Number.isInteger(node.row)||node.row<0||node.row>2||cells.has(node.column+':'+node.row))fail();cells.add(node.column+':'+node.row);}
  expeditionModel(input,registry);return freeze(structuredClone(input));
 }
 export function expeditionEligible(g,action,data){

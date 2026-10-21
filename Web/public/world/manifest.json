@@ -9,8 +9,8 @@
       "area": "westminster",
       "path": "westminster/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/west/layout.json",
-      "bytes": 10122,
-      "sha256": "d761618b33abbbe570dec8aa59de8f9cc84211bcae728793c2115396bad93a6b"
+      "bytes": 10388,
+      "sha256": "7e17567724841603353844645fac98fd608e7b30d0062e9dc0202203deeb6705"
     },
     {
       "area": "westminster",
@@ -23,8 +23,8 @@
       "area": "south",
       "path": "south/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/south/layout.json",
-      "bytes": 8157,
-      "sha256": "6e8fdf00a6470e24482e5f850b65c037e092bd21d6d24e349c9477b6c4e6aff3"
+      "bytes": 8397,
+      "sha256": "242d3a4e978aaa171f0aa1446d1f4aba0ffc9cc22d9d63c870c25b021ef6e03e"
     },
     {
       "area": "south",
@@ -37,8 +37,8 @@
       "area": "east",
       "path": "east/layout.json",
       "source": "Owner-marked East136 bounded clearance and direct East/South route",
-      "bytes": 9457,
-      "sha256": "7800bca9af0d227b0d061000c0b92d788c62a9b1f6f50e412dbfba7cbfee7685"
+      "bytes": 9713,
+      "sha256": "855923213605659e92288e318ff7b62160748ea9ec5b530fcfbb80f85324e8db"
     },
     {
       "area": "east",
@@ -92,15 +92,15 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 210331,
-      "sha256": "7f02bfdadb8b8d38d84440242e674c46ba054c5bdbb82b070ad766de3b2e8118"
+      "bytes": 213891,
+      "sha256": "7aea7a4bf27a924d76f75a7582c961b63a2e7354d8c5ab7699209e10cd3aa783"
     },
     {
       "area": "area7",
       "path": "area7/layout.json",
       "source": "Owner original / image-authored street geometry",
-      "sha256": "58eedc438c19c487494e27fc8336dc28ef120d0ed9c58febd0c1b8d9afd940d7",
-      "bytes": 10450
+      "sha256": "d4016de684a211773ea9030feddbe9f47e1b9aaa34e9ecc84b1fc48b7a119e7a",
+      "bytes": 10688
     },
     {
       "area": "area7",
@@ -129,6 +129,20 @@
       "source": "Approved Westminster safehouse art pilot 2026-10-18; bounded patch only",
       "bytes": 37208,
       "sha256": "d7833c70a6b7b3f3ddeeb4e85f55dbf1b18fe4dcfa42f02e01e5a257d6282049"
+    },
+    {
+      "area": "central-hub",
+      "path": "central-hub/layout.json",
+      "source": "Image-authored walkable courtyard, four mouths and foreground occlusion",
+      "sha256": "796ad638d4effb1ae8af81df3398d1a39d30d6986b85e885cf60c8a5ecb9ff7e",
+      "bytes": 4905
+    },
+    {
+      "area": "central-hub",
+      "path": "central-hub/backdrop.png",
+      "source": "Owner approved central courtyard image 2026-10-21; original PNG retained byte-exact",
+      "sha256": "9a0f7ab78931a1eabdca03de759eabf87cf93e98ac6cf7be326d651d0511f267",
+      "bytes": 3349648
     }
   ],
   "lazyAreas": [
@@ -138,7 +152,8 @@
     "elephant-and-castle",
     "lambeth",
     "area7",
-    "area8"
+    "area8",
+    "central-hub"
   ],
   "entries": {
     "south": {
@@ -172,12 +187,17 @@
     "area8": {
       "x": 0.2092118,
       "y": 0.88603067
+    },
+    "central-hub": {
+      "x": 0.5,
+      "y": 0.46
     }
   },
   "links": [
     {
       "from": "westminster",
       "to": "east",
+      "requiresDefeat": "boss-witch-v1",
       "condition": {
         "xMin": 0.955,
         "yMin": 0.28,
@@ -186,20 +206,6 @@
       "entry": {
         "x": 0.1,
         "y": 0.72
-      },
-      "requiresDefeat": "boss-witch-v1"
-    },
-    {
-      "from": "east",
-      "to": "westminster",
-      "condition": {
-        "xMax": 0.04,
-        "yMin": 0.68,
-        "yMax": 0.81
-      },
-      "entry": {
-        "x": 0.9,
-        "y": 0.4
       }
     },
     {
@@ -216,16 +222,30 @@
       }
     },
     {
-      "from": "south",
-      "to": "westminster",
+      "from": "westminster",
+      "to": "central-hub",
       "condition": {
-        "yMax": 0.235,
-        "xMin": 0.49,
-        "xMax": 0.58
+        "xMin": 0.368,
+        "xMax": 0.392,
+        "yMin": 0.948,
+        "yMax": 0.972
       },
       "entry": {
-        "x": 0.6,
-        "y": 0.92
+        "x": 0.075,
+        "y": 0.45
+      }
+    },
+    {
+      "from": "east",
+      "to": "westminster",
+      "condition": {
+        "xMax": 0.04,
+        "yMin": 0.68,
+        "yMax": 0.81
+      },
+      "entry": {
+        "x": 0.9,
+        "y": 0.4
       }
     },
     {
@@ -240,6 +260,103 @@
       "entry": {
         "x": 0.07,
         "y": 0.835
+      }
+    },
+    {
+      "from": "east",
+      "to": "area7",
+      "condition": {
+        "xMin": 0.435,
+        "xMax": 0.465,
+        "yMin": 0.53,
+        "yMax": 0.56
+      },
+      "entry": {
+        "x": 0.39656639,
+        "y": 0.36885905
+      }
+    },
+    {
+      "from": "east",
+      "to": "south",
+      "condition": {
+        "xMin": 0.73,
+        "xMax": 0.78,
+        "yMin": 0.372,
+        "yMax": 0.385
+      },
+      "entry": {
+        "x": 0.62,
+        "y": 0.33
+      }
+    },
+    {
+      "from": "east",
+      "to": "central-hub",
+      "condition": {
+        "xMin": 0.388,
+        "xMax": 0.41200000000000003,
+        "yMin": 0.488,
+        "yMax": 0.512
+      },
+      "entry": {
+        "x": 0.925,
+        "y": 0.45
+      }
+    },
+    {
+      "from": "south",
+      "to": "westminster",
+      "condition": {
+        "yMax": 0.235,
+        "xMin": 0.49,
+        "xMax": 0.58
+      },
+      "entry": {
+        "x": 0.6,
+        "y": 0.92
+      }
+    },
+    {
+      "from": "south",
+      "to": "area7",
+      "condition": {
+        "xMin": 0.65,
+        "xMax": 0.7,
+        "yMin": 0.9,
+        "yMax": 0.93
+      },
+      "entry": {
+        "x": 0.11317835,
+        "y": 0.87363397
+      }
+    },
+    {
+      "from": "south",
+      "to": "east",
+      "condition": {
+        "xMin": 0.62,
+        "xMax": 0.65,
+        "yMin": 0.27,
+        "yMax": 0.3
+      },
+      "entry": {
+        "x": 0.7,
+        "y": 0.35
+      }
+    },
+    {
+      "from": "south",
+      "to": "central-hub",
+      "condition": {
+        "xMin": 0.518,
+        "xMax": 0.542,
+        "yMin": 0.638,
+        "yMax": 0.662
+      },
+      "entry": {
+        "x": 0.495,
+        "y": 0.91
       }
     },
     {
@@ -266,6 +383,20 @@
       "entry": {
         "x": 0.07,
         "y": 0.855
+      }
+    },
+    {
+      "from": "east-bridge",
+      "to": "area8",
+      "condition": {
+        "xMin": 0.415,
+        "xMax": 0.445,
+        "yMin": 0.6749999999999999,
+        "yMax": 0.705
+      },
+      "entry": {
+        "x": 0.47620754,
+        "y": 0.47701332
       }
     },
     {
@@ -308,17 +439,17 @@
       }
     },
     {
-      "from": "south",
-      "to": "area7",
+      "from": "lambeth",
+      "to": "area8",
       "condition": {
-        "xMin": 0.65,
-        "xMax": 0.7,
-        "yMin": 0.9,
-        "yMax": 0.93
+        "xMin": 0.45499999999999996,
+        "xMax": 0.485,
+        "yMin": 0.52,
+        "yMax": 0.55
       },
       "entry": {
-        "x": 0.11317835,
-        "y": 0.87363397
+        "x": 0.89769144,
+        "y": 0.3626163
       }
     },
     {
@@ -332,20 +463,6 @@
       "entry": {
         "x": 0.66,
         "y": 0.86
-      }
-    },
-    {
-      "from": "east",
-      "to": "area7",
-      "condition": {
-        "xMin": 0.435,
-        "xMax": 0.465,
-        "yMin": 0.53,
-        "yMax": 0.56
-      },
-      "entry": {
-        "x": 0.39656639,
-        "y": 0.36885905
       }
     },
     {
@@ -375,6 +492,20 @@
       }
     },
     {
+      "from": "area7",
+      "to": "central-hub",
+      "condition": {
+        "xMin": 0.288,
+        "xMax": 0.312,
+        "yMin": 0.738,
+        "yMax": 0.762
+      },
+      "entry": {
+        "x": 0.5,
+        "y": 0.09
+      }
+    },
+    {
       "from": "area8",
       "to": "area7",
       "condition": {
@@ -385,20 +516,6 @@
       "entry": {
         "x": 0.81419492,
         "y": 0.35554196
-      }
-    },
-    {
-      "from": "east-bridge",
-      "to": "area8",
-      "condition": {
-        "xMin": 0.415,
-        "xMax": 0.445,
-        "yMin": 0.6749999999999999,
-        "yMax": 0.705
-      },
-      "entry": {
-        "x": 0.47620754,
-        "y": 0.47701332
       }
     },
     {
@@ -415,20 +532,6 @@
       }
     },
     {
-      "from": "lambeth",
-      "to": "area8",
-      "condition": {
-        "xMin": 0.45499999999999996,
-        "xMax": 0.485,
-        "yMin": 0.52,
-        "yMax": 0.55
-      },
-      "entry": {
-        "x": 0.89769144,
-        "y": 0.3626163
-      }
-    },
-    {
       "from": "area8",
       "to": "lambeth",
       "condition": {
@@ -442,32 +545,60 @@
       }
     },
     {
-      "from": "east",
-      "to": "south",
+      "from": "central-hub",
+      "to": "westminster",
       "condition": {
-        "xMin": 0.73,
-        "xMax": 0.78,
-        "yMin": 0.372,
-        "yMax": 0.385
+        "xMax": 0.045,
+        "yMin": 0.42,
+        "yMax": 0.49
       },
       "entry": {
-        "x": 0.62,
-        "y": 0.33
+        "x": 0.38,
+        "y": 0.92
       }
     },
     {
-      "from": "south",
-      "to": "east",
+      "from": "central-hub",
+      "to": "south",
       "condition": {
-        "xMin": 0.62,
-        "xMax": 0.65,
-        "yMin": 0.27,
-        "yMax": 0.3
+        "yMin": 0.955,
+        "xMin": 0.47,
+        "xMax": 0.525
       },
       "entry": {
-        "x": 0.7,
-        "y": 0.35
-      }
+        "x": 0.53,
+        "y": 0.69
+      },
+      "requiresVisited": true
+    },
+    {
+      "from": "central-hub",
+      "to": "east",
+      "condition": {
+        "xMin": 0.955,
+        "yMin": 0.42,
+        "yMax": 0.49
+      },
+      "entry": {
+        "x": 0.35,
+        "y": 0.5
+      },
+      "requiresDefeat": "boss-witch-v1",
+      "requiresVisited": true
+    },
+    {
+      "from": "central-hub",
+      "to": "area7",
+      "condition": {
+        "yMax": 0.045,
+        "xMin": 0.485,
+        "xMax": 0.515
+      },
+      "entry": {
+        "x": 0.3,
+        "y": 0.79
+      },
+      "requiresVisited": true
     }
   ],
   "backdrops": {
@@ -478,7 +609,8 @@
     "elephant-and-castle": "backdrop.webp",
     "lambeth": "backdrop.webp",
     "area7": "backdrop.png",
-    "area8": "backdrop.png"
+    "area8": "backdrop.png",
+    "central-hub": "backdrop.png"
   },
   "contentRef": "area-content.json"
 }

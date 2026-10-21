@@ -14,9 +14,9 @@ test('actual existing anchors have full capsule-clear approach rings and stable 
  for(const anchor of[data.contract.giver,data.contract.case]){const g=createGeometry(layout(anchor.areaId));assert(g.clear(anchor.position,.4));assert.equal(gate(g,anchor.areaId,anchor.position),null);for(let i=0;i<16;i++){const p={x:anchor.position.x+1.3*Math.cos(i*Math.PI/8),z:anchor.position.z+1.3*Math.sin(i*Math.PI/8)};assert(g.clear(p,.4));assert(g.lineClear(p,anchor.position));assert.equal(gate(g,anchor.areaId,p),null);}}
  const broken=structuredClone(data);broken.contract.guard.placementKey='missing-guard';assert.throws(()=>validateAreaGeometry(registry,'east',layout('east'),c.residents,broken),/Unknown expedition guard/);
 });
-test('atlas uses all actual eight areas and twenty-two directed links; each pin route starts at an existing exit',()=>{
- assert.equal(registry.ids.length,8);assert.equal(registry.ids.reduce((n,id)=>n+registry.links(id).length,0),22);
- for(const from of registry.ids)for(const to of registry.ids){const first=registry.nextExit(from,to);if(from===to){assert.equal(first,null);continue;}assert(registry.links(from).includes(first));let at=from;const seen=new Set([at]);while(at!==to){at=registry.nextExit(at,to).to;assert(!seen.has(at));seen.add(at);}assert(seen.size<=8);}
+test('atlas uses all actual nine areas and thirty directed links; each pin route starts at an existing exit',()=>{
+ assert.equal(registry.ids.length,9);assert.equal(registry.ids.reduce((n,id)=>n+registry.links(id).length,0),30);
+ for(const from of registry.ids)for(const to of registry.ids){const first=registry.nextExit(from,to);if(from===to){assert.equal(first,null);continue;}assert(registry.links(from).includes(first));let at=from;const seen=new Set([at]);while(at!==to){at=registry.nextExit(at,to).to;assert(!seen.has(at));seen.add(at);}assert(seen.size<=9);}
  assert.equal(registry.nextExit('south','east').to,'east');assert.throws(()=>registry.nextExit('unknown','east'));assert.throws(()=>registry.nextExit('east','unknown'));
 });
 

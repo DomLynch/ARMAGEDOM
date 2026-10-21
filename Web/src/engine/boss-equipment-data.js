@@ -8,7 +8,7 @@ export function validateBossEquipmentData(input,registry,residents){
  if(input===undefined)return null;
  if(!closedData(input,['version'])||input.version!==1)throw TypeError('Invalid boss equipment selection');
  for(const data of Object.values(BOSS_EQUIPMENT_PROFILES))if(!registry.has(data.source.areaId)||!(residents[data.source.areaId]??[]).some(row=>row.key===data.source.placementKey))throw TypeError('Unknown equipment reward source');
- for(const areaId of registry.ids)for(const link of registry.links(areaId))if(link.requiresDefeat&&!Object.values(BOSS_EQUIPMENT_PROFILES).some(data=>data.source.areaId===areaId&&data.source.placementKey===link.requiresDefeat))throw TypeError('Unknown exit defeat source');
+ for(const areaId of registry.ids)for(const link of registry.links(areaId))if(link.requiresDefeat&&!Object.values(BOSS_EQUIPMENT_PROFILES).some(data=>registry.has(data.source.areaId)&&data.source.placementKey===link.requiresDefeat))throw TypeError('Unknown exit defeat source');
  return BOSS_EQUIPMENT_PROFILES;
 }
 export function bossEquipmentClock(g,field){const clocks=g.bossEquipmentAction??(g.bossEquipmentAction={});return clocks[field]??(clocks[field]={nextFireAt:0,reloadingUntil:0,firedAt:-1});}

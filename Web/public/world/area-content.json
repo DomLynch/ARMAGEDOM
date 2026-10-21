@@ -237,7 +237,8 @@
           }
         ]
       }
-    ]
+    ],
+    "central-hub": []
   },
   "atmosphere": {
     "east-bridge": {
@@ -1989,11 +1990,11 @@
       }
     },
     "atlas": {
-      "westminster": {
+      "area8": {
         "column": 0,
         "row": 0
       },
-      "east": {
+      "area7": {
         "column": 1,
         "row": 0
       },
@@ -2001,25 +2002,29 @@
         "column": 2,
         "row": 0
       },
-      "elephant-and-castle": {
-        "column": 3,
-        "row": 0
-      },
-      "south": {
+      "westminster": {
         "column": 0,
         "row": 1
       },
-      "area7": {
+      "central-hub": {
         "column": 1,
         "row": 1
       },
-      "area8": {
+      "east": {
         "column": 2,
         "row": 1
       },
       "lambeth": {
-        "column": 3,
-        "row": 1
+        "column": 0,
+        "row": 2
+      },
+      "south": {
+        "column": 1,
+        "row": 2
+      },
+      "elephant-and-castle": {
+        "column": 2,
+        "row": 2
       }
     }
   },
@@ -8643,6 +8648,163 @@
                 0.07356459,
                 0.48671626
               ]
+            ]
+          }
+        ]
+      }
+    ],
+    "additionalSites": [
+      {
+        "version": 1,
+        "areaId": "central-hub",
+        "wholeArea": true,
+        "boundary": [
+          {
+            "x": 0.4,
+            "y": 0.4
+          },
+          {
+            "x": 0.6,
+            "y": 0.4
+          },
+          {
+            "x": 0.6,
+            "y": 0.5
+          },
+          {
+            "x": 0.4,
+            "y": 0.5
+          }
+        ],
+        "patch": null,
+        "interactionRadius": 1.15,
+        "nearbyRadius": 4.5,
+        "pulseSeconds": 3.5,
+        "props": [
+          {
+            "id": "locker",
+            "label": "Storage",
+            "visual": {
+              "x": 0.71,
+              "y": 0.29
+            },
+            "standing": {
+              "x": 0.5,
+              "y": 0.46
+            },
+            "bounds": {
+              "x": 0.65,
+              "y": 0.22,
+              "width": 0.12,
+              "height": 0.1
+            },
+            "phase": 0.0,
+            "outlines": [
+              {
+                "closed": true,
+                "points": [
+                  [
+                    0.65,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.32
+                  ],
+                  [
+                    0.65,
+                    0.32
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "id": "comms",
+            "label": "Safehouse",
+            "visual": {
+              "x": 0.71,
+              "y": 0.29
+            },
+            "standing": {
+              "x": 0.5,
+              "y": 0.46
+            },
+            "bounds": {
+              "x": 0.65,
+              "y": 0.22,
+              "width": 0.12,
+              "height": 0.1
+            },
+            "phase": 0.3333333333333333,
+            "outlines": [
+              {
+                "closed": true,
+                "points": [
+                  [
+                    0.65,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.32
+                  ],
+                  [
+                    0.65,
+                    0.32
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "id": "map",
+            "label": "Discovery atlas",
+            "visual": {
+              "x": 0.71,
+              "y": 0.29
+            },
+            "standing": {
+              "x": 0.5,
+              "y": 0.46
+            },
+            "bounds": {
+              "x": 0.65,
+              "y": 0.22,
+              "width": 0.12,
+              "height": 0.1
+            },
+            "phase": 0.6666666666666666,
+            "outlines": [
+              {
+                "closed": true,
+                "points": [
+                  [
+                    0.65,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.22
+                  ],
+                  [
+                    0.77,
+                    0.32
+                  ],
+                  [
+                    0.65,
+                    0.32
+                  ]
+                ]
+              }
             ]
           }
         ]

@@ -13,7 +13,7 @@ const {createGeometry}=await import(new URL('src/world-geometry.js',root));
 const content=JSON.parse(fs.readFileSync(new URL('public/world/area-content.json',root)));
 const layout=JSON.parse(fs.readFileSync(new URL('public/world/westminster/layout.json',root)));
 const geometry=createGeometry(layout);
-const data=rules.validateSafehouseData(content.safehouse,{has:id=>id==='westminster'});
+const data=rules.validateSafehouseData(content.safehouse,{has:id=>['westminster','central-hub'].includes(id)});
 function game(){return{
   world:{areaId:'westminster',safehouseData:data,geometry,lineClear:geometry.lineClear},
   player:{pos:geometry.ground(data.props.find(p=>p.id==='comms').standing),radius:.4,hp:150},

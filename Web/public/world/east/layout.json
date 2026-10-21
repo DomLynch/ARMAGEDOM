@@ -631,5 +631,22 @@
       ]
     }
   ],
-  "followPlayerSize": true
+  "followPlayerSize": true,
+  "guidance": [
+    {
+      "id": "east-hub-entry",
+      "kind": "exit",
+      "to": "central-hub",
+      "path": [
+        {
+          "x": 0.35,
+          "y": 0.5
+        },
+        {
+          "x": 0.4,
+          "y": 0.5
+        }
+      ]
+    }
+  ]
 }

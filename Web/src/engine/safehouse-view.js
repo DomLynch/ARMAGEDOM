@@ -1,7 +1,7 @@
 import{LineSegments2}from'three/addons/lines/LineSegments2.js';
 import{LineSegmentsGeometry}from'three/addons/lines/LineSegmentsGeometry.js';
 import{LineMaterial}from'three/addons/lines/LineMaterial.js';
-import{safehouseProp,safehouseInteraction,safehouseAnchor}from'./safehouse.js';
+import{safehouseProp,safehouseInteraction,safehouseAnchor,safehouseSite}from'./safehouse.js';
 import{lockerInventory,lockerStored}from'./locker-core.js';
 import{LOCKER_WEAPON_IDS,LOCKER_RESOURCE_RULES}from'./locker-state.js';
 const names=['Starting pistol · shared variants','Bridge Rifle','Ember Projector','Pitborn Cleaver','Stalker Shotgun','Grenades','The Bone Saw','Rocket Launcher','Reaper Drone','Thundercoil Railgun'];
@@ -40,11 +40,11 @@ export function createSafehouseView(s,dispatch){
  for(const[resource,title]of Object.entries(resources)){const carry=inv.ammo[resource],stash=locker?.ammo[resource]??0,rule=LOCKER_RESOURCE_RULES[resource],row=document.createElement('div');row.className='locker-row';const text=document.createElement('p');text.textContent=`${title} · carried ${+carry.toFixed(2)} · stored ${+stash.toFixed(2)}`;row.append(text);const amount=document.createElement('input');amount.type='number';amount.min=resource==='flame-fuel'?'.01':'1';amount.step=resource==='flame-fuel'?'.01':'1';amount.value=resource==='flame-fuel'?'10':'1';amount.max=String(Math.max(rule.carryCap,rule.stashCap));amount.setAttribute('aria-label',title+' transfer amount');row.append(amount);
  for(const type of ['depositSupply','withdrawSupply']){const b=document.createElement('button');b.type='button';b.textContent=type==='depositSupply'?'Store':'Retrieve';b.disabled=!can||!(type==='depositSupply'?carry:stash);b.addEventListener('click',()=>{const result=dispatch(s.game,{type,resource,amount:Number(amount.value)},allowed()&&safehouseProp(s.game,'locker'));lastError=result.ok?'':result.code==='storage-unavailable'?'Saving unavailable. Everything was kept.':'Choose an available amount within the carrying and locker limits.';renderPanel(true);});row.append(b);}panel.append(row);}
  }
- function update(){const g=s.game,w=s.world,data=w?.safehouseData;if(!g||!w||!data){if(target)target.hidden=true;return;}ensureTarget();
- const inArea=w.areaId===data.areaId;if(!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
- if(inArea&&texture&&owner!==w.group)build(w,data);for(const mesh of meshes)mesh.visible=inArea;
+ function update(){const g=s.game,w=s.world,data=safehouseSite(w);if(!g||!w||!data){if(target)target.hidden=true;return;}ensureTarget();
+ const inArea=w.areaId===data.areaId;if(data.patch&&!texture&&!loading&&!failed&&inArea){loading=true;new w.THREE.TextureLoader().load(new URL('world/'+data.patch.path,w.baseUrl).href,t=>{loading=false;if(disposed){t.dispose();return;}texture=t;texture.colorSpace=w.THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=w.THREE.ClampToEdgeWrapping;},undefined,()=>{loading=false;failed=true;});}
+ if(inArea&&data.patch&&texture&&owner!==w.group)build(w,data);for(const mesh of meshes)mesh.visible=inArea&&!!data.patch;
  const anchor=safehouseAnchor(g),near=!!anchor&&Math.hypot(g.player.pos.x-anchor.x,g.player.pos.z-anchor.z)<=data.nearbyRadius,active=safehouseInteraction(g),cueTime=performance.now()/1000,rect=s.canvas.getBoundingClientRect();for(const mesh of meshes){if(!mesh.userData.prop)continue;mesh.material.opacity=safehouseCueOpacity(cueTime,{period:data.pulseSeconds,phase:0,near,selected:active,reduced:!!reduced?.matches});mesh.material.resolution.set(rect.width,rect.height);mesh.userData.cueTime=cueTime;}
- positionTarget(w,data,inArea&&allowed()&&!s.paused&&active);
+ positionTarget(w,data,!!data.patch&&inArea&&allowed()&&!s.paused&&active);
 
  renderPanel();
  }

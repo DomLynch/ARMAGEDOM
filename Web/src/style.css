@@ -516,10 +516,10 @@ summary {
 #expedition-panel button {min-height:44px;font-size:12px;}
 #equipment-retry-note {color:#bdb8a8;}
 #variant-choices, #melee-choices {display:grid;gap:8px;}
-#atlas-map {position:relative;width:100%;aspect-ratio:2;min-height:180px;}
+#atlas-map {position:relative;width:100%;aspect-ratio:1;min-height:260px;}
 #atlas-links {position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
 #atlas-links line {stroke:#837e6c;stroke-width:2;}
-#atlas-nodes {position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px;}
+#atlas-nodes {position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:5px;}
 #atlas-nodes button {align-self:center;margin:0;padding:5px 2px;min-width:44px;min-height:54px;border:1px solid #827958;border-radius:7px;font-size:9px;line-height:1.25;background:#1b2326;}
 #atlas-nodes button[aria-pressed="true"] {outline:2px solid #e9c66e;}
 #atlas-nodes button[data-current="true"] {background:#384c4d;}
