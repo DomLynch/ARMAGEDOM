@@ -16,7 +16,9 @@ export function paintWanted(canvas,portrait,bounty){
 }
 
 export function createWantedMesh(world,data,texture){
- const material=new T.MeshBasicMaterial({map:texture,color:0xdce2ca,transparent:true,opacity:data.opacity,blending:T.AdditiveBlending,depthTest:false,depthWrite:false,side:T.DoubleSide,toneMapped:false});
+ const material=new T.MeshBasicMaterial({map:texture,color:0xdce2ca,transparent:false,opacity:data.opacity,blending:T.AdditiveBlending,depthTest:false,depthWrite:false,side:T.DoubleSide,toneMapped:false});
+ // Additive blending retains texture alpha, but the opaque render queue is
+ // intentional: transparent-list quads run after actors regardless of order.
  // Draw after the registered photograph and before its authored depth masks.
  // Existing actor/depth rendering therefore still places foreground actors in front.
  const mesh=world.quad(data.points,100,material,-95,true);
