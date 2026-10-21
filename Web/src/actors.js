@@ -2,8 +2,8 @@ import{createRailgunCoils}from'./engine/railgun-coils.js';
 import{reaperSelected}from'./engine/reaper.js';
 import{createBoneSaw,animateBoneSaw,boneSawContact}from'./engine/bone-saw-view.js';
 import {traceGrenadeSurface,traceRailgunSurface,posedActorBounds,followGrenadeSurface,surfaceAimHeight} from './engine/grenade-surface.js';
-import{createRigidHandEquipment}from'./rigid-hand-equipment.js';
-import{createRiflePose}from'./rifle-pose.js';
+import{createRigidHandEquipment}from'./engine/rigid-hand-equipment.js';
+import{createRiflePose}from'./engine/rifle-pose.js';
 import {createFinisherGore} from './engine/finisher-gore.js';
 import {nativeFinisherSupport,applyFinisherCorpseCosmetic} from './engine/finisher-cosmetics.js';
 import {FINISHER_DATA,goreProfile,remainingFinisherPartSeconds,finisherPresentationId} from './engine/finisher-data.js';
@@ -70,7 +70,7 @@ export function finisherPresentationAge(entity,time){
 export async function loadActors(
   baseUrl,
   onProgress = () => {},
-  manifestPath = "assets/manifest-lossless.json",
+  manifestPath = "assets/manifest-hollow.json",
 ) {
   const manifestURL = new URL(manifestPath, baseUrl);
   const response = await fetch(manifestURL);

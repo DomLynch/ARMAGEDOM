@@ -37,7 +37,8 @@ export function verifyWeb(root, { quiet = false } = {}) {
       throw Error(`Web ${label} failed (${result.signal ?? result.status})`);
   }
   for (const path of source) run("syntax", ["--check", path]);
-  run("tests", ["--test", ...tests]);
+  // Asset integration tests decode full rigs; bound workers on shared runners.
+  run("tests", ["--test", "--test-concurrency=2", ...tests]);
   return true;
 }
 

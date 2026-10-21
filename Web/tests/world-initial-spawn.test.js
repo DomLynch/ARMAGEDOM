@@ -1,3 +1,4 @@
+import {privateLayout} from './helpers/private-layout.js';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {createWorld} from '../src/world.js';import {createGeometry} from '../src/world-geometry.js';import {preparePrivateAreaContent} from '../src/engine/private-area-content.js';
 const read=path=>JSON.parse(fs.readFileSync(new URL(path,import.meta.url)));
@@ -10,6 +11,6 @@ for(const area of ['lambeth','elephant-and-castle','east-bridge','westminster'])
 });
 test('private configured startup retains its existing origin',async t=>{
  const manifest=read('./fixtures/private-fourth/private-manifest.json');manifest.initialArea='fixture-westminster-annex';
- const content=preparePrivateAreaContent({areas:read('./fixtures/private-fourth/private-registry-rows.json'),manifest,residents:read('./fixtures/private-fourth/private-residents.json'),layouts:Object.fromEntries(['westminster','east','south'].map(id=>['layout.'+id,read('../public/world/'+id+'/layout.json')])),namespace:'armagedom:private:fourth-pilot:',textureBudgetBytes:32*1024*1024});
+ const content=preparePrivateAreaContent({areas:read('./fixtures/private-fourth/private-registry-rows.json'),manifest,residents:read('./fixtures/private-fourth/private-residents.json'),layouts:Object.fromEntries(['westminster','east','south'].map(id=>['layout.'+id,privateLayout(read('../public/world/'+id+'/layout.json'))])),namespace:'armagedom:private:fourth-pilot:',textureBudgetBytes:32*1024*1024});
  const options=rendering(),world=await createWorld({...options,content});t.after(()=>world.dispose());assert.equal(world.areaId,'fixture-westminster-annex');assert.deepEqual(world.spawn,{x:0,z:-6});assert.equal(options.textures(),1);
 });

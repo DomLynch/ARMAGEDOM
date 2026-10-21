@@ -1,3 +1,4 @@
+import {privateLayout} from './helpers/private-layout.js';
 import {createBrowserSession} from '../src/engine/browser-session.js';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {validateAreaLighting,applyAreaLighting,DEFAULT_LIGHTING} from '../src/engine/area-lighting.js';
@@ -8,7 +9,7 @@ import {createHollowEncounter} from '../src/hollow-encounter.js';
 import {createAreaLifecycle} from '../src/engine/areas.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const id='fixture-westminster-annex';
-function fixture(){return {areas:read('./fixtures/private-fourth/private-registry-rows.json'),manifest:read('./fixtures/private-fourth/private-manifest.json'),residents:read('./fixtures/private-fourth/private-residents.json'),layouts:Object.fromEntries(['westminster','east','south'].map(id=>['layout.'+id,read('../public/world/'+id+'/layout.json')])),namespace:'armagedom:private:lighting-proof:',textureBudgetBytes:32*1024*1024,lighting:{presets:{'current-default':{fillIntensity:1.6,keyIntensity:2.3},'private-dim':{fillIntensity:.55,keyIntensity:1.2}},areas:{westminster:'current-default',[id]:'private-dim'}}};}
+function fixture(){return {areas:read('./fixtures/private-fourth/private-registry-rows.json'),manifest:read('./fixtures/private-fourth/private-manifest.json'),residents:read('./fixtures/private-fourth/private-residents.json'),layouts:Object.fromEntries(['westminster','east','south'].map(id=>['layout.'+id,privateLayout(read('../public/world/'+id+'/layout.json'))])),namespace:'armagedom:private:lighting-proof:',textureBudgetBytes:32*1024*1024,lighting:{presets:{'current-default':{fillIntensity:1.6,keyIntensity:2.3},'private-dim':{fillIntensity:.55,keyIntensity:1.2}},areas:{westminster:'current-default',[id]:'private-dim'}}};}
 function lights(){const scene=new T.Scene();scene.add(new T.HemisphereLight(0xb9bec9,0x4b3828,1.6),new T.DirectionalLight(0xffd7a0,2.3),new T.PointLight(0xd4c7a5,3.2,5,2));return scene;}
 const values=scene=>scene.children.filter(l=>l.isLight).map(l=>l.intensity);
 test('public named defaults retain current intensities; layout compatibility fields do not select lighting',()=>{

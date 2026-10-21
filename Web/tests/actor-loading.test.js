@@ -21,10 +21,10 @@ function resource() {
   return { gltf: { scene, animations: [] }, disposed };
 }
 function manifest(t, models) {
-  t.mock.method(globalThis, "fetch", async () => ({
-    ok: true,
-    json: async () => ({ models }),
-  }));
+  t.mock.method(globalThis, "fetch", async (requested) => {
+    assert.equal(new URL(requested).pathname, "/game/assets/manifest-hollow.json");
+    return {ok: true, json: async () => ({models})};
+  });
 }
 const url = "https://example.test/game/";
 

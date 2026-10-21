@@ -1,5 +1,4 @@
 node_modules/
 dist/
-# Preserve original comparison assets locally; publish/version only selected derivatives.
-/public/assets/*.glb
+# Runtime GLBs are tracked in their asset subdirectories; packaging selects the closure.
 /public/assets/manifest.json

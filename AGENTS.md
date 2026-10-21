@@ -21,11 +21,12 @@ Use confirmed isolated lanes, bounded file/commit handoffs, no wholesale private
 baseline merge. Preserve dirty authoring, donor originals, rigs and portable art.
 Frankendom is read-only; do not touch its production users/database/keys.
 
-Official game: https://playarmagedom.com/; current immutable stamina008 uses
-selected006 framing. Keep six touch actions and keyboard/mouse. No new area,
-roster, paid service, realtime economy/backend expansion without owner approval.
-Eight Westminster areas is a planning cap, three existing; Hollow and lean-code
-candidates are separate from current live008. Keep modules few and fixes small.
+Official game: https://playarmagedom.com/. Read PROJECT_STATE.md and the current
+Codex handover for dated source/release facts; verify the served release when needed.
+Keep six touch actions and keyboard/mouse. No new area, roster, paid service or
+realtime economy/backend expansion without owner authorization.
+Prefer readable modules and small coherent fixes. Physical line count is not a
+quality target; do not compress statements to satisfy it or reformat unrelated files.
 
 Use game-iteration-publishing and applicable Three.js/art skills. Active settings
 and world data are under Web/public/world/. Run .quality-gate.json plus applicable
@@ -33,6 +34,6 @@ packaging/build/browser checks. Source, tests, build, HTTPS identity, desktop
 browser and physical-phone acceptance are separate receipts. Never infer phone
 loading/audio/concurrent-touch/frame pacing/feel from desktop emulation.
 No paid GPU; suitable bounded HF CPU requires actual approved hardware/rate
-verification. Local heavy jobs stay sequential. Do not edit unrelated projects,
+verification. Heavy jobs run remotely under the workspace compute policy. Do not edit unrelated projects,
 Claude settings or handovers. Shared Codex coordination for all lanes:
 /Users/domininclynch/Desktop/Business/Vibe Coding Management/codex-state/armagedom.md.

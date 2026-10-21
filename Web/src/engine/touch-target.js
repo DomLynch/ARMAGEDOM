@@ -37,7 +37,7 @@ export function touchTargetVisible(g,views,camera){
  for(let i=0;i<8;i++){point.set(i&1?box.max.x:box.min.x,i&2?box.max.y:box.min.y,i&4?box.max.z:box.min.z).project(camera);left=Math.min(left,point.x);right=Math.max(right,point.x);top=Math.min(top,point.y);bottom=Math.max(bottom,point.y);near=Math.min(near,point.z);far=Math.max(far,point.z);}
  return right>=-1&&left<=1&&bottom>=-1&&top<=1&&far>=-1&&near<=1;
 }
-export function selectedTouchTarget(g){const selected=g.touchTarget;return selected?.areaId===g.world.areaId?(g.enemies??[]).find(e=>e.id===selected.id&&(e.placementKey??String(e.id))===selected.key&&e.hp>0&&e.hostile!==false&&e.visible!==false&&(e.areaId==null||e.areaId===g.world.areaId))??null:null;}
+export function selectedTouchTarget(g){const selected=g.touchTarget;return selected&&g.world&&selected.areaId===g.world.areaId?(g.enemies??[]).find(e=>e.id===selected.id&&(e.placementKey??String(e.id))===selected.key&&e.hp>0&&e.hostile!==false&&e.visible!==false&&(e.areaId==null||e.areaId===g.world.areaId))??null:null;}
 export function touchTargetReady(g,target,{flameAimEligible,allowReload=false}={}){
  const gun=touchGun(g),p=g.player;if(!gun||!target||g.runSaveInvalid||g.finished||!(p.hp>0)||g.weaponsLowered||safehouseWeaponBlocked(g)||safehouseTouches(g,target.pos,target.radius)||p.swing||g.time<(p.ready??0)||g.time<(p.hurtUntil??0)||g.time<(p.dodgeUntil??0)||!g.world.lineClear(p.pos,target.pos))return false;
  if(gun==='reaper')return reaperLegalTarget(g,target,g.reaper?.actor.pos??p.pos);if(gun==='flame')return g.flameFuel?.fuelUnits>0&&typeof flameAimEligible==='function'&&flameAimEligible(g,target)===true;

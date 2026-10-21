@@ -1,10 +1,12 @@
 import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';
-import{createAreaRegistry}from'../src/area-registry.js';import{validateAreaMetadata}from'../src/engine/area-content.js';import{createGeometry}from'../src/world-geometry.js';import{LondonWorld}from'../src/world.js';import{createGame,stepGame}from'../src/combat.js';import{createHollowEncounter}from'../src/hollow-encounter.js';
+import{createAreaRegistry}from'../src/area-registry.js';import{validateAreaMetadata}from'../src/engine/area-content.js';import{createGame,stepGame}from'../src/combat.js';import{createHollowEncounter}from'../src/hollow-encounter.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url))),raw=()=>read('../public/world/area-content.json'),registry=createAreaRegistry();
+// Spacing is tested in an open controlled arena. Public placement geometry has
+// its own validation; placing the player behind its current wall would never wake the boss.
 function setup(distance=.88,{minimum=true,move=null,travel=null,homeLeash=null}={}){
  const input=raw();if(!minimum)delete input.bosses.profiles.warden.minimumAttackDistance;if(homeLeash!==null)input.bosses.profiles.warden.homeLeash=homeLeash;
- const c=validateAreaMetadata(input,registry),row=c.bossData.placements.find(p=>p.profileRef==='warden'),geometry=createGeometry(read('../public/world/east-bridge/layout.json'));
- const w={registry,areaId:'east-bridge',layout:{characterScale:1.265},geometry,bossData:c.bossData,residentPlacements:c.residents,spawn:{x:row.pos.x,z:row.pos.z+distance},lineClear:(a,b)=>geometry.lineClear(a,b),move:move??((p,d,r)=>geometry.move(p,d,r)),travelAt:travel??(p=>LondonWorld.prototype.travelAt.call(w,p))};
+ const c=validateAreaMetadata(input,registry),row=c.bossData.placements.find(p=>p.profileRef==='warden'),geometry={lineClear:()=>true,move:(p,d)=>({x:p.x+d.x,z:p.z+d.z})};
+ const w={registry,areaId:'east-bridge',layout:{characterScale:1.265},geometry,bossData:c.bossData,residentPlacements:c.residents,spawn:{x:row.pos.x,z:row.pos.z+distance},lineClear:(a,b)=>geometry.lineClear(a,b),move:move??((p,d,r)=>geometry.move(p,d,r)),travelAt:travel??(()=>null)};
  const g=createGame(w,{pilot:'donor-knife',areaResidents:true,openingGroup:false,residentPlacements:c.residents,encounter:createHollowEncounter({rig:'hollow-scavenger',contactRig:'hero',weapon:'knife',bodyScale:1})});g.enemies=g.enemies.filter(e=>e.bossProfile);g.enemies[0].facing={x:0,z:1};return{g,e:g.enemies[0],c};
 }
 const gap=({g,e})=>Math.hypot(g.player.pos.x-e.pos.x,g.player.pos.z-e.pos.z),step=s=>{stepGame(s.g,{},1/60);(s.events??=[]).push(...s.g.events);};

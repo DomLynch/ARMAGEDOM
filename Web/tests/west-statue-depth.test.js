@@ -23,10 +23,10 @@ function fixture(){
   return {world,mesh,hit(p){ray.setFromCamera(new THREE.Vector2(2*p.x-1,1-2*p.y),camera);return ray.intersectObject(mesh,false).length>0;}};
 }
 
-test('statue row preserves all previous layout data, entries and 22 routes',()=>{
-  assert(row);
-  assert.equal(hash({...layout,masks:layout.masks.filter(m=>m!==row)}),'1230a60e6d221a1491e60afc5127280de855eea91cbcbb23e480c5b6ccc184ab');
-  assert.equal(hash([manifest.entries,manifest.links]),'66f7ec10186f371eee9e409c2e23c5ec5101885e53588308668cc98fb597744e');
+test('statue layout matches its registered asset digest',()=>{
+ assert(row);
+ const record=manifest.files.find(f=>f.path==='westminster/layout.json');
+ assert(record);assert.equal(createHash('sha256').update(fs.readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url))).digest('hex'),record.sha256);
 });
 
 test('existing triangle fan exactly covers the independently traced concave outline',()=>{

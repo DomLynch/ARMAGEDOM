@@ -12,8 +12,8 @@ test('actual shared combat consumes profile timing/contact once: no windup damag
  for(let n=0;n<8;n++)stepGame(g,{},1/60);assert.equal(g.player.hp,140);assert.equal(boss.pattern,1);assert.equal(ready-end,.5);
  while(g.time+1/60<ready-1e-9){stepGame(g,{},1/60);assert.equal(g.player.hp,140);assert.equal(boss.pattern,1);}
 });
-test('normal movement during boss warning evades the actual weapon sweep and home leash returns it',()=>{
- const g=game(),boss=g.enemies[0];stepGame(g,{},1/60);for(let n=0;n<55;n++)stepGame(g,{move:{x:1,z:0}},1/60);assert.equal(g.player.hp,150);for(let n=0;n<120;n++)stepGame(g,{move:{x:1,z:0}},1/60);assert(Math.hypot(g.player.pos.x-boss.home.x,g.player.pos.z-boss.home.z)>boss.bossProfile.homeLeash);assert.equal(boss.alerted,false);assert(boss.returning||Math.hypot(boss.pos.x-boss.home.x,boss.pos.z-boss.home.z)<.2);
+test('normal movement during boss warning evades the actual weapon sweep and area-wide pursuit retains the awakened boss',()=>{
+ const g=game(),boss=g.enemies[0];stepGame(g,{},1/60);for(let n=0;n<55;n++)stepGame(g,{move:{x:1,z:0}},1/60);assert.equal(g.player.hp,150);for(let n=0;n<120;n++)stepGame(g,{move:{x:1,z:0}},1/60);assert(Math.hypot(g.player.pos.x-boss.home.x,g.player.pos.z-boss.home.z)>boss.bossProfile.homeLeash);assert.equal(boss.residentIntent.pursuitScope,'area');assert.equal(boss.alerted,true);assert.equal(boss.returning,false);
 });
 test('hazard uses actual vest/death path, freezes on pause and clears on owner death/travel',async()=>{
  const g=game(),boss=g.enemies[0];boss.pos={x:100,z:100};boss.home={...boss.pos};g.vest={version:1,itemId:'westminster-worn-vest-v1',equipped:true};const config={warning:.65,radius:1.1,duration:3,interval:.6,damage:3};g.areaHazards=[createAreaHazard({ownerId:boss.id,areaId:'lambeth',position:{...g.player.pos},time:0,config})];const time=g.time;for(let n=0;n<90;n++)stepGame(g,{paused:true},1/60);assert.equal(g.time,time);assert.equal(g.player.hp,150);for(let n=0;n<40;n++)stepGame(g,{},1/60);assert.equal(g.player.hp,147.3);boss.hp=0;stepGame(g,{},1/60);assert.deepEqual(g.areaHazards,[]);

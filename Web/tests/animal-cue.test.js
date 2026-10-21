@@ -15,8 +15,8 @@ for(const [rig,radius,distance]of specs)test(`${rig}: actual body ray outside ce
 });
 test('mixed cohort cue follows nearer physical body when aligned acquisition chooses farther actor',()=>{
  const near=enemy(1,'original-roach',1.59,at(35,1.99)),far=enemy(2,'hollow-scavenger',.4,at(0,6)),g=game([far,near]);
- assert.equal(shot(g).targetId,1);assert.equal(pistolCue(g).targetId,1);near.visible=false;assert.equal(pistolCue(g).targetId,null);
- near.visible=true;assert.equal(pistolCue(g,{visibleIds:[2]}).targetId,null);
+ assert.equal(shot(g).targetId,1);assert.equal(pistolCue(g).targetId,1);near.visible=false;assert.equal(pistolCue(g).targetId,far.id);
+ near.visible=true;assert.equal(pistolCue(g,{visibleIds:[2]}).targetId,far.id);
 });
 test('body cue retains walls/area/visibility/death/range/readiness and pause boundaries',()=>{
  for(const mode of ['wall','area','hidden','dead','far','empty','cooldown','pause']){

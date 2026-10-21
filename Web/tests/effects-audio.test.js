@@ -53,12 +53,13 @@ for (const interrupted of [false,true]) {
   assert.equal(foe.hp,interrupted?90:100);
   assert.equal(foe.swing===null,interrupted);
   const effects=createEffects(scene,world);
+  const persistentGroups=scene.children.filter(o=>o.isGroup);
   try {
    effects.events(game);
    assert.equal(scene.children.filter(mesh=>mesh.isLine&&mesh.material.color.getHex()===0xe45735).length,interrupted?0:1);
    game.time+=1;effects.update(game);
    assert.equal(scene.children.filter(o=>o.isLine).length,0,'expired transient effects must leave the scene');
-   assert.equal(scene.children.filter(o=>o.isGroup).length,3,'persistent pistol groups retain their owner until dispose');
+   assert.deepEqual(scene.children.filter(o=>o.isGroup),persistentGroups,'persistent effects retain their original owners until dispose');
   } finally {effects.dispose();assert.equal(scene.children.length,0,'dispose must remove every owned effect and pistol group');}
  });
 }

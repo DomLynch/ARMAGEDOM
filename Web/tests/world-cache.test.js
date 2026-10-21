@@ -1,3 +1,4 @@
+import {privateLayout} from './helpers/private-layout.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -11,11 +12,11 @@ const base=new URL('../public/world/',import.meta.url),manifest=JSON.parse(readF
 const layouts=Object.fromEntries(['westminster','east','south'].map(id=>[id,JSON.parse(readFileSync(new URL(`${id}/layout.json`,base)))]));
 function fixture(t,{defer=false,registry=null,size={width:1672,height:941},loadSize=null}={}){
  const requests=[],textures=[],originalFetch=globalThis.fetch;let release;
- globalThis.fetch=async url=>{const id=new URL(url).pathname.split('/').at(-2);requests.push(id);return{ok:true,json:async()=>layouts[id]};};
+ globalThis.fetch=async url=>{const id=new URL(url).pathname.split('/').at(-2);requests.push(id);return{ok:true,json:async()=>registry?privateLayout(layouts[id]):layouts[id]};};
  t.after(()=>{globalThis.fetch=originalFetch;});
  const texture=(dimensions=size)=>{const tex=new T.Texture({...dimensions});tex.releases=0;tex.addEventListener('dispose',()=>tex.releases++);textures.push(tex);return tex;};
  class Loader{async loadAsync(){const tex=texture(loadSize??size);if(defer)await new Promise(resolve=>{release=resolve;});return tex;}}
- const scene=new T.Scene(),world=new LondonWorld({THREE:{...T,TextureLoader:Loader},scene,camera:new T.PerspectiveCamera(),layout:layouts.westminster,texture:texture(),manifest,registry,baseUrl:'https://example.invalid/'});
+ const scene=new T.Scene(),world=new LondonWorld({THREE:{...T,TextureLoader:Loader},scene,camera:new T.PerspectiveCamera(),layout:registry?privateLayout(layouts.westminster):layouts.westminster,texture:texture(),manifest,registry,baseUrl:'https://example.invalid/'});
  t.after(()=>world.dispose());return{world,scene,requests,textures,release:()=>release()};
 }
 test('prepared and warm-return worlds retain owned textures, collision and GPU readiness without rebuilding',async t=>{

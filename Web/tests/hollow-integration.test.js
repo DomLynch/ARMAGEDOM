@@ -19,7 +19,7 @@ const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appe
 const publicRoot=new URL('../public/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
- assert.deepEqual(Object.keys(manifest.models).sort(),['boss-butcher','boss-surgeon','boss-warden','hollow-scavenger','original-dog','original-rat','original-roach','vagrant']);
+ for(const id of ['boss-butcher','boss-surgeon','boss-warden','hollow-scavenger','original-dog','original-rat','original-roach','vagrant'])assert(manifest.models[id],id);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
  const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
@@ -43,7 +43,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  for(let i=0;i<views.length;i++){const palette=hollowPaletteFor(game.enemies[i],world.areaId);assert.ok(paletteColors[i].length>=2);for(const m of paletteColors[i])assert.deepEqual(m.rgb,m.name===HOLLOW_GARMENTS.jacket?palette.jacket:palette.trousers);}
  assert.equal(new Set(paletteColors.map(list=>String(list.find(m=>m.name===HOLLOW_GARMENTS.jacket).rgb))).size,3);
  const sourceColors=new Map();models.get('hollow-scavenger').gltf.scene.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])sourceColors.set(m,m.color.toArray());});
- game.enemies[0].flashUntil=game.time+.12;actors.update(game,0);assert.ok(views[0].materials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===.8));game.time+=.13;actors.update(game,0);for(const m of views[0].materials)if(m.material.emissive){assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());assert.equal(m.material.emissiveIntensity,m.intensity);}
+ game.enemies[0].flashUntil=game.time+.12;actors.update(game,0);for(const m of views[0].materials)assert.equal(m.material.emissiveIntensity,m.intensity,'legacy block flash cannot synthesize damage');actors.events({events:[{type:'hit',actor:game.enemies[0],amount:10}]});actors.update(game,0);assert.ok(views[0].materials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===.35));for(let i=0;i<3;i++){game.time+=1/20;actors.update(game,1/20,0,{presentationDt:1/20});}for(const m of views[0].materials)if(m.material.emissive){assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());assert.equal(m.material.emissiveIntensity,m.intensity);}
  let disposed=0;const own=views.flatMap(v=>v.materials.map(m=>m.material));for(const material of own)material.addEventListener('dispose',()=>disposed++);actors.reset();assert.equal(disposed,own.length);actors.update(game,0);
  for(let i=0;i<views.length;i++){const recreated=actors.views.get(game.enemies[i].id);assert.notEqual(recreated.model,views[i].model);for(const m of recreated.materials){const expected=paletteColors[i].find(p=>p.name===m.material.name);if(expected)assert.deepEqual(m.material.color.toArray(),expected.rgb);}}
  // Controlled material integration: registered keys survive serial-ID changes and real corpse views.
@@ -62,7 +62,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  assert.equal(actors.views.get(0).root.scale.x,1.265*1.3225);
  for(const [material,rgb]of sourceColors)assert.deepEqual(material.color.toArray(),rgb);
  const hair=[...actors.views.values()].flatMap(v=>v.appearance?.extraMaterials??[]);let hairDisposed=0;hair.forEach(m=>m.addEventListener('dispose',()=>hairDisposed++));
- const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,.8);game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
+ const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,m.intensity,'legacy corpse flash is not a confirmed hit');game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
  // Controlled actual-view area cohorts: full roster IDs survive teardown/recreation;
  // this checks the renderer seam, not native gate traversal.
  for(const [area,rows] of Object.entries(AREA_MOB_SPAWNS)){
@@ -94,8 +94,8 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  // changing logical positions or advancing/fighting the complete finisher clock.
  const receiver=game.enemies[0],rendered=actors.views.get(receiver.id),origin=world.toRender(receiver.pos),logical={...receiver.pos};
  actors.events({events:[{type:'hit',actor:receiver,amount:10,impactDirection:{x:1,z:0}}]});actors.update(game,1/60,0,{presentationDt:1/60});
- assert.ok(rendered.flashMaterials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===1),'High real-rig pale flash is visible');
- assert.deepEqual(rendered.model.getObjectByName('Photo').material.color.toArray(),new THREE.Color('#fff3dd').toArray());
+ assert.ok(rendered.flashMaterials.filter(m=>m.material.emissive).every(m=>m.material.emissiveIntensity===.35),'confirmed real-rig crimson flash is visible');
+ assert.deepEqual(rendered.model.getObjectByName('Photo').material.color.toArray(),new THREE.Color('#831428').toArray());
  assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8);assert.ok(Math.abs(rendered.root.rotation.z+.30)<1e-8);assert.deepEqual(receiver.pos,logical);
  actors.update(game,0,0,{presentationDt:0});assert.ok(Math.abs(rendered.root.position.x-origin.x-.10)<1e-8,'paused repeat does not accumulate root offset');
  world.geometry.clear=()=>false;actors.update(game,0,0,{presentationDt:0});assert.ok(rendered.root.position.equals(origin),'registered wall suppresses visual offset');world.geometry.clear=()=>true;

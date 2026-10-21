@@ -1,3 +1,5 @@
+import{HUB_SAVE_KEY}from'../src/engine/hub-core.js';
+import{historicalSave}from'./helpers/historical-save-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -29,17 +31,17 @@ test('only declared outward exit is gated; return and alternate routes retain th
  const f=make();f.restore();assert.equal(bossExitGate(f.g,'east').allowed,false);
  assert.match(bossExitGate(f.g).message,/Defeat Ember Matron.*east exit/);
  assert.equal(bossExitGate(f.g,'south'),null);
- for(const area of registry.ids){const links=registry.links(area).filter(link=>link.requiresDefeat);assert.equal(links.length,area==='westminster'?1:0);}
+ for(const area of registry.ids){const links=registry.links(area).filter(link=>link.requiresDefeat);assert.equal(links.length,['westminster','central-hub'].includes(area)?1:0);}
  assert.equal(registry.nextExit('south','east').to,'east');
  const malformed=structuredClone(areaDefinitions);malformed[0].exits[0].requiresDefeat=()=>true;
  assert.throws(()=>createAreaRegistry({areas:malformed}),/Area registry/);
 });
 
-test('actual v12 Core keeps the exit locked through quota failure, opens on committed defeat before pickup, persists through cold restore and Retry',()=>{
+test('actual current v17 Core keeps the exit locked through quota failure, opens on committed defeat before pickup, persists through cold restore and Retry',()=>{
  const f=make();f.restore();stageWitch(f);const before=JSON.stringify(f.g.bossEquipment);
  f.quota(true);assert.equal(f.p.persistRun(f.g),false);assert.equal(bossExitGate(f.g,'east').allowed,false);assert.equal(JSON.stringify(f.g.bossEquipment),before);
  f.quota(false);assert(f.p.persistRun(f.g));assert.equal(f.g.bossEquipment.emberProjector.status,'pending');assert.equal(bossExitGate(f.g,'east').allowed,true);
- const raw=f.records.get(LOCKER_SAVE_KEY);assert(raw);assert.equal(JSON.parse(raw).version,12);
+ const raw=f.records.get(HUB_SAVE_KEY);assert(raw);assert.equal(JSON.parse(raw).version,17);
  const cold=make(f.records);cold.restore();assert.equal(cold.g.runSaveInvalid,undefined);assert.equal(bossExitGate(cold.g,'east').allowed,true);assert.equal(cold.g.bossEquipment.emberProjector.status,'pending');
  assert(cold.p.retry());assert.equal(bossExitGate(cold.g,'east').allowed,true);assert.equal(cold.g.bossEquipment.emberProjector.status,'pending');
  assert.equal(cold.g.progression.awards.filter(row=>row.placementKey==='boss-witch-v1').length,0,'Retry keeps its existing progression policy');
@@ -55,11 +57,11 @@ test('valid historical defeat and owned reward unlock without a new receipt; cor
 
 test('actual historical v9 defeated save migrates through existing Core to legacy-dead without granting a reward',()=>{
  const old=make();old.restore();stageWitch(old);assert(old.p.persistRun(old.g));
- const saved=JSON.parse(old.records.get(LOCKER_SAVE_KEY));saved.version=9;delete saved.locker;delete saved.bossEquipment;
+ const saved=historicalSave(JSON.parse(old.records.get(HUB_SAVE_KEY)),9);
  const raw=JSON.stringify(saved),records=new Map([[RIFLE_SAVE_KEY,raw]]),f=make(records);f.restore();
  assert(!f.g.runSaveInvalid);assert.equal(f.g.bossEquipment.emberProjector.status,'legacy-dead');assert.equal(bossExitGate(f.g,'east').allowed,true);
  assert.equal(f.g.bossEquipment.emberProjector.rewardReceipt,null);assert.equal(records.get(RIFLE_SAVE_KEY),raw);
- const invalid=JSON.parse(records.get(LOCKER_SAVE_KEY));invalid.bossEquipment.emberProjector.status='invented';const bad=make(new Map([[LOCKER_SAVE_KEY,JSON.stringify(invalid)]]));bad.restore();assert.equal(bad.g.runSaveInvalid,true);assert.equal(bossExitGate(bad.g,'east').allowed,false);
+ const invalid=JSON.parse(records.get(HUB_SAVE_KEY));invalid.bossEquipment.emberProjector.status='invented';const bad=make(new Map([[HUB_SAVE_KEY,JSON.stringify(invalid)]]));bad.restore();assert.equal(bad.g.runSaveInvalid,true);assert.equal(bossExitGate(bad.g,'east').allowed,false);
 });
 
 test('blocked lifecycle activation cannot begin loading, and Journal retains the optional contract beside the gate cue',async()=>{

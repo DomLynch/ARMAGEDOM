@@ -1,4 +1,4 @@
-import {prepareArmSever} from './finisher-arm.js';
+import {prepareArmSever} from './engine/finisher-arm.js';
 import {FINISHER_DATA,FLAME_DEATH_DATA,finisherDefinition,finisherPresentationId,withFinisherAliases} from './engine/finisher-data.js';
 import * as T from 'three';
 import {nativeFinisherSupport} from './engine/finisher-cosmetics.js';

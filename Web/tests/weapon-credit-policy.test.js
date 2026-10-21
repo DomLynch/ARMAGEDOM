@@ -9,7 +9,7 @@ const placements={east:Array.from({length:8},(_,i)=>({key:'east-roamer-'+(i+1)})
 const row=(weaponId=flame,placementKey='east-roamer-2',areaId='east')=>({placementKey,areaId,weaponId});
 test('only exact registered descriptors resolve; policies and descriptors are immutable',()=>{
  assert.deepEqual(deathWeaponDescriptor(flame),{id:flame,creditPolicy:'none'});assert.equal(deathWeaponDescriptor('knife').creditPolicy,'mastery');assert.equal(deathWeaponDescriptor(pistol).creditPolicy,'mastery');
- assert.deepEqual(Object.keys(WEAPON_CREDIT_DESCRIPTORS),['knife',pistol,flame]);assert(Object.isFrozen(WEAPON_CREDIT_DESCRIPTORS));for(const d of Object.values(WEAPON_CREDIT_DESCRIPTORS))assert(Object.isFrozen(d));
+ assert.deepEqual(Object.keys(WEAPON_CREDIT_DESCRIPTORS),['borough-marshals-pistol-v1','watchmans-pistol-v1','borough-butchers-rocket-launcher-v1','south-stalker-shotgun-v1','standard-grenade-v1','bridge-warden-rifle-v1','knife',pistol,flame]);assert(Object.isFrozen(WEAPON_CREDIT_DESCRIPTORS));for(const d of Object.values(WEAPON_CREDIT_DESCRIPTORS))assert(Object.isFrozen(d));
  for(const id of['unknown','flamethrower','__proto__','constructor',null,{},1])assert.equal(deathWeaponDescriptor(id),null);
 });
 test('registered flame appends one durable-shaped death row, zero XP events and no new family',()=>{

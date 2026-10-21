@@ -10,7 +10,8 @@ export function stopReaper(g,reason='cancel'){if(!g)return;const s=g.reaper;if(s
 export function reaperLegalTarget(g,e,origin){const r=g.world.reaperData?.rules??REAPER_RULES;return !!e&&e.id!==0&&e.id!==REAPER_ACTOR_ID&&e.hp>0&&e.hostile!==false&&e.visible!==false&&(e.areaId==null||e.areaId===g.world.areaId)&&Math.hypot(e.pos.x-origin.x,e.pos.z-origin.z)<=r.range&&!safehouseTouches(g,e.pos,e.radius)&&g.world.lineClear(origin,e.pos)&&!safehouseBlocksSegment(g,origin,e.pos);}
 export function reaperTarget(g,origin){const selected=g.touchTarget,e=selected?.areaId===g.world.areaId?g.enemies.find(e=>e.id===selected.id&&(e.placementKey??String(e.id))===selected.key):null;if(reaperLegalTarget(g,e,origin))return e;return g.enemies.filter(e=>reaperLegalTarget(g,e,origin)).sort((a,b)=>Math.hypot(a.pos.x-origin.x,a.pos.z-origin.z)-Math.hypot(b.pos.x-origin.x,b.pos.z-origin.z)||a.id-b.id)[0]??null;}
 export function stepReaper(g,dt,{source,trace,aimHeight,emitBolt,hit}={}){
- if(!Number.isFinite(dt)||dt<=0||dt>1/30)throw TypeError('Finite Reaper step required');const r=g.world.reaperData?.rules;if(!r)return;const p=g.player;
+ const r=g.world.reaperData?.rules;if(!r)return;
+ if(!Number.isFinite(dt)||dt<=0||dt>1/30)throw TypeError('Finite Reaper step required');const p=g.player;
  if(!reaperSelected(g)||g.finished||g.runSaveInvalid||p.hp<=0||safehouseWeaponBlocked(g)||g.weaponsLowered||g.reaperContextPaused){stopReaper(g,'unavailable');return;}
  const s=g.reaper??={actor:{id:REAPER_ACTOR_ID,kind:0,pos:{...p.pos},facing:{x:0,z:1}},areaId:g.world.areaId,nextAttackAt:g.time,warning:null,targetId:null};
  if(s.areaId!==g.world.areaId){stopReaper(g,'area');s.areaId=g.world.areaId;s.actor.pos={...p.pos};}
