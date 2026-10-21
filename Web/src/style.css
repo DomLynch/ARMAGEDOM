@@ -343,9 +343,9 @@ dialog {
 dialog::backdrop {
   background: #0009;
 }
-/* The dialog is its own scroll container; button touch-action:none would
-   otherwise block a scroll starting on Resume/Retry. Keep clicks intact. */
-dialog button {
+/* Explicit policy crosses details' UA content box as well as buttons.
+   Keep one-finger dialog scrolling and clicks, with no pinch/double-tap zoom. */
+dialog * {
   touch-action: pan-y;
 }
 dialog h2 {
