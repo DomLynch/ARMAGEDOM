@@ -26,7 +26,8 @@ export function createMarkedComponent({base,getRun,getAction=()=>null,canDispatc
   const result=execute(command,{...context,writeRun(candidate){
    if(command.type!=='retry'&&candidate.marked!==undefined&&!same(candidate.marked,before))return false;
    const next={...candidate},money=copyMarked(before),config=rules();earned=0;
-   if(command.type==='retry'){next.pistol=g.pistol?.collected?{...g.pistol,reloadingUntil:0,nextFireAt:0}:candidate.pistol;next.vest={...g.vest};if(next.pistol?.equipped)next.player={...next.player,weapon:'pistol'};}
+   if(command.type==='retry'){next.pistol=g.pistol?.collected?{...g.pistol,reloadingUntil:0,nextFireAt:0}:candidate.pistol;next.vest={...g.vest};// Retain the existing supply provenance required by earned armour validation.
+    if(g.vest?.equipped)next.supplies=structuredClone(g.supplies);if(next.pistol?.equipped)next.player={...next.player,weapon:'pistol'};}
    if(command.type==='retry'||candidate.player.hp<=0){money.carried=0;money.bounty=0;}
    else for(const row of candidate.progression?.awards??[]){if(oldAwards.has(row.placementKey))continue;const boss=g.world.bossData?.placements.some(p=>p.key===row.placementKey&&p.areaId===row.areaId),amount=boss?config.bossCash:config.cashPerKill;money.carried=Math.min(config.maxMoney,money.carried+amount);money.bounty=Math.min(config.maxMoney,money.bounty+amount);earned+=amount;}
    if(action){
@@ -43,7 +44,7 @@ export function createMarkedComponent({base,getRun,getAction=()=>null,canDispatc
   }});
   // Inner owners may publish their normal callbacks after IO; apply this one
   // committed bank/resource proposal last, never before a successful write.
-  if(result.ok&&committed){const current=getRun();current.marked=copyMarked(committed.marked);if(action||command.type==='retry'){current.player.hp=committed.player.hp;current.pistol=committed.pistol;if(committed.vest)current.vest=committed.vest;if(committed.rifle)current.rifle=committed.rifle;}}
+  if(result.ok&&committed){const current=getRun();current.marked=copyMarked(committed.marked);if(action||command.type==='retry'){current.player.hp=committed.player.hp;current.pistol=committed.pistol;if(committed.vest)current.vest=committed.vest;if(command.type==='retry'&&committed.supplies)current.supplies=committed.supplies;if(committed.rifle)current.rifle=committed.rifle;}}
   return result.ok&&committed?{...result,changed:result.changed||!same(before,committed.marked),events:[...result.events,...(earned?[{type:'marked-earned',amount:earned}]:[]),...(action?[{type:'marked-'+action.type,itemId:action.itemId}]:[])]}:result;
  };}
  return{codec,wrapDomain,applySavedRun(g,saved){base.applySavedRun(g,saved);g.marked=copyMarked(saved.marked);},storageAdapter(storage){const b=base.storageAdapter(storage);return!b?b:{getItem(key){if(key!==MARKED_SAVE_KEY)return b.getItem(key);legacy=false;const raw=b.getItem(key);if(raw!=null)return raw;legacy=true;return b.getItem(base.codec.RUN_SAVE_KEY);},setItem:(key,raw)=>b.setItem(key,raw)};}};
