@@ -6,7 +6,7 @@ export function paintWanted(canvas,portrait,bounty){
  const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);
  c.fillStyle='#e5e5df';c.textAlign='center';c.font='700 82px monospace';c.fillText('WANTED',192,100);
  c.globalAlpha=.86;c.drawImage(portrait,64,170,256,320);c.globalAlpha=1;
- const amount='$'+bounty.toLocaleString('en-US');c.font=`700 ${amount.length>8?40:92}px monospace`;c.fillText(amount,192,625);
+ const amount='$'+bounty.toLocaleString('en-US');c.font='700 92px monospace';const width=c.measureText(amount).width;if(width>300)c.font=`700 ${Math.floor(92*300/width)}px monospace`;c.fillText(amount,192,625);
  c.globalAlpha=.4;c.fillRect(40,125,304,2);c.fillRect(64,655,256,2);c.globalAlpha=1;
  // Fixed wear, repainted only with changed content, never frame-by-frame noise.
  c.globalCompositeOperation='destination-out';
@@ -32,7 +32,7 @@ export function createWantedProjection(s){
  function clear(){if(mesh){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();mesh=null;}world=null;}
  function load(data,w){if(pending||portrait||failed)return;const image=new Image();image.decoding='async';pending=new Promise((resolve,reject)=>{image.onload=()=>resolve(image);image.onerror=reject;image.src=new URL('world/'+data.portrait,w.baseUrl).href;}).then(value=>{if(!disposed){portrait=value;update();}}).catch(()=>{failed=true;}).finally(()=>pending=null);}
  function update(){
-  if(disposed)return;const w=s.world,g=s.game,data=w?.markedData?.projection;
+  if(disposed)return;const w=s.world,g=s.game,settings=w?.markedData,data=settings?.projections?.[w.areaId]??settings?.projection;
   if(mesh&&(world!==w||mesh.parent!==w.group))clear();
   if(!data||w.areaId!==data.areaId||!g?.marked||g.runSaveInvalid){if(mesh)mesh.visible=false;return;}
   if(g.marked.bounty<=0){if(mesh)mesh.visible=false;return;}
