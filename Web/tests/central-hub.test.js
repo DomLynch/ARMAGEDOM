@@ -12,6 +12,7 @@ import {safehouseSite,safehouseProtected,safehouseInteraction,safehouseProp,safe
 import {createWorld} from '../src/world.js';
 import {fixture} from './helpers/rifle-fixture.js';
 import {receiveHit,stepGame} from '../src/combat.js';
+import {HUB_SAVE_KEY} from '../src/engine/hub-core.js';
 import {RAILGUN_SAVE_KEY} from '../src/engine/railgun-core.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const manifest=read('../public/world/manifest.json'),raw=read('../public/world/area-content.json');
@@ -68,11 +69,11 @@ test('hub has zero hostiles and existing safety blocks hits, weapons, delayed pr
  assert.deepEqual([g.pistol.magazine,g.pistol.reserve,g.bossEquipment.commanderPistol.magazine,g.bossEquipment.commanderPistol.reserve],ammo);
 });
 
-test('genuine published194 v16 resources and ownership survive hub visit, real Storage roundtrip and cold restore without a new codec or rollback rewrite',()=>{
+test('genuine published194 v16 resources and ownership survive hub visit, real Storage roundtrip and cold restore through passive17 without changing the resource model or rollback16',()=>{
  const f=make(),g=f.g,before=JSON.parse(seed);assert.equal(g.player.hp,72);assert.deepEqual([g.pistol.magazine,g.pistol.reserve],[2,10]);assert(f.p.persistRun(g));
  assert(g.expedition.visitedIds.includes('central-hub'));const reserve=g.pistol.reserve;
  assert(f.p.dispatchLocker(g,{type:'depositSupply',resource:'pistol-reserve',amount:1},true).ok);assert.equal(g.pistol.reserve,reserve-1);
  assert(f.p.dispatchLocker(g,{type:'withdrawSupply',resource:'pistol-reserve',amount:1},true).ok);assert.equal(g.pistol.reserve,reserve);
- const cold=make(f.records);assert.equal(cold.g.player.hp,before.hp);assert.deepEqual(cold.g.bossEquipment,before.bossEquipment);assert.deepEqual(JSON.parse(f.records.get(RAILGUN_SAVE_KEY)).pistol,before.pistol);for(const key of ['collected','equipped','magazine','reserve'])assert.deepEqual(cold.g.pistol[key],before.pistol[key],key);assert(cold.g.expedition.visitedIds.includes('central-hub'));assert.equal(JSON.parse(f.records.get(RAILGUN_SAVE_KEY)).version,16);
- cold.quota(true);const raw=f.records.get(RAILGUN_SAVE_KEY);assert.equal(cold.p.dispatchLocker(cold.g,{type:'depositSupply',resource:'pistol-reserve',amount:1},true).ok,false);assert.equal(f.records.get(RAILGUN_SAVE_KEY),raw);assert.equal(cold.g.pistol.reserve,reserve);
+ const cold=make(f.records);assert.equal(cold.g.player.hp,before.hp);assert.deepEqual(cold.g.bossEquipment,before.bossEquipment);assert.deepEqual(JSON.parse(f.records.get(HUB_SAVE_KEY)).pistol,before.pistol);for(const key of ['collected','equipped','magazine','reserve'])assert.deepEqual(cold.g.pistol[key],before.pistol[key],key);assert(cold.g.expedition.visitedIds.includes('central-hub'));assert.equal(JSON.parse(f.records.get(HUB_SAVE_KEY)).version,17);
+ assert.equal(f.records.get(RAILGUN_SAVE_KEY),seed);cold.quota(true);const raw=f.records.get(HUB_SAVE_KEY);assert.equal(cold.p.dispatchLocker(cold.g,{type:'depositSupply',resource:'pistol-reserve',amount:1},true).ok,false);assert.equal(f.records.get(HUB_SAVE_KEY),raw);assert.equal(cold.g.pistol.reserve,reserve);
 });

@@ -1,3 +1,4 @@
+import{createHubComponent}from'./hub-core.js';
 import{createRailgunComponent}from'./railgun-core.js';
 import{createReaperComponent}from'./reaper-core.js';
 import{createOpeningStoryComponent}from'./opening-story-core.js';
@@ -38,7 +39,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const selectedCodec={...codec,captureRunState,isRunStateUnchanged,get RUN_SAVE_KEY(){return hasExtendedLoot(getRun()?.lootRules)?extendedKey:codec.RUN_SAVE_KEY;}};
  // Evaluate context at IO time: browser persistence is created before the game loads.
  const selectedStorage=!storage?storage:{getItem(name){const raw=storage.getItem(name);return name===extendedKey&&raw==null?storage.getItem(codec.RUN_SAVE_KEY):raw;},setItem(name,raw){storage.setItem(name,raw);}};
- let storyComponent=null,storyDomain=null,reaperComponent=null,reaperDomain=null,railgunComponent=null,railgunDomain=null;
+ let storyComponent=null,storyDomain=null,reaperComponent=null,reaperDomain=null,railgunComponent=null,railgunDomain=null,hubComponent=null,hubDomain=null;
  let lockerComponent=null,lockerDomain=null,lockerScope=null;
  let bossEquipmentComponent=null,bossEquipmentDomain=null,bossEquipmentScope=null;
  let rifleComponent=null,rifleDomain=null,rifleScope=null;
@@ -89,7 +90,8 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  function story(){const base=locker();if(!base)return null;if(!storyComponent){storyComponent=createOpeningStoryComponent({base,getRun});storyDomain=storyComponent.wrapDomain(lockerDomain);}return storyComponent;}
  function reaper(){if(!getRun()?.world.reaperData)return null;const base=story();if(!base)return null;if(!reaperComponent){reaperComponent=createReaperComponent({base,getRun});reaperDomain=reaperComponent.wrapDomain(storyDomain);}return reaperComponent;}
  function railgun(){if(getRun()?.world.bossEquipmentData?.commanderPistol?.weaponKey!=='railgun')return null;const base=reaper()??story()??locker()??bossEquipment();if(!base)return null;if(!railgunComponent){railgunComponent=createRailgunComponent({base,getRun});railgunDomain=railgunComponent.wrapDomain(reaperDomain??storyDomain??lockerDomain??bossEquipmentDomain);}return railgunComponent;}
- const stateComponent=()=>railgun()??reaper()??story()??locker()??bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
+ function hub(){if(!getRun()?.world.registry?.has?.('central-hub'))return null;const base=railgun();if(!base)return null;if(!hubComponent){hubComponent=createHubComponent({base});hubDomain=hubComponent.wrapDomain(railgunDomain);}return hubComponent;}
+ const stateComponent=()=>hub()??railgun()??reaper()??story()??locker()??bossEquipment()??rifle()??flame()??uniqueReward()??expedition()??progression();
  const activeCodec={...selectedCodec,captureRunState(g){return(stateComponent()?.codec??selectedCodec).captureRunState(g);},isRunStateUnchanged(g,snapshot){return(stateComponent()?.codec??selectedCodec).isRunStateUnchanged(g,snapshot);},get RUN_SAVE_KEY(){return stateComponent()?.codec.RUN_SAVE_KEY??selectedCodec.RUN_SAVE_KEY;},encodeRun(g){return(stateComponent()?.codec??selectedCodec).encodeRun(g);},restoreRun(...args){try{const raw=args[1]==null?null:JSON.parse(args[1]);if(raw?.version<=7&&(raw.progression?.awards??[]).some(row=>deathWeaponDescriptor(row.weaponId)?.creditPolicy==='none'))return null;}catch{return null;}return(stateComponent()?.codec??selectedCodec).restoreRun(...args);}};
  const activeStorage=!selectedStorage?selectedStorage:{getItem(key){return(stateComponent()?.storageAdapter(selectedStorage)??selectedStorage).getItem(key);},setItem:(key,raw)=>selectedStorage.setItem(key,raw)};
  let supplyScope=null;
@@ -99,7 +101,7 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  const claimPickup=(command,context)=>command.pickupId===PISTOL_ITEM_ID?pistolOperation(command,context):supplyPickup(command,context);
  const executeDomain=createRunOperation({getRun,setRun,createFreshRun({reset=false}={}){const candidate=createFreshRun({reset}),e=expedition();if(candidate?.world.safehouseData)candidate.locker=locker().model.freshState();if(!reset&&e&&candidate&&candidate!==getRun())candidate.expedition=e.model.copy(getRun().expedition??e.model.freshState());return candidate;},applySavedRun(g,saved){const p=stateComponent();if(p)p.applySavedRun(g,saved);else codec.applySavedRun(g,saved);if(g.world.uniqueRewardData)syncMeleeEquipment(g);},claimPickup,equip:pistolOperation});
  const io=createRunStorage({storage:activeStorage,codec:activeCodec});
- const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return railgun()?railgunDomain(command,context):reaper()?reaperDomain(command,context):story()?storyDomain(command,context):locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
+ const core=createCore({executeDomain(command,context){if(command.type==='reset')return executeDomain(command,context);return hub()?hubDomain(command,context):railgun()?railgunDomain(command,context):reaper()?reaperDomain(command,context):story()?storyDomain(command,context):locker()?lockerDomain(command,context):bossEquipment()?bossEquipmentDomain(command,context):rifle()?rifleDomain(command,context):flame()?flameDomain(command,context):uniqueReward()?uniqueDomain(command,context):expedition()?expeditionDomain(command,context):progression()?wrappedDomain(command,context):executeDomain(command,context);},
   codec:activeCodec,readRun:()=>io.restore(getRun()),writeRun:(candidate,options)=>io.write(candidate,options)});
  function dispatchLocker(g,action,allowed=false){if(g!==getRun()||lockerScope||!locker())return{ok:false,code:'not-eligible',events:[]};lockerScope={run:g,action,allowed:allowed===true};try{const result=core.dispatch({type:'save'});if(!result.ok&&result.code==='storage-unavailable')unavailable(g);return result;}finally{lockerScope=null;}}
  function unavailable(g){g.message='Run saving unavailable. Supplies kept.';g.messageUntil=g.time+5;}
