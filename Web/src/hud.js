@@ -145,7 +145,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       // The expedition objective owns next-step guidance; this line keeps region
       // status. Actual crossing checks and transient warnings remain unchanged.
       const guided=!!g.world?.safehouseData,exitGate=guided?null:bossExitGate(g);
-      el("objective").textContent = exitGate&&!exitGate.allowed ? `${area} · ${exitGate.message}` : g.encounterCleared
+      el("objective").textContent = exitGate&&!exitGate.allowed ? `${area} · ${exitGate.message}` : g.encounterCleared&&!g.enemies.some(e=>e.hp>0&&e.hostile!==false)
         ? `${area} · CLEARED${guided?'':' · EXPLORE LONDON'}`
         : donor
           ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`

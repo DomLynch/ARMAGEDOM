@@ -573,3 +573,8 @@ summary {
 #weapon-tiles .weapon-browse{flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#e1bb65;font-size:22px;line-height:44px;text-align:center;touch-action:manipulation;}
 #weapon-tiles-prev{position:absolute;left:0;bottom:100%;}
 @media(orientation:portrait)and(max-width:374px){#weapon-tiles{bottom:calc(var(--safe-b) + 232px);}}
+
+#marked-status{position:absolute;top:calc(var(--safe-t) + 180px);left:12px;right:12px;margin:0;text-align:center;white-space:pre-line;font-size:10px;line-height:1.5;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
+#marked-status[data-marked="true"],.hunter-world-label{color:#e2a28b;}
+#marked-bank{border-bottom:1px solid #58615a;margin:0 0 16px;padding-bottom:12px;}
+#marked-bank h4{margin:0 0 8px;}#marked-bank>button{display:block;width:100%;min-height:44px;margin:8px 0;}#marked-bank .marked-hint,#marked-shop-status{font-size:11px;line-height:1.45;}

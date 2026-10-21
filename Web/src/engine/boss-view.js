@@ -6,11 +6,11 @@ export function createBossView(s){
  const removePatch=view=>{view.root.removeFromParent();view.fill.material.dispose();view.edge.material.dispose();};
  function update(){
   if(disposed)return;const g=s.game;if(!g)return;const active=s.loaded&&!s.contextLost&&!s.traveling&&g.player.hp>0;
-  const live=new Set();for(const e of g.enemies.filter(e=>e.bossProfile&&e.hp>0)){
-   live.add(e.id);let el=labels.get(e.id);if(!el){el=document.createElement('span');el.className='boss-world-label';el.dataset.bossKey=e.placementKey;host.append(el);labels.set(e.id,el);}
+  const live=new Set();for(const e of g.enemies.filter(e=>(e.bossProfile||e.markedHunter)&&e.hp>0)){
+   live.add(e.id);let el=labels.get(e.id);if(!el){el=document.createElement('span');el.className='boss-world-label'+(e.markedHunter?' hunter-world-label':'');el.dataset.bossKey=e.placementKey;host.append(el);labels.set(e.id,el);}
    const near=Math.hypot(e.pos.x-g.player.pos.x,e.pos.z-g.player.pos.z)<12;
    el.hidden=!active||!near;if(el.hidden)continue;
-   if(el.textContent!==e.bossName)el.textContent=e.bossName;
+   const name=e.markedHunter?'HUNTER':e.bossName;if(el.textContent!==name)el.textContent=name;
    const position=positionHead(s.actors?.views.get(e.id),el.getBoundingClientRect(),s.camera,{width:innerWidth,height:innerHeight});
    el.hidden=!position;if(position){el.style.left=`${position.left}px`;el.style.top=`${position.top}px`;}
   }

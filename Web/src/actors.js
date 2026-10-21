@@ -167,6 +167,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
   function make(entity,finishers=false,restoreCorpses=false){const steps=makeSteps(entity,finishers,restoreCorpses);for(;;){const step=steps.next();if(step.done)return step.value;}}
   function* makeSteps(entity,finishers=false,restoreCorpses=false,{stageWorld=world,renderScene=scene,store=views}={}) {
+    if(entity.markedHunter)finishers=false;
     if(entity.rig==='low-hover-drone'){
       const drone=droneKits.spawn({scene:renderScene,position:stageWorld.toRender(entity.pos),heading:Math.atan2(entity.facing.x,-entity.facing.z)});
       const view={root:drone.root,model:drone.root,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
@@ -220,6 +221,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         const copies = original.map((m) => {
           const own = m.clone();
           if(palette)applyHollowPalette(own,palette,garments);
+          if(entity.markedHunter)own.color?.multiply(new THREE.Color(1,.66,.55));
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),

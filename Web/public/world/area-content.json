@@ -8827,5 +8827,34 @@
       "orbitRadius": 1.4,
       "followSpeed": 8
     }
+  },
+  "marked": {
+    "version": 1,
+    "cashPerKill": 100,
+    "bossCash": 200,
+    "maxMoney": 1000000000,
+    "hunterBounty": 300,
+    "maxHunters": 1,
+    "hostileBudget": 6,
+    "minSpawnDistance": 8,
+    "warningSeconds": 2,
+    "spawnCooldown": 30,
+    "arrivalDelay": 6,
+    "hunterHealth": 80,
+    "hunterSpeed": 3.2,
+    "shop": {
+      "pistol": {
+        "price": 100,
+        "amount": 6
+      },
+      "rifle": {
+        "price": 150,
+        "amount": 4
+      },
+      "dressing": {
+        "price": 100,
+        "amount": 25
+      }
+    }
   }
 }
