@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {publicAreaRegistry as r} from '../src/area-registry.js';import {validateAreaWater} from '../src/engine/area-water.js';
-test('approved loop retains its links and four central-hub connections',()=>{
- const edges=[['westminster','east'],['east','east-bridge'],['east-bridge','elephant-and-castle'],['elephant-and-castle','lambeth'],['westminster','south'],['east','south'],['south','area7'],['area7','area8'],['area8','lambeth'],['east','area7'],['east-bridge','area8'],['westminster','central-hub'],['east','central-hub'],['south','central-hub'],['area7','central-hub']],expected=edges.flatMap(([a,b])=>[a+'>'+b,b+'>'+a]).sort();assert.deepEqual(r.ids.flatMap(id=>r.links(id).map(e=>e.from+'>'+e.to)).sort(),expected);
+test('approved loop retains its links and three central-hub connections',()=>{
+ const edges=[['westminster','east'],['east','east-bridge'],['east-bridge','elephant-and-castle'],['elephant-and-castle','lambeth'],['westminster','south'],['east','south'],['south','area7'],['area7','area8'],['area8','lambeth'],['east','area7'],['east-bridge','area8'],['east','central-hub'],['south','central-hub'],['area7','central-hub']],expected=edges.flatMap(([a,b])=>[a+'>'+b,b+'>'+a]).sort();assert.deepEqual(r.ids.flatMap(id=>r.links(id).map(e=>e.from+'>'+e.to)).sort(),expected);
 });
 test('all arrivals stay outside every exit in the destination so a fresh commit cannot immediately bounce',()=>{
  const inside=(p,c)=>Object.entries(c).every(([k,v])=>k==='xMin'?p.x>v:k==='xMax'?p.x<v:k==='yMin'?p.y>v:p.y<v);for(const id of r.ids)for(const e of r.links(id))for(const next of r.links(e.to))assert(!inside(e.entry,next.condition),e.id+' arrival hits '+next.id);
