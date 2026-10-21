@@ -578,3 +578,4 @@ summary {
 #marked-status[data-marked="true"],.hunter-world-label{color:#e2a28b;}
 #marked-bank{border-bottom:1px solid #58615a;margin:0 0 16px;padding-bottom:12px;}
 #marked-bank h4{margin:0 0 8px;}#marked-bank>button{display:block;width:100%;min-height:44px;margin:8px 0;}#marked-bank .marked-hint,#marked-shop-status{font-size:11px;line-height:1.45;}
+.marked-head-total{color:#ffdb48;font-size:14px;font-weight:900;letter-spacing:.02em;text-shadow:0 1px 2px #000,0 0 4px #000;pointer-events:none}
