@@ -7,6 +7,14 @@ import {createHeadLabelPositioner} from './boss-label.js';
 import {createVestBagView} from '../vest-view.js';
 const areaName=id=>id.replace(/^area(\d+)$/,'Area $1').replaceAll('-',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const paint=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
+// Long schematic links use the gaps between cards, so crossing an unrelated
+// area never looks like a connection to it. Endpoints remain the real graph.
+export function atlasConnectionPoints(a,b){
+ const start={x:a.column*100+50,y:a.row*100+50},end={x:b.column*100+50,y:b.row*100+50};
+ if(a.row===b.row&&Math.abs(a.column-b.column)>1){const y=a.row===0?0:a.row===2?300:100;return[start,{x:start.x,y},{x:end.x,y},end];}
+ if(a.column===b.column&&Math.abs(a.row-b.row)>1){const x=a.column===0?-3:a.column===2?303:100,near=start.y<end.y?100:200,far=start.y<end.y?200:100;return[start,{x:start.x,y:near},{x,y:near},{x,y:far},{x:end.x,y:far},end];}
+ return[start,end];
+}
 const stageAction={available:'accept',accepted:'recover',recovered:'claim'};
 const nearbyAction=(g,data)=>g.expedition?.status==='available'&&expeditionEligible(g,'recover',data)?'recover':stageAction[g.expedition?.status];
 const labels={accept:'Accept contract',recover:'Recover supply case',claim:'Complete contract & claim reward'};
@@ -32,8 +40,8 @@ export function createExpeditionView(s,dispatch){
   if(el('contract-reward'))el('contract-reward').textContent=s.world.reaperData?`Reward: ${s.world.reaperData.name} · autonomous companion`:`Reward: ${reward.name} · +${Math.round((reward.damage/base.damage-1)*100)}% base damage · ${reward.reload.toFixed(1)}s reload.`;
   for(const[id,row]of Object.entries(data.variants)){if(s.world.reaperData&&id===data.contract.rewardVariantId)continue;const button=document.createElement('button');button.type='button';button.id='variant-'+id;choices.set(id,button);el('variant-choices').append(button);listen(button,()=>execute({type:'selectVariant',variantId:id}));}
   const registry=s.world.registry,drawn=new Set();for(const from of registry.ids)for(const link of registry.links(from)){
-   const key=[from,link.to].sort().join(':');if(drawn.has(key))continue;drawn.add(key);const a=data.atlas[from],b=data.atlas[link.to],line=document.createElementNS('http://www.w3.org/2000/svg','line');
-   for(const[k,v]of Object.entries({x1:a.column*100+50,y1:a.row*100+50,x2:b.column*100+50,y2:b.row*100+50}))line.setAttribute(k,String(v));el('atlas-links').append(line);
+   const key=[from,link.to].sort().join(':');if(drawn.has(key))continue;drawn.add(key);const points=atlasConnectionPoints(data.atlas[from],data.atlas[link.to]),line=document.createElementNS('http://www.w3.org/2000/svg','path');
+   line.setAttribute('d',points.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));line.setAttribute('data-from',from);line.setAttribute('data-to',link.to);el('atlas-links').append(line);
   }
   el('atlas-map').setAttribute('aria-label',`${registry.ids.length} areas and ${registry.ids.reduce((n,id)=>n+registry.links(id).length,0)} directed exits shown as ${drawn.size} two-way connections`);
   for(const id of registry.ids){const button=document.createElement('button'),at=data.atlas[id];button.type='button';button.id='atlas-pin-'+id;button.style.gridColumn=String(at.column+1);button.style.gridRow=String(at.row+1);el('atlas-nodes').append(button);nodes.set(id,button);listen(button,()=>{if(button.disabled)return;pin=pin===id?null:id;update();});}
