@@ -94,7 +94,11 @@
   ],
   "baselineLayouts": {
     "south": "63f91064c81066756b1763e161c4c33247076975a7ef24effe23721ead9d688d",
-    "area7": "e5a2e5113290b27f24bf76a71fad56aac1c012482f01daaf591438301b8e25aa",
+    "area7": "944ca4304dd8bd5cb8ef151dcb4f59887549cdeb59d81e818f849e0b6c194ca2",
     "lambeth": "2415a2a1f6e50e870ee9ebc5e169ddf8f10cfecf03b6c0e9ad1ab980c18ceb41"
-  }
+  },
+  "historicalBaselineLayouts137": {
+    "area7": "e5a2e5113290b27f24bf76a71fad56aac1c012482f01daaf591438301b8e25aa"
+  },
+  "baselineRevisionNote": "202 navigation: Area7 left-building stair access pocket added; original blockers and sampled through-road clearance preserved. Historical137 Area7 digest retained above."
 }

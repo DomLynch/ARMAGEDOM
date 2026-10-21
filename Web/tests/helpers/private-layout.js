@@ -1,5 +1,6 @@
 // Private registry fixtures reuse public geometry, but own different exit graphs.
-// Guidance belongs to the public graph and must not leak into the fixture.
+// Guidance and the Westminster tutorial belong to their authored area, not this fixture.
 export function privateLayout(layout) {
-  return { ...layout, guidance: [] };
+  const { tutorialPath, ...geometry } = layout;
+  return { ...geometry, guidance: [] };
 }

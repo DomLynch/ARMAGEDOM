@@ -3,7 +3,7 @@ import{LondonWorld}from'../src/world.js';import{createGeometry}from'../src/world
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url))),fixture=read('./fixtures/phone-guidance-positions.json'),manifest=read('../public/world/manifest.json'),layout=area=>read('../public/world/'+area+'/layout.json');
 function setup(area,point){const l=layout(area),scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=new LondonWorld({THREE,scene,camera,layout:l,texture:new THREE.Texture(),manifest});world.areaId=area;world.update(world.geometry.ground(point),0,393,695,true);return{world,scene,camera};}
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
-test('guidance retains protected137 road geometry; current gates match the registry',()=>{
+test('guidance preserves accepted road geometry including the202 stair pocket; gates match registry',()=>{
  for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area);delete l.guidance;assert.equal(hash(l),fixture.baselineLayouts[area]);}
  assert.equal(manifest.links.length,30);
  assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'east',requiresDefeat:'boss-witch-v1'},{from:'central-hub',to:'east',requiresDefeat:'boss-witch-v1'}]);
