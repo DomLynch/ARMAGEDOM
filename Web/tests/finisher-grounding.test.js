@@ -22,3 +22,35 @@ test('cancelling a yielded native sampling pass restores its actor and never ins
  try{globalThis.performance={now:()=>clock+=5};const steps=prepareVictimGroundingSteps({root,model,clip,cache});assert.equal(steps.next().done,false);steps.return();assert.equal(model.position.y,.3);assert.equal(cache.has(mesh.geometry),false);}
  finally{globalThis.performance=original;mesh.geometry.dispose();mesh.material.dispose();}
 });
+
+test('pose-local skin matrices exactly retain native floors for morphs, nonunit weights, binds and moved roots',()=>{
+ const root=new T.Group(),model=new T.Group(),geometry=new T.BoxGeometry(.4,.4,.4),a=new T.Bone(),b=new T.Bone();a.name='Hip';b.name='Foot';a.add(b);b.position.y=.3;
+ const count=geometry.attributes.position.count,indices=new Uint16Array(count*4),weights=new Float32Array(count*4);
+ for(let i=0;i<count;i++){indices.set([0,1,0,1],i*4);weights.set(i%3===0?[0,0,0,0]:i%3===1?[.2,.3,.1,.1]:[.1,.2,.3,.4],i*4);}
+ geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(indices,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+ const morph=geometry.attributes.position.clone();for(let i=0;i<count;i++)morph.setY(i,morph.getY(i)-.2);geometry.morphAttributes.position=[morph];
+ const mesh=new T.SkinnedMesh(geometry,new T.MeshBasicMaterial());root.add(model);model.add(mesh,a);root.updateMatrixWorld(true);mesh.bind(new T.Skeleton([a,b]),new T.Matrix4().makeTranslation(.15,-.1,.05));mesh.morphTargetInfluences[0]=.7;
+ root.position.set(17,-.2,-3);root.scale.set(1.7,.8,1.2);root.rotation.set(.2,.7,-.15);model.rotation.z=.2;
+ const clip=new T.AnimationClip('Death_RunThrough',1,[new T.VectorKeyframeTrack('Hip.position',[0,1],[0,0,0,.1,-.8,.2]),new T.QuaternionKeyframeTrack('Foot.quaternion',[0,1],[0,0,0,1,0,0,Math.sin(.3),Math.cos(.3)])]);
+ const options={root,model,clip},actual=prepareVictimGrounding(options),native=mesh.getVertexPosition;let nativeCalls=0;
+ mesh.getVertexPosition=function(...args){nativeCalls++;return native.apply(this,args);};
+ const expected=prepareVictimGrounding(options);assert(nativeCalls>0,'custom vertex methods retain native dispatch');delete mesh.getVertexPosition;
+ for(let i=0;i<=240;i++)assert.equal(actual.lift(i/240),expected.lift(i/240));assert.equal(actual.stats().worstLocalFloor,expected.stats().worstLocalFloor);
+ const apply=mesh.applyBoneTransform;let customCalls=0;mesh.applyBoneTransform=function(...args){customCalls++;return apply.apply(this,args);};const custom=prepareVictimGrounding(options);assert(customCalls>0,'custom skin transforms retain native dispatch');for(let i=0;i<=240;i++)assert.equal(custom.lift(i/240),expected.lift(i/240));
+ geometry.dispose();mesh.material.dispose();
+});
+
+test('cancellation after a skinned pose update and nonfinite skin failure restore pose without partial cache',()=>{
+ const root=new T.Group(),model=new T.Group(),bone=new T.Bone(),geometry=new T.BoxGeometry(.4,.4,.4,8,8,8);bone.name='Hip';bone.position.y=.3;
+ const count=geometry.attributes.position.count,weights=new Float32Array(count*4);for(let i=0;i<count;i++)weights[i*4]=1;
+ geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(new Uint16Array(count*4),4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+ const mesh=new T.SkinnedMesh(geometry,new T.MeshBasicMaterial());root.add(model);model.add(mesh,bone);root.updateMatrixWorld(true);mesh.bind(new T.Skeleton([bone]));
+ const clip=new T.AnimationClip('Death_RunThrough',1,[new T.VectorKeyframeTrack('Hip.position',[0,1],[0,-.2,0,0,-1,0])]),cache=new WeakMap(),original=globalThis.performance,pose=bone.position.toArray();let clock=0;
+ try{
+  globalThis.performance={now:()=>clock+=5};const steps=prepareVictimGroundingSteps({root,model,clip,cache});let updated=false;
+  for(let i=0;i<1000;i++){const step=steps.next();assert(!step.done);if(step.value==='victim-floor'||step.value==='victim-pose'){updated=true;break;}}
+  assert(updated);assert.notDeepEqual(bone.position.toArray(),pose);steps.return();assert.deepEqual(bone.position.toArray(),pose);assert.equal(cache.has(geometry),false);
+ }finally{globalThis.performance=original;}
+ mesh.skeleton.boneInverses[0].elements[0]=NaN;assert.throws(()=>prepareVictimGrounding({root,model,clip,cache}),/Nonfinite victim floor/);assert.deepEqual(bone.position.toArray(),pose);assert.equal(cache.has(geometry),false);
+ geometry.dispose();mesh.material.dispose();
+});
