@@ -51,6 +51,8 @@ import {allocateFaceRecipes} from './face-allocator.js';
 const residentFaces=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});
 const names = ["revenant", "orc", "warlock", "warlord"];
 function actorModelRef(entity,manifest){
+  // Appearance only: the hunter keeps its existing mechanical rig and rules.
+  if(entity.markedHunter&&manifest.models?.['marked-hunter'])return 'marked-hunter';
   if(entity.appearanceRef!==undefined){
     const ref=entity.appearanceRef;
     if(entity.kind<0||typeof ref!=='string'||!/^[a-z][a-z0-9-]*$/.test(ref)||!manifest.models||!Object.hasOwn(manifest.models,ref)||manifest.models[ref].rig!==entity.rig)throw Error('Invalid actor appearance reference');
@@ -176,7 +178,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     const name = actorModelRef(entity,library.manifest),
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
-    const garments=source.description.clothingMaterials??(entity.rig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
+    const visualRig=entity.markedHunter&&name==='marked-hunter'?source.description.rig:entity.rig,garments=source.description.clothingMaterials??(visualRig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
     const palette=entity.kind>=0&&garments?hollowPaletteFor(entity,stageWorld.areaId):null;
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
@@ -221,7 +223,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         const copies = original.map((m) => {
           const own = m.clone();
           if(palette)applyHollowPalette(own,palette,garments);
-          if(entity.markedHunter)own.color?.multiply(new THREE.Color(1,.66,.55));
+          if(entity.markedHunter&&name!=='marked-hunter')own.color?.multiply(new THREE.Color(1,.66,.55));
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
@@ -233,7 +235,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       }
     });
     let appearance=null,humanBody=null,humanBodyRecipe=null;
-    const humanBodyRequest=entity.kind>=0&&entity.rig==='hollow-scavenger'?entity.humanBodyRecipe:null;
+    const humanBodyRequest=entity.kind>=0&&visualRig==='hollow-scavenger'?entity.humanBodyRecipe:null;
     const flashMaterials=[];
     const shadow = new THREE.Mesh(
       shadowGeometry,
@@ -255,7 +257,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
       materials,appearance,feral,bodyShape,humanBody,humanBodyRecipe,humanBodyRequest,flashMaterials,
       entity,
       description,
-      locomotionVariant: hollowLocomotionFor(entity),
+      locomotionVariant: visualRig==='hollow-scavenger'?hollowLocomotionFor(entity):null,
       palette,
       animalAppearanceId,pistolMount,pistolSlide:attachPistolSlide(pistolMount),knife,hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()}),
     };
@@ -263,7 +265,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     let completed=false;
     try {
       yield 'actor-clone';
-      if(entity.kind>=0&&entity.rig==='hollow-scavenger'){
+      if(entity.kind>=0&&visualRig==='hollow-scavenger'){
         if(!faceKits.has(source.gltf.scene))faceKits.set(source.gltf.scene,createFaceAppearanceLibrary(source.gltf.scene));
         appearance=yield* faceKits.get(source.gltf.scene).applySteps(model,description.faceRecipeId??residentFaces.get(entity.placementKey)??ORIGINAL_FACE_ID);
         view.appearance=appearance;

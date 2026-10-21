@@ -1159,6 +1159,39 @@
         "source": "Original ARMAGEDOM procedural launcher/rocket, own Rifle grip and four unchanged pose tracks",
         "sourceRifleSHA256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9"
       }
+    },
+    "marked-hunter": {
+      "url": "hunters/hunter-goblin-l8.glb",
+      "rig": "goblin",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 0.7014,
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "parry": "Parry",
+        "block": "BlockImpact",
+        "deflected": "Deflected"
+      },
+      "deferred": false,
+      "provenance": {
+        "donorRevision": "3f7dd2616095d5c391e62aba6221a9dd62582712",
+        "baseSHA256": "07b0c267fcf5b1b105cf8fb2aeb9c88ce6d717b47d191a8ad51603ece53610f7",
+        "lookSHA256": "bc698394609f9e2d37282489b2fcf89e0c75515267ca56ded31f070c7bb3f70f",
+        "assembly": "Native Goblin base+L8; original base clips/own look inverse binds; appearance only"
+      },
+      "bytes": 6640516,
+      "sha256": "aed9df9a055935f8aca666e4044762991d602b5c01e9a8d49aa57ec040007dcd"
     }
   },
   "files": {
@@ -1236,6 +1269,11 @@
       "file": "hollow-scavenger/left-arm-parts.glb",
       "bytes": 1093144,
       "sha256": "65ca424e6235a21dc6f194f4e41f99ccaea341cc28d330b0b5702ded02b78199"
+    },
+    "marked-hunter": {
+      "file": "hunters/hunter-goblin-l8.glb",
+      "bytes": 6640516,
+      "sha256": "aed9df9a055935f8aca666e4044762991d602b5c01e9a8d49aa57ec040007dcd"
     }
   },
   "pistol": {
