@@ -106,15 +106,21 @@ function queueNeighbours(state){
 function queueDestination(areaId,state=areaPreparation){
   if(s.world.isAreaReady(areaId))return Promise.resolve();
   if(!state||state.cancelled||state.game!==s.game)throw Error('Area preparation unavailable');
-  const existing=state.tasks.get(areaId);if(existing&&existing.status!=='failed'&&existing.status!=='ready')return existing.promise;
+  const existing=state.tasks.get(areaId);if(existing&&existing.status!=='failed'&&existing.status!=='ready'){pumpDestinations(state);return existing.promise;}
   let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
   state.tasks.set(areaId,{areaId,promise,resolve,reject,status:'queued'});pumpDestinations(state);return promise;
 }
-async function prepareDestination(areaId){if(!areaPreparation)startAreaPreparation();const state=areaPreparation;state.urgent=areaId;try{await queueDestination(areaId,state);}finally{state.urgent=null;}}
+async function prepareDestination(areaId){
+  if(s.world.isAreaReady(areaId))return;
+  if(!s.traveling)throw Error('Cold area preparation requires announced travel');
+  if(!areaPreparation)startAreaPreparation();const state=areaPreparation;state.urgent=areaId;try{await queueDestination(areaId,state);}finally{state.urgent=null;}
+}
 async function pumpDestinations(state){
-  if(state.running)return;state.running=true;
+  // Keep neighbours queued, but admit their indivisible actor/finisher work only
+  // during the announced destination-entry pause, never alongside live play.
+  if(state.running||!s.traveling||!state.urgent)return;state.running=true;
   try{for(;;){
-    const queued=[...state.tasks.values()].filter(t=>t.status==='queued').sort((a,b)=>(a.areaId===state.urgent?-1:b.areaId===state.urgent?1:exitDistance(a.areaId)-exitDistance(b.areaId)));
+    const queued=[...state.tasks.values()].filter(t=>t.status==='queued'&&t.areaId===state.urgent&&s.traveling);
     if(!queued.length||state.cancelled)return;const task=queued[0];task.status='running';state.current=task.areaId;
     let release=task.suspended?.release??(()=>{}),suspended=false;const retainedViews=task.suspended?.retainedViews??(state.actors.areaViewStats().parked?.some(row=>row.area===task.areaId&&row.count>0)??false);
     try{
