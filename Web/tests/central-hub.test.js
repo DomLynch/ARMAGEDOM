@@ -73,6 +73,6 @@ test('genuine published194 v16 resources and ownership survive hub visit, real S
  assert(g.expedition.visitedIds.includes('central-hub'));const reserve=g.pistol.reserve;
  assert(f.p.dispatchLocker(g,{type:'depositSupply',resource:'pistol-reserve',amount:1},true).ok);assert.equal(g.pistol.reserve,reserve-1);
  assert(f.p.dispatchLocker(g,{type:'withdrawSupply',resource:'pistol-reserve',amount:1},true).ok);assert.equal(g.pistol.reserve,reserve);
- const cold=make(f.records);assert.equal(cold.g.player.hp,before.hp);assert.deepEqual(cold.g.bossEquipment,before.bossEquipment);for(const key of Object.keys(before.pistol))assert.deepEqual(cold.g.pistol[key],before.pistol[key],key);assert(cold.g.expedition.visitedIds.includes('central-hub'));assert.equal(JSON.parse(f.records.get(RAILGUN_SAVE_KEY)).version,16);
+ const cold=make(f.records);assert.equal(cold.g.player.hp,before.hp);assert.deepEqual(cold.g.bossEquipment,before.bossEquipment);assert.deepEqual(JSON.parse(f.records.get(RAILGUN_SAVE_KEY)).pistol,before.pistol);for(const key of ['collected','equipped','magazine','reserve'])assert.deepEqual(cold.g.pistol[key],before.pistol[key],key);assert(cold.g.expedition.visitedIds.includes('central-hub'));assert.equal(JSON.parse(f.records.get(RAILGUN_SAVE_KEY)).version,16);
  cold.quota(true);const raw=f.records.get(RAILGUN_SAVE_KEY);assert.equal(cold.p.dispatchLocker(cold.g,{type:'depositSupply',resource:'pistol-reserve',amount:1},true).ok,false);assert.equal(f.records.get(RAILGUN_SAVE_KEY),raw);assert.equal(cold.g.pistol.reserve,reserve);
 });
