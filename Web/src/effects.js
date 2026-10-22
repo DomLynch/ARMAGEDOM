@@ -25,7 +25,7 @@ export function createEffects(scene,world,pistolAsset=null,getMuzzle=()=>null,{r
  const flameEffect=world.flameData?createFlameEffect({THREE,scene,world,getSource:getFlameSource,getView,reducedMotion}):null,severBlood=createSeverBloodEffect({THREE,scene,world}),finisherGate=createFinisherImpactGate(),finisherBursts=new Map(),severEvents=[];let poolTime=0;
  const bossFlame=Object.values(world.bossData?.profiles??{}).some(p=>p.weapon?.kind==='flame')?createFlameEffect({THREE,scene,world,getView,reducedMotion,cosmeticBurn:false,getEmission:g=>{
   const e=g.enemies.find(e=>e.hp>0&&e.bossWeapon?.phase==='active'&&g.time>=e.recoverUntil&&g.time>=e.staggerUntil),mount=e&&getView(e)?.flameMount,m=mount?.visible&&mount.getObjectByName('Muzzle');if(!m)return null;
-  const p=m.getWorldPosition(new THREE.Vector3()),d=m.getWorldDirection(new THREE.Vector3());return{source:{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}},origin:e.pos,contact:e.bossProfile.weapon};
+  const p=m.getWorldPosition(new THREE.Vector3()),d=m.getWorldDirection(new THREE.Vector3());return{source:{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}},origin:e.pos,contact:e.bossProfile.weapon,widthScale:e.rig==='boss-westminster-witch'?2:1};
  }}):null;
  const salamanderPoint=new THREE.Vector3();
  const salamanderFlame=createFlameEffect({THREE,scene,world,getView,reducedMotion,cosmeticBurn:false,getEmission:g=>{
@@ -108,7 +108,7 @@ export function createEffects(scene,world,pistolAsset=null,getMuzzle=()=>null,{r
  }else{reticle.userData.targetId=null;reticle.userData.ready=false;}
 
  const sync=(items,map,geometry,material,height)=>{const ids=new Set(items.map(x=>x.id));for(const [id,mesh]of map)if(!ids.has(id)){scene.remove(mesh);map.delete(id);}for(const item of items){let mesh=map.get(item.id);if(!mesh){mesh=new THREE.Mesh(geometry,typeof material==='function'?material(item):material);map.set(item.id,mesh);scene.add(mesh);}mesh.position.copy(world.toRender(item.pos,item.height??height));if(geometry===gem)mesh.rotation.y=game.time*1.5;}};
- if(!paused)for(const e of game.enemies)if(e.hp>0&&e.bossWeapon?.phase==='warning'&&!transient.some(t=>t.bossWarning===e.id)){
+ if(!paused)for(const e of game.enemies)if(e.hp>0&&e.rig!=='boss-westminster-witch'&&e.bossWeapon?.phase==='warning'&&!transient.some(t=>t.bossWarning===e.id)){
   const w=e.bossProfile.weapon,m=getView(e)?.flameMount?.getObjectByName('Muzzle'),p=m?.getWorldPosition(new THREE.Vector3()),origin=p?{x:p.x,z:-p.z}:e.pos;
   line(origin,e.bossWeapon.direction,w.range,w.coneDegrees,0xffbd62,(e.bossWeapon.startTick+w.windupTicks)/60);transient.at(-1).bossWarning=e.id;
  }

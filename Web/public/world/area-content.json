@@ -2153,7 +2153,7 @@
         "modelRef": "boss-westminster-witch",
         "health": 120,
         "radius": 0.4,
-        "moveSpeed": 1.75,
+        "moveSpeed": 2.275,
         "wakeDistance": 6,
         "homeLeash": 8,
         "recoveryDelay": 0.7,
@@ -2183,10 +2183,10 @@
         "weapon": {
           "kind": "flame",
           "modelRef": "player-flamethrower",
-          "windupTicks": 42,
+          "windupTicks": 6,
           "activeTicks": 24,
-          "recoveryTicks": 58,
-          "range": 4.05,
+          "recoveryTicks": 32,
+          "range": 4.86,
           "coneDegrees": 40,
           "intervalTicks": 12,
           "damage": 4
