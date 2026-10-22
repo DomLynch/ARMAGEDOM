@@ -36,7 +36,15 @@ export function stepBossFlame(g,e,dt,{patrol,move,source,receive,emit,profile=e.
  }
  if(g.time+EPS<e.ready)return true;
  const dx=g.player.pos.x-e.pos.x,dz=g.player.pos.z-e.pos.z,distance=Math.hypot(dx,dz),direction=distance>EPS?{x:dx/distance,z:dz/distance}:{...e.facing};
- if(p.minDistance&&distance+EPS<p.minDistance){move(g,e,{x:-direction.x,z:-direction.z},e.moveSpeed,Math.min(dt,(p.minDistance-distance)/e.moveSpeed),true);return true;}
+ if(p.minDistance&&distance+EPS<p.minDistance){
+  const step=Math.min(dt,(p.minDistance-distance)/e.moveSpeed),length=e.moveSpeed*step,away={x:-direction.x,z:-direction.z};let retreat=away,best=EPS;
+  // Reuse the collision mover to choose a free backward/side step. A blocked
+  // straight retreat must not oscillate forever against an authored obstacle.
+  for(let i=0;i<16;i++){const a=i*Math.PI/8,c=Math.cos(a),s=Math.sin(a),d={x:away.x*c-away.z*s,z:away.x*s+away.z*c},next=g.world.move(e.pos,{x:d.x*length,z:d.z*length},e.radius),gain=Math.hypot(next.x-g.player.pos.x,next.z-g.player.pos.z)-distance;
+   if(gain>best&&Math.hypot(next.x-e.pos.x,next.z-e.pos.z)>=length*.25){best=gain;retreat=d;}
+  }
+  move(g,e,retreat,e.moveSpeed,step,true);return true;
+ }
  if(distance>(p.acquisitionRange??p.range)||!g.world.lineClear(e.pos,g.player.pos)){move(g,e,direction,e.moveSpeed,dt);return true;}
  e.facing={...direction};
  e.bossWeapon={profile:p,phase:'warning',startTick:g.tick,direction,aimPoint:{x:g.player.pos.x,y:combatTargetHeight(g.player,g.time),z:g.player.pos.z},pulses:0,source:null};
