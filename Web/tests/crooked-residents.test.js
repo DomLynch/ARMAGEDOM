@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame} from '../src/combat.js';
 import {travelTo} from '../src/travel.js';
-import {hollowLocomotionFor} from '../src/area-mob-spawns.js';
-import {AREA_MOB_SPAWNS} from './fixtures/area-mob-spawns-205.js';
+import {AREA_MOB_SPAWNS,hollowLocomotionFor} from '../src/area-mob-spawns.js';
 const encounter={id:'hollow-scavengers',character:{rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1}};
 function fresh(){const world={areaId:'westminster',spawn:{x:0,z:-6},layout:{characterScale:1},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,async loadArea(id){this.areaId=id;return{x:0,z:-6}}};return createGame(world,{pilot:'donor-knife',encounter,pistol:true,areaResidents:true,openingGroup:false});}
 const selected=g=>g.enemies.filter(e=>hollowLocomotionFor(e)).map(e=>e.placementKey);

@@ -13,7 +13,7 @@ import {allocateMobSizes} from '../../src/mob-size-allocation.js';
 import {mobSizeProfile} from '../../src/mob-size.js';
 import {createSuppliesState,issueSupply} from '../../src/supplies.js';
 import {createVestState,damageAfterVest} from '../../src/vest.js';
-import {AREA_MOB_SPAWNS} from './area-mob-spawns-205.js';
+import {AREA_MOB_SPAWNS} from '../../src/area-mob-spawns.js';
 import {selectCombatTarget,resolvePistolShot} from '../../src/pistol-targeting.js';
 import {createPistolState, stepPistol} from '../../src/pistol.js';
 import {createHollowEncounter} from '../../src/hollow-encounter.js';
