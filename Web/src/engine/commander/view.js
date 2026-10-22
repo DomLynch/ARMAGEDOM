@@ -1,9 +1,9 @@
 import * as T from 'three';
-import {createWorld} from '../world.js';
-import {loadActors,createActors} from '../actors.js';
-import {createDroneLaserBolts} from '../drone-laser.js';
-import {posedActorBounds} from '../engine/grenade-surface.js';
-import {applyAreaLighting} from '../engine/area-lighting.js';
+import {createWorld} from '../../world.js';
+import {loadActors,createActors} from '../../actors.js';
+import {createDroneLaserBolts} from '../../drone-laser.js';
+import {posedActorBounds} from '../grenade-surface.js';
+import {applyAreaLighting} from '../area-lighting.js';
 import {COMMANDER_RULES} from './match.js';
 const ASPECT=1672/941,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export async function createCommanderView({canvas,baseUrl,signal}){

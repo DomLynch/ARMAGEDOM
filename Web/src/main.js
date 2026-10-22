@@ -1,2 +1,2 @@
-import {createModeEntry} from './mode-entry.js';
+import {createModeEntry} from './engine/index.js';
 createModeEntry();

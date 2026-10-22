@@ -1,6 +1,6 @@
-import {DRONE_RULES,droneHoverHeight} from '../drone-mechanics.js';
-import {tracePistol} from '../pistol.js';
-import {bodyLineClear,createBridgeSteering} from '../bridge-steering.js';
+import {DRONE_RULES,droneHoverHeight} from '../../drone-mechanics.js';
+import {tracePistol} from '../../pistol.js';
+import {bodyLineClear,createBridgeSteering} from '../../bridge-steering.js';
 
 export const COMMANDER_RULES=Object.freeze({unitCap:3,reserve:30,deployCost:10,machineHP:60,machineSpeed:2.3,machineRadius:DRONE_RULES.radius,range:6,damage:DRONE_RULES.damage,windup:DRONE_RULES.warningSeconds,recovery:DRONE_RULES.recoverySeconds,boltSpeed:DRONE_RULES.boltSpeed,biologicalHP:40,biologicalSpeed:1.5,biologicalDamage:6,meleeRange:1.6,meleeWindup:.4,meleeRecovery:.9,captureRadius:2.8,captureSeconds:12,defendSeconds:30,beaconHP:100,matchSeconds:180});
 const EPS=1e-8,copy=p=>({x:p.x,z:p.z}),distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),live=a=>a.hp>0,point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);

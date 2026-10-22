@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createGeometry} from '../src/world-geometry.js';
 import {bodyLineClear} from '../src/bridge-steering.js';
-import {COMMANDER_RULES as R,createCommanderMatch,selectCommander,orderCommander,stepCommander,commanderDamage,commanderSnapshot} from '../src/commander/match.js';
+import {COMMANDER_RULES as R,createCommanderMatch,selectCommander,orderCommander,stepCommander,commanderDamage,commanderSnapshot} from '../src/engine/commander/match.js';
 const layout=JSON.parse(fs.readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url)));
 function fixture(){const geometry=createGeometry(layout),world={areaId:'westminster',geometry,move:geometry.move,lineClear:geometry.lineClear};return{world,s:createCommanderMatch(world)};}
 function advance(f,seconds){const events=[];for(let i=0;i<Math.ceil(seconds*60)&&!f.s.result;i++){stepCommander(f.s,f.world);events.push(...f.s.events);}return events;}

@@ -1,4 +1,5 @@
-import {createSession} from './engine/index.js';
+import {createBrowserSession} from './browser-session.js';
+import {assertSession} from './contracts.js';
 import {createCommanderSession} from './commander/session.js';
 
 export function createModeEntry(){
@@ -8,7 +9,7 @@ export function createModeEntry(){
  function back(){generation++;busy=false;const old=current;current=null;mode='entry';const menu=byId('menu');if(menu.open)menu.close();old?.dispose();showEntry();}
  async function launch(next){
   if(disposed||busy)return;busy=true;const token=++generation;const old=current;current=null;old?.dispose();mode=next;byId('enter').disabled=byId('enter-ai').disabled=true;byId('mode-cancel').hidden=false;
-  try{current=next==='human'?createSession({prewarm:false}):createCommanderSession({canvas:byId('world'),baseUrl:new URL('./',document.baseURI),onMenu:back});await current.start();if(token===generation)byId('mode-cancel').hidden=true;}
+  try{current=next==='human'?assertSession(createBrowserSession({prewarm:false})):createCommanderSession({canvas:byId('world'),baseUrl:new URL('./',document.baseURI),onMenu:back});await current.start();if(token===generation)byId('mode-cancel').hidden=true;}
   catch(error){if(token===generation){const failed=current;current=null;mode='entry';failed?.dispose();showEntry();byId('loading').textContent=`Could not start ${next==='human'?'Human':'Commander'}: ${error.message}`;}}
   finally{if(token===generation){busy=false;if(mode==='entry')byId('enter').disabled=byId('enter-ai').disabled=false;}}
  }
