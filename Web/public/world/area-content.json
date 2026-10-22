@@ -8161,14 +8161,14 @@
       "westminster": {
         "activePlacementIds": [
           "westminster-roamer-1",
-          "westminster-salamander-1",
+          "westminster-roamer-2",
           "westminster-roamer-3",
           "westminster-roamer-4",
           "boss-witch-v1",
           "westminster-roamer-6"
         ],
         "creatureSlot": {
-          "placementKey": "westminster-salamander-1",
+          "placementKey": "westminster-roamer-2",
           "cycles": {
             "A": {
               "foundationRef": "giant-salamander",

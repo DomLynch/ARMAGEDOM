@@ -426,8 +426,8 @@ export function initializeAreaResidents(g){
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const dead=new Set(g.progressionModel?.deadPlacements(g.progression,area)??[]);
- const policy=g.world.populationData,canonical=(g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[]).filter(row=>row.key!=='westminster-salamander-1'||policy?.areas[area]?.activePlacementIds.includes(row.key));
- const placements=populationPlacements(policy,area,g.animalCycle,canonical),sizes=allocateMobSizes(area,canonical.filter(row=>row.key!=='westminster-salamander-1').map(placement=>placement.key));
+ const policy=g.world.populationData,canonical=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[];
+ const placements=populationPlacements(policy,area,g.animalCycle,canonical),sizes=allocateMobSizes(area,canonical.map(placement=>placement.key));
  const residents=placements.filter(p=>!dead.has(p.key)&&(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
