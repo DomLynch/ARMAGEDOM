@@ -223,6 +223,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
         const original = Array.isArray(o.material) ? o.material : [o.material];
         const copies = original.map((m) => {
           const own = m.clone();
+          if(entity.rig==='giant-salamander')own.color?.multiplyScalar(.75);
           if(palette)applyHollowPalette(own,palette,garments);
           if(entity.markedHunter&&name!=='marked-hunter')own.color?.multiply(new THREE.Color(1,.66,.55));
           materials.push({
