@@ -350,8 +350,9 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
     ensureAreaModels(record,areaId=world.areaId,{fresh=false}={}){
-      const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined).map(e=>actorModelRef(e,library.manifest));
+      const flame=world.flameData,reward=world.uniqueRewardData,refs=[...(record.enemies??[]),...(record.corpses??[])].filter(e=>e.bossProfile||e.appearanceRef!==undefined||library.manifest.models[e.rig]?.deferred===true).map(e=>actorModelRef(e,library.manifest));
       if(fresh){
+        refs.push(...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles??{}).map(spec=>spec.foundationRef).filter(ref=>library.manifest.models[ref]?.deferred===true));
         refs.push(...(world.residentPlacements?.[areaId]??[]).filter(row=>row.appearanceRef!==undefined).map(row=>row.appearanceRef));
         refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).map(row=>world.bossData.profiles[row.profileRef].modelRef));
       }

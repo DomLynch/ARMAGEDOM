@@ -260,3 +260,15 @@ test('procedural Surgeon saw does not request an unregistered downloadable model
  await actors.ensureAreaModels({enemies:[]},'westminster');assert(calls.at(-1).includes(content.bosses.profiles.witch.weapon.modelRef),'downloaded boss Flame asset remains required');
  world.bossData={profiles:{unsupported:{weapon:{kind:'flame',modelRef:'unregistered-download'}}},placements:[{areaId:'lambeth',profileRef:'unsupported'}]};await assert.rejects(actors.ensureAreaModels({enemies:[]},'lambeth'),/Unknown actor model: unregistered-download/,'unsupported external models still reject');
 });
+
+// A new own foundation is deferred just like registered bosses/appearances.
+test('deferred population foundation is ready before live, restored-corpse and fresh-retry views',async t=>{
+ const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
+ const calls=[],world={areaId:'westminster',layout:{},toRender:p=>new THREE.Vector3(p.x,0,-p.z),populationData:{areas:{westminster:{creatureSlot:{cycles:{A:{foundationRef:'giant-salamander'},B:{foundationRef:'giant-salamander'}}}}}}},library={manifest:{pilot:'donor-knife',models:{'giant-salamander':{rig:'giant-salamander',deferred:true},'original-rat':{rig:'original-rat'}}},models:new Map(),ensureModels:async refs=>calls.push(refs),dispose(){}},actors=createActors(new THREE.Scene(),world,library);t.after(()=>actors.dispose());
+ const e={kind:0,rig:'giant-salamander',placementKey:'westminster-roamer-2'};
+ await actors.ensureAreaModels({enemies:[e]});assert.deepEqual(calls.at(-1),['giant-salamander']);
+ await actors.ensureAreaModels({corpses:[{...e,hp:0}]});assert.deepEqual(calls.at(-1),['giant-salamander']);
+ await actors.ensureAreaModels({enemies:[]},'westminster',{fresh:true});assert.deepEqual(calls.at(-1),['giant-salamander']);
+ await actors.ensureAreaModels({enemies:[]},'east',{fresh:true});assert.deepEqual(calls.at(-1),[]);
+ await actors.ensureAreaModels({enemies:[{kind:0,rig:'original-rat'}]});assert.deepEqual(calls.at(-1),[]);
+});
