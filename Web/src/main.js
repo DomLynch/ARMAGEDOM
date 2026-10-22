@@ -1,2 +1,2 @@
-import {createSession} from './engine/index.js';
-createSession();
+import {createModeEntry} from './mode-entry.js';
+createModeEntry();

@@ -581,3 +581,33 @@ summary {
 #marked-bank{border-bottom:1px solid #58615a;margin:0 0 16px;padding-bottom:12px;}
 #marked-bank h4{margin:0 0 8px;}#marked-bank>button{display:block;width:100%;min-height:44px;margin:8px 0;}#marked-bank .marked-hint,#marked-shop-status{font-size:11px;line-height:1.45;}
 .marked-head-total{color:#ffdb48;font-size:14px;font-weight:900;letter-spacing:.02em;text-shadow:0 1px 2px #000,0 0 4px #000;pointer-events:none}
+
+/* One selected mode at a time. Existing Human HUD/control rules stay intact. */
+.mode-card { width:min(900px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; }
+.mode-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:22px; }
+.mode-panel { border:1px solid var(--edge); border-radius:10px; padding:20px; background:rgba(10,18,21,.78); text-align:left; }
+.mode-panel h2 { margin:0 0 10px; font-size:1.3rem; }
+.mode-panel p { min-height:3.5em; line-height:1.5; }
+.mode-panel button { width:100%; min-height:48px; }
+#commander-hud { position:fixed; inset:0; z-index:10; pointer-events:none; }
+#commander-hud button { min-height:44px; touch-action:manipulation; pointer-events:auto; }
+.commander-summary { position:absolute; top:var(--safe-t); left:var(--safe-l); width:min(450px,calc(100% - var(--safe-l) - var(--safe-r))); padding:12px 14px; border:1px solid rgba(175,209,212,.45); border-radius:10px; background:rgba(8,17,20,.88); }
+.commander-summary h2 { font-size:1rem; margin:6px 0; }
+.commander-summary p { margin:4px 0; font-size:.8rem; }
+.commander-summary .eyebrow { color:#a9e3ed; font-size:.7rem; }
+#commander-notice { min-height:1.25em; color:#eee4ca; }
+.commander-navigation { display:grid; grid-template-columns:44px 1fr 44px 1fr; gap:5px; margin-top:8px; }
+.commander-navigation button { padding:6px; font-size:.75rem; }
+.commander-orders { position:absolute; bottom:var(--safe-b); left:var(--safe-l); right:var(--safe-r); max-width:640px; margin:auto; padding:10px; border:1px solid rgba(175,209,212,.45); border-radius:10px; background:rgba(8,17,20,.9); }
+#commander-units { display:flex; gap:5px; overflow:auto; margin-bottom:8px; pointer-events:auto; }
+#commander-units button { flex:1 0 90px; font-size:.72rem; padding:6px; }
+.commander-command-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.commander-command-grid button { padding:8px 5px; font-size:.8rem; }
+#commander-hud button[aria-pressed="true"] { color:#10222a; border-color:#a8e2ed; background:#9ed9e6; }
+#commander-hud button:disabled { opacity:.4; }
+.commander-orders>p { font-size:.68rem; margin:8px 0 0; text-align:center; color:#c4d2d4; }
+#commander-result { pointer-events:auto; }
+#commander-result .card { max-width:420px; }
+#commander-result button { margin:8px; }
+@media(max-width:600px) { .mode-panels { grid-template-columns:1fr; gap:10px; margin-top:12px; }.mode-panel { padding:14px; }.mode-panel p { min-height:0; margin:8px 0 12px; }.mode-card h1 { font-size:2rem; }.mode-card { padding:20px; }.commander-summary { padding:9px 11px; }.commander-summary h2 { font-size:.9rem; } }
+@media(max-height:550px) and (min-width:601px) { .commander-summary { width:320px; }.commander-orders { left:auto; width:360px; }.mode-card { padding:14px; }.mode-panel { padding:12px; } }
