@@ -3,7 +3,7 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 test('own Salamander wakes nearby then rounds the Westminster bridge beyond both former leashes and returns',()=>{
  const{g}=salamanderFixture(),e=g.enemies.find(e=>e.rig==='giant-salamander');g.enemies=[e];g.player.pos={x:e.home.x,z:e.home.z-3.45};stepGame(g);assert(e.alerted&&!e.returning);assert.equal(e.moveSpeed,1.8);
  const goals=[g.world.geometry.ground({x:.97,y:.34}),g.world.geometry.ground({x:.603125,y:.6875})],markers=[];
- for(const goal of goals){assert(g.world.geometry.clear(goal,g.player.radius));g.player.pos={...goal};let reached=false;for(let i=0;i<2400;i++){stepGame(g);assert(e.alerted&&!e.returning);assert(g.world.geometry.clear(e.pos,e.radius));if(distance(e.pos,goal)<1.5){reached=true;break;}}markers.push({goal,end:{...e.pos},reached,time:g.time});assert(reached,JSON.stringify(markers));}
+ for(const goal of goals){assert(g.world.geometry.clear(goal,g.player.radius));g.player.pos={...goal};let reached=false;for(let i=0;i<2400;i++){stepGame(g);assert(e.alerted&&!e.returning);assert(g.world.geometry.clear(e.pos,e.radius));if(distance(e.pos,goal)<=7.96&&g.world.lineClear(e.pos,goal)){reached=true;break;}}markers.push({goal,end:{...e.pos},reached,time:g.time});assert(reached,JSON.stringify(markers));}
  console.log('SALAMANDER208_BRIDGE_PURSUIT',JSON.stringify({radius:e.radius,home:e.home,markers}));
 });
 test('engaged Salamander holds outside the real safehouse without healing or attacking',()=>{

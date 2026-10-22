@@ -1,38 +1,53 @@
-import{disposeActorSources}from'../src/actor-resources.js';
-import{createEffects}from'../src/effects.js';import{createRunPersistence}from'../src/engine/run-core.js';import{createGame}from'../src/combat.js';import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';import * as T from'three';import{loadGeometry}from'../../art/donor/probe.mjs';import{createActors}from'../src/actors.js';import{stepGame,attack}from'../src/combat.js';import{salamanderFixture}from'./helpers/salamander-fixture.js';
-const root=new URL('../public/assets/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',root)));
-test('resized own31bone Bite uses its measured receiver and120HP survives one normal paid Pistol shot',async t=>{
- const oldDocument=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;});
- const models=new Map();for(const name of['vagrant','giant-salamander']){const description=manifest.models[name];models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL(description.url,root))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL(description.equipment.url,root))):null});}
- const f=salamanderFixture(),records=new Map();let g=f.g;const persistence=createRunPersistence({getRun:()=>g,setRun:next=>g=next,createFreshRun:()=>createGame(f.world,f.options),storage:{getItem:key=>records.get(key)??null,setItem:(key,raw)=>records.set(key,raw)}});persistence.restoreSavedRun(g);assert(g.bossEquipment?.emberProjector);const e=g.enemies.find(e=>e.rig==='giant-salamander');assert.equal(e.hp,120);assert.equal(e.maxHP,f.world.bossData.profiles.witch.health);g.enemies=[e];g.player.pos={...g.pistol.pickupPos};stepGame(g,{actions:['pickup']},1/60,{dispatchPistol:persistence.dispatchPistol});assert(g.pistol.collected&&g.pistol.equipped);g.player.pos={x:e.home.x+.127300418954,z:e.home.z-3.45};e.pos={...e.home};g.player.facing={x:0,z:1};e.facing={x:0,z:-1};
- const scene=new T.Scene();Object.assign(f.world,{scene,camera:new T.PerspectiveCamera(),toRender:(p,y=0)=>new T.Vector3(p.x,y,-p.z)});
- const actors=createActors(scene,f.world,{manifest,models,pistolAsset:null,dispose(){disposeActorSources(new Set([...models.values()].flatMap(row=>[row.gltf,...(row.equipment?[row.equipment]:[])])));}},{visualScale:1.3225});t.after(()=>{const receiver=actors.views.get(0)?.salamanderReceiver;actors.dispose();assert(receiver);assert.throws(()=>receiver.capture(),/disposed/);});actors.update(g,0);g.ratContact=actors.ratContact();
- const fx=createEffects(scene,f.world,null,()=>null,{getView:actor=>actors.views.get(actor.id),reducedMotion:()=>false});t.after(()=>fx.dispose());let flareSeen=false;
- const own=actors.views.get(e.id);assert.equal(own.model.getObjectByName('world-raw').skeleton.bones.length,31);assert(own.motion.actions.has('Bite'));assert(!own.motion.actions.has('dog_bite_scaled'));
- const trace=[],rawHit=g.ratContact.hit;g.ratContact.hit=(...args)=>{const accepted=rawHit(...args);if(args[0]===e)trace.push({time:g.time,age:args[2].ageTicks,clip:args[2].clip,accepted,goal:args[2].calfGoal,facing:{...e.facing},yaw:own.root.rotation.y,mouth:manifest.models['giant-salamander'].contact.canines.map(c=>{const mesh=own.model.getObjectByName(c.mesh),v=new T.Vector3();mesh.getVertexPosition(c.vertex,v).applyMatrix4(mesh.matrixWorld);return[c.vertex,v.x,v.y,-v.z];}),enemy:{...e.pos},player:{...g.player.pos}});return accepted;};
- const beforeHP=g.player.hp,beforeWitch=JSON.stringify(g.bossEquipment?.emberProjector??null);let moveSeen=false,biteSeen=false,hits=[];
- for(let i=0;i<200&&g.player.hp===beforeHP;i++){stepGame(g,{});actors.update(g,1/60);fx.update(g,{viewportHeight:852,viewportWidth:393});flareSeen||=fx.snapshot().salamanderFlame.emitterParticles>0;moveSeen||=own.motion.actions.get('Walk').getEffectiveWeight()===1;biteSeen||=e.swing?.clip==='Bite';hits.push(...g.events.filter(x=>x.type==='hit'&&x.actor===g.player));}
- console.log('SALAMANDER_NATIVE_CONTACT',JSON.stringify({scope:'Controlled INITIAL isolated real actors, actualAI/mesh/receiver, no mockedhit',beforeHP,afterHP:g.player.hp,moveSeen,biteSeen,hits:hits.map(x=>({amount:x.amount,attackerId:x.attackerId,moveId:x.moveId})),trace}));
- assert(moveSeen);assert(biteSeen);assert(flareSeen,'short existing-pool mouth flare is active only during own Bite');assert.equal(g.player.hp,beforeHP-4,'own normal native Bite must cause one real4HP contact');assert(trace.some(x=>x.accepted));assert(hits.some(x=>x.moveId==='salamander_bite'&&x.amount===4));assert.equal(JSON.stringify(g.bossEquipment?.emberProjector??null),beforeWitch);
- fx.update(g,{paused:true});assert.equal(fx.snapshot().salamanderFlame.emitterParticles,0);
- for(let i=0;i<35;i++){stepGame(g,{});actors.update(g,1/60);}assert.equal(g.player.hp,beforeHP-4,'one Bite never duplicates its damage');
- // A player crowding the smaller physical body must regain a real mouth contact, not a permanent point-blank hold.
- g.player.pos={x:e.pos.x+.127300418954,z:e.pos.z-1.5};const crowdedHP=g.player.hp,crowdedPosition={...e.pos};
- for(let i=0;i<360&&g.player.hp===crowdedHP;i++){stepGame(g,{});actors.update(g,1/60);}
- assert(Math.hypot(e.pos.x-crowdedPosition.x,e.pos.z-crowdedPosition.z)>.5,'normal backward mover regains standoff');assert.equal(g.player.hp,crowdedHP-4,'close target receives one actual native Bite after spacing');
- const beforeNPC=e.hp,beforeMagazine=g.pistol.magazine;
- for(let i=0;i<120&&g.time<Math.max(g.player.ready,g.player.hurtUntil,g.player.dodgeUntil);i++){stepGame(g,{});actors.update(g,1/60);}
- stepGame(g,{aim:{x:e.pos.x-g.player.pos.x,z:e.pos.z-g.player.pos.z},held:['fire']},1/60,{dispatchPistol:persistence.dispatchPistol});actors.update(g,1/60);fx.events(g);fx.update(g);
- const paidShot=g.events.find(x=>x.type==='shot'&&x.actor===g.player),paidHit=g.events.find(x=>x.type==='hit'&&x.actor===e);assert(paidShot&&paidHit);assert.equal(g.pistol.magazine,beforeMagazine-1);assert.equal(e.hp,beforeNPC-paidHit.amount);assert(e.hp>0,'120HP Salamander survives one ordinary paidshot');const afterShotHP=e.hp;assert.equal(e.maxHP,120);assert.equal(JSON.stringify(g.bossEquipment.emberProjector),beforeWitch);assert.equal(g.flameFuel.collected,false);assert(!g.events.some(x=>x.itemId==='ember-flamethrower-v1'));
- // One normal melee contact checks the changed body reach without another kill fight.
- stepGame(g,{actions:['heavy']},1/60,{dispatchPistol:persistence.dispatchPistol});actors.update(g,1/60);assert.equal(g.player.weapon,'knife');
- let counterReady=false;for(let i=0;i<360;i++){const swing=e.swing,next=Math.max(swing?.end??0,e.ready,e.recoverUntil,e.staggerUntil)+20/60;if(!g.player.swing&&g.time>=Math.max(g.player.ready,g.player.hurtUntil,g.player.dodgeUntil)&&swing?.ageTicks>=32&&next-g.time>.5){counterReady=true;break;}stepGame(g,{});actors.update(g,1/60);}
- assert(counterReady,'actual own native recovery window before one legalKnife');const beforeKnife=e.hp;assert(attack(g,'slash'));assert.equal(g.player.swing.clip,'DogMidSlash','reuse native higher player slash for enlarged body');const knifeTrace=[];const ownTarget=g.player.swing.lowTargetId;assert.equal(ownTarget,e.id);for(let i=0;i<70&&e.hp===beforeKnife&&g.player.swing;i++){stepGame(g,{});actors.update(g,1/60);knifeTrace.push(...g.events.map(x=>({tick:g.tick,time:g.time,type:x.type,actor:x.actor?.id,moveId:x.moveId,amount:x.amount})));}console.log('SALAMANDER208_KNIFE_CONTACT',JSON.stringify({before:beforeKnife,after:e.hp,targetId:ownTarget,player:{hp:g.player.hp,pos:g.player.pos},enemy:{pos:e.pos,radius:e.radius},trace:knifeTrace,events:g.events.map(x=>({type:x.type,actor:x.actor?.id,amount:x.amount}))}));assert.equal(e.hp,beforeKnife-10,'one ordinaryKnife reaches enlarged body through actual displayed blade');
- // Same real actors and live calf receiver: traverse the bridge bend, then require a real native contact.
- const bridgeGoal=g.world.geometry.ground({x:.9,y:.4}),bridgeHP=g.player.hp,bridgeTrace=[];g.player.pos={...bridgeGoal};g.player.facing={x:0,z:1};
- for(let i=0;i<1800&&g.player.hp===bridgeHP;i++){stepGame(g,{});actors.update(g,1/60);if(i%60===0)bridgeTrace.push({time:g.time,pos:{...e.pos},goal:g.ratContact.calf(g,e),alerted:e.alerted,returning:e.returning,clip:e.swing?.clip,clear:g.world.geometry.clear(e.pos,e.radius)});}
- console.log('SALAMANDER208_ACTUAL_BRIDGE_BITE',JSON.stringify({scope:'Controlled target relocation, actual AI/collision/actors/calf receiver; not continuous phone input',goal:bridgeGoal,hpBefore:bridgeHP,hpAfter:g.player.hp,trace:bridgeTrace}));assert.equal(g.player.hp,bridgeHP-4,'bridge pursuit must end in a real own native Bite');assert(e.alerted&&!e.returning);
- const receiver=actors.views.get(0).salamanderReceiver;assert(receiver);assert.notEqual(receiver,actors.views.get(0).footReceiver);assert(Math.abs(own.root.scale.x-6.022665)<1e-12);assert.equal(own.model.position.y,manifest.models['giant-salamander'].groundOffset);assert(persistence.persistRun(g));
- console.log('SALAMANDER208_PAID_SHOT',JSON.stringify({scope:'Controlled INITIAL real actors/persistence/Pistol operation; actualammo+HP, no mockedhit',hpBefore:beforeNPC,hpAfter:afterShotHP,maxHP:e.maxHP,damage:paidHit.amount,magazineBefore:beforeMagazine,magazineAfter:g.pistol.magazine,rootScale:own.root.scale.x,emberUnchanged:true,receiver:'own Skin2891 only, globalfootunchanged'}));
-
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as T from 'three';
+import {loadGeometry} from '../../art/donor/probe.mjs';
+import {createActors} from '../src/actors.js';
+import {createEffects} from '../src/effects.js';
+import {disposeActorSources} from '../src/actor-resources.js';
+import {stepGame} from '../src/combat.js';
+import {salamanderFixture} from './helpers/salamander-fixture.js';
+import {SALAMANDER_BREATH} from '../src/salamander-native.js';
+const base=new URL('../public/assets/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',base)));
+test('Salamander own mouth breath: actual rig, ordinary movement, crowding, exclusions and unchanged Witch',async t=>{
+ const oldDocument=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};
+ t.after(()=>{if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;});
+ const models=new Map();for(const name of ['vagrant','giant-salamander','boss-westminster-witch','player-flamethrower']){const d=manifest.models[name];models.set(name,{description:d,gltf:await loadGeometry(fs.readFileSync(new URL(d.url,base))),equipment:d.equipment?await loadGeometry(fs.readFileSync(new URL(d.equipment.url,base))):null});}
+ t.after(()=>disposeActorSources(new Set([...models.values()].flatMap(r=>[r.gltf,r.equipment].filter(Boolean)))));
+ function setup(distance=4.7,{group=false}={}){
+  const {g,world}=salamanderFixture(),e=g.enemies.find(e=>e.rig==='giant-salamander'),witch=g.enemies.find(e=>e.bossProfile?.weapon?.kind==='flame');if(!group)g.enemies=[e];
+  g.player.pos={x:e.home.x+.127300418954,z:e.home.z-distance};assert(world.geometry.clear(g.player.pos,g.player.radius));assert(world.lineClear(e.pos,g.player.pos));g.player.facing={x:0,z:1};e.facing={x:0,z:-1};
+  const scene=new T.Scene();Object.assign(world,{scene,camera:new T.PerspectiveCamera(),toRender:(p,y=0)=>new T.Vector3(p.x,y,-p.z)});
+  const actors=createActors(scene,world,{manifest,models,dispose(){}},{visualScale:1.3225}),fx=createEffects(scene,world,null,()=>null,{getView:a=>actors.views.get(a.id),reducedMotion:()=>false});actors.update(g,0);g.ratContact=actors.ratContact();const events=[],frames=[];
+  const step=(intent={})=>{stepGame(g,intent,1/60,{bossFlameSource:a=>actors.flameSource(a.id)});actors.update(g,1/60);fx.update(g,{viewportWidth:393,viewportHeight:852});events.push(...g.events.map(v=>({...v,tick:g.tick,actorId:v.actor?.id})));frames.push({tick:g.tick,hp:g.player.hp,phase:e.bossWeapon?.phase,source:actors.flameSource(e.id),fx:fx.snapshot().salamanderFlame});};
+  const start=()=>{for(let n=0;n<240&&!e.bossWeapon;n++)step();assert.equal(e.bossWeapon?.phase,'warning');return e.bossWeapon.startTick;};
+  return{g,e,witch,world,actors,fx,events,frames,step,start,dispose(){fx.dispose();actors.dispose();}};
+ }
+ await t.test('retreating player is hit without a calf goal or teeth swing; native mouth and exact cadence',()=>{
+  const s=setup();try{const{g,e,actors}=s;g.ratContact.calf=()=>null;const hp=g.player.hp,start=s.start(),direction={...e.bossWeapon.direction},before={...g.player.pos};
+   while(g.tick<start+32){s.step({move:direction,run:true});assert.equal(e.swing,null);}
+   const hits=s.events.filter(v=>v.type==='hit'&&v.actor===g.player&&v.attackerId===e.id);assert.equal(hits.length,2);assert(hits.every(v=>v.amount===4&&v.weapon==='flamethrower'));assert.equal(g.player.hp,hp-8);assert(Math.hypot(g.player.pos.x-before.x,g.player.pos.z-before.z)>2.4);
+   const pulses=s.events.filter(v=>v.type==='boss-flame-pulse'&&v.actor===e);assert.deepEqual(pulses.map(v=>v.tick-start),[20,26]);assert(pulses.every(v=>v.contact&&v.damaged));assert(s.frames.some(f=>f.fx.emitterParticles>0));assert(s.frames.every(f=>f.fx.cosmeticVictims===0));
+   const own=actors.views.get(e.id);assert.equal(own.model.getObjectByName('world-raw').skeleton.bones.length,31);assert(!own.flameMount);assert.equal(e.response.clip,'Bite');assert.equal(own.root.scale.x,6.022665);assert.equal(e.hp,120);assert.equal(e.moveSpeed,1.8);
+   // Hold within legal acquisition for the next cycle, without moving the NPC.
+   while(g.tick<start+86)s.step();assert.equal(e.bossWeapon?.startTick,start+86);assert.equal(SALAMANDER_BREATH.range,4.86);
+   console.log('SALAMANDER213_MOVING',JSON.stringify({start,pulses:pulses.map(v=>({tick:v.tick,position:v.position,contact:v.contact,damaged:v.damaged})),hpBefore:hp,hpAfter:hp-8,playerBefore:before,playerAfter:g.player.pos,cycleTicks:86,source:s.frames.find(f=>f.fx.emitterParticles)?.source,ownRig:true,noTeethDamage:true}));
+  }finally{s.dispose();}
+ });
+ await t.test('near-body player causes backward spacing then actual forward mouth damage',()=>{
+  const s=setup(1.5);try{const hp=s.g.player.hp,pos={...s.e.pos};for(let n=0;n<360&&s.g.player.hp===hp;n++)s.step();assert.equal(s.g.player.hp,hp-4);assert(Math.hypot(s.e.pos.x-pos.x,s.e.pos.z-pos.z)>.5);const d=s.e.bossWeapon.direction;assert(d.x*s.e.facing.x+d.z*s.e.facing.z>.99);console.log('SALAMANDER213_CROWDED',JSON.stringify({hpBefore:hp,hpAfter:s.g.player.hp,before:pos,after:s.e.pos,source:s.actors.flameSource(s.e.id),player:s.g.player.pos,tick:s.g.tick}));}finally{s.dispose();}
+ });
+ for(const mode of ['miss','wall','refuge','pause','hurt','death'])await t.test(mode+' uses existing shared exclusions',()=>{
+  const s=setup();try{const start=s.start(),hp=s.g.player.hp,d=s.e.bossWeapon.direction;
+   if(mode==='miss')s.g.player.pos={x:s.e.pos.x-d.z*4.7,z:s.e.pos.z+d.x*4.7};
+   if(mode==='wall')s.world.lineClear=()=>false;
+   if(mode==='refuge')s.g.player.pos=s.world.geometry.ground(s.world.safehouseData.props.find(p=>p.id==='comms').standing);
+   if(mode==='hurt')s.e.staggerUntil=s.g.time+1;
+   if(mode==='death')s.e.hp=0;
+   if(mode==='pause'){s.step({paused:true});s.fx.update(s.g,{paused:true});assert.equal(s.fx.snapshot().salamanderFlame.emitterParticles,0);assert.equal(s.e.bossWeapon,null);}
+   else while(s.g.tick<start+32)s.step();
+   assert.equal(s.g.player.hp,hp);if(!['miss','wall'].includes(mode))assert.equal(s.e.bossWeapon,null);
+  }finally{s.dispose();}
+ });
 });

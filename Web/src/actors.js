@@ -1,3 +1,4 @@
+import{salamanderMouthSource}from'./salamander-native.js';
 import{createRailgunCoils}from'./engine/railgun-coils.js';
 import{reaperSelected}from'./engine/reaper.js';
 import{createBoneSaw,animateBoneSaw,boneSawContact}from'./engine/bone-saw-view.js';
@@ -347,7 +348,7 @@ export function createActors(scene, world, library, { visualScale = 1 } = {}) {
     flameAsset(){return library.models.get(world.flameData?.modelRef)?.gltf??null;},
     flameReady(){return !!library.models.get(world.flameData?.modelRef);},
     flameAimEligible(g,target){return flameAimEligible(views.get(0)?.flameAimBasis,g,target);},
-    flameSource(id=0){const mount=views.get(id)?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
+    flameSource(id=0){const view=views.get(id);if(view?.entity?.rig==='giant-salamander')return salamanderMouthSource(view,view.entity,new THREE.Vector3());const mount=view?.flameMount,muzzle=mount?.visible&&mount.getObjectByName('Muzzle');if(!muzzle)return null;const p=muzzle.getWorldPosition(new THREE.Vector3()),d=muzzle.getWorldDirection(new THREE.Vector3());return{position:{x:p.x,y:p.y,z:-p.z},direction:{x:d.x,y:d.y,z:-d.z}};},
     ensureMeleeVariant(itemId){const profile=MELEE_VARIANTS[itemId];if(!profile)throw Error('Unknown melee variant');return profile.modelRef?library.ensureModels([profile.modelRef]):Promise.resolve();},
     meleeVariantSource(itemId){const profile=MELEE_VARIANTS[itemId];return profile?.modelRef?library.models.get(profile.modelRef):null;},
     ensureAreaModels(record,areaId=world.areaId,{fresh=false}={}){

@@ -13,7 +13,7 @@ import{rifleActionState}from'./engine/rifle-runtime.js';
 import {FINISHER_DATA} from './engine/finisher-data.js';
 import{FLAME_VISUAL_DATA}from'./engine/flame-data.js';
 import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./engine/flame-runtime.js';
-import{SALAMANDER_BITE,salamanderResponse}from'./salamander-native.js';
+import{SALAMANDER_BITE,SALAMANDER_BREATH,salamanderResponse}from'./salamander-native.js';
 import{populationPlacements,populationAllowsDrone}from'./engine/area-population.js';
 import{posedMeleeMove}from'./engine/melee-equipment-data.js';
 import{applyBossProfile,bossMove,bossHazardPosition,resetBossPursuit}from'./engine/area-bosses.js';
@@ -560,7 +560,7 @@ function knifeStepIn(g,e,dt){
 function knifeEnemy(g,e,dt,services){
  if(stepSurgeonSaw(g,e,dt,{patrol:residentPatrol,move:enemyMove,receive:knifeReceive,contact:(a,v)=>services.sawContact?.(g,a,v)===true}))return;
  if(e.hp<=0){stopBossFlame(g,e);return;}
- if(stepBossFlame(g,e,dt,{patrol:residentPatrol,move:enemyMove,source:services?.bossFlameSource,receive:knifeReceive,emit:event}))return;
+ if(stepBossFlame(g,e,dt,{patrol:residentPatrol,move:enemyMove,source:services?.bossFlameSource,receive:knifeReceive,emit:event,...(e.rig==='giant-salamander'?{profile:SALAMANDER_BREATH,onStart:(g,e)=>{e.response={clip:'Bite',start:g.time,ticks:56};}}:{})}))return;
  if(e.rig==='low-hover-drone'){droneEnemy(g,e,dt);return;}
  if(e.rig==='original-rat'){ratEnemy(g,e,dt);return;}
  if(e.rig==='original-dog'||e.rig==='original-roach'||e.rig==='giant-salamander'){dogEnemy(g,e,dt);return;}

@@ -6,12 +6,13 @@ const EPS=1e-8;
 // with their existing owners. An optional validated capability selects it.
 export function stopBossFlame(g,e,reason='interrupted'){
  if(!e.bossWeapon)return;
- e.bossWeapon=null;e.ready=Math.max(e.ready,g.time+(e.bossProfile.weapon.recoveryTicks/60));
+ const profile=e.bossWeapon.profile??e.bossProfile?.weapon;
+ e.bossWeapon=null;e.ready=Math.max(e.ready,g.time+((profile?.recoveryTicks??0)/60));
  g.events.push({type:'boss-flame-stop',actor:e,reason});
 }
 export function stopBossFlames(g,reason){if(g)for(const e of g.enemies??[])stopBossFlame(g,e,reason);}
-export function stepBossFlame(g,e,dt,{patrol,move,source,receive,emit}){
- const p=e.bossProfile?.weapon;if(p?.kind!=='flame')return false;
+export function stepBossFlame(g,e,dt,{patrol,move,source,receive,emit,profile=e.bossProfile?.weapon,onStart}){
+ const p=profile;if(p?.kind!=='flame')return false;
  const hurt=g.time<e.recoverUntil||g.time<e.staggerUntil;
  if(e.hp<=0||g.finished||g.player.hp<=0||safehouseProtected(g)||hurt){stopBossFlame(g,e);return true;}
  if(e.home&&patrol(g,e,dt)){stopBossFlame(g,e,'return-or-unalerted');return true;}
@@ -35,10 +36,12 @@ export function stepBossFlame(g,e,dt,{patrol,move,source,receive,emit}){
  }
  if(g.time+EPS<e.ready)return true;
  const dx=g.player.pos.x-e.pos.x,dz=g.player.pos.z-e.pos.z,distance=Math.hypot(dx,dz),direction=distance>EPS?{x:dx/distance,z:dz/distance}:{...e.facing};
- if(distance>p.range||!g.world.lineClear(e.pos,g.player.pos)){move(g,e,direction,e.moveSpeed,dt);return true;}
+ if(p.minDistance&&distance+EPS<p.minDistance){move(g,e,{x:-direction.x,z:-direction.z},e.moveSpeed,Math.min(dt,(p.minDistance-distance)/e.moveSpeed),true);return true;}
+ if(distance>(p.acquisitionRange??p.range)||!g.world.lineClear(e.pos,g.player.pos)){move(g,e,direction,e.moveSpeed,dt);return true;}
  e.facing={...direction};
- e.bossWeapon={phase:'warning',startTick:g.tick,direction,aimPoint:{x:g.player.pos.x,y:combatTargetHeight(g.player,g.time),z:g.player.pos.z},pulses:0,source:null};
- g.message=e.bossName+' · FLAME BURST — MOVE ASIDE';g.messageUntil=g.time+p.windupTicks/60;
+ e.bossWeapon={profile:p,phase:'warning',startTick:g.tick,direction,aimPoint:{x:g.player.pos.x,y:combatTargetHeight(g.player,g.time),z:g.player.pos.z},pulses:0,source:null};
+ onStart?.(g,e);
+ g.message=(e.bossName??'SALAMANDER')+' · FLAME BURST — MOVE ASIDE';g.messageUntil=g.time+p.windupTicks/60;
  emit(g,'boss-flame-warning',{actor:e,dir:{...direction},range:p.range,arc:p.coneDegrees});
  return true;
 }
