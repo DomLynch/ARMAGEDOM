@@ -33,7 +33,7 @@ export function createEffects(scene,world,pistolAsset=null,getMuzzle=()=>null,{r
   if(!e)return null;const age=(g.time-e.swing.start)*60;if(age<20||age>=32)return null;
   const view=getView(e),mesh=view?.model.getObjectByName('world-raw');if(!mesh?.isSkinnedMesh)return null;
   mesh.getVertexPosition(5727,salamanderPoint).applyMatrix4(mesh.matrixWorld);
-  return{source:{position:{x:salamanderPoint.x,y:salamanderPoint.y,z:-salamanderPoint.z},direction:{x:e.facing.x,y:0,z:e.facing.z}},origin:e.pos,contact:{range:.45,coneDegrees:22}};
+  return{source:{position:{x:salamanderPoint.x,y:salamanderPoint.y,z:-salamanderPoint.z},direction:{x:e.facing.x,y:0,z:e.facing.z}},origin:e.pos,contact:{range:1.35,coneDegrees:22}};
  }});
  const particles=Array.from({length:48},()=>({life:0,total:1,x:0,y:0,z:0,vx:0,vy:0,vz:0,size:0}));
  const tracers=Array.from({length:16},()=>{const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(6),3)),material=new THREE.LineBasicMaterial({color:0xf5d498,transparent:true,opacity:.8,depthWrite:false}),mesh=new THREE.Line(geometry,material);mesh.name='Combat pooled tracer';mesh.visible=false;mesh.frustumCulled=false;pool.add(mesh);return{mesh,life:0};});

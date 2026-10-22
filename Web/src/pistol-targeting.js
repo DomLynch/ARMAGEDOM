@@ -1,7 +1,7 @@
 import {droneHoverHeight} from './drone-mechanics.js';
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 
-export function combatTargetHeight(target,time){return target.rig==='low-hover-drone'?droneHoverHeight(time):(target.rig==='giant-salamander'?.45:target.rig==='original-rat'?.54:target.rig==='original-dog'?(target.contactGoalReach?.70:.35):target.rig==='original-roach'?(target.contactGoalReach?.24:.08):1.15)*(target.mobSize??1);}
+export function combatTargetHeight(target,time){return target.rig==='low-hover-drone'?droneHoverHeight(time):(target.rig==='giant-salamander'?1.35:target.rig==='original-rat'?.54:target.rig==='original-dog'?(target.contactGoalReach?.70:.35):target.rig==='original-roach'?(target.contactGoalReach?.24:.08):1.15)*(target.mobSize??1);}
 export const PISTOL_TARGETING = Object.freeze({acquireDegrees:12, retainDegrees:18});
 export const COMBAT_TARGETING = Object.freeze({meleeDegrees:45});
 const EPS = 1e-8;

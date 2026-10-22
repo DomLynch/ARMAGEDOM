@@ -1197,7 +1197,7 @@
       "url": "giant-salamander/giant-salamander.glb",
       "rig": "giant-salamander",
       "motion": "salamander",
-      "scale": 1.5,
+      "scale": 4.5,
       "forwardCorrection": 0,
       "groundOffset": 0.013223300086758576,
       "clips": {
@@ -1230,26 +1230,17 @@
           }
         ],
         "calfBand": [
-          0.28,
-          0.36
+          0.94,
+          1.04
         ],
         "calfFaces": [
           {
             "runtimeName": "Skin",
-            "face": 14462,
+            "face": 3147,
             "vertices": [
-              8211,
-              8154,
-              8156
-            ]
-          },
-          {
-            "runtimeName": "Skin",
-            "face": 3601,
-            "vertices": [
-              2127,
-              2130,
-              2128
+              2043,
+              1943,
+              2027
             ]
           }
         ]
