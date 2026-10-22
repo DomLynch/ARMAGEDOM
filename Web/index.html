@@ -79,23 +79,19 @@
       </div>
     </div>
     <section id="entry" class="overlay">
-      <div class="card mode-card">
-        <p class="eyebrow">LONDON · 2030</p><h1>ARMAGEDOM</h1>
-        <div class="mode-panels">
-          <section class="mode-panel" aria-labelledby="human-mode-title"><h2 id="human-mode-title">Human</h2><p>Explore Westminster with your survivor. Continue your saved run.</p><button id="enter">Play as Human</button></section>
-          <section class="mode-panel" aria-labelledby="ai-mode-title"><h2 id="ai-mode-title">AI · Commander</h2><p>Command three machine drones. Capture and defend a Westminster checkpoint.</p><button id="enter-ai">Play as AI</button></section>
-        </div>
-        <p id="loading" role="status">Choose how to play.</p><button id="mode-cancel" hidden>Cancel loading</button>
+      <div class="card">
+        <p class="eyebrow">LONDON · 2030</p>
+        <h1>ARMAGEDOM</h1>
+        <p>Westminster checkpoint</p>
+        <button id="enter">Enter Westminster</button>
+        <p id="loading" role="status">
+          Warrior and Goblin · matched knife combat pilot.
+        </p>
       </div>
-    </section>
-    <section id="commander-hud" hidden aria-label="Commander controls">
-      <header class="commander-summary"><p class="eyebrow">ARMAGEDOM · COMMANDER</p><h2 id="commander-objective">Capture checkpoint</h2><p id="commander-integrity"></p><p id="commander-reserve"></p><div id="commander-units" aria-label="Select a machine"></div><p id="commander-notice" role="status"></p><div class="commander-navigation"><button id="commander-pan-left" aria-label="Pan left">←</button><button id="commander-recentre">Checkpoint</button><button id="commander-pan-right" aria-label="Pan right">→</button><button id="commander-back">Mode menu</button></div></header>
-      <footer class="commander-orders"><div class="commander-command-grid"><button id="commander-all">All machines</button><button id="commander-move" aria-pressed="true">Move</button><button id="commander-attack" aria-pressed="false">Attack</button><button id="commander-defend">Defend</button><button id="commander-deploy">Replace · 10 reserve</button><button id="commander-pause">Pause</button></div><p>Tap a drone to select · drag the road to pan</p></footer>
-      <section id="commander-result" class="overlay" hidden aria-live="polite"><div class="card"><h2 id="commander-result-title"></h2><p id="commander-result-reason"></p><button id="commander-retry">Retry Commander</button><button id="commander-result-back">Mode menu</button></div></section>
     </section>
     <div id="hit-marker" class="combat-hit" hidden aria-hidden="true"></div>
     <dialog id="menu" aria-labelledby="menu-title">
-      <header id="menu-header"><div class="menu-brand"><h2 id="menu-title">ARMAGEDOM</h2><p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p></div><button id="resume" type="button">Back to game</button><button id="mode-menu" type="button">Mode menu</button><button id="close-menu" class="close" aria-label="Close menu">×</button></header>
+      <header id="menu-header"><div class="menu-brand"><h2 id="menu-title">ARMAGEDOM</h2><p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p></div><button id="resume" type="button">Back to game</button><button id="close-menu" class="close" aria-label="Close menu">×</button></header>
       <nav id="menu-tabs" role="tablist" aria-label="Field menu">
         <button id="menu-tab-locker" type="button" role="tab" aria-controls="menu-locker" aria-selected="false" tabindex="-1">Storage</button>
         <button id="menu-tab-gear" type="button" role="tab" aria-controls="menu-gear" aria-selected="true">Gear</button>

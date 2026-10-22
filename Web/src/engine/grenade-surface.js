@@ -58,7 +58,7 @@ export function surfaceAimHeight(views,enemy,start,end){
  view.root.updateWorldMatrix(true,true);
  const origin=new T.Vector3(start.x,start.y,start.z),delta=new T.Vector3(end.x,end.y,end.z).sub(origin),distance=delta.length();if(distance<1e-9)return .05;
  const ray=new T.Ray(origin,delta.normalize()),local=new T.Ray();let found=false,unknown=false;
- view.model.traverse(mesh=>{
+ (view.contactModel??view.model).traverse(mesh=>{
   if(found||!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;
   let bounds;if(mesh.isSkinnedMesh){mesh.skeleton.update();bounds=posedBounds(mesh);if(!bounds){unknown=true;return;}}
   else{if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();bounds=mesh.geometry.boundingBox;}
@@ -84,7 +84,7 @@ export function traceGrenadeSurface(views,enemies,start,end,{pierce=false}={}){
  const from=new T.Vector3(start.x,start.y,start.z),to=new T.Vector3(end.x,end.y,end.z),delta=to.clone().sub(from),distance=delta.length();if(distance<1e-9)return null;
  const ray=new T.Raycaster(from,delta.normalize(),0,distance),meshes=[],owners=new Map();
  for(const enemy of enemies){if(enemy.hp<=0)continue;const view=views.get(enemy.id);if(!view)continue;view.root.updateWorldMatrix(true,true);
-  view.model.traverse(mesh=>{if(!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;meshes.push(mesh);owners.set(mesh,enemy);});
+  (view.contactModel??view.model).traverse(mesh=>{if(!mesh.isMesh||!visible(mesh)||mesh.material?.side===T.BackSide)return;meshes.push(mesh);owners.set(mesh,enemy);});
  }
  const memo=queryVertices(),hits=[],localRay=new T.Ray();
  for(const mesh of meshes){
@@ -97,7 +97,7 @@ export function traceGrenadeSurface(views,enemies,start,end,{pierce=false}={}){
 }
 export function followGrenadeSurface(anchor,view){
  if(!anchor?.mesh||!view||!visible(anchor.mesh))return null;
- let inside=false;view.model.traverse(mesh=>{if(mesh===anchor.mesh)inside=true;});if(!inside)return null;
+ let inside=false;(view.contactModel??view.model).traverse(mesh=>{if(mesh===anchor.mesh)inside=true;});if(!inside)return null;
  view.root.updateWorldMatrix(true,true);anchor.mesh.skeleton?.update();const point=new T.Vector3();anchor.indices.forEach((index,i)=>point.addScaledVector(vertex(anchor.mesh,index),anchor.weights[i]));
  return Number.isFinite(point.x)&&Number.isFinite(point.y)&&Number.isFinite(point.z)?{x:point.x,y:point.y,z:point.z}:null;
 }

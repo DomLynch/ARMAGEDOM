@@ -7,7 +7,7 @@ import{droneHoverHeight}from'../src/drone-mechanics.js';
 function fixture(appearance){const scene=new T.Scene(),library=createLowHoverDroneLibrary(appearance?{appearance}:{}),drone=library.spawn({scene});return{scene,library,drone,dispose(){drone.dispose();library.dispose();}};}
 function hashGeometry(g){const h=createHash('sha256');for(const[name,a]of Object.entries(g.attributes).sort()){h.update(name);h.update(Buffer.from(a.array.buffer,a.array.byteOffset,a.array.byteLength));}if(g.index)h.update(Buffer.from(g.index.array.buffer,g.index.array.byteOffset,g.index.array.byteLength));return h.digest('hex');}
 function geometries(f){return[...new Set([...f.drone.root.children.filter(e=>e.isMesh).map(e=>e.geometry),f.scene.children.find(e=>e.isMesh).geometry])];}
-test('Human watcher and Reaper default retain exact215 shared geometry buffers/materials/root2',()=>{const f=fixture();assert.equal(DRONE_VISUAL_SCALE,2);assert.deepEqual(geometries(f).map(hashGeometry),[
+test('Legacy watcher profile retains exact215 shared geometry buffers/materials/root2',()=>{const f=fixture();assert.equal(DRONE_VISUAL_SCALE,2);assert.deepEqual(geometries(f).map(hashGeometry),[
 'b6bf3a8be41fe8a78b7d433cd18268692e5bc2acce4f85222b792625a81c6e87',
 'b7f973666f961c89231f9fb997cba2626182b35b97ef8f3f41c244244d139258',
 '2a733058e252387701b1396e59b85a513a9bd755be87d4d47b5788abe139deaa',

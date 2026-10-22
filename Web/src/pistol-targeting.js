@@ -95,10 +95,10 @@ export function pistolCue(game,{paused=false,visibleIds}={}){
  return{targetId:result.targetId,position:result.position,height:result.height,ready:state.magazine>0&&!clock.reloadingUntil&&game.time>=(clock.nextFireAt??0)&&!p.swing&&game.time>=(p.hurtUntil??0)&&game.time>=(p.dodgeUntil??0)&&(!rifle||game.rifleAssetReady&&game.time>=(p.ready??0))};
 }
 
-// Raised drones use their visible rigid surface for mouse projection. Shot
+// Raised drones retain their registered contact surface for mouse projection. Shot
 // selection, first-body trace, cover and damage stay in the existing domain path.
 function groundPointerPoint(world,views,enemies,x,y){
- const ground=world.screenToGround(x,y),frames=enemies.filter(e=>e.hp>0&&e.rig==='low-hover-drone').map(e=>views.get(e.id)?.model.getObjectByName('ARM_Drone_Rigid_Frame')).filter(Boolean);
+ const ground=world.screenToGround(x,y),frames=enemies.filter(e=>e.hp>0&&e.rig==='low-hover-drone').map(e=>{const v=views.get(e.id);return(v?.contactModel??v?.model)?.getObjectByName('ARM_Drone_Rigid_Frame');}).filter(Boolean);
  if(!frames.length)return ground;
  const hit=world.ray.intersectObjects([...(world.masks??[]),...frames],false)[0];
  return frames.includes(hit?.object)?{x:hit.point.x,z:-hit.point.z}:ground;
