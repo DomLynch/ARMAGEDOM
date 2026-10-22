@@ -43,6 +43,7 @@ export function createCommanderSession({canvas,baseUrl,onMenu=()=>{}}){
   if(disposed||loading||loaded)return;loading=true;byId('enter-ai').disabled=true;byId('loading').textContent='Loading Commander · Westminster…';
   try{const next=await createCommanderView({canvas,baseUrl,signal:loadingController.signal});if(disposed||!next){next?.dispose();return;}view=next;match=createCommanderMatch(view.world);const prepared=await view.prepare(match);if(disposed||!prepared)return;loaded=true;loading=false;paused=document.hidden||focusLost;document.body.classList.add('commander-mode');entry.hidden=true;byId('hud').hidden=true;hud.hidden=false;byId('commander-units').replaceChildren();render();view.renderer.setAnimationLoop(paused?null:frame);}
   catch(error){loading=false;if(!disposed){view?.dispose();view=null;byId('loading').textContent=`Commander could not load: ${error.message}. Return to the menu and retry.`;byId('enter-ai').disabled=false;}throw error;}
+  finally{loading=false;}
  }
  for(const[id,request]of [['commander-all',{type:'all'}],['commander-move',{type:'command',command:'move'}],['commander-attack',{type:'command',command:'attack'}],['commander-defend',{type:'defend'}],['commander-deploy',{type:'deploy'}]])listen(byId(id),'click',()=>input(request));
  listen(byId('commander-pause'),'click',()=>pause());listen(byId('commander-retry'),'click',()=>{retry().catch(error=>tell(error.message));});for(const id of ['commander-back','commander-result-back'])listen(byId(id),'click',()=>onMenu());
