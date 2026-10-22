@@ -3,6 +3,7 @@ import {createCommanderView} from './view.js';
 
 export function createCommanderSession({canvas,baseUrl,onMenu=()=>{}}){
  let view,match,loaded=false,loading=false,disposed=false,paused=false,retrying=false,focusLost=false,command='move',accumulator=0,lastFrame=0,pointer=null,notice='',noticeUntil=0;
+ const loadingController=new AbortController();
  const listeners=[],pendingEvents=[],hud=document.getElementById('commander-hud'),entry=document.getElementById('entry'),result=document.getElementById('commander-result');
  const byId=id=>document.getElementById(id),listen=(target,type,fn,options)=>{target.addEventListener(type,fn,options);listeners.push(()=>target.removeEventListener(type,fn,options));};
  function clearPointer(){if(pointer&&canvas.hasPointerCapture?.(pointer.id))canvas.releasePointerCapture(pointer.id);pointer=null;}
@@ -40,7 +41,7 @@ export function createCommanderSession({canvas,baseUrl,onMenu=()=>{}}){
  }
  async function start(){
   if(disposed||loading||loaded)return;loading=true;byId('enter-ai').disabled=true;byId('loading').textContent='Loading Commander · Westminster…';
-  try{const next=await createCommanderView({canvas,baseUrl});if(disposed){next.dispose();return;}view=next;match=createCommanderMatch(view.world);const prepared=await view.prepare(match);if(disposed||!prepared)return;loaded=true;loading=false;paused=document.hidden||focusLost;document.body.classList.add('commander-mode');entry.hidden=true;byId('hud').hidden=true;hud.hidden=false;byId('commander-units').replaceChildren();render();view.renderer.setAnimationLoop(paused?null:frame);}
+  try{const next=await createCommanderView({canvas,baseUrl,signal:loadingController.signal});if(disposed||!next){next?.dispose();return;}view=next;match=createCommanderMatch(view.world);const prepared=await view.prepare(match);if(disposed||!prepared)return;loaded=true;loading=false;paused=document.hidden||focusLost;document.body.classList.add('commander-mode');entry.hidden=true;byId('hud').hidden=true;hud.hidden=false;byId('commander-units').replaceChildren();render();view.renderer.setAnimationLoop(paused?null:frame);}
   catch(error){loading=false;if(!disposed){view?.dispose();view=null;byId('loading').textContent=`Commander could not load: ${error.message}. Return to the menu and retry.`;byId('enter-ai').disabled=false;}throw error;}
  }
  for(const[id,request]of [['commander-all',{type:'all'}],['commander-move',{type:'command',command:'move'}],['commander-attack',{type:'command',command:'attack'}],['commander-defend',{type:'defend'}],['commander-deploy',{type:'deploy'}]])listen(byId(id),'click',()=>input(request));
@@ -54,5 +55,5 @@ export function createCommanderSession({canvas,baseUrl,onMenu=()=>{}}){
  listen(canvas,'pointercancel',clearPointer);listen(canvas,'lostpointercapture',()=>{pointer=null;});
  listen(window,'resize',()=>{if(loaded&&!disposed){view.resize();render();}});listen(window,'blur',()=>{focusLost=true;pause(true);});listen(document,'visibilitychange',()=>{if(document.hidden)pause(true);});
  listen(canvas,'webglcontextlost',e=>{e.preventDefault();if(loaded){pause(true);tell('Graphics interrupted · return to menu and retry');}});
- return Object.freeze({mode:'commander',start,input,snapshot,pause,retry,step(seconds){if(!Number.isFinite(seconds)||seconds<0||seconds>5)throw Error('Bounded Commander step required');if(!loaded||paused||disposed)return;for(let i=0;i<Math.floor(seconds*60+1e-8)&&!match.result;i++)tick();render();if(match.result)view.renderer.setAnimationLoop(null);},dispose(){if(disposed)return;disposed=true;loaded=false;clearPointer();for(const remove of listeners)remove();listeners.length=0;pendingEvents.length=0;view?.dispose();view=null;hud.hidden=true;result.hidden=true;document.body.classList.remove('commander-mode');}});
+ return Object.freeze({mode:'commander',start,input,snapshot,pause,retry,step(seconds){if(!Number.isFinite(seconds)||seconds<0||seconds>5)throw Error('Bounded Commander step required');if(!loaded||paused||disposed)return;for(let i=0;i<Math.floor(seconds*60+1e-8)&&!match.result;i++)tick();render();if(match.result)view.renderer.setAnimationLoop(null);},dispose(){if(disposed)return;disposed=true;loadingController.abort();loaded=false;clearPointer();for(const remove of listeners)remove();listeners.length=0;pendingEvents.length=0;view?.dispose();view=null;hud.hidden=true;result.hidden=true;document.body.classList.remove('commander-mode');}});
 }

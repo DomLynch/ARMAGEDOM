@@ -6,12 +6,13 @@ import {posedActorBounds} from '../engine/grenade-surface.js';
 import {applyAreaLighting} from '../engine/area-lighting.js';
 import {COMMANDER_RULES} from './match.js';
 const ASPECT=1672/941,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-export async function createCommanderView({canvas,baseUrl}){
- const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+export async function createCommanderView({canvas,baseUrl,signal}){
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(),fill=new T.HemisphereLight(0xb9bec9,0x4b3828,1.6),sun=new T.DirectionalLight(0xffd7a0,2.3);sun.position.set(-7,12,6);scene.add(fill,sun);
- let world,library;const settled=await Promise.allSettled([createWorld({THREE:T,renderer,scene,camera,baseUrl}),loadActors(baseUrl,()=>{},'assets/manifest-hollow.json')]);
- if(settled.some(r=>r.status==='rejected')){for(const r of settled)if(r.status==='fulfilled')r.value.dispose();renderer.dispose();throw settled.find(r=>r.status==='rejected').reason;}
- [world,library]=settled.map(r=>r.value);applyAreaLighting(scene,world);if(world.routeGuidance?.group)world.routeGuidance.group.visible=false;
+ let world,library;const settled=await Promise.allSettled([createWorld({THREE:T,scene,camera,baseUrl}),loadActors(baseUrl,()=>{},'assets/manifest-hollow.json')]);
+ if(settled.some(r=>r.status==='rejected')){for(const r of settled)if(r.status==='fulfilled')r.value.dispose();throw settled.find(r=>r.status==='rejected').reason;}
+ [world,library]=settled.map(r=>r.value);if(signal?.aborted){library.dispose();world.dispose();return null;}
+ const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ applyAreaLighting(scene,world);if(world.routeGuidance?.group)world.routeGuidance.group.visible=false;
  const actors=createActors(scene,world,library,{visualScale:1.3225}),lasers=createDroneLaserBolts({scene,world,camera}),rings=new Map(),ringGeometry=new T.RingGeometry(1.16,1.22,32),objectiveGeometry=new T.RingGeometry(COMMANDER_RULES.captureRadius-.06,COMMANDER_RULES.captureRadius,48),objectiveMaterial=new T.MeshBasicMaterial({color:0xe2bc72,transparent:true,opacity:.85,depthWrite:false,side:T.DoubleSide}),objectiveRing=new T.Mesh(objectiveGeometry,objectiveMaterial);objectiveRing.rotation.x=-Math.PI/2;scene.add(objectiveRing);
  const ray=new T.Raycaster(),hit=new T.Vector3(),crop=new T.Matrix4();let width=1,height=1,focus={x:.6,y:.69},zx=1,zy=1,disposed=false;
  // Only the calibrated projection crop changes. The painted backdrop/masks,
