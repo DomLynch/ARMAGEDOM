@@ -590,7 +590,7 @@ summary {
 .mode-panel p { min-height:3.5em; line-height:1.5; }
 .mode-panel button { width:100%; min-height:48px; }
 #commander-hud { position:fixed; inset:0; z-index:10; pointer-events:none; }
-#commander-hud button { min-height:44px; touch-action:manipulation; pointer-events:auto; }
+#commander-hud button { min-height:44px; touch-action:manipulation; pointer-events:auto; color:#eee9df; background:#17282f; border:1px solid #76979f; border-radius:5px; font-weight:600; }
 .commander-summary { position:absolute; top:var(--safe-t); left:var(--safe-l); width:min(450px,calc(100% - var(--safe-l) - var(--safe-r))); padding:12px 14px; border:1px solid rgba(175,209,212,.45); border-radius:10px; background:rgba(8,17,20,.88); }
 .commander-summary h2 { font-size:1rem; margin:6px 0; }
 .commander-summary p { margin:4px 0; font-size:.8rem; }
