@@ -29,7 +29,7 @@ const subscriptions=new Set(),listeners=[];
 function listen(target,type,handler,opts){target.addEventListener(type,handler,opts);listeners.push(()=>target.removeEventListener(type,handler,opts));}
 function emit(events){if(!subscriptions.size)return;for(const event of events){const value=eventSnapshot(event);for(const listener of [...subscriptions])listener(value);}}
 const canvas=options.canvas??document.getElementById("world"),enter=document.getElementById("enter"),baseUrl=options.baseUrl??new URL("./",document.baseURI);
-const pilot = { pilot: "donor-knife", pistol: true, supplies: true, vest: true, finishers: true,rat: true, dog: true, roach: true, drone: true, animalVariants: true, mobileControls: true, areaResidents: true, openingGroup: false, residentPlacements:privateContent?.residents };
+const pilot = { pilot: "donor-knife", healthRegen: true, pistol: true, supplies: true, vest: true, finishers: true,rat: true, dog: true, roach: true, drone: true, animalVariants: true, mobileControls: true, areaResidents: true, openingGroup: false, residentPlacements:privateContent?.residents };
 // Scale bodies and equipped gear independently of camera framing and combat.
 const actorVisualScale = 1.3225;
 // Dom selected preview006: retain enlarged actors without extra scene zoom.

@@ -1,3 +1,4 @@
+import{stepPlayerHealth}from'./engine/player-health.js';
 import{stepMarkedHunters,clearMarkedHunters}from'./engine/marked-hunters.js';
 import{stopRailgun}from'./engine/railgun.js';
 import{stepReaper,stopReaper,REAPER_ITEM_ID}from'./engine/reaper.js';
@@ -80,6 +81,7 @@ export function createGame(world,options={}){
   g.message='LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.';
   if(encounter){g.encounter=encounter;g.nextEnemyAttackAt=0;g.message='LONDON · Hollow scavengers. Keep space, guard, then counter.';}
  }
+ if(options.healthRegen===true)g.healthRegen=true;
  if(options.rat)g.rat=true;
  if(options.dog)g.dog=true;
  if(options.roach)g.roach=true;
@@ -345,6 +347,7 @@ export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehous
  if(!g.finished){stepReaper(g,dt,{source:services.reaperSource,trace:services.grenadeTrace,aimHeight:services.rocketAimHeight,emitBolt:b=>g.bolts.push({id:++serial,...b}),hit:(shot,amount)=>rangedHit(g,shot,'reaper',REAPER_ITEM_ID,amount,'bullet')});projectiles(g,dt);collect(g);}
  }
  if(g.finished){if(g.player.hp<=0)clearMarkedHunters(g,{death:true});stopRailgun(g,'terminal');stopReaper(g,'terminal');stopAllBoneSaws(g,'terminal');resetDeadPlayerBossPursuit(g);stopBossFlames(g,'finished');g.activeGrenades=[];stopFlame(g);if(g.areaHazards)g.areaHazards=[];}
+ if(g.healthRegen&&!g.finished)stepPlayerHealth(g.player,dt);
  if(g.mobileAim){
   if(g.finished)resetMobileControls(g);
   else if(!g.enemies.some(e=>e.placementKey===g.mobileAim.targetId&&e.hp>0))g.mobileAim={...g.mobileAim,targetId:null,bearing:null};

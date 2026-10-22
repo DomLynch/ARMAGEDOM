@@ -8,6 +8,7 @@ function data(object,key){
 function projection(g){
  const player=data(g,'player'),pistol=data(g,'pistol');
  return {hp:data(player,'hp'),maxHP:data(player,'maxHP'),
+  ...(data(g,'healthRegen')===true?{healthDamageAt:data(player,'flashUntil')}:{}),
   pistol:{collected:data(pistol,'collected'),equipped:data(pistol,'equipped'),magazine:data(pistol,'magazine'),reserve:data(pistol,'reserve')},
   supplies:data(g,'supplies'),vest:data(g,'vest')??{version:1,itemId:'westminster-worn-vest-v1',equipped:false},
   droneDeaths:data(g,'droneDeaths')??[],animalCycle:data(g,'animalCycle')??'A',lootRules:data(g,'lootRules')};
@@ -36,5 +37,15 @@ function same(value,snapshot){
   return !!descriptor?.enumerable&&'value' in descriptor&&same(descriptor.value,snapshot.values[i]);
  });
 }
-export const captureRunState=g=>capture(projection(g),new Set());
-export const isRunStateUnchanged=(g,snapshot)=>same(projection(g),snapshot);
+export function captureRunState(g){
+ const value=projection(g),state=capture(value,new Set());
+ return data(g,'healthRegen')===true?{healthRegen:true,state,hp:value.hp,savedAt:data(g,'time')}:state;
+}
+export function isRunStateUnchanged(g,snapshot){
+ const value=projection(g);
+ if(snapshot.healthRegen!==true)return same(value,snapshot);
+ // Coalesce only positive regeneration for one simulation second. Damage's
+ // existing flash clock and all resource/cap/ledger changes still invalidate it.
+ if(value.hp>snapshot.hp&&value.hp<value.maxHP&&data(g,'time')-snapshot.savedAt<1-1e-8)value.hp=snapshot.hp;
+ return same(value,snapshot.state);
+}
