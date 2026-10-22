@@ -157,8 +157,8 @@ function shadowTexture() {
   ctx.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(canvas);
 }
-export function createActors(scene, world, library, { visualScale = 1 } = {}) {
-  const bodyShapes=createFeralBodyShapeLibrary(),roachLooks=createRoachAppearanceLibrary(THREE),droneKits=createLowHoverDroneLibrary(),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
+export function createActors(scene, world, library, { visualScale = 1, droneAppearance = 'watcher' } = {}) {
+  const bodyShapes=createFeralBodyShapeLibrary(),roachLooks=createRoachAppearanceLibrary(THREE),droneKits=createLowHoverDroneLibrary({appearance:droneAppearance}),faceKits=new Map(),dogKits=new Map(),animalLooks=createAnimalAppearanceLibrary(THREE),dogCoats=createFeralCoatProfileLibrary(THREE);
   const gauntKits=new Map(),humanFoundation=library.models.get('hollow-scavenger')?.gltf.scene;
   let gauntPreparationError=null;
   if(humanFoundation?.getObjectByName('Hollow_body_and_worn_trousers'))try{gauntKits.set(humanFoundation,createGauntShapeLibrary(humanFoundation));}catch(error){gauntPreparationError=String(error.message??error);}

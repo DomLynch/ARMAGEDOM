@@ -16,7 +16,7 @@ export async function createCommanderView({canvas,baseUrl,signal}){
  try{
   renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
   applyAreaLighting(scene,world);if(world.routeGuidance?.group)world.routeGuidance.group.visible=false;
-  actors=createActors(scene,world,library,{visualScale:1.3225});lasers=createDroneLaserBolts({scene,world,camera});ringGeometry=new T.RingGeometry(1.16,1.22,32);objectiveGeometry=new T.RingGeometry(COMMANDER_RULES.captureRadius-.06,COMMANDER_RULES.captureRadius,48);objectiveMaterial=new T.MeshBasicMaterial({color:0xe2bc72,transparent:true,opacity:.85,depthWrite:false,side:T.DoubleSide});objectiveRing=new T.Mesh(objectiveGeometry,objectiveMaterial);objectiveRing.rotation.x=-Math.PI/2;scene.add(objectiveRing);
+  actors=createActors(scene,world,library,{visualScale:1.3225,droneAppearance:'commander-compact-black'});lasers=createDroneLaserBolts({scene,world,camera});ringGeometry=new T.RingGeometry(1.16,1.22,32);objectiveGeometry=new T.RingGeometry(COMMANDER_RULES.captureRadius-.06,COMMANDER_RULES.captureRadius,48);objectiveMaterial=new T.MeshBasicMaterial({color:0xe2bc72,transparent:true,opacity:.85,depthWrite:false,side:T.DoubleSide});objectiveRing=new T.Mesh(objectiveGeometry,objectiveMaterial);objectiveRing.rotation.x=-Math.PI/2;scene.add(objectiveRing);
   ray=new T.Raycaster();hit=new T.Vector3();crop=new T.Matrix4();
  }catch(error){disposeResources();throw error;}
  let width=1,height=1,focus={x:.6,y:.69},zx=1,zy=1,disposed=false;
