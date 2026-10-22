@@ -34,3 +34,14 @@ test('offscreen free crosshair stays visible at portrait edge without advertisin
  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,393/852,.1,100);camera.position.set(0,10,20);camera.lookAt(0,0,0);camera.updateMatrixWorld();const w={...world,camera,areaId:'westminster',lineClear:()=>true},g=game();g.world=w;g.player.pos={x:50,z:0};g.player.facing={x:1,z:0};g.mobileAiming=true;g.pistol.magazine=6;g.pistol.nextFireAt=g.pistol.reloadingUntil=0;g.player.hurtUntil=g.player.dodgeUntil=0;
  const fx=createEffects(scene,w);fx.update(g,{viewportWidth:393,viewportHeight:852});const marker=scene.getObjectByName('Pistol aim marker'),p=marker.position.clone().project(camera);assert.equal(marker.visible,true);assert.equal(marker.userData.targetId,null);assert.equal(marker.userData.edge,true);assert.ok(Math.abs(p.x)<=1-52/393+1e-9&&Math.abs(p.y)<=1-52/852+1e-9);assert.equal(marker.children[2].visible,true);fx.dispose();
 });
+
+
+test('selected Salamander shared marker uses existing1.08m target height and keeps visibility/material semantics',()=>{
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,393/852,.1,100);camera.position.set(0,10,20);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+ const w={...world,camera,areaId:'westminster',lineClear:()=>true},g=game();g.world=w;g.player.hurtUntil=g.player.dodgeUntil=g.player.ready=0;g.pistol.magazine=6;g.pistol.nextFireAt=g.pistol.reloadingUntil=0;
+ const e={id:1,rig:'giant-salamander',hp:120,pos:{x:0,z:4},radius:.849,mobSize:1,placementKey:'westminster-roamer-2'};g.enemies=[e];g.touchTarget={id:e.id,key:e.placementKey,areaId:w.areaId};g.touchTargetReady=true;
+ const fx=createEffects(scene,w,null,()=>null,{getView:()=>({root:{scale:{y:6.022665}}})}),marker=scene.getObjectByName('Pistol aim marker');
+ fx.update(g,{visibleIds:[1],viewportWidth:393,viewportHeight:852});assert(marker.visible);assert.equal(marker.userData.targetId,1);assert.equal(marker.userData.explicitSelection,true);assert.equal(marker.position.y,1.08,'own combat cue height is already in world metres; never apply root scale twice');assert.equal(marker.userData.edge,false);assert(marker.children.every(c=>!c.material.depthTest&&!c.material.depthWrite));assert.equal(marker.children[0].material.color.getHex(),0x161b1d);assert.equal(marker.children[1].material.color.getHex(),0xf2eee4);
+ fx.update(g,{visibleIds:[],viewportWidth:393,viewportHeight:852});assert.equal(marker.visible,false,'hidden/offscreen selected target remains hidden by shared visibility gate');
+ fx.update(g,{paused:true,visibleIds:[1]});assert.equal(marker.visible,false);e.hp=0;fx.update(g,{visibleIds:[1]});assert.equal(marker.visible,false,'dead selected target has no marker');e.hp=120;g.touchTarget=null;fx.update(g,{visibleIds:[1]});assert.equal(marker.userData.explicitSelection,false,'unselected auto-aim retains existing semantics');fx.dispose();
+});
