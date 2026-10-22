@@ -3,7 +3,7 @@ import{creatureCatalogue}from'./creature-catalogue.js';
 import{AREA_MOB_SPAWNS}from'../area-mob-spawns.js';
 import{AREA_DRONE_SPAWNS}from'../area-drone-spawns.js';
 const fail=()=>{throw Error('Invalid registered area population');};
-const foundations=['original-rat','original-dog','original-roach','low-hover-drone'];
+const foundations=['original-rat','original-dog','original-roach','low-hover-drone','giant-salamander'];
 // Keep the complete source identity/loot registry. Only fresh combat residents
 // consume this policy, so removed placements in old death/award ledgers stay valid.
 export function validatePopulationData(input,registry,residents,uniqueRewardData=null){

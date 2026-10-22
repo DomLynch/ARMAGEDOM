@@ -12,6 +12,7 @@ import{rifleActionState}from'./engine/rifle-runtime.js';
 import {FINISHER_DATA} from './engine/finisher-data.js';
 import{FLAME_VISUAL_DATA}from'./engine/flame-data.js';
 import{initializeFlame,flameIntent,stepFlame,stopFlame}from'./engine/flame-runtime.js';
+import{SALAMANDER_BITE,salamanderResponse}from'./salamander-native.js';
 import{populationPlacements,populationAllowsDrone}from'./engine/area-population.js';
 import{posedMeleeMove}from'./engine/melee-equipment-data.js';
 import{applyBossProfile,bossMove,bossHazardPosition,resetBossPursuit}from'./engine/area-bosses.js';
@@ -59,6 +60,7 @@ const DOG_LOW=Object.freeze({...RAT_LOW,moveId:'dog_low'});
 const DOG_MID=Object.freeze({...DOG_LOW,clip:'DogMidSlash'});
 const DOG_BITE=Object.freeze({...RAT_BITE,moveId:'dog_bite',clip:'dog_bite_calf',windupTicks:18,activeTicks:6,recoveryTicks:24,windup:18/60,active:6/60,recovery:24/60,damage:8,staminaDamage:8,range:1.17});
 const DOG_BITE_SCALED=Object.freeze({...DOG_BITE,clip:'dog_bite_scaled'});
+const SALAMANDER_ATTACK=Object.freeze({...RAT_BITE,...SALAMANDER_BITE});
 const EPS=1e-8,mag=v=>Math.hypot(v.x,v.z),sub=(a,b)=>({x:a.x-b.x,z:a.z-b.z});
 export function normal(v,fallback={x:0,z:1}){const n=mag(v);return n>.001?{x:v.x/n,z:v.z/n}:{...fallback};}
 const validDirection=v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&mag(v)>.001;
@@ -100,7 +102,7 @@ function rangedHit(g,shot,weapon,itemId,damage,attackClass='bullet'){
  const amount=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);target.flashUntil=g.time+.12;if(target.home)alertResident(g,target);
  event(g,'hit',{actor:target,amount,position:{...target.pos},weapon,attackClass,impactDirection:{...shot.direction},parry:false});
  if(weapon==='rifle')rifleActionState(g).lastDamageTick=g.tick;else if(['shotgun','grenade','rocket','railgun'].includes(weapon))bossEquipmentClock(g,weapon==='rocket'?'rocketLauncher':weapon==='railgun'?'commanderPistol':weapon).lastDamageTick=g.tick;
- if(target.hp<=0){stopBoneSaw(g,target,'death');stageProgressionDeath(g,target,itemId,amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon,attackClass,impactDirection:{...shot.direction}});}
+ if(target.hp<=0){stopBoneSaw(g,target,'death');stageProgressionDeath(g,target,itemId,amount);target.swing=null;target.response=target.rig==='giant-salamander'?salamanderResponse(target.hp>0,g.time):{clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon,attackClass,impactDirection:{...shot.direction}});}
 }
 function rifleIntent(g,intent,dispatch){
  const p=g.player,profile=g.world.rifleData,rules=profile.rules,clock=rifleActionState(g),actions=intent.actions??[],canAct=p.hp>0&&!g.finished&&!intent.cancel&&!intent.dodge&&!p.swing&&g.time>=p.ready&&g.time>=p.hurtUntil&&g.time>=p.dodgeUntil;
@@ -173,8 +175,8 @@ export function attack(g,action,direction=g.player.facing,visibleIds){if(safehou
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
  if(g.pilot&&['slash','stab','heavy'].includes(action)){
   const weaponMove=def,ticks=def.windupTicks??Math.floor(def.windup*60),normalReach=def.range*p.combatScale+R.walkSpeed*def.stepIn*Math.max(0,ticks-R.stepInFrom-1)/60,lowReach=RAT_LOW.range*p.combatScale;
-  slashTarget=selectCombatTarget({nearest:p.meleeTargeting?.nearest??true,aim:direction,coneDegrees:p.meleeTargeting?.coneDegrees,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>p.meleeLowMoves?.[target.rig]?lowReach+(p.meleeLowMoves[target.rig].includeRadius?target.radius:0)-normalReach:(target.rig==='low-hover-drone'||(action==='slash'&&['original-rat','original-dog','original-roach'].includes(target.rig)||['stab','heavy'].includes(action)&&target.rig==='original-rat'))?lowReach+(target.contactGoalReach||target.rig==='low-hover-drone'?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
-  const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(p.meleeLowMoves?.[rig]){def=posedMeleeMove(weaponMove,action,p.meleeLowMoves[rig]);lowTargetId=slashTarget.targetId;}else if(rig==='low-hover-drone'||action==='slash'&&['original-rat','original-dog','original-roach'].includes(rig)||['stab','heavy'].includes(action)&&rig==='original-rat'){def=rig==='low-hover-drone'?droneLow(def):rig==='original-dog'?(g.enemies.find(e=>e.id===slashTarget.targetId).contactGoalReach?DOG_MID:DOG_LOW):rig==='original-roach'?ROACH_LOW:action==='slash'?RAT_LOW:ratMeleeDefinition(action,def,RAT_LOW,{rig});lowTargetId=slashTarget.targetId;if(p.meleeMoves)def={...def,damage:weaponMove.damage,stamina:weaponMove.stamina,staminaDamage:weaponMove.staminaDamage};}
+  slashTarget=selectCombatTarget({nearest:p.meleeTargeting?.nearest??true,aim:direction,coneDegrees:p.meleeTargeting?.coneDegrees,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>p.meleeLowMoves?.[target.rig]?lowReach+(p.meleeLowMoves[target.rig].includeRadius?target.radius:0)-normalReach:(target.rig==='low-hover-drone'||(action==='slash'&&['original-rat','original-dog','original-roach','giant-salamander'].includes(target.rig)||['stab','heavy'].includes(action)&&target.rig==='original-rat'))?lowReach+(target.contactGoalReach||target.rig==='low-hover-drone'?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
+  const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(p.meleeLowMoves?.[rig]){def=posedMeleeMove(weaponMove,action,p.meleeLowMoves[rig]);lowTargetId=slashTarget.targetId;}else if(rig==='low-hover-drone'||action==='slash'&&['original-rat','original-dog','original-roach','giant-salamander'].includes(rig)||['stab','heavy'].includes(action)&&rig==='original-rat'){def=rig==='low-hover-drone'?droneLow(def):rig==='original-dog'?(g.enemies.find(e=>e.id===slashTarget.targetId).contactGoalReach?DOG_MID:DOG_LOW):rig==='original-roach'?ROACH_LOW:action==='slash'?RAT_LOW:ratMeleeDefinition(action,def,RAT_LOW,{rig});lowTargetId=slashTarget.targetId;if(p.meleeMoves)def={...def,damage:weaponMove.damage,stamina:weaponMove.stamina,staminaDamage:weaponMove.staminaDamage};}
  }
  if(g.pilot)knifeSpend(g,p,def.stamina);
  p.buffer=null;p.guarding=false;p.parryUntil=0;p.guardRecoverAt=g.time+(g.pilot?R.regenDelay/60:.45);p.facing=normal(direction,p.facing);
@@ -207,7 +209,7 @@ function flameHit(g,target,damage,{source}){if(safehouseWeaponBlocked(g)||safeho
  const amount=Math.min(target.hp,damage);if(!(amount>0))return;
  target.hp=Math.max(0,target.hp-amount);target.flashUntil=g.time+.12;target.flameBurnUntil=g.time+FLAME_VISUAL_DATA.burnSeconds;target.flameBurnFrom={x:source.position.x,z:source.position.z};if(target.home)alertResident(g,target);
  const direction=normal({x:source.direction.x,z:source.direction.z});event(g,'hit',{actor:target,amount,position:{...target.pos},weapon:'flamethrower',attackClass:'fire',impactDirection:direction,material:'fire'});
- if(target.hp<=0){stopBoneSaw(g,target,'death');stageProgressionDeath(g,target,g.world.flameData.pickupId,amount);target.swing=null;target.response={clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'flamethrower',attackClass:'fire',impactDirection:direction});}
+ if(target.hp<=0){stopBoneSaw(g,target,'death');stageProgressionDeath(g,target,g.world.flameData.pickupId,amount);target.swing=null;target.response=target.rig==='giant-salamander'?salamanderResponse(target.hp>0,g.time):{clip:target.rig==='original-rat'?'rat_death':target.rig==='original-dog'?'dog_death':target.rig==='original-roach'?'roach_death':'Death',start:g.time,ticks:target.rig==='original-rat'?54:target.rig==='original-dog'?60:target.rig==='original-roach'?48:144};kill(g,target,{weapon:'flamethrower',attackClass:'fire',impactDirection:direction});}
 }
 function kill(g,e,meta={}){
  stopBoneSaw(g,e,'death');
@@ -294,7 +296,7 @@ function mobileControl(g,intent,dt,services){
  return {...intent,move:result.move,aim:busy?null:{...p.facing}};
 }
 function resetDeadPlayerBossPursuit(g){if(g.player.hp>0)return;for(const e of g.enemies){stopBossFlame(g,e,'player-death');resetBossPursuit(e);}}
-export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(intent.paused||g.finished)stopReaper(g,'pause');if(intent.cancel||intent.paused||g.finished||g.weaponsLowered)stopRailgun(g,'interrupted');if(intent.cancel||intent.paused||g.finished){stopBoneSaw(g,g.player,'cancel');for(const e of g.enemies)if(e.saw||e.sawPhase){stopBoneSaw(g,e,'cancel');e.sawPhase=null;}}if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){if(g.player.hp<=0)clearMarkedHunters(g,{death:true});stopRailgun(g,'terminal');stopReaper(g,'terminal');stopAllBoneSaws(g,'terminal');resetDeadPlayerBossPursuit(g);stopBossFlames(g,'finished');g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused){stopBossFlames(g,'pause');return;}const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);intent=applyTouchTarget(g,intent,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};intent=boneSawIntent(g,intent);const move=intent.move??{x:0,z:0};
+export function stepGame(g,intent={},dt=1/60,services={}){intent=prepareSafehouseStep(g,intent);if(g.pilot&&(!Number.isFinite(dt)||Math.abs(dt-1/60)>EPS))throw Error('Knife pilot requires fixed 60 Hz simulation ticks');g.events=[];if(g.pilot)g.player.running=false;if(intent.paused||g.finished)stopReaper(g,'pause');if(intent.cancel||intent.paused||g.finished||g.weaponsLowered)stopRailgun(g,'interrupted');if(intent.cancel||intent.paused||g.finished){stopBoneSaw(g,g.player,'cancel');for(const e of g.enemies)if(e.saw||e.sawPhase){stopBoneSaw(g,e,'cancel');e.sawPhase=null;}}if(g.pilot&&(intent.cancel||intent.paused)){if(g.player.swing)g.player.swing.turnTo=null;g.player.buffer=null;g.player.guarding=false;g.player.parryUntil=0;g.player.parryReleased=true;}if(g.flame&&(g.finished||intent.cancel||intent.paused))stopFlame(g);if(g.finished){if(g.player.hp<=0)clearMarkedHunters(g,{death:true});stopRailgun(g,'terminal');stopReaper(g,'terminal');stopAllBoneSaws(g,'terminal');resetDeadPlayerBossPursuit(g);stopBossFlames(g,'finished');g.activeGrenades=[];g.activeRockets=[];return;}if(intent.paused){stopBossFlames(g,'pause');return;}const ratBefore=g.ratContact&&g.enemies.some(e=>['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(e.rig)&&(e.alerted||e.swing||mag(sub(e.pos,g.player.pos))<=6))?g.ratContact.capture(g):null;const before=g.pilot?new Map([g.player,...g.enemies].map(e=>[e.id,snapshot(e)])):null;g.time+=dt;if(g.pilot)g.tick++;const p=g.player,t=g.time;stepBossGrenades(g,(...args)=>rangedHit(g,...args),services);stepRockets(g,(...args)=>rangedHit(g,...args),services);intent=mobileControl(g,intent,dt,services);intent=applyTouchTarget(g,intent,services);if(g.rifleAction&&(intent.cancel||g.flame?.equipped))g.rifleAction.reloadingUntil=0;intent=g.weaponsLowered?intent:g.flame?.equipped?flameIntent(g,intent):selectedBossRanged(g)?bossEquipmentIntent(g,intent,services.dispatchBossEquipment,(...args)=>rangedHit(g,...args),services):g.rifle?.selected?rifleIntent(g,intent,services.dispatchRifle):pistolIntent(g,intent,services.dispatchPistol,services.dispatchMarshalPistol);if(!validDirection(intent.aim))intent={...intent,aim:null};intent=boneSawIntent(g,intent);const move=intent.move??{x:0,z:0};
  if(intent.dodge){const until=p.dodgeUntil;dodge(g,move,intent.aim);if(g.pistol?.equipped&&p.dodgeUntil!==until)g.pistolUserFacing={...p.facing};}
  const swinging=p.swing&&t<p.swing.end-EPS,dodging=t<p.dodgeUntil-EPS;
  p.guarding=!!intent.guard&&!dodging&&!swinging&&t>=p.guardBrokenUntil&&p.guard>0;
@@ -424,8 +426,8 @@ export function initializeAreaResidents(g){
  // Legacy opening groups remain atomic; resident-only starts initialize directly.
  if(area==='westminster'&&!g.wave&&g.openingGroup!==false)return;
  const dead=new Set(g.progressionModel?.deadPlacements(g.progression,area)??[]);
- const canonical=g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[],policy=g.world.populationData;
- const placements=populationPlacements(policy,area,g.animalCycle,canonical),sizes=allocateMobSizes(area,canonical.map(placement=>placement.key));
+ const policy=g.world.populationData,canonical=(g.residentPlacements?.[area]??AREA_MOB_SPAWNS[area]??[]).filter(row=>row.key!=='westminster-salamander-1'||policy?.areas[area]?.activePlacementIds.includes(row.key));
+ const placements=populationPlacements(policy,area,g.animalCycle,canonical),sizes=allocateMobSizes(area,canonical.filter(row=>row.key!=='westminster-salamander-1').map(placement=>placement.key));
  const residents=placements.filter(p=>!dead.has(p.key)&&(!(area==='westminster'||g.supplies?.version===2&&g.lootRules?.[p.key]?.areaId===area)||!g.supplies?.issued.includes(p.key))&&(p.foundationRef!=='low-hover-drone'||!(g.droneDeaths??[]).includes(p.key))).map(placement=>Object.assign(declaredResident(g,placement,sizes.get(placement.key)),{
   placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false
  }));
@@ -442,6 +444,7 @@ export function initializeAreaResidents(g){
   const role=resolveBoundAnimalRole(e,{areaId:area,animalCycle:g.animalCycle,behaviourCapabilities:ENGINE_CREATURE_CAPABILITIES});
   if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}
  }
+ for(const e of residents)if(e.rig==='giant-salamander'){const role=resolveBoundAnimalRole(e,{areaId:area,animalCycle:g.animalCycle,behaviourCapabilities:ENGINE_CREATURE_CAPABILITIES});if(role){e.animalRole=role;e.residentIntent=role.intent;Object.assign(e,role.parameters);e.completedAttack=null;e.wokeAt=null;}}
  for(const e of residents){const recipe=gauntHumanRecipe(g.animalCycle,area,e);if(recipe)e.humanBodyRecipe=recipe;}
  if(g.drone)for(const placement of AREA_DRONE_SPAWNS[area]??[])if(populationAllowsDrone(policy,area,placement.key)&&!dead.has(placement.key)&&!g.droneDeaths.includes(placement.key)&&!placements.some(p=>p.foundationRef==='low-hover-drone'&&p.key===placement.key))residents.push(Object.assign(droneResident(g,placement),{placementKey:placement.key,home:{...placement.pos},patrol:placement.patrol,patrolIndex:1,returning:false}));
  g.enemies.push(...residents);g.areaInitialized=true;g.encounterActive=g.enemies.length>0;g.encounterCleared=!g.enemies.length;
@@ -520,7 +523,7 @@ function knifeGuard(g,intent,swinging,dodging){
  }else if(p.parryUntil>t&& !intent.cancel){p.parryReleased=true;}
  if(p.parryReleased&&t+EPS>=p.parryUntil&&p.parryUntil>0){p.parryUntil=0;p.guardExposedUntil=t+R.parryRecovery/60;p.parryReleased=false;}
 }
-function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:def?.weapon??(['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'teeth':'knife'),material:['original-rat','original-dog','original-roach'].includes(attacker?.rig)?'flesh':'iron'};}
+function hitMetadata(attacker,victim,def){return {attackerId:attacker?.id??null,victimId:victim.id,position:{...victim.pos},moveId:def?.moveId??null,audioWeight:def?.audioWeight,weapon:def?.weapon??(['original-rat','original-dog','original-roach','giant-salamander'].includes(attacker?.rig)?'teeth':'knife'),material:['original-rat','original-dog','original-roach','giant-salamander'].includes(attacker?.rig)?'flesh':'iron'};}
 function knifeReceive(g,hit){if(safehouseProtected(g)||safehouseBlocksSegment(g,hit.origin,g.player.pos))return false;
  const p=g.player,t=g.time,age=(t-p.dodgeStart)*60,def=hit.def??(hit.moveId==='rat_bite'?RAT_BITE:hit.moveId==='dog_bite'?DOG_BITE:hit.moveId==='roach_bite'?ROACH_BITE:KNIFE_MOVES[hit.moveId]);
  if(p.hp<=0||age+EPS>=R.safeStart&&age<=R.safeEnd+EPS&&t<p.dodgeUntil){event(g,'evade',{actor:p,...hitMetadata(hit.attacker,p,def)});return false;}
@@ -557,7 +560,7 @@ function knifeEnemy(g,e,dt,services){
  if(stepBossFlame(g,e,dt,{patrol:residentPatrol,move:enemyMove,source:services?.bossFlameSource,receive:knifeReceive,emit:event}))return;
  if(e.rig==='low-hover-drone'){droneEnemy(g,e,dt);return;}
  if(e.rig==='original-rat'){ratEnemy(g,e,dt);return;}
- if(e.rig==='original-dog'||e.rig==='original-roach'){dogEnemy(g,e,dt);return;}
+ if(e.rig==='original-dog'||e.rig==='original-roach'||e.rig==='giant-salamander'){dogEnemy(g,e,dt);return;}
  knifeEnergy(e,g.encounter?.regen??R.goblinRegen);
  knifeRegen(g,e,dt,!!e.swing||g.time<e.recoverUntil||g.time<e.staggerUntil);
  if(e.swing){knifeStepIn(g,e,dt);return;}
@@ -632,7 +635,7 @@ function dogEnemy(g,e,dt){
  }
  if(distance>e.radius+g.player.radius+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,normal(footGoal?sub(footGoal,e.pos):offset),e.moveSpeed,dt);return;}
  const calf=e.rig==='original-roach'||e.contactGoalReach?footGoal:g.ratContact?.calf(g,e);if(!calf||e.contactGoalReach&&mag(sub(calf,e.pos))>e.contactGoalReach+EPS)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
- if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='original-roach'?(e.contactGoalReach?ROACH_BITE_SCALED:ROACH_BITE):e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};if(e.animalRole)e.completedAttack=null;e.ready=e.swing.end+(e.animalRole?e.recoveryDelay:0);event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
+ if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='giant-salamander'?SALAMANDER_ATTACK:e.rig==='original-roach'?(e.contactGoalReach?ROACH_BITE_SCALED:ROACH_BITE):e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};if(e.animalRole)e.completedAttack=null;e.ready=e.swing.end+(e.animalRole?e.recoveryDelay:0);event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
 }
 function knifeContacts(g,before,ratBefore){
  const entities=[g.player,...g.enemies],after=new Map(entities.map(e=>[e.id,snapshot(e)])),contacts=[],completed=[];
@@ -645,9 +648,9 @@ function knifeContacts(g,before,ratBefore){
    if(!s.activeEmitted){s.activeEmitted=true;event(g,'strike',{actor:a,action:s.action,dir:s.dir,range:s.def.range,moveId:s.moveId});}
    const targets=a===g.player?[...g.enemies].sort((a1,b1)=>mag(sub(a1.pos,a.pos))-mag(sub(b1.pos,a.pos))||a1.id-b1.id):[g.player];
    for(const d of targets){
-    if(s.def.ratLow&&(!['original-rat','original-dog','original-roach','low-hover-drone'].includes(d.rig)||d.id!==s.lowTargetId))continue;
+    if(s.def.ratLow&&(!['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(d.rig)||d.id!==s.lowTargetId))continue;
     if(d.hp<=0||s.hitIds.has(d.id)||s.action==='stab'&&s.hitIds.size||!g.world.lineClear(a.pos,d.pos))continue;
-    const hit=['original-rat','original-dog','original-roach'].includes(a.rig)||['original-rat','original-dog','original-roach','low-hover-drone'].includes(d.rig)?!!(ratBefore&&g.ratContact.hit(a,d,s,ratBefore,ratAfter))
+    const hit=['original-rat','original-dog','original-roach','giant-salamander'].includes(a.rig)||['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(d.rig)?!!(ratBefore&&g.ratContact.hit(a,d,s,ratBefore,ratAfter))
      :s.path?bladeContact(contactSnapshot(before.get(a.id)??after.get(a.id)),contactSnapshot(after.get(a.id)),before.get(d.id)??after.get(d.id),after.get(d.id),s.path,age-1,age)
      :age===s.def.windupTicks&&mag(sub(d.pos,a.pos))<=s.def.range*a.combatScale+EPS&&inside(s.dir,sub(d.pos,a.pos),90);
     if(hit){s.hitIds.add(d.id);contacts.push({a,d,def:s.def,s});}
@@ -659,10 +662,10 @@ function knifeContacts(g,before,ratBefore){
  // on which attacker was enumerated first; a dead enemy cannot cancel its hit.
  contacts.sort((a,b)=>a.a.id-b.a.id||a.d.id-b.d.id);
  for(const {a,d,def} of contacts){if(a===g.player&&safehouseWeaponBlocked(g)||safehouseBlocksSegment(g,a.pos,d.pos))continue;
-  if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId,...(a.bossProfile?{def}:{})});
+  if(d===g.player)knifeReceive(g,{amount:def.damage,origin:after.get(a.id).pos,attacker:a,block:true,parry:def.parryable,moveId:def.moveId,...(a.bossProfile||a.rig==='giant-salamander'?{def}:{})});
   else{
    const damage=effectiveWeaponDamage(g,'knife',def.damage),amount=Math.min(d.hp,damage);d.hp=Math.max(0,d.hp-damage);if(d.hp<=0)stageProgressionDeath(g,d,'knife',amount);d.flashUntil=g.time+.12;if(d.home)alertResident(g,d);
-   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response={clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
+   d.recoverUntil=d.staggerUntil=g.time+def.stagger;d.ready=d.recoverUntil+(d.recoveryDelay??0);d.swing=null;if(d.animalRole)d.completedAttack=null;d.response=d.rig==='giant-salamander'?salamanderResponse(d.hp>0,g.time):{clip:d.rig==='original-rat'?(d.hp?'rat_hit':'rat_death'):d.rig==='original-dog'?(d.hp?'dog_hit':'dog_death'):d.rig==='original-roach'?(d.hp?'roach_hit':'roach_death'):(d.hp?'Hit':'Death'),start:g.time,ticks:d.rig==='original-rat'?(d.hp?20:54):d.rig==='original-dog'?(d.hp?24:60):d.rig==='original-roach'?(d.hp?18:48):(d.hp?Math.round(def.stagger*60):144)};
    event(g,'hit',{actor:d,amount,impactDirection:normal(sub(after.get(d.id).pos,after.get(a.id).pos)),...hitMetadata(a,d,def)});
    if(def.knockback){const dir=normal(sub(d.pos,a.pos));moveBody(g,d,{x:dir.x*R.walkSpeed*def.knockback/60,z:dir.z*R.walkSpeed*def.knockback/60});}
    if(d.hp<=0)kill(g,d,{...hitMetadata(a,d,def),impactDirection:sub(after.get(d.id).pos,after.get(a.id).pos)});

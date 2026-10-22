@@ -20,7 +20,7 @@ test('opening remains atomic and West extras cannot suppress its three actors',(
  assert.equal(spawnWave(g),true);assert.equal(g.enemies.length,9);
  assert.equal(g.enemies.filter(e=>!e.home).length,3);assert.equal(g.enemies.filter(e=>e.home).length,6);
  assert.equal(spawnWave(g),false);assert.equal(g.enemies.length,9);
- assert.deepEqual(Object.values(AREA_MOB_SPAWNS).map(a=>a.length),[6,9,9]);
+ assert.deepEqual(Object.values(AREA_MOB_SPAWNS).map(a=>a.filter(row=>row.key!=='westminster-salamander-1').length),[6,9,9]);
  assert.ok(g.enemies.every(e=>e.hp===40&&e.moveSpeed===2.1&&e.recoveryDelay===.55));
 });
 test('failed opening geometry retries without allocating residents',()=>{

@@ -49,6 +49,12 @@ export class DonorMotion{
   this.mixer.update(0);this.model.updateWorldMatrix(true,true);this.model.traverse(node=>{if(node.isSkinnedMesh)node.skeleton.update();});
   this.currentClip=name;this.currentLogicalClip=logicalName;this.currentPhase=phase;
  }
+ // Contact snapshots need the current native pose without consuming the next
+ // ordinary locomotion update's clock or movement delta.
+ sampleContacts(entity,time,deathPose=null){
+  const stamp=this.lastSampleTime,cycle=this.cycle,visual=this.visualTime,response=this.response,responseTime=this.responseTime,x=this.last.x,y=this.last.y,z=this.last.z;
+  try{this.update(entity,time,0,deathPose);}finally{this.lastSampleTime=stamp;this.cycle=cycle;this.visualTime=visual;this.response=response;this.responseTime=responseTime;this.last.set(x,y,z);}
+ }
  update(entity,time,dt,deathPose=null){
   if(this.disposed)return;
   this.equipmentClips=entity.kind<0&&entity.weapon==='knife'?entity.meleeClipOverrides:null;
@@ -65,7 +71,7 @@ export class DonorMotion{
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}
   if(noTick)return; // Keep the sampled pose between fixed simulation ticks.
   const distance=delta.length(),speed=elapsed>0?distance/elapsed:0;
-  if(['rat','dog','roach'].includes(this.description.motion)){const name=speed>.05?this.description.clips.walk:this.description.clips.idle;this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+elapsed/this.actions.get(name).getClip().duration,1);this.sample(name,this.cycle);return;}
+  if(['rat','dog','roach','salamander'].includes(this.description.motion)){const name=speed>.05?this.description.clips.walk:this.description.clips.idle;this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+elapsed/this.actions.get(name).getClip().duration,1);this.sample(name,this.cycle);return;}
   if(speed>.05){
    const forward=new THREE.Vector3(0,0,1).applyQuaternion(this.root.quaternion),right=new THREE.Vector3(1,0,0).applyQuaternion(this.root.quaternion),along=delta.dot(forward),across=delta.dot(right);
    const strafe=Math.abs(across)>Math.abs(along),run=this.description.clips.run??'Run',wanted=strafe?(across<0?(this.description.clips.strafeLeft??'StrafeLeft'):(this.description.clips.strafeRight??'StrafeRight')):(speed>=4.2?run:this.description.clips.walk),name=this.actions.has(wanted)?wanted:this.description.clips.walk;

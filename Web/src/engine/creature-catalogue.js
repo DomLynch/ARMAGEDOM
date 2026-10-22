@@ -9,8 +9,9 @@ const support=Object.freeze({
  'original-dog':['dog-native-bite','teeth','original-dog',['attack']],
  'original-roach':['roach-native-bite','teeth','original-roach',['attack']],
  'low-hover-drone':['drone-selector','bolt',null,[]],
+ 'giant-salamander':['salamander-native-bite','teeth','giant-salamander',['attack']],
 });
-const reach=Object.freeze({'original-rat':1.050307904880233,'original-dog':1.635623468495986,'original-roach':1.6063268331546576});
+const reach=Object.freeze({'original-rat':1.050307904880233,'original-dog':1.635623468495986,'original-roach':1.6063268331546576,'giant-salamander':1.30});
 const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
 function dataOnly(value){if(['function','undefined','symbol','bigint'].includes(typeof value)||typeof value==='number'&&!Number.isFinite(value))throw Error('Creature catalogue requires data only');if(value&&typeof value==='object')for(const[key,child]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Unsafe catalogue field');dataOnly(child);}}
 function closed(row,keys){if(!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).some(k=>!keys.includes(k))||keys.some(k=>!Object.hasOwn(row,k)))throw Error('Unknown or missing catalogue field');}
@@ -27,7 +28,7 @@ export function createCreatureCatalogue({foundations=creatureDefinitions,recipes
   const accepted=creatureDefinitions.find(d=>d.id===row.id);if(JSON.stringify(row.stats)!==JSON.stringify(accepted.stats)||JSON.stringify(row.scale)!==JSON.stringify(accepted.scale)||['rig','contactRig','assetRef','clips','clipSourceRefs','preparationRefs','equipmentRef','provenanceRef','runtimeIdentity'].some(key=>JSON.stringify(row[key])!==JSON.stringify(accepted[key])))throw Error('Unreviewed foundation stats/scale/asset/clip');
   map.set(row.id,freeze(row));
  }
- if(map.size!==5)throw Error('Five existing foundations required');
+ if(map.size!==6)throw Error('Six reviewed foundations required');
  const recipeMap=structuredClone(recipes);for(const[recipe,foundation]of Object.entries(recipeMap))if(!Object.hasOwn(recipeFoundations,recipe)||recipeFoundations[recipe]!==foundation||!map.has(foundation))throw Error('Unknown recipe/foundation reference');
  for(const [recipe,foundation]of Object.entries(recipeMap))if(foundation!=='low-hover-drone')resolveResidentIntent(recipe,{behaviourCapabilities:capabilities});
  const roleRows=structuredClone(roles);if(JSON.stringify(roleRows)!==JSON.stringify(nativeRoleDefinitions))throw Error('Unreviewed exact role activation');

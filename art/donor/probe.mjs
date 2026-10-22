@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import * as THREE from '../../Web/node_modules/three/build/three.module.js';
 import {GLTFLoader} from '../../Web/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from '../../Web/node_modules/three/examples/jsm/libs/meshopt_decoder.module.js';
 
 export const sha=b=>createHash('sha256').update(b).digest('hex');
 export function decode(b){const n=b.readUInt32LE(12);return {doc:JSON.parse(b.subarray(20,20+n)),bin:b.subarray(28+n),binOffset:28+n};}
@@ -41,7 +42,7 @@ globalThis.ProgressEvent=class{constructor(_,fields){Object.assign(this,fields);
 export async function loadGeometry(bytes){
  const {doc,bin}=decode(bytes);doc.images=[];doc.textures=[];doc.materials=(doc.materials??[]).map(m=>({name:m.name}));
  doc.buffers[0].uri='data:application/octet-stream;base64,'+bin.toString('base64');
- return new GLTFLoader().parseAsync(JSON.stringify(doc),'');
+ return new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(JSON.stringify(doc),'');
 }
 export function equipPlayer(asset,part){
  const hand=asset.scene.getObjectByName('hand_r'),knife=part.scene.getObjectByName('WeaponDrawn');

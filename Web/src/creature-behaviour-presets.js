@@ -9,6 +9,7 @@ export const RECIPE_BEHAVIOURS=Object.freeze({
  'human-street-scavenger':'baseline','human-crooked-hollow':'baseline',
  'human-gaunt-skulker':'gaunt-thrust','human-stocky-brute':'stocky-heavy',
  'human-ragged-runner':'brisk','human-wounded-straggler':'cautious','human-scarred-veteran':'cautious',
+ 'salamander-ember-guard':'baseline',
  'rat-sewer':'baseline','rat-ash':'brisk','rat-heavy':'cautious',
  'dog-street-mongrel':'baseline','dog-ash-coated':'baseline','dog-stocky-yard':'cautious',
  'roach-sewer':'baseline','roach-ash':'baseline','roach-rust-shell':'baseline','roach-heavy-shell':'cautious',

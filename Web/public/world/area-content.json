@@ -8161,22 +8161,22 @@
       "westminster": {
         "activePlacementIds": [
           "westminster-roamer-1",
-          "westminster-roamer-2",
+          "westminster-salamander-1",
           "westminster-roamer-3",
           "westminster-roamer-4",
           "boss-witch-v1",
           "westminster-roamer-6"
         ],
         "creatureSlot": {
-          "placementKey": "westminster-roamer-2",
+          "placementKey": "westminster-salamander-1",
           "cycles": {
             "A": {
-              "foundationRef": "original-roach",
-              "recipeRef": "roach-ash"
+              "foundationRef": "giant-salamander",
+              "recipeRef": "salamander-ember-guard"
             },
             "B": {
-              "foundationRef": "original-rat",
-              "recipeRef": "rat-soot"
+              "foundationRef": "giant-salamander",
+              "recipeRef": "salamander-ember-guard"
             }
           }
         },

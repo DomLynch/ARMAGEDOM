@@ -1192,6 +1192,74 @@
       },
       "bytes": 6640516,
       "sha256": "aed9df9a055935f8aca666e4044762991d602b5c01e9a8d49aa57ec040007dcd"
+    },
+    "giant-salamander": {
+      "url": "giant-salamander/giant-salamander.glb",
+      "rig": "giant-salamander",
+      "motion": "salamander",
+      "scale": 1.5,
+      "forwardCorrection": 0,
+      "groundOffset": 0.013223300086758576,
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "attack": "Bite",
+        "slash": "Bite",
+        "hit": "Hurt",
+        "death": "Death",
+        "flee": "Flee"
+      },
+      "deferred": true,
+      "sha256": "54494bda42c57233432ccaccd68a5550a699f9d4eb54d40baea70e8ebc95f912",
+      "bytes": 1014612,
+      "name": "Ember Salamander",
+      "contact": {
+        "canines": [
+          {
+            "mesh": "world-raw",
+            "vertex": 2387
+          },
+          {
+            "mesh": "world-raw",
+            "vertex": 14420
+          },
+          {
+            "mesh": "world-raw",
+            "vertex": 5727
+          }
+        ],
+        "calfBand": [
+          0.28,
+          0.36
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 14462,
+            "vertices": [
+              8211,
+              8154,
+              8156
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 3601,
+            "vertices": [
+              2127,
+              2130,
+              2128
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "repository": "https://github.com/DomLynch/RPG-game",
+        "revision": "3f7dd2616095d5c391e62aba6221a9dd62582712",
+        "path": "public/world/giant-salamander.glb",
+        "ownSkinAndClips": true
+      }
     }
   },
   "files": {
@@ -1274,6 +1342,11 @@
       "file": "hunters/hunter-goblin-l8.glb",
       "bytes": 6640516,
       "sha256": "aed9df9a055935f8aca666e4044762991d602b5c01e9a8d49aa57ec040007dcd"
+    },
+    "giant-salamander/giant-salamander.glb": {
+      "file": "giant-salamander/giant-salamander.glb",
+      "bytes": 1014612,
+      "sha256": "54494bda42c57233432ccaccd68a5550a699f9d4eb54d40baea70e8ebc95f912"
     }
   },
   "pistol": {

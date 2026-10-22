@@ -14,6 +14,7 @@ export function hollowLocomotionFor(entity) {
 }
 export const AREA_MOB_SPAWNS = Object.freeze({
   westminster: Object.freeze([
+    Object.freeze({key:'westminster-salamander-1',pos:Object.freeze({x:15,z:6}),patrol:Object.freeze([Object.freeze({x:15,z:6}),Object.freeze({x:15,z:5})])}),
     Object.freeze({key:'westminster-roamer-1',pos:Object.freeze({x:-12.63653,z:9.32328}),patrol:Object.freeze([Object.freeze({x:-12.63653,z:9.32328}),Object.freeze({x:-10.63653,z:9.32328})])}),
     Object.freeze({key:'westminster-roamer-2',pos:Object.freeze({x:6.10392,z:5.37247}),patrol:Object.freeze([Object.freeze({x:6.10392,z:5.37247}),Object.freeze({x:4.10392,z:5.37247})])}),
     Object.freeze({key:'westminster-roamer-3',pos:Object.freeze({x:1.07515,z:6.00000}),patrol:Object.freeze([Object.freeze({x:1.07515,z:6.00000}),Object.freeze({x:-0.92485,z:6.00000})])}),
