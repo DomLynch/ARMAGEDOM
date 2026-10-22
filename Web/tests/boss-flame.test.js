@@ -16,17 +16,17 @@ function warning(s){for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert.equal
 test('actual Witch alone opts into validated flame capability and expanded wake; Surgeon retains its separate saw capability',()=>{
  const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,6);assert.equal(c.bossData.profiles.witch.homeLeash,8);
  assert.equal(c.bossData.profiles.witch.weapon.modelRef,BOSS_EQUIPMENT_PROFILES.emberProjector.modelRef);for(const[id,p]of Object.entries(c.bossData.profiles))if(id==='surgeon')assert.equal(p.weapon.kind,'saw');else if(id!=='witch')assert.equal(p.weapon,undefined);
- for(const mutate of[w=>w.kind='invented',w=>w.modelRef='foreign-model',w=>w.damage=5,w=>w.windupTicks=1,w=>w.activeTicks=25,w=>w.intervalTicks=1,w=>w.recoveryTicks=1,w=>w.coneDegrees=180]){const b=raw();mutate(b.bosses.profiles.witch.weapon);assert.throws(()=>validateAreaMetadata(b,publicAreaRegistry));}
+ for(const mutate of[w=>w.kind='invented',w=>w.modelRef='foreign-model',w=>w.damage=5,w=>w.windupTicks=1,w=>w.activeTicks=25,w=>w.intervalTicks=1,w=>w.recoveryTicks=1,w=>w.recoveryTicks=57,w=>w.range=4.051,w=>w.coneDegrees=180]){const b=raw();mutate(b.bosses.profiles.witch.weapon);assert.throws(()=>validateAreaMetadata(b,publicAreaRegistry));}
 });
-test('real combat wakes and approaches from new 3.3–4.62 band without immediate leash loss',()=>{
- const s=setup(4.1),before={...s.e.pos};s.step();assert(s.e.alerted);assert(!s.e.returning);for(let n=0;n<30;n++)s.step();assert(Math.hypot(s.e.pos.x-before.x,s.e.pos.z-before.z)>.2);assert(s.e.alerted);warning(s);
+test('real combat wakes and approaches from outside expanded4.05m firing range without immediate leash loss',()=>{
+ const s=setup(5.5),before={...s.e.pos};s.step();assert(s.e.alerted);assert(!s.e.returning);for(let n=0;n<30;n++)s.step();assert(Math.hypot(s.e.pos.x-before.x,s.e.pos.z-before.z)>.2);assert(s.e.alerted);warning(s);
 });
 test('42-tick locked warning, exactly two 4HP pulses, no melee double hit or player fuel/save consumption',()=>{
  const s=setup(),fuel=JSON.stringify(s.g.flameFuel),writes=s.f.writes.length,start=warning(s),dir={...s.e.bossWeapon.direction};
  while(s.g.tick<start+41){s.step();assert.equal(s.g.player.hp,150);assert.equal(s.e.swing,null);assert.deepEqual(s.e.bossWeapon.direction,dir);}
  s.step();assert.equal(s.g.player.hp,146);while(s.g.tick<start+54)s.step();assert.equal(s.g.player.hp,142);
  while(s.g.tick<start+66)s.step();assert.equal(s.e.bossWeapon,null);assert.equal(s.events.filter(e=>e.type==='boss-flame-pulse').length,2);assert.equal(s.events.filter(e=>e.type==='hit'&&e.actorId===0).length,2);
- assert.equal(JSON.stringify(s.g.flameFuel),fuel);assert.equal(s.f.writes.length,writes);const end=s.g.tick;while(s.g.tick<end+71)s.step();assert.equal(s.e.bossWeapon,null);
+ assert.equal(JSON.stringify(s.g.flameFuel),fuel);assert.equal(s.f.writes.length,writes);const end=s.g.tick;while(s.g.tick<end+57)s.step();assert.equal(s.e.bossWeapon,null);s.step();assert.equal(s.e.bossWeapon?.phase,'warning');assert.equal(s.e.bossWeapon.startTick,start+124);
 });
 test('locked aim misses a player outside its cone and blocked LOS applies no damage',()=>{
  for(const mode of['cone','wall']){const s=setup(),start=warning(s),dir={...s.e.bossWeapon.direction};if(mode==='wall')s.g.world.lineClear=()=>false;else{s.g.player.pos={x:s.e.home.x-dir.z*2.5,z:s.e.home.z+dir.x*2.5};s.g.world.move=p=>({...p});}

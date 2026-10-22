@@ -26,7 +26,7 @@ export function validateAreaBosses(input,registry,residents={}){
   if(p.weapon!==undefined){const w=p.weapon;closed(w,['kind','modelRef','windupTicks','activeTicks','recoveryTicks','range','coneDegrees','intervalTicks','damage']);
    if(w.kind==='saw'){if(['windupTicks','activeTicks','recoveryTicks','intervalTicks'].some(k=>!Number.isInteger(w[k]))||id!=='surgeon'||w.modelRef!=='bone-saw'||!number(w.windupTicks,30,90)||!number(w.activeTicks,30,90)||!number(w.recoveryTicks,60,150)||!number(w.range,1,2)||w.coneDegrees!==38||w.intervalTicks!==12||!number(w.damage,1,4))fail();}
    else{if(w.kind!=='flame'||w.modelRef!=='player-flamethrower')fail();
-   for(const[field,min,max]of[['windupTicks',42,90],['activeTicks',12,24],['recoveryTicks',72,150],['range',1,3],['coneDegrees',20,40],['intervalTicks',12,24],['damage',1,4]])if(!number(w[field],min,max)||field.endsWith('Ticks')&&!Number.isInteger(w[field]))fail();
+   for(const[field,min,max]of[['windupTicks',42,90],['activeTicks',12,24],['recoveryTicks',id==='witch'?58:72,150],['range',1,id==='witch'?4.05:3],['coneDegrees',20,40],['intervalTicks',12,24],['damage',1,4]])if(!number(w[field],min,max)||field.endsWith('Ticks')&&!Number.isInteger(w[field]))fail();
    if(w.activeTicks!==2*w.intervalTicks)fail();}
   }
   if(p.hazard!==null){closed(p.hazard,['warning','radius','duration','interval','damage']);for(const[field,min,max]of[['warning',.65,1.5],['radius',.7,1.2],['duration',1,3],['interval',.6,1.5],['damage',1,3]])if(!number(p.hazard[field],min,max))fail();}
