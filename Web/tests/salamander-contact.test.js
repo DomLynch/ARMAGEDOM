@@ -8,6 +8,7 @@ import {createEffects} from '../src/effects.js';
 import {disposeActorSources} from '../src/actor-resources.js';
 import {stepGame} from '../src/combat.js';
 import {salamanderFixture} from './helpers/salamander-fixture.js';
+import {safehouseProtected} from '../src/engine/safehouse.js';
 import {SALAMANDER_BREATH} from '../src/salamander-native.js';
 const base=new URL('../public/assets/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',base)));
 test('Salamander own mouth breath: actual rig, ordinary movement, crowding, exclusions and unchanged Witch',async t=>{
@@ -17,7 +18,7 @@ test('Salamander own mouth breath: actual rig, ordinary movement, crowding, excl
  t.after(()=>disposeActorSources(new Set([...models.values()].flatMap(r=>[r.gltf,r.equipment].filter(Boolean)))));
  function setup(distance=4.7,{group=false,corridor=false}={}){
   const {g,world}=salamanderFixture(),e=g.enemies.find(e=>e.rig==='giant-salamander'),witch=g.enemies.find(e=>e.bossProfile?.weapon?.kind==='flame');if(!group)g.enemies=[e];
-  g.player.pos={x:e.home.x+.127300418954,z:e.home.z-distance};assert(world.geometry.clear(g.player.pos,g.player.radius));assert(world.lineClear(e.pos,g.player.pos));if(corridor){let found=false;for(let i=0;i<64&&!found;i++){const a=i*Math.PI/32,d={x:Math.cos(a),z:Math.sin(a)},p={x:e.home.x+d.x*distance,z:e.home.z+d.z*distance},end={x:p.x+d.x*2.8,z:p.z+d.z*2.8};if(world.geometry.clear(p,g.player.radius)&&world.geometry.clear(end,g.player.radius)&&world.lineClear(e.pos,end)){g.player.pos=p;found=true;}}assert(found,'actual geometry must allow the full ordinary retreat leg');}g.player.facing={x:0,z:1};const dx=g.player.pos.x-e.pos.x,dz=g.player.pos.z-e.pos.z,n=Math.hypot(dx,dz);e.facing={x:dx/n,z:dz/n};
+  g.player.pos={x:e.home.x+.127300418954,z:e.home.z-distance};assert(world.geometry.clear(g.player.pos,g.player.radius));assert(world.lineClear(e.pos,g.player.pos));if(corridor){let found=false;for(let i=0;i<64&&!found;i++){const a=i*Math.PI/32,d={x:Math.cos(a),z:Math.sin(a)},p={x:e.home.x+d.x*distance,z:e.home.z+d.z*distance},end={x:p.x+d.x*2.8,z:p.z+d.z*2.8};if(world.geometry.clear(p,g.player.radius)&&Array.from({length:33},(_,j)=>({x:p.x+d.x*2.8*j/32,z:p.z+d.z*2.8*j/32})).every(q=>world.geometry.clear(q,g.player.radius))&&world.lineClear(e.pos,end)){g.player.pos=p;found=true;}}assert(found,'actual geometry must allow the full ordinary retreat leg');}g.player.facing={x:0,z:1};const dx=g.player.pos.x-e.pos.x,dz=g.player.pos.z-e.pos.z,n=Math.hypot(dx,dz);e.facing={x:dx/n,z:dz/n};
   const scene=new T.Scene();Object.assign(world,{scene,camera:new T.PerspectiveCamera(),toRender:(p,y=0)=>new T.Vector3(p.x,y,-p.z)});
   const actors=createActors(scene,world,{manifest,models,dispose(){}},{visualScale:1.3225}),fx=createEffects(scene,world,null,()=>null,{getView:a=>actors.views.get(a.id),reducedMotion:()=>false});actors.update(g,0);g.ratContact=actors.ratContact();const events=[],frames=[];
   const step=(intent={})=>{stepGame(g,intent,1/60,{bossFlameSource:a=>actors.flameSource(a.id)});actors.update(g,1/60);fx.update(g,{viewportWidth:393,viewportHeight:852});events.push(...g.events.map(v=>({...v,tick:g.tick,actorId:v.actor?.id})));frames.push({tick:g.tick,hp:g.player.hp,phase:e.bossWeapon?.phase,source:actors.flameSource(e.id),fx:fx.snapshot().salamanderFlame});};
@@ -37,6 +38,12 @@ test('Salamander own mouth breath: actual rig, ordinary movement, crowding, excl
  });
  await t.test('near-body player causes backward spacing then actual forward mouth damage',()=>{
   const s=setup(1.5);try{const hp=s.g.player.hp,pos={...s.e.pos};for(let n=0;n<360&&s.g.player.hp===hp;n++)s.step();assert.equal(s.g.player.hp,hp-4);assert(Math.hypot(s.e.pos.x-pos.x,s.e.pos.z-pos.z)>.5);const d=s.e.bossWeapon.direction;assert(d.x*s.e.facing.x+d.z*s.e.facing.z>.99);console.log('SALAMANDER213_CROWDED',JSON.stringify({hpBefore:hp,hpAfter:s.g.player.hp,before:pos,after:s.e.pos,source:s.actors.flameSource(s.e.id),player:s.g.player.pos,tick:s.g.tick}));}finally{s.dispose();}
+ });
+ await t.test('crowding beside an authored obstacle slides away and recovers a forward attack',()=>{
+  const s=setup(1.5);try{let witness;for(let x=.1;x<.95&&!witness;x+=.025)for(let y=.1;y<.95&&!witness;y+=.025){const p=s.world.geometry.ground({x,y});if(!s.world.geometry.clear(p,s.e.radius)||Math.hypot(p.x-s.e.home.x,p.z-s.e.home.z)>10)continue;for(let i=0;i<32&&!witness;i++){const a=i*Math.PI/16,d={x:Math.cos(a),z:Math.sin(a)},target={x:p.x+d.x*1.5,z:p.z+d.z*1.5},back={x:p.x-d.x*.09,z:p.z-d.z*.09};if(s.world.geometry.clear(back,s.e.radius)||!s.world.geometry.clear(target,s.g.player.radius)||!s.world.lineClear(p,target))continue;s.g.player.pos=target;if(!safehouseProtected(s.g))witness={pos:p,target,d,back};}}
+   assert(witness,'bounded authored-obstacle crowding witness');s.e.pos={...witness.pos};s.e.facing={...witness.d};s.e.alerted=true;s.g.player.pos={...witness.target};s.actors.update(s.g,0);const hp=s.g.player.hp;
+   for(let i=0;i<480&&s.g.player.hp===hp;i++)s.step();console.log('SALAMANDER213_OBSTACLE',JSON.stringify({witness,end:s.e.pos,player:s.g.player.pos,hpBefore:hp,hpAfter:s.g.player.hp,tick:s.g.tick}));assert.equal(s.g.player.hp,hp-4,'existing collision slide must escape blocked backoff and attack');assert(s.world.geometry.clear(s.e.pos,s.e.radius));
+  }finally{s.dispose();}
  });
  for(const mode of ['miss','wall','refuge','pause','hurt','death'])await t.test(mode+' uses existing shared exclusions',()=>{
   const s=setup();try{const start=s.start(),hp=s.g.player.hp,d=s.e.bossWeapon.direction;
