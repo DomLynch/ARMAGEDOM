@@ -175,7 +175,7 @@ export function attack(g,action,direction=g.player.facing,visibleIds){if(safehou
  if(p.ready>g.time+EPS){if(p.ready-g.time<=(g.pilot?R.bufferWindow/60:.12)+EPS)p.buffer={action,dir:normal(direction),until:p.ready+(g.pilot?R.bufferTtl/60:.12)};return false;}
  if(g.pilot&&['slash','stab','heavy'].includes(action)){
   const weaponMove=def,ticks=def.windupTicks??Math.floor(def.windup*60),normalReach=def.range*p.combatScale+R.walkSpeed*def.stepIn*Math.max(0,ticks-R.stepInFrom-1)/60,lowReach=RAT_LOW.range*p.combatScale;
-  slashTarget=selectCombatTarget({nearest:p.meleeTargeting?.nearest??true,aim:direction,coneDegrees:p.meleeTargeting?.coneDegrees,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>p.meleeLowMoves?.[target.rig]?lowReach+(p.meleeLowMoves[target.rig].includeRadius?target.radius:0)-normalReach:(target.rig==='low-hover-drone'||(action==='slash'&&['original-rat','original-dog','original-roach','giant-salamander'].includes(target.rig)||['stab','heavy'].includes(action)&&target.rig==='original-rat'))?lowReach+(target.contactGoalReach||target.rig==='low-hover-drone'?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
+  slashTarget=selectCombatTarget({nearest:p.meleeTargeting?.nearest??true,aim:direction,coneDegrees:p.meleeTargeting?.coneDegrees,position:p.pos,targets:g.enemies.filter(e=>!visibleIds||visibleIds.includes(e.id)),lineClear:(a,b)=>g.world.lineClear(a,b),range:normalReach,rangeOffset:target=>p.meleeLowMoves?.[target.rig]?lowReach+(p.meleeLowMoves[target.rig].includeRadius?target.radius:0)-normalReach:(target.rig==='low-hover-drone'||(action==='slash'&&['original-rat','original-dog','original-roach','giant-salamander'].includes(target.rig)||['stab','heavy'].includes(action)&&target.rig==='original-rat'))?lowReach+(target.rig==='giant-salamander'?target.contactGoalReach-g.player.radius:target.contactGoalReach||target.rig==='low-hover-drone'?target.radius:0)-normalReach:target.mobSize? .31*target.combatScale*(target.bodyScale??1)*(1-1/target.mobSize):0,areaId:g.world.areaId});
   const rig=g.enemies.find(e=>e.id===slashTarget?.targetId)?.rig;if(p.meleeLowMoves?.[rig]){def=posedMeleeMove(weaponMove,action,p.meleeLowMoves[rig]);lowTargetId=slashTarget.targetId;}else if(rig==='low-hover-drone'||action==='slash'&&['original-rat','original-dog','original-roach','giant-salamander'].includes(rig)||['stab','heavy'].includes(action)&&rig==='original-rat'){def=rig==='low-hover-drone'?droneLow(def):rig==='giant-salamander'?DOG_MID:rig==='original-dog'?(g.enemies.find(e=>e.id===slashTarget.targetId).contactGoalReach?DOG_MID:DOG_LOW):rig==='original-roach'?ROACH_LOW:action==='slash'?RAT_LOW:ratMeleeDefinition(action,def,RAT_LOW,{rig});lowTargetId=slashTarget.targetId;if(p.meleeMoves)def={...def,damage:weaponMove.damage,stamina:weaponMove.stamina,staminaDamage:weaponMove.staminaDamage};}
  }
  if(g.pilot)knifeSpend(g,p,def.stamina);
@@ -254,7 +254,7 @@ function enemyTick(g,e,dt,services={}){if(e.hp>0&&safehouseProtected(g)){stopBos
 function turn(a,b,degrees){const cross=a.x*b.z-a.z*b.x,d=dot(a,b);const angle=Math.atan2(cross,d),limit=degrees*Math.PI/180;const theta=Math.sign(angle)*Math.min(Math.abs(angle),limit);return normal({x:a.x*Math.cos(theta)-a.z*Math.sin(theta),z:a.x*Math.sin(theta)+a.z*Math.cos(theta)});}
 function enemyMove(g,e,dir,speed,dt,backward=false){
  if(g.areaResidents&&e.home&&e.alerted&&!backward){
-  const goal=g.player.pos,target=(g.bridgeSteering??=createBridgeSteering()).steer({world:g.world,actor:e,goal,time:g.time,...(e.markedHunter?{leash:Infinity}:{})});
+  const goal=g.player.pos,target=(g.bridgeSteering??=createBridgeSteering()).steer({world:g.world,actor:e,goal,time:g.time,...(e.markedHunter||e.rig==='giant-salamander'&&e.residentIntent?.pursuitScope==='area'?{leash:Infinity}:{})});
   if(target!==goal)dir=normal(sub(target,e.pos),dir);
  }else g.bridgeSteering?.reset(e);
  let delta={x:dir.x*speed*dt,z:dir.z*speed*dt},next=g.world.move(e.pos,delta,e.radius);
@@ -633,7 +633,12 @@ function dogEnemy(g,e,dt){
   if(e.packMovement==='withdraw'){enemyMove(g,e,away,e.moveSpeed,dt,true);return;}
   if(e.packMovement==='hold')return;
  }
- if(distance>e.radius+g.player.radius+EPS||!g.world.lineClear(e.pos,g.player.pos)){enemyMove(g,e,normal(footGoal?sub(footGoal,e.pos):offset),e.moveSpeed,dt);return;}
+ // Reuse the existing backward mover to recover native mouth standoff when the player crowds the body.
+ const ownGoalDistance=e.rig==='giant-salamander'&&footGoal?mag(sub(footGoal,e.pos)):null;
+ if(ownGoalDistance!==null&&ownGoalDistance<e.contactGoalReach-.001){enemyMove(g,e,normal(sub(e.pos,footGoal)),e.moveSpeed,Math.min(dt,(e.contactGoalReach-ownGoalDistance)/e.moveSpeed),true);return;}
+ // The long native salamander bites ahead of its body capsule; bridge clearance must not set attack standoff.
+ const outsideReach=ownGoalDistance!==null?ownGoalDistance>e.contactGoalReach+EPS:distance>e.radius+g.player.radius+EPS;
+ if(outsideReach||!g.world.lineClear(e.pos,g.player.pos)){const approachDt=ownGoalDistance!==null&&outsideReach?Math.min(dt,(ownGoalDistance-e.contactGoalReach)/e.moveSpeed):dt;enemyMove(g,e,normal(footGoal?sub(footGoal,e.pos):offset),e.moveSpeed,approachDt);return;}
  const calf=e.rig==='original-roach'||e.contactGoalReach?footGoal:g.ratContact?.calf(g,e);if(!calf||e.contactGoalReach&&mag(sub(calf,e.pos))>e.contactGoalReach+EPS)return;const dir=normal(sub(calf,e.pos),e.facing);e.facing=turn(e.facing,dir,360*dt);
  if(g.time+EPS>=e.ready&&dot(e.facing,dir)>.99){e.facing={...dir};e.swing=knifeSwing(g,e,'bite',e.rig==='giant-salamander'?SALAMANDER_ATTACK:e.rig==='original-roach'?(e.contactGoalReach?ROACH_BITE_SCALED:ROACH_BITE):e.contactGoalReach?DOG_BITE_SCALED:DOG_BITE);e.swing.calfGoal={...calf};if(e.animalRole)e.completedAttack=null;e.ready=e.swing.end+(e.animalRole?e.recoveryDelay:0);event(g,'enemy-attack',{actor:e,dir:{...dir},range:e.swing.def.range,arc:90,moveId:e.swing.moveId,clip:e.swing.clip});}
 }

@@ -4,6 +4,7 @@ const intent=(extra={})=>Object.freeze({wakeDistance:6,homeLeash:12,holdUntilWak
 export const RESIDENT_INTENTS=Object.freeze({
  baseline:intent(),ambush:intent({wakeDistance:2,holdUntilWake:true}),
  territorial:intent({wakeDistance:4,homeLeash:5}),
+ 'area-pursuit':intent({pursuitScope:'area',wakeDistance:6,homeLeash:8,holdUntilWake:true}),
  withdraw:intent({retreatSeconds:.55}),
  companion:intent({wakeDistance:2.5,companionDistance:6,isolationDistance:2}),
  skitter:intent({burstSeconds:.45,pauseSeconds:.35}),
@@ -16,7 +17,7 @@ export const RECIPE_INTENTS=Object.freeze({
  'human-ragged-runner':'baseline','human-corner-ambusher':'ambush',
  'human-territorial-brawler':'territorial','human-pack-scavenger':'companion',
  'human-wounded-straggler':'baseline','human-scarred-veteran':'baseline',
- 'salamander-ember-guard':'territorial',
+ 'salamander-ember-guard':'area-pursuit',
  'rat-sewer':'withdraw','rat-ash':'baseline','rat-soot':'ambush',
  'rat-mangy':'baseline','rat-heavy':'baseline','rat-nest-defender':'territorial',
  'dog-street-mongrel':'baseline','dog-gaunt-hound':'withdraw','dog-stocky-yard':'baseline',
