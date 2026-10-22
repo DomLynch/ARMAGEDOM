@@ -15,9 +15,9 @@ test('Salamander own mouth breath: actual rig, ordinary movement, crowding, excl
  t.after(()=>{if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;});
  const models=new Map();for(const name of ['vagrant','giant-salamander','boss-westminster-witch','player-flamethrower']){const d=manifest.models[name];models.set(name,{description:d,gltf:await loadGeometry(fs.readFileSync(new URL(d.url,base))),equipment:d.equipment?await loadGeometry(fs.readFileSync(new URL(d.equipment.url,base))):null});}
  t.after(()=>disposeActorSources(new Set([...models.values()].flatMap(r=>[r.gltf,r.equipment].filter(Boolean)))));
- function setup(distance=4.7,{group=false}={}){
+ function setup(distance=4.7,{group=false,corridor=false}={}){
   const {g,world}=salamanderFixture(),e=g.enemies.find(e=>e.rig==='giant-salamander'),witch=g.enemies.find(e=>e.bossProfile?.weapon?.kind==='flame');if(!group)g.enemies=[e];
-  g.player.pos={x:e.home.x+.127300418954,z:e.home.z-distance};assert(world.geometry.clear(g.player.pos,g.player.radius));assert(world.lineClear(e.pos,g.player.pos));g.player.facing={x:0,z:1};e.facing={x:0,z:-1};
+  g.player.pos={x:e.home.x+.127300418954,z:e.home.z-distance};assert(world.geometry.clear(g.player.pos,g.player.radius));assert(world.lineClear(e.pos,g.player.pos));if(corridor){let found=false;for(let i=0;i<64&&!found;i++){const a=i*Math.PI/32,d={x:Math.cos(a),z:Math.sin(a)},p={x:e.home.x+d.x*distance,z:e.home.z+d.z*distance},end={x:p.x+d.x*2.8,z:p.z+d.z*2.8};if(world.geometry.clear(p,g.player.radius)&&world.geometry.clear(end,g.player.radius)&&world.lineClear(e.pos,end)){g.player.pos=p;found=true;}}assert(found,'actual geometry must allow the full ordinary retreat leg');}g.player.facing={x:0,z:1};const dx=g.player.pos.x-e.pos.x,dz=g.player.pos.z-e.pos.z,n=Math.hypot(dx,dz);e.facing={x:dx/n,z:dz/n};
   const scene=new T.Scene();Object.assign(world,{scene,camera:new T.PerspectiveCamera(),toRender:(p,y=0)=>new T.Vector3(p.x,y,-p.z)});
   const actors=createActors(scene,world,{manifest,models,dispose(){}},{visualScale:1.3225}),fx=createEffects(scene,world,null,()=>null,{getView:a=>actors.views.get(a.id),reducedMotion:()=>false});actors.update(g,0);g.ratContact=actors.ratContact();const events=[],frames=[];
   const step=(intent={})=>{stepGame(g,intent,1/60,{bossFlameSource:a=>actors.flameSource(a.id)});actors.update(g,1/60);fx.update(g,{viewportWidth:393,viewportHeight:852});events.push(...g.events.map(v=>({...v,tick:g.tick,actorId:v.actor?.id})));frames.push({tick:g.tick,hp:g.player.hp,phase:e.bossWeapon?.phase,source:actors.flameSource(e.id),fx:fx.snapshot().salamanderFlame});};
@@ -25,11 +25,11 @@ test('Salamander own mouth breath: actual rig, ordinary movement, crowding, excl
   return{g,e,witch,world,actors,fx,events,frames,step,start,dispose(){fx.dispose();actors.dispose();}};
  }
  await t.test('retreating player is hit without a calf goal or teeth swing; native mouth and exact cadence',()=>{
-  const s=setup();try{const{g,e,actors}=s;g.ratContact.calf=()=>null;const hp=g.player.hp,start=s.start(),direction={...e.bossWeapon.direction},before={...g.player.pos};
+  const s=setup(4.7,{corridor:true});try{const{g,e,actors}=s;g.ratContact.calf=()=>null;const hp=g.player.hp,start=s.start(),direction={...e.bossWeapon.direction},before={...g.player.pos};
    while(g.tick<start+32){s.step({move:direction,run:true});assert.equal(e.swing,null);}
    const hits=s.events.filter(v=>v.type==='hit'&&v.actor===g.player&&v.attackerId===e.id);assert.equal(hits.length,2);assert(hits.every(v=>v.amount===4&&v.weapon==='flamethrower'));assert.equal(g.player.hp,hp-8);assert(Math.hypot(g.player.pos.x-before.x,g.player.pos.z-before.z)>2.4);
    const pulses=s.events.filter(v=>v.type==='boss-flame-pulse'&&v.actor===e);assert.deepEqual(pulses.map(v=>v.tick-start),[20,26]);assert(pulses.every(v=>v.contact&&v.damaged));assert(s.frames.some(f=>f.fx.emitterParticles>0));assert(s.frames.every(f=>f.fx.cosmeticVictims===0));
-   const own=actors.views.get(e.id);assert.equal(own.model.getObjectByName('world-raw').skeleton.bones.length,31);assert(!own.flameMount);assert.equal(e.response.clip,'Bite');assert.equal(own.root.scale.x,6.022665);assert.equal(e.hp,120);assert.equal(e.moveSpeed,1.8);
+   const own=actors.views.get(e.id);assert.equal(own.model.getObjectByName('world-raw').skeleton.bones.length,31);assert(!own.flameMount);assert.equal(e.response.clip,'Bite');assert(Math.abs(own.root.scale.x-6.022665)<1e-12);assert.equal(e.hp,120);assert.equal(e.moveSpeed,1.8);
    // Hold within legal acquisition for the next cycle, without moving the NPC.
    while(g.tick<start+86)s.step();assert.equal(e.bossWeapon?.startTick,start+86);assert.equal(SALAMANDER_BREATH.range,4.86);
    console.log('SALAMANDER213_MOVING',JSON.stringify({start,pulses:pulses.map(v=>({tick:v.tick,position:v.position,contact:v.contact,damaged:v.damaged})),hpBefore:hp,hpAfter:hp-8,playerBefore:before,playerAfter:g.player.pos,cycleTicks:86,source:s.frames.find(f=>f.fx.emitterParticles)?.source,ownRig:true,noTeethDamage:true}));
