@@ -1,10 +1,11 @@
 import{meleeContactPosePhase,retimedMeleeAge}from'./engine/melee-equipment-data.js';
-// Only the selected original-rat Stab/Heavy gets the existing low pose.
+// Stab/Heavy on every low animal reuse the rat's retimed low pose (same 20/6/28 timing as its slash).
+const LOW_RIGS=['original-rat','original-dog','original-roach','giant-salamander','original-wolf'],LOW_CLIPS=['RatLowSlash','DogMidSlash'];
 // Preserve action authority/cadence. This pose is explicitly retimed, NOT 1x.
 export function ratMeleeDefinition(action,base,low,{rig}={}){
  const move=action==='stab'?'thrust':action==='heavy'?'heavy_overhead':null;
  const total=low?.windupTicks+low?.activeTicks+low?.recoveryTicks;
- if(rig!=='original-rat'||!move||base?.moveId!==move||low?.clip!=='RatLowSlash'
+ if(!LOW_RIGS.includes(rig)||!move||base?.moveId!==move||!LOW_CLIPS.includes(low?.clip)
      ||low.ratLow!==true||!Number.isFinite(total)||total<=0)return base;
  return {...base,clip:low.clip,path:null,native:false,ratLow:true,ratRetimed:true,
    sourceContact:low.windupTicks/total,lowLastActive:(low.windupTicks+low.activeTicks)/total,
@@ -17,7 +18,7 @@ export function ratMeleePosePhase(swing,phaseSampler){
  if(swing?.def?.contactPose)return meleeContactPosePhase(swing);
  if(swing?.def?.sourceTiming)return phaseSampler(retimedMeleeAge(swing.ageTicks,swing.timing,swing.def.sourceTiming),swing.def.sourceTiming,swing.sourceContact);
  if(!swing?.def?.ratRetimed)return phaseSampler(swing.ageTicks,swing.timing,swing.sourceContact);
- if(swing.clip!=='RatLowSlash'||swing.native!==false||typeof phaseSampler!=='function')
+ if(!LOW_CLIPS.includes(swing.clip)||swing.native!==false||typeof phaseSampler!=='function')
    throw Error('Retimed rat melee requires its displayed low-pose sampler');
  const{windup,active,recovery}=swing.timing,age=swing.ageTicks,start=swing.sourceContact,
    last=swing.def.lowLastActive,end=swing.def.lowActiveEnd;

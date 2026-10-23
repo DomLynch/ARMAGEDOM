@@ -8,7 +8,7 @@ test('rat-only Stab/Heavy preserve combat authority while requesting explicit re
   assert.equal(def.clip,'RatLowSlash');assert.equal(def.native,false);assert(def.ratLow&&def.ratRetimed);
   for(const key of ['moveId','damage','stamina','staminaDamage','windupTicks','activeTicks','recoveryTicks','windup','active','recovery','range','stepIn','knockback','parryable','stagger','chip','cooldown'])assert.equal(def[key],base[key],key);
   assert.equal(JSON.stringify(base),before);
-  for(const rig of ['original-dog','original-roach','low-hover-drone','hollow-scavenger'])assert.equal(ratMeleeDefinition(action,base,low,{rig}),base);
+  for(const rig of ['low-hover-drone','hollow-scavenger'])assert.equal(ratMeleeDefinition(action,base,low,{rig}),base);
  }
  assert.equal(ratMeleeDefinition('slash',low,low,{rig:'original-rat'}),low);
 });
