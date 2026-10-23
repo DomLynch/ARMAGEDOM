@@ -136,6 +136,7 @@ export class LondonWorld {
   textureBytes(){return (this.texture.image?.width??0)*(this.texture.image?.height??0)*4*7/3;}
   preparationStats(){const c=this.areaCache;return{areas:c?[...c.stages.keys()]:[this.areaId],pending:c?[...c.pending.keys()]:[],textureBudgetBytes:this.textureBudgetBytes,leases:c?[...c.leases.keys()]:[],evictions:c?.evictions??0,lastEvicted:c?.lastEvicted??null,retainedLayouts:c?new Set([...c.stages.values()].map(s=>s.layout)).size:1,estimatedTextureBytes:c?[...c.stages.values()].reduce((n,s)=>n+s.textureBytes(),0):this.textureBytes()};}
   isAreaReady(areaId){return !!this.areaCache?.stages.get(areaId)?.gpuReady;}
+  unmarkAreaReady(areaId){const stage=this.areaCache?.stages.get(areaId);if(stage)stage.gpuReady=false;}
   markAreaReady(areaId){const stage=this.areaCache?.stages.get(areaId);if(stage)stage.gpuReady=true;if(areaId===this.areaId)this.gpuReady=true;}
   cachedArea(areaId){return this.areaCache?.stages.get(areaId);}
   invalidateReadiness(){if(this.areaCache)for(const stage of this.areaCache.stages.values())stage.gpuReady=false;this.gpuReady=false;}

@@ -6,6 +6,7 @@ import {publicAreaRegistry} from '../area-registry.js';
 import {warmFramebuffer} from './warm-framebuffer.js';
 import {resetMobileControls,initializeAreaResidents} from '../combat.js';
 import {prepareParkedResidents} from '../parked-area-preparation.js';
+import {relieveGeometryBudget,protectedAreas} from './parked-view-budget.js';
 import {travelTo,captureTravelState,restoreTravelState} from '../travel.js';
 export function createAreaLifecycle(s){
 let travelLatch=false;
@@ -139,7 +140,7 @@ async function pumpDestinations(state){
       }
       if(suspended){state.iterator=null;continue;}
       state.iterator=null;
-      const memory=s.actors.areaViewStats();if(memory.ownedFinisherGeometryBytes>memory.finisherGeometryBudgetBytes)throw Error('Prepared actor geometry budget exceeded');
+      relieveGeometryBudget(s.actors,protectedAreas(state,s.world.areaId,task.areaId),id=>s.world.unmarkAreaReady?.(id));
       task.status='prepared';task.resolve();
     }catch(error){state.iterator?.return();state.iterator=null;if(areaPreparation===state&&s.game===state.game&&s.actors===state.actors&&!retainedViews)state.actors.discardArea(task.areaId);task.status='failed';task.reject(error);}finally{if(!suspended)release();}
   }}finally{state.running=false;}
