@@ -1,6 +1,9 @@
 // Rollback-save check: a save written by THIS tree must still load in the frozen previous release.
 // Runs only when ROLLBACK_BASELINE_ROOT points at a checkout of the previous release (repo root, with Web/).
 // Direction is the reverse of wolf221-saves: current tree writes, frozen baseline reads.
+// Create the baseline with `git archive <release-sha> Web | tar -x -C <dir>`, link Web/node_modules (three@0.182.0),
+// and keep it off the system disk: on the VPS under /mnt/HC_Volume_107195252/armagedom-backend/, never / or /tmp.
+//   ROLLBACK_BASELINE_ROOT=<dir> node --test tests/rollback-saves.test.js
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
