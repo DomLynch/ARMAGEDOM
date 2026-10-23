@@ -1,3 +1,4 @@
+import{clearBossRanged}from'./engine/boss-ranged.js';
 import{clearMarkedHunters}from'./engine/marked-hunters.js';
 import{resetBossPursuit}from'./engine/area-bosses.js';
 import{stopBossFlame}from'./engine/boss-flame.js';
@@ -13,6 +14,7 @@ export async function travelTo(game, request,{isCurrent=()=>true}={}) {
   if(game.areaHazards)game.areaHazards=[];
   game.activeGrenades=[];game.activeRockets=[];
   game.areaFights ??= {};
+  clearBossRanged(game);
   for (const e of game.enemies) {if(e.residentIntent?.pursuitScope==='area'){stopBossFlame(game,e,'area-exit');resetBossPursuit(e);}e.swing=null;if(e.animalRole)e.completedAttack=null;}
   game.areaFights[previous] = {
     initialized: !!game.areaInitialized, cleared: !!game.encounterCleared,

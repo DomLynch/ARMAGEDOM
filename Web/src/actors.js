@@ -1,3 +1,4 @@
+import{BOSS_RANGED_RULES}from'./engine/boss-ranged.js';
 import{salamanderMouthSource}from'./salamander-native.js';
 import{createRailgunCoils}from'./engine/railgun-coils.js';
 import{reaperSelected}from'./engine/reaper.js';
@@ -317,7 +318,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
     for (const skeleton of skeletons) skeleton.dispose();
     view.root.removeFromParent();view.shadow.removeFromParent();
     view.shadow.material.dispose();
-    view.railgunCoils?.dispose();view.railgunPose?.dispose();view.riflePose?.dispose();view.shotgunPose?.dispose();view.rocketPose?.dispose();view.grenadeEquipment?.dispose();
+    view.bossGunPose?.dispose();view.railgunCoils?.dispose();view.railgunPose?.dispose();view.riflePose?.dispose();view.shotgunPose?.dispose();view.rocketPose?.dispose();view.grenadeEquipment?.dispose();
     for (const m of view.materials) m.material.dispose();
     store.delete(id);
   }
@@ -338,6 +339,8 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
     railgunSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const p=this.equipmentOrigin('commanderPistol');return p?{x:p.x,y:p.y,z:p.z}:null;},
     railgunAimPoint(game,id){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([id])});const view=views.get(id),aimView=view?.contactModel?{root:view.contactModel,model:view.contactModel}:view,box=posedActorBounds(aimView,{skinnedOnly:true})??posedActorBounds(aimView),p=box?.getCenter(new THREE.Vector3());return p?{x:p.x,y:p.y,z:p.z}:null;},
     railgunTrace(game,start,end){const targets=game.enemies.filter(e=>e.hp>0&&e.hostile!==false&&(e.areaId==null||e.areaId===game.world.areaId)).sort((a,b)=>Math.hypot(a.pos.x-start.x,a.pos.z+start.z)-Math.hypot(b.pos.x-start.x,b.pos.z+start.z)).slice(0,32);this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set(targets.map(e=>e.id))});return traceRailgunSurface(views,targets,start,end);},
+    bossRangedSource(game,actor){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([actor.id])});const v=views.get(actor.id),p=v?.bossGunPose?.mount.visible&&v.bossGunPose.muzzle?.getWorldPosition(new THREE.Vector3());return p?{x:p.x,y:p.y,z:p.z}:null;},
+    bossRangedTrace(game,start,end){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set([0])});return traceGrenadeSurface(views,[game.player],start,end);},
     rocketSource(game){this.update(game,0,0,{presentationDt:0,contactOnly:true,projectileContactIds:new Set()});const point=this.equipmentOrigin('rocketLauncher');return point?{x:point.x,y:point.y,z:point.z}:null;},
     equipmentProjectileAsset(field){const data=world.bossEquipmentData?.[field],ref=library.models.get(data?.modelRef)?.description.projectileRef;return library.models.get(ref)??null;},
     equipmentOrigin(field){const view=views.get(0),mount=field==='grenade'?view?.grenadeEquipment?.mount:field==='shotgun'?view?.shotgunPose?.muzzle:field==='rocketLauncher'?view?.rocketPose?.muzzle:field==='commanderPistol'?view?.railgunPose?.muzzle:null;return mount?.getWorldPosition(new THREE.Vector3())??null;},
@@ -361,6 +364,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
       if(world.rifleData&&record.rifle?.selected)refs.push(world.rifleData.modelRef);for(const[field,data]of Object.entries(world.bossEquipmentData??{}))if(record.bossEquipment?.[field]?.selected&&data.modelRef)refs.push(data.modelRef);
       if(reward&&(areaId===reward.areaId||record.uniqueReward?.status==='owned'))refs.push(reward.modelRef);
       refs.push(...(world.bossData?.placements??[]).filter(row=>row.areaId===areaId).flatMap(row=>{const w=world.bossData.profiles[row.profileRef].weapon;return w&&w.kind!=='saw'?[w.modelRef]:[];}));
+      for(const row of world.bossData?.placements??[])if(row.areaId===areaId){const npc=BOSS_RANGED_RULES[world.bossData.profiles[row.profileRef].modelRef];if(npc){refs.push(npc.modelRef);const projectile=library.manifest.models[npc.modelRef]?.projectileRef;if(projectile)refs.push(projectile);}}
       const required=library.ensureModels?.([...new Set(refs)])??Promise.resolve();return required.then(async()=>{if(flame&&areaId===flame.areaId)try{await library.ensureModels([flame.modelRef]);}catch{/* Optional pickup keeps its marker and manual Equipment retry. */}});
     },
     parkArea(areaId){
@@ -445,7 +449,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
         if(contactOnly&&entity.kind>=0&&(projectileContactIds!==undefined?!projectileContactIds.has(entity.id):!['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(entity.rig)))continue;
-        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);if(entity.kind<0){view.railgunPose?.restore();view.riflePose?.restore();view.shotgunPose?.restore();view.rocketPose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}else if(view.flameMount)restoreFlamePitch(view.model);
+        const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);view.bossGunPose?.restore();if(entity.kind<0){view.railgunPose?.restore();view.riflePose?.restore();view.shotgunPose?.restore();view.rocketPose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}else if(view.flameMount)restoreFlamePitch(view.model);
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
           const warning=entity.droneState.warning,dead=entity.hp<=0,state=dead?'death':warning?'alert':entity.droneState.phase==='recover'&&game.time-entity.droneState.readyAt+1.4<.12?'attack':entity.alerted?'idle':'patrol';
@@ -493,6 +497,8 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
           if(pose)applyPistolAim(view.model,view.pistolMount,{recoil:pistolRecoil});
           view.pistolSlide.setRecoil(pose?pistolRecoil:0);
         }
+        const npcGun=entity.bossProfile&&BOSS_RANGED_RULES[entity.rig];
+        if(npcGun){const source=library.models.get(npcGun.modelRef),pose=entity.hp>0&&!entity.swing&&game.time>=entity.recoverUntil&&game.time>=entity.staggerUntil;if(source&&!view.bossGunPose){view.bossGunPose=createRiflePose(view.model,source);view.bossGunPose.mount.name='Boss'+npcGun.kind+'Mount';view.flashMaterials.push(...view.bossGunPose.materials);}if(view.bossGunPose){view.bossGunPose.mount.visible=pose;if(view.knife)view.knife.visible=!pose;if(pose)view.bossGunPose.apply(game.time-(entity.bossRangedFiredAt??-Infinity)<.25?'Rifle_Fire':'Rifle_Aim',Math.max(0,game.time-(entity.bossRangedFiredAt??game.time)));}}
         if(entity.bossProfile?.weapon?.kind==='flame'){
           const holding=entity.hp>0,pose=holding&&game.time>=entity.recoverUntil&&game.time>=entity.staggerUntil;
           if(view.knife)view.knife.visible=false;

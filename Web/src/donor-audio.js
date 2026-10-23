@@ -80,9 +80,9 @@ export function createDonorAudio({baseUrl=globalThis.document?.baseURI}={}) {
       for(const event of events){
         if(event.type==='railgun-charge-start')startRailgunHum(event.seconds);else if(event.type==='railgun-charge-stop')stopRailgunHum();else if(event.type==='railgun-shot'){stopRailgunHum();shotEvents++;tone(1100,65,.18,.16,'sawtooth');tone(660,110,.2,.08);noise(.06,.12,1800);}else if(event.type==='saw-start'){sawActors.add(event.actor.id);startSaw();}else if(event.type==='saw-stop'){sawActors.delete(event.actor.id);if(!sawActors.size)stopSaw();}
         if(event.type==='sever-presented'){hitEvents++;killEvents++;}
-        else if(event.type==='shot'||event.type==='reaper-shot'){shotEvents++;const cue=WEAPON_AUDIO[event.weapon];tone(off?240:cue?.from??220,off?55:cue?.to??48,off?.08:cue?.seconds??.11,off?.085:cue?.gain??.22);if(!off)noise(cue?.noiseSeconds??.065,cue?.noiseGain??.15,cue?.cutoff??900);}
-        else if(event.type==='rocket-launch'){shotEvents++;tone(160,55,.12,.22);if(!off)noise(.09,.18,850);}
-        else if(event.type==='grenade-blast'){const cue=WEAPON_AUDIO.grenade;tone(cue.from,cue.to,off?.1:cue.seconds,off?.06:cue.gain);if(!off)noise(cue.noiseSeconds,cue.noiseGain,cue.cutoff);}
+        else if(event.type==='shot'||event.type==='reaper-shot'||event.type==='boss-shotgun-shot'){shotEvents++;const cue=WEAPON_AUDIO[event.weapon];tone(off?240:cue?.from??220,off?55:cue?.to??48,off?.08:cue?.seconds??.11,off?.085:cue?.gain??.22);if(!off)noise(cue?.noiseSeconds??.065,cue?.noiseGain??.15,cue?.cutoff??900);}
+        else if(event.type==='rocket-launch'||event.type==='boss-rocket-launch'){shotEvents++;tone(160,55,.12,.22);if(!off)noise(.09,.18,850);}
+        else if(event.type==='grenade-blast'||event.type==='boss-rocket-blast'){const cue=WEAPON_AUDIO.grenade;tone(cue.from,cue.to,off?.1:cue.seconds,off?.06:cue.gain);if(!off)noise(cue.noiseSeconds,cue.noiseGain,cue.cutoff);}
         else if(event.type==='pickup')tone(660,880,.16,.025,'sine');
         else if(event.type==='hit'&&!event.blocked&&event.amount>0&&['pistol','rifle','shotgun'].includes(event.weapon)){const key=id(event),lethal=key!=null&&killed.has(key);if(lethal){if(playedLethal.has(key))continue;playedLethal.add(key);}hitCue(lethal);}
       }

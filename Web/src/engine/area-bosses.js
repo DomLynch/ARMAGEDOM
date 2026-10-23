@@ -47,7 +47,7 @@ export function applyBossProfile(actor,row,data){
   residentIntent:Object.freeze({pursuitScope:'area',wakeDistance:p.wakeDistance,homeLeash:p.homeLeash,holdUntilWake:true,retreatSeconds:0,companionDistance:0,isolationDistance:0,burstSeconds:0,pauseSeconds:0})});
 }
 // Reset only the shared boss policy; health, rewards and nonboss intent stay owned elsewhere.
-export function resetBossPursuit(actor){if(actor.residentIntent?.pursuitScope!=='area')return;actor.alerted=false;actor.returning=actor.hp>0&&!!actor.home;actor.swing=null;actor.completedAttack=null;}
+export function resetBossPursuit(actor){if(actor.residentIntent?.pursuitScope!=='area')return;actor.alerted=false;actor.returning=actor.hp>0&&!!actor.home;actor.swing=null;actor.completedAttack=null;actor.bossRanged=null;}
 export function bossMove(actor,action){return actor.bossProfile?.attacks[action]??null;}
 // Read the existing committed reward state. A corpse or an uncommitted kill
 // cannot open an exit; pickup and equipment selection are not prerequisites.
