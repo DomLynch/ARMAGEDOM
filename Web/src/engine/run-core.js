@@ -174,7 +174,10 @@ export function createRunPersistence({getRun,setRun,createFreshRun,storage}){
  }
  function persistRun(g){
   if(g!==getRun()||g.runSaveInvalid)return false;
-  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events){g.events.push({...event,actor:g.player});}return result.ok;
+  const result=core.dispatch({type:'save'});if(!result.ok)unavailable(g);else for(const event of result.events){
+   g.events.push({...event,actor:g.player});
+   if(event.type==='boss-equipment-drop'&&event.itemId===g.world.bossEquipmentData?.emberProjector?.itemId&&g.bossEquipment?.emberProjector?.status==='pending'){g.message=g.world.bossEquipmentData.emberProjector.name+' dropped. Approach to collect.';g.messageUntil=g.time+4;}
+  }return result.ok;
  }
  function restoreSavedRun(g){
   const result=core.dispatch({type:'restore'});
