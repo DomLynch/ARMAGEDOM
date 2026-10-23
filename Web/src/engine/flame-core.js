@@ -5,7 +5,7 @@ const envelope=['version','pistol','hp','supplies','vest','droneDeaths','animalC
 const same=(a,b)=>a.version===b.version&&a.collected===b.collected&&a.fuelUnits===b.fuelUnits;
 const fail=code=>({ok:false,code,events:[]});
 // Outer flame(unique(expedition(progression(domain)))); the existing Core writes once.
-export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,baseStorageAdapter=storage=>storage,canPickup,getConsumption,unitsPerSecond,getUnitsPerSecond=()=>unitsPerSecond}){
+export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,baseStorageAdapter=storage=>storage,canPickup,getConsumption,unitsPerSecond,getUnitsPerSecond=()=>unitsPerSecond,getSaveCoalesceSeconds=()=>0}){
  if([getRun,applyBaseSaved,baseStorageAdapter,canPickup,getConsumption,baseCodec?.encodeRun,baseCodec?.restoreRun,baseCodec?.captureRunState,baseCodec?.isRunStateUnchanged,model?.freshState,model?.valid,model?.copy,model?.pickup,model?.consume].some(fn=>typeof fn!=='function')||!Number.isFinite(unitsPerSecond)||unitsPerSecond<=0)throw TypeError('Existing codec, fuel model and explicit runtime authorities required');
  let legacyRead=false;
  const state=g=>g.flameFuel===undefined?model.freshState():g.flameFuel;
@@ -25,8 +25,12 @@ export function createFlameComponent({baseCodec,getRun,model,applyBaseSaved,base
     const restored=baseCodec.restoreRun(g,JSON.stringify(previous),null);return restored?{...restored,flameFuel:model.copy(saved.flameFuel)}:null;
    }catch{return null;}
   },
-  captureRunState(g){return{base:baseCodec.captureRunState(g),flameFuel:model.copy(state(g))};},
-  isRunStateUnchanged(g,snapshot){return model.valid(state(g))&&same(state(g),snapshot.flameFuel)&&baseCodec.isRunStateUnchanged(g,snapshot.base);},
+  captureRunState(g){return{base:baseCodec.captureRunState(g),flameFuel:model.copy(state(g)),savedAt:g.time};},
+  // Like health regeneration: only the disk write is coalesced. A fuel-only decrease that leaves fuel in the
+  // tank, inside the data-led window since the last real write, counts as unchanged; empty always writes.
+  isRunStateUnchanged(g,snapshot){const fuel=state(g),saved=snapshot.flameFuel,window=getSaveCoalesceSeconds(g),age=g.time-snapshot.savedAt;
+   const coalesced=window>0&&fuel.version===saved.version&&fuel.collected===saved.collected&&fuel.fuelUnits>0&&fuel.fuelUnits<saved.fuelUnits&&age>=0&&age<window-1e-8;
+   return model.valid(fuel)&&(same(fuel,saved)||coalesced)&&baseCodec.isRunStateUnchanged(g,snapshot.base);},
  };
  function wrapDomain(executeDomain){return(command,context)=>{
   const g=getRun();if(!g)return fail('not-eligible');
