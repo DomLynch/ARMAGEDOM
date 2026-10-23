@@ -65,13 +65,13 @@ export class DonorMotion{
   const responseAge=response?Math.max(time-response.start,this.visualTime-this.responseTime):0;
   if(entity.hp<=0){this.sample(deathPose?.clip??this.description.clips.death,deathPose?.phase??(response?responseAge/(response.ticks/60):1));return;}
   if(time<entity.dodgeUntil){this.sample(this.description.clips.dodge,(time-entity.dodgeStart)/(entity.dodgeUntil-entity.dodgeStart));return;}
-  if(entity.saw?.active||entity.sawPhase){const phase=entity.sawPhase?.phase;this.sample(this.description.clips.stab??this.description.clips.slash,phase==='windup'?.25:phase==='recovery'?.9:.58);return;}
+  if(entity.saw?.active||entity.sawPhase){const phase=entity.sawPhase?.phase;this.sample(entity.saw?.lowClip??this.description.clips.stab??this.description.clips.slash,entity.saw?.lowClip?.4:phase==='windup'?.25:phase==='recovery'?.9:.58);return;}
   const swing=entity.swing;
   if(swing&&time<swing.end){this.sample(swing.clip,swing.native?(time-swing.start)/(swing.end-swing.start):ratMeleePosePhase(swing,donorSwingPhase));return;}
   if(response&&responseAge<response.ticks/60){this.sample(response.clip,responseAge/(response.ticks/60));return;}
   if(noTick)return; // Keep the sampled pose between fixed simulation ticks.
   const distance=delta.length(),speed=elapsed>0?distance/elapsed:0;
-  if(['rat','dog','roach','salamander'].includes(this.description.motion)){const name=speed>.05?this.description.clips.walk:this.description.clips.idle;this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+elapsed/this.actions.get(name).getClip().duration,1);this.sample(name,this.cycle);return;}
+  if(['rat','dog','roach','salamander','wolf'].includes(this.description.motion)){const name=speed>.05?this.description.clips.walk:this.description.clips.idle;this.cycle=THREE.MathUtils.euclideanModulo(this.cycle+elapsed/this.actions.get(name).getClip().duration,1);this.sample(name,this.cycle);return;}
   if(speed>.05){
    const forward=new THREE.Vector3(0,0,1).applyQuaternion(this.root.quaternion),right=new THREE.Vector3(1,0,0).applyQuaternion(this.root.quaternion),along=delta.dot(forward),across=delta.dot(right);
    const strafe=Math.abs(across)>Math.abs(along),run=this.description.clips.run??'Run',wanted=strafe?(across<0?(this.description.clips.strafeLeft??'StrafeLeft'):(this.description.clips.strafeRight??'StrafeRight')):(speed>=4.2?run:this.description.clips.walk),name=this.actions.has(wanted)?wanted:this.description.clips.walk;

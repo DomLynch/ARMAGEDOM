@@ -212,7 +212,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
       (stageWorld.layout.characterScale ?? 1.265) * (description.scale ?? 1) * visualScale * (entity.kind>=0?(entity.mobSize??1):1),
     );
     root.add(model);
-    if(entity.rig==='giant-salamander')model.position.y+=description.groundOffset;
+    if(['giant-salamander','original-wolf'].includes(entity.rig))model.position.y+=description.groundOffset;
     const hidden = new Set(
       (description.starterHidden ?? []).map(
         THREE.PropertyBinding.sanitizeNodeName,
@@ -278,7 +278,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
       humanBodyRecipe=humanBody?humanBodyRequest:null;view.humanBody=humanBody;view.humanBodyRecipe=humanBodyRecipe;
       flashMaterials.push(...[...materials,...(appearance?.extraMaterials??[]).map(material=>({material,emissive:material.emissive?.clone(),intensity:material.emissiveIntensity}))].map(m=>({...m,color:m.material.color?.clone(),roughness:m.material.roughness})));
       const Motion =
-        ["donor-knife","rat","dog","roach","salamander"].includes(description.motion) ? DonorMotion : ActorMotion;
+        ["donor-knife","rat","dog","roach","salamander","wolf"].includes(description.motion) ? DonorMotion : ActorMotion;
       view.motion = new Motion(root, model, animations, description);
       // Seed the existing grip on the private Armed initialization, before Hit/gait.
       if(entity.hp>0&&entity.bossProfile?.weapon?.kind==='flame'){const flame=library.models.get(entity.bossProfile.weapon.modelRef);if(flame)view.flameMount=attachFlame(model,flame.gltf,{bindHand:true});}
@@ -408,7 +408,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
             if(faces){const bindings=[];for(const{runtimeName,face,vertices}of faces){let binding=bindings.find(b=>b.runtimeName===runtimeName);if(!binding){binding={runtimeName,faceBindings:[]};bindings.push(binding);}binding.faceBindings.push({face,vertices});}player.salamanderReceiver=createRatBiteReceiver(player.model,bindings);}
           }
           const rats=new Map();
-          for(const e of game.enemies)if(['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);if(view.drone){rats.set(e.id,{view,root:view.root.matrixWorld.clone()});continue;}const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
+          for(const e of game.enemies)if(['original-rat','original-dog','original-roach','giant-salamander','original-wolf','low-hover-drone'].includes(e.rig)){const view=views.get(e.id);view.root.updateWorldMatrix(true,true);if(view.drone){rats.set(e.id,{view,root:view.root.matrixWorld.clone()});continue;}const teeth=view.description.contact?.canines?.map(({mesh,vertex})=>{const m=view.model.getObjectByName(mesh);m.getVertexPosition(vertex,point);return point.applyMatrix4(m.matrixWorld).toArray();});rats.set(e.id,{tooth:teeth?null:tooth(view),teeth,view,root:view.root.matrixWorld.clone()});}
           const swing=game.player.swing,posedMelee=game.player.meleeVariantId&&game.player.meleeVariantId!=='knife'&&swing?.def.ratLow,contact=posedMelee?MELEE_VARIANTS[game.player.meleeVariantId].contact:[.12,.52],playerBlade=swing?.def.ratRetimed||posedMelee?contact.map(y=>player.model.getObjectByName('WeaponDrawn').localToWorld(point.set(0,y,0)).toArray()):null,playerBladePhase=playerBlade?swing.native?Math.max(0,Math.min(1,(game.time-swing.start)/(swing.end-swing.start))):ratMeleePosePhase(swing,donorSwingPhase):null;
           return {playerBlade,playerBladePhase,player:player.footReceiver.capture(),playerDog:player.dogReceiver?.capture()??null,playerSalamander:player.salamanderReceiver?.capture()??null,playerRoot:player.root.matrixWorld.clone(),rats};
         },
@@ -426,8 +426,8 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
         },
         hit:(a,d,s,before,after)=>{
           if(a.rig==='original-rat'){const old=before.rats.get(a.id),now=after.rats.get(a.id);return old&&now&&views.get(0).footReceiver.sweep(before.player,after.player,old.tooth,now.tooth).hit;}
-          if(a.rig==='original-dog'||a.rig==='original-roach'||a.rig==='giant-salamander'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,own=a.rig==='giant-salamander',receiver=own?views.get(0).salamanderReceiver:scaled?views.get(0).dogReceiver:views.get(0).footReceiver,previous=own?before.playerSalamander:scaled?before.playerDog:before.player,current=own?after.playerSalamander:scaled?after.playerDog:after.player;return old&&now&&receiver&&now.teeth.some((to,i)=>receiver.sweep(previous,current,old.teeth[i],to).hit);}
-          if(!['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(d.rig)||!s.def.ratLow)return false;
+          if(a.rig==='original-dog'||a.rig==='original-roach'||a.rig==='giant-salamander'||a.rig==='original-wolf'){const old=before.rats.get(a.id),now=after.rats.get(a.id),scaled=a.rig==='original-dog'&&now?.view.description.scale===2,own=a.rig==='giant-salamander',receiver=a.rig==='original-wolf'?views.get(0).footReceiver:own?views.get(0).salamanderReceiver:scaled?views.get(0).dogReceiver:views.get(0).footReceiver,previous=own?before.playerSalamander:scaled?before.playerDog:before.player,current=own?after.playerSalamander:scaled?after.playerDog:after.player;return old&&now&&receiver&&now.teeth.some((to,i)=>receiver.sweep(previous,current,old.teeth[i],to).hit);}
+          if(!['original-rat','original-dog','original-roach','giant-salamander','original-wolf','low-hover-drone'].includes(d.rig)||!s.def.ratLow)return false;
           const view=after.rats.get(d.id)?.view;if(!view||s.def.ratRetimed&&!after.playerBlade)return false;const [from,to]=after.playerBlade??ratLowBlade(s.clip==='DogMidSlash'?dogBlade:lowBlade,s.ageTicks/60,after.playerRoot),start=new THREE.Vector3(...from),end=new THREE.Vector3(...to),delta=end.sub(start),length=delta.length();ray.set(start,delta.normalize());ray.near=0;ray.far=length;
           const meshes=[];(view.contactModel??view.model).traverse(m=>{if(visible(m)&&(view.drone?m.isMesh&&m.name==='ARM_Drone_Rigid_Frame':m.isSkinnedMesh)){if(m.isSkinnedMesh)m.computeBoundingSphere();else{m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();}meshes.push(m);}});return ray.intersectObjects(meshes,false).length>0;
         },
@@ -448,7 +448,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
       for (const entity of entities) {
-        if(contactOnly&&entity.kind>=0&&(projectileContactIds!==undefined?!projectileContactIds.has(entity.id):!['original-rat','original-dog','original-roach','giant-salamander','low-hover-drone'].includes(entity.rig)))continue;
+        if(contactOnly&&entity.kind>=0&&(projectileContactIds!==undefined?!projectileContactIds.has(entity.id):!['original-rat','original-dog','original-roach','giant-salamander','original-wolf','low-hover-drone'].includes(entity.rig)))continue;
         const view = views.get(entity.id) ?? make(entity,game.finishers,restoreCorpses);view.bossGunPose?.restore();if(entity.kind<0){view.railgunPose?.restore();view.riflePose?.restore();view.shotgunPose?.restore();view.rocketPose?.restore();restoreFlamePitch(view.model);restoreGripProfile(view.model);}else if(view.flameMount)restoreFlamePitch(view.model);
         if(entity.kind<0&&world.uniqueRewardData){const profile=selectedMeleeVariant(game);setPlayerMeleeWeapon(view,profile.modelRef?library.models.get(profile.modelRef):null,profile.itemId);}
         if(view.drone){
@@ -480,7 +480,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
         }
         if(entity.bossProfile?.weapon?.kind==='saw'&&!view.knife?.userData.saw){const old=view.knife;if(old?.parent){const saw=createBoneSaw();saw.position.copy(old.position);saw.quaternion.copy(old.quaternion);saw.scale.copy(old.scale);old.parent.add(saw);old.removeFromParent();view.surgeonOriginalKnife=old;view.knife=saw;}}
         animateBoneSaw(view.knife,game.time,!!entity.saw?.active);
-        if(contactOnly&&entity.rig==='giant-salamander')view.motion.sampleContacts(entity,game.time,deathPose);else view.motion.update(
+        if(contactOnly&&['giant-salamander','original-wolf'].includes(entity.rig))view.motion.sampleContacts(entity,game.time,deathPose);else view.motion.update(
           entity,
           game.time,
           game.finished && view.description.motion !== "donor-knife" ? 0 : dt,

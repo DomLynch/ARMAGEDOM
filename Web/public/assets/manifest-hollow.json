@@ -1251,6 +1251,66 @@
         "path": "public/world/giant-salamander.glb",
         "ownSkinAndClips": true
       }
+    },
+    "original-wolf": {
+      "url": "wolf/wolf.glb",
+      "rig": "original-wolf",
+      "motion": "wolf",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "groundOffset": 0.003490707770088222,
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "attack": "Bite",
+        "slash": "Bite",
+        "hit": "Hurt",
+        "death": "Death",
+        "flee": "Flee"
+      },
+      "deferred": true,
+      "bytes": 927204,
+      "sha256": "5390a72819ada693cad7ca3c4c5788b3d9d9357d48b17ad823d018e86b30becc",
+      "name": "Wolf",
+      "contact": {
+        "canines": [
+          {
+            "mesh": "wolf",
+            "vertex": 3145
+          }
+        ],
+        "calfBand": [
+          0.55,
+          0.75
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 2891,
+            "vertices": [
+              1245,
+              1224,
+              1789
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 2144,
+            "vertices": [
+              1379,
+              1376,
+              1499
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "repository": "https://github.com/DomLynch/RPG-game",
+        "revision": "3f7dd2616095d5c391e62aba6221a9dd62582712",
+        "path": "public/world/wolf.glb",
+        "ownSkinAndClips": true
+      }
     }
   },
   "files": {

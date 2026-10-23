@@ -29,7 +29,7 @@ export const AREA_MOB_SPAWNS = Object.freeze({
     Object.freeze({key:'east-roamer-5',pos:Object.freeze({x:-9.67637,z:6.00000}),patrol:Object.freeze([Object.freeze({x:-9.67637,z:6.00000}),Object.freeze({x:-7.67637,z:6.00000})])}),
     Object.freeze({key:'east-roamer-6',pos:Object.freeze({x:8.42609,z:11.80376}),patrol:Object.freeze([Object.freeze({x:8.42609,z:11.80376}),Object.freeze({x:8.42609,z:13.80376})])}),
     Object.freeze({key:'east-roamer-7',pos:Object.freeze({x:-7.72927,z:10.51955}),patrol:Object.freeze([Object.freeze({x:-7.72927,z:10.51955}),Object.freeze({x:-5.72927,z:10.51955})])}),
-    Object.freeze({key:'east-roamer-8',pos:Object.freeze({x:-9.35289,z:-0.31328}),patrol:Object.freeze([Object.freeze({x:-9.35289,z:-0.31328}),Object.freeze({x:-9.35289,z:1.68672})])}),
+    Object.freeze({key:'east-roamer-8',foundationRef:'original-wolf',recipeRef:'wolf-east-guard',pos:Object.freeze({x:-9.35289,z:-0.31328}),patrol:Object.freeze([Object.freeze({x:-9.35289,z:-0.31328}),Object.freeze({x:-9.35289,z:1.68672})])}),
     Object.freeze({key:'east-roamer-9',pos:Object.freeze({x:1.20373,z:11.80376}),patrol:Object.freeze([Object.freeze({x:1.20373,z:11.80376}),Object.freeze({x:3.20373,z:11.80376})])}),
   ]),
   south: Object.freeze([

@@ -1,7 +1,7 @@
 import {droneHoverHeight} from './drone-mechanics.js';
 import {PISTOL_RULES,tracePistol} from './pistol.js';
 
-export function combatTargetHeight(target,time){return target.rig==='low-hover-drone'?droneHoverHeight(time):(target.rig==='giant-salamander'?1.08:target.rig==='original-rat'?.54:target.rig==='original-dog'?(target.contactGoalReach?.70:.35):target.rig==='original-roach'?(target.contactGoalReach?.24:.08):1.15)*(target.mobSize??1);}
+export function combatTargetHeight(target,time){return target.rig==='low-hover-drone'?droneHoverHeight(time):(target.rig==='original-wolf'?.65:target.rig==='giant-salamander'?1.08:target.rig==='original-rat'?.54:target.rig==='original-dog'?(target.contactGoalReach?.70:.35):target.rig==='original-roach'?(target.contactGoalReach?.24:.08):1.15)*(target.mobSize??1);}
 export const PISTOL_TARGETING = Object.freeze({acquireDegrees:12, retainDegrees:18});
 export const COMBAT_TARGETING = Object.freeze({meleeDegrees:45});
 const EPS = 1e-8;
@@ -123,6 +123,6 @@ export function flamePointerPoint(world,views,enemies,x,y,{assist=true,time=0,vi
 // pointer intent only; original domain radii and actual damage traces stay unchanged.
 export function pistolPointerPoint(world,views,enemies,x,y,options={}){return flamePointerPoint(world,views,enemies,x,y,options);}
 export function rangedPointerPoint(g,views,x,y,{visibleIds}={}){
- const profile=selectedRangedProfile(g),assist=g.mobileAssistEnabled!==false,targets=rangedTargets(g,visibleIds).filter(t=>Math.hypot(t.pos.x-g.player.pos.x,t.pos.z-g.player.pos.z)<=profile.rules.range+EPS&&g.world.lineClear(g.player.pos,t.pos)),projectionTargets=targets.map(t=>{const scale=views.get(t.id)?.root?.scale?.y;return Number.isFinite(scale)&&scale>0?{...t,mobSize:scale}:t;}),position=pistolPointerPoint(g.world,views,projectionTargets,x,y,{assist,time:g.time,visibleIds});
+ const profile=selectedRangedProfile(g),assist=g.mobileAssistEnabled!==false,targets=rangedTargets(g,visibleIds).filter(t=>Math.hypot(t.pos.x-g.player.pos.x,t.pos.z-g.player.pos.z)<=profile.rules.range+EPS&&g.world.lineClear(g.player.pos,t.pos)),projectionTargets=targets.map(t=>{const scale=views.get(t.id)?.root?.scale?.y;return t.rig!=='original-wolf'&&Number.isFinite(scale)&&scale>0?{...t,mobSize:scale}:t;}),position=pistolPointerPoint(g.world,views,projectionTargets,x,y,{assist,time:g.time,visibleIds});
  const target=assist&&targets.find(t=>Math.hypot(t.pos.x-position.x,t.pos.z-position.z)<EPS);return{...position,targetId:target?target.id:null};
 }

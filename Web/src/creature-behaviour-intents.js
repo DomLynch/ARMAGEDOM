@@ -17,7 +17,7 @@ export const RECIPE_INTENTS=Object.freeze({
  'human-ragged-runner':'baseline','human-corner-ambusher':'ambush',
  'human-territorial-brawler':'territorial','human-pack-scavenger':'companion',
  'human-wounded-straggler':'baseline','human-scarred-veteran':'baseline',
- 'salamander-ember-guard':'area-pursuit',
+ 'salamander-ember-guard':'area-pursuit','wolf-east-guard':'territorial',
  'rat-sewer':'withdraw','rat-ash':'baseline','rat-soot':'ambush',
  'rat-mangy':'baseline','rat-heavy':'baseline','rat-nest-defender':'territorial',
  'dog-street-mongrel':'baseline','dog-gaunt-hound':'withdraw','dog-stocky-yard':'baseline',

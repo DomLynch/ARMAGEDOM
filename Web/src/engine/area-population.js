@@ -24,6 +24,7 @@ export function populationPlacements(policy,areaId,cycle,canonical){
  const active=new Set(area.activePlacementIds),slot=area.creatureSlot,spec=slot.cycles[cycle??'A'];
  if(!spec)fail();return canonical.filter(row=>active.has(row.key)).map(row=>{
   if(row.key===slot.placementKey)return{...row,foundationRef:spec.foundationRef,recipeRef:spec.recipeRef};
+  if(areaId==='east'&&row.key==='east-roamer-8'&&row.foundationRef==='original-wolf'&&row.recipeRef==='wolf-east-guard')return row;
   // Existing humans retain their exact health/appearance/scale allocation. A
   // former animal gets the shared Hollow factory without a stale animal recipe.
   if(row.foundationRef&&row.foundationRef!=='hollow-scavenger'){const human={...row};delete human.foundationRef;delete human.recipeRef;return human;}return row;

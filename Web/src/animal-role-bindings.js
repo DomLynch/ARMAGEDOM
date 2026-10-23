@@ -15,7 +15,7 @@ export function resolveBoundAnimalRole(e,{areaId,animalCycle,behaviourCapabiliti
 const nativeBites=new Set(['rat_bite','rat_bite_low','dog_bite_calf','dog_bite_scaled','roach_bite','roach_bite_scaled']);
 // Call at the existing normal native END seam, after damage/hurt resolution.
 export function nativeAttackCompletion(s,{reason,time,alive,hurt=false}={}){
- if(reason!=='normal'||alive!==true||hurt===true||s?.native!==true||s.action!=='bite'||!(nativeBites.has(s.clip)||s.clip==='Bite'&&s.def?.foundationRef==='giant-salamander')
+ if(reason!=='normal'||alive!==true||hurt===true||s?.native!==true||s.action!=='bite'||!(nativeBites.has(s.clip)||s.clip==='Bite'&&['giant-salamander','original-wolf'].includes(s.def?.foundationRef))
   ||!Number.isFinite(s.start)||!Number.isFinite(s.end)||s.end<=s.start||!Number.isFinite(time)||time+1e-8<s.end)return null;
  return Object.freeze({endedAt:s.end,uninterrupted:true});
 }

@@ -4,7 +4,7 @@ import cleaverPaths from'../donor/cleaver-paths.json'with{type:'json'};
 import{CLEAVER_ITEM_ID,UNIQUE_REWARDS}from'./unique-reward-runtime.js';
 const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
 const low=(clip,slashMoveId,includeRadius)=>({clip,slashMoveId,includeRadius,windupTicks:20,activeTicks:6,recoveryTicks:28,range:KNIFE_MOVES.light_right.range});
-const cleaverLow=freeze({'original-rat':low('RatLowSlash','rat_low',false),'original-roach':low('RatLowSlash','roach_low',true),'original-dog':low('DogMidSlash','dog_low',true),'low-hover-drone':low('DogMidSlash','drone_low',true)});
+const cleaverLow=freeze({'original-wolf':low('RatLowSlash','wolf_low',true),'original-rat':low('RatLowSlash','rat_low',false),'original-roach':low('RatLowSlash','roach_low',true),'original-dog':low('DogMidSlash','dog_low',true),'low-hover-drone':low('DogMidSlash','drone_low',true)});
 // The same source age drives both measured blade samples and the displayed pose.
 export function retimedMeleeAge(age,timing,source){
  const w=timing.windup,a=timing.active,r=timing.recovery;
