@@ -21,7 +21,8 @@ export function uniqueRewardDropPosition(g,corpse,data=g.world.uniqueRewardData)
  // A corpse against a wall or exit has no spot within 1 m; widen, then drop the corpse line (pickup only needs player-to-spot clearance), then use the area entry.
  const near=ring([.25,.5,.75,1],legal)??ring(FALLBACK_RADII,legal)??ring(FALLBACK_RADII,ground);
  if(near)return near;
- const entry=w.registry?.get?.(w.areaId)?.entry;return entry&&ground(entry)?{x:entry.x,z:entry.z}:null;
+ // The registry entry is a normalized artwork point; geometry.ground maps it to world metres (as world.js does).
+ const entry=w.registry?.get?.(w.areaId)?.entry,spot=entry&&w.geometry.ground?.(entry);return spot&&ground(spot)?{x:spot.x,z:spot.z}:null;
 }
 const FALLBACK_RADII=[1.5,2,2.5,3,4,5,6];
 // Boss-equipment sources follow the same rule: an uncommitted kill must not be left behind in a parked area.

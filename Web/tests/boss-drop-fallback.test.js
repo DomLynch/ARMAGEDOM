@@ -2,6 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 import {fixture} from './helpers/rifle-fixture.js';
 import {validateAreaMetadata} from '../src/engine/area-content.js';
 import {stageProgressionDeath} from '../src/engine/progression-runtime.js';import {issueSupply} from '../src/supplies.js';
+import {createAreaLifecycle} from '../src/engine/areas.js';
 import {needsUniqueDeathCommit,uniqueRewardDropPosition} from '../src/engine/unique-reward-runtime.js';
 const registry=fixture().world.registry,data=validateAreaMetadata(JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),registry),extraWorld={bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData,markedData:data.markedData};
 function fresh(areaId='westminster'){const f=fixture({areaId,extraWorld});f.restore();return f;}
@@ -47,6 +48,17 @@ test('legacy-dead boss with its corpse in the current area still gets its drop',
 });
 test('persistent save failure at the exit gate shows the existing saving-unavailable message, not a silent block',()=>{
  const f=fresh(),g=f.g;death(f);f.quota(true);g.message='';assert.equal(f.p.persistRun(g),false);assert.match(g.message,/saving unavailable/i);assert(g.messageUntil>g.time);assert(needsUniqueDeathCommit(g));
+});
+test('area exit with failing storage is refused with the saving-unavailable notice, and Retry clears the lock',async()=>{
+ const f=fresh(),g=f.g;death(f);f.quota(true);g.message='';
+ const life=createAreaLifecycle({game:g,world:f.world,persistRun:x=>f.p.persistRun(x)});
+ assert.equal(await life.activate({areaId:'south'}),false);assert.equal(f.world.areaId,'westminster');assert.match(g.message,/saving unavailable/i);assert(g.messageUntil>g.time);
+ f.quota(false);assert(f.p.retry());assert.equal(needsUniqueDeathCommit(f.g),false,'Retry puts the boss back, so the lock is gone');
+});
+test('with only the area entry legal the drop lands there, in world metres, and the pickup model is placed at it',()=>{
+ const f=fresh(),e=death(f),entry=f.world.geometry.ground(f.world.registry.get('westminster').entry);
+ f.world.geometry.clear=(p)=>Math.hypot(p.x-entry.x,p.z-entry.z)<.1;
+ assert(f.p.persistRun(f.g));const at=f.g.bossEquipment.emberProjector.dropPosition;assert(Number.isFinite(at.x)&&Number.isFinite(at.z));assert.deepEqual(at,{x:entry.x,z:entry.z});assert(Math.hypot(at.x-e.pos.x,at.z-e.pos.z)>6);
 });
 test('rifle and cleaver sources use the same widened search at a wall',()=>{
  const rf=fixture({areaId:'east-bridge'});rf.restore();const boss=rf.g.enemies.find(e=>e.placementKey==='boss-warden-v1');boss.hp=0;
