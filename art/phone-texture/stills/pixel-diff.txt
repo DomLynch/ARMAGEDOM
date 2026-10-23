@@ -1,0 +1,9 @@
+idle before max diff 0 mean 0.0 pixels >8: 0.0000%
+idle after1024 max diff 3 mean 0.003 pixels >8: 0.0000%
+idle after512 max diff 66 mean 0.02 pixels >8: 0.0094%
+fight before max diff 0 mean 0.0 pixels >8: 0.0000%
+fight after1024 max diff 16 mean 0.002 pixels >8: 0.0002%
+fight after512 max diff 66 mean 0.016 pixels >8: 0.0094%
+flame before max diff 0 mean 0.0 pixels >8: 0.0000%
+flame after1024 max diff 9 mean 0.003 pixels >8: 0.0001%
+flame after512 max diff 33 mean 0.018 pixels >8: 0.0096%
