@@ -3,26 +3,52 @@ import { syncMeleeEquipment } from "../melee-equipment.js";
 import { createUnlockRewardModel } from "./unlock-reward-state.js";
 import { createAmmoRewardModel } from "./rifle-state.js";
 import { createRewardCollectionModel } from "./reward-collection-state.js";
+import {
+  createLayerCodec,
+  createLayerStorageAdapter,
+  createReadOrigin,
+  layerFailure,
+  pickupEligible,
+  runIsSafe,
+  sameJson,
+  stageDeathDrops,
+} from "./item-layer.js";
 export const BOSS_EQUIPMENT_SAVE_KEY = "armagedom:boss-equipment-run:v11";
 export const PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY = "armagedom:boss-equipment-run:v10";
 const previousFields = ["shotgun", "grenade", "surgicalKnife", "commanderPistol", "emberProjector"];
-const envelope = [
-  "version",
-  "pistol",
-  "hp",
-  "supplies",
-  "vest",
-  "droneDeaths",
-  "animalCycle",
-  "progression",
-  "expedition",
-  "uniqueReward",
-  "flameFuel",
-  "rifle",
-  "bossEquipment",
-];
-const fail = (code) => ({ ok: false, code, events: [] });
-const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// This layer's row: keys, versions, envelope, tolerances and event names, moved verbatim from the code below.
+export const BOSS_EQUIPMENT_LAYER = Object.freeze({
+  field: "bossEquipment",
+  saveKey: BOSS_EQUIPMENT_SAVE_KEY,
+  previousKeys: Object.freeze([{ key: PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY, origin: "v10" }]),
+  version: 11,
+  previousVersion: 10,
+  baseVersion: 9,
+  envelope: Object.freeze([
+    "version",
+    "pistol",
+    "hp",
+    "supplies",
+    "vest",
+    "droneDeaths",
+    "animalCycle",
+    "progression",
+    "expedition",
+    "uniqueReward",
+    "flameFuel",
+    "rifle",
+    "bossEquipment",
+  ]),
+  pickupEpsilon: 1e-8,
+  events: Object.freeze({ drop: "boss-equipment-drop" }),
+  messages: Object.freeze({
+    envelope: "Invalid boss equipment envelope",
+    base: "Boss equipment requires existing v9",
+    snapshot: "Invalid equipment snapshot",
+  }),
+});
+const fail = layerFailure;
+const equal = sameJson;
 // One outer envelope uses existing Core IO; retained v10/v9/v8 are read-only migration inputs.
 export function createBossEquipmentComponent({
   baseCodec,
@@ -73,7 +99,7 @@ export function createBossEquipmentComponent({
   const previousModel = createRewardCollectionModel(
     Object.fromEntries(previousFields.map((field) => [field, models[field]])),
   );
-  let readOrigin = null;
+  const reads = createReadOrigin();
   const state = (g) => (g.bossEquipment === undefined ? model.freshState() : g.bossEquipment);
   const selected = (s) => fields.find((field) => s[field].selected) ?? null;
   const selectedValid = (g, s) => {
@@ -91,110 +117,73 @@ export function createBossEquipmentComponent({
             g.player?.weapon === profiles[field].weaponKey,
         );
   };
-  const codec = {
-    RUN_SAVE_KEY: BOSS_EQUIPMENT_SAVE_KEY,
-    get PISTOL_SAVE_KEY() {
-      return baseCodec.PISTOL_SAVE_KEY;
-    },
-    encodeRun(g) {
-      const equipment = state(g);
-      if (!model.valid(equipment) || !selectedValid(g, equipment)) throw TypeError("Invalid boss equipment envelope");
-      const old = JSON.parse(baseCodec.encodeRun(g));
-      if (old.version !== 9) throw TypeError("Boss equipment requires existing v9");
-      return JSON.stringify({ ...old, version: 11, bossEquipment: model.copy(equipment) });
-    },
-    restoreRun(g, raw, legacyRaw) {
-      const origin = readOrigin;
-      readOrigin = null;
-      try {
-        const saved = raw == null ? null : JSON.parse(raw);
-        // Reject the impossible launcher receipt before any historical codec can normalize it.
-        if (
-          origin !== null &&
-          (saved?.progression?.awards ?? []).some((row) => row?.weaponId === profiles.rocketLauncher.itemId)
-        )
-          return null;
-        if (origin === "legacy") {
-          const introduced = new Set(Object.values(profiles).map((data) => data.itemId));
-          if ((saved?.progression?.awards ?? []).some((row) => introduced.has(row?.weaponId))) return null;
-          const restored = baseCodec.restoreRun(g, raw, legacyRaw);
-          if (!restored) return null;
-          const equipment = {};
-          for (const field of fields) {
-            const next = models[field].restoreState(undefined, {
-              sourceDead: sourceDead(restored, profiles[field].source),
-            });
-            if (!next) return null;
-            equipment[field] = next;
-          }
-          return model.valid(equipment) ? { ...restored, bossEquipment: equipment } : null;
-        }
-        const historical = origin === "v10";
-        if (
-          saved?.version !== (historical ? 10 : 11) ||
-          !closedData(saved, envelope) ||
-          !(historical ? previousModel : model).valid(saved.bossEquipment)
-        )
-          return null;
-        const old = { ...saved, version: 9 };
-        delete old.bossEquipment;
-        const restored = baseCodec.restoreRun(g, JSON.stringify(old), null);
-        if (!restored) return null;
-        const equipment = historical
-          ? {
-              ...previousModel.copy(saved.bossEquipment),
-              rocketLauncher: models.rocketLauncher.restoreState(undefined, {
-                sourceDead: sourceDead(restored, profiles.rocketLauncher.source),
-              }),
-            }
-          : model.copy(saved.bossEquipment);
-        if (!model.valid(equipment)) return null;
-        const field = selected(equipment);
-        if (
-          field &&
-          ((profiles[field].family === "pistols"
-            ? !saved.pistol?.collected || !saved.pistol.equipped
-            : saved.pistol?.equipped) ||
-            saved.rifle?.selected ||
-            (profiles[field].family === "flamethrowers" && !saved.flameFuel?.collected))
-        )
-          return null;
-        return { ...restored, bossEquipment: equipment };
-      } catch {
-        return null;
+  // Layer-specific migrations: legacy base-era records, the retained v10 era, and the current v11 envelope.
+  function restoreEra(g, raw, legacyRaw, origin) {
+    const saved = raw == null ? null : JSON.parse(raw);
+    // Reject the impossible launcher receipt before any historical codec can normalize it.
+    if (
+      origin !== null &&
+      (saved?.progression?.awards ?? []).some((row) => row?.weaponId === profiles.rocketLauncher.itemId)
+    )
+      return null;
+    if (origin === "legacy") {
+      const introduced = new Set(Object.values(profiles).map((data) => data.itemId));
+      if ((saved?.progression?.awards ?? []).some((row) => introduced.has(row?.weaponId))) return null;
+      const restored = baseCodec.restoreRun(g, raw, legacyRaw);
+      if (!restored) return null;
+      const equipment = {};
+      for (const field of fields) {
+        const next = models[field].restoreState(undefined, {
+          sourceDead: sourceDead(restored, profiles[field].source),
+        });
+        if (!next) return null;
+        equipment[field] = next;
       }
-    },
-    captureRunState(g) {
-      const equipment = state(g);
-      if (!model.valid(equipment) || !selectedValid(g, equipment)) throw TypeError("Invalid equipment snapshot");
-      return { base: baseCodec.captureRunState(g), bossEquipment: model.copy(equipment) };
-    },
-    isRunStateUnchanged(g, s) {
-      const equipment = state(g);
-      return (
-        model.valid(equipment) &&
-        selectedValid(g, equipment) &&
-        equal(equipment, s.bossEquipment) &&
-        baseCodec.isRunStateUnchanged(g, s.base)
-      );
-    },
-  };
-  function safe(g) {
-    const p = g.player;
-    return (
-      !!p &&
-      Number.isFinite(p.hp) &&
-      p.hp > 0 &&
-      !g.finished &&
-      !g.runSaveInvalid &&
-      !p.swing &&
-      Number.isFinite(g.time) &&
-      g.time >= (p.ready ?? 0) &&
-      g.time >= (p.hurtUntil ?? 0) &&
-      g.time >= (p.dodgeUntil ?? 0) &&
-      canDispatch(g) === true
-    );
+      return model.valid(equipment) ? { ...restored, bossEquipment: equipment } : null;
+    }
+    const historical = origin === "v10";
+    if (
+      saved?.version !== (historical ? BOSS_EQUIPMENT_LAYER.previousVersion : BOSS_EQUIPMENT_LAYER.version) ||
+      !closedData(saved, BOSS_EQUIPMENT_LAYER.envelope) ||
+      !(historical ? previousModel : model).valid(saved.bossEquipment)
+    )
+      return null;
+    const old = { ...saved, version: BOSS_EQUIPMENT_LAYER.baseVersion };
+    delete old.bossEquipment;
+    const restored = baseCodec.restoreRun(g, JSON.stringify(old), null);
+    if (!restored) return null;
+    const equipment = historical
+      ? {
+          ...previousModel.copy(saved.bossEquipment),
+          rocketLauncher: models.rocketLauncher.restoreState(undefined, {
+            sourceDead: sourceDead(restored, profiles.rocketLauncher.source),
+          }),
+        }
+      : model.copy(saved.bossEquipment);
+    if (!model.valid(equipment)) return null;
+    const field = selected(equipment);
+    if (
+      field &&
+      ((profiles[field].family === "pistols"
+        ? !saved.pistol?.collected || !saved.pistol.equipped
+        : saved.pistol?.equipped) ||
+        saved.rifle?.selected ||
+        (profiles[field].family === "flamethrowers" && !saved.flameFuel?.collected))
+    )
+      return null;
+    return { ...restored, bossEquipment: equipment };
   }
+  const codec = createLayerCodec({
+    baseCodec,
+    row: BOSS_EQUIPMENT_LAYER,
+    state,
+    valid: model.valid,
+    copy: model.copy,
+    selectedValid,
+    restore: restoreEra,
+    reads,
+  });
+  const safe = (g) => runIsSafe(g, canDispatch);
   function applyCommitted(g, committed) {
     g.bossEquipment = model.copy(committed.bossEquipment);
     if (committed.pistol) g.pistol = committed.pistol;
@@ -243,14 +232,11 @@ export function createBossEquipmentComponent({
           data = profiles[target];
         if (!data) return fail("invalid-command");
         if (claim) {
-          const s = current[target],
-            p = g.player.pos;
           if (
-            s.status !== "pending" ||
-            !p ||
-            g.world.areaId !== data.source.areaId ||
-            Math.hypot(p.x - s.dropPosition.x, p.z - s.dropPosition.z) > data.rules.pickupRadius + 1e-8 ||
-            !g.world.lineClear(p, s.dropPosition)
+            !pickupEligible(g, current[target], data.source, {
+              radius: data.rules.pickupRadius,
+              epsilon: BOSS_EQUIPMENT_LAYER.pickupEpsilon,
+            })
           )
             return fail("not-eligible");
           proposed = model.transition(current, target, { type: "pickup" });
@@ -279,44 +265,20 @@ export function createBossEquipmentComponent({
         )
           return false;
         let next = model.copy(proposed ?? current);
-        if (!["restore", "retry"].includes(command.type))
-          for (const target of fields) {
-            const data = profiles[target],
-              s = next[target],
-              matches = (a) => a.placementKey === data.source.placementKey && a.areaId === data.source.areaId;
-            if (
-              ["eligible", "legacy-dead"].includes(s.status) &&
-              (candidate.progression?.awards ?? []).some(matches) &&
-              !(g.progression?.awards ?? []).some(matches)
-            ) {
-              const corpse =
-                g.world.areaId === data.source.areaId
-                  ? [...(g.enemies ?? []), ...(g.corpses ?? [])].find(
-                      (e) => e.placementKey === data.source.placementKey && Number.isFinite(e.hp) && e.hp <= 0,
-                    )
-                  : null;
-              if (!corpse) return false;
-              let position;
-              try {
-                position = validatedDropPosition(g, corpse, data.source);
-              } catch {
-                return false;
-              }
-              next = model.transition(next, target, {
-                type: "drop",
-                placementKey: data.source.placementKey,
-                areaId: data.source.areaId,
-                position,
-              });
-              if (!next) return false;
-              events.push({
-                type: "boss-equipment-drop",
-                itemId: data.itemId,
-                areaId: data.source.areaId,
-                position: { ...position },
-              });
-            }
-          }
+        if (!["restore", "retry"].includes(command.type)) {
+          const staged = stageDeathDrops({
+            g,
+            candidate,
+            next,
+            rows: fields.map((target) => [target, profiles[target]]),
+            model,
+            validatedDropPosition,
+            eventType: BOSS_EQUIPMENT_LAYER.events.drop,
+          });
+          if (!staged) return false;
+          next = staged.next;
+          events.push(...staged.events);
+        }
         if (
           !select &&
           command.type !== "retry" &&
@@ -409,26 +371,13 @@ export function createBossEquipmentComponent({
     g.activeGrenades = [];
     g.activeRockets = [];
   }
-  function storageAdapter(storage) {
-    const base = baseStorageAdapter(storage);
-    return !base
-      ? base
-      : {
-          getItem(key) {
-            if (key !== BOSS_EQUIPMENT_SAVE_KEY) return base.getItem(key);
-            readOrigin = null;
-            const raw = base.getItem(key);
-            if (raw != null) return raw;
-            const previous = base.getItem(PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY);
-            if (previous != null) {
-              readOrigin = "v10";
-              return previous;
-            }
-            readOrigin = "legacy";
-            return base.getItem(baseCodec.RUN_SAVE_KEY);
-          },
-          setItem: (key, raw) => base.setItem(key, raw),
-        };
-  }
+  const storageAdapter = createLayerStorageAdapter({
+    baseStorageAdapter,
+    saveKey: BOSS_EQUIPMENT_LAYER.saveKey,
+    fallbacks: BOSS_EQUIPMENT_LAYER.previousKeys,
+    legacyOrigin: "legacy",
+    baseKey: baseCodec.RUN_SAVE_KEY,
+    reads,
+  });
   return Object.freeze({ model, models, codec: Object.freeze(codec), wrapDomain, applySavedRun, storageAdapter });
 }
