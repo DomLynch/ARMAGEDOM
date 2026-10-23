@@ -10,7 +10,6 @@ import {wolfFixture} from './helpers/wolf-fixture.js';
 import {validateAreaMetadata} from '../src/engine/area-content.js';
 import {stageProgressionDeath} from '../src/engine/progression-runtime.js';
 import {issueSupply} from '../src/supplies.js';
-
 const root = process.env.ROLLBACK_BASELINE_ROOT;
 const skip = root ? false : 'set ROLLBACK_BASELINE_ROOT to the frozen previous-release checkout';
 const RUN_KEY = 'armagedom:marked-run:v18';
@@ -43,11 +42,15 @@ function readInBaseline(records, areaId, extraWorld) {
 
 // What every case must hold: valid load, same HP / progression / equipment / fuel, and the baseline can
 // save again without changing the v18 key set.
-function assertSameRun(current, old, records) {
+function assertSameRun(current, old, records, {savedFuel} = {}) {
   assert.equal(old.g.player.hp, current.player.hp);
   assert.deepEqual(old.g.progression, current.progression);
   if (current.bossEquipment !== undefined) assert.deepEqual(old.g.bossEquipment, current.bossEquipment);
-  if (current.flameFuel !== undefined) assert.deepEqual(old.g.flameFuel, current.flameFuel);
+  if (savedFuel) {
+    // Flame saves are coalesced: disk holds the last real write, never less fuel than live.
+    assert.deepEqual(old.g.flameFuel, savedFuel);
+    assert(savedFuel.fuelUnits >= current.flameFuel.fuelUnits - 1e-9);
+  } else if (current.flameFuel !== undefined) assert.deepEqual(old.g.flameFuel, current.flameFuel);
   assert(old.p.persistRun(old.g), 'baseline could not save the loaded run');
   // The baseline may leave an unchanged record untouched; any record it does write keeps version and keys.
   for (const [key, raw] of records) {
@@ -141,4 +144,36 @@ for (const dead of [false, true]) {
   });
 }
 
-test.todo('b) mid-flame save with partly spent fuel loads in the previous release (add when the flame fuel PR lands)');
+// Westminster Ember Projector: kill, collect, equip, then spend fuel through the real flame save path.
+function armedFlame() {
+  const f = fixture({areaId: 'westminster', extraWorld: pick(currentData)});
+  f.restore();
+  killBoss(f, 'emberProjector');
+  assert(f.p.persistRun(f.g));
+  const itemId = currentData.bossEquipmentData.emberProjector.itemId;
+  f.g.player.pos = {...f.g.bossEquipment.emberProjector.dropPosition};
+  assert(f.p.dispatchBossEquipment(f.g, {type: 'claimPickup', pickupId: itemId}, true).ok);
+  assert(f.p.dispatchBossEquipment(f.g, {type: 'equip', itemId, equipped: true}, true).ok);
+  return f;
+}
+function fire(f, ticks) {
+  for (let i = 0; i < ticks; i++) {
+    f.g.tick++;
+    f.g.time += 1 / 60;
+    assert(f.p.dispatchFlame(f.g, {type: 'save'}, {seconds: 1 / 60, active: true}, true).ok);
+  }
+}
+
+for (const [name, ticks] of [['partly spent fuel (coalesced write)', 100], ['empty tank', 6200]]) {
+  test('b) mid-flame save with ' + name + ' loads in the previous release', {skip}, () => {
+    const f = armedFlame();
+    fire(f, ticks);
+    const savedFuel = JSON.parse(f.records.get(RUN_KEY)).flameFuel;
+    if (ticks === 100) assert(f.g.flameFuel.fuelUnits > 0 && f.g.flameFuel.fuelUnits <= savedFuel.fuelUnits);
+    else assert.equal(f.g.flameFuel.fuelUnits, 0);
+    const old = readInBaseline(f.records, 'westminster', pick(baseline.data));
+    assertSameRun(f.g, old, f.records, {savedFuel});
+    assert.equal(old.g.flameFuel.collected, true);
+    assert(old.g.flameFuel.fuelUnits - f.g.flameFuel.fuelUnits <= 10 + 1e-6, 'disk is more than one second stale');
+  });
+}
