@@ -1,0 +1,144 @@
+// Rollback-save check: a save written by THIS tree must still load in the frozen previous release.
+// Runs only when ROLLBACK_BASELINE_ROOT points at a checkout of the previous release (repo root, with Web/).
+// Direction is the reverse of wolf221-saves: current tree writes, frozen baseline reads.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {pathToFileURL} from 'node:url';
+import {fixture} from './helpers/rifle-fixture.js';
+import {wolfFixture} from './helpers/wolf-fixture.js';
+import {validateAreaMetadata} from '../src/engine/area-content.js';
+import {stageProgressionDeath} from '../src/engine/progression-runtime.js';
+import {issueSupply} from '../src/supplies.js';
+
+const root = process.env.ROLLBACK_BASELINE_ROOT;
+const skip = root ? false : 'set ROLLBACK_BASELINE_ROOT to the frozen previous-release checkout';
+const RUN_KEY = 'armagedom:marked-run:v18';
+const EXTRA_WORLD_FIELDS = ['bossEquipmentData', 'safehouseData', 'reaperData', 'markedData'];
+
+const readCurrent = p => JSON.parse(fs.readFileSync(new URL('../public/' + p, import.meta.url)));
+const currentRegistry = fixture().world.registry;
+const currentData = validateAreaMetadata(readCurrent('world/area-content.json'), currentRegistry);
+const pick = data => Object.fromEntries(EXTRA_WORLD_FIELDS.map(field => [field, data[field]]));
+
+async function loadBaseline() {
+  const url = p => pathToFileURL(root + '/' + p);
+  const read = p => JSON.parse(fs.readFileSync(url('Web/public/' + p)));
+  const {fixture: baselineFixture} = await import(url('Web/tests/helpers/rifle-fixture.js'));
+  const {createAreaRegistry} = await import(url('Web/src/area-registry.js'));
+  const {validateAreaMetadata: validate} = await import(url('Web/src/engine/area-content.js'));
+  const registry = createAreaRegistry({manifest: read('world/manifest.json')});
+  const data = validate(read('world/area-content.json'), registry);
+  return {fixture: baselineFixture, data, read};
+}
+const baseline = skip ? null : await loadBaseline();
+
+// Load the records the current tree wrote into the frozen release; return its fixture after restore.
+function readInBaseline(records, areaId, extraWorld) {
+  const old = baseline.fixture({areaId, extraWorld, records: new Map(records)});
+  old.restore();
+  assert(!old.g.runSaveInvalid, 'baseline marked the save invalid');
+  return old;
+}
+
+// What every case must hold: valid load, same HP / progression / equipment / fuel, and the baseline can
+// save again without changing the v18 key set.
+function assertSameRun(current, old, records) {
+  assert.equal(old.g.player.hp, current.player.hp);
+  assert.deepEqual(old.g.progression, current.progression);
+  if (current.bossEquipment !== undefined) assert.deepEqual(old.g.bossEquipment, current.bossEquipment);
+  if (current.flameFuel !== undefined) assert.deepEqual(old.g.flameFuel, current.flameFuel);
+  assert(old.p.persistRun(old.g), 'baseline could not save the loaded run');
+  // The baseline may leave an unchanged record untouched; any record it does write keeps version and keys.
+  for (const [key, raw] of records) {
+    const before = JSON.parse(raw), after = JSON.parse(old.records.get(key));
+    assert.equal(after.version, before.version, key + ' version changed');
+    assert.deepEqual(Object.keys(after).sort(), Object.keys(before).sort(), key + ' keys changed');
+  }
+  if (records.has(RUN_KEY)) assert.equal(JSON.parse(old.records.get(RUN_KEY)).version, 18);
+}
+
+function killBoss(f, field) {
+  const g = f.g, source = currentData.bossEquipmentData[field].source;
+  const e = g.enemies.find(e => e.placementKey === source.placementKey);
+  assert(e, 'boss not present in ' + f.world.areaId);
+  e.hp = 0;
+  g.supplies = issueSupply(g.supplies, {areaId: f.world.areaId, placementKey: e.placementKey, position: e.pos, hp: 0, rules: g.lootRules, cycle: g.animalCycle}).state;
+  stageProgressionDeath(g, e, 'knife', e.maxHP);
+  g.corpses.push(e);
+  return e;
+}
+// No legal ground within `radius` of the corpse: forces the fallback drop spot.
+function wall(f, e, radius) {
+  const clear = f.world.geometry.clear.bind(f.world.geometry);
+  f.world.geometry.clear = (p, r) => Math.hypot(p.x - e.pos.x, p.z - e.pos.z) > radius && clear(p, r);
+}
+
+test('a) ordinary 223 save loads in the previous release', {skip}, () => {
+  const f = fixture({areaId: 'westminster', extraWorld: pick(currentData)});
+  f.restore();
+  f.g.player.hp = Math.max(1, f.g.player.hp - 17);
+  assert(f.p.persistRun(f.g));
+  assertSameRun(f.g, readInBaseline(f.records, 'westminster', pick(baseline.data)), f.records);
+});
+
+for (const [name, radius] of [['placed at the corpse', 0], ['from the new fallback path', 1.2]]) {
+  test('c) pending boss drop ' + name + ' loads in the previous release and can be collected', {skip}, () => {
+    const f = fixture({areaId: 'westminster', extraWorld: pick(currentData)});
+    f.restore();
+    const e = killBoss(f, 'emberProjector');
+    if (radius) wall(f, e, radius);
+    assert(f.p.persistRun(f.g), 'current tree could not save the kill');
+    const drop = f.g.bossEquipment.emberProjector;
+    assert.equal(drop.status, 'pending');
+    if (radius) assert(Math.hypot(drop.dropPosition.x - e.pos.x, drop.dropPosition.z - e.pos.z) > radius, 'fallback path not exercised');
+    const old = readInBaseline(f.records, 'westminster', pick(baseline.data));
+    assertSameRun(f.g, old, f.records);
+    old.g.player.pos = {...drop.dropPosition};
+    const claim = old.p.dispatchBossEquipment(old.g, {type: 'claimPickup', pickupId: currentData.bossEquipmentData.emberProjector.itemId}, true);
+    assert(claim.ok, 'baseline could not collect the pending drop: ' + claim.code);
+    assert.equal(old.g.bossEquipment.emberProjector.status, 'owned');
+  });
+}
+
+test('c) pending rifle drop from the new fallback path loads in the previous release and can be collected', {skip}, () => {
+  const f = fixture();
+  f.restore();
+  const e = f.g.enemies.find(e => e.placementKey === 'boss-warden-v1');
+  wall(f, e, 1.2);
+  assert(f.kill(), 'current tree could not save the rifle kill');
+  assert.equal(f.g.rifle.status, 'pending');
+  assert(Math.hypot(f.g.rifle.dropPosition.x - e.pos.x, f.g.rifle.dropPosition.z - e.pos.z) > 1.2, 'fallback path not exercised');
+  const old = readInBaseline(f.records, 'east-bridge', {});
+  assertSameRun(f.g, old, f.records);
+  assert.deepEqual(old.g.rifle, f.g.rifle);
+  assert(old.pickup().ok, 'baseline could not collect the pending rifle');
+});
+
+// East8 wolf: the previous release reads a 223-written alive wolf as alive and a dead one as dead.
+for (const dead of [false, true]) {
+  test('d) East8 wolf ' + (dead ? 'dead stays dead' : 'alive stays alive') + ' in the previous release', {skip}, () => {
+    const records = new Map(), f = wolfFixture({records});
+    f.restore();
+    const e = f.g.enemies.find(e => e.placementKey === 'east-roamer-8');
+    assert(e);
+    if (dead) {
+      e.hp = 0;
+      f.g.supplies = issueSupply(f.g.supplies, {areaId: 'east', placementKey: e.placementKey, position: e.pos, hp: 0, rules: f.g.lootRules, cycle: f.g.animalCycle}).state;
+      stageProgressionDeath(f.g, e, 'knife', 40);
+      f.g.corpses.push(e);
+    }
+    assert(f.p.persistRun(f.g));
+    const extraWorld = {...baseline.data, layout: baseline.read('world/east/layout.json')};
+    const old = readInBaseline(records, 'east', extraWorld);
+    const wolf = old.g.enemies.find(e => e.placementKey === 'east-roamer-8');
+    if (dead) assert(!wolf, 'dead East8 was revived');
+    else {
+      assert(wolf, 'alive East8 disappeared');
+      assert.equal(wolf.hp, 40);
+    }
+    assertSameRun(f.g, old, records);
+  });
+}
+
+test.todo('b) mid-flame save with partly spent fuel loads in the previous release (add when the flame fuel PR lands)');
