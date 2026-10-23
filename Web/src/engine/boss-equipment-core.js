@@ -268,7 +268,11 @@ export function createBossEquipmentComponent({
             g,
             candidate,
             next,
-            rows: fields.map((target) => ({ target, source: profiles[target].source, itemId: profiles[target].itemId })),
+            rows: fields.map((target) => ({
+              target,
+              source: profiles[target].source,
+              itemId: profiles[target].itemId,
+            })),
             stateOf: (state, target) => state[target],
             transition: model.transition,
             validatedDropPosition,

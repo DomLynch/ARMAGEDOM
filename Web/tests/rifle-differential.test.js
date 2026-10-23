@@ -11,7 +11,20 @@ import { RIFLE_ITEM_ID } from "../src/engine/weapon-catalog.js";
 const goldenUrl = new URL("./fixtures/rifle-golden.json", import.meta.url);
 const legacy = JSON.parse(fs.readFileSync(new URL("./fixtures/rifle166-earned-v9.json", import.meta.url)));
 const sha = (raw) => (raw == null ? null : createHash("sha256").update(raw).digest("hex"));
-const envelope = ["version", "pistol", "hp", "supplies", "vest", "droneDeaths", "animalCycle", "progression", "expedition", "uniqueReward", "flameFuel", "rifle"];
+const envelope = [
+  "version",
+  "pistol",
+  "hp",
+  "supplies",
+  "vest",
+  "droneDeaths",
+  "animalCycle",
+  "progression",
+  "expedition",
+  "uniqueReward",
+  "flameFuel",
+  "rifle",
+];
 function snapshot(f, step, result) {
   const g = f.g;
   return {
@@ -46,10 +59,15 @@ function scenario() {
   f.quota(false);
   steps.push(snapshot(f, "claim", claim()));
   steps.push(snapshot(f, "claim-again", claim()));
-  steps.push(snapshot(f, "equip-bad", f.p.dispatchRifle(f.g, { type: "equip", itemId: RIFLE_ITEM_ID, equipped: "yes" }, true)));
+  steps.push(
+    snapshot(f, "equip-bad", f.p.dispatchRifle(f.g, { type: "equip", itemId: RIFLE_ITEM_ID, equipped: "yes" }, true)),
+  );
   steps.push(snapshot(f, "equip", f.equip(true)));
   steps.push(snapshot(f, "equip-again", f.equip(true)));
-  for (const [name, advance] of [["fire", 1], ["fire-too-soon", 0]]) {
+  for (const [name, advance] of [
+    ["fire", 1],
+    ["fire-too-soon", 0],
+  ]) {
     f.g.time += advance;
     f.g.tick += advance * 60;
     steps.push(snapshot(f, name, f.fire()));

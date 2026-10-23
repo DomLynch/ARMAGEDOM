@@ -26,10 +26,20 @@ function fixture({ records = new Map(), enabled = true } = {}) {
     quota = false,
     g = null;
   const world = {
-    areaId: "westminster", registry, spawn: { x: 0, z: -6 }, layout: { characterScale: 1.265 }, geometry,
-    bossData: data.bossData, progressionData: data.progression, expeditionData: data.expedition,
-    uniqueRewardData: data.uniqueRewardData, residentPlacements: data.residents, lootRules: data.lootRules,
-    lineClear: (a, b) => geometry.lineClear(a, b), move: (p, d, r) => geometry.move(p, d, r), travelAt: () => null,
+    areaId: "westminster",
+    registry,
+    spawn: { x: 0, z: -6 },
+    layout: { characterScale: 1.265 },
+    geometry,
+    bossData: data.bossData,
+    progressionData: data.progression,
+    expeditionData: data.expedition,
+    uniqueRewardData: data.uniqueRewardData,
+    residentPlacements: data.residents,
+    lootRules: data.lootRules,
+    lineClear: (a, b) => geometry.lineClear(a, b),
+    move: (p, d, r) => geometry.move(p, d, r),
+    travelAt: () => null,
     async loadArea(id, entry) {
       this.areaId = id;
       geometry = createGeometry(read("world/" + id + "/layout.json"));
@@ -39,20 +49,49 @@ function fixture({ records = new Map(), enabled = true } = {}) {
   };
   const fresh = () =>
     createGame(world, {
-      pilot: "donor-knife", pistol: true, supplies: true, vest: true, areaResidents: true, openingGroup: false,
-      residentPlacements: data.residents, animalVariants: true,
-      encounter: { id: "hollow-scavengers", character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 } },
+      pilot: "donor-knife",
+      pistol: true,
+      supplies: true,
+      vest: true,
+      areaResidents: true,
+      openingGroup: false,
+      residentPlacements: data.residents,
+      animalVariants: true,
+      encounter: {
+        id: "hollow-scavengers",
+        character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 },
+      },
     });
   const p = createRunPersistence({
-    getRun: () => g, setRun: (next) => (g = next), createFreshRun: fresh,
-    storage: { getItem: (key) => records.get(key) ?? null, setItem(key, raw) { if (quota) throw Error("quota"); records.set(key, raw); } },
+    getRun: () => g,
+    setRun: (next) => (g = next),
+    createFreshRun: fresh,
+    storage: {
+      getItem: (key) => records.get(key) ?? null,
+      setItem(key, raw) {
+        if (quota) throw Error("quota");
+        records.set(key, raw);
+      },
+    },
   });
   g = fresh();
   return {
-    get g() { return g; }, world, p, records, quota: (v) => (quota = v), restore: () => p.restoreSavedRun(g),
-    tick(intent = {}) { stepGame(g, intent, 1 / 60, { dispatchPistol: p.dispatchPistol }); p.collectNearbySupplies(g, intent); return p.persistRun(g); },
+    get g() {
+      return g;
+    },
+    world,
+    p,
+    records,
+    quota: (v) => (quota = v),
+    restore: () => p.restoreSavedRun(g),
+    tick(intent = {}) {
+      stepGame(g, intent, 1 / 60, { dispatchPistol: p.dispatchPistol });
+      p.collectNearbySupplies(g, intent);
+      return p.persistRun(g);
+    },
     claim: (allowed = true) => p.dispatchUniqueReward(g, { type: "claimPickup", pickupId: CLEAVER_ITEM_ID }, allowed),
-    equip: (itemId = CLEAVER_ITEM_ID, equipped = true, allowed = true) => p.dispatchUniqueReward(g, { type: "equip", itemId, equipped }, allowed),
+    equip: (itemId = CLEAVER_ITEM_ID, equipped = true, allowed = true) =>
+      p.dispatchUniqueReward(g, { type: "equip", itemId, equipped }, allowed),
   };
 }
 async function killHale(f, { failed = false } = {}) {
@@ -142,7 +181,10 @@ async function scenario() {
     if (dead) await killHale(old);
     const raw6 = old.records.get(AREA_BOSS_SAVE_KEY);
     restoreFrom(dead ? "restore-v6-dead" : "restore-v6-alive", [[AREA_BOSS_SAVE_KEY, raw6]]);
-    restoreFrom(dead ? "restore-v6-dead-with-bad-v7" : "restore-v6-alive-with-bad-v7", [[AREA_BOSS_SAVE_KEY, raw6], [UNIQUE_REWARD_SAVE_KEY, "{bad"]]);
+    restoreFrom(dead ? "restore-v6-dead-with-bad-v7" : "restore-v6-alive-with-bad-v7", [
+      [AREA_BOSS_SAVE_KEY, raw6],
+      [UNIQUE_REWARD_SAVE_KEY, "{bad"],
+    ]);
   }
   return steps;
 }
