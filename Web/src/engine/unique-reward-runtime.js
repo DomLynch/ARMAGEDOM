@@ -15,9 +15,15 @@ export function uniqueRewardSourceDead(saved,data){return !!(saved.progression?.
 export function uniqueRewardDropPosition(g,corpse,data=g.world.uniqueRewardData){
  const origin=corpse.pos,w=g.world;
  if(!data||w.areaId!==data.areaId||corpse.placementKey!==data.placementKey||corpse.hp>0||![origin?.x,origin?.z].every(Number.isFinite))return null;
- const legal=p=>w.geometry.clear(p,.4)&&!w.travelAt?.(p)&&w.lineClear(origin,p);
+ const ground=p=>w.geometry.clear(p,.4)&&!w.travelAt?.(p),legal=p=>ground(p)&&w.lineClear(origin,p);
  if(legal(origin))return{x:origin.x,z:origin.z};
- for(const radius of[.25,.5,.75,1])for(let i=0;i<16;i++){const angle=i*Math.PI/8,p={x:origin.x+Math.cos(angle)*radius,z:origin.z+Math.sin(angle)*radius};if(legal(p))return p;}
- return null;
+ const ring=(radii,accept)=>{for(const radius of radii)for(let i=0;i<16;i++){const angle=i*Math.PI/8,p={x:origin.x+Math.cos(angle)*radius,z:origin.z+Math.sin(angle)*radius};if(accept(p))return p;}return null;};
+ // A corpse against a wall or exit has no spot within 1 m; widen, then drop the corpse line (pickup only needs player-to-spot clearance), then use the area entry.
+ const near=ring([.25,.5,.75,1],legal)??ring(FALLBACK_RADII,legal)??ring(FALLBACK_RADII,ground);
+ if(near)return near;
+ const entry=w.registry?.get?.(w.areaId)?.entry;return entry&&ground(entry)?{x:entry.x,z:entry.z}:null;
 }
-export function needsUniqueDeathCommit(g){const data=g?.world?.uniqueRewardData,state=g?.uniqueReward;return !!(data&&g.world.areaId===data.areaId&&(!state||['eligible','legacy-dead'].includes(state.status))&&!g.progression?.awards?.some(row=>row.placementKey===data.placementKey&&row.areaId===data.areaId)&&g.corpses?.some(e=>e.placementKey===data.placementKey&&e.hp<=0));}
+const FALLBACK_RADII=[1.5,2,2.5,3,4,5,6];
+// Boss-equipment sources follow the same rule: an uncommitted kill must not be left behind in a parked area.
+function needsBossEquipmentDeathCommit(g){const w=g?.world;return Object.entries(w?.bossEquipmentData??{}).some(([field,data])=>{const s=data?.source,state=g.bossEquipment?.[field];return !!s&&w.areaId===s.areaId&&(!state||['eligible','legacy-dead'].includes(state.status))&&!g.progression?.awards?.some(row=>row.placementKey===s.placementKey&&row.areaId===s.areaId)&&g.corpses?.some(e=>e.placementKey===s.placementKey&&e.hp<=0);});}
+export function needsUniqueDeathCommit(g){if(needsBossEquipmentDeathCommit(g))return true;const data=g?.world?.uniqueRewardData,state=g?.uniqueReward;return !!(data&&g.world.areaId===data.areaId&&(!state||['eligible','legacy-dead'].includes(state.status))&&!g.progression?.awards?.some(row=>row.placementKey===data.placementKey&&row.areaId===data.areaId)&&g.corpses?.some(e=>e.placementKey===data.placementKey&&e.hp<=0));}
