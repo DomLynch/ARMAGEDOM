@@ -28,9 +28,10 @@ test('donor cues preserve impact gains and omit blocked hits, death and crowd',(
  const cues=audio.donorCues([{type:'attack',moveId:'heavy_overhead',actor:attacker},{type:'hit',moveId:'heavy_overhead',actor:{id:2},attackerId:1,victimId:2},{type:'parry',actor:{id:2}},{type:'block'},{type:'guard-break'},{type:'dodge'},{type:'hit',blocked:true,amount:0},{type:'death'},{type:'wave'},{type:'attack',moveId:'skill_pommel'}]);
  assert.deepEqual(cues.map(c=>[c.name,c.gain]),[['hit_heavy',.3],['parry',1],['block',1],['guard_break',1],['whoosh_heavy',.18],['roll',.12],['whoosh_light',.12]]);
 });
-test('selected WAV contains exactly the pinned donor PCM ranges and no extra cues',()=>{
- const root=new URL('../public/audio/',import.meta.url),manifest=JSON.parse(readFileSync(new URL('manifest.json',root))),wav=readFileSync(new URL(manifest.url,root));
- assert.equal(createHash('sha256').update(wav).digest('hex'),manifest.sha256);
+test('served audio is hash-pinned and the source WAV contains exactly the pinned donor PCM ranges and no extra cues',()=>{
+ const root=new URL('../public/audio/',import.meta.url),manifest=JSON.parse(readFileSync(new URL('manifest.json',root))),served=readFileSync(new URL(manifest.url,root)),wav=readFileSync(new URL(manifest.sourceWav.url,root));
+ assert.equal(createHash('sha256').update(served).digest('hex'),manifest.sha256);assert.equal(served.length,manifest.bytes);
+ assert.equal(createHash('sha256').update(wav).digest('hex'),manifest.sourceWav.sha256);assert.equal(wav.length,manifest.sourceWav.bytes);
  assert.deepEqual(Object.keys(manifest.cues),['hit_flesh','hit_heavy','block','parry','guard_break','whoosh_light','whoosh_heavy','roll']);
  assert.equal(wav.toString('ascii',0,4),'RIFF');assert.equal(wav.readUInt16LE(20),1);assert.equal(wav.readUInt32LE(24),48000);
  for(const [name,variants] of Object.entries(manifest.cues))for(let i=0;i<variants.length;i++){
