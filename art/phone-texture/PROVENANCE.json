@@ -12,11 +12,10 @@
       "source": "Web/public/assets/donor/warrior.glb",
       "sourceSha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
       "sourceBytes": 6749796,
-      "sha256": "936392131833744c9e772f700f48d488c74ed94243d721125f46d8f0e997f7b8",
-      "bytes": 6416148,
-      "cap": 1024,
-      "changedImages": "images 16 and 30 (2048 -> 1024); the other 32 images were already <= 1024",
-      "estimatedGpuMB": {"before": 124.3, "after": 92.3, "basis": "RGBA8 with full mip chain (x4/3) per image, all 34 images"}
+      "sha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+      "bytes": 5947704,
+      "cap": "colour/emissive maps 1024, normal / metallic-roughness / AO maps 512 (cap_tex2.py); Lead/Strategy chose this over the 1024-everything variant (92.3 MB), which is not shipped",
+      "estimatedGpuMB": {"before": 124.3, "after": 52.3, "basis": "RGBA8 with full mip chain (x4/3) per image, all 34 images"}
     },
     "Web/public/assets/weapons/flamethrower-phone.glb": {
       "source": "Web/public/assets/weapons/flamethrower.glb",
@@ -27,14 +26,6 @@
       "cap": 1024,
       "changedImages": "image 0 (AO, PNG, 2048 -> 1024)",
       "estimatedGpuMB": {"before": 21.3, "after": 5.3}
-    },
-    "art/phone-texture/warrior-phone512.glb": {
-      "status": "OPTIONAL, NOT wired into any manifest. For Dom's decision from the stills.",
-      "source": "Web/public/assets/donor/warrior.glb",
-      "sha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
-      "bytes": 5947704,
-      "cap": "colour/emissive maps 1024, normal / metallic-roughness / AO maps 512",
-      "estimatedGpuMB": {"before": 124.3, "after": 52.3}
     }
   },
   "verification": {
