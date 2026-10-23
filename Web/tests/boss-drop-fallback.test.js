@@ -60,6 +60,10 @@ test('with only the area entry legal the drop lands there, in world metres, and 
  f.world.geometry.clear=(p)=>Math.hypot(p.x-entry.x,p.z-entry.z)<.1;
  assert(f.p.persistRun(f.g));const at=f.g.bossEquipment.emberProjector.dropPosition;assert(Number.isFinite(at.x)&&Number.isFinite(at.z));assert.deepEqual(at,{x:entry.x,z:entry.z});assert(Math.hypot(at.x-e.pos.x,at.z-e.pos.z)>6);
 });
+test('rifle source kill with failing storage also locks the area exit until it is saved',()=>{
+ const f=fixture({areaId:'east-bridge'});f.restore();f.quota(true);assert.equal(f.kill(),false);assert.equal(needsUniqueDeathCommit(f.g),true);
+ f.quota(false);assert(f.p.persistRun(f.g));assert.equal(f.g.rifle.status,'pending');assert.equal(needsUniqueDeathCommit(f.g),false);
+});
 test('rifle and cleaver sources use the same widened search at a wall',()=>{
  const rf=fixture({areaId:'east-bridge'});rf.restore();const boss=rf.g.enemies.find(e=>e.placementKey==='boss-warden-v1');boss.hp=0;
  const w=rf.world,clear=w.geometry.clear.bind(w.geometry);w.geometry.clear=(p,r)=>Math.hypot(p.x-boss.pos.x,p.z-boss.pos.z)>1.2&&clear(p,r);
