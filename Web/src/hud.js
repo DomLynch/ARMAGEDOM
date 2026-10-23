@@ -6,6 +6,57 @@ import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
+// The HUD refreshes every frame. update() stages its writes (the last write to a slot
+// wins, so a default overridden later in the frame never reaches the DOM) and flush()
+// applies only values that differ from the DOM, or from the last style written (the
+// browser normalises style strings). Unchanged frames therefore touch nothing, which
+// also stops aria-live text being re-announced.
+const views=new WeakMap(),styleWritten=new WeakMap();
+let pending=null;
+function stage(node,key,value){
+  let slots=pending.get(node);
+  if(!slots)pending.set(node,slots=new Map());
+  slots.set(key,value);
+}
+function view(node){
+  if(!node)return node;
+  let cached=views.get(node);
+  if(cached)return cached;
+  const style={set width(value){stage(node,'style:width',value);},setProperty(name,value){stage(node,'style:'+name,value);}},
+    classes={toggle:(name,on)=>stage(node,'class:'+name,!!on),remove:(...names)=>{for(const name of names)stage(node,'class:'+name,false);},contains:name=>node.classList.contains(name)};
+  cached=new Proxy(node,{
+    get(target,key){
+      if(key==='setAttribute')return(name,value)=>stage(target,'attr:'+name,String(value));
+      if(key==='style')return style;
+      if(key==='classList')return classes;
+      if(key==='querySelector')return selector=>view(target.querySelector(selector));
+      const value=Reflect.get(target,key,target);
+      return typeof value==='function'?value.bind(target):value;
+    },
+    set(target,key,value){
+      if(key==='textContent'||key==='hidden'||key==='disabled')stage(target,key,key==='textContent'?String(value):value);
+      else target[key]=value;
+      return true;
+    },
+  });
+  views.set(node,cached);
+  return cached;
+}
+function flush(){
+  const staged=pending;pending=null;
+  for(const[node,slots]of staged)for(const[key,value]of slots){
+    if(key==='textContent'||key==='hidden'||key==='disabled'){if(node[key]!==value)node[key]=value;continue;}
+    const name=key.slice(key.indexOf(':')+1);
+    if(key.startsWith('attr:')){if((node.getAttribute?node.getAttribute(name):node.attributes?.get(name))!==value)node.setAttribute(name,value);}
+    else if(key.startsWith('class:')){if(node.classList.contains(name)!==value)node.classList.toggle(name,value);}
+    else{
+      let written=styleWritten.get(node);if(!written)styleWritten.set(node,written=new Map());
+      if(written.get(name)===value)continue;
+      written.set(name,value);
+      if(name==='width')node.style.width=value;else node.style.setProperty(name,value);
+    }
+  }
+}
 export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
@@ -84,6 +135,9 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       el("loading").textContent = message;
     },
     update(g) {
+      pending=new Map();
+      try{
+      const el = (id) => view(document.getElementById(id));
       const p = g.player,
         donor = g.pilot === "donor-knife";
       el("health-fill").style.width = `${(p.hp / p.maxHP) * 100}%`;
@@ -252,7 +306,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
 
       el('safehouse-status').hidden=!g.weaponsLowered;
       if(g.weaponsLowered){el('ammo').hidden=false;el('ammo').textContent='SAFEHOUSE · WEAPONS LOWERED';}
-
+      }finally{flush();}
     },
   };
 }
