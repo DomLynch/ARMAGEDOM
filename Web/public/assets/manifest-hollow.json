@@ -1183,7 +1183,7 @@
         "block": "BlockImpact",
         "deflected": "Deflected"
       },
-      "deferred": false,
+      "deferred": true,
       "provenance": {
         "donorRevision": "3f7dd2616095d5c391e62aba6221a9dd62582712",
         "baseSHA256": "07b0c267fcf5b1b105cf8fb2aeb9c88ce6d717b47d191a8ad51603ece53610f7",
