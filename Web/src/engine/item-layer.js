@@ -4,6 +4,20 @@
 export const layerFailure = (code) => ({ ok: false, code, events: [] });
 export const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+/** A layer refuses every command but restore while the run's save is invalid or its own state is malformed. */
+export function saveIsInvalid(g, command, validCurrent) {
+  return command.type !== "restore" && (g.runSaveInvalid || !validCurrent);
+}
+
+/** The write candidate carries the layer's field: it must be valid and equal to the live state (retry is exempt unless `strictRetry`). */
+export function candidateConflicts(command, candidateValue, current, { valid, same, strictRetry = false }) {
+  return (
+    (strictRetry || command.type !== "retry") &&
+    candidateValue !== undefined &&
+    (!valid(candidateValue) || !same(candidateValue, current))
+  );
+}
+
 /** The one place a run is "safe" to change equipment: alive, idle, not mid-action, and the scope allows it. */
 export function runIsSafe(g, canDispatch, { requireReady = true, nonNegativeTime = false } = {}) {
   const p = g.player;

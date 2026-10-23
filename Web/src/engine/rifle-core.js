@@ -4,8 +4,10 @@ import {
   createLayerStorageAdapter,
   createReadOrigin,
   layerFailure,
+  candidateConflicts,
   pickupEligible,
   runIsSafe,
+  saveIsInvalid,
   stageDeathDrops,
 } from "./item-layer.js";
 export const RIFLE_SAVE_KEY = "armagedom:rifle-run:v9";
@@ -115,7 +117,7 @@ export function createRifleComponent({
     return (command, context) => {
       const g = getRun();
       if (!g) return fail("not-eligible");
-      if (command.type !== "restore" && (g.runSaveInvalid || !model.valid(state(g)))) return fail("invalid-save");
+      if (saveIsInvalid(g, command, model.valid(state(g)))) return fail("invalid-save");
       const current = state(g),
         claim = command.type === "claimPickup" && command.pickupId === itemId,
         select = command.type === "equip" && command.itemId === itemId;
@@ -148,12 +150,7 @@ export function createRifleComponent({
         if (!proposed) return fail("not-eligible");
       }
       function writeCandidate(candidate) {
-        if (
-          command.type !== "retry" &&
-          candidate.rifle !== undefined &&
-          (!model.valid(candidate.rifle) || !same(candidate.rifle, current))
-        )
-          return false;
+        if (candidateConflicts(command, candidate.rifle, current, { valid: model.valid, same })) return false;
         let next = model.copy(proposed ?? current);
         if (!["restore", "retry"].includes(command.type)) {
           const staged = stageDeathDrops({

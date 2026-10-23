@@ -4,8 +4,10 @@ import {
   createLayerStorageAdapter,
   createReadOrigin,
   layerFailure,
+  candidateConflicts,
   pickupEligible,
   runIsSafe,
+  saveIsInvalid,
   stageDeathDrops,
 } from "./item-layer.js";
 export const UNIQUE_REWARD_SAVE_KEY = "armagedom:unique-reward-run:v7";
@@ -120,7 +122,7 @@ export function createUniqueRewardComponent({
     return (command, context) => {
       const g = getRun();
       if (!g) return fail("not-eligible");
-      if (command.type !== "restore" && (g.runSaveInvalid || !model.valid(state(g)))) return fail("invalid-save");
+      if (saveIsInvalid(g, command, model.valid(state(g)))) return fail("invalid-save");
       let changed = false,
         committedReward = null;
       const drops = [];
@@ -128,8 +130,7 @@ export function createUniqueRewardComponent({
         const current = state(g);
         if (
           !model.valid(current) ||
-          (candidate.uniqueReward !== undefined &&
-            (!model.valid(candidate.uniqueReward) || !same(candidate.uniqueReward, current)))
+          candidateConflicts(command, candidate.uniqueReward, current, { valid: model.valid, same, strictRetry: true })
         )
           return false;
         let next = model.copy(reward);
