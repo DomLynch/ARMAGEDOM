@@ -1,33 +1,96 @@
-import{closed,freeze}from'./content-schema.js';
-import{creatureCatalogue}from'./creature-catalogue.js';
-import{AREA_MOB_SPAWNS}from'../area-mob-spawns.js';
-import{AREA_DRONE_SPAWNS}from'../area-drone-spawns.js';
-const fail=()=>{throw Error('Invalid registered area population');};
-const foundations=['original-rat','original-dog','original-roach','low-hover-drone','giant-salamander'];
+import { closed, freeze } from "./content-schema.js";
+import { creatureCatalogue } from "./creature-catalogue.js";
+import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
+import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
+const fail = () => {
+  throw Error("Invalid registered area population");
+};
+const foundations = ["original-rat", "original-dog", "original-roach", "low-hover-drone", "giant-salamander"];
 // Keep the complete source identity/loot registry. Only fresh combat residents
 // consume this policy, so removed placements in old death/award ledgers stay valid.
-export function validatePopulationData(input,registry,residents,uniqueRewardData=null){
- if(input===undefined)return null;closed(input,['version','maxHostilesPerArea','areas']);if(input.version!==1||input.maxHostilesPerArea!==6)fail();
- const populated=registry.ids.filter(id=>(residents[id]??AREA_MOB_SPAWNS[id]??[]).length||(AREA_DRONE_SPAWNS[id]??[]).length);closed(input.areas,populated);
- for(const[id,policy]of Object.entries(input.areas)){
-  closed(policy,['activePlacementIds','creatureSlot','allowDroneFallback']);const rows=residents[id]??AREA_MOB_SPAWNS[id]??[],drones=AREA_DRONE_SPAWNS[id]??[],active=policy.activePlacementIds;
-  if(!Array.isArray(active)||active.length<1||active.length>input.maxHostilesPerArea||new Set(active).size!==active.length||active.some(key=>typeof key!=='string'||![...rows,...drones].some(row=>row.key===key)))fail();
-  const protectedRows=rows.filter(row=>row.bossRef||row.key===uniqueRewardData?.placementKey);if(protectedRows.some(row=>!active.includes(row.key)))fail();
-  const slot=policy.creatureSlot;closed(slot,['placementKey','cycles']);closed(slot.cycles,['A','B']);if(!active.includes(slot.placementKey)||protectedRows.some(row=>row.key===slot.placementKey))fail();
-  for(const spec of Object.values(slot.cycles)){closed(spec,['foundationRef','recipeRef']);if(!foundations.includes(spec.foundationRef))fail();if(spec.foundationRef==='low-hover-drone'){if(spec.recipeRef!==null||!drones.some(row=>row.key===slot.placementKey))fail();}else if(typeof spec.recipeRef!=='string'||creatureCatalogue.forRecipe(spec.recipeRef).runtimeIdentity!==spec.foundationRef)fail();}
-  const drone=slot.cycles.A.foundationRef==='low-hover-drone';if(drone!==(slot.cycles.B.foundationRef==='low-hover-drone')||typeof policy.allowDroneFallback!=='boolean'||policy.allowDroneFallback!==drone||active.some(key=>drones.some(row=>row.key===key)&&key!==slot.placementKey))fail();
- }
- return freeze(structuredClone(input));
+export function validatePopulationData(input, registry, residents, uniqueRewardData = null) {
+  if (input === undefined) return null;
+  closed(input, ["version", "maxHostilesPerArea", "areas"]);
+  if (input.version !== 1 || input.maxHostilesPerArea !== 6) fail();
+  const populated = registry.ids.filter(
+    (id) => (residents[id] ?? AREA_MOB_SPAWNS[id] ?? []).length || (AREA_DRONE_SPAWNS[id] ?? []).length,
+  );
+  closed(input.areas, populated);
+  for (const [id, policy] of Object.entries(input.areas)) {
+    closed(policy, ["activePlacementIds", "creatureSlot", "allowDroneFallback"]);
+    const rows = residents[id] ?? AREA_MOB_SPAWNS[id] ?? [],
+      drones = AREA_DRONE_SPAWNS[id] ?? [],
+      active = policy.activePlacementIds;
+    if (
+      !Array.isArray(active) ||
+      active.length < 1 ||
+      active.length > input.maxHostilesPerArea ||
+      new Set(active).size !== active.length ||
+      active.some((key) => typeof key !== "string" || ![...rows, ...drones].some((row) => row.key === key))
+    )
+      fail();
+    const protectedRows = rows.filter((row) => row.bossRef || row.key === uniqueRewardData?.placementKey);
+    if (protectedRows.some((row) => !active.includes(row.key))) fail();
+    const slot = policy.creatureSlot;
+    closed(slot, ["placementKey", "cycles"]);
+    closed(slot.cycles, ["A", "B"]);
+    if (!active.includes(slot.placementKey) || protectedRows.some((row) => row.key === slot.placementKey)) fail();
+    for (const spec of Object.values(slot.cycles)) {
+      closed(spec, ["foundationRef", "recipeRef"]);
+      if (!foundations.includes(spec.foundationRef)) fail();
+      if (spec.foundationRef === "low-hover-drone") {
+        if (spec.recipeRef !== null || !drones.some((row) => row.key === slot.placementKey)) fail();
+      } else if (
+        typeof spec.recipeRef !== "string" ||
+        creatureCatalogue.forRecipe(spec.recipeRef).runtimeIdentity !== spec.foundationRef
+      )
+        fail();
+    }
+    const drone = slot.cycles.A.foundationRef === "low-hover-drone";
+    if (
+      drone !== (slot.cycles.B.foundationRef === "low-hover-drone") ||
+      typeof policy.allowDroneFallback !== "boolean" ||
+      policy.allowDroneFallback !== drone ||
+      active.some((key) => drones.some((row) => row.key === key) && key !== slot.placementKey)
+    )
+      fail();
+  }
+  return freeze(structuredClone(input));
 }
-export function populationPlacements(policy,areaId,cycle,canonical){
- const area=policy?.areas[areaId];if(!area)return canonical;
- const active=new Set(area.activePlacementIds),slot=area.creatureSlot,spec=slot.cycles[cycle??'A'];
- if(!spec)fail();return canonical.filter(row=>active.has(row.key)).map(row=>{
-  if(row.key===slot.placementKey)return{...row,foundationRef:spec.foundationRef,recipeRef:spec.recipeRef};
-  if(areaId==='east'&&row.key==='east-roamer-8'&&row.foundationRef==='original-wolf'&&row.recipeRef==='wolf-east-guard')return row;
-  // Existing humans retain their exact health/appearance/scale allocation. A
-  // former animal gets the shared Hollow factory without a stale animal recipe.
-  if(row.foundationRef&&row.foundationRef!=='hollow-scavenger'){const human={...row};delete human.foundationRef;delete human.recipeRef;return human;}return row;
- });
+export function populationPlacements(policy, areaId, cycle, canonical) {
+  const area = policy?.areas[areaId];
+  if (!area) return canonical;
+  const active = new Set(area.activePlacementIds),
+    slot = area.creatureSlot,
+    spec = slot.cycles[cycle ?? "A"];
+  if (!spec) fail();
+  return canonical
+    .filter((row) => active.has(row.key))
+    .map((row) => {
+      if (row.key === slot.placementKey)
+        return { ...row, foundationRef: spec.foundationRef, recipeRef: spec.recipeRef };
+      if (
+        areaId === "east" &&
+        row.key === "east-roamer-8" &&
+        row.foundationRef === "original-wolf" &&
+        row.recipeRef === "wolf-east-guard"
+      )
+        return row;
+      // Existing humans retain their exact health/appearance/scale allocation. A
+      // former animal gets the shared Hollow factory without a stale animal recipe.
+      if (row.foundationRef && row.foundationRef !== "hollow-scavenger") {
+        const human = { ...row };
+        delete human.foundationRef;
+        delete human.recipeRef;
+        return human;
+      }
+      return row;
+    });
 }
-export function populationAllowsDrone(policy,areaId,key){const area=policy?.areas[areaId];return !area||area.allowDroneFallback&&area.creatureSlot.placementKey===key&&area.activePlacementIds.includes(key);}
+export function populationAllowsDrone(policy, areaId, key) {
+  const area = policy?.areas[areaId];
+  return (
+    !area ||
+    (area.allowDroneFallback && area.creatureSlot.placementKey === key && area.activePlacementIds.includes(key))
+  );
+}

@@ -1,35 +1,258 @@
-import {FLAME_DEATH_DATA,flameDeathSeconds,isFlameRecipe} from './finisher-data.js';
-import {FLAME_VISUAL_DATA as DATA} from './flame-data.js';
-import {combatTargetHeight} from '../pistol-targeting.js';
+import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
+import { FLAME_VISUAL_DATA as DATA } from "./flame-data.js";
+import { combatTargetHeight } from "../pistol-targeting.js";
 // One private draw with fixed slots. Cosmetic victim fire never dispatches damage.
-export function createFlameEffect({THREE:T,scene,world,getSource,getView=()=>null,getEmission=null,cosmeticBurn=true,reducedMotion=()=>false}){
- const size=DATA.textureSize,pixels=new Uint8Array(size*size*4);
- for(let y=0;y<size;y++)for(let x=0;x<size;x++){const at=(y*size+x)*4,r=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2));pixels[at]=pixels[at+1]=pixels[at+2]=255;pixels[at+3]=Math.round(Math.max(0,1-r)**1.6*240);}
- const texture=new T.DataTexture(pixels,size,size,T.RGBAFormat);texture.needsUpdate=true;
- const geometry=new T.PlaneGeometry(1,1),material=new T.MeshBasicMaterial({map:texture,transparent:true,blending:T.AdditiveBlending,forceSinglePass:true,depthTest:true,depthWrite:false,toneMapped:false,side:T.DoubleSide,alphaTest:.01}),capacity=DATA.emitterCount+DATA.burnSlots*DATA.burnPerVictim,mesh=new T.InstancedMesh(geometry,material,capacity),pose=new T.Object3D(),color=new T.Color(),direction=new T.Vector3(),u=new T.Vector3(),v=new T.Vector3(),up=new T.Vector3(0,1,0),anchor=new T.Vector3(),pelvisAnchor=new T.Vector3();
- mesh.name='Flamethrower pooled flame and cosmetic fire';mesh.renderOrder=2;mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);scene.add(mesh);for(let i=0;i<capacity;i++)mesh.setColorAt(i,color.setHex(DATA.palette[i%DATA.palette.length]));
- let disposed=false,owner=null,area=world.areaId,emitter=0,burn=0,victims=0,source=null,corpseAnchors=[];
- const hide=i=>{pose.scale.setScalar(0);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);};
- function reset(){for(let i=0;i<capacity;i++)hide(i);mesh.instanceMatrix.needsUpdate=true;mesh.visible=false;emitter=burn=victims=0;source=null;corpseAnchors=[];}
- function put(i,x,y,z,r,palette,aspect=1,lift=false){if(y<=.02&&!lift)return false;const q=world.camera.quaternion,halfHeight=r*(Math.abs(2*(q.x*q.y+q.w*q.z))+aspect*Math.abs(1-2*(q.x*q.x+q.z*q.z)))/2;if(lift)y=Math.max(y,halfHeight+.02);const floorScale=halfHeight>0?Math.min(1,(y-.02)/halfHeight):1;pose.position.set(x,y,-z);pose.quaternion.copy(q);pose.scale.set(r*floorScale,r*aspect*floorScale,r*floorScale);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,color.setHex(palette));return true;}
- function update(g,{paused=false}={}){
-  if(disposed)return;if(owner!==g||area!==world.areaId){reset();owner=g;area=world.areaId;}for(let i=0;i<capacity;i++)hide(i);emitter=burn=victims=0;source=null;corpseAnchors=[];
-  if(paused||g.player.hp<=0||g.finished){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}
-  const emission=getEmission?.(g),data=getEmission?(emission?{contact:emission.contact}:null):g.world?.flameData;if(!data){mesh.visible=false;mesh.instanceMatrix.needsUpdate=true;return;}const widthScale=Number.isFinite(emission?.widthScale)&&emission.widthScale>0?emission.widthScale:1,light=reducedMotion(),count=light?DATA.reducedCount:DATA.emitterCount;
-  if(data&&(getEmission?!!emission:!!g.flame?.equipped&&g.flame.active)){const s=emission?.source??getSource?.();if(s){source=s;direction.set(s.direction.x,s.direction.y,s.direction.z).normalize();u.crossVectors(direction,up);if(u.lengthSq()<1e-8)u.set(1,0,0);else u.normalize();v.crossVectors(u,direction).normalize();
-   for(let i=0;i<count;i++){const phase=light?(i+.5)/count:(g.time*4+i/count)%1,distance=data.contact.range*phase,theta=i*2.399963229728653,radius=Math.tan(data.contact.coneDegrees*Math.PI/360)*distance*.55,radial=light?0:Math.sin(i*19.3)*radius,x=s.position.x+direction.x*distance+(u.x*Math.cos(theta)+v.x*Math.sin(theta))*radial,y=s.position.y+direction.y*distance+(u.y*Math.cos(theta)+v.y*Math.sin(theta))*radial,z=s.position.z+direction.z*distance+(u.z*Math.cos(theta)+v.z*Math.sin(theta))*radial,width=widthScale*(DATA.emitterWidth[0]+DATA.emitterWidth[1]*phase)*Math.sin(Math.PI*Math.max(.03,Math.min(.97,phase)));
-    if(world.lineClear(emission?.origin??g.player.pos,{x:s.position.x,z:s.position.z})&&world.lineClear({x:s.position.x,z:s.position.z},{x,z})&&put(i,x,y,z,width,DATA.palette[Math.min(2,Math.floor(phase*3))]))emitter++;
-   }
-  }}
-  const burnBudget=DATA.burnSlots*DATA.burnPerVictim,corpses=g.corpses??[];let used=0;const candidates=FLAME_DEATH_DATA.prioritizeCorpses?[...corpses.filter(e=>isFlameRecipe(e.finisher?.recipeId)),...g.enemies,...corpses.filter(e=>!isFlameRecipe(e.finisher?.recipeId))]:[...g.enemies,...corpses];
-  if(cosmeticBurn&&!light)for(const e of candidates){
-   if(victims>=DATA.burnSlots)break;const view=getView(e),death=e.hp<=0&&isFlameRecipe(e.finisher?.recipeId),count=death?FLAME_DEATH_DATA.wisps.length:DATA.burnPerVictim,age=view?.finisherAge,bone=death&&FLAME_DEATH_DATA.anchorBones.map(name=>view?.model.getObjectByName(name)).find(Boolean)||death&&view?.model,pelvisBone=death&&FLAME_DEATH_DATA.pelvisBones.map(name=>view?.model.getObjectByName(name)).find(Boolean)||bone;let life,front,height;if(used+count>burnBudget)continue;
-   if(death){const end=flameDeathSeconds(view?.finisherDeathSeconds);if(view?.restoredCorpse||!bone||!Number.isFinite(age)||age<0||age>=end)continue;bone.getWorldPosition(anchor);pelvisBone.getWorldPosition(pelvisAnchor);front={x:anchor.x,z:-anchor.z};height=anchor.y;life=Math.min(1,(end-age)/FLAME_DEATH_DATA.fadeSeconds);if(!world.lineClear(e.pos,front))continue;corpseAnchors.push({victimId:e.id,age,position:{x:anchor.x,y:anchor.y,z:-anchor.z},pelvisPosition:{x:pelvisAnchor.x,y:pelvisAnchor.y,z:-pelvisAnchor.z},expiresAge:end,nativeDeathSeconds:view.finisherDeathSeconds??2.4});}
-   else{if(!(e.flameBurnUntil>g.time))continue;life=Math.min(1,(e.flameBurnUntil-g.time)/DATA.burnSeconds);height=combatTargetHeight(e,g.time);const from=e.flameBurnFrom??g.player.pos,dx=from.x-e.pos.x,dz=from.z-e.pos.z,n=Math.hypot(dx,dz)||1,surface=Math.min(.8,(e.radius??.4)*(e.combatScale??1)+.05);front={x:e.pos.x+dx/n*surface,z:e.pos.z+dz/n*surface};if(!world.lineClear(e.pos,front))continue;}
-   for(let j=0;j<count;j++){const i=DATA.emitterCount+used+j,w=death?FLAME_DEATH_DATA.wisps[j]:null,offset=(j-.5)*.24,base=w?.anchor==='pelvis'?{x:pelvisAnchor.x,z:-pelvisAnchor.z}:front,baseY=w?.anchor==='pelvis'?pelvisAnchor.y:height,x=base.x+(w?w.offset[0]:offset),y=baseY+(w?FLAME_DEATH_DATA.anchorLift+w.offset[1]+FLAME_DEATH_DATA.rise*((g.time*FLAME_DEATH_DATA.riseRate+w.phase)%1):.13+Math.sin(g.time*14+j)*.08),z=base.z+(w?w.offset[2]:0),width=w?w.width*(1+FLAME_DEATH_DATA.flickerSize*Math.sin(g.time*FLAME_DEATH_DATA.flickerRate+w.phase)):DATA.burnWidth[j];if(put(i,x,y,z,width*life,w?w.color:DATA.palette[j],w?w.aspect:DATA.burnAspect,death))burn++;}used+=count;victims++;
-
+export function createFlameEffect({
+  THREE: T,
+  scene,
+  world,
+  getSource,
+  getView = () => null,
+  getEmission = null,
+  cosmeticBurn = true,
+  reducedMotion = () => false,
+}) {
+  const size = DATA.textureSize,
+    pixels = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      const at = (y * size + x) * 4,
+        r = Math.hypot((x + 0.5 - size / 2) / (size / 2), (y + 0.5 - size / 2) / (size / 2));
+      pixels[at] = pixels[at + 1] = pixels[at + 2] = 255;
+      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** 1.6 * 240);
+    }
+  const texture = new T.DataTexture(pixels, size, size, T.RGBAFormat);
+  texture.needsUpdate = true;
+  const geometry = new T.PlaneGeometry(1, 1),
+    material = new T.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      blending: T.AdditiveBlending,
+      forceSinglePass: true,
+      depthTest: true,
+      depthWrite: false,
+      toneMapped: false,
+      side: T.DoubleSide,
+      alphaTest: 0.01,
+    }),
+    capacity = DATA.emitterCount + DATA.burnSlots * DATA.burnPerVictim,
+    mesh = new T.InstancedMesh(geometry, material, capacity),
+    pose = new T.Object3D(),
+    color = new T.Color(),
+    direction = new T.Vector3(),
+    u = new T.Vector3(),
+    v = new T.Vector3(),
+    up = new T.Vector3(0, 1, 0),
+    anchor = new T.Vector3(),
+    pelvisAnchor = new T.Vector3();
+  mesh.name = "Flamethrower pooled flame and cosmetic fire";
+  mesh.renderOrder = 2;
+  mesh.frustumCulled = false;
+  mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
+  scene.add(mesh);
+  for (let i = 0; i < capacity; i++) mesh.setColorAt(i, color.setHex(DATA.palette[i % DATA.palette.length]));
+  let disposed = false,
+    owner = null,
+    area = world.areaId,
+    emitter = 0,
+    burn = 0,
+    victims = 0,
+    source = null,
+    corpseAnchors = [];
+  const hide = (i) => {
+    pose.scale.setScalar(0);
+    pose.updateMatrix();
+    mesh.setMatrixAt(i, pose.matrix);
+  };
+  function reset() {
+    for (let i = 0; i < capacity; i++) hide(i);
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.visible = false;
+    emitter = burn = victims = 0;
+    source = null;
+    corpseAnchors = [];
   }
-  mesh.visible=emitter+burn>0;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
- }
- reset();return{update,reset,snapshot(){return{emitterCapacity:1,particleCapacity:capacity,emitterParticles:emitter,cosmeticVictims:victims,corpseAnchors,burnParticles:burn,drawCalls:mesh.visible?1:0,depthTest:material.depthTest,depthWrite:material.depthWrite,source};},dispose(){if(disposed)return;reset();disposed=true;mesh.removeFromParent();mesh.dispose();geometry.dispose();material.dispose();texture.dispose();}};
+  function put(i, x, y, z, r, palette, aspect = 1, lift = false) {
+    if (y <= 0.02 && !lift) return false;
+    const q = world.camera.quaternion,
+      halfHeight =
+        (r * (Math.abs(2 * (q.x * q.y + q.w * q.z)) + aspect * Math.abs(1 - 2 * (q.x * q.x + q.z * q.z)))) / 2;
+    if (lift) y = Math.max(y, halfHeight + 0.02);
+    const floorScale = halfHeight > 0 ? Math.min(1, (y - 0.02) / halfHeight) : 1;
+    pose.position.set(x, y, -z);
+    pose.quaternion.copy(q);
+    pose.scale.set(r * floorScale, r * aspect * floorScale, r * floorScale);
+    pose.updateMatrix();
+    mesh.setMatrixAt(i, pose.matrix);
+    mesh.setColorAt(i, color.setHex(palette));
+    return true;
+  }
+  function update(g, { paused = false } = {}) {
+    if (disposed) return;
+    if (owner !== g || area !== world.areaId) {
+      reset();
+      owner = g;
+      area = world.areaId;
+    }
+    for (let i = 0; i < capacity; i++) hide(i);
+    emitter = burn = victims = 0;
+    source = null;
+    corpseAnchors = [];
+    if (paused || g.player.hp <= 0 || g.finished) {
+      mesh.visible = false;
+      mesh.instanceMatrix.needsUpdate = true;
+      return;
+    }
+    const emission = getEmission?.(g),
+      data = getEmission ? (emission ? { contact: emission.contact } : null) : g.world?.flameData;
+    if (!data) {
+      mesh.visible = false;
+      mesh.instanceMatrix.needsUpdate = true;
+      return;
+    }
+    const widthScale = Number.isFinite(emission?.widthScale) && emission.widthScale > 0 ? emission.widthScale : 1,
+      light = reducedMotion(),
+      count = light ? DATA.reducedCount : DATA.emitterCount;
+    if (data && (getEmission ? !!emission : !!g.flame?.equipped && g.flame.active)) {
+      const s = emission?.source ?? getSource?.();
+      if (s) {
+        source = s;
+        direction.set(s.direction.x, s.direction.y, s.direction.z).normalize();
+        u.crossVectors(direction, up);
+        if (u.lengthSq() < 1e-8) u.set(1, 0, 0);
+        else u.normalize();
+        v.crossVectors(u, direction).normalize();
+        for (let i = 0; i < count; i++) {
+          const phase = light ? (i + 0.5) / count : (g.time * 4 + i / count) % 1,
+            distance = data.contact.range * phase,
+            theta = i * 2.399963229728653,
+            radius = Math.tan((data.contact.coneDegrees * Math.PI) / 360) * distance * 0.55,
+            radial = light ? 0 : Math.sin(i * 19.3) * radius,
+            x = s.position.x + direction.x * distance + (u.x * Math.cos(theta) + v.x * Math.sin(theta)) * radial,
+            y = s.position.y + direction.y * distance + (u.y * Math.cos(theta) + v.y * Math.sin(theta)) * radial,
+            z = s.position.z + direction.z * distance + (u.z * Math.cos(theta) + v.z * Math.sin(theta)) * radial,
+            width =
+              widthScale *
+              (DATA.emitterWidth[0] + DATA.emitterWidth[1] * phase) *
+              Math.sin(Math.PI * Math.max(0.03, Math.min(0.97, phase)));
+          if (
+            world.lineClear(emission?.origin ?? g.player.pos, { x: s.position.x, z: s.position.z }) &&
+            world.lineClear({ x: s.position.x, z: s.position.z }, { x, z }) &&
+            put(i, x, y, z, width, DATA.palette[Math.min(2, Math.floor(phase * 3))])
+          )
+            emitter++;
+        }
+      }
+    }
+    const burnBudget = DATA.burnSlots * DATA.burnPerVictim,
+      corpses = g.corpses ?? [];
+    let used = 0;
+    const candidates = FLAME_DEATH_DATA.prioritizeCorpses
+      ? [
+          ...corpses.filter((e) => isFlameRecipe(e.finisher?.recipeId)),
+          ...g.enemies,
+          ...corpses.filter((e) => !isFlameRecipe(e.finisher?.recipeId)),
+        ]
+      : [...g.enemies, ...corpses];
+    if (cosmeticBurn && !light)
+      for (const e of candidates) {
+        if (victims >= DATA.burnSlots) break;
+        const view = getView(e),
+          death = e.hp <= 0 && isFlameRecipe(e.finisher?.recipeId),
+          count = death ? FLAME_DEATH_DATA.wisps.length : DATA.burnPerVictim,
+          age = view?.finisherAge,
+          bone =
+            (death && FLAME_DEATH_DATA.anchorBones.map((name) => view?.model.getObjectByName(name)).find(Boolean)) ||
+            (death && view?.model),
+          pelvisBone =
+            (death && FLAME_DEATH_DATA.pelvisBones.map((name) => view?.model.getObjectByName(name)).find(Boolean)) ||
+            bone;
+        let life, front, height;
+        if (used + count > burnBudget) continue;
+        if (death) {
+          const end = flameDeathSeconds(view?.finisherDeathSeconds);
+          if (view?.restoredCorpse || !bone || !Number.isFinite(age) || age < 0 || age >= end) continue;
+          bone.getWorldPosition(anchor);
+          pelvisBone.getWorldPosition(pelvisAnchor);
+          front = { x: anchor.x, z: -anchor.z };
+          height = anchor.y;
+          life = Math.min(1, (end - age) / FLAME_DEATH_DATA.fadeSeconds);
+          if (!world.lineClear(e.pos, front)) continue;
+          corpseAnchors.push({
+            victimId: e.id,
+            age,
+            position: { x: anchor.x, y: anchor.y, z: -anchor.z },
+            pelvisPosition: { x: pelvisAnchor.x, y: pelvisAnchor.y, z: -pelvisAnchor.z },
+            expiresAge: end,
+            nativeDeathSeconds: view.finisherDeathSeconds ?? 2.4,
+          });
+        } else {
+          if (!(e.flameBurnUntil > g.time)) continue;
+          life = Math.min(1, (e.flameBurnUntil - g.time) / DATA.burnSeconds);
+          height = combatTargetHeight(e, g.time);
+          const from = e.flameBurnFrom ?? g.player.pos,
+            dx = from.x - e.pos.x,
+            dz = from.z - e.pos.z,
+            n = Math.hypot(dx, dz) || 1,
+            surface = Math.min(0.8, (e.radius ?? 0.4) * (e.combatScale ?? 1) + 0.05);
+          front = { x: e.pos.x + (dx / n) * surface, z: e.pos.z + (dz / n) * surface };
+          if (!world.lineClear(e.pos, front)) continue;
+        }
+        for (let j = 0; j < count; j++) {
+          const i = DATA.emitterCount + used + j,
+            w = death ? FLAME_DEATH_DATA.wisps[j] : null,
+            offset = (j - 0.5) * 0.24,
+            base = w?.anchor === "pelvis" ? { x: pelvisAnchor.x, z: -pelvisAnchor.z } : front,
+            baseY = w?.anchor === "pelvis" ? pelvisAnchor.y : height,
+            x = base.x + (w ? w.offset[0] : offset),
+            y =
+              baseY +
+              (w
+                ? FLAME_DEATH_DATA.anchorLift +
+                  w.offset[1] +
+                  FLAME_DEATH_DATA.rise * ((g.time * FLAME_DEATH_DATA.riseRate + w.phase) % 1)
+                : 0.13 + Math.sin(g.time * 14 + j) * 0.08),
+            z = base.z + (w ? w.offset[2] : 0),
+            width = w
+              ? w.width * (1 + FLAME_DEATH_DATA.flickerSize * Math.sin(g.time * FLAME_DEATH_DATA.flickerRate + w.phase))
+              : DATA.burnWidth[j];
+          if (put(i, x, y, z, width * life, w ? w.color : DATA.palette[j], w ? w.aspect : DATA.burnAspect, death))
+            burn++;
+        }
+        used += count;
+        victims++;
+      }
+    mesh.visible = emitter + burn > 0;
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor.needsUpdate = true;
+  }
+  reset();
+  return {
+    update,
+    reset,
+    snapshot() {
+      return {
+        emitterCapacity: 1,
+        particleCapacity: capacity,
+        emitterParticles: emitter,
+        cosmeticVictims: victims,
+        corpseAnchors,
+        burnParticles: burn,
+        drawCalls: mesh.visible ? 1 : 0,
+        depthTest: material.depthTest,
+        depthWrite: material.depthWrite,
+        source,
+      };
+    },
+    dispose() {
+      if (disposed) return;
+      reset();
+      disposed = true;
+      mesh.removeFromParent();
+      mesh.dispose();
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
+    },
+  };
 }

@@ -1,114 +1,170 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
-import {RANGED_WEAPON_CATALOG} from './engine/weapon-catalog.js';
-export const PISTOL_RULES=RANGED_WEAPON_CATALOG['westminster-start-pistol-v1'].rules;
+import { RANGED_WEAPON_CATALOG } from "./engine/weapon-catalog.js";
+export const PISTOL_RULES = RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules;
 const EPS = 1e-8;
-const point = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
-const copy = p => ({ x: p.x, z: p.z });
+const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+const copy = (p) => ({ x: p.x, z: p.z });
 
-export function createPistolState({pickupPos, pickupAreaId = 'westminster'} = {}) {
-  if (!point(pickupPos)) throw Error('Pistol pickup requires finite position');
-  return {collected:false, equipped:false, magazine:0, reserve:0,
-    reloadingUntil:0, nextFireAt:0, pickupPos:copy(pickupPos), pickupAreaId};
+export function createPistolState({ pickupPos, pickupAreaId = "westminster" } = {}) {
+  if (!point(pickupPos)) throw Error("Pistol pickup requires finite position");
+  return {
+    collected: false,
+    equipped: false,
+    magazine: 0,
+    reserve: 0,
+    reloadingUntil: 0,
+    nextFireAt: 0,
+    pickupPos: copy(pickupPos),
+    pickupAreaId,
+  };
 }
 
-export function collectPistol(state, {areaId, position} = {}) {
-  if (state.collected || areaId !== state.pickupAreaId || !point(position)
-      || Math.hypot(position.x-state.pickupPos.x, position.z-state.pickupPos.z) > PISTOL_RULES.pickupRadius+EPS)
-    return {state, events:[]};
+export function collectPistol(state, { areaId, position } = {}) {
+  if (
+    state.collected ||
+    areaId !== state.pickupAreaId ||
+    !point(position) ||
+    Math.hypot(position.x - state.pickupPos.x, position.z - state.pickupPos.z) > PISTOL_RULES.pickupRadius + EPS
+  )
+    return { state, events: [] };
   return grantPistol(state);
 }
 
 // Used only after an original stash or validated pending-drop eligibility check.
-export function grantPistol(state){
-  if(state.collected)return {state,events:[]};
-  return {state:{...state,collected:true,equipped:true,magazine:PISTOL_RULES.capacity,reserve:PISTOL_RULES.reserve},events:[{type:'pickup'},{type:'equip'}]};
+export function grantPistol(state) {
+  if (state.collected) return { state, events: [] };
+  return {
+    state: {
+      ...state,
+      collected: true,
+      equipped: true,
+      magazine: PISTOL_RULES.capacity,
+      reserve: PISTOL_RULES.reserve,
+    },
+    events: [{ type: "pickup" }, { type: "equip" }],
+  };
 }
 
 export function equipPistol(state, equipped = true) {
-  if (equipped && !state.collected || state.equipped === equipped) return {state, events:[]};
-  const events = state.reloadingUntil ? [{type:'reload-cancel'}] : [];
-  events.push({type:equipped?'equip':'holster'});
-  return {state:{...state, equipped, reloadingUntil:0}, events};
+  if ((equipped && !state.collected) || state.equipped === equipped) return { state, events: [] };
+  const events = state.reloadingUntil ? [{ type: "reload-cancel" }] : [];
+  events.push({ type: equipped ? "equip" : "holster" });
+  return { state: { ...state, equipped, reloadingUntil: 0 }, events };
 }
 
 // First circle along an explicit ray; walls are checked before target selection.
 // lineClear must test the whole segment (World's existing collision contract).
 export function tracePistol(origin, aim, targets, lineClear, rules = PISTOL_RULES) {
-  if (!point(origin) || !point(aim) || typeof lineClear !== 'function') return null;
+  if (!point(origin) || !point(aim) || typeof lineClear !== "function") return null;
   const length = Math.hypot(aim.x, aim.z);
   if (length < EPS || !Number.isFinite(length)) return null;
-  const direction = {x:aim.x/length, z:aim.z/length};
-  const at = distance => ({x:origin.x+direction.x*distance, z:origin.z+direction.z*distance});
+  const direction = { x: aim.x / length, z: aim.z / length };
+  const at = (distance) => ({ x: origin.x + direction.x * distance, z: origin.z + direction.z * distance });
   if (!lineClear(origin, origin)) return null;
   let limit = rules?.range;
-  if (!Number.isFinite(limit) || limit<=0) throw Error('Invalid ranged trace rules');
+  if (!Number.isFinite(limit) || limit <= 0) throw Error("Invalid ranged trace rules");
   if (!lineClear(origin, at(limit))) {
-    let low = 0, high = limit;
-    for (let i=0; i<20; i++) {
-      const middle = (low+high)/2;
-      if (lineClear(origin, at(middle))) low=middle; else high=middle;
+    let low = 0,
+      high = limit;
+    for (let i = 0; i < 20; i++) {
+      const middle = (low + high) / 2;
+      if (lineClear(origin, at(middle))) low = middle;
+      else high = middle;
     }
-    limit=low;
+    limit = low;
   }
-  let targetId = null, nearest = limit;
+  let targetId = null,
+    nearest = limit;
   for (const target of targets ?? []) {
-    if (target.id == null || !point(target.pos) || !Number.isFinite(target.hp) || !(target.hp>0)
-        || !Number.isFinite(target.radius) || target.radius<=0) continue;
-    const x=target.pos.x-origin.x, z=target.pos.z-origin.z;
-    const along=x*direction.x+z*direction.z, side=x*x+z*z-along*along;
-    const squared=target.radius*target.radius;
-    if (side>squared+EPS) continue;
-    const half=Math.sqrt(Math.max(0,squared-side));
-    if (along+half<0) continue;
-    const distance=Math.max(0,along-half);
-    if (distance<=nearest+EPS && lineClear(origin, at(distance))) {
+    if (
+      target.id == null ||
+      !point(target.pos) ||
+      !Number.isFinite(target.hp) ||
+      !(target.hp > 0) ||
+      !Number.isFinite(target.radius) ||
+      target.radius <= 0
+    )
+      continue;
+    const x = target.pos.x - origin.x,
+      z = target.pos.z - origin.z;
+    const along = x * direction.x + z * direction.z,
+      side = x * x + z * z - along * along;
+    const squared = target.radius * target.radius;
+    if (side > squared + EPS) continue;
+    const half = Math.sqrt(Math.max(0, squared - side));
+    if (along + half < 0) continue;
+    const distance = Math.max(0, along - half);
+    if (distance <= nearest + EPS && lineClear(origin, at(distance))) {
       // Equal-distance targets retain caller order; no enemy-directed aim.
-      if (targetId!==null && distance>=nearest-EPS) continue;
-      nearest=distance; targetId=target.id;
+      if (targetId !== null && distance >= nearest - EPS) continue;
+      nearest = distance;
+      targetId = target.id;
     }
   }
-  return {origin:copy(origin), end:at(nearest), targetId, direction};
+  return { origin: copy(origin), end: at(nearest), targetId, direction };
 }
 
 // time is the authoritative fixed-tick game's seconds, never a browser clock.
 // Cancellation is processed before reload completion/fire; menu callbacks may
 // call this at the current time even when the simulation is not advancing.
 export function stepPistol(state, input = {}) {
-  const {time, canAct=true} = input;
-  if (!Number.isFinite(time) || time<0) throw Error('Pistol requires finite simulation time');
-  const damage=input.profile?.damage??PISTOL_RULES.damage,reload=input.profile?.reload??PISTOL_RULES.reload;
-  if(!Number.isFinite(damage)||damage<=0||!Number.isFinite(reload)||reload<=0)throw Error('Invalid authored pistol profile');
-  let next = {...state};
+  const { time, canAct = true } = input;
+  if (!Number.isFinite(time) || time < 0) throw Error("Pistol requires finite simulation time");
+  const damage = input.profile?.damage ?? PISTOL_RULES.damage,
+    reload = input.profile?.reload ?? PISTOL_RULES.reload;
+  if (!Number.isFinite(damage) || damage <= 0 || !Number.isFinite(reload) || reload <= 0)
+    throw Error("Invalid authored pistol profile");
+  let next = { ...state };
   const events = [];
-  const accept = out => {next=out.state; events.push(...out.events);};
+  const accept = (out) => {
+    next = out.state;
+    events.push(...out.events);
+  };
   const cancelReload = () => {
-    if (next.reloadingUntil) {next.reloadingUntil=0; events.push({type:'reload-cancel'});}
+    if (next.reloadingUntil) {
+      next.reloadingUntil = 0;
+      events.push({ type: "reload-cancel" });
+    }
   };
   if (input.cancel || !canAct) {
     cancelReload();
-    return {state:next, events};
+    return { state: next, events };
   }
-  if (input.holster) {accept(equipPistol(next,false)); return {state:next,events};}
-  if (input.collect) accept(collectPistol(next,input));
-  if (input.equip) accept(equipPistol(next,true));
-  if (!next.equipped) return {state:next,events};
-  if (next.reloadingUntil && time+EPS>=next.reloadingUntil) {
-    const rounds=Math.min(PISTOL_RULES.capacity-next.magazine,next.reserve);
-    next.magazine+=rounds; next.reserve-=rounds; next.reloadingUntil=0;
-    events.push({type:'reload-complete',rounds});
+  if (input.holster) {
+    accept(equipPistol(next, false));
+    return { state: next, events };
   }
-  if ((input.reload || next.magazine===0) && !next.reloadingUntil && next.reserve>0
-      && next.magazine<PISTOL_RULES.capacity && time+EPS>=next.nextFireAt) {
-    next.reloadingUntil=time+reload;
-    events.push({type:'reload-start',until:next.reloadingUntil});
+  if (input.collect) accept(collectPistol(next, input));
+  if (input.equip) accept(equipPistol(next, true));
+  if (!next.equipped) return { state: next, events };
+  if (next.reloadingUntil && time + EPS >= next.reloadingUntil) {
+    const rounds = Math.min(PISTOL_RULES.capacity - next.magazine, next.reserve);
+    next.magazine += rounds;
+    next.reserve -= rounds;
+    next.reloadingUntil = 0;
+    events.push({ type: "reload-complete", rounds });
   }
-  if (!input.fire || next.reloadingUntil || time<next.nextFireAt) return {state:next,events};
-  const origin=input.origin ?? input.position, aim=input.aim ?? input.facing;
-  const trace=tracePistol(origin,aim,input.targets,input.lineClear);
-  if (!trace) return {state:next,events};
-  next.nextFireAt=time+PISTOL_RULES.cadence;
-  if (!next.magazine) {events.push({type:'dry'}); return {state:next,events};}
+  if (
+    (input.reload || next.magazine === 0) &&
+    !next.reloadingUntil &&
+    next.reserve > 0 &&
+    next.magazine < PISTOL_RULES.capacity &&
+    time + EPS >= next.nextFireAt
+  ) {
+    next.reloadingUntil = time + reload;
+    events.push({ type: "reload-start", until: next.reloadingUntil });
+  }
+  if (!input.fire || next.reloadingUntil || time < next.nextFireAt) return { state: next, events };
+  const origin = input.origin ?? input.position,
+    aim = input.aim ?? input.facing;
+  const trace = tracePistol(origin, aim, input.targets, input.lineClear);
+  if (!trace) return { state: next, events };
+  next.nextFireAt = time + PISTOL_RULES.cadence;
+  if (!next.magazine) {
+    events.push({ type: "dry" });
+    return { state: next, events };
+  }
   next.magazine--;
-  events.push({type:'shot',...trace,damage,kind:'bullet',parry:false});
-  return {state:next,events};
+  events.push({ type: "shot", ...trace, damage, kind: "bullet", parry: false });
+  return { state: next, events };
 }

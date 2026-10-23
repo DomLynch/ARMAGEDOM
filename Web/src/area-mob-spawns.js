@@ -4,60 +4,187 @@
 // Starts and full short patrol legs are clear at .55 (Hollow radius .4 + margin).
 // Presentation selection uses placement keys, independent of fresh-run actor IDs.
 const crookedResidents = new Set([
-  'westminster-roamer-3', 'westminster-roamer-5',
-  'east-roamer-3', 'east-roamer-6',
-  'south-roamer-4', 'south-roamer-7',
+  "westminster-roamer-3",
+  "westminster-roamer-5",
+  "east-roamer-3",
+  "east-roamer-6",
+  "south-roamer-4",
+  "south-roamer-7",
 ]);
 export function hollowLocomotionFor(entity) {
-  return entity.kind >= 0 && entity.rig === 'hollow-scavenger' && crookedResidents.has(entity.placementKey)
-    ? 'crooked-hollow' : null;
+  return entity.kind >= 0 && entity.rig === "hollow-scavenger" && crookedResidents.has(entity.placementKey)
+    ? "crooked-hollow"
+    : null;
 }
 export const AREA_MOB_SPAWNS = Object.freeze({
   westminster: Object.freeze([
-    Object.freeze({key:'westminster-roamer-1',pos:Object.freeze({x:-12.63653,z:9.32328}),patrol:Object.freeze([Object.freeze({x:-12.63653,z:9.32328}),Object.freeze({x:-10.63653,z:9.32328})])}),
-    Object.freeze({key:'westminster-roamer-2',pos:Object.freeze({x:12,z:1}),patrol:Object.freeze([Object.freeze({x:12,z:1}),Object.freeze({x:11.5,z:.5})])}),
-    Object.freeze({key:'westminster-roamer-3',pos:Object.freeze({x:1.07515,z:6.00000}),patrol:Object.freeze([Object.freeze({x:1.07515,z:6.00000}),Object.freeze({x:-0.92485,z:6.00000})])}),
-    Object.freeze({key:'westminster-roamer-4',pos:Object.freeze({x:8.59097,z:3.34143}),patrol:Object.freeze([Object.freeze({x:8.59097,z:3.34143}),Object.freeze({x:10.59097,z:3.34143})])}),
-    Object.freeze({key:'westminster-roamer-5',pos:Object.freeze({x:-9.27988,z:4.01143}),patrol:Object.freeze([Object.freeze({x:-9.27988,z:4.01143}),Object.freeze({x:-7.27988,z:4.01143})])}),
-    Object.freeze({key:'westminster-roamer-6',pos:Object.freeze({x:-6.73883,z:8.16608}),patrol:Object.freeze([Object.freeze({x:-6.73883,z:8.16608}),Object.freeze({x:-4.73883,z:8.16608})])}),
+    Object.freeze({
+      key: "westminster-roamer-1",
+      pos: Object.freeze({ x: -12.63653, z: 9.32328 }),
+      patrol: Object.freeze([Object.freeze({ x: -12.63653, z: 9.32328 }), Object.freeze({ x: -10.63653, z: 9.32328 })]),
+    }),
+    Object.freeze({
+      key: "westminster-roamer-2",
+      pos: Object.freeze({ x: 12, z: 1 }),
+      patrol: Object.freeze([Object.freeze({ x: 12, z: 1 }), Object.freeze({ x: 11.5, z: 0.5 })]),
+    }),
+    Object.freeze({
+      key: "westminster-roamer-3",
+      pos: Object.freeze({ x: 1.07515, z: 6.0 }),
+      patrol: Object.freeze([Object.freeze({ x: 1.07515, z: 6.0 }), Object.freeze({ x: -0.92485, z: 6.0 })]),
+    }),
+    Object.freeze({
+      key: "westminster-roamer-4",
+      pos: Object.freeze({ x: 8.59097, z: 3.34143 }),
+      patrol: Object.freeze([Object.freeze({ x: 8.59097, z: 3.34143 }), Object.freeze({ x: 10.59097, z: 3.34143 })]),
+    }),
+    Object.freeze({
+      key: "westminster-roamer-5",
+      pos: Object.freeze({ x: -9.27988, z: 4.01143 }),
+      patrol: Object.freeze([Object.freeze({ x: -9.27988, z: 4.01143 }), Object.freeze({ x: -7.27988, z: 4.01143 })]),
+    }),
+    Object.freeze({
+      key: "westminster-roamer-6",
+      pos: Object.freeze({ x: -6.73883, z: 8.16608 }),
+      patrol: Object.freeze([Object.freeze({ x: -6.73883, z: 8.16608 }), Object.freeze({ x: -4.73883, z: 8.16608 })]),
+    }),
   ]),
   east: Object.freeze([
-    Object.freeze({key:'east-roamer-1',pos:Object.freeze({x:15.03955,z:19.18419}),patrol:Object.freeze([Object.freeze({x:15.03955,z:19.18419}),Object.freeze({x:13.03955,z:19.18419})])}),
-    Object.freeze({key:'east-roamer-2',appearanceRef:'hale-pitborn',encounter:Object.freeze({health:120}),pos:Object.freeze({x:-17.82920,z:2.17941}),patrol:Object.freeze([Object.freeze({x:-17.82920,z:2.17941}),Object.freeze({x:-15.82920,z:2.17941})])}),
-    Object.freeze({key:'east-roamer-3',pos:Object.freeze({x:0.00000,z:7.05940}),patrol:Object.freeze([Object.freeze({x:0.00000,z:7.05940}),Object.freeze({x:2.00000,z:7.05940})])}),
-    Object.freeze({key:'east-roamer-4',pos:Object.freeze({x:-3.47760,z:13.99346}),patrol:Object.freeze([Object.freeze({x:-3.47760,z:13.99346}),Object.freeze({x:-1.47760,z:13.99346})])}),
-    Object.freeze({key:'east-roamer-5',pos:Object.freeze({x:-9.67637,z:6.00000}),patrol:Object.freeze([Object.freeze({x:-9.67637,z:6.00000}),Object.freeze({x:-7.67637,z:6.00000})])}),
-    Object.freeze({key:'east-roamer-6',pos:Object.freeze({x:8.42609,z:11.80376}),patrol:Object.freeze([Object.freeze({x:8.42609,z:11.80376}),Object.freeze({x:8.42609,z:13.80376})])}),
-    Object.freeze({key:'east-roamer-7',pos:Object.freeze({x:-7.72927,z:10.51955}),patrol:Object.freeze([Object.freeze({x:-7.72927,z:10.51955}),Object.freeze({x:-5.72927,z:10.51955})])}),
-    Object.freeze({key:'east-roamer-8',foundationRef:'original-wolf',recipeRef:'wolf-east-guard',pos:Object.freeze({x:-9.35289,z:-0.31328}),patrol:Object.freeze([Object.freeze({x:-9.35289,z:-0.31328}),Object.freeze({x:-9.35289,z:1.68672})])}),
-    Object.freeze({key:'east-roamer-9',pos:Object.freeze({x:1.20373,z:11.80376}),patrol:Object.freeze([Object.freeze({x:1.20373,z:11.80376}),Object.freeze({x:3.20373,z:11.80376})])}),
+    Object.freeze({
+      key: "east-roamer-1",
+      pos: Object.freeze({ x: 15.03955, z: 19.18419 }),
+      patrol: Object.freeze([Object.freeze({ x: 15.03955, z: 19.18419 }), Object.freeze({ x: 13.03955, z: 19.18419 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-2",
+      appearanceRef: "hale-pitborn",
+      encounter: Object.freeze({ health: 120 }),
+      pos: Object.freeze({ x: -17.8292, z: 2.17941 }),
+      patrol: Object.freeze([Object.freeze({ x: -17.8292, z: 2.17941 }), Object.freeze({ x: -15.8292, z: 2.17941 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-3",
+      pos: Object.freeze({ x: 0.0, z: 7.0594 }),
+      patrol: Object.freeze([Object.freeze({ x: 0.0, z: 7.0594 }), Object.freeze({ x: 2.0, z: 7.0594 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-4",
+      pos: Object.freeze({ x: -3.4776, z: 13.99346 }),
+      patrol: Object.freeze([Object.freeze({ x: -3.4776, z: 13.99346 }), Object.freeze({ x: -1.4776, z: 13.99346 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-5",
+      pos: Object.freeze({ x: -9.67637, z: 6.0 }),
+      patrol: Object.freeze([Object.freeze({ x: -9.67637, z: 6.0 }), Object.freeze({ x: -7.67637, z: 6.0 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-6",
+      pos: Object.freeze({ x: 8.42609, z: 11.80376 }),
+      patrol: Object.freeze([Object.freeze({ x: 8.42609, z: 11.80376 }), Object.freeze({ x: 8.42609, z: 13.80376 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-7",
+      pos: Object.freeze({ x: -7.72927, z: 10.51955 }),
+      patrol: Object.freeze([Object.freeze({ x: -7.72927, z: 10.51955 }), Object.freeze({ x: -5.72927, z: 10.51955 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-8",
+      foundationRef: "original-wolf",
+      recipeRef: "wolf-east-guard",
+      pos: Object.freeze({ x: -9.35289, z: -0.31328 }),
+      patrol: Object.freeze([Object.freeze({ x: -9.35289, z: -0.31328 }), Object.freeze({ x: -9.35289, z: 1.68672 })]),
+    }),
+    Object.freeze({
+      key: "east-roamer-9",
+      pos: Object.freeze({ x: 1.20373, z: 11.80376 }),
+      patrol: Object.freeze([Object.freeze({ x: 1.20373, z: 11.80376 }), Object.freeze({ x: 3.20373, z: 11.80376 })]),
+    }),
   ]),
   south: Object.freeze([
-    Object.freeze({key:'south-roamer-1',pos:Object.freeze({x:-10.41654,z:-6.36264}),patrol:Object.freeze([Object.freeze({x:-10.41654,z:-6.36264}),Object.freeze({x:-8.41654,z:-6.36264})])}),
-    Object.freeze({key:'south-roamer-2',pos:Object.freeze({x:10.93785,z:19.18419}),patrol:Object.freeze([Object.freeze({x:10.93785,z:19.18419}),Object.freeze({x:8.93785,z:19.18419})])}),
-    Object.freeze({key:'south-roamer-3',pos:Object.freeze({x:-14.76455,z:19.29419}),patrol:Object.freeze([Object.freeze({x:-14.76455,z:19.29419}),Object.freeze({x:-16.76455,z:19.29419})])}),
-    Object.freeze({key:'south-roamer-4',pos:Object.freeze({x:5.05198,z:3.07703}),patrol:Object.freeze([Object.freeze({x:5.05198,z:3.07703}),Object.freeze({x:7.05198,z:3.07703})])}),
-    Object.freeze({key:'south-roamer-5',pos:Object.freeze({x:-8.78897,z:7.05940}),patrol:Object.freeze([Object.freeze({x:-8.78897,z:7.05940}),Object.freeze({x:-10.78897,z:7.05940})])}),
-    Object.freeze({key:'south-roamer-6',pos:Object.freeze({x:-4.10170,z:19.18419}),patrol:Object.freeze([Object.freeze({x:-4.10170,z:19.18419}),Object.freeze({x:-2.10170,z:19.18419})])}),
-    Object.freeze({key:'south-roamer-7',pos:Object.freeze({x:1.60254,z:-6.36264}),patrol:Object.freeze([Object.freeze({x:1.60254,z:-6.36264}),Object.freeze({x:3.60254,z:-6.36264})])}),
-    Object.freeze({key:'south-roamer-8',pos:Object.freeze({x:2.40745,z:11.80376}),patrol:Object.freeze([Object.freeze({x:2.40745,z:11.80376}),Object.freeze({x:4.40745,z:11.80376})])}),
-    Object.freeze({key:'south-roamer-9',pos:Object.freeze({x:-4.76500,z:0.48615}),patrol:Object.freeze([Object.freeze({x:-4.76500,z:0.48615}),Object.freeze({x:-2.76500,z:0.48615})])}),
+    Object.freeze({
+      key: "south-roamer-1",
+      pos: Object.freeze({ x: -10.41654, z: -6.36264 }),
+      patrol: Object.freeze([
+        Object.freeze({ x: -10.41654, z: -6.36264 }),
+        Object.freeze({ x: -8.41654, z: -6.36264 }),
+      ]),
+    }),
+    Object.freeze({
+      key: "south-roamer-2",
+      pos: Object.freeze({ x: 10.93785, z: 19.18419 }),
+      patrol: Object.freeze([Object.freeze({ x: 10.93785, z: 19.18419 }), Object.freeze({ x: 8.93785, z: 19.18419 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-3",
+      pos: Object.freeze({ x: -14.76455, z: 19.29419 }),
+      patrol: Object.freeze([
+        Object.freeze({ x: -14.76455, z: 19.29419 }),
+        Object.freeze({ x: -16.76455, z: 19.29419 }),
+      ]),
+    }),
+    Object.freeze({
+      key: "south-roamer-4",
+      pos: Object.freeze({ x: 5.05198, z: 3.07703 }),
+      patrol: Object.freeze([Object.freeze({ x: 5.05198, z: 3.07703 }), Object.freeze({ x: 7.05198, z: 3.07703 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-5",
+      pos: Object.freeze({ x: -8.78897, z: 7.0594 }),
+      patrol: Object.freeze([Object.freeze({ x: -8.78897, z: 7.0594 }), Object.freeze({ x: -10.78897, z: 7.0594 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-6",
+      pos: Object.freeze({ x: -4.1017, z: 19.18419 }),
+      patrol: Object.freeze([Object.freeze({ x: -4.1017, z: 19.18419 }), Object.freeze({ x: -2.1017, z: 19.18419 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-7",
+      pos: Object.freeze({ x: 1.60254, z: -6.36264 }),
+      patrol: Object.freeze([Object.freeze({ x: 1.60254, z: -6.36264 }), Object.freeze({ x: 3.60254, z: -6.36264 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-8",
+      pos: Object.freeze({ x: 2.40745, z: 11.80376 }),
+      patrol: Object.freeze([Object.freeze({ x: 2.40745, z: 11.80376 }), Object.freeze({ x: 4.40745, z: 11.80376 })]),
+    }),
+    Object.freeze({
+      key: "south-roamer-9",
+      pos: Object.freeze({ x: -4.765, z: 0.48615 }),
+      patrol: Object.freeze([Object.freeze({ x: -4.765, z: 0.48615 }), Object.freeze({ x: -2.765, z: 0.48615 })]),
+    }),
   ]),
 });
 
-const FIRST_ANIMAL_APPEARANCES=Object.freeze({
- 'westminster-roamer-4':'rat-ash','south-roamer-3':'rat-mangy',
- 'westminster-roamer-6':'dog-ash-coated','east-roamer-4':'dog-pack-chaser'
+const FIRST_ANIMAL_APPEARANCES = Object.freeze({
+  "westminster-roamer-4": "rat-ash",
+  "south-roamer-3": "rat-mangy",
+  "westminster-roamer-6": "dog-ash-coated",
+  "east-roamer-4": "dog-pack-chaser",
 });
-export function animalAppearanceFor(entity){
- const id=entity.kind>=0?(entity.animalRecipe??FIRST_ANIMAL_APPEARANCES[entity.placementKey]):null;
- return id&&((id.startsWith('rat-')&&entity.rig==='original-rat')||(id.startsWith('dog-')&&entity.rig==='original-dog')||(id.startsWith('roach-')&&entity.rig==='original-roach'))?id:null;
+export function animalAppearanceFor(entity) {
+  const id = entity.kind >= 0 ? (entity.animalRecipe ?? FIRST_ANIMAL_APPEARANCES[entity.placementKey]) : null;
+  return id &&
+    ((id.startsWith("rat-") && entity.rig === "original-rat") ||
+      (id.startsWith("dog-") && entity.rig === "original-dog") ||
+      (id.startsWith("roach-") && entity.rig === "original-roach"))
+    ? id
+    : null;
 }
 
 // A placed encounter may change health without changing the shared foundation or AI.
-export function residentEncounterHealth(placement,fallback){
- if(!Object.hasOwn(placement,'encounter'))return fallback;
- const row=placement.encounter;
- if(!row||Object.getPrototypeOf(row)!==Object.prototype||Reflect.ownKeys(row).length!==1||!Object.hasOwn(row,'health')||!Number.isSafeInteger(row.health)||row.health<1||row.health>120||placement.foundationRef!==undefined&&placement.foundationRef!=='hollow-scavenger')throw Error('Invalid resident encounter health');
- return row.health;
+export function residentEncounterHealth(placement, fallback) {
+  if (!Object.hasOwn(placement, "encounter")) return fallback;
+  const row = placement.encounter;
+  if (
+    !row ||
+    Object.getPrototypeOf(row) !== Object.prototype ||
+    Reflect.ownKeys(row).length !== 1 ||
+    !Object.hasOwn(row, "health") ||
+    !Number.isSafeInteger(row.health) ||
+    row.health < 1 ||
+    row.health > 120 ||
+    (placement.foundationRef !== undefined && placement.foundationRef !== "hollow-scavenger")
+  )
+    throw Error("Invalid resident encounter health");
+  return row.health;
 }

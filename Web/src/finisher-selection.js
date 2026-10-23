@@ -1,21 +1,129 @@
-import{RANGED_WEAPON_CATALOG}from'./engine/weapon-catalog.js';
-const recipeWeapon=weapon=>Object.values(RANGED_WEAPON_CATALOG).find(row=>row.weaponKey===weapon)?.finisherBinding??weapon;
-import {FINISHER_DATA} from './engine/finisher-data.js';
-const id=value=>typeof value==='string'&&value.trim().length>0 || Number.isSafeInteger(value)&&value>0;
-const direction=value=>{if(!value||!Number.isFinite(value.x)||!Number.isFinite(value.z))return null;const n=Math.hypot(value.x,value.z);return Number.isFinite(n)&&n>1e-8?{x:value.x/n,z:value.z/n}:null;};
-function draw(context,ordinal,seed,purpose){let h=2166136261;const key=JSON.stringify([seed,context.areaId??null,context.victimKey??context.victimId,ordinal,purpose]);for(let i=0;i<key.length;i++)h=Math.imul(h^key.charCodeAt(i),16777619)>>>0;return h/4294967296;}
+import { RANGED_WEAPON_CATALOG } from "./engine/weapon-catalog.js";
+const recipeWeapon = (weapon) =>
+  Object.values(RANGED_WEAPON_CATALOG).find((row) => row.weaponKey === weapon)?.finisherBinding ?? weapon;
+import { FINISHER_DATA } from "./engine/finisher-data.js";
+const id = (value) =>
+  (typeof value === "string" && value.trim().length > 0) || (Number.isSafeInteger(value) && value > 0);
+const direction = (value) => {
+  if (!value || !Number.isFinite(value.x) || !Number.isFinite(value.z)) return null;
+  const n = Math.hypot(value.x, value.z);
+  return Number.isFinite(n) && n > 1e-8 ? { x: value.x / n, z: value.z / n } : null;
+};
+function draw(context, ordinal, seed, purpose) {
+  let h = 2166136261;
+  const key = JSON.stringify([seed, context.areaId ?? null, context.victimKey ?? context.victimId, ordinal, purpose]);
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
+  return h / 4294967296;
+}
 // One confirmed corpse owns this stable choice. Admission, recipe weighting and
 // physical/prepared/budget fallbacks are distinct; presentation never rolls.
-export function selectFinisher(context,{support=[],budget=0,ordinal=0,recentRecipeId=null,chosen=null,catalogue=FINISHER_DATA}={}){
- if(!context||context.lethal!==true||!id(context.victimId))return null;
- if(chosen?.version===1&&chosen.victimId===context.victimId&&(chosen.recipeId==='ordinary'||catalogue.recipes.some(r=>r.id===chosen.recipeId)))return chosen;
- const matches=catalogue.bindings.filter(b=>b.weapon===recipeWeapon(context.weapon)&&(!b.moveIds||b.moveIds.includes(context.moveId))&&(!b.attackClasses||b.attackClasses.includes(context.attackClass))),binding=matches.length===1?matches[0]:null,impact=direction(context.impactDirection),pool=[];
- if(binding&&impact&&Array.isArray(support))for(const entry of binding.recipes){const def=catalogue.recipes.find(r=>r.id===entry.id),matches=support.filter(r=>r?.id===entry.id),row=matches.length===1?matches[0]:null;if(!row||row.prepared!==true||typeof row.clip!=='string'||!row.clip.trim()||!Number.isFinite(row.seconds)||row.seconds<=0||row.seconds>catalogue.limits.maxRecipeSeconds||!Number.isSafeInteger(row.cost)||row.cost<def.parts.length||!Array.isArray(row.parts)||row.parts.length!==def.parts.length||def.parts.some((p,i)=>row.parts[i]!==p))continue;pool.push({row,def,weight:entry.weight});}
- const native=context.nativeDeath,fallbackDef=binding&&catalogue.recipes.find(r=>r.id===binding.fallback),fallback=fallbackDef&&typeof native?.clip==='string'&&native.clip.trim()&&Number.isFinite(native.seconds)&&native.seconds>0&&native.seconds<=catalogue.limits.maxRecipeSeconds?{id:fallbackDef.id,clip:native.clip,seconds:native.seconds,cost:0,parts:[],prepared:true}:null;
- const eligible=pool.length>0||!!fallback,validOrdinal=Number.isSafeInteger(ordinal)&&ordinal>=0,admitted=eligible&&validOrdinal&&draw(context,ordinal,catalogue.seed,'admission')<catalogue.chance,available=Number.isSafeInteger(budget)&&budget>=0?pool.filter(p=>p.row.cost<=budget):[],fresh=available.filter(p=>p.row.id!==recentRecipeId||!binding.rotate),choices=fresh.length?fresh:available;let selected=catalogue.ordinary;
- if(admitted&&choices.length){let weight=draw(context,ordinal,catalogue.seed,'recipe')*choices.reduce((sum,p)=>sum+p.weight,0);selected=choices[choices.length-1].row;for(const p of choices){weight-=p.weight;if(weight<0){selected=p.row;break;}}}
- if(admitted&&!choices.length&&fallback)selected=fallback;
- const def=binding&&catalogue.recipes.find(r=>r.id===binding.recipes[0].id),reason=!eligible?'unsupported':!validOrdinal?'invalid-ordinal':!admitted?'ordinary-rate':!choices.length?(fallback?'native-fallback':'budget'):'selected';
- return{version:1,victimId:context.victimId,recipeId:selected.id,damageType:def?.damageType??null,clip:selected.clip,seconds:selected.seconds,cost:selected.cost,parts:[...selected.parts],impactDirection:impact,hitRegion:typeof context.hitRegion==='string'&&context.hitRegion.trim()?context.hitRegion:null,admission:{eligible,admitted,reason}};
+export function selectFinisher(
+  context,
+  { support = [], budget = 0, ordinal = 0, recentRecipeId = null, chosen = null, catalogue = FINISHER_DATA } = {},
+) {
+  if (!context || context.lethal !== true || !id(context.victimId)) return null;
+  if (
+    chosen?.version === 1 &&
+    chosen.victimId === context.victimId &&
+    (chosen.recipeId === "ordinary" || catalogue.recipes.some((r) => r.id === chosen.recipeId))
+  )
+    return chosen;
+  const matches = catalogue.bindings.filter(
+      (b) =>
+        b.weapon === recipeWeapon(context.weapon) &&
+        (!b.moveIds || b.moveIds.includes(context.moveId)) &&
+        (!b.attackClasses || b.attackClasses.includes(context.attackClass)),
+    ),
+    binding = matches.length === 1 ? matches[0] : null,
+    impact = direction(context.impactDirection),
+    pool = [];
+  if (binding && impact && Array.isArray(support))
+    for (const entry of binding.recipes) {
+      const def = catalogue.recipes.find((r) => r.id === entry.id),
+        matches = support.filter((r) => r?.id === entry.id),
+        row = matches.length === 1 ? matches[0] : null;
+      if (
+        !row ||
+        row.prepared !== true ||
+        typeof row.clip !== "string" ||
+        !row.clip.trim() ||
+        !Number.isFinite(row.seconds) ||
+        row.seconds <= 0 ||
+        row.seconds > catalogue.limits.maxRecipeSeconds ||
+        !Number.isSafeInteger(row.cost) ||
+        row.cost < def.parts.length ||
+        !Array.isArray(row.parts) ||
+        row.parts.length !== def.parts.length ||
+        def.parts.some((p, i) => row.parts[i] !== p)
+      )
+        continue;
+      pool.push({ row, def, weight: entry.weight });
+    }
+  const native = context.nativeDeath,
+    fallbackDef = binding && catalogue.recipes.find((r) => r.id === binding.fallback),
+    fallback =
+      fallbackDef &&
+      typeof native?.clip === "string" &&
+      native.clip.trim() &&
+      Number.isFinite(native.seconds) &&
+      native.seconds > 0 &&
+      native.seconds <= catalogue.limits.maxRecipeSeconds
+        ? { id: fallbackDef.id, clip: native.clip, seconds: native.seconds, cost: 0, parts: [], prepared: true }
+        : null;
+  const eligible = pool.length > 0 || !!fallback,
+    validOrdinal = Number.isSafeInteger(ordinal) && ordinal >= 0,
+    admitted = eligible && validOrdinal && draw(context, ordinal, catalogue.seed, "admission") < catalogue.chance,
+    available = Number.isSafeInteger(budget) && budget >= 0 ? pool.filter((p) => p.row.cost <= budget) : [],
+    fresh = available.filter((p) => p.row.id !== recentRecipeId || !binding.rotate),
+    choices = fresh.length ? fresh : available;
+  let selected = catalogue.ordinary;
+  if (admitted && choices.length) {
+    let weight = draw(context, ordinal, catalogue.seed, "recipe") * choices.reduce((sum, p) => sum + p.weight, 0);
+    selected = choices[choices.length - 1].row;
+    for (const p of choices) {
+      weight -= p.weight;
+      if (weight < 0) {
+        selected = p.row;
+        break;
+      }
+    }
+  }
+  if (admitted && !choices.length && fallback) selected = fallback;
+  const def = binding && catalogue.recipes.find((r) => r.id === binding.recipes[0].id),
+    reason = !eligible
+      ? "unsupported"
+      : !validOrdinal
+        ? "invalid-ordinal"
+        : !admitted
+          ? "ordinary-rate"
+          : !choices.length
+            ? fallback
+              ? "native-fallback"
+              : "budget"
+            : "selected";
+  return {
+    version: 1,
+    victimId: context.victimId,
+    recipeId: selected.id,
+    damageType: def?.damageType ?? null,
+    clip: selected.clip,
+    seconds: selected.seconds,
+    cost: selected.cost,
+    parts: [...selected.parts],
+    impactDirection: impact,
+    hitRegion: typeof context.hitRegion === "string" && context.hitRegion.trim() ? context.hitRegion : null,
+    admission: { eligible, admitted, reason },
+  };
 }
-export function withPresentedRecipe(outcome,recipe){if(outcome.recipeId===recipe.id)return outcome;return{...outcome,recipeId:recipe.id,clip:recipe.clip,seconds:recipe.seconds,cost:recipe.cost,parts:[...recipe.parts],...(outcome.admission?{admission:{...outcome.admission,reason:'presentation-fallback'}}:{})};}
+export function withPresentedRecipe(outcome, recipe) {
+  if (outcome.recipeId === recipe.id) return outcome;
+  return {
+    ...outcome,
+    recipeId: recipe.id,
+    clip: recipe.clip,
+    seconds: recipe.seconds,
+    cost: recipe.cost,
+    parts: [...recipe.parts],
+    ...(outcome.admission ? { admission: { ...outcome.admission, reason: "presentation-fallback" } } : {}),
+  };
+}
