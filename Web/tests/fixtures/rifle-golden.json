@@ -1,0 +1,741 @@
+[
+ {
+  "step": "fresh",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 0,
+  "saveSha": "d21a7bb064ac909c76e24818c43a03414379a7e67d46e73962593c41b7ce47b6",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "kill-quota-fail",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 0,
+  "saveSha": "d21a7bb064ac909c76e24818c43a03414379a7e67d46e73962593c41b7ce47b6",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "killed": false
+ },
+ {
+  "step": "kill-persist",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 0,
+  "saveSha": "d21a7bb064ac909c76e24818c43a03414379a7e67d46e73962593c41b7ce47b6",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "persisted": true
+ },
+ {
+  "step": "kill-persist-again",
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -5.391797996865284,
+    "z": 2.400484795851785
+   },
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "c833df282f512946394223866a5d778f8b6643b1f1d363d1a196123852ac570f",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "claim-too-far",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -5.391797996865284,
+    "z": 2.400484795851785
+   },
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "c833df282f512946394223866a5d778f8b6643b1f1d363d1a196123852ac570f",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "claim-quota-fail",
+  "result": {
+   "ok": false,
+   "code": "storage-unavailable",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -5.391797996865284,
+    "z": 2.400484795851785
+   },
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "c833df282f512946394223866a5d778f8b6643b1f1d363d1a196123852ac570f",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "claim",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-pickup",
+     "itemId": "bridge-warden-rifle-v1"
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 16,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "6394569509b2fd886444c8a29699f775cf1f6faf50b4b09342d5f7f53ca4608c",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "claim-again",
+  "result": {
+   "ok": false,
+   "code": "already-collected",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 16,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "6394569509b2fd886444c8a29699f775cf1f6faf50b4b09342d5f7f53ca4608c",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "equip-bad",
+  "result": {
+   "ok": false,
+   "code": "invalid-command",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 16,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "6394569509b2fd886444c8a29699f775cf1f6faf50b4b09342d5f7f53ca4608c",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "equip",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-selected",
+     "itemId": "bridge-warden-rifle-v1",
+     "equipped": true
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 16,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "f9eae4225beb5a931e708b4f58950512197d73d902c0e7cfe05410a7543c8d4c",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "equip-again",
+  "result": {
+   "ok": true,
+   "changed": false,
+   "events": [
+    {
+     "type": "rifle-selected",
+     "itemId": "bridge-warden-rifle-v1",
+     "equipped": true
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 16,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "f9eae4225beb5a931e708b4f58950512197d73d902c0e7cfe05410a7543c8d4c",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "fire",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-ammo-spent",
+     "itemId": "bridge-warden-rifle-v1",
+     "rounds": 1
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 7,
+   "reserve": 16,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "9a3152de6b607852778f426b198ff94c3e84de541501bafa184817135ebc4a34",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "fire-too-soon",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 7,
+   "reserve": 16,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "9a3152de6b607852778f426b198ff94c3e84de541501bafa184817135ebc4a34",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "reload",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-reloaded",
+     "itemId": "bridge-warden-rifle-v1",
+     "rounds": 1
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "64bebc8748deb14b260981424e07b3ab16ab82b9431c4843cec3dc2aa6700cb3",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "fire-quota-fail",
+  "result": {
+   "ok": false,
+   "code": "storage-unavailable",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "64bebc8748deb14b260981424e07b3ab16ab82b9431c4843cec3dc2aa6700cb3",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "unequip",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-selected",
+     "itemId": "bridge-warden-rifle-v1",
+     "equipped": false
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "c0c435a48ce4cb3e9ce7271e1dc409d5576fe8aa46d635a97357572b57696e11",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "re-equip",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "rifle-selected",
+     "itemId": "bridge-warden-rifle-v1",
+     "equipped": true
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "64bebc8748deb14b260981424e07b3ab16ab82b9431c4843cec3dc2aa6700cb3",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "retry",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 1.65,
+   "reloadingUntil": 0,
+   "firedAt": 1,
+   "paidTick": 60,
+   "paidRounds": 1
+  },
+  "dropEvents": 1,
+  "saveSha": "64bebc8748deb14b260981424e07b3ab16ab82b9431c4843cec3dc2aa6700cb3",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "retried": true
+ },
+ {
+  "step": "after-retry",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "dropEvents": 0,
+  "saveSha": "4a4e7ac3c7368a08df815656bce0e63abee7eb5b66130c89bb9d73fd5dae4bb1",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ]
+ },
+ {
+  "step": "cold-restore",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 0,
+   "reloadingUntil": 0,
+   "firedAt": -1
+  },
+  "dropEvents": 0,
+  "saveSha": "4a4e7ac3c7368a08df815656bce0e63abee7eb5b66130c89bb9d73fd5dae4bb1",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": false
+ },
+ {
+  "step": "restore-v9-direct",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 15,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 0,
+   "reloadingUntil": 0,
+   "firedAt": -1
+  },
+  "dropEvents": 0,
+  "saveSha": "4a4e7ac3c7368a08df815656bce0e63abee7eb5b66130c89bb9d73fd5dae4bb1",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": false
+ },
+ {
+  "step": "restore-v9-genuine",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+   "magazine": 8,
+   "reserve": 14,
+   "selected": true
+  },
+  "weapon": "rifle",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 0,
+   "reloadingUntil": 0,
+   "firedAt": -1
+  },
+  "dropEvents": 0,
+  "saveSha": "4eed821fb8fd89cedadbf3d997e1344eb2bb189bcc8466581808294d3e224580",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": false
+ },
+ {
+  "step": "restore-legacy-v8",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "magazine": 0,
+   "reserve": 0,
+   "selected": false
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "action": {
+   "nextFireAt": 0,
+   "reloadingUntil": 0,
+   "firedAt": -1
+  },
+  "dropEvents": 0,
+  "saveSha": "f7c9ffb806b7a950a64e6f687d0356ee344b58369bbe3fe65816fab597f20091",
+  "keys": [
+   "armagedom:flame-run:v8",
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": false
+ },
+ {
+  "step": "restore-tampered",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "dropEvents": 0,
+  "saveSha": "635a22d73db139fa049410946f62498b9bd2c7de9073351481e44f5e0ba2dafa",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": true
+ },
+ {
+  "step": "restore-missing-field",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "dropEvents": 0,
+  "saveSha": "1970a7611498546715be1a1c2c42bfe548710156700dd817030d2ee0cd8957ea",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": true
+ },
+ {
+  "step": "restore-selected-with-pistol",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "dropEvents": 0,
+  "saveSha": "cfc1bad7b06c16b50ea5b2b40367a143d21b443725a953d60bb82de74b24b77e",
+  "keys": [
+   "armagedom:rifle-run:v9"
+  ],
+  "invalid": true
+ }
+]

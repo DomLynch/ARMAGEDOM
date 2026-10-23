@@ -270,9 +270,11 @@ export function createBossEquipmentComponent({
             g,
             candidate,
             next,
-            rows: fields.map((target) => [target, profiles[target]]),
-            model,
+            rows: fields.map((target) => ({ target, source: profiles[target].source, itemId: profiles[target].itemId })),
+            stateOf: (state, target) => state[target],
+            transition: model.transition,
             validatedDropPosition,
+            passSource: true,
             eventType: BOSS_EQUIPMENT_LAYER.events.drop,
             events,
           });

@@ -1,0 +1,606 @@
+[
+ {
+  "step": "fresh",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "885ce21ceef4257f6fe057dccad7d78dce52c19c35eb30282a77b179a156cdd4",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "kill-quota-fail",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 0,
+  "saveSha": "6f9b285536ee9fca5847c7219b337b81c595c243a2662b4e9f755864071438cc",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "persistedWhileFailing": false
+ },
+ {
+  "step": "kill-persist",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 0,
+  "saveSha": "6f9b285536ee9fca5847c7219b337b81c595c243a2662b4e9f755864071438cc",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "persisted": true
+ },
+ {
+  "step": "kill-persist-again",
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -16.57128010796478,
+    "z": 2.17941
+   },
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "persisted": true
+ },
+ {
+  "step": "claim-too-far",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -16.57128010796478,
+    "z": 2.17941
+   },
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "claim-not-allowed",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -16.57128010796478,
+    "z": 2.17941
+   },
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "claim-mid-swing",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -16.57128010796478,
+    "z": 2.17941
+   },
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "claim-quota-fail",
+  "result": {
+   "ok": false,
+   "code": "storage-unavailable",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "pending",
+   "dropPosition": {
+    "x": -16.57128010796478,
+    "z": 2.17941
+   },
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "claim",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "unique-reward-pickup",
+     "itemId": "hale-pitborn-cleaver-v1"
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "claim-again",
+  "result": {
+   "ok": false,
+   "code": "already-collected",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-mid-swing",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-quota-fail",
+  "result": {
+   "ok": false,
+   "code": "storage-unavailable",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-not-allowed",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-unequip-flag",
+  "result": {
+   "ok": false,
+   "code": "not-eligible",
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-cleaver",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "melee-variant-selected",
+     "itemId": "hale-pitborn-cleaver-v1"
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-cleaver-again",
+  "result": {
+   "ok": true,
+   "changed": false,
+   "events": []
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-knife",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "melee-variant-selected",
+     "itemId": "knife"
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "99a83f71de385be88fa735983e0f6bba5d82762121a4dbd2f736d4851920182f",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "equip-cleaver-last",
+  "result": {
+   "ok": true,
+   "changed": true,
+   "events": [
+    {
+     "type": "melee-variant-selected",
+     "itemId": "hale-pitborn-cleaver-v1"
+    }
+   ]
+  },
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "retry",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 1,
+  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "retried": true
+ },
+ {
+  "step": "after-retry",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "east",
+  "dropEvents": 0,
+  "saveSha": "56317ea680f331ae08ea9d26f9441c3cd304738e64e33b54438f03b5bdf5ca4b",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ]
+ },
+ {
+  "step": "reenter-west",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "56317ea680f331ae08ea9d26f9441c3cd304738e64e33b54438f03b5bdf5ca4b",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "persisted": true
+ },
+ {
+  "step": "cold-restore",
+  "state": {
+   "version": 1,
+   "status": "owned",
+   "dropPosition": null,
+   "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+   "selectedMeleeVariant": "hale-pitborn-cleaver-v1"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "56317ea680f331ae08ea9d26f9441c3cd304738e64e33b54438f03b5bdf5ca4b",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": false,
+  "retryDenied": false
+ },
+ {
+  "step": "restore-tampered",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "c519a658a0c8f8475282a2c12e869fc9cf4fec63682b523b26de3cc403b58c93",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": true,
+  "retryDenied": true
+ },
+ {
+  "step": "restore-open-envelope",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "d876bde85050bdac7bf9d68fd66072442628c6785ea945db553c1264e7bd5d44",
+  "keys": [
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": true,
+  "retryDenied": true
+ },
+ {
+  "step": "restore-v6-alive",
+  "state": {
+   "version": 1,
+   "status": "eligible",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "885ce21ceef4257f6fe057dccad7d78dce52c19c35eb30282a77b179a156cdd4",
+  "keys": [
+   "armagedom:area-boss-run:v6",
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": false,
+  "retryDenied": false
+ },
+ {
+  "step": "restore-v6-alive-with-bad-v7",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "17eed55d881c0dd5fe0935a98d89dd9e52d62aed941f3fb7d17bd490e5aa3e8f",
+  "keys": [
+   "armagedom:area-boss-run:v6",
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": true,
+  "retryDenied": true
+ },
+ {
+  "step": "restore-v6-dead",
+  "state": {
+   "version": 1,
+   "status": "legacy-dead",
+   "dropPosition": null,
+   "rewardReceipt": null,
+   "selectedMeleeVariant": "knife"
+  },
+  "weapon": "pistol",
+  "pistolEquipped": true,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "3a874866b04c8bf09318cad3a88dacc47562113f1067d88deff3188456c84fe5",
+  "keys": [
+   "armagedom:area-boss-run:v6",
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": false,
+  "retryDenied": false
+ },
+ {
+  "step": "restore-v6-dead-with-bad-v7",
+  "weapon": "knife",
+  "pistolEquipped": false,
+  "area": "westminster",
+  "dropEvents": 0,
+  "saveSha": "17eed55d881c0dd5fe0935a98d89dd9e52d62aed941f3fb7d17bd490e5aa3e8f",
+  "keys": [
+   "armagedom:area-boss-run:v6",
+   "armagedom:unique-reward-run:v7"
+  ],
+  "invalid": true,
+  "retryDenied": true
+ }
+]

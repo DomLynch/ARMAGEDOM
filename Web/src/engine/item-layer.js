@@ -5,7 +5,7 @@ export const layerFailure = (code) => ({ ok: false, code, events: [] });
 export const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 /** The one place a run is "safe" to change equipment: alive, idle, not mid-action, and the scope allows it. */
-export function runIsSafe(g, canDispatch, { requireReady = true } = {}) {
+export function runIsSafe(g, canDispatch, { requireReady = true, nonNegativeTime = false } = {}) {
   const p = g.player;
   return (
     !!p &&
@@ -15,6 +15,7 @@ export function runIsSafe(g, canDispatch, { requireReady = true } = {}) {
     !g.runSaveInvalid &&
     !p.swing &&
     Number.isFinite(g.time) &&
+    (!nonNegativeTime || g.time >= 0) &&
     (!requireReady || g.time >= (p.ready ?? 0)) &&
     g.time >= (p.hurtUntil ?? 0) &&
     g.time >= (p.dodgeUntil ?? 0) &&
@@ -41,11 +42,23 @@ export function pickupEligible(g, state, source, { radius, epsilon, finitePositi
  * not yet in the live run), find the corpse, place the drop and move the model to `pending`. Returns the next state
  * and the drop events, or null when a corpse or a legal spot is missing (the write is then refused).
  */
-export function stageDeathDrops({ g, candidate, next, rows, model, validatedDropPosition, eventType, events = [] }) {
+export function stageDeathDrops({
+  g,
+  candidate,
+  next,
+  rows,
+  stateOf,
+  transition,
+  validatedDropPosition,
+  eventType,
+  passSource = false,
+  matchCorpseArea = false,
+  events = [],
+}) {
   // Events go into the caller's array row by row, so a later refused row leaves earlier ones in place, as before.
-  for (const [target, data] of rows) {
-    const s = next[target],
-      matches = (a) => a.placementKey === data.source.placementKey && a.areaId === data.source.areaId;
+  for (const { target, source, itemId } of rows) {
+    const s = stateOf(next, target),
+      matches = (a) => a.placementKey === source.placementKey && a.areaId === source.areaId;
     if (
       !["eligible", "legacy-dead"].includes(s.status) ||
       !(candidate.progression?.awards ?? []).some(matches) ||
@@ -53,26 +66,30 @@ export function stageDeathDrops({ g, candidate, next, rows, model, validatedDrop
     )
       continue;
     const corpse =
-      g.world.areaId === data.source.areaId
+      g.world.areaId === source.areaId
         ? [...(g.enemies ?? []), ...(g.corpses ?? [])].find(
-            (e) => e.placementKey === data.source.placementKey && Number.isFinite(e.hp) && e.hp <= 0,
+            (e) =>
+              e.placementKey === source.placementKey &&
+              (!matchCorpseArea || (e.areaId ?? g.world.areaId) === source.areaId) &&
+              Number.isFinite(e.hp) &&
+              e.hp <= 0,
           )
         : null;
     if (!corpse) return null;
     let position;
     try {
-      position = validatedDropPosition(g, corpse, data.source);
+      position = passSource ? validatedDropPosition(g, corpse, source) : validatedDropPosition(g, corpse);
     } catch {
       return null;
     }
-    next = model.transition(next, target, {
+    next = transition(next, target, {
       type: "drop",
-      placementKey: data.source.placementKey,
-      areaId: data.source.areaId,
+      placementKey: source.placementKey,
+      areaId: source.areaId,
       position,
     });
     if (!next) return null;
-    events.push({ type: eventType, itemId: data.itemId, areaId: data.source.areaId, position: { ...position } });
+    if (eventType) events.push({ type: eventType, itemId, areaId: source.areaId, position: { ...position } });
   }
   return { next, events };
 }
@@ -125,7 +142,18 @@ export function createLayerStorageAdapter({ baseStorageAdapter, saveKey, fallbac
  * The layer's save codec. `row` carries saveKey, version, baseVersion, field and the error messages; `restore`
  * is the layer's own migration (it receives the read origin) and may return null to refuse the record.
  */
-export function createLayerCodec({ baseCodec, row, state, valid, copy, selectedValid, restore, reads }) {
+export function createLayerCodec({
+  baseCodec,
+  row,
+  state,
+  valid,
+  copy,
+  restore,
+  reads,
+  selectedValid = () => true,
+  same = sameJson,
+  checkSnapshot = true,
+}) {
   return {
     RUN_SAVE_KEY: row.saveKey,
     get PISTOL_SAVE_KEY() {
@@ -148,7 +176,7 @@ export function createLayerCodec({ baseCodec, row, state, valid, copy, selectedV
     },
     captureRunState(g) {
       const value = state(g);
-      if (!valid(value) || !selectedValid(g, value)) throw TypeError(row.messages.snapshot);
+      if (checkSnapshot && (!valid(value) || !selectedValid(g, value))) throw TypeError(row.messages.snapshot);
       return { base: baseCodec.captureRunState(g), [row.field]: copy(value) };
     },
     isRunStateUnchanged(g, snapshot) {
@@ -156,7 +184,7 @@ export function createLayerCodec({ baseCodec, row, state, valid, copy, selectedV
       return (
         valid(value) &&
         selectedValid(g, value) &&
-        sameJson(value, snapshot[row.field]) &&
+        same(value, snapshot[row.field]) &&
         baseCodec.isRunStateUnchanged(g, snapshot.base)
       );
     },
