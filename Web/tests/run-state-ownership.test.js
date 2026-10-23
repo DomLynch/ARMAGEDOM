@@ -12,6 +12,6 @@ test('accepted legacy run2 serialization stays byte-identical while one engine i
   const g=createGame(world,{pilot:'donor-knife',pistol:true,supplies:true,vest:true});g.player.hp=hp;g.pistol={...g.pistol,collected:true,equipped,magazine:4,reserve:2};
   const expected=oldEncode(owned.encodePistol,createVestState,g);assert.equal(owned.encodeRun(g),expected);assert(owned.restoreRun(g,expected,null));
  }
- const facade=readFileSync(new URL('../src/pistol-save.js',import.meta.url),'utf8');assert.equal(/\bfunction\b/.test(facade),false);assert.match(facade,/from '\.\/engine\/server\.js'/);
+ const facade=readFileSync(new URL('../src/pistol-save.js',import.meta.url),'utf8');assert.equal(/\bfunction\b/.test(facade),false);assert.match(facade,/from ['"]\.\/engine\/server\.js['"]/);
  assert.deepEqual(JSON.parse(readFileSync(new URL('../tools/engine-boundary-exceptions.json',import.meta.url))),[]);
 });
