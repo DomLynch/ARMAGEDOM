@@ -53,6 +53,7 @@ import dogMidClip from "./dog-data/mid-slash.json" with { type: "json" };
 import dogBlade from "./dog-data/blade-path.json" with { type: "json" };
 import dogReceiverAppend from "./dog-data/receiver-append.json" with { type: "json" };
 import { createRatBiteReceiver, ratLowBlade } from "./rat-contact.js";
+import { rigCapability } from "./rig-capabilities.js";
 import footBindings from "./rat-data/foot-bindings.json" with { type: "json" };
 import lowClip from "./rat-data/low-slash.json" with { type: "json" };
 import lowBlade from "./rat-data/blade-path.json" with { type: "json" };
@@ -974,16 +975,7 @@ export function createActors(
             player.wolfReceiver = createRatBiteReceiver(player.model, wolfBodyReceiverBindings(player.model));
           const rats = new Map();
           for (const e of game.enemies)
-            if (
-              [
-                "original-rat",
-                "original-dog",
-                "original-roach",
-                "giant-salamander",
-                "original-wolf",
-                "low-hover-drone",
-              ].includes(e.rig)
-            ) {
+            if (rigCapability(e.rig, "lowStrike")) {
               const view = views.get(e.id);
               view.root.updateWorldMatrix(true, true);
               if (view.drone) {
@@ -1118,18 +1110,7 @@ export function createActors(
               now.teeth.some((to, i) => receiver.sweep(previous, current, old.teeth[i], to).hit)
             );
           }
-          if (
-            ![
-              "original-rat",
-              "original-dog",
-              "original-roach",
-              "giant-salamander",
-              "original-wolf",
-              "low-hover-drone",
-            ].includes(d.rig) ||
-            !s.def.ratLow
-          )
-            return false;
+          if (!rigCapability(d.rig, "lowStrike") || !s.def.ratLow) return false;
           const view = after.rats.get(d.id)?.view;
           if (!view || (s.def.ratRetimed && !after.playerBlade)) return false;
           const [from, to] =
@@ -1245,14 +1226,7 @@ export function createActors(
           entity.kind >= 0 &&
           (projectileContactIds !== undefined
             ? !projectileContactIds.has(entity.id)
-            : ![
-                "original-rat",
-                "original-dog",
-                "original-roach",
-                "giant-salamander",
-                "original-wolf",
-                "low-hover-drone",
-              ].includes(entity.rig))
+            : !rigCapability(entity.rig, "lowStrike"))
         )
           continue;
         const view = views.get(entity.id) ?? make(entity, game.finishers, restoreCorpses);

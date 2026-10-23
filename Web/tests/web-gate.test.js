@@ -24,6 +24,8 @@ async function fixture(
   await mkdir(join(dir, "Web/tests"), { recursive: true });
   await mkdir(join(dir, "scripts"), { recursive: true });
   await writeFile(join(dir, "scripts/web-density-baseline.json"), "{}");
+  await writeFile(join(dir, "scripts/as-data-baseline.json"), "{}");
+  await writeFile(join(dir, "Web/src/rig-capabilities.json"), "{}");
   await writeFile(join(dir, "Web/package.json"), '{"type":"module"}');
   await writeFile(join(dir, "Web/src/value.js"), source);
   await writeFile(
