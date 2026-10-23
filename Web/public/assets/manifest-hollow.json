@@ -1256,7 +1256,7 @@
       "url": "wolf/wolf.glb",
       "rig": "original-wolf",
       "motion": "wolf",
-      "scale": 1,
+      "scale": 2.5,
       "forwardCorrection": 0,
       "groundOffset": 0.003490707770088222,
       "clips": {
@@ -1281,26 +1281,17 @@
           }
         ],
         "calfBand": [
-          0.55,
-          0.75
+          1.4,
+          1.85
         ],
         "calfFaces": [
           {
             "runtimeName": "Skin",
-            "face": 2891,
+            "face": 10962,
             "vertices": [
-              1245,
-              1224,
-              1789
-            ]
-          },
-          {
-            "runtimeName": "Skin",
-            "face": 2144,
-            "vertices": [
-              1379,
-              1376,
-              1499
+              6300,
+              6392,
+              311
             ]
           }
         ]

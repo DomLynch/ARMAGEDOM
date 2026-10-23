@@ -8,11 +8,7 @@ export function boneSawIntent(g,intent){
  const legal=owns&&held&&!intent.cancel&&!intent.paused&&!intent.dodge&&!intent.guard&&!g.finished&&!g.runSaveInvalid&&!g.weaponsLowered&&p.hp>0&&!p.swing&&g.time>=(p.ready??0)&&g.time>=(p.hurtUntil??0)&&g.time>=(p.dodgeUntil??0)&&(p.stamina??p.guard)>0;
  if(!legal)stopBoneSaw(g,p,owns?'interrupted':'unequipped');
  else{p.saw??={active:false,nextHitAt:0,contactTicks:0,contactId:null};if(!p.saw.active)g.events.push({type:'saw-start',actor:p});p.saw.active=true;
-  // Reuse the existing low pose only for the nearest legal small wolf. The
-  // displayed blade and the existing exact-mesh contact share this selection.
-  const facing=intent.aim??p.facing,length=Math.hypot(facing.x,facing.z)||1,minimum=Math.cos(BONE_SAW_RULES.coneDegrees*Math.PI/180);let nearest=null,distance=Infinity;
-  for(const e of g.enemies){const dx=e.pos.x-p.pos.x,dz=e.pos.z-p.pos.z,n=Math.hypot(dx,dz);if(e.hp<=0||e.hostile===false||e.visible===false||(e.areaId!=null&&e.areaId!==g.world.areaId)||n>BONE_SAW_RULES.range+e.radius||n>=distance||n>1e-8&&(dx*facing.x+dz*facing.z)/(n*length)<minimum||!g.world.lineClear(p.pos,e.pos))continue;nearest=e;distance=n;}
-  p.saw.lowClip=nearest?.rig==='original-wolf'?'RatLowSlash':null;
+
  }
  return owns?{...intent,sawCutting:legal,actions:(intent.actions??[]).filter(a=>!['slash','stab','heavy','special'].includes(a)),held:(intent.held??[]).filter(a=>!['slash','stab'].includes(a))}:intent;
 }

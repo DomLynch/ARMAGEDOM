@@ -12,7 +12,7 @@ const support=Object.freeze({
  'original-wolf':['wolf-native-bite','teeth','original-wolf',['attack']],
  'giant-salamander':['salamander-native-bite','teeth','giant-salamander',['attack']],
 });
-const reach=Object.freeze({'original-wolf':.95,'original-rat':1.050307904880233,'original-dog':1.635623468495986,'original-roach':1.6063268331546576,'giant-salamander':3.1078573708270647});
+const reach=Object.freeze({'original-wolf':2.375,'original-rat':1.050307904880233,'original-dog':1.635623468495986,'original-roach':1.6063268331546576,'giant-salamander':3.1078573708270647});
 const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
 function dataOnly(value){if(['function','undefined','symbol','bigint'].includes(typeof value)||typeof value==='number'&&!Number.isFinite(value))throw Error('Creature catalogue requires data only');if(value&&typeof value==='object')for(const[key,child]of Object.entries(value)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Unsafe catalogue field');dataOnly(child);}}
 function closed(row,keys){if(!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).some(k=>!keys.includes(k))||keys.some(k=>!Object.hasOwn(row,k)))throw Error('Unknown or missing catalogue field');}
