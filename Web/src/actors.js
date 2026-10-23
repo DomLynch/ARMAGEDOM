@@ -53,9 +53,10 @@ import {FACE_APPEARANCE_VERSION,FACE_RECIPES,ORIGINAL_FACE_ID,faceRecipeFor} fro
 import {allocateFaceRecipes} from './face-allocator.js';
 const residentFaces=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});
 const names = ["revenant", "orc", "warlock", "warlord"];
-function actorModelRef(entity,manifest){
+function actorModelRef(entity,manifest,loaded){
   // Appearance only: the hunter keeps its existing mechanical rig and rules.
-  if(entity.markedHunter&&manifest.models?.['marked-hunter'])return 'marked-hunter';
+  // The hunter model is deferred; until it has loaded the tinted scavenger stands in.
+  if(entity.markedHunter&&manifest.models?.['marked-hunter']&&(!loaded||loaded.has('marked-hunter')))return 'marked-hunter';
   if(entity.appearanceRef!==undefined){
     const ref=entity.appearanceRef;
     if(entity.kind<0||typeof ref!=='string'||!/^[a-z][a-z0-9-]*$/.test(ref)||!manifest.models||!Object.hasOwn(manifest.models,ref)||manifest.models[ref].rig!==entity.rig)throw Error('Invalid actor appearance reference');
@@ -178,7 +179,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
       const view={root:drone.root,model:drone.root,contactModel:drone.contactModel,drone,entity,description:{motion:'drone',scale:1},flashMaterials:[],pistolSlide:attachPistolSlide(null),hitReaction:createHitReaction({mode:feedbackMode,reducedMotion:reducedMotion()})};
       const seen=new Set();drone.root.traverse(n=>{if(n.isMesh)for(const material of Array.isArray(n.material)?n.material:[n.material])if(!seen.has(material)){seen.add(material);view.flashMaterials.push({material,color:material.color?.clone(),emissive:material.emissive?.clone(),intensity:material.emissiveIntensity,roughness:material.roughness});}});view.gore=finishers?createFinisherGore({root:view.root,model:view.model,rig:entity.rig,camera:stageWorld.camera}):null;if(view.gore)goreOwners.add(view.gore);view.finisherDeathSeconds=.8;view.restoredCorpse=restoreCorpses&&entity.hp<=0;if(finishers)entity.finisherSupport=nativeFinisherSupport({clip:'drone_death',seconds:.8});store.set(entity.id,view);return view;
     }
-    const name = actorModelRef(entity,library.manifest),
+    const name = actorModelRef(entity,library.manifest,library.models),
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
     const visualRig=entity.markedHunter&&name==='marked-hunter'?source.description.rig:entity.rig,garments=source.description.clothingMaterials??(visualRig==='hollow-scavenger'?HOLLOW_GARMENTS:null);
@@ -437,7 +438,7 @@ export function createActors(scene, world, library, { visualScale = 1, droneAppe
     },
     configureFeedback(mode){feedbackMode=mode;for(const v of views.values()){v.hitReaction.configure({mode,reducedMotion:reducedMotion()});v.impactFlashLife=0;restoreActorFlash(v);v.pistolSlide.reset();}},
     resetFeedback(){for(const v of views.values()){v.hitReaction.reset();v.hitReactionFresh=false;v.impactFlashLife=0;restoreActorFlash(v);v.pistolSlide.reset();}},
-    events(game){for(const e of game.events)if(e.type==='hit'&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;if(!e.blocked)v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
+    events(game){for(const e of game.events)if(e.type==='marked-hunter-warning')library.ensureModels?.(['marked-hunter'])?.catch(()=>{/* The tinted scavenger stands in. */});else if(e.type==='hit'&&e.amount>0){const v=views.get(e.actor?.id);if(v){v.hitReactionFresh=true;v.impactFlashLife=.1;if(!e.blocked)v.hitReaction.hit({x:e.impactDirection?.x??0,z:e.impactDirection?.z??0,killed:e.actor.hp<=0});}}},
     reset() {
       reaperView?.dispose();reaperView=null;
       for (const id of [...views.keys()]) remove(id);
