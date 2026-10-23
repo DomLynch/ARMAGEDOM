@@ -111,7 +111,9 @@ export async function verifyAssets({dist,publicDir,actors='assets/manifest-lossl
   const name=path.posix.join(path.posix.dirname(audio),safe(audioManifest.url));
   const raw=await select(name,checkedHash(audioManifest,name));
   if(!raw.equals(await read(publicDir,name)))throw Error(`Copied audio differs from source: ${name}`);
-  if(!name.endsWith('.wav')||raw.length<12||raw.toString('ascii',0,4)!=='RIFF'||raw.toString('ascii',8,12)!=='WAVE'||raw.readUInt32LE(4)+8!==raw.length)throw Error(`Unexpected or invalid WAV: ${name}`);
+  const validWav=name.endsWith('.wav')&&raw.length>=12&&raw.toString('ascii',0,4)==='RIFF'&&raw.toString('ascii',8,12)==='WAVE'&&raw.readUInt32LE(4)+8===raw.length;
+  const validM4a=name.endsWith('.m4a')&&raw.length>=12&&raw.toString('ascii',4,8)==='ftyp'&&raw.toString('ascii',8,12)==='M4A ';
+  if(!validWav&&!validM4a)throw Error(`Unexpected or invalid audio (WAV or M4A): ${name}`);
  }
  // Validate every exclusion before deleting anything. No blanket directory rm.
  const excluded=all.filter(name=>!selected.has(name));
