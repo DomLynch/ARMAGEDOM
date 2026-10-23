@@ -74,8 +74,10 @@ Generated code must contain the selected manifest path. WAV RIFF/WAVE header/siz
 source equality, safe paths/symlinks and manifest hashes are checked before pruning.
 Cue timing/mix/audibility remain World/Lead runtime acceptance, not packaging proof.
 
-Update 2026-10-23: the manifest now points at `combat.m4a` (AAC-LC 96 kbps, 276,692 bytes,
-mono 48 kHz, decodes in iOS Safari and Android Chrome). The adapter accepts either a valid
+Update 2026-10-23: the manifest now points at `combat.m4a` (AAC-LC 96 kbps, 284,152 bytes,
+mono 48 kHz; target browsers iOS Safari and Android Chrome). 22 transient samples that
+overshot -1.0 dBFS after AAC were pre-shaved with local gain dips (max -1.1 dB, ~30 ms
+total) so the decoded peak is -1.56 dBFS; everything else is 0 dB. The adapter accepts either a valid
 WAV (RIFF/WAVE) or an M4A (`ftyp`/`M4A `) body; the original `combat.wav` stays in
 `public/audio/` as the source and is pruned from `dist`. `sourceWav` in the manifest records
 its hash. Cue `pcmSHA256` values describe the original PCM, not the AAC decode.
