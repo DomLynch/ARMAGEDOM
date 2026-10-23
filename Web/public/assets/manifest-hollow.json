@@ -9,7 +9,7 @@
   ],
   "models": {
     "vagrant": {
-      "url": "donor/warrior.glb",
+      "url": "donor/warrior-phone.glb",
       "rig": "hero",
       "motion": "donor-knife",
       "scale": 1,
@@ -639,7 +639,7 @@
       ]
     },
     "vagrant-cleaver": {
-      "url": "donor/warrior.glb",
+      "url": "donor/warrior-phone.glb",
       "rig": "hero",
       "motion": "donor-knife",
       "scale": 1,
@@ -670,9 +670,10 @@
       "deferred": true
     },
     "player-flamethrower": {
-      "url": "weapons/flamethrower.glb",
-      "bytes": 4253028,
-      "sha256": "858eff807c441f49e56cfd1c80fb9b470b862a5af815e918d56dc2b419d08a99",
+      "url": "weapons/flamethrower-phone.glb",
+      "bytes": 1399992,
+      "sha256": "2ea85f7009fbd1ace7514d661de72c5de47ad8732c40494f9c7958faa7514bdb",
+      "textureCapSource": {"file": "weapons/flamethrower.glb", "bytes": 4253028, "sha256": "858eff807c441f49e56cfd1c80fb9b470b862a5af815e918d56dc2b419d08a99"},
       "deferred": true,
       "rig": "rigid-equipment",
       "motion": "rigid",
@@ -1305,6 +1306,13 @@
     }
   },
   "files": {
+    "player-phone": {
+      "file": "donor/warrior-phone.glb",
+      "bytes": 5947704,
+      "sha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+      "errors": 0,
+      "textureCapSource": {"file": "donor/warrior.glb", "bytes": 6749796, "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"}
+    },
     "player": {
       "source": "src/assets/warrior.glb",
       "file": "donor/warrior.glb",

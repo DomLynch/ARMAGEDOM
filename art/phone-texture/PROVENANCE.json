@@ -1,0 +1,39 @@
+{
+  "purpose": "Release 224 phone texture copies: cut iOS GPU texture memory. Originals untouched; copies are new files.",
+  "tool": {
+    "script": "art/phone-texture/cap_tex.py (1024 cap), cap_tex2.py (512 variant)",
+    "python": "3.x with Pillow 12.1.1 (VPS) / current Pillow (Mac, 512 variant)",
+    "method": "Only image bufferView payloads are replaced; all other bufferViews are copied byte-for-byte in original order, offsets rewritten, glTF JSON otherwise unchanged. No accessors, meshes, skins, inverse binds, nodes or animations are re-encoded.",
+    "resize": "Pillow LANCZOS, longest edge capped, aspect preserved, images already within the cap are untouched (original bytes).",
+    "encode": "JPEG stays JPEG (quality 90, 4:4:4, optimize); PNG stays PNG (optimize). No format or colour-space change."
+  },
+  "files": {
+    "Web/public/assets/donor/warrior-phone.glb": {
+      "source": "Web/public/assets/donor/warrior.glb",
+      "sourceSha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
+      "sourceBytes": 6749796,
+      "sha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+      "bytes": 5947704,
+      "cap": "colour/emissive maps 1024, normal / metallic-roughness / AO maps 512 (cap_tex2.py); Lead/Strategy chose this over the 1024-everything variant (92.3 MB), which is not shipped",
+      "estimatedGpuMB": {"before": 124.3, "after": 52.3, "basis": "RGBA8 with full mip chain (x4/3) per image, all 34 images"}
+    },
+    "Web/public/assets/weapons/flamethrower-phone.glb": {
+      "source": "Web/public/assets/weapons/flamethrower.glb",
+      "sourceSha256": "858eff807c441f49e56cfd1c80fb9b470b862a5af815e918d56dc2b419d08a99",
+      "sourceBytes": 4253028,
+      "sha256": "2ea85f7009fbd1ace7514d661de72c5de47ad8732c40494f9c7958faa7514bdb",
+      "bytes": 1399992,
+      "cap": 1024,
+      "changedImages": "image 0 (AO, PNG, 2048 -> 1024)",
+      "estimatedGpuMB": {"before": 21.3, "after": 5.3}
+    }
+  },
+  "verification": {
+    "compare": "art/phone-texture/verify.py: every non-image bufferView byte-identical (3672 warrior, 4 flamethrower), all other glTF JSON identical except bufferView offsets / buffer length.",
+    "stills": "art/phone-texture/stills (fight camera pos 0,23,26 fov 42 as in layout.json, game lights, 375x812 @2x, 5x zoom on the player). pixel-diff.txt: warrior 1024 differs from the original in 0.0000-0.0002% of pixels (max channel diff 3-16), 512 variant 0.009% (max 66). Poses/geometry identical."
+  },
+  "pinsChanged": {
+    "Web/src/donor/flame-right-digit-profile.json": "source.heroSHA256 -> phone sha (runtime compares it with the vagrant file record sha); originalHeroSHA256 kept.",
+    "Web/src/rat-data/foot-bindings.json": "playerSha256 -> phone sha (test pins it to the vagrant file). Bone/vertex data identical."
+  }
+}
