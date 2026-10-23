@@ -25,6 +25,10 @@ test('Salamander own mouth breath: actual rig, ordinary movement, crowding, excl
   const start=()=>{for(let n=0;n<240&&!e.bossWeapon;n++)step();assert.equal(e.bossWeapon?.phase,'warning');return e.bossWeapon.startTick;};
   return{g,e,witch,world,actors,fx,events,frames,step,start,dispose(){fx.dispose();actors.dispose();}};
  }
+ for(const action of['slash','stab','heavy'])await t.test(`actual Knife ${action} hurts the salamander through the real contact sweep (Dom: any attack)`,()=>{
+  const s=setup(1.2);try{const{g,e}=s,hp=e.hp;let locked=null;for(let i=0;i<600&&e.hp===hp;i++){const d={x:e.pos.x-g.player.pos.x,z:e.pos.z-g.player.pos.z};s.step({actions:[action],aim:d,move:Math.hypot(d.x,d.z)>1?d:{x:0,z:0}});if(g.player.swing?.action===action)locked??={ratLow:g.player.swing.def.ratLow,target:g.player.swing.lowTargetId};}
+   assert(locked?.ratLow&&locked.target===e.id,'salamander must be the locked low target');assert(e.hp<hp,`actual posed ${action} must touch the salamander mesh`);}finally{s.dispose();}
+ });
  await t.test('retreating player is hit without a calf goal or teeth swing; native mouth and exact cadence',()=>{
   const s=setup(4.7,{corridor:true});try{const{g,e,actors}=s;g.ratContact.calf=()=>null;const hp=g.player.hp,start=s.start(),direction={...e.bossWeapon.direction},before={...g.player.pos};
    while(g.tick<start+32){s.step({move:direction,run:true});assert.equal(e.swing,null);}
