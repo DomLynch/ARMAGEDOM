@@ -8,7 +8,8 @@ export function boundaryViolations(files, policy) {
   for (const [file, source] of Object.entries(files)) {
     if (internal(file)) continue;
     const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-    const imports = /\b(?:import\s+(?:(?:[^;'"\n]|\n)*?\s+from\s*)?|export\s+(?:[^;'"\n]|\n)*?\s+from\s*)['"]([^'"\n]+)['"]|\bimport\s*\(\s*['"]([^'"\n]+)['"]/g;
+    // Style-independent: `import{x}from'./a.js'` and `import { x } from "./a.js"` are the same import.
+    const imports = /\b(?:import(?=[\s{*'"])\s*(?:(?:[^;'"\n]|\n)*?\bfrom\s*)?|export(?=[\s{*])\s*(?:[^;'"\n]|\n)*?\bfrom\s*)['"]([^'"\n]+)['"]|\bimport\s*\(\s*['"]([^'"\n]+)['"]/g;
     for (const match of code.matchAll(imports)) {
       const specifier = match[1] ?? match[2];
       // Keep client module paths explicit; escape sequences must not hide an
