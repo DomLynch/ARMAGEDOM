@@ -9,13 +9,16 @@
     "test": "node --test --test-concurrency=2 tests/*.test.js",
     "check": "node ../scripts/verify_web.mjs",
     "verify:assets": "node scripts/verify-assets.mjs --actors assets/manifest-hollow.json --audio audio/manifest.json",
-    "test:packaging": "node --test scripts/verify-assets.test.mjs"
+    "test:packaging": "node --test scripts/verify-assets.test.mjs",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
     "three": "0.182.0"
   },
   "devDependencies": {
     "pngjs": "7.0.0",
+    "prettier": "3.9.10",
     "vite": "6.4.4"
   }
 }
