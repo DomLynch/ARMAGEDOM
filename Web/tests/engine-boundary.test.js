@@ -54,5 +54,24 @@ test('public session contract requires all lifecycle operations and preserves fi
 // The frozen maximum is digest-pinned below. Web removes active exceptions as
 // extraction lands; growing the maximum is an explicit policy change, not a fix.
 test('legacy maximum remains the reviewed frozen policy',()=>{
-  assert.equal(createHash('sha256').update(policyRaw).digest('hex'),'c324cadbe2c636d73c4f615202889f59b66188eef47fa87b78b6f7db2acdb476');
+  assert.equal(createHash('sha256').update(policyRaw).digest('hex'),'eb037423e17a3dac1e0ce7196e4a52146f37ca9297b5047e271386c3be68a110');
+});
+// The only growth of the frozen list: six rows hidden by the compact import style until the step 1 format.
+test('formatted-only legacy rows are recorded once and never grow again',()=>{
+  const hidden=policy.legacyExceptions.filter(x=>x.startsWith('melee-equipment.js|')||x.startsWith('unique-reward-view.js|'));
+  assert.equal(hidden.length,6);
+  assert.equal(policy.legacyExceptions.length,27);
+});
+test('imports are matched regardless of formatting style',()=>{
+  const styles=[
+    "import{stepGame}from'./combat.js';",
+    'import { stepGame } from "./combat.js";',
+    "import {\n  stepGame,\n} from './combat.js';",
+    "import*as x from'./combat.js';",
+    "import'./combat.js';",
+    "export{stepGame}from'./combat.js';",
+    "export*from'./combat.js';",
+  ];
+  for(const source of styles)assert.throws(()=>checkEngineBoundaries({...files,'new-mode.js':source},policy,active),/Forbidden engine boundary/,source);
+  assert.doesNotThrow(()=>checkEngineBoundaries({...files,'new-mode.js':"import{createSession}from'./engine/index.js';"},policy,active));
 });

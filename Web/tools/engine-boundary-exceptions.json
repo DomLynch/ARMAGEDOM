@@ -1,1 +1,8 @@
-[]
+[
+  "melee-equipment.js|internal-import|engine/bone-saw-view.js",
+  "melee-equipment.js|internal-import|engine/melee-equipment-data.js",
+  "unique-reward-view.js|internal-import|engine/locker-core.js",
+  "unique-reward-view.js|internal-import|engine/progression-runtime.js",
+  "unique-reward-view.js|internal-import|pickup-glow.js",
+  "unique-reward-view.js|renderer-import|three"
+]

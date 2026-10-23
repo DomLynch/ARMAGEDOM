@@ -1,8 +1,9 @@
+import {indexOfToken} from './helpers/source-slice.js';
 import{stopBossFlames}from'../src/engine/boss-flame.js';
 import{bossExitGate}from'../src/engine/area-bosses.js';
 import {needsUniqueDeathCommit} from '../src/engine/unique-reward-runtime.js';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {travelTo,captureTravelState,restoreTravelState} from '../src/travel.js';
-const source=fs.readFileSync(new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('async function crossArea('),end=source.indexOf('let areaPreparation=null;',start);
+const source=fs.readFileSync(new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'async function crossArea('),end=indexOfToken(source,'let areaPreparation=null;',start);
 for(const failure of ['world-update','lighting','actor-park','partial-activation','actor-update','permanent-recovery'])test(`failed ${failure} activation restores source and supports retry or fails closed`,async()=>{
  const originalEnemy={id:1,placementKey:'source-resident',residentIntent:{pursuitScope:'area'},alerted:true,returning:false,home:{x:2,z:2},hp:40,pos:{x:2,z:2},ready:5,response:{start:1},swing:{start:2}},destinationEnemy={id:2,hp:40,ready:2,response:{start:1},pos:{x:9,z:8}};let fail=true,rendered=0,closed=false,queued=0;
  const world={areaId:'westminster',isAreaReady:()=>true,geometry:{point:p=>({x:p.x,y:p.z})},leaseArea:()=>()=>{},async loadArea(id){if(failure==='world-update'&&fail){fail=false;throw Error('injected update before commit');}this.areaId=id;return{x:9,z:8};},update(){}};

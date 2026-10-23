@@ -88,9 +88,16 @@
     "main.js|internal-import|vest.js",
     "main.js|internal-import|world.js",
     "main.js|renderer-import|three",
+    "melee-equipment.js|internal-import|engine/bone-saw-view.js",
+    "melee-equipment.js|internal-import|engine/melee-equipment-data.js",
     "pistol-save.js|internal-import|combat.js",
     "pistol-save.js|internal-import|drone-mechanics.js",
     "pistol-save.js|internal-import|supplies.js",
-    "pistol-save.js|internal-import|vest.js"
-  ]
+    "pistol-save.js|internal-import|vest.js",
+    "unique-reward-view.js|internal-import|engine/locker-core.js",
+    "unique-reward-view.js|internal-import|engine/progression-runtime.js",
+    "unique-reward-view.js|internal-import|pickup-glow.js",
+    "unique-reward-view.js|renderer-import|three"
+  ],
+  "hiddenLegacyNote": "The last six melee-equipment.js and unique-reward-view.js rows are hidden legacy, exposed by the step 1 format (the compact import style evaded the checker). This is the only time the frozen list grows. Burn-down: Combat removes the two melee-equipment.js rows in step 2a; Web removes the four unique-reward-view.js rows in step 2b/3."
 }

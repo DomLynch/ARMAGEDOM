@@ -1,7 +1,8 @@
+import {indexOfToken} from './helpers/source-slice.js';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
 import {relieveGeometryBudget,protectedAreas} from '../src/engine/parked-view-budget.js';
 function run({urgent=false,delayEast=false,traveling=false,initialArea='east'}={}){
- const source=readFileSync(process.env.PREPARATION_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('let areaPreparation=null;'),end=source.indexOf('function checkExit()',start);assert(start>=0&&end>start);
+ const source=readFileSync(process.env.PREPARATION_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'let areaPreparation=null;'),end=indexOfToken(source,'function checkExit()',start);assert(start>=0&&end>start);
  let clock=0,compileEntered,finishCompile;const compileStarted=new Promise(r=>compileEntered=r),compile=new Promise(r=>finishCompile=r),counts={south:0,east:0},starts=[],closed={south:0,east:0},leases=[],released=[],ready=[],discards=[];
  let graphicsCalls=0;const game={world:{areaId:'westminster'},player:{pos:{x:0,z:0}},finishers:{}},tasks=new Map(['south','east'].map(areaId=>(()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});promise.catch(()=>{});return[areaId,{areaId,status:'queued',promise,resolve,reject}];})()));
  const state={game,urgent:traveling?initialArea:null,cancelled:false,tasks,running:false,iterator:null,stats:{steps:0,cpuMilliseconds:0,maxStepMs:0,areas:{}}};
@@ -30,7 +31,7 @@ test('entry graphics require traveling and mark ready only after compile/warm/fe
 test('Retry while entry compile is pending never marks a replacement session ready',async()=>{const r=run({delayEast:true,traveling:true});await r.pending;r.context.s.traveling=true;const graphics=vm.runInContext('prepareGraphics("east",testState)',r.context);await r.compileStarted;vm.runInContext('stopAreaPreparation();s.game={};',r.context);r.finishCompile();await assert.rejects(graphics,/cancelled/);assert.deepEqual(r.ready,[]);assert.deepEqual(r.discards,[]);assert.equal(r.released.filter(x=>x==='east').length,2);});
 
 test('announced urgent entry yields through timers instead of waiting for idle callbacks; non-entry turn scheduling retains cancellation bounds',async()=>{
- const source=readFileSync(process.env.PREPARATION_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('function preparationTurn('),end=source.indexOf('function exitDistance(',start),game={},state={game,cancelled:false,urgent:'east'};let idleCalls=0,timerCalls=0;
+ const source=readFileSync(process.env.PREPARATION_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'function preparationTurn('),end=indexOfToken(source,'function exitDistance(',start),game={},state={game,cancelled:false,urgent:'east'};let idleCalls=0,timerCalls=0;
  const s={game,traveling:true,contextLost:false},context=vm.createContext({s,performance,setTimeout:fn=>{timerCalls++;queueMicrotask(fn);},requestIdleCallback:fn=>{idleCalls++;queueMicrotask(()=>fn({timeRemaining:()=>10}));}});vm.runInContext(source.slice(start,end)+'globalThis.turn=preparationTurn;',context);
  assert.equal(await context.turn(state),12);assert.equal(timerCalls,1);assert.equal(idleCalls,0);
  s.traveling=false;assert.equal(await context.turn(state),12);assert.equal(idleCalls,1);assert.equal(timerCalls,1);

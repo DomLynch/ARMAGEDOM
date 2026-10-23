@@ -1,0 +1,23 @@
+{
+  "longLines": {
+    "atmosphere.js": 2,
+    "core/index.js": 1,
+    "effects.js": 1,
+    "engine/boss-equipment-view.js": 3,
+    "engine/expedition-runtime.js": 3,
+    "engine/flame-view.js": 1,
+    "engine/marked-view.js": 1,
+    "engine/movement-trace.js": 1,
+    "engine/reaper-view.js": 1,
+    "engine/rifle-view.js": 1,
+    "engine/run-views.js": 4,
+    "engine/unique-reward-runtime.js": 1,
+    "engine/water-effect.js": 1,
+    "hud.js": 3,
+    "input.js": 2,
+    "unique-reward-view.js": 2
+  },
+  "bytes": {
+    "combat.js": 94814
+  }
+}

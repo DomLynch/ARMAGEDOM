@@ -1,9 +1,10 @@
+import {indexOfToken} from './helpers/source-slice.js';
 import{stopBossFlames}from'../src/engine/boss-flame.js';
 import{bossExitGate}from'../src/engine/area-bosses.js';
 import {needsUniqueDeathCommit} from '../src/engine/unique-reward-runtime.js';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';import {travelTo,captureTravelState,restoreTravelState} from '../src/travel.js';import {createGame,resetMobileControls} from '../src/combat.js';
 for(const mode of ['ready','load-rejects','load-resolves'])test(`disposing ${mode} activation cannot mutate game or replacement UI`,async()=>{
- const source=readFileSync(process.env.ENGINE_AREA_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('async function crossArea('),end=source.indexOf('let areaPreparation=null;',start);assert(start>=0&&end>start);const sequence=[];let disposed=false,beginLoad,finishLoad;
+ const source=readFileSync(process.env.ENGINE_AREA_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'async function crossArea('),end=indexOfToken(source,'let areaPreparation=null;',start);assert(start>=0&&end>start);const sequence=[];let disposed=false,beginLoad,finishLoad;
  const started=new Promise(done=>beginLoad=done),pending=new Promise((yes,no)=>finishLoad=()=>mode==='load-rejects'?no(Error('World disposed')):yes({x:9,z:9}));
  const world={areaId:'westminster',move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,isAreaReady:()=>true,loadArea:async()=>{sequence.push('load');beginLoad();return pending},update(){sequence.push('world-update')}};
  const game=createGame(world,{pilot:'donor-knife'}),position={...game.player.pos},areasBefore=game.areaFights,actors={parkArea(){sequence.push('park')},activateArea(){sequence.push('activate')},update(){},ratContact(){return{};}},s={world,game,actors,get contextLost(){return disposed},get loaded(){return!disposed},input:{clear(){sequence.push('input')}},cancelPistol(){},resetClock(){},effects:{reset(){}},hud:{update(){sequence.push('hud')}},renderer:{render(){sequence.push('render')}}};

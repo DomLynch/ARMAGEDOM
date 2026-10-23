@@ -1,10 +1,11 @@
 import test from 'node:test';
+import {indexOfToken} from './helpers/source-slice.js';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {relieveGeometryBudget,protectedAreas} from '../src/engine/parked-view-budget.js';
 test('a delayed compile from a cancelled run cannot discard replacement-run views',async()=>{
- const source=readFileSync(process.env.TRAVEL_MAIN_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=source.indexOf('let areaPreparation=null;'),end=source.indexOf(process.env.TRAVEL_MAIN_SOURCE?'function prepareEncounter()':'function checkExit()',start);assert(start>=0&&end>start);
+ const source=readFileSync(process.env.TRAVEL_MAIN_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'let areaPreparation=null;'),end=indexOfToken(source,process.env.TRAVEL_MAIN_SOURCE?'function prepareEncounter()':'function checkExit()',start);assert(start>=0&&end>start);
  let compileStarted,finishCompile;const started=new Promise(resolve=>compileStarted=resolve),compile=new Promise(resolve=>finishCompile=resolve),stored=new Map([['east','old-views']]),discards=[];
  const actors={bindPreparedArea(){},prepareAreaSteps:function*(){},areaViewStats:()=>({ownedFinisherGeometryBytes:0,finisherGeometryBudgetBytes:1}),discardArea:area=>{discards.push(area);stored.delete(area);},reset:()=>stored.clear()};
  const game={world:{areaId:'westminster'},player:{pos:{x:0,z:0}},finishers:{}},task={areaId:'east',status:'queued',resolve(){},reject(){}};
