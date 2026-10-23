@@ -6,6 +6,75 @@ import {selectedPistolProfile} from './engine/expedition-core.js';
 import {pilotBonuses,DEFAULT_ATTRIBUTES} from './engine/progression-rules.js';
 import {PISTOL_RULES} from './pistol.js';
 import {vestAvailable} from './vest.js';
+// The HUD refreshes every frame. update() stages its writes (the last write to a slot
+// wins, so a default overridden later in the frame never reaches the DOM) and flush()
+// applies only values that differ from the DOM, or from the last style written (the
+// browser normalises style strings). Unchanged frames therefore touch nothing, which
+// also stops aria-live text being re-announced. update() must not read back a value it
+// has just set: reads see the DOM as of the previous frame.
+// Records, their maps and the view wrappers are created once per element and reused.
+const records=new WeakMap(),dirty=[];
+function mark(record){if(!record.dirty){record.dirty=true;dirty.push(record);}}
+function view(node){
+  if(!node)return node;
+  let record=records.get(node);
+  if(record)return record.view;
+  record={node,dirty:false,text:undefined,hidden:undefined,disabled:undefined,attrs:new Map(),classes:new Map(),styles:new Map(),written:new Map(),bound:new Map()};
+  const stageClass=(name,on)=>{record.classes.set(name,on);mark(record);},
+    stageStyle=(name,value)=>{record.styles.set(name,value);mark(record);},
+    style={set width(value){stageStyle('width',value);},setProperty:stageStyle},
+    classes={toggle:(name,on)=>stageClass(name,!!on),remove:(...names)=>{for(const name of names)stageClass(name,false);},contains:name=>node.classList.contains(name)},
+    setAttribute=(name,value)=>{record.attrs.set(name,String(value));mark(record);},
+    querySelector=selector=>view(node.querySelector(selector));
+  record.view=new Proxy(node,{
+    get(target,key){
+      if(key==='setAttribute')return setAttribute;
+      if(key==='style')return style;
+      if(key==='classList')return classes;
+      if(key==='querySelector')return querySelector;
+      const value=Reflect.get(target,key,target);
+      if(typeof value!=='function')return value;
+      let bound=record.bound.get(key);
+      if(!bound)record.bound.set(key,bound=value.bind(target));
+      return bound;
+    },
+    set(target,key,value){
+      if(key==='textContent'){record.text=String(value);mark(record);}
+      else if(key==='hidden'){record.hidden=value;mark(record);}
+      else if(key==='disabled'){record.disabled=value;mark(record);}
+      else target[key]=value;
+      return true;
+    },
+  });
+  records.set(node,record);
+  return record.view;
+}
+function flush(){
+  for(const record of dirty){
+    const node=record.node;
+    record.dirty=false;
+    if(record.text!==undefined){if(node.textContent!==record.text)node.textContent=record.text;record.text=undefined;}
+    if(record.hidden!==undefined){if(node.hidden!==record.hidden)node.hidden=record.hidden;record.hidden=undefined;}
+    if(record.disabled!==undefined){if(node.disabled!==record.disabled)node.disabled=record.disabled;record.disabled=undefined;}
+    if(record.attrs.size){
+      for(const[name,value]of record.attrs)if((node.getAttribute?node.getAttribute(name):node.attributes?.get(name))!==value)node.setAttribute(name,value);
+      record.attrs.clear();
+    }
+    if(record.classes.size){
+      for(const[name,on]of record.classes)if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
+      record.classes.clear();
+    }
+    if(record.styles.size){
+      for(const[name,value]of record.styles){
+        if(record.written.get(name)===value)continue;
+        record.written.set(name,value);
+        if(name==='width')node.style.width=value;else node.style.setProperty(name,value);
+      }
+      record.styles.clear();
+    }
+  }
+  dirty.length=0;
+}
 export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onSound, onPistol = () => {}, onFeedback = () => {}, onAssist = () => {} }) {
   const el = (id) => document.getElementById(id),
     menu = el("menu");
@@ -84,6 +153,8 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
       el("loading").textContent = message;
     },
     update(g) {
+      try{
+      const el = (id) => view(document.getElementById(id));
       const p = g.player,
         donor = g.pilot === "donor-knife";
       el("health-fill").style.width = `${(p.hp / p.maxHP) * 100}%`;
@@ -252,7 +323,7 @@ export function createHUD({ onRetry, onReset=async()=>({ok:false}), onPause, onS
 
       el('safehouse-status').hidden=!g.weaponsLowered;
       if(g.weaponsLowered){el('ammo').hidden=false;el('ammo').textContent='SAFEHOUSE · WEAPONS LOWERED';}
-
+      }finally{flush();}
     },
   };
 }
