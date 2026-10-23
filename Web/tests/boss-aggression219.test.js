@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import {stepBossRanged,stepBossRockets,clearBossRanged,BOSS_RANGED_RULES} from '../src/engine/boss-ranged.js';
 import {fixture} from './helpers/rifle-fixture.js';
 import {stepGame} from '../src/combat.js';
@@ -84,5 +85,13 @@ test('actual combat resolves incoming rocket against this tick guard press/relea
   if(guard){assert.equal(g.player.hp,before);assert(g.events.some(event=>event.type==='block'&&event.weapon==='rocket'&&event.attackerId===e.id));}
   else{assert(g.player.hp<before&&g.player.hp>=before-14);const hit=g.events.find(event=>event.type==='hit'&&event.actor===g.player);assert.equal(hit.weapon,'rocket');assert.equal(hit.moveId,'boss-rocket');assert.equal(hit.attackerId,e.id);}
   const after=g.player.hp;stepGame(g,{guard},1/60);assert.equal(g.player.hp,after,'consumed rocket cannot damage a second time');
+ }
+});
+
+test('runtime world manifest binds the exact updated content bytes',()=>{const raw=fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url)),manifest=read('../public/world/manifest.json'),row=manifest.files.find(r=>r.path==='area-content.json');assert.equal(row.bytes,raw.length);assert.equal(row.sha256,createHash('sha256').update(raw).digest('hex'));});
+test('six actual boss instances acquire inside the new wake band and still reject blocked LOS',()=>{
+ for(const row of data.bosses.placements.filter(r=>r.profileRef!=='witch'))for(const visible of [true,false]){
+  const f=fixture({areaId:row.areaId}),g=f.g,e=g.enemies.find(e=>e.placementKey===row.key),p=data.bosses.profiles[row.profileRef];g.enemies=[e];e.pos={x:0,z:0};e.home={...e.pos};e.alerted=false;e.returning=false;g.player.pos={x:0,z:p.wakeDistance-.05};g.world.lineClear=()=>visible;g.world.move=(p,d)=>({x:p.x+d.x,z:p.z+d.z});
+  assert(g.player.pos.z>base.bosses.profiles[row.profileRef].wakeDistance);stepGame(g,{},1/60);assert.equal(e.alerted,visible,row.profileRef+' new wake band respects LOS');assert.equal(g.world.areaId,row.areaId);
  }
 });

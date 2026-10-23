@@ -21,7 +21,9 @@ for(const row of content.bossData.placements)test('actual '+row.profileRef+' exa
   }
   const far={pos:{x:0,z:8},combatScale:1.265};assert.equal(bladeContact(attacker,attacker,far,far,a.path,a.windupTicks,a.windupTicks+1),false);
  }
- const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:['surgeon','butcher','warden'].includes(row.profileRef)?p.wakeDistance+.4:0});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);
+ // 219 deliberately expands boss acquisition. Preserve physical escape routes,
+ // not the obsolete promise of crossing without waking a boss.
+ const layout=layouts[registry.get(row.areaId).layoutRef];validateAreaGeometry(registry,row.areaId,layout,content.residents,content.expedition,content.bossData);const routes=probeOptionalPocket({geometry:createGeometry(layout),registry,areaId:row.areaId,center:row.pos,avoidRadius:0});assert(routes.length>=3);for(const route of routes){assert(route.startClear&&route.entryOutsideBoss);
   const missing=route.missingExits.filter(to=>!registry.links(row.areaId).some(link=>link.to===to&&link.requiresDefeat===row.key));
   // New bosses have separately approved threat coverage; this checks physical
   // routes, not a promise of remaining outside their wake radius.
