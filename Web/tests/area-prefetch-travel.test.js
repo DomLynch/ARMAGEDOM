@@ -11,6 +11,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const read = (path) => JSON.parse(fs.readFileSync(new URL("../public/" + path, import.meta.url)));
 
 test("travel still completes when every prefetch request fails", async () => {
+  let ready = false;
   const registry = createAreaRegistry({ manifest: read("world/manifest.json") });
   let geometry = createGeometry(read("world/westminster/layout.json"));
   const world = {
@@ -23,7 +24,8 @@ test("travel still completes when every prefetch request fails", async () => {
     lineClear: (a, b) => world.geometry.lineClear(a, b),
     move: (p, d, r) => world.geometry.move(p, d, r),
     travelAt: () => null,
-    isAreaReady: () => true,
+    // Neighbours count as not ready while the prefetch runs; the crossing then finds them ready.
+    isAreaReady: (id) => ready || id === world.areaId,
     markAreaReady() {},
     setParkedLimit() {},
     leaseArea: () => () => {},
@@ -82,6 +84,7 @@ test("travel still completes when every prefetch request fails", async () => {
     life.start();
     await sleep(100);
     assert.ok(calls.length > 0, "the prefetch tried and failed");
+    ready = true;
     assert.equal(await life.activate({ areaId: "south" }), true);
     assert.equal(world.areaId, "south");
     assert.equal(s.traveling, false);

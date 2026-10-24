@@ -108,7 +108,7 @@ test("only the two nearest neighbours are fetched", async () => {
 test("no read while a fight is live; it resumes afterwards without a burst", async () => {
   const fight = { from: 5000, to: 9000 };
   const { log, prefetch, drain } = rig({
-    files: { "/east/layout.json": 2_000_000 },
+    files: { "/east/layout.json": 20_000_000 },
     neighbours: ["east"],
     canRun: (t) => t < fight.from || t >= fight.to,
   });
