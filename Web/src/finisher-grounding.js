@@ -235,7 +235,9 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
     const action = mixer.clipAction(clip);
     action.play();
     action.paused = true;
-    for (let i = 0; i <= samples; i++) {
+    // Poses the rig at sample i. The rig may be driven elsewhere between steps (a live resident animates, or the
+    // caller restores another pose), so this runs again after every resume, before any vertex is read.
+    const poseAt = (i) => {
       action.time = Math.min(0.999999, i / samples) * clip.duration;
       mixer.update(0);
       root.updateWorldMatrix(true, false);
@@ -244,11 +246,15 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         if (n.skeleton) n.skeleton.update();
       });
       inverse.copy(root.matrixWorld).invert();
+    };
+    for (let i = 0; i <= samples; i++) {
+      poseAt(i);
       // Posing the rig is itself 6-10 ms; the vertex reads below start a fresh step.
       if (performance.now() - since >= 4) {
         prepMilliseconds += performance.now() - since;
         yield "victim-pose";
         since = performance.now();
+        poseAt(i);
       }
       let floor = Infinity;
       let reads = 0;
@@ -267,6 +273,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
               prepMilliseconds += performance.now() - since;
               yield "victim-floor";
               since = performance.now();
+              poseAt(i);
               draw.sampler?.update();
             }
           }
