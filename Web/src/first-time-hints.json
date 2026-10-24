@@ -5,12 +5,12 @@
     "when": { "tookHit": true },
     "text": "DODGE ROLL gets you out of a hit. Hold GUARD to block."
   },
-  { "id": "pistol", "when": { "pistolPickup": true }, "text": "Tap Equip pistol (or G) to pick it up." },
+  { "id": "pistol", "when": { "pistolPickup": true }, "text": "Tap PICK UP & EQUIP PISTOL to take it." },
   { "id": "map", "when": { "nearExit": true }, "text": "Open the menu for MAP and travel." },
   {
     "id": "ember-fire",
     "when": { "flameEquipped": true },
-    "text": "Hold FLAME to fire. On touch, tap an enemy first to target it."
+    "text": "Hold FLAME to burn the enemy in front of you."
   },
   {
     "id": "ember-matron",
