@@ -368,6 +368,23 @@ test("?stats=1 logs the renderer's totals for the whole previous frame every 120
   assert.equal(quiet.s.renderer.info.autoReset, true);
 });
 
+test("?stats=1: frames during a travel are reset and restart the count, so the first line after is one clean frame", () => {
+  const lines = [];
+  let resets = 0;
+  const info = { autoReset: true, render: { calls: 7, triangles: 70 }, reset: () => resets++ };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 119; i++) t.session.update();
+  t.s.traveling = true;
+  t.session.update();
+  assert.equal(resets, 120, "the travel frame is reset too, not skipped");
+  t.s.traveling = false;
+  for (let i = 0; i < 119; i++) t.session.update();
+  assert.deepEqual(lines, [], "the count restarted at the travel: 119 frames since is not yet a line");
+  t.session.update();
+  assert.equal(lines.length, 1);
+});
+
 test("the view asks for the kit once a frame, however many players are on screen", () => {
   const scene = new THREE.Scene();
   let asked = 0;
