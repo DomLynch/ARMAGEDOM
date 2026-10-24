@@ -19,7 +19,8 @@ export const MARKED_DEFAULTS = freeze({
 });
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
-  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections"]);
+  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections", "hunters", "bounty"]);
+  for (const k of ["hunters", "bounty"]) if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
   for (const key of Object.keys(MARKED_DEFAULTS).filter((k) => k !== "shop"))
     if (!Number.isFinite(input[key]) || input[key] <= 0) throw TypeError("Invalid Marked rule");
   if (
