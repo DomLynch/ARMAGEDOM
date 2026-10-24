@@ -94,6 +94,16 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
       /* Hints still show once per page load without storage. */
     }
   }
+  // A timed row is seen the moment it starts; a persistent (`stays`) row only once it has ended, so a parked one
+  // that is somehow lost still comes back while its condition holds.
+  const start = (row) => {
+    if (!row.stays) remember(row.id);
+    active = { id: row.id, text: row.text, left: HINT_SECONDS, stays: row.stays, overMessage: !!row.overMessage };
+    return active;
+  };
+  const finish = (hint) => {
+    if (hint.stays) remember(hint.id);
+  };
   return {
     // The existing game event stream: a "hit" whose actor is the player is the first hit taken.
     observe(g) {
@@ -122,8 +132,10 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
       if (active && !active.overMessage) {
         const urgent = rows.find((row) => row.overMessage && !seen.has(row.id) && fires(row));
         if (urgent) {
-          resume = active;
-          active = null;
+          // Park the hint once (never over one already parked) and start the urgent row itself, not the
+          // first unseen row in table order.
+          resume ??= active;
+          return show(start(urgent));
         }
       }
       let spent = elapsed;
@@ -136,15 +148,14 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
           active.left -= spent;
           if (active.left > 0) return show(active);
         }
+        finish(active);
         active = resume;
         resume = null;
         spent = 0;
       }
       for (const row of rows) {
         if (seen.has(row.id) || (messageShowing && !row.overMessage) || !fires(row)) continue;
-        remember(row.id);
-        active = { text: row.text, left: HINT_SECONDS, stays: row.stays, overMessage: !!row.overMessage };
-        return show(active);
+        return show(start(row));
       }
       return "";
     },

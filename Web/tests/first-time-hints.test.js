@@ -169,6 +169,37 @@ test("the first-hit tip takes the line from the persistent pistol hint, which re
   assert.equal(hints.current(g), "");
 });
 
+test("pistol hint, enemy within 6 m, first hit: DODGE shows, then ATTACK is not stolen and the pistol hint is back", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"), "spawn: the pistol hint");
+  g.enemies = [scavenger(-0.85, -3)];
+  assert.equal(run(hints, g, 2), text("pistol"), "an enemy within 6 m does not take the line");
+  g.events = [{ type: "hit", actor: g.player, amount: 10 }];
+  hints.observe(g);
+  assert.equal(hints.current(g), text("dodge-guard"), "the first frame after the hit is the survival tip, not ATTACK");
+  assert.equal(run(hints, g, 0.5), text("dodge-guard"));
+  assert.equal(run(hints, g, HINT_SECONDS), text("pistol"), "after the tip the parked pistol hint is back");
+  assert.equal(run(hints, g, 30), text("pistol"), "and stays while the pistol is on the ground nearby");
+  g.pistol.collected = true;
+  assert.equal(hints.current(g), text("attack"), "collecting ends it; the waiting attack tip shows next");
+});
+
+test("a persistent hint is only marked seen once it has ended", () => {
+  const storage = memory();
+  const hints = createFirstTimeHints({ storage });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"));
+  assert.equal(storage.data.get(HINT_STORAGE_KEY) ?? "[]", "[]", "still running, so not stored yet");
+  g.pistol.collected = true;
+  hints.current(g);
+  assert.match(storage.data.get(HINT_STORAGE_KEY), /pistol/);
+});
+
 test("the first-hit and Matron tips are one short line each", () => {
   assert.equal(text("dodge-guard"), "Dodge roll to avoid hits. Hold GUARD.");
   assert.equal(text("ember-matron"), "The Ember Matron has a flamethrower. Take it.");
