@@ -146,14 +146,11 @@ async function loadAsset(url) {
   const bytes = fs.readFileSync(new URL(url, assets)),
     gltf = await loadGeometry(bytes);
   if (url.endsWith("original-dog.glb")) {
-    // Node has no image decoder: give the dog coat material its real decoded PNG as RGBA data.
+    // Node has no image decoder: give the dog coat material its real decoded PNG as RGBA data. The GLB stores the coat as lossless
+    // WebP (identical pixels); the fixture is the original PNG of the same image.
     const { PNG } = await import("pngjs"),
-      { decode } = await import("../../../art/donor/probe.mjs"),
-      { doc, bin } = decode(bytes),
-      material = doc.materials.find((m) => m.name === "Weathered brindle coat"),
-      image = doc.images[doc.textures[material.pbrMetallicRoughness.baseColorTexture.index].source],
-      view = doc.bufferViews[image.bufferView],
-      decoded = PNG.sync.read(bin.subarray(view.byteOffset ?? 0, (view.byteOffset ?? 0) + view.byteLength)),
+      material = { name: "Weathered brindle coat" },
+      decoded = PNG.sync.read(fs.readFileSync(new URL("../fixtures/original-dog-coat.png", import.meta.url))),
       texture = new T.DataTexture(new Uint8Array(decoded.data), decoded.width, decoded.height, T.RGBAFormat);
     texture.colorSpace = T.SRGBColorSpace;
     texture.flipY = false;

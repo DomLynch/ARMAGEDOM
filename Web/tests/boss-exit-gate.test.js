@@ -64,11 +64,11 @@ test('actual historical v9 defeated save migrates through existing Core to legac
  const invalid=JSON.parse(records.get(HUB_SAVE_KEY));invalid.bossEquipment.emberProjector.status='invented';const bad=make(new Map([[HUB_SAVE_KEY,JSON.stringify(invalid)]]));bad.restore();assert.equal(bad.g.runSaveInvalid,true);assert.equal(bossExitGate(bad.g,'east').allowed,false);
 });
 
-test('blocked lifecycle activation cannot begin loading, and Journal retains the optional contract beside the gate cue',async()=>{
+test('blocked lifecycle activation cannot begin loading, and Journal shows the gate cue with no contract text',async()=>{
  const f=make();f.restore();let loads=0;f.world.loadArea=async()=>{loads++;throw Error('must not load');};
  const lifecycle=createAreaLifecycle({game:f.g,world:f.world});assert.equal(await lifecycle.activate({areaId:'east'}),false);assert.equal(loads,0);assert.match(f.g.message,/Ember Matron/);
  f.world.travelAt=()=>({areaId:'east'});assert.equal(lifecycle.checkExit(),false);assert.equal(lifecycle.checkExit(),false);assert.equal(loads,0);
- const presentation=journalPresentation(f.g,f.world.expeditionData);assert.match(presentation.next,/Ember Matron/);assert.match(presentation.next,/Optional/);
+ const presentation=journalPresentation(f.g,f.world.expeditionData);assert.match(presentation.next,/Ember Matron/);assert.doesNotMatch(presentation.next,/Optional|contract/i); // contract off (Dom, 24 Oct): only the gate cue remains
 });
 
 test('actual relocated Witch remains on clear East approach, outside travel triggers and safe return arrival',()=>{

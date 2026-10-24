@@ -23,6 +23,7 @@ export function capsuleSegmentClear(g, a, b) {
 }
 // The arrow's tail starts this far out from the player's centre, clear of the character's footprint (radius 0.4).
 export const ARROW_TAIL_GAP = 0.7;
+export const TUTORIAL_AREA = "westminster";
 // The ground arrow fades slowly in and out so it is easier to notice: a 1.3 s cycle between 0.35 and 1 opacity.
 export const ARROW_PULSE_SECONDS = 1.3,
   ARROW_MIN_OPACITY = 0.35;
@@ -290,8 +291,8 @@ export function createRouteGuidance(world) {
   function update(position, activeWorld = world) {
     if (marker) marker.visible = distance(position, entrance.path.at(-1)) < 9;
     const cue = activeWorld.travelAt(position) ? null : resolve(position);
-    arrow.visible = !!cue;
-    if (!cue) return;
+    arrow.visible = !!cue && activeWorld.areaId === TUTORIAL_AREA; // the tutorial ends in Westminster: no route arrows elsewhere
+    if (!arrow.visible) return;
     const dx = cue.target.x - position.x,
       dz = cue.target.z - position.z,
       length = Math.hypot(dx, dz),
@@ -318,6 +319,7 @@ export function createRouteGuidance(world) {
             : areaDisplayName(cue.row.to).toUpperCase();
     if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < 1.2)
       return `EXIT → ${name}`;
+    if (activeWorld.areaId !== TUTORIAL_AREA) return ""; // outside Westminster only the exit label above is shown
     return `${cue.row.kind === "boundary" ? "ROAD CLOSED · " : ""}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;
   }
   return {

@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 187971,
-      "sha256": "42cfdc411d7373bc4334c28f31727ad9b7703e3cc564b7b8b379f6e8ea813f80"
+      "bytes": 188038,
+      "sha256": "deba979bcd0e92c4b3c77eba4210573ab7b4bf25e185997562efe343b4d8aae3"
     },
     {
       "area": "area7",
@@ -104,10 +104,10 @@
     },
     {
       "area": "area7",
-      "path": "area7/backdrop.png",
-      "source": "Owner original / image-authored street geometry",
-      "sha256": "6d82e2636a48c662cf836d26c3c28ce140e67ffae506cfec27987be49d8f6e5f",
-      "bytes": 3429682
+      "path": "area7/backdrop-phone.webp",
+      "source": "area7/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept)",
+      "sha256": "42b2617cd534aac412e71d35856d0a032e9dfed341650f9b3a66c127166abab4",
+      "bytes": 550482
     },
     {
       "area": "area8",
@@ -118,10 +118,10 @@
     },
     {
       "area": "area8",
-      "path": "area8/backdrop.png",
-      "source": "Owner original / image-authored street geometry",
-      "sha256": "51ae9354227dd3d744c52c2ae2b0804d30cb00b4c2642ab5fe448162a29e7aa3",
-      "bytes": 3359014
+      "path": "area8/backdrop-phone.webp",
+      "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept)",
+      "sha256": "5583581a6a61423da2889ab17b9d33c712a1e944371fa72f9e3c3bd0c71cde1c",
+      "bytes": 531290
     },
     {
       "area": "westminster",
@@ -139,10 +139,10 @@
     },
     {
       "area": "central-hub",
-      "path": "central-hub/backdrop.png",
-      "source": "Owner approved central courtyard image 2026-10-21; original PNG retained byte-exact",
-      "sha256": "9a0f7ab78931a1eabdca03de759eabf87cf93e98ac6cf7be326d651d0511f267",
-      "bytes": 3349648
+      "path": "central-hub/backdrop-phone.webp",
+      "source": "central-hub/backdrop.png (owner approved 2026-10-21, kept byte-exact) re-encoded lossy WebP quality 85, same 1672x941 pixels",
+      "sha256": "1e850db9f62f481f5188fec001d8771e87a9e23777d0048d46253de9f93bdda9",
+      "bytes": 509606
     },
     {
       "area": "westminster",
@@ -588,9 +588,9 @@
     "east-bridge": "backdrop.webp",
     "elephant-and-castle": "backdrop.webp",
     "lambeth": "backdrop.webp",
-    "area7": "backdrop.png",
-    "area8": "backdrop.png",
-    "central-hub": "backdrop.png"
+    "area7": "backdrop-phone.webp",
+    "area8": "backdrop-phone.webp",
+    "central-hub": "backdrop-phone.webp"
   },
   "contentRef": "area-content.json"
 }

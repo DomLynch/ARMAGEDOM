@@ -64,7 +64,7 @@ export function createRifleView(s, dispatch) {
         command.type === "claimPickup"
           ? "Bridge Rifle collected. Equip it in Gear."
           : command.equipped
-            ? "RIFLE EQUIPPED · Press Fire once per shot; Reload transfers reserve rounds."
+            ? "RIFLE EQUIPPED"
             : "Returned to melee.";
       g.messageUntil = g.time + 4;
       s.input.clear();

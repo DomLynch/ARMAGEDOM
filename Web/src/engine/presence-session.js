@@ -8,6 +8,7 @@ import { createSurvivorKit } from "./remote-survivors.js";
 
 const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
 const STATS_EVERY = 100; // state messages (about 10 s)
+const STATS_FRAMES = 120; // frames between ?stats=1 renderer lines (about 2 s)
 export const percentile = (values, p) => {
   const sorted = [...values].sort((a, b) => a - b);
   return Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0);
@@ -15,7 +16,7 @@ export const percentile = (values, p) => {
 
 export function createPresenceSession(
   s,
-  { config, getToken = async () => null, WebSocketImpl, now, log = (line) => console.info(line) } = {},
+  { config, getToken = async () => null, WebSocketImpl, now, log = (line) => console.info(line), stats = false } = {},
 ) {
   if (!config) return null;
   const client = createPresenceClient({ url: config.url, getToken, WebSocketImpl, now }),
@@ -23,13 +24,16 @@ export function createPresenceSession(
   let view = null, // built on the first frame: the scene does not exist yet when the session is created
     area = null,
     lastPosition = null, // the previous frame's position: the last one known to be in the area I am leaving
-    clock = now ?? (() => globalThis.performance?.now?.() ?? Date.now());
+    statFrames = 0,
+    remotes = 0,
+    clock = now ??(() => globalThis.performance?.now?.() ?? Date.now());
 
   // The other players wear the reduced survivor mesh. It is a deferred model: it loads when the first remote player appears, and
   // until then (or if it fails) the capsule stays. The kit is rebuilt if the library is replaced (a restart).
   let kit = null,
     kitLibrary = null,
-    kitLoading = false;
+    kitLoading = false,
+    disposed = false; // a model that finishes loading after dispose() must not build a kit nobody will free
   function survivorKit() {
     const library = s.survivorLibrary ?? null;
     if (library !== kitLibrary) {
@@ -44,7 +48,7 @@ export function createPresenceSession(
         .then(() => {
           const source = library.models.get(REMOTE_MODEL),
             player = library.models.get("vagrant");
-          if (library !== kitLibrary || !source || !player) return;
+          if (disposed || library !== kitLibrary || !source || !player) return;
           kit = createSurvivorKit({
             source,
             animations: player.gltf.animations,
@@ -100,6 +104,18 @@ export function createPresenceSession(
       const g = s.game;
       if (!g || !s.world || s.traveling) return;
       const position = g.player.pos;
+      // ?stats=1: the renderer's totals for the WHOLE previous frame (every pass), logged every STATS_FRAMES frames with the number
+      // of remote players then on screen: the measured cost of the other players. The loop does not call update() on travel frames,
+      // but areas.js renders once outside the loop when a travel ends; the first update in the new area (the area changed) throws
+      // that mixed reading away and restarts the count.
+      if (stats && s.renderer?.info) {
+        const info = s.renderer.info;
+        info.autoReset = false;
+        if (area !== null && s.world.areaId !== area) statFrames = 0;
+        else if (++statFrames % STATS_FRAMES === 0)
+          log(`[arma-world] frame draw calls=${info.render.calls} triangles=${info.render.triangles} remotes=${remotes}`);
+        info.reset();
+      }
       if (s.world.areaId !== area) {
         const previous = area;
         area = s.world.areaId;
@@ -122,8 +138,10 @@ export function createPresenceSession(
       });
       const samples = client.joined ? remote.sample(clock()) : [];
       view.update(samples);
+      remotes = samples.length;
     },
     dispose() {
+      disposed = true;
       client.close();
       view?.dispose();
       view = null;

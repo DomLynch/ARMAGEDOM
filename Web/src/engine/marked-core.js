@@ -100,7 +100,7 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
                 ),
                 amount = boss ? config.bossCash : config.cashPerKill;
               money.carried = Math.min(config.maxMoney, money.carried + amount);
-              money.bounty = Math.min(config.maxMoney, money.bounty + amount);
+              if (config.bounty !== false) money.bounty = Math.min(config.maxMoney, money.bounty + amount);
               earned += amount;
             }
           if (action) {

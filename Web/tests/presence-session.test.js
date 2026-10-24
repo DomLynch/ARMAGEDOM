@@ -330,6 +330,82 @@ test("a library that is replaced (a restart) gets its own request", async () => 
   assert.equal(requested.length, 2);
 });
 
+test("a mesh that finishes loading after dispose() builds no kit", async () => {
+  const t = setup();
+  let release,
+    built = 0;
+  const library = {
+    models: new Map([
+      ["remote-survivor", {}],
+      ["vagrant", { get gltf() { built++; return { animations: [] }; } }], // only read when a kit is being built
+    ]),
+    ensureModels: () => new Promise((resolve) => (release = resolve)),
+  };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.dispose();
+  release();
+  await flush();
+  assert.equal(built, 0);
+});
+
+test("?stats=1 logs the renderer's totals for the whole previous frame every 120 frames, and resets them each frame; off by default", () => {
+  const lines = [];
+  let resets = 0;
+  const info = { autoReset: true, render: { calls: 31, triangles: 5000 }, reset: () => resets++ };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 120; i++) t.session.update();
+  assert.equal(info.autoReset, false, "totals add up over every pass of the frame");
+  assert.equal(resets, 120);
+  assert.deepEqual(lines.filter((l) => l.includes("frame draw calls")), ["[arma-world] frame draw calls=31 triangles=5000 remotes=0"]);
+  const quiet = setup({ log: (line) => lines.push(line) });
+  quiet.s.renderer = { info: { autoReset: true, render: {}, reset: () => assert.fail("not asked for") } };
+  for (let i = 0; i < 120; i++) quiet.session.update();
+  assert.equal(quiet.s.renderer.info.autoReset, true);
+});
+
+test("?stats=1: the render areas.js does after a travel ends is thrown away with the first update in the new area, and the count restarts", () => {
+  const lines = [];
+  const info = {
+    autoReset: true,
+    render: { calls: 0, triangles: 0 },
+    reset() {
+      this.render.calls = this.render.triangles = 0;
+    },
+  };
+  const frame = (t) => {
+    info.render.calls += 10; // one loop frame renders 10 calls
+    t.session.update();
+  };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 119; i++) frame(t);
+  // A travel as the real loop sees it: update() is NOT called while traveling; the area changes; areas.js renders once on its own.
+  t.s.traveling = true;
+  t.s.world.areaId = "east";
+  t.s.traveling = false;
+  info.render.calls += 10; // the out-of-loop render
+  frame(t); // first update in the new area: 20 calls would be the mixed reading
+  assert.deepEqual(lines, [], "no line on that frame, and the count restarted");
+  for (let i = 0; i < 119; i++) frame(t);
+  assert.deepEqual(lines, [], "119 frames since the restart is not yet a line");
+  frame(t);
+  assert.deepEqual(lines, ["[arma-world] frame draw calls=10 triangles=0 remotes=0"], "a clean one-frame reading");
+});
+
+test("the view asks for the kit once a frame, however many players are on screen", () => {
+  const scene = new THREE.Scene();
+  let asked = 0;
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => (asked++, null) });
+  view.update([1, 2, 3, 4].map((id) => ({ id, x: id, z: 0, facing: 0, moving: false })));
+  assert.equal(asked, 1);
+  view.dispose();
+});
+
 test("guests are named by id until the server sends names", () => {
   assert.equal(guestName(12), "Guest 12");
   assert.equal(guestName(12, "Sam"), "Sam");

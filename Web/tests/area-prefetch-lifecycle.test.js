@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 import { createAreaLifecycle, PARKED_AREA_LIMIT } from "../src/engine/areas.js";
 import { limitParkedAreas } from "../src/engine/parked-view-budget.js";
 import { LondonWorld } from "../src/world.js";
+import fs from "node:fs";
+import { createGame } from "../src/combat.js";
+import { createAreaRegistry } from "../src/area-registry.js";
+import { createGeometry } from "../src/world-geometry.js";
 
 const FAST = { startDelayMs: 0, recheckMs: 5, fightQuietMs: 60, bytesPerSecond: 1e9 };
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

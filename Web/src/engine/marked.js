@@ -19,7 +19,9 @@ export const MARKED_DEFAULTS = freeze({
 });
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
-  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections"]);
+  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections", "hunters", "bounty"]);
+  for (const k of ["hunters", "bounty"])
+    if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
   for (const key of Object.keys(MARKED_DEFAULTS).filter((k) => k !== "shop"))
     if (!Number.isFinite(input[key]) || input[key] <= 0) throw TypeError("Invalid Marked rule");
   if (
@@ -91,6 +93,8 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
   }
   return freeze(structuredClone(input));
 }
+// The bounty views read this, so a save that still carries a bounty shows none while the bounty is off; the save bytes are untouched.
+export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0 : (g.marked?.bounty ?? 0));
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
 export function validMarked(s, max = MARKED_DEFAULTS.maxMoney) {
   try {

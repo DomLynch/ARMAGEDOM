@@ -5,8 +5,10 @@ import { createMenuTabs } from "./menu-tabs.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js";
 import { PISTOL_RULES } from "./pistol.js";
-import { vestAvailable } from "./vest.js";
 import { keySuffix } from "./engine/key-hint.js";
+// Lines the HUD never shows (Dom's text pass, 24 Oct): the hunter warnings, whichever system still sets them.
+const HIDDEN_MESSAGE = /^(HUNTER INBOUND|A hunter is after you|Hunter in \d)/;
+export const hudMessage = (message) => (HIDDEN_MESSAGE.test(message ?? "") ? "" : (message ?? ""));
 // The HUD refreshes every frame. update() stages its writes (the last write to a slot
 // wins, so a default overridden later in the frame never reaches the DOM) and flush()
 // applies only values that differ from the DOM, or from the last style written (the
@@ -367,21 +369,13 @@ export function createHUD({
           el("progression-weapons").textContent =
             `Knife ${progression.proficiency.knife}/100 (+${bonus("knife")}% mastery damage) · Pistol ${progression.proficiency["westminster-start-pistol-v1"]}/100 (+${bonus("westminster-start-pistol-v1")}% mastery damage). Combined damage bonus: +${["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon) ? 0 : Math.round((model.bonuses(progression, weapon).damageMultiplier - 1) * 1000) / 10}%.`;
         }
-        const vestNotice =
-          !g.finished && p.hp > 0
-            ? g.vest?.equipped
-              ? "VEST EQUIPPED · 10% protection"
-              : g.world?.areaId === "westminster" && vestAvailable(g.vest, g.supplies, g.lootRules)
-                ? "VEST BY PISTOL STASH · Walk near to equip"
-                : ""
-            : "";
         // A survival hint (hintFirst) outranks even a live game message; every other hint waits for it.
         const message =
           hintFirst && hint
             ? hint
             : g.time < g.messageUntil
-              ? g.message
-              : hint || g.world?.exitHint?.(p.pos) || vestNotice;
+              ? hudMessage(g.message)
+              : hint || g.world?.exitHint?.(p.pos) || "";
         // A first-time hint is a gold pop-up in the route arrow's colour; game messages keep the plain style.
         const gold = !!hint && message === hint;
         if (message !== lastMessage || gold !== lastGold) {

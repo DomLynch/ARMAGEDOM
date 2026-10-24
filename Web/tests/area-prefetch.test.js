@@ -93,7 +93,7 @@ test("bytes arrive no faster than the rate limit, one request at a time", async 
     );
     before += read.size;
   }
-  assert.ok(backdrop.at(-1).t - t0 >= 2800, "3 MB takes about 3 s at 1 MB/s");
+  assert.ok(backdrop.at(-1).t - t0 >= 1400, "3 MB takes about 1.5 s at 2 MB/s");
 });
 
 test("only the two nearest neighbours are fetched", async () => {

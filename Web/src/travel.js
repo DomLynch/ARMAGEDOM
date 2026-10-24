@@ -79,8 +79,6 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   p.dodgeUntil = p.invulnerableUntil = game.time;
   p.response = null;
   p.ready = Math.min(p.ready, game.time);
-  game.message = `${request.areaId.toUpperCase()} · ${game.encounterCleared ? "Cleared · keep exploring." : "Explore London."}`;
-  game.messageUntil = game.time + 4;
   return { ...position };
 }
 

@@ -16,6 +16,7 @@ const UNLIMITED = { save_run: { burst: 1e6, refillMs: 1 }, load_run: { burst: 1e
 
 async function start({ limits = UNLIMITED, now } = {}) {
   const pg = await freshDb();
+  await pg.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'"); // these tests save the v18 fixture; see cash.test.js
   await openFor(pg, ids.alice, ids.bob);
   await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1);`);
   await pg.exec("set role arma_writer");

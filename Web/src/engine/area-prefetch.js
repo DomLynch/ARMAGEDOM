@@ -6,7 +6,7 @@
 // `bytesPerSecond`, silent while a fight is live and for the first seconds after start. The bytes are
 // read and discarded; nothing is decoded, parsed or kept in memory, so the real load later is a cache hit.
 export const PREFETCH_LIMITS = Object.freeze({
-  bytesPerSecond: 1_000_000,
+  bytesPerSecond: 2_000_000,
   startDelayMs: 3000,
   maxNeighbours: 2,
   recheckMs: 250,
