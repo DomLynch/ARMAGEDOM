@@ -32,6 +32,7 @@ export function requestPlaybackAudioSession(nav = globalThis.navigator) {
 export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}) {
   let context = null,
     enabled = true,
+    paused = false,
     buffer = null,
     manifest = null,
     loading = null,
@@ -200,6 +201,15 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     buffer = decoded;
     return true;
   }
+  // iOS moves a playing context to "interrupted" (call, Siri, alarm, other audio) or the system suspends it. While the
+  // player is still in the game, ask to come back at once; iOS may refuse outside a gesture, and then the next touch
+  // (every control's pointerdown and every release call unlock) does it. Our own pause() must not be undone here.
+  function watchState(ctx) {
+    ctx.addEventListener?.("statechange", () => {
+      if (context !== ctx || paused || !enabled || globalThis.document?.hidden) return;
+      if (ctx.state === "suspended" || ctx.state === "interrupted") ctx.resume().catch(() => {});
+    });
+  }
   return {
     get state() {
       return {
@@ -223,7 +233,11 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
       const token = generation;
       try {
         requestPlaybackAudioSession();
-        context ??= new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+        paused = false;
+        if (!context) {
+          context = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+          watchState(context);
+        }
         // Resume directly within the gesture call, before awaiting network/decode.
         await context.resume();
         if (token !== generation) return false;
@@ -352,6 +366,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
       if (!enabled) stop();
     },
     pause() {
+      paused = true;
       stop();
       return context?.suspend();
     },
