@@ -4,6 +4,7 @@
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
+import weapons from "../data/weapons.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -28,10 +29,18 @@ export function validateSaveClient(d) {
     fail("saveClient", "characterName");
 }
 
+// weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
+// which runs on this data when that module loads; the loader checks the shape.
+export function validateWeapons(d) {
+  closed(d, ["schema_version", "ranged"]);
+  if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   saveClient: [saveClient, validateSaveClient],
+  weapons: [weapons, validateWeapons],
 });
 
 /**
