@@ -35,6 +35,19 @@ test('original Shelter tutorial retains every legal waypoint and clearly names W
  for(let i=0;i<row.path.length-1;i++){const p=row.path[i],next=cue.resolve(p);assert(next);assert(capsuleSegmentClear(g,p,next.target));assert.match(cue.hint(p),/WESTMINSTER SHELTER/);assert(!cue.hint(p).includes('CENTRAL'));}
  cue.dispose();
 });
+test('the uncollected pistol is the first route target, then the arrow moves on to the shelter',()=>{
+ const layout=read('../public/world/westminster/layout.json'),g=createGeometry(layout),start=g.ground(layout.tutorialPath[0]),pistol={x:-0.85,z:-6.15};
+ const world={THREE,layout,geometry:g,group:new THREE.Group(),camera:new THREE.PerspectiveCamera(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
+ const cue=createRouteGuidance(world);cue.setTutorial(true);
+ assert.equal(cue.resolve(start).row.kind,'tutorial');
+ cue.setPistolTarget(pistol);
+ const first=cue.resolve(start);assert.equal(first.row.kind,'pistol');assert.deepEqual(first.target,pistol);assert.match(cue.hint(start),/PISTOL/);
+ assert.equal(cue.resolve({x:pistol.x+0.6,z:pistol.z}).row.kind,'pistol');
+ assert.notEqual(cue.resolve({x:pistol.x+0.1,z:pistol.z})?.row.kind,'pistol');
+ cue.setPistolTarget(null);assert.equal(cue.resolve(start).row.kind,'tutorial');
+ cue.setTutorial(false);cue.setPistolTarget(pistol);assert.notEqual(cue.resolve(start)?.row.kind,'pistol');
+ cue.dispose();
+});
 test('all selected routes omit the deleted atlas connection and Westminster-Hub reroutes through South',()=>{
  assert.deepEqual(selectedAtlasRoute(registry,'westminster','central-hub').map(l=>l.to),['south','central-hub']);
  assert.deepEqual(selectedAtlasRoute(registry,'central-hub','westminster').map(l=>l.to),['south','westminster']);

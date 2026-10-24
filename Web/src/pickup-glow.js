@@ -118,7 +118,7 @@ export function addPickupGlow(mesh) {
     sync();
     renderer.getCurrentViewport(viewport);
     material.uniforms.viewport.value.set(Math.max(1, viewport.z), Math.max(1, viewport.w));
-    material.uniforms.stroke.value = 1.05 * renderer.getPixelRatio();
+    material.uniforms.stroke.value = 1.05 * renderer.getPixelRatio() * (halo.userData.strokeScale ?? 1);
   };
   mesh.add(halo);
   return {

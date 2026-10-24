@@ -941,6 +941,9 @@ export function createEffects(
       pickup.visible = !!pistol && !pistol.collected && world.areaId === pistol.pickupAreaId && !game.finished;
       if (pickup.visible) {
         pickup.position.copy(world.toRender(pistol.pickupPos));
+        // The starting pistol is the first thing a new player must find: its outline breathes until picked up.
+        const strokeScale = 2.4 + 1.2 * Math.sin(game.time * 4);
+        for (const contour of pickupContours) contour.halo.userData.strokeScale = strokeScale;
       }
       const weaponCue = pistolCue(game, { paused, visibleIds }) ?? bossWeaponCue(game, { paused, visibleIds }),
         selectionCue = touchTargetCue(game, { paused, visibleIds }),

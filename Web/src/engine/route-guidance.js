@@ -1,6 +1,9 @@
 import { areaDisplayName } from "../area-registry.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+// The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
+// only standing on it (no direction left to show) hands the arrow on to the shelter.
+const PISTOL_ARRIVED = 0.3;
 const pointOnSegment = (p, a, b) => {
   const dx = b.x - a.x,
     dz = b.z - a.z,
@@ -230,10 +233,19 @@ export function createRouteGuidance(world) {
     cached = null,
     disposed = false,
     tutorialActive = false,
+    pistolTarget = null,
     arrival = null;
   function setTutorial(active) {
     if (tutorialActive !== !!active) {
       tutorialActive = !!active;
+      cachedPosition = null;
+    }
+  }
+  // The uncollected starting pistol is the first stop of the opening tutorial, ahead of the shelter.
+  function setPistolTarget(position) {
+    const next = position ? { x: position.x, z: position.z } : null;
+    if (next?.x !== pistolTarget?.x || next?.z !== pistolTarget?.z) {
+      pistolTarget = next;
       cachedPosition = null;
     }
   }
@@ -245,6 +257,15 @@ export function createRouteGuidance(world) {
     if (!cachedPosition || distance(cachedPosition, position) > 1e-8) {
       cachedPosition = { ...position };
       if (arrival && distance(position, arrival.position) > 4) arrival = null;
+      const toPistol = tutorialActive && pistolTarget ? distance(position, pistolTarget) : 0;
+      if (toPistol > PISTOL_ARRIVED && capsuleSegmentClear(g, position, pistolTarget))
+        return (cached = {
+          row: { id: "pistol-first", kind: "pistol", to: "westminster" },
+          target: pistolTarget,
+          index: 0,
+          gap: 0,
+          remaining: toPistol,
+        });
       cached = resolveGuidance(
         tutorialActive && tutorial ? [tutorial] : rows.filter((row) => row.to !== arrival?.from),
         g,
@@ -275,7 +296,12 @@ export function createRouteGuidance(world) {
       angle = Math.atan2(b.y - a.y, b.x - a.x),
       arrows = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
       direction = arrows[(Math.round(angle / (Math.PI / 4)) + 8) % 8],
-      name = cue.row.kind === "tutorial" ? "WESTMINSTER SHELTER" : areaDisplayName(cue.row.to).toUpperCase();
+      name =
+        cue.row.kind === "pistol"
+          ? "PISTOL"
+          : cue.row.kind === "tutorial"
+            ? "WESTMINSTER SHELTER"
+            : areaDisplayName(cue.row.to).toUpperCase();
     if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < 1.2)
       return `EXIT → ${name}`;
     return `${cue.row.kind === "boundary" ? "ROAD CLOSED · " : ""}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;
@@ -289,6 +315,7 @@ export function createRouteGuidance(world) {
     hint,
     resolve,
     setTutorial,
+    setPistolTarget,
     arrive,
     allowsExitHint: (to) => !tutorialActive && to !== arrival?.from,
     dispose() {

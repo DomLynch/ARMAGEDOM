@@ -138,6 +138,20 @@ summary:focus-visible {
   text-shadow: 0 1px 4px #000;
   margin: 0;
 }
+/* First-time hint pop-up: the route arrow's gold (0xf1d28c) on the HUD's dark pill. */
+#notice.hint {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 88vw;
+  padding: 6px 12px;
+  border: 1px solid #f1d28c;
+  border-radius: 14px;
+  background: rgba(13, 24, 27, 0.78);
+  color: #f1d28c;
+  font-weight: 600;
+}
 #boss {
   position: absolute;
   top: var(--safe-t);

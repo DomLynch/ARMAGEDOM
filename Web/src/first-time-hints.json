@@ -8,6 +8,11 @@
   { "id": "pistol", "when": { "pistolPickup": true }, "text": "Tap Equip pistol (or G) to pick it up." },
   { "id": "map", "when": { "nearExit": true }, "text": "Open the menu for MAP and travel." },
   {
+    "id": "ember-fire",
+    "when": { "flameEquipped": true },
+    "text": "Hold FLAME to fire. On touch, tap an enemy first to target it."
+  },
+  {
     "id": "ember-matron",
     "when": { "bossWithin": { "name": "Ember Matron", "meters": 14 } },
     "text": "The Ember Matron carries a flamethrower. Take it from her."

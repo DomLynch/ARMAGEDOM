@@ -330,6 +330,10 @@ export function createSafehouseView(s, dispatch) {
     const pending = shelterTutorialPending(g, tutorialRuns.get(g));
     tutorialRuns.set(g, pending);
     w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
+    const pistol = g.pistol;
+    w.routeGuidance?.setPistolTarget?.(
+      pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
+    );
     if (data.patch && !texture && !loading && !failed && inArea) {
       loading = true;
       new w.THREE.TextureLoader().load(
