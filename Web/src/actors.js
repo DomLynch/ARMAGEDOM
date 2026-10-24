@@ -514,8 +514,10 @@ export function createActors(
         // A living resident is built with the ordinary death only; its finisher geometry is prepared after arrival.
         const defer = FINISHER_DATA.preparation.deferred.enabled && entity.hp > 0;
         if (defer) view.finisherPose0 = captureRig(model);
+        view.rigEpoch = 0;
         view.finisher = yield* createFinisherPresentationSteps({
           deferPreparation: defer,
+          rigEpoch: () => view.rigEpoch,
           root,
           model,
           rig: entity.rig,
@@ -556,19 +558,24 @@ export function createActors(
     }
     return view;
   }
+  // Runs `run` with the rig in the pose it had when the resident was built, then puts the live pose back. The
+  // epoch tells the grounding bake that the pose was rewritten, so it re-poses from scratch (see finisher-grounding.js).
+  function atBuildPose(view, run) {
+    view.rigEpoch++;
+    const live = captureRig(view.model);
+    applyRig(view.finisherPose0, view.root, view.model);
+    try {
+      return run();
+    } finally {
+      applyRig(live, view.root, view.model);
+    }
+  }
   function* finishDeferredSteps() {
     for (const view of [...deferredViews]) {
       if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
       const steps = view.finisher.prepare();
       for (;;) {
-        const live = captureRig(view.model);
-        applyRig(view.finisherPose0, view.root, view.model);
-        let step;
-        try {
-          step = steps.next();
-        } finally {
-          applyRig(live, view.root, view.model);
-        }
+        const step = atBuildPose(view, () => steps.next());
         if (step.done) break;
         yield step.value;
       }
@@ -1279,15 +1286,7 @@ export function createActors(
               entity: view.entity,
               isPrepared: () => view.finisherPrepFailed || view.finisher.isPrepared(),
               start: () => view.finisher.prepare(),
-              around(run) {
-                const live = captureRig(view.model);
-                applyRig(view.finisherPose0, view.root, view.model);
-                try {
-                  run();
-                } finally {
-                  applyRig(live, view.root, view.model);
-                }
-              },
+              around: (run) => atBuildPose(view, run),
               fail() {
                 view.finisherPrepFailed = true;
               },

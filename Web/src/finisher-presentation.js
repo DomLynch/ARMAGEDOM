@@ -241,6 +241,8 @@ export function* createFinisherPresentationSteps({
   headParts = HEAD_NAMES,
   // Build only the cheap base (ordinary death); the returned presentation's prepare() adds the rest in steps.
   deferPreparation = false,
+  // Changes whenever the caller rewrote the rig's pose between two preparation steps (see finisher-grounding.js).
+  rigEpoch = () => 0,
 } = {}) {
   headParts = validateHeadParts(headParts);
   const death = durationOf(clips, "Death"),
@@ -313,6 +315,7 @@ export function* createFinisherPresentationSteps({
             root,
             clip: clips.find((c) => c.name === "Death_RunThrough"),
             cache: groundingCache,
+            rigEpoch,
           });
           support.push({
             id: "run-through",
