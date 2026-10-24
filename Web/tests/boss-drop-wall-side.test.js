@@ -168,7 +168,6 @@ for (const boss of BOSSES) {
     );
   test(`wall-side drop: ${boss.areaId} wall gaps match the known table`, () => {
     const gap = KNOWN_WALL_GAPS[boss.areaId];
-    assert.equal(counts["wall-gap"], gap?.count ?? 0, "number of corpse points whose drop lands across a wall");
     for (const c of found["wall-gap"]) {
       const { drop, real } = killAt(boss, c.corpse);
       assert.equal(real.lineClear(c.corpse, drop), false, "known gap still crosses a wall");
@@ -182,6 +181,7 @@ for (const boss of BOSSES) {
           "distFromBossSpawn=" + Math.hypot(c.corpse.x - boss.pos.x, c.corpse.z - boss.pos.z).toFixed(1),
         );
     }
+    assert.equal(counts["wall-gap"], gap?.count ?? 0, "number of corpse points whose drop lands across a wall");
   });
 }
 
