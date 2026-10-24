@@ -1,0 +1,32 @@
+# The ARMAGEDOM presence service (W2): who is where, one layer per area, hits batched to the writer. Binds 127.0.0.1:8892; nginx proxies
+# /arma/ws to it. It holds NO database credential: it reaches the database only through the writer on 127.0.0.1:8891.
+# TEMPLATE: not installed. Deploy installs it as /etc/systemd/system/arma-presence.service after the review in docs/MULTIPLAYER-DEPLOY-PLAN.md.
+[Unit]
+Description=ARMAGEDOM presence
+After=network-online.target arma-writer.service
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/armagedom-realtime/current
+EnvironmentFile=/etc/armagedom/presence.env
+ExecStart=/usr/bin/env node server/presence/main.js
+Restart=on-failure
+RestartSec=3
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryMax=512M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

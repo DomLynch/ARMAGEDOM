@@ -1,0 +1,34 @@
+# The ARMAGEDOM writer (W1/W3): the only service that writes the database, as the low-privilege role arma_writer, by calling the
+# SECURITY DEFINER functions in supabase/migrations. Binds 127.0.0.1:8891; nginx is its only way in, and only for /arma/api/ (never /internal/).
+# TEMPLATE: not installed. Deploy installs it as /etc/systemd/system/arma-writer.service after the review in docs/MULTIPLAYER-DEPLOY-PLAN.md.
+[Unit]
+Description=ARMAGEDOM writer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/armagedom-realtime/current
+# Read by systemd as root before the service drops to its own user, so the file stays root:root 0600 (see ops/realtime/check-env.sh).
+EnvironmentFile=/etc/armagedom/writer.env
+ExecStart=/usr/bin/env node server/writer/main.js
+Restart=on-failure
+RestartSec=3
+# Network-facing and holding DATABASE_URL: its own ephemeral user, a read-only filesystem apart from a private /tmp, no capabilities.
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryMax=512M
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target
