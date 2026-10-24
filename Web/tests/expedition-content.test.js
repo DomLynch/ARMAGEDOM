@@ -22,7 +22,8 @@ test('atlas uses all actual nine areas and twenty-eight directed links; each pin
 
 
 test('Journal offers Claim only at the real eligible stash, and carrying a case elsewhere names the return step without mutation',()=>{
- const data=validateExpeditionData(raw().expedition,registry),g={time:1,finished:false,player:{hp:100,pos:{...data.contract.giver.position},hurtUntil:0,dodgeUntil:0},world:{areaId:'east',lineClear:()=>true},expedition:{status:'recovered'}};const before=JSON.stringify(g);let view=journalPresentation(g,data,true);assert.equal(view.showAction,false);assert.match(view.next,/return to the Westminster stash/);assert.equal(JSON.stringify(g),before);
+ const on=raw().expedition;delete on.contract.enabled; // shipped data has the contract off; this row covers the contract mechanics themselves
+ const data=validateExpeditionData(on,registry),g={time:1,finished:false,player:{hp:100,pos:{...data.contract.giver.position},hurtUntil:0,dodgeUntil:0},world:{areaId:'east',lineClear:()=>true},expedition:{status:'recovered'}};const before=JSON.stringify(g);let view=journalPresentation(g,data,true);assert.equal(view.showAction,false);assert.match(view.next,/return to the Westminster stash/);assert.equal(JSON.stringify(g),before);
  g.world.areaId=data.contract.giver.areaId;view=journalPresentation(g,data,true);assert.equal(view.showAction,true);assert.equal(view.eligible,true);assert.match(view.next,/claim your reward/);
  for(const change of[()=>g.player.pos.x+=2,()=>g.player.hp=0,()=>g.player.swing={},()=>g.runSaveInvalid=true]){const old=structuredClone({player:g.player,runSaveInvalid:g.runSaveInvalid});change();assert.equal(journalPresentation(g,data,true).showAction,false);g.player=old.player;g.runSaveInvalid=old.runSaveInvalid;}
  assert.equal(journalPresentation(g,data,false).showAction,false);g.world.lineClear=()=>false;assert.equal(journalPresentation(g,data,true).showAction,false);
