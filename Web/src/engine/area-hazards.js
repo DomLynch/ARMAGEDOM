@@ -50,3 +50,29 @@ export function stepAreaHazards(hazards, { time, areaId, owners, player, lineCle
   }
   return { hazards: next, hits };
 }
+// Steps the run's hazards against its player and delivers each tick's damage through `receive` (combat's knifeReceive).
+export function applyAreaHazards(g, receive) {
+  const next = stepAreaHazards(g.areaHazards, {
+    time: g.time,
+    areaId: g.world.areaId,
+    owners: g.enemies,
+    player: g.player,
+    lineClear: (a, b) => g.world.lineClear(a, b),
+  });
+  g.areaHazards = next.hazards;
+  for (const hit of next.hits) {
+    receive(g, {
+      amount: hit.damage,
+      origin: hit.position,
+      attacker: g.enemies.find((e) => e.id === hit.ownerId),
+      block: false,
+      parry: false,
+      moveId: "area-poison",
+      def: { stagger: 0, chip: 0 },
+    });
+    if (g.finished) {
+      g.areaHazards = [];
+      break;
+    }
+  }
+}

@@ -33,7 +33,7 @@ import { SALAMANDER_BITE, SALAMANDER_BREATH, salamanderResponse } from "./salama
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
-import { createAreaHazard, stepAreaHazards } from "./engine/area-hazards.js";
+import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
@@ -313,7 +313,7 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
-function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
+export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
   const amount = Math.min(target.hp, damage);
@@ -1227,6 +1227,19 @@ function resetDeadPlayerBossPursuit(g) {
     resetBossPursuit(e);
   }
 }
+// Creature half of a step, shared with engine/creature-sim.js; `only` limits it to some creatures.
+export function stepCreatureAI(g, dt, services = {}, only = null) {
+  stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
+  if (!g.finished)
+    for (const e of [...(only ?? g.enemies)]) {
+      enemyTick(g, e, dt, services);
+      if (g.finished) break;
+    }
+}
+export function resolveCreatureContacts(g, before, ratBefore) {
+  if (g.pilot) knifeContacts(g, before, ratBefore);
+  if (g.areaHazards) applyAreaHazards(g, knifeReceive);
+}
 export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   intent = prepareSafehouseStep(g, intent);
   if (g.pilot && (!Number.isFinite(dt) || Math.abs(dt - 1 / 60) > EPS))
@@ -1413,41 +1426,10 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
-    stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
-    if (!g.finished)
-      for (const e of [...g.enemies]) {
-        enemyTick(g, e, dt, services);
-        if (g.finished) break;
-      }
+    stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
-    if (g.pilot) knifeContacts(g, before, ratBefore);
-    if (g.areaHazards) {
-      const next = stepAreaHazards(g.areaHazards, {
-        time: g.time,
-        areaId: g.world.areaId,
-        owners: g.enemies,
-        player: g.player,
-        lineClear: (a, b) => g.world.lineClear(a, b),
-      });
-      g.areaHazards = next.hazards;
-      for (const hit of next.hits) {
-        const attacker = g.enemies.find((e) => e.id === hit.ownerId);
-        knifeReceive(g, {
-          amount: hit.damage,
-          origin: hit.position,
-          attacker,
-          block: false,
-          parry: false,
-          moveId: "area-poison",
-          def: { stagger: 0, chip: 0 },
-        });
-        if (g.finished) {
-          g.areaHazards = [];
-          break;
-        }
-      }
-    }
+    resolveCreatureContacts(g, before, ratBefore);
     if (!g.finished) {
       stepReaper(g, dt, {
         source: services.reaperSource,
