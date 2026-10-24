@@ -308,7 +308,7 @@ export function bossExitGate(game, target = null) {
       : !defeated
         ? `Kill the ${name}`
         : !visited
-          ? `Walk to ${destination} first`
+          ? `Visit ${destination.replace(/\b\w/g, (c) => c.toUpperCase())} first`
           : "Saving unavailable. Exit locked.",
   };
 }
