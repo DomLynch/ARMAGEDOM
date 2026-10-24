@@ -32,7 +32,9 @@ export function survivorVariantIndex(id, count = SURVIVOR_VARIANTS.length) {
 
 const now = () => (globalThis.performance?.now ? globalThis.performance.now() : Date.now()) / 1000;
 
-export function createSurvivorKit({ source, characterScale = 1.265 }) {
+// `animations`: the clips to play. Omit it to use the source's own; pass the player model's clips when the source is the reduced
+// remote mesh, which ships no clips and shares the player's skeleton.
+export function createSurvivorKit({ source, animations: clipSource = null, characterScale = 1.265 }) {
   if (!source?.gltf?.scene || !source.equipment || !source.description?.clips) throw Error("Survivor source not ready");
   const { description } = source,
     clips = description.clips,
@@ -84,7 +86,7 @@ export function createSurvivorKit({ source, characterScale = 1.265 }) {
       const index = survivorVariantIndex(id),
         { materials, ring } = partsFor(index),
         model = clone(source.gltf.scene),
-        equipped = equipDonorPlayer({ scene: model, animations: source.gltf.animations }, source.equipment);
+        equipped = equipDonorPlayer({ scene: model, animations: clipSource ?? source.gltf.animations }, source.equipment);
       animations ??= equipped.animations;
       model.traverse((o) => {
         if (!o.isMesh) return;

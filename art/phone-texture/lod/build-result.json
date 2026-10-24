@@ -1,0 +1,37 @@
+prune: Removed types... Skin (14), Mesh (17), Primitive (17), TextureInfo (65), Material (13), Texture (34), Accessor (3671)
+{
+ "src": "warrior-phone.glb",
+ "sourceSha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+ "dst": "remote-survivor.glb",
+ "sha256": "45033a44093ecc5f8e2a5a0c530dc4f882fdf8688e24e3475e8b07404fa820b0",
+ "bytes": 514140,
+ "sourceTriangles": 55553,
+ "droppedTriangles": 2037,
+ "targetTriangles": 8700,
+ "triangles": 8694,
+ "drawCalls": 3,
+ "groups": {
+  "Skin": {
+   "sourceTriangles": 39281,
+   "goal": 6152,
+   "triangles": 6148,
+   "vertices": 5810,
+   "error": 0.0074333325028419495
+  },
+  "Heraldry": {
+   "sourceTriangles": 4888,
+   "goal": 765,
+   "triangles": 764,
+   "vertices": 470,
+   "error": 0.09557188302278519
+  },
+  "Gambeson": {
+   "sourceTriangles": 11384,
+   "goal": 1783,
+   "triangles": 1782,
+   "vertices": 1037,
+   "error": 0.0165603868663311
+  }
+ },
+ "clips": []
+}

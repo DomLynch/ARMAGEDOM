@@ -52,6 +52,30 @@ test('moving crossfades the walk clip in and a still player returns to idle',asy
 test('a kit with no equipment or clips refuses to build instead of drawing a broken figure',async()=>{
  const src=await source();assert.throws(()=>createSurvivorKit({source:{...src,equipment:null}}));assert.throws(()=>createSurvivorKit({source:null}));
 });
+const remote=async()=>{const row=manifest.models['remote-survivor'];return {description:row,gltf:await loadGeometry(read(row.url)),equipment:await loadGeometry(read(row.equipment.url))};};
+const triangles=root=>{let n=0;root.traverse(o=>{if(o.isMesh)n+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;});return n;};
+test('the reduced remote mesh is within the phone budget and deferred',async()=>{
+ const row=manifest.models['remote-survivor'];assert.equal(row.deferred,true);assert(read(row.url).length<1e6,'small download');
+ const src=await remote(),kit=createSurvivorKit({source:src,animations:(await source()).gltf.animations}),f=kit.spawn(7);
+ assert(triangles(f.root)<=12000,`triangles ${triangles(f.root)} (body, knife and ring)`);
+ const calls=[];f.root.traverse(o=>{if(o.isMesh)calls.push(o);});assert(calls.length<=6,`draw calls ${calls.length}`);
+ kit.dispose();
+});
+test('the reduced mesh shares the player skeleton, so the player clips play on it unchanged',async()=>{
+ const full=await source(),src=await remote(),names=scene=>{const out=[];scene.traverse(o=>{if(o.isBone)out.push(o.name);});return out;};
+ assert.deepEqual(names(src.gltf.scene),names(full.gltf.scene));
+ const kit=createSurvivorKit({source:src,animations:full.gltf.animations}),f=kit.spawn(9);
+ const bound=new Set();f.root.traverse(o=>{bound.add(o.name);});
+ for(const clip of f.mixer._actions.map(a=>a.getClip()))for(const track of clip.tracks)assert(bound.has(track.name.split('.')[0]),`track target ${track.name}`);
+ f.update({moving:true});kit.dispose();
+});
+test('the reduced mesh keeps the variants: tinted cloth, untouched skin, per-variant sharing',async()=>{
+ const full=await source(),src=await remote(),kit=createSurvivorKit({source:src,animations:full.gltf.animations});
+ const a=kit.spawn(1),b=kit.spawn(2);const cloth=f=>{let m;f.root.traverse(o=>{if(o.isMesh)for(const x of [].concat(o.material))if(x.name==='Gambeson')m=x;});return m;};
+ assert(cloth(a)&&cloth(b));assert.notEqual(survivorVariantIndex(1),survivorVariantIndex(2));assert.notEqual(cloth(a),cloth(b));
+ const skins=new Set();for(const f of [a,b])f.root.traverse(o=>{if(o.isMesh)for(const x of [].concat(o.material))if(x.name==='Skin')skins.add(x.color.getHex());});assert.equal(skins.size,1);
+ kit.dispose();
+});
 test('disposing the kit releases its materials and rejects later spawns',async()=>{
  const src=await source(),kit=createSurvivorKit({source:src});kit.spawn(1);kit.dispose();assert.throws(()=>kit.spawn(2));
 });

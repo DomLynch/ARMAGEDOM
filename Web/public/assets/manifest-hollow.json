@@ -42,6 +42,36 @@
         ]
       }
     },
+    "remote-survivor": {
+      "url": "donor/remote-survivor.glb",
+      "bytes": 514140,
+      "sha256": "45033a44093ecc5f8e2a5a0c530dc4f882fdf8688e24e3475e8b07404fa820b0",
+      "rig": "hero",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 1,
+      "deferred": true,
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run"
+      },
+      "equipment": {
+        "url": "donor/knife.glb",
+        "mount": "hand_r",
+        "node": "WeaponDrawn",
+        "overrides": [
+          "Heavy",
+          "Death_QuietOne"
+        ]
+      },
+      "provenance": {
+        "source": "donor/warrior-phone.glb",
+        "sourceSha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+        "note": "Reduced remote-player mesh for other players: same skeleton, no clips (the player's own are used). See art/phone-texture/lod/."
+      }
+    },
     "hollow-scavenger": {
       "url": "hollow-scavenger/hollow-scavenger-phone.glb",
       "rig": "hollow-scavenger",
