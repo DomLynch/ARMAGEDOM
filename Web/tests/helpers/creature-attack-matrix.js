@@ -535,64 +535,72 @@ const statusOf = (cell) => (!cell.hit ? "no-hit" : cell.killed ? "ok" : "hit-no-
 // CI shards by file, so the matrix is registered in `parts` thin test files: part k owns every attack whose
 // index % parts === k. Part 0 also owns the coverage test. Cells, KNOWN_GAPS and assertions are unchanged.
 export function defineMatrix(part, parts) {
-const mine = ATTACKS.filter((_, i) => i % parts === part);
-for (const attack of mine) {
-  if (ONLY_ATTACK && !ONLY_ATTACK.includes(attack.id)) continue;
-  test(`attack ${attack.id} against every creature`, { timeout: 900000 }, () => {
-    const unexpected = [];
-    for (const row of ROWS.values()) {
-      if (ONLY && !ONLY.includes(row.name)) continue;
-      const cell = measureCell(attack, row),
-        id = `${row.name}/${attack.id}`,
-        status = statusOf(cell);
-      cells.set(id, { ...cell, status });
-      console.log(
-        "CELL",
-        id,
-        status,
-        JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }),
-      );
-      if (Object.hasOwn(KNOWN_GAPS, id) ? status === "ok" : status !== "ok")
-        unexpected.push(
-          Object.hasOwn(KNOWN_GAPS, id) ? `${id} now passes: remove it from KNOWN_GAPS` : `${id}: ${status}`,
+  const mine = ATTACKS.filter((_, i) => i % parts === part);
+  for (const attack of mine) {
+    if (ONLY_ATTACK && !ONLY_ATTACK.includes(attack.id)) continue;
+    test(`attack ${attack.id} against every creature`, { timeout: 900000 }, () => {
+      const unexpected = [];
+      for (const row of ROWS.values()) {
+        if (ONLY && !ONLY.includes(row.name)) continue;
+        const cell = measureCell(attack, row),
+          id = `${row.name}/${attack.id}`,
+          status = statusOf(cell);
+        cells.set(id, { ...cell, status });
+        console.log(
+          "CELL",
+          id,
+          status,
+          JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }),
         );
-    }
-    assert.deepEqual(unexpected, []);
-  });
-}
-
-if (part === 0) test("matrix covers every live creature and every weapon row", () => {
-  assert.deepEqual([...ROWS.keys()].sort(), [...CREATURES].sort());
-  for (const id of Object.keys(KNOWN_GAPS)) {
-    const [creature, attack] = id.split("/");
-    assert(CREATURES.includes(creature) && ATTACKS.some((a) => a.id === attack), `KNOWN_GAPS row ${id} names no cell`);
+        if (Object.hasOwn(KNOWN_GAPS, id) ? status === "ok" : status !== "ok")
+          unexpected.push(
+            Object.hasOwn(KNOWN_GAPS, id) ? `${id} now passes: remove it from KNOWN_GAPS` : `${id}: ${status}`,
+          );
+      }
+      assert.deepEqual(unexpected, []);
+    });
   }
-  console.log(
-    "CREATURE_ROWS",
-    JSON.stringify(
-      [...ROWS.values()].map((r) => ({
-        name: r.name,
-        area: r.areaId,
-        cycle: r.cycle,
-        key: r.placementKey,
-        lowStrike: rigCapability(r.template.rig, "lowStrike"),
-      })),
-    ),
-  );
-  console.log("ATTACK_ROWS", JSON.stringify(ATTACKS.map((a) => a.id)));
-  if (ONLY || ONLY_ATTACK) return;
-  assert.equal(cells.size, CREATURES.length * mine.length, "every creature x attack cell of this part was measured");
-  const tally = {};
-  for (const cell of cells.values()) tally[cell.status] = (tally[cell.status] ?? 0) + 1;
-  console.log(
-    "MATRIX_SUMMARY",
-    JSON.stringify({
-      creatures: CREATURES.length,
-      attacks: ATTACKS.length,
-      cells: cells.size,
-      ...tally,
-      knownGaps: Object.keys(KNOWN_GAPS).length,
-    }),
-  );
-});
+
+  if (part === 0)
+    test("matrix covers every live creature and every weapon row", () => {
+      assert.deepEqual([...ROWS.keys()].sort(), [...CREATURES].sort());
+      for (const id of Object.keys(KNOWN_GAPS)) {
+        const [creature, attack] = id.split("/");
+        assert(
+          CREATURES.includes(creature) && ATTACKS.some((a) => a.id === attack),
+          `KNOWN_GAPS row ${id} names no cell`,
+        );
+      }
+      console.log(
+        "CREATURE_ROWS",
+        JSON.stringify(
+          [...ROWS.values()].map((r) => ({
+            name: r.name,
+            area: r.areaId,
+            cycle: r.cycle,
+            key: r.placementKey,
+            lowStrike: rigCapability(r.template.rig, "lowStrike"),
+          })),
+        ),
+      );
+      console.log("ATTACK_ROWS", JSON.stringify(ATTACKS.map((a) => a.id)));
+      if (ONLY || ONLY_ATTACK) return;
+      assert.equal(
+        cells.size,
+        CREATURES.length * mine.length,
+        "every creature x attack cell of this part was measured",
+      );
+      const tally = {};
+      for (const cell of cells.values()) tally[cell.status] = (tally[cell.status] ?? 0) + 1;
+      console.log(
+        "MATRIX_SUMMARY",
+        JSON.stringify({
+          creatures: CREATURES.length,
+          attacks: ATTACKS.length,
+          cells: cells.size,
+          ...tally,
+          knownGaps: Object.keys(KNOWN_GAPS).length,
+        }),
+      );
+    });
 }
