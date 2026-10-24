@@ -61,12 +61,14 @@ test("building a Hollow resident's views never runs one step past the step budge
       game.finishers,
     );
     const run_ = [];
-    for (;;) {
-      const started = performance.now(),
-        step = steps.next();
-      run_.push(performance.now() - started);
-      if (step.done) break;
-    }
+    // The view build, then the finisher geometry that arrival leaves for the idle pump: both in steps.
+    for (const source of [steps, actors.deferredFinisherSteps()])
+      for (;;) {
+        const started = performance.now(),
+          step = source.next();
+        run_.push(performance.now() - started);
+        if (step.done) break;
+      }
     assert.ok(run_.length > 50, "the build is split into many steps");
     if (run > 0) times.push(...run_);
   }

@@ -239,6 +239,10 @@ export function* createFinisherPresentationSteps({
   prepareRunThrough = false,
   groundingCache = null,
   headParts = HEAD_NAMES,
+  // Build only the cheap base (ordinary death); the returned presentation's prepare() adds the rest in steps.
+  deferPreparation = false,
+  // Changes whenever the caller rewrote the rig's pose between two preparation steps (see finisher-grounding.js).
+  rigEpoch = () => 0,
 } = {}) {
   headParts = validateHeadParts(headParts);
   const death = durationOf(clips, "Death"),
@@ -266,133 +270,171 @@ export function* createFinisherPresentationSteps({
     openedPreparationError = null,
     crownActive = false,
     crownPreparationError = null,
-    preparationError = null;
+    preparationError = null,
+    featuresPrepared = false,
+    featuresPreparing = false;
   try {
-    if (
-      !isPlayer &&
-      prepareRunThrough &&
-      model.getObjectByName("Photo") &&
-      model.getObjectByName("pelvis") &&
-      validDuration(runThrough) &&
-      runThrough <= 1.25
-    ) {
+    // The heavy part: ground the run-through death, snapshot the head, cut the crown, bake the opened body,
+    // prepare the arm. Each result lands in the variables above and its recipe in `support`, which the sim reads
+    // by reference when a kill picks a recipe, so a recipe appears there only once it is fully prepared.
+    function* prepareFeatures() {
+      if (featuresPrepared || featuresPreparing || disposed) return;
+      featuresPreparing = true;
+      let finished = false;
       try {
-        runGrounding = yield* prepareVictimGroundingSteps({
-          model,
-          root,
-          clip: clips.find((c) => c.name === "Death_RunThrough"),
-          cache: groundingCache,
-        });
+        yield* prepareFeatureSteps();
+        finished = true;
+      } finally {
+        featuresPreparing = false;
+        if (finished && !disposed) featuresPrepared = true;
+        else {
+          // Abandoned half way (area left, cancelled, disposed): drop the partial pieces so a later run starts clean.
+          arm?.dispose();
+          opened?.dispose();
+          crown?.dispose();
+          head?.dispose();
+          arm = opened = crown = head = null;
+          runGrounding = null;
+          support.splice(0, support.length, ...withFinisherAliases(baseSupport()));
+        }
+      }
+    }
+    const baseSupport = () => (isPlayer ? [] : nativeFinisherSupport({ clip: "Death", seconds: death }));
+    function* prepareFeatureSteps() {
+      if (
+        !isPlayer &&
+        prepareRunThrough &&
+        model.getObjectByName("Photo") &&
+        model.getObjectByName("pelvis") &&
+        validDuration(runThrough) &&
+        runThrough <= 1.25
+      ) {
+        try {
+          runGrounding = yield* prepareVictimGroundingSteps({
+            model,
+            root,
+            clip: clips.find((c) => c.name === "Death_RunThrough"),
+            cache: groundingCache,
+            rigEpoch,
+          });
+          support.push({
+            id: "run-through",
+            clip: "Death_RunThrough",
+            seconds: runThrough,
+            cost: 0,
+            parts: [],
+            prepared: true,
+            requiresGroundLift: true,
+          });
+        } catch (error) {
+          runPreparationError = error.message;
+        }
+      }
+      if (
+        !isPlayer &&
+        prepareHead &&
+        bone &&
+        scene?.isScene &&
+        Number.isFinite(groundY) &&
+        typeof isBlocked === "function"
+      ) {
+        try {
+          head = yield* snapshotHeadSteps(model, bone, maxVertices, headParts);
+        } catch (error) {
+          preparationError = error.message;
+        }
+      }
+      if (!isPlayer && validDuration(death) && validDuration(hit))
         support.push({
-          id: "run-through",
-          clip: "Death_RunThrough",
-          seconds: runThrough,
+          id: "pistol-directional",
+          clip: "Death",
+          reactionClip: "Hit",
+          reactionSeconds: hit,
+          seconds: hit + death,
           cost: 0,
           parts: [],
           prepared: true,
-          requiresGroundLift: true,
         });
-      } catch (error) {
-        runPreparationError = error.message;
-      }
-    }
-    if (
-      !isPlayer &&
-      prepareHead &&
-      bone &&
-      scene?.isScene &&
-      Number.isFinite(groundY) &&
-      typeof isBlocked === "function"
-    ) {
-      try {
-        head = yield* snapshotHeadSteps(model, bone, maxVertices, headParts);
-      } catch (error) {
-        preparationError = error.message;
-      }
-    }
-    if (!isPlayer && validDuration(death) && validDuration(hit))
-      support.push({
-        id: "pistol-directional",
-        clip: "Death",
-        reactionClip: "Hit",
-        reactionSeconds: hit,
-        seconds: hit + death,
-        cost: 0,
-        parts: [],
-        prepared: true,
-      });
-    if (head && validDuration(hit))
-      support.push({
-        id: "pistol-decapitation",
-        clip: "Death",
-        reactionClip: "Hit",
-        reactionSeconds: hit,
-        seconds: hit + death,
-        cost: 1,
-        parts: ["head"],
-        prepared: true,
-        lifetime: PART_LIFETIME,
-      });
-    if (head && prepareCrown && validDuration(cut)) {
-      try {
-        crown = yield* prepareSplitCrownSteps(head, { maxVertices: maxCrownVertices });
+      if (head && validDuration(hit))
         support.push({
-          id: "split-crown",
-          clip: "Death_SplitCrown",
-          seconds: cut,
+          id: "pistol-decapitation",
+          clip: "Death",
+          reactionClip: "Hit",
+          reactionSeconds: hit,
+          seconds: hit + death,
           cost: 1,
-          parts: ["crown"],
+          parts: ["head"],
           prepared: true,
           lifetime: PART_LIFETIME,
         });
-      } catch (error) {
-        crownPreparationError = error.message;
+      if (head && prepareCrown && validDuration(cut)) {
+        try {
+          crown = yield* prepareSplitCrownSteps(head, { maxVertices: maxCrownVertices });
+          support.push({
+            id: "split-crown",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["crown"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+        } catch (error) {
+          crownPreparationError = error.message;
+        }
       }
-    }
-    if (!isPlayer && prepareOpened && validDuration(cut)) {
-      try {
-        opened = yield* prepareOpenedSteps({ model, root, clips, groundY, isBlocked, maxVertices: maxOpenedVertices });
+      if (!isPlayer && prepareOpened && validDuration(cut)) {
+        try {
+          opened = yield* prepareOpenedSteps({
+            model,
+            root,
+            clips,
+            groundY,
+            isBlocked,
+            maxVertices: maxOpenedVertices,
+          });
+          support.push({
+            id: "opened",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["upper-body"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+        } catch (error) {
+          openedPreparationError = error.message;
+        }
+      }
+      if (head && validDuration(cut))
         support.push({
-          id: "opened",
+          id: "decapitation",
           clip: "Death_SplitCrown",
           seconds: cut,
           cost: 1,
-          parts: ["upper-body"],
+          parts: ["head"],
           prepared: true,
           lifetime: PART_LIFETIME,
         });
-      } catch (error) {
-        openedPreparationError = error.message;
+      if (!isPlayer && armAsset && validDuration(cut)) {
+        try {
+          arm = prepareArmSever({ model, asset: armAsset, scene, groundY, isBlocked, lifetime: PART_LIFETIME });
+          support.push({
+            id: "left-arm-sever",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["left-arm"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+          yield "arm-prepared";
+        } catch (error) {
+          armPreparationError = error.message;
+        }
       }
+      support.splice(0, support.length, ...withFinisherAliases(support));
     }
-    if (head && validDuration(cut))
-      support.push({
-        id: "decapitation",
-        clip: "Death_SplitCrown",
-        seconds: cut,
-        cost: 1,
-        parts: ["head"],
-        prepared: true,
-        lifetime: PART_LIFETIME,
-      });
-    if (!isPlayer && armAsset && validDuration(cut)) {
-      try {
-        arm = prepareArmSever({ model, asset: armAsset, scene, groundY, isBlocked, lifetime: PART_LIFETIME });
-        support.push({
-          id: "left-arm-sever",
-          clip: "Death_SplitCrown",
-          seconds: cut,
-          cost: 1,
-          parts: ["left-arm"],
-          prepared: true,
-          lifetime: PART_LIFETIME,
-        });
-        yield "arm-prepared";
-      } catch (error) {
-        armPreparationError = error.message;
-      }
-    }
-    support.splice(0, support.length, ...withFinisherAliases(support));
     let chosen = null,
       recipe = ordinary(validDuration(death) ? death : 2.4),
       direction = null,
@@ -416,7 +458,7 @@ export function* createFinisherPresentationSteps({
         openedActive = false;
       }
     }
-    const ownedGeometryBytes =
+    const ownedBytes = () =>
       (head?.geometries ?? []).reduce(
         (bytes, g) =>
           bytes +
@@ -426,9 +468,14 @@ export function* createFinisherPresentationSteps({
       ) +
       (crown?.stats().geometryBytes ?? 0) +
       (opened?.stats().geometryBytes ?? 0);
+    if (deferPreparation) support.splice(0, support.length, ...withFinisherAliases(support));
+    else yield* prepareFeatures();
     completed = true;
     return {
       support,
+      // Steps that finish a deferred preparation; a no-op when already prepared or being prepared.
+      prepare: prepareFeatures,
+      isPrepared: () => featuresPrepared,
       setScene(next) {
         if (!next?.isScene) throw Error("Finisher scene missing");
         scene = next;
@@ -657,7 +704,7 @@ export function* createFinisherPresentationSteps({
           vertices: head?.vertices ?? 0,
           triangles: head?.triangles ?? 0,
           ownedGeometries: head?.geometries.length ?? 0,
-          ownedGeometryBytes,
+          ownedGeometryBytes: ownedBytes(),
           ownedMaterials: head?.materials.length ?? 0,
           lethalVertexCopies: 0,
           detached,

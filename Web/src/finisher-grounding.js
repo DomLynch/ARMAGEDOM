@@ -124,7 +124,18 @@ export function prepareVictimGrounding(options) {
 }
 // Dormant rigs can prepare the identical table between frames. Returning the
 // iterator early restores their pose through the same cleanup as normal loading.
-export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120, maxVertices = 150000, cache = null }) {
+// `rigEpoch` changes whenever something else wrote the rig's pose since the last step (the deferred-preparation
+// pump resets and restores it around every slice). The mixer only writes a bone when the clip value changed since
+// its own last write, so after such a change it is rebuilt, which makes the next pose write every animated bone.
+export function* prepareVictimGroundingSteps({
+  model,
+  root,
+  clip,
+  samples = 120,
+  maxVertices = 150000,
+  cache = null,
+  rigEpoch = () => 0,
+}) {
   if (!clip || !(clip.duration > 0) || !Number.isSafeInteger(samples) || samples < 1)
     throw Error("Invalid victim grounding clip");
   const transforms = [],
@@ -225,17 +236,31 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
   const reuseInputs = vertices <= 150000;
   for (const draw of draws) if (!draw.cached) draw.sampler = poseSkinSampler(draw.node, draw.ids.length, reuseInputs);
   const table = new Float32Array(samples + 1),
-    mixer = new T.AnimationMixer(model),
     point = new T.Vector3(),
     inverse = new T.Matrix4();
-  let worstFloor = Infinity;
+  let worstFloor = Infinity,
+    mixer = null,
+    action = null,
+    seenEpoch = null;
+  const bindMixer = () => {
+    if (mixer) {
+      mixer.stopAllAction();
+      mixer.uncacheRoot(model);
+    }
+    mixer = new T.AnimationMixer(model);
+    action = mixer.clipAction(clip);
+    action.play();
+    action.paused = true;
+    seenEpoch = rigEpoch();
+  };
   let since = performance.now(),
     prepMilliseconds = 0;
   try {
-    const action = mixer.clipAction(clip);
-    action.play();
-    action.paused = true;
-    for (let i = 0; i <= samples; i++) {
+    bindMixer();
+    // Poses the rig at sample i. The rig may be driven elsewhere between steps (a live resident animates, or the
+    // caller restores another pose), so this runs again after every resume, before any vertex is read.
+    const poseAt = (i) => {
+      if (rigEpoch() !== seenEpoch) bindMixer();
       action.time = Math.min(0.999999, i / samples) * clip.duration;
       mixer.update(0);
       root.updateWorldMatrix(true, false);
@@ -244,11 +269,15 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         if (n.skeleton) n.skeleton.update();
       });
       inverse.copy(root.matrixWorld).invert();
+    };
+    for (let i = 0; i <= samples; i++) {
+      poseAt(i);
       // Posing the rig is itself 6-10 ms; the vertex reads below start a fresh step.
       if (performance.now() - since >= 4) {
         prepMilliseconds += performance.now() - since;
         yield "victim-pose";
         since = performance.now();
+        poseAt(i);
       }
       let floor = Infinity;
       let reads = 0;
@@ -267,6 +296,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
               prepMilliseconds += performance.now() - since;
               yield "victim-floor";
               since = performance.now();
+              poseAt(i);
               draw.sampler?.update();
             }
           }
@@ -284,8 +314,8 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
     }
   } finally {
     for (const draw of draws) draw.sampler = null;
-    mixer.stopAllAction();
-    mixer.uncacheRoot(model);
+    mixer?.stopAllAction();
+    mixer?.uncacheRoot(model);
     for (const [n, p, q, s] of transforms) {
       n.position.copy(p);
       n.quaternion.copy(q);
