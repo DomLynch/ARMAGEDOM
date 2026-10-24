@@ -70,9 +70,6 @@ const KNOWN_GAPS = {
   "wolf/cleaver-special": SPECIAL_ON_ANIMALS,
   "salamander/cleaver-special": SPECIAL_ON_ANIMALS,
   "drone/cleaver-special": SPECIAL_ON_ANIMALS,
-  "hollow/bone-saw-cut":
-    "Cause not isolated: the plain scavenger is cut but the crooked-hollow variant (actors.js:484 " +
-    "CrookedHollowMotion posed mesh) is never touched by the blade trace",
   "rat/railgun-charged-shot": RAILGUN_LEVEL,
   "dog/railgun-charged-shot": RAILGUN_LEVEL,
   "roach/railgun-charged-shot": RAILGUN_LEVEL,
