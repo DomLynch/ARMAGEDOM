@@ -391,8 +391,8 @@ test("?stats=1: the render areas.js does after a travel ends is thrown away with
   info.render.calls += 10; // the out-of-loop render
   frame(t); // first update in the new area: 20 calls would be the mixed reading
   assert.deepEqual(lines, [], "no line on that frame, and the count restarted");
-  for (let i = 0; i < 118; i++) frame(t);
-  assert.deepEqual(lines, []);
+  for (let i = 0; i < 119; i++) frame(t);
+  assert.deepEqual(lines, [], "119 frames since the restart is not yet a line");
   frame(t);
   assert.deepEqual(lines, ["[arma-world] frame draw calls=10 triangles=0 remotes=0"], "a clean one-frame reading");
 });
