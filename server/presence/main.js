@@ -6,6 +6,7 @@
 //   ARMA_AREA_DATA      path to the JSON that Web/scripts/area-presence-rows.mjs writes ({ version, maxSpeedCmPerS, areas })
 //   ARMA_AREA_CONTENT   optional path to area-content.json (knockback allowance, weapon caps; default Web/public/world/area-content.json)
 //   WRITER_URL          optional, default http://127.0.0.1:8891
+//   PRESENCE_ORIGINS    optional comma list of allowed web origins (default https://playarmagedom.com); PRESENCE_DEV=1 adds http://localhost[:port]
 import fs from "node:fs";
 import { loadAreaRows } from "./area-rules.js";
 import { weaponCaps } from "./caps.js";
@@ -39,7 +40,9 @@ const verify = async (token) => {
   }
 };
 
-const presence = createPresence({ rules, limits, verify, weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, log: console.log });
+// Only the game's own site may open a socket. PRESENCE_ORIGINS (comma list) replaces the default; PRESENCE_DEV=1 also allows http://localhost.
+const allowedOrigins = process.env.PRESENCE_ORIGINS ? process.env.PRESENCE_ORIGINS.split(",").map((s) => s.trim()) : ["https://playarmagedom.com"];
+const presence = createPresence({ rules, limits, verify, weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, allowedOrigins, devOrigins: process.env.PRESENCE_DEV === "1", log: console.log });
 presence.server.listen(port, host, () => console.log(`presence listening on ${host}:${port}, layout ${rules.version}, push ${limits.impulseCm} cm`));
 let ticking = false; // a slow writer must not stack ticks up
 const timer = setInterval(async () => {

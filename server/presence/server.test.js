@@ -33,7 +33,7 @@ async function start(over = {}) {
   const port = presence.server.address().port;
   const clients = [];
   /** Open a WebSocket by hand. Resolves to a client, or { status } when the handshake is refused. */
-  const open = (protocols) =>
+  const open = (protocols, origin = "https://playarmagedom.com") =>
     new Promise((resolve) => {
       const socket = net.connect(port, "127.0.0.1");
       const key = randomBytes(16).toString("base64");
@@ -71,7 +71,7 @@ async function start(over = {}) {
       const deliver = (m) => (waiting.length ? waiting.shift()(m) : messages.push(m));
       socket.on("error", () => {});
       socket.on("connect", () =>
-        socket.write(`GET / HTTP/1.1\r\nHost: x\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${key}\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Protocol: ${protocols.join(", ")}\r\n\r\n`),
+        socket.write(`GET / HTTP/1.1\r\nHost: x\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${key}\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Protocol: ${protocols.join(", ")}\r\n${origin ? `Origin: ${origin}\r\n` : ""}\r\n`),
       );
       socket.on("data", (chunk) => {
         buffer = Buffer.concat([buffer, chunk]);
@@ -127,6 +127,24 @@ test("auth: the token rides in the subprotocol; none, a bad one or no protocol i
     assert.ok(ok.send, "a verified account gets the upgrade");
   } finally {
     await t.stop();
+  }
+});
+
+test("origin: only https://playarmagedom.com may open a socket; localhost only in dev mode; checked before the token", async () => {
+  const t = await start();
+  const dev = await start({ devOrigins: true });
+  try {
+    const token = [`arma.v1`, `token.user:${ALICE}`];
+    for (const origin of ["https://evil.example", "https://playarmagedom.com.evil.example", "http://playarmagedom.com", "https://playarmagedom.com:444", "null", "http://localhost:5173", "http://127.0.0.1", null])
+      assert.equal((await t.open(token, origin)).status, 403, String(origin));
+    assert.equal((await t.open(["arma.v1"], "https://evil.example")).status, 403, "403 whatever the token");
+    assert.ok((await t.open(token, "https://playarmagedom.com")).send, "the game's own origin is accepted");
+    for (const origin of ["http://localhost:5173", "http://localhost", "http://127.0.0.1:8080"]) assert.ok((await dev.open(token, origin)).send, origin);
+    for (const origin of ["http://localhost.evil.example", "https://localhost:5173", "https://evil.example", null]) assert.equal((await dev.open(token, origin)).status, 403, String(origin));
+    assert.ok((await dev.open(token)).send, "dev mode still accepts the real origin");
+  } finally {
+    await t.stop();
+    await dev.stop();
   }
 });
 

@@ -24,6 +24,7 @@ const TOKEN_PREFIX = "token.";
  * weaponCaps: { [weapon]: { maxDamage, maxHitsPerS } } (maxDamage already includes the progression ceiling, see caps.js);
  * sendHits(rows) -> the writer's per-row results, in order (rows: { account, token, weapon, applied, hits });
  * sendLocation({ account, area, x, z, atMs }) -> void. Without sendHits / sendLocation those features answer "off" / do nothing.
+ * allowedOrigins: the only web origins that may open a socket (default https://playarmagedom.com); devOrigins: also http://localhost[:port].
  */
 export function createPresence({
   rules,
@@ -37,6 +38,8 @@ export function createPresence({
   sendLocation = null,
   locationEveryMs = 5000,
   hitSlack = 1.25,
+  allowedOrigins = ["https://playarmagedom.com"],
+  devOrigins = false,
   log = () => {},
 }) {
   const layers = new Map(Object.keys(rules.areas).map((area) => [area, new Set()])); // area -> clients standing there
@@ -180,12 +183,18 @@ export function createPresence({
       }
   }
 
+  // Exact match on the Origin header (scheme, host, port). Localhost origins only when devOrigins is set (main.js: PRESENCE_DEV=1).
+  const DEV_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
+  const originAllowed = (origin) => typeof origin === "string" && (allowedOrigins.includes(origin) || (devOrigins && DEV_ORIGIN.test(origin)));
+
   const server = http.createServer((req, res) => res.writeHead(426, { "Content-Length": 0 }).end());
   server.on("upgrade", (req, socket) => {
     socket.on("error", () => socket.destroy());
     const offered = String(req.headers["sec-websocket-protocol"] ?? "").split(",").map((s) => s.trim());
     const token = offered.find((p) => p.startsWith(TOKEN_PREFIX))?.slice(TOKEN_PREFIX.length);
     const deny = () => socket.end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
+    // Browsers always send Origin on a WebSocket upgrade; a page on any other site is refused before the token is even looked at.
+    if (!originAllowed(req.headers.origin)) return socket.end("HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
     if (!token) return deny();
     Promise.resolve(verify(token)).then(
       (account) => {
