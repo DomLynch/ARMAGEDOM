@@ -1,4 +1,4 @@
-import { combatTargetHeight } from "../pistol-targeting.js";
+import { combatTargetHeight, rangedTargets, resolveRangedAim } from "../pistol-targeting.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
 import { safehouseWeaponBlocked, safehouseBlocksSegment } from "./safehouse.js";
 import { RAILGUN_ITEM_ID } from "./railgun-core.js";
@@ -128,11 +128,15 @@ export function railgunIntent(g, intent, dispatch, applyHit, services = {}) {
     stopRailgun(g, "source-unavailable");
     return clear;
   }
-  const target = selected
-      ? (services.railgunAimPoint?.(g, selected.id) ?? {
-          x: selected.pos.x,
-          y: combatTargetHeight(selected, g.time),
-          z: -selected.pos.z,
+  // No selected target: aim at the body the player faces, resolved exactly as the pistol and rifle do.
+  const visibleIds = intent.combatVisibleIds ?? intent.pistolVisibleIds,
+    aimedAt =
+      selected ?? (rangedTargets(g, visibleIds).length ? resolveRangedAim(g, bearing, { visibleIds })?.target : null),
+    target = aimedAt
+      ? (services.railgunAimPoint?.(g, aimedAt.id) ?? {
+          x: aimedAt.pos.x,
+          y: combatTargetHeight(aimedAt, g.time),
+          z: -aimedAt.pos.z,
         })
       : { x: source.x + bearing.x, y: source.y, z: source.z - bearing.z },
     dx = target.x - source.x,
