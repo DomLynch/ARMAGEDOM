@@ -54,6 +54,16 @@ const newNonce = () => {
   const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 };
+// PKCE: the code Google/Supabase sends back is useless without the verifier that only this tab holds, so a code an attacker puts in
+// a link cannot be exchanged by (or for) anyone else. No token ever travels in the URL.
+const base64url = (bytes) =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+const newVerifier = () => base64url(globalThis.crypto.getRandomValues(new Uint8Array(32)));
+const challengeFor = async (verifier) =>
+  base64url(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
 // 400 / 401 / 403 from the refresh endpoint mean the server definitively refused this refresh token; 5xx and network errors do not.
 const rejected = (error) => [400, 401, 403].includes(error?.status);
 
@@ -65,6 +75,7 @@ export function createGuestAuth({
   fetchImpl = globalThis.fetch,
   now = nowS,
   nonce = newNonce,
+  verifier = newVerifier,
 }) {
   if (!url || !anonKey) return null; // not configured: the live world stays offline
   let session = read(storage),
@@ -93,6 +104,12 @@ export function createGuestAuth({
         // Only a refresh token the server definitively refuses is given up on (then a fresh guest rather than staying signed out).
         // A 5xx or a network error says nothing about the account: keep the stored session untouched and try again later.
         if (!rejected(error)) throw error;
+        // Keep the refused session aside before it is replaced, so nothing is ever lost without a copy.
+        try {
+          storage?.setItem(`${SESSION_KEY}.previous`, JSON.stringify(session));
+        } catch {
+          /* Best effort. */
+        }
       }
     }
     return keep(await post("/auth/v1/signup", {}));
@@ -132,15 +149,21 @@ export function createGuestAuth({
       const token = await this.getToken();
       if (!token || !session?.user_id || !linkStorage) return null; // no tab storage means no safe way to take the return
       const link = nonce(),
+        secret = verifier(),
         back = new URL(redirectTo);
       back.searchParams.set("link", link);
-      const query = new URLSearchParams({ provider: "google", skip_http_redirect: "true", redirect_to: back.href });
       try {
-        linkStorage.setItem(LINK_KEY, JSON.stringify({ nonce: link, userId: session.user_id, at: now() }));
-      } catch {
-        return null;
-      }
-      try {
+        const query = new URLSearchParams({
+          provider: "google",
+          skip_http_redirect: "true",
+          redirect_to: back.href,
+          code_challenge: await challengeFor(secret),
+          code_challenge_method: "s256",
+        });
+        linkStorage.setItem(
+          LINK_KEY,
+          JSON.stringify({ nonce: link, verifier: secret, userId: session.user_id, at: now() }),
+        );
         const response = await fetchImpl(`${url}/auth/v1/user/identities/authorize?${query}`, {
           headers: headers({ Authorization: `Bearer ${token}` }),
         });
@@ -151,35 +174,22 @@ export function createGuestAuth({
         return null;
       }
     },
-    // After Google sends the player back, the session arrives in the URL hash (#access_token=...&refresh_token=...). It is taken
-    // only if (1) this tab started a link that is still pending, (2) the return URL carries that link's nonce, and (3) the new token
-    // belongs to the SAME user id as the guest being linked (linking keeps the id). Anything else is discarded and the current
-    // session is kept. Resolves true when the session was replaced; the caller cleans the address bar either way.
-    async takeRedirect(hash, search = "") {
+    // Coming back from Google the return URL carries ?link=<nonce>&code=<auth code> (PKCE: never a token in the URL, and the URL
+    // hash is never read). The code is exchanged only if (1) this tab started a link that is still pending, (2) the nonce matches,
+    // and (3) the session the exchange returns belongs to the SAME user id as the guest being linked (linking keeps the id). The
+    // exchange needs the verifier that only this tab holds, so a code planted in someone else's link is worthless. Anything else
+    // is discarded and the current session is kept. Resolves true when the session was replaced; the caller cleans the URL.
+    async takeRedirect(search = "") {
       const link = readLink();
       clearLink(); // one-time, whatever happens next
-      if (!link || !link.nonce || now() - link.at > LINK_TTL_S) return false;
-      if (new URLSearchParams(String(search ?? "")).get("link") !== link.nonce) return false;
-      const params = new URLSearchParams(String(hash ?? "").replace(/^#/, "")),
-        next = shape(
-          {
-            access_token: params.get("access_token"),
-            refresh_token: params.get("refresh_token"),
-            expires_in: params.get("expires_in"),
-            expires_at: Number(params.get("expires_at")) || undefined,
-            user: { is_anonymous: false },
-          },
-          now,
-        );
-      if (!next || !link.userId) return false;
+      if (!link?.nonce || !link.verifier || !link.userId || now() - link.at > LINK_TTL_S) return false;
+      const params = new URLSearchParams(String(search ?? "")),
+        code = params.get("code");
+      if (params.get("link") !== link.nonce || !code) return false;
       try {
-        const response = await fetchImpl(`${url}/auth/v1/user`, {
-          headers: headers({ Authorization: `Bearer ${next.access_token}` }),
-        });
-        if (!response.ok) return false;
-        const user = await response.json();
-        if (user?.id !== link.userId) return false;
-        keep({ ...next, user_id: user.id, anonymous: user.is_anonymous === true });
+        const next = await post("/auth/v1/token?grant_type=pkce", { auth_code: code, code_verifier: link.verifier });
+        if (!next || next.user_id !== link.userId) return false;
+        keep({ ...next, anonymous: false });
         return true;
       } catch {
         return false;

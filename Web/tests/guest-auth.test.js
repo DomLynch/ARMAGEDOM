@@ -110,7 +110,9 @@ test("Sign in with Google links the guest: the link request carries the guest's 
   assert.equal(call.options.headers.Authorization, "Bearer access-1");
   assert.match(call.url, /provider=google/);
   assert.match(call.url, /redirect_to=https%3A%2F%2Fplayarmagedom\.com%2F%3Flink%3Dn-1/, "the nonce travels in the return URL");
-  assert.deepEqual(JSON.parse(linkStorage.data.get(LINK_KEY)), { nonce: "n-1", userId: "user-1", at: 1000 });
+  const pending = JSON.parse(linkStorage.data.get(LINK_KEY));
+  assert.deepEqual({ ...pending, verifier: "x" }, { nonce: "n-1", userId: "user-1", at: 1000, verifier: "x" });
+  assert.match(pending.verifier, /^[A-Za-z0-9_-]{43}$/, "a random PKCE verifier of 32 bytes");
 });
 
 test("without tab storage there is no safe way to take the return, so no link is offered", async () => {
@@ -139,36 +141,63 @@ test("a link URL that is not https, or a failed request, gives null", async () =
 });
 
 // A player who has started a Google link (the nonce is stored in this tab) and a hash that comes back with tokens.
-async function linking({ userAfter = { id: "user-1", is_anonymous: false }, clock = { now: 1000 } } = {}) {
+async function linking({ userAfter = { id: "user-1", is_anonymous: false }, exchange = null, clock = { now: 1000 } } = {}) {
   const storage = memory(),
     linkStorage = memory(),
     f = fake({
       "/auth/v1/signup": () => ({ body: session(1) }),
       "/auth/v1/user/identities/authorize": () => ({ body: { url: "https://accounts.google.com/x" } }),
-      "/auth/v1/user": () => ({ body: userAfter }),
+      "grant_type=pkce": (call) =>
+        exchange ? exchange(call) : { body: session("g", { access_token: "g-access", refresh_token: "g-refresh", user: userAfter }) },
     });
-  const auth = createGuestAuth({ ...base, storage, linkStorage, nonce: () => "n-1", fetchImpl: f.fetchImpl, now: () => clock.now });
+  const auth = createGuestAuth({
+    ...base,
+    storage,
+    linkStorage,
+    nonce: () => "n-1",
+    verifier: () => "the-verifier",
+    fetchImpl: f.fetchImpl,
+    now: () => clock.now,
+  });
   await auth.googleLinkUrl("https://playarmagedom.com/");
   return { auth, storage, linkStorage, f };
 }
-const HASH = "#access_token=g-access&refresh_token=g-refresh&expires_in=3600";
+const BACK = "?link=n-1&code=google-code";
 
-test("coming back from Google with this tab's nonce and the SAME user id, the new session replaces the guest's", async () => {
-  const { auth, linkStorage } = await linking();
-  assert.equal(await auth.takeRedirect(HASH, "?link=n-1"), true);
+test("the link request uses PKCE: a challenge of the verifier goes out, the verifier stays in this tab", async () => {
+  const { f, linkStorage } = await linking();
+  const call = f.calls.find((c) => c.url.includes("/identities/authorize"));
+  const query = new URL(call.url).searchParams;
+  assert.equal(query.get("code_challenge_method"), "s256");
+  // SHA-256("the-verifier"), base64url
+  const expected = Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("the-verifier"))).toString("base64url");
+  assert.equal(query.get("code_challenge"), expected);
+  assert.ok(!call.url.includes("the-verifier"), "the verifier itself never leaves the tab");
+  assert.equal(JSON.parse(linkStorage.data.get(LINK_KEY)).verifier, "the-verifier");
+});
+
+test("coming back from Google with this tab's nonce and the SAME user id, the code is exchanged with the verifier and the session replaces the guest's", async () => {
+  const { auth, linkStorage, f } = await linking();
+  assert.equal(await auth.takeRedirect(BACK), true);
+  const exchange = f.calls.at(-1);
+  assert.match(exchange.url, /grant_type=pkce/);
+  assert.deepEqual(exchange.body, { auth_code: "google-code", code_verifier: "the-verifier" });
   assert.equal(await auth.getToken(), "g-access");
   assert.equal(auth.isGuest, false);
   assert.equal(auth.userId, "user-1");
-  assert.equal(linkStorage.data.has(LINK_KEY), false, "the nonce is spent");
+  assert.equal(linkStorage.data.has(LINK_KEY), false, "the link is spent");
 });
 
-test("SECURITY: a hash with tokens but no link pending in this tab is ignored (login CSRF)", async () => {
+test("SECURITY: a token in the URL hash is never read, and a return with no link pending in this tab does nothing (login CSRF)", async () => {
   const f = fake({ "/auth/v1/signup": () => ({ body: session(1, { user: { id: "victim-guest", is_anonymous: true } }) }) });
   const auth = createGuestAuth({ ...base, linkStorage: memory(), fetchImpl: f.fetchImpl, now: () => 1000 });
   assert.equal(await auth.getToken(), "access-1");
-  const attacker = "#access_token=ATTACKER_AT&refresh_token=ATTACKER_RT&expires_in=3600";
-  assert.equal(await auth.takeRedirect(attacker, ""), false);
-  assert.equal(await auth.takeRedirect(attacker, "?link=guess"), false);
+  const callsBefore = f.calls.length;
+  // The attacker's page URL: tokens in the hash (ignored: takeRedirect only ever looks at the query), or a planted code.
+  assert.equal(await auth.takeRedirect(""), false);
+  assert.equal(await auth.takeRedirect("?link=guess&code=attackers-code"), false);
+  assert.equal(await auth.takeRedirect("?code=attackers-code"), false);
+  assert.equal(f.calls.length, callsBefore, "no exchange was even attempted");
   assert.equal(await auth.getToken(), "access-1", "still the victim's own session");
   assert.equal(auth.userId, "victim-guest");
   assert.equal(auth.isGuest, true);
@@ -176,39 +205,36 @@ test("SECURITY: a hash with tokens but no link pending in this tab is ignored (l
 
 test("SECURITY: a pending link only accepts its own nonce, once, and within ten minutes", async () => {
   const wrong = await linking();
-  assert.equal(await wrong.auth.takeRedirect(HASH, "?link=other"), false);
+  assert.equal(await wrong.auth.takeRedirect("?link=other&code=c"), false);
   assert.equal(await wrong.auth.getToken(), "access-1");
-  assert.equal(await wrong.auth.takeRedirect(HASH, "?link=n-1"), false, "a wrong attempt spends the pending link");
+  assert.equal(await wrong.auth.takeRedirect(BACK), false, "a wrong attempt spends the pending link");
   const once = await linking();
-  assert.equal(await once.auth.takeRedirect(HASH, "?link=n-1"), true);
-  assert.equal(await once.auth.takeRedirect(HASH, "?link=n-1"), false, "one time only");
+  assert.equal(await once.auth.takeRedirect(BACK), true);
+  assert.equal(await once.auth.takeRedirect(BACK), false, "one time only");
+  const noCode = await linking();
+  assert.equal(await noCode.auth.takeRedirect("?link=n-1"), false, "no code, no exchange");
   const clock = { now: 1000 },
     late = await linking({ clock });
   clock.now += 601;
-  assert.equal(await late.auth.takeRedirect(HASH, "?link=n-1"), false, "expired");
+  assert.equal(await late.auth.takeRedirect(BACK), false, "expired");
   assert.equal(await late.auth.getToken(), "access-1");
 });
 
-test("SECURITY: a returned token that belongs to a DIFFERENT user is discarded and the guest's session is kept", async () => {
+test("SECURITY: a session that belongs to a DIFFERENT user is discarded and the guest's session is kept", async () => {
   const { auth, storage } = await linking({ userAfter: { id: "someone-else", is_anonymous: false } });
-  assert.equal(await auth.takeRedirect(HASH, "?link=n-1"), false);
+  assert.equal(await auth.takeRedirect(BACK), false);
   assert.equal(await auth.getToken(), "access-1");
   assert.equal(auth.userId, "user-1");
   assert.match(storage.data.get(SESSION_KEY), /refresh-1/, "the guest's refresh token is still stored");
 });
 
-test("a returned token whose user cannot be verified is discarded", async () => {
-  const down = await linking();
-  down.f.calls.length = 0;
-  const bad = createGuestAuth({
-    ...base,
-    storage: down.storage,
-    linkStorage: down.linkStorage,
-    fetchImpl: async (u) => (u.includes("/auth/v1/user") && !u.includes("identities") ? { ok: false, status: 503, json: async () => ({}) } : down.f.fetchImpl(u)),
-    now: () => 1000,
-  });
-  assert.equal(await bad.takeRedirect(HASH, "?link=n-1"), false);
-  assert.equal(await bad.getToken(), "access-1");
+test("a code the server refuses to exchange (wrong verifier, 400, or 503) leaves the guest untouched", async () => {
+  for (const status of [400, 503]) {
+    const { auth, storage } = await linking({ exchange: () => ({ status }) });
+    assert.equal(await auth.takeRedirect(BACK), false, String(status));
+    assert.equal(await auth.getToken(), "access-1");
+    assert.match(storage.data.get(SESSION_KEY), /refresh-1/);
+  }
 });
 
 test("DATA LOSS: a refresh that fails with a 5xx or a network error keeps the stored guest and returns null; only a definite refusal makes a new guest", async () => {
@@ -236,4 +262,5 @@ test("DATA LOSS: a refresh that fails with a 5xx or a network error keeps the st
   assert.equal(f.calls.filter((c) => c.url.includes("/signup")).length, 1, "no second guest was created");
   mode = "401";
   assert.equal(await auth.getToken(), "access-2", "a definitive refusal falls back to a fresh guest");
+  assert.equal(JSON.parse(storage.data.get(`${SESSION_KEY}.previous`)).refresh_token, keptRefresh, "the refused session is kept aside");
 });
