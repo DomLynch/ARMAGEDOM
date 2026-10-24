@@ -2,6 +2,7 @@ import { createWantedProjection } from "./wanted-projection.js";
 import { createMarkedView } from "./marked-view.js";
 import { createReaperView } from "./reaper-view.js";
 import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
+import { nextCarriedWeapon } from "./weapon-cycle.js";
 import { createSafehouseView } from "./safehouse-view.js";
 import { createBossEquipmentView } from "./boss-equipment-view.js";
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
@@ -164,10 +165,8 @@ export function createRunViews(s) {
     const g = s.game;
     if (cycling || !g || s.paused || !s.loaded || s.traveling || s.contextLost || g.finished || g.player.hp <= 0)
       return;
-    const rows = carriedWeaponTiles(g).filter((row) => !row.companion);
-    if (rows.length < 2) return;
-    const next = rows[(rows.findIndex((row) => row.active) + 1) % rows.length];
-    if (document.getElementById(next.control)?.disabled !== false) return;
+    const next = nextCarriedWeapon(carriedWeaponTiles(g));
+    if (!next || document.getElementById(next.control)?.disabled !== false) return;
     cycling = true;
     try {
       await selectWeapon(next);

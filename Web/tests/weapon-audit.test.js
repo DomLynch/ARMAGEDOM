@@ -39,10 +39,10 @@ test("row 1: knife, pistol, rifle and flamethrower are all carried and exactly o
   assert.equal(rows.filter((r) => r.active).length, 1);
 });
 
-test("row 2: weapon switching has a keyboard binding", { todo: "no key switches weapons; Digit1 is Special" }, () => {
+test("row 2: weapon switching has a keyboard binding (KeyC cycles; Digit1 stays Special)", () => {
   const src = fs.readFileSync(new URL("../src/input.js", import.meta.url), "utf8");
-  assert.doesNotMatch(src, /Digit1: "special"/, "Digit1 is taken by Special, not weapon switch");
-  assert.match(src, /weapon-(next|prev|switch)|cycleWeapon|selectWeapon/, "a weapon-switch key exists");
+  assert.match(src, /Digit1: "special"/);
+  assert.match(src, /event\.code === "KeyC"[\s\S]{0,200}cycleWeapon\(\)/, "KeyC calls cycleWeapon");
 });
 
 test("row 3: empty pistol, rifle and flame tiles say they are empty", () => {
