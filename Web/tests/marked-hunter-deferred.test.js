@@ -30,3 +30,25 @@ test('the hunter warning event starts the model load once and tolerates a failed
  g.events=[{type:'marked-hunter-warning',position:{x:0,z:0},seconds:5}];actors.events(g);await Promise.resolve();
  assert.deepEqual(calls,[['marked-hunter']]);g.events=[{type:'hit',amount:0}];actors.events(g);assert.equal(calls.length,1);actors.dispose();
 });
+test('a live hunter built from the stand-in is rebuilt with its own model once that model has loaded',async t=>{
+ shim(t);const g=createGame(world,{pilot:'donor-knife'}),h=hunterActor();g.enemies=[h];
+ const models=await sources(false),late=await sources(true),actors=createActors(new THREE.Scene(),world,{manifest,models,dispose(){}});
+ actors.update(g,0);const first=actors.views.get(h.id);assert.notEqual(first.root.name,'marked-hunter');
+ actors.update(g,0);assert.equal(actors.views.get(h.id),first,'no rebuild while the model is still missing');
+ models.set('marked-hunter',late.get('marked-hunter'));const pos={...h.pos};actors.update(g,0);
+ const view=actors.views.get(h.id);assert.notEqual(view,first);assert.equal(view.root.name,'marked-hunter');assert.equal(view.entity,h);assert.deepEqual(h.pos,pos);
+ actors.update(g,0);assert.equal(actors.views.get(h.id),view,'rebuilt once only');actors.dispose();
+});
+test('a dead hunter keeps the view it was killed in',async t=>{
+ shim(t);const g=createGame(world,{pilot:'donor-knife'}),h=hunterActor();g.enemies=[h];
+ const models=await sources(false),late=await sources(true),actors=createActors(new THREE.Scene(),world,{manifest,models,dispose(){}});
+ actors.update(g,0);const first=actors.views.get(h.id);h.hp=0;models.set('marked-hunter',late.get('marked-hunter'));actors.update(g,0);
+ assert.equal(actors.views.get(h.id),first);actors.dispose();
+});
+test('the model load starts once when the player first holds marked money, before any warning',async t=>{
+ shim(t);const g=createGame({...world,markedData:{hunterBounty:1}},{pilot:'donor-knife'}),calls=[];
+ const library={manifest,models:await sources(false),dispose(){},ensureModels(names){calls.push(names);return Promise.resolve();}},actors=createActors(new THREE.Scene(),world,library);
+ g.marked={version:1,carried:0,bank:0,bounty:0};actors.update(g,0);assert.equal(calls.length,0);
+ g.marked.carried=5;actors.update(g,0);assert.deepEqual(calls,[['marked-hunter']]);
+ g.marked.bounty=9;actors.update(g,0);assert.equal(calls.length,1);actors.dispose();
+});
