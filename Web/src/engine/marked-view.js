@@ -1,5 +1,5 @@
 import { safehouseInteraction } from "./safehouse.js";
-import { markedShopEligible } from "./marked.js";
+import { markedShopEligible, effectiveBounty } from "./marked.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 const money = (n) => "$" + n.toLocaleString("en-US");
 // Ephemeral presentation of the existing committed award ledger and total.
@@ -30,7 +30,7 @@ export function createMarkedHeadTotalView(s) {
       return;
     }
     const id = s.world?.areaId ?? g.world?.areaId,
-      bounty = g.marked?.bounty ?? 0,
+      bounty = effectiveBounty(g),
       count = g.progression?.awards?.length ?? 0,
       active =
         s.loaded &&
@@ -158,8 +158,10 @@ export function createMarkedView(s, dispatch) {
       text = ""; // the money, bounty and hunter lines are not shown on the HUD for now (the state keeps the cash)
     hud.hidden = !text;
     if (hud.textContent !== text) hud.textContent = text;
-    hud.dataset.marked = String(current.bounty >= c.hunterBounty);
-    summary.textContent = `Carried ${money(current.carried)} · Bank ${money(current.bank)} · Bounty ${money(current.bounty)}`;
+    hud.dataset.marked = String(effectiveBounty(g) >= c.hunterBounty);
+    summary.textContent =
+      `Carried ${money(current.carried)} · Bank ${money(current.bank)}` +
+      (c.bounty === false ? "" : ` · Bounty ${money(current.bounty)}`);
     bank.disabled = !allowed() || !current.carried;
     for (const [id, { button, name }] of buttons) {
       const row = c.shop[id];

@@ -1948,6 +1948,7 @@
   "expedition": {
     "version": 1,
     "contract": {
+      "enabled": false,
       "id": "west-east-stolen-supply-v1",
       "title": "Stolen Supplies",
       "summary": "Recover the stolen case in East and return it to the Westminster stash. Hale guards the road; fighting him is optional.",
@@ -7593,6 +7594,8 @@
     "cashPerKill": 100,
     "bossCash": 200,
     "maxMoney": 1000000000,
+    "hunters": false,
+    "bounty": false,
     "hunterBounty": 300,
     "maxHunters": 1,
     "hostileBudget": 6,

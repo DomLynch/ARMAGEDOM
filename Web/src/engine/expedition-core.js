@@ -46,7 +46,9 @@ export function validateExpeditionData(input, registry) {
   exact(input, ["version", "contract", "variants", "atlas"]);
   if (input.version !== 1) fail();
   const c = input.contract;
-  exact(c, ["id", "title", "summary", "giver", "case", "guard", "rewardVariantId", "receiptId"]);
+  const rows = ["id", "title", "summary", "giver", "case", "guard", "rewardVariantId", "receiptId"];
+  exact(c, c?.enabled === undefined ? rows : [...rows, "enabled"]);
+  if (c.enabled !== undefined && typeof c.enabled !== "boolean") fail();
   if (![c.id, c.title, c.summary, c.rewardVariantId, c.receiptId].every(text) || c.rewardVariantId === PISTOL_ITEM_ID)
     fail();
   for (const anchor of [c.giver, c.case]) {
@@ -100,8 +102,12 @@ export function validateExpeditionData(input, registry) {
   expeditionModel(input, registry);
   return freeze(structuredClone(input));
 }
+// Dom, 24 Oct: the optional contract is off for alpha. The state, saves, atlas and any owned reward stay;
+// only accepting, recovering and claiming stop. A saved mid-contract stage is ignored.
+export const contractEnabled = (data) => data?.contract?.enabled !== false;
 export function expeditionEligible(g, action, data) {
   const p = g.player;
+  if (["accept", "recover", "claim"].includes(action) && !contractEnabled(data)) return false;
   if (!p || p.hp <= 0 || g.finished || g.runSaveInvalid || p.swing || g.time < p.hurtUntil || g.time < p.dodgeUntil)
     return false;
   if (action === "reaper") return ownsReaper(g);

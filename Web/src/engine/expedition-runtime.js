@@ -1,7 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import { bossExitGate } from "./area-bosses.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
-import { expeditionEligible, selectedPistolProfile } from "./expedition-core.js";
+import { expeditionEligible, selectedPistolProfile, contractEnabled } from "./expedition-core.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { createVestBagView } from "../vest-view.js";
@@ -49,16 +49,18 @@ export function journalPresentation(g, data, allowed = true) {
   const status = g.expedition?.status,
     action = stageAction[status],
     eligible = !!(action && allowed && expeditionEligible(g, action, data)),
-    gate = bossExitGate(g),
-    next =
-      {
-        available: "Optional · accept at the Westminster stash, or recover the case in East.",
-        accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
-        recovered: eligible
-          ? "At the Westminster stash · claim your reward."
-          : "Case recovered · return to the Westminster stash.",
-        claimed: "Reward claimed once · choose your earned weapon in Gear.",
-      }[status] ?? "";
+    gate = bossExitGate(g);
+  if (!contractEnabled(data))
+    return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
+  const next =
+    {
+      available: "Optional · accept at the Westminster stash, or recover the case in East.",
+      accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
+      recovered: eligible
+        ? "At the Westminster stash · claim your reward."
+        : "Case recovered · return to the Westminster stash.",
+      claimed: "Reward claimed once · choose your earned weapon in Gear.",
+    }[status] ?? "";
   return {
     eligible,
     showAction: status === "claimed" || eligible,
@@ -66,18 +68,26 @@ export function journalPresentation(g, data, allowed = true) {
   };
 }
 export function progressionObjective(g) {
-  if (g.world.areaId !== "westminster")
-    return { target: null, objective: "" };
+  if (g.world.areaId !== "westminster") return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
     : { target: "east", objective: "Reach East." };
 }
+// The stolen supply case is a prop in East only while the contract is on.
+export const supplyCaseShown = (data, areaId, status) =>
+  contractEnabled(data) && areaId === data.contract.case.areaId && ["available", "accepted"].includes(status);
 export function expeditionObjective(g) {
   if (g.world.safehouseData) return progressionObjective(g).target;
   const c = g.world.expeditionData?.contract,
     s = g.expedition?.status;
-  return !c ? null : s === "accepted" ? c.case.areaId : s === "claimed" ? null : c.giver.areaId;
+  return !c || !contractEnabled(g.world.expeditionData)
+    ? null
+    : s === "accepted"
+      ? c.case.areaId
+      : s === "claimed"
+        ? null
+        : c.giver.areaId;
 }
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s, dispatch) {
@@ -329,7 +339,7 @@ export function createExpeditionView(s, dispatch) {
     objectiveLine.hidden = !allowed() || g.player.hp <= 0;
     // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
     paint(objectiveLine, progression?.objective ?? "");
-    const caseVisible = allowed() && g.world.areaId === c.case.areaId && ["available", "accepted"].includes(status);
+    const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
       caseView.root.name = "Stolen supply case";

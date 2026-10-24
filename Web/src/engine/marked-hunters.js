@@ -73,6 +73,10 @@ export function markedEntry(g, { position = null } = {}) {
 export function stepMarkedHunters(g, spawn) {
   const c = g.world.markedData;
   if (!c) return;
+  if (c.hunters === false) {
+    if (g.enemies.some((e) => e.markedHunter)) clearMarkedHunters(g);
+    return;
+  }
   if (g.player.hp <= 0) {
     clearMarkedHunters(g, { death: true });
     return;
