@@ -41,6 +41,7 @@ const BOSSES = content.bosses.placements.map((p) => ({
   key: p.key,
   areaId: p.areaId,
   pos: p.pos,
+  profileRef: p.profileRef,
   reward: rewardRows.find((r) => r.source.placementKey === p.key && r.source.areaId === p.areaId),
 }));
 const FALLBACK_RADII = [1.5, 2, 2.5, 3, 4, 5, 6];
@@ -83,7 +84,8 @@ function deriveCases(boss) {
   const geometry = createGeometry(read("world/" + boss.areaId + "/layout.json")),
     w = realWorld(boss.areaId, geometry),
     found = { stage2: [], stage3: [], plain: [], "wall-gap": [] },
-    counts = { stage2: 0, stage3: 0, plain: 0, "wall-gap": 0 };
+    counts = { stage2: 0, stage3: 0, plain: 0, "wall-gap": 0 },
+    gapCorpses = [];
   for (const [a, b] of geometry.edges) {
     const len = Math.hypot(b.x - a.x, b.z - a.z),
       nx = -(b.z - a.z) / len,
@@ -98,10 +100,11 @@ function deriveCases(boss) {
             c = classify(geometry, w, o);
           if (!c) continue;
           counts[c.kind]++;
+          if (c.kind === "wall-gap") gapCorpses.push(o);
           if (found[c.kind].length < CASES_PER_KIND) found[c.kind].push({ corpse: o, drop: c.drop, kind: c.kind });
         }
   }
-  return { geometry, found, counts };
+  return { geometry, found, counts, gapCorpses };
 }
 
 // Which polygon edge separates two points (road boundary or the n-th blocker)?
@@ -186,6 +189,31 @@ for (const boss of BOSSES) {
         );
     }
     assert.equal(counts["wall-gap"], gap?.count ?? 0, "number of corpse points whose drop lands across a wall");
+  });
+}
+
+// The known wall gaps are "not live" only while no boss can die on them. The boss actor is built by the real fixture
+// path from the real boss rows: `home` is the placement pos (patrol points equal it), and residentIntent.homeLeash is
+// the profile's homeLeash. The leash is measured from HOME (the spawn point; combat.js drops pursuit when the player is
+// farther than homeLeash from e.home, and the boss pursues the player), not from the boss's current position. So a boss
+// is held within about homeLeash of home; every gap corpse point must be farther than that from home and patrol.
+for (const boss of BOSSES.filter((b) => KNOWN_WALL_GAPS[b.areaId])) {
+  test(`wall-side drop: ${boss.areaId} known wall gaps stay out of the boss's leash`, () => {
+    const f = fixture({ areaId: boss.areaId, extraWorld: EXTRA_WORLD });
+    f.restore();
+    const e = f.g.enemies.find((x) => x.placementKey === boss.key),
+      leash = e.residentIntent.homeLeash,
+      anchors = [e.home, ...e.patrol];
+    assert(Number.isFinite(leash) && leash > 0, "leash read from the boss row");
+    assert.equal(leash, content.bosses.profiles[boss.profileRef].homeLeash, "actor leash is the profile's homeLeash");
+    const { gapCorpses } = DERIVED[boss.areaId];
+    assert.equal(gapCorpses.length, KNOWN_WALL_GAPS[boss.areaId].count);
+    let nearest = Infinity;
+    for (const p of gapCorpses)
+      for (const a of anchors) nearest = Math.min(nearest, Math.hypot(p.x - a.x, p.z - a.z));
+    assert(nearest > leash, `a wall-gap corpse point is ${nearest.toFixed(2)} m from home, inside the ${leash} m leash`);
+    if (process.env.BOSS_DROP_TABLE === "1")
+      console.log("LEASH", boss.areaId, "leash=" + leash, "nearestGapPoint=" + nearest.toFixed(2));
   });
 }
 
