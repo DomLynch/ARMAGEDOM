@@ -135,7 +135,11 @@ export function createRifleComponent({
               g,
               current,
               { areaId },
-              { radius: rules.pickupRadius, epsilon: RIFLE_LAYER.pickupEpsilon, finitePosition: RIFLE_LAYER.finitePosition },
+              {
+                radius: rules.pickupRadius,
+                epsilon: RIFLE_LAYER.pickupEpsilon,
+                finitePosition: RIFLE_LAYER.finitePosition,
+              },
             )
           )
             return fail("not-eligible");
