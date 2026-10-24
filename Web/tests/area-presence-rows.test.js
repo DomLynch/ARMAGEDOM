@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { areaPresenceRows, loadContent, ARRIVAL, PLAYER_RADIUS } from "../scripts/area-presence-rows.mjs";
+import {
+  areaPresenceRows,
+  areaPresenceData,
+  loadContent,
+  ARRIVAL,
+  PLAYER_RADIUS,
+} from "../scripts/area-presence-rows.mjs";
+import { KNIFE_RULES } from "../src/donor/knife.js";
 import { walkArea, registry, inLink } from "../scripts/stuck-walk.mjs";
 import { worldSpawnRows } from "../src/engine/world-events.js";
 
@@ -21,6 +28,38 @@ test("one row per registered area, same order, area ids are strings the wire acc
 
 test("generation is deterministic", () => {
   assert.deepEqual(areaPresenceRows(content), rows);
+});
+
+test("top-level data: version hashes the rows, top speed comes from the movement rules", () => {
+  const data = areaPresenceData(content);
+  assert.deepEqual(data.areas, rows);
+  assert.match(data.version, /^[0-9a-f]{16}$/);
+  assert.equal(areaPresenceData(content).version, data.version);
+  assert.equal(data.maxSpeedCmPerS, Math.round(Math.max(KNIFE_RULES.runSpeed, KNIFE_RULES.rollSpeed) * 100));
+});
+
+test("every coordinate is an integer inside the database's +-100000 cm check", () => {
+  const numbers = [];
+  const walk = (v) => {
+    if (typeof v === "number") numbers.push(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  for (const row of rows) walk([row.bounds, row.originCm, row.road, row.blockers, row.arrivals, row.exits, row.enemies]);
+  assert.ok(numbers.length > 100);
+  for (const n of numbers) assert.ok(Number.isInteger(n) && Math.abs(n) <= 100000, String(n));
+});
+
+test("exits: rect encloses the zone, id matches the registry link, arrival exists in the destination", () => {
+  for (const row of rows)
+    registry.links(row.area).forEach((link, i) => {
+      const exit = row.exits[i],
+        dest = rows.find((r) => r.area === exit.to);
+      assert.equal(exit.id, link.id);
+      assert.ok(dest.arrivals.some((a) => a.id === exit.arrival), `${exit.id} -> ${exit.arrival}`);
+      for (const p of exit.zone)
+        assert.ok(p.x >= exit.rect.minX && p.x <= exit.rect.maxX && p.z >= exit.rect.minZ && p.z <= exit.rect.maxZ);
+    });
 });
 
 for (const row of rows) {

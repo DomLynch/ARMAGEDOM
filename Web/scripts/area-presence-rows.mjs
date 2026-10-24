@@ -2,6 +2,8 @@
 // the shipped spawn rows (never typed by hand). Numbers are integer centimetres in the area's own frame.
 //   node scripts/area-presence-rows.mjs [out.json]      (prints the rows to stdout without an argument)
 import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { KNIFE_RULES } from "../src/donor/knife.js";
 import { walkArea, registry, inLink } from "./stuck-walk.mjs";
 import { validateAreaMetadata } from "../src/engine/area-content.js";
 import { worldSpawnRows } from "../src/engine/world-events.js";
@@ -75,8 +77,9 @@ function arrivalPoints(area, walk, homes) {
 }
 
 export function areaPresenceRows(content = loadContent()) {
-  const spawns = worldSpawnRows(content);
-  return registry.ids.map((area) => {
+  const spawns = worldSpawnRows(content),
+    geos = new Map();
+  const rows = registry.ids.map((area) => {
     const walk = walkArea(area, { dead: false }),
       geo = walk.geo,
       xs = geo.road.map((p) => cm(p.x)),
@@ -90,6 +93,7 @@ export function areaPresenceRows(content = loadContent()) {
             row = placed.find((p) => p.key === key);
           return { instance: s.instance, home: pt(row.pos) };
         });
+    geos.set(area, geo);
     return {
       area,
       bounds,
@@ -97,7 +101,20 @@ export function areaPresenceRows(content = loadContent()) {
       road: geo.road.map(pt),
       blockers: geo.blockers.map((poly) => poly.map(pt)),
       playerRadiusCm: cm(PLAYER_RADIUS),
-      exits: registry.links(area).map((l) => ({ to: l.to, zone: exitZone(geo, l) })),
+      exits: registry.links(area).map((l) => {
+        const zone = exitZone(geo, l),
+          xs = zone.map((p) => p.x),
+          zs = zone.map((p) => p.z);
+        // rect is the axis-aligned box of the zone; arrival is filled in below once every area has its points.
+        return {
+          id: l.id,
+          to: l.to,
+          rect: { minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) },
+          zone,
+          arrival: null,
+          entry: l.entry,
+        };
+      }),
       arrivals: arrivalPoints(
         area,
         walk,
@@ -106,10 +123,31 @@ export function areaPresenceRows(content = loadContent()) {
       enemies,
     };
   });
+  // An area change is accepted only through an exit zone and places the player at the destination's arrival
+  // point nearest to where the game itself drops the player (the registry link's entry).
+  for (const row of rows)
+    for (const exit of row.exits) {
+      const dest = rows.find((r) => r.area === exit.to),
+        at = pt(geos.get(exit.to).ground(exit.entry));
+      exit.arrival = dest.arrivals.reduce((a, b) => (dist(at, b) < dist(at, a) ? b : a)).id;
+      delete exit.entry;
+    }
+  return rows;
+}
+
+// The rows plus what presence logs and checks against: a hash of the rows and the player's top speed.
+// Top speed is the larger of the run and roll speeds in KNIFE_RULES (knockback and lunges are extra impulses).
+export function areaPresenceData(content = loadContent()) {
+  const areas = areaPresenceRows(content);
+  return {
+    version: createHash("sha256").update(JSON.stringify(areas)).digest("hex").slice(0, 16),
+    maxSpeedCmPerS: cm(Math.max(KNIFE_RULES.runSpeed, KNIFE_RULES.rollSpeed)),
+    areas,
+  };
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  const json = JSON.stringify(areaPresenceRows(), null, 1);
+  const json = JSON.stringify(areaPresenceData(), null, 1);
   if (process.argv[2]) writeFileSync(process.argv[2], json + "\n");
   else console.log(json);
 }
