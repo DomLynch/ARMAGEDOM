@@ -193,8 +193,17 @@ test("wall-side drop: every area has cases and the table names real areas", () =
   for (const boss of BOSSES) {
     const { found, counts } = DERIVED[boss.areaId];
     if (process.env.BOSS_DROP_TABLE === "1")
-      console.log("COUNTS", boss.areaId, JSON.stringify(counts), "cases", KINDS.reduce((n, k) => n + found[k].length, 0));
-    assert(KINDS.some((k) => found[k].length > 0), "derived at least one wall-side case in " + boss.areaId);
+      console.log(
+        "COUNTS",
+        boss.areaId,
+        JSON.stringify(counts),
+        "cases",
+        KINDS.reduce((n, k) => n + found[k].length, 0),
+      );
+    assert(
+      KINDS.some((k) => found[k].length > 0),
+      "derived at least one wall-side case in " + boss.areaId,
+    );
   }
   for (const id of Object.keys(KNOWN_WALL_GAPS)) assert(DERIVED[id], "gap names a boss area: " + id);
   assert(RIFLE_ITEM_ID);
