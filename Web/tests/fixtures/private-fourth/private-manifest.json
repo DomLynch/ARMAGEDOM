@@ -14,10 +14,10 @@
     },
     {
       "area": "westminster",
-      "path": "westminster/backdrop.webp",
-      "source": "Game/Assets/StreamingAssets/London/Travel/west/backdrop.png (lossless WebP copy)",
-      "bytes": 2097278,
-      "sha256": "0ea3c4f6aaa54da30ea2e6ba52ffe98793b63e51c7806c2a9e460baeac44c4a2"
+      "path": "westminster/backdrop-phone.webp",
+      "source": "westminster/backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
+      "bytes": 327720,
+      "sha256": "0a31bd86c3e2ff14bc1e973f615bb29889aa869cd9fd49bdcc85c38cfd41bf97"
     },
     {
       "area": "south",
@@ -154,7 +154,7 @@
     }
   ],
   "backdrops": {
-    "westminster": "backdrop.webp",
+    "westminster": "backdrop-phone.webp",
     "south": "backdrop.webp",
     "east": "backdrop.webp"
   }

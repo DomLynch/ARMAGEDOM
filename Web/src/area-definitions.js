@@ -273,9 +273,9 @@ export const areaAssets = {
   },
   "backdrop.westminster": {
     kind: "backdrop",
-    path: "world/westminster/backdrop.webp",
-    sha256: "0ea3c4f6aaa54da30ea2e6ba52ffe98793b63e51c7806c2a9e460baeac44c4a2",
-    bytes: 2097278,
+    path: "world/westminster/backdrop-phone.webp",
+    sha256: "0a31bd86c3e2ff14bc1e973f615bb29889aa869cd9fd49bdcc85c38cfd41bf97",
+    bytes: 327720,
   },
   "layout.south": {
     kind: "layout",
