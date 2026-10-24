@@ -65,12 +65,13 @@ if (pngToWebp) doc.createExtension(EXTTextureWebP).setRequired(true);
 // Compression happens when the document is written; the QUANTIZE method applies no attribute filters, so values are stored exactly.
 doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
 
-// EXACT_INDICES=1 keeps every index buffer in its exact original order. The meshopt TRIANGLES codec may rotate a triangle's
+// Index buffers are kept in their exact original order by default (set EXACT_INDICES=0 only to opt out, after checking that
+// nothing addresses the mesh by face). The meshopt TRIANGLES codec may rotate a triangle's
 // corners (same surface); code that addresses faces by (triangle, corner), like the player's foot receivers
 // (Web/src/rat-contact.js checks index.getX(face * 3 + k)), needs the exact sequence. gltf-transform picks the TRIANGLES codec
 // for a primitive whose mode equals Primitive.Mode.TRIANGLES at write time and otherwise the exact INDICES sequence codec, so the
 // constant is moved aside for the write only; the primitives themselves still declare mode 4.
-const exact = process.env.EXACT_INDICES === "1",
+const exact = process.env.EXACT_INDICES !== "0",
   triangleMode = Primitive.Mode.TRIANGLES;
 if (exact) Primitive.Mode.TRIANGLES = -1;
 let written;
