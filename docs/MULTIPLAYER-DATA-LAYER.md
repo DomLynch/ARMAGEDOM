@@ -43,7 +43,12 @@ so a reinstall or a second device must load the run and continue from `lastSeq +
   carry a reason (`shape`, `cap:<path>`), so the Auditor can see which path failed.
 - Writer: a per-account token bucket on `save_run` (proposal: sustained 1 save per 5 s, burst 3) and on `load_run` (1 per second). 429 on excess.
 
-**PR 2: money the client cannot raise.**
+**PR 2: money the client cannot raise.** BUILT in migration 000008 (not applied anywhere), as a CLAMP (Lead's ruling), not a refusal: kills the database settles credit
+`arma_cash.earned` through the table `arma_payout_rules` (generated from the game: creature 100, boss 200; no bounty); a save whose `marked.carried + marked.bank` is above
+`start_cash_total + earned` (or the total the stored run already holds) is STORED with the money lowered, carried first, then the bank, and every other field as sent.
+**Client contract (Web's A3 save client): when a `save_run` reply has `clamped: true`, adopt `carried` and `bank` from the reply into the live run** (the server's cash
+always wins); a retry of the same save (same `seq`) gets the same clamped answer with `replayed: true`. `enforce_cash = false` in `arma_config` turns the clamp off.
+Spending is still the phone's word, so a phone may spend and later claim back up to the ceiling, never past it; that closes with PR 3 / the shop. Original design text:
 - `carried + bank` may move between the two and may go DOWN (spending), but a save can never raise the total. The only way up is a server
   grant: `arma_grant(account, character, kind, amount, event_id)`, idempotent through the existing `arma_events` ledger, called by the
   writer on a server event (a kill pays `arma_payout_rules(kind, cash)`; the same row set Combat's single-player tables already imply).

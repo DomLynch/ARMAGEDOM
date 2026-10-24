@@ -7,6 +7,8 @@ const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navi
 
 async function setup() {
   const db = await freshDb();
+  // These tests save the real v18 fixture (250 cash); cash enforcement has its own tests (cash.test.js).
+  await db.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'");
   await openFor(db, ids.alice, ids.bob);
   const [{ id: alice }] = await call(db, "select public.arma_create_character($1, 'Alice') as id", [ids.alice]);
   const [{ id: bob }] = await call(db, "select public.arma_create_character($1, 'Bob') as id", [ids.bob]);
@@ -130,12 +132,12 @@ test("the run: create, stale refusal, era and shape checks, ownership, and a rea
 
 test("events are idempotent: the second insert of an id raises O0001", async () => {
   const { db, alice } = await setup();
-  const record = () => call(db, "select public.arma_record_event($1, $2, 'kill:e1:0:x', 'kill', '{}')", [ids.alice, alice]);
+  const record = () => call(db, "select public.arma_record_event($1, $2, 'save:e1', 'save', '{}')", [ids.alice, alice]);
   await record();
   assert.equal((await failure(record()))?.code, "O0001");
   assert.equal((await call(db, "select count(*)::int as n from public.arma_events"))[0].n, 1);
   const own = await as(db, "authenticated", ids.alice, () => call(db, "select event_id, kind from public.arma_events"));
-  assert.deepEqual(own, [{ event_id: "kill:e1:0:x", kind: "kill" }]);
+  assert.deepEqual(own, [{ event_id: "save:e1", kind: "save" }]);
   assert.match((await as(db, "authenticated", ids.alice, () => failure(call(db, "select payload from public.arma_events"))))?.message ?? "NO ERROR", /permission denied/, "payload is not a client column");
 });
 
