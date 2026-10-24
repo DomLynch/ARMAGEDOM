@@ -70,6 +70,12 @@ zero for honest play. Original design text:
 status anywhere, so a zero `arma_unreceipted_seen` counter does not prove every held weapon has a receipt. Before A is switched on, `arma_item_sources` / `arma_unreceipted`
 must also cover that route (a held flamethrower evidenced by `flameFuel.collected` and no `bossEquipment.emberProjector` status), or A leaves a way to keep an unreceipted weapon.
 
+**Known limit: one species cycle (Auditor's note on #95).** `server/data/spawns.json` is generated for cycle A only (`LIVE_CYCLE` in `server/data/generate-spawns.mjs`). Six
+placements are a different creature in cycle B (`area7:area7-station-rat-v1`, `area8:area8-resident-4`, `east-bridge:east-bridge-resident-2`, `east:east-roamer-4`,
+`elephant-and-castle:elephant-and-castle-resident-2`, `lambeth:lambeth-resident-2`), so a cycle-B phone's engage on those six is refused (O0002); none is a boss and none is Hale.
+Fine for alpha. The fix belongs with the writer/presence service work: make shared-world clients run cycle A (`animalCycle` is per save today) or give the world a
+cycle setting the spawn rows follow. `Web/tests/arma-spawns-seed.test.js` pins the six, so a change to the cycles is a decision.
+
 ## Rulings needed (these change what I build)
 
 1. **Earning rules.** What earns `carried`, `bounty`, proficiency and awards in the single-player game, and where are those tables? PR 2 and 3
