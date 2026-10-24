@@ -107,7 +107,7 @@ function deriveCases(boss) {
 // Which polygon edge separates two points (road boundary or the n-th blocker)?
 function separatingWall(geometry, a, b) {
   const index = geometry.edges.findIndex(([c, d]) => segmentsIntersect(a, b, c, d));
-  if (index < 0) return null;
+  if (index < 0) return "no layout edge between them (the safehouse boundary blocks the line)";
   let rest = index - geometry.road.length;
   if (rest < 0) return "road boundary edge " + index;
   for (let i = 0; i < geometry.blockers.length; i++) {
@@ -144,11 +144,15 @@ function killAt(boss, pos) {
   return { f, drop: s.dropPosition, real };
 }
 
-// Known wall gaps, measured on origin/main 8f68fb5 with the shipped layouts. The count is how many sampled corpse
-// points end in the ground-only ring across a wall; `first` is the first such point (artwork order of the edges).
-// Cause: ring(FALLBACK_RADII, ground) drops the corpse line on purpose (pickup only needs player-to-spot clearance),
-// so when no same-side spot exists within 6 m the drop may land across the wall. An empty table means no gap.
-const KNOWN_WALL_GAPS = {};
+// KNOWN_WALL_GAPS: measured on origin/main 8f68fb5 with the shipped layouts. `count` is how many sampled corpse
+// points end in the ground-only ring and drop across a wall. Cause: ring(FALLBACK_RADII, ground) drops the corpse
+// line on purpose (pickup only needs player-to-spot clearance), so when no same-side spot exists within 6 m the drop
+// lands across the wall. None of these corpse points is near the boss: the boss cannot get there (homeLeash 4.5..8).
+//  lambeth:     48 points; first corpse (8.91, 20.27) -> drop (7.49, 21.69), separated by blocker 1 edge 1;
+//               22.3 m from the Surgeon's spawn.
+//  westminster:  4 points; first corpse (-22.02, 3.05) -> drop (-20.52, 3.05), separated by the safehouse boundary
+//               (no layout edge between them); 39.2 m from the Witch's spawn.
+const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 4 } };
 
 const DERIVED = Object.fromEntries(BOSSES.map((b) => [b.areaId, deriveCases(b)]));
 const KINDS = ["stage2", "stage3", "plain"];
