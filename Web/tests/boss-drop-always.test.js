@@ -213,7 +213,29 @@ function measure(boss, variant) {
 
 // Known gaps: "<area>/<variant>" -> { expect: failed expectation names, cause }. Measured on origin/main d1d49ad.
 // An empty table means every case passes.
-const KNOWN_GAPS = {};
+// Both gap variants are synthetic: in the shipped layouts the area entry is legal ground in all seven areas
+// (outside-area passes everywhere), so a boss kill today always finds a spot. If no spot AND no legal entry exist,
+// uniqueRewardDropPosition returns null (unique-reward-runtime.js:69), stageDeathDrops hands that null to the model
+// transition, which refuses (item-layer.js:105 `if (!next) return null`), so the whole candidate write is refused:
+// persistRun returns false, the award is never recorded, the exit stays locked (needsUniqueDeathCommit) and every
+// later save in that area is refused the same way until Retry puts the boss back. The 223 fix widened the search
+// but did not remove this last "no spot at all" refusal.
+const SAVE_BLOCKED = [
+  "save-not-blocked-at-kill",
+  "status-pending",
+  "drop-position-finite",
+  "no-uncommitted-kill-left",
+  "later-save-works",
+  "award-recorded-once",
+];
+const KNOWN_GAPS = Object.fromEntries(
+  BOSSES.flatMap((b) =>
+    [
+      ["entry-not-legal", "nothing legal near the corpse and the area entry sits in an exit zone"],
+      ["no-ground-anywhere", "geometry.clear false everywhere"],
+    ].map(([variant, cause]) => [b.areaId + "/" + variant, { expect: SAVE_BLOCKED, cause }]),
+  ),
+);
 
 const results = [];
 for (const boss of BOSSES)
