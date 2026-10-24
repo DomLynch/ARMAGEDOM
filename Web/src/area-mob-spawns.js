@@ -1,3 +1,4 @@
+import { ANIMAL_CYCLES } from "./animal-cycle.js";
 // Registered world metres (x right, z forward), accepted Three020 layouts.
 // Westminster: six scattered residents; production disables the optional opening trio.
 // East/South: nine residents each. Only current-area actors update/render.
@@ -155,14 +156,11 @@ export const AREA_MOB_SPAWNS = Object.freeze({
   ]),
 });
 
-const FIRST_ANIMAL_APPEARANCES = Object.freeze({
-  "westminster-roamer-4": "rat-ash",
-  "south-roamer-3": "rat-mangy",
-  "westminster-roamer-6": "dog-ash-coated",
-  "east-roamer-4": "dog-pack-chaser",
-});
+// These four keep their cycle-A look before any cycle assigns a recipe; the recipes themselves live only in ANIMAL_CYCLES.
+const FIRST_ANIMAL_KEYS = new Set(["westminster-roamer-4", "south-roamer-3", "westminster-roamer-6", "east-roamer-4"]);
+const firstAppearance = (key) => (FIRST_ANIMAL_KEYS.has(key) ? ANIMAL_CYCLES.A[key] : undefined);
 export function animalAppearanceFor(entity) {
-  const id = entity.kind >= 0 ? (entity.animalRecipe ?? FIRST_ANIMAL_APPEARANCES[entity.placementKey]) : null;
+  const id = entity.kind >= 0 ? (entity.animalRecipe ?? firstAppearance(entity.placementKey)) : null;
   return id &&
     ((id.startsWith("rat-") && entity.rig === "original-rat") ||
       (id.startsWith("dog-") && entity.rig === "original-dog") ||

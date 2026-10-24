@@ -155,7 +155,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         count = index?.count ?? position.count;
       for (let i = 0; i < count; i++) {
         unique.add(index ? index.getX(i) : i);
-        if ((i & 255) === 0 && performance.now() - indexSince >= 4) {
+        if ((i & 63) === 0 && performance.now() - indexSince >= 4) {
           yield "victim-index";
           indexSince = performance.now();
         }
@@ -244,6 +244,12 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         if (n.skeleton) n.skeleton.update();
       });
       inverse.copy(root.matrixWorld).invert();
+      // Posing the rig is itself 6-10 ms; the vertex reads below start a fresh step.
+      if (performance.now() - since >= 4) {
+        prepMilliseconds += performance.now() - since;
+        yield "victim-pose";
+        since = performance.now();
+      }
       let floor = Infinity;
       let reads = 0;
       for (const draw of draws) {
@@ -257,7 +263,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
               .applyMatrix4(inverse);
             if (!Number.isFinite(point.y)) throw Error("Nonfinite victim floor");
             localFloor = Math.min(localFloor, point.y);
-            if ((++reads & 127) === 0 && performance.now() - since >= 4) {
+            if ((++reads & 7) === 0 && performance.now() - since >= 4) {
               prepMilliseconds += performance.now() - since;
               yield "victim-floor";
               since = performance.now();

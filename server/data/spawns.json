@@ -1,1 +1,167 @@
-{}
+{
+  "area7:area7-station-rat-v1": {
+    "kind": "original-rat",
+    "area": "area7",
+    "maxHp": 20
+  },
+  "area7:boss-knight-v1": {
+    "kind": "boss-area7-knight",
+    "area": "area7",
+    "maxHp": 120
+  },
+  "area8:area8-resident-1": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-3": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-4": {
+    "kind": "original-roach",
+    "area": "area8",
+    "maxHp": 20
+  },
+  "area8:boss-veteran-v1": {
+    "kind": "boss-area8-veteran",
+    "area": "area8",
+    "maxHp": 140
+  },
+  "east-bridge:boss-warden-v1": {
+    "kind": "boss-warden",
+    "area": "east-bridge",
+    "maxHp": 120
+  },
+  "east-bridge:east-bridge-resident-1": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-2": {
+    "kind": "original-rat",
+    "area": "east-bridge",
+    "maxHp": 20
+  },
+  "east:east-roamer-1": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-2": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 120
+  },
+  "east:east-roamer-3": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-4": {
+    "kind": "original-dog",
+    "area": "east",
+    "maxHp": 30
+  },
+  "east:east-roamer-6": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-8": {
+    "kind": "original-wolf",
+    "area": "east",
+    "maxHp": 40
+  },
+  "elephant-and-castle:boss-butcher-v1": {
+    "kind": "boss-butcher",
+    "area": "elephant-and-castle",
+    "maxHp": 110
+  },
+  "elephant-and-castle:elephant-and-castle-resident-1": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-2": {
+    "kind": "original-dog",
+    "area": "elephant-and-castle",
+    "maxHp": 30
+  },
+  "lambeth:boss-surgeon-v1": {
+    "kind": "boss-surgeon",
+    "area": "lambeth",
+    "maxHp": 80
+  },
+  "lambeth:lambeth-resident-1": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-2": {
+    "kind": "original-roach",
+    "area": "lambeth",
+    "maxHp": 20
+  },
+  "south:boss-nightborn-v1": {
+    "kind": "boss-south-nightborn",
+    "area": "south",
+    "maxHp": 120
+  },
+  "south:south-drone-1": {
+    "kind": "low-hover-drone",
+    "area": "south",
+    "maxHp": 20
+  },
+  "south:south-roamer-1": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-4": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-6": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-9": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "westminster:boss-witch-v1": {
+    "kind": "boss-westminster-witch",
+    "area": "westminster",
+    "maxHp": 120
+  },
+  "westminster:westminster-roamer-1": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  },
+  "westminster:westminster-roamer-2": {
+    "kind": "giant-salamander",
+    "area": "westminster",
+    "maxHp": 120
+  },
+  "westminster:westminster-roamer-3": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  },
+  "westminster:westminster-roamer-4": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  },
+  "westminster:westminster-roamer-6": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  }
+}

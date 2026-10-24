@@ -7,7 +7,7 @@ export const FLAME_PILOT_PROFILE = Object.freeze({
   pickupId: "flamethrower-area8-v1",
   name: EMBER.name,
   groundPickupEnabled: false,
-  areaId: "area8",
+  areaId: "westminster",
   capacity: EMBER.rules.fuelCapacity,
   unitsPerSecond: EMBER.rules.unitsPerSecond,
   contact: Object.freeze({

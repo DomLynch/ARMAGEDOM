@@ -36,9 +36,10 @@ function openWaist(root, anchor, cornerSupports = false) {
 // the floor table. The caller holds the bake pose around every step (characters.ts), so the rig may play between steps; each step reads the
 // rig afresh. One whole draw per step was 160 ms at CPU ×4 on the Goblin L3 body (18.7k tris, goblin-l3-packed4-d45f0f88, row C).
 const CHUNK = 2048;
-// And at most STEP_MS of it (checked every 256): a vertex count alone let one step of the Nightborn's L8 closed helm run 54.6 ms at CPU ×4
+// And at most STEP_MS of it (checked every 16): a vertex count alone let one step of the Nightborn's L8 closed helm run 54.6 ms at CPU ×4
 // (nightborn-L8-f3c54a6f, row C), where the Goblin's draws took 2–15. Where a step yields never changes what the bake cuts.
-const STEP_MS = 8;
+// Checked every 256 at 8 ms, travel-prep steps still measured 8–21 ms (draw mesh, Photo, LeatherBoots); 16 at 4 keeps them under 8.
+const STEP_MS = 4;
 // The resting searches and the floor table read every support point once per candidate: at most SCAN reads per step (pure maths on the
 // baked points, so no rig refresh after these yields). The weapon roll plus the floor table's first rows was the worst step (31 ms in Node,
 // 188 ms at CPU ×4 in the browser, goblin-l3-packed4-e9fca274), read over triangle-corner duplicates; supports now hold each vertex once.
@@ -108,7 +109,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     const skin = object instanceof SkinnedMesh ? object : null;
     skin?.skeleton.update();
     const pause = function* (i) {
-      if (i % CHUNK === CHUNK - 1 || ((i & 255) === 255 && now() - since > STEP_MS)) {
+      if (i % CHUNK === CHUNK - 1 || ((i & 15) === 15 && now() - since > STEP_MS)) {
         yield took();
         since = now();
         fresh();

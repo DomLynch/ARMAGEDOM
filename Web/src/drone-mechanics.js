@@ -1,3 +1,4 @@
+import { AREA_DRONE_SPAWNS } from "./area-drone-spawns.js";
 // One finite phase selector for existing resident movement + projectile authority.
 export const DRONE_RULES = Object.freeze({
   hoverHeight: 0.9,
@@ -14,11 +15,10 @@ export const DRONE_RULES = Object.freeze({
   boltRange: 6,
 });
 export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(time * 3) * 0.025;
-export const DRONE_KEYS = Object.freeze({
-  "westminster-drone-1": "westminster",
-  "east-drone-1": "east",
-  "south-drone-1": "south",
-});
+// placement key -> area, derived from the one spawn table so the two cannot drift
+export const DRONE_KEYS = Object.freeze(
+  Object.fromEntries(Object.entries(AREA_DRONE_SPAWNS).flatMap(([area, rows]) => rows.map((row) => [row.key, area]))),
+);
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const live = (a) => a && Number.isFinite(a.hp) && a.hp > 0 && point(a.pos);
 const copy = (p) => ({ x: p.x, z: p.z });

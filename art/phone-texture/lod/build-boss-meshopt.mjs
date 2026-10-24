@@ -9,7 +9,7 @@
 //      identical. JPEG and WebP textures are left as they are.
 // Nodes, skins, materials, extras and the remaining textures are untouched.
 // usage: node build-boss-meshopt.mjs <src.glb> <dst.glb>
-import { NodeIO } from "@gltf-transform/core";
+import { NodeIO, Primitive } from "@gltf-transform/core";
 import { ALL_EXTENSIONS, EXTMeshoptCompression, EXTTextureWebP } from "@gltf-transform/extensions";
 import { resample } from "@gltf-transform/functions";
 import { MeshoptDecoder, MeshoptEncoder } from "meshoptimizer";
@@ -65,10 +65,25 @@ if (pngToWebp) doc.createExtension(EXTTextureWebP).setRequired(true);
 // Compression happens when the document is written; the QUANTIZE method applies no attribute filters, so values are stored exactly.
 doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
 
-const out = Buffer.from(await io.writeBinary(doc));
+// Index buffers are kept in their exact original order by default (set EXACT_INDICES=0 only to opt out, after checking that
+// nothing addresses the mesh by face). The meshopt TRIANGLES codec may rotate a triangle's
+// corners (same surface); code that addresses faces by (triangle, corner), like the player's foot receivers
+// (Web/src/rat-contact.js checks index.getX(face * 3 + k)), needs the exact sequence. gltf-transform picks the TRIANGLES codec
+// for a primitive whose mode equals Primitive.Mode.TRIANGLES at write time and otherwise the exact INDICES sequence codec, so the
+// constant is moved aside for the write only; the primitives themselves still declare mode 4.
+const exact = process.env.EXACT_INDICES !== "0",
+  triangleMode = Primitive.Mode.TRIANGLES;
+if (exact) Primitive.Mode.TRIANGLES = -1;
+let written;
+try {
+  written = await io.writeBinary(doc);
+} finally {
+  Primitive.Mode.TRIANGLES = triangleMode;
+}
+const out = Buffer.from(written);
 writeFileSync(dst, out);
 const sha = (b) => createHash("sha256").update(b).digest("hex"),
   before = readFileSync(src);
 console.log(
-  JSON.stringify({ src, srcBytes: before.length, srcSha256: sha(before), dst, bytes: out.length, sha256: sha(out), saved: +(1 - out.length / before.length).toFixed(4), pngToWebp, capped }),
+  JSON.stringify({ src, srcBytes: before.length, srcSha256: sha(before), dst, bytes: out.length, sha256: sha(out), saved: +(1 - out.length / before.length).toFixed(4), pngToWebp, capped, exactIndices: exact }),
 );

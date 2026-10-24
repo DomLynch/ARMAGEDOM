@@ -8,7 +8,6 @@ import { seedPayoutRows } from "../../server/data/world-rows.js";
 import { worldSpawnRows } from "../src/engine/world-events.js";
 import { createAreaRegistry } from "../src/area-registry.js";
 import { validateAreaMetadata } from "../src/engine/area-content.js";
-import { MARKED_DEFAULTS } from "../src/engine/marked.js";
 
 const migrations = new URL("../../supabase/migrations/", import.meta.url);
 const read = (path) => JSON.parse(fs.readFileSync(new URL("../public/" + path, import.meta.url), "utf8"));
@@ -28,7 +27,7 @@ function migratedPayouts() {
 test("the seeded payouts equal the game's tables: every spawn kind, bosses at bossCash, the rest at cashPerKill", () => {
   const spawns = [...worldSpawnRows(content, "A"), ...worldSpawnRows(content, "B")];
   const bossKinds = new Set(Object.values(content.bossData.profiles).map((profile) => profile.modelRef));
-  const expected = seedPayoutRows(spawns, bossKinds, content.markedData ?? MARKED_DEFAULTS);
+  const expected = seedPayoutRows(spawns, bossKinds, content.markedData);
   const seeded = migratedPayouts();
   assert.deepEqual([...seeded.keys()].sort(), expected.map(([kind]) => kind).sort(), "a new creature kind needs a payout row: generate the next seed migration");
   for (const [kind, cash] of expected) assert.equal(seeded.get(kind), cash, `${kind}: generate the next seed migration`);
