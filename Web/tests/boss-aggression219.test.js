@@ -9,7 +9,8 @@ import {stepGame} from '../src/combat.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const data=read('../public/world/area-content.json'),base=read('./fixtures/boss-aggression218-baseline.json');
 test('219 changes only six boss movement/acquisition/timing fields and uniformly resampled native paths',()=>{
- const {bosses,...other}=data;assert.deepEqual(other,base.protected);
+ const {bosses,...other}=structuredClone(data);delete other.expedition.contract.enabled;delete other.marked.hunters;delete other.marked.bounty; // the 24 Oct contract/hunter/bounty switches are the only later change
+ assert.deepEqual(other,base.protected);
  assert.deepEqual(bosses.placements,base.bosses.placements);assert.deepEqual(bosses.profiles.witch,base.bosses.profiles.witch);
  assert.deepEqual(bosses.paths['boss-witch-attack'],base.bosses.paths['boss-witch-attack']);
  for(const[id,p]of Object.entries(bosses.profiles)){
