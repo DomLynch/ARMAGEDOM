@@ -112,7 +112,12 @@ export function createFlameView(s, persistence) {
       lower(g);
       return;
     }
-    if (!g.flameFuel?.collected || g.flameFuel.fuelUnits <= 0) return;
+    if (!g.flameFuel?.collected) return;
+    if (g.flameFuel.fuelUnits <= 0) {
+      g.message = "Flamethrower is out of fuel.";
+      g.messageUntil = g.time + 4;
+      return;
+    }
     const before = {
       weapon: g.player.weapon,
       variant: g.uniqueReward?.selectedMeleeVariant,

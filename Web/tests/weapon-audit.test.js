@@ -23,9 +23,19 @@ const row = (g, control) => carriedWeaponTiles(g).find((r) => r.control === cont
 
 test("row 1: knife, pistol, rifle and flamethrower are all carried and exactly one is active", () => {
   const rows = carriedWeaponTiles(make().g);
-  for (const control of ["melee-variant-knife", "rifle-equip"]) assert(rows.some((r) => r.control === control), control);
-  assert(rows.some((r) => r.control.startsWith("variant-")), "pistol");
-  assert(rows.some((r) => r.control === "flame-equip" || r.control === "boss-equip-emberProjector"), "flamethrower");
+  for (const control of ["melee-variant-knife", "rifle-equip"])
+    assert(
+      rows.some((r) => r.control === control),
+      control,
+    );
+  assert(
+    rows.some((r) => r.control.startsWith("variant-")),
+    "pistol",
+  );
+  assert(
+    rows.some((r) => r.control === "flame-equip" || r.control === "boss-equip-emberProjector"),
+    "flamethrower",
+  );
   assert.equal(rows.filter((r) => r.active).length, 1);
 });
 
@@ -35,7 +45,7 @@ test("row 2: weapon switching has a keyboard binding", { todo: "no key switches 
   assert.match(src, /weapon-(next|prev|switch)|cycleWeapon|selectWeapon/, "a weapon-switch key exists");
 });
 
-test("row 3: empty pistol, rifle and flame tiles say they are empty", { todo: "tiles show 0/6 · 0 and 0% fuel only" }, () => {
+test("row 3: empty pistol, rifle and flame tiles say they are empty", () => {
   const f = make(),
     g = f.g;
   g.pistol = { ...g.pistol, magazine: 0, reserve: 0 };
@@ -59,7 +69,44 @@ test("row 4: tile ammo and fuel match the real state, never inventing rounds", (
   assert.equal(flame.ammo, "1% fuel", "one unit of fuel is never shown as 0%");
 });
 
-test("row 5: equipping an empty flamethrower tells the player why", { todo: "equip() returns silently at 0 fuel" }, async () => {
-  const src = fs.readFileSync(new URL("../src/engine/flame-view.js", import.meta.url), "utf8");
-  assert.match(src, /fuelUnits <= 0\)\s*\{[^}]*message/, "an empty-tank equip sets g.message");
+test("row 5: equipping an empty flamethrower tells the player why and changes nothing else", async () => {
+  const { createFlameView } = await import("../src/engine/flame-view.js");
+  const f = make(),
+    g = f.g;
+  g.flameFuel = { ...g.flameFuel, fuelUnits: 0 };
+  const before = JSON.stringify([g.flame, g.pistol, g.rifle, g.player.weapon]);
+  class Element extends EventTarget {
+    attributes = new Map();
+    style = {};
+    setAttribute(k, v) {
+      this.attributes.set(k, String(v));
+    }
+    toggleAttribute() {}
+    removeAttribute() {}
+  }
+  const nodes = new Map(),
+    previous = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => nodes.get(id) ?? nodes.set(id, new Element()).get(id),
+  };
+  const view = createFlameView(
+    {
+      game: g,
+      loaded: true,
+      actors: { flameReady: () => true },
+      input: { clear() {} },
+      hud: { update() {} },
+      updateExpedition() {},
+    },
+    f.p,
+  );
+  try {
+    await view.equip();
+    assert.match(g.message ?? "", /out of fuel/i);
+    assert.equal(JSON.stringify([g.flame, g.pistol, g.rifle, g.player.weapon]), before);
+  } finally {
+    view.dispose();
+    if (previous === undefined) delete globalThis.document;
+    else globalThis.document = previous;
+  }
 });
