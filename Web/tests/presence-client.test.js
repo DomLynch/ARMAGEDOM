@@ -199,6 +199,19 @@ test("the flag is off by default; ?presence=1 turns it on and is remembered; ?pr
   assert.equal(presenceConfig({ search: "?presence=1", storage: null, location: null }), null);
 });
 
+test("?world=1 is the flag: remembered, turned off by ?world=0, and it wins over the ?presence= alias", () => {
+  const data = new Map(),
+    storage = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v) },
+    location = { protocol: "https:", host: "playarmagedom.com" };
+  assert.ok(presenceConfig({ search: "?world=1", storage, location }));
+  assert.ok(presenceConfig({ search: "", storage, location }), "remembered");
+  assert.equal(presenceConfig({ search: "?world=0", storage, location }), null);
+  assert.equal(presenceConfig({ search: "", storage, location }), null);
+  assert.equal(presenceConfig({ search: "?world=0&presence=1", storage, location }), null, "world wins");
+  assert.ok(presenceConfig({ search: "?world=1&presence=0", storage, location }));
+  assert.equal(presenceConfig({ search: "?world=maybe", storage: null, location }), null, "anything but 1 or 0 is ignored");
+});
+
 test("SECURITY: the endpoint is the page's own /arma/ws; a presenceUrl in the page URL can never send the token elsewhere", () => {
   const location = { protocol: "https:", host: "playarmagedom.com" },
     own = { url: "wss://playarmagedom.com/arma/ws" };

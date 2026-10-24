@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createPresenceSession } from "../src/engine/presence-session.js";
+import { createPresenceSession, percentile } from "../src/engine/presence-session.js";
 import { createRemotePlayersView, guestName } from "../src/engine/remote-players-view.js";
 import { INTERP_DELAY_MS } from "../src/engine/remote-players.js";
 
@@ -28,7 +28,7 @@ class FakeSocket {
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 const toRender = (p, y = 0) => new THREE.Vector3(p.x, y, p.z);
 
-function setup() {
+function setup(extra = {}) {
   FakeSocket.all = [];
   const clock = { ms: 10000 },
     s = {
@@ -42,6 +42,7 @@ function setup() {
       getToken: async () => "tok",
       WebSocketImpl: FakeSocket,
       now: () => clock.ms,
+      ...extra,
     });
   return { s, clock, session, socket: () => FakeSocket.all.at(-1) };
 }
@@ -141,6 +142,57 @@ test("dispose closes the socket and removes the figures from the scene", async (
   assert.equal(t.session.client.connected, false);
 });
 
+test("the state interval p50/p95 is logged every 100 states, and only a session that exists logs", async () => {
+  const lines = [],
+    t = setup({ log: (line) => lines.push(line) });
+  await inWorld(t);
+  for (let i = 0; i < 101; i++) {
+    t.clock.ms += i % 10 === 0 ? 180 : 100;
+    t.socket().receive({ t: "state", tick: i, players: [] });
+  }
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /\[arma-world\] state interval ms p50=100 p95=180 n=100/);
+  assert.equal(percentile([], 0.95), 0);
+});
+
+test("with the world on, the server's arrival point is honoured on join and on travel; a resumed position is not overridden", async () => {
+  const t = setup();
+  t.session.update();
+  await flush();
+  t.socket().open();
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 450, z: -120, arrival: "westminster:a2" });
+  assert.deepEqual(t.s.game.player.pos, { x: 4.5, z: -1.2 }, "placed on the arrival, centimetres to metres");
+  t.s.game.player.pos = { x: 9, z: 9 };
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 100, z: 100, arrival: null });
+  assert.deepEqual(t.s.game.player.pos, { x: 9, z: 9 }, "arrival null: the phone's own position stands");
+  t.s.world.areaId = "south";
+  t.session.update();
+  t.socket().receive({ t: "welcome", id: 3, area: "south", x: 4000, z: 100, arrival: "south:from-westminster" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "travel arrival");
+  t.socket().receive({ t: "welcome", id: 3, area: "central-hub", x: 1, z: 1, arrival: "central-hub:a1" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "a welcome for another area than the phone's is ignored");
+});
+
+test("a player's display name is shown on the tag when the server sends one, else Guest <id>; a late name replaces it", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  assert.deepEqual([...t.session.view.labels()], [
+    [9, "Survivor-1234"],
+    [10, "Guest 10"],
+  ]);
+  t.socket().receive({ t: "state", tick: 2, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0, name: "Sam" }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10), "Sam");
+  t.socket().receive({ t: "state", tick: 3, players: [{ id: 10, x: 0, z: 0, name: "x".repeat(60) }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10).length, 24, "long names are cut");
+});
+
 test("the view pools one figure per player and frees what leaves", () => {
   const scene = new THREE.Scene(),
     view = createRemotePlayersView({ scene, toRender });
@@ -154,7 +206,39 @@ test("the view pools one figure per player and frees what leaves", () => {
   assert.equal(scene.children.length, 0);
 });
 
+test("an optional survivor kit supplies the figure; the view keeps the pool, position, facing and tag, and falls back to the capsule", () => {
+  const scene = new THREE.Scene(),
+    calls = [];
+  const kit = {
+    spawn(id) {
+      calls.push(["spawn", id]);
+      if (id === 2) return null; // model not loaded for this one
+      const root = new THREE.Group();
+      return {
+        root,
+        update: (state) => calls.push(["update", id, state.moving, state.facing]),
+        dispose: () => calls.push(["dispose", id]),
+      };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: kit });
+  view.update([
+    { id: 1, x: 3, z: 4, facing: 0.5, moving: true },
+    { id: 2, x: 0, z: 0, facing: 0, moving: false },
+  ]);
+  const [one, two] = view.group.children;
+  assert.equal(one.name, "Player 1");
+  assert.equal(one.position.x, 3);
+  assert.equal(one.rotation.y, 0.5);
+  assert.ok(two.children.length >= 2, "the capsule fallback for the one the kit could not make");
+  assert.deepEqual(calls.filter((c) => c[0] === "update"), [["update", 1, true, 0.5]]);
+  view.update([{ id: 1, x: 3, z: 4, facing: 0.5, moving: false }]);
+  assert.deepEqual(calls.filter((c) => c[0] === "spawn").length, 2, "one spawn per player, then pooled");
+  view.dispose();
+  assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
+});
+
 test("guests are named by id until the server sends names", () => {
   assert.equal(guestName(12), "Guest 12");
-  assert.equal(guestName(12, new Map([[12, "Sam"]])), "Sam");
+  assert.equal(guestName(12, "Sam"), "Sam");
 });

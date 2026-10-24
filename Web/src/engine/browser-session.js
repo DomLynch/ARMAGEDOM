@@ -23,6 +23,9 @@ import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
+import { createGuestAuth } from "./guest-auth.js";
+import { mountAccountControl } from "./account-control.js";
+import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
@@ -96,6 +99,7 @@ export function createBrowserSession(options = {}) {
     areas,
     resources,
     presence = null,
+    account = null,
     diagnostics = null;
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera();
@@ -316,10 +320,20 @@ export function createBrowserSession(options = {}) {
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
-  presence = createPresenceSession(context, {
-    config: presenceConfig({ search: location.search, storage: runStorage, location }),
-    getToken: options.presenceToken,
-  });
+  const worldConfig = presenceConfig({ search: location.search, storage: runStorage, location }),
+    // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
+    auth = worldConfig ? createGuestAuth({ ...WORLD_AUTH, storage: runStorage }) : null;
+  // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
+  // link, code and any hash are always stripped from the address bar afterwards.
+  if (auth && (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token="))) {
+    const params = new URLSearchParams(location.search),
+      returned = location.search;
+    for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
+    const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
+    auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
+  }
+  presence = createPresenceSession(context, { config: worldConfig, getToken: options.presenceToken ?? auth?.getToken });
+  account = mountAccountControl({ auth });
   const hud = createHUD({
     onAssist: (enabled) => {
       mobileAssistEnabled = enabled;
@@ -742,6 +756,7 @@ export function createBrowserSession(options = {}) {
       subscriptions.clear();
       resources.dispose();
       presence?.dispose();
+      account?.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
       effects?.dispose();
