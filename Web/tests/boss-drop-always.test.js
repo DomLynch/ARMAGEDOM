@@ -62,7 +62,12 @@ function realTravelAt(world) {
     );
   };
 }
-const world = (f) => f.world;
+const EXTRA_WORLD = {
+  bossEquipmentData: data.bossEquipmentData,
+  safehouseData: data.safehouseData,
+  reaperData: data.reaperData,
+  markedData: data.markedData,
+};
 const legalGround = (f, p) => f.world.geometry.clear(p, 0.4) && !f.world.travelAt(p);
 
 // Scan the area for blocked points; returns the nearest blocked point to `origin`, and the blocked point whose nearest
@@ -157,12 +162,7 @@ function measure(boss, variant) {
   const failures = [];
   const f = fixture({
     areaId: boss.areaId,
-    extraWorld: {
-      bossEquipmentData: data.bossEquipmentData,
-      safehouseData: data.safehouseData,
-      reaperData: data.reaperData,
-      markedData: data.markedData,
-    },
+    extraWorld: EXTRA_WORLD,
   });
   f.world.travelAt = realTravelAt(f.world);
   const { g, e, saved, quotaOnKill } = killAt(f, boss, variant);
@@ -177,6 +177,13 @@ function measure(boss, variant) {
   const s = row.state(g);
   check("status-pending", s.status === "pending");
   const at = s.dropPosition;
+  if (process.env.BOSS_DROP_TABLE === "1")
+    console.log(
+      "INFO",
+      boss.areaId + "/" + variant,
+      "deathLegal=" + legalGround(f, e.pos),
+      "dropDist=" + (at ? Math.hypot(at.x - e.pos.x, at.z - e.pos.z).toFixed(2) : "none"),
+    );
   check("drop-position-finite", !!at && Number.isFinite(at.x) && Number.isFinite(at.z));
   if (at) check("drop-position-legal", legalGround(f, at));
   check("no-uncommitted-kill-left", needsUniqueDeathCommit(g) === false);
@@ -187,7 +194,7 @@ function measure(boss, variant) {
     const r = fixture({
       records: new Map(f.records),
       areaId: boss.areaId,
-      extraWorld: { bossEquipmentData: data.bossEquipmentData },
+      extraWorld: EXTRA_WORLD,
     });
     r.world.travelAt = f.world.travelAt;
     r.world.geometry.clear = f.world.geometry.clear;
