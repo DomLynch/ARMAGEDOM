@@ -31,6 +31,12 @@ test("the seeded weapon rules equal the game's tables with the progression ceili
   }
 });
 
+test("pinned example: the knife is seeded at base 20 x the 1.21 mastery ceiling, the pistol at 25 x 1.21", () => {
+  // If the game's knife or pistol damage or the progression rows change, this and the table test above fail together: generate the next seed migration.
+  const [knife, pistol] = [migratedRules().get("knife"), migratedRules().get("pistol")];
+  assert.ok(Math.abs(knife[0] - 24.2) < 1e-9 && Math.abs(pistol[0] - 30.25) < 1e-9);
+});
+
 test("every weapon a hit can carry is either seeded (a player weapon) or a creature attack on purpose", () => {
   const creatureOnly = WEAPON_IDS.filter((id) => !PLAYER_WEAPONS.includes(id)).sort();
   assert.deepEqual(creatureOnly, ["bolt", "teeth"], "a new weapon id must be classified in PLAYER_WEAPONS or here");
