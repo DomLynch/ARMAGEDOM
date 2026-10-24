@@ -12,7 +12,7 @@ limit_conn_zone $binary_remote_addr zone=arma_ws:10m;
 # The live world: one WebSocket per player. Origin is checked by presence itself; nginx passes it through untouched.
 location = /arma/ws {
     limit_conn arma_ws 4;                       # at most 4 sockets per IP (a family on one phone network, a reconnect overlap)
-    proxy_pass http://127.0.0.1:8892;
+    proxy_pass http://127.0.0.1:8894;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
