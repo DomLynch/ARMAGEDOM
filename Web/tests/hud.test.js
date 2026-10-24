@@ -391,3 +391,17 @@ test("an unreadable saved run tells the player to use Reset game from the menu",
   hud.update(g);
   assert.equal(el("result-hint").textContent, "Watch their wind-up. Dodge, then strike.");
 });
+
+test("a first-time hint uses the notice line, yields to a live message and clears when it ends", (t) => {
+  const { hud, el } = setup(t);
+  const g = game(true);
+  hud.update(g, "Hold GUARD to block.");
+  assert.equal(el("notice").textContent, "Hold GUARD to block.");
+  g.message = "Pistol picked up";
+  g.messageUntil = g.time + 3;
+  hud.update(g, "Hold GUARD to block.");
+  assert.equal(el("notice").textContent, "Pistol picked up");
+  g.messageUntil = 0;
+  hud.update(g, "");
+  assert.notEqual(el("notice").textContent, "Hold GUARD to block.");
+});

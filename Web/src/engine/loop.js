@@ -4,7 +4,9 @@ import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
+import { createFirstTimeHints } from "../first-time-hints.js";
 export function createBrowserLoop(s) {
+  const hints = createFirstTimeHints();
   let last = 0,
     accumulator = 0,
     submitted = null;
@@ -132,6 +134,7 @@ export function createBrowserLoop(s) {
         s.actors?.events(s.game);
         audioEvents.push(...s.game.events);
         s.emit(s.game.events);
+        hints.observe(s.game);
         accumulator -= 1 / 60;
         if (s.areas.checkExit()) break;
         if (s.game.finished) {
@@ -160,7 +163,7 @@ export function createBrowserLoop(s) {
     const severs = s.effects?.takeSeverEvents?.() ?? [];
     if (audioEvents.length || severs.length) s.audio.play(presentationAudioEvents(audioEvents, severs));
     s.rim.position.copy(s.world.toRender(s.game.player.pos, 2.4)).add(new THREE.Vector3(0, 0, 0.8));
-    s.hud.update(s.game);
+    s.hud.update(s.game, s.paused || s.traveling ? "" : hints.current(s.game));
     s.updateExpedition?.();
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
