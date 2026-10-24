@@ -190,7 +190,7 @@ test("the flag is off by default; ?presence=1 turns it on and is remembered; ?pr
     location = { protocol: "https:", host: "playarmagedom.com" };
   assert.equal(presenceConfig({ search: "", storage, location }), null);
   assert.deepEqual(presenceConfig({ search: "?presence=1", storage, location }), {
-    url: "wss://playarmagedom.com/presence",
+    url: "wss://playarmagedom.com/arma/ws",
   });
   assert.ok(presenceConfig({ search: "", storage, location }), "remembered");
   assert.equal(presenceConfig({ search: "?presence=0", storage, location }), null);

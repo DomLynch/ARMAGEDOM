@@ -14,7 +14,7 @@ export const toCm = (metres) => Math.round(metres * 100);
 export const fromCm = (cm) => cm / 100;
 
 // Off by default. On with ?presence=1 (remembered in storage; ?presence=0 turns it off again). The endpoint is ?presenceUrl=
-// (ws:// or wss://) or, when absent, `/presence` on the page's own origin.
+// (ws:// or wss://) or, when absent, `/arma/ws` on the page's own origin (Deploy routes it to the presence service).
 export function presenceConfig({ search = "", storage = null, location = null } = {}) {
   const params = new URLSearchParams(search),
     read = () => {
@@ -37,7 +37,7 @@ export function presenceConfig({ search = "", storage = null, location = null } 
   const custom = params.get("presenceUrl");
   if (custom) return /^wss?:\/\//.test(custom) ? { url: custom } : null;
   if (!location?.host) return null;
-  return { url: `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/presence` };
+  return { url: `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/arma/ws` };
 }
 
 /**
