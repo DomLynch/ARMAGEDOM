@@ -9,6 +9,46 @@
     <meta name="theme-color" content="#101719" />
     <title>ARMAGEDOM · London 2030</title>
     <link rel="stylesheet" href="/src/style.css" />
+    <script id="boot-failure">
+      // Classic inline script in <head> on purpose: Vite bundles module scripts and puts its own
+      // module tag after this one, so this still runs when the game bundle fails to download or start.
+      (function () {
+        var failure = null;
+        function describe(event) {
+          var target = event.target;
+          if (target && target !== window && (target.src || target.href))
+            return "could not fetch " + (target.src || target.href);
+          return (event.reason && event.reason.message) || event.message || "unknown error";
+        }
+        function apply() {
+          // Once the game has started it owns its own load errors and Retry.
+          if (window.__armagedomBooted) return;
+          var entry = document.getElementById("entry");
+          var enter = document.getElementById("enter");
+          var loading = document.getElementById("loading");
+          if (!failure || !entry || entry.hidden || !enter || !loading) return;
+          loading.textContent = "Could not load the game: " + failure + ". Check your connection and retry.";
+          enter.textContent = "Retry loading";
+          enter.disabled = false;
+          if (!enter.getAttribute("data-boot-retry")) {
+            enter.setAttribute("data-boot-retry", "1");
+            enter.addEventListener("click", function () {
+              window.location.reload();
+            });
+          }
+        }
+        function show(event) {
+          if (window.__armagedomBooted) return;
+          failure = describe(event);
+          // The entry card may not be parsed yet when a fast failure arrives.
+          if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply);
+          else apply();
+        }
+        // Capture phase: a failed <script> fires a non-bubbling error on the element itself.
+        window.addEventListener("error", show, true);
+        window.addEventListener("unhandledrejection", show);
+      })();
+    </script>
   </head>
   <body>
     <canvas
@@ -173,7 +213,6 @@
         <button id="again">Try again</button>
       </div>
     </section>
-    <script type="module" src="/src/boot-failure.js"></script>
     <script type="module" src="/src/main.js"></script>
   <button id="rifle-pickup" type="button" hidden style="position:fixed;z-index:8;transform:translate(-50%,-100%);padding:.4rem .6rem;background:#392a16;color:#f6d281;border:1px solid #c6a75d;border-radius:.4rem">PICK UP RIFLE</button>
 </body>

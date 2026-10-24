@@ -1,16 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { installBootFailureFallback } from "../src/boot-failure.js";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
-function fakePage({ entryHidden = false, booted = false } = {}) {
+const indexUrl = new URL("../index.html", import.meta.url);
+const distUrl = new URL("../dist/", import.meta.url);
+
+function inlineScript(html) {
+  const match = /<script id="boot-failure">([\s\S]*?)<\/script>/.exec(html);
+  assert.ok(match, "boot-failure inline script present");
+  return match[1];
+}
+
+// Runs the real inline script from index.html against a fake window and entry card.
+function fakePage({ entryHidden = false, booted = false, readyState = "complete" } = {}) {
   const listeners = new Map();
   const node = (extra = {}) => ({
     textContent: "",
     hidden: false,
     disabled: true,
-    dataset: {},
+    attributes: {},
     clicks: [],
+    getAttribute(name) {
+      return this.attributes[name] ?? null;
+    },
+    setAttribute(name, value) {
+      this.attributes[name] = value;
+    },
     addEventListener(type, fn) {
       if (type === "click") this.clicks.push(fn);
     },
@@ -20,12 +35,23 @@ function fakePage({ entryHidden = false, booted = false } = {}) {
   const reloads = [];
   const win = {
     __armagedomBooted: booted,
-    document: { getElementById: (id) => nodes[id] ?? null },
     location: { reload: () => reloads.push(1) },
     addEventListener: (type, fn, capture) => listeners.set(type, { fn, capture }),
   };
-  installBootFailureFallback(win);
-  return { win, nodes, reloads, fire: (type, event) => listeners.get(type).fn(event), listeners };
+  const docListeners = new Map();
+  const doc = {
+    readyState,
+    getElementById: (id) => nodes[id] ?? null,
+    addEventListener: (type, fn) => docListeners.set(type, fn),
+  };
+  new Function("window", "document", inlineScript(readFileSync(indexUrl, "utf8")))(win, doc);
+  return {
+    nodes,
+    reloads,
+    listeners,
+    docListeners,
+    fire: (type, event) => listeners.get(type).fn(event),
+  };
 }
 
 test("a failed game module import shows a message and a Retry that reloads", async () => {
@@ -40,7 +66,7 @@ test("a failed game module import shows a message and a Retry that reloads", asy
   assert.equal(page.reloads.length, 1);
 });
 
-test("a script element that fails to fetch is caught in the capture phase and named", () => {
+test("a script element that fails to download is caught in the capture phase and named", () => {
   const page = fakePage();
   assert.equal(page.listeners.get("error").capture, true);
   page.fire("error", { target: { src: "https://example.test/assets/index-abc.js" } });
@@ -56,27 +82,54 @@ test("repeated failures add one reload handler, not one per error", () => {
   assert.match(page.nodes.loading.textContent, /second/);
 });
 
-test("after the game booted the button keeps its own handler and only the message changes", () => {
+test("a failure that arrives before the entry card is parsed is shown once the page has loaded", () => {
+  const page = fakePage({ readyState: "loading" });
+  page.fire("error", { target: { src: "https://example.test/assets/index-abc.js" } });
+  assert.equal(page.nodes.loading.textContent, "");
+  page.docListeners.get("DOMContentLoaded")();
+  assert.match(page.nodes.loading.textContent, /could not fetch/);
+  assert.equal(page.nodes.enter.textContent, "Retry loading");
+});
+
+test("after the game booted the fallback leaves the message and the Retry button alone", () => {
   const page = fakePage({ booted: true });
   page.fire("unhandledrejection", { reason: new Error("texture pack missing") });
-  assert.match(page.nodes.loading.textContent, /texture pack missing/);
-  assert.equal(page.nodes.enter.textContent, "Retry loading");
+  assert.equal(page.nodes.loading.textContent, "");
+  assert.equal(page.nodes.enter.textContent, "");
+  assert.equal(page.nodes.enter.disabled, true);
   assert.equal(page.nodes.enter.clicks.length, 0);
 });
 
-test("errors during a fight, with the entry card hidden, are left alone", () => {
+test("errors with the entry card hidden are left alone", () => {
   const page = fakePage({ entryHidden: true });
   page.fire("error", { message: "mid-fight" });
   assert.equal(page.nodes.loading.textContent, "");
   assert.equal(page.nodes.enter.textContent, "");
 });
 
-test("the fallback is its own module and loads before main.js", () => {
-  const source = readFileSync(new URL("../src/boot-failure.js", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /^\s*import\s/m);
-  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  const fallback = html.indexOf('src="/src/boot-failure.js"');
-  assert.ok(fallback > 0 && fallback < html.indexOf('src="/src/main.js"'));
-  const main = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
-  assert.match(main, /__armagedomBooted = true/);
+test("the fallback is a classic inline script before the module tag, and main.js marks the boot", () => {
+  const html = readFileSync(indexUrl, "utf8");
+  const fallback = html.indexOf('<script id="boot-failure">');
+  const moduleTag = html.indexOf('<script type="module"');
+  assert.ok(fallback > 0 && fallback < moduleTag);
+  assert.doesNotMatch(inlineScript(html), /\b(import|export)\b\s*[{(*\w]/);
+  assert.match(readFileSync(new URL("../src/main.js", import.meta.url), "utf8"), /__armagedomBooted = true/);
 });
+
+// The packaged build is what players download. Vite bundles module scripts, so check the
+// output: the fallback must be in dist/index.html itself and absent from the game bundle.
+test(
+  "packaged build: fallback stays inline in dist/index.html, outside the game bundle",
+  { skip: !existsSync(new URL("index.html", distUrl)) && "run npm run build first" },
+  () => {
+    const html = readFileSync(new URL("index.html", distUrl), "utf8");
+    const bundles = readdirSync(new URL("assets/", distUrl)).filter((name) => /^index-.*\.js$/.test(name));
+    assert.ok(bundles.length >= 1);
+    assert.ok(html.indexOf('id="boot-failure"') >= 0);
+    assert.ok(html.indexOf('id="boot-failure"') < html.indexOf('type="module"'));
+    for (const name of bundles) {
+      const bundle = readFileSync(new URL("assets/" + name, distUrl), "utf8");
+      assert.ok(!bundle.includes("Could not load the game"), name + " must not contain the fallback");
+    }
+  },
+);
