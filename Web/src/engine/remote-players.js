@@ -6,11 +6,13 @@ import { fromCm } from "./presence-client.js";
 export const INTERP_DELAY_MS = 150; // a little over one 100 ms server tick, so there is almost always a newer snapshot to blend to
 export const KEEP_MS = 1000; // snapshots older than this are dropped
 const FACING_MIN = 0.02; // metres: moving less than this keeps the last facing
+const MAX_NAME = 24;
 const MOVING_SPEED = 0.3; // metres/second above which a player counts as moving
 
 export function createRemotePlayers({ selfId = () => null } = {}) {
   const tracks = new Map(); // id -> [{ at, x, z }] oldest first, metres
-  const facing = new Map();
+  const facing = new Map(),
+    names = new Map(); // id -> display name, when the server sends one
   let latestAt = -Infinity;
 
   return {
@@ -22,6 +24,9 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
         if (!Number.isInteger(row.id) || row.id === selfId() || !Number.isFinite(row.x) || !Number.isFinite(row.z))
           continue;
         present.add(row.id);
+        // The display name the server sends with a player ('Survivor-1234' for guests, the Google first name otherwise).
+        if (typeof row.name === "string" && row.name.trim()) names.set(row.id, row.name.trim().slice(0, MAX_NAME));
+        else names.delete(row.id);
         const track = tracks.get(row.id) ?? [];
         track.push({ at, x: fromCm(row.x), z: fromCm(row.z) });
         while (track.length > 2 && at - track[0].at > KEEP_MS) track.shift();
@@ -31,12 +36,14 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
         if (!present.has(id)) {
           tracks.delete(id);
           facing.delete(id);
+          names.delete(id);
         }
     },
     // Everyone who has left the layer, or a new area: forget them at once.
     clear() {
       tracks.clear();
       facing.clear();
+      names.clear();
     },
     // Positions to draw at time `now` (ms): [{ id, x, z, facing, moving }] with x, z in metres.
     sample(now) {
@@ -65,6 +72,7 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
           x,
           z,
           facing: facing.get(id) ?? 0,
+          name: names.get(id) ?? null,
           moving: span > 0 && moved / (span / 1000) > MOVING_SPEED,
         });
       }

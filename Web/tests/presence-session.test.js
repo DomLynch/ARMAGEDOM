@@ -148,6 +148,44 @@ test("the state interval p50/p95 is logged every 100 states, and only a session 
   assert.equal(percentile([], 0.95), 0);
 });
 
+test("with the world on, the server's arrival point is honoured on join and on travel; a resumed position is not overridden", async () => {
+  const t = setup();
+  t.session.update();
+  await flush();
+  t.socket().open();
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 450, z: -120, arrival: "westminster:a2" });
+  assert.deepEqual(t.s.game.player.pos, { x: 4.5, z: -1.2 }, "placed on the arrival, centimetres to metres");
+  t.s.game.player.pos = { x: 9, z: 9 };
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 100, z: 100, arrival: null });
+  assert.deepEqual(t.s.game.player.pos, { x: 9, z: 9 }, "arrival null: the phone's own position stands");
+  t.s.world.areaId = "south";
+  t.session.update();
+  t.socket().receive({ t: "welcome", id: 3, area: "south", x: 4000, z: 100, arrival: "south:from-westminster" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "travel arrival");
+  t.socket().receive({ t: "welcome", id: 3, area: "central-hub", x: 1, z: 1, arrival: "central-hub:a1" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "a welcome for another area than the phone's is ignored");
+});
+
+test("a player's display name is shown on the tag when the server sends one, else Guest <id>; a late name replaces it", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  assert.deepEqual([...t.session.view.labels()], [
+    [9, "Survivor-1234"],
+    [10, "Guest 10"],
+  ]);
+  t.socket().receive({ t: "state", tick: 2, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0, name: "Sam" }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10), "Sam");
+  t.socket().receive({ t: "state", tick: 3, players: [{ id: 10, x: 0, z: 0, name: "x".repeat(60) }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10).length, 24, "long names are cut");
+});
+
 test("the view pools one figure per player and frees what leaves", () => {
   const scene = new THREE.Scene(),
     view = createRemotePlayersView({ scene, toRender });
@@ -163,5 +201,5 @@ test("the view pools one figure per player and frees what leaves", () => {
 
 test("guests are named by id until the server sends names", () => {
   assert.equal(guestName(12), "Guest 12");
-  assert.equal(guestName(12, new Map([[12, "Sam"]])), "Sam");
+  assert.equal(guestName(12, "Sam"), "Sam");
 });

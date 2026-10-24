@@ -8,7 +8,8 @@ const BODY_HEIGHT = 1.0,
   TAG_Y = 2.05;
 const hue = (id) => ((id * 47) % 360) / 360;
 
-export const guestName = (id, names = null) => names?.get?.(id) ?? `Guest ${id}`;
+// The server's display name when it sent one, otherwise 'Guest <id>'.
+export const guestName = (id, name = null) => (typeof name === "string" && name ? name : `Guest ${id}`);
 
 function nameTexture(text) {
   if (typeof document === "undefined") return null;
@@ -29,7 +30,7 @@ function nameTexture(text) {
   return map;
 }
 
-export function createRemotePlayersView({ scene, toRender, names = null }) {
+export function createRemotePlayersView({ scene, toRender }) {
   const group = new THREE.Group();
   group.name = "Other players";
   scene.add(group);
@@ -47,26 +48,35 @@ export function createRemotePlayersView({ scene, toRender, names = null }) {
     torso.position.y = RADIUS + BODY_HEIGHT / 2;
     skull.position.y = BODY_HEIGHT + RADIUS * 2 + 0.2;
     root.add(torso, skull);
-    const parts = [material];
-    const map = nameTexture(guestName(id, names));
-    if (map) {
-      const spriteMaterial = new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }),
-        tag = new THREE.Sprite(spriteMaterial);
-      tag.name = "Name tag";
-      tag.scale.set(1.6, 0.4, 1);
-      tag.position.y = TAG_Y;
-      root.add(tag);
-      parts.push(spriteMaterial, map);
-    }
     group.add(root);
-    return { root, parts };
+    return { root, parts: [material], label: null, tag: null };
+  }
+
+  // The tag is rebuilt only when the label changes (a name can arrive after the figure first appears).
+  function setLabel(figure, label) {
+    if (figure.label === label) return;
+    figure.label = label;
+    if (figure.tag) {
+      figure.root.remove(figure.tag.sprite);
+      for (const part of figure.tag.parts) part.dispose();
+      figure.tag = null;
+    }
+    const map = nameTexture(label);
+    if (!map) return;
+    const spriteMaterial = new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }),
+      sprite = new THREE.Sprite(spriteMaterial);
+    sprite.name = "Name tag";
+    sprite.scale.set(1.6, 0.4, 1);
+    sprite.position.y = TAG_Y;
+    figure.root.add(sprite);
+    figure.tag = { sprite, parts: [spriteMaterial, map] };
   }
 
   function drop(id) {
     const figure = figures.get(id);
     if (!figure) return;
     group.remove(figure.root);
-    for (const part of figure.parts) part.dispose();
+    for (const part of [...figure.parts, ...(figure.tag?.parts ?? [])]) part.dispose();
     figures.delete(id);
   }
 
@@ -79,6 +89,7 @@ export function createRemotePlayersView({ scene, toRender, names = null }) {
         present.add(sample.id);
         const figure = figures.get(sample.id) ?? make(sample.id);
         figures.set(sample.id, figure);
+        setLabel(figure, guestName(sample.id, sample.name));
         figure.root.position.copy(toRender({ x: sample.x, z: sample.z }, 0));
         figure.root.rotation.y = sample.facing;
       }
@@ -86,6 +97,10 @@ export function createRemotePlayersView({ scene, toRender, names = null }) {
     },
     get count() {
       return figures.size;
+    },
+    // id -> the name on each tag (also when no canvas exists to draw it, e.g. in tests).
+    labels() {
+      return new Map([...figures].map(([id, figure]) => [id, figure.label]));
     },
     dispose() {
       for (const id of [...figures.keys()]) drop(id);

@@ -40,7 +40,16 @@ export function createPresenceSession(
     }
   });
   // A welcome starts a fresh layer: nobody from the area I left is shown any more.
-  client.on("welcome", () => remote.clear());
+  client.on("welcome", (message) => {
+    remote.clear();
+    // The server is the authority on arrivals (it spreads newcomers out so they do not stack): when it placed me on an arrival
+    // point, stand there. A resumed position (arrival null) is the phone's own and is never overridden.
+    const g = s.game;
+    if (message.arrival && g && s.world?.areaId === message.area && !s.traveling) {
+      g.player.pos.x = message.x / 100;
+      g.player.pos.z = message.z / 100;
+    }
+  });
   // The server only lets me travel from inside an exit zone it knows about; if it said no, start again in the area I am really in.
   client.on("refuse", (message) => {
     if (message.reason === "travel" && area && s.game) client.reconnect(area, s.game.player.pos);
