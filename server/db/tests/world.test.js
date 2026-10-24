@@ -12,7 +12,8 @@ async function world() {
   await db.exec(`
     delete from public.arma_weapon_rules;  -- these tests use their own small numbers, not the seeded caps
     insert into public.arma_weapon_rules values ('knife', 10, 4), ('rifle', 30, 2);
-    insert into public.arma_loot_rules values ('rat', 0, 'rat-tail', 1), ('rat', 1, 'rare-fang', 0.000001);`);
+    delete from public.arma_loot_rules;  -- loot rules are keyed by spawn INSTANCE (000009); these tests use their own
+    insert into public.arma_loot_rules values ('rat-1', 0, 'rat-tail', 1), ('rat-1', 1, 'rare-fang', 0.000001);`);
   return { db, characters };
 }
 const TOKEN = { alice: "tokenalice0000000000", bob: "tokenbob000000000000", carol: "tokencarol0000000000", dave: "tokendave0000000000" };
@@ -141,6 +142,7 @@ test("respawn: after the clock passes the creature is alive again at full hp in 
 test("per-account caps: too many open engages, and a kill-rate cap stops payout", async () => {
   const db = await ready();
   await db.exec(`update public.arma_world_config set max_open = 2, kills_per_min = 1`);
+  await db.exec(`insert into public.arma_loot_rules values ('rat-a', 0, 'rat-tail', 1), ('rat-b', 0, 'rat-tail', 1)`); // both drop; the cap decides who is paid
   await engage(db, "alice", "rat-a");
   await engage(db, "alice", "rat-b", 100, "westminster", "tokenalicesecond000");
   assert.equal((await call(db, "select public.arma_spawn_engage($1,$2,'tokenthird0000000000','rat-c','rat','westminster',100) as r", [ids.alice, db.chars.alice]))[0].r.refused, "too-many");
@@ -158,7 +160,7 @@ test("per-account caps: too many open engages, and a kill-rate cap stops payout"
 
 test("four players hit the wolf in one tick batch: one shared bar, one death, each row reported in its own slot", async () => {
   const db = await ready();
-  await db.exec(`insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1)`);
+  await db.exec(`insert into public.arma_loot_rules values ('wolf-1', 0, 'wolf-pelt', 1)`);
   const who = ["alice", "bob", "carol", "dave"];
   for (const name of who)
     await call(db, "select public.arma_spawn_engage($1, $2, $3, 'wolf-1', 'wolf', 'east', 40) as r", [ids[name], db.chars[name], TOKEN[name]]);
