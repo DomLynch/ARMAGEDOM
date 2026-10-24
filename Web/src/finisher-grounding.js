@@ -244,6 +244,12 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         if (n.skeleton) n.skeleton.update();
       });
       inverse.copy(root.matrixWorld).invert();
+      // Posing the rig is itself 6-10 ms; the vertex reads below start a fresh step.
+      if (performance.now() - since >= 4) {
+        prepMilliseconds += performance.now() - since;
+        yield "victim-pose";
+        since = performance.now();
+      }
       let floor = Infinity;
       let reads = 0;
       for (const draw of draws) {
