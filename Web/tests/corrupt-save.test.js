@@ -17,7 +17,7 @@ const worlds = [
   {
     name: 'Westminster (expedition)',
     make: records => fixture({areaId: 'westminster', extraWorld: bossWorld, records}),
-    message: /Saved run invalid\. Original kept; recover it before retrying\./,
+    message: /Saved run could not be read\. Open the menu and choose Reset game to start fresh\./,
     retryRefused: true,
     recover: f => f.p.resetRun().ok,
   },
