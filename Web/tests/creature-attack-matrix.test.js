@@ -50,9 +50,6 @@ const SPECIAL_ON_ANIMALS =
   "Special (Pommel) never reaches animals: the low-strike branch in attack() is only built for slash/stab/heavy " +
   "(combat.js:611, :678), so the swing is not ratLow and knifeContacts skips it for animal receivers " +
   "(combat.js:2430, :2459 ratContact.hit)";
-const RAILGUN_LEVEL =
-  "With no selected target the charged shot flies level at muzzle height, y about 2.0 (railgun.js:137); the body " +
-  "top is below it. Passes when the target is selected (railgun-charged-shot-touch)";
 const EMBER_LEVEL =
   "Desktop aim fires the flame level; it only pitches at the mobileAim target (flame-presentation.js:244 " +
   "flameAimPose) and flameTouches needs the cone to reach the body envelope (flame-contact.js:5). Passes with a " +
@@ -70,12 +67,6 @@ const KNOWN_GAPS = {
   "wolf/cleaver-special": SPECIAL_ON_ANIMALS,
   "salamander/cleaver-special": SPECIAL_ON_ANIMALS,
   "drone/cleaver-special": SPECIAL_ON_ANIMALS,
-  "rat/railgun-charged-shot": RAILGUN_LEVEL,
-  "dog/railgun-charged-shot": RAILGUN_LEVEL,
-  "roach/railgun-charged-shot": RAILGUN_LEVEL,
-  "salamander/railgun-charged-shot": RAILGUN_LEVEL,
-  "drone/railgun-charged-shot": RAILGUN_LEVEL,
-  "hollow/railgun-charged-shot": RAILGUN_LEVEL + "; the crooked hollow is 1.94 m tall, 6 cm under the shot line",
   "rat/ember-flame": EMBER_LEVEL,
   "roach/ember-flame": EMBER_LEVEL,
 };
