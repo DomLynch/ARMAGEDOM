@@ -209,8 +209,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "42a7173622122412ad90d0821420c1173def4cb9facf5039b19a358cbe58aa5c",
-      "bytes": 4255620,
+      "sha256": "36347e021295cef02e9ed46a262d0b1e89d5952d7356459db0f5fee3855bae0b",
+      "bytes": 1941460,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -635,8 +635,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "50a11568aa2e0140836fa2b39921f276c9ac28408af768ded764adbf9d2d81a4",
-      "bytes": 4547252,
+      "sha256": "4f7ed45e83656010dd355f040c09baabed91fc40614975089dac43d651ab1931",
+      "bytes": 2225848,
       "name": "Hale Pitborn appearance",
       "modularMeshNames": [
         "Recovered_donor_lower_neck",
@@ -1368,8 +1368,8 @@
     },
     "hollow-phone": {
       "file": "hollow-scavenger/hollow-scavenger-phone.glb",
-      "bytes": 4255620,
-      "sha256": "42a7173622122412ad90d0821420c1173def4cb9facf5039b19a358cbe58aa5c",
+      "bytes": 1941460,
+      "sha256": "36347e021295cef02e9ed46a262d0b1e89d5952d7356459db0f5fee3855bae0b",
       "errors": 0,
       "textureCapSource": {"file": "hollow-scavenger/hollow-scavenger.glb", "bytes": 4329068, "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"}
     },
