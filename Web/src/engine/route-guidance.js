@@ -21,6 +21,8 @@ export function capsuleSegmentClear(g, a, b) {
     if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, 0.4)) return false;
   return true;
 }
+// The arrow's tail starts this far out from the player's centre, clear of the character's footprint (radius 0.4).
+export const ARROW_TAIL_GAP = 0.7;
 // The ground arrow fades slowly in and out so it is easier to notice: a 1.3 s cycle between 0.35 and 1 opacity.
 export const ARROW_PULSE_SECONDS = 1.3,
   ARROW_MIN_OPACITY = 0.35;
@@ -181,8 +183,8 @@ export function createRouteGuidance(world) {
     "position",
     new THREE.Float32BufferAttribute(
       [
-        -0.13, 0, -0.95, 0.13, 0, -0.95, 0.13, 0, 0.1, -0.13, 0, -0.95, 0.13, 0, 0.1, -0.13, 0, 0.1, -0.32, 0, 0.02,
-        0.32, 0, 0.02, 0, 0, 0.48,
+        -0.13, 0, 0, 0.13, 0, 0, 0.13, 0, 1.05, -0.13, 0, 0, 0.13, 0, 1.05, -0.13, 0, 1.05, -0.32, 0, 0.97, 0.32, 0,
+        0.97, 0, 0, 1.43,
       ],
       3,
     ),
@@ -293,7 +295,7 @@ export function createRouteGuidance(world) {
     const dx = cue.target.x - position.x,
       dz = cue.target.z - position.z,
       length = Math.hypot(dx, dz),
-      step = Math.min(0.9, length * 0.5),
+      step = ARROW_TAIL_GAP,
       p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, 0.4);
     arrow.position.copy(world.toRender(p, 0.04));
     arrow.rotation.y = Math.atan2(dx, -dz);

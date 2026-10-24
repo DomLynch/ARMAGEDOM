@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { arrowOpacity, ARROW_PULSE_SECONDS, ARROW_MIN_OPACITY } from "../src/engine/route-guidance.js";
+import { arrowOpacity, ARROW_PULSE_SECONDS, ARROW_MIN_OPACITY, ARROW_TAIL_GAP } from "../src/engine/route-guidance.js";
+
+test("the ground arrow's tail gap clears the player's radius with a margin", () => {
+  assert.ok(ARROW_TAIL_GAP >= 0.6 && ARROW_TAIL_GAP <= 0.8);
+  assert.ok(ARROW_TAIL_GAP >= 0.4 + 0.2);
+});
 
 test("the ground route arrow fades slowly between 0.35 and full opacity", () => {
   assert.ok(ARROW_PULSE_SECONDS >= 1.2 && ARROW_PULSE_SECONDS <= 1.5);
