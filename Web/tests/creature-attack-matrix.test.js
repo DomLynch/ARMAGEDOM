@@ -50,9 +50,6 @@ const SPECIAL_ON_ANIMALS =
   "Special (Pommel) never reaches animals: the low-strike branch in attack() is only built for slash/stab/heavy " +
   "(combat.js:611, :678), so the swing is not ratLow and knifeContacts skips it for animal receivers " +
   "(combat.js:2430, :2459 ratContact.hit)";
-const SAW_ON_LOW =
-  "Bone saw contact is one blade segment at hand height traced against the target mesh (bone-saw-view.js:53 " +
-  "boneSawContact), with no low-target branch like the knife's (combat.js:611 rigCapability lowStrike)";
 const RAILGUN_LEVEL =
   "With no selected target the charged shot flies level at muzzle height, y about 2.0 (railgun.js:137); the body " +
   "top is below it. Passes when the target is selected (railgun-charged-shot-touch)";
@@ -73,11 +70,6 @@ const KNOWN_GAPS = {
   "wolf/cleaver-special": SPECIAL_ON_ANIMALS,
   "salamander/cleaver-special": SPECIAL_ON_ANIMALS,
   "drone/cleaver-special": SPECIAL_ON_ANIMALS,
-  "rat/bone-saw-cut": SAW_ON_LOW,
-  "dog/bone-saw-cut": SAW_ON_LOW,
-  "roach/bone-saw-cut": SAW_ON_LOW,
-  "salamander/bone-saw-cut": SAW_ON_LOW,
-  "drone/bone-saw-cut": SAW_ON_LOW,
   "hollow/bone-saw-cut":
     "Cause not isolated: the plain scavenger is cut but the crooked-hollow variant (actors.js:484 " +
     "CrookedHollowMotion posed mesh) is never touched by the blade trace",
