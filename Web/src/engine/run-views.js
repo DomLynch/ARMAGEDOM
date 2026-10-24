@@ -1,7 +1,7 @@
 import { createWantedProjection } from "./wanted-projection.js";
 import { createMarkedView } from "./marked-view.js";
 import { createReaperView } from "./reaper-view.js";
-import { createWeaponTiles } from "./weapon-tiles.js";
+import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
 import { createSafehouseView } from "./safehouse-view.js";
 import { createBossEquipmentView } from "./boss-equipment-view.js";
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
@@ -147,7 +147,7 @@ export function createRunViews(s) {
       field.dataset.contextAction = target.id;
     } else field.removeAttribute("data-context-action");
   }
-  const weaponTiles = createWeaponTiles(s, (row) => {
+  const selectWeapon = (row) => {
     const id = row.control;
     if (id === "reaper-equip") return reaperView.equip();
     if (id.startsWith("melee-variant-")) return uniqueView.equip(id.slice(14));
@@ -155,7 +155,27 @@ export function createRunViews(s) {
     if (id === "rifle-equip") return rifleView.equip();
     if (id === "flame-equip") return flameView.equip();
     if (id.startsWith("boss-equip-")) return bossEquipmentView.equip(id.slice(11));
-  });
+  };
+  const weaponTiles = createWeaponTiles(s, selectWeapon);
+  // Keyboard weapon switch: the next carried weapon after the active one, in tile order, through the same
+  // select path as a tile tap. The Reaper companion is a deploy/recall toggle, so the cycle skips it.
+  let cycling = false;
+  async function cycleWeapon() {
+    const g = s.game;
+    if (cycling || !g || s.paused || !s.loaded || s.traveling || s.contextLost || g.finished || g.player.hp <= 0)
+      return;
+    const rows = carriedWeaponTiles(g).filter((row) => !row.companion);
+    if (rows.length < 2) return;
+    const next = rows[(rows.findIndex((row) => row.active) + 1) % rows.length];
+    if (document.getElementById(next.control)?.disabled !== false) return;
+    cycling = true;
+    try {
+      await selectWeapon(next);
+    } finally {
+      cycling = false;
+      weaponTiles.update();
+    }
+  }
   let vestBag = null;
   function updateVestEquipment() {
     const node = document.getElementById("vest-state"),
@@ -289,7 +309,7 @@ export function createRunViews(s) {
       weaponTiles.update();
     },
     interactNearby,
-    cycleWeapon: () => weaponTiles.cycle(),
+    cycleWeapon,
     interactSafehouse: safehouseView.interact,
     interactFlame: flameView.interact,
     interactExpedition: expeditionView.interact,
