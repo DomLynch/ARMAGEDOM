@@ -1,12 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { adoptServerCash, createSaveClient, isRunKey, observeStorage, CHARACTER_KEY } from "../src/engine/save-client.js";
+import {
+  accountOf,
+  adoptServerCash,
+  characterKey,
+  createSaveClient,
+  isRunKey,
+  observeStorage,
+} from "../src/engine/save-client.js";
 import { GAME_DATA, validateSaveClient } from "../src/engine/game-data.js";
 
 const memory = () => {
   const map = new Map();
   return { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, String(v)), map };
 };
+// A token shaped like Supabase's: header.payload.signature, with the account in `sub`. Only the payload is read.
+const jwt = (sub) => `h.${btoa(JSON.stringify({ sub })).replace(/=+$/, "")}.s`;
 const record = (extra = {}) => JSON.stringify({ version: 18, marked: { carried: 100, bank: 0, bounty: 0 }, ...extra });
 
 // A writer that answers each op from a script and remembers what it was sent.
@@ -37,13 +46,13 @@ function make(script, options = {}) {
     storage = memory();
   const client = createSaveClient({
     baseUrl: "https://x.test/arma/api",
-    getToken: async () => "tok-123456789",
+    getToken: async () => jwt("user-1"),
     storage,
     fetchImpl: w.fetchImpl,
     now: () => clock.ms,
     setTimer: (fn, ms) => timers.push({ fn, ms }) && timers.length,
     clearTimer: () => {},
-    onCash: (reply) => cash.push(reply),
+    onCash: (reply, info) => cash.push({ reply, info }),
     log: (line) => lines.push(line),
     ...options,
   });
@@ -62,9 +71,9 @@ test("the first save creates the character once (remembered), learns revision 0,
   await t.run();
   assert.deepEqual(t.w.calls.map((c) => c.op), ["create_character", "load_run", "save_run"]);
   const save = t.w.calls[2];
-  assert.equal(save.auth, "Bearer tok-123456789");
+  assert.equal(save.auth, `Bearer ${jwt("user-1")}`);
   assert.deepEqual([save.body.character, save.body.era, save.body.revision, save.body.seq], ["pc:abc", 18, 0, 1]);
-  assert.equal(t.storage.map.get(CHARACTER_KEY), "pc:abc");
+  assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc");
   assert.equal(t.client.state.revision, 1);
   // A later save: no new character or load; seq 2 with the new revision.
   t.clock.ms += 6000;
@@ -87,16 +96,91 @@ test("saves are coalesced: at most one request per interval, and only the newest
   assert.deepEqual(sent.map((c) => c.body.record.hp ?? null), [1, 3]);
 });
 
-test("a clamped reply hands the server's carried and bank to onCash; adoptServerCash changes only those two numbers", async () => {
-  const t = make({ save_run: () => ({ revision: 1, savedAt: "t", clamped: true, carried: 40, bank: 10 }) });
+test("a clamped reply hands onCash the reply, the run the record came from and the cash that was sent", async () => {
+  const t = make({ save_run: () => ({ revision: 1, savedAt: "t", clamped: true, carried: 40, bank: 10 }) }),
+    run = { marked: { carried: 100, bank: 0 } };
+  t.client.queue(record({ marked: { carried: 90, bank: 30, bounty: 0 } }), run);
+  await t.run();
+  assert.equal(t.cash.length, 1);
+  assert.deepEqual(t.cash[0].reply, { revision: 1, savedAt: "t", clamped: true, carried: 40, bank: 10 });
+  assert.equal(t.cash[0].info.run, run);
+  assert.deepEqual(t.cash[0].info.sent, { carried: 90, bank: 30 });
+});
+
+test("adoptServerCash applies only the clamp DROP: a spend made after the record was built is not refunded", () => {
+  const reply = { clamped: true, carried: 40, bank: 10 },
+    sent = { carried: 90, bank: 30 }; // the server took 50 from carried and 20 from the bank
+  const run = { marked: { version: 1, carried: 70, bank: 30, bounty: 7 } }; // the player spent 20 from carried since
+  assert.equal(adoptServerCash(run, reply, { run, sent }), true);
+  assert.deepEqual(run.marked, { version: 1, carried: 20, bank: 10, bounty: 7 }, "70-50 and 30-20, not the server's 40 and 10");
+  const poor = { marked: { carried: 10, bank: 0, bounty: 0 } };
+  adoptServerCash(poor, reply, { run: poor, sent });
+  assert.deepEqual(poor.marked, { carried: 0, bank: 0, bounty: 0 }, "never below zero");
+});
+
+test("adoptServerCash never touches a run other than the one that produced the record, or a reply that is not a clamp", () => {
+  const reply = { clamped: true, carried: 40, bank: 10 },
+    sent = { carried: 90, bank: 30 },
+    old = { marked: { carried: 90, bank: 30 } },
+    fresh = { marked: { carried: 500, bank: 0 } }; // a new run after Retry or Reset
+  assert.equal(adoptServerCash(fresh, reply, { run: old, sent }), false);
+  assert.deepEqual(fresh.marked, { carried: 500, bank: 0 });
+  assert.equal(adoptServerCash(fresh, reply), false, "no run identity: skipped");
+  assert.equal(adoptServerCash(old, { revision: 2 }, { run: old, sent }), false, "an unclamped reply changes nothing");
+  assert.equal(adoptServerCash({ marked: null }, reply, { run: null, sent }), false);
+  assert.deepEqual(old.marked, { carried: 90, bank: 30 });
+});
+
+test("the cached character is keyed by account: a new guest session gets its own instead of being refused forever", async () => {
+  let token = jwt("guest-A");
+  const t = make({}, { getToken: async () => token });
   t.client.queue(record());
   await t.run();
-  assert.deepEqual(t.cash, [{ revision: 1, savedAt: "t", clamped: true, carried: 40, bank: 10 }]);
-  const game = { marked: { version: 1, carried: 900, bank: 50, bounty: 7 } };
-  assert.equal(adoptServerCash(game, t.cash[0]), true);
-  assert.deepEqual(game.marked, { version: 1, carried: 40, bank: 10, bounty: 7 });
-  assert.equal(adoptServerCash(game, { revision: 2 }), false, "an unclamped reply changes nothing");
-  assert.equal(adoptServerCash({ marked: null }, t.cash[0]), false);
+  assert.equal(t.storage.map.get(characterKey("guest-A")), "pc:abc");
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 1);
+  token = jwt("guest-B"); // the session changed (cleared storage, new device, a new guest)
+  t.clock.ms += 6000;
+  t.client.queue(record({ hp: 3 }));
+  await t.run();
+  const ops = t.w.calls.map((c) => c.op);
+  assert.equal(ops.filter((o) => o === "create_character").length, 2, "guest B is not sent guest A's character");
+  assert.equal(t.client.state.seq, 1, "the sequence starts again for the new character");
+  assert.equal(t.w.calls.at(-1).body.revision, 0, "a new character starts from the server's revision 0, not A's");
+  assert.ok(t.storage.map.get(characterKey("guest-B")));
+  // Back to A: its cached id is used, nothing is created.
+  token = jwt("guest-A");
+  t.clock.ms += 6000;
+  t.client.queue(record({ hp: 4 }));
+  await t.run();
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
+});
+
+test("an O0007 refusal clears the cached character; the next save creates a new one and recovers", async () => {
+  const t = make({
+    save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 1, savedAt: "t" }),
+    create_character: (body, n) => ({ character: n === 0 ? "pc:stale" : "pc:fresh" }),
+  });
+  t.client.queue(record());
+  await t.run();
+  assert.match(t.lines[0], /not saved: O0007/);
+  assert.equal(t.storage.map.get(characterKey("user-1")), "", "the cache is cleared");
+  t.clock.ms += 6000;
+  t.client.queue(record({ hp: 2 }));
+  await t.run();
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
+  assert.equal(t.w.calls.at(-1).body.character, "pc:fresh");
+  assert.equal(t.client.state.revision, 1);
+  assert.equal(t.client.state.seq, 1);
+});
+
+test("a token that is not a readable JWT is never cached (no account to key it by) but still works in memory", async () => {
+  const t = make({}, { getToken: async () => "opaque-token-123456" });
+  t.client.queue(record());
+  await t.run();
+  assert.equal(t.storage.map.size, 0);
+  assert.equal(t.w.calls.at(-1).body.character, "pc:abc");
+  assert.equal(accountOf("opaque"), null);
+  assert.equal(accountOf(jwt("x")), "x");
 });
 
 test("unreceipted paths are only logged (report-only): no cash callback, no player-facing change", async () => {

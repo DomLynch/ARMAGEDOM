@@ -6,13 +6,27 @@
 import { GAME_DATA } from "./game-data.js";
 
 export const CHARACTER_KEY = "armagedom.world.character.v1";
+// The cached character id belongs to one account: a new guest session must not reuse (and be refused) another's.
+export const characterKey = (account) => `${CHARACTER_KEY}:${account}`;
 
-// The server's money wins: only the two numbers it clamped change. Returns true when something was adopted.
-export function adoptServerCash(game, reply) {
-  if (reply?.clamped !== true || !game?.marked || !Number.isFinite(reply.carried) || !Number.isFinite(reply.bank))
-    return false;
-  game.marked.carried = reply.carried;
-  game.marked.bank = reply.bank;
+// The account id is the token's `sub`. It is read only to key the cache; the server verifies the token.
+export function accountOf(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.sub === "string" && payload.sub ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+// The server lowered the cash of the record `sent`; apply ONLY that drop to the live run, and only if the live run is the one that
+// produced the record. Spending after the record was built stays spent, a newer run is never touched. Returns true when adopted.
+export function adoptServerCash(game, reply, { run = null, sent = null } = {}) {
+  if (reply?.clamped !== true || !game?.marked || !run || game !== run || !sent) return false;
+  if (![reply.carried, reply.bank, sent.carried, sent.bank].every(Number.isFinite)) return false;
+  const drop = (was, now) => Math.max(0, was - now);
+  game.marked.carried = Math.max(0, game.marked.carried - drop(sent.carried, reply.carried));
+  game.marked.bank = Math.max(0, game.marked.bank - drop(sent.bank, reply.bank));
   return true;
 }
 
@@ -54,7 +68,8 @@ export function createSaveClient({
   tuning = GAME_DATA.saveClient,
 }) {
   if (!baseUrl || typeof getToken !== "function") return null;
-  let character = null,
+  let account = null, // whose token the cached state below belongs to
+    character = null,
     revision = null, // null: not synced yet
     seq = 0,
     uncertain = false, // the last request's outcome is unknown (network error): a "stale" answer then means our own save landed
@@ -79,8 +94,31 @@ export function createSaveClient({
     }
   };
 
-  async function call(op, body) {
+  // The current token. A different account (a new guest session) starts over: its own character, revision and sequence.
+  async function who() {
     const token = await getToken();
+    if (!token) return null;
+    const next = accountOf(token);
+    if (next !== account) {
+      account = next;
+      character = null;
+      revision = null;
+      seq = 0;
+      uncertain = false;
+    }
+    return token;
+  }
+  // The server refused the character (not this account's, or the world is not open for it): forget it and ask for a new one next time.
+  function forgetCharacter() {
+    if (account) write(characterKey(account), "");
+    character = null;
+    revision = null;
+    seq = 0;
+    uncertain = false;
+  }
+
+  async function call(op, body) {
+    const token = await who();
     if (!token) return { error: "no-token" };
     try {
       const response = await fetchImpl(`${baseUrl}/${op}`, {
@@ -89,6 +127,7 @@ export function createSaveClient({
         body: JSON.stringify(body),
       });
       const payload = await response.json().catch(() => ({}));
+      if (!response.ok && payload?.error === "O0007" && op !== "create_character") forgetCharacter();
       return response.ok
         ? payload
         : { error: payload?.error ?? `http-${response.status}`, status: response.status, ...payload };
@@ -98,12 +137,13 @@ export function createSaveClient({
   }
 
   async function ensureCharacter() {
-    character ??= read(CHARACTER_KEY);
+    if (!(await who())) return null;
+    if (!character && account) character = read(characterKey(account)) || null;
     if (character) return character;
     const made = await call("create_character", { name: tuning.characterName });
     if (typeof made.character === "string") {
       character = made.character;
-      write(CHARACTER_KEY, character);
+      if (account) write(characterKey(account), character);
     }
     return character;
   }
@@ -118,14 +158,16 @@ export function createSaveClient({
     return true;
   }
 
-  async function send(raw) {
+  async function send(raw, run) {
     let record;
     try {
       record = JSON.parse(raw);
     } catch {
       return { ok: false, reason: "bad-record" };
     }
-    if (!(await sync())) return { ok: false, reason: "offline" };
+    await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
+    if (!(await sync()) || !character) return { ok: false, reason: "offline" };
+    const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
     for (let attempt = 0; attempt <= tuning.staleSeqRetries; attempt++) {
       seq++;
       const reply = await call("save_run", { character, era: record.version, record, revision, seq });
@@ -151,7 +193,7 @@ export function createSaveClient({
       uncertain = false;
       revision = reply.revision;
       if (reply.unreceipted?.length) log(`[arma-save] unreceipted: ${reply.unreceipted.join(", ")}`);
-      if (reply.clamped === true) onCash(reply);
+      if (reply.clamped === true) onCash(reply, { run, sent });
       return { ok: true, reply };
     }
     return { ok: false, reason: "seq" };
@@ -166,12 +208,12 @@ export function createSaveClient({
   async function flush() {
     timer = null;
     if (sending || stopped || latest === null) return;
-    const raw = latest;
+    const { raw, run } = latest;
     latest = null;
     sending = true;
     lastSentAt = now();
     try {
-      const result = await send(raw);
+      const result = await send(raw, run);
       if (!result.ok) log(`[arma-save] not saved: ${result.reason}`);
     } catch (error) {
       log(`[arma-save] error: ${error?.message}`);
@@ -183,9 +225,10 @@ export function createSaveClient({
 
   return {
     // The newest local save: at most one request every minSaveIntervalMs, older unsent records are dropped (the newest carries all state).
-    queue(raw) {
+    // `run` is the live game the record was built from: the server's cash correction is only applied back to that same run.
+    queue(raw, run = null) {
       if (typeof raw !== "string") return;
-      latest = raw;
+      latest = { raw, run };
       schedule();
     },
     flush,
