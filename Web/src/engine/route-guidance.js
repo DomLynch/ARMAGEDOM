@@ -21,6 +21,11 @@ export function capsuleSegmentClear(g, a, b) {
     if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, 0.4)) return false;
   return true;
 }
+// The ground arrow fades slowly in and out so it is easier to notice: a 1.3 s cycle between 0.35 and 1 opacity.
+export const ARROW_PULSE_SECONDS = 1.3,
+  ARROW_MIN_OPACITY = 0.35;
+export const arrowOpacity = (seconds) =>
+  ARROW_MIN_OPACITY + (1 - ARROW_MIN_OPACITY) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / ARROW_PULSE_SECONDS));
 export function validateGuidance(layout, g, links = null) {
   const rows = layout.guidance ?? [];
   if (!Array.isArray(rows) || rows.length > 5) throw Error("Invalid route guidance");
@@ -176,7 +181,7 @@ export function createRouteGuidance(world) {
     "position",
     new THREE.Float32BufferAttribute(
       [
-        -0.13, 0, -0.35, 0.13, 0, -0.35, 0.13, 0, 0.1, -0.13, 0, -0.35, 0.13, 0, 0.1, -0.13, 0, 0.1, -0.32, 0, 0.02,
+        -0.13, 0, -0.95, 0.13, 0, -0.95, 0.13, 0, 0.1, -0.13, 0, -0.95, 0.13, 0, 0.1, -0.13, 0, 0.1, -0.32, 0, 0.02,
         0.32, 0, 0.02, 0, 0, 0.48,
       ],
       3,
@@ -184,7 +189,13 @@ export function createRouteGuidance(world) {
   );
   const arrow = new THREE.Mesh(
     arrowGeometry,
-    new THREE.MeshBasicMaterial({ color: 0xf1d28c, side: THREE.DoubleSide, depthWrite: false, toneMapped: false }),
+    new THREE.MeshBasicMaterial({
+      color: 0xf1d28c,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      toneMapped: false,
+      transparent: true,
+    }),
   );
   arrow.name = "Safe route direction";
   arrow.visible = false;
@@ -286,6 +297,7 @@ export function createRouteGuidance(world) {
       p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, 0.4);
     arrow.position.copy(world.toRender(p, 0.04));
     arrow.rotation.y = Math.atan2(dx, -dz);
+    arrow.material.opacity = arrowOpacity(globalThis.performance?.now?.() / 1000 || 0);
   }
   function hint(position, activeWorld = world) {
     const cue = resolve(position);
