@@ -23,6 +23,9 @@ import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
+import { createGuestAuth } from "./guest-auth.js";
+import { mountAccountControl } from "./account-control.js";
+import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
@@ -96,6 +99,7 @@ export function createBrowserSession(options = {}) {
     areas,
     resources,
     presence = null,
+    account = null,
     diagnostics = null;
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera();
@@ -316,10 +320,12 @@ export function createBrowserSession(options = {}) {
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
-  presence = createPresenceSession(context, {
-    config: presenceConfig({ search: location.search, storage: runStorage, location }),
-    getToken: options.presenceToken,
-  });
+  const worldConfig = presenceConfig({ search: location.search, storage: runStorage, location }),
+    // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
+    auth = worldConfig ? createGuestAuth({ ...WORLD_AUTH, storage: runStorage }) : null;
+  if (auth?.takeRedirect(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+  presence = createPresenceSession(context, { config: worldConfig, getToken: options.presenceToken ?? auth?.getToken });
+  account = mountAccountControl({ auth });
   const hud = createHUD({
     onAssist: (enabled) => {
       mobileAssistEnabled = enabled;
@@ -742,6 +748,7 @@ export function createBrowserSession(options = {}) {
       subscriptions.clear();
       resources.dispose();
       presence?.dispose();
+      account?.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
       effects?.dispose();

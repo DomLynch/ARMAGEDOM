@@ -5,7 +5,16 @@ import { createPresenceClient, presenceConfig } from "./presence-client.js";
 import { createRemotePlayers } from "./remote-players.js";
 import { createRemotePlayersView } from "./remote-players-view.js";
 
-export function createPresenceSession(s, { config, getToken = async () => null, WebSocketImpl, now } = {}) {
+const STATS_EVERY = 100; // state messages (about 10 s)
+export const percentile = (values, p) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  return Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0);
+};
+
+export function createPresenceSession(
+  s,
+  { config, getToken = async () => null, WebSocketImpl, now, log = (line) => console.info(line) } = {},
+) {
   if (!config) return null;
   const client = createPresenceClient({ url: config.url, getToken, WebSocketImpl, now }),
     remote = createRemotePlayers({ selfId: () => client.id });
@@ -13,7 +22,23 @@ export function createPresenceSession(s, { config, getToken = async () => null, 
     area = null,
     clock = now ?? (() => globalThis.performance?.now?.() ?? Date.now());
 
-  client.on("state", (message) => remote.apply(message, clock()));
+  // Phase C wants p95 < 150 ms for other players' movement. The protocol carries no server timestamp yet, so what can be measured
+  // here is the gap between state messages (the server ticks every 100 ms): its p95 is logged to the console, only when the world
+  // flag is on. A real one-way latency needs a server time in `state`.
+  const intervals = [];
+  let lastStateAt = null;
+  client.on("state", (message) => {
+    const at = clock();
+    remote.apply(message, at);
+    if (lastStateAt !== null) intervals.push(at - lastStateAt);
+    lastStateAt = at;
+    if (intervals.length >= STATS_EVERY) {
+      log(
+        `[arma-world] state interval ms p50=${percentile(intervals, 0.5)} p95=${percentile(intervals, 0.95)} n=${intervals.length}`,
+      );
+      intervals.length = 0;
+    }
+  });
   // A welcome starts a fresh layer: nobody from the area I left is shown any more.
   client.on("welcome", () => remote.clear());
   // The server only lets me travel from inside an exit zone it knows about; if it said no, start again in the area I am really in.

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createPresenceSession } from "../src/engine/presence-session.js";
+import { createPresenceSession, percentile } from "../src/engine/presence-session.js";
 import { createRemotePlayersView, guestName } from "../src/engine/remote-players-view.js";
 import { INTERP_DELAY_MS } from "../src/engine/remote-players.js";
 
@@ -28,7 +28,7 @@ class FakeSocket {
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 const toRender = (p, y = 0) => new THREE.Vector3(p.x, y, p.z);
 
-function setup() {
+function setup(extra = {}) {
   FakeSocket.all = [];
   const clock = { ms: 10000 },
     s = {
@@ -42,6 +42,7 @@ function setup() {
       getToken: async () => "tok",
       WebSocketImpl: FakeSocket,
       now: () => clock.ms,
+      ...extra,
     });
   return { s, clock, session, socket: () => FakeSocket.all.at(-1) };
 }
@@ -132,6 +133,19 @@ test("dispose closes the socket and removes the figures from the scene", async (
   t.session.dispose();
   assert.equal(t.s.scene.children.length, 0);
   assert.equal(t.session.client.connected, false);
+});
+
+test("the state interval p50/p95 is logged every 100 states, and only a session that exists logs", async () => {
+  const lines = [],
+    t = setup({ log: (line) => lines.push(line) });
+  await inWorld(t);
+  for (let i = 0; i < 101; i++) {
+    t.clock.ms += i % 10 === 0 ? 180 : 100;
+    t.socket().receive({ t: "state", tick: i, players: [] });
+  }
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /\[arma-world\] state interval ms p50=100 p95=180 n=100/);
+  assert.equal(percentile([], 0.95), 0);
 });
 
 test("the view pools one figure per player and frees what leaves", () => {
