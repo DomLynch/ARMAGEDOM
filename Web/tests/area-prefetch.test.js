@@ -50,7 +50,8 @@ function rig({ files, canRun = () => true, neighbours = ["east", "south", "lambe
     now: () => clock.t,
     sleep: async (ms) => {
       clock.t += ms;
-      await Promise.resolve();
+      // A macrotask turn, so an endless download cannot starve the test's own waits.
+      await new Promise((resolve) => setImmediate(resolve));
     },
   });
   // The run loop is fire and forget; let it drain on the virtual clock.
