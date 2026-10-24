@@ -3,6 +3,10 @@ import { ownsEmberReward } from "./boss-equipment-data.js";
 import { weaponTileIcon } from "./weapon-tile-icons.js";
 import { lockerStored } from "./locker-core.js";
 import { MELEE_VARIANTS } from "../melee-equipment.js";
+// A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
+const dry = (magazine, reserve) => !magazine && !reserve;
+const rounds = (magazine, capacity, reserve) =>
+  dry(magazine, reserve) ? "Empty" : `${magazine ?? 0}/${capacity} · ${reserve ?? 0}`;
 // Presentation only: every selection still uses its existing Gear control/writer.
 export function carriedWeaponTiles(g) {
   if (!g?.world) return [];
@@ -22,8 +26,8 @@ export function carriedWeaponTiles(g) {
             ? "westminster-start-pistol-v1"
             : (g.expedition?.selectedPistolVariant ?? "westminster-start-pistol-v1")
           : (g.uniqueReward?.selectedMeleeVariant ?? "knife");
-  const add = (id, name, control, owned, ammo = "Melee") => {
-    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo });
+  const add = (id, name, control, owned, ammo = "Melee", empty = false) => {
+    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo, empty });
   };
   for (const id of ["knife", g.world.uniqueRewardData?.itemId].filter(Boolean)) {
     const p = MELEE_VARIANTS[id];
@@ -37,7 +41,8 @@ export function carriedWeaponTiles(g) {
       p.name,
       "variant-" + id,
       g.pistol?.collected && (id === "westminster-start-pistol-v1" || g.expedition?.status === "claimed"),
-      `${g.pistol?.magazine ?? 0}/6 · ${g.pistol?.reserve ?? 0}`,
+      rounds(g.pistol?.magazine, 6, g.pistol?.reserve),
+      dry(g.pistol?.magazine, g.pistol?.reserve),
     );
   const rifle = g.world.rifleData;
   if (rifle)
@@ -46,18 +51,30 @@ export function carriedWeaponTiles(g) {
       rifle.name,
       "rifle-equip",
       g.rifle?.status === "owned",
-      `${g.rifle?.magazine ?? 0}/${rifle.rules.capacity} · ${g.rifle?.reserve ?? 0}`,
+      rounds(g.rifle?.magazine, rifle.rules.capacity, g.rifle?.reserve),
+      dry(g.rifle?.magazine, g.rifle?.reserve),
     );
   add(
     flameId,
     "Ember Projector",
     emberOwned ? "boss-equip-emberProjector" : "flame-equip",
     g.flameFuel?.collected || emberOwned,
-    `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / (g.world.flameData?.capacity ?? 1000)) * 100)}% fuel`,
+    g.flameFuel?.fuelUnits > 0
+      ? `${Math.ceil((g.flameFuel.fuelUnits / (g.world.flameData?.capacity ?? 1000)) * 100)}% fuel`
+      : "Empty",
+    !(g.flameFuel?.fuelUnits > 0),
   );
   for (const [field, p] of Object.entries(g.world.bossEquipmentData ?? {})) {
     if (p.family === "flamethrowers") continue;
     const state = boss[field],
+      empty =
+        p.family === "blades"
+          ? false
+          : p.family === "pistols"
+            ? dry(g.pistol?.magazine, g.pistol?.reserve)
+            : field === "grenade"
+              ? !state?.magazine
+              : dry(state?.magazine, state?.reserve),
       ammo =
         p.family === "flamethrowers"
           ? `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% fuel`
@@ -68,7 +85,7 @@ export function carriedWeaponTiles(g) {
               : field === "grenade"
                 ? `${state?.magazine ?? 0} charges`
                 : `${state?.magazine ?? 0}/${p.rules.capacity} · ${state?.reserve ?? 0}`;
-    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", ammo);
+    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? "Empty" : ammo, empty);
   }
   if (g.world.reaperData && ownsReaper(g) && !lockerStored(g, REAPER_ITEM_ID))
     rows.push({
@@ -78,6 +95,7 @@ export function carriedWeaponTiles(g) {
       active: reaperSelected(g),
       owned: true,
       companion: true,
+      empty: false,
       ammo: reaperSelected(g) ? "Deployed" : "Recall / Deploy",
     });
   return rows;
@@ -141,6 +159,12 @@ export function createWeaponTiles(s, select) {
     const row = carriedWeaponTiles(s.game).find((r) => r.id === button.dataset.weaponId);
     if (!row || (row.active && !row.companion)) return;
     const control = document.getElementById(row.control);
+    if (row.empty && control?.disabled) {
+      // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
+      s.game.message = `${row.name} is empty.`;
+      s.game.messageUntil = s.game.time + 4;
+      return;
+    }
     if (!control || control.disabled) return;
     selecting = true;
     try {
@@ -219,7 +243,9 @@ export function createWeaponTiles(s, select) {
     for (const row of rows) {
       const b = buttons.get(row.id),
         control = document.getElementById(row.control);
-      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled);
+      // An empty tile stays tappable so the tap can explain why it will not equip.
+      const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
+      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;
       b.setAttribute("aria-pressed", String(row.active));
       b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? " · equipped" : " · tap to equip"}`);
       const ammo = b.querySelector("small");
