@@ -1,0 +1,1337 @@
+{
+ "boss:shotgun": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": true
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "boss:grenade": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "boss:surgicalKnife": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": true
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "boss:commanderPistol": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": true
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "boss:emberProjector": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "boss:rocketLauncher": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": true
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "rifle": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": true
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equipAndFire": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    },
+    "fire": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ },
+ "unique": {
+  "claim": {
+   "mid-swing": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "hurt": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dodging": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "before-ready": {
+    "ok": true
+   },
+   "save-invalid": {
+    "ok": false,
+    "code": "invalid-save"
+   },
+   "finished": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "dead": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "negative-time": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "time-not-finite": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "wrong-area": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "blocked-line": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "not-allowed": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-minus": {
+    "ok": true
+   },
+   "radius-exact": {
+    "ok": true
+   },
+   "radius-plus-half-epsilon": {
+    "ok": true
+   },
+   "radius-plus-epsilon": {
+    "ok": true
+   },
+   "radius-plus-two-epsilon": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "radius-plus-half-metre": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-nan": {
+    "ok": false,
+    "code": "not-eligible"
+   },
+   "position-missing": {
+    "ok": false,
+    "code": "not-eligible"
+   }
+  },
+  "equip": {
+   "mid-swing": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "hurt": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dodging": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "before-ready": {
+    "equip": {
+     "ok": true
+    }
+   },
+   "save-invalid": {
+    "equip": {
+     "ok": false,
+     "code": "invalid-save"
+    }
+   },
+   "finished": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "dead": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "negative-time": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   },
+   "time-not-finite": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  }
+ }
+}

@@ -23,13 +23,15 @@ export function runIsSafe(g, canDispatch, { requireReady = true } = {}) {
 }
 
 /** Pickup eligibility for a pending drop: same area, within the row's radius (plus its epsilon), line clear. */
-export function pickupEligible(g, state, source, { radius, epsilon }) {
+export function pickupEligible(g, state, source, { radius, epsilon, finitePosition = false }) {
   const p = g.player.pos;
   return (
     state.status === "pending" &&
     !!p &&
+    // Some layers refuse a non-finite position up front; others only compare the distance (a NaN never exceeds it).
+    (!finitePosition || (Number.isFinite(p.x) && Number.isFinite(p.z))) &&
     g.world.areaId === source.areaId &&
-    Math.hypot(p.x - state.dropPosition.x, p.z - state.dropPosition.z) <= radius + epsilon &&
+    !(Math.hypot(p.x - state.dropPosition.x, p.z - state.dropPosition.z) > radius + epsilon) &&
     g.world.lineClear(p, state.dropPosition)
   );
 }
