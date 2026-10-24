@@ -61,6 +61,9 @@ psql_owner() { psql "service=owner" -X -q -v ON_ERROR_STOP=1 "$@"; }
 psql_owner -At -c "select current_user" >/dev/null || die "cannot connect with OWNER_DATABASE_URL"
 echo "connected as the owner role; migrations: $MIGRATIONS"
 
+# Is there a registry yet? (Only a first run or a dry run may find none; any query error stops the script.)
+registry=$(psql_owner -At -c "select to_regclass('public.arma_schema_migrations') is not null") || die "could not look for the migration registry"
+
 if [ "$MODE" != "--check" ]; then
   # The registry. Private: RLS on and nothing granted to the API roles, like every other table here.
   [ "$MODE" = "--dry-run" ] || psql_owner <<'SQL'
@@ -78,14 +81,17 @@ SQL
     name=$(basename "$file")
     case "$name" in *[!A-Za-z0-9_.]*) die "unsafe migration file name: $name" ;; esac
     sha=$(sha256sum "$file" | cut -c1-64)
-    recorded=$(psql_owner -At -c "select sha256 from public.arma_schema_migrations where name = '$name'" 2>/dev/null || true)
+    recorded=""
+    # A failed lookup must stop the run, never read as "not applied" (that would pipe an applied migration in again).
+    [ "$registry" = "t" ] && { recorded=$(psql_owner -At -c "select sha256 from public.arma_schema_migrations where name = '$name'") || die "could not read the migration registry for $name"; }
     if [ -n "$recorded" ]; then
       [ "$recorded" = "$sha" ] || die "$name was applied from different contents (recorded $recorded, file $sha); never edit an applied migration, add a new one"
       skipped=$((skipped + 1)); echo "  skip   $name (already applied)"; continue
     fi
     if [ "$MODE" = "--dry-run" ]; then echo "  would apply $name"; continue; fi
-    # One psql run per file: the migration (which holds its own begin/commit), then its registry row.
-    { cat "$file"; printf "\ninsert into public.arma_schema_migrations (name, sha256) values ('%s', '%s');\n" "$name" "$sha"; } | psql_owner >/dev/null \
+    # One psql run per file, ONE transaction: begin, the registry row FIRST, then the migration (its own begin only warns; its commit commits both).
+    # A double apply therefore hits the registry's primary key before any DDL runs, and rolls back.
+    { printf "begin;\ninsert into public.arma_schema_migrations (name, sha256) values ('%s', '%s');\n" "$name" "$sha"; cat "$file"; } | psql_owner >/dev/null \
       || die "$name failed; nothing after it was applied (fix, then re-run: the ones before it are recorded and will be skipped)"
     applied=$((applied + 1)); echo "  apply  $name"
   done
@@ -116,9 +122,12 @@ fi
 
 # Every migration file must be recorded, then the read-only checks.
 missing=""
+registry=$(psql_owner -At -c "select to_regclass('public.arma_schema_migrations') is not null") || die "could not look for the migration registry"
 for file in "$MIGRATIONS"/*.sql; do
   name=$(basename "$file")
-  [ "$(psql_owner -At -c "select count(*) from public.arma_schema_migrations where name = '$name'" 2>/dev/null || echo 0)" = "1" ] || missing="$missing $name"
+  count=0
+  [ "$registry" = "t" ] && { count=$(psql_owner -At -c "select count(*) from public.arma_schema_migrations where name = '$name'") || die "could not read the migration registry for $name"; }
+  [ "$count" = "1" ] || missing="$missing $name"
 done
 [ -z "$missing" ] || die "not applied:$missing"
 if psql_owner -f "$HERE/verify-hosted.sql" >"$WORK/verify.out" 2>"$WORK/verify.err"; then

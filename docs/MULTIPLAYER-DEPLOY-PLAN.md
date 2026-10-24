@@ -56,7 +56,7 @@ root-only file, `/etc/armagedom/owner.env` (root:root 0600), holding the project
 
 | Name | What |
 | --- | --- |
-| `OWNER_DATABASE_URL` | `postgres://postgres:<password>@<host>:<port>/postgres?sslmode=require`, from the Supabase dashboard (Connect); used only by this script, never by a service |
+| `OWNER_DATABASE_URL` | `postgres://postgres:<password>@<host>:<port>/postgres?sslmode=require`, from the Supabase dashboard (Connect); use the direct connection or the session-mode pooler (port 5432), NOT the transaction pooler (6543), because each migration is one multi-statement transaction; used only by this script, never by a service |
 
 Two commands, in this order (both as root, from the release directory that holds `supabase/`):
 

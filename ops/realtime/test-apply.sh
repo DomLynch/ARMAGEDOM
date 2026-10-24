@@ -96,6 +96,26 @@ echo "$out" | grep -q "different contents" || bad "tamper not named" "$out"
 cp "$SRC/supabase/migrations/$(basename "$first")" "$first"
 ok "editing an applied migration aborts the run, naming the file"
 
+echo "== a failed or empty registry lookup never re-applies a migration (the Auditor's repro)"
+# Put a marker body on arma_allowed; migration 5 (open access) would replace it again if it were applied twice.
+sql -c "create or replace function public.arma_allowed(p_account uuid) returns boolean language sql stable security definer set search_path = '' as \$\$ select false -- marker \$\$"
+body_before=$(sql -c "select md5(prosrc) from pg_proc where proname = 'arma_allowed'")
+mkdir -p "$BASE/wrap"
+REAL_PSQL=$(command -v psql)
+# The wrapper breaks ONLY the registry lookup for migration 5: MODE=fail exits 1, MODE=empty answers "nothing recorded".
+printf '#!/bin/bash\nfor a in "$@"; do case "$a" in *"sha256 from public.arma_schema_migrations where name = '"'"'20261024000005"*) [ "$WRAP_MODE" = fail ] && exit 1; [ "$WRAP_MODE" = empty ] && exit 0;; esac; done\nexec "%s" "$@"\n' "$REAL_PSQL" >"$BASE/wrap/psql"
+chmod 755 "$BASE/wrap/psql"
+out=$(WRAP_MODE=fail PATH="$BASE/wrap:$PATH" run) && bad "a failed registry lookup was accepted" "$out"
+echo "$out" | grep -q "could not read the migration registry" || bad "lookup failure not named" "$out"
+[ "$(sql -c "select md5(prosrc) from pg_proc where proname = 'arma_allowed'")" = "$body_before" ] || bad "a failed lookup re-applied a migration" "$out"
+ok "a failed registry lookup stops the run and leaves arma_allowed untouched"
+out=$(WRAP_MODE=empty PATH="$BASE/wrap:$PATH" run) && bad "a double apply was accepted" "$out"
+[ "$(sql -c "select md5(prosrc) from pg_proc where proname = 'arma_allowed'")" = "$body_before" ] || bad "a double apply committed its DDL" "$out"
+[ "$(sql -c "select count(*) from public.arma_schema_migrations")" = "$FILES" ] || bad "the registry changed" "$out"
+ok "even when the lookup lies (empty), the registry row comes first and the double apply rolls back with no DDL"
+# Restore the real body: re-create it from migration 5 (the only place arma_allowed's final body lives).
+sql -f "$BASE/tree/supabase/migrations/20261024000005_arma_open_access.sql"
+
 echo "== verification bites"
 sql -c "update public.arma_config set value = 'true'::jsonb where key = 'arma_enabled'"
 out=$(run --check) && bad "--check passed with arma_enabled on" "$out"
