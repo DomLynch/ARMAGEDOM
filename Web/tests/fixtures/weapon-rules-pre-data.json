@@ -1,0 +1,83 @@
+{
+ "ids": [
+  "knife",
+  "teeth",
+  "bone-saw",
+  "pistol",
+  "rifle",
+  "shotgun",
+  "grenade",
+  "rocket",
+  "railgun",
+  "flamethrower",
+  "bolt"
+ ],
+ "rules": [
+  {
+   "weaponId": "knife",
+   "maxDamagePerHit": 20,
+   "maxHitsPerS": 1.6666666666666667,
+   "reachM": 1.8783960684811782
+  },
+  {
+   "weaponId": "teeth",
+   "maxDamagePerHit": 8,
+   "maxHitsPerS": 1.6666666666666667,
+   "reachM": 2.5
+  },
+  {
+   "weaponId": "bone-saw",
+   "maxDamagePerHit": 5,
+   "maxHitsPerS": 5,
+   "reachM": 1.55
+  },
+  {
+   "weaponId": "pistol",
+   "maxDamagePerHit": 25,
+   "maxHitsPerS": 0.8333333333333334,
+   "reachM": 18
+  },
+  {
+   "weaponId": "rifle",
+   "maxDamagePerHit": 45,
+   "maxHitsPerS": 1.5384615384615383,
+   "reachM": 24
+  },
+  {
+   "weaponId": "shotgun",
+   "maxDamagePerHit": 64,
+   "maxHitsPerS": 1.25,
+   "reachM": 6
+  },
+  {
+   "weaponId": "grenade",
+   "maxDamagePerHit": 60,
+   "maxHitsPerS": 1.25,
+   "reachM": 8
+  },
+  {
+   "weaponId": "rocket",
+   "maxDamagePerHit": 80,
+   "maxHitsPerS": 1.25,
+   "reachM": 20
+  },
+  {
+   "weaponId": "railgun",
+   "maxDamagePerHit": 90,
+   "maxHitsPerS": 0.45454545454545453,
+   "reachM": 32
+  },
+  {
+   "weaponId": "flamethrower",
+   "maxDamagePerHit": 10,
+   "maxHitsPerS": 5,
+   "reachM": 3
+  },
+  {
+   "weaponId": "bolt",
+   "maxDamagePerHit": 6,
+   "maxHitsPerS": 0.5,
+   "reachM": 6
+  }
+ ]
+}

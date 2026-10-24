@@ -1,4 +1,5 @@
 import { freeze } from "./content-schema.js";
+import { GAME_DATA } from "./game-data.js";
 
 // Family vocabulary is not a promise that every family is playable.
 export const WEAPON_FAMILY_IDS = Object.freeze([
@@ -162,114 +163,8 @@ export function validateRangedWeaponCatalog(input) {
   }
   return freeze(structuredClone(input));
 }
-export const RANGED_WEAPON_CATALOG = validateRangedWeaponCatalog({
-  "borough-butchers-rocket-launcher-v1": {
-    itemId: "borough-butchers-rocket-launcher-v1",
-    name: "Butcher’s Rocket Launcher",
-    family: "launchers",
-    weaponKey: "rocket",
-    damageType: "blast",
-    delivery: "projectile",
-    guidance: "none",
-    fireMode: "press",
-    attachment: "hand_r",
-    modelRef: "player-rocket-launcher",
-    finisherBinding: "grenade",
-    rules: { capacity: 1, reserve: 3, damage: 80, range: 20, cadence: 0.8, reload: 3.2, pickupRadius: 1.3 },
-    source: {
-      placementKey: "boss-butcher-v1",
-      areaId: "elephant-and-castle",
-      receiptId: "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
-    },
-    payload: { maxDamage: 80, radius: 3, maxRange: 20, speed: 14 },
-  },
-  "westminster-start-pistol-v1": {
-    itemId: "westminster-start-pistol-v1",
-    name: "Pistol",
-    family: "pistols",
-    weaponKey: "pistol",
-    damageType: "bullet",
-    delivery: "ray",
-    guidance: "none",
-    fireMode: "held",
-    attachment: "model-root",
-    modelRef: null,
-    finisherBinding: "pistol",
-    rules: { capacity: 6, reserve: 12, damage: 25, range: 18, cadence: 1.2, reload: 1.3, pickupRadius: 1.3 },
-    source: null,
-  },
-  [RIFLE_ITEM_ID]: {
-    itemId: RIFLE_ITEM_ID,
-    name: "Bridge Rifle",
-    family: "rifles",
-    weaponKey: "rifle",
-    damageType: "bullet",
-    delivery: "ray",
-    guidance: "none",
-    fireMode: "press",
-    attachment: "hand_r",
-    modelRef: "player-rifle",
-    finisherBinding: "pistol",
-    rules: { capacity: 8, reserve: 16, damage: 45, range: 24, cadence: 0.65, reload: 2, pickupRadius: 1.3 },
-    source: { placementKey: "boss-warden-v1", areaId: "east-bridge", receiptId: "boss-warden-v1:" + RIFLE_ITEM_ID },
-  },
-  "south-stalker-shotgun-v1": {
-    itemId: "south-stalker-shotgun-v1",
-    name: "Southbank Shotgun",
-    family: "shotguns",
-    weaponKey: "shotgun",
-    damageType: "bullet",
-    delivery: "ray",
-    guidance: "none",
-    fireMode: "press",
-    attachment: "hand_r",
-    modelRef: "player-shotgun",
-    finisherBinding: "pistol",
-    rules: { capacity: 2, reserve: 12, damage: 64, range: 6, cadence: 0.8, reload: 2.4, pickupRadius: 1.3 },
-    source: {
-      placementKey: "boss-nightborn-v1",
-      areaId: "south",
-      receiptId: "boss-nightborn-v1:south-stalker-shotgun-v1",
-    },
-    payload: { pelletCount: 8, pelletDamage: 8, range: 6, spreadDegrees: 12 },
-  },
-  "standard-grenade-v1": {
-    itemId: "standard-grenade-v1",
-    name: "Standard Grenades",
-    family: "grenades",
-    weaponKey: "grenade",
-    damageType: "blast",
-    delivery: "projectile",
-    guidance: "none",
-    fireMode: "press",
-    attachment: "hand_r",
-    modelRef: "player-grenade",
-    finisherBinding: "grenade",
-    rules: { capacity: 3, reserve: 0, damage: 60, range: 8, cadence: 0.8, reload: 0, pickupRadius: 1.3 },
-    source: { placementKey: "boss-knight-v1", areaId: "area7", receiptId: "boss-knight-v1:standard-grenade-v1" },
-    payload: { itemId: "standard-grenade-v1", capacity: 3, maxRange: 8, fuseSeconds: 1, radius: 3, maxDamage: 60 },
-  },
-  "borough-marshals-pistol-v1": {
-    itemId: "borough-marshals-pistol-v1",
-    name: "Thundercoil Railgun",
-    family: "rifles",
-    weaponKey: "railgun",
-    damageType: "bullet",
-    delivery: "ray",
-    guidance: "none",
-    fireMode: "press",
-    attachment: "hand_r",
-    modelRef: "player-rifle",
-    finisherBinding: "pistol",
-    rules: { capacity: 1, reserve: 3, damage: 90, range: 32, cadence: 2.2, reload: 2.5, pickupRadius: 1.3 },
-    source: {
-      placementKey: "boss-veteran-v1",
-      areaId: "area8",
-      receiptId: "boss-veteran-v1:borough-marshals-pistol-v1",
-    },
-    charge: { seconds: 0.9, maxSeconds: 3.5 },
-  },
-});
+// The catalogue values live in Web/src/data/weapons.json (read through game-data.js); this module still runs the full validator.
+export const RANGED_WEAPON_CATALOG = validateRangedWeaponCatalog(GAME_DATA.weapons.ranged);
 export const RIFLE_PROFILE = RANGED_WEAPON_CATALOG[RIFLE_ITEM_ID];
 
 export const SHOTGUN_PROFILE = RANGED_WEAPON_CATALOG["south-stalker-shotgun-v1"];
