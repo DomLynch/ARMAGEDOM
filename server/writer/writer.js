@@ -96,6 +96,11 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       counts.locations++;
       return call("arma_save_location", [String(body.account), String(body.area), body.x, body.z, body.atMs ?? now()]);
     },
+    // Presence asks whether a verified account may be in the world (the same answer the client's status read gets with its token).
+    async status({ body }) {
+      if (typeof body.account !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.account)) throw new HttpError(400, "bad-request");
+      return call("arma_world_status", [body.account]);
+    },
     // One presence tick of already-clamped hits; the database clamps again.
     async hits({ body }) {
       if (!Array.isArray(body.batch)) throw new HttpError(400, "bad-request");
@@ -139,6 +144,19 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       const url = new URL(req.url, "http://x"),
         [, area, op] = url.pathname.split("/");
       if (req.method === "GET" && url.pathname === "/health") return send(res, 200, { ok: true, ...counts });
+      // The client's one cheap read, before any signup, socket or save: {enabled, open} for anyone, plus {allowed} when a valid Bearer token is sent.
+      // A token that is sent but not valid is a 401, never a quiet downgrade to the anonymous answer. No bucket, no body; nginx's per-IP limit covers it.
+      if (req.method === "GET" && url.pathname === "/arma/status") {
+        const header = req.headers.authorization;
+        let account = null;
+        if (header !== undefined) {
+          const token = /^Bearer (.{10,4096})$/.exec(header)?.[1];
+          account = token ? await verify(token) : null;
+          if (!account) throw new HttpError(401, "token");
+        }
+        res.setHeader("Cache-Control", "no-store");
+        return send(res, 200, await call("arma_world_status", [account]));
+      }
       if (req.method !== "POST") throw new HttpError(405, "method");
       if (area === "internal" && internalOps[op]) {
         if (!internalKey || !same(req.headers["x-arma-internal-key"], internalKey)) throw new HttpError(401, "key");
