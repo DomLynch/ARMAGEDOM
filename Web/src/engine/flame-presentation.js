@@ -1,5 +1,6 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
-import { combatTargetHeight } from "../pistol-targeting.js";
+import { combatTargetHeight, rangedTargets, selectCombatTarget } from "../pistol-targeting.js";
+import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { flameTouches } from "./flame-contact.js";
 import * as T from "three";
 import { attachPistol, applyPistolAim, PISTOL_ARM_EXTENSION } from "../pistol-pose.js";
@@ -242,16 +243,39 @@ export function flameAimPitch(model, mount, g) {
   return flameAimPose(model, mount, g).pitch;
 }
 export function flameAimPose(model, mount, g) {
-  const enemy =
-    (g.mobileAssistEnabled !== false || !!g.touchTarget) &&
+  const assisted = g.mobileAssistEnabled !== false || !!g.touchTarget,
+    locked =
+      assisted &&
+      g.enemies.find(
+        (e) =>
+          e.placementKey === g.mobileAim?.targetId &&
+          e.visible !== false &&
+          e.hp > 0 &&
+          (e.areaId ?? g.world.areaId) === g.world.areaId &&
+          g.world.lineClear(g.player.pos, e.pos),
+      );
+  // No touch lock at all (desktop aim): the body the player faces within the flame's own cone and range,
+  // chosen by the selector the melee and ranged weapons use, so a low body is aimed at without a tap.
+  // An unusable lock still yields no pitch, so independent choices never steal the touch lock.
+  const faced =
+    !locked &&
+    g.mobileAim?.targetId == null &&
+    assisted &&
     g.enemies.find(
       (e) =>
-        e.placementKey === g.mobileAim?.targetId &&
-        e.visible !== false &&
-        e.hp > 0 &&
-        (e.areaId ?? g.world.areaId) === g.world.areaId &&
-        g.world.lineClear(g.player.pos, e.pos),
+        e.id ===
+        selectCombatTarget({
+          position: g.player.pos,
+          aim: g.player.facing,
+          targets: rangedTargets(g),
+          lineClear: (a, b) => g.world.lineClear(a, b),
+          range: selectedFlameProfile(g).contact.range,
+          rangeOffset: (t) => t.radius,
+          coneDegrees: selectedFlameProfile(g).contact.coneDegrees / 2,
+          areaId: g.world.areaId,
+        })?.targetId,
     );
+  const enemy = locked || faced;
   return enemy
     ? flameTargetAim(model, mount, g.world.toRender(enemy.pos, combatTargetHeight(enemy, g.time)))
     : { pitch: 0, yaw: 0 };

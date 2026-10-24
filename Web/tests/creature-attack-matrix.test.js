@@ -50,10 +50,6 @@ const SPECIAL_ON_ANIMALS =
   "Special (Pommel) never reaches animals: the low-strike branch in attack() is only built for slash/stab/heavy " +
   "(combat.js:611, :678), so the swing is not ratLow and knifeContacts skips it for animal receivers " +
   "(combat.js:2430, :2459 ratContact.hit)";
-const EMBER_LEVEL =
-  "Desktop aim fires the flame level; it only pitches at the mobileAim target (flame-presentation.js:244 " +
-  "flameAimPose) and flameTouches needs the cone to reach the body envelope (flame-contact.js:5). Passes with a " +
-  "tap-selected target (ember-flame-touch)";
 const KNOWN_GAPS = {
   "rat/knife-special": SPECIAL_ON_ANIMALS,
   "dog/knife-special": SPECIAL_ON_ANIMALS,
@@ -67,8 +63,6 @@ const KNOWN_GAPS = {
   "wolf/cleaver-special": SPECIAL_ON_ANIMALS,
   "salamander/cleaver-special": SPECIAL_ON_ANIMALS,
   "drone/cleaver-special": SPECIAL_ON_ANIMALS,
-  "rat/ember-flame": EMBER_LEVEL,
-  "roach/ember-flame": EMBER_LEVEL,
 };
 
 // ---------------------------------------------------------------------------------------------
