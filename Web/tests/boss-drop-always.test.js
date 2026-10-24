@@ -202,7 +202,10 @@ function measure(boss, variant) {
     r.world.geometry.clear = f.world.geometry.clear;
     r.restore();
     const rs = row.state(r.g);
-    check("reload-keeps-pending-position", !r.g.runSaveInvalid && rs.status === "pending" && rs.dropPosition?.x === at.x && rs.dropPosition?.z === at.z);
+    check(
+      "reload-keeps-pending-position",
+      !r.g.runSaveInvalid && rs.status === "pending" && rs.dropPosition?.x === at.x && rs.dropPosition?.z === at.z,
+    );
     // Carry it: stand on the spot, claim, save.
     g.player.pos = { x: at.x, z: at.z };
     const claim = row.claim(f, g);
@@ -258,11 +261,7 @@ for (const boss of BOSSES)
 
 test("boss drop always: coverage and gap table", () => {
   assert.equal(BOSSES.length, 7, "seven boss rows in area-content.json");
-  assert.deepEqual(
-    new Set(BOSSES.map((b) => b.areaId)).size,
-    BOSSES.length,
-    "one boss per area",
-  );
+  assert.deepEqual(new Set(BOSSES.map((b) => b.areaId)).size, BOSSES.length, "one boss per area");
   for (const b of BOSSES) assert(b.reward, "reward row for " + b.key);
   for (const id of Object.keys(KNOWN_GAPS)) assert(VARIANTS[id.split("/")[1]], "gap names a real variant: " + id);
   if (process.env.BOSS_DROP_TABLE === "1") {
