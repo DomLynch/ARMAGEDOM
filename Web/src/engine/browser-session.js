@@ -21,6 +21,7 @@ import { nextAnimalCycle } from "../animal-cycle.js";
 import { createBrowserLoop } from "./loop.js";
 import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
+import { createJournal } from "./world-events.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
@@ -127,6 +128,8 @@ export function createBrowserSession(options = {}) {
     if (renderer && loaded) renderer.setAnimationLoop(value ? null : loop.frame);
   }
   const context = {
+    // World-event journal of this session's run. Written by the loop and the dispatchers; nothing reads it yet.
+    worldJournal: createJournal(),
     failTravelRecovery() {
       travelRecoveryFailed = true;
       pause(true);

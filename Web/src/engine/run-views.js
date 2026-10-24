@@ -19,6 +19,7 @@ import { resetMobileControls } from "../combat.js";
 import { stepPistol } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
+import { withWorldJournal } from "./world-events.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
@@ -69,12 +70,15 @@ export function createRunViews(s) {
     } catch {
       storage = null;
     }
-  const persistence = createRunPersistence({
-    getRun: () => s.game,
-    setRun: (value) => s.setGame(value),
-    createFreshRun: (options) => s.createFreshRun(options),
-    storage,
-  });
+  const persistence = withWorldJournal(
+    createRunPersistence({
+      getRun: () => s.game,
+      setRun: (value) => s.setGame(value),
+      createFreshRun: (options) => s.createFreshRun(options),
+      storage,
+    }),
+    s,
+  );
   const reaperView = createReaperView(s, persistence.dispatchExpedition);
   const bossEquipmentView = createBossEquipmentView(s, persistence.dispatchBossEquipment, () => flameView.equip());
   const bossView = createBossView(s),
