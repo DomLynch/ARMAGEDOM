@@ -60,6 +60,10 @@ Spending is still the phone's word, so a phone may spend and later claim back up
 - This is also what lets presence refuse a weapon the player does not own (the Auditor's before-hosting item 1 on #59): presence asks the
   writer for the character's owned weapons once per join.
 
+**Auditor's note for follow-up A (3b, #93 PASS at d5aa633):** the Witch's flamethrower has a legacy route, `flameFuel.collected` (boss-equipment-view.js:235), with NO `owned`
+status anywhere, so a zero `arma_unreceipted_seen` counter does not prove every held weapon has a receipt. Before A is switched on, `arma_item_sources` / `arma_unreceipted`
+must also cover that route (a held flamethrower evidenced by `flameFuel.collected` and no `bossEquipment.emberProjector` status), or A leaves a way to keep an unreceipted weapon.
+
 ## Rulings needed (these change what I build)
 
 1. **Earning rules.** What earns `carried`, `bounty`, proficiency and awards in the single-player game, and where are those tables? PR 2 and 3
