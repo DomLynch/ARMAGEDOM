@@ -582,7 +582,7 @@
     }
   ],
   "backdrops": {
-    "westminster": "backdrop.webp",
+    "westminster": "backdrop-phone.webp",
     "south": "backdrop.webp",
     "east": "backdrop.webp",
     "east-bridge": "backdrop.webp",
