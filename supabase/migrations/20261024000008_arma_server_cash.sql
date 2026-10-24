@@ -54,6 +54,21 @@ begin
 end $$;
 create trigger arma_events_grant_cash after insert on public.arma_events for each row when (new.kind = 'kill') execute function public.arma_grant_kill_cash();
 
+-- SECURITY: arma_record_event (granted to the writer) took any kind, id and payload for any character, so with the cash trigger above it could mint a payout.
+-- 'kill' and 'loot' rows are written only by arma_spawn_hit's settle, so this function now refuses those kinds, and the character must be the account's own.
+-- Same signature and grants as 000001; the idempotency behaviour (O0001 on a repeated id) is unchanged.
+create or replace function public.arma_record_event(p_account uuid, p_character text, p_event_id text, p_kind text, p_payload jsonb) returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if not public.arma_allowed(p_account) then raise exception 'arma is not open for this account' using errcode = 'O0007'; end if;
+  if not public.arma_owns(p_character, p_account) then raise exception 'not this account''s character' using errcode = 'O0007'; end if;
+  if p_kind in ('kill', 'loot') then raise exception 'event kind % is written only by the settle, not by record_event', p_kind using errcode = 'O0002'; end if;
+  begin
+    insert into public.arma_events (event_id, kind, account, character, payload) values (p_event_id, p_kind, p_account, p_character, coalesce(p_payload, '{}'::jsonb));
+  exception when unique_violation then
+    raise exception 'event % already recorded', p_event_id using errcode = 'O0001';
+  end;
+end $$;
+
 -- The most carried + bank a save of this character may hold: what the server granted, or what the stored run already holds (the larger). null = not enforced.
 create function public.arma_cash_ceiling(p_character text) returns numeric language plpgsql stable security definer set search_path = '' as $$
 declare allowed numeric; held numeric;

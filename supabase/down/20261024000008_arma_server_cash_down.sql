@@ -42,6 +42,16 @@ begin
   update public.arma_runs set last_seq = p_seq, last_hash = h, last_result = answer where character = p_character;
   return answer;
 end $$;
+-- arma_record_event as 000001 created it (the cash trigger is gone above, so this is the old, unchecked insert).
+create or replace function public.arma_record_event(p_account uuid, p_character text, p_event_id text, p_kind text, p_payload jsonb) returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if not public.arma_allowed(p_account) then raise exception 'arma is not open for this account' using errcode = 'O0007'; end if;
+  begin
+    insert into public.arma_events (event_id, kind, account, character, payload) values (p_event_id, p_kind, p_account, p_character, coalesce(p_payload, '{}'::jsonb));
+  exception when unique_violation then
+    raise exception 'event % already recorded', p_event_id using errcode = 'O0001';
+  end;
+end $$;
 drop function public.arma_grant_kill_cash();
 drop function public.arma_cash_ceiling(text);
 drop table public.arma_cash;

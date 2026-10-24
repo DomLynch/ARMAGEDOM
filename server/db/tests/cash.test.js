@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { call, freshDb, ids, openFor } from "./helpers.js";
+import { call, failure, freshDb, ids, openFor } from "./helpers.js";
 
 const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
 
@@ -87,17 +87,23 @@ test("a retried kill grants once, a creature with no payout row grants nothing, 
   const { db, alice, kill, earned } = await setup();
   assert.equal((await kill("rat-1", "original-rat")).killed, true);
   assert.equal(await earned(), 100);
-  const id = `kill:rat-1:0:${ids.alice}`;
-  const again = (event, kind, payload) => call(db, "select public.arma_record_event($1, $2, $3, $4, $5::jsonb)", [ids.alice, alice, event, kind, JSON.stringify(payload)]);
-  await assert.rejects(again(id, "kill", { kind: "original-rat" }), (e) => e.code === "O0001", "the same kill event id is already settled");
-  assert.equal(await earned(), 100, "the retry granted nothing");
   assert.equal((await kill("mystery-1", "mystery-kind")).killed, true);
   assert.equal(await earned(), 100, "no payout row, no cash");
-  await again("save:x1", "save", { kind: "original-rat" });
-  await again("travel:x2", "travel", { kind: "boss-warden" });
-  await again("loot:x3", "loot", { kind: "boss-warden" });
-  await again("hand-made-kill", "kill", { kind: "boss-warden" });
-  assert.equal(await earned(), 100, "only a settled 'kill:' event pays");
+  // The writer's record_event cannot mint a payout: kill and loot rows belong to the settle, whatever the id or payload.
+  const record = (character, event, kind, payload = { kind: "boss-warden" }) =>
+    call(db, "select public.arma_record_event($1, $2, $3, $4, $5::jsonb)", [ids.alice, character, event, kind, JSON.stringify(payload)]);
+  for (const [event, kind] of [["kill:x1", "kill"], ["kill:rat-1:0:" + ids.alice, "kill"], ["hand-made-kill", "kill"], ["loot:x3", "loot"]])
+    assert.equal((await failure(record(alice, event, kind)))?.code, "O0002", `${kind} ${event} is refused`);
+  assert.equal((await failure(record("pc:somebody-else", "save:x9", "save")))?.code, "O0007", "someone else's character");
+  assert.equal((await failure(record(null, "save:x10", "save")))?.code, "O0007", "no character");
+  await record(alice, "save:x1", "save", { kind: "original-rat" });
+  await record(alice, "travel:x2", "travel");
+  assert.equal(await earned(), 100, "none of that paid anything");
+  assert.equal((await call(db, "select count(*)::int as n from public.arma_events where kind in ('kill', 'loot') and event_id not like 'kill:rat-1:0:%' and event_id not like 'kill:mystery-1:0:%'"))[0].n, 0, "no forged kill or loot row exists");
+  // And a kill the settle already wrote cannot be written again either (the settle's own id hits the primary key first).
+  const again = (await call(db, "select public.arma_spawn_engage($1, $2, 'token-again-aaaaaaaaaaaa', 'rat-1', 'original-rat', 'westminster', 10) as r", [ids.alice, alice]))[0].r;
+  assert.equal(again.refused, "dead", "the dead creature cannot be engaged and paid again");
+  assert.equal(await earned(), 100);
 });
 
 test("old saves still load and re-save, but their total can never be raised", async () => {

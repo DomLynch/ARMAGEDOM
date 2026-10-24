@@ -132,12 +132,12 @@ test("the run: create, stale refusal, era and shape checks, ownership, and a rea
 
 test("events are idempotent: the second insert of an id raises O0001", async () => {
   const { db, alice } = await setup();
-  const record = () => call(db, "select public.arma_record_event($1, $2, 'kill:e1:0:x', 'kill', '{}')", [ids.alice, alice]);
+  const record = () => call(db, "select public.arma_record_event($1, $2, 'save:e1', 'save', '{}')", [ids.alice, alice]);
   await record();
   assert.equal((await failure(record()))?.code, "O0001");
   assert.equal((await call(db, "select count(*)::int as n from public.arma_events"))[0].n, 1);
   const own = await as(db, "authenticated", ids.alice, () => call(db, "select event_id, kind from public.arma_events"));
-  assert.deepEqual(own, [{ event_id: "kill:e1:0:x", kind: "kill" }]);
+  assert.deepEqual(own, [{ event_id: "save:e1", kind: "save" }]);
   assert.match((await as(db, "authenticated", ids.alice, () => failure(call(db, "select payload from public.arma_events"))))?.message ?? "NO ERROR", /permission denied/, "payload is not a client column");
 });
 
