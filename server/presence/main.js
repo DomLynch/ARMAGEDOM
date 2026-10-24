@@ -1,0 +1,44 @@
+// node server/presence/main.js: the presence service. OFF unless ARMA_PRESENCE=1, so nothing listens by accident (a kill flag, as in Origins).
+// Binds 127.0.0.1:8892 (the writer is 8891; Frankendom uses 8787, 8788 and 8793). Keys come from the environment, never from the repo:
+//   SUPABASE_URL        https://<ref>.supabase.co
+//   SUPABASE_ANON_KEY   the publishable key, used only to ask /auth/v1/user who a token belongs to
+//   ARMA_AREA_DATA      path to the JSON that Web/scripts/area-presence-rows.mjs writes ({ version, maxSpeedCmPerS, areas })
+//   ARMA_AREA_CONTENT   optional path to area-content.json, for the knockback allowance (default Web/public/world/area-content.json)
+import fs from "node:fs";
+import { loadAreaRows } from "./area-rules.js";
+import { presenceLimits } from "./limits.js";
+import { createPresence } from "./server.js";
+
+if (process.env.ARMA_PRESENCE !== "1") {
+  console.log("presence: OFF (set ARMA_PRESENCE=1 to start); nothing is listening");
+  process.exit(0);
+}
+const need = (name) => process.env[name] || (() => { throw new Error(`set ${name}`); })();
+const host = process.env.PRESENCE_HOST ?? "127.0.0.1",
+  port = Number(process.env.PRESENCE_PORT ?? 8892),
+  tickMs = Number(process.env.PRESENCE_TICK_MS ?? 100);
+if (host !== "127.0.0.1" && process.env.ARMA_ALLOW_PUBLIC !== "1") throw new Error("presence binds 127.0.0.1 only");
+
+const readJson = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
+const rules = loadAreaRows(readJson(need("ARMA_AREA_DATA")));
+const content = readJson(process.env.ARMA_AREA_CONTENT ?? new URL("../../Web/public/world/area-content.json", import.meta.url));
+const limits = presenceLimits(rules, content);
+const url = need("SUPABASE_URL"),
+  anon = need("SUPABASE_ANON_KEY");
+const verify = async (token) => {
+  try {
+    const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: `Bearer ${token}`, apikey: anon } });
+    return res.ok ? ((await res.json()).id ?? null) : null;
+  } catch {
+    return null;
+  }
+};
+
+const presence = createPresence({ rules, limits, verify, log: console.log });
+presence.server.listen(port, host, () => console.log(`presence listening on ${host}:${port}, layout ${rules.version}, push ${limits.impulseCm} cm`));
+const timer = setInterval(() => presence.tick(), tickMs);
+for (const signal of ["SIGINT", "SIGTERM"])
+  process.on(signal, () => {
+    clearInterval(timer);
+    presence.close().then(() => process.exit(0));
+  });
