@@ -46,7 +46,36 @@ its own user, so they need no other reader).
 | `ARMA_AREA_DATA` | path to the area JSON World's generator writes (release bundle) |
 | `PRESENCE_ORIGINS` | optional; default is only `https://playarmagedom.com` |
 
-Roles: only `arma_writer` needs a password. `arma_presence` exists for later and stays `NOLOGIN`; presence reaches the database through the writer.
+Roles: only `arma_writer` gets a password. `arma_presence` is created by the first migration with LOGIN but no password, so nobody can connect
+as it; presence reaches the database through the writer.
+
+### Putting the schema on the hosted project (one script, from the repo)
+
+The migrations are applied from the repo, on the VPS, not retyped through a console: `ops/realtime/apply-migrations.sh`. It needs one more
+root-only file, `/etc/armagedom/owner.env` (root:root 0600), holding the project's OWNER connection:
+
+| Name | What |
+| --- | --- |
+| `OWNER_DATABASE_URL` | `postgres://postgres:<password>@<host>:<port>/postgres?sslmode=require`, from the Supabase dashboard (Connect); use the direct connection or the session-mode pooler (port 5432), NOT the transaction pooler (6543), because each migration is one multi-statement transaction; used only by this script, never by a service |
+
+Two commands, in this order (both as root, from the release directory that holds `supabase/`):
+
+```sh
+bash ops/realtime/apply-migrations.sh --dry-run     # connects, lists what it would apply, changes nothing
+bash ops/realtime/apply-migrations.sh               # applies, sets the arma_writer password, verifies, prints PASS or FAIL
+```
+
+What the real run does: applies `supabase/migrations/*.sql` in order with `psql -v ON_ERROR_STOP=1`; records each file's name and sha256 in
+`public.arma_schema_migrations` (so a re-run applies nothing, and an applied file that was edited afterwards aborts the run); sets
+`arma_writer`'s password from `writer.env` as a SCRAM-SHA-256 verifier computed in the script (the plaintext is never sent, printed or put on
+a command line); then verifies in a READ ONLY transaction (`ops/realtime/verify-hosted.sql`): RLS on every arma table, no write privilege for
+`anon`/`authenticated`, only `arma_me_allowed`/`arma_me_owns` callable by clients, the writer can call its twelve functions and not the
+gate, and **both switches still false** (`arma_enabled`, `arma_open_access`). Everything stays OFF; the script never turns a switch on.
+`--check` repeats the verification alone and changes nothing.
+
+The script is tested against a throwaway Postgres 16 with its own data directory and port (`bash ops/realtime/test-apply.sh`, as root on the VPS):
+18 checks, including a re-run being a no-op, an edited migration refused, no secret in the output, the SCRAM verifier accepting the real
+password and refusing a wrong one, and each verification rule failing when its condition is broken.
 
 **One command proves the files are right and readable by the units' own confinement**, without printing a value:
 
