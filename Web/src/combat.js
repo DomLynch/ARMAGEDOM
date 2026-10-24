@@ -313,6 +313,10 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
+// A validated damage claim against one creature (headless creature sim); the same path the player's guns use.
+export function applyCreatureHit(g, { creatureId, direction, weapon, itemId = weapon, damage, attackClass = "bullet" }) {
+  rangedHit(g, { targetId: creatureId, direction: direction ?? { x: 0, z: 1 } }, weapon, itemId, damage, attackClass);
+}
 function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
@@ -1227,6 +1231,47 @@ function resetDeadPlayerBossPursuit(g) {
     resetBossPursuit(e);
   }
 }
+// The creature half of a step, shared by single-player (stepGame) and the headless creature sim
+// (engine/creature-sim.js) so both run exactly the same AI.
+// `only` limits the AI step to some of the creatures (the headless sim steps each group against its own target).
+export function stepCreatureAI(g, dt, services = {}, only = null) {
+  stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
+  if (!g.finished)
+    for (const e of [...(only ?? g.enemies)]) {
+      enemyTick(g, e, dt, services);
+      if (g.finished) break;
+    }
+}
+// Creature contact damage and area hazards against the player, after the AI has moved and swung.
+export function resolveCreatureContacts(g, before, ratBefore) {
+  if (g.pilot) knifeContacts(g, before, ratBefore);
+  if (g.areaHazards) {
+    const next = stepAreaHazards(g.areaHazards, {
+      time: g.time,
+      areaId: g.world.areaId,
+      owners: g.enemies,
+      player: g.player,
+      lineClear: (a, b) => g.world.lineClear(a, b),
+    });
+    g.areaHazards = next.hazards;
+    for (const hit of next.hits) {
+      const attacker = g.enemies.find((e) => e.id === hit.ownerId);
+      knifeReceive(g, {
+        amount: hit.damage,
+        origin: hit.position,
+        attacker,
+        block: false,
+        parry: false,
+        moveId: "area-poison",
+        def: { stagger: 0, chip: 0 },
+      });
+      if (g.finished) {
+        g.areaHazards = [];
+        break;
+      }
+    }
+  }
+}
 export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   intent = prepareSafehouseStep(g, intent);
   if (g.pilot && (!Number.isFinite(dt) || Math.abs(dt - 1 / 60) > EPS))
@@ -1413,41 +1458,10 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
-    stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
-    if (!g.finished)
-      for (const e of [...g.enemies]) {
-        enemyTick(g, e, dt, services);
-        if (g.finished) break;
-      }
+    stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
-    if (g.pilot) knifeContacts(g, before, ratBefore);
-    if (g.areaHazards) {
-      const next = stepAreaHazards(g.areaHazards, {
-        time: g.time,
-        areaId: g.world.areaId,
-        owners: g.enemies,
-        player: g.player,
-        lineClear: (a, b) => g.world.lineClear(a, b),
-      });
-      g.areaHazards = next.hazards;
-      for (const hit of next.hits) {
-        const attacker = g.enemies.find((e) => e.id === hit.ownerId);
-        knifeReceive(g, {
-          amount: hit.damage,
-          origin: hit.position,
-          attacker,
-          block: false,
-          parry: false,
-          moveId: "area-poison",
-          def: { stagger: 0, chip: 0 },
-        });
-        if (g.finished) {
-          g.areaHazards = [];
-          break;
-        }
-      }
-    }
+    resolveCreatureContacts(g, before, ratBefore);
     if (!g.finished) {
       stepReaper(g, dt, {
         source: services.reaperSource,
