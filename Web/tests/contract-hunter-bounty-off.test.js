@@ -6,7 +6,7 @@ import {contractEnabled, validateExpeditionData} from '../src/engine/expedition-
 import {validateMarkedData, effectiveBounty} from '../src/engine/marked.js';
 import {createWantedProjection} from '../src/engine/wanted-projection.js';
 import {stepMarkedHunters} from '../src/engine/marked-hunters.js';
-import {journalPresentation, expeditionObjective} from '../src/engine/expedition-runtime.js';
+import {journalPresentation, expeditionObjective, supplyCaseShown} from '../src/engine/expedition-runtime.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
 
 // Dom, 24 Oct: no optional contract, no bounty hunters, no bounty. Cash and bank stay.
@@ -78,6 +78,17 @@ test('contract off: the journal and atlas objective carry no contract text or ta
     assert.doesNotMatch(view.next, /contract|stash|case|reward/i);
     assert.equal(expeditionObjective({world: {expeditionData: shipped.expedition}, expedition: f.g.expedition}), null);
   }
+});
+
+test('contract off: the stolen supply case prop is not shown in East in any stage, and still is when the contract is on', () => {
+  for (const status of ['available', 'accepted', 'recovered', 'claimed'])
+    assert.equal(supplyCaseShown(shipped.expedition, contract.case.areaId, status), false, status);
+  const on = structuredClone(shipped.expedition);
+  delete on.contract.enabled;
+  assert.equal(supplyCaseShown(on, 'east', 'available'), true);
+  assert.equal(supplyCaseShown(on, 'east', 'accepted'), true);
+  assert.equal(supplyCaseShown(on, 'east', 'recovered'), false);
+  assert.equal(supplyCaseShown(on, 'westminster', 'available'), false);
 });
 
 test('a save made mid-contract still loads and plays; the stage is ignored and an owned reward stays owned', () => {

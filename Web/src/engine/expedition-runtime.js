@@ -75,6 +75,9 @@ export function progressionObjective(g) {
     ? { target: "westminster", objective: gate.message }
     : { target: "east", objective: "Reach East." };
 }
+// The stolen supply case is a prop in East only while the contract is on.
+export const supplyCaseShown = (data, areaId, status) =>
+  contractEnabled(data) && areaId === data.contract.case.areaId && ["available", "accepted"].includes(status);
 export function expeditionObjective(g) {
   if (g.world.safehouseData) return progressionObjective(g).target;
   const c = g.world.expeditionData?.contract,
@@ -337,7 +340,7 @@ export function createExpeditionView(s, dispatch) {
     objectiveLine.hidden = !allowed() || g.player.hp <= 0;
     // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
     paint(objectiveLine, progression?.objective ?? "");
-    const caseVisible = allowed() && g.world.areaId === c.case.areaId && ["available", "accepted"].includes(status);
+    const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
       caseView.root.name = "Stolen supply case";
