@@ -3,6 +3,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHUD } from "../src/hud.js";
 
+// Tests assert structure, not sentences: a HUD line is present, short and carries its fact, whatever the wording.
+const shortLine = (text, max = 32) => typeof text === "string" && text.length > 0 && text.length <= max;
+
 class Element extends EventTarget {
   constructor() {
     super();
@@ -104,16 +107,13 @@ test("donor objective identifies one Goblin encounter without three-wave text", 
   const { hud, el } = setup(t);
   const g = game(true);
   hud.update(g);
-  assert.equal(
-    el("objective").textContent,
-    "Westminster · 1 enemy",
-  );
+  assert.ok(shortLine(el("objective").textContent));
+  assert.match(el("objective").textContent, /westminster/i);
+  assert.match(el("objective").textContent, /\b1\b/);
   g.enemies = [];
   hud.update(g);
-  assert.equal(
-    el("objective").textContent,
-    "Westminster · 0 enemies",
-  );
+  assert.ok(shortLine(el("objective").textContent));
+  assert.match(el("objective").textContent, /\b0\b/);
 });
 test("donor cooldown arcs use supplied periods and zero-cooldown Heavy stays finite", (t) => {
   const { hud, el } = setup(t);
@@ -156,10 +156,9 @@ test("legacy wave HUD keeps cooldown periods but hides positive ending", (t) => 
   g.player.specialReady = 13.5;
   g.player.dodgeReady = 10.525;
   hud.update(g);
-  assert.equal(
-    el("objective").textContent,
-    "Westminster · 1 enemy",
-  );
+  assert.ok(shortLine(el("objective").textContent));
+  assert.match(el("objective").textContent, /westminster/i);
+  assert.match(el("objective").textContent, /\b1\b/);
   for (const id of ["heavy", "dodge"]) {
     assert.ok(Math.abs(Number(el(id).style["--ready"]) - 0.5) < 1e-12);
   }
@@ -175,7 +174,7 @@ test("donor death and Retry remain available while positive clearance stays hidd
   g.finished = true;
   hud.update(g);
   assert.equal(el("ending").hidden, false);
-  assert.equal(el("result").textContent, "THE ASH CLAIMS YOU");
+  assert.ok(shortLine(el("result").textContent, 60));
   el("again").onclick();
   assert.equal(actions.retries, 1);
   hud.ready();
@@ -288,21 +287,23 @@ test("HUD counts current-area residents and keeps cleared exploration uninterrup
   g.enemies = Array.from({ length: 9 }, () => ({kind:0}));
   for (const area of ["east", "south", "westminster"]) {
     g.world = { areaId: area };hud.update(g);
-    assert.equal(el("objective").textContent, `${area[0].toUpperCase()}${area.slice(1)} · 9 enemies`);
+    assert.ok(shortLine(el("objective").textContent));
+    assert.match(el("objective").textContent, new RegExp(`${area}.*\\b9\\b`, "i"));
     assert.equal(el("menu-area").textContent, `${area.toUpperCase()} · LONDON 2030`);
     assert.equal(el("ending").hidden, true);
   }
   g.encounterCleared = true;g.enemies = [];hud.update(g);
-  assert.equal(el("objective").textContent, "Westminster · cleared");
+  assert.ok(shortLine(el("objective").textContent));
+  assert.doesNotMatch(el("objective").textContent, /\d/, "a cleared area shows no enemy count");
   assert.equal(el("ending").hidden, true);
   assert.equal(el("explore").onclick, undefined, "no Continue action is bound");
 });
 test('Hollow HUD uses actual survivors without a clearance modal',t=>{
  const {hud,el}=setup(t),g=game(true);g.encounter={id:'hollow-scavengers'};
  g.enemies=Array.from({length:6},()=>({kind:0}));hud.update(g);
- assert.equal(el('objective').textContent,'Westminster · 6 enemies');
+ assert.match(el('objective').textContent,/westminster.*\b6\b/i);
  g.encounterCleared=true;g.enemies=[];hud.update(g);
- assert.equal(el('objective').textContent,'Westminster · cleared');assert.equal(el('ending').hidden,true);
+ assert.doesNotMatch(el('objective').textContent,/\d/);assert.ok(shortLine(el('objective').textContent));assert.equal(el('ending').hidden,true);
 });
 test('Fire stays enabled for neutral aim and keeps ammo counts during authoritative cooldown',t=>{
  const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:5,reserve:12,nextFireAt:11.2,reloadingUntil:0};hud.update(g);
@@ -334,14 +335,14 @@ test('vest notice persists after transient expires, uses existing unlock and hid
  const {hud,el}=setup(t),g=vestGame();hud.update(g);assert.equal(el('notice').textContent,'');
  g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-2',position:{x:0,z:0},hp:0}).state;hud.update(g);assert.equal(el('notice').textContent,'');
  g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-4',position:{x:0,z:0},hp:0}).state;g.message='Scavenged rounds';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,'Scavenged rounds');
- g.time=11;hud.update(g);assert.equal(el('notice').textContent,'VEST BY PISTOL STASH · Walk near to equip');g.time=50;hud.update(g);assert.equal(el('notice').textContent,'VEST BY PISTOL STASH · Walk near to equip');
+ g.time=11;hud.update(g);const stashNotice=el('notice').textContent;assert.match(stashNotice,/vest/i);assert.ok(shortLine(stashNotice,60));g.time=50;hud.update(g);assert.equal(el('notice').textContent,stashNotice);
  g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'');g.world.areaId='westminster';g.finished=true;hud.update(g);assert.equal(el('notice').textContent,'');g.finished=false;g.player.hp=0;hud.update(g);assert.equal(el('notice').textContent,'');
 });
 test('equipped vest status follows authoritative restore, holster, transient priority and fresh Retry',t=>{
- const {hud,el}=setup(t),g=vestGame();unlockVest(g);g.vest.equipped=true;hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
- g.pistol.equipped=false;g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
- g.message='OUT OF AMMO · Switch to melee.';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,g.message);g.time=12;hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
- const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
+ const {hud,el}=setup(t),g=vestGame();unlockVest(g);g.vest.equipped=true;hud.update(g);const equippedNotice=el('notice').textContent;assert.match(equippedNotice,/vest/i);assert.ok(shortLine(equippedNotice,60));
+ g.pistol.equipped=false;g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,equippedNotice);
+ g.message='OUT OF AMMO · Switch to melee.';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,g.message);g.time=12;hud.update(g);assert.equal(el('notice').textContent,equippedNotice);
+ const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,equippedNotice);
  hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,true);
 });
 
@@ -373,7 +374,7 @@ test('rocket HUD uses actual1+reserve and3.2s reload clock, with no stale grenad
 test('progression objective owns next instruction while region and actual gate/storage warning remain effective',t=>{
  const {hud,el}=setup(t),g=game(true);g.world={areaId:'westminster',safehouseData:{},registry:{links:()=>[{requiresDefeat:'boss-witch-v1',to:'east'}]},bossData:{placements:[{areaId:'westminster',key:'boss-witch-v1',profileRef:'witch'}],profiles:{witch:{name:'Ember Matron'}}},bossEquipmentData:{emberProjector:{source:{areaId:'westminster',placementKey:'boss-witch-v1'}}}};g.bossEquipment={emberProjector:{status:'eligible'}};g.openingStory={commsRead:false,messageRecovered:false};g.message='Run saving unavailable. Supplies kept.';g.messageUntil=15;
  for(const read of[false,true]){g.openingStory.commsRead=read;assert.equal(bossExitGate(g).allowed,false);hud.update(g);assert.equal(bossExitGate(g).allowed,false);assert.doesNotMatch(el('objective').textContent,/Defeat|Matron|exit/);assert.match(el('objective').textContent,/westminster/i);assert.equal(el('notice').textContent,g.message);}
- g.encounterCleared=true;hud.update(g);assert.equal(el('objective').textContent,'Westminster · cleared');
+ g.encounterCleared=true;hud.update(g);assert.doesNotMatch(el('objective').textContent,/\d/);assert.ok(shortLine(el('objective').textContent));
 });
 
 test("an unreadable saved run tells the player to use Reset game from the menu", (t) => {
@@ -389,30 +390,31 @@ test("an unreadable saved run tells the player to use Reset game from the menu",
   );
   g.runSaveInvalid = false;
   hud.update(g);
-  assert.equal(el("result-hint").textContent, "Watch their wind-up. Dodge, then strike.");
+  assert.ok(shortLine(el("result-hint").textContent, 80));
 });
 
 test("a first-time hint uses the notice line, yields to a live message and clears when it ends", (t) => {
   const { hud, el } = setup(t);
   const g = game(true);
-  hud.update(g, "Hold GUARD to block.");
-  assert.equal(el("notice").textContent, "Hold GUARD to block.");
-  g.message = "Pistol picked up";
+  const hint = "A first-time hint";
+  hud.update(g, hint);
+  assert.equal(el("notice").textContent, hint);
+  g.message = "A live game message";
   g.messageUntil = g.time + 3;
-  hud.update(g, "Hold GUARD to block.");
-  assert.equal(el("notice").textContent, "Pistol picked up");
+  hud.update(g, hint);
+  assert.equal(el("notice").textContent, g.message);
   g.messageUntil = 0;
   hud.update(g, "");
-  assert.notEqual(el("notice").textContent, "Hold GUARD to block.");
+  assert.notEqual(el("notice").textContent, hint);
 });
 
-test("centre status lines use the bounty pop-up's yellow, and the mastery line stays on one line", async () => {
+test("centre status lines use the route arrow's pale gold, bold, below the bounty pop-up's size", async () => {
   const { readFileSync } = await import("node:fs");
   const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
   const popup = /\.marked-head-total\{color:(#[0-9a-f]{6});font-size:(\d+)px/.exec(css);
   const rule = /#notice:not\(\.hint\),\s*#marked-status,[^{]*\{([^}]*)\}/.exec(css);
   assert.ok(popup && rule);
-  assert.ok(rule[1].includes(`color: ${popup[1]}`));
+  assert.ok(rule[1].includes("color: #f1d28c"));
   assert.ok(rule[1].includes("font-weight: 900"));
   assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
 });

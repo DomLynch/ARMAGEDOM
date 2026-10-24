@@ -30,3 +30,7 @@ test('barrier footprint remains outside collision,uses at most two meshes,and re
  const{world,scene}=setup('lambeth',{x:.5283,y:.1897}),cue=world.routeGuidance,positions=cue.barrier.geometry.attributes.position;for(let i=0;i<positions.count;i++)assert.equal(world.geometry.clear({x:positions.getX(i),z:-positions.getZ(i)},0),false);
  assert.equal(cue.group.children.length,2);assert.equal(cue.barrier.material.vertexColors,true);let releases=0;for(const mesh of cue.group.children){mesh.geometry.addEventListener('dispose',()=>releases++);mesh.material.addEventListener('dispose',()=>releases++);}const actor=new THREE.Group();scene.add(actor);world.dispose();world.dispose();assert.equal(releases,4);assert.deepEqual(scene.children,[actor]);
 });
+test('the ground arrow starts clear of the player: its tail is at least the player radius plus a margin out',()=>{
+ let checked=0;for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);world.update(p,0,393,695,true);const arrow=world.routeGuidance.arrow;if(arrow.visible){const tail=arrow.position,me=world.toRender(p),gap=Math.hypot(tail.x-me.x,tail.z-me.z);assert(gap>=0.4+0.2,`${row.area}: gap ${gap}`);checked++;}world.dispose();}
+ assert(checked>0);
+});

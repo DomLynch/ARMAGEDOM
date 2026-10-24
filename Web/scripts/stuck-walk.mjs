@@ -15,7 +15,7 @@ export const inLink = (link, pt) =>
     k === "xMin" ? pt.x > v : k === "xMax" ? pt.x < v : k === "yMin" ? pt.y > v : pt.y < v,
   );
 
-export function walkArea(areaId) {
+export function walkArea(areaId, { dead: scanDead = true } = {}) {
   const area = registry.get(areaId),
     geo = createGeometry(read(registry.asset(area.layoutRef).path));
   const xs = geo.road.map((p) => p.x),
@@ -66,7 +66,7 @@ export function walkArea(areaId) {
   }
   // Dead spots: no compass direction moves the player at least half a step.
   const dead = [];
-  for (const c of free) {
+  for (const c of scanDead ? free : []) {
     const p = pos(c);
     let best = 0;
     for (let a = 0; a < 16; a++) {
@@ -99,23 +99,31 @@ export function walkArea(areaId) {
       inMain: cells.filter((c) => comp.get(c) === main).length,
     };
   });
+  // The free cell nearest to a point (within 1.5 cells) is in the entry's region.
   const inMain = (g) => {
+    const ci = Math.round((g.x - x0) / CELL),
+      cj = Math.round((g.z - z0) / CELL);
     let best = null,
       d0 = CELL * 1.5;
-    for (const c of free) {
-      const p = pos(c),
-        d = Math.hypot(p.x - g.x, p.z - g.z);
-      if (d < d0) {
-        d0 = d;
-        best = c;
+    for (let j = cj - 1; j <= cj + 1; j++)
+      for (let i = ci - 1; i <= ci + 1; i++) {
+        if (i < 0 || j < 0 || i >= nx || j >= nz || !free.has(j * nx + i)) continue;
+        const p = pos(j * nx + i),
+          d = Math.hypot(p.x - g.x, p.z - g.z);
+        if (d < d0) {
+          d0 = d;
+          best = j * nx + i;
+        }
       }
-    }
     return best !== null && comp.get(best) === main;
   };
+  // Every free cell the player can walk to from the entry, in area metres, in row-major order.
+  const mainCells = [...free].filter((c) => comp.get(c) === main).map(pos);
   return {
     areaId,
     geo,
     inMain,
+    mainCells,
     entryFree: entryCell !== null,
     free: free.size,
     comps: comps.length,
