@@ -415,6 +415,7 @@ test("centre status lines use the route arrow's pale gold, bold, below the bount
   const rule = /#notice:not\(\.hint\),\s*#marked-status,[^{]*\{([^}]*)\}/.exec(css);
   assert.ok(popup && rule);
   assert.ok(rule[1].includes("color: #f1d28c"));
-  assert.ok(rule[1].includes("font-weight: 900"));
+  assert.ok(rule[1].includes("font-weight: 600"));
+  assert.ok(rule[1].includes("font-size: 13px"));
   assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
 });

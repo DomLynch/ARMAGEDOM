@@ -67,7 +67,7 @@ export function journalPresentation(g, data, allowed = true) {
 }
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster")
-    return { target: null, objective: "Explore the area. Use the map to plan your next route." };
+    return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
@@ -112,14 +112,6 @@ export function createExpeditionView(s, dispatch) {
     const result = dispatch(g, command, allowed());
     if (result.ok) {
       g.events.push(...result.events);
-      if (command.type === "expedition") {
-        g.message = {
-          accept: "Contract accepted. Find the stolen case in East.",
-          recover: "Case recovered. Return to the Westminster stash.",
-          claim: "Reward earned. Choose " + (g.world.reaperData?.name ?? "Watchman’s Pistol") + " in Gear.",
-        }[command.action];
-        g.messageUntil = g.time + 4;
-      }
     }
     update();
     return result;
@@ -335,20 +327,8 @@ export function createExpeditionView(s, dispatch) {
       );
     const objectiveLine = el("expedition-objective");
     objectiveLine.hidden = !allowed() || g.player.hp <= 0;
-    paint(
-      objectiveLine,
-      (progression
-        ? progression.objective
-        : status === "available"
-          ? "Optional contract · Westminster stash"
-          : status === "accepted"
-            ? "Stolen Supplies · recover in East"
-            : status === "recovered"
-              ? "Carrying case · return to Westminster"
-              : g.world.reaperData
-                ? "Reaper Drone earned · Gear in menu"
-                : "Watchman’s Pistol earned · Gear in menu") + (pin ? "\n" + route : ""),
-    );
+    // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
+    paint(objectiveLine, progression?.objective ?? "");
     const caseVisible = allowed() && g.world.areaId === c.case.areaId && ["available", "accepted"].includes(status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();

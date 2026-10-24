@@ -242,8 +242,6 @@ export function createRunViews(s) {
       vestBag = createVestBagView();
       s.scene.add(vestBag.root);
       vestBag.root.position.copy(s.world.toRender(VEST_BAG_POSITION));
-      s.game.message = "Supply bag by the pistol stash · Worn vest available.";
-      s.game.messageUntil = s.game.time + 4;
     }
     vestBag.update(s.game.time);
   }

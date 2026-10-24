@@ -65,10 +65,18 @@ summary:focus-visible {
 #move {
   pointer-events: auto;
 }
-#vitals {
+#hud-top {
   position: absolute;
-  left: var(--safe-l);
   top: var(--safe-t);
+  left: var(--safe-l);
+  right: var(--safe-r);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  pointer-events: none;
+}
+#vitals {
   width: clamp(170px, 25vw, 240px);
   text-shadow: 0 1px 3px #000;
   font-size: 11px;
@@ -130,17 +138,16 @@ summary:focus-visible {
   color: var(--gold);
 }
 #notice {
-  position: absolute;
-  top: calc(var(--safe-t) + 93px);
-  left: 25%;
-  right: 25%;
+  align-self: stretch;
   text-align: center;
   font-size: 12px;
   text-shadow: 0 1px 4px #000;
   margin: 0;
 }
-/* First-time hint pop-up: the route arrow's gold (0xf1d28c) on the HUD's dark pill. */
+/* First-time hint pop-up: the route arrow's gold (0xf1d28c) on the HUD's dark pill. It floats (fixed), outside the column. */
 #notice.hint {
+  position: fixed;
+  top: calc(var(--safe-t) + 93px);
   left: 50%;
   right: auto;
   transform: translateX(-50%);
@@ -426,7 +433,7 @@ summary {
     width: 136px;
     height: 136px;
   }
-  #notice {
+  #notice.hint {
     top: calc(var(--safe-t) + 80px);
   }
 }
@@ -438,10 +445,10 @@ summary {
     width: clamp(170px, 52vw, 220px);
   }
   #notice {
-    top: calc(var(--safe-t) + 108px);
-    left: var(--safe-l);
-    right: var(--safe-r);
     font-size: 11px;
+  }
+  #notice.hint {
+    top: calc(var(--safe-t) + 108px);
   }
   #boss {
     top: calc(var(--safe-t) + 83px);
@@ -486,11 +493,11 @@ summary {
   border-color: var(--gold);
 }
 
-#ammo {position:absolute;left:16px;top:136px;margin:0;color:#edcb8c;font-size:12px;letter-spacing:.06em;pointer-events:none}
+#ammo {margin:0;color:#edcb8c;font-size:12px;letter-spacing:.06em;pointer-events:none}
 #pistol-interact {min-height:44px;max-width:calc(100vw - 32px);line-height:1.2;position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);pointer-events:auto;background:#30261a;border:1px solid #ad8543;color:#f2d397;padding:10px 14px;border-radius:6px;touch-action:none}
 #pistol-icon {position:absolute;transform:translate(-50%,-100%);padding:3px 6px;color:#f2d397;font-size:10px;letter-spacing:.08em;background:#231c14b3;border-radius:3px;pointer-events:none}
 .action:disabled {opacity:.35;pointer-events:none}
-@media(max-width:500px){#ammo{top:132px;font-size:11px}#pistol-interact{bottom:calc(12px + env(safe-area-inset-bottom));font-size:11px;padding:9px}}
+@media(max-width:500px){#ammo{font-size:11px}#pistol-interact{bottom:calc(12px + env(safe-area-inset-bottom));font-size:11px;padding:9px}}
 
 /* Held Fire is neutral aim; shot recoil/muzzle/audio follow actual shot events. */
 .action.pistol-aim.pressed {
@@ -632,11 +639,28 @@ summary {
 #marked-status[data-marked="true"],
 #expedition-objective {
   color: #f1d28c;
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.02em;
   text-shadow: 0 1px 2px #000, 0 0 4px #000;
   overflow-wrap: anywhere;
+  /* The three slots sit in #hud-top's column, so they cannot collide; each shows at most 2 lines, then an ellipsis. */
+  position: static;
+  align-self: stretch;
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#notice:empty,
+#expedition-objective:empty,
+#marked-status:empty {
+  display: none;
 }
 #mastery {
   white-space: nowrap;
