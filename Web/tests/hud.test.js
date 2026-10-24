@@ -106,13 +106,13 @@ test("donor objective identifies one Goblin encounter without three-wave text", 
   hud.update(g);
   assert.equal(
     el("objective").textContent,
-    "WESTMINSTER · GOBLIN ENCOUNTER · 1 HOSTILES",
+    "Westminster · 1 enemy",
   );
   g.enemies = [];
   hud.update(g);
   assert.equal(
     el("objective").textContent,
-    "WESTMINSTER · GOBLIN ENCOUNTER · 0 HOSTILES",
+    "Westminster · 0 enemies",
   );
 });
 test("donor cooldown arcs use supplied periods and zero-cooldown Heavy stays finite", (t) => {
@@ -158,7 +158,7 @@ test("legacy wave HUD keeps cooldown periods but hides positive ending", (t) => 
   hud.update(g);
   assert.equal(
     el("objective").textContent,
-    "WESTMINSTER · WAVE 1 / 3 · 1 HOSTILES",
+    "Westminster · 1 enemy",
   );
   for (const id of ["heavy", "dodge"]) {
     assert.ok(Math.abs(Number(el(id).style["--ready"]) - 0.5) < 1e-12);
@@ -288,21 +288,21 @@ test("HUD counts current-area residents and keeps cleared exploration uninterrup
   g.enemies = Array.from({ length: 9 }, () => ({kind:0}));
   for (const area of ["east", "south", "westminster"]) {
     g.world = { areaId: area };hud.update(g);
-    assert.equal(el("objective").textContent, `${area.toUpperCase()} · HOLLOW SCAVENGERS · 9 HOSTILES`);
+    assert.equal(el("objective").textContent, `${area[0].toUpperCase()}${area.slice(1)} · 9 enemies`);
     assert.equal(el("menu-area").textContent, `${area.toUpperCase()} · LONDON 2030`);
     assert.equal(el("ending").hidden, true);
   }
   g.encounterCleared = true;g.enemies = [];hud.update(g);
-  assert.equal(el("objective").textContent, "WESTMINSTER · CLEARED · EXPLORE LONDON");
+  assert.equal(el("objective").textContent, "Westminster · cleared");
   assert.equal(el("ending").hidden, true);
   assert.equal(el("explore").onclick, undefined, "no Continue action is bound");
 });
 test('Hollow HUD uses actual survivors without a clearance modal',t=>{
  const {hud,el}=setup(t),g=game(true);g.encounter={id:'hollow-scavengers'};
  g.enemies=Array.from({length:6},()=>({kind:0}));hud.update(g);
- assert.equal(el('objective').textContent,'WESTMINSTER · HOLLOW SCAVENGERS · 6 HOSTILES');
+ assert.equal(el('objective').textContent,'Westminster · 6 enemies');
  g.encounterCleared=true;g.enemies=[];hud.update(g);
- assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED · EXPLORE LONDON');assert.equal(el('ending').hidden,true);
+ assert.equal(el('objective').textContent,'Westminster · cleared');assert.equal(el('ending').hidden,true);
 });
 test('Fire stays enabled for neutral aim and keeps ammo counts during authoritative cooldown',t=>{
  const {hud,el}=setup(t),g=game(true);g.pistol={collected:true,equipped:true,magazine:5,reserve:12,nextFireAt:11.2,reloadingUntil:0};hud.update(g);
@@ -342,7 +342,7 @@ test('equipped vest status follows authoritative restore, holster, transient pri
  g.pistol.equipped=false;g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
  g.message='OUT OF AMMO · Switch to melee.';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,g.message);g.time=12;hud.update(g);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
  const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,'VEST EQUIPPED · 10% protection');
- hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,false);
+ hud.update(vestGame());assert.equal(el('notice').textContent,'');assert.equal(el('ammo').hidden,true);
 });
 
 test('Assist 100percent correction setting toggles independently without changing five touch actions',t=>{
@@ -372,8 +372,8 @@ test('rocket HUD uses actual1+reserve and3.2s reload clock, with no stale grenad
 });
 test('progression objective owns next instruction while region and actual gate/storage warning remain effective',t=>{
  const {hud,el}=setup(t),g=game(true);g.world={areaId:'westminster',safehouseData:{},registry:{links:()=>[{requiresDefeat:'boss-witch-v1',to:'east'}]},bossData:{placements:[{areaId:'westminster',key:'boss-witch-v1',profileRef:'witch'}],profiles:{witch:{name:'Ember Matron'}}},bossEquipmentData:{emberProjector:{source:{areaId:'westminster',placementKey:'boss-witch-v1'}}}};g.bossEquipment={emberProjector:{status:'eligible'}};g.openingStory={commsRead:false,messageRecovered:false};g.message='Run saving unavailable. Supplies kept.';g.messageUntil=15;
- for(const read of[false,true]){g.openingStory.commsRead=read;assert.equal(bossExitGate(g).allowed,false);hud.update(g);assert.equal(bossExitGate(g).allowed,false);assert.doesNotMatch(el('objective').textContent,/Defeat|Matron|exit/);assert.match(el('objective').textContent,/WESTMINSTER/);assert.equal(el('notice').textContent,g.message);}
- g.encounterCleared=true;hud.update(g);assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED');
+ for(const read of[false,true]){g.openingStory.commsRead=read;assert.equal(bossExitGate(g).allowed,false);hud.update(g);assert.equal(bossExitGate(g).allowed,false);assert.doesNotMatch(el('objective').textContent,/Defeat|Matron|exit/);assert.match(el('objective').textContent,/westminster/i);assert.equal(el('notice').textContent,g.message);}
+ g.encounterCleared=true;hud.update(g);assert.equal(el('objective').textContent,'Westminster · cleared');
 });
 
 test("an unreadable saved run tells the player to use Reset game from the menu", (t) => {
@@ -415,7 +415,4 @@ test("centre status lines use the bounty pop-up's yellow, and the mastery line s
   assert.ok(rule[1].includes(`color: ${popup[1]}`));
   assert.ok(rule[1].includes("font-weight: 900"));
   assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
-  assert.match(css, /#mastery\s*\{\s*white-space: nowrap/);
-  const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
-  assert.ok(!/MASTERY \$\{[^`]*% damage`/.test(hud));
 });

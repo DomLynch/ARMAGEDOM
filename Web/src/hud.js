@@ -334,17 +334,18 @@ export function createHUD({
         // status. Actual crossing checks and transient warnings remain unchanged.
         const guided = !!g.world?.safehouseData,
           exitGate = guided ? null : bossExitGate(g);
+        const areaName = area[0] + area.slice(1).toLowerCase(),
+          enemyCount = `${g.enemies.length} ${g.enemies.length === 1 ? "enemy" : "enemies"}`;
         el("objective").textContent =
           exitGate && !exitGate.allowed
-            ? `${area} · ${exitGate.message}`
+            ? exitGate.message
             : g.encounterCleared && !g.enemies.some((e) => e.hp > 0 && e.hostile !== false)
-              ? `${area} · CLEARED${guided ? "" : " · EXPLORE LONDON"}`
-              : donor
-                ? `${area} · ${g.encounter ? "HOLLOW SCAVENGERS" : "GOBLIN ENCOUNTER"} · ${g.enemies.length} HOSTILES`
-                : `${area} · WAVE ${g.wave} / 3 · ${g.enemies.length} HOSTILES`;
+              ? `${areaName} · cleared`
+              : `${areaName} · ${enemyCount}`;
         const progression = g.progression,
           model = g.progressionModel;
-        el("mastery").hidden = !model;
+        // Mastery detail lives in the progression panel; the HUD keeps it hidden.
+        el("mastery").hidden = true;
         el("progression-panel").hidden = !model;
         if (model) {
           const weapon = p.weapon === "pistol" ? "westminster-start-pistol-v1" : "knife",
@@ -434,7 +435,8 @@ export function createHUD({
           if (equipped) {
             el("guard").setAttribute("aria-label", "Guard unavailable with pistol");
           }
-          el("ammo").hidden = !equipped;
+          // The pistol tile and FIRE button already show the magazine; the top-left line is a duplicate.
+          el("ammo").hidden = true;
           el("ammo").textContent =
             `${(selectedPistolProfile(g).name ?? "PISTOL").toUpperCase()} · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil ? " · RELOADING" : ""}`;
           const fireLeft = Math.max(0, pistol.nextFireAt - g.time);

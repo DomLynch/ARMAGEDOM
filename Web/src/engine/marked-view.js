@@ -157,7 +157,20 @@ export function createMarkedView(s, dispatch) {
     const current = m ?? { carried: 0, bank: 0, bounty: 0 },
       active = g.enemies.some((e) => e.markedHunter && e.hp > 0),
       warning = g.markedHunt?.warning,
-      text = `CARRY ${money(current.carried)} · BANK ${money(current.bank)} · BOUNTY ${money(current.bounty)}${warning ? "\nHUNTER INBOUND · " + Math.max(1, Math.ceil(warning.arrivesAt - g.time)) + "s" : active ? "\nHUNTER ACTIVE" : ""}`;
+      moneyLine = [
+        current.carried ? `${money(current.carried)} carried` : "",
+        current.bank ? `bank ${money(current.bank)}` : "",
+        current.bounty ? `bounty ${money(current.bounty)}` : "",
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      hunterLine = warning
+        ? `Hunter in ${Math.max(1, Math.ceil(warning.arrivesAt - g.time))}s`
+        : active
+          ? "A hunter is after you"
+          : "",
+      text = [moneyLine, hunterLine].filter(Boolean).join("\n");
+    hud.hidden = !text;
     if (hud.textContent !== text) hud.textContent = text;
     hud.dataset.marked = String(current.bounty >= c.hunterBounty);
     summary.textContent = `Carried ${money(current.carried)} · Bank ${money(current.bank)} · Bounty ${money(current.bounty)}`;
