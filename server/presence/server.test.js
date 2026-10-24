@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import net from "node:net";
 import { createHash, randomBytes } from "node:crypto";
 import { loadAreaRows } from "./area-rules.js";
-import { createPresence, CLOSE_REPLACED } from "./server.js";
+import { createPresence, CLOSE_REPLACED, CLOSE_CLOSED } from "./server.js";
 
 const square = (x0, z0, x1, z1) => [{ x: x0, z: z0 }, { x: x1, z: z0 }, { x: x1, z: z1 }, { x: x0, z: z1 }];
 const area = (id, other) => ({
@@ -127,6 +127,30 @@ test("auth: the token rides in the subprotocol; none, a bad one or no protocol i
     assert.ok(ok.send, "a verified account gets the upgrade");
   } finally {
     await t.stop();
+  }
+});
+
+test("a verified account the world refuses is accepted and closed with 4003, never admitted; a throw or a hang is closed too; a bad token stays an HTTP 401", async () => {
+  const closedWorld = await start({ isAllowed: async () => false });
+  const broken = await start({ isAllowed: async () => { throw new Error("writer down"); } });
+  const hung = await start({ isAllowed: () => new Promise(() => {}), verifyTimeoutMs: 80 });
+  const open = await start({ isAllowed: async (account) => account === ALICE });
+  try {
+    for (const t of [closedWorld, broken, hung]) {
+      const refused = await t.connect(ALICE);
+      assert.ok(refused.send, "the upgrade itself is accepted, so the page can read the close code");
+      assert.equal(await refused.closed, CLOSE_CLOSED);
+      assert.equal(refused.messages.length, 0, "no state frame, no hello: it never reached a layer");
+      assert.ok(Object.values(t.presence.stats().areas).every((a) => a.present === 0), "no layer holds it");
+    }
+    assert.equal((await closedWorld.open(["arma.v1", "token.forged"])).status, 401, "a bad token is still refused before the upgrade (a browser sees a code-less close)");
+    const alice = await open.connect(ALICE);
+    await alice.send({ t: "join", area: "south" });
+    assert.ok(alice.send && alice.closeCode === null, "an allowed account is admitted as before");
+    const bob = await open.connect(BOB);
+    assert.equal(await bob.closed, CLOSE_CLOSED, "a different account in the same world is refused on its own");
+  } finally {
+    for (const t of [closedWorld, broken, hung, open]) await t.stop();
   }
 });
 

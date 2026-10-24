@@ -7,6 +7,8 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 
 const MAX_BODY = 256 * 1024;
+const STATUS_MAX_AGE_S = 30,
+  STATUS_MEMO_MS = 5000;
 const STATUS = { O0007: 403, O0009: 409, O0002: 422, O0001: 200 };
 
 class HttpError extends Error {
@@ -96,6 +98,11 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       counts.locations++;
       return call("arma_save_location", [String(body.account), String(body.area), body.x, body.z, body.atMs ?? now()]);
     },
+    // Presence asks whether a verified account may be in the world (the same answer the client's status read gets with its token).
+    async status({ body }) {
+      if (typeof body.account !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.account)) throw new HttpError(400, "bad-request");
+      return call("arma_world_status", [body.account]);
+    },
     // One presence tick of already-clamped hits; the database clamps again.
     async hits({ body }) {
       if (!Array.isArray(body.batch)) throw new HttpError(400, "bad-request");
@@ -128,8 +135,9 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     tail.then(() => lanes.get(account) === tail && lanes.delete(account));
     return run;
   };
-  const send = (res, status, payload) => {
-    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+  let statusMemo = null; // { at, body }: the anonymous status answer
+  const send = (res, status, payload, headers = {}) => {
+    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store", ...headers });
     res.end(JSON.stringify(payload));
   };
 
@@ -139,6 +147,25 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       const url = new URL(req.url, "http://x"),
         [, area, op] = url.pathname.split("/");
       if (req.method === "GET" && url.pathname === "/health") return send(res, 200, { ok: true, ...counts });
+      // The client's one cheap read, before any signup, socket or save: {enabled, open} for anyone, plus {allowed} when a valid Bearer token is sent.
+      // A token that is sent but not valid is a 401, never a quiet downgrade to the anonymous answer. No bucket, no body; nginx's per-IP limit covers it.
+      if (req.method === "GET" && url.pathname === "/arma/status") {
+        const header = req.headers.authorization;
+        let account = null;
+        if (header !== undefined) {
+          const token = /^Bearer (.{10,4096})$/.exec(header)?.[1];
+          account = token ? await verify(token) : null;
+          if (!account) throw new HttpError(401, "token");
+        }
+        // The anonymous answer is the same for everyone: browsers and nginx may keep it 30 s (so the kill switch reaches pages within about half a minute), and the
+        // writer itself reads the database at most once every 5 s for it. An answer for a token is per account: private, never cached.
+        if (!account) {
+          const t = now();
+          if (!statusMemo || t - statusMemo.at > STATUS_MEMO_MS) statusMemo = { at: t, body: await call("arma_world_status", [null]) };
+          return send(res, 200, statusMemo.body, { "Cache-Control": `public, max-age=${STATUS_MAX_AGE_S}` });
+        }
+        return send(res, 200, await call("arma_world_status", [account]), { "Cache-Control": "private, no-store" });
+      }
       if (req.method !== "POST") throw new HttpError(405, "method");
       if (area === "internal" && internalOps[op]) {
         if (!internalKey || !same(req.headers["x-arma-internal-key"], internalKey)) throw new HttpError(401, "key");

@@ -211,6 +211,51 @@ test("rate limit: a per-account token bucket on save_run and load_run, refilled 
   }
 });
 
+test("status: GET /arma/status answers {enabled, open} to anyone and {allowed} to a valid token; a bad token is a 401; the kill switch reads as closed", async () => {
+  let clock = 1_000_000;
+  const t = await start({ now: () => clock });
+  try {
+    const get = async (headers = {}) => {
+      const res = await fetch(t.base + "/arma/status", { headers });
+      return { status: res.status, cache: res.headers.get("cache-control"), body: await res.json() };
+    };
+    const as = (id) => ({ Authorization: `Bearer user:${id}` });
+    const anon = await get();
+    assert.deepEqual([anon.status, anon.cache, anon.body], [200, "public, max-age=30", { enabled: true, open: false }], "no account, no `allowed`, nothing else; cacheable for 30 s");
+    const mine = await get(as(ids.alice));
+    assert.deepEqual([mine.cache, mine.body], ["private, no-store", { enabled: true, open: false, allowed: true }], "an answer for a token is per account: never cached");
+    assert.equal((await get({ Authorization: "Bearer forged" })).cache, "no-store", "errors are never cached");
+    assert.deepEqual((await get(as(ids.carol))).body, { enabled: true, open: false, allowed: false }, "signed up, never granted access");
+    assert.equal((await get({ Authorization: "Bearer forged" })).status, 401, "a token that is sent but not valid is not quietly downgraded to the anonymous answer");
+    assert.equal((await get({ Authorization: "Basic abc" })).status, 401);
+    await t.pg.exec("reset role"); // the database owner flips the switches, as Lead does
+    try {
+      await t.pg.exec("update public.arma_config set value = 'true'::jsonb where key = 'arma_open_access'");
+      assert.deepEqual((await get(as(ids.carol))).body, { enabled: true, open: true, allowed: true }, "open access admits any account that exists");
+      await t.pg.exec("update public.arma_config set value = 'false'::jsonb where key = 'arma_enabled'");
+      assert.deepEqual((await get()).body, { enabled: true, open: false }, "the anonymous answer is memoised for 5 s: the writer does not read the database for every poll");
+      clock += 6000;
+      assert.deepEqual((await get()).body, { enabled: false, open: true }, "and it follows the switches after that");
+      assert.deepEqual((await get(as(ids.alice))).body, { enabled: false, open: true, allowed: false }, "the kill switch closes it for everyone, the allow-list included");
+      // A closed world refuses every WRITING client op with 403 O0007 (the page stops its save loop until the next status read) ...
+      for (const [op, body] of [["create_character", { name: "Z" }], ["set_active", { character: "pc:x" }], ["save_run", { character: "pc:x", era: 18, record: v18, revision: 0, seq: 1 }], ["spawn_state", { instances: [] }]])
+        assert.deepEqual(await t.post("/arma/" + op, body, { as: ids.alice }), { status: 403, body: { error: "O0007" } }, op);
+      // ... but a READ, load_run, answers {run: null} (the same as "no run yet"): the page must not read that as "start fresh" while the status says closed.
+      assert.deepEqual(await t.post("/arma/load_run", { character: "pc:x" }, { as: ids.alice }), { status: 200, body: { run: null } });
+    } finally {
+      await t.pg.exec("set role arma_writer");
+    }
+    assert.equal((await t.post("/arma/status", {}, { as: ids.alice })).status, 404, "POST is not a status route");
+    assert.equal((await t.post("/internal/status", { account: ids.alice })).status, 401, "the internal status route needs the shared key");
+    assert.equal((await t.post("/internal/status", { account: "not-a-uuid" }, { key: KEY })).status, 400);
+    assert.equal((await t.post("/internal/status", {}, { key: KEY })).status, 400);
+    const internal = await t.post("/internal/status", { account: ids.alice }, { key: KEY });
+    assert.deepEqual([internal.status, internal.body.allowed], [200, false], "presence asks the same question; the kill switch is still on");
+  } finally {
+    await t.close();
+  }
+});
+
 test("spawn engage: the world row comes from the server, not the phone", async () => {
   const t = await start();
   try {
