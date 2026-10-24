@@ -904,6 +904,20 @@ export function createActors(
         view.finisher?.setScene(renderScene);
       }
     },
+    // Finish every deferred finisher preparation now, in one go (tests, and tools that need the full recipe set).
+    completeFinisherPreparation() {
+      for (const view of [...deferredViews]) {
+        if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
+        const live = captureRig(view.model);
+        applyRig(view.finisherPose0, view.root, view.model);
+        try {
+          for (const _ of view.finisher.prepare());
+        } finally {
+          applyRig(live, view.root, view.model);
+        }
+      }
+    },
+    finisherPreparationStats: () => finisherPump.stats(),
     activateArea(areaId) {
       finisherPump.enter();
       const stored = parkedViews.get(areaId);

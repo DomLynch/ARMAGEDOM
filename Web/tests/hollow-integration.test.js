@@ -85,6 +85,8 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  actors.reset();world.areaId='westminster';game.finishers={maxHeads:2,recentRecipeId:null};game.corpses=[];
  game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
  actors.update(game,0);
+ for(const e of game.enemies)assert.ok(!e.finisherSupport.some(s=>s.id==='decapitation'),'a living resident is built with the ordinary death only; the rest is prepared after arrival');
+ actors.completeFinisherPreparation();
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
  const groundingSource=game.enemies[0],translated={...groundingSource,id:1700,pos:{x:17,z:-3},mobSize:groundingSource.mobSize*1.15},sourceGrounding=actors.views.get(groundingSource.id).finisher.stats().runGrounding;
  game.enemies.push(translated);actors.update(game,0);const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
