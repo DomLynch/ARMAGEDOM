@@ -368,6 +368,35 @@ test("?stats=1 logs the renderer's totals for the whole previous frame every 120
   assert.equal(quiet.s.renderer.info.autoReset, true);
 });
 
+test("?stats=1: the render areas.js does after a travel ends is thrown away with the first update in the new area, and the count restarts", () => {
+  const lines = [];
+  const info = {
+    autoReset: true,
+    render: { calls: 0, triangles: 0 },
+    reset() {
+      this.render.calls = this.render.triangles = 0;
+    },
+  };
+  const frame = (t) => {
+    info.render.calls += 10; // one loop frame renders 10 calls
+    t.session.update();
+  };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 119; i++) frame(t);
+  // A travel as the real loop sees it: update() is NOT called while traveling; the area changes; areas.js renders once on its own.
+  t.s.traveling = true;
+  t.s.world.areaId = "east";
+  t.s.traveling = false;
+  info.render.calls += 10; // the out-of-loop render
+  frame(t); // first update in the new area: 20 calls would be the mixed reading
+  assert.deepEqual(lines, [], "no line on that frame, and the count restarted");
+  for (let i = 0; i < 119; i++) frame(t);
+  assert.deepEqual(lines, [], "119 frames since the restart is not yet a line");
+  frame(t);
+  assert.deepEqual(lines, ["[arma-world] frame draw calls=10 triangles=0 remotes=0"], "a clean one-frame reading");
+});
+
 test("the view asks for the kit once a frame, however many players are on screen", () => {
   const scene = new THREE.Scene();
   let asked = 0;
