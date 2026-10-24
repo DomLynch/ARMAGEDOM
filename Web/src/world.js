@@ -300,7 +300,7 @@ export class LondonWorld {
       else cache.leases.delete(areaId);
     };
   }
-  // Parked-area budget (default off): at most `maxAreas` parked stages or `maxBytes` of their textures,
+  // Parked-area budget (set while prefetch is on): at most `maxAreas` parked stages or `maxBytes` of their textures,
   // whichever is reached first. Least recently used go first; the area just left is never evicted here.
   trimParkedStages() {
     const cache = this.areaCache,
