@@ -1,0 +1,12 @@
+{
+  "name": "armagedom-db-tests",
+  "private": true,
+  "type": "module",
+  "description": "RLS, grant and function tests for supabase/migrations, run against pglite (Postgres in WebAssembly). No hosted project is involved.",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.0"
+  }
+}
