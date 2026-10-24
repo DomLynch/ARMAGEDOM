@@ -3,8 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { asDataProblems } from "./as-data-gate.mjs";
-import { constTableProblems } from "./const-table-gate.mjs";
+import { asDataProblems, constantTableProblems, dataImportProblems } from "./as-data-gate.mjs";
 
 function files(directory, suffix) {
   return readdirSync(directory, { withFileTypes: true })
@@ -75,13 +74,16 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
   );
   if (asData.length)
     throw Error(`Web as-data gate failed:\n${asData.join("\n")}`);
-  const tables = constTableProblems(
-    source,
-    JSON.parse(readFileSync(join(root, "scripts/const-table-baseline.json"), "utf8")),
-    join(root, "Web/src"),
-  );
-  if (tables.length)
-    throw Error(`Web const-table gate failed:\n${tables.join("\n")}`);
+  const dataLayer = [
+    ...constantTableProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+    ...dataImportProblems(source, join(root, "Web/src")),
+  ];
+  if (dataLayer.length)
+    throw Error(`Web data-layer gate failed:\n${dataLayer.join("\n")}`);
   // A gate invoked by a test must still start a fresh test runner.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;

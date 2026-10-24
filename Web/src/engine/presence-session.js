@@ -5,10 +5,11 @@ import { createPresenceClient, presenceConfig } from "./presence-client.js";
 import { createRemotePlayers } from "./remote-players.js";
 import { createRemotePlayersView } from "./remote-players-view.js";
 import { createSurvivorKit } from "./remote-survivors.js";
+import { GAME_DATA } from "./game-data.js";
 
 const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
 const STATS_EVERY = 100; // state messages (about 10 s)
-const STATS_FRAMES = 120; // frames between ?stats=1 renderer lines (about 2 s)
+const STATS_FRAMES = GAME_DATA.diagnostics.statsFramesPerLine; // frames between ?stats=1 renderer lines (data/diagnostics.json)
 export const percentile = (values, p) => {
   const sorted = [...values].sort((a, b) => a - b);
   return Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0);
