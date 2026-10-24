@@ -90,9 +90,16 @@ test("changing area asks the server to travel and forgets the old layer's player
   t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
   t.session.update();
   assert.equal(t.session.view.count, 1);
-  t.s.world.areaId = "south";
+  // The player runs on inside the old area: the 80 ms throttle leaves this last position unsent when the area changes.
+  t.s.game.player.pos = { x: 1.2, z: 2 };
+  t.clock.ms += 10;
   t.session.update();
-  assert.deepEqual(t.socket().sent.at(-1), { t: "travel", to: "south" });
+  assert.equal(t.socket().sent.filter((m) => m.t === "loc").length, 0, "throttled, so not sent yet");
+  t.s.world.areaId = "south";
+  t.s.game.player.pos = { x: 40, z: 1 }; // the game has already moved the player to the new area
+  t.session.update();
+  const tail = t.socket().sent.slice(-2);
+  assert.deepEqual(tail, [{ t: "loc", x: 120, z: 200 }, { t: "travel", to: "south" }], "the last old-area position goes first");
   assert.equal(t.session.view.count, 0);
   t.socket().receive({ t: "welcome", id: 3, area: "south", x: 4000, z: 100, arrival: "south:from-westminster" });
   assert.equal(t.session.client.area, "south");

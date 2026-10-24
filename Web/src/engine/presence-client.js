@@ -13,9 +13,28 @@ const FLAG_KEY = "armagedom.presence.v1";
 export const toCm = (metres) => Math.round(metres * 100);
 export const fromCm = (cm) => cm / 100;
 
-// Off by default. On with ?presence=1 (remembered in storage; ?presence=0 turns it off again). The endpoint is ?presenceUrl=
-// (ws:// or wss://) or, when absent, `/arma/ws` on the page's own origin (Deploy routes it to the presence service).
-export function presenceConfig({ search = "", storage = null, location = null } = {}) {
+// Off by default. On with ?presence=1 (remembered in storage; ?presence=0 turns it off again). With the flag on and no token source
+// yet the client stays offline and retries every 8 s: harmless.
+// The endpoint is FIXED to `wss://<page origin>/arma/ws` (Deploy routes it to the presence service). The page URL can never choose
+// it, because the access token travels to it: a link carrying ?presenceUrl=wss://elsewhere would hand the token to a stranger. The
+// only override is for local development (`dev`, import.meta.env.DEV of the dev server) and only to this machine.
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const isDev = () => {
+  try {
+    return import.meta.env?.DEV === true;
+  } catch {
+    return false;
+  }
+};
+export function localDevUrl(value) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "ws:" || url.protocol === "wss:") && LOCAL_HOSTS.has(url.hostname) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+export function presenceConfig({ search = "", storage = null, location = null, dev = isDev() } = {}) {
   const params = new URLSearchParams(search),
     read = () => {
       try {
@@ -34,8 +53,10 @@ export function presenceConfig({ search = "", storage = null, location = null } 
   if (params.get("presence") === "1" || params.get("presence") === "0") write(params.get("presence"));
   const on = params.has("presence") ? params.get("presence") === "1" : read() === "1";
   if (!on) return null;
-  const custom = params.get("presenceUrl");
-  if (custom) return /^wss?:\/\//.test(custom) ? { url: custom } : null;
+  if (dev && params.has("presenceUrl")) {
+    const local = localDevUrl(params.get("presenceUrl"));
+    if (local) return { url: local };
+  }
   if (!location?.host) return null;
   return { url: `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/arma/ws` };
 }
@@ -165,6 +186,18 @@ export function createPresenceClient({
         z = toCm(position.z);
       if (lastSent && lastSent.x === x && lastSent.z === z) return false;
       if (at - lastSentAt < LOC_INTERVAL_MS) return false;
+      send({ t: "loc", x, z });
+      lastSent = { x, z };
+      lastSentAt = at;
+      return true;
+    },
+    // Send the current position now, ignoring the 80 ms throttle (the server allows 40 messages a second). Used right before a
+    // travel: the server checks the exit zone against the LAST accepted loc, which the throttle may not have sent yet.
+    flush(position, at = now()) {
+      if (!joined) return false;
+      const x = toCm(position.x),
+        z = toCm(position.z);
+      if (lastSent && lastSent.x === x && lastSent.z === z) return false;
       send({ t: "loc", x, z });
       lastSent = { x, z };
       lastSentAt = at;

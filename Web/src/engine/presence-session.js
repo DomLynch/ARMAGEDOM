@@ -20,6 +20,7 @@ export function createPresenceSession(
     remote = createRemotePlayers({ selfId: () => client.id });
   let view = null, // built on the first frame: the scene does not exist yet when the session is created
     area = null,
+    lastPosition = null, // the previous frame's position: the last one known to be in the area I am leaving
     clock = now ?? (() => globalThis.performance?.now?.() ?? Date.now());
 
   // Phase C wants p95 < 150 ms for other players' movement. The protocol carries no server timestamp yet, so what can be measured
@@ -72,9 +73,15 @@ export function createPresenceSession(
         remote.clear();
         // First area: join. A later area: the server only moves me through an exit zone, so ask to travel.
         if (previous === null || !client.joined) client.join(area, position);
-        else client.travel(area);
+        else {
+          // The server checks the exit zone against my last accepted loc: send the last frame's position (still in the old
+          // area, inside the exit) at once instead of waiting out the report throttle.
+          if (lastPosition) client.flush(lastPosition, clock());
+          client.travel(area);
+        }
       }
       client.report(position, clock());
+      lastPosition = { x: position.x, z: position.z };
       view ??= createRemotePlayersView({ scene: s.scene, toRender: (p, y) => s.world.toRender(p, y) });
       view.update(client.joined ? remote.sample(clock()) : []);
     },

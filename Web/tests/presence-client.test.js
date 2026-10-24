@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   createPresenceClient,
   presenceConfig,
+  localDevUrl,
   PRESENCE_PROTOCOL,
   LOC_INTERVAL_MS,
   CLOSE_REPLACED,
@@ -195,11 +196,65 @@ test("the flag is off by default; ?presence=1 turns it on and is remembered; ?pr
   assert.ok(presenceConfig({ search: "", storage, location }), "remembered");
   assert.equal(presenceConfig({ search: "?presence=0", storage, location }), null);
   assert.equal(presenceConfig({ search: "", storage, location }), null);
-  assert.deepEqual(presenceConfig({ search: "?presence=1&presenceUrl=ws://127.0.0.1:8892", storage, location }), {
-    url: "ws://127.0.0.1:8892",
-  });
-  assert.equal(presenceConfig({ search: "?presence=1&presenceUrl=http://x", storage, location }), null);
   assert.equal(presenceConfig({ search: "?presence=1", storage: null, location: null }), null);
+});
+
+test("SECURITY: the endpoint is the page's own /arma/ws; a presenceUrl in the page URL can never send the token elsewhere", () => {
+  const location = { protocol: "https:", host: "playarmagedom.com" },
+    own = { url: "wss://playarmagedom.com/arma/ws" };
+  for (const dev of [false, true])
+    for (const evil of [
+      "wss://attacker.example/x",
+      "ws://attacker.example",
+      "wss://localhost.attacker.example/x",
+      "wss://127.0.0.1.attacker.example/x",
+      "wss://user@attacker.example/",
+      "https://attacker.example",
+      "//attacker.example",
+    ])
+      assert.deepEqual(
+        presenceConfig({ search: `?presence=1&presenceUrl=${encodeURIComponent(evil)}`, storage: null, location, dev }),
+        own,
+        `${evil} (dev ${dev}) must be ignored`,
+      );
+  // In production even a local URL is ignored; only a dev build may point at this machine.
+  assert.deepEqual(presenceConfig({ search: "?presence=1&presenceUrl=ws://127.0.0.1:8892", storage: null, location, dev: false }), own);
+  assert.deepEqual(presenceConfig({ search: "?presence=1&presenceUrl=ws://127.0.0.1:8892", storage: null, location, dev: true }), {
+    url: "ws://127.0.0.1:8892/",
+  });
+  assert.deepEqual(presenceConfig({ search: "?presence=1&presenceUrl=ws://localhost:8892", storage: null, location, dev: true }), {
+    url: "ws://localhost:8892/",
+  });
+  assert.equal(localDevUrl("wss://attacker.example"), null);
+  assert.equal(localDevUrl("not a url"), null);
+});
+
+test("SECURITY: with a foreign presenceUrl in the page URL no socket opens to it and the token goes only to the page's own endpoint", async () => {
+  const s = setup({
+    url: presenceConfig({
+      search: "?presence=1&presenceUrl=wss://attacker.example/x",
+      storage: null,
+      location: { protocol: "https:", host: "playarmagedom.com" },
+      dev: false,
+    }).url,
+  });
+  s.client.join("westminster");
+  await flush();
+  assert.equal(FakeSocket.all.length, 1);
+  assert.equal(FakeSocket.all[0].url, "wss://playarmagedom.com/arma/ws");
+  assert.ok(FakeSocket.all.every((socket) => !socket.url.includes("attacker")));
+});
+
+test("flush sends the current position at once, past the 80 ms throttle, and only when it differs from the last one sent", async () => {
+  const s = setup();
+  await joined(s);
+  s.clock.ms += LOC_INTERVAL_MS;
+  s.client.report({ x: 2, z: -5.678 }, s.clock.ms);
+  s.clock.ms += 10; // inside the throttle: report would refuse
+  assert.equal(s.client.report({ x: 2.4, z: -5.678 }, s.clock.ms), false);
+  assert.equal(s.client.flush({ x: 2.4, z: -5.678 }, s.clock.ms), true);
+  assert.deepEqual(s.socket().sent.at(-1), { t: "loc", x: 240, z: -568 });
+  assert.equal(s.client.flush({ x: 2.4, z: -5.678 }, s.clock.ms), false, "nothing new to send");
 });
 
 test("positions go out as whole centimetres", () => {
