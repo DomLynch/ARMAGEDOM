@@ -3,6 +3,8 @@
 //   weapon rows   [weapon, maxDamagePerHit, maxHitsPerS]       inserted into arma_weapon_rules
 // It never invents a value. A null, a non-finite number, a duplicate or a name the database would reject throws, so a gap in the
 // game data stops the load instead of becoming a default the referee then trusts. Pure: no file or database access.
+import { ATTRIBUTE_IDS, pilotBonuses } from "../../Web/src/engine/progression-rules.js";
+
 const INSTANCE = /^[a-z0-9._:-]{1,96}$/;
 const KIND = /^[a-z0-9._:-]{1,64}$/;
 const AREA = /^[a-z][a-z0-9.-]{0,31}$/;
@@ -46,4 +48,25 @@ export function checkWeaponCoverage(weaponIds, weaponRows) {
   const have = new Set(weaponRows.map(([weapon]) => weapon));
   const missing = weaponIds.filter((id) => !have.has(id));
   if (missing.length) throw new Error(`no weapon rule for: ${missing.join(", ")}`);
+}
+
+// The weapon tables hold BASE damage; effectiveWeaponDamage multiplies a hit by the progression bonus at hit time. A cap that ignores
+// that bonus would refuse a fully mastered hit, so each cap is base x the largest multiplier the progression rows allow.
+// The progression rules name the starting pistol by item id; the weapon table calls it "pistol".
+const PROGRESSION_WEAPON_ID = Object.freeze({ pistol: "westminster-start-pistol-v1" });
+// pilotBonuses accepts attributes 10..20 and a score up to data.scoreCap; the largest multiplier is every attribute at 20 and a full score.
+const MAX_ATTRIBUTES = Object.freeze(Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, 20])));
+
+/** The largest damage multiplier the progression rows can give this weapon-table id (1 for weapons with no mastery). */
+export function maxProgressionMultiplier(progression, weaponId) {
+  const id = PROGRESSION_WEAPON_ID[weaponId] ?? weaponId;
+  if (!Object.hasOwn(progression.weapons, id)) return 1;
+  return pilotBonuses(progression, MAX_ATTRIBUTES, id, progression.scoreCap).damageMultiplier;
+}
+
+/** Weapon rows ([weapon, maxDamagePerHit, maxHitsPerS]) with each damage cap raised to base x the max progression multiplier. */
+export function applyProgressionCeiling(weaponRows, progression) {
+  for (const id of Object.keys(progression.weapons))
+    if (!weaponRows.some(([weapon]) => (PROGRESSION_WEAPON_ID[weapon] ?? weapon) === id)) throw new Error(`progression weapon ${id} has no weapon rule`);
+  return weaponRows.map(([weapon, damage, rate]) => [weapon, damage * maxProgressionMultiplier(progression, weapon), rate]);
 }
