@@ -24,8 +24,9 @@ function writer(script = {}) {
   const fetchImpl = async (url, init) => {
     const op = url.split("/").pop(),
       body = JSON.parse(init.body),
-      answer = (script[op] ?? (() => ({})))(body, calls.filter((c) => c.op === op).length);
+      n = calls.filter((c) => c.op === op).length;
     calls.push({ op, body, auth: init.headers.Authorization });
+    const answer = await (script[op] ?? (() => ({})))(body, n);
     if (answer instanceof Error) throw answer;
     const status = answer.status ?? 200;
     return { ok: status < 400, status, json: async () => answer.body ?? answer };
@@ -155,22 +156,77 @@ test("the cached character is keyed by account: a new guest session gets its own
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
 });
 
-test("an O0007 refusal clears the cached character; the next save creates a new one and recovers", async () => {
-  const t = make({
-    save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 1, savedAt: "t" }),
-    create_character: (body, n) => ({ character: n === 0 ? "pc:stale" : "pc:fresh" }),
-  });
+test("an O0007 refusal (world switched off / not allow-listed) is only logged: the character id, revision and sequence are kept", async () => {
+  const t = make({ save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 1, savedAt: "t" }) });
   t.client.queue(record());
   await t.run();
   assert.match(t.lines[0], /not saved: O0007/);
-  assert.equal(t.storage.map.get(characterKey("user-1")), "", "the cache is cleared");
+  assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc", "the cache is NOT cleared");
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 2 }));
   await t.run();
-  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
-  assert.equal(t.w.calls.at(-1).body.character, "pc:fresh");
-  assert.equal(t.client.state.revision, 1);
-  assert.equal(t.client.state.seq, 1);
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 1, "no second character");
+  assert.equal(t.w.calls.at(-1).body.character, "pc:abc");
+  assert.equal(t.client.state.seq, 2, "the sequence continues");
+});
+
+test("a record queued while a save is in flight is lowered by the adopted drop, so the clamp is not applied twice (500 -> 300, not 100)", async () => {
+  const stored = [];
+  let release;
+  const gate = new Promise((resolve) => (release = resolve));
+  const game = { marked: { carried: 500, bank: 0, bounty: 0 } };
+  const t = make(
+    {
+      // The server keeps carried + bank at or under 300.
+      save_run: async (body, n) => {
+        if (n === 0) await gate;
+        const carried = body.record.marked.carried;
+        stored.push(carried);
+        return carried > 300 ? { revision: n + 1, clamped: true, carried: 300, bank: 0 } : { revision: n + 1 };
+      },
+    },
+    { onCash: (reply, info) => adoptServerCash(game, reply, info) },
+  );
+  const cash = (carried) => record({ marked: { carried, bank: 0, bounty: 0 } });
+  t.client.queue(cash(500), game);
+  const first = t.run();
+  for (let i = 0; i < 10; i++) await new Promise((resolve) => setImmediate(resolve));
+  t.client.queue(cash(500), game); // built before the reply came back: the live run still held 500
+  release();
+  await first;
+  assert.equal(game.marked.carried, 300, "adopted once");
+  t.clock.ms += 6000;
+  await t.run();
+  assert.deepEqual(stored, [500, 300], "the pending record was lowered to 300, so the server did not clamp it again");
+  assert.equal(game.marked.carried, 300, "not 100");
+});
+
+test("a pending record of ANOTHER run is not lowered by this run's adoption", async () => {
+  let release;
+  const gate = new Promise((resolve) => (release = resolve));
+  const game = { marked: { carried: 500, bank: 0, bounty: 0 } },
+    next = { marked: { carried: 500, bank: 0, bounty: 0 } },
+    stored = [];
+  const t = make(
+    {
+      save_run: async (body, n) => {
+        if (n === 0) await gate;
+        stored.push(body.record.marked.carried);
+        return { revision: n + 1, clamped: n === 0, carried: 300, bank: 0 };
+      },
+    },
+    { onCash: (reply, info) => adoptServerCash(game, reply, info) },
+  );
+  const cash = (carried) => record({ marked: { carried, bank: 0, bounty: 0 } });
+  t.client.queue(cash(500), game);
+  const first = t.run();
+  for (let i = 0; i < 10; i++) await new Promise((resolve) => setImmediate(resolve));
+  t.client.queue(cash(500), next); // a new run (Retry) saved while the old run's save is in flight
+  release();
+  await first;
+  t.clock.ms += 6000;
+  await t.run();
+  assert.deepEqual(stored, [500, 500], "the new run's record is sent as it was built");
 });
 
 test("a token that is not a readable JWT is never cached (no account to key it by) but still works in memory", async () => {

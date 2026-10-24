@@ -108,15 +108,8 @@ export function createSaveClient({
     }
     return token;
   }
-  // The server refused the character (not this account's, or the world is not open for it): forget it and ask for a new one next time.
-  function forgetCharacter() {
-    if (account) write(characterKey(account), "");
-    character = null;
-    revision = null;
-    seq = 0;
-    uncertain = false;
-  }
-
+  // An O0007 refusal is NOT acted on here: it also means "the world is switched off / not allow-listed", and forgetting the character
+  // then would orphan its receipts and cash. A refusal is only logged; the per-account key is what keeps guests apart.
   async function call(op, body) {
     const token = await who();
     if (!token) return { error: "no-token" };
@@ -127,7 +120,6 @@ export function createSaveClient({
         body: JSON.stringify(body),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok && payload?.error === "O0007" && op !== "create_character") forgetCharacter();
       return response.ok
         ? payload
         : { error: payload?.error ?? `http-${response.status}`, status: response.status, ...payload };
@@ -193,10 +185,25 @@ export function createSaveClient({
       uncertain = false;
       revision = reply.revision;
       if (reply.unreceipted?.length) log(`[arma-save] unreceipted: ${reply.unreceipted.join(", ")}`);
-      if (reply.clamped === true) onCash(reply, { run, sent });
+      if (reply.clamped === true && onCash(reply, { run, sent }) === true) lowerPending(run, reply, sent);
       return { ok: true, reply };
     }
     return { ok: false, reason: "seq" };
+  }
+
+  // A record queued while the save above was in flight was built BEFORE the live run took the server's correction, so it still carries the
+  // old cash and would be clamped (and adopted) a second time. Lower it by the same drop. Only the same run's pending record is touched.
+  function lowerPending(run, reply, sent) {
+    if (!latest || latest.run !== run) return;
+    try {
+      const record = JSON.parse(latest.raw);
+      if (!record.marked || !Number.isFinite(record.marked.carried) || !Number.isFinite(record.marked.bank)) return;
+      record.marked.carried = Math.max(0, record.marked.carried - Math.max(0, sent.carried - reply.carried));
+      record.marked.bank = Math.max(0, record.marked.bank - Math.max(0, sent.bank - reply.bank));
+      latest = { raw: JSON.stringify(record), run };
+    } catch {
+      /* An unreadable pending record is dropped by its own send. */
+    }
   }
 
   function schedule() {
