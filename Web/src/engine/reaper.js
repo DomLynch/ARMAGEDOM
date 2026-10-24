@@ -3,16 +3,8 @@ import { safehouseWeaponBlocked, safehouseTouches, safehouseBlocksSegment } from
 export const REAPER_ITEM_ID = "watchmans-pistol-v1";
 export const REAPER_RECEIPT = "west-east-stolen-supply-v1:watchmans-pistol-v1";
 export const REAPER_ACTOR_ID = -1;
-export const REAPER_RULES = Object.freeze({
-  damage: 6,
-  range: 6,
-  cadence: 1.4,
-  windup: 0.2,
-  boltSpeed: 8,
-  boltRange: 6,
-  orbitRadius: 1.4,
-  followSpeed: 8,
-});
+// The rule values live only in area-content.json `reaper.rules`; this is just the closed set of names the validator accepts.
+const RULE_KEYS = ["damage", "range", "cadence", "windup", "boltSpeed", "boltRange", "orbitRadius", "followSpeed"];
 export function ownsReaper(g) {
   return (
     g.expedition?.status === "claimed" &&
@@ -41,7 +33,7 @@ export function stopReaper(g, reason = "cancel") {
   g.bolts = (g.bolts ?? []).filter((b) => b.source !== "reaper");
 }
 export function reaperLegalTarget(g, e, origin) {
-  const r = g.world.reaperData?.rules ?? REAPER_RULES;
+  const r = g.world.reaperData.rules;
   return (
     !!e &&
     e.id !== 0 &&
@@ -219,8 +211,8 @@ export function validateReaperData(input, expedition) {
     input.visual !== "low-hover-watcher" ||
     expedition?.contract.rewardVariantId !== input.itemId ||
     expedition.contract.receiptId !== input.receiptId ||
-    !closedData(input.rules, Object.keys(REAPER_RULES)) ||
-    !Object.keys(REAPER_RULES).every((k) => Number.isFinite(input.rules[k]) && input.rules[k] > 0) ||
+    !closedData(input.rules, RULE_KEYS) ||
+    !RULE_KEYS.every((k) => Number.isFinite(input.rules[k]) && input.rules[k] > 0) ||
     input.rules.cadence < input.rules.windup ||
     input.rules.cadence < 0.5 ||
     input.rules.windup < 0.05 ||
