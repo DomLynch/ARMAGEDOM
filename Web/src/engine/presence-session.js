@@ -6,23 +6,7 @@ import { createRemotePlayers } from "./remote-players.js";
 import { createRemotePlayersView } from "./remote-players-view.js";
 import { createSurvivorKit } from "./remote-survivors.js";
 
-export const FULL_LOOK_MAX = 4; // players who get the full survivor model
-const FULL_LOOK_KEEP_RANK = 6; // a player already in the full look keeps it until they fall beyond this rank (no flicker)
-export function chooseFullLook(samples, position, current = new Set()) {
-  const ranked = samples
-      .map((p) => ({ id: p.id, d: Math.hypot(p.x - position.x, p.z - position.z) }))
-      .sort((a, b) => a.d - b.d || a.id - b.id),
-    rank = new Map(ranked.map((p, i) => [p.id, i])),
-    next = [...current]
-      .filter((id) => rank.get(id) < FULL_LOOK_KEEP_RANK)
-      .sort((a, b) => rank.get(a) - rank.get(b))
-      .slice(0, FULL_LOOK_MAX);
-  for (const { id } of ranked) {
-    if (next.length >= FULL_LOOK_MAX) break;
-    if (!next.includes(id)) next.push(id);
-  }
-  return new Set(next);
-}
+const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
 const STATS_EVERY = 100; // state messages (about 10 s)
 export const percentile = (values, p) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -41,24 +25,33 @@ export function createPresenceSession(
     lastPosition = null, // the previous frame's position: the last one known to be in the area I am leaving
     clock = now ?? (() => globalThis.performance?.now?.() ?? Date.now());
 
-  // The full survivor look (a skinned model, about 61k triangles each) is only for the nearest few players; everyone else keeps the
-  // cheap capsule. The kit is built once the player's own model has loaded, and rebuilt if that model is replaced (a restart).
+  // The other players wear the reduced survivor mesh. It is a deferred model: it loads when the first remote player appears, and
+  // until then (or if it fails) the capsule stays. The kit is rebuilt if the library is replaced (a restart).
   let kit = null,
-    kitSource = null,
-    full = new Set();
+    kitLibrary = null,
+    kitLoading = false;
   function survivorKit() {
-    const source = s.survivorSource ?? null;
-    if (source !== kitSource) {
+    const library = s.survivorLibrary ?? null;
+    if (library !== kitLibrary) {
       kit?.dispose?.();
       kit = null;
-      kitSource = source;
-      if (source) {
-        try {
-          kit = createSurvivorKit({ source, characterScale: s.world?.layout?.characterScale ?? 1.265 });
-        } catch {
-          kit = null; // not ready: the capsule stays
-        }
-      }
+      kitLibrary = library;
+      kitLoading = false;
+    }
+    if (!kit && library && !kitLoading && remote.size > 0) {
+      kitLoading = true; // one attempt per library: a failure leaves the capsule in place
+      Promise.resolve(library.ensureModels?.([REMOTE_MODEL]))
+        .then(() => {
+          const source = library.models.get(REMOTE_MODEL),
+            player = library.models.get("vagrant");
+          if (library !== kitLibrary || !source || !player) return;
+          kit = createSurvivorKit({
+            source,
+            animations: player.gltf.animations,
+            characterScale: s.world?.layout?.characterScale ?? 1.265,
+          });
+        })
+        .catch(() => {});
     }
     return kit;
   }
@@ -128,8 +121,7 @@ export function createPresenceSession(
         survivors: survivorKit,
       });
       const samples = client.joined ? remote.sample(clock()) : [];
-      full = chooseFullLook(samples, position, full);
-      view.update(samples, full);
+      view.update(samples);
     },
     dispose() {
       client.close();

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createPresenceSession, percentile, chooseFullLook } from "../src/engine/presence-session.js";
+import { createPresenceSession, percentile } from "../src/engine/presence-session.js";
 import { createRemotePlayersView, guestName } from "../src/engine/remote-players-view.js";
 import { INTERP_DELAY_MS } from "../src/engine/remote-players.js";
 
@@ -262,20 +262,44 @@ test("only the chosen players get the full survivor look; a player who drops out
   view.dispose();
 });
 
-test("chooseFullLook picks the nearest four, keeps a current one until it falls past rank 6, and ignores ids that left", () => {
-  const me = { x: 0, z: 0 },
-    row = (id, d) => ({ id, x: d, z: 0 });
-  const five = [row(1, 1), row(2, 2), row(3, 3), row(4, 4), row(5, 5)];
-  assert.deepEqual([...chooseFullLook(five, me)].sort(), [1, 2, 3, 4]);
-  // 5 becomes nearer than 4, but 4 is still inside rank 6: it stays, and the set stays at four with the nearest of the rest.
-  const swapped = [row(1, 1), row(2, 2), row(3, 3), row(5, 3.5), row(4, 4)];
-  assert.deepEqual([...chooseFullLook(swapped, me, new Set([1, 2, 3, 4]))].sort(), [1, 2, 3, 4], "no flicker");
-  // Far down the ranking it is dropped and the next nearest takes the place.
-  const far = [row(1, 1), row(2, 2), row(3, 3), row(5, 4), row(6, 5), row(7, 6), row(8, 7), row(4, 9)];
-  assert.ok(!chooseFullLook(far, me, new Set([1, 2, 3, 4])).has(4));
-  assert.equal(chooseFullLook(far, me, new Set([1, 2, 3, 4])).size, 4);
-  assert.deepEqual([...chooseFullLook([row(9, 1)], me, new Set([1, 2, 3, 4]))], [9], "ids that left are forgotten");
-  assert.equal(chooseFullLook([], me).size, 0);
+test("the reduced survivor mesh is requested once, when the first remote player appears; until it loads (or if it fails) the capsule stays", async () => {
+  const t = setup(),
+    requested = [],
+    library = {
+      models: new Map(),
+      ensureModels: async (names) => {
+        requested.push(names);
+      },
+    };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.session.update();
+  assert.deepEqual(requested, [], "nobody else is here yet, so nothing is loaded");
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.update();
+  await flush();
+  t.session.update();
+  assert.deepEqual(requested, [["remote-survivor"]], "one request, not one per frame");
+  const figure = t.session.view.group.children.find((c) => c.name === "Player 9");
+  assert.equal(figure.children[0].children.length, 2, "the capsule while the mesh is missing");
+});
+
+test("a library that is replaced (a restart) gets its own request", async () => {
+  const t = setup(),
+    requested = [];
+  const make = () => ({ models: new Map(), ensureModels: async (names) => requested.push(names) });
+  t.s.survivorLibrary = make();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  await flush();
+  t.s.survivorLibrary = make();
+  t.session.update();
+  await flush();
+  assert.equal(requested.length, 2);
 });
 
 test("guests are named by id until the server sends names", () => {
