@@ -1,7 +1,8 @@
 import { closedData } from "./progression-state.js";
 import { storyState, validStory } from "./opening-story.js";
 export const OPENING_STORY_SAVE_KEY = "armagedom:opening-story-run:v14";
-const previousKey = "armagedom:opening-story-run:v13",
+export const PREVIOUS_OPENING_STORY_SAVE_KEY = "armagedom:opening-story-run:v13";
+const previousKey = PREVIOUS_OPENING_STORY_SAVE_KEY,
   fields = [
     "version",
     "pistol",

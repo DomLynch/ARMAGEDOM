@@ -11,7 +11,7 @@ import { FLAME_SAVE_KEY } from "./flame-core.js";
 import { RIFLE_SAVE_KEY } from "./rifle-core.js";
 import { BOSS_EQUIPMENT_SAVE_KEY, PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY } from "./boss-equipment-core.js";
 import { LOCKER_SAVE_KEY } from "./locker-core.js";
-import { OPENING_STORY_SAVE_KEY } from "./opening-story-core.js";
+import { OPENING_STORY_SAVE_KEY, PREVIOUS_OPENING_STORY_SAVE_KEY } from "./opening-story-core.js";
 import { REAPER_SAVE_KEY } from "./reaper-core.js";
 import { RAILGUN_SAVE_KEY } from "./railgun-core.js";
 import { HUB_SAVE_KEY } from "./hub-core.js";
@@ -30,7 +30,7 @@ export const SAVE_ERAS = Object.freeze([
   era(11, "boss-equipment", BOSS_EQUIPMENT_SAVE_KEY),
   era(12, "locker", LOCKER_SAVE_KEY),
   // The opening-story layer's first key was retired when it moved to v14; real records under it still exist.
-  era(13, "opening-story", "armagedom:opening-story-run:v13"),
+  era(13, "opening-story", PREVIOUS_OPENING_STORY_SAVE_KEY),
   era(14, "opening-story", OPENING_STORY_SAVE_KEY),
   era(15, "reaper", REAPER_SAVE_KEY),
   era(16, "railgun", RAILGUN_SAVE_KEY),
