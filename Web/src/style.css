@@ -113,7 +113,8 @@ summary:focus-visible {
 }
 #objective {
   margin-top: 9px;
-  font-size: 10px;
+  font-size: 13px;
+  font-weight: 700;
   color: #eee9df;
 }
 #menu-button {
@@ -594,7 +595,7 @@ summary {
 #marked-status[data-marked="true"],.hunter-world-label{color:#e2a28b;}
 #marked-bank{border-bottom:1px solid #58615a;margin:0 0 16px;padding-bottom:12px;}
 #marked-bank h4{margin:0 0 8px;}#marked-bank>button{display:block;width:100%;min-height:44px;margin:8px 0;}#marked-bank .marked-hint,#marked-shop-status{font-size:11px;line-height:1.45;}
-.marked-head-total{color:#ffdb48;font-size:14px;font-weight:900;letter-spacing:.02em;text-shadow:0 1px 2px #000,0 0 4px #000;pointer-events:none}
+.marked-head-total{color:#ffdb48;font-size:17px;font-weight:900;letter-spacing:.02em;text-shadow:0 1px 2px #000,0 0 4px #000;pointer-events:none}
 
 /* One selected mode at a time. Existing Human HUD/control rules stay intact. */
 .mode-card { width:min(900px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; }
@@ -625,3 +626,18 @@ summary {
 #commander-result button { margin:8px; }
 @media(max-width:600px) { .mode-panels { grid-template-columns:1fr; gap:10px; margin-top:12px; }.mode-panel { padding:14px; }.mode-panel p { min-height:0; margin:8px 0 12px; }.mode-card h1 { font-size:2rem; }.mode-card { padding:20px; }.commander-summary { padding:9px 11px; }.commander-summary h2 { font-size:.9rem; } }
 @media(max-height:550px) and (min-width:601px) { .commander-summary { width:320px; }.commander-orders { left:auto; width:360px; }.mode-card { padding:14px; }.mode-panel { padding:12px; } }
+/* Centre status lines share the "$300" pop-up's bold yellow and dark outline, one step smaller. */
+#notice:not(.hint),
+#marked-status,
+#marked-status[data-marked="true"],
+#expedition-objective {
+  color: #ffdb48;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  overflow-wrap: anywhere;
+}
+#mastery {
+  white-space: nowrap;
+}

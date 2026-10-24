@@ -288,7 +288,7 @@ export function bossExitGate(game, target = null) {
   if (!link) return null;
   const key = link.requiresDefeat,
     placement = world.bossData?.placements?.find((row) => row.key === key),
-    name = world.bossData?.profiles?.[placement?.profileRef]?.name ?? "the boss";
+    name = world.bossData?.profiles?.[placement?.profileRef]?.name ?? "boss";
   const field =
     key &&
     Object.keys(world.bossEquipmentData ?? {}).find(
@@ -306,10 +306,10 @@ export function bossExitGate(game, target = null) {
     message: allowed
       ? ""
       : !defeated
-        ? `Defeat ${name} to open the ${destination} exit.`
+        ? `Kill the ${name}`
         : !visited
-          ? `Discover ${destination} on foot before using this safehouse exit.`
-          : "Saving unavailable. Exit remains locked.",
+          ? `Visit ${destination.replace(/\b\w/g, (c) => c.toUpperCase())} first`
+          : "Saving unavailable. Exit locked.",
   };
 }
 export function bossHazardPosition(game, actor) {

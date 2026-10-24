@@ -117,6 +117,6 @@ export function stepMarkedHunters(g, spawn) {
   g.enemies.push(actor);
   s.nextSpawnAt = g.time + c.spawnCooldown;
   g.events.push({ type: "marked-hunter-arrived", actor, position: { ...p } });
-  g.message = "HUNTER · Bounty attracts pursuit. Banking will not clear it.";
+  g.message = "A hunter is after you";
   g.messageUntil = g.time + 4;
 }
