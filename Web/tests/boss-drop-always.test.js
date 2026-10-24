@@ -7,6 +7,9 @@ import { stageProgressionDeath } from "../src/engine/progression-runtime.js";
 import { issueSupply } from "../src/supplies.js";
 import { needsUniqueDeathCommit } from "../src/engine/unique-reward-runtime.js";
 import { RIFLE_ITEM_ID } from "../src/engine/weapon-catalog.js";
+import { LondonWorld } from "../src/world.js";
+import { createGeometry } from "../src/world-geometry.js";
+import { uniqueRewardDropPosition } from "../src/engine/unique-reward-runtime.js";
 
 // Alpha item 6: "a boss kill always ends with its drop placed or carried, in every area".
 // For every boss row in area-content.json this test kills the boss through the real path (progression death, supply
@@ -43,24 +46,20 @@ const BOSSES = content.bosses.placements.map((p) => ({
   reward: ROWS.find((r) => r.source.placementKey === p.key && r.source.areaId === p.areaId),
 }));
 
-// Same rule as World.travelAt (exit zones in artwork space), so the fixture's legal-ground check sees real exits.
+// The real LondonWorld methods (travelAt exit zones, lineClear with the safehouse rule) on a prototype-only instance:
+// the constructor needs THREE, a camera and a texture, so (like exit-approach.test.js) the instance is built with
+// Object.create and only the data those methods read: area id, registry, geometry, safehouse data.
+function realWorld(world, geometry = world.geometry) {
+  return Object.assign(Object.create(LondonWorld.prototype), {
+    areaId: world.areaId,
+    registry,
+    geometry,
+    safehouseData: world.safehouseData,
+  });
+}
 function realTravelAt(world) {
-  return (position) => {
-    const point = world.geometry.point(position);
-    return (
-      registry.links(world.areaId).find((link) =>
-        Object.entries(link.condition).every(([key, value]) =>
-          key === "xMin"
-            ? point.x > value
-            : key === "xMax"
-              ? point.x < value
-              : key === "yMin"
-                ? point.y > value
-                : point.y < value,
-        ),
-      ) ?? null
-    );
-  };
+  const real = realWorld(world);
+  return (position) => real.travelAt(position);
 }
 const EXTRA_WORLD = {
   bossEquipmentData: data.bossEquipmentData,
@@ -165,6 +164,8 @@ function measure(boss, variant) {
     extraWorld: EXTRA_WORLD,
   });
   f.world.travelAt = realTravelAt(f.world);
+  const real = realWorld(f.world);
+  f.world.lineClear = (a, b) => real.lineClear(a, b);
   const { g, e, saved, quotaOnKill } = killAt(f, boss, variant);
   const row = boss.reward;
   const check = (name, ok) => ok || failures.push(name);
@@ -197,6 +198,7 @@ function measure(boss, variant) {
       extraWorld: EXTRA_WORLD,
     });
     r.world.travelAt = f.world.travelAt;
+    r.world.lineClear = f.world.lineClear;
     r.world.geometry.clear = f.world.geometry.clear;
     r.restore();
     const rs = row.state(r.g);
@@ -267,3 +269,21 @@ test("boss drop always: coverage and gap table", () => {
     for (const r of results) console.log("CASE", r.id, r.failures.length ? "FAIL " + r.failures.join(",") : "PASS");
   }
 });
+
+// Guard: in every shipped boss area the registered entry is legal ground, so the last-resort drop spot always exists.
+// Uses the shipped layout.json through createGeometry, the real LondonWorld.travelAt / lineClear, and the real
+// uniqueRewardDropPosition (the validatedDropPosition every reward layer uses). A layout or registry edit that makes
+// an entry illegal fails here, before it can turn into a blocked save (the KNOWN_GAPS cases above).
+for (const boss of BOSSES)
+  test("boss area entry is legal drop ground: " + boss.areaId, () => {
+    const geometry = createGeometry(read("world/" + boss.areaId + "/layout.json")),
+      w = realWorld({ areaId: boss.areaId, safehouseData: data.safehouseData }, geometry),
+      entry = geometry.ground(registry.get(boss.areaId).entry);
+    assert(geometry.clear(entry, 0.4), "entry is on clear ground at radius 0.4");
+    assert.equal(w.travelAt(entry), null, "entry is not inside an exit zone");
+    // End to end: a boss that dies nowhere near legal ground gets exactly the entry from the real position rule.
+    const g = { world: w },
+      corpse = { placementKey: boss.key, hp: 0, pos: { x: 400, z: 400 } },
+      spot = uniqueRewardDropPosition(g, corpse, boss.reward.source);
+    assert.deepEqual(spot, { x: entry.x, z: entry.z });
+  });
