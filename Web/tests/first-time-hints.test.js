@@ -41,7 +41,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "pistol", "map", "ember-matron"],
+    ["attack", "dodge-guard", "pistol", "map", "ember-fire", "ember-matron"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(
@@ -181,4 +181,26 @@ test("the browser loop feeds events to the hints and passes the text to the exis
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
   assert.match(hud, /update\(g, hint = ""\)/);
   assert.match(hud, /g\.messageUntil \? g\.message : hint \|\|/);
+});
+
+test("picking up the Ember flamethrower teaches how to fire it, once", () => {
+  const storage = memory();
+  const hints = createFirstTimeHints({ storage });
+  const g = world();
+  assert.equal(hints.current(g), "");
+  g.flame = { equipped: true };
+  assert.equal(hints.current(g), text("ember-fire"));
+  assert.match(text("ember-fire"), /FLAME/);
+  assert.match(text("ember-fire"), /tap an enemy/);
+  run(hints, g, HINT_SECONDS + 1);
+  assert.equal(createFirstTimeHints({ storage }).current(g), "");
+});
+
+test("the hint pop-up is gold in the route arrow's colour and only for hints", () => {
+  const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
+  const guidance = readFileSync(new URL("../src/engine/route-guidance.js", import.meta.url), "utf8");
+  assert.match(guidance, /color: 0xf1d28c/);
+  assert.match(css, /#notice\.hint \{[^}]*#f1d28c/);
+  const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
+  assert.match(hud, /classList\.toggle\("hint", gold\)/);
 });

@@ -249,6 +249,7 @@ export function createHUD({
   handlers.push({ element: feedback, key: "onchange", handler: feedback.onchange });
   resize();
   let lastMessage = "",
+    lastGold = false,
     lastStaminaState = null,
     lastRifleEquipped = null,
     lastBossWeapon = null,
@@ -373,9 +374,13 @@ export function createHUD({
                 : ""
             : "";
         const message = g.time < g.messageUntil ? g.message : hint || g.world?.exitHint?.(p.pos) || vestNotice;
-        if (message !== lastMessage) {
+        // A first-time hint is a gold pop-up in the route arrow's colour; game messages keep the plain style.
+        const gold = !!hint && message === hint;
+        if (message !== lastMessage || gold !== lastGold) {
           el("notice").textContent = message;
+          el("notice").classList.toggle("hint", gold);
           lastMessage = message;
+          lastGold = gold;
         }
         for (const [id, ready, fallback] of [
           ["heavy", p.heavyReady, 1.6],
