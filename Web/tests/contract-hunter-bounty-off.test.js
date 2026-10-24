@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {make, shipped, earn} from './helpers/marked-fixture.js';
 import {ownsReaper} from '../src/engine/reaper.js';
 import {contractEnabled, validateExpeditionData} from '../src/engine/expedition-core.js';
-import {validateMarkedData} from '../src/engine/marked.js';
+import {validateMarkedData, effectiveBounty} from '../src/engine/marked.js';
+import {createWantedProjection} from '../src/engine/wanted-projection.js';
 import {stepMarkedHunters} from '../src/engine/marked-hunters.js';
 import {journalPresentation, expeditionObjective} from '../src/engine/expedition-runtime.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
@@ -107,7 +108,14 @@ test('hunters off: a save carrying a bounty loads, spawns no warning or hunter, 
   f.g.marked = {version: 1, carried: 300, bank: 40, bounty: 500};
   assert(f.p.persistRun(f.g));
   const again = reopen(f, shipped);
-  assert.deepEqual(again.g.marked, {version: 1, carried: 300, bank: 40, bounty: 0}); // bounty ignored on load; cash and bank kept
+  // The save bytes are untouched (bounty 500 stays on disk and in memory); only the readers treat it as 0.
+  assert.equal(JSON.parse(f.records.get('armagedom:marked-run:v18')).marked.bounty, 500);
+  assert.deepEqual(again.g.marked, {version: 1, carried: 300, bank: 40, bounty: 500});
+  assert.equal(effectiveBounty(again.g), 0);
+  const poster = createWantedProjection({world: again.world, game: again.g});
+  poster.update();
+  assert.equal(again.world.group?.children?.length ?? 0, 0, 'no WANTED poster is built');
+  poster.dispose();
   const g = again.g;
   g.marked.bounty = 500; // even with a bounty in memory the hunters switch holds
   g.enemies = [];

@@ -93,7 +93,9 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
   }
   return freeze(structuredClone(input));
 }
-export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
+// The bounty views read this, so a save that still carries a bounty shows none while the bounty is off; the save bytes are untouched.
+export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0 : (g.marked?.bounty ?? 0));
+export const freshMarked =() => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
 export function validMarked(s, max = MARKED_DEFAULTS.maxMoney) {
   try {
     closed(s, ["version", "carried", "bank", "bounty"]);

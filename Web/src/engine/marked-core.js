@@ -170,8 +170,6 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
     applySavedRun(g, saved) {
       base.applySavedRun(g, saved);
       g.marked = copyMarked(saved.marked);
-      // Bounty off: an old save's bounty is ignored on load, so no view shows it. Cash and bank are kept.
-      if (g.world.markedData?.bounty === false) g.marked.bounty = 0;
     },
     storageAdapter(storage) {
       const b = base.storageAdapter(storage);

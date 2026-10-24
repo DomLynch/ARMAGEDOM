@@ -1,4 +1,5 @@
 import * as T from "three";
+import { effectiveBounty } from "./marked.js";
 
 // One cached canvas on the existing registered image stage. Currency is read
 // from MARKED; this view never grants, saves, or changes a bounty.
@@ -111,7 +112,8 @@ export function createWantedProjection(s) {
       if (mesh) mesh.visible = false;
       return;
     }
-    if (g.marked.bounty <= 0) {
+    const bounty = effectiveBounty(g);
+    if (bounty <= 0) {
       if (mesh) mesh.visible = false;
       return;
     }
@@ -132,14 +134,14 @@ export function createWantedProjection(s) {
       world = w;
       mesh = createWantedMesh(w, data, texture);
     }
-    if (lastBounty !== g.marked.bounty) {
-      paintWanted(canvas, portrait, g.marked.bounty);
+    if (lastBounty !== bounty) {
+      paintWanted(canvas, portrait, bounty);
       texture.needsUpdate = true;
-      lastBounty = g.marked.bounty;
+      lastBounty = bounty;
       paints++;
     }
     mesh.visible = true;
-    mesh.userData.bounty = g.marked.bounty;
+    mesh.userData.bounty = bounty;
     mesh.userData.textureUpdates = paints;
     const t = g.time ?? 0;
     mesh.material.opacity =
