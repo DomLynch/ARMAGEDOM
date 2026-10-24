@@ -1,34 +1,37 @@
 import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-export const MARKED_DEFAULTS = freeze({
-  version: 1,
-  cashPerKill: 100,
-  bossCash: 200,
-  maxMoney: 1000000000,
-  hunterBounty: 300,
-  maxHunters: 1,
-  hostileBudget: 6,
-  minSpawnDistance: 8,
-  warningSeconds: 2,
-  spawnCooldown: 30,
-  arrivalDelay: 6,
-  hunterHealth: 80,
-  hunterSpeed: 3.2,
-  shop: { pistol: { price: 100, amount: 6 }, rifle: { price: 150, amount: 4 }, dressing: { price: 100, amount: 25 } },
-});
+// The values live only in area-content.json `marked`; this is the closed set of rule names the validator accepts, and the hard
+// ceiling on any money field (a limit, not a default).
+const MARKED_KEYS = [
+  "version",
+  "cashPerKill",
+  "bossCash",
+  "maxMoney",
+  "hunterBounty",
+  "maxHunters",
+  "hostileBudget",
+  "minSpawnDistance",
+  "warningSeconds",
+  "spawnCooldown",
+  "arrivalDelay",
+  "hunterHealth",
+  "hunterSpeed",
+  "shop",
+];
+export const MAX_MONEY_CEILING = 1e9;
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
-  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections", "hunters", "bounty"]);
+  closed(input, MARKED_KEYS, ["projection", "projections", "hunters", "bounty"]);
   for (const k of ["hunters", "bounty"])
     if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
-  for (const key of Object.keys(MARKED_DEFAULTS).filter((k) => k !== "shop"))
+  for (const key of MARKED_KEYS.filter((k) => k !== "shop"))
     if (!Number.isFinite(input[key]) || input[key] <= 0) throw TypeError("Invalid Marked rule");
   if (
     input.version !== 1 ||
     input.maxHunters !== 1 ||
     input.hostileBudget !== 6 ||
-    input.maxMoney > 1e9 ||
+    input.maxMoney > MAX_MONEY_CEILING ||
     !Number.isSafeInteger(input.maxMoney) ||
     input.minSpawnDistance < 8 ||
     input.warningSeconds < 2 ||
@@ -96,7 +99,7 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
 // The bounty views read this, so a save that still carries a bounty shows none while the bounty is off; the save bytes are untouched.
 export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0 : (g.marked?.bounty ?? 0));
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
-export function validMarked(s, max = MARKED_DEFAULTS.maxMoney) {
+export function validMarked(s, max = MAX_MONEY_CEILING) {
   try {
     closed(s, ["version", "carried", "bank", "bounty"]);
     return (
