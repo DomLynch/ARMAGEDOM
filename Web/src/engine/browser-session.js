@@ -99,6 +99,7 @@ export function createBrowserSession(options = {}) {
     areas,
     resources,
     presence = null,
+    survivorLibrary = null,
     account = null,
     diagnostics = null;
   const scene = new THREE.Scene(),
@@ -146,6 +147,10 @@ export function createBrowserSession(options = {}) {
     // The live-world client; null (and never created) unless the presence flag is on.
     get presence() {
       return presence;
+    },
+    // The loaded model library: the other players' reduced mesh is requested from it. Null until the run has loaded.
+    get survivorLibrary() {
+      return survivorLibrary;
     },
     get storage() {
       return runStorage;
@@ -642,6 +647,7 @@ export function createBrowserSession(options = {}) {
       await actors.ensureAreaModels(game);
       if (contextLost || disposed) return;
       pendingLibrary = null;
+      survivorLibrary = library; // the other players' reduced mesh loads from it on demand
       effects = createEffects(
         scene,
         world,

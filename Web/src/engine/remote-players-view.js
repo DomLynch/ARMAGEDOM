@@ -38,26 +38,57 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   const body = new THREE.CapsuleGeometry(RADIUS, BODY_HEIGHT, 4, 8),
     head = new THREE.SphereGeometry(0.2, 12, 8);
 
+  // The figure's root owns position, facing and the name tag; its LOOK is a child: the plain capsule (cheap), or, for the players the
+  // caller picks as `full`, Characters' survivor kit: survivors.spawn(id) -> { root, update({ moving, facing }), dispose() }.
   function make(id) {
-    // Optional look: survivors.spawn(id) -> { root, update({ moving, facing }), dispose() } (Characters' kit). When it is missing
-    // or gives nothing (model not loaded) the plain capsule below is used. The view still owns the pool, position, facing and tag.
-    const survivor = survivors?.spawn?.(id) ?? null;
-    if (survivor?.root) {
-      survivor.root.name = `Player ${id}`;
-      group.add(survivor.root);
-      return { root: survivor.root, parts: [], label: null, tag: null, survivor };
-    }
-    const colour = new THREE.Color().setHSL(hue(id), 0.45, 0.55),
-      material = new THREE.MeshBasicMaterial({ color: colour, toneMapped: false }),
-      root = new THREE.Group(),
-      torso = new THREE.Mesh(body, material),
-      skull = new THREE.Mesh(head, material);
+    const root = new THREE.Group();
     root.name = `Player ${id}`;
-    torso.position.y = RADIUS + BODY_HEIGHT / 2;
-    skull.position.y = BODY_HEIGHT + RADIUS * 2 + 0.2;
-    root.add(torso, skull);
     group.add(root);
-    return { root, parts: [material], label: null, tag: null };
+    return { root, parts: [], label: null, tag: null, capsule: null, survivor: null };
+  }
+
+  function showCapsule(figure, id) {
+    if (!figure.capsule) {
+      const material = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setHSL(hue(id), 0.45, 0.55),
+          toneMapped: false,
+        }),
+        look = new THREE.Group(),
+        torso = new THREE.Mesh(body, material),
+        skull = new THREE.Mesh(head, material);
+      torso.position.y = RADIUS + BODY_HEIGHT / 2;
+      skull.position.y = BODY_HEIGHT + RADIUS * 2 + 0.2;
+      look.add(torso, skull);
+      figure.capsule = look;
+      figure.parts.push(material);
+    }
+    if (!figure.capsule.parent) figure.root.add(figure.capsule);
+  }
+
+  // Wants the full look: use the kit if it gives a figure (the model may not be loaded yet), else stay on the capsule. Not wanted:
+  // free the kit's figure and go back to the capsule, so only the chosen few ever cost the full model.
+  function setLook(figure, id, full) {
+    const kit = (typeof survivors === "function" ? survivors() : survivors) ?? null;
+    if (figure.survivor && figure.kit !== kit) {
+      // The kit was replaced (its library swapped) and took this figure with it: forget it, a new one is spawned below.
+      figure.survivor.root.removeFromParent();
+      figure.survivor.dispose();
+      figure.survivor = null;
+    }
+    if (full && !figure.survivor) {
+      const survivor = kit?.spawn?.(id) ?? null;
+      if (survivor?.root) {
+        figure.capsule?.removeFromParent();
+        figure.root.add(survivor.root);
+        figure.survivor = survivor;
+        figure.kit = kit;
+      }
+    } else if (!full && figure.survivor) {
+      figure.survivor.root.removeFromParent();
+      figure.survivor.dispose();
+      figure.survivor = null;
+    }
+    if (!figure.survivor) showCapsule(figure, id);
   }
 
   // The tag is rebuilt only when the label changes (a name can arrive after the figure first appears).
@@ -91,13 +122,15 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
 
   return {
     group,
-    // samples: createRemotePlayers().sample(now): [{ id, x, z, facing, moving }] with x, z in metres.
-    update(samples) {
+    // samples: createRemotePlayers().sample(now): [{ id, x, z, facing, moving }] with x, z in metres. full: the set of ids that get
+    // the survivor kit (null means everyone does, when there is a kit).
+    update(samples, full = null) {
       const present = new Set();
       for (const sample of samples) {
         present.add(sample.id);
         const figure = figures.get(sample.id) ?? make(sample.id);
         figures.set(sample.id, figure);
+        setLook(figure, sample.id, full ? full.has(sample.id) : true);
         setLabel(figure, guestName(sample.id, sample.name));
         figure.root.position.copy(toRender({ x: sample.x, z: sample.z }, 0));
         figure.root.rotation.y = sample.facing;

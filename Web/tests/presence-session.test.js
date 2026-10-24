@@ -230,12 +230,104 @@ test("an optional survivor kit supplies the figure; the view keeps the pool, pos
   assert.equal(one.name, "Player 1");
   assert.equal(one.position.x, 3);
   assert.equal(one.rotation.y, 0.5);
-  assert.ok(two.children.length >= 2, "the capsule fallback for the one the kit could not make");
+  assert.ok(two.children.length >= 1 && two.children[0].children.length === 2, "the capsule fallback for the one the kit could not make");
   assert.deepEqual(calls.filter((c) => c[0] === "update"), [["update", 1, true, 0.5]]);
   view.update([{ id: 1, x: 3, z: 4, facing: 0.5, moving: false }]);
   assert.deepEqual(calls.filter((c) => c[0] === "spawn").length, 2, "one spawn per player, then pooled");
   view.dispose();
   assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
+});
+
+test("when the kit is replaced, players already on screen get a figure from the new kit instead of staying bodiless", () => {
+  const scene = new THREE.Scene();
+  const makeKit = (name) => ({
+    name,
+    gone: false,
+    spawn() {
+      const root = new THREE.Group();
+      return { root, update() {}, dispose: () => root.removeFromParent() };
+    },
+    dispose() {
+      this.gone = true;
+    },
+  });
+  let current = makeKit("A");
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => current });
+  const players = [{ id: 9, x: 1, z: 1, facing: 0, moving: false }];
+  view.update(players);
+  const figure = view.group.children[0];
+  const first = figure.children[0];
+  assert.equal(figure.children.length, 1);
+  current.dispose();
+  current = makeKit("B");
+  view.update(players);
+  assert.equal(figure.children.length, 1, "one body, from kit B");
+  assert.notEqual(figure.children[0], first, "not the figure of the disposed kit");
+  view.dispose();
+});
+
+test("only the chosen players get the full survivor look; a player who drops out of the set goes back to the capsule and frees the kit's figure", () => {
+  const scene = new THREE.Scene(),
+    live = new Set();
+  const kit = {
+    spawn(id) {
+      live.add(id);
+      return { root: new THREE.Group(), update() {}, dispose: () => live.delete(id) };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => kit });
+  const at = (id, x) => ({ id, x, z: 0, facing: 0, moving: false });
+  const players = [1, 2, 3, 4, 5, 6].map((id) => at(id, id));
+  view.update(players, new Set([1, 2, 3, 4]));
+  assert.deepEqual([...live].sort(), [1, 2, 3, 4]);
+  view.update(players, new Set([2, 3, 4, 5]));
+  assert.deepEqual([...live].sort(), [2, 3, 4, 5], "1 gave its figure back, 5 got one");
+  const one = view.group.children.find((c) => c.name === "Player 1");
+  assert.equal(one.children.length, 1, "player 1 is a capsule again");
+  view.update(players, new Set());
+  assert.equal(live.size, 0);
+  view.update([], new Set());
+  view.dispose();
+});
+
+test("the reduced survivor mesh is requested once, when the first remote player appears; until it loads (or if it fails) the capsule stays", async () => {
+  const t = setup(),
+    requested = [],
+    library = {
+      models: new Map(),
+      ensureModels: async (names) => {
+        requested.push(names);
+      },
+    };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.session.update();
+  assert.deepEqual(requested, [], "nobody else is here yet, so nothing is loaded");
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.update();
+  await flush();
+  t.session.update();
+  assert.deepEqual(requested, [["remote-survivor"]], "one request, not one per frame");
+  const figure = t.session.view.group.children.find((c) => c.name === "Player 9");
+  assert.equal(figure.children[0].children.length, 2, "the capsule while the mesh is missing");
+});
+
+test("a library that is replaced (a restart) gets its own request", async () => {
+  const t = setup(),
+    requested = [];
+  const make = () => ({ models: new Map(), ensureModels: async (names) => requested.push(names) });
+  t.s.survivorLibrary = make();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  await flush();
+  t.s.survivorLibrary = make();
+  t.session.update();
+  await flush();
+  assert.equal(requested.length, 2);
 });
 
 test("guests are named by id until the server sends names", () => {

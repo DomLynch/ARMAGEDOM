@@ -66,7 +66,7 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
           dx = b.x - a.x,
           dz = b.z - a.z,
           moved = Math.hypot(dx, dz);
-        if (moved > FACING_MIN) facing.set(id, Math.atan2(dx, dz));
+        if (moved > FACING_MIN) facing.set(id, Math.atan2(dx, -dz)); // render yaw: toRender flips z, as the local player's atan2(facing.x, -facing.z)
         out.push({
           id,
           x,

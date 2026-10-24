@@ -4,7 +4,9 @@
 import { createPresenceClient, presenceConfig } from "./presence-client.js";
 import { createRemotePlayers } from "./remote-players.js";
 import { createRemotePlayersView } from "./remote-players-view.js";
+import { createSurvivorKit } from "./remote-survivors.js";
 
+const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
 const STATS_EVERY = 100; // state messages (about 10 s)
 export const percentile = (values, p) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -22,6 +24,37 @@ export function createPresenceSession(
     area = null,
     lastPosition = null, // the previous frame's position: the last one known to be in the area I am leaving
     clock = now ?? (() => globalThis.performance?.now?.() ?? Date.now());
+
+  // The other players wear the reduced survivor mesh. It is a deferred model: it loads when the first remote player appears, and
+  // until then (or if it fails) the capsule stays. The kit is rebuilt if the library is replaced (a restart).
+  let kit = null,
+    kitLibrary = null,
+    kitLoading = false;
+  function survivorKit() {
+    const library = s.survivorLibrary ?? null;
+    if (library !== kitLibrary) {
+      kit?.dispose?.();
+      kit = null;
+      kitLibrary = library;
+      kitLoading = false;
+    }
+    if (!kit && library && !kitLoading && remote.size > 0) {
+      kitLoading = true; // one attempt per library: a failure leaves the capsule in place
+      Promise.resolve(library.ensureModels?.([REMOTE_MODEL]))
+        .then(() => {
+          const source = library.models.get(REMOTE_MODEL),
+            player = library.models.get("vagrant");
+          if (library !== kitLibrary || !source || !player) return;
+          kit = createSurvivorKit({
+            source,
+            animations: player.gltf.animations,
+            characterScale: s.world?.layout?.characterScale ?? 1.265,
+          });
+        })
+        .catch(() => {});
+    }
+    return kit;
+  }
 
   // Phase C wants p95 < 150 ms for other players' movement. The protocol carries no server timestamp yet, so what can be measured
   // here is the gap between state messages (the server ticks every 100 ms): its p95 is logged to the console, only when the world
@@ -82,13 +115,20 @@ export function createPresenceSession(
       }
       client.report(position, clock());
       lastPosition = { x: position.x, z: position.z };
-      view ??= createRemotePlayersView({ scene: s.scene, toRender: (p, y) => s.world.toRender(p, y) });
-      view.update(client.joined ? remote.sample(clock()) : []);
+      view ??= createRemotePlayersView({
+        scene: s.scene,
+        toRender: (p, y) => s.world.toRender(p, y),
+        survivors: survivorKit,
+      });
+      const samples = client.joined ? remote.sample(clock()) : [];
+      view.update(samples);
     },
     dispose() {
       client.close();
       view?.dispose();
       view = null;
+      kit?.dispose?.();
+      kit = null;
     },
   };
 }
