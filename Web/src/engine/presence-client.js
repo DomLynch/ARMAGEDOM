@@ -13,7 +13,7 @@ const FLAG_KEY = "armagedom.presence.v1";
 export const toCm = (metres) => Math.round(metres * 100);
 export const fromCm = (cm) => cm / 100;
 
-// Off by default. On with ?presence=1 (remembered in storage; ?presence=0 turns it off again). With the flag on and no token source
+// Off by default. On with ?world=1 (remembered in storage; ?world=0 turns it off again; ?presence= is an alias). With the flag on and no token source
 // yet the client stays offline and retries every 8 s: harmless.
 // The endpoint is FIXED to `wss://<page origin>/arma/ws` (Deploy routes it to the presence service). The page URL can never choose
 // it, because the access token travels to it: a link carrying ?presenceUrl=wss://elsewhere would hand the token to a stranger. The
@@ -50,8 +50,10 @@ export function presenceConfig({ search = "", storage = null, location = null, d
         /* The flag then only lasts for this page load. */
       }
     };
-  if (params.get("presence") === "1" || params.get("presence") === "0") write(params.get("presence"));
-  const on = params.has("presence") ? params.get("presence") === "1" : read() === "1";
+  // ?world=1 is the flag; ?presence=1 stays as an alias for one release. ?world wins when both are given.
+  const flag = ["world", "presence"].map((name) => params.get(name)).find((value) => value === "1" || value === "0");
+  if (flag !== undefined) write(flag);
+  const on = flag !== undefined ? flag === "1" : read() === "1";
   if (!on) return null;
   if (dev && params.has("presenceUrl")) {
     const local = localDevUrl(params.get("presenceUrl"));
