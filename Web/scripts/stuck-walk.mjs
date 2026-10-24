@@ -15,7 +15,7 @@ export const inLink = (link, pt) =>
     k === "xMin" ? pt.x > v : k === "xMax" ? pt.x < v : k === "yMin" ? pt.y > v : pt.y < v,
   );
 
-export function walkArea(areaId) {
+export function walkArea(areaId, { dead: scanDead = true } = {}) {
   const area = registry.get(areaId),
     geo = createGeometry(read(registry.asset(area.layoutRef).path));
   const xs = geo.road.map((p) => p.x),
@@ -66,7 +66,7 @@ export function walkArea(areaId) {
   }
   // Dead spots: no compass direction moves the player at least half a step.
   const dead = [];
-  for (const c of free) {
+  for (const c of scanDead ? free : []) {
     const p = pos(c);
     let best = 0;
     for (let a = 0; a < 16; a++) {
@@ -112,10 +112,13 @@ export function walkArea(areaId) {
     }
     return best !== null && comp.get(best) === main;
   };
+  // Every free cell the player can walk to from the entry, in area metres, in row-major order.
+  const mainCells = [...free].filter((c) => comp.get(c) === main).map(pos);
   return {
     areaId,
     geo,
     inMain,
+    mainCells,
     entryFree: entryCell !== null,
     free: free.size,
     comps: comps.length,
