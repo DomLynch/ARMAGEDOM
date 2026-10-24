@@ -262,6 +262,7 @@ export function createActors(
       gauntPreparationError = String(error.message ?? error);
     }
   let reaperView = null;
+  let earlyHunterLoad = false;
   let feedbackMode = "high",
     lastReduced = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   const reducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -1213,6 +1214,18 @@ export function createActors(
         reaperView?.dispose();
         reaperView = null;
       }
+      // Start the deferred hunter model once the player first holds marked money, ahead of the warning.
+      if (
+        !earlyHunterLoad &&
+        game.world?.markedData &&
+        library.manifest.models?.["marked-hunter"] &&
+        (game.marked?.carried > 0 || game.marked?.bounty > 0)
+      ) {
+        earlyHunterLoad = true;
+        library.ensureModels?.(["marked-hunter"])?.catch(() => {
+          /* The warning event retries; the tinted scavenger stands in meanwhile. */
+        });
+      }
       if (lastReduced !== reducedMotion()) {
         lastReduced = reducedMotion();
         this.configureFeedback(feedbackMode);
@@ -1229,6 +1242,13 @@ export function createActors(
             : !rigCapability(entity.rig, "lowStrike"))
         )
           continue;
+        // A live hunter built from the stand-in is rebuilt once its own model has loaded (appearance only).
+        if (
+          entity.markedHunter &&
+          entity.hp > 0 &&
+          views.get(entity.id)?.root.name !== actorModelRef(entity, library.manifest, library.models)
+        )
+          remove(entity.id);
         const view = views.get(entity.id) ?? make(entity, game.finishers, restoreCorpses);
         view.bossGunPose?.restore();
         if (entity.kind < 0) {
