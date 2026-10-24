@@ -23,6 +23,12 @@ export function donorCues(events) {
   }
   return [...impacts, ...air];
 }
+// iOS silences Web Audio while the ringer switch is off unless the page asks for
+// playback audio. Older browsers have no audioSession, so only set it when present.
+export function requestPlaybackAudioSession(nav = globalThis.navigator) {
+  if (nav && "audioSession" in nav) nav.audioSession.type = "playback";
+}
+
 export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}) {
   let context = null,
     enabled = true,
@@ -216,6 +222,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     async unlock() {
       const token = generation;
       try {
+        requestPlaybackAudioSession();
         context ??= new (globalThis.AudioContext || globalThis.webkitAudioContext)();
         // Resume directly within the gesture call, before awaiting network/decode.
         await context.resume();

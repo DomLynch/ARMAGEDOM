@@ -8,7 +8,7 @@ import { createFinisherImpactGate } from "./finisher-impact-profile.js";
 import { createDroneLaserBolts } from "./drone-laser.js";
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { createCombatImpact } from "./combat-impact.js";
-import { createDonorAudio } from "./donor-audio.js";
+import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js";
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
@@ -1110,6 +1110,7 @@ export function createAudio(options = {}) {
     enabled = true;
   return {
     async unlock() {
+      requestPlaybackAudioSession();
       context ??= new (window.AudioContext || window.webkitAudioContext)();
       await context.resume();
     },

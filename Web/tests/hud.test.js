@@ -375,3 +375,19 @@ test('progression objective owns next instruction while region and actual gate/s
  for(const read of[false,true]){g.openingStory.commsRead=read;assert.equal(bossExitGate(g).allowed,false);hud.update(g);assert.equal(bossExitGate(g).allowed,false);assert.doesNotMatch(el('objective').textContent,/Defeat|Matron|exit/);assert.match(el('objective').textContent,/WESTMINSTER/);assert.equal(el('notice').textContent,g.message);}
  g.encounterCleared=true;hud.update(g);assert.equal(el('objective').textContent,'WESTMINSTER · CLEARED');
 });
+
+test("an unreadable saved run tells the player to use Reset game from the menu", (t) => {
+  const { hud, el } = setup(t);
+  const g = game(true);
+  g.finished = true;
+  g.player.hp = 0;
+  g.runSaveInvalid = true;
+  hud.update(g);
+  assert.equal(
+    el("result-hint").textContent,
+    "Saved run could not be read. Open the menu and choose Reset game to start fresh.",
+  );
+  g.runSaveInvalid = false;
+  hud.update(g);
+  assert.equal(el("result-hint").textContent, "Watch their wind-up. Dodge, then strike.");
+});

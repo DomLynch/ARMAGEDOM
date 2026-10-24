@@ -236,6 +236,7 @@ export function createExpeditionView(s, dispatch) {
     }
     if (!catalogue) build(data);
     el("retry").disabled = el("again").disabled = !!g.runSaveInvalid;
+    el("retry").title = el("again").title = g.runSaveInvalid ? "Open the menu and choose Reset game." : "";
     const state = g.expedition;
     if (!state) {
       panel.hidden = true;

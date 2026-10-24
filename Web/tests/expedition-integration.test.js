@@ -70,7 +70,7 @@ test('occupied v5 key rejects every legacy envelope without fallback or rewritin
 });
 
 test('139 Retry cannot erase unreadable successor records; old138 recovery remains unchanged',()=>{
- for(const raw of['{bad','',JSON.stringify({version:9})]){const f=fixture({records:new Map([[EXPEDITION_SAVE_KEY,raw]])});f.restore();const before=f.run;assert(f.run.runSaveInvalid);assert(!f.persistence.retry());assert.equal(f.run,before);assert.equal(f.records.get(EXPEDITION_SAVE_KEY),raw);assert.equal(f.writes.length,0);assert.match(f.run.message,/Original kept/);}
+ for(const raw of['{bad','',JSON.stringify({version:9})]){const f=fixture({records:new Map([[EXPEDITION_SAVE_KEY,raw]])});f.restore();const before=f.run;assert(f.run.runSaveInvalid);assert(!f.persistence.retry());assert.equal(f.run,before);assert.equal(f.records.get(EXPEDITION_SAVE_KEY),raw);assert.equal(f.writes.length,0);assert.equal(f.run.message,'Saved run could not be read. Open the menu and choose Reset game to start fresh.');}
  const old=fixture({extension:false,records:new Map([[PROGRESSION_SAVE_KEY,'{bad']])});old.restore();assert(old.run.runSaveInvalid);assert(old.persistence.retry(),'pre139 reset contract stays intact');assert(!old.run.runSaveInvalid);
 });
 

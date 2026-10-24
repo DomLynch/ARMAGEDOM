@@ -625,7 +625,7 @@ export function createHUD({
         if (g.finished && g.player.hp <= 0) {
           el("result").textContent = "THE ASH CLAIMS YOU";
           el("result-hint").textContent = g.runSaveInvalid
-            ? "Saved run invalid. Retry to start fresh."
+            ? "Saved run could not be read. Open the menu and choose Reset game to start fresh."
             : "Watch their wind-up. Dodge, then strike.";
         }
 
