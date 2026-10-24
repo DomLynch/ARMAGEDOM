@@ -325,6 +325,11 @@ test('Fire magazine remains truthful through reload/pickup and clears on holster
 });
 
 
+test('an empty active pistol reads EMPTY from the tile row flag, and a loaded one keeps its counts',t=>{
+ const {hud,el}=setup(t),g=game(true);g.world={areaId:'westminster',expeditionData:{variants:{'westminster-start-pistol-v1':{name:'Pistol'}}}};
+ g.pistol={collected:true,equipped:true,magazine:2,reserve:0,nextFireAt:0,reloadingUntil:0};hud.update(g);assert.match(el('ammo').textContent,/2 \/ 6 · 0 RESERVE/);
+ g.pistol.magazine=0;hud.update(g);assert.match(el('ammo').textContent,/PISTOL · EMPTY$/);assert.doesNotMatch(el('ammo').textContent,/RESERVE/);
+});
 import {createVestState} from '../src/vest.js';
 import {createSuppliesState,issueSupply} from '../src/supplies.js';
 import {encodeRun,restoreRun,applySavedRun} from '../src/pistol-save.js';

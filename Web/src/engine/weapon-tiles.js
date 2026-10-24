@@ -134,7 +134,8 @@ export function createWeaponTiles(s, select) {
     position = document.getElementById("weapon-tiles-position"),
     prev = document.getElementById("weapon-tiles-prev"),
     nextButton = document.getElementById("weapon-tiles-next");
-  if (!root || !track || !current || !position || !prev || !nextButton) return { update() {}, dispose() {} };
+  if (!root || !track || !current || !position || !prev || !nextButton)
+    return { update() {}, cycle: () => Promise.resolve(), dispose() {} };
   const gesture = tileGesture(),
     listeners = [],
     buttons = new Map();
@@ -149,15 +150,9 @@ export function createWeaponTiles(s, select) {
   listen(track, "pointermove", (e) => gesture.move(e));
   listen(track, "pointerup", (e) => gesture.end(e));
   listen(track, "pointercancel", () => gesture.cancel());
-  listen(track, "click", async (e) => {
-    if (!gesture.accept()) {
-      e.preventDefault();
+  async function equip(row) {
+    if (!row || (row.active && !row.companion) || selecting || s.paused || !s.loaded || s.traveling || s.contextLost)
       return;
-    }
-    const button = e.target.closest?.("[data-weapon-id]");
-    if (!button || button.disabled || selecting || s.paused || !s.loaded || s.traveling || s.contextLost) return;
-    const row = carriedWeaponTiles(s.game).find((r) => r.id === button.dataset.weaponId);
-    if (!row || (row.active && !row.companion)) return;
     const control = document.getElementById(row.control);
     if (row.empty && control?.disabled) {
       // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
@@ -173,7 +168,24 @@ export function createWeaponTiles(s, select) {
       selecting = false;
       update();
     }
+  }
+  listen(track, "click", async (e) => {
+    if (!gesture.accept()) {
+      e.preventDefault();
+      return;
+    }
+    const button = e.target.closest?.("[data-weapon-id]");
+    if (!button || button.disabled) return;
+    await equip(carriedWeaponTiles(s.game).find((r) => r.id === button.dataset.weaponId));
   });
+  // Keyboard: equip the next carried weapon after the active one, in tile order. The Reaper companion is a
+  // deploy/recall toggle, not a weapon, so the cycle skips it.
+  function cycle() {
+    const rows = carriedWeaponTiles(s.game).filter((r) => !r.companion),
+      at = rows.findIndex((r) => r.active);
+    if (rows.length < 2) return Promise.resolve();
+    return equip(rows[(at + 1) % rows.length]);
+  }
   function hint() {
     const count = buttons.size,
       last = Math.max(0, Math.ceil(count / 2) - 1),
@@ -258,6 +270,7 @@ export function createWeaponTiles(s, select) {
   }
   return {
     update,
+    cycle,
     dispose() {
       disposed = true;
       for (const remove of listeners) remove();

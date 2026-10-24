@@ -289,6 +289,7 @@ export function createRunViews(s) {
       weaponTiles.update();
     },
     interactNearby,
+    cycleWeapon: () => weaponTiles.cycle(),
     interactSafehouse: safehouseView.interact,
     interactFlame: flameView.interact,
     interactExpedition: expeditionView.interact,

@@ -6,6 +6,7 @@ import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js";
 import { PISTOL_RULES } from "./pistol.js";
 import { vestAvailable } from "./vest.js";
+import { carriedWeaponTiles } from "./engine/weapon-tiles.js";
 // The HUD refreshes every frame. update() stages its writes (the last write to a slot
 // wins, so a default overridden later in the frame never reaches the DOM) and flush()
 // applies only values that differ from the DOM, or from the last style written (the
@@ -405,6 +406,10 @@ export function createHUD({
           lastPistolEquipped = null;
           lastBossWeapon = bossWeapon;
         }
+        // The tile rows own "is the active weapon out of ammo"; the HUD only words it.
+        const activeEmpty =
+          (flameEquipped || bossWeapon || g.rifle?.selected || g.pistol?.equipped) &&
+          carriedWeaponTiles(g).find((r) => r.active)?.empty === true;
         const pistol = g.pistol;
         if (pistol) {
           const equipped = pistol.equipped;
@@ -424,7 +429,7 @@ export function createHUD({
           }
           el("ammo").hidden = !equipped;
           el("ammo").textContent =
-            `${(selectedPistolProfile(g).name ?? "PISTOL").toUpperCase()} · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil ? " · RELOADING" : ""}`;
+            `${(selectedPistolProfile(g).name ?? "PISTOL").toUpperCase()} · ${activeEmpty ? "EMPTY" : `${pistol.magazine} / 6 · ${pistol.reserve} RESERVE`}${pistol.reloadingUntil ? " · RELOADING" : ""}`;
           const fireLeft = Math.max(0, pistol.nextFireAt - g.time);
           el("slash").classList.toggle("pistol-aim", equipped);
           el("slash").classList.toggle("cooldown", equipped && fireLeft > 0);
@@ -471,7 +476,7 @@ export function createHUD({
           el("guard").setAttribute("aria-label", "Guard unavailable with rifle");
           el("ammo").hidden = false;
           el("ammo").textContent =
-            `RIFLE · ${rifle.magazine}/${rules.capacity} · ${rifle.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            `RIFLE · ${activeEmpty ? "EMPTY" : `${rifle.magazine}/${rules.capacity} · ${rifle.reserve} RESERVE`}${clock.reloadingUntil ? " · RELOADING" : ""}`;
           for (const id of ["slash", "stab", "heavy"]) {
             el(id).classList.toggle("low-energy", false);
             el(id).classList.toggle("cooldown", id === "slash" && left > 0);
@@ -519,7 +524,7 @@ export function createHUD({
           el("ammo").hidden = false;
           el("ammo").textContent = grenade
             ? `${g.grenadeMode === "sticky" ? "STICKY" : "STANDARD"} GRENADES · ${state.magazine} LEFT · 1s FUSE`
-            : `${rocket ? "ROCKET" : "SHOTGUN"} · ${state.magazine}/${capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            : `${rocket ? "ROCKET" : "SHOTGUN"} · ${activeEmpty ? "EMPTY" : `${state.magazine}/${capacity} · ${state.reserve} RESERVE`}${clock.reloadingUntil ? " · RELOADING" : ""}`;
           for (const id of ["slash", "stab", "heavy"]) {
             el(id).classList.toggle("low-energy", id === "slash" && state.magazine === 0);
             el(id).classList.toggle("cooldown", id === "slash" && left > 0);
@@ -582,14 +587,14 @@ export function createHUD({
           );
           el("stab").setAttribute("aria-label", "Reload Thundercoil Railgun");
           el("ammo").textContent =
-            `RAILGUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            `RAILGUN · ${activeEmpty ? "EMPTY" : `${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE`}${clock.reloadingUntil ? " · RELOADING" : ""}`;
         }
         if (flameEquipped) {
           const percent = Math.ceil((g.flameFuel.fuelUnits / g.world.flameData.capacity) * 100);
           el("ammo").hidden = false;
-          el("ammo").textContent = `EMBER · FUEL ${percent}%`;
+          el("ammo").textContent = activeEmpty ? "EMBER · EMPTY" : `EMBER · FUEL ${percent}%`;
           for (const [id, text] of Object.entries({
-            slash: "FLAME",
+            slash: activeEmpty ? "EMPTY" : "FLAME",
             stab: "RETURN",
             heavy: "RETURN",
             guard: "NO GUARD",
@@ -603,7 +608,11 @@ export function createHUD({
             el(id).querySelector("small").textContent = id === "slash" ? `${percent}%` : "";
             el(id).setAttribute(
               "aria-label",
-              id === "slash" ? `Hold to fire flamethrower; fuel ${percent} percent` : "Return to normal weapon",
+              id === "slash"
+                ? activeEmpty
+                  ? "Flamethrower empty; no fuel"
+                  : `Hold to fire flamethrower; fuel ${percent} percent`
+                : "Return to normal weapon",
             );
           }
           el("slash").classList.toggle("pistol-aim", true);
