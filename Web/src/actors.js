@@ -631,7 +631,7 @@ export function createActors(
         contactOnly: true,
         projectileContactIds: new Set([actor.id, target.id]),
       });
-      return boneSawContact(views.get(actor.id)?.knife, views, target);
+      return boneSawContact(views.get(actor.id)?.knife, views, target, { ground: target !== game.player });
     },
     rocketAimHeight(game, start, end, targetId) {
       const target = game.enemies.find((e) => e.id === targetId && e.hp > 0);

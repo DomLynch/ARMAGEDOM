@@ -50,11 +50,11 @@ export function animateBoneSaw(root, time, active) {
   if (blade) blade.position.y = active ? Math.sin(time * 170) * 0.016 : 0;
 }
 
-export function boneSawContact(blade, views, target) {
+export function boneSawContact(blade, views, target, { ground = true } = {}) {
   if (!blade?.userData.saw) return false;
   // A body can sit below the hand-height blade (a lowStrike animal, or the stooped crooked Hollow whose
   // head is under the blade line); the saw has no low pose, so its blade also reaches the ground beneath
-  // each blade point.
+  // each blade point. `ground: false` keeps the plain hand-height trace (the Surgeon's saw on the player).
   const a = new T.Vector3(),
     b = new T.Vector3(),
     floor = new T.Vector3();
@@ -62,8 +62,9 @@ export function boneSawContact(blade, views, target) {
     blade.localToWorld(a.set(x, 0.4, 0));
     blade.localToWorld(b.set(x, 0.9, 0));
     if (traceGrenadeSurface(views, [target], a, b)) return true;
-    for (const point of [a, b])
-      if (traceGrenadeSurface(views, [target], point, floor.set(point.x, 0, point.z))) return true;
+    if (ground)
+      for (const point of [a, b])
+        if (traceGrenadeSurface(views, [target], point, floor.set(point.x, 0, point.z))) return true;
   }
   return false;
 }
