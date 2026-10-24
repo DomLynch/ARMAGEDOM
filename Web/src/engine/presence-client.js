@@ -145,6 +145,18 @@ export function createPresenceClient({
       if (socket?.readyState === 1) send({ t: "join", area: wanted.area, x: wanted.x, z: wanted.z });
       else connect();
     },
+    // Start over on a fresh socket, joining `areaId` at `position`: for when the server refused a travel and my layer no longer
+    // matches the area the phone is in.
+    reconnect(areaId, position = null) {
+      wanted = { area: areaId, x: position ? toCm(position.x) : undefined, z: position ? toCm(position.z) : undefined };
+      const ws = socket;
+      socket = null;
+      joined = false;
+      id = null;
+      attempt = 0;
+      ws?.close?.();
+      connect();
+    },
     // Called every frame with the player's position in metres. Sends a loc when it changed, at most every LOC_INTERVAL_MS, so
     // the resting position goes out within one interval of the player stopping.
     report(position, at = now()) {

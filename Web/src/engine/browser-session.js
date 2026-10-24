@@ -22,6 +22,7 @@ import { createBrowserLoop } from "./loop.js";
 import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
+import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
@@ -94,6 +95,7 @@ export function createBrowserSession(options = {}) {
   let loop,
     areas,
     resources,
+    presence = null,
     diagnostics = null;
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera();
@@ -136,6 +138,10 @@ export function createBrowserSession(options = {}) {
     },
     get diagnostics() {
       return diagnostics;
+    },
+    // The live-world client; null (and never created) unless the presence flag is on.
+    get presence() {
+      return presence;
     },
     get storage() {
       return runStorage;
@@ -310,6 +316,10 @@ export function createBrowserSession(options = {}) {
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
+  presence = createPresenceSession(context, {
+    config: presenceConfig({ search: location.search, storage: runStorage, location }),
+    getToken: options.presenceToken,
+  });
   const hud = createHUD({
     onAssist: (enabled) => {
       mobileAssistEnabled = enabled;
@@ -731,6 +741,7 @@ export function createBrowserSession(options = {}) {
       for (const remove of listeners) remove();
       subscriptions.clear();
       resources.dispose();
+      presence?.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
       effects?.dispose();
