@@ -81,14 +81,15 @@ export function createAreaRegistry({
     for (const [field, kind] of [
       ["layoutRef", "layout"],
       ["backdropRef", "backdrop"],
-      ["audioRef", "wav"],
+      ["audioRef", "audio"],
     ]) {
       const ref = references[row[field]];
       if (!id(row[field]) || !Object.hasOwn(references, row[field]) || ref?.kind !== kind)
         fail("unknown or wrong asset reference");
       if (
         typeof ref.path !== "string" ||
-        !ref.path.startsWith(kind === "wav" ? "audio/" : "world/") ||
+        !ref.path.startsWith(kind === "audio" ? "audio/" : "world/") ||
+        (kind === "audio" && !/\.(m4a|wav)$/.test(ref.path)) ||
         ref.path.split("/").some((p) => !p || p === "." || p === "..") ||
         /[\\?#:]/.test(ref.path)
       )
