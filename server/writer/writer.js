@@ -22,6 +22,9 @@ const same = (a, b) => {
   return x.length === y.length && timingSafeEqual(x, y);
 };
 
+/** spawnRows over a plain object of world rows; names like "constructor" or "__proto__" are unknown spawns, not prototype values. */
+export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, instance) ? spawns[instance] : null);
+
 /**
  * db.query(sql, params) -> rows (a pg Pool or any adapter); verify(token) -> account uuid or null;
  * spawnRows(instance) -> { kind, area, maxHp } from the world rows, or null (the phone never names these).
@@ -50,9 +53,9 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       if (!Number.isInteger(era) || !Number.isInteger(revision) || typeof record !== "object" || record === null) throw new HttpError(400, "bad-request");
       return call("arma_save_run", [account, String(character ?? ""), era, JSON.stringify(record), revision]);
     },
-    async spawn_state({ body }) {
+    async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];
-      return call("arma_spawn_state", [instances]);
+      return call("arma_spawn_state", [account, instances]);
     },
     async spawn_engage({ account, body }) {
       const row = spawnRows(String(body.instance ?? ""));

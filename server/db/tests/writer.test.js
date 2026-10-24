@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { call, freshDb, ids, openFor } from "./helpers.js";
-import { createWriter } from "../../writer/writer.js";
+import { createWriter, spawnRowsFrom } from "../../writer/writer.js";
 
 const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
 const KEY = "internal-key-for-tests";
@@ -18,7 +18,7 @@ async function start() {
   await pg.exec("set role arma_writer");
   const db = { query: async (sql, params) => (await pg.query(sql, params)).rows };
   const verify = async (token) => (token.startsWith("user:") ? token.slice(5) : null);
-  const writer = createWriter({ db, verify, spawnRows: (i) => spawns[i] ?? null, internalKey: KEY });
+  const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: KEY });
   await new Promise((resolve) => writer.server.listen(0, "127.0.0.1", resolve));
   const base = `http://127.0.0.1:${writer.server.address().port}`;
   const post = async (path, body, { as = null, key = null, raw } = {}) => {
@@ -86,12 +86,16 @@ test("spawn engage: the world row comes from the server, not the phone", async (
     assert.equal((await t.post("/arma/spawn_engage", { instance: "wolf-1" }, { as: ids.alice })).body.error, "no-character");
     await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice });
     assert.equal((await t.post("/arma/spawn_engage", { instance: "ghost-9" }, { as: ids.alice })).status, 404);
+    for (const name of ["constructor", "__proto__", "toString", "hasOwnProperty"])
+      assert.equal((await t.post("/arma/spawn_engage", { instance: name }, { as: ids.alice })).status, 404, name + " is an unknown spawn, not a prototype value");
     const engaged = await t.post("/arma/spawn_engage", { instance: "wolf-1", kind: "dragon", maxHp: 1 }, { as: ids.alice });
     assert.deepEqual([engaged.body.hp, engaged.body.maxHp, engaged.body.generation], [40, 40, 0], "the phone's kind and hp are ignored");
     assert.match(engaged.body.token, /^[A-Za-z0-9_-]{16,}$/);
     assert.equal((await t.post("/arma/spawn_engage", { instance: "wolf-1" }, { as: ids.alice })).body.token, engaged.body.token);
     const state = await t.post("/arma/spawn_state", { instances: ["wolf-1"] }, { as: ids.bob });
     assert.equal(state.body.spawns[0].hp, 40);
+    // A signed-in account with no access row cannot read spawn hp either (carol has no arma_access row).
+    assert.equal((await t.post("/arma/spawn_state", { instances: ["wolf-1"] }, { as: ids.carol })).status, 403);
   } finally {
     await t.close();
   }

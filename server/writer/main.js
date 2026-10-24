@@ -6,7 +6,7 @@
 //   ARMA_INTERNAL_KEY   shared with the presence service for /internal/* (location, hits)
 //   ARMA_SPAWNS         optional path to the spawn rows JSON (default server/data/spawns.json)
 import fs from "node:fs";
-import { createWriter } from "./writer.js";
+import { createWriter, spawnRowsFrom } from "./writer.js";
 
 if (process.env.ARMA_WRITER !== "1") {
   console.log("writer: OFF (set ARMA_WRITER=1 to start); nothing is listening");
@@ -31,7 +31,7 @@ const verify = async (token) => {
   }
 };
 const spawns = JSON.parse(fs.readFileSync(process.env.ARMA_SPAWNS ?? new URL("../data/spawns.json", import.meta.url), "utf8"));
-const writer = createWriter({ db, verify, spawnRows: (instance) => spawns[instance] ?? null, internalKey: need("ARMA_INTERNAL_KEY"), log: console.log });
+const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: need("ARMA_INTERNAL_KEY"), log: console.log });
 writer.server.listen(port, host, () => console.log(`writer listening on ${host}:${port}`));
 for (const signal of ["SIGINT", "SIGTERM"])
   process.on(signal, () => writer.server.close(() => pool.end().then(() => process.exit(0))));

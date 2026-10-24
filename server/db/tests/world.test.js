@@ -35,8 +35,10 @@ test("engage creates the spawn from the world row, is idempotent per account, an
   assert.equal((await failure(call(db, "select public.arma_spawn_engage($1,$2,$3,'rat-1','rat','westminster',999)", [ids.carol, db.chars.carol, TOKEN.carol])))?.code, "O0002");
   assert.equal((await failure(call(db, "select public.arma_spawn_engage($1,$2,'tokenx000000000000','rat-9','rat','Bad Area',10)", [ids.carol, db.chars.carol])))?.message.includes("check constraint"), true);
   assert.equal((await failure(call(db, "select public.arma_spawn_engage($1,$2,$3,'rat-1','rat','westminster',100)", [ids.alice, db.chars.bob, "tokenzzzzzzzzzzzzzz"])))?.code, "O0007", "not your character");
-  const state = (await call(db, "select public.arma_spawn_state(array['rat-1','never']) as r"))[0].r;
+  const state = (await call(db, "select public.arma_spawn_state($1, array['rat-1','never']) as r", [ids.alice]))[0].r;
   assert.deepEqual(state.spawns.map((s) => [s.instance, s.hp, s.alive]), [["rat-1", 100, true]]);
+  // The read has the same access gate as every other client op: a signed-up account with no access row is refused.
+  assert.equal((await failure(call(db, "select public.arma_spawn_state($1, array['rat-1'])", ["00000000-0000-4000-8000-0000000000ee"])))?.code, "O0007");
 });
 
 test("one server hp bar: two players' hits both land on the same creature", async () => {
@@ -47,7 +49,7 @@ test("one server hp bar: two players' hits both land on the same creature", asyn
   await age(db, "bob", 1);
   assert.equal((await hit(db, "alice", "knife", 30, 3)).hp, 70);
   assert.equal((await hit(db, "bob", "knife", 20, 2)).hp, 50, "bob sees the bar alice already lowered");
-  const state = (await call(db, "select public.arma_spawn_state(array['rat-1']) as r"))[0].r.spawns[0];
+  const state = (await call(db, "select public.arma_spawn_state($1, array['rat-1']) as r", [ids.alice]))[0].r.spawns[0];
   assert.equal(state.hp, 50);
 });
 
@@ -126,7 +128,7 @@ test("respawn: after the clock passes the creature is alive again at full hp in 
   await age(db, "alice", 5);
   assert.equal((await engage(db, "alice")).refused, "dead");
   await db.exec(`update public.arma_spawns set respawn_at = now() - interval '1 second' where instance = 'rat-1'`);
-  const view = (await call(db, "select public.arma_spawn_state(array['rat-1']) as r"))[0].r.spawns[0];
+  const view = (await call(db, "select public.arma_spawn_state($1, array['rat-1']) as r", [ids.alice]))[0].r.spawns[0];
   assert.deepEqual([view.alive, view.hp, view.generation], [true, 100, 1], "the read already shows it alive");
   const again = await engage(db, "alice", "rat-1", 100, "westminster", "tokenalicegen1000000");
   assert.deepEqual([again.generation, again.hp], [1, 100]);
@@ -172,7 +174,7 @@ test("four players hit the wolf in one tick batch: one shared bar, one death, ea
   const tick2 = await batch([row("dave", 50), row("alice", 50)]);
   assert.deepEqual([tick2[0].killed, tick2[0].hp, tick2[0].paid], [true, 0, 4]);
   assert.equal(tick2[1].error, "O0009");
-  const state = (await call(db, "select public.arma_spawn_state(array['wolf-1']) as r"))[0].r.spawns[0];
+  const state = (await call(db, "select public.arma_spawn_state($1, array['wolf-1']) as r", [ids.alice]))[0].r.spawns[0];
   assert.deepEqual([state.alive, state.hp], [false, 0]);
   assert.equal((await call(db, "select account from public.arma_loot where item = 'wolf-pelt'")).length, 4);
   assert.equal((await failure(call(db, "select public.arma_spawn_hit_batch('{}'::jsonb)")))?.code, "O0002");
