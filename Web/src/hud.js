@@ -286,7 +286,7 @@ export function createHUD({
       el("enter").textContent = "Retry loading";
       el("loading").textContent = message;
     },
-    update(g) {
+    update(g, hint = "") {
       try {
         const el = (id) => view(document.getElementById(id));
         const p = g.player,
@@ -372,7 +372,7 @@ export function createHUD({
                 ? "VEST BY PISTOL STASH · Walk near to equip"
                 : ""
             : "";
-        const message = g.time < g.messageUntil ? g.message : g.world?.exitHint?.(p.pos) || vestNotice;
+        const message = g.time < g.messageUntil ? g.message : hint || g.world?.exitHint?.(p.pos) || vestNotice;
         if (message !== lastMessage) {
           el("notice").textContent = message;
           lastMessage = message;

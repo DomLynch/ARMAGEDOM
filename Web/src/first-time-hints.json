@@ -1,0 +1,15 @@
+[
+  { "id": "attack", "when": { "enemyWithin": 6 }, "text": "SLASH or STAB hits what is in front of you." },
+  {
+    "id": "dodge-guard",
+    "when": { "tookHit": true },
+    "text": "DODGE ROLL gets you out of a hit. Hold GUARD to block."
+  },
+  { "id": "pistol", "when": { "pistolPickup": true }, "text": "Tap Equip pistol (or G) to pick it up." },
+  { "id": "map", "when": { "nearExit": true }, "text": "Open the menu for MAP and travel." },
+  {
+    "id": "ember-matron",
+    "when": { "bossWithin": { "name": "Ember Matron", "meters": 14 } },
+    "text": "The Ember Matron carries a flamethrower. Take it from her."
+  }
+]
