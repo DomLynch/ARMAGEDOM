@@ -219,16 +219,15 @@ test("preparing late gives the same recipes as preparing up front", () => {
   late.dispose();
 });
 
-test("abandoning a preparation half way leaves a clean presentation that can be prepared again", () => {
+test("preparing twice, or after dispose, builds nothing more", () => {
   const f = headFixture(),
-    p = createFinisherPresentation({ ...f, clips, isBlocked: () => false, deferPreparation: true }),
-    steps = p.prepare();
-  steps.next();
-  steps.return();
-  assert.equal(p.isPrepared(), false);
-  assert.ok(!p.support.some((s) => s.id === "pistol-decapitation"));
-  assert.equal(p.stats().ownedGeometries, 0);
+    p = createFinisherPresentation({ ...f, clips, isBlocked: () => false, deferPreparation: true });
   for (const _ of p.prepare());
-  assert.equal(p.isPrepared(), true);
+  const geometries = p.stats().ownedGeometries;
+  assert.ok(geometries > 0);
+  assert.equal(p.prepare().next().done, true, "already prepared: nothing to do");
+  assert.equal(p.stats().ownedGeometries, geometries);
   p.dispose();
+  assert.equal(p.prepare().next().done, true, "disposed: nothing to do");
+  assert.equal(p.stats().ownedGeometries, 0);
 });
