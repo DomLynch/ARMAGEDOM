@@ -257,7 +257,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
               .applyMatrix4(inverse);
             if (!Number.isFinite(point.y)) throw Error("Nonfinite victim floor");
             localFloor = Math.min(localFloor, point.y);
-            if ((++reads & 31) === 0 && performance.now() - since >= 4) {
+            if ((++reads & 7) === 0 && performance.now() - since >= 4) {
               prepMilliseconds += performance.now() - since;
               yield "victim-floor";
               since = performance.now();

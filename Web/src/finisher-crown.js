@@ -85,7 +85,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
         };
         const materialAt = (i) => source.groups.find((g) => i >= g.start && i < g.start + g.count)?.materialIndex ?? 0;
         for (let offset = 0; offset < (index?.count ?? position.count); offset += 3) {
-          if (offset % 96 === 0 && performance.now() - since >= 4) {
+          if (offset % 12 === 0 && performance.now() - since >= 4) {
             yield "crown-cut";
             since = performance.now();
           }

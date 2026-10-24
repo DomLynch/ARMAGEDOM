@@ -110,7 +110,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
             bind = node.bindMatrix,
             unbind = node.bindMatrixInverse;
           for (let i = 0; i < attr.count; i++) {
-            if ((i & 31) === 0 && performance.now() - since >= 4) {
+            if ((i & 7) === 0 && performance.now() - since >= 4) {
               yield "head-snapshot";
               since = performance.now();
             }
