@@ -77,7 +77,10 @@ test("row 4: tile ammo and fuel match the real state, never inventing rounds", (
   const flame = row(g, "flame-equip") ?? row(g, "boss-equip-emberProjector");
   assert.equal(flame.ammo, "1% fuel", "one unit of fuel is never shown as 0%");
   assert.equal(flame.empty, false);
-  assert(carriedWeaponTiles(g).every((r) => typeof r.empty === "boolean"), "every row carries a boolean empty flag");
+  assert(
+    carriedWeaponTiles(g).every((r) => typeof r.empty === "boolean"),
+    "every row carries a boolean empty flag",
+  );
 });
 
 test("row 5: equipping an empty flamethrower tells the player why and changes nothing else", async () => {
