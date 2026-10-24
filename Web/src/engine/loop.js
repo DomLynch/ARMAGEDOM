@@ -152,6 +152,7 @@ export function createBrowserLoop(s) {
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
+    s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,
       combatVisibleIds: combatVisibleIds(),
