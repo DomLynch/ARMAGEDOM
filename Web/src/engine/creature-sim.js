@@ -29,7 +29,12 @@ export function createCreatureSim({ game, world, pilot, creatures } = {}) {
   let previous = { creatures: [], events: [] };
   const entityFor = (p) => {
     let e = entities.get(p.id);
-    if (!e) entities.set(p.id, (e = structuredClone(template)));
+    if (!e) {
+      e = structuredClone(template);
+      // A swing remembers who it has hit by entity id (`hitIds`), so every player needs a distinct one.
+      e.id = -1 - entities.size;
+      entities.set(p.id, e);
+    }
     e.pos = point(p.pos);
     e.facing = point(p.facing);
     if (p.radius !== undefined) e.radius = p.radius;

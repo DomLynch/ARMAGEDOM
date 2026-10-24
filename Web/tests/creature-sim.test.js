@@ -75,6 +75,20 @@ test("two players: each creature goes for the nearest living player; the hurt ev
   assert(boss.hp > 0);
 });
 
+test("two players in reach of the same boss are both hurt (a swing can hit each of them once)", () => {
+  const { g, spot } = arena(),
+    sim = createCreatureSim({ game: g }),
+    a = { id: "a", pos: { ...spot }, facing: { x: 1, z: 0 } },
+    b = { id: "b", pos: { x: spot.x + 0.05, z: spot.z + 0.05 }, facing: { x: 1, z: 0 } },
+    hurt = new Set();
+  for (let i = 0; i < 600; i++) {
+    const out = sim.step({ players: [a, b], dt: TICK });
+    assert(out.ok, out.error);
+    for (const e of out.events) if (e.type === "hurt") hurt.add(e.playerId);
+  }
+  assert.deepEqual([...hurt].sort(), ["a", "b"]);
+});
+
 test("a hit claim is clamped to the weapon rule; unknown weapons and impossible damage are dropped", () => {
   const { g, boss, spot } = arena(),
     sim = createCreatureSim({ game: g }),
