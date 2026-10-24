@@ -64,6 +64,20 @@ export function maxProgressionMultiplier(progression, weaponId) {
   return pilotBonuses(progression, MAX_ATTRIBUTES, id, progression.scoreCap).damageMultiplier;
 }
 
+/**
+ * The weapons a PLAYER can use. The rules table also lists creature attacks ("teeth", "bolt"); those get no row in the database, so a
+ * phone that claims one has its hit refused ("weapon") instead of being clamped to a creature's damage.
+ */
+export const PLAYER_WEAPONS = Object.freeze(["knife", "bone-saw", "pistol", "rifle", "shotgun", "grenade", "rocket", "railgun", "flamethrower"]);
+
+/** The rows the database is seeded with: player weapons only, each damage cap raised to base x the max progression multiplier. */
+export function seedWeaponRows(rules, progression) {
+  const rows = buildWeaponRows(rules).filter(([weapon]) => PLAYER_WEAPONS.includes(weapon));
+  const missing = PLAYER_WEAPONS.filter((id) => !rows.some(([weapon]) => weapon === id));
+  if (missing.length) throw new Error(`no weapon rule for player weapon: ${missing.join(", ")}`);
+  return applyProgressionCeiling(rows, progression);
+}
+
 /** Weapon rows ([weapon, maxDamagePerHit, maxHitsPerS]) with each damage cap raised to base x the max progression multiplier. */
 export function applyProgressionCeiling(weaponRows, progression) {
   for (const id of Object.keys(progression.weapons))

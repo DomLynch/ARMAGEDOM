@@ -10,6 +10,7 @@ async function world() {
   for (const [name, account] of [["alice", ids.alice], ["bob", ids.bob], ["carol", ids.carol], ["dave", ids.dave]])
     characters[name] = (await call(db, "select public.arma_create_character($1, $2) as id", [account, name]))[0].id;
   await db.exec(`
+    delete from public.arma_weapon_rules;  -- these tests use their own small numbers, not the seeded caps
     insert into public.arma_weapon_rules values ('knife', 10, 4), ('rifle', 30, 2);
     insert into public.arma_loot_rules values ('rat', 0, 'rat-tail', 1), ('rat', 1, 'rare-fang', 0.000001);`);
   return { db, characters };

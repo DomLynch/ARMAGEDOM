@@ -61,6 +61,7 @@ test("weapons: every id a hit can carry needs a rule", () => {
 
 test("the built rows load into the real tables and the referee uses them", async () => {
   const db = await freshDb();
+  await db.exec("delete from public.arma_weapon_rules"); // the migration's seed is covered by weapon-seed.test.js
   for (const [weapon, damage, rate] of buildWeaponRows([weaponRule(), weaponRule({ weaponId: "teeth", maxDamagePerHit: 3, maxHitsPerS: 1.5 })]))
     await call(db, "insert into public.arma_weapon_rules (weapon, max_damage_per_hit, max_hits_per_s) values ($1, $2, $3)", [weapon, damage, rate]);
   assert.equal((await call(db, "select count(*)::int as n from public.arma_weapon_rules"))[0].n, 2);
