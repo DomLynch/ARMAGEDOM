@@ -78,6 +78,19 @@ export function seedWeaponRows(rules, progression) {
   return applyProgressionCeiling(rows, progression);
 }
 
+/**
+ * [kind, cash] for every creature kind the game spawns: a boss's model pays marked.bossCash, every other kind marked.cashPerKill.
+ * `bossKinds` is the set of boss modelRefs (a spawn row's kind is the boss's modelRef). The bounty is cut: it has no row.
+ */
+export function seedPayoutRows(spawnRows, bossKinds, marked) {
+  for (const key of ["cashPerKill", "bossCash"])
+    if (!Number.isSafeInteger(marked?.[key]) || marked[key] < 0) throw new Error(`marked.${key} is not a whole number of cash`);
+  const kinds = [...new Set(spawnRows.map((row) => row.kind))].sort();
+  if (!kinds.length) throw new Error("payout rows: no spawn rows");
+  for (const kind of kinds) if (typeof kind !== "string" || !KIND.test(kind)) throw new Error(`payout rows: bad kind ${JSON.stringify(kind)}`);
+  return kinds.map((kind) => [kind, bossKinds.has(kind) ? marked.bossCash : marked.cashPerKill]);
+}
+
 /** Weapon rows ([weapon, maxDamagePerHit, maxHitsPerS]) with each damage cap raised to base x the max progression multiplier. */
 export function applyProgressionCeiling(weaponRows, progression) {
   for (const id of Object.keys(progression.weapons))

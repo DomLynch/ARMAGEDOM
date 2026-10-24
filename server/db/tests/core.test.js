@@ -7,6 +7,8 @@ const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navi
 
 async function setup() {
   const db = await freshDb();
+  // These tests save the real v18 fixture (250 cash); cash enforcement has its own tests (cash.test.js).
+  await db.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'");
   await openFor(db, ids.alice, ids.bob);
   const [{ id: alice }] = await call(db, "select public.arma_create_character($1, 'Alice') as id", [ids.alice]);
   const [{ id: bob }] = await call(db, "select public.arma_create_character($1, 'Bob') as id", [ids.bob]);
