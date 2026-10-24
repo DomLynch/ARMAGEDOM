@@ -256,8 +256,8 @@
         "attack": "rat_bite",
         "attackLow": "rat_bite_low"
       },
-      "bytes": 715108,
-      "sha256": "4aa89380963ea3523a3bea05427ae8b54cc0104e656a1ec42cfef5e18cbc7e83",
+      "bytes": 419172,
+      "sha256": "0644f2fba2c3fabb9afcdf35845e582dc0b94a1e5060502cfdcd246caf8ab558",
       "contact": {
         "calfBand": [
           0.3440308079655002,
@@ -336,8 +336,8 @@
           1.119044353324368
         ]
       },
-      "bytes": 711848,
-      "sha256": "7b2ee11b61a08966ad8c94615f80bcce0ced74148b52ae1f5ec59775f52e0a78"
+      "bytes": 385500,
+      "sha256": "6385348f564ef2c608a170f9ab1d1ea1c3f03a0bff7efefc27d711a1f72c4dc8"
     },
     "original-roach": {
       "url": "roach/original-roach.glb",
@@ -390,8 +390,8 @@
           }
         ]
       },
-      "bytes": 632972,
-      "sha256": "2ae989a3aca14dbbd26fcb0576bed348dcc56515f5ad9e4d4e3b612cddd7ad7d"
+      "bytes": 369440,
+      "sha256": "d38016af88ca81ff821e72bb7217f3cd2bb93d98a1dde6abd5780402b8f98922"
     },
     "boss-surgeon": {
       "motion": "donor-knife",
