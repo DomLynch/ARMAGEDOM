@@ -1,6 +1,32 @@
 import { RIFLE_PROFILE } from "./weapon-catalog.js";
+import {
+  createLayerCodec,
+  createLayerStorageAdapter,
+  createReadOrigin,
+  layerFailure,
+  candidateConflicts,
+  pickupEligible,
+  runIsSafe,
+  saveIsInvalid,
+  stageDeathDrops,
+} from "./item-layer.js";
 export const RIFLE_SAVE_KEY = "armagedom:rifle-run:v9";
-const fail = (code) => ({ ok: false, code, events: [] });
+// This layer's row: key, versions, tolerance and error messages, moved verbatim from the code below.
+export const RIFLE_LAYER = Object.freeze({
+  field: "rifle",
+  saveKey: RIFLE_SAVE_KEY,
+  previousKeys: Object.freeze([]),
+  version: 9,
+  baseVersion: 8,
+  pickupEpsilon: 1e-8,
+  finitePosition: true,
+  messages: Object.freeze({
+    envelope: "Invalid rifle envelope",
+    base: "Rifle requires existing v8",
+    snapshot: "Invalid rifle snapshot",
+  }),
+});
+const fail = layerFailure;
 const same = (a, b) =>
   a.version === b.version &&
   a.status === b.status &&
@@ -44,7 +70,7 @@ export function createRifleComponent({
     ].some((fn) => typeof fn !== "function")
   )
     throw TypeError("Existing v8 codec, rifle model and runtime authorities required");
-  let legacyRead = false;
+  const reads = createReadOrigin();
   const {
     itemId,
     rules,
@@ -53,82 +79,45 @@ export function createRifleComponent({
   const state = (g) => (g.rifle === undefined ? model.freshState() : g.rifle);
   const selectedValid = (g, s) =>
     s.selected ? !g.pistol?.equipped && g.player?.weapon === "rifle" : g.player?.weapon !== "rifle";
-  const codec = {
-    RUN_SAVE_KEY: RIFLE_SAVE_KEY,
-    get PISTOL_SAVE_KEY() {
-      return baseCodec.PISTOL_SAVE_KEY;
-    },
-    encodeRun(g) {
-      const rifle = state(g);
-      if (!model.valid(rifle) || !selectedValid(g, rifle)) throw TypeError("Invalid rifle envelope");
-      const old = JSON.parse(baseCodec.encodeRun(g));
-      if (old.version !== 8) throw TypeError("Rifle requires existing v8");
-      return JSON.stringify({ ...old, version: 9, rifle: model.copy(rifle) });
-    },
-    restoreRun(g, raw, legacyRaw) {
-      const legacy = legacyRead;
-      legacyRead = false;
-      try {
-        const saved = raw == null ? null : JSON.parse(raw);
-        if (legacy) {
-          if ((saved?.progression?.awards ?? []).some((row) => row?.weaponId === itemId)) return null;
-          const restored = baseCodec.restoreRun(g, raw, legacyRaw);
-          if (!restored) return null;
-          const rifle = model.restoreState(undefined, { sourceDead: sourceDead(restored) });
-          return rifle ? { ...restored, rifle } : null;
-        }
-        if (
-          saved?.version !== 9 ||
-          !Object.hasOwn(saved, "rifle") ||
-          !model.valid(saved.rifle) ||
-          (saved.rifle.selected && saved.pistol?.equipped)
-        )
-          return null;
-        const previous = { ...saved, version: 8 };
-        delete previous.rifle;
-        const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
-        return restored ? { ...restored, rifle: model.copy(saved.rifle) } : null;
-      } catch {
-        return null;
-      }
-    },
-    captureRunState(g) {
-      const rifle = state(g);
-      if (!model.valid(rifle) || !selectedValid(g, rifle)) throw TypeError("Invalid rifle snapshot");
-      return { base: baseCodec.captureRunState(g), rifle: model.copy(rifle) };
-    },
-    isRunStateUnchanged(g, snapshot) {
-      const rifle = state(g);
-      return (
-        model.valid(rifle) &&
-        selectedValid(g, rifle) &&
-        same(rifle, snapshot.rifle) &&
-        baseCodec.isRunStateUnchanged(g, snapshot.base)
-      );
-    },
-  };
-  function safe(g) {
-    const p = g.player;
-    return (
-      !!p &&
-      Number.isFinite(p.hp) &&
-      p.hp > 0 &&
-      !g.finished &&
-      !g.runSaveInvalid &&
-      !p.swing &&
-      Number.isFinite(g.time) &&
-      g.time >= 0 &&
-      g.time >= (p.ready ?? 0) &&
-      g.time >= (p.hurtUntil ?? 0) &&
-      g.time >= (p.dodgeUntil ?? 0) &&
-      canDispatch(g) === true
-    );
+  // Layer-specific migration: a base-era (legacy) record, or the current v9 envelope.
+  function restoreEra(g, raw, legacyRaw, legacy) {
+    const saved = raw == null ? null : JSON.parse(raw);
+    if (legacy) {
+      if ((saved?.progression?.awards ?? []).some((row) => row?.weaponId === itemId)) return null;
+      const restored = baseCodec.restoreRun(g, raw, legacyRaw);
+      if (!restored) return null;
+      const rifle = model.restoreState(undefined, { sourceDead: sourceDead(restored) });
+      return rifle ? { ...restored, rifle } : null;
+    }
+    if (
+      saved?.version !== RIFLE_LAYER.version ||
+      !Object.hasOwn(saved, RIFLE_LAYER.field) ||
+      !model.valid(saved.rifle) ||
+      (saved.rifle.selected && saved.pistol?.equipped)
+    )
+      return null;
+    const previous = { ...saved, version: RIFLE_LAYER.baseVersion };
+    delete previous.rifle;
+    const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
+    return restored ? { ...restored, rifle: model.copy(saved.rifle) } : null;
   }
+  const codec = createLayerCodec({
+    baseCodec,
+    row: RIFLE_LAYER,
+    state,
+    valid: model.valid,
+    copy: model.copy,
+    selectedValid,
+    same,
+    restore: restoreEra,
+    reads,
+  });
+  const safe = (g) => runIsSafe(g, canDispatch, { nonNegativeTime: true });
   function wrapDomain(executeDomain) {
     return (command, context) => {
       const g = getRun();
       if (!g) return fail("not-eligible");
-      if (command.type !== "restore" && (g.runSaveInvalid || !model.valid(state(g)))) return fail("invalid-save");
+      if (saveIsInvalid(g, command, model.valid(state(g)))) return fail("invalid-save");
       const current = state(g),
         claim = command.type === "claimPickup" && command.pickupId === itemId,
         select = command.type === "equip" && command.itemId === itemId;
@@ -142,12 +131,16 @@ export function createRifleComponent({
         if (claim) {
           if (current.status === "owned") return fail("already-collected");
           if (
-            current.status !== "pending" ||
-            ![g.player.pos?.x, g.player.pos?.z].every(Number.isFinite) ||
-            g.world.areaId !== areaId ||
-            Math.hypot(g.player.pos.x - current.dropPosition.x, g.player.pos.z - current.dropPosition.z) >
-              rules.pickupRadius + 1e-8 ||
-            !g.world.lineClear(g.player.pos, current.dropPosition)
+            !pickupEligible(
+              g,
+              current,
+              { areaId },
+              {
+                radius: rules.pickupRadius,
+                epsilon: RIFLE_LAYER.pickupEpsilon,
+                finitePosition: RIFLE_LAYER.finitePosition,
+              },
+            )
           )
             return fail("not-eligible");
           proposed = model.transition(current, { type: "pickup" });
@@ -161,39 +154,21 @@ export function createRifleComponent({
         if (!proposed) return fail("not-eligible");
       }
       function writeCandidate(candidate) {
-        if (
-          command.type !== "retry" &&
-          candidate.rifle !== undefined &&
-          (!model.valid(candidate.rifle) || !same(candidate.rifle, current))
-        )
-          return false;
+        if (candidateConflicts(command, candidate.rifle, current, { valid: model.valid, same })) return false;
         let next = model.copy(proposed ?? current);
-        const award = (row) => row.placementKey === placementKey && row.areaId === areaId;
-        if (
-          !["restore", "retry"].includes(command.type) &&
-          ["eligible", "legacy-dead"].includes(current.status) &&
-          (candidate.progression?.awards ?? []).some(award) &&
-          !(g.progression?.awards ?? []).some(award)
-        ) {
-          const corpse =
-            g.world.areaId === areaId
-              ? [...(g.enemies ?? []), ...(g.corpses ?? [])].find(
-                  (e) =>
-                    e.placementKey === placementKey &&
-                    (e.areaId ?? g.world.areaId) === areaId &&
-                    Number.isFinite(e.hp) &&
-                    e.hp <= 0,
-                )
-              : null;
-          if (!corpse) return false;
-          let position;
-          try {
-            position = validatedDropPosition(g, corpse);
-          } catch {
-            return false;
-          }
-          next = model.transition(next, { type: "drop", placementKey, areaId, position });
-          if (!next) return false;
+        if (!["restore", "retry"].includes(command.type)) {
+          const staged = stageDeathDrops({
+            g,
+            candidate,
+            next,
+            rows: [{ target: "rifle", source: { placementKey, areaId }, itemId }],
+            stateOf: () => current,
+            transition: (state, target, action) => model.transition(state, action),
+            validatedDropPosition,
+            matchCorpseArea: true,
+          });
+          if (!staged) return false;
+          next = staged.next;
         }
         // Other existing equipment owners keep authority over their successful switch.
         if (
@@ -258,21 +233,13 @@ export function createRifleComponent({
       g.player.weapon = "rifle";
     }
   }
-  function storageAdapter(storage) {
-    const base = baseStorageAdapter(storage);
-    return !base
-      ? base
-      : {
-          getItem(key) {
-            if (key !== RIFLE_SAVE_KEY) return base.getItem(key);
-            legacyRead = false;
-            const raw = base.getItem(key);
-            if (raw != null) return raw;
-            legacyRead = true;
-            return base.getItem(baseCodec.RUN_SAVE_KEY);
-          },
-          setItem: (key, raw) => base.setItem(key, raw),
-        };
-  }
+  const storageAdapter = createLayerStorageAdapter({
+    baseStorageAdapter,
+    saveKey: RIFLE_LAYER.saveKey,
+    fallbacks: RIFLE_LAYER.previousKeys,
+    legacyOrigin: true,
+    baseKey: baseCodec.RUN_SAVE_KEY,
+    reads,
+  });
   return Object.freeze({ model, codec: Object.freeze(codec), wrapDomain, applySavedRun, storageAdapter });
 }

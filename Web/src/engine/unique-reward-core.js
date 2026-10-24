@@ -1,18 +1,44 @@
 import { closedData } from "./progression-state.js";
+import {
+  createLayerCodec,
+  createLayerStorageAdapter,
+  createReadOrigin,
+  layerFailure,
+  candidateConflicts,
+  pickupEligible,
+  runIsSafe,
+  saveIsInvalid,
+  stageDeathDrops,
+} from "./item-layer.js";
 export const UNIQUE_REWARD_SAVE_KEY = "armagedom:unique-reward-run:v7";
-const envelope = [
-  "version",
-  "pistol",
-  "hp",
-  "supplies",
-  "vest",
-  "droneDeaths",
-  "animalCycle",
-  "progression",
-  "expedition",
-  "uniqueReward",
-];
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+// This layer's row: key, versions, envelope, pickup radius and tolerance, moved verbatim from the code below.
+export const UNIQUE_REWARD_LAYER = Object.freeze({
+  field: "uniqueReward",
+  saveKey: UNIQUE_REWARD_SAVE_KEY,
+  previousKeys: Object.freeze([]),
+  version: 7,
+  baseVersion: 6,
+  envelope: Object.freeze([
+    "version",
+    "pistol",
+    "hp",
+    "supplies",
+    "vest",
+    "droneDeaths",
+    "animalCycle",
+    "progression",
+    "expedition",
+    "uniqueReward",
+  ]),
+  pickupRadius: 1.3,
+  pickupEpsilon: 1e-8,
+  finitePosition: true,
+  messages: Object.freeze({
+    envelope: "Invalid unique reward envelope",
+    base: "Unique reward requires base v6",
+    snapshot: "Invalid unique reward snapshot",
+  }),
+});
 const same = (a, b) =>
   a.version === b.version &&
   a.status === b.status &&
@@ -21,7 +47,7 @@ const same = (a, b) =>
   (a.dropPosition === null
     ? b.dropPosition === null
     : b.dropPosition !== null && a.dropPosition.x === b.dropPosition.x && a.dropPosition.z === b.dropPosition.z);
-const fail = (code) => ({ ok: false, code, events: [] });
+const fail = layerFailure;
 // OUTER wrapper: unique(expedition(progression(domain))). One existing Core writer.
 export function createUniqueRewardComponent({
   baseCodec,
@@ -54,75 +80,49 @@ export function createUniqueRewardComponent({
     ].some((fn) => typeof fn !== "function")
   )
     throw TypeError("Existing codec, model and runtime authority required");
-  let legacyRead = false;
+  const reads = createReadOrigin();
   function missing(saved) {
     const dead = sourceDead(saved);
     return typeof dead === "boolean" ? model.restoreState(undefined, { sourceDead: dead }) : null;
   }
   const state = (g) => (g.uniqueReward === undefined ? missing(g) : g.uniqueReward);
-  const codec = {
-    RUN_SAVE_KEY: UNIQUE_REWARD_SAVE_KEY,
-    get PISTOL_SAVE_KEY() {
-      return baseCodec.PISTOL_SAVE_KEY;
-    },
-    encodeRun(g) {
-      const reward = state(g);
-      if (!model.valid(reward)) throw TypeError("Invalid unique reward envelope");
-      const old = JSON.parse(baseCodec.encodeRun(g));
-      if (old.version !== 6) throw TypeError("Unique reward requires base v6");
-      return JSON.stringify({ ...old, version: 7, uniqueReward: model.copy(reward) });
-    },
-    restoreRun(g, raw, legacyRaw) {
-      const legacy = legacyRead;
-      legacyRead = false;
-      try {
-        if (legacy) {
-          const restored = baseCodec.restoreRun(g, raw, legacyRaw);
-          if (!restored) return null;
-          const reward = missing(restored);
-          return reward ? { ...restored, uniqueReward: reward } : null;
-        }
-        const saved = JSON.parse(raw);
-        if (saved?.version !== 7 || !closedData(saved, envelope) || !model.valid(saved.uniqueReward)) return null;
-        const previous = { ...saved, version: 6 };
-        delete previous.uniqueReward;
-        const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
-        return restored ? { ...restored, uniqueReward: model.copy(saved.uniqueReward) } : null;
-      } catch {
-        return null;
-      }
-    },
-    captureRunState(g) {
-      return { base: baseCodec.captureRunState(g), uniqueReward: model.copy(state(g)) };
-    },
-    isRunStateUnchanged(g, snapshot) {
-      return (
-        model.valid(state(g)) &&
-        same(state(g), snapshot.uniqueReward) &&
-        baseCodec.isRunStateUnchanged(g, snapshot.base)
-      );
-    },
-  };
-  function safe(g) {
-    const p = g.player;
-    return (
-      !!p &&
-      Number.isFinite(p.hp) &&
-      p.hp > 0 &&
-      !g.finished &&
-      !g.runSaveInvalid &&
-      !p.swing &&
-      Number.isFinite(g.time) &&
-      g.time >= (p.hurtUntil ?? 0) &&
-      g.time >= (p.dodgeUntil ?? 0) &&
-      canDispatch(g) === true
-    );
+  // Layer-specific migration: a base-era (legacy) record, or the current v7 envelope.
+  function restoreEra(g, raw, legacyRaw, legacy) {
+    if (legacy) {
+      const restored = baseCodec.restoreRun(g, raw, legacyRaw);
+      if (!restored) return null;
+      const reward = missing(restored);
+      return reward ? { ...restored, uniqueReward: reward } : null;
+    }
+    const saved = JSON.parse(raw);
+    if (
+      saved?.version !== UNIQUE_REWARD_LAYER.version ||
+      !closedData(saved, UNIQUE_REWARD_LAYER.envelope) ||
+      !model.valid(saved.uniqueReward)
+    )
+      return null;
+    const previous = { ...saved, version: UNIQUE_REWARD_LAYER.baseVersion };
+    delete previous.uniqueReward;
+    const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
+    return restored ? { ...restored, uniqueReward: model.copy(saved.uniqueReward) } : null;
   }
+  const codec = createLayerCodec({
+    baseCodec,
+    row: UNIQUE_REWARD_LAYER,
+    state,
+    valid: model.valid,
+    copy: model.copy,
+    same,
+    checkSnapshot: false,
+    restore: restoreEra,
+    reads,
+  });
+  const safe = (g) => runIsSafe(g, canDispatch, { requireReady: false });
   function wrapDomain(executeDomain) {
     return (command, context) => {
       const g = getRun();
       if (!g) return fail("not-eligible");
-      if (command.type !== "restore" && (g.runSaveInvalid || !model.valid(state(g)))) return fail("invalid-save");
+      if (saveIsInvalid(g, command, model.valid(state(g)))) return fail("invalid-save");
       let changed = false,
         committedReward = null;
       const drops = [];
@@ -130,38 +130,23 @@ export function createUniqueRewardComponent({
         const current = state(g);
         if (
           !model.valid(current) ||
-          (candidate.uniqueReward !== undefined &&
-            (!model.valid(candidate.uniqueReward) || !same(candidate.uniqueReward, current)))
+          candidateConflicts(command, candidate.uniqueReward, current, { valid: model.valid, same, strictRetry: true })
         )
           return false;
         let next = model.copy(reward);
-        const award = (row) => row.placementKey === placementKey && row.areaId === areaId;
-        if (
-          command.type !== "restore" &&
-          command.type !== "retry" &&
-          ["eligible", "legacy-dead"].includes(current.status) &&
-          (candidate.progression?.awards ?? []).some(award) &&
-          !(g.progression?.awards ?? []).some(award)
-        ) {
-          const corpse =
-            g.world.areaId === areaId
-              ? [...(g.enemies ?? []), ...(g.corpses ?? [])].find(
-                  (e) =>
-                    e.placementKey === placementKey &&
-                    (e.areaId ?? g.world.areaId) === areaId &&
-                    Number.isFinite(e.hp) &&
-                    e.hp <= 0,
-                )
-              : null;
-          if (!corpse) return false;
-          let position;
-          try {
-            position = validatedDropPosition(g, corpse);
-          } catch {
-            return false;
-          }
-          next = model.transition(next, { type: "drop", placementKey, areaId, position });
-          if (!next) return false;
+        if (command.type !== "restore" && command.type !== "retry") {
+          const staged = stageDeathDrops({
+            g,
+            candidate,
+            next,
+            rows: [{ target: "uniqueReward", source: { placementKey, areaId }, itemId }],
+            stateOf: () => current,
+            transition: (state, target, action) => model.transition(state, action),
+            validatedDropPosition,
+            matchCorpseArea: true,
+          });
+          if (!staged) return false;
+          next = staged.next;
         }
         const proposal = { ...candidate, uniqueReward: next };
         if (pistol !== undefined) proposal.pistol = pistol;
@@ -183,11 +168,16 @@ export function createUniqueRewardComponent({
         if (claim) {
           if (current.status === "owned") return fail("already-collected");
           if (
-            current.status !== "pending" ||
-            g.world.areaId !== areaId ||
-            !point(g.player.pos) ||
-            Math.hypot(g.player.pos.x - current.dropPosition.x, g.player.pos.z - current.dropPosition.z) > 1.3 + 1e-8 ||
-            !g.world.lineClear(g.player.pos, current.dropPosition)
+            !pickupEligible(
+              g,
+              current,
+              { areaId },
+              {
+                radius: UNIQUE_REWARD_LAYER.pickupRadius,
+                epsilon: UNIQUE_REWARD_LAYER.pickupEpsilon,
+                finitePosition: UNIQUE_REWARD_LAYER.finitePosition,
+              },
+            )
           )
             return fail("not-eligible");
         }
@@ -243,21 +233,13 @@ export function createUniqueRewardComponent({
     g.uniqueReward = model.copy(saved.uniqueReward);
     applyBaseSaved(g, saved);
   }
-  function storageAdapter(storage) {
-    const base = baseStorageAdapter(storage);
-    return !base
-      ? base
-      : {
-          getItem(key) {
-            if (key !== UNIQUE_REWARD_SAVE_KEY) return base.getItem(key);
-            legacyRead = false;
-            const raw = base.getItem(key);
-            if (raw != null) return raw;
-            legacyRead = true;
-            return base.getItem(baseCodec.RUN_SAVE_KEY);
-          },
-          setItem: (key, raw) => base.setItem(key, raw),
-        };
-  }
+  const storageAdapter = createLayerStorageAdapter({
+    baseStorageAdapter,
+    saveKey: UNIQUE_REWARD_LAYER.saveKey,
+    fallbacks: UNIQUE_REWARD_LAYER.previousKeys,
+    legacyOrigin: true,
+    baseKey: baseCodec.RUN_SAVE_KEY,
+    reads,
+  });
   return Object.freeze({ model, codec: Object.freeze(codec), wrapDomain, applySavedRun, storageAdapter });
 }

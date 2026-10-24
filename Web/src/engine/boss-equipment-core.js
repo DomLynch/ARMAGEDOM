@@ -6,10 +6,12 @@ import { createRewardCollectionModel } from "./reward-collection-state.js";
 import {
   createLayerCodec,
   createLayerStorageAdapter,
+  candidateConflicts,
   createReadOrigin,
   layerFailure,
   pickupEligible,
   runIsSafe,
+  saveIsInvalid,
   sameJson,
   stageDeathDrops,
 } from "./item-layer.js";
@@ -218,7 +220,7 @@ export function createBossEquipmentComponent({
       const g = getRun();
       if (!g) return fail("not-eligible");
       const current = state(g);
-      if (command.type !== "restore" && (g.runSaveInvalid || !model.valid(current))) return fail("invalid-save");
+      if (saveIsInvalid(g, command, model.valid(current))) return fail("invalid-save");
       const field = byItem.get(command.type === "claimPickup" ? command.pickupId : command.itemId),
         claim = command.type === "claimPickup" && field !== undefined,
         select = command.type === "equip" && field !== undefined,
@@ -258,11 +260,7 @@ export function createBossEquipmentComponent({
         if (!proposed) return fail("not-eligible");
       }
       function writeCandidate(candidate) {
-        if (
-          command.type !== "retry" &&
-          candidate.bossEquipment !== undefined &&
-          (!model.valid(candidate.bossEquipment) || !equal(candidate.bossEquipment, current))
-        )
+        if (candidateConflicts(command, candidate.bossEquipment, current, { valid: model.valid, same: equal }))
           return false;
         let next = model.copy(proposed ?? current);
         if (!["restore", "retry"].includes(command.type)) {
@@ -270,9 +268,15 @@ export function createBossEquipmentComponent({
             g,
             candidate,
             next,
-            rows: fields.map((target) => [target, profiles[target]]),
-            model,
+            rows: fields.map((target) => ({
+              target,
+              source: profiles[target].source,
+              itemId: profiles[target].itemId,
+            })),
+            stateOf: (state, target) => state[target],
+            transition: model.transition,
             validatedDropPosition,
+            passSource: true,
             eventType: BOSS_EQUIPMENT_LAYER.events.drop,
             events,
           });
