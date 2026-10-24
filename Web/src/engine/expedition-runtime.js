@@ -50,16 +50,17 @@ export function journalPresentation(g, data, allowed = true) {
     action = stageAction[status],
     eligible = !!(action && allowed && expeditionEligible(g, action, data)),
     gate = bossExitGate(g);
-  if (!contractEnabled(data)) return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
+  if (!contractEnabled(data))
+    return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
   const next =
-      {
-        available: "Optional · accept at the Westminster stash, or recover the case in East.",
-        accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
-        recovered: eligible
-          ? "At the Westminster stash · claim your reward."
-          : "Case recovered · return to the Westminster stash.",
-        claimed: "Reward claimed once · choose your earned weapon in Gear.",
-      }[status] ?? "";
+    {
+      available: "Optional · accept at the Westminster stash, or recover the case in East.",
+      accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
+      recovered: eligible
+        ? "At the Westminster stash · claim your reward."
+        : "Case recovered · return to the Westminster stash.",
+      claimed: "Reward claimed once · choose your earned weapon in Gear.",
+    }[status] ?? "";
   return {
     eligible,
     showAction: status === "claimed" || eligible,
@@ -78,7 +79,13 @@ export function expeditionObjective(g) {
   if (g.world.safehouseData) return progressionObjective(g).target;
   const c = g.world.expeditionData?.contract,
     s = g.expedition?.status;
-  return !c || !contractEnabled(g.world.expeditionData) ? null : s === "accepted" ? c.case.areaId : s === "claimed" ? null : c.giver.areaId;
+  return !c || !contractEnabled(g.world.expeditionData)
+    ? null
+    : s === "accepted"
+      ? c.case.areaId
+      : s === "claimed"
+        ? null
+        : c.giver.areaId;
 }
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s, dispatch) {
