@@ -46,24 +46,7 @@ const manifest = JSON.parse(fs.readFileSync(new URL("manifest-hollow.json", asse
 // ---------------------------------------------------------------------------------------------
 // Known gaps: cell id ("<creature>/<attack>") -> cause. Empty means every cell must pass.
 // ---------------------------------------------------------------------------------------------
-const SPECIAL_ON_ANIMALS =
-  "Special (Pommel) never reaches animals: the low-strike branch in attack() is only built for slash/stab/heavy " +
-  "(combat.js:611, :678), so the swing is not ratLow and knifeContacts skips it for animal receivers " +
-  "(combat.js:2430, :2459 ratContact.hit)";
-const KNOWN_GAPS = {
-  "rat/knife-special": SPECIAL_ON_ANIMALS,
-  "dog/knife-special": SPECIAL_ON_ANIMALS,
-  "roach/knife-special": SPECIAL_ON_ANIMALS,
-  "wolf/knife-special": SPECIAL_ON_ANIMALS,
-  "salamander/knife-special": SPECIAL_ON_ANIMALS,
-  "drone/knife-special": SPECIAL_ON_ANIMALS,
-  "rat/cleaver-special": SPECIAL_ON_ANIMALS,
-  "dog/cleaver-special": SPECIAL_ON_ANIMALS,
-  "roach/cleaver-special": SPECIAL_ON_ANIMALS,
-  "wolf/cleaver-special": SPECIAL_ON_ANIMALS,
-  "salamander/cleaver-special": SPECIAL_ON_ANIMALS,
-  "drone/cleaver-special": SPECIAL_ON_ANIMALS,
-};
+const KNOWN_GAPS = {};
 
 // ---------------------------------------------------------------------------------------------
 // Creature rows: one live representative per runtime rig, taken from real area initialisation.
@@ -316,23 +299,27 @@ function spam(ctx, intentFor, ticks, stopOnHit = false) {
     stance = { pos: { ...p.pos }, facing: { ...p.facing } };
   let first = null;
   for (let i = 0; i < ticks && e.hp > 0 && !(stopOnHit && e.hp < start); i++) {
-    // Each new swing starts from the same stance; a swing's own step-in is left alone.
-    if (!p.swing) {
+    // Each new swing starts from the same stance; a swing's own step-in is left alone. Chained swings
+    // never leave p.swing empty, so the stance also returns once the active frames are over.
+    const spent = p.swing?.timing && p.swing.ageTicks >= p.swing.timing.windup + p.swing.timing.active;
+    if (!p.swing || spent) {
       p.pos = { ...stance.pos };
       p.facing = { ...stance.facing };
     }
     p.stamina = 100;
+    p.specialReady = 0; // Special's long cooldown is not under test; a kill must not depend on waiting it out
     ctx.step(intentFor(i));
     if (first === null && e.hp < start) first = i;
   }
   return { hit: e.hp < start, first, hp: e.hp, killed: e.hp <= 0 };
 }
 
-// Repeated attacks until dead, from the middle, nearest and farthest distance that damaged it
-// (contact near the edge of reach can be hit-and-miss; any distance that kills counts).
+// Repeated attacks until dead, from the middle, nearest, farthest and quarter-way distances that damaged
+// it (contact near the edge of reach can be hit-and-miss; any distance that kills counts).
 function attemptKill(contextFor, row, reach, driveFor, ticks) {
   let last = { killed: false, hp: null, first: null };
-  for (const gap of new Set([reach[Math.floor(reach.length / 2)], reach[0], reach.at(-1)])) {
+  const picks = [0.5, 0, 1, 0.25, 0.75].map((f) => reach[Math.round(f * (reach.length - 1))]);
+  for (const gap of new Set(picks)) {
     if (gap === undefined) break;
     const ctx = contextFor();
     last = spam(ctx, driveFor(ctx, place(ctx, row, gap)), ticks);
@@ -373,7 +360,7 @@ for (const [variant, row] of Object.entries(MELEE_VARIANTS)) {
       id: `${prefix}-${action}`,
       gaps: MELEE_GAPS,
       scanTicks: 110,
-      killTicks: 1500,
+      killTicks: action === "special" ? 4000 : 1500, // the slower Pommel needs longer to wear down 120 hp
       fresh: false,
       arm: (ctx) => {
         if (variant !== CLEAVER_ITEM_ID) return;

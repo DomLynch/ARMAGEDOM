@@ -163,7 +163,7 @@ function checkedPose(pose) {
 // remain the selected weapon move's authority; its low pose is retimed with contact.
 export function posedMeleeMove(base, action, pose) {
   const total = checkedPose(pose);
-  if (!["slash", "stab", "heavy"].includes(action)) return base;
+  if (!["slash", "stab", "heavy", "special"].includes(action)) return base;
   return {
     ...base,
     clip: pose.clip,

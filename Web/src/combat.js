@@ -608,7 +608,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       p.buffer = { action, dir: normal(direction), until: p.ready + (g.pilot ? R.bufferTtl / 60 : 0.12) };
     return false;
   }
-  if (g.pilot && ["slash", "stab", "heavy"].includes(action)) {
+  if (g.pilot && ["slash", "stab", "heavy", "special"].includes(action)) {
     const weaponMove = def,
       ticks = def.windupTicks ?? Math.floor(def.windup * 60),
       normalReach = def.range * p.combatScale + (R.walkSpeed * def.stepIn * Math.max(0, ticks - R.stepInFrom - 1)) / 60,
