@@ -238,6 +238,34 @@ test("an optional survivor kit supplies the figure; the view keeps the pool, pos
   assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
 });
 
+test("when the kit is replaced, players already on screen get a figure from the new kit instead of staying bodiless", () => {
+  const scene = new THREE.Scene();
+  const makeKit = (name) => ({
+    name,
+    gone: false,
+    spawn() {
+      const root = new THREE.Group();
+      return { root, update() {}, dispose: () => root.removeFromParent() };
+    },
+    dispose() {
+      this.gone = true;
+    },
+  });
+  let current = makeKit("A");
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => current });
+  const players = [{ id: 9, x: 1, z: 1, facing: 0, moving: false }];
+  view.update(players);
+  const figure = view.group.children[0];
+  const first = figure.children[0];
+  assert.equal(figure.children.length, 1);
+  current.dispose();
+  current = makeKit("B");
+  view.update(players);
+  assert.equal(figure.children.length, 1, "one body, from kit B");
+  assert.notEqual(figure.children[0], first, "not the figure of the disposed kit");
+  view.dispose();
+});
+
 test("only the chosen players get the full survivor look; a player who drops out of the set goes back to the capsule and frees the kit's figure", () => {
   const scene = new THREE.Scene(),
     live = new Set();

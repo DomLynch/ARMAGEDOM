@@ -68,12 +68,20 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   // Wants the full look: use the kit if it gives a figure (the model may not be loaded yet), else stay on the capsule. Not wanted:
   // free the kit's figure and go back to the capsule, so only the chosen few ever cost the full model.
   function setLook(figure, id, full) {
+    const kit = (typeof survivors === "function" ? survivors() : survivors) ?? null;
+    if (figure.survivor && figure.kit !== kit) {
+      // The kit was replaced (its library swapped) and took this figure with it: forget it, a new one is spawned below.
+      figure.survivor.root.removeFromParent();
+      figure.survivor.dispose();
+      figure.survivor = null;
+    }
     if (full && !figure.survivor) {
-      const survivor = (typeof survivors === "function" ? survivors() : survivors)?.spawn?.(id) ?? null;
+      const survivor = kit?.spawn?.(id) ?? null;
       if (survivor?.root) {
         figure.capsule?.removeFromParent();
         figure.root.add(survivor.root);
         figure.survivor = survivor;
+        figure.kit = kit;
       }
     } else if (!full && figure.survivor) {
       figure.survivor.root.removeFromParent();
