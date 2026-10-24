@@ -15,7 +15,10 @@ for (const r of results) {
   test(`${r.areaId}: one walkable region, no dead spots, every exit zone reachable`, () => {
     assert.equal(r.entryFree, true, "area entry is on free ground");
     assert.deepEqual(r.dead, [], "no point where the player cannot move in any direction");
-    assert.deepEqual(r.pockets.map((p) => p.size).sort((a, b) => a - b), KNOWN_POCKETS[r.areaId] ?? []);
+    assert.deepEqual(
+      r.pockets.map((p) => p.size).sort((a, b) => a - b),
+      KNOWN_POCKETS[r.areaId] ?? [],
+    );
     for (const l of r.links) assert.ok(l.inMain > 0, `${r.areaId} -> ${l.to} exit zone is walkable from the entry`);
   });
   test(`${r.areaId}: resident spawns and patrol legs are in the walkable region`, () => {

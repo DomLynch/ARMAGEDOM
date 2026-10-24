@@ -39,7 +39,16 @@ export function walkArea(areaId) {
       const c = cells[n],
         i = c % nx,
         j = Math.floor(c / nx);
-      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      for (const [di, dj] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+        [1, 1],
+        [1, -1],
+        [-1, 1],
+        [-1, -1],
+      ]) {
         const ni = i + di,
           nj = j + dj,
           k = nj * nx + ni;
@@ -103,7 +112,17 @@ export function walkArea(areaId) {
     }
     return best !== null && comp.get(best) === main;
   };
-  return { areaId, geo, inMain, entryFree: entryCell !== null, free: free.size, comps: comps.length, dead, pockets, links };
+  return {
+    areaId,
+    geo,
+    inMain,
+    entryFree: entryCell !== null,
+    free: free.size,
+    comps: comps.length,
+    dead,
+    pockets,
+    links,
+  };
 }
 
 // An arrival point must be clear and outside every exit zone of its own area (else the player bounces back).
@@ -128,7 +147,9 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   for (const r of results) {
     console.log(`\n== ${r.areaId}: free cells ${r.free}, components ${r.comps}, entry free ${r.entryFree}`);
     for (const l of r.links)
-      console.log(`  link -> ${l.to}: zone cells ${l.cells}, in main ${l.inMain}${l.inMain ? "" : "  **UNREACHABLE**"}`);
+      console.log(
+        `  link -> ${l.to}: zone cells ${l.cells}, in main ${l.inMain}${l.inMain ? "" : "  **UNREACHABLE**"}`,
+      );
     for (const p of r.pockets)
       console.log(`  pocket ${p.size} cells at screen (${p.screen.x.toFixed(3)}, ${p.screen.y.toFixed(3)})`);
     console.log(`  dead spots: ${r.dead.length}`);
