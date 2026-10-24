@@ -15,7 +15,8 @@ create table public.arma_world_config (
   kills_per_hour int not null default 120 check (kills_per_hour between 1 and 3600),
   min_share_pct numeric not null default 5 check (min_share_pct between 0 and 100),   -- below this share of the applied damage a contributor is not paid
   first_hit_allowance_s numeric not null default 1 check (first_hit_allowance_s > 0),  -- the real time a first report is allowed to cover
-  max_elapsed_s numeric not null default 5 check (max_elapsed_s > 0)                  -- the most real time one report can ever cover (a long gap does not bank damage)
+  max_elapsed_s numeric not null default 5 check (max_elapsed_s > 0),                 -- the most real time one report can ever cover (a long gap does not bank damage)
+  dps_slack numeric not null default 1.25 check (dps_slack between 1 and 3)           -- jitter allowance on the weapon ceiling: batched per-tick reports are not perfectly regular
 );
 insert into public.arma_world_config default values;
 
@@ -148,8 +149,8 @@ begin
     return jsonb_build_object('refused', 'dead', 'respawnAt', s.respawn_at);
   end if;
   elapsed := least(coalesce(extract(epoch from (now() - e.last_hit_at)), cfg.first_hit_allowance_s), cfg.max_elapsed_s);
-  hits_ok := least(greatest(p_hits, 0), ceil(w.max_hits_per_s * elapsed)::int);
-  applied := least(greatest(coalesce(p_claimed, 0), 0), hits_ok * w.max_damage_per_hit, w.max_damage_per_hit * w.max_hits_per_s * elapsed, s.hp);
+  hits_ok := least(greatest(p_hits, 0), ceil(w.max_hits_per_s * elapsed * cfg.dps_slack)::int);
+  applied := least(greatest(coalesce(p_claimed, 0), 0), hits_ok * w.max_damage_per_hit, w.max_damage_per_hit * w.max_hits_per_s * elapsed * cfg.dps_slack, s.hp);
   update public.arma_spawn_engages set last_hit_at = now(), expires_at = now() + make_interval(secs => cfg.engage_ttl_s) where token = p_token;
   insert into public.arma_spawn_damage (instance, generation, account, character, damage, hits, claimed) values (e.instance, e.generation, p_account, e.character, applied, hits_ok, greatest(coalesce(p_claimed, 0), 0))
     on conflict (instance, generation, account) do update set damage = public.arma_spawn_damage.damage + excluded.damage, hits = public.arma_spawn_damage.hits + excluded.hits, claimed = public.arma_spawn_damage.claimed + excluded.claimed;
@@ -185,8 +186,26 @@ begin
   return jsonb_build_object('applied', applied, 'hp', 0, 'maxHp', s.max_hp, 'killed', true, 'respawnAt', s.respawn_at, 'paid', paid, 'minted', minted);
 end $$;
 
+-- One presence tick = one transaction. p_batch is an array of {account, token, weapon, applied, hits, respawnS} that PRESENCE has already clamped (reach, rate, weapon);
+-- each row still goes through arma_spawn_hit, so the database applies its own ceiling again. A row that fails (closed token, unknown spawn) is reported in its slot and does not
+-- stop the others. Rows are applied in the order given, so two players' hits in one tick are settled deterministically.
+create function public.arma_spawn_hit_batch(p_batch jsonb) returns jsonb language plpgsql security definer set search_path = '' as $$
+declare item jsonb; out jsonb := '[]'::jsonb; res jsonb;
+begin
+  if jsonb_typeof(p_batch) <> 'array' or jsonb_array_length(p_batch) > 200 then raise exception 'a hit batch is an array of at most 200 rows' using errcode = 'O0002'; end if;
+  for item in select * from jsonb_array_elements(p_batch) loop
+    begin
+      res := public.arma_spawn_hit((item ->> 'account')::uuid, item ->> 'token', item ->> 'weapon', (item ->> 'applied')::numeric, coalesce((item ->> 'hits')::int, 1), coalesce((item ->> 'respawnS')::int, 60));
+    exception when others then
+      res := jsonb_build_object('error', sqlstate, 'message', sqlerrm);
+    end;
+    out := out || jsonb_build_array(jsonb_build_object('token', item ->> 'token') || res);
+  end loop;
+  return out;
+end $$;
+
 revoke all on function public.arma_spawn_view(public.arma_spawns), public.arma_spawn_state(text[]), public.arma_spawn_engage(uuid, text, text, text, text, text, numeric),
-  public.arma_spawn_hit(uuid, text, text, numeric, int, int) from public, anon, authenticated;
+  public.arma_spawn_hit(uuid, text, text, numeric, int, int), public.arma_spawn_hit_batch(jsonb) from public, anon, authenticated;
 -- TRAP: every server role that calls a function gets it. Today only the writer calls these; add roles here, not later.
-grant execute on function public.arma_spawn_state(text[]), public.arma_spawn_engage(uuid, text, text, text, text, text, numeric), public.arma_spawn_hit(uuid, text, text, numeric, int, int) to arma_writer;
+grant execute on function public.arma_spawn_state(text[]), public.arma_spawn_engage(uuid, text, text, text, text, text, numeric), public.arma_spawn_hit(uuid, text, text, numeric, int, int), public.arma_spawn_hit_batch(jsonb) to arma_writer;
 commit;

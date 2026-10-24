@@ -19,7 +19,8 @@ const SUPABASE_STUBS = `
 export const ids = {
   alice: "00000000-0000-4000-8000-00000000000a",
   bob: "00000000-0000-4000-8000-00000000000b",
-  carol: "00000000-0000-4000-8000-00000000000c", // signed up, never granted access
+  carol: "00000000-0000-4000-8000-00000000000c", // signed up, never granted access (core tests); a regular player in the world tests
+  dave: "00000000-0000-4000-8000-00000000000d",
 };
 
 export async function freshDb({ migrations = true } = {}) {

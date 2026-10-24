@@ -5,16 +5,16 @@ import { call, failure, freshDb, ids, openFor } from "./helpers.js";
 // A rat with 100 hp: weapon "knife" does at most 10 per hit and 4 hits a second (a 40 hp/s ceiling); "rifle" 30 per hit, 2 a second.
 async function world() {
   const db = await freshDb();
-  await openFor(db, ids.alice, ids.bob, ids.carol);
+  await openFor(db, ids.alice, ids.bob, ids.carol, ids.dave);
   const characters = {};
-  for (const [name, account] of [["alice", ids.alice], ["bob", ids.bob], ["carol", ids.carol]])
+  for (const [name, account] of [["alice", ids.alice], ["bob", ids.bob], ["carol", ids.carol], ["dave", ids.dave]])
     characters[name] = (await call(db, "select public.arma_create_character($1, $2) as id", [account, name]))[0].id;
   await db.exec(`
     insert into public.arma_weapon_rules values ('knife', 10, 4), ('rifle', 30, 2);
     insert into public.arma_loot_rules values ('rat', 0, 'rat-tail', 1), ('rat', 1, 'rare-fang', 0.000001);`);
   return { db, characters };
 }
-const TOKEN = { alice: "tokenalice0000000000", bob: "tokenbob000000000000", carol: "tokencarol0000000000" };
+const TOKEN = { alice: "tokenalice0000000000", bob: "tokenbob000000000000", carol: "tokencarol0000000000", dave: "tokendave0000000000" };
 const engage = (db, who, instance = "rat-1", maxHp = 100, area = "westminster", token = TOKEN[who]) =>
   call(db, "select public.arma_spawn_engage($1, $2, $3, $4, 'rat', $5, $6) as r", [ids[who], db.chars[who], token, instance, area, maxHp]).then((r) => r[0].r);
 const hit = (db, who, weapon, claimed, hits, respawn = 60) => call(db, "select public.arma_spawn_hit($1, $2, $3, $4, $5, $6) as r", [ids[who], TOKEN[who], weapon, claimed, hits, respawn]).then((r) => r[0].r);
@@ -57,16 +57,16 @@ test("a lying phone is clamped: inflated damage, inflated hit counts, rapid-fire
   await age(db, "alice", 1);
   const huge = await hit(db, "alice", "knife", 1e9, 1000);
   assert.equal(huge.killed, false, "claiming a billion damage does not kill a 100 hp rat");
-  assert(huge.applied > 39 && huge.applied < 42, `one second of knife: about 4 hits x 10, got ${huge.applied}`);
+  assert(huge.applied > 39 && huge.applied < 51, `one second of knife: about 4 hits x 10 (plus the 25 percent jitter slack), got ${huge.applied}`);
   // Reports arriving back to back cover no real time, so they apply (almost) nothing, however large the claim.
   let after = huge;
   for (let i = 0; i < 20; i++) after = await hit(db, "alice", "knife", 1e6, 50);
-  assert(after.hp >= 100 - 40 - 20 * 0.2, `rapid-fire reports should add almost nothing, hp is ${after.hp}`);
+  assert(after.hp >= 100 - huge.applied - 20 * 0.4, `rapid-fire reports should add almost nothing, hp is ${after.hp}`);
   assert.equal(after.killed, false);
   // A long silence does not bank damage: at most max_elapsed_s (5 s) of knife = 200 > hp, so cap by hp but never beyond the 5 s ceiling.
   await age(db, "alice", 3600);
   const banked = await hit(db, "alice", "knife", 1e9, 1e9);
-  assert.equal(banked.applied <= 4 * 10 * 5 + 1e-9, true);
+  assert.equal(banked.applied <= 4 * 10 * 5 * 1.25 + 1e-9, true);
   // Unknown weapon is refused outright.
   assert.equal((await hit(db, "alice", "railgun", 5, 1)).refused, "weapon");
   // A negative claim is nothing, not healing.
@@ -151,4 +151,30 @@ test("per-account caps: too many open engages, and a kill-rate cap stops payout"
   assert.equal(second.killed, true);
   assert.equal(second.paid, 0, "over the kills-per-minute cap: the death stands, the payout does not");
   assert.equal((await call(db, "select count(*)::int as n from public.arma_loot"))[0].n, 1);
+});
+
+test("four players hit the wolf in one tick batch: one shared bar, one death, each row reported in its own slot", async () => {
+  const db = await ready();
+  await db.exec(`insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1)`);
+  const who = ["alice", "bob", "carol", "dave"];
+  for (const name of who)
+    await call(db, "select public.arma_spawn_engage($1, $2, $3, 'wolf-1', 'wolf', 'east', 40) as r", [ids[name], db.chars[name], TOKEN[name]]);
+  for (const name of who) await age(db, name, 1);
+  const batch = (rows) => call(db, "select public.arma_spawn_hit_batch($1::jsonb) as r", [JSON.stringify(rows)]).then((r) => r[0].r);
+  const row = (name, applied, extra = {}) => ({ account: ids[name], token: TOKEN[name], weapon: "knife", applied, hits: 1, respawnS: 60, ...extra });
+  // Tick 1: all four land 8 each, plus a row with a token that does not exist. The bar goes 40 -> 8 and each row sees the bar the earlier rows already lowered.
+  const tick1 = await batch([row("alice", 8), row("bob", 8), row("carol", 8), row("dave", 8), row("alice", 1e9, { token: "nosuchtoken0000000" })]);
+  assert.deepEqual(tick1.slice(0, 4).map((r) => r.hp), [32, 24, 16, 8]);
+  assert.equal(tick1[4].error, "O0009", "a bad row is reported in its own slot");
+  assert(tick1.slice(0, 4).every((r) => r.killed === false));
+  // Tick 2: dave lands the rest. One death, paid to all four; the others' tokens are closed with it, so they see the same death.
+  for (const name of who) await age(db, name, 1);
+  const tick2 = await batch([row("dave", 50), row("alice", 50)]);
+  assert.deepEqual([tick2[0].killed, tick2[0].hp, tick2[0].paid], [true, 0, 4]);
+  assert.equal(tick2[1].error, "O0009");
+  const state = (await call(db, "select public.arma_spawn_state(array['wolf-1']) as r"))[0].r.spawns[0];
+  assert.deepEqual([state.alive, state.hp], [false, 0]);
+  assert.equal((await call(db, "select account from public.arma_loot where item = 'wolf-pelt'")).length, 4);
+  assert.equal((await failure(call(db, "select public.arma_spawn_hit_batch('{}'::jsonb)")))?.code, "O0002");
+  assert.equal((await failure(call(db, "select public.arma_spawn_hit_batch($1::jsonb)", [JSON.stringify(Array(201).fill(row("alice", 1)))])))?.code, "O0002");
 });

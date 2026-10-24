@@ -81,7 +81,7 @@ test("every function is granted to the roles that call it (the missing-grant tra
   const byName = Object.fromEntries(rows.map((r) => [r.proname, r]));
   assert(!rows.some((r) => r.anon), "anon can execute nothing");
   assert.deepEqual(rows.filter((r) => r.client).map((r) => r.proname).sort(), ["arma_me_allowed", "arma_me_owns"]);
-  for (const name of ["arma_create_character", "arma_set_active", "arma_active", "arma_save_location", "arma_saved_location", "arma_save_run", "arma_load_run", "arma_record_event", "arma_spawn_state", "arma_spawn_engage", "arma_spawn_hit"])
+  for (const name of ["arma_create_character", "arma_set_active", "arma_active", "arma_save_location", "arma_saved_location", "arma_save_run", "arma_load_run", "arma_record_event", "arma_spawn_state", "arma_spawn_engage", "arma_spawn_hit", "arma_spawn_hit_batch"])
     assert(byName[name]?.writer, name + " must be granted to arma_writer");
   for (const name of ["arma_save_location", "arma_saved_location", "arma_active"]) assert(byName[name].presence, name + " must be granted to arma_presence");
   // Nothing that is not a server function leaks to the server roles by default.
