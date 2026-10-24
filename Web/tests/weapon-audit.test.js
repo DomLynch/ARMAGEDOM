@@ -43,6 +43,8 @@ test("row 2: weapon switching has a keyboard binding (KeyC cycles; Digit1 stays 
   const src = fs.readFileSync(new URL("../src/input.js", import.meta.url), "utf8");
   assert.match(src, /Digit1: "special"/);
   assert.match(src, /event\.code === "KeyC"[\s\S]{0,200}cycleWeapon\(\)/, "KeyC calls cycleWeapon");
+  assert.match(src, /event\.code === "KeyC" && !event\.ctrlKey && !event\.metaKey/, "Ctrl/Cmd+C is left to the browser");
+  assert.match(src, /if \(!event\.repeat\) cycleWeapon\(\)/, "holding C does not spin through the weapons");
 });
 
 test("row 3: empty pistol, rifle and flame tiles say they are empty", () => {
