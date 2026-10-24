@@ -1,0 +1,39 @@
+# Audit tiers as a required check (docs/PARALLEL-DEVELOPMENT.md, 2026-10-24).
+# tier-a passes. tier-b passes only with the `auditor-pass` label, which the Auditor adds
+# on PASS. Any new push removes `auditor-pass`, so a PASS always binds to the current head.
+# A PR with no tier label fails until Lead tiers it. Together with `web-gate` this lets
+# auto-merge merge a PR the moment it is both green and, for tier-b, audited.
+name: audit-gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  audit-gate:
+    name: audit-gate
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          ACTION: ${{ github.event.action }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
+        run: |
+          has() { case " $LABELS " in *" $1 "*) return 0;; esac; return 1; }
+          if [ "$ACTION" = synchronize ] && has auditor-pass; then
+            gh api -X DELETE "repos/$REPO/issues/$PR/labels/auditor-pass" >/dev/null
+            LABELS=$(echo " $LABELS " | sed 's/ auditor-pass / /')
+            echo "New push: auditor-pass removed; the Auditor reviews the new head."
+          fi
+          if has tier-b && has tier-a; then echo "Both tier-a and tier-b: keep one."; exit 1; fi
+          if has tier-a; then echo "tier-a: no audit needed."; exit 0; fi
+          if has tier-b; then
+            has auditor-pass && { echo "tier-b with auditor-pass."; exit 0; }
+            echo "tier-b: waiting for the Auditor's PASS (label auditor-pass)."; exit 1
+          fi
+          echo "No tier label: Lead adds tier-a or tier-b."; exit 1

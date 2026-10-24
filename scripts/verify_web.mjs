@@ -90,7 +90,16 @@ export function verifyWeb(root, { quiet = false } = {}) {
   }
   for (const path of source) run("syntax", ["--check", path]);
   // Asset integration tests decode full rigs; bound workers on shared runners.
-  run("tests", ["--test", "--test-concurrency=2", ...tests]);
+  // CI splits the suite across runners with VERIFY_WEB_SHARD=<index>/<total>.
+  const shard = process.env.VERIFY_WEB_SHARD;
+  if (shard && !/^\d+\/\d+$/.test(shard))
+    throw Error(`VERIFY_WEB_SHARD must be <index>/<total>, got ${shard}`);
+  run("tests", [
+    "--test",
+    "--test-concurrency=2",
+    ...(shard ? [`--test-shard=${shard}`] : []),
+    ...tests,
+  ]);
   return true;
 }
 
