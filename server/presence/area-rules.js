@@ -30,10 +30,15 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 /**
  * Load the generated rows. Refuses anything malformed instead of defaulting it: bad ids, non-integer or out-of-range centimetres,
  * polygons under three points, duplicate areas/arrivals/enemies, exits to unknown areas, arrivals outside 2..4 per area.
- * Returns { areas: { [id]: row }, version } where version is a hash of the rows, to log which layout presence ran.
+ * Takes #54's data object as it is written ({ version, maxSpeedCmPerS, areas }) and checks `version` against its own hash of `areas`
+ * (sha256 of JSON.stringify(areas), first 16 hex), so a stale or edited file is refused.
+ * Returns { areas: { [id]: row }, version, maxSpeedCmPerS }; log the version to say which layout presence ran.
  */
-export function loadAreaRows(rows) {
-  if (!Array.isArray(rows) || rows.length === 0) fail("rows", "expected a non-empty array");
+export function loadAreaRows(data) {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) fail("data", "expected the object { version, maxSpeedCmPerS, areas } that areaPresenceData() writes");
+  const { version: claimed, maxSpeedCmPerS, areas: rows } = data;
+  if (!Array.isArray(rows) || rows.length === 0) fail("areas", "expected a non-empty array");
+  if (!Number.isInteger(maxSpeedCmPerS) || maxSpeedCmPerS <= 0) fail("maxSpeedCmPerS", "expected a positive integer");
   const areas = Object.create(null);
   for (const row of rows) {
     const id = row?.area;
@@ -67,8 +72,8 @@ export function loadAreaRows(rows) {
       seenInstances.add(e.instance);
     }
   }
-  const version = createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16);
-  return { areas, version };
+  const version = createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16);  if (claimed !== version) fail("version", `the data says ${JSON.stringify(claimed)} but its areas hash to ${version}`);
+  return { areas, version, maxSpeedCmPerS };
 }
 
 const inBounds = (area, p) => p.x >= area.bounds.minX && p.x <= area.bounds.maxX && p.z >= area.bounds.minZ && p.z <= area.bounds.maxZ;
@@ -80,17 +85,19 @@ export function isWalkable(area, p) {
 
 /**
  * Is moving from `prev` to `next` plausible? { x, z, atMs } each. Refuses: a non-integer or out-of-range position, a position off the
- * walkable region, a time that goes backwards, and speed above maxSpeedCmPerS * slack. Elapsed time is floored at minDtMs so two reports
- * a few milliseconds apart (network jitter) cannot make a normal step look like a teleport.
+ * walkable region, a time that goes backwards, and distance above maxSpeedCmPerS * slack * elapsed + impulseCm. Elapsed time is floored
+ * at minDtMs so two reports a few milliseconds apart (network jitter) cannot make a normal step look like a teleport. impulseCm is the
+ * largest one-off push a hit can add on top of running (knockback, see limits.js); a hurt player running flat out is not a teleport.
  */
-export function checkMove(area, prev, next, { maxSpeedCmPerS, slack = 1.25, minDtMs = 100 }) {
+export function checkMove(area, prev, next, { maxSpeedCmPerS, impulseCm, slack = 1.25, minDtMs = 100 }) {
   if (!(maxSpeedCmPerS > 0)) throw new Error("checkMove: maxSpeedCmPerS is required (movement speed is Combat's number, never a default here)");
+  if (!(Number.isFinite(impulseCm) && impulseCm >= 0)) throw new Error("checkMove: impulseCm is required (the largest one-off push, see limits.js; 0 only if you mean it)");
   if (!isPoint(next)) return { ok: false, reason: "position" };
   if (!isWalkable(area, next)) return { ok: false, reason: inBounds(area, next) ? "blocked" : "bounds" };
   if (!prev) return { ok: true };
   const dtMs = next.atMs - prev.atMs;
   if (!(dtMs >= 0)) return { ok: false, reason: "time" };
-  const allowed = (maxSpeedCmPerS * slack * Math.max(dtMs, minDtMs)) / 1000;
+  const allowed = (maxSpeedCmPerS * slack * Math.max(dtMs, minDtMs)) / 1000 + impulseCm;
   return distance(prev, next) <= allowed ? { ok: true } : { ok: false, reason: "speed" };
 }
 
