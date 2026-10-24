@@ -5,7 +5,12 @@
     "when": { "tookHit": true },
     "text": "DODGE ROLL gets you out of a hit. Hold GUARD to block."
   },
-  { "id": "pistol", "when": { "pistolPickup": true }, "text": "Tap COLLECT STARTING PISTOL to take it." },
+  {
+    "id": "pistol",
+    "when": { "pistolPickup": true },
+    "stays": { "pistolUncollectedWithin": 6 },
+    "text": "Tap COLLECT STARTING PISTOL to take it."
+  },
   { "id": "map", "when": { "nearExit": true }, "text": "Open the menu for MAP and travel." },
   {
     "id": "ember-fire",

@@ -17,6 +17,7 @@ import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
+import { keySuffix } from "./key-hint.js";
 import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
@@ -155,7 +156,7 @@ export function createRunViews(s) {
     field.hidden = !target;
     field.disabled = false;
     if (target) {
-      field.textContent = target.label + " · G";
+      field.textContent = target.label + keySuffix();
       field.dataset.contextAction = target.id;
     } else field.removeAttribute("data-context-action");
   }

@@ -30,10 +30,28 @@ const checks = {
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
 };
 
+// Optional `stays` on a row (same shape as `when`): while it holds the hint stays up with no 5 s countdown, and it
+// ends the moment it stops holding. Rows without it run for HINT_SECONDS.
+const stays = {
+  // The starting pistol is still on the ground and within `meters` of the player.
+  pistolUncollectedWithin: (meters, { g }) => {
+    const pistol = g.pistol;
+    return (
+      !!pistol &&
+      !pistol.collected &&
+      (g.world?.areaId ?? "westminster") === pistol.pickupAreaId &&
+      distance(g.player.pos, pistol.pickupPos) <= meters
+    );
+  },
+};
+
 export function validateHintTable(rows) {
   const ids = new Set();
   for (const row of rows) {
-    const keys = Object.keys(row.when ?? {});
+    const keys = Object.keys(row.when ?? {}),
+      stayKeys = Object.keys(row.stays ?? {});
+    if (stayKeys.length > 1 || (stayKeys.length && !Object.hasOwn(stays, stayKeys[0])))
+      throw Error("Unknown hint stay condition: " + row.id);
     if (typeof row.id !== "string" || ids.has(row.id)) throw Error("Invalid or duplicate hint id");
     if (typeof row.text !== "string" || !row.text || row.text.length > 80) throw Error("Invalid hint text: " + row.id);
     if (keys.length !== 1 || !Object.hasOwn(checks, keys[0])) throw Error("Unknown hint trigger: " + row.id);
@@ -82,16 +100,22 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
       lastTime = g.time;
       if (g.finished || g.player.hp <= 0 || g.time < (g.messageUntil ?? 0)) return "";
       if (active) {
-        active.left -= elapsed;
-        if (active.left > 0) return active.text;
-        active = null;
+        if (active.stays) {
+          const [[key, argument]] = Object.entries(active.stays);
+          if (stays[key](argument, { g })) return active.text;
+          active = null;
+        } else {
+          active.left -= elapsed;
+          if (active.left > 0) return active.text;
+          active = null;
+        }
       }
       for (const row of rows) {
         if (seen.has(row.id)) continue;
         const [[key, argument]] = Object.entries(row.when);
         if (!checks[key](argument, { g, tookHit })) continue;
         remember(row.id);
-        active = { text: row.text, left: HINT_SECONDS };
+        active = { text: row.text, left: HINT_SECONDS, stays: row.stays };
         return row.text;
       }
       return "";

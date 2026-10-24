@@ -88,6 +88,60 @@ test("a pickup-eligible pistol teaches Equip pistol, only in its area and only i
   assert.equal(hints.current(g), text("pistol"));
 });
 
+test("the pistol hint stays past 5 s until the pistol is collected or the player is 6 m away; other hints keep 5 s", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"));
+  assert.equal(run(hints, g, HINT_SECONDS * 4), text("pistol"), "still up after 20 s next to the pistol");
+  g.player.pos = { x: -0.85 + 5, z: -6 };
+  assert.equal(hints.current(g), text("pistol"), "still up 5 m away");
+  g.player.pos = { x: -0.85 + 7, z: -6 };
+  assert.equal(hints.current(g), "", "gone beyond 6 m");
+  assert.equal(run(hints, g, HINT_SECONDS * 2), "", "does not come back once seen");
+  const collected = createFirstTimeHints({ storage: memory() }),
+    h = world();
+  h.pistol.collected = false;
+  h.player.pos = { x: -0.85, z: -6 };
+  assert.equal(collected.current(h), text("pistol"));
+  h.pistol.collected = true;
+  assert.equal(collected.current(h), "", "collecting the pistol ends the hint at once");
+  const other = createFirstTimeHints({ storage: memory() }),
+    o = world({ enemies: [scavenger(2, 0)] });
+  assert.equal(other.current(o), text("attack"));
+  assert.equal(run(other, o, HINT_SECONDS + 1), "", "ordinary hints still run down after HINT_SECONDS");
+});
+
+test("stay conditions are validated and only the pistol row has one", () => {
+  assert.throws(
+    () => validateHintTable([{ id: "x", when: { tookHit: true }, stays: { nope: 1 }, text: "t" }]),
+    /Unknown hint stay condition/,
+  );
+  assert.deepEqual(
+    table.filter((row) => row.stays).map((row) => row.id),
+    ["pistol"],
+  );
+});
+
+test("the interact button drops its ' · G' suffix on touch devices and keeps it for keyboard players", async () => {
+  const { keySuffix } = await import("../src/engine/key-hint.js");
+  const previous = { document: globalThis.document, matchMedia: globalThis.matchMedia };
+  try {
+    globalThis.document = { body: { classList: { contains: (name) => name === "touch" && false } } };
+    globalThis.matchMedia = () => ({ matches: false });
+    assert.equal(keySuffix(), " · G");
+    globalThis.matchMedia = (query) => ({ matches: query === "(pointer: coarse)" });
+    assert.equal(keySuffix(), "");
+    globalThis.matchMedia = () => ({ matches: false });
+    globalThis.document = { body: { classList: { contains: (name) => name === "touch" } } };
+    assert.equal(keySuffix(), "");
+  } finally {
+    globalThis.document = previous.document;
+    globalThis.matchMedia = previous.matchMedia;
+  }
+});
+
 test("standing near an area exit teaches the menu MAP", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world();

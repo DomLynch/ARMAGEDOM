@@ -552,7 +552,12 @@ export function createEffects(
       const materials = Array.isArray(o.material) ? o.material : [o.material];
       if (o.isMesh && !o.isSkinnedMesh && materials.every((m) => m?.isMeshStandardMaterial)) surfaces.push(o);
     });
-    for (const mesh of surfaces) pickupContours.push(addPickupGlow(mesh));
+    for (const mesh of surfaces) {
+      const contour = addPickupGlow(mesh);
+      // Same gold as the route arrow (0xf1d28c), so the arrow and the pistol read as one cue.
+      contour.halo.material.uniforms.color.value.set(0xf1d28c);
+      pickupContours.push(contour);
+    }
     pickup.add(gun);
   }
   const bracketGeometry = (padding) => {
@@ -942,7 +947,8 @@ export function createEffects(
       if (pickup.visible) {
         pickup.position.copy(world.toRender(pistol.pickupPos));
         // The starting pistol is the first thing a new player must find: its outline breathes until picked up.
-        const strokeScale = 2.4 + 1.2 * Math.sin(game.time * 4);
+        // The outline is a fixed screen-pixel stroke, so a phone-width screen gets a thicker one to read at that size.
+        const strokeScale = (2.4 + 1.2 * Math.sin(game.time * 4)) * (width <= 480 ? 2 : 1);
         for (const contour of pickupContours) contour.halo.userData.strokeScale = strokeScale;
       }
       const weaponCue = pistolCue(game, { paused, visibleIds }) ?? bossWeaponCue(game, { paused, visibleIds }),

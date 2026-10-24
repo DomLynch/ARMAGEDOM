@@ -6,6 +6,7 @@ import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js";
 import { PISTOL_RULES } from "./pistol.js";
 import { vestAvailable } from "./vest.js";
+import { keySuffix } from "./engine/key-hint.js";
 // The HUD refreshes every frame. update() stages its writes (the last write to a slot
 // wins, so a default overridden later in the frame never reaches the DOM) and flush()
 // applies only values that differ from the DOM, or from the last style written (the
@@ -462,7 +463,7 @@ export function createHUD({
             (g.world.areaId ?? "westminster") === pistol.pickupAreaId &&
             Math.hypot(p.pos.x - pistol.pickupPos.x, p.pos.z - pistol.pickupPos.z) <= 1.3;
           el("pistol-interact").hidden = g.finished || (!nearby && (!pistol.collected || equipped));
-          el("pistol-interact").textContent = nearby ? "PICK UP & EQUIP PISTOL · G" : "EQUIP PISTOL · G";
+          el("pistol-interact").textContent = (nearby ? "PICK UP & EQUIP PISTOL" : "EQUIP PISTOL") + keySuffix();
           el("pistol-icon").hidden = true;
         }
         if (g.rifle?.selected && !flameEquipped) {
