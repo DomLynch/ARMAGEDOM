@@ -358,7 +358,7 @@ export function createHUD({
             ) / 10;
           el("mastery").textContent = ["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon)
             ? `${p.weapon.toUpperCase()} · no mastery bonus`
-            : `${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}% damage`;
+            : `${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}%`;
           el("progression-attributes").textContent =
             Object.entries(progression.attributes)
               .map(([id, value]) => `${id[0].toUpperCase() + id.slice(1)} ${value}`)

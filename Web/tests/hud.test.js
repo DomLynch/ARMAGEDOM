@@ -405,3 +405,17 @@ test("a first-time hint uses the notice line, yields to a live message and clear
   hud.update(g, "");
   assert.notEqual(el("notice").textContent, "Hold GUARD to block.");
 });
+
+test("centre status lines use the bounty pop-up's yellow, and the mastery line stays on one line", async () => {
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
+  const popup = /\.marked-head-total\{color:(#[0-9a-f]{6});font-size:(\d+)px/.exec(css);
+  const rule = /#notice:not\(\.hint\),\s*#marked-status,[^{]*\{([^}]*)\}/.exec(css);
+  assert.ok(popup && rule);
+  assert.ok(rule[1].includes(`color: ${popup[1]}`));
+  assert.ok(rule[1].includes("font-weight: 900"));
+  assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
+  assert.match(css, /#mastery\s*\{\s*white-space: nowrap/);
+  const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
+  assert.ok(!/MASTERY \$\{[^`]*% damage`/.test(hud));
+});

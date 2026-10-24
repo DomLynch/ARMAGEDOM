@@ -625,3 +625,18 @@ summary {
 #commander-result button { margin:8px; }
 @media(max-width:600px) { .mode-panels { grid-template-columns:1fr; gap:10px; margin-top:12px; }.mode-panel { padding:14px; }.mode-panel p { min-height:0; margin:8px 0 12px; }.mode-card h1 { font-size:2rem; }.mode-card { padding:20px; }.commander-summary { padding:9px 11px; }.commander-summary h2 { font-size:.9rem; } }
 @media(max-height:550px) and (min-width:601px) { .commander-summary { width:320px; }.commander-orders { left:auto; width:360px; }.mode-card { padding:14px; }.mode-panel { padding:12px; } }
+/* Centre status lines share the "$300" pop-up's bold yellow and dark outline, one step smaller. */
+#notice:not(.hint),
+#marked-status,
+#marked-status[data-marked="true"],
+#expedition-objective {
+  color: #ffdb48;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  overflow-wrap: anywhere;
+}
+#mastery {
+  white-space: nowrap;
+}
