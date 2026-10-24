@@ -5,7 +5,7 @@
 // Create a baseline with `git archive <release-sha> Web | tar -x -C <dir>`, link Web/node_modules (three@0.182.0),
 // and keep it off the system disk: on the VPS under /mnt/HC_Volume_107195252/armagedom-backend/, never / or /tmp.
 //   ROLLBACK_BASELINE_ROOTS=<dir222>:<dir224> node --test tests/rollback-saves.test.js
-// Baselines checked so far: release 222 = 6cc1bcbd, release 224 = 56f6d177.
+// Baselines checked so far: release 222 = 6cc1bcbd, release 224 = 56f6d177, release 225 = 3474e64.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

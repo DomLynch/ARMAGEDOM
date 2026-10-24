@@ -65,6 +65,6 @@ for (const era of eras)
       assertExpected(cold, {...c.expected, hp: f.g.player.hp});
     });
 
-test('both recorded eras are present', () => {
-  assert.deepEqual(eras.map(era => era.release), [222, 224]);
+test('all recorded eras are present', () => {
+  assert.deepEqual(eras.map(era => era.release), [222, 224, 225]);
 });
