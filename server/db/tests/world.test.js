@@ -169,6 +169,14 @@ test("four players hit the wolf in one tick batch: one shared bar, one death, ea
   assert.deepEqual(tick1.slice(0, 4).map((r) => r.hp), [32, 24, 16, 8]);
   assert.equal(tick1[4].error, "O0009", "a bad row is reported in its own slot");
   assert(tick1.slice(0, 4).every((r) => r.killed === false));
+  // Every result names the creature of the TOKEN's engage row (presence broadcasts that, never what the phone claimed).
+  assert.deepEqual(tick1.slice(0, 4).map((r) => [r.instance, r.generation]), Array(4).fill(["wolf-1", 0]));
+  assert.deepEqual([tick1[4].instance, tick1[4].generation], [null, null], "a token that does not exist names nothing");
+  // Another account's token names nothing either: bob presenting alice's token learns and relabels nothing.
+  await age(db, "alice", 1);
+  const stolen = (await batch([{ account: ids.bob, token: TOKEN.alice, weapon: "knife", applied: 1, hits: 1 }]))[0];
+  assert.deepEqual([stolen.instance, stolen.generation], [null, null]);
+  assert.equal(stolen.error, "O0009");
   // Tick 2: dave lands the rest. One death, paid to all four; the others' tokens are closed with it, so they see the same death.
   for (const name of who) await age(db, name, 1);
   const tick2 = await batch([row("dave", 50), row("alice", 50)]);
