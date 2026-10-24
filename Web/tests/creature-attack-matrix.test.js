@@ -119,7 +119,10 @@ const EXPLORE_OPTIONS = (cycle) => ({
   dog: true,
   roach: true,
   drone: true,
-  encounter: { id: "hollow-scavengers", character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 } },
+  encounter: {
+    id: "hollow-scavengers",
+    character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 },
+  },
 });
 function liveCreatureRows() {
   const rows = new Map();
@@ -153,7 +156,8 @@ function liveCreatureRows() {
               : "scavenger"
             : Object.keys(CREATURE_RIG).find((n) => CREATURE_RIG[n] === e.rig);
         if (!name) continue;
-        if (!rows.has(name)) rows.set(name, { name, areaId, cycle, placementKey: e.placementKey, template: structuredClone(e) });
+        if (!rows.has(name))
+          rows.set(name, { name, areaId, cycle, placementKey: e.placementKey, template: structuredClone(e) });
       }
     }
   return rows;
@@ -231,7 +235,11 @@ function arena({ areaId = "east-bridge", make, arm } = {}) {
       return plain;
     })();
   const scene = new T.Scene();
-  Object.assign(f.world, { scene, camera: new T.PerspectiveCamera(), toRender: (p, y = 0) => new T.Vector3(p.x, y, -p.z) });
+  Object.assign(f.world, {
+    scene,
+    camera: new T.PerspectiveCamera(),
+    toRender: (p, y = 0) => new T.Vector3(p.x, y, -p.z),
+  });
   const actors = createActors(scene, f.world, { models, manifest, dispose() {} }, { visualScale: 1.3225 });
   const ctx = { f, actors, creature: null, spot: null };
   const g = f.g;
@@ -312,7 +320,15 @@ function place(ctx, row, gap) {
     g.player.facing = toCreature;
     e.facing = { x: -toCreature.x, z: -toCreature.z };
     const p = g.player;
-    Object.assign(p, { swing: null, ready: 0, heavyReady: 0, specialReady: 0, buffer: null, hurtUntil: 0, stamina: 100 });
+    Object.assign(p, {
+      swing: null,
+      ready: 0,
+      heavyReady: 0,
+      specialReady: 0,
+      buffer: null,
+      hurtUntil: 0,
+      stamina: 100,
+    });
     return toCreature;
   }
   return null;
@@ -351,7 +367,6 @@ function attemptKill(contextFor, row, reach, driveFor, ticks) {
   return last;
 }
 
-
 // ---------------------------------------------------------------------------------------------
 // Attack rows, derived from the weapon data rows. Each row says how to stand up a run holding the
 // weapon (make/arm: the existing fixtures and dispatchers), what input drives one attack (drive),
@@ -361,7 +376,8 @@ const MELEE_ACTIONS = ["slash", "stab", "heavy", "special"];
 const MELEE_GAPS = Array.from({ length: 20 }, (_, i) => Math.round((0.45 + i * 0.15) * 100) / 100);
 const RANGED_GAPS = [1, 2, 3, 4.5, 6, 8];
 const ATTACKS = [];
-const bossFieldOf = (itemId) => Object.keys(BOSS_EQUIPMENT_PROFILES).find((k) => BOSS_EQUIPMENT_PROFILES[k].itemId === itemId);
+const bossFieldOf = (itemId) =>
+  Object.keys(BOSS_EQUIPMENT_PROFILES).find((k) => BOSS_EQUIPMENT_PROFILES[k].itemId === itemId);
 
 for (const [variant, row] of Object.entries(MELEE_VARIANTS)) {
   if (row.modelVariantId === "bone-saw") {
@@ -389,7 +405,13 @@ for (const [variant, row] of Object.entries(MELEE_VARIANTS)) {
         if (variant !== CLEAVER_ITEM_ID) return;
         const g = ctx.f.g,
           data = ctx.f.world.uniqueRewardData;
-        g.uniqueReward = { version: 1, status: "owned", dropPosition: null, rewardReceipt: data.receiptId, selectedMeleeVariant: variant };
+        g.uniqueReward = {
+          version: 1,
+          status: "owned",
+          dropPosition: null,
+          rewardReceipt: data.receiptId,
+          selectedMeleeVariant: variant,
+        };
         syncMeleeEquipment(g);
       },
       drive: (ctx, aim) => () => ({ actions: [action], aim }),
@@ -438,7 +460,12 @@ for (const row of rangedRows) {
       ...base,
       id: `${field}-fire`,
       make: () => armedBossEquipment(field),
-      drive: (ctx, aim) => () => ({ actions: ["fire"], aim, aimPoint: { ...ctx.creature.pos }, aimTargetId: ctx.creature.id }),
+      drive: (ctx, aim) => () => ({
+        actions: ["fire"],
+        aim,
+        aimPoint: { ...ctx.creature.pos },
+        aimTargetId: ctx.creature.id,
+      }),
     });
   else if (field === "grenade")
     ATTACKS.push({
@@ -446,7 +473,12 @@ for (const row of rangedRows) {
       id: "grenade-throw",
       scanTicks: 200,
       make: () => armedBossEquipment(field),
-      drive: (ctx, aim) => () => ({ actions: ["fire"], aim, aimPoint: { ...ctx.creature.pos }, aimTargetId: ctx.creature.id }),
+      drive: (ctx, aim) => () => ({
+        actions: ["fire"],
+        aim,
+        aimPoint: { ...ctx.creature.pos },
+        aimTargetId: ctx.creature.id,
+      }),
     });
   else if (field === "commanderPistol") {
     const chargeTicks = Math.ceil(row.charge.seconds * 60),
@@ -465,7 +497,15 @@ for (const row of rangedRows) {
             target = ctx.creature;
           return {
             aim,
-            ...(touch ? { touchTargetSelection: { id: target.id, key: target.placementKey ?? String(target.id), areaId: ctx.f.world.areaId } } : {}),
+            ...(touch
+              ? {
+                  touchTargetSelection: {
+                    id: target.id,
+                    key: target.placementKey ?? String(target.id),
+                    areaId: ctx.f.world.areaId,
+                  },
+                }
+              : {}),
             actionEdges: {
               started: k === 0 ? [e] : [],
               held: k <= chargeTicks ? [e] : [],
@@ -499,8 +539,7 @@ for (const row of rangedRows) {
         };
       },
     });
-  }
-  else throw Error("No arming recipe for weapon row " + row.itemId + ": add one to the creature attack matrix");
+  } else throw Error("No arming recipe for weapon row " + row.itemId + ": add one to the creature attack matrix");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -542,9 +581,16 @@ for (const attack of ATTACKS) {
         id = `${row.name}/${attack.id}`,
         status = statusOf(cell);
       cells.set(id, { ...cell, status });
-      console.log("CELL", id, status, JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }));
+      console.log(
+        "CELL",
+        id,
+        status,
+        JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }),
+      );
       if (Object.hasOwn(KNOWN_GAPS, id) ? status === "ok" : status !== "ok")
-        unexpected.push(Object.hasOwn(KNOWN_GAPS, id) ? `${id} now passes: remove it from KNOWN_GAPS` : `${id}: ${status}`);
+        unexpected.push(
+          Object.hasOwn(KNOWN_GAPS, id) ? `${id} now passes: remove it from KNOWN_GAPS` : `${id}: ${status}`,
+        );
     }
     assert.deepEqual(unexpected, []);
   });
@@ -558,12 +604,29 @@ test("matrix covers every live creature and every weapon row", () => {
   }
   console.log(
     "CREATURE_ROWS",
-    JSON.stringify([...ROWS.values()].map((r) => ({ name: r.name, area: r.areaId, cycle: r.cycle, key: r.placementKey, lowStrike: rigCapability(r.template.rig, "lowStrike") }))),
+    JSON.stringify(
+      [...ROWS.values()].map((r) => ({
+        name: r.name,
+        area: r.areaId,
+        cycle: r.cycle,
+        key: r.placementKey,
+        lowStrike: rigCapability(r.template.rig, "lowStrike"),
+      })),
+    ),
   );
   console.log("ATTACK_ROWS", JSON.stringify(ATTACKS.map((a) => a.id)));
   if (ONLY || ONLY_ATTACK) return;
   assert.equal(cells.size, CREATURES.length * ATTACKS.length, "every creature x attack cell was measured");
   const tally = {};
   for (const cell of cells.values()) tally[cell.status] = (tally[cell.status] ?? 0) + 1;
-  console.log("MATRIX_SUMMARY", JSON.stringify({ creatures: CREATURES.length, attacks: ATTACKS.length, cells: cells.size, ...tally, knownGaps: Object.keys(KNOWN_GAPS).length }));
+  console.log(
+    "MATRIX_SUMMARY",
+    JSON.stringify({
+      creatures: CREATURES.length,
+      attacks: ATTACKS.length,
+      cells: cells.size,
+      ...tally,
+      knownGaps: Object.keys(KNOWN_GAPS).length,
+    }),
+  );
 });
