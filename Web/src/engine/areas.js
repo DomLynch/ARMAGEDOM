@@ -48,6 +48,8 @@ export function createAreaLifecycle(s) {
         onEvent: (kind, url, error) => console.warn("ARMAGEDOM_AREA_PREFETCH", kind, url, error?.message),
       })
     : null;
+  // Read off the session, not a closure name, so functions sliced out of this file by tests need no stub.
+  if (prefetch) s.areaPrefetch = prefetch;
   async function crossArea(request) {
     if (s.resetting) return false;
     const gate = bossExitGate(s.game, request.areaId);
@@ -74,7 +76,7 @@ export function createAreaLifecycle(s) {
     const releaseSource = ownerWorld.leaseArea?.(previousArea) ?? (() => {});
     stopBossFlames(ownerGame, "travel");
     s.traveling = true;
-    prefetch?.cancel();
+    s.areaPrefetch?.cancel();
     s.resetClock();
     s.input.clear({ keepMovement });
     if (s.game.pistol) s.cancelPistol(s.game);
@@ -106,7 +108,8 @@ export function createAreaLifecycle(s) {
       s.game.ratContact = s.actors.ratContact();
       console.info("ARMAGEDOM_TRAVEL", JSON.stringify({ area: s.world.areaId, position: s.game.player.pos }));
       accepted = true;
-      if (prefetch) limitParkedAreas(s.actors, new Set([request.areaId, previousArea]), PARKED_AREA_LIMIT.maxAreas);
+      if (s.areaPrefetch)
+        limitParkedAreas(s.actors, new Set([request.areaId, previousArea]), PARKED_AREA_LIMIT.maxAreas);
       if (areaPreparation) queueNeighbours(areaPreparation);
       return true;
     } catch (error) {
@@ -151,13 +154,13 @@ export function createAreaLifecycle(s) {
         s.updateExpedition?.();
         if (!recoveryFailed) s.renderer.render(s.scene, s.camera);
         // Failed or not, the neighbours of wherever the player now stands are the next to warm.
-        if (!recoveryFailed) prefetch?.enter();
+        if (!recoveryFailed) s.areaPrefetch?.enter();
       }
     }
   }
   let areaPreparation = null;
   function stopAreaPreparation() {
-    prefetch?.stop();
+    s.areaPrefetch?.stop();
     const state = areaPreparation;
     if (!state) return;
     state.cancelled = true;
@@ -231,9 +234,9 @@ export function createAreaLifecycle(s) {
     s.world.preparationProgress = state.stats;
     s.world.prepareArea(s.world.areaId).catch(() => {});
     s.world.markAreaReady(s.world.areaId);
-    if (prefetch) s.world.setParkedLimit(PARKED_AREA_LIMIT);
+    if (s.areaPrefetch) s.world.setParkedLimit(PARKED_AREA_LIMIT);
     queueNeighbours(state);
-    prefetch?.enter();
+    s.areaPrefetch?.enter();
   }
   // Neighbours of the current area, nearest exit first.
   function neighbourIds() {
