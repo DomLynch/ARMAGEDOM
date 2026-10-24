@@ -53,9 +53,18 @@ test("row 3: empty pistol, rifle and flame tiles say they are empty", () => {
   g.flameFuel = { ...g.flameFuel, fuelUnits: 0 };
   for (const control of ["rifle-equip", "flame-equip", "boss-equip-emberProjector"]) {
     const r = row(g, control);
-    if (r) assert.match(r.ammo, /empty/i, control);
+    if (r) {
+      assert.match(r.ammo, /empty/i, control);
+      assert.equal(r.empty, true, control + " empty flag");
+    }
   }
-  assert.match(carriedWeaponTiles(g).find((r) => r.control.startsWith("variant-")).ammo, /empty/i);
+  const pistol = carriedWeaponTiles(g).find((r) => r.control.startsWith("variant-"));
+  assert.match(pistol.ammo, /empty/i);
+  assert.equal(pistol.empty, true);
+  assert.equal(row(g, "melee-variant-knife").empty, false, "melee is never empty");
+  // One round in the magazine or the reserve alone is not empty.
+  g.pistol = { ...g.pistol, magazine: 0, reserve: 1 };
+  assert.equal(carriedWeaponTiles(g).find((r) => r.control.startsWith("variant-")).empty, false);
 });
 
 test("row 4: tile ammo and fuel match the real state, never inventing rounds", () => {
@@ -67,6 +76,8 @@ test("row 4: tile ammo and fuel match the real state, never inventing rounds", (
   g.flameFuel = { ...g.flameFuel, fuelUnits: 1 };
   const flame = row(g, "flame-equip") ?? row(g, "boss-equip-emberProjector");
   assert.equal(flame.ammo, "1% fuel", "one unit of fuel is never shown as 0%");
+  assert.equal(flame.empty, false);
+  assert(carriedWeaponTiles(g).every((r) => typeof r.empty === "boolean"), "every row carries a boolean empty flag");
 });
 
 test("row 5: equipping an empty flamethrower tells the player why and changes nothing else", async () => {

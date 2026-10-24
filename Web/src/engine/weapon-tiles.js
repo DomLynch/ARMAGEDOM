@@ -4,8 +4,9 @@ import { weaponTileIcon } from "./weapon-tile-icons.js";
 import { lockerStored } from "./locker-core.js";
 import { MELEE_VARIANTS } from "../melee-equipment.js";
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
+const dry = (magazine, reserve) => !magazine && !reserve;
 const rounds = (magazine, capacity, reserve) =>
-  !magazine && !reserve ? "Empty" : `${magazine ?? 0}/${capacity} · ${reserve ?? 0}`;
+  dry(magazine, reserve) ? "Empty" : `${magazine ?? 0}/${capacity} · ${reserve ?? 0}`;
 // Presentation only: every selection still uses its existing Gear control/writer.
 export function carriedWeaponTiles(g) {
   if (!g?.world) return [];
@@ -25,8 +26,8 @@ export function carriedWeaponTiles(g) {
             ? "westminster-start-pistol-v1"
             : (g.expedition?.selectedPistolVariant ?? "westminster-start-pistol-v1")
           : (g.uniqueReward?.selectedMeleeVariant ?? "knife");
-  const add = (id, name, control, owned, ammo = "Melee") => {
-    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo });
+  const add = (id, name, control, owned, ammo = "Melee", empty = false) => {
+    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo, empty });
   };
   for (const id of ["knife", g.world.uniqueRewardData?.itemId].filter(Boolean)) {
     const p = MELEE_VARIANTS[id];
@@ -41,6 +42,7 @@ export function carriedWeaponTiles(g) {
       "variant-" + id,
       g.pistol?.collected && (id === "westminster-start-pistol-v1" || g.expedition?.status === "claimed"),
       rounds(g.pistol?.magazine, 6, g.pistol?.reserve),
+      dry(g.pistol?.magazine, g.pistol?.reserve),
     );
   const rifle = g.world.rifleData;
   if (rifle)
@@ -50,6 +52,7 @@ export function carriedWeaponTiles(g) {
       "rifle-equip",
       g.rifle?.status === "owned",
       rounds(g.rifle?.magazine, rifle.rules.capacity, g.rifle?.reserve),
+      dry(g.rifle?.magazine, g.rifle?.reserve),
     );
   add(
     flameId,
@@ -59,10 +62,19 @@ export function carriedWeaponTiles(g) {
     g.flameFuel?.fuelUnits > 0
       ? `${Math.ceil((g.flameFuel.fuelUnits / (g.world.flameData?.capacity ?? 1000)) * 100)}% fuel`
       : "Empty",
+    !(g.flameFuel?.fuelUnits > 0),
   );
   for (const [field, p] of Object.entries(g.world.bossEquipmentData ?? {})) {
     if (p.family === "flamethrowers") continue;
     const state = boss[field],
+      empty =
+        p.family === "blades"
+          ? false
+          : p.family === "pistols"
+            ? dry(g.pistol?.magazine, g.pistol?.reserve)
+            : field === "grenade"
+              ? !state?.magazine
+              : dry(state?.magazine, state?.reserve),
       ammo =
         p.family === "flamethrowers"
           ? `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% fuel`
@@ -73,7 +85,7 @@ export function carriedWeaponTiles(g) {
               : field === "grenade"
                 ? `${state?.magazine ?? 0} charges`
                 : `${state?.magazine ?? 0}/${p.rules.capacity} · ${state?.reserve ?? 0}`;
-    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", ammo);
+    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? "Empty" : ammo, empty);
   }
   if (g.world.reaperData && ownsReaper(g) && !lockerStored(g, REAPER_ITEM_ID))
     rows.push({
@@ -83,6 +95,7 @@ export function carriedWeaponTiles(g) {
       active: reaperSelected(g),
       owned: true,
       companion: true,
+      empty: false,
       ammo: reaperSelected(g) ? "Deployed" : "Recall / Deploy",
     });
   return rows;
