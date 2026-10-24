@@ -25,13 +25,15 @@ import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
+import { GAME_DATA } from "./game-data.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
-  let runStorage;
+  let runStorage,
+    baseRunStorage = null; // the unwrapped storage: a server record is written here so it is not queued straight back
   try {
     runStorage = globalThis.localStorage;
   } catch {
@@ -331,14 +333,18 @@ export function createBrowserSession(options = {}) {
   // it off for this page load. The storage is wrapped BEFORE the run views capture it: it only passes writes through, and queues the
   // local run save for the writer once the save client exists.
   const worldConfig = presenceConfig({ search: location.search, location });
-  if (worldConfig && !privateContent)
+  if (worldConfig && !privateContent) {
+    baseRunStorage = runStorage;
     runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient?.queue(raw, context.game));
+  }
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
   // Nothing online exists until the status read says the world is open: no guest signup, no presence socket, no save traffic.
   const worldGate = worldConfig && !privateContent ? createWorldGate({ baseUrl: location.origin }) : null;
-  let worldStarted = false;
+  let worldStarted = false,
+    bootPull = Promise.resolve(),
+    syncedNotice = false;
   function startWorld() {
     if (worldStarted || disposed) return;
     worldStarted = true;
@@ -363,6 +369,14 @@ export function createBrowserSession(options = {}) {
       onClosed: () => recheckWorld(),
       log: (line) => console.info(line),
     });
+    // The server save wins when it is online: a newer server record replaces the local run BEFORE the run is read (Enter waits for
+    // this, at most bootSyncWaitMs). Unreachable or closed: play local; the queue sends it later.
+    bootPull = saveClient
+      .pull({ target: baseRunStorage ?? runStorage })
+      .then((result) => {
+        syncedNotice = result.status === "applied";
+      })
+      .catch(() => {});
     presence = createPresenceSession(context, {
       config: worldConfig,
       getToken,
@@ -382,8 +396,9 @@ export function createBrowserSession(options = {}) {
     saveClient?.resume();
     presence?.client.reopen();
   }
+  let worldBoot = Promise.resolve();
   if (worldGate) {
-    recheckWorld();
+    worldBoot = recheckWorld().then(() => bootPull);
     listen(document, "visibilitychange", () => {
       if (!document.hidden && (!worldGate.open || saveClient?.halted || presence?.client.closed)) recheckWorld();
     });
@@ -656,6 +671,11 @@ export function createBrowserSession(options = {}) {
     const start = performance.now();
     const audioReady = audio.unlock();
     try {
+      // With the world open the server record may replace the local run first; never wait longer than bootSyncWaitMs for it.
+      await Promise.race([
+        worldBoot,
+        new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
+      ]);
       renderer ??= new THREE.WebGLRenderer({
         canvas,
         antialias: true,
@@ -721,6 +741,11 @@ export function createBrowserSession(options = {}) {
         throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet.");
       loaded = true;
       hud.ready();
+      if (syncedNotice && game) {
+        syncedNotice = false;
+        game.message = "Progress synced";
+        game.messageUntil = game.time + 3;
+      }
       if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
       hud.loading("");
       document.getElementById("version").textContent = "Three.js · Starting pistol V1 · Approved006 framing";

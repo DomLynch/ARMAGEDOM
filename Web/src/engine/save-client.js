@@ -4,8 +4,12 @@
 // live run) and `unreceipted` paths (logged, never acted on). Contract: docs/MULTIPLAYER-DATA-LAYER.md (seq per character, revision guard).
 // Tuning (interval, character name, retries) is data: Web/src/data/save-client.json through game-data.js.
 import { GAME_DATA } from "./game-data.js";
+import { CURRENT_ERA } from "./save-eras.js";
 
 export const CHARACTER_KEY = "armagedom.world.character.v1";
+// The newest server revision this device has synced (saved to or loaded from), per account: `{ character, revision }`.
+export const SYNCED_KEY = "armagedom.world.synced.v1";
+export const syncedKey = (account) => `${SYNCED_KEY}:${account}`;
 // The cached character id belongs to one account: a new guest session must not reuse (and be refused) another's.
 export const characterKey = (account) => `${CHARACTER_KEY}:${account}`;
 
@@ -30,8 +34,9 @@ export function adoptServerCash(game, reply, { run = null, sent = null } = {}) {
   return true;
 }
 
-// The run save lives under armagedom:area1-run:v1 (first era) or armagedom:area-run:v3 (extended loot); both are watched.
-export const isRunKey = (key) => /^armagedom:area1?-run:v\d+$/.test(key);
+// The whole run is written under the NEWEST era's key (core/io/local-run-storage.js writes the top codec's RUN_SAVE_KEY), today
+// armagedom:marked-run:v18. The older keys are read-only migration inputs, so they are not watched.
+export const isRunKey = (key) => key === CURRENT_ERA.key;
 
 // Watches a storage for writes of the keys `matches` accepts without changing what it stores: everything else passes straight through.
 export function observeStorage(storage, matches, onWrite) {
@@ -150,14 +155,30 @@ export function createSaveClient({
     return character;
   }
 
-  // Learn the server's revision for this character (0 when it has no run yet). The record itself is NOT applied: alpha is report-only.
+  // Learn the server's revision for this character (0 when it has no run yet); the loaded run is kept for pull().
+  let loadedRun = null;
   async function sync() {
     if (revision !== null) return true;
     if (!(await ensureCharacter())) return false;
     const loaded = await call("load_run", { character });
     if (loaded.error) return false;
-    revision = loaded.run?.revision ?? 0;
+    loadedRun = loaded.run ?? null;
+    revision = loadedRun?.revision ?? 0;
     return true;
+  }
+
+  // The newest revision this device has synced for the current character (null: never, e.g. a new device or cleared storage).
+  function readSynced() {
+    try {
+      const mark = JSON.parse(read(syncedKey(account)) ?? "null");
+      return mark?.character === character && Number.isInteger(mark.revision) ? mark.revision : null;
+    } catch {
+      return null;
+    }
+  }
+  function markSynced(value) {
+    if (account && character && Number.isInteger(value))
+      write(syncedKey(account), JSON.stringify({ character, revision: value }));
   }
 
   async function send(raw, run) {
@@ -194,6 +215,7 @@ export function createSaveClient({
       }
       uncertain = false;
       revision = reply.revision;
+      markSynced(revision);
       if (reply.unreceipted?.length) log(`[arma-save] unreceipted: ${reply.unreceipted.join(", ")}`);
       if (reply.clamped === true && onCash(reply, { run, sent }) === true) lowerPending(run, reply, sent);
       return { ok: true, reply };
@@ -257,6 +279,27 @@ export function createSaveClient({
     },
     get halted() {
       return halted;
+    },
+    // Boot, before the run is read: the server save wins when it is online (multiplayer-proof.md). If the server's record is newer than
+    // what this device last synced (or this device never synced), it replaces the local run in `target` (the UNWRAPPED storage, so the
+    // write is not queued back). The replaced local record is kept under `<key>.pre-sync`, never lost. Only a record of the CURRENT era
+    // is applied: an older one would not override the local newest-era key. Unreachable server: play local (the queue sends it later).
+    async pull({ target = storage, current = CURRENT_ERA } = {}) {
+      if (!target || !(await sync()) || !character) return { status: "offline" };
+      const run = loadedRun;
+      if (!run || typeof run.record !== "object" || run.record === null) return { status: "kept" };
+      const synced = readSynced();
+      if (synced !== null && run.revision <= synced) return { status: "kept" };
+      if (run.record.version !== current.version) return { status: "kept", reason: "other-era" };
+      try {
+        const before = target.getItem(current.key);
+        if (before != null) target.setItem(`${current.key}.pre-sync`, before);
+        target.setItem(current.key, JSON.stringify(run.record));
+      } catch {
+        return { status: "kept", reason: "storage" };
+      }
+      markSynced(run.revision);
+      return { status: "applied", revision: run.revision };
     },
     stop() {
       stopped = true;
