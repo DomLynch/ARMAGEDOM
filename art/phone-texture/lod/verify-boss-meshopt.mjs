@@ -25,9 +25,11 @@ const [A, B] = [await io.read(src), await io.read(dst)],
 
 // The meshopt index codec may rotate a triangle's corners and reorder triangles; the surface is the same set of oriented triangles.
 // Compared as a sorted list of corner-rotated triangles (winding kept), so any real change to the mesh still fails.
+// With EXACT_INDICES=1 the index sequence itself must be identical (triangle order and corner order).
 function triangles(p) {
   const ind = p.getIndices()?.getArray();
   if (!ind) return "none";
+  if (process.env.EXACT_INDICES === "1") return `${p.getMode()}/${ind.length}/${digest(ind)}`;
   const list = [];
   for (let k = 0; k < ind.length; k += 3) {
     const t = [ind[k], ind[k + 1], ind[k + 2]],
