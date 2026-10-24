@@ -1,27 +1,27 @@
 import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-// The values live only in area-content.json `marked`; this is the closed set of rule names the validator accepts, and the hard
-// ceiling on any money field (a limit, not a default).
-const MARKED_KEYS = [
-  "version",
-  "cashPerKill",
-  "bossCash",
-  "maxMoney",
-  "hunterBounty",
-  "maxHunters",
-  "hostileBudget",
-  "minSpawnDistance",
-  "warningSeconds",
-  "spawnCooldown",
-  "arrivalDelay",
-  "hunterHealth",
-  "hunterSpeed",
-  "shop",
-];
+// The values live only in area-content.json `marked`. This is the hard ceiling on any money field (a limit, not a default).
 export const MAX_MONEY_CEILING = 1e9;
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
+  // The closed set of rule names the validator accepts (the schema, not data).
+  const MARKED_KEYS = [
+    "version",
+    "cashPerKill",
+    "bossCash",
+    "maxMoney",
+    "hunterBounty",
+    "maxHunters",
+    "hostileBudget",
+    "minSpawnDistance",
+    "warningSeconds",
+    "spawnCooldown",
+    "arrivalDelay",
+    "hunterHealth",
+    "hunterSpeed",
+    "shop",
+  ];
   closed(input, MARKED_KEYS, ["projection", "projections", "hunters", "bounty"]);
   for (const k of ["hunters", "bounty"])
     if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
