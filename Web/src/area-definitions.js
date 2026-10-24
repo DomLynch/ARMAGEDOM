@@ -285,9 +285,9 @@ export const areaAssets = {
   },
   "backdrop.south": {
     kind: "backdrop",
-    path: "world/south/backdrop.webp",
-    sha256: "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8",
-    bytes: 2569092,
+    path: "world/south/backdrop-phone.webp",
+    sha256: "b330324057e8f6330686b3e02404a8dac7dfd79022a0266e3712fad2450ced89",
+    bytes: 426692,
   },
   "layout.east": {
     kind: "layout",
@@ -297,9 +297,9 @@ export const areaAssets = {
   },
   "backdrop.east": {
     kind: "backdrop",
-    path: "world/east/backdrop.webp",
-    sha256: "bcc1cd56e14c7371953354006e872bda1b3a9677dcaeb12229018c7919a4d18e",
-    bytes: 2163444,
+    path: "world/east/backdrop-phone.webp",
+    sha256: "ddc745a7dc2d291e6d42f5c2b7e2fb586d0d727f59ca399110283e9457387158",
+    bytes: 373760,
   },
   "audio.combat": {
     kind: "audio",
@@ -315,9 +315,9 @@ export const areaAssets = {
   },
   "backdrop.east-bridge": {
     kind: "backdrop",
-    path: "world/east-bridge/backdrop.webp",
-    sha256: "e52f0260f4e080e4633fdb0c580f2ef6cb7291b59c3a0b6f80a5b186bad0da62",
-    bytes: 2401738,
+    path: "world/east-bridge/backdrop-phone.webp",
+    sha256: "00adf716a938c8d096990e99dba751861f3ccf02769b3ee20bccaf9374b10444",
+    bytes: 472492,
   },
   "layout.elephant-and-castle": {
     kind: "layout",
@@ -327,9 +327,9 @@ export const areaAssets = {
   },
   "backdrop.elephant-and-castle": {
     kind: "backdrop",
-    path: "world/elephant-and-castle/backdrop.webp",
-    sha256: "d1cbf3be191cb3cc3b7308d5c19c148480527ac3b27937c375cab1b70a3dbbc1",
-    bytes: 2461532,
+    path: "world/elephant-and-castle/backdrop-phone.webp",
+    sha256: "ccfce0af789042c55f7de2c6de5473aef605ee24f464d61cb007a91ae9910f60",
+    bytes: 493218,
   },
   "layout.lambeth": {
     kind: "layout",
@@ -339,9 +339,9 @@ export const areaAssets = {
   },
   "backdrop.lambeth": {
     kind: "backdrop",
-    path: "world/lambeth/backdrop.webp",
-    sha256: "79cb2611729a508c21e93c3aaf4a9186f2081c55c22fa850c47b5f28ea122543",
-    bytes: 2523606,
+    path: "world/lambeth/backdrop-phone.webp",
+    sha256: "4965cc0ecccf9db107f10dcb9f1e2093af284b9dcd2b1a62c7d770b86a010db3",
+    bytes: 519312,
   },
   "layout.area7": {
     kind: "layout",
