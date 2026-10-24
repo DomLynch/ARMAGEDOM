@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createFirstTimeHints, validateHintTable, HINT_STORAGE_KEY, HINT_SECONDS } from "../src/first-time-hints.js";
 import table from "../src/first-time-hints.json" with { type: "json" };
+import { START_PISTOL_LABEL } from "../src/pistol.js";
 
 const memory = (initial = {}) => {
   const data = new Map(Object.entries(initial));
@@ -191,7 +192,11 @@ test("picking up the Ember flamethrower teaches how to fire it, once", () => {
   g.flame = { equipped: true };
   assert.equal(hints.current(g), text("ember-fire"));
   assert.match(text("ember-fire"), /FLAME/);
-  assert.match(text("ember-fire"), /tap an enemy/);
+  // Mobile assist (the default) aims the flame at the enemy faced inside its cone (flameAimPose), so no tap is taught.
+  assert.match(text("ember-fire"), /enemy in front of you/);
+  assert.doesNotMatch(text("ember-fire"), /tap/i);
+  // The in-reach pistol button reads its candidate label (pistol.js), and the hint names that same label.
+  assert.equal(text("pistol"), `Tap ${START_PISTOL_LABEL.toUpperCase()} to take it.`);
   run(hints, g, HINT_SECONDS + 1);
   assert.equal(createFirstTimeHints({ storage }).current(g), "");
 });
