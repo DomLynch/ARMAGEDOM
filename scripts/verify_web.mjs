@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { asDataProblems } from "./as-data-gate.mjs";
 
 function files(directory, suffix) {
   return readdirSync(directory, { withFileTypes: true })
@@ -61,6 +62,18 @@ export function verifyWeb(root, { quiet = false } = {}) {
   );
   if (dense.length)
     throw Error(`Web source density guard failed:\n${dense.join("\n")}`);
+  const asData = asDataProblems(
+    source,
+    Object.keys(
+      JSON.parse(
+        readFileSync(join(root, "Web/src/rig-capabilities.json"), "utf8"),
+      ),
+    ),
+    JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+    join(root, "Web/src"),
+  );
+  if (asData.length)
+    throw Error(`Web as-data gate failed:\n${asData.join("\n")}`);
   // A gate invoked by a test must still start a fresh test runner.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;

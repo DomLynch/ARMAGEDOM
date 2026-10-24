@@ -1,5 +1,6 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
+import { rigCapability } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
@@ -143,13 +144,6 @@ const ROACH_BITE = Object.freeze({
 const ROACH_BITE_SCALED = Object.freeze({ ...ROACH_BITE, clip: "roach_bite_scaled" });
 const DOG_LOW = Object.freeze({ ...RAT_LOW, moveId: "dog_low" });
 const DOG_MID = Object.freeze({ ...DOG_LOW, clip: "DogMidSlash" });
-const LOW_MELEE_RIGS = Object.freeze([
-  "original-rat",
-  "original-dog",
-  "original-roach",
-  "giant-salamander",
-  "original-wolf",
-]);
 const DOG_BITE = Object.freeze({
   ...RAT_BITE,
   moveId: "dog_bite",
@@ -630,7 +624,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       rangeOffset: (target) =>
         p.meleeLowMoves?.[target.rig]
           ? lowReach + (p.meleeLowMoves[target.rig].includeRadius ? target.radius : 0) - normalReach
-          : target.rig === "low-hover-drone" || LOW_MELEE_RIGS.includes(target.rig)
+          : rigCapability(target.rig, "lowStrike")
             ? lowReach +
               (["giant-salamander", "original-wolf"].includes(target.rig)
                 ? target.contactGoalReach - g.player.radius
@@ -647,7 +641,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
     if (p.meleeLowMoves?.[rig]) {
       def = posedMeleeMove(weaponMove, action, p.meleeLowMoves[rig]);
       lowTargetId = slashTarget.targetId;
-    } else if (rig === "low-hover-drone" || LOW_MELEE_RIGS.includes(rig)) {
+    } else if (rigCapability(rig, "lowStrike")) {
       const low =
         rig === "low-hover-drone"
           ? droneLow(def)
