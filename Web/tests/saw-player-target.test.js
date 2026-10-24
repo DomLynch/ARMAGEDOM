@@ -17,18 +17,26 @@ const manifest = JSON.parse(fs.readFileSync(new URL("manifest-hollow.json", asse
 // Gaps (m, Surgeon to player) from point blank to normal saw reach (BONE_SAW_RULES.range is 1.55).
 const GAPS = [0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35, 1.5, 1.7, 2];
 // Printed by the code before the ground column existed (3c6cc6b^); set SAW_PLAYER_PROBE_PRINT=1 to re-print.
-const PINNED = process.env.SAW_PLAYER_PROBE_PRINT ? null : { rows: Array(7).fill("0".repeat(GAPS.length)), control: true };
+const PINNED = process.env.SAW_PLAYER_PROBE_PRINT
+  ? null
+  : { rows: Array(7).fill("0".repeat(GAPS.length)), control: true };
 
 test("Surgeon saw contact against the player equals the pre-column hand-height trace", async (t) => {
   const previous = globalThis.document;
-  globalThis.document = { createElement: () => ({ getContext: () => ({ createRadialGradient: () => ({ addColorStop() {} }), fillRect() {} }) }) };
+  globalThis.document = {
+    createElement: () => ({
+      getContext: () => ({ createRadialGradient: () => ({ addColorStop() {} }), fillRect() {} }),
+    }),
+  };
   const models = new Map();
   for (const name of ["vagrant", "boss-surgeon"]) {
     const description = manifest.models[name];
     models.set(name, {
       description,
       gltf: await loadGeometry(fs.readFileSync(new URL(description.url, assets))),
-      equipment: description.equipment ? await loadGeometry(fs.readFileSync(new URL(description.equipment.url, assets))) : null,
+      equipment: description.equipment
+        ? await loadGeometry(fs.readFileSync(new URL(description.equipment.url, assets)))
+        : null,
     });
   }
   t.after(() => {
@@ -42,7 +50,11 @@ test("Surgeon saw contact against the player equals the pre-column hand-height t
     surgeon = g.enemies.find((e) => e.placementKey === "boss-surgeon-v1");
   assert(surgeon?.bossProfile?.weapon?.kind === "saw");
   const scene = new T.Scene();
-  Object.assign(f.world, { scene, camera: new T.PerspectiveCamera(), toRender: (p, y = 0) => new T.Vector3(p.x, y, -p.z) });
+  Object.assign(f.world, {
+    scene,
+    camera: new T.PerspectiveCamera(),
+    toRender: (p, y = 0) => new T.Vector3(p.x, y, -p.z),
+  });
   const actors = createActors(scene, f.world, { models, manifest, dispose() {} }, { visualScale: 1.3225 });
   t.after(() => actors.dispose());
   g.enemies = [surgeon];
