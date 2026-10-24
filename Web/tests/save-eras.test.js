@@ -56,24 +56,47 @@ test("eraOfRecord reads a record's own version and refuses anything else", () =>
   for (const bad of ["not json", "{}", "[]", '{"version":99}', "null"]) assert.equal(eraOfRecord(bad), null, bad);
 });
 
+// What the record says about the run, and what the restored run says: hit points, pistol ammo, how many boss awards and issued supplies it
+// carries, and the flame fuel. Every genuine record differs from a fresh run in at least one of these, so equality proves THIS record was read.
+const printOf = (r) => ({ hp: r.hp, mag: r.pistol?.magazine, res: r.pistol?.reserve, awards: r.progression?.awards?.length, issued: r.supplies?.issued?.length, fuel: r.flameFuel?.fuelUnits ?? 0 });
+const printOfRun = (g) => ({ hp: g.player.hp, mag: g.pistol?.magazine, res: g.pistol?.reserve, awards: g.progression?.awards?.length, issued: g.supplies?.issued?.length, fuel: g.flameFuel?.fuelUnits ?? 0 });
+const freshRun = (() => {
+  const f = make(new Map());
+  f.restore();
+  return printOfRun(f.g);
+})();
+
 for (const row of SAVE_ERAS) {
   const entry = records[row.version];
   if (!entry.raw) continue;
   test(`era v${row.version} (${row.layer}): a genuine record restores in the current tree and re-saves as v${CURRENT_ERA.version}`, () => {
     const raw = entry.raw();
     assert.equal(eraOfRecord(raw)?.version, row.version, "the fixture really is this era");
+    const expected = printOf(JSON.parse(raw));
+
+    // Negative controls: the check has teeth. A fresh run differs from this record, and the same record stored under a key nothing reads
+    // (or not stored at all) restores to the fresh run, not to the record.
+    assert.notDeepEqual(expected, freshRun, "this record is indistinguishable from a fresh run, so a replay of it would prove nothing");
+    for (const records of [new Map(), new Map([[row.key.replace(/:v\d+$/, ":v999"), raw]])]) {
+      const missed = make(records);
+      missed.restore();
+      assert.deepEqual(printOfRun(missed.g), freshRun, "without the record the run must be fresh");
+    }
+
     const f = make(new Map([[row.key, raw]]));
     f.restore();
     assert(!f.g.runSaveInvalid, "restore marked the genuine record invalid");
+    assert.deepEqual(printOfRun(f.g), expected, "the restored run does not carry the genuine record's own values");
     assert(f.g.player.hp > 0 && !f.g.finished);
     assert(f.p.persistRun(f.g), "the restored run could not be saved");
     const saved = f.records.get(CURRENT_ERA.key);
     assert(saved, "no current-era record was written");
     assert.equal(eraOfRecord(saved).version, CURRENT_ERA.version);
+    assert.deepEqual(printOf(JSON.parse(saved)), expected, "the re-saved record still carries the genuine values");
     const cold = make(new Map([[CURRENT_ERA.key, saved]]));
     cold.restore();
     assert(!cold.g.runSaveInvalid, "the re-saved record does not restore");
-    assert.equal(cold.g.player.hp, f.g.player.hp);
+    assert.deepEqual(printOfRun(cold.g), expected, "a cold start from the re-saved record carries the genuine values");
     assert.deepEqual(JSON.parse(JSON.stringify(cold.g.progression)), JSON.parse(JSON.stringify(f.g.progression)));
   });
 }
