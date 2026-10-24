@@ -1066,6 +1066,10 @@
     "ok": false,
     "code": "not-eligible"
    },
+   "timers-below-zero": {
+    "ok": false,
+    "code": "not-eligible"
+   },
    "wrong-area": {
     "ok": false,
     "code": "not-eligible"
@@ -1197,6 +1201,105 @@
      "ok": false,
      "code": "not-eligible"
     }
+   },
+   "timers-below-zero": {
+    "equip": {
+     "ok": false,
+     "code": "not-eligible"
+    },
+    "fire": {
+     "ok": false,
+     "code": "not-eligible"
+    }
+   }
+  },
+  "options": {
+   "firstSave": false,
+   "corpseOtherArea": {
+    "ok": false,
+    "invalid": false,
+    "hp": 150,
+    "finished": false,
+    "weapon": "knife",
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    }
+   },
+   "retryDisagrees": {
+    "ok": true,
+    "invalid": false,
+    "hp": 150,
+    "finished": false,
+    "weapon": "rifle",
+    "rifle": {
+     "version": 1,
+     "status": "owned",
+     "dropPosition": null,
+     "rewardReceipt": "boss-warden-v1:bridge-warden-rifle-v1",
+     "magazine": 8,
+     "reserve": 16,
+     "selected": true
+    }
+   },
+   "restoreWhileInvalid": {
+    "ok": false,
+    "invalid": true,
+    "hp": 150,
+    "finished": false,
+    "weapon": "knife",
+    "rifle": {
+     "version": 1,
+     "status": "pending",
+     "dropPosition": {
+      "x": -5.391797996865284,
+      "z": 2.400484795851785
+     },
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    }
+   },
+   "invalidState": {
+    "ok": false,
+    "invalid": false,
+    "hp": 150,
+    "finished": false,
+    "weapon": "knife",
+    "rifle": {
+     "version": 1,
+     "status": "bogus",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    }
+   },
+   "killQuotaFail": {
+    "killed": false
+   },
+   "retryAfterKill": {
+    "ok": true,
+    "invalid": false,
+    "hp": 150,
+    "finished": false,
+    "weapon": "knife",
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    }
    }
   }
  },
@@ -1236,6 +1339,9 @@
    "time-not-finite": {
     "ok": false,
     "code": "not-eligible"
+   },
+   "timers-below-zero": {
+    "ok": true
    },
    "wrong-area": {
     "ok": false,
@@ -1330,6 +1436,76 @@
     "equip": {
      "ok": false,
      "code": "not-eligible"
+    }
+   },
+   "timers-below-zero": {
+    "equip": {
+     "ok": true
+    }
+   }
+  },
+  "options": {
+   "retryDisagrees": {
+    "ok": false,
+    "invalid": false,
+    "hp": 117,
+    "finished": false,
+    "weapon": "pistol",
+    "uniqueReward": {
+     "version": 1,
+     "status": "owned",
+     "dropPosition": null,
+     "rewardReceipt": "east-roamer-2:hale-pitborn-cleaver-v1",
+     "selectedMeleeVariant": "knife"
+    }
+   },
+   "restoreWhileInvalid": {
+    "ok": false,
+    "invalid": true,
+    "hp": 117,
+    "finished": false,
+    "weapon": "pistol",
+    "uniqueReward": {
+     "version": 1,
+     "status": "pending",
+     "dropPosition": {
+      "x": -16.57128010796478,
+      "z": 2.17941
+     },
+     "rewardReceipt": null,
+     "selectedMeleeVariant": "knife"
+    }
+   },
+   "invalidState": {
+    "ok": false,
+    "invalid": false,
+    "hp": 117,
+    "finished": false,
+    "weapon": "pistol",
+    "uniqueReward": {
+     "version": 1,
+     "status": "bogus",
+     "dropPosition": {
+      "x": -16.57128010796478,
+      "z": 2.17941
+     },
+     "rewardReceipt": null,
+     "selectedMeleeVariant": "knife"
+    }
+   },
+   "retryAfterKill": {
+    "persisted": false,
+    "ok": true,
+    "invalid": false,
+    "hp": 150,
+    "finished": false,
+    "weapon": "pistol",
+    "uniqueReward": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "selectedMeleeVariant": "knife"
     }
    }
   }
