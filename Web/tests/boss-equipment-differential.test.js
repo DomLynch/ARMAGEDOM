@@ -17,7 +17,21 @@ const sha = (raw) => (raw == null ? null : createHash("sha256").update(raw).dige
 const make = (options) => fixture({ extraWorld: { bossEquipmentData: profiles }, ...options });
 const trace = {};
 const legacy = JSON.parse(fs.readFileSync(new URL("./fixtures/rifle166-earned-v9.json", import.meta.url)));
-const envelope = ["version", "pistol", "hp", "supplies", "vest", "droneDeaths", "animalCycle", "progression", "expedition", "uniqueReward", "flameFuel", "rifle", "bossEquipment"];
+const envelope = [
+  "version",
+  "pistol",
+  "hp",
+  "supplies",
+  "vest",
+  "droneDeaths",
+  "animalCycle",
+  "progression",
+  "expedition",
+  "uniqueReward",
+  "flameFuel",
+  "rifle",
+  "bossEquipment",
+];
 function snapshot(f, field, step, result) {
   const g = f.g;
   return {
@@ -99,7 +113,14 @@ function scenario(field) {
     steps.push(snapshot(f, field, "fire-quota-fail", dispatch(f, { type: "fire", field })));
     f.quota(false);
   }
-  steps.push(snapshot(f, field, "variant-select", f.p.dispatchUniqueReward?.(f.g, { type: "equip", itemId: "knife", equipped: true })));
+  steps.push(
+    snapshot(
+      f,
+      field,
+      "variant-select",
+      f.p.dispatchUniqueReward?.(f.g, { type: "equip", itemId: "knife", equipped: true }),
+    ),
+  );
   steps.push(snapshot(f, field, "unequip", dispatch(f, { type: "equip", itemId: data.itemId, equipped: false })));
   steps.push(snapshot(f, field, "re-equip", dispatch(f, { type: "equip", itemId: data.itemId, equipped: true })));
   steps.push({ ...snapshot(f, field, "retry"), retried: f.p.retry() });

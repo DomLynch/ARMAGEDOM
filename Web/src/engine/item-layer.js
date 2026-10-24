@@ -39,8 +39,8 @@ export function pickupEligible(g, state, source, { radius, epsilon }) {
  * not yet in the live run), find the corpse, place the drop and move the model to `pending`. Returns the next state
  * and the drop events, or null when a corpse or a legal spot is missing (the write is then refused).
  */
-export function stageDeathDrops({ g, candidate, next, rows, model, validatedDropPosition, eventType }) {
-  const events = [];
+export function stageDeathDrops({ g, candidate, next, rows, model, validatedDropPosition, eventType, events = [] }) {
+  // Events go into the caller's array row by row, so a later refused row leaves earlier ones in place, as before.
   for (const [target, data] of rows) {
     const s = next[target],
       matches = (a) => a.placementKey === data.source.placementKey && a.areaId === data.source.areaId;

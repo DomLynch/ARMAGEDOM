@@ -274,10 +274,10 @@ export function createBossEquipmentComponent({
             model,
             validatedDropPosition,
             eventType: BOSS_EQUIPMENT_LAYER.events.drop,
+            events,
           });
           if (!staged) return false;
           next = staged.next;
-          events.push(...staged.events);
         }
         if (
           !select &&

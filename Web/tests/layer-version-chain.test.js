@@ -2,7 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { fixture } from "./helpers/rifle-fixture.js";
 import { BOSS_EQUIPMENT_PROFILES as profiles } from "../src/engine/boss-equipment-data.js";
-import { BOSS_EQUIPMENT_LAYER, BOSS_EQUIPMENT_SAVE_KEY, PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY } from "../src/engine/boss-equipment-core.js";
+import {
+  BOSS_EQUIPMENT_LAYER,
+  BOSS_EQUIPMENT_SAVE_KEY,
+  PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY,
+} from "../src/engine/boss-equipment-core.js";
 import { RIFLE_SAVE_KEY } from "../src/engine/rifle-core.js";
 import { FLAME_SAVE_KEY } from "../src/engine/flame-core.js";
 import { HUB_SAVE_KEY } from "../src/engine/hub-core.js";
@@ -16,8 +20,19 @@ test("boss-equipment layer row keeps today's keys, versions and envelope verbati
   );
   assert.deepEqual(BOSS_EQUIPMENT_LAYER.previousKeys, [{ key: PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY, origin: "v10" }]);
   assert.deepEqual(BOSS_EQUIPMENT_LAYER.envelope, [
-    "version", "pistol", "hp", "supplies", "vest", "droneDeaths", "animalCycle", "progression", "expedition",
-    "uniqueReward", "flameFuel", "rifle", "bossEquipment",
+    "version",
+    "pistol",
+    "hp",
+    "supplies",
+    "vest",
+    "droneDeaths",
+    "animalCycle",
+    "progression",
+    "expedition",
+    "uniqueReward",
+    "flameFuel",
+    "rifle",
+    "bossEquipment",
   ]);
   assert.equal(BOSS_EQUIPMENT_LAYER.pickupEpsilon, 1e-8);
   assert.equal(RIFLE_SAVE_KEY, "armagedom:rifle-run:v9");
