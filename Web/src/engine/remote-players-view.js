@@ -67,8 +67,7 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
 
   // Wants the full look: use the kit if it gives a figure (the model may not be loaded yet), else stay on the capsule. Not wanted:
   // free the kit's figure and go back to the capsule, so only the chosen few ever cost the full model.
-  function setLook(figure, id, full) {
-    const kit = (typeof survivors === "function" ? survivors() : survivors) ?? null;
+  function setLook(figure, id, full, kit) {
     if (figure.survivor && figure.kit !== kit) {
       // The kit was replaced (its library swapped) and took this figure with it: forget it, a new one is spawned below.
       figure.survivor.root.removeFromParent();
@@ -125,12 +124,13 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
     // samples: createRemotePlayers().sample(now): [{ id, x, z, facing, moving }] with x, z in metres. full: the set of ids that get
     // the survivor kit (null means everyone does, when there is a kit).
     update(samples, full = null) {
-      const present = new Set();
+      const present = new Set(),
+        kit = (typeof survivors === "function" ? survivors() : survivors) ?? null; // asked once a frame, not once a figure
       for (const sample of samples) {
         present.add(sample.id);
         const figure = figures.get(sample.id) ?? make(sample.id);
         figures.set(sample.id, figure);
-        setLook(figure, sample.id, full ? full.has(sample.id) : true);
+        setLook(figure, sample.id, full ? full.has(sample.id) : true, kit);
         setLabel(figure, guestName(sample.id, sample.name));
         figure.root.position.copy(toRender({ x: sample.x, z: sample.z }, 0));
         figure.root.rotation.y = sample.facing;
