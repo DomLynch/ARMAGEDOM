@@ -1,0 +1,4242 @@
+{
+ "shotgun": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "83a630bb447df2e8d2b51ab88cec9f6aa7697a67f8a2d09d3a1d8cdda9fdb4f8",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "83a630bb447df2e8d2b51ab88cec9f6aa7697a67f8a2d09d3a1d8cdda9fdb4f8",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "83a630bb447df2e8d2b51ab88cec9f6aa7697a67f8a2d09d3a1d8cdda9fdb4f8",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": -8.78897,
+     "z": 7.0594
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "187bb7da5c02de894df59af9fe412acf9b61bd28ca3e05623240f7d89bb078cb",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": -8.78897,
+     "z": 7.0594
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "187bb7da5c02de894df59af9fe412acf9b61bd28ca3e05623240f7d89bb078cb",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": -8.78897,
+     "z": 7.0594
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "187bb7da5c02de894df59af9fe412acf9b61bd28ca3e05623240f7d89bb078cb",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "south-stalker-shotgun-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 2,
+    "reserve": 12,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "a288a29083b5ea39190e4aca9933d2084fb95d2f3055ef56b771002b43a07d95",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 2,
+    "reserve": 12,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "a288a29083b5ea39190e4aca9933d2084fb95d2f3055ef56b771002b43a07d95",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 2,
+    "reserve": 12,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "a288a29083b5ea39190e4aca9933d2084fb95d2f3055ef56b771002b43a07d95",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "south-stalker-shotgun-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 2,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "18cbef6e5a6145850d614e54e4b78ca299b22d02e53e24c7a1c501a192960a4d",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "south-stalker-shotgun-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 2,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "18cbef6e5a6145850d614e54e4b78ca299b22d02e53e24c7a1c501a192960a4d",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-ammo-spent",
+      "field": "shotgun",
+      "itemId": "south-stalker-shotgun-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-too-soon",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "reload",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "south-stalker-shotgun-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "d0258789aba7e107cddce8d7e7a3af4701cf41df2dc623d64fa20ef7fbe672af",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "south-stalker-shotgun-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ef4f2e430b831077cbdf69bf98908efe43570fcd160d3d3fdd35976f50a83a7e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "e4f95fcf3813bd8d2a6ab8ac6db5f650f4967a98e930810df0646e996ae88923",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-nightborn-v1:south-stalker-shotgun-v1",
+    "magazine": 1,
+    "reserve": 12,
+    "selected": true
+   },
+   "weapon": "shotgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "e4f95fcf3813bd8d2a6ab8ac6db5f650f4967a98e930810df0646e996ae88923",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "a08da4e5a630c4a0d45d672e5982c9fc4d7fd3bb274798b063b2387e2b35d1ad",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ],
+ "grenade": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "124de9592568626c6f10510ee4677df57e578ee9609d8c18406b92e316c4c7ed",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "124de9592568626c6f10510ee4677df57e578ee9609d8c18406b92e316c4c7ed",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "124de9592568626c6f10510ee4677df57e578ee9609d8c18406b92e316c4c7ed",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 3.459119742752804,
+     "z": -0.8936189375617332
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "50a084d91b4e378a8f8f70d65adc76160610fb710a84032c3d1ae1164590ac78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 3.459119742752804,
+     "z": -0.8936189375617332
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "50a084d91b4e378a8f8f70d65adc76160610fb710a84032c3d1ae1164590ac78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 3.459119742752804,
+     "z": -0.8936189375617332
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "50a084d91b4e378a8f8f70d65adc76160610fb710a84032c3d1ae1164590ac78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "standard-grenade-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 3,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "aeef17e313c9f38e46921dc1aaf95a469d2b78fbce66ae82fdbc06350adccfa6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 3,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "aeef17e313c9f38e46921dc1aaf95a469d2b78fbce66ae82fdbc06350adccfa6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 3,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "aeef17e313c9f38e46921dc1aaf95a469d2b78fbce66ae82fdbc06350adccfa6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "standard-grenade-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 3,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "12b1eef3a7077697e42ef7ad85afef6b2369cdd76d8f54a4b14f9874fde0e262",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "standard-grenade-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 3,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "12b1eef3a7077697e42ef7ad85afef6b2369cdd76d8f54a4b14f9874fde0e262",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-ammo-spent",
+      "field": "grenade",
+      "itemId": "standard-grenade-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-too-soon",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "reload",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "standard-grenade-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "fa124bc32c630e3d7923ffcfd96cdb94505a53e0a50e8b4f4d4eafa1c66b214a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "standard-grenade-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "028777cd9122e42e79fbb1d6f2a5ba24959209aa3f4f02ae240803192ff04e2c",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "9f9e4ed19f0ae73f56ef78ef7b102381986950e8edc784beaba97a3159495f73",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-knight-v1:standard-grenade-v1",
+    "magazine": 2,
+    "reserve": 0,
+    "selected": true
+   },
+   "weapon": "grenade",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "9f9e4ed19f0ae73f56ef78ef7b102381986950e8edc784beaba97a3159495f73",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "9c224d3a9db97d71a3bcf99958aad9c6ecf316deb3c2298b10bcada18e3f04d7",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ],
+ "surgicalKnife": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "31085d59a751e72d6992bd480131216cdf3942eda60e7656f9c01baa36bda68f",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "31085d59a751e72d6992bd480131216cdf3942eda60e7656f9c01baa36bda68f",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "31085d59a751e72d6992bd480131216cdf3942eda60e7656f9c01baa36bda68f",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 6.3124033563136015,
+     "z": -1.8261911967744275
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ebe7914332feea881bcec87e318e819cf13ab79c3805623e03b02f3817aaca78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 6.3124033563136015,
+     "z": -1.8261911967744275
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ebe7914332feea881bcec87e318e819cf13ab79c3805623e03b02f3817aaca78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 6.3124033563136015,
+     "z": -1.8261911967744275
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "ebe7914332feea881bcec87e318e819cf13ab79c3805623e03b02f3817aaca78",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "surgeons-knife-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cacf0926c952989968692d7398d980cfa21ed29d2bbbeba364d42451ffeb0ecf",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cacf0926c952989968692d7398d980cfa21ed29d2bbbeba364d42451ffeb0ecf",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cacf0926c952989968692d7398d980cfa21ed29d2bbbeba364d42451ffeb0ecf",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "surgeons-knife-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "63ba42a02af96218c24810c8185588201915337ddbf96e6139d45a3a472b05b0",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "surgeons-knife-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "63ba42a02af96218c24810c8185588201915337ddbf96e6139d45a3a472b05b0",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "63ba42a02af96218c24810c8185588201915337ddbf96e6139d45a3a472b05b0",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "surgeons-knife-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cacf0926c952989968692d7398d980cfa21ed29d2bbbeba364d42451ffeb0ecf",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "surgeons-knife-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "63ba42a02af96218c24810c8185588201915337ddbf96e6139d45a3a472b05b0",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "63ba42a02af96218c24810c8185588201915337ddbf96e6139d45a3a472b05b0",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "b56e1ff6296996c040f5d7a4b9c1f2130aa0c2eeebc3eca0bc799af23892d078",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-surgeon-v1:surgeons-knife-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "b56e1ff6296996c040f5d7a4b9c1f2130aa0c2eeebc3eca0bc799af23892d078",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "1c36318270fc20a1a87509f987e9d6e705cf8af98611941b3798b5648a166a14",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ],
+ "commanderPistol": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "da115d646720d90442a44ca161f8968d1010ea323cc2ce3d9cb9091b2f89f975",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "da115d646720d90442a44ca161f8968d1010ea323cc2ce3d9cb9091b2f89f975",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "da115d646720d90442a44ca161f8968d1010ea323cc2ce3d9cb9091b2f89f975",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 11,
+     "z": 6
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cd23c049cf6080bfb7fea1ae252318bd10047fd2486c9a9ef46a8b92d2a4394e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 11,
+     "z": 6
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cd23c049cf6080bfb7fea1ae252318bd10047fd2486c9a9ef46a8b92d2a4394e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 11,
+     "z": 6
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "cd23c049cf6080bfb7fea1ae252318bd10047fd2486c9a9ef46a8b92d2a4394e",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "borough-marshals-pistol-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-marshals-pistol-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "e758bc979475f8f838ca2f69e8733b6d3ec9346e844b269cc3e7b498fccea09a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-marshals-pistol-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "e758bc979475f8f838ca2f69e8733b6d3ec9346e844b269cc3e7b498fccea09a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-ammo-spent",
+      "field": "commanderPistol",
+      "itemId": "borough-marshals-pistol-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-too-soon",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "reload",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-marshals-pistol-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7bae4644a8a477c89b4340f4450a4d763752b6efc3765be48515fe3ead2c6714",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-marshals-pistol-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "c8fe70df0326b31a9ec7042fee20afa24ec48384046d83adecfa3f64cb48c5f9",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "railgun",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "c8fe70df0326b31a9ec7042fee20afa24ec48384046d83adecfa3f64cb48c5f9",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "73325b714e5db9ff7dc34530511566655f49d6967ee1bd81fd7d11120eddb391",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ],
+ "emberProjector": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6b0b09883f3662c301e0019c654519f680137a4ab6a44271149de9e49e169641",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6b0b09883f3662c301e0019c654519f680137a4ab6a44271149de9e49e169641",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6b0b09883f3662c301e0019c654519f680137a4ab6a44271149de9e49e169641",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 17.18287315952707,
+     "z": 3.774258450589379
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "6ccec567de560434264c18c687a90d5cf90c23f84fa78c5ee6b2deb4de11c1c6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 17.18287315952707,
+     "z": 3.774258450589379
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "6ccec567de560434264c18c687a90d5cf90c23f84fa78c5ee6b2deb4de11c1c6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 17.18287315952707,
+     "z": 3.774258450589379
+    },
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "6ccec567de560434264c18c687a90d5cf90c23f84fa78c5ee6b2deb4de11c1c6",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "ember-flamethrower-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "630a0a00ada5abbb9972ca6ffcdfdd73ae88200c72bb3d1a9b9951bf2de47577",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "630a0a00ada5abbb9972ca6ffcdfdd73ae88200c72bb3d1a9b9951bf2de47577",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "630a0a00ada5abbb9972ca6ffcdfdd73ae88200c72bb3d1a9b9951bf2de47577",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "ember-flamethrower-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "be9f49c4e19677ccac617fde8f8f15ae80f2d14cf97eb71c7bf187825a2a7f70",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "ember-flamethrower-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "be9f49c4e19677ccac617fde8f8f15ae80f2d14cf97eb71c7bf187825a2a7f70",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "be9f49c4e19677ccac617fde8f8f15ae80f2d14cf97eb71c7bf187825a2a7f70",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "ember-flamethrower-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "630a0a00ada5abbb9972ca6ffcdfdd73ae88200c72bb3d1a9b9951bf2de47577",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "ember-flamethrower-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "be9f49c4e19677ccac617fde8f8f15ae80f2d14cf97eb71c7bf187825a2a7f70",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 1,
+   "saveSha": "be9f49c4e19677ccac617fde8f8f15ae80f2d14cf97eb71c7bf187825a2a7f70",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 0,
+   "saveSha": "ddd8b66df9da9ce6724bbeddba883cba766802da0be3fa689ea71626c8a9d243",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+    "selected": true
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": true,
+   "fuel": {
+    "version": 1,
+    "collected": true,
+    "fuelUnits": 1000
+   },
+   "dropEvents": 0,
+   "saveSha": "ddd8b66df9da9ce6724bbeddba883cba766802da0be3fa689ea71626c8a9d243",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "297287880ee8b903f65e12051fdf8a790832f69b334b8dfd63aeb4c54a7e7c99",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ],
+ "rocketLauncher": [
+  {
+   "step": "fresh",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6d23e7c01b7bc470574417b5fd0296ade5dcefa6ffa1e97ec5c5e99859a540d9",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "kill-quota-fail",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6d23e7c01b7bc470574417b5fd0296ade5dcefa6ffa1e97ec5c5e99859a540d9",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": false
+  },
+  {
+   "step": "kill-persist",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "6d23e7c01b7bc470574417b5fd0296ade5dcefa6ffa1e97ec5c5e99859a540d9",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "persisted": true
+  },
+  {
+   "step": "kill-persist-again",
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 1.4857667671989137,
+     "z": 2.179408417557422
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "8d0421e391d186c9dae549a5c6375492f7f5e7d09369a9068307c617c4736d99",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-too-far",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 1.4857667671989137,
+     "z": 2.179408417557422
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "8d0421e391d186c9dae549a5c6375492f7f5e7d09369a9068307c617c4736d99",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "storage-unavailable",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "pending",
+    "dropPosition": {
+     "x": 1.4857667671989137,
+     "z": 2.179408417557422
+    },
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "8d0421e391d186c9dae549a5c6375492f7f5e7d09369a9068307c617c4736d99",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-pickup",
+      "itemId": "borough-butchers-rocket-launcher-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "4acd05687f22c36767cc1cb57ac62ddff3f3dfb137824fdec734842cdc25efec",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "claim-again",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "4acd05687f22c36767cc1cb57ac62ddff3f3dfb137824fdec734842cdc25efec",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-bad",
+   "result": {
+    "ok": false,
+    "code": "invalid-command",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "4acd05687f22c36767cc1cb57ac62ddff3f3dfb137824fdec734842cdc25efec",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-butchers-rocket-launcher-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "52fd1751c742373e86fd5a87e89baa7d9e721a777d45a4ae8f8628aeb19a2ffe",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "equip-again",
+   "result": {
+    "ok": true,
+    "changed": false,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-butchers-rocket-launcher-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 1,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "52fd1751c742373e86fd5a87e89baa7d9e721a777d45a4ae8f8628aeb19a2ffe",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-ammo-spent",
+      "field": "rocketLauncher",
+      "itemId": "borough-butchers-rocket-launcher-v1"
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-too-soon",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "reload",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "fire-quota-fail",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "variant-select",
+   "result": {
+    "ok": false,
+    "code": "not-eligible",
+    "events": []
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "unequip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-butchers-rocket-launcher-v1",
+      "equipped": false
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": false
+   },
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "986ec5cb2434c2ac980d7d83dcf7711cc01c8b7df917de5849d9f8d892fd7756",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "re-equip",
+   "result": {
+    "ok": true,
+    "changed": true,
+    "events": [
+     {
+      "type": "boss-equipment-selected",
+      "itemId": "borough-butchers-rocket-launcher-v1",
+      "equipped": true
+     }
+    ]
+   },
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 1,
+   "saveSha": "76e429e260f628297080af110b5c2cb875c451309eeb5663b344843a3b1dd99a",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "retried": true
+  },
+  {
+   "step": "after-retry",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "98ec63fb9dcc097c5579af8537f16291f80a02c8c89db2fa8ffb831c304fcc84",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ]
+  },
+  {
+   "step": "cold-restore",
+   "state": {
+    "version": 1,
+    "status": "owned",
+    "dropPosition": null,
+    "rewardReceipt": "boss-butcher-v1:borough-butchers-rocket-launcher-v1",
+    "magazine": 0,
+    "reserve": 3,
+    "selected": true
+   },
+   "weapon": "rocket",
+   "pistolEquipped": false,
+   "rifleSelected": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "98ec63fb9dcc097c5579af8537f16291f80a02c8c89db2fa8ffb831c304fcc84",
+   "keys": [
+    "armagedom:central-hub-run:v17"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-v11-direct",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-v10",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v10"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-legacy-v9",
+   "state": {
+    "version": 1,
+    "status": "eligible",
+    "dropPosition": null,
+    "rewardReceipt": null,
+    "magazine": 0,
+    "reserve": 0,
+    "selected": false
+   },
+   "weapon": "rifle",
+   "pistolEquipped": false,
+   "rifleSelected": true,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": "69ffcf5193c1a1c4d5f7224de02582cb1eafa35d7065e139b6d1d06a0ff3ef72",
+   "keys": [
+    "armagedom:central-hub-run:v17",
+    "armagedom:rifle-run:v9"
+   ],
+   "invalid": false
+  },
+  {
+   "step": "restore-tampered",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  },
+  {
+   "step": "restore-open-envelope",
+   "weapon": "knife",
+   "pistolEquipped": false,
+   "flameEquipped": false,
+   "fuel": {
+    "version": 1,
+    "collected": false,
+    "fuelUnits": 0
+   },
+   "dropEvents": 0,
+   "saveSha": null,
+   "keys": [
+    "armagedom:boss-equipment-run:v11"
+   ],
+   "invalid": true
+  }
+ ]
+}
