@@ -159,6 +159,12 @@ export function createWeaponTiles(s, select) {
     const row = carriedWeaponTiles(s.game).find((r) => r.id === button.dataset.weaponId);
     if (!row || (row.active && !row.companion)) return;
     const control = document.getElementById(row.control);
+    if (row.empty && control?.disabled) {
+      // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
+      s.game.message = `${row.name} is empty.`;
+      s.game.messageUntil = s.game.time + 4;
+      return;
+    }
     if (!control || control.disabled) return;
     selecting = true;
     try {
@@ -237,7 +243,9 @@ export function createWeaponTiles(s, select) {
     for (const row of rows) {
       const b = buttons.get(row.id),
         control = document.getElementById(row.control);
-      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled);
+      // An empty tile stays tappable so the tap can explain why it will not equip.
+      const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
+      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;
       b.setAttribute("aria-pressed", String(row.active));
       b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? " · equipped" : " · tap to equip"}`);
       const ammo = b.querySelector("small");

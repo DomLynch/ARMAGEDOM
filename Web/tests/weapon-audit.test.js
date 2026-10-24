@@ -124,3 +124,74 @@ test("row 5: equipping an empty flamethrower tells the player why and changes no
     else globalThis.document = previous;
   }
 });
+
+class Node extends EventTarget {
+  constructor(tag = "") {
+    super();
+    this.tagName = tag.toUpperCase();
+    this.children = [];
+    this.dataset = {};
+    this.attributes = new Map();
+    this.hidden = false;
+    this.disabled = false;
+    this.scrollLeft = 0;
+    this.style = { setProperty: (k, v) => (this.style[k] = v) };
+  }
+  append(...n) {
+    this.children.push(...n);
+  }
+  replaceChildren(...n) {
+    this.children = [...n];
+  }
+  setAttribute(k, v) {
+    this.attributes.set(k, String(v));
+  }
+  removeAttribute(k) {
+    this.attributes.delete(k);
+  }
+  querySelectorAll(sel) {
+    return this.children.flatMap((n) => [
+      ...(sel === "[data-weapon-id]" && n.dataset.weaponId ? [n] : sel === n.tagName.toLowerCase() ? [n] : []),
+      ...n.querySelectorAll(sel),
+    ]);
+  }
+  querySelector(sel) {
+    return this.querySelectorAll(sel)[0];
+  }
+  closest(sel) {
+    return sel === "[data-weapon-id]" && this.dataset.weaponId ? this : null;
+  }
+  scrollTo({ left }) {
+    this.scrollLeft = left;
+    this.dispatchEvent(new Event("scroll"));
+  }
+}
+
+test("row 5b: tapping an empty tile whose Gear control is disabled says it is empty; selection does not run", async () => {
+  const { createWeaponTiles } = await import("../src/engine/weapon-tiles.js");
+  const g = make().g,
+    nodes = new Map(),
+    previous = globalThis.document,
+    el = (id) => nodes.get(id) ?? nodes.set(id, new Node()).get(id);
+  g.flameFuel = { ...g.flameFuel, fuelUnits: 0 };
+  const flame = carriedWeaponTiles(g).find((r) => /flame|emberProjector/.test(r.control));
+  el(flame.control).disabled = true; // the Gear control is disabled at 0 fuel
+  globalThis.document = { getElementById: el, createElement: (tag) => new Node(tag) };
+  let selected = 0;
+  const tiles = createWeaponTiles({ game: g, loaded: true, paused: false }, () => selected++);
+  try {
+    tiles.update();
+    const track = el("weapon-tiles-track"),
+      tile = track.querySelectorAll("[data-weapon-id]").find((b) => b.dataset.weaponId === flame.id);
+    assert(tile && !tile.disabled, "an empty tile stays tappable");
+    const click = new Event("click", { cancelable: true });
+    Object.defineProperty(click, "target", { value: tile });
+    track.dispatchEvent(click);
+    assert.match(g.message, /Ember Projector is empty/);
+    assert(g.messageUntil > g.time);
+    assert.equal(selected, 0);
+  } finally {
+    tiles.dispose();
+    globalThis.document = previous;
+  }
+});
