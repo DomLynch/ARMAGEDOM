@@ -1,4 +1,4 @@
-# The ARMAGEDOM presence service (W2): who is where, one layer per area, hits batched to the writer. Binds 127.0.0.1:8892; nginx proxies
+# The ARMAGEDOM presence service (W2): who is where, one layer per area, hits batched to the writer. Binds 127.0.0.1:8894 (PRESENCE_PORT in presence.env; 8892 is taken on the VPS); nginx proxies
 # /arma/ws to it. It holds NO database credential: it reaches the database only through the writer on 127.0.0.1:8891.
 # TEMPLATE: not installed. Deploy installs it as /etc/systemd/system/arma-presence.service after the review in docs/MULTIPLAYER-DEPLOY-PLAN.md.
 [Unit]

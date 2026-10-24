@@ -1,5 +1,5 @@
 // node server/presence/main.js: the presence service. OFF unless ARMA_PRESENCE=1, so nothing listens by accident (a kill flag, as in Origins).
-// Binds 127.0.0.1:8892 (the writer is 8891; Frankendom uses 8787, 8788 and 8793). Keys come from the environment, never from the repo:
+// Binds 127.0.0.1:8894 (the writer is 8891; Frankendom uses 8787, 8788 and 8793; 8892 is taken by a static preview server on the VPS). Keys come from the environment, never from the repo:
 //   SUPABASE_URL        https://<ref>.supabase.co
 //   SUPABASE_ANON_KEY   the publishable key, used only to ask /auth/v1/user who a token belongs to
 //   ARMA_INTERNAL_KEY   shared with the writer (its /internal/hits and /internal/location); presence holds no database credential
@@ -21,7 +21,7 @@ if (process.env.ARMA_PRESENCE !== "1") {
 }
 const need = (name) => process.env[name] || (() => { throw new Error(`set ${name}`); })();
 const host = process.env.PRESENCE_HOST ?? "127.0.0.1",
-  port = Number(process.env.PRESENCE_PORT ?? 8892),
+  port = Number(process.env.PRESENCE_PORT ?? 8894),
   tickMs = Number(process.env.PRESENCE_TICK_MS ?? 100);
 if (host !== "127.0.0.1" && process.env.ARMA_ALLOW_PUBLIC !== "1") throw new Error("presence binds 127.0.0.1 only");
 
