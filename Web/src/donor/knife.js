@@ -29,7 +29,9 @@ const move = (moveId, row) =>
     parryable: true,
     cooldown: row.cooldown ?? 0,
   });
-export const KNIFE_MOVES = Object.freeze(Object.fromEntries(Object.entries(KNIFE.moves).map(([id, row]) => [id, move(id, row)])));
+export const KNIFE_MOVES = Object.freeze(
+  Object.fromEntries(Object.entries(KNIFE.moves).map(([id, row]) => [id, move(id, row)])),
+);
 export const KNIFE_STAMINA_COSTS = KNIFE.staminaCosts;
 export const KNIFE_COOLDOWNS = Object.freeze({
   heavy: KNIFE.cooldowns.heavy,
