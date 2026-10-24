@@ -47,13 +47,26 @@ export function validateKnife(k) {
   const ids = Object.keys(k.moves ?? {});
   if (ids.join() !== "light_right,light_left,thrust,heavy_overhead,skill_pommel") fail("weapons", "knife.moves ids");
   const base = [
-    "clip", "path", "windupTicks", "activeTicks", "recoveryTicks", "damage", "staminaDamage", "staggerTicks", "chip", "reach",
-    "stepIn", "knockback", "sourceContact", "stamina",
+    "clip",
+    "path",
+    "windupTicks",
+    "activeTicks",
+    "recoveryTicks",
+    "damage",
+    "staminaDamage",
+    "staggerTicks",
+    "chip",
+    "reach",
+    "stepIn",
+    "knockback",
+    "sourceContact",
+    "stamina",
   ];
   for (const id of ids) {
     const row = k.moves[id];
     closed(row, id === "skill_pommel" ? [...base, "cooldown"] : base);
-    if (typeof row.clip !== "string" || !(row.path === null || typeof row.path === "string")) fail("weapons", `knife.moves.${id} clip/path`);
+    if (typeof row.clip !== "string" || !(row.path === null || typeof row.path === "string"))
+      fail("weapons", `knife.moves.${id} clip/path`);
     for (const f of base.slice(2)) number("weapons", `knife.moves.${id}.${f}`, row[f]);
     for (const f of ["windupTicks", "activeTicks", "recoveryTicks", "staggerTicks"])
       count("weapons", `knife.moves.${id}.${f}`, row[f], 0, 600);
