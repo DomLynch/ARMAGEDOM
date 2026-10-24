@@ -26,6 +26,15 @@ function world(overrides = {}) {
     ...overrides,
   };
 }
+// Advance game time in half-second frames, like the loop does, and return the last hint text.
+function run(hints, g, seconds) {
+  let last = "";
+  for (let t = 0; t < seconds - 1e-9; t += 0.5) {
+    g.time += Math.min(0.5, seconds - t);
+    last = hints.current(g);
+  }
+  return last;
+}
 const scavenger = (x, z, extra = {}) => ({ id: 1, hp: 30, pos: { x, z }, ...extra });
 
 test("the table is valid data: unique ids, one known trigger each, short texts", () => {
@@ -102,13 +111,27 @@ test("each hint shows once for a few seconds, then never again, even after a rel
   const hints = createFirstTimeHints({ storage });
   const g = world({ enemies: [scavenger(2, 0)] });
   assert.equal(hints.current(g), text("attack"));
-  g.time += HINT_SECONDS - 0.1;
-  assert.equal(hints.current(g), text("attack"));
-  g.time += 0.2;
-  assert.equal(hints.current(g), "");
+  assert.equal(run(hints, g, HINT_SECONDS - 0.5), text("attack"));
+  assert.equal(run(hints, g, 1), "");
   assert.deepEqual(JSON.parse(storage.data.get(HINT_STORAGE_KEY)), ["attack"]);
   const reloaded = createFirstTimeHints({ storage });
   assert.equal(reloaded.current(g), "");
+});
+
+test("a live game message holds a hint back: it neither starts nor runs down underneath the message", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world({ enemies: [scavenger(2, 0)] });
+  g.message = "LONDON · Hollow scavengers. Keep space, guard, then counter.";
+  g.messageUntil = g.time + 5;
+  assert.equal(run(hints, g, 4.5), "");
+  assert.equal(hints.current(g), "", "not marked seen while hidden");
+  assert.equal(run(hints, g, 1), text("attack"));
+  assert.equal(run(hints, g, HINT_SECONDS - 1.5), text("attack"));
+  g.messageUntil = g.time + 3;
+  assert.equal(run(hints, g, 2.5), "");
+  // One second of its five was left; the message hid it without using any of that up.
+  assert.equal(run(hints, g, 0.5), text("attack"));
+  assert.equal(run(hints, g, 1), "");
 });
 
 test("hints queue one at a time and wait for the current one to finish", () => {
@@ -116,10 +139,8 @@ test("hints queue one at a time and wait for the current one to finish", () => {
   const g = world({ enemies: [scavenger(2, 0)] });
   g.world.exitHint = () => "EAST ->";
   assert.equal(hints.current(g), text("attack"));
-  g.time += 1;
-  assert.equal(hints.current(g), text("attack"));
-  g.time += HINT_SECONDS;
-  assert.equal(hints.current(g), text("map"));
+  assert.equal(run(hints, g, 1), text("attack"));
+  assert.equal(run(hints, g, HINT_SECONDS), text("map"));
 });
 
 test("no hint while the run is over, and no hint when the player is dead", () => {

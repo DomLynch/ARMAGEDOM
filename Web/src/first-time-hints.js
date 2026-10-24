@@ -59,6 +59,7 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
   }
   let tookHit = false;
   let active = null;
+  let lastTime = 0;
   function remember(id) {
     seen.add(id);
     try {
@@ -73,16 +74,22 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
       for (const event of g.events ?? []) if (event.type === "hit" && event.actor === g.player) tookHit = true;
     },
     // Text for the notice line, or "". Starts the next unseen relevant row when none is showing.
+    // A live game message owns the line, so a hint neither starts nor runs down underneath it.
     current(g) {
-      if (g.finished || g.player.hp <= 0) return "";
-      if (active && g.time < active.until) return active.text;
-      active = null;
+      const elapsed = Math.min(Math.max(g.time - lastTime, 0), 1);
+      lastTime = g.time;
+      if (g.finished || g.player.hp <= 0 || g.time < (g.messageUntil ?? 0)) return "";
+      if (active) {
+        active.left -= elapsed;
+        if (active.left > 0) return active.text;
+        active = null;
+      }
       for (const row of rows) {
         if (seen.has(row.id)) continue;
         const [[key, argument]] = Object.entries(row.when);
         if (!checks[key](argument, { g, tookHit })) continue;
         remember(row.id);
-        active = { text: row.text, until: g.time + HINT_SECONDS };
+        active = { text: row.text, left: HINT_SECONDS };
         return row.text;
       }
       return "";
