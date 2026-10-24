@@ -1,0 +1,19 @@
+{
+  "purpose": "Release 226 phone texture copy of the Hollow Scavenger body. Original untouched; copy is a new file.",
+  "tool": "art/phone-texture/cap_tex_roles.py src dst mr=512 (Pillow LANCZOS, JPEG q90 4:4:4 optimize). Only image bufferView payloads change; all other bufferViews byte-identical in original order.",
+  "file": {
+    "path": "Web/public/assets/hollow-scavenger/hollow-scavenger-phone.glb",
+    "source": "Web/public/assets/hollow-scavenger/hollow-scavenger.glb",
+    "sourceSha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff",
+    "sourceBytes": 4329068,
+    "sha256": "42a7173622122412ad90d0821420c1173def4cb9facf5039b19a358cbe58aa5c",
+    "bytes": 4255620,
+    "changedImages": "image 1 (metallic-roughness JPEG, 2048 -> 512). Colour (1024, 512, 512) and normal (1024) maps unchanged.",
+    "estimatedGpuMB": {"before": 34.7, "after": 14.7, "basis": "RGBA8 with full mip chain (x4/3) per image"}
+  },
+  "verification": {
+    "compare": "art/phone-texture/verify.py: 3623 non-image bufferViews byte-identical, rest of glTF JSON identical apart from bufferView offsets / buffer length.",
+    "stills": "art/phone-texture/hollow-stills (fight camera pos 0,23,26 fov 42, game lights, 375x812 @2x, 5x zoom, native knife): idle, walk (HollowWalk) and Attack at contact. pixel-diff.txt: max channel diff 0-3, no pixel differs by more than 8."
+  },
+  "pins": "Only Web/public/assets/manifest-hollow.json changes: model row url + inline sha256/bytes, new files record hollow-phone. The sourceManifests (hollow-scavenger/manifest.json), carrier/provenance sha fields and every test that reads the original file keep the original sha; nothing at runtime reads those sha fields."
+}
