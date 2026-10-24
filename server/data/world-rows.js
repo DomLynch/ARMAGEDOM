@@ -113,6 +113,22 @@ export function seedLootRows(spawnRows, sources) {
   return rows.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]));
 }
 
+/** [recordPath, item] for every always-drop weapon: where a save record keeps it and the loot item that is its receipt. Each path and item appears once. */
+export function seedItemSources(sources) {
+  const seen = new Set(),
+    items = new Set();
+  return sources
+    .map(({ path, itemId }) => {
+      if (typeof path !== "string" || !/^[A-Za-z]+(\.[A-Za-z]+)?$/.test(path)) throw new Error(`item source: bad record path ${JSON.stringify(path)}`);
+      if (typeof itemId !== "string" || !ITEM.test(itemId)) throw new Error(`item source ${path}: bad item ${JSON.stringify(itemId)}`);
+      if (seen.has(path) || items.has(itemId)) throw new Error(`item source ${path}: duplicate path or item`);
+      seen.add(path);
+      items.add(itemId);
+      return [path, itemId];
+    })
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1));
+}
+
 /** Weapon rows ([weapon, maxDamagePerHit, maxHitsPerS]) with each damage cap raised to base x the max progression multiplier. */
 export function applyProgressionCeiling(weaponRows, progression) {
   for (const id of Object.keys(progression.weapons))
