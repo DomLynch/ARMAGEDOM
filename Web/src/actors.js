@@ -362,9 +362,14 @@ export function createActors(
       ];
     if (entity.rig === "original-roach" && (description.scale === 3 || description.scale === 4))
       animations = [...animations, THREE.AnimationClip.parse(roachBite)];
+    // The clone, clip parsing and the coat work below were one 35-58 ms step; each now ends its own step.
+    yield "actor-source";
     let feral = null;
     if (entity.rig === "original-dog" && description.scale === 2) {
-      if (!dogKits.has(source.gltf.scene)) dogKits.set(source.gltf.scene, createFeralDogLibrary(source.gltf.scene));
+      if (!dogKits.has(source.gltf.scene)) {
+        dogKits.set(source.gltf.scene, createFeralDogLibrary(source.gltf.scene));
+        yield "dog-kit";
+      }
       feral = dogKits.get(source.gltf.scene).apply(model);
       animations = [...animations, THREE.AnimationClip.parse(dogBite)];
     }
@@ -377,6 +382,7 @@ export function createActors(
       else if (entity.rig === "original-roach") roachLooks.apply(model, animalAppearanceId);
       else dogCoats.apply(model, animalAppearanceId);
     }
+    yield "actor-coat";
     const pistolMount = entity.kind < 0 && library.pistolAsset ? attachPistol(model, library.pistolAsset.scene) : null;
     if (pistolMount) pistolMount.visible = false;
     const knife = entity.kind < 0 || entity.bossProfile?.weapon ? model.getObjectByName("WeaponDrawn") : null;
