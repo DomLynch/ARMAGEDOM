@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHUD } from "../src/hud.js";
 
 // Tests assert structure, not sentences: a HUD line is present, short and carries its fact, whatever the wording.
-const shortLine = (text, max = 40) => typeof text === "string" && text.length > 0 && text.length <= max;
+const shortLine = (text, max = 32) => typeof text === "string" && text.length > 0 && text.length <= max;
 
 class Element extends EventTarget {
   constructor() {
