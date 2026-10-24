@@ -1,0 +1,70 @@
+# The source gate on GitHub runners (ci-runners-first, Dom 2026-10-12 and 2026-10-24).
+# Every PR and every push to main runs verify_web.mjs split across shards, plus the
+# server/db tests. `web-gate` is the single required check; it passes only when all do.
+# Packaging, rollback-saves, browser and phone acceptance stay with Deploy.
+name: web-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: web-gate-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: web ${{ matrix.shard }}/8
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: node scripts/verify_web.mjs
+        env:
+          VERIFY_WEB_SHARD: ${{ matrix.shard }}/8
+
+  server:
+    name: server db + presence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: npm install --no-audit --no-fund
+        working-directory: server/db
+      - run: npm test
+        working-directory: server/db
+      # server/presence imports Web/src rule tables; it has no package of its own.
+      - run: node --test server/presence/*.test.js
+
+  web-gate:
+    name: web-gate
+    if: always()
+    needs: [web, server]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "web: ${{ needs.web.result }}  server: ${{ needs.server.result }}"
+          test "${{ needs.web.result }}" = success
+          test "${{ needs.server.result }}" = success
