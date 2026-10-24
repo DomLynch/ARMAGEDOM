@@ -9,6 +9,7 @@ const INSTANCE = /^[a-z0-9._:-]{1,96}$/;
 const KIND = /^[a-z0-9._:-]{1,64}$/;
 const AREA = /^[a-z][a-z0-9.-]{0,31}$/;
 const WEAPON = /^[a-z0-9._:-]{1,64}$/;
+const ITEM = /^[a-z0-9._:-]{1,120}$/;
 
 const positive = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
 
@@ -89,6 +90,27 @@ export function seedPayoutRows(spawnRows, bossKinds, marked) {
   if (!kinds.length) throw new Error("payout rows: no spawn rows");
   for (const kind of kinds) if (typeof kind !== "string" || !KIND.test(kind)) throw new Error(`payout rows: bad kind ${JSON.stringify(kind)}`);
   return kinds.map((kind) => [kind, bossKinds.has(kind) ? marked.bossCash : marked.cashPerKill]);
+}
+
+/**
+ * The always-drop weapon rows the settle rolls: [lootKey, slot, item, chance]. The loot key is the spawn INSTANCE ("area:placement"), because the game
+ * names unique drops by (area, placement) and one creature kind ("hollow-scavenger") is shared by placements with different drops. `sources` is
+ * [{ areaId, placementKey, itemId }] taken from the game's data (boss equipment, rifle, unique reward); every source must name a real spawn row, so a
+ * typo or a moved placement stops the load instead of becoming a drop nobody can earn. Consumables (rounds, dressing, vest) are not seeded.
+ */
+export function seedLootRows(spawnRows, sources) {
+  const instances = new Set(spawnRows.map((row) => row.instance));
+  const slots = new Map(),
+    rows = [];
+  for (const { areaId, placementKey, itemId } of sources) {
+    const lootKey = `${areaId}:${placementKey}`;
+    if (!instances.has(lootKey)) throw new Error(`loot source ${lootKey} is not a spawn row`);
+    if (typeof itemId !== "string" || !ITEM.test(itemId)) throw new Error(`loot source ${lootKey}: bad item ${JSON.stringify(itemId)}`);
+    const slot = slots.get(lootKey) ?? 0;
+    slots.set(lootKey, slot + 1);
+    rows.push([lootKey, slot, itemId, 1]);
+  }
+  return rows.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]));
 }
 
 /** Weapon rows ([weapon, maxDamagePerHit, maxHitsPerS]) with each damage cap raised to base x the max progression multiplier. */

@@ -18,7 +18,7 @@ async function start({ limits = UNLIMITED, now } = {}) {
   const pg = await freshDb();
   await pg.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'"); // these tests save the v18 fixture; see cash.test.js
   await openFor(pg, ids.alice, ids.bob);
-  await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1);`);
+  await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); delete from public.arma_loot_rules; insert into public.arma_loot_rules values ('wolf-1', 0, 'wolf-pelt', 1);`);
   await pg.exec("set role arma_writer");
   const db = { query: async (sql, params) => (await pg.query(sql, params)).rows };
   const verify = async (token) => (token.startsWith("user:") ? token.slice(5) : null);
