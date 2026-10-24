@@ -931,6 +931,7 @@ export function createActors(
     // Finish every deferred finisher preparation now, in one go (tests, and tools that need the full recipe set).
     completeFinisherPreparation() {
       for (const _ of finishDeferredSteps());
+    },
     // The same preparation as one step at a time (what the idle pump runs a slice of), rig pose held per step.
     deferredFinisherSteps: finishDeferredSteps,
     finisherPreparationStats: () => finisherPump.stats(),
