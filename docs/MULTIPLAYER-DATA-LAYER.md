@@ -30,7 +30,9 @@ The v18 record (from `Web/tests/fixtures/navigation203-source202-v18.json`) has 
 
 ## Proposal (three small PRs, each tier B, each with tests)
 
-**PR 1: the envelope (sequence number, shape, caps).**
+**PR 1: the envelope (sequence number, shape, caps).** BUILT in migration 000007 (not applied anywhere). As built: refusals are `{refused: 'shape'|'cap', reason: 'cap:<path>'}`;
+caps are rows in `arma_record_caps` (longest matching path pattern wins; the numbers are generous ceilings for Combat to tighten); null leaves are allowed (the game
+writes `dropPosition: null`); the writer's limits are `DEFAULT_LIMITS` in `server/writer/writer.js` (429 `rate-limited` with `retryMs`).
 - `save_run` takes `seq` (client counter, increases on every NEW save attempt, reused on a retry). The ledger keeps `last_seq`, a hash of that
   save and its result on `arma_runs`. Rules: `seq > last_seq` applies; `seq == last_seq` with the same hash returns the stored result (the
   retry is a no-op that answers like the first time); same `seq` with a different hash is a conflict; `seq < last_seq` is stale.

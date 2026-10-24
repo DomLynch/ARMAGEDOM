@@ -50,7 +50,8 @@ test("client roles cannot call the writer functions, and the helpers answer only
   const { db, alice } = await setup();
   for (const sql of [
     ["select public.arma_create_character($1, 'Z')", [ids.alice]],
-    ["select public.arma_save_run($1, $2, 18, '{\"version\":18}', 0)", [ids.alice, alice]],
+    ["select public.arma_save_run($1, $2, 18, '{\"version\":18}', 0, 1)", [ids.alice, alice]],
+    ["select public.arma_check_record('{\"version\":18}')", []],
     ["select public.arma_allowed($1)", [ids.alice]],
     ["select public.arma_owns($2, $1)", [ids.alice, alice]],
   ])
@@ -65,10 +66,10 @@ test("the server roles have no table grants, only the functions they are given",
   const { db, alice } = await setup();
   assert.match((await as(db, "arma_writer", null, () => failure(call(db, "select * from public.arma_runs"))))?.message ?? "NO ERROR", /permission denied/);
   assert.match((await as(db, "arma_writer", null, () => failure(db.exec("delete from public.arma_characters"))))?.message ?? "NO ERROR", /permission denied/);
-  assert.equal((await as(db, "arma_writer", null, () => call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, 0) as r", [ids.alice, alice, JSON.stringify(v18)])))[0].r.revision, 1);
+  assert.equal((await as(db, "arma_writer", null, () => call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, 0, 1) as r", [ids.alice, alice, JSON.stringify(v18)])))[0].r.revision, 1);
   // Presence may move characters and nothing else.
   assert.equal((await as(db, "arma_presence", null, () => call(db, "select public.arma_save_location($1, 'westminster', 100, 200, $2) as r", [ids.alice, Date.now()])))[0].r.stored, true);
-  assert.match((await as(db, "arma_presence", null, () => failure(call(db, "select public.arma_save_run($1, $2, 18, '{\"version\":18}', 0)", [ids.alice, alice]))))?.message ?? "NO ERROR", /permission denied/);
+  assert.match((await as(db, "arma_presence", null, () => failure(call(db, "select public.arma_save_run($1, $2, 18, '{\"version\":18}', 0, 1)", [ids.alice, alice]))))?.message ?? "NO ERROR", /permission denied/);
   assert.match((await as(db, "arma_presence", null, () => failure(call(db, "select * from public.arma_character_location"))))?.message ?? "NO ERROR", /permission denied/);
 });
 
@@ -106,7 +107,9 @@ test("location: the latest observation wins, the future is clamped, and ids are 
 
 test("the run: create, stale refusal, era and shape checks, ownership, and a real v18 record round-trips", async () => {
   const { db, alice, bob } = await setup();
-  const save = (account, character, era, record, expected) => call(db, "select public.arma_save_run($1, $2, $3, $4::jsonb, $5) as r", [account, character, era, JSON.stringify(record), expected]).then((r) => r[0].r);
+  // Every call here uses a fresh, rising sequence number (the envelope tests cover seq itself).
+  let seq = 0;
+  const save = (account, character, era, record, expected) => call(db, "select public.arma_save_run($1, $2, $3, $4::jsonb, $5, $6) as r", [account, character, era, JSON.stringify(record), expected, ++seq]).then((r) => r[0].r);
   assert.equal((await save(ids.alice, alice, 18, v18, 5)).refused, "stale", "a new run must be created with expected revision 0");
   assert.equal((await save(ids.alice, alice, 18, v18, 0)).revision, 1);
   assert.deepEqual(await save(ids.alice, alice, 18, v18, 0), { refused: "stale", revision: 1 }, "a second phone with the old revision is refused");

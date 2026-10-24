@@ -10,10 +10,11 @@ const MAX_BODY = 256 * 1024;
 const STATUS = { O0007: 403, O0009: 409, O0002: 422, O0001: 200 };
 
 class HttpError extends Error {
-  constructor(status, code) {
+  constructor(status, code, extra = {}) {
     super(code);
     this.status = status;
     this.code = code;
+    this.extra = extra;
   }
 }
 const same = (a, b) => {
@@ -22,6 +23,10 @@ const same = (a, b) => {
   return x.length === y.length && timingSafeEqual(x, y);
 };
 
+// Per-account token buckets on the client routes that cost a database round trip: `burst` requests at once, then one more every `refillMs`.
+// Proposed numbers (docs/MULTIPLAYER-DATA-LAYER.md): saves 1 per 5 s, burst 3; loads 1 per second, burst 3.
+export const DEFAULT_LIMITS = { save_run: { burst: 3, refillMs: 5000 }, load_run: { burst: 3, refillMs: 1000 } };
+
 /** spawnRows over a plain object of world rows; names like "constructor" or "__proto__" are unknown spawns, not prototype values. */
 export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, instance) ? spawns[instance] : null);
 
@@ -29,10 +34,28 @@ export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, in
  * db.query(sql, params) -> rows (a pg Pool or any adapter); verify(token) -> account uuid or null;
  * spawnRows(instance) -> { kind, area, maxHp } from the world rows, or null (the phone never names these).
  */
-export function createWriter({ db, verify, spawnRows, internalKey, log = () => {}, now = Date.now }) {
+export function createWriter({ db, verify, spawnRows, internalKey, log = () => {}, now = Date.now, limits = DEFAULT_LIMITS }) {
   const lanes = new Map(); // account -> promise chain: one request at a time per account
   const counts = { requests: 0, refused: {}, hitBatches: 0, hitRows: 0, locations: 0 };
   const refuse = (why) => (counts.refused[why] = (counts.refused[why] ?? 0) + 1);
+  const buckets = new Map(); // "<account> <op>" -> { tokens, at }
+  /** Spend one token of the account's bucket for this op, or throw 429 with the wait in ms. An op with no limit passes. */
+  const spend = (account, op) => {
+    const limit = limits[op];
+    if (!limit) return;
+    const key = `${account} ${op}`,
+      t = now();
+    const had = buckets.get(key) ?? { tokens: limit.burst, at: t };
+    const tokens = Math.min(limit.burst, had.tokens + Math.max(0, t - had.at) / limit.refillMs);
+    if (tokens < 1) throw new HttpError(429, "rate-limited", { retryMs: Math.ceil((1 - tokens) * limit.refillMs) });
+    buckets.set(key, { tokens: tokens - 1, at: t });
+    // A full bucket is the same as no bucket: forget those so the map cannot grow with every account ever seen.
+    if (buckets.size > 20000)
+      for (const [k, b] of buckets) {
+        const l = limits[k.split(" ")[1]];
+        if (b.tokens + (t - b.at) / l.refillMs >= l.burst) buckets.delete(k);
+      }
+  };
   const call = async (fn, params) => {
     const marks = params.map((_, i) => `$${i + 1}`).join(", ");
     return (await db.query(`select public.${fn}(${marks}) as r`, params))[0]?.r;
@@ -49,9 +72,10 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       return { run: await call("arma_load_run", [account, String(body.character ?? "")]) };
     },
     async save_run({ account, body }) {
-      const { character, era, record, revision } = body;
-      if (!Number.isInteger(era) || !Number.isInteger(revision) || typeof record !== "object" || record === null) throw new HttpError(400, "bad-request");
-      return call("arma_save_run", [account, String(character ?? ""), era, JSON.stringify(record), revision]);
+      const { character, era, record, revision, seq } = body;
+      if (!Number.isInteger(era) || !Number.isInteger(revision) || !Number.isInteger(seq) || seq < 1 || seq > 2147483647 || typeof record !== "object" || record === null || Array.isArray(record))
+        throw new HttpError(400, "bad-request");
+      return call("arma_save_run", [account, String(character ?? ""), era, JSON.stringify(record), revision, seq]);
     },
     async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];
@@ -125,6 +149,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
         if (!token) throw new HttpError(401, "token");
         const account = await verify(token);
         if (!account) throw new HttpError(401, "token");
+        spend(account, op);
         const body = await readJson(req);
         return send(res, 200, await serialise(account, () => clientOps[op]({ account, body })));
       }
@@ -134,7 +159,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       const code = error instanceof HttpError ? error.code : error?.code ?? "error";
       refuse(code);
       if (status === 500) log(`writer error: ${error?.message}`);
-      send(res, status, { error: code });
+      send(res, status, { error: code, ...(error instanceof HttpError ? error.extra : {}) });
     }
   });
   return { server, stats: () => ({ ...counts }) };

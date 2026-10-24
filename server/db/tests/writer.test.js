@@ -11,14 +11,17 @@ const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navi
 const KEY = "internal-key-for-tests";
 const spawns = { "wolf-1": { kind: "wolf", area: "east", maxHp: 40 } };
 
-async function start() {
+// Tests that are not about the rate limit run with limits too high to matter; the limit tests pass their own.
+const UNLIMITED = { save_run: { burst: 1e6, refillMs: 1 }, load_run: { burst: 1e6, refillMs: 1 } };
+
+async function start({ limits = UNLIMITED, now } = {}) {
   const pg = await freshDb();
   await openFor(pg, ids.alice, ids.bob);
   await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1);`);
   await pg.exec("set role arma_writer");
   const db = { query: async (sql, params) => (await pg.query(sql, params)).rows };
   const verify = async (token) => (token.startsWith("user:") ? token.slice(5) : null);
-  const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: KEY });
+  const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: KEY, limits, ...(now ? { now } : {}) });
   await new Promise((resolve) => writer.server.listen(0, "127.0.0.1", resolve));
   const base = `http://127.0.0.1:${writer.server.address().port}`;
   const post = async (path, body, { as = null, key = null, raw } = {}) => {
@@ -55,13 +58,16 @@ test("a character and its run round-trip through the writer, and a stale phone i
     const character = made.body.character;
     assert.match(character, /^pc:/);
     assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).body.run, null);
-    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0 }, { as: ids.alice })).body.revision, 1);
-    assert.deepEqual((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0 }, { as: ids.alice })).body.refused, "stale");
-    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: "x" }, { as: ids.alice })).status, 400);
+    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0, seq: 1 }, { as: ids.alice })).body.revision, 1);
+    assert.deepEqual((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0, seq: 2 }, { as: ids.alice })).body.refused, "stale");
+    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: "x", seq: 3 }, { as: ids.alice })).status, 400);
+    for (const seq of [undefined, 0, -1, 1.5, "1", 2 ** 31])
+      assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 1, seq }, { as: ids.alice })).status, 400, `seq ${seq}`);
+    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: [v18], revision: 1, seq: 3 }, { as: ids.alice })).status, 400, "a record must be an object");
     const run = (await t.post("/arma/load_run", { character }, { as: ids.alice })).body.run;
     assert.deepEqual([run.era, run.revision, run.record.hp], [18, 1, v18.hp]);
     // Not Bob's character: the database refuses with O0007, which the writer reports as 403.
-    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 1 }, { as: ids.bob })).status, 403);
+    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 1, seq: 3 }, { as: ids.bob })).status, 403);
     assert.equal((await t.post("/arma/create_character", { name: "Eve" }, { as: ids.carol })).status, 403, "an account without access");
   } finally {
     await t.close();
@@ -72,9 +78,122 @@ test("requests for one account run one at a time: two racing saves cannot both w
   const t = await start();
   try {
     const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
-    const results = await Promise.all(Array.from({ length: 6 }, () => t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0 }, { as: ids.alice })));
+    // Six different phones' attempts, each with its own sequence number, all from revision 0.
+    const results = await Promise.all(Array.from({ length: 6 }, (_, i) => t.post("/arma/save_run", { character, era: 18, record: { ...v18, hp: 10 + i }, revision: 0, seq: i + 1 }, { as: ids.alice })));
     assert.equal(results.filter((r) => r.body.savedAt !== undefined).length, 1, "exactly one save was stored");
     assert.equal(results.filter((r) => r.body.refused === "stale").length, 5);
+  } finally {
+    await t.close();
+  }
+});
+
+test("a retry with the same seq is answered again and writes nothing; seq conflicts and stale seqs are refused", async () => {
+  const t = await start();
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    const save = (record, revision, seq) => t.post("/arma/save_run", { character, era: 18, record, revision, seq }, { as: ids.alice });
+    const first = await save(v18, 0, 5);
+    assert.equal(first.body.revision, 1);
+    // The answer was lost, so the phone retries the same save with the same seq and the same (old) revision.
+    const retry = await save(v18, 0, 5);
+    assert.deepEqual(retry.body, { ...first.body, replayed: true });
+    assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).body.run.revision, 1, "the retry wrote nothing");
+    assert.equal((await save({ ...v18, hp: 3 }, 0, 5)).body.refused, "seq-conflict", "same seq, different save");
+    assert.equal((await save(v18, 1, 5)).body.refused, "seq-conflict", "same seq, different revision");
+    assert.deepEqual([(await save(v18, 1, 4)).body.refused, (await save(v18, 1, 4)).body.lastSeq], ["stale-seq", 5]);
+    // A refused attempt does not use up its number: seq 6 refused as stale-revision, then applies with the right revision.
+    assert.equal((await save({ ...v18, hp: 9 }, 0, 6)).body.refused, "stale");
+    assert.equal((await save({ ...v18, hp: 9 }, 1, 6)).body.revision, 2);
+    assert.equal((await save({ ...v18, hp: 9 }, 1, 6)).body.replayed, true);
+  } finally {
+    await t.close();
+  }
+});
+
+test("a record is checked for shape and caps before it is stored, and the refusal names the path", async () => {
+  const t = await start();
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    let seq = 0;
+    const save = (record) => t.post("/arma/save_run", { character, era: 18, record, revision: 0, seq: ++seq }, { as: ids.alice }).then((r) => r.body);
+    const reason = async (record) => (await save(record)).reason;
+    const withPath = (fn) => {
+      const copy = structuredClone(v18);
+      fn(copy);
+      return copy;
+    };
+    assert.equal(await reason(withPath((r) => (r.hp = 1e6))), "cap:hp");
+    assert.equal(await reason(withPath((r) => (r.hp = -1))), "cap:hp");
+    assert.equal(await reason(withPath((r) => (r.hp = 10.5))), "shape:integer:hp");
+    assert.equal(await reason(withPath((r) => (r.cheat = 1))), "shape:key:cheat", "a closed set of top-level keys");
+    assert.equal(await reason(withPath((r) => (r.marked.carried = 1e12))), "cap:marked.carried");
+    assert.equal(await reason(withPath((r) => (r.progression.attributes.strength = 21))), "cap:progression.attributes.strength");
+    assert.equal(await reason(withPath((r) => (r.progression.attributes.strength = 9))), "cap:progression.attributes.strength");
+    assert.equal(await reason(withPath((r) => (r.progression.proficiency.knife = 101))), "cap:progression.proficiency.knife");
+    assert.equal(await reason(withPath((r) => (r.bossEquipment.shotgun.reserve = 99999))), "cap:bossEquipment.shotgun.reserve");
+    assert.equal(await reason(withPath((r) => (r.flameFuel.fuelUnits = 10001))), "cap:flameFuel.fuelUnits");
+    assert.equal(await reason(withPath((r) => (r.progression.awards = Array.from({ length: 201 }, () => ({}))))), "cap:progression.awards");
+    assert.equal(await reason(withPath((r) => (r.vest.itemId = "x".repeat(201)))), "cap:vest.itemId");
+    // 'refused' carries the kind.
+    assert.equal((await save(withPath((r) => (r.hp = 1e6)))).refused, "cap");
+    assert.equal((await save(withPath((r) => (r.nope = 1)))).refused, "shape");
+    // Depth and size.
+    assert.equal(await reason(withPath((r) => (r.openingStory.a = { b: { c: { d: { e: { f: { g: { h: { i: 1 } } } } } } } }))), "cap:record-depth");
+    assert.equal(await reason(withPath((r) => (r.droneDeaths = Array.from({ length: 501 }, () => 1)))), "cap:droneDeaths");
+    assert.equal(await reason(withPath((r) => (r.locker.junk = "x".repeat(70_000)))), "cap:record-size");
+    // Fractional numbers are allowed only for world coordinates.
+    assert.equal(await reason(withPath((r) => (r.supplies.pending[0].position.x = 1e9))), "cap:supplies.pending[].position.x");
+    assert.equal(await reason(withPath((r) => (r.marked.bank = 2.5))), "shape:integer:marked.bank");
+    assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).body.run, null, "no refusal stored anything");
+    const fractional = await save(withPath((r) => (r.supplies.pending[0].position.x = 1.25)));
+    assert.equal(fractional.revision, 1, "a fractional world coordinate is a valid save");
+  } finally {
+    await t.close();
+  }
+});
+
+test("a real v18 record passes the check unchanged, and the record round-trips byte for byte", async () => {
+  const t = await start();
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    assert.equal((await t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0, seq: 1 }, { as: ids.alice })).body.revision, 1);
+    assert.deepEqual((await t.post("/arma/load_run", { character }, { as: ids.alice })).body.run.record, v18);
+    // The check itself is internal (no role is granted it), so ask as the database owner.
+    await t.pg.exec("reset role");
+    try {
+      assert.equal((await call(t.pg, "select public.arma_check_record($1::jsonb) as r", [JSON.stringify(v18)]))[0].r, null);
+    } finally {
+      await t.pg.exec("set role arma_writer");
+    }
+  } finally {
+    await t.close();
+  }
+});
+
+test("rate limit: a per-account token bucket on save_run and load_run, refilled with time, one account never spends another's", async () => {
+  let clock = 1_000_000;
+  const t = await start({ limits: { save_run: { burst: 3, refillMs: 5000 }, load_run: { burst: 3, refillMs: 1000 } }, now: () => clock });
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    const save = (seq, as = ids.alice) => t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0, seq }, { as });
+    assert.deepEqual([(await save(1)).status, (await save(1)).status, (await save(1)).status], [200, 200, 200]);
+    const limited = await save(1);
+    assert.deepEqual([limited.status, limited.body.error, limited.body.retryMs], [429, "rate-limited", 5000]);
+    clock += 2500;
+    assert.equal((await save(1)).body.retryMs, 2500, "half a token is not enough");
+    clock += 2500;
+    assert.equal((await save(1)).status, 200, "one token is back after refillMs");
+    assert.equal((await save(1)).status, 429);
+    // Another account has its own bucket (bob gets a 403 from the database, which is after the limiter passed him).
+    assert.equal((await save(1, ids.bob)).status, 403);
+    // load_run has its own bucket and its own pace.
+    for (let i = 0; i < 3; i++) assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).status, 200);
+    assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).status, 429);
+    clock += 1000;
+    assert.equal((await t.post("/arma/load_run", { character }, { as: ids.alice })).status, 200);
+    // Routes with no limit are untouched.
+    assert.equal((await t.post("/arma/spawn_state", { instances: [] }, { as: ids.alice })).status, 200);
+    assert.equal((await (await fetch(t.base + "/health")).json()).refused["rate-limited"] >= 3, true, "refusals are counted for /health");
   } finally {
     await t.close();
   }
