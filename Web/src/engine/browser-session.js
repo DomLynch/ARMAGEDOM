@@ -336,10 +336,10 @@ export function createBrowserSession(options = {}) {
       baseUrl: `${location.origin}/arma/api`,
       getToken: options.presenceToken ?? auth?.getToken,
       storage: runStorage,
-      onCash: (reply) => adoptServerCash(context.game, reply),
+      onCash: (reply, info) => adoptServerCash(context.game, reply, info),
       log: (line) => console.info(line),
     });
-    if (saveClient) runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient.queue(raw));
+    if (saveClient) runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient.queue(raw, context.game));
   }
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
