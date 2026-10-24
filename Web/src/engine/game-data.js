@@ -3,6 +3,7 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import saveClient from "../data/saveClient.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -10,7 +11,8 @@ const fail = (file, why) => {
   throw TypeError(`Invalid game data ${file}: ${why}`);
 };
 const count = (file, field, value, min, max) => {
-  if (!Number.isSafeInteger(value) || value < min || value > max) fail(file, `${field} must be an integer from ${min} to ${max}`);
+  if (!Number.isSafeInteger(value) || value < min || value > max)
+    fail(file, `${field} must be an integer from ${min} to ${max}`);
 };
 
 export function validateDiagnostics(d) {
@@ -18,8 +20,19 @@ export function validateDiagnostics(d) {
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
 }
 
+export function validateSaveClient(d) {
+  closed(d, ["schema_version", "minSaveIntervalMs", "staleSeqRetries", "characterName"]);
+  count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
+  count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
+  if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))
+    fail("saveClient", "characterName");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
-const sources = () => ({ diagnostics: [diagnostics, validateDiagnostics] });
+const sources = () => ({
+  diagnostics: [diagnostics, validateDiagnostics],
+  saveClient: [saveClient, validateSaveClient],
+});
 
 /**
  * Validates and freezes each source. Every file must declare the supported `schema_version`; a validator throws on anything else

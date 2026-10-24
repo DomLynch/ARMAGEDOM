@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "minSaveIntervalMs": 5000,
+  "staleSeqRetries": 2,
+  "characterName": "Survivor"
+}

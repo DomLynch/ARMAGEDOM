@@ -23,6 +23,7 @@ import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
+import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./save-client.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
@@ -99,6 +100,7 @@ export function createBrowserSession(options = {}) {
     areas,
     resources,
     presence = null,
+    saveClient = null,
     survivorLibrary = null,
     account = null,
     diagnostics = null;
@@ -324,12 +326,24 @@ export function createBrowserSession(options = {}) {
     },
     emit,
   };
-  resources = createRunViews(context);
-  areas = createAreaLifecycle(context);
-  loop = createBrowserLoop(context);
   const worldConfig = presenceConfig({ search: location.search, storage: runStorage, location }),
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
     auth = worldConfig ? createGuestAuth({ ...WORLD_AUTH, storage: runStorage }) : null;
+  // A3: with the world flag on, every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
+  // The storage is wrapped BEFORE the run views capture it.
+  if (worldConfig && !privateContent) {
+    saveClient = createSaveClient({
+      baseUrl: `${location.origin}/arma/api`,
+      getToken: options.presenceToken ?? auth?.getToken,
+      storage: runStorage,
+      onCash: (reply) => adoptServerCash(context.game, reply),
+      log: (line) => console.info(line),
+    });
+    if (saveClient) runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient.queue(raw));
+  }
+  resources = createRunViews(context);
+  areas = createAreaLifecycle(context);
+  loop = createBrowserLoop(context);
   // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
   // link, code and any hash are always stripped from the address bar afterwards.
   if (auth && (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token="))) {
@@ -768,6 +782,7 @@ export function createBrowserSession(options = {}) {
       subscriptions.clear();
       resources.dispose();
       presence?.dispose();
+      saveClient?.stop();
       account?.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
