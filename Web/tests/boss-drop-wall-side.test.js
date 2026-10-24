@@ -209,9 +209,11 @@ for (const boss of BOSSES.filter((b) => KNOWN_WALL_GAPS[b.areaId])) {
     const { gapCorpses } = DERIVED[boss.areaId];
     assert.equal(gapCorpses.length, KNOWN_WALL_GAPS[boss.areaId].count);
     let nearest = Infinity;
-    for (const p of gapCorpses)
-      for (const a of anchors) nearest = Math.min(nearest, Math.hypot(p.x - a.x, p.z - a.z));
-    assert(nearest > leash, `a wall-gap corpse point is ${nearest.toFixed(2)} m from home, inside the ${leash} m leash`);
+    for (const p of gapCorpses) for (const a of anchors) nearest = Math.min(nearest, Math.hypot(p.x - a.x, p.z - a.z));
+    assert(
+      nearest > leash,
+      `a wall-gap corpse point is ${nearest.toFixed(2)} m from home, inside the ${leash} m leash`,
+    );
     if (process.env.BOSS_DROP_TABLE === "1")
       console.log("LEASH", boss.areaId, "leash=" + leash, "nearestGapPoint=" + nearest.toFixed(2));
   });
