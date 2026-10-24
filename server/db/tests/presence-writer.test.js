@@ -12,7 +12,7 @@ const KEY = "internal-key-for-tests";
 async function start() {
   const pg = await freshDb();
   await openFor(pg, ids.alice, ids.bob);
-  await pg.exec(`insert into public.arma_weapon_rules values ('knife', 10, 4); insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1);`);
+  await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); insert into public.arma_loot_rules values ('wolf', 0, 'wolf-pelt', 1);`);
   await pg.exec("set role arma_writer");
   const db = { query: async (sql, params) => (await pg.query(sql, params)).rows };
   const verify = async (token) => (token.startsWith("user:") ? token.slice(5) : null);
