@@ -1,7 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import { bossExitGate } from "./area-bosses.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
-import { expeditionEligible, selectedPistolProfile } from "./expedition-core.js";
+import { expeditionEligible, selectedPistolProfile, contractEnabled } from "./expedition-core.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { createVestBagView } from "../vest-view.js";
@@ -49,8 +49,9 @@ export function journalPresentation(g, data, allowed = true) {
   const status = g.expedition?.status,
     action = stageAction[status],
     eligible = !!(action && allowed && expeditionEligible(g, action, data)),
-    gate = bossExitGate(g),
-    next =
+    gate = bossExitGate(g);
+  if (!contractEnabled(data)) return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
+  const next =
       {
         available: "Optional · accept at the Westminster stash, or recover the case in East.",
         accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
@@ -77,7 +78,7 @@ export function expeditionObjective(g) {
   if (g.world.safehouseData) return progressionObjective(g).target;
   const c = g.world.expeditionData?.contract,
     s = g.expedition?.status;
-  return !c ? null : s === "accepted" ? c.case.areaId : s === "claimed" ? null : c.giver.areaId;
+  return !c || !contractEnabled(g.world.expeditionData) ? null : s === "accepted" ? c.case.areaId : s === "claimed" ? null : c.giver.areaId;
 }
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s, dispatch) {

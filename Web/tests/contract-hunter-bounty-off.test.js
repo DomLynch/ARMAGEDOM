@@ -5,6 +5,7 @@ import {ownsReaper} from '../src/engine/reaper.js';
 import {contractEnabled, validateExpeditionData} from '../src/engine/expedition-core.js';
 import {validateMarkedData} from '../src/engine/marked.js';
 import {stepMarkedHunters} from '../src/engine/marked-hunters.js';
+import {journalPresentation, expeditionObjective} from '../src/engine/expedition-runtime.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
 
 // Dom, 24 Oct: no optional contract, no bounty hunters, no bounty. Cash and bank stay.
@@ -63,6 +64,18 @@ test('contract off: accept, recover and claim are refused at the stash and the c
       assert(!result.ok, `${stage}/${action}`);
     }
     assert.equal(JSON.stringify(f.g.expedition), before, stage);
+  }
+});
+
+test('contract off: the journal and atlas objective carry no contract text or target', () => {
+  for (const state of Object.values(midContract)) {
+    const f = make({data: shipped});
+    withContract(f, state);
+    f.g.player.pos = {...contract.giver.position};
+    const view = journalPresentation(f.g, shipped.expedition, true);
+    assert.deepEqual([view.eligible, view.showAction], [false, false]);
+    assert.doesNotMatch(view.next, /contract|stash|case|reward/i);
+    assert.equal(expeditionObjective({world: {expeditionData: shipped.expedition}, expedition: f.g.expedition}), null);
   }
 });
 
