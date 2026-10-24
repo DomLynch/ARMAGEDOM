@@ -30,7 +30,7 @@ export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_ME
 export function createAreaLifecycle(s) {
   let travelLatch = false;
   let fightQuietAt = 0;
-  // Network-only neighbour prefetch (flag ?prefetch=1): bytes into the HTTP cache, nothing decoded.
+  // Network-only neighbour prefetch (on by default; ?prefetch=0 turns it off): bytes into the HTTP cache, nothing decoded.
   const prefetchLimits = { ...PREFETCH_LIMITS, ...s.prefetchLimits };
   const prefetch = s.prefetchAreas
     ? createAreaPrefetch({

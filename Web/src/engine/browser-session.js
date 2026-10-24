@@ -197,8 +197,8 @@ export function createBrowserSession(options = {}) {
     get contextLost() {
       return contextLost || disposed;
     },
-    // Opt-in (default off) until a phone shows the travel pause under 2 s: ?prefetch=1.
-    prefetchAreas: new URLSearchParams(location.search).get("prefetch") === "1",
+    // On by default (Dom, 24 Oct); ?prefetch=0 turns it off for diagnosis.
+    prefetchAreas: new URLSearchParams(location.search).get("prefetch") !== "0",
     get scene() {
       return scene;
     },
