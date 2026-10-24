@@ -85,7 +85,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
         };
         const materialAt = (i) => source.groups.find((g) => i >= g.start && i < g.start + g.count)?.materialIndex ?? 0;
         for (let offset = 0; offset < (index?.count ?? position.count); offset += 3) {
-          if (offset % 384 === 0 && performance.now() - since >= 4) {
+          if (offset % 3 === 0 && performance.now() - since >= 4) {
             yield "crown-cut";
             since = performance.now();
           }
@@ -136,6 +136,9 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
           mesh.frustumCulled = false;
           half.add(mesh);
         }
+        // The geometry above, the contour walk and each cap triangulation below were one 12-35 ms step.
+        yield "crown-cut";
+        since = performance.now();
         // Weld slice endpoints only, preserving exterior UV seams. Triangulate each
         // corresponding cut contour, including the original open neck-rim closure.
         if (segments.length) {
@@ -164,6 +167,8 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
             capNormals = [],
             capUV = [];
           while (remaining.size) {
+            yield "crown-cut";
+            since = performance.now();
             const first = edges.get(remaining.values().next().value),
               component = new Set(),
               todo = [first[0]];
@@ -210,6 +215,8 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
             }
           }
           if (capPositions.length) {
+            yield "crown-cut";
+            since = performance.now();
             const g = new T.BufferGeometry();
             geometries.push(g);
             g.setAttribute("position", new T.Float32BufferAttribute(capPositions, 3));
