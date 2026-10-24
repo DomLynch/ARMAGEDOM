@@ -368,21 +368,33 @@ test("?stats=1 logs the renderer's totals for the whole previous frame every 120
   assert.equal(quiet.s.renderer.info.autoReset, true);
 });
 
-test("?stats=1: frames during a travel are reset and restart the count, so the first line after is one clean frame", () => {
+test("?stats=1: the render areas.js does after a travel ends is thrown away with the first update in the new area, and the count restarts", () => {
   const lines = [];
-  let resets = 0;
-  const info = { autoReset: true, render: { calls: 7, triangles: 70 }, reset: () => resets++ };
+  const info = {
+    autoReset: true,
+    render: { calls: 0, triangles: 0 },
+    reset() {
+      this.render.calls = this.render.triangles = 0;
+    },
+  };
+  const frame = (t) => {
+    info.render.calls += 10; // one loop frame renders 10 calls
+    t.session.update();
+  };
   const t = setup({ stats: true, log: (line) => lines.push(line) });
   t.s.renderer = { info };
-  for (let i = 0; i < 119; i++) t.session.update();
+  for (let i = 0; i < 119; i++) frame(t);
+  // A travel as the real loop sees it: update() is NOT called while traveling; the area changes; areas.js renders once on its own.
   t.s.traveling = true;
-  t.session.update();
-  assert.equal(resets, 120, "the travel frame is reset too, not skipped");
+  t.s.world.areaId = "east";
   t.s.traveling = false;
-  for (let i = 0; i < 119; i++) t.session.update();
-  assert.deepEqual(lines, [], "the count restarted at the travel: 119 frames since is not yet a line");
-  t.session.update();
-  assert.equal(lines.length, 1);
+  info.render.calls += 10; // the out-of-loop render
+  frame(t); // first update in the new area: 20 calls would be the mixed reading
+  assert.deepEqual(lines, [], "no line on that frame, and the count restarted");
+  for (let i = 0; i < 118; i++) frame(t);
+  assert.deepEqual(lines, []);
+  frame(t);
+  assert.deepEqual(lines, ["[arma-world] frame draw calls=10 triangles=0 remotes=0"], "a clean one-frame reading");
 });
 
 test("the view asks for the kit once a frame, however many players are on screen", () => {

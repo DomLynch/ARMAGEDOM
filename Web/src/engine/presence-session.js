@@ -102,19 +102,20 @@ export function createPresenceSession(
     // Every frame, after the game has moved: join or change layers when the area changed, report my position, draw the others.
     update() {
       const g = s.game;
+      if (!g || !s.world || s.traveling) return;
+      const position = g.player.pos;
       // ?stats=1: the renderer's totals for the WHOLE previous frame (every pass), logged every STATS_FRAMES frames with the number
-      // of remote players then on screen: the measured cost of the other players. It runs before the travel return below: a travel
-      // frame is reset and restarts the count, so the first line after a travel is one clean frame, never several summed.
+      // of remote players then on screen: the measured cost of the other players. The loop does not call update() on travel frames,
+      // but areas.js renders once outside the loop when a travel ends; the first update in the new area (the area changed) throws
+      // that mixed reading away and restarts the count.
       if (stats && s.renderer?.info) {
         const info = s.renderer.info;
         info.autoReset = false;
-        if (s.traveling) statFrames = 0;
+        if (s.world.areaId !== area) statFrames = 0;
         else if (++statFrames % STATS_FRAMES === 0)
           log(`[arma-world] frame draw calls=${info.render.calls} triangles=${info.render.triangles} remotes=${remotes}`);
         info.reset();
       }
-      if (!g || !s.world || s.traveling) return;
-      const position = g.player.pos;
       if (s.world.areaId !== area) {
         const previous = area;
         area = s.world.areaId;
