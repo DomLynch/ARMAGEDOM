@@ -1,0 +1,42 @@
+# EXAMPLE for Deploy, who owns and implements the nginx side. Not installed. Two parts.
+#
+# 1) http-level (a file in /etc/nginx/conf.d/, not in the server block): the per-IP limits.
+#    $binary_remote_addr is the client IP only if nginx sees it directly. If playarmagedom.com ever sits behind a CDN or proxy, switch to the
+#    real client IP (set_real_ip_from + real_ip_header) first, or every player shares one limit. Deploy to confirm which applies.
+limit_req_zone  $binary_remote_addr zone=arma_api:10m rate=10r/s;
+limit_conn_zone $binary_remote_addr zone=arma_ws:10m;
+
+# 2) inside the existing `server { server_name playarmagedom.com; ... }` block of /etc/nginx/sites-enabled/playarmagedom.conf,
+#    ahead of its catch-all `location / { return 404; }`.
+
+# The live world: one WebSocket per player. Origin is checked by presence itself; nginx passes it through untouched.
+location = /arma/ws {
+    limit_conn arma_ws 4;                       # at most 4 sockets per IP (a family on one phone network, a reconnect overlap)
+    proxy_pass http://127.0.0.1:8892;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 120s;                    # presence sends a state frame every tick; an idle socket is a dead one
+    proxy_send_timeout 120s;
+    proxy_buffering off;
+}
+
+# The writer's client routes (engage a creature, load/save the run, ...): /arma/api/<op> -> 127.0.0.1:8891/arma/<op>.
+# Only this prefix is proxied, so /internal/* and /health on the writer are NOT reachable from outside.
+location ^~ /arma/api/ {
+    limit_req zone=arma_api burst=20 nodelay;
+    limit_req_status 429;
+    client_max_body_size 300k;                  # the writer refuses bodies over 256 KB itself
+    proxy_pass http://127.0.0.1:8891/arma/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header Authorization $http_authorization;
+    add_header Cache-Control "no-store" always;
+}
+
+# Anything else under /arma/ (including /arma/internal/) is not a route.
+location ^~ /arma/ { return 404; }
+
+# Kill switch without touching the services: `touch /etc/armagedom/DISABLED` and reload nginx (see the plan); remove it to reopen.
+#   if (-f /etc/armagedom/DISABLED) { return 503; }      # put at the top of the three locations above
