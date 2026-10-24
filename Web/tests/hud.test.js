@@ -408,13 +408,13 @@ test("a first-time hint uses the notice line, yields to a live message and clear
   assert.notEqual(el("notice").textContent, hint);
 });
 
-test("centre status lines use the bounty pop-up's yellow, and the mastery line stays on one line", async () => {
+test("centre status lines use the route arrow's pale gold, bold, below the bounty pop-up's size", async () => {
   const { readFileSync } = await import("node:fs");
   const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
   const popup = /\.marked-head-total\{color:(#[0-9a-f]{6});font-size:(\d+)px/.exec(css);
   const rule = /#notice:not\(\.hint\),\s*#marked-status,[^{]*\{([^}]*)\}/.exec(css);
   assert.ok(popup && rule);
-  assert.ok(rule[1].includes(`color: ${popup[1]}`));
+  assert.ok(rule[1].includes("color: #f1d28c"));
   assert.ok(rule[1].includes("font-weight: 900"));
   assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
 });
