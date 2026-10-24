@@ -43,7 +43,7 @@
       }
     },
     "hollow-scavenger": {
-      "url": "hollow-scavenger/hollow-scavenger.glb",
+      "url": "hollow-scavenger/hollow-scavenger-phone.glb",
       "rig": "hollow-scavenger",
       "motion": "donor-knife",
       "scale": 1,
@@ -179,8 +179,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff",
-      "bytes": 4329068,
+      "sha256": "42a7173622122412ad90d0821420c1173def4cb9facf5039b19a358cbe58aa5c",
+      "bytes": 4255620,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -1332,6 +1332,13 @@
       "normalizedKeyframes": 786,
       "errors": 0,
       "warnings": 0
+    },
+    "hollow-phone": {
+      "file": "hollow-scavenger/hollow-scavenger-phone.glb",
+      "bytes": 4255620,
+      "sha256": "42a7173622122412ad90d0821420c1173def4cb9facf5039b19a358cbe58aa5c",
+      "errors": 0,
+      "textureCapSource": {"file": "hollow-scavenger/hollow-scavenger.glb", "bytes": 4329068, "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"}
     },
     "hollow": {
       "file": "hollow-scavenger/hollow-scavenger.glb",
