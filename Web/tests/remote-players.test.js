@@ -48,7 +48,7 @@ test("facing follows the direction of travel and moving reflects the speed", () 
 
 test("facing is the local player's heading for the same direction of travel (north, south, east, west)", () => {
   const localYaw = (fx, fz) => Math.atan2(fx, -fz); // actors.js: the local player's render yaw from its game-space facing
-  for (const [name, dx, dz] of [["north", 0, -100], ["south", 0, 100], ["east", 100, 0], ["west", -100, 0]]) {
+  for (const [name, dx, dz] of [["north (up the screen, +z)", 0, 100], ["south", 0, -100],["east", 100, 0], ["west", -100, 0]]) {
     const remote = createRemotePlayers();
     remote.apply(state([{ id: 5, x: 0, z: 0 }]), 1000);
     remote.apply(state([{ id: 5, x: dx, z: dz }]), 1100);
