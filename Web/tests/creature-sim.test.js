@@ -30,8 +30,15 @@ function arena(gap = 2) {
   }
   throw Error("no clear spot");
 }
-const report = (g, hp) => ({ id: "p1", pos: { ...g.player.pos }, facing: { ...g.player.facing }, ...(hp === undefined ? {} : { hp }) });
-const trace = (boss, hp) => JSON.stringify({ pos: boss.pos, facing: boss.facing, hp: boss.hp, php: hp });
+const report = (g, hp) => ({
+  id: "p1",
+  pos: { ...g.player.pos },
+  facing: { ...g.player.facing },
+  ...(hp === undefined ? {} : { hp }),
+});
+// Rounded to 1e-9: the player's own facing is carried slightly differently by the two runs (float noise only).
+const round = (key, value) => (typeof value === "number" ? Math.round(value * 1e9) / 1e9 : value);
+const trace = (boss, hp) => JSON.stringify({ pos: boss.pos, facing: boss.facing, hp: boss.hp, php: hp }, round);
 
 test("parity: the sim moves and hurts like stepGame for the same boss and a standing player", () => {
   const single = arena(),
@@ -47,7 +54,8 @@ test("parity: the sim moves and hurts like stepGame for the same boss and a stan
     assert(out.ok, out.error);
     b.push(trace(shared.boss, sim.player("p1").hp));
   }
-  assert.deepEqual(b, a);
+  const first = a.findIndex((row, i) => row !== b[i]);
+  assert.equal(first, -1, `first divergence at tick ${first}: stepGame ${a[first]} vs sim ${b[first]}`);
   assert(JSON.parse(a.at(-1)).php < single.g.player.maxHP, "the boss actually hurt the player in the window");
 });
 
@@ -73,10 +81,18 @@ test("a hit claim is clamped to the weapon rule; unknown weapons and impossible 
     rules = { knife: { maxDamagePerHit: 5 } },
     p = { id: "p1", pos: { ...spot }, facing: { x: 1, z: 0 } },
     start = boss.hp;
-  let out = sim.step({ players: [p], dt: TICK, rules, hits: [{ creatureId: boss.id, playerId: "p1", weapon: "knife", damage: 9999 }] });
+  let out = sim.step({
+    players: [p],
+    dt: TICK,
+    rules,
+    hits: [{ creatureId: boss.id, playerId: "p1", weapon: "knife", damage: 9999 }],
+  });
   assert(out.ok);
   assert.equal(start - boss.hp, 5, "damage is capped at the rule");
-  assert.deepEqual(out.events.filter((e) => e.type === "creature-hit").map((e) => e.amount), [5]);
+  assert.deepEqual(
+    out.events.filter((e) => e.type === "creature-hit").map((e) => e.amount),
+    [5],
+  );
   const hp = boss.hp;
   out = sim.step({
     players: [p],

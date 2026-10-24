@@ -43,7 +43,8 @@ export function createCreatureSim({ game, world, pilot, creatures } = {}) {
       rig: e.rig,
       pos: point(e.pos),
       facing: point(e.facing),
-      state: e.hp <= 0 ? "dead" : e.swing ? "attack" : e.staggerUntil > g.time ? "stagger" : e.alerted ? "alert" : "idle",
+      state:
+        e.hp <= 0 ? "dead" : e.swing ? "attack" : e.staggerUntil > g.time ? "stagger" : e.alerted ? "alert" : "idle",
       clip: e.response?.clip ?? null,
       hp: e.hp,
       maxHp: e.maxHP,
@@ -58,7 +59,12 @@ export function createCreatureSim({ game, world, pilot, creatures } = {}) {
       const damage = Math.min(h.damage, rule.maxDamagePerHit),
         before = target.hp;
       applyCreatureHit(g, { creatureId: h.creatureId, direction: h.direction, weapon: h.weapon, damage });
-      events.push({ type: "creature-hit", creatureId: target.id, playerId: h.playerId ?? null, amount: before - target.hp });
+      events.push({
+        type: "creature-hit",
+        creatureId: target.id,
+        playerId: h.playerId ?? null,
+        amount: before - target.hp,
+      });
       if (target.hp <= 0) events.push({ type: "creature-death", creatureId: target.id, playerId: h.playerId ?? null });
     }
   }

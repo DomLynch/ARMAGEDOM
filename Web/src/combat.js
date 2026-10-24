@@ -314,7 +314,10 @@ function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
 // A validated damage claim against one creature (headless creature sim); the same path the player's guns use.
-export function applyCreatureHit(g, { creatureId, direction, weapon, itemId = weapon, damage, attackClass = "bullet" }) {
+export function applyCreatureHit(
+  g,
+  { creatureId, direction, weapon, itemId = weapon, damage, attackClass = "bullet" },
+) {
   rangedHit(g, { targetId: creatureId, direction: direction ?? { x: 0, z: 1 } }, weapon, itemId, damage, attackClass);
 }
 function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
