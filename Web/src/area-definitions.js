@@ -351,9 +351,9 @@ export const areaAssets = {
   },
   "backdrop.area7": {
     kind: "backdrop",
-    path: "world/area7/backdrop.png",
-    sha256: "6d82e2636a48c662cf836d26c3c28ce140e67ffae506cfec27987be49d8f6e5f",
-    bytes: 3429682,
+    path: "world/area7/backdrop-phone.webp",
+    sha256: "42b2617cd534aac412e71d35856d0a032e9dfed341650f9b3a66c127166abab4",
+    bytes: 550482,
   },
   "layout.area8": {
     kind: "layout",
@@ -363,9 +363,9 @@ export const areaAssets = {
   },
   "backdrop.area8": {
     kind: "backdrop",
-    path: "world/area8/backdrop.png",
-    sha256: "51ae9354227dd3d744c52c2ae2b0804d30cb00b4c2642ab5fe448162a29e7aa3",
-    bytes: 3359014,
+    path: "world/area8/backdrop-phone.webp",
+    sha256: "5583581a6a61423da2889ab17b9d33c712a1e944371fa72f9e3c3bd0c71cde1c",
+    bytes: 531290,
   },
   "layout.central-hub": {
     kind: "layout",
@@ -375,8 +375,8 @@ export const areaAssets = {
   },
   "backdrop.central-hub": {
     kind: "backdrop",
-    path: "world/central-hub/backdrop.png",
-    sha256: "9a0f7ab78931a1eabdca03de759eabf87cf93e98ac6cf7be326d651d0511f267",
-    bytes: 3349648,
+    path: "world/central-hub/backdrop-phone.webp",
+    sha256: "1e850db9f62f481f5188fec001d8771e87a9e23777d0048d46253de9f93bdda9",
+    bytes: 509606,
   },
 };
