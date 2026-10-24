@@ -1,5 +1,8 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
 import { RANGED_WEAPON_CATALOG } from "./engine/weapon-catalog.js";
+// The ground pickup's id and the label its context button shows; the first-time hint names the same label.
+export const START_PISTOL_ID = "westminster-start-pistol-v1";
+export const START_PISTOL_LABEL = "Collect Starting Pistol";
 export const PISTOL_RULES = RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules;
 const EPS = 1e-8;
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);

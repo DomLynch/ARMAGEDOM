@@ -16,7 +16,7 @@ import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
-import { stepPistol } from "../pistol.js";
+import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
 import { withWorldJournal } from "./world-events.js";
@@ -50,7 +50,14 @@ export function nearestInteraction(position, candidates) {
           Number.isFinite(c.position?.z),
       )
       .map((c) => ({ ...c, distance: Math.hypot(position.x - c.position.x, position.z - c.position.z) }))
-      .sort((a, b) => a.distance - b.distance || a.id.localeCompare(b.id))[0] ?? null
+      // The starting pistol wins over everything in reach (the contract giver stands 0.15 m from it), so G and the
+      // shared button at spawn collect the pistol; once claimed, the contract is reachable as before.
+      .sort(
+        (a, b) =>
+          (b.id === START_PISTOL_ID) - (a.id === START_PISTOL_ID) ||
+          a.distance - b.distance ||
+          a.id.localeCompare(b.id),
+      )[0] ?? null
   );
 }
 export function meleeWeaponSummary(g) {
@@ -129,8 +136,8 @@ export function createRunViews(s) {
       g.world.lineClear(g.player.pos, p.pickupPos)
     )
       candidates.push({
-        id: "westminster-start-pistol-v1",
-        label: "Collect Starting Pistol",
+        id: START_PISTOL_ID,
+        label: START_PISTOL_LABEL,
         position: p.pickupPos,
         run: () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear()),
       });
