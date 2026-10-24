@@ -323,7 +323,13 @@ export function createBrowserSession(options = {}) {
   const worldConfig = presenceConfig({ search: location.search, storage: runStorage, location }),
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
     auth = worldConfig ? createGuestAuth({ ...WORLD_AUTH, storage: runStorage }) : null;
-  if (auth?.takeRedirect(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+  // Coming back from Google: take the session only for a link this tab started, then always clear the tokens and nonce from the URL.
+  if (auth && (location.hash.includes("access_token=") || new URLSearchParams(location.search).has("link"))) {
+    const params = new URLSearchParams(location.search);
+    params.delete("link");
+    const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
+    auth.takeRedirect(location.hash, location.search).finally(() => history.replaceState(null, "", clean));
+  }
   presence = createPresenceSession(context, { config: worldConfig, getToken: options.presenceToken ?? auth?.getToken });
   account = mountAccountControl({ auth });
   const hud = createHUD({

@@ -38,7 +38,34 @@ function shape(body, now = nowS) {
   };
 }
 
-export function createGuestAuth({ url, anonKey, storage = null, fetchImpl = globalThis.fetch, now = nowS }) {
+// A Google link is only accepted while this TAB has one pending: a nonce is stored in sessionStorage before the player leaves for
+// Google and travels back in the redirect URL (?link=<nonce>). A link someone else sends (a hash with tokens and no nonce) is
+// ignored, so a stranger cannot swap their account into the player's game.
+export const LINK_KEY = "armagedom.world.link.v1";
+const LINK_TTL_S = 600;
+const browserSessionStorage = () => {
+  try {
+    return globalThis.sessionStorage ?? null;
+  } catch {
+    return null;
+  }
+};
+const newNonce = () => {
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+};
+// 400 / 401 / 403 from the refresh endpoint mean the server definitively refused this refresh token; 5xx and network errors do not.
+const rejected = (error) => [400, 401, 403].includes(error?.status);
+
+export function createGuestAuth({
+  url,
+  anonKey,
+  storage = null,
+  linkStorage = browserSessionStorage(),
+  fetchImpl = globalThis.fetch,
+  now = nowS,
+  nonce = newNonce,
+}) {
   if (!url || !anonKey) return null; // not configured: the live world stays offline
   let session = read(storage),
     pending = null;
@@ -54,7 +81,7 @@ export function createGuestAuth({ url, anonKey, storage = null, fetchImpl = glob
       headers: headers(),
       body: JSON.stringify(body),
     });
-    if (!response.ok) throw new Error(`auth ${path}: ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error(`auth ${path}: ${response.status}`), { status: response.status });
     return shape(await response.json(), now);
   }
   async function obtain() {
@@ -62,12 +89,28 @@ export function createGuestAuth({ url, anonKey, storage = null, fetchImpl = glob
     if (session) {
       try {
         return keep(await post("/auth/v1/token?grant_type=refresh_token", { refresh_token: session.refresh_token }));
-      } catch {
-        // A refresh token the server no longer knows: fall through to a fresh guest rather than staying signed out.
+      } catch (error) {
+        // Only a refresh token the server definitively refuses is given up on (then a fresh guest rather than staying signed out).
+        // A 5xx or a network error says nothing about the account: keep the stored session untouched and try again later.
+        if (!rejected(error)) throw error;
       }
     }
     return keep(await post("/auth/v1/signup", {}));
   }
+  const readLink = () => {
+    try {
+      return JSON.parse(linkStorage?.getItem(LINK_KEY) ?? "null");
+    } catch {
+      return null;
+    }
+  };
+  const clearLink = () => {
+    try {
+      linkStorage?.removeItem?.(LINK_KEY);
+    } catch {
+      /* A pending link then simply expires. */
+    }
+  };
   return {
     // The access token for the presence socket; null when auth is unavailable (the client then stays offline and retries).
     async getToken() {
@@ -87,8 +130,16 @@ export function createGuestAuth({ url, anonKey, storage = null, fetchImpl = glob
     // The Google page to go to: linking keeps this guest's user id. Returns null when there is no session or no link was offered.
     async googleLinkUrl(redirectTo) {
       const token = await this.getToken();
-      if (!token) return null;
-      const query = new URLSearchParams({ provider: "google", skip_http_redirect: "true", redirect_to: redirectTo });
+      if (!token || !session?.user_id || !linkStorage) return null; // no tab storage means no safe way to take the return
+      const link = nonce(),
+        back = new URL(redirectTo);
+      back.searchParams.set("link", link);
+      const query = new URLSearchParams({ provider: "google", skip_http_redirect: "true", redirect_to: back.href });
+      try {
+        linkStorage.setItem(LINK_KEY, JSON.stringify({ nonce: link, userId: session.user_id, at: now() }));
+      } catch {
+        return null;
+      }
       try {
         const response = await fetchImpl(`${url}/auth/v1/user/identities/authorize?${query}`, {
           headers: headers({ Authorization: `Bearer ${token}` }),
@@ -100,21 +151,39 @@ export function createGuestAuth({ url, anonKey, storage = null, fetchImpl = glob
         return null;
       }
     },
-    // After Google sends the player back, the session arrives in the URL hash (#access_token=...&refresh_token=...). Takes it,
-    // and returns true so the caller can clean the hash from the address bar.
-    takeRedirect(hash) {
-      const params = new URLSearchParams(String(hash ?? "").replace(/^#/, ""));
-      const body = {
-        access_token: params.get("access_token"),
-        refresh_token: params.get("refresh_token"),
-        expires_in: params.get("expires_in"),
-        expires_at: Number(params.get("expires_at")) || undefined,
-        user: { is_anonymous: false },
-      };
-      const next = shape(body, now);
-      if (!next) return false;
-      keep({ ...next, user_id: session?.user_id ?? next.user_id });
-      return true;
+    // After Google sends the player back, the session arrives in the URL hash (#access_token=...&refresh_token=...). It is taken
+    // only if (1) this tab started a link that is still pending, (2) the return URL carries that link's nonce, and (3) the new token
+    // belongs to the SAME user id as the guest being linked (linking keeps the id). Anything else is discarded and the current
+    // session is kept. Resolves true when the session was replaced; the caller cleans the address bar either way.
+    async takeRedirect(hash, search = "") {
+      const link = readLink();
+      clearLink(); // one-time, whatever happens next
+      if (!link || !link.nonce || now() - link.at > LINK_TTL_S) return false;
+      if (new URLSearchParams(String(search ?? "")).get("link") !== link.nonce) return false;
+      const params = new URLSearchParams(String(hash ?? "").replace(/^#/, "")),
+        next = shape(
+          {
+            access_token: params.get("access_token"),
+            refresh_token: params.get("refresh_token"),
+            expires_in: params.get("expires_in"),
+            expires_at: Number(params.get("expires_at")) || undefined,
+            user: { is_anonymous: false },
+          },
+          now,
+        );
+      if (!next || !link.userId) return false;
+      try {
+        const response = await fetchImpl(`${url}/auth/v1/user`, {
+          headers: headers({ Authorization: `Bearer ${next.access_token}` }),
+        });
+        if (!response.ok) return false;
+        const user = await response.json();
+        if (user?.id !== link.userId) return false;
+        keep({ ...next, user_id: user.id, anonymous: user.is_anonymous === true });
+        return true;
+      } catch {
+        return false;
+      }
     },
     signOut() {
       keep(null);
