@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "statusPath": "/arma/api/status",
+  "statusTimeoutMs": 4000,
+  "recheckMinMs": 60000,
+  "presenceBackoffMs": [1000, 2000, 4000, 8000, 15000, 30000],
+  "closedCloseCodes": [4001, 4003],
+  "closedRefuseReasons": ["closed", "auth"],
+  "closedError": "O0007"
+}

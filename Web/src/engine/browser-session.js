@@ -24,6 +24,7 @@ import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./save-client.js";
+import { createWorldGate } from "./world-gate.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
@@ -326,39 +327,67 @@ export function createBrowserSession(options = {}) {
     },
     emit,
   };
-  const worldConfig = presenceConfig({ search: location.search, storage: runStorage, location }),
-    // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
-    auth = worldConfig ? createGuestAuth({ ...WORLD_AUTH, storage: runStorage }) : null;
-  // A3: with the world flag on, every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
-  // The storage is wrapped BEFORE the run views capture it.
-  if (worldConfig && !privateContent) {
-    saveClient = createSaveClient({
-      baseUrl: `${location.origin}/arma/api`,
-      getToken: options.presenceToken ?? auth?.getToken,
-      storage: runStorage,
-      onCash: (reply, info) => adoptServerCash(context.game, reply, info),
-      log: (line) => console.info(line),
-    });
-    if (saveClient) runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient.queue(raw, context.game));
-  }
+  // The online world is ON by default but starts only after the server's status read says it is open (worldGate below); ?world=0 turns
+  // it off for this page load. The storage is wrapped BEFORE the run views capture it: it only passes writes through, and queues the
+  // local run save for the writer once the save client exists.
+  const worldConfig = presenceConfig({ search: location.search, location });
+  if (worldConfig && !privateContent)
+    runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient?.queue(raw, context.game));
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
-  // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
-  // link, code and any hash are always stripped from the address bar afterwards.
-  if (auth && (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token="))) {
-    const params = new URLSearchParams(location.search),
-      returned = location.search;
-    for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
-    const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
-    auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
+  // Nothing online exists until the status read says the world is open: no guest signup, no presence socket, no save traffic.
+  const worldGate = worldConfig && !privateContent ? createWorldGate({ baseUrl: location.origin }) : null;
+  let worldStarted = false;
+  function startWorld() {
+    if (worldStarted || disposed) return;
+    worldStarted = true;
+    // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
+    const auth = createGuestAuth({ ...WORLD_AUTH, storage: runStorage });
+    // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
+    // link, code and any hash are always stripped from the address bar afterwards.
+    if (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token=")) {
+      const params = new URLSearchParams(location.search),
+        returned = location.search;
+      for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
+      const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
+      auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
+    }
+    const getToken = options.presenceToken ?? auth.getToken;
+    // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
+    saveClient = createSaveClient({
+      baseUrl: `${location.origin}/arma/api`,
+      getToken,
+      storage: runStorage,
+      onCash: (reply, info) => adoptServerCash(context.game, reply, info),
+      onClosed: () => recheckWorld(),
+      log: (line) => console.info(line),
+    });
+    presence = createPresenceSession(context, {
+      config: worldConfig,
+      getToken,
+      stats: new URLSearchParams(location.search).get("stats") === "1",
+    });
+    presence?.client.on("closed", () => recheckWorld());
+    account = mountAccountControl({ auth });
   }
-  presence = createPresenceSession(context, {
-    config: worldConfig,
-    getToken: options.presenceToken ?? auth?.getToken,
-    stats: new URLSearchParams(location.search).get("stats") === "1",
-  });
-  account = mountAccountControl({ auth });
+  // A status read (never faster than data/world.json recheckMinMs). A FRESH "open" starts the world, or lets a halted save loop and a
+  // presence client that the server closed try again.
+  async function recheckWorld() {
+    if (!worldGate) return;
+    const before = worldGate.reads,
+      open = await worldGate.check();
+    if (!open || worldGate.reads === before || disposed) return;
+    startWorld();
+    saveClient?.resume();
+    presence?.client.reopen();
+  }
+  if (worldGate) {
+    recheckWorld();
+    listen(document, "visibilitychange", () => {
+      if (!document.hidden && (!worldGate.open || saveClient?.halted || presence?.client.closed)) recheckWorld();
+    });
+  }
   const hud = createHUD({
     onAssist: (enabled) => {
       mobileAssistEnabled = enabled;

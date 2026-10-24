@@ -4,17 +4,21 @@
 //   receive   welcome {id, area, x, z, arrival}, state {tick, players:[{id,x,z}]}, refuse {reason}, spawn / hit-result (W3, passed on)
 // Presentation and transport only: the phone still moves itself, and nothing here can change the game state. The module is OFF
 // unless presenceConfig() says so, and it never touches the DOM, THREE or the game; the caller feeds it positions and reads events.
+import { GAME_DATA } from "./game-data.js";
+
 export const PRESENCE_PROTOCOL = "arma.v1";
 export const CLOSE_REPLACED = 4010;
 export const LOC_INTERVAL_MS = 80; // at most 12.5 loc messages a second while moving (the server allows 40)
-const RETRY_MS = [1000, 2000, 4000, 8000];
-const FLAG_KEY = "armagedom.presence.v1";
+// Reconnect delays are data (data/world.json presenceBackoffMs, capped at its last entry), never a retry storm.
+const retryDelays = () => GAME_DATA.world.presenceBackoffMs;
+const isClosedCode = (code) => GAME_DATA.world.closedCloseCodes.includes(code);
+const isClosedReason = (reason) => GAME_DATA.world.closedRefuseReasons.includes(reason);
 
 export const toCm = (metres) => Math.round(metres * 100);
 export const fromCm = (cm) => cm / 100;
 
-// Off by default. On with ?world=1 (remembered in storage; ?world=0 turns it off again; ?presence= is an alias). With the flag on and no token source
-// yet the client stays offline and retries every 8 s: harmless.
+// On by default, but only ever started after the server's status read says the world is open (world-gate.js); ?world=0 turns it off for
+// that page load. With no token source yet the client stays offline and retries on the capped backoff below: harmless.
 // The endpoint is FIXED to `wss://<page origin>/arma/ws` (Deploy routes it to the presence service). The page URL can never choose
 // it, because the access token travels to it: a link carrying ?presenceUrl=wss://elsewhere would hand the token to a stranger. The
 // only override is for local development (`dev`, import.meta.env.DEV of the dev server) and only to this machine.
@@ -34,27 +38,11 @@ export function localDevUrl(value) {
     return null;
   }
 }
-export function presenceConfig({ search = "", storage = null, location = null, dev = isDev() } = {}) {
-  const params = new URLSearchParams(search),
-    read = () => {
-      try {
-        return storage?.getItem(FLAG_KEY) ?? null;
-      } catch {
-        return null;
-      }
-    },
-    write = (value) => {
-      try {
-        storage?.setItem(FLAG_KEY, value);
-      } catch {
-        /* The flag then only lasts for this page load. */
-      }
-    };
-  // ?world=1 is the flag; ?presence=1 stays as an alias for one release. ?world wins when both are given.
-  const flag = ["world", "presence"].map((name) => params.get(name)).find((value) => value === "1" || value === "0");
-  if (flag !== undefined) write(flag);
-  const on = flag !== undefined ? flag === "1" : read() === "1";
-  if (!on) return null;
+export function presenceConfig({ search = "", location = null, dev = isDev() } = {}) {
+  const params = new URLSearchParams(search);
+  // ON by default; the server decides whether the world is open (world-gate.js). ?world=0 is a diagnostic OFF switch for this page
+  // load only (nothing is remembered, and the old ?world=1 / ?presence= flags no longer exist).
+  if (params.get("world") === "0") return null;
   if (dev && params.has("presenceUrl")) {
     const local = localDevUrl(params.get("presenceUrl"));
     if (local) return { url: local };
@@ -90,6 +78,7 @@ export function createPresenceClient({
     attempt = 0,
     retryTimer = null,
     stopped = false,
+    closedForGood = false, // the server closed the world to this account: no more attempts from this client
     connecting = false;
 
   const send = (message) => {
@@ -97,7 +86,7 @@ export function createPresenceClient({
   };
 
   async function connect() {
-    if (stopped || connecting || socket) return;
+    if (stopped || closedForGood || connecting || socket) return;
     connecting = true;
     let token = null;
     try {
@@ -131,6 +120,8 @@ export function createPresenceClient({
         lastSentAt = now();
         if (wanted) wanted = { area, x: message.x, z: message.z };
       }
+      // The server says the world is closed to this account (or the token is refused): stop for good until the caller starts over.
+      if (message.t === "refuse" && isClosedReason(message.reason)) closeForGood();
       emit(message.t, message);
     };
     ws.onclose = (event) => {
@@ -139,15 +130,25 @@ export function createPresenceClient({
       joined = false;
       id = null;
       emit("close", { code: event?.code });
-      // A replaced session (the same account connected elsewhere) must not fight its replacement.
-      if (event?.code !== CLOSE_REPLACED) retry();
+      // A replaced session (the same account connected elsewhere) must not fight its replacement; a closed/auth code stops retries.
+      if (isClosedCode(event?.code)) closeForGood();
+      else if (event?.code !== CLOSE_REPLACED && !closedForGood) retry();
     };
     ws.onerror = () => {};
   }
 
+  function closeForGood() {
+    if (closedForGood) return;
+    closedForGood = true;
+    if (retryTimer !== null) clearTimer(retryTimer);
+    retryTimer = null;
+    emit("closed");
+  }
+
   function retry() {
-    if (stopped || retryTimer !== null) return;
-    const delay = RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)];
+    if (stopped || closedForGood || retryTimer !== null) return;
+    const delays = retryDelays(),
+      delay = delays[Math.min(attempt, delays.length - 1)];
     attempt++;
     retryTimer = setTimer(() => {
       retryTimer = null;
@@ -170,6 +171,16 @@ export function createPresenceClient({
     },
     // Start over on a fresh socket, joining `areaId` at `position`: for when the server refused a travel and my layer no longer
     // matches the area the phone is in.
+    // After the server closed the world to this account and a later status read says it is open again: try once more from the start.
+    reopen() {
+      if (!closedForGood || stopped) return;
+      closedForGood = false;
+      attempt = 0;
+      if (wanted) connect();
+    },
+    get closed() {
+      return closedForGood;
+    },
     reconnect(areaId, position = null) {
       wanted = { area: areaId, x: position ? toCm(position.x) : undefined, z: position ? toCm(position.z) : undefined };
       const ws = socket;

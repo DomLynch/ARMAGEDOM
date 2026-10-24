@@ -185,31 +185,58 @@ test("no token means no connection yet: the client stays offline and retries", a
   assert.equal(s.timers.length, 1);
 });
 
-test("the flag is off by default; ?presence=1 turns it on and is remembered; ?presence=0 turns it off", () => {
+test("the world client is on by default (the server's status read decides whether it starts); ?world=0 is a diagnostic off for that page load only", () => {
   const data = new Map(),
     storage = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v) },
-    location = { protocol: "https:", host: "playarmagedom.com" };
-  assert.equal(presenceConfig({ search: "", storage, location }), null);
-  assert.deepEqual(presenceConfig({ search: "?presence=1", storage, location }), {
-    url: "wss://playarmagedom.com/arma/ws",
-  });
-  assert.ok(presenceConfig({ search: "", storage, location }), "remembered");
-  assert.equal(presenceConfig({ search: "?presence=0", storage, location }), null);
-  assert.equal(presenceConfig({ search: "", storage, location }), null);
-  assert.equal(presenceConfig({ search: "?presence=1", storage: null, location: null }), null);
+    location = { protocol: "https:", host: "playarmagedom.com" },
+    own = { url: "wss://playarmagedom.com/arma/ws" };
+  assert.deepEqual(presenceConfig({ search: "", storage, location }), own);
+  assert.equal(presenceConfig({ search: "?world=0", storage, location }), null);
+  assert.deepEqual(presenceConfig({ search: "", storage, location }), own, "?world=0 is not remembered");
+  assert.equal(data.size, 0, "nothing is written to storage any more");
+  assert.deepEqual(presenceConfig({ search: "?world=1", storage, location }), own, "the old ?world=1 changes nothing");
+  assert.deepEqual(presenceConfig({ search: "?world=maybe", storage, location }), own, "only 0 turns it off");
+  assert.deepEqual(presenceConfig({ search: "?presence=0", storage, location }), own, "the ?presence= alias is gone");
+  assert.equal(presenceConfig({ search: "", storage, location: null }), null, "no page origin, no endpoint");
 });
 
-test("?world=1 is the flag: remembered, turned off by ?world=0, and it wins over the ?presence= alias", () => {
-  const data = new Map(),
-    storage = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v) },
-    location = { protocol: "https:", host: "playarmagedom.com" };
-  assert.ok(presenceConfig({ search: "?world=1", storage, location }));
-  assert.ok(presenceConfig({ search: "", storage, location }), "remembered");
-  assert.equal(presenceConfig({ search: "?world=0", storage, location }), null);
-  assert.equal(presenceConfig({ search: "", storage, location }), null);
-  assert.equal(presenceConfig({ search: "?world=0&presence=1", storage, location }), null, "world wins");
-  assert.ok(presenceConfig({ search: "?world=1&presence=0", storage, location }));
-  assert.equal(presenceConfig({ search: "?world=maybe", storage: null, location }), null, "anything but 1 or 0 is ignored");
+test("a closed close-code or a closed/auth refusal stops reconnecting; reopen() tries again from the start", async () => {
+  for (const stop of [
+    (s) => s.socket().onclose({ code: 4003 }),
+    (s) => s.socket().onclose({ code: 4001 }),
+    (s) => s.socket().receive({ t: "refuse", reason: "closed" }),
+    (s) => s.socket().receive({ t: "refuse", reason: "auth" }),
+  ]) {
+    const s = setup(),
+      events = [];
+    s.client.on("closed", () => events.push("closed"));
+    s.client.join("westminster");
+    await flush();
+    s.socket().open();
+    stop(s);
+    if (s.socket().readyState === 1) s.socket().onclose({ code: 1000 });
+    assert.deepEqual(events, ["closed"]);
+    assert.equal(s.client.closed, true);
+    assert.deepEqual(s.timers, [], "no retry timer");
+    const before = FakeSocket.all.length;
+    s.client.reopen();
+    await flush();
+    assert.equal(s.client.closed, false);
+    assert.equal(FakeSocket.all.length, before + 1, "one fresh attempt");
+  }
+});
+
+test("reconnect delays follow data/world.json and are capped at its last entry (1 s up to 30 s), never faster", async () => {
+  const s = setup({ getToken: async () => null });
+  s.client.join("westminster");
+  await flush();
+  const seen = [];
+  for (let i = 0; i < 9; i++) {
+    seen.push(s.timers.at(-1).ms);
+    s.timers.at(-1).fn();
+    await flush();
+  }
+  assert.deepEqual(seen, [1000, 2000, 4000, 8000, 15000, 30000, 30000, 30000, 30000]);
 });
 
 test("SECURITY: the endpoint is the page's own /arma/ws; a presenceUrl in the page URL can never send the token elsewhere", () => {
