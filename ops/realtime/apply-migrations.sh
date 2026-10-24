@@ -64,6 +64,15 @@ echo "connected as the owner role; migrations: $MIGRATIONS"
 # Is there a registry yet? (Only a first run or a dry run may find none; any query error stops the script.)
 registry=$(psql_owner -At -c "select to_regclass('public.arma_schema_migrations') is not null") || die "could not look for the migration registry"
 
+# Guard: no registry but characters already exist means someone's data is in a project this script has never managed (applied by hand, or the
+# wrong project). Applying into it blind is not the job of a first run; ARMA_ALLOW_EXISTING_DATA=1 says "yes, adopt it".
+if [ "$MODE" = "apply" ] && [ "$registry" != "t" ] && [ "${ARMA_ALLOW_EXISTING_DATA:-}" != "1" ]; then
+  has_table=$(psql_owner -At -c "select to_regclass('public.arma_characters') is not null") || die "could not look for the characters table"
+  has_chars=f
+  [ "$has_table" = "t" ] && { has_chars=$(psql_owner -At -c "select exists (select 1 from public.arma_characters)") || die "could not look for existing characters"; }
+  [ "$has_chars" != "t" ] || die "this project already holds characters but has no migration registry; refusing a first apply (set ARMA_ALLOW_EXISTING_DATA=1 to adopt it deliberately)"
+fi
+
 if [ "$MODE" != "--check" ]; then
   # The registry. Private: RLS on and nothing granted to the API roles, like every other table here.
   [ "$MODE" = "--dry-run" ] || psql_owner <<'SQL'

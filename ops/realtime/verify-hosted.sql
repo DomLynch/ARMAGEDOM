@@ -23,6 +23,11 @@ begin
   if exists (select 1 from pg_roles where rolname = 'arma_writer' and (rolsuper or rolcreaterole or rolcreatedb or rolbypassrls)) then problems := problems || 'arma_writer has more than plain LOGIN'; end if;
   if exists (select 1 from pg_roles where rolname = 'arma_writer' and not rolcanlogin) then problems := problems || 'arma_writer cannot log in'; end if;
 
+  -- The server roles are members of nothing: a grant of postgres, or of any other role, would carry its privileges past every check below.
+  for r in select u.rolname as member, g.rolname as granted from pg_auth_members m join pg_roles u on u.oid = m.member join pg_roles g on g.oid = m.roleid where u.rolname in ('arma_writer', 'arma_presence') loop
+    problems := problems || (r.member || ' is a member of role ' || r.granted);
+  end loop;
+
   -- 3. Every arma table: row level security on, and no write privilege for the API roles (anon, authenticated).
   for r in select c.relname, c.relrowsecurity from pg_class c join pg_namespace s on s.oid = c.relnamespace where s.nspname = 'public' and c.relkind = 'r' and c.relname like 'arma\_%' loop
     if not r.relrowsecurity then problems := problems || ('RLS is off on ' || r.relname); end if;
