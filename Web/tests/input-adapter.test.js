@@ -120,6 +120,49 @@ test('cancel does not clear independent movement or a second guard hold', (t) =>
   assert.equal(value.guard, true);
   assert.equal(value.guardPressed, false);
 });
+test('two thumbs: move and attack held together through the real pointer path, each releasing alone', (t) => {
+  const { elements: e, input } = setup(t);
+  send(e.move, 'pointerdown', { pointerId: 1, clientX: 100, clientY: 300 });
+  send(e.move, 'pointermove', { pointerId: 1, clientX: 130, clientY: 300 });
+  send(e.slash, 'pointerdown', { pointerId: 2, clientX: 600, clientY: 300 });
+  const first = input.take();
+  assert.equal(first.moveHeld, true);
+  assert.ok(first.move.x > 0);
+  assert.deepEqual(first.actions, ['slash']);
+  assert.deepEqual(
+    first.actionEdges.started.map((p) => p.kind),
+    ['slash'],
+  );
+  assert.deepEqual(first.held, ['slash']);
+  // A third contact on the pad cannot take over steering from the first thumb.
+  send(e.move, 'pointerdown', { pointerId: 3, clientX: 100, clientY: 300 });
+  send(e.move, 'pointermove', { pointerId: 3, clientX: 70, clientY: 300 });
+  const held = input.take();
+  assert.ok(held.move.x > 0);
+  assert.deepEqual(held.actions, []);
+  assert.deepEqual(held.held, ['slash']);
+  assert.equal(e.move.classList.contains('pressed'), true);
+  assert.equal(e.slash.classList.contains('pressed'), true);
+  // Lifting the attack thumb ends the attack and leaves movement running.
+  send(e.slash, 'pointerup', { pointerId: 2 });
+  const afterAttack = input.take();
+  assert.equal(afterAttack.moveHeld, true);
+  assert.ok(afterAttack.move.x > 0);
+  assert.deepEqual(afterAttack.held, []);
+  assert.deepEqual(
+    afterAttack.actionEdges.released.map((p) => p.kind),
+    ['slash'],
+  );
+  assert.equal(e.slash.classList.contains('pressed'), false);
+  // Attack again, then lift the move thumb: the attack stays held and movement stops.
+  send(e.slash, 'pointerdown', { pointerId: 4, clientX: 600, clientY: 300 });
+  input.take();
+  send(e.move, 'pointerup', { pointerId: 1 });
+  const afterMove = input.take();
+  assert.equal(afterMove.moveHeld, false);
+  assert.deepEqual(afterMove.move, { x: 0, y: 0 });
+  assert.deepEqual(afterMove.held, ['slash']);
+});
 test('released drag cannot steer a later tap', (t) => {
   const { elements: e, input } = setup(t);
   send(e.slash, 'pointerdown');
