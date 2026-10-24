@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createPresenceSession, percentile } from "../src/engine/presence-session.js";
+import { createPresenceSession, percentile, chooseFullLook } from "../src/engine/presence-session.js";
 import { createRemotePlayersView, guestName } from "../src/engine/remote-players-view.js";
 import { INTERP_DELAY_MS } from "../src/engine/remote-players.js";
 
@@ -230,12 +230,52 @@ test("an optional survivor kit supplies the figure; the view keeps the pool, pos
   assert.equal(one.name, "Player 1");
   assert.equal(one.position.x, 3);
   assert.equal(one.rotation.y, 0.5);
-  assert.ok(two.children.length >= 2, "the capsule fallback for the one the kit could not make");
+  assert.ok(two.children.length >= 1 && two.children[0].children.length === 2, "the capsule fallback for the one the kit could not make");
   assert.deepEqual(calls.filter((c) => c[0] === "update"), [["update", 1, true, 0.5]]);
   view.update([{ id: 1, x: 3, z: 4, facing: 0.5, moving: false }]);
   assert.deepEqual(calls.filter((c) => c[0] === "spawn").length, 2, "one spawn per player, then pooled");
   view.dispose();
   assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
+});
+
+test("only the chosen players get the full survivor look; a player who drops out of the set goes back to the capsule and frees the kit's figure", () => {
+  const scene = new THREE.Scene(),
+    live = new Set();
+  const kit = {
+    spawn(id) {
+      live.add(id);
+      return { root: new THREE.Group(), update() {}, dispose: () => live.delete(id) };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => kit });
+  const at = (id, x) => ({ id, x, z: 0, facing: 0, moving: false });
+  const players = [1, 2, 3, 4, 5, 6].map((id) => at(id, id));
+  view.update(players, new Set([1, 2, 3, 4]));
+  assert.deepEqual([...live].sort(), [1, 2, 3, 4]);
+  view.update(players, new Set([2, 3, 4, 5]));
+  assert.deepEqual([...live].sort(), [2, 3, 4, 5], "1 gave its figure back, 5 got one");
+  const one = view.group.children.find((c) => c.name === "Player 1");
+  assert.equal(one.children.length, 1, "player 1 is a capsule again");
+  view.update(players, new Set());
+  assert.equal(live.size, 0);
+  view.update([], new Set());
+  view.dispose();
+});
+
+test("chooseFullLook picks the nearest four, keeps a current one until it falls past rank 6, and ignores ids that left", () => {
+  const me = { x: 0, z: 0 },
+    row = (id, d) => ({ id, x: d, z: 0 });
+  const five = [row(1, 1), row(2, 2), row(3, 3), row(4, 4), row(5, 5)];
+  assert.deepEqual([...chooseFullLook(five, me)].sort(), [1, 2, 3, 4]);
+  // 5 becomes nearer than 4, but 4 is still inside rank 6: it stays, and the set stays at four with the nearest of the rest.
+  const swapped = [row(1, 1), row(2, 2), row(3, 3), row(5, 3.5), row(4, 4)];
+  assert.deepEqual([...chooseFullLook(swapped, me, new Set([1, 2, 3, 4]))].sort(), [1, 2, 3, 4], "no flicker");
+  // Far down the ranking it is dropped and the next nearest takes the place.
+  const far = [row(1, 1), row(2, 2), row(3, 3), row(5, 4), row(6, 5), row(7, 6), row(8, 7), row(4, 9)];
+  assert.ok(!chooseFullLook(far, me, new Set([1, 2, 3, 4])).has(4));
+  assert.equal(chooseFullLook(far, me, new Set([1, 2, 3, 4])).size, 4);
+  assert.deepEqual([...chooseFullLook([row(9, 1)], me, new Set([1, 2, 3, 4]))], [9], "ids that left are forgotten");
+  assert.equal(chooseFullLook([], me).size, 0);
 });
 
 test("guests are named by id until the server sends names", () => {

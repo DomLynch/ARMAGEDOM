@@ -99,6 +99,7 @@ export function createBrowserSession(options = {}) {
     areas,
     resources,
     presence = null,
+    survivorSource = null,
     account = null,
     diagnostics = null;
   const scene = new THREE.Scene(),
@@ -146,6 +147,10 @@ export function createBrowserSession(options = {}) {
     // The live-world client; null (and never created) unless the presence flag is on.
     get presence() {
       return presence;
+    },
+    // The player's loaded model: the source of the other players' look. Null until the run has loaded.
+    get survivorSource() {
+      return survivorSource;
     },
     get storage() {
       return runStorage;
@@ -642,6 +647,7 @@ export function createBrowserSession(options = {}) {
       await actors.ensureAreaModels(game);
       if (contextLost || disposed) return;
       pendingLibrary = null;
+      survivorSource = library.models.get("vagrant") ?? null; // the player's own model, shared with the other players' look
       effects = createEffects(
         scene,
         world,
