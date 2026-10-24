@@ -1,6 +1,5 @@
 import { traceGrenadeSurface } from "./grenade-surface.js";
 import * as T from "three";
-import { rigCapability } from "../rig-capabilities.js";
 // Rigid original geometry, local Y follows the existing Knife hand/contact axis.
 export function createBoneSaw() {
   const root = new T.Group();
@@ -53,19 +52,18 @@ export function animateBoneSaw(root, time, active) {
 
 export function boneSawContact(blade, views, target) {
   if (!blade?.userData.saw) return false;
-  // A lowStrike body sits below the hand-height blade (the knife answers with its low strike moves);
-  // the saw has no low pose, so its blade also reaches the ground beneath each blade point.
-  const low = rigCapability(target.rig, "lowStrike"),
-    a = new T.Vector3(),
+  // A body can sit below the hand-height blade (a lowStrike animal, or the stooped crooked Hollow whose
+  // head is under the blade line); the saw has no low pose, so its blade also reaches the ground beneath
+  // each blade point.
+  const a = new T.Vector3(),
     b = new T.Vector3(),
     floor = new T.Vector3();
   for (const x of [-0.035, 0, 0.035]) {
     blade.localToWorld(a.set(x, 0.4, 0));
     blade.localToWorld(b.set(x, 0.9, 0));
     if (traceGrenadeSurface(views, [target], a, b)) return true;
-    if (low)
-      for (const point of [a, b])
-        if (traceGrenadeSurface(views, [target], point, floor.set(point.x, 0, point.z))) return true;
+    for (const point of [a, b])
+      if (traceGrenadeSurface(views, [target], point, floor.set(point.x, 0, point.z))) return true;
   }
   return false;
 }
