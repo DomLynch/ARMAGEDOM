@@ -45,7 +45,8 @@ test("every coordinate is an integer inside the database's +-100000 cm check", (
     else if (Array.isArray(v)) v.forEach(walk);
     else if (v && typeof v === "object") Object.values(v).forEach(walk);
   };
-  for (const row of rows) walk([row.bounds, row.originCm, row.road, row.blockers, row.arrivals, row.exits, row.enemies]);
+  for (const row of rows)
+    walk([row.bounds, row.originCm, row.road, row.blockers, row.arrivals, row.exits, row.enemies]);
   assert.ok(numbers.length > 100);
   for (const n of numbers) assert.ok(Number.isInteger(n) && Math.abs(n) <= 100000, String(n));
 });
@@ -56,7 +57,10 @@ test("exits: rect encloses the zone, id matches the registry link, arrival exist
       const exit = row.exits[i],
         dest = rows.find((r) => r.area === exit.to);
       assert.equal(exit.id, link.id);
-      assert.ok(dest.arrivals.some((a) => a.id === exit.arrival), `${exit.id} -> ${exit.arrival}`);
+      assert.ok(
+        dest.arrivals.some((a) => a.id === exit.arrival),
+        `${exit.id} -> ${exit.arrival}`,
+      );
       for (const p of exit.zone)
         assert.ok(p.x >= exit.rect.minX && p.x <= exit.rect.maxX && p.z >= exit.rect.minZ && p.z <= exit.rect.maxZ);
     });
