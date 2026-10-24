@@ -68,8 +68,7 @@ export function journalPresentation(g, data, allowed = true) {
   };
 }
 export function progressionObjective(g) {
-  if (g.world.areaId !== "westminster")
-    return { target: null, objective: "" };
+  if (g.world.areaId !== "westminster") return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
