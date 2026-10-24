@@ -130,6 +130,8 @@ export function createBrowserLoop(s) {
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
         s.persistRun(s.game);
+        // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
+        s.worldJournal?.ingest(s.game, s.game.events);
         s.effects.events(s.game);
         s.actors?.events(s.game);
         audioEvents.push(...s.game.events);

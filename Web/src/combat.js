@@ -103,7 +103,7 @@ const RAT_LOW = Object.freeze({
   stepIn: 0,
   knockback: 0,
 });
-const RAT_BITE = Object.freeze({
+export const RAT_BITE = Object.freeze({
   ...RAT_LOW,
   moveId: "rat_bite",
   clip: "rat_bite",
@@ -133,7 +133,7 @@ const droneLow = (def) => ({
   cooldown: def.cooldown,
 });
 const ROACH_LOW = Object.freeze({ ...RAT_LOW, moveId: "roach_low" });
-const ROACH_BITE = Object.freeze({
+export const ROACH_BITE = Object.freeze({
   ...RAT_BITE,
   moveId: "roach_bite",
   clip: "roach_bite",
@@ -144,7 +144,7 @@ const ROACH_BITE = Object.freeze({
 const ROACH_BITE_SCALED = Object.freeze({ ...ROACH_BITE, clip: "roach_bite_scaled" });
 const DOG_LOW = Object.freeze({ ...RAT_LOW, moveId: "dog_low" });
 const DOG_MID = Object.freeze({ ...DOG_LOW, clip: "DogMidSlash" });
-const DOG_BITE = Object.freeze({
+export const DOG_BITE = Object.freeze({
   ...RAT_BITE,
   moveId: "dog_bite",
   clip: "dog_bite_calf",
