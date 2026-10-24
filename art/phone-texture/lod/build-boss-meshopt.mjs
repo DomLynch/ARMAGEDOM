@@ -1,7 +1,7 @@
 // Shrinks a boss GLB without a visible change in how it looks or moves. Four steps, none of which touches the meshes or the skeleton
 // (step 4, below, resamples normal / occlusion / metal-rough maps that are larger than 512 px to 512 px):
 //   1. EXT_meshopt_compression: vertex and index buffers and animation keyframes are stored with the meshopt codec and decode to
-//      identical values (no quantization filters, no vertex reordering). The game's GLTFLoader already has the decoder
+//      identical values (no quantization filters, no vertex reordering; the index codec may rotate a triangle's corners, same surface). The game's GLTFLoader already has the decoder
 //      (Web/src/actors.js loadActors), and every boss file already declares KHR_mesh_quantization.
 //   2. Redundant animation keyframes are dropped (gltf-transform resample, tolerance 1e-4: a key is removed only when linear or
 //      spherical interpolation of its neighbours reproduces it within that tolerance).
