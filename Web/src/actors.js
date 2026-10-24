@@ -833,8 +833,10 @@ export function createActors(
           .map((spec) => spec.foundationRef)
           .filter((ref) => library.manifest.models[ref]?.deferred === true),
         ...(world.residentPlacements?.[areaId] ?? [])
-          .filter((row) => row.appearanceRef !== undefined)
-          .map((row) => row.appearanceRef),
+          .flatMap((row) => [row.appearanceRef, row.foundationRef])
+          .filter((ref) => ref !== undefined),
+        ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
+        ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
         ...(world.bossData?.placements ?? [])
           .filter((row) => row.areaId === areaId)
           .flatMap((row) => {
