@@ -556,6 +556,24 @@ export function createActors(
     }
     return view;
   }
+  function* finishDeferredSteps() {
+    for (const view of [...deferredViews]) {
+      if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
+      const steps = view.finisher.prepare();
+      for (;;) {
+        const live = captureRig(view.model);
+        applyRig(view.finisherPose0, view.root, view.model);
+        let step;
+        try {
+          step = steps.next();
+        } finally {
+          applyRig(live, view.root, view.model);
+        }
+        if (step.done) break;
+        yield step.value;
+      }
+    }
+  }
   function remove(id, store = views) {
     const view = store.get(id);
     if (!view) return;
@@ -912,17 +930,9 @@ export function createActors(
     },
     // Finish every deferred finisher preparation now, in one go (tests, and tools that need the full recipe set).
     completeFinisherPreparation() {
-      for (const view of [...deferredViews]) {
-        if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
-        const live = captureRig(view.model);
-        applyRig(view.finisherPose0, view.root, view.model);
-        try {
-          for (const _ of view.finisher.prepare());
-        } finally {
-          applyRig(live, view.root, view.model);
-        }
-      }
-    },
+      for (const _ of finishDeferredSteps());
+    // The same preparation as one step at a time (what the idle pump runs a slice of), rig pose held per step.
+    deferredFinisherSteps: finishDeferredSteps,
     finisherPreparationStats: () => finisherPump.stats(),
     activateArea(areaId) {
       finisherPump.enter();
