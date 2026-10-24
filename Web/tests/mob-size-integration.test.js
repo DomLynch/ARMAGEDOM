@@ -18,7 +18,7 @@ test('production resident factory applies one balanced absolute profile and pres
  const g=fixture(),sizes=allocateMobSizes('westminster',AREA_MOB_SPAWNS.westminster.map(r=>r.key));
  assert.equal(g.enemies.length,6);assert.equal(g.player.combatScale,1.265);assert.equal(g.player.radius,.4);assert.equal(g.player.mobSize,undefined);
  for(const e of g.enemies){assert.equal(e.mobSize,sizes.get(e.placementKey));assert.equal(e.combatScale,1.265*e.mobSize);assert.equal(e.radius,.4*e.mobSize);assert.equal(e.bodyScale,1);assert.equal(e.hp,40);assert.equal(e.moveSpeed,2.1);assert.equal(e.recoveryDelay,.55);assert.ok(hollowPaletteFor(e,'westminster'));}
- const again=fixture();assert.deepEqual(identities(again),identities(g));assert.notEqual(again.enemies[0].id,g.enemies[0].id);
+ const again=fixture();for(const e of again.enemies)e.id+=1000;assert.deepEqual(identities(again),identities(g));assert.notEqual(again.enemies[0].id,g.enemies[0].id);
 });
 test('normal DTO restore filters dead residents after complete size/clothing allocation without adding save fields',()=>{
  const g=fixture(),before=identities(g),key='westminster-roamer-3',dead=g.enemies.find(e=>e.placementKey===key);

@@ -34,6 +34,7 @@ import { populationPlacements, populationAllowsDrone } from "./engine/area-popul
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
+import { knifeEnergy, knifeAffordable, knifeSpend, knifeRegen } from "./engine/knife-energy.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
@@ -176,15 +177,11 @@ const rotate = (v, angle) => ({
   x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
-// Ids come from the game's own counter so a headless sim and a browser game
-// never share state. A bare enemy() with no game, as tests build them, falls
-// back to this standalone counter.
-let standaloneSerial = 0;
-const nextId = (g) => (g ? ++g.serial : ++standaloneSerial);
-export function enemy(kind, pos, g) {
+const bare = { serial: 0 }; // id source for enemy() built without a game
+export function enemy(kind, pos, g = bare) {
   const hp = [55, 95, 50, 400][kind];
   return {
-    id: nextId(g),
+    id: ++g.serial,
     kind,
     pos: { ...pos },
     facing: { x: 0, z: -1 },
@@ -932,7 +929,7 @@ function kill(g, e, meta = {}) {
     return;
   }
   if (g.kills % 2 === 0)
-    g.loot.push({ id: nextId(g), pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
+    g.loot.push({ id: ++g.serial, pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
   if (!g.enemies.length) {
     g.player.hp = Math.min(g.player.maxHP, g.player.hp + 25);
     g.nextWave = g.time + 4;
@@ -999,7 +996,7 @@ export function spawnWave(g) {
 const radius = (e) => (e.kind === 3 ? (e.pattern === 1 ? 4 : 3.5) : e.kind === 1 ? 2.8 : 1.8);
 const arc = (e) => (e.kind === 3 && e.pattern === 1 ? 360 : e.kind === 1 ? 110 : 90);
 function bolt(g, pos, dir, amount) {
-  g.bolts.push({ id: nextId(g), pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
+  g.bolts.push({ id: ++g.serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
 }
 function enemyTick(g, e, dt, services = {}) {
   if (e.hp > 0 && safehouseProtected(g)) {
@@ -1440,7 +1437,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         source: services.reaperSource,
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
-        emitBolt: (b) => g.bolts.push({ id: nextId(g), ...b }),
+        emitBolt: (b) => g.bolts.push({ id: ++g.serial, ...b }),
         hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
@@ -1465,47 +1462,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     else if (!g.enemies.some((e) => e.placementKey === g.mobileAim.targetId && e.hp > 0))
       g.mobileAim = { ...g.mobileAim, targetId: null, bearing: null };
   }
-}
-
-// One pool for action costs and defence. The legacy guard field is an alias,
-// so existing HUD/hit callers cannot create a second independent resource.
-function knifeEnergy(entity, regen = 1) {
-  if (entity.maxStamina !== undefined) return entity;
-  entity.stamina = R.maxStamina;
-  entity.maxStamina = R.maxStamina;
-  entity.exhausted = false;
-  entity.staminaRegen = regen;
-  entity.guardRecoverAt = 0;
-  Object.defineProperty(entity, "guard", {
-    enumerable: true,
-    configurable: true,
-    get() {
-      return this.stamina;
-    },
-    set(value) {
-      this.stamina = Math.max(0, Math.min(this.maxStamina, value));
-      if (this.stamina <= EPS) this.exhausted = true;
-    },
-  });
-  return entity;
-}
-function knifeAffordable(entity, cost) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  return !entity.exhausted && entity.stamina + EPS >= cost;
-}
-function knifeSpend(g, entity, cost) {
-  entity.guard = Math.max(0, entity.stamina - cost);
-  entity.guardRecoverAt = g.time + R.regenDelay / 60;
-  if (entity.exhausted) {
-    entity.guarding = false;
-    entity.parryUntil = 0;
-  }
-}
-function knifeRegen(g, entity, dt, committed) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  if (!committed && g.time + EPS >= entity.guardRecoverAt && g.time + EPS >= (entity.guardBrokenUntil ?? 0))
-    entity.guard = entity.stamina + R.regen * (entity.staminaRegen ?? 1) * (entity.guarding ? R.guardRegen : 1) * dt;
-  if (entity.exhausted && entity.stamina + EPS >= R.exhaustRecover) entity.exhausted = false;
 }
 function hollowSpawn(g) {
   if (g.enemies.length || g.finished || g.wave) return false;
@@ -2218,7 +2174,7 @@ function droneEnemy(g, e, dt) {
   if (next.action === "approach") enemyMove(g, e, next.direction, e.moveSpeed, dt);
   else if (next.direction) e.facing = { ...next.direction };
   if (next.bolt) {
-    g.bolts.push({ id: nextId(g), ...next.bolt });
+    g.bolts.push({ id: ++g.serial, ...next.bolt });
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...next.bolt.dir },
