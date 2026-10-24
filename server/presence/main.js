@@ -11,6 +11,7 @@ import fs from "node:fs";
 import { loadAreaRows } from "./area-rules.js";
 import { weaponCaps } from "./caps.js";
 import { presenceLimits } from "./limits.js";
+import { firstName } from "./names.js";
 import { createPresence } from "./server.js";
 import { writerClient } from "./writer-client.js";
 
@@ -34,7 +35,9 @@ const url = need("SUPABASE_URL"),
 const verify = async (token) => {
   try {
     const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: `Bearer ${token}`, apikey: anon } });
-    return res.ok ? ((await res.json()).id ?? null) : null;
+    if (!res.ok) return null;
+    const user = await res.json();
+    return user?.id ? { id: user.id, name: firstName(user) } : null; // only the first name is kept; the rest of the profile is dropped here
   } catch {
     return null;
   }

@@ -13,7 +13,16 @@ function frame(opcode, payload) {
     head =
       n < 126
         ? Buffer.from([0x80 | opcode, n])
-        : Buffer.from([0x80 | opcode, 126, n >> 8, n & 255]);
+        : n < 65536
+          ? Buffer.from([0x80 | opcode, 126, n >> 8, n & 255])
+          : (() => {
+              // 64-bit length (RFC 6455 5.2): a full layer's state frame can pass 65535 bytes.
+              const big = Buffer.alloc(10);
+              big[0] = 0x80 | opcode;
+              big[1] = 127;
+              big.writeBigUInt64BE(BigInt(n), 2);
+              return big;
+            })();
   return Buffer.concat([head, payload]);
 }
 

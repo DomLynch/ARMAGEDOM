@@ -7,12 +7,15 @@
 //             {t:"loc", x, z}            where I am now (integer cm, the area's frame); checked by checkMove against SERVER time
 //             {t:"travel", to}           leave through an exit zone I am standing in
 //             {t:"hit", instance, token, weapon, damage, hits?}   damage I dealt to a creature of my area; token is the writer's engage token
-//   server -> {t:"welcome", id, area, x, z, arrival, version}   (after join and after travel)   {t:"state", tick, players:[{id,x,z}]}   {t:"refuse", reason}
-//             {t:"spawn", instance, hp, maxHp, killed}   the shared bar after a tick's hits (whole layer)   {t:"hit-result", instance, applied, killed, paid?}   (hitter)
+//   server -> {t:"welcome", id, name, area, x, z, arrival, version}   (after join and after travel)   {t:"refuse", reason}
+//             {t:"state", tick, players:[{id, name, x, z}]}   name: "Survivor-NNNN" for a guest, the first name for a signed-in player, 16 chars at most
+//             {t:"spawn", instance, generation, hp, maxHp, killed}   the shared bar of the creature the TOKEN is engaged with (whole layer of its area)
+//             {t:"hit-result", instance, applied, killed, paid?}   (hitter only)
 // The phone's own clock is never used: a report's time is when the server received it. Loopback only, OFF unless ARMA_PRESENCE=1 (main.js).
 import http from "node:http";
 import { CLOSE, connection, handshake } from "./ws.js";
 import { checkMove, checkTravel, pickArrival, resumePosition } from "./area-rules.js";
+import { displayName } from "./names.js";
 
 export const PROTOCOL = "arma.v1";
 export const CLOSE_REPLACED = 4010;
@@ -38,6 +41,7 @@ export function createPresence({
   sendLocation = null,
   locationEveryMs = 5000,
   hitSlack = 1.25,
+  verifyTimeoutMs = 5000,
   allowedOrigins = ["https://playarmagedom.com"],
   devOrigins = false,
   log = () => {},
@@ -46,6 +50,7 @@ export function createPresence({
   const byAccount = new Map(); // account -> client (one live connection per account)
   const counters = new Map(Object.keys(rules.areas).map((area) => [area, { joins: 0, messages: 0, moves: 0, refused: {}, travels: 0, hits: 0, hitsApplied: 0 }]));
   const enemies = new Map(Object.entries(rules.areas).map(([area, row]) => [area, new Set(row.enemies.map((e) => e.instance))]));
+  const areaOfInstance = new Map(Object.entries(rules.areas).flatMap(([area, row]) => row.enemies.map((e) => [e.instance, area])));
   const pending = new Map(); // `${client.id}|${token}|${weapon}` -> one row of this tick's hit batch
   const service = { hitBatches: 0, hitRows: 0, hitFailures: 0, locationReports: 0, locationFailures: 0 };
   let nextId = 1,
@@ -60,7 +65,7 @@ export function createPresence({
     layers.get(area).add(client);
     Object.assign(client, { area, x: pos.x, z: pos.z, atMs: now() });
     counters.get(area).joins++;
-    client.conn.send(JSON.stringify({ t: "welcome", id: client.id, area, x: pos.x, z: pos.z, arrival, version: rules.version }));
+    client.conn.send(JSON.stringify({ t: "welcome", id: client.id, name: client.name, area, x: pos.x, z: pos.z, arrival, version: rules.version }));
   };
   const leave = (client) => {
     if (client.area) layers.get(client.area).delete(client);
@@ -160,10 +165,24 @@ export function createPresence({
           c.refused[reason] = (c.refused[reason] ?? 0) + 1;
           return row.client.conn.send(JSON.stringify({ t: "refuse", reason }));
         }
-        counters.get(row.area).hitsApplied++;
-        const shared = JSON.stringify({ t: "spawn", instance: row.instance, hp: res.hp, maxHp: res.maxHp, killed: !!res.killed });
-        for (const c of layers.get(row.area)) c.conn.send(shared);
-        row.client.conn.send(JSON.stringify({ t: "hit-result", instance: row.instance, applied: res.applied, killed: !!res.killed, ...(res.killed ? { paid: res.paid } : {}) }));
+        // The database applied the hit to the creature of the TOKEN's engage row and says which it was. That, never the instance the phone
+        // claimed, is what the layer is told: a modified client cannot relabel another creature's bar.
+        const area = typeof res.instance === "string" ? areaOfInstance.get(res.instance) : undefined;
+        if (!area) {
+          const c = counters.get(row.area);
+          c.refused["hit-instance"] = (c.refused["hit-instance"] ?? 0) + 1;
+          return row.client.conn.send(JSON.stringify({ t: "refuse", reason: "hit-instance" }));
+        }
+        counters.get(area).hitsApplied++;
+        const shared = JSON.stringify({ t: "spawn", instance: res.instance, generation: res.generation, hp: res.hp, maxHp: res.maxHp, killed: !!res.killed });
+        for (const c of layers.get(area)) c.conn.send(shared);
+        row.client.conn.send(JSON.stringify({ t: "hit-result", instance: res.instance, applied: res.applied, killed: !!res.killed, ...(res.killed ? { paid: res.paid } : {}) }));
+        if (res.instance !== row.instance) {
+          // The hit stood (the token decides), but the phone named another creature: say so, and count it.
+          const c = counters.get(row.area);
+          c.refused["hit-instance"] = (c.refused["hit-instance"] ?? 0) + 1;
+          row.client.conn.send(JSON.stringify({ t: "refuse", reason: "hit-instance" }));
+        }
       });
     }
   }
@@ -196,12 +215,17 @@ export function createPresence({
     // Browsers always send Origin on a WebSocket upgrade; a page on any other site is refused before the token is even looked at.
     if (!originAllowed(req.headers.origin)) return socket.end("HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
     if (!token) return deny();
-    Promise.resolve(verify(token)).then(
-      (account) => {
-        if (!account) return deny();
+    // verify may answer an account id, or { id, name } where name is the first name to show (names.js cleans it). A hung verifier must
+    // not hold the socket open: the upgrade is refused after verifyTimeoutMs.
+    let deadline;
+    const timedOut = new Promise((_, reject) => (deadline = setTimeout(() => reject(new Error("verify timed out")), verifyTimeoutMs)));
+    Promise.race([Promise.resolve(verify(token)), timedOut]).finally(() => clearTimeout(deadline)).then(
+      (verified) => {
+        const account = typeof verified === "string" ? verified : verified?.id;
+        if (typeof account !== "string" || !account) return deny();
         if (socket.destroyed) return;
         if (!handshake(req, socket, { protocol: PROTOCOL })) return;
-        const client = { id: nextId++, account, area: null, x: 0, z: 0, atMs: 0, windowStart: now(), windowCount: 0, lastHit: new Map(), reportedAt: -Infinity, reported: null };
+        const client = { id: nextId++, account, name: displayName(account, typeof verified === "object" ? verified.name : null), area: null, x: 0, z: 0, atMs: 0, windowStart: now(), windowCount: 0, lastHit: new Map(), reportedAt: -Infinity, reported: null };
         client.conn = connection(socket, {
           maxMessage,
           onMessage: (data, isBinary) => (isBinary ? client.conn.close(CLOSE.UNSUPPORTED) : onMessage(client, data)),
@@ -231,7 +255,7 @@ export function createPresence({
       tickNumber++;
       for (const [area, clients] of layers) {
         if (clients.size === 0) continue;
-        const players = [...clients].map((c) => ({ id: c.id, x: c.x, z: c.z }));
+        const players = [...clients].map((c) => ({ id: c.id, name: c.name, x: c.x, z: c.z }));
         const payload = JSON.stringify({ t: "state", tick: tickNumber, players });
         for (const c of clients) c.conn.send(payload);
         counters.get(area).lastPlayers = players.length;

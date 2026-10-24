@@ -20,7 +20,7 @@ const area = (id, other) => ({
     { id: `${id}:a2`, x: 3500, z: 1500, from: other },
     { id: `${id}:a3`, x: 200, z: 2800, from: null },
   ],
-  enemies: [{ instance: `${id}:rat-1`, home: { x: 2000, z: 2000 } }],
+  enemies: [{ instance: `${id}:rat-1`, home: { x: 2000, z: 2000 } }, { instance: `${id}:rat-2`, home: { x: 2500, z: 2500 } }],
 });
 const areas = [area("south", "east"), area("east", "south")];
 const rules = loadAreaRows({ version: createHash("sha256").update(JSON.stringify(areas)).digest("hex").slice(0, 16), maxSpeedCmPerS: 520, areas });
@@ -148,6 +148,39 @@ test("origin: only https://playarmagedom.com may open a socket; localhost only i
   }
 });
 
+test("auth: a verifier that never answers is cut off at the deadline; a verifier that throws is refused", async () => {
+  const hung = await start({ verify: () => new Promise(() => {}), verifyTimeoutMs: 80 });
+  const broken = await start({ verify: async () => { throw new Error("auth down"); } });
+  try {
+    assert.equal((await hung.connect(ALICE)).status, 401);
+    assert.equal((await broken.connect(ALICE)).status, 401);
+  } finally {
+    await hung.stop();
+    await broken.stop();
+  }
+});
+
+test("names: every player is sent with a display name, never an account id or an email", async () => {
+  const profiles = { [ALICE]: { id: ALICE, name: "Ada\u0000 Lovelace-Augusta" }, [BOB]: { id: BOB, name: "bob@example.com" } };
+  const t = await start({ verify: async (token) => profiles[token.slice(5)] ?? null });
+  try {
+    const [a, b] = [await t.connect(ALICE), await t.connect(BOB)];
+    a.send({ t: "join", area: "south", x: 2000, z: 500 });
+    b.send({ t: "join", area: "south", x: 2200, z: 500 });
+    const [wa, wb] = [await a.next(), await b.next()];
+    assert.equal(wa.name, "Ada Lovelace-Aug", "control characters stripped, 16 characters at most");
+    assert.match(wb.name, /^Survivor-\d{4}$/, "an email is never shown; the guest name stands in");
+    await settle();
+    await t.presence.tick();
+    const state = await a.next();
+    assert.deepEqual(state.players.map((p) => p.name).sort(), [wa.name, wb.name].sort());
+    assert.equal(JSON.stringify(state).includes("@"), false);
+    assert.equal(JSON.stringify(state).includes(ALICE), false);
+  } finally {
+    await t.stop();
+  }
+});
+
 test("join: a walkable saved spot is kept, an unwalkable one lands on an arrival, one join per connection", async () => {
   const t = await start();
   try {
@@ -182,7 +215,7 @@ test("layers: a player is sent only the players of their own area", async () => 
     const south = await a.next(),
       east = await c.next();
     assert.deepEqual(south.players.map((p) => p.id).sort(), [ids[0], ids[1]].sort());
-    assert.deepEqual(east.players, [{ id: ids[2], x: 2000, z: 500 }], "east sees only east");
+    assert.deepEqual(east.players.map(({ id, x, z }) => ({ id, x, z })), [{ id: ids[2], x: 2000, z: 500 }], "east sees only east");
     assert.equal(JSON.stringify(south).includes(ALICE), false, "no account ids on the wire");
     assert.deepEqual(Object.fromEntries(Object.entries(t.presence.stats().areas).map(([k, v]) => [k, v.present])), { south: 2, east: 1 });
   } finally {
@@ -213,7 +246,8 @@ test("moves: checked against SERVER time and the area; the phone's own clock is 
     assert.equal(south.moves, 2);
     assert.deepEqual(south.refused, { speed: 1, blocked: 1, position: 1 });
     t.presence.tick();
-    assert.deepEqual((await a.next()).players[0], { id: 1, x: 2400, z: 500 }, "a refused move does not move the player");
+    const [me] = (await a.next()).players;
+    assert.deepEqual([me.id, me.x, me.z], [1, 2400, 500], "a refused move does not move the player");
   } finally {
     await t.stop();
   }
@@ -301,7 +335,8 @@ const TOKEN_A = "token-alice-0000000000",
   TOKEN_B = "token-bob-000000000000";
 const CAROL = "00000000-0000-4000-8000-00000000000c";
 /** A fake writer: records every batch and answers from `reply(row, index)`. */
-const fakeWriter = (reply = (row) => ({ token: row.token, applied: row.applied, hp: 100 - row.applied, maxHp: 100, killed: false })) => {
+// The writer says which creature the TOKEN is engaged with (the real arma_spawn_hit_batch does); here every token is engaged with south:rat-1.
+const fakeWriter = (reply = (row) => ({ token: row.token, instance: "south:rat-1", generation: 0, applied: row.applied, hp: 100 - row.applied, maxHp: 100, killed: false })) => {
   const calls = [];
   return { calls, sendHits: async (rows) => (calls.push(rows), rows.map(reply)) };
 };
@@ -313,7 +348,7 @@ async function joined(t, account, area = "south", x = 2000, z = 500) {
 }
 
 test("hits: one tick is one batch to the writer; the shared bar goes to the whole layer and only that layer", async () => {
-  const writer = fakeWriter((row, i) => ({ token: row.token, applied: row.applied, hp: 100 - (i + 1) * 20, maxHp: 100, killed: i === 1, ...(i === 1 ? { paid: 2 } : {}) }));
+  const writer = fakeWriter((row, i) => ({ token: row.token, instance: "south:rat-1", generation: 0, applied: row.applied, hp: 100 - (i + 1) * 20, maxHp: 100, killed: i === 1, ...(i === 1 ? { paid: 2 } : {}) }));
   const t = await start({ weaponCaps: CAPS, sendHits: writer.sendHits });
   try {
     const [a, b, c] = [await joined(t, ALICE), await joined(t, BOB), await joined(t, CAROL, "east")];
@@ -326,7 +361,7 @@ test("hits: one tick is one batch to the writer; the shared bar goes to the whol
       writer.calls[0].map(({ account, token, weapon, applied, hits }) => [account, token, weapon, applied, hits]),
       [[ALICE, TOKEN_A, "knife", 15, 1], [BOB, TOKEN_B, "knife", 20, 1]],
     );
-    const bar = (hp, killed) => ({ t: "spawn", instance: "south:rat-1", hp, maxHp: 100, killed });
+    const bar = (hp, killed) => ({ t: "spawn", instance: "south:rat-1", generation: 0, hp, maxHp: 100, killed });
     // The bar goes to everyone in the layer, in batch order; each hitter also gets their own result.
     assert.deepEqual((await take(a, 4)).slice(1), [bar(80, false), { t: "hit-result", instance: "south:rat-1", applied: 15, killed: false }, bar(60, true)]);
     assert.deepEqual((await take(b, 4)).slice(1), [bar(80, false), bar(60, true), { t: "hit-result", instance: "south:rat-1", applied: 20, killed: true, paid: 2 }]);
@@ -334,6 +369,56 @@ test("hits: one tick is one batch to the writer; the shared bar goes to the whol
     await settle();
     assert.equal(c.messages.length, 0, "and no south spawn");
     assert.equal(t.presence.stats().areas.south.hitsApplied, 2);
+  } finally {
+    await t.stop();
+  }
+});
+
+test("hits: the layer is told the creature of the TOKEN, not the one the phone named (a relabelled bar is impossible)", async () => {
+  // The token is engaged with south:rat-1; the modified phone says south:rat-2. The database applied the hit to rat-1, so rat-1's bar moves.
+  const writer = fakeWriter();
+  const t = await start({ weaponCaps: CAPS, sendHits: writer.sendHits });
+  try {
+    const [a, b] = [await joined(t, ALICE), await joined(t, BOB)];
+    a.send({ t: "hit", instance: "south:rat-2", token: TOKEN_A, weapon: "knife", damage: 10 });
+    await settle();
+    await t.presence.tick();
+    const seen = await take(b, 2); // state + the shared bar
+    assert.deepEqual(seen[1], { t: "spawn", instance: "south:rat-1", generation: 0, hp: 90, maxHp: 100, killed: false });
+    assert.equal(JSON.stringify([seen, await take(a, 4)]).includes("rat-2"), false, "no one is ever told about rat-2");
+    const mine = a.messages; // nothing left over
+    assert.equal(mine.length, 0);
+    assert.deepEqual(t.presence.stats().areas.south.refused, { "hit-instance": 1 });
+  } finally {
+    await t.stop();
+  }
+});
+
+test("hits: a result naming a creature of another area goes to that area's layer only; one naming nothing is refused", async () => {
+  const replies = [
+    (row) => ({ token: row.token, instance: "east:rat-1", generation: 2, applied: 5, hp: 50, maxHp: 100, killed: false }),
+    (row) => ({ token: row.token, applied: 5, hp: 50, maxHp: 100, killed: false }),
+  ];
+  let n = 0;
+  const t = await start({ weaponCaps: CAPS, sendHits: async (rows) => rows.map((row) => replies[n++ % 2](row)) });
+  try {
+    const [a, east] = [await joined(t, ALICE), await joined(t, CAROL, "east")];
+    a.send({ t: "hit", instance: "south:rat-1", token: TOKEN_A, weapon: "knife", damage: 5 });
+    await settle();
+    await t.presence.tick();
+    assert.deepEqual((await take(east, 2))[1], { t: "spawn", instance: "east:rat-1", generation: 2, hp: 50, maxHp: 100, killed: false });
+    // alice: her state, her own result (for the creature the token is engaged with), then the refusal that the phone named another one.
+    assert.deepEqual((await take(a, 3)).map((m) => m.t), ["state", "hit-result", "refuse"], "alice hears no spawn for another area");
+    // Second tick: the writer names no creature at all, so there is nothing to broadcast.
+    t.clock.ms += 1000;
+    a.send({ t: "hit", instance: "south:rat-1", token: TOKEN_A, weapon: "knife", damage: 5 });
+    await settle();
+    await t.presence.tick();
+    assert.deepEqual((await take(a, 2)).map((m) => m.t), ["state", "refuse"]);
+    assert.equal((await east.next()).t, "state");
+    await settle();
+    assert.equal(east.messages.length, 0, "the east layer heard nothing about it");
+    assert.deepEqual(t.presence.stats().areas.south.refused, { "hit-instance": 2 });
   } finally {
     await t.stop();
   }
@@ -405,7 +490,7 @@ test("hits: a writer that is down loses the tick's hits, tells the hitters, and 
     sendHits: async (rows) => {
       calls++;
       if (calls === 1) throw new Error("connect ECONNREFUSED");
-      return rows.map((row) => (row.token === TOKEN_A ? { token: row.token, error: "O0009", message: "engage token unknown, used or expired" } : { token: row.token, applied: row.applied, hp: 80, maxHp: 100, killed: false }));
+      return rows.map((row) => (row.token === TOKEN_A ? { token: row.token, error: "O0009", message: "engage token unknown, used or expired" } : { token: row.token, instance: "south:rat-1", generation: 0, applied: row.applied, hp: 80, maxHp: 100, killed: false }));
     },
   });
   try {

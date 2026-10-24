@@ -38,6 +38,7 @@ test("presence rows go through writerClient to the shared bar; a refused row is 
     assert.equal(results.length, 3, "one result per row, in order");
     assert.deepEqual(results.slice(0, 2).map((r) => [r.token, r.applied, r.hp, r.maxHp, r.killed]), [[alice.token, 10, 30, 40, false], [bob.token, 10, 20, 40, false]], "bob sees the bar alice lowered");
     assert.equal(results[2].error, "O0009", "an unknown token is an error in its own slot");
+    assert.deepEqual(results.map((r) => r.instance), ["wolf-1", "wolf-1", null], "each result names the creature of the token's engage row, for presence to broadcast");
   } finally {
     await t.close();
   }
