@@ -165,7 +165,8 @@ export function createBrowserLoop(s) {
     const severs = s.effects?.takeSeverEvents?.() ?? [];
     if (audioEvents.length || severs.length) s.audio.play(presentationAudioEvents(audioEvents, severs));
     s.rim.position.copy(s.world.toRender(s.game.player.pos, 2.4)).add(new THREE.Vector3(0, 0, 0.8));
-    s.hud.update(s.game, s.paused || s.traveling ? "" : hints.current(s.game));
+    const hint = s.paused || s.traveling ? "" : hints.current(s.game);
+    s.hud.update(s.game, hint, hints.overMessage);
     s.updateExpedition?.();
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);

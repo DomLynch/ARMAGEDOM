@@ -23,8 +23,6 @@ const checks = {
       distance(g.player.pos, pistol.pickupPos) <= PISTOL_REACH
     );
   },
-  // exitHint also carries route arrows (shelter, road closed); only "EXIT → AREA" means at an exit.
-  nearExit: (_, { g }) => /^EXIT/.test(g.world?.exitHint?.(g.player.pos) ?? ""),
   flameEquipped: (_, { g }) => !!g.flame?.equipped,
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
@@ -52,6 +50,8 @@ export function validateHintTable(rows) {
       stayKeys = Object.keys(row.stays ?? {});
     if (stayKeys.length > 1 || (stayKeys.length && !Object.hasOwn(stays, stayKeys[0])))
       throw Error("Unknown hint stay condition: " + row.id);
+    if (row.overMessage !== undefined && typeof row.overMessage !== "boolean")
+      throw Error("Invalid overMessage: " + row.id);
     if (typeof row.id !== "string" || ids.has(row.id)) throw Error("Invalid or duplicate hint id");
     if (typeof row.text !== "string" || !row.text || row.text.length > 80) throw Error("Invalid hint text: " + row.id);
     if (keys.length !== 1 || !Object.hasOwn(checks, keys[0])) throw Error("Unknown hint trigger: " + row.id);
@@ -80,6 +80,12 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
   let tookHit = false;
   let active = null;
   let lastTime = 0;
+  let resume = null;
+  let over = false;
+  const show = (hint) => {
+    over = hint.overMessage;
+    return hint.text;
+  };
   function remember(id) {
     seen.add(id);
     try {
@@ -94,29 +100,51 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
       for (const event of g.events ?? []) if (event.type === "hit" && event.actor === g.player) tookHit = true;
     },
     // Text for the notice line, or "". Starts the next unseen relevant row when none is showing.
-    // A live game message owns the line, so a hint neither starts nor runs down underneath it.
+    // True while the text returned by current() is a row marked `overMessage` (survival first), which the notice
+    // line must show even over a live game message.
+    get overMessage() {
+      return over;
+    },
+    // A live game message owns the line, so a hint neither starts nor runs down underneath it; only an
+    // `overMessage` row may start or keep running while one is showing.
     current(g) {
       const elapsed = Math.min(Math.max(g.time - lastTime, 0), 1);
       lastTime = g.time;
-      if (g.finished || g.player.hp <= 0 || g.time < (g.messageUntil ?? 0)) return "";
-      if (active) {
-        if (active.stays) {
-          const [[key, argument]] = Object.entries(active.stays);
-          if (stays[key](argument, { g })) return active.text;
-          active = null;
-        } else {
-          active.left -= elapsed;
-          if (active.left > 0) return active.text;
+      over = false;
+      if (g.finished || g.player.hp <= 0) return "";
+      const messageShowing = g.time < (g.messageUntil ?? 0),
+        fires = (row) => {
+          const [[key, argument]] = Object.entries(row.when);
+          return checks[key](argument, { g, tookHit });
+        };
+      // Survival first: an unseen `overMessage` row that fires now takes the line from an ordinary hint, which
+      // resumes (a timed one with the time it had left) once the survival tip is done.
+      if (active && !active.overMessage) {
+        const urgent = rows.find((row) => row.overMessage && !seen.has(row.id) && fires(row));
+        if (urgent) {
+          resume = active;
           active = null;
         }
       }
+      let spent = elapsed;
+      while (active) {
+        if (messageShowing && !active.overMessage) return "";
+        const [stay] = Object.entries(active.stays ?? {});
+        if (stay) {
+          if (stays[stay[0]](stay[1], { g })) return show(active);
+        } else {
+          active.left -= spent;
+          if (active.left > 0) return show(active);
+        }
+        active = resume;
+        resume = null;
+        spent = 0;
+      }
       for (const row of rows) {
-        if (seen.has(row.id)) continue;
-        const [[key, argument]] = Object.entries(row.when);
-        if (!checks[key](argument, { g, tookHit })) continue;
+        if (seen.has(row.id) || (messageShowing && !row.overMessage) || !fires(row)) continue;
         remember(row.id);
-        active = { text: row.text, left: HINT_SECONDS, stays: row.stays };
-        return row.text;
+        active = { text: row.text, left: HINT_SECONDS, stays: row.stays, overMessage: !!row.overMessage };
+        return show(active);
       }
       return "";
     },

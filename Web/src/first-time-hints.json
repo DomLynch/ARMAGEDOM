@@ -3,7 +3,8 @@
   {
     "id": "dodge-guard",
     "when": { "tookHit": true },
-    "text": "DODGE ROLL gets you out of a hit. Hold GUARD to block."
+    "overMessage": true,
+    "text": "Dodge roll to avoid hits. Hold GUARD."
   },
   {
     "id": "pistol",
@@ -11,7 +12,6 @@
     "stays": { "pistolUncollectedWithin": 6 },
     "text": "Tap COLLECT STARTING PISTOL to take it."
   },
-  { "id": "map", "when": { "nearExit": true }, "text": "Open the menu for MAP and travel." },
   {
     "id": "ember-fire",
     "when": { "flameEquipped": true },
@@ -20,6 +20,6 @@
   {
     "id": "ember-matron",
     "when": { "bossWithin": { "name": "Ember Matron", "meters": 14 } },
-    "text": "The Ember Matron carries a flamethrower. Take it from her."
+    "text": "The Ember Matron has a flamethrower. Take it."
   }
 ]

@@ -288,7 +288,7 @@ export function createHUD({
       el("enter").textContent = "Retry loading";
       el("loading").textContent = message;
     },
-    update(g, hint = "") {
+    update(g, hint = "", hintFirst = false) {
       try {
         const el = (id) => view(document.getElementById(id));
         const p = g.player,
@@ -374,7 +374,13 @@ export function createHUD({
                 ? "VEST BY PISTOL STASH · Walk near to equip"
                 : ""
             : "";
-        const message = g.time < g.messageUntil ? g.message : hint || g.world?.exitHint?.(p.pos) || vestNotice;
+        // A survival hint (hintFirst) outranks even a live game message; every other hint waits for it.
+        const message =
+          hintFirst && hint
+            ? hint
+            : g.time < g.messageUntil
+              ? g.message
+              : hint || g.world?.exitHint?.(p.pos) || vestNotice;
         // A first-time hint is a gold pop-up in the route arrow's colour; game messages keep the plain style.
         const gold = !!hint && message === hint;
         if (message !== lastMessage || gold !== lastGold) {
