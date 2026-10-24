@@ -18,29 +18,29 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import * as T from "three";
-import { loadGeometry } from "../../art/donor/probe.mjs";
-import { createActors } from "../src/actors.js";
-import { disposeActorSources } from "../src/actor-resources.js";
-import { createGame, stepGame } from "../src/combat.js";
-import { createAreaRegistry } from "../src/area-registry.js";
-import { createGeometry } from "../src/world-geometry.js";
-import { validateAreaMetadata } from "../src/engine/area-content.js";
-import { hollowLocomotionFor } from "../src/area-mob-spawns.js";
-import { rigCapability } from "../src/rig-capabilities.js";
-import { MELEE_VARIANTS } from "../src/melee-equipment.js";
-import { CLEAVER_ITEM_ID } from "../src/engine/unique-reward-runtime.js";
-import { syncMeleeEquipment } from "../src/melee-equipment.js";
-import { fixture, armed as armedRifle } from "./helpers/rifle-fixture.js";
-import { armedBossEquipment } from "./helpers/boss-equipment-fixture.js";
-import { RANGED_WEAPON_CATALOG, RIFLE_ITEM_ID } from "../src/engine/weapon-catalog.js";
-import { BOSS_EQUIPMENT_PROFILES } from "../src/engine/boss-equipment-data.js";
-import { createMobileAimState } from "../src/mobile-combat-aim.js";
-import { PISTOL_ITEM_ID } from "../src/core/pistol-operation.js";
+import { loadGeometry } from "../../../art/donor/probe.mjs";
+import { createActors } from "../../src/actors.js";
+import { disposeActorSources } from "../../src/actor-resources.js";
+import { createGame, stepGame } from "../../src/combat.js";
+import { createAreaRegistry } from "../../src/area-registry.js";
+import { createGeometry } from "../../src/world-geometry.js";
+import { validateAreaMetadata } from "../../src/engine/area-content.js";
+import { hollowLocomotionFor } from "../../src/area-mob-spawns.js";
+import { rigCapability } from "../../src/rig-capabilities.js";
+import { MELEE_VARIANTS } from "../../src/melee-equipment.js";
+import { CLEAVER_ITEM_ID } from "../../src/engine/unique-reward-runtime.js";
+import { syncMeleeEquipment } from "../../src/melee-equipment.js";
+import { fixture, armed as armedRifle } from "./rifle-fixture.js";
+import { armedBossEquipment } from "./boss-equipment-fixture.js";
+import { RANGED_WEAPON_CATALOG, RIFLE_ITEM_ID } from "../../src/engine/weapon-catalog.js";
+import { BOSS_EQUIPMENT_PROFILES } from "../../src/engine/boss-equipment-data.js";
+import { createMobileAimState } from "../../src/mobile-combat-aim.js";
+import { PISTOL_ITEM_ID } from "../../src/core/pistol-operation.js";
 
-const read = (path) => JSON.parse(fs.readFileSync(new URL("../public/" + path, import.meta.url)));
+const read = (path) => JSON.parse(fs.readFileSync(new URL("../../public/" + path, import.meta.url)));
 const registry = createAreaRegistry({ manifest: read("world/manifest.json") });
 const content = validateAreaMetadata(read("world/area-content.json"), registry);
-const assets = new URL("../public/assets/", import.meta.url);
+const assets = new URL("../../public/assets/", import.meta.url);
 const manifest = JSON.parse(fs.readFileSync(new URL("manifest-hollow.json", assets)));
 
 // ---------------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ async function loadAsset(url) {
   if (url.endsWith("original-dog.glb")) {
     // Node has no image decoder: give the dog coat material its real decoded PNG as RGBA data.
     const { PNG } = await import("pngjs"),
-      { decode } = await import("../../art/donor/probe.mjs"),
+      { decode } = await import("../../../art/donor/probe.mjs"),
       { doc, bin } = decode(bytes),
       material = doc.materials.find((m) => m.name === "Weathered brindle coat"),
       image = doc.images[doc.textures[material.pbrMetallicRoughness.baseColorTexture.index].source],
@@ -532,7 +532,11 @@ function measureCell(attack, row) {
 
 const statusOf = (cell) => (!cell.hit ? "no-hit" : cell.killed ? "ok" : "hit-no-kill");
 
-for (const attack of ATTACKS) {
+// CI shards by file, so the matrix is registered in `parts` thin test files: part k owns every attack whose
+// index % parts === k. Part 0 also owns the coverage test. Cells, KNOWN_GAPS and assertions are unchanged.
+export function defineMatrix(part, parts) {
+const mine = ATTACKS.filter((_, i) => i % parts === part);
+for (const attack of mine) {
   if (ONLY_ATTACK && !ONLY_ATTACK.includes(attack.id)) continue;
   test(`attack ${attack.id} against every creature`, { timeout: 900000 }, () => {
     const unexpected = [];
@@ -557,7 +561,7 @@ for (const attack of ATTACKS) {
   });
 }
 
-test("matrix covers every live creature and every weapon row", () => {
+if (part === 0) test("matrix covers every live creature and every weapon row", () => {
   assert.deepEqual([...ROWS.keys()].sort(), [...CREATURES].sort());
   for (const id of Object.keys(KNOWN_GAPS)) {
     const [creature, attack] = id.split("/");
@@ -577,7 +581,7 @@ test("matrix covers every live creature and every weapon row", () => {
   );
   console.log("ATTACK_ROWS", JSON.stringify(ATTACKS.map((a) => a.id)));
   if (ONLY || ONLY_ATTACK) return;
-  assert.equal(cells.size, CREATURES.length * ATTACKS.length, "every creature x attack cell was measured");
+  assert.equal(cells.size, CREATURES.length * mine.length, "every creature x attack cell of this part was measured");
   const tally = {};
   for (const cell of cells.values()) tally[cell.status] = (tally[cell.status] ?? 0) + 1;
   console.log(
@@ -591,3 +595,4 @@ test("matrix covers every live creature and every weapon row", () => {
     }),
   );
 });
+}
