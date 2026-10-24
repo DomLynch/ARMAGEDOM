@@ -1,7 +1,8 @@
 // Headless creature sim for shared enemies (W3). No DOM, no rendering. Presence steps it at 5-10 Hz; it runs the
 // SAME creature code single-player runs (combat.js stepCreatureAI / resolveCreatureContacts), so behaviour is
 // identical. Boundary and limits: combat-w3-authority.md.
-import { createGame, stepCreatureAI, resolveCreatureContacts, applyCreatureHit } from "../combat.js";
+// stepCreatureAI = boss rockets + the enemyTick loop; resolveCreatureContacts = knifeContacts + area hazards.
+import { createGame, stepCreatureAI, resolveCreatureContacts, rangedHit } from "../combat.js";
 
 const TICK = 1 / 60; // the knife pilot requires fixed 60 Hz ticks
 const MAX_DT = 0.25;
@@ -63,7 +64,8 @@ export function createCreatureSim({ game, world, pilot, creatures } = {}) {
       if (!target) continue;
       const damage = Math.min(h.damage, rule.maxDamagePerHit),
         before = target.hp;
-      applyCreatureHit(g, { creatureId: h.creatureId, direction: h.direction, weapon: h.weapon, damage });
+      // The same path the player's guns use.
+      rangedHit(g, { targetId: h.creatureId, direction: h.direction ?? { x: 0, z: 1 } }, h.weapon, h.weapon, damage);
       events.push({
         type: "creature-hit",
         creatureId: target.id,

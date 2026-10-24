@@ -33,7 +33,7 @@ import { SALAMANDER_BITE, SALAMANDER_BREATH, salamanderResponse } from "./salama
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
-import { createAreaHazard, stepAreaHazards } from "./engine/area-hazards.js";
+import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
@@ -313,14 +313,7 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
-// A validated damage claim against one creature (headless creature sim); the same path the player's guns use.
-export function applyCreatureHit(
-  g,
-  { creatureId, direction, weapon, itemId = weapon, damage, attackClass = "bullet" },
-) {
-  rangedHit(g, { targetId: creatureId, direction: direction ?? { x: 0, z: 1 } }, weapon, itemId, damage, attackClass);
-}
-function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
+export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
   const amount = Math.min(target.hp, damage);
@@ -1234,9 +1227,7 @@ function resetDeadPlayerBossPursuit(g) {
     resetBossPursuit(e);
   }
 }
-// The creature half of a step, shared by single-player (stepGame) and the headless creature sim
-// (engine/creature-sim.js) so both run exactly the same AI.
-// `only` limits the AI step to some of the creatures (the headless sim steps each group against its own target).
+// Creature half of a step, shared with engine/creature-sim.js; `only` limits it to some creatures.
 export function stepCreatureAI(g, dt, services = {}, only = null) {
   stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
   if (!g.finished)
@@ -1245,35 +1236,9 @@ export function stepCreatureAI(g, dt, services = {}, only = null) {
       if (g.finished) break;
     }
 }
-// Creature contact damage and area hazards against the player, after the AI has moved and swung.
 export function resolveCreatureContacts(g, before, ratBefore) {
   if (g.pilot) knifeContacts(g, before, ratBefore);
-  if (g.areaHazards) {
-    const next = stepAreaHazards(g.areaHazards, {
-      time: g.time,
-      areaId: g.world.areaId,
-      owners: g.enemies,
-      player: g.player,
-      lineClear: (a, b) => g.world.lineClear(a, b),
-    });
-    g.areaHazards = next.hazards;
-    for (const hit of next.hits) {
-      const attacker = g.enemies.find((e) => e.id === hit.ownerId);
-      knifeReceive(g, {
-        amount: hit.damage,
-        origin: hit.position,
-        attacker,
-        block: false,
-        parry: false,
-        moveId: "area-poison",
-        def: { stagger: 0, chip: 0 },
-      });
-      if (g.finished) {
-        g.areaHazards = [];
-        break;
-      }
-    }
-  }
+  if (g.areaHazards) applyAreaHazards(g, knifeReceive);
 }
 export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   intent = prepareSafehouseStep(g, intent);
