@@ -214,9 +214,21 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     dispose();
     throw failure?.reason ?? Error("Survivor export missing");
   }
+  // Files loadModel would fetch for these deferred, not yet loaded models.
+  function modelUrls(names) {
+    return [...new Set(names)]
+      .filter((name) => Object.hasOwn(manifest.models, name) && !models.has(name))
+      .flatMap((name) => {
+        const description = manifest.models[name];
+        return [description.url, description.equipment?.url, description.armSever?.url]
+          .filter(Boolean)
+          .map((url) => new URL(url, manifestURL).href);
+      });
+  }
   return {
     models,
     ensureModels,
+    modelUrls,
     manifest,
     pistolAsset,
     complete:
@@ -812,6 +824,28 @@ export function createActors(
             /* Optional pickup keeps its marker and manual Equipment retry. */
           }
       });
+    },
+    // Model files area entry would need that no loaded model covers: placed bosses and their
+    // weapons, resident appearances and deferred creature foundations. Static data only.
+    areaPrefetchUrls(areaId) {
+      const refs = [
+        ...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles ?? {})
+          .map((spec) => spec.foundationRef)
+          .filter((ref) => library.manifest.models[ref]?.deferred === true),
+        ...(world.residentPlacements?.[areaId] ?? [])
+          .flatMap((row) => [row.appearanceRef, row.foundationRef])
+          .filter((ref) => ref !== undefined),
+        ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
+        ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
+        ...(world.bossData?.placements ?? [])
+          .filter((row) => row.areaId === areaId)
+          .flatMap((row) => {
+            const profile = world.bossData.profiles[row.profileRef],
+              weapon = profile.weapon;
+            return [profile.modelRef, ...(weapon && weapon.kind !== "saw" ? [weapon.modelRef] : [])];
+          }),
+      ];
+      return library.modelUrls?.(refs) ?? [];
     },
     parkArea(areaId) {
       const stored = parkedViews.get(areaId) ?? new Map();

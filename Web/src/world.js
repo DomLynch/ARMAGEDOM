@@ -244,9 +244,12 @@ export class LondonWorld {
         camera.copy(next.camera, false);
         previous.scene.add(this.group);
         cache.stages.set(this.areaId, previous);
+        const leaving = source.areaId;
         Object.assign(this, next, { scene, camera, areaCache: cache, spawn: { ...entry } });
         cache.activeArea = areaId;
+        cache.previousArea = leaving;
         scene.add(this.group);
+        this.trimParkedStages();
         return { ...entry };
       } catch (error) {
         try {
@@ -296,6 +299,41 @@ export class LondonWorld {
       if (count > 0) cache.leases.set(areaId, count);
       else cache.leases.delete(areaId);
     };
+  }
+  // Parked-area budget (default off): at most `maxAreas` parked stages or `maxBytes` of their textures,
+  // whichever is reached first. Least recently used go first; the area just left is never evicted here.
+  trimParkedStages() {
+    const cache = this.areaCache,
+      limit = cache?.parkedLimit;
+    if (!limit) return;
+    const parked = [...cache.stages].filter(([id]) => id !== cache.activeArea);
+    const bytes = () => parked.reduce((n, [, stage]) => n + stage.textureBytes(), 0);
+    const candidates = parked
+      .filter(([id]) => id !== cache.previousArea && !cache.pending.has(id) && !cache.leases.has(id))
+      .sort(([a], [b]) => (cache.usage.get(a) ?? 0) - (cache.usage.get(b) ?? 0));
+    for (const [id, stage] of candidates) {
+      if (parked.length <= limit.maxAreas && bytes() <= limit.maxBytes) break;
+      cache.stages.delete(id);
+      cache.usage.delete(id);
+      parked.splice(
+        parked.findIndex(([other]) => other === id),
+        1,
+      );
+      stage.disposeStage();
+      cache.evictions++;
+      cache.lastEvicted = id;
+    }
+  }
+  setParkedLimit(limit) {
+    (this.areaCache ??= this.createAreaCache()).parkedLimit = limit;
+  }
+  // Layout and backdrop files a later prepareArea would fetch; empty once the stage is prepared.
+  areaPrefetchUrls(areaId) {
+    const row = this.registry.get(areaId);
+    if (!row || this.areaCache?.stages.has(areaId)) return [];
+    return [row.layoutRef, row.backdropRef]
+      .filter((ref) => ref !== row.layoutRef || !this.validatedLayouts?.[ref])
+      .map((ref) => new URL(this.registry.asset(ref).path, this.baseUrl).href);
   }
   admitTexture(bytes) {
     const cache = this.areaCache,

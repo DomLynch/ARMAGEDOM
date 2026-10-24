@@ -21,6 +21,20 @@ export function relieveGeometryBudget(actors, keep, onEvict = () => {}) {
   if (over()) throw Error("Prepared actor geometry budget exceeded");
   return evicted;
 }
+// Parked-area count limit (opt-in with the prefetch flag): keep at most `maxAreas` areas with parked
+// views, least recently parked first out. `keep` always survives, so the area just left stays warm.
+export function limitParkedAreas(actors, keep, maxAreas, onEvict = () => {}) {
+  const parked = actors.areaViewStats().parked.filter((row) => row.count > 0),
+    evicted = [];
+  for (const row of parked) {
+    if (parked.length - evicted.length <= maxAreas) break;
+    if (keep.has(row.area)) continue;
+    actors.discardArea(row.area);
+    onEvict(row.area);
+    evicted.push(row.area);
+  }
+  return evicted;
+}
 // Areas whose views or preparation must stay put while another area is prepared.
 export function protectedAreas(state, currentArea, preparingArea) {
   const keep = new Set([currentArea, preparingArea]);

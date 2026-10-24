@@ -6,8 +6,11 @@ import { publicAreaRegistry } from "../area-registry.js";
 import { warmFramebuffer } from "./warm-framebuffer.js";
 import { resetMobileControls, initializeAreaResidents } from "../combat.js";
 import { prepareParkedResidents } from "../parked-area-preparation.js";
-import { relieveGeometryBudget, protectedAreas } from "./parked-view-budget.js";
+import { relieveGeometryBudget, limitParkedAreas, protectedAreas } from "./parked-view-budget.js";
+import { createAreaPrefetch, PREFETCH_LIMITS } from "./area-prefetch.js";
 import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
+// Parked-area budget with the prefetch flag: two areas or 30 MB of their textures, whichever comes first.
+export const PARKED_AREA_LIMIT = Object.freeze({ maxAreas: 2, maxBytes: 30 * 1024 * 1024 });
 export const TRAVEL_MESSAGE_DELAY_MS = 300;
 // The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
 // Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.
@@ -26,6 +29,27 @@ export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_ME
 }
 export function createAreaLifecycle(s) {
   let travelLatch = false;
+  let fightQuietAt = 0;
+  // Network-only neighbour prefetch (flag ?prefetch=1): bytes into the HTTP cache, nothing decoded.
+  const prefetchLimits = { ...PREFETCH_LIMITS, ...s.prefetchLimits };
+  const prefetch = s.prefetchAreas
+    ? createAreaPrefetch({
+        limits: prefetchLimits,
+        neighbours: () => neighbourIds(),
+        urlsFor: (id) =>
+          s.world.isAreaReady(id) ? [] : [...s.world.areaPrefetchUrls(id), ...(s.actors?.areaPrefetchUrls?.(id) ?? [])],
+        canRun() {
+          if (s.traveling || s.resetting || s.contextLost || !s.loaded || !s.game) return false;
+          // A live fight (an alerted enemy, or a dead player) pauses downloads until a second after it ends.
+          if (s.game.player.hp <= 0 || s.game.enemies.some((e) => e.hp > 0 && e.alerted))
+            fightQuietAt = performance.now() + prefetchLimits.fightQuietMs;
+          return performance.now() >= fightQuietAt;
+        },
+        onEvent: (kind, url, error) => console.warn("ARMAGEDOM_AREA_PREFETCH", kind, url, error?.message),
+      })
+    : null;
+  // Read off the session, not a closure name, so functions sliced out of this file by tests need no stub.
+  if (prefetch) s.areaPrefetch = prefetch;
   async function crossArea(request) {
     if (s.resetting) return false;
     const gate = bossExitGate(s.game, request.areaId);
@@ -52,6 +76,7 @@ export function createAreaLifecycle(s) {
     const releaseSource = ownerWorld.leaseArea?.(previousArea) ?? (() => {});
     stopBossFlames(ownerGame, "travel");
     s.traveling = true;
+    s.areaPrefetch?.cancel();
     s.resetClock();
     s.input.clear({ keepMovement });
     if (s.game.pistol) s.cancelPistol(s.game);
@@ -83,6 +108,8 @@ export function createAreaLifecycle(s) {
       s.game.ratContact = s.actors.ratContact();
       console.info("ARMAGEDOM_TRAVEL", JSON.stringify({ area: s.world.areaId, position: s.game.player.pos }));
       accepted = true;
+      if (s.areaPrefetch)
+        limitParkedAreas(s.actors, new Set([request.areaId, previousArea]), PARKED_AREA_LIMIT.maxAreas);
       if (areaPreparation) queueNeighbours(areaPreparation);
       return true;
     } catch (error) {
@@ -126,11 +153,14 @@ export function createAreaLifecycle(s) {
         s.hud.update(ownerGame);
         s.updateExpedition?.();
         if (!recoveryFailed) s.renderer.render(s.scene, s.camera);
+        // Failed or not, the neighbours of wherever the player now stands are the next to warm.
+        if (!recoveryFailed) s.areaPrefetch?.enter();
       }
     }
   }
   let areaPreparation = null;
   function stopAreaPreparation() {
+    s.areaPrefetch?.stop();
     const state = areaPreparation;
     if (!state) return;
     state.cancelled = true;
@@ -204,12 +234,18 @@ export function createAreaLifecycle(s) {
     s.world.preparationProgress = state.stats;
     s.world.prepareArea(s.world.areaId).catch(() => {});
     s.world.markAreaReady(s.world.areaId);
+    if (s.areaPrefetch) s.world.setParkedLimit(PARKED_AREA_LIMIT);
     queueNeighbours(state);
+    s.areaPrefetch?.enter();
+  }
+  // Neighbours of the current area, nearest exit first.
+  function neighbourIds() {
+    return [...new Set((s.world.registry ?? publicAreaRegistry).links(s.world.areaId).map((link) => link.to))].sort(
+      (a, b) => exitDistance(a) - exitDistance(b),
+    );
   }
   function queueNeighbours(state) {
-    for (const id of [
-      ...new Set((s.world.registry ?? publicAreaRegistry).links(s.world.areaId).map((link) => link.to)),
-    ].sort((a, b) => exitDistance(a) - exitDistance(b)))
+    for (const id of neighbourIds())
       queueDestination(id, state).catch((error) => {
         if (!state.cancelled) console.warn("ARMAGEDOM_AREA_PREPARATION", id, error.message);
       });
