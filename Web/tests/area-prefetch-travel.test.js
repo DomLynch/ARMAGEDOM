@@ -79,13 +79,17 @@ test("travel still completes when every prefetch request fails", async () => {
   globalThis.requestAnimationFrame = (fn) => setTimeout(fn, 0);
   console.warn = () => {};
   console.info = () => {};
+  const errors = [],
+    error = console.error;
+  console.error = (...args) => errors.push(args.map((a) => a?.stack ?? String(a)));
   try {
     const life = createAreaLifecycle(s);
     life.start();
     await sleep(100);
     assert.ok(calls.length > 0, "the prefetch tried and failed");
     ready = true;
-    assert.equal(await life.activate({ areaId: "south" }), true);
+    const crossed = await life.activate({ areaId: "south" });
+    assert.equal(crossed, true, `travel failed: ${errors.map((e) => e.join(" ")).join(" | ")}`);
     assert.equal(world.areaId, "south");
     assert.equal(s.traveling, false);
     assert.deepEqual(parked, ["westminster"]);
@@ -95,5 +99,6 @@ test("travel still completes when every prefetch request fails", async () => {
     globalThis.requestAnimationFrame = realRaf;
     console.warn = warn;
     console.info = info;
+    console.error = error;
   }
 });
