@@ -42,7 +42,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "pistol", "map", "ember-fire", "ember-matron"],
+    ["attack", "dodge-guard", "pistol", "ember-fire", "ember-matron"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(
@@ -88,14 +88,141 @@ test("a pickup-eligible pistol teaches Equip pistol, only in its area and only i
   assert.equal(hints.current(g), text("pistol"));
 });
 
-test("standing near an area exit teaches the menu MAP", () => {
+test("the pistol hint stays past 5 s until the pistol is collected or the player is 6 m away; other hints keep 5 s", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world();
-  assert.equal(hints.current(g), "");
-  g.world.exitHint = () => "← WESTMINSTER SHELTER · 25m";
-  assert.equal(hints.current(g), "", "route arrows are not an exit");
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"));
+  assert.equal(run(hints, g, HINT_SECONDS * 4), text("pistol"), "still up after 20 s next to the pistol");
+  g.player.pos = { x: -0.85 + 5, z: -6 };
+  assert.equal(hints.current(g), text("pistol"), "still up 5 m away");
+  g.player.pos = { x: -0.85 + 7, z: -6 };
+  assert.equal(hints.current(g), "", "gone beyond 6 m");
+  assert.equal(run(hints, g, HINT_SECONDS * 2), "", "does not come back once seen");
+  const collected = createFirstTimeHints({ storage: memory() }),
+    h = world();
+  h.pistol.collected = false;
+  h.player.pos = { x: -0.85, z: -6 };
+  assert.equal(collected.current(h), text("pistol"));
+  h.pistol.collected = true;
+  assert.equal(collected.current(h), "", "collecting the pistol ends the hint at once");
+  const other = createFirstTimeHints({ storage: memory() }),
+    o = world({ enemies: [scavenger(2, 0)] });
+  assert.equal(other.current(o), text("attack"));
+  assert.equal(run(other, o, HINT_SECONDS + 1), "", "ordinary hints still run down after HINT_SECONDS");
+});
+
+test("stay conditions are validated and only the pistol row has one", () => {
+  assert.throws(
+    () => validateHintTable([{ id: "x", when: { tookHit: true }, stays: { nope: 1 }, text: "t" }]),
+    /Unknown hint stay condition/,
+  );
+  assert.deepEqual(
+    table.filter((row) => row.stays).map((row) => row.id),
+    ["pistol"],
+  );
+});
+
+test("the interact button drops its ' · G' suffix on touch devices and keeps it for keyboard players", async () => {
+  const { keySuffix } = await import("../src/engine/key-hint.js");
+  const previous = { document: globalThis.document, matchMedia: globalThis.matchMedia };
+  try {
+    globalThis.document = { body: { classList: { contains: (name) => name === "touch" && false } } };
+    globalThis.matchMedia = () => ({ matches: false });
+    assert.equal(keySuffix(), " · G");
+    globalThis.matchMedia = (query) => ({ matches: query === "(pointer: coarse)" });
+    assert.equal(keySuffix(), "");
+    globalThis.matchMedia = () => ({ matches: false });
+    globalThis.document = { body: { classList: { contains: (name) => name === "touch" } } };
+    assert.equal(keySuffix(), "");
+  } finally {
+    globalThis.document = previous.document;
+    globalThis.matchMedia = previous.matchMedia;
+  }
+});
+
+test("there is no map tip: the objective line already says it and an exit no longer starts a hint", () => {
+  assert.ok(!table.some((row) => row.id === "map" || "nearExit" in row.when));
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world();
   g.world.exitHint = () => "EXIT → EAST";
-  assert.equal(hints.current(g), text("map"));
+  assert.equal(hints.current(g), "");
+});
+
+test("the first-hit tip takes the line from the persistent pistol hint, which resumes after it", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"));
+  assert.equal(hints.overMessage, false);
+  g.events = [{ type: "hit", actor: g.player, amount: 10 }];
+  hints.observe(g);
+  assert.equal(hints.current(g), text("dodge-guard"), "survival tip preempts the pistol hint");
+  assert.equal(hints.overMessage, true);
+  assert.equal(run(hints, g, HINT_SECONDS - 1), text("dodge-guard"));
+  assert.equal(run(hints, g, 2), text("pistol"), "the pistol hint is back, still persistent");
+  assert.equal(hints.overMessage, false);
+  assert.equal(run(hints, g, 30), text("pistol"));
+  g.pistol.collected = true;
+  assert.equal(hints.current(g), "");
+});
+
+test("pistol hint, enemy within 6 m, first hit: DODGE shows, then ATTACK is not stolen and the pistol hint is back", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"), "spawn: the pistol hint");
+  g.enemies = [scavenger(-0.85, -3)];
+  assert.equal(run(hints, g, 2), text("pistol"), "an enemy within 6 m does not take the line");
+  g.events = [{ type: "hit", actor: g.player, amount: 10 }];
+  hints.observe(g);
+  assert.equal(hints.current(g), text("dodge-guard"), "the first frame after the hit is the survival tip, not ATTACK");
+  assert.equal(run(hints, g, 0.5), text("dodge-guard"));
+  assert.equal(run(hints, g, HINT_SECONDS), text("pistol"), "after the tip the parked pistol hint is back");
+  assert.equal(run(hints, g, 30), text("pistol"), "and stays while the pistol is on the ground nearby");
+  g.pistol.collected = true;
+  assert.equal(hints.current(g), text("attack"), "collecting ends it; the waiting attack tip shows next");
+});
+
+test("a persistent hint is only marked seen once it has ended", () => {
+  const storage = memory();
+  const hints = createFirstTimeHints({ storage });
+  const g = world();
+  g.pistol.collected = false;
+  g.player.pos = { x: -0.85, z: -6 };
+  assert.equal(hints.current(g), text("pistol"));
+  assert.equal(storage.data.get(HINT_STORAGE_KEY) ?? "[]", "[]", "still running, so not stored yet");
+  g.pistol.collected = true;
+  hints.current(g);
+  assert.match(storage.data.get(HINT_STORAGE_KEY), /pistol/);
+});
+
+test("the first-hit and Matron tips are one short line each", () => {
+  assert.equal(text("dodge-guard"), "Dodge roll to avoid hits. Hold GUARD.");
+  assert.equal(text("ember-matron"), "The Ember Matron has a flamethrower. Take it.");
+  for (const row of table) assert.ok(row.text.length <= 48 || row.id === "pistol", row.id);
+});
+
+test("only the first-hit tip may take the line over a live game message; every other hint still waits", () => {
+  const hints = createFirstTimeHints({ storage: memory() });
+  const g = world({ enemies: [scavenger(2, 0)] });
+  g.message = "LONDON · Hollow scavengers. Keep space, guard, then counter.";
+  g.messageUntil = g.time + 60;
+  assert.equal(hints.current(g), "", "an ordinary hint waits for the message");
+  assert.equal(hints.overMessage, false);
+  g.events = [{ type: "hit", actor: g.player, amount: 10 }];
+  hints.observe(g);
+  assert.equal(hints.current(g), text("dodge-guard"), "survival first: shown over the message");
+  assert.equal(hints.overMessage, true);
+  assert.equal(run(hints, g, 2), text("dodge-guard"), "keeps running while the message is up");
+  assert.equal(run(hints, g, HINT_SECONDS), "", "and then runs down; the waiting hint is still held by the message");
+  assert.equal(hints.overMessage, false);
+  g.messageUntil = 0;
+  assert.equal(hints.current(g), text("attack"), "the held hint starts once the message is gone");
+  assert.equal(hints.overMessage, false);
 });
 
 test("the Ember Matron in view teaches that she carries a flamethrower", () => {
@@ -103,7 +230,7 @@ test("the Ember Matron in view teaches that she carries a flamethrower", () => {
   const g = world({ enemies: [scavenger(30, 0, { bossProfile: { name: "Ember Matron" } })] });
   assert.equal(hints.current(g), "");
   g.enemies[0].pos = { x: 12, z: 3 };
-  assert.equal(hints.current(g), "The Ember Matron carries a flamethrower. Take it from her.");
+  assert.equal(hints.current(g), text("ember-matron"));
   const other = createFirstTimeHints({ storage: memory() });
   g.enemies[0].bossProfile.name = "Someone Else";
   assert.equal(other.current(g), "");
@@ -140,10 +267,10 @@ test("a live game message holds a hint back: it neither starts nor runs down und
 test("hints queue one at a time and wait for the current one to finish", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world({ enemies: [scavenger(2, 0)] });
-  g.world.exitHint = () => "EXIT → EAST";
+  g.flame = { equipped: true };
   assert.equal(hints.current(g), text("attack"));
   assert.equal(run(hints, g, 1), text("attack"));
-  assert.equal(run(hints, g, HINT_SECONDS), text("map"));
+  assert.equal(run(hints, g, HINT_SECONDS), text("ember-fire"));
 });
 
 test("no hint while the run is over, and no hint when the player is dead", () => {
@@ -178,10 +305,11 @@ test("seen flags live in their own key and unavailable or corrupt storage cannot
 test("the browser loop feeds events to the hints and passes the text to the existing notice line", () => {
   const loop = readFileSync(new URL("../src/engine/loop.js", import.meta.url), "utf8");
   assert.match(loop, /hints\.observe\(s\.game\)/);
-  assert.match(loop, /s\.hud\.update\(s\.game, s\.paused \|\| s\.traveling \? "" : hints\.current\(s\.game\)\)/);
+  assert.match(loop, /s\.paused \|\| s\.traveling \? "" : hints\.current\(s\.game\)/);
+  assert.match(loop, /s\.hud\.update\(s\.game, hint, hints\.overMessage\)/);
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
-  assert.match(hud, /update\(g, hint = ""\)/);
-  assert.match(hud, /g\.messageUntil \? g\.message : hint \|\|/);
+  assert.match(hud, /update\(g, hint = "", hintFirst = false\)/);
+  assert.match(hud, /hintFirst && hint\s*\? hint\s*: g\.time < g\.messageUntil\s*\? g\.message\s*: hint \|\|/);
 });
 
 test("picking up the Ember flamethrower teaches how to fire it, once", () => {

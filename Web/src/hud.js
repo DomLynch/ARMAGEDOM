@@ -6,6 +6,7 @@ import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js";
 import { PISTOL_RULES } from "./pistol.js";
 import { vestAvailable } from "./vest.js";
+import { keySuffix } from "./engine/key-hint.js";
 // The HUD refreshes every frame. update() stages its writes (the last write to a slot
 // wins, so a default overridden later in the frame never reaches the DOM) and flush()
 // applies only values that differ from the DOM, or from the last style written (the
@@ -287,7 +288,7 @@ export function createHUD({
       el("enter").textContent = "Retry loading";
       el("loading").textContent = message;
     },
-    update(g, hint = "") {
+    update(g, hint = "", hintFirst = false) {
       try {
         const el = (id) => view(document.getElementById(id));
         const p = g.player,
@@ -373,7 +374,13 @@ export function createHUD({
                 ? "VEST BY PISTOL STASH · Walk near to equip"
                 : ""
             : "";
-        const message = g.time < g.messageUntil ? g.message : hint || g.world?.exitHint?.(p.pos) || vestNotice;
+        // A survival hint (hintFirst) outranks even a live game message; every other hint waits for it.
+        const message =
+          hintFirst && hint
+            ? hint
+            : g.time < g.messageUntil
+              ? g.message
+              : hint || g.world?.exitHint?.(p.pos) || vestNotice;
         // A first-time hint is a gold pop-up in the route arrow's colour; game messages keep the plain style.
         const gold = !!hint && message === hint;
         if (message !== lastMessage || gold !== lastGold) {
@@ -462,7 +469,7 @@ export function createHUD({
             (g.world.areaId ?? "westminster") === pistol.pickupAreaId &&
             Math.hypot(p.pos.x - pistol.pickupPos.x, p.pos.z - pistol.pickupPos.z) <= 1.3;
           el("pistol-interact").hidden = g.finished || (!nearby && (!pistol.collected || equipped));
-          el("pistol-interact").textContent = nearby ? "PICK UP & EQUIP PISTOL · G" : "EQUIP PISTOL · G";
+          el("pistol-interact").textContent = (nearby ? "PICK UP & EQUIP PISTOL" : "EQUIP PISTOL") + keySuffix();
           el("pistol-icon").hidden = true;
         }
         if (g.rifle?.selected && !flameEquipped) {
