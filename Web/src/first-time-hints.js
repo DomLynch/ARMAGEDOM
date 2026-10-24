@@ -23,7 +23,8 @@ const checks = {
       distance(g.player.pos, pistol.pickupPos) <= PISTOL_REACH
     );
   },
-  nearExit: (_, { g }) => !!g.world?.exitHint?.(g.player.pos),
+  // exitHint also carries route arrows (shelter, road closed); only "EXIT → AREA" means at an exit.
+  nearExit: (_, { g }) => /^EXIT/.test(g.world?.exitHint?.(g.player.pos) ?? ""),
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
 };

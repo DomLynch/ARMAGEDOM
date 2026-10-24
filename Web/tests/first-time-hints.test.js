@@ -91,7 +91,9 @@ test("standing near an area exit teaches the menu MAP", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world();
   assert.equal(hints.current(g), "");
-  g.world.exitHint = () => "EAST ->";
+  g.world.exitHint = () => "← WESTMINSTER SHELTER · 25m";
+  assert.equal(hints.current(g), "", "route arrows are not an exit");
+  g.world.exitHint = () => "EXIT → EAST";
   assert.equal(hints.current(g), text("map"));
 });
 
@@ -137,7 +139,7 @@ test("a live game message holds a hint back: it neither starts nor runs down und
 test("hints queue one at a time and wait for the current one to finish", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world({ enemies: [scavenger(2, 0)] });
-  g.world.exitHint = () => "EAST ->";
+  g.world.exitHint = () => "EXIT → EAST";
   assert.equal(hints.current(g), text("attack"));
   assert.equal(run(hints, g, 1), text("attack"));
   assert.equal(run(hints, g, HINT_SECONDS), text("map"));
