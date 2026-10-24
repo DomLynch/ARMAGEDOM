@@ -8,6 +8,22 @@ import { resetMobileControls, initializeAreaResidents } from "../combat.js";
 import { prepareParkedResidents } from "../parked-area-preparation.js";
 import { relieveGeometryBudget, protectedAreas } from "./parked-view-budget.js";
 import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
+export const TRAVEL_MESSAGE_DELAY_MS = 300;
+// The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
+// Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.
+export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_MESSAGE_DELAY_MS, setTimer = setTimeout) {
+  let cancelled = false;
+  const timer = setTimer(() => {
+    if (cancelled) return;
+    game.message = `Traveling to ${areaId.toUpperCase()}…`;
+    game.messageUntil = game.time + 4;
+    s.hud.update(game);
+  }, delayMs);
+  return () => {
+    cancelled = true;
+    clearTimeout(timer);
+  };
+}
 export function createAreaLifecycle(s) {
   let travelLatch = false;
   async function crossArea(request) {
@@ -39,8 +55,7 @@ export function createAreaLifecycle(s) {
     s.resetClock();
     s.input.clear({ keepMovement });
     if (s.game.pistol) s.cancelPistol(s.game);
-    s.game.message = `Traveling to ${request.areaId.toUpperCase()}…`;
-    s.game.messageUntil = s.game.time + 4;
+    const cancelTravelMessage = showTravelMessageAfterDelay(s, ownerGame, request.areaId);
     try {
       s.hud.update(ownerGame);
       // Paint the entry cue before synchronous graphics work.
@@ -71,6 +86,7 @@ export function createAreaLifecycle(s) {
       if (areaPreparation) queueNeighbours(areaPreparation);
       return true;
     } catch (error) {
+      cancelTravelMessage();
       if (!owns()) return false;
       console.error("ARMAGEDOM_TRAVEL_FAILED", error);
       if (travelState) {
@@ -100,6 +116,7 @@ export function createAreaLifecycle(s) {
       s.game.messageUntil = s.game.time + 5;
       return false;
     } finally {
+      cancelTravelMessage();
       releaseSource();
       s.traveling = false;
       if (owns()) {
