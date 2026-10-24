@@ -54,7 +54,13 @@ Spending is still the phone's word, so a phone may spend and later claim back up
   writer on a server event (a kill pays `arma_payout_rules(kind, cash)`; the same row set Combat's single-player tables already imply).
 - `bounty` and the other server-owned fields follow the same rule as ruled below.
 
-**PR 3: ownership and progress by receipt.**
+**PR 3: ownership and progress by receipt.** Split: **3a** (migration 000009) keys `arma_loot_rules` by spawn INSTANCE ("east:east-roamer-2") and seeds the eight always-drop
+weapons from the game's content, so receipts (`arma_loot`) can exist; **3b** (migration 000010) is REPORT-ONLY for alpha (Lead's ruling: never delete a legitimately earned
+weapon, and not every boss kill settles on the server yet): a save whose record says an always-drop weapon is `owned` with no receipt for that character is stored exactly as
+sent, the reply carries `{unreceipted: [record paths]}`, and `arma_unreceipted_seen` counts it per character + item (server-only, no client penalty). **Follow-up "A"
+(enforcement)**: switch on when every boss kill settles on the server and Combat has confirmed `eligible` as the safe not-owned shape the game's codec accepts; then a save
+is stored with an unreceipted `owned` entry rewritten to that shape, and the reply says so (adopt-on-clamp, like cash). The alpha counter says whether A is safe: it should read
+zero for honest play. Original design text:
 - A weapon or boss-equipment `status: owned` needs the matching `rewardReceipt` to exist in `arma_loot` for this character (the minting is
   already server-side in `arma_spawn_hit`). `proficiency` and `awards` can only rise by the amounts a server kill event grants.
 - This is also what lets presence refuse a weapon the player does not own (the Auditor's before-hosting item 1 on #59): presence asks the
