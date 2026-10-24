@@ -7,6 +7,8 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 
 const MAX_BODY = 256 * 1024;
+const STATUS_MAX_AGE_S = 30,
+  STATUS_MEMO_MS = 5000;
 const STATUS = { O0007: 403, O0009: 409, O0002: 422, O0001: 200 };
 
 class HttpError extends Error {
@@ -133,8 +135,9 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     tail.then(() => lanes.get(account) === tail && lanes.delete(account));
     return run;
   };
-  const send = (res, status, payload) => {
-    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+  let statusMemo = null; // { at, body }: the anonymous status answer
+  const send = (res, status, payload, headers = {}) => {
+    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store", ...headers });
     res.end(JSON.stringify(payload));
   };
 
@@ -154,8 +157,14 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
           account = token ? await verify(token) : null;
           if (!account) throw new HttpError(401, "token");
         }
-        res.setHeader("Cache-Control", "no-store");
-        return send(res, 200, await call("arma_world_status", [account]));
+        // The anonymous answer is the same for everyone: browsers and nginx may keep it 30 s (so the kill switch reaches pages within about half a minute), and the
+        // writer itself reads the database at most once every 5 s for it. An answer for a token is per account: private, never cached.
+        if (!account) {
+          const t = now();
+          if (!statusMemo || t - statusMemo.at > STATUS_MEMO_MS) statusMemo = { at: t, body: await call("arma_world_status", [null]) };
+          return send(res, 200, statusMemo.body, { "Cache-Control": `public, max-age=${STATUS_MAX_AGE_S}` });
+        }
+        return send(res, 200, await call("arma_world_status", [account]), { "Cache-Control": "private, no-store" });
       }
       if (req.method !== "POST") throw new HttpError(405, "method");
       if (area === "internal" && internalOps[op]) {

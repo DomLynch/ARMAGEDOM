@@ -212,7 +212,8 @@ test("rate limit: a per-account token bucket on save_run and load_run, refilled 
 });
 
 test("status: GET /arma/status answers {enabled, open} to anyone and {allowed} to a valid token; a bad token is a 401; the kill switch reads as closed", async () => {
-  const t = await start();
+  let clock = 1_000_000;
+  const t = await start({ now: () => clock });
   try {
     const get = async (headers = {}) => {
       const res = await fetch(t.base + "/arma/status", { headers });
@@ -220,8 +221,10 @@ test("status: GET /arma/status answers {enabled, open} to anyone and {allowed} t
     };
     const as = (id) => ({ Authorization: `Bearer user:${id}` });
     const anon = await get();
-    assert.deepEqual([anon.status, anon.cache, anon.body], [200, "no-store", { enabled: true, open: false }], "no account, no `allowed`, nothing else");
-    assert.deepEqual((await get(as(ids.alice))).body, { enabled: true, open: false, allowed: true });
+    assert.deepEqual([anon.status, anon.cache, anon.body], [200, "public, max-age=30", { enabled: true, open: false }], "no account, no `allowed`, nothing else; cacheable for 30 s");
+    const mine = await get(as(ids.alice));
+    assert.deepEqual([mine.cache, mine.body], ["private, no-store", { enabled: true, open: false, allowed: true }], "an answer for a token is per account: never cached");
+    assert.equal((await get({ Authorization: "Bearer forged" })).cache, "no-store", "errors are never cached");
     assert.deepEqual((await get(as(ids.carol))).body, { enabled: true, open: false, allowed: false }, "signed up, never granted access");
     assert.equal((await get({ Authorization: "Bearer forged" })).status, 401, "a token that is sent but not valid is not quietly downgraded to the anonymous answer");
     assert.equal((await get({ Authorization: "Basic abc" })).status, 401);
@@ -230,7 +233,9 @@ test("status: GET /arma/status answers {enabled, open} to anyone and {allowed} t
       await t.pg.exec("update public.arma_config set value = 'true'::jsonb where key = 'arma_open_access'");
       assert.deepEqual((await get(as(ids.carol))).body, { enabled: true, open: true, allowed: true }, "open access admits any account that exists");
       await t.pg.exec("update public.arma_config set value = 'false'::jsonb where key = 'arma_enabled'");
-      assert.deepEqual((await get()).body, { enabled: false, open: true });
+      assert.deepEqual((await get()).body, { enabled: true, open: false }, "the anonymous answer is memoised for 5 s: the writer does not read the database for every poll");
+      clock += 6000;
+      assert.deepEqual((await get()).body, { enabled: false, open: true }, "and it follows the switches after that");
       assert.deepEqual((await get(as(ids.alice))).body, { enabled: false, open: true, allowed: false }, "the kill switch closes it for everyone, the allow-list included");
       // A closed world refuses every WRITING client op with 403 O0007 (the page stops its save loop until the next status read) ...
       for (const [op, body] of [["create_character", { name: "Z" }], ["set_active", { character: "pc:x" }], ["save_run", { character: "pc:x", era: 18, record: v18, revision: 0, seq: 1 }], ["spawn_state", { instances: [] }]])
