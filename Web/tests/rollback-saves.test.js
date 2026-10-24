@@ -1,9 +1,11 @@
 // Rollback-save check: a save written by THIS tree must still load in the frozen previous release.
-// Runs only when ROLLBACK_BASELINE_ROOT points at a checkout of the previous release (repo root, with Web/).
+// Runs only when ROLLBACK_BASELINE_ROOTS (or ROLLBACK_BASELINE_ROOT) lists frozen release checkouts, separated by ':'.
+// Every case is replayed once per baseline, so players carrying a saved run forward from any listed release are covered.
 // Direction is the reverse of wolf221-saves: current tree writes, frozen baseline reads.
-// Create the baseline with `git archive <release-sha> Web | tar -x -C <dir>`, link Web/node_modules (three@0.182.0),
+// Create a baseline with `git archive <release-sha> Web | tar -x -C <dir>`, link Web/node_modules (three@0.182.0),
 // and keep it off the system disk: on the VPS under /mnt/HC_Volume_107195252/armagedom-backend/, never / or /tmp.
-//   ROLLBACK_BASELINE_ROOT=<dir> node --test tests/rollback-saves.test.js
+//   ROLLBACK_BASELINE_ROOTS=<dir222>:<dir224> node --test tests/rollback-saves.test.js
+// Baselines checked so far: release 222 = 6cc1bcbd, release 224 = 56f6d177.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,8 +15,8 @@ import {wolfFixture} from './helpers/wolf-fixture.js';
 import {validateAreaMetadata} from '../src/engine/area-content.js';
 import {stageProgressionDeath} from '../src/engine/progression-runtime.js';
 import {issueSupply} from '../src/supplies.js';
-const root = process.env.ROLLBACK_BASELINE_ROOT;
-const skip = root ? false : 'set ROLLBACK_BASELINE_ROOT to the frozen previous-release checkout';
+const roots = (process.env.ROLLBACK_BASELINE_ROOTS ?? process.env.ROLLBACK_BASELINE_ROOT ?? '').split(':').filter(Boolean);
+const skip = roots.length ? false : 'set ROLLBACK_BASELINE_ROOTS to the frozen previous-release checkout(s)';
 const RUN_KEY = 'armagedom:marked-run:v18';
 const EXTRA_WORLD_FIELDS = ['bossEquipmentData', 'safehouseData', 'reaperData', 'markedData'];
 
@@ -23,7 +25,7 @@ const currentRegistry = fixture().world.registry;
 const currentData = validateAreaMetadata(readCurrent('world/area-content.json'), currentRegistry);
 const pick = data => Object.fromEntries(EXTRA_WORLD_FIELDS.map(field => [field, data[field]]));
 
-async function loadBaseline() {
+async function loadBaseline(root) {
   const url = p => pathToFileURL(root + '/' + p);
   const read = p => JSON.parse(fs.readFileSync(url('Web/public/' + p)));
   const {fixture: baselineFixture} = await import(url('Web/tests/helpers/rifle-fixture.js'));
@@ -31,9 +33,15 @@ async function loadBaseline() {
   const {validateAreaMetadata: validate} = await import(url('Web/src/engine/area-content.js'));
   const registry = createAreaRegistry({manifest: read('world/manifest.json')});
   const data = validate(read('world/area-content.json'), registry);
-  return {fixture: baselineFixture, data, read};
+  return {label: root.split('/').filter(Boolean).pop(), fixture: baselineFixture, data, read};
 }
-const baseline = skip ? null : await loadBaseline();
+const baselines = skip ? [] : await Promise.all(roots.map(loadBaseline));
+// Tests in a file run one after another, so the case body can read the baseline it was registered for.
+let baseline = null;
+function rollbackTest(name, body) {
+  if (skip) return test(name, {skip}, body);
+  for (const entry of baselines) test(name + ' [' + entry.label + ']', () => { baseline = entry; return body(); });
+}
 
 // Load the records the current tree wrote into the frozen release; return its fixture after restore.
 function readInBaseline(records, areaId, extraWorld) {
@@ -80,7 +88,7 @@ function wall(f, e, radius) {
   f.world.geometry.clear = (p, r) => Math.hypot(p.x - e.pos.x, p.z - e.pos.z) > radius && clear(p, r);
 }
 
-test('a) ordinary 223 save loads in the previous release', {skip}, () => {
+rollbackTest('a) ordinary save loads in the previous release', () => {
   const f = fixture({areaId: 'westminster', extraWorld: pick(currentData)});
   f.restore();
   f.g.player.hp = Math.max(1, f.g.player.hp - 17);
@@ -89,7 +97,7 @@ test('a) ordinary 223 save loads in the previous release', {skip}, () => {
 });
 
 for (const [name, radius] of [['placed at the corpse', 0], ['from the new fallback path', 1.2]]) {
-  test('c) pending boss drop ' + name + ' loads in the previous release and can be collected', {skip}, () => {
+  rollbackTest('c) pending boss drop ' + name + ' loads in the previous release and can be collected', () => {
     const f = fixture({areaId: 'westminster', extraWorld: pick(currentData)});
     f.restore();
     const e = killBoss(f, 'emberProjector');
@@ -107,7 +115,7 @@ for (const [name, radius] of [['placed at the corpse', 0], ['from the new fallba
   });
 }
 
-test('c) pending rifle drop from the new fallback path loads in the previous release and can be collected', {skip}, () => {
+rollbackTest('c) pending rifle drop from the new fallback path loads in the previous release and can be collected', () => {
   const f = fixture();
   f.restore();
   const e = f.g.enemies.find(e => e.placementKey === 'boss-warden-v1');
@@ -123,7 +131,7 @@ test('c) pending rifle drop from the new fallback path loads in the previous rel
 
 // East8 wolf: the previous release reads a 223-written alive wolf as alive and a dead one as dead.
 for (const dead of [false, true]) {
-  test('d) East8 wolf ' + (dead ? 'dead stays dead' : 'alive stays alive') + ' in the previous release', {skip}, () => {
+  rollbackTest('d) East8 wolf ' + (dead ? 'dead stays dead' : 'alive stays alive') + ' in the previous release', () => {
     const records = new Map(), f = wolfFixture({records});
     f.restore();
     const e = f.g.enemies.find(e => e.placementKey === 'east-roamer-8');
@@ -168,7 +176,7 @@ function fire(f, ticks) {
 }
 
 for (const [name, ticks] of [['partly spent fuel (coalesced write)', 100], ['empty tank', 6200]]) {
-  test('b) mid-flame save with ' + name + ' loads in the previous release', {skip}, () => {
+  rollbackTest('b) mid-flame save with ' + name + ' loads in the previous release', () => {
     const f = armedFlame();
     fire(f, ticks);
     const savedFuel = JSON.parse(f.records.get(RUN_KEY)).flameFuel;
