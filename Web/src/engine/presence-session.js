@@ -111,7 +111,7 @@ export function createPresenceSession(
       if (stats && s.renderer?.info) {
         const info = s.renderer.info;
         info.autoReset = false;
-        if (s.world.areaId !== area) statFrames = 0;
+        if (area !== null && s.world.areaId !== area) statFrames = 0;
         else if (++statFrames % STATS_FRAMES === 0)
           log(`[arma-world] frame draw calls=${info.render.calls} triangles=${info.render.triangles} remotes=${remotes}`);
         info.reset();
