@@ -137,6 +137,14 @@ test("limitParkedAreas drops the oldest parked areas but never the ones kept", (
   assert.deepEqual(limitParkedAreas(actors, new Set(["a"]), 2), ["b", "c"]);
 });
 
+test("both parked-view evictions un-mark the area so a return re-prepares it instead of rebuilding in the arrival frame", () => {
+  const source = fs.readFileSync(new URL("../src/engine/areas.js", import.meta.url), "utf8");
+  for (const name of ["limitParkedAreas", "relieveGeometryBudget"]) {
+    const call = source.slice(source.indexOf(`${name}(s.actors`)).split(";")[0];
+    assert.match(call, /unmarkAreaReady/, name);
+  }
+});
+
 test("trimParkedStages keeps the area just left; evicts least recently used past 2 areas or 30 MB", () => {
   const MB = 1024 * 1024,
     stage = (mb) => ({ textureBytes: () => mb * MB, disposeStage() {} });
