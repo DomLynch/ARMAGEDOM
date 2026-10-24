@@ -77,6 +77,8 @@ test("travel still completes when every prefetch request fails", async () => {
     throw Error("offline");
   };
   globalThis.requestAnimationFrame = (fn) => setTimeout(fn, 0);
+  globalThis.innerWidth = 375;
+  globalThis.innerHeight = 812;
   console.warn = () => {};
   console.info = () => {};
   const errors = [],
@@ -100,5 +102,7 @@ test("travel still completes when every prefetch request fails", async () => {
     console.warn = warn;
     console.info = info;
     console.error = error;
+    delete globalThis.innerWidth;
+    delete globalThis.innerHeight;
   }
 });
