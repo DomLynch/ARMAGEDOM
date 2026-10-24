@@ -28,10 +28,10 @@
     },
     {
       "area": "south",
-      "path": "south/backdrop.webp",
-      "source": "Game/Assets/StreamingAssets/London/Travel/south/backdrop.png (lossless WebP copy)",
-      "bytes": 2569092,
-      "sha256": "f6632c8b974d5608404888ddd619a4774364f985140448af21303e62593511c8"
+      "path": "south/backdrop-phone.webp",
+      "source": "south/backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
+      "bytes": 426692,
+      "sha256": "b330324057e8f6330686b3e02404a8dac7dfd79022a0266e3712fad2450ced89"
     },
     {
       "area": "east",
@@ -42,10 +42,10 @@
     },
     {
       "area": "east",
-      "path": "east/backdrop.webp",
-      "source": "Game/Assets/StreamingAssets/London/Travel/east/backdrop.png (lossless WebP copy)",
-      "bytes": 2374366,
-      "sha256": "4b6004a948718d85a74cd4cad5af96870a4b0b70b1da4ed45c19c766a56b8532"
+      "path": "east/backdrop-phone.webp",
+      "source": "east/backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
+      "bytes": 373760,
+      "sha256": "ddc745a7dc2d291e6d42f5c2b7e2fb586d0d727f59ca399110283e9457387158"
     }
   ],
   "lazyAreas": [
@@ -155,7 +155,7 @@
   ],
   "backdrops": {
     "westminster": "backdrop-phone.webp",
-    "south": "backdrop.webp",
-    "east": "backdrop.webp"
+    "south": "backdrop-phone.webp",
+    "east": "backdrop-phone.webp"
   }
 }
