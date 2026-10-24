@@ -48,7 +48,7 @@ export function densityProblems(paths, baseline = {}, sourceRoot = "") {
   return problems;
 }
 
-export function verifyWeb(root, { quiet = false } = {}) {
+export function verifyWeb(root, { quiet = false, shard = null } = {}) {
   const source = files(join(root, "Web/src"), ".js");
   const tests = files(join(root, "Web/tests"), ".test.js");
   if (!source.length) throw Error("No Web source files found");
@@ -90,10 +90,11 @@ export function verifyWeb(root, { quiet = false } = {}) {
   }
   for (const path of source) run("syntax", ["--check", path]);
   // Asset integration tests decode full rigs; bound workers on shared runners.
-  // CI splits the suite across runners with VERIFY_WEB_SHARD=<index>/<total>.
-  const shard = process.env.VERIFY_WEB_SHARD;
+  // CI splits the suite across runners: shard is "<index>/<total>". Only the CLI entry
+  // reads VERIFY_WEB_SHARD, so fixture runs inside the tests never inherit it.
   if (shard && !/^\d+\/\d+$/.test(shard))
     throw Error(`VERIFY_WEB_SHARD must be <index>/<total>, got ${shard}`);
+  delete env.VERIFY_WEB_SHARD;
   run("tests", [
     "--test",
     "--test-concurrency=2",
@@ -116,7 +117,7 @@ if (
     if (tooling.error) throw tooling.error;
     if (tooling.status !== 0)
       throw Error(`Tooling gate failed (${tooling.signal ?? tooling.status})`);
-    verifyWeb(root);
+    verifyWeb(root, { shard: process.env.VERIFY_WEB_SHARD || null });
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

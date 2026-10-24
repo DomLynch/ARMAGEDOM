@@ -38,8 +38,8 @@ jobs:
         env:
           VERIFY_WEB_SHARD: ${{ matrix.shard }}/8
 
-  server-db:
-    name: server db
+  server:
+    name: server db + presence
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -47,18 +47,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
       - run: npm install --no-audit --no-fund
         working-directory: server/db
       - run: npm test
         working-directory: server/db
+      # server/presence imports Web/src rule tables; it has no package of its own.
+      - run: node --test server/presence/*.test.js
 
   web-gate:
     name: web-gate
     if: always()
-    needs: [web, server-db]
+    needs: [web, server]
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "web: ${{ needs.web.result }}  server-db: ${{ needs.server-db.result }}"
+          echo "web: ${{ needs.web.result }}  server: ${{ needs.server.result }}"
           test "${{ needs.web.result }}" = success
-          test "${{ needs.server-db.result }}" = success
+          test "${{ needs.server.result }}" = success

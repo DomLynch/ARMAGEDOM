@@ -49,8 +49,9 @@ Lead labels every PR with a tier when it opens:
   Auditor, so a PASS plus green CI merges without a wait.
 
 The `audit-gate` check (`.github/workflows/audit-gate.yml`) enforces this. It fails
-without a tier label, and fails a tier-b PR without `auditor-pass`. Any new push
-removes `auditor-pass`, so a PASS always binds to the head it was given on.
+without a tier label. A tier-b PR passes only with `auditor-pass` AND when the newest
+"**Auditor: PASS|FAIL at <sha>" comment is a PASS naming the current head. Any new
+push removes `auditor-pass`, so a PASS always binds to the head it was given on.
 
 The Auditor may move a PR up to `tier-b` with one line on the PR. A tier-A PR is cut
 from main and merges on its own; stack a PR on another only when its code depends on
