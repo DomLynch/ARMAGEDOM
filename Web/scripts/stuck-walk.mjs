@@ -99,17 +99,22 @@ export function walkArea(areaId, { dead: scanDead = true } = {}) {
       inMain: cells.filter((c) => comp.get(c) === main).length,
     };
   });
+  // The free cell nearest to a point (within 1.5 cells) is in the entry's region.
   const inMain = (g) => {
+    const ci = Math.round((g.x - x0) / CELL),
+      cj = Math.round((g.z - z0) / CELL);
     let best = null,
       d0 = CELL * 1.5;
-    for (const c of free) {
-      const p = pos(c),
-        d = Math.hypot(p.x - g.x, p.z - g.z);
-      if (d < d0) {
-        d0 = d;
-        best = c;
+    for (let j = cj - 1; j <= cj + 1; j++)
+      for (let i = ci - 1; i <= ci + 1; i++) {
+        if (i < 0 || j < 0 || i >= nx || j >= nz || !free.has(j * nx + i)) continue;
+        const p = pos(j * nx + i),
+          d = Math.hypot(p.x - g.x, p.z - g.z);
+        if (d < d0) {
+          d0 = d;
+          best = j * nx + i;
+        }
       }
-    }
     return best !== null && comp.get(best) === main;
   };
   // Every free cell the player can walk to from the entry, in area metres, in row-major order.
