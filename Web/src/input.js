@@ -141,6 +141,7 @@ export function attachInput({
   isPaused,
   onInteraction = () => {},
   onPickup = () => false,
+  cycleWeapon = () => {},
   isPistol = () => false,
   isFlame = () => false,
   isWorldGun = () => false,
@@ -404,6 +405,12 @@ export function attachInput({
     }
     if (event.code === "KeyG" && !event.repeat && onPickup()) {
       event.preventDefault();
+      return;
+    }
+    // C cycles the carried weapons (Digit1 stays Special; 1-4 are not weapon slots here).
+    if (event.code === "KeyC" && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      if (!event.repeat) cycleWeapon();
       return;
     }
     if (map[event.code] && !event.repeat) {

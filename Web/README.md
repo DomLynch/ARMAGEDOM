@@ -12,6 +12,7 @@ slash and reviewed runtime allowlist. `?touch=1` is desktop layout review only.
 
 WASD/mouse/Q/E/Space/F and five melee touch actions: Slash, Stab, Heavy, Dodge,
 Guard/timed Parry. E retains keyboard Special; the approved touch layout omits it.
+C equips the next carried weapon (tile order, skipping the Reaper companion); Digit1 stays Special.
 Pistol equipment switches the contextual controls. Independent pointers allow moving while attacking; menu,
 rotation and focus changes cancel held input. Audio starts on a player gesture.
 World/actor coordinates and ownership are in CONTRACT.md.
