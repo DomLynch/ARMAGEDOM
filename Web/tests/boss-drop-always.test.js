@@ -216,6 +216,8 @@ for (const boss of BOSSES)
       assert(boss.reward, "every boss row has a reward row: " + boss.key);
       const failures = measure(boss, variant);
       results.push({ id, failures });
+      if (process.env.BOSS_DROP_TABLE === "1")
+        console.log("CASE", id, failures.length ? "FAIL " + failures.join(",") : "PASS");
       const gap = KNOWN_GAPS[id];
       if (gap) {
         assert.deepEqual(failures, gap.expect, "known gap changed (" + gap.cause + ")");
