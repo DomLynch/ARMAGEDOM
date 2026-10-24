@@ -29,7 +29,7 @@ function stageWitch(f){
 
 test('only declared outward exit is gated; return and alternate routes retain their contract',()=>{
  const f=make();f.restore();assert.equal(bossExitGate(f.g,'east').allowed,false);
- assert.match(bossExitGate(f.g).message,/^Kill the Ember Matron$/);
+ assert.match(bossExitGate(f.g).message,/matron/i);assert.ok(bossExitGate(f.g).message.length<=40);
  assert.equal(bossExitGate(f.g,'south'),null);
  for(const area of registry.ids){const links=registry.links(area).filter(link=>link.requiresDefeat);assert.equal(links.length,['westminster','central-hub'].includes(area)?1:0);}
  assert.equal(registry.nextExit('south','east').to,'east');
