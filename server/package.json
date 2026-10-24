@@ -1,0 +1,10 @@
+{
+  "name": "armagedom-session-server",
+  "private": true,
+  "type": "module",
+  "description": "P1 of the multiplayer proof: rooms of four per area shard, presence and movement over WebSocket. Local only until hosting is approved.",
+  "scripts": {
+    "start": "node main.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

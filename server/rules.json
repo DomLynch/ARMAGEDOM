@@ -1,0 +1,19 @@
+{
+  "protocol": "armagedom.session.v1",
+  "roomSize": 4,
+  "maxShardsPerArea": 64,
+  "tickHz": 15,
+  "maxSpeed": 9,
+  "speedSlack": 1.5,
+  "snapDistance": 0.25,
+  "maxDtSeconds": 1,
+  "worldLimit": 1000,
+  "maxNameLength": 24,
+  "strikesBeforeClose": 5,
+  "maxMessageBytes": 256,
+  "messagesPerSecond": 40,
+  "idleMs": 30000,
+  "beatMs": 5000,
+  "ipSockets": 8,
+  "closeGraceMs": 1000
+}
