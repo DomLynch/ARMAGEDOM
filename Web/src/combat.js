@@ -176,11 +176,15 @@ const rotate = (v, angle) => ({
   x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
-let serial = 0;
-export function enemy(kind, pos) {
+// Ids come from the game's own counter so a headless sim and a browser game
+// never share state. A bare enemy() with no game, as tests build them, falls
+// back to this standalone counter.
+let standaloneSerial = 0;
+const nextId = (g) => (g ? ++g.serial : ++standaloneSerial);
+export function enemy(kind, pos, g) {
   const hp = [55, 95, 50, 400][kind];
   return {
-    id: ++serial,
+    id: nextId(g),
     kind,
     pos: { ...pos },
     facing: { x: 0, z: -1 },
@@ -203,6 +207,7 @@ export function createGame(world, options = {}) {
   const g = {
     world,
     time: 0,
+    serial: 0,
     wave: 0,
     kills: 0,
     nextWave: 2,
@@ -927,7 +932,7 @@ function kill(g, e, meta = {}) {
     return;
   }
   if (g.kills % 2 === 0)
-    g.loot.push({ id: ++serial, pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
+    g.loot.push({ id: nextId(g), pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
   if (!g.enemies.length) {
     g.player.hp = Math.min(g.player.maxHP, g.player.hp + 25);
     g.nextWave = g.time + 4;
@@ -967,7 +972,7 @@ export function spawnWave(g) {
     g.wave = 1;
     g.enemies = [
       knifeEnergy(
-        Object.assign(enemy(0, position), {
+        Object.assign(enemy(0, position, g), {
           rig: "goblin",
           weapon: "knife",
           combatScale: g.player.combatScale,
@@ -986,7 +991,7 @@ export function spawnWave(g) {
   g.wave++;
   const count = g.wave === 3 ? 1 : 4 + g.wave;
   g.enemies = Array.from({ length: count }, (_, i) =>
-    enemy(g.wave === 3 ? 3 : i % 3, { x: count === 1 ? 0 : ((i % 5) - 2) * 1.7, z: -1 + Math.floor(i / 5) * 2.4 }),
+    enemy(g.wave === 3 ? 3 : i % 3, { x: count === 1 ? 0 : ((i % 5) - 2) * 1.7, z: -1 + Math.floor(i / 5) * 2.4 }, g),
   );
   notify(g, g.wave === 3 ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/3`);
   event(g, "wave");
@@ -994,7 +999,7 @@ export function spawnWave(g) {
 const radius = (e) => (e.kind === 3 ? (e.pattern === 1 ? 4 : 3.5) : e.kind === 1 ? 2.8 : 1.8);
 const arc = (e) => (e.kind === 3 && e.pattern === 1 ? 360 : e.kind === 1 ? 110 : 90);
 function bolt(g, pos, dir, amount) {
-  g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
+  g.bolts.push({ id: nextId(g), pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
 }
 function enemyTick(g, e, dt, services = {}) {
   if (e.hp > 0 && safehouseProtected(g)) {
@@ -1435,7 +1440,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         source: services.reaperSource,
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
-        emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
+        emitBolt: (b) => g.bolts.push({ id: nextId(g), ...b }),
         hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
@@ -1559,7 +1564,7 @@ function hollowActor(g, position, index = 0, mobSize = 1) {
     c = profile.character,
     foundation = creatureCatalogue.get("hollow-scavenger");
   return knifeEnergy(
-    Object.assign(enemy(0, position), {
+    Object.assign(enemy(0, position, g), {
       rig: foundation.runtimeIdentity,
       contactRig: c.contactRig,
       weapon: c.weapon,
@@ -1580,7 +1585,7 @@ function hollowActor(g, position, index = 0, mobSize = 1) {
 }
 function droneResident(g, placement) {
   const foundation = creatureCatalogue.get("low-hover-drone");
-  return Object.assign(enemy(0, placement.pos), {
+  return Object.assign(enemy(0, placement.pos, g), {
     rig: foundation.runtimeIdentity,
     areaId: g.world.areaId,
     weapon: foundation.stats.weapon,
@@ -2213,7 +2218,7 @@ function droneEnemy(g, e, dt) {
   if (next.action === "approach") enemyMove(g, e, next.direction, e.moveSpeed, dt);
   else if (next.direction) e.facing = { ...next.direction };
   if (next.bolt) {
-    g.bolts.push({ id: ++serial, ...next.bolt });
+    g.bolts.push({ id: nextId(g), ...next.bolt });
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...next.bolt.dir },
