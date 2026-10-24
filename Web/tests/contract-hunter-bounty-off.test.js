@@ -107,8 +107,9 @@ test('hunters off: a save carrying a bounty loads, spawns no warning or hunter, 
   f.g.marked = {version: 1, carried: 300, bank: 40, bounty: 500};
   assert(f.p.persistRun(f.g));
   const again = reopen(f, shipped);
-  assert.deepEqual(again.g.marked, {version: 1, carried: 300, bank: 40, bounty: 500});
+  assert.deepEqual(again.g.marked, {version: 1, carried: 300, bank: 40, bounty: 0}); // bounty ignored on load; cash and bank kept
   const g = again.g;
+  g.marked.bounty = 500; // even with a bounty in memory the hunters switch holds
   g.enemies = [];
   const spawn = () => assert.fail('no hunter may be built');
   for (const time of [6, 8, 20, 40, 80]) {

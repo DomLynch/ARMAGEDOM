@@ -52,3 +52,8 @@ test('the model load starts once when the player first holds marked money, befor
  g.marked.carried=5;actors.update(g,0);assert.deepEqual(calls,[['marked-hunter']]);
  g.marked.bounty=9;actors.update(g,0);assert.equal(calls.length,1);actors.dispose();
 });
+test('hunters off: holding cash or a bounty never requests the hunter model',async t=>{
+ shim(t);const g=createGame({...world,markedData:{hunterBounty:1,hunters:false}},{pilot:'donor-knife'}),calls=[];
+ const library={manifest,models:await sources(false),dispose(){},ensureModels(names){calls.push(names);return Promise.resolve();}},actors=createActors(new THREE.Scene(),world,library);
+ g.marked={version:1,carried:100,bank:0,bounty:500};actors.update(g,0);actors.update(g,0);assert.equal(calls.length,0);actors.dispose();
+});

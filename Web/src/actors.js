@@ -1218,6 +1218,7 @@ export function createActors(
       if (
         !earlyHunterLoad &&
         game.world?.markedData &&
+        game.world.markedData.hunters !== false &&
         library.manifest.models?.["marked-hunter"] &&
         (game.marked?.carried > 0 || game.marked?.bounty > 0)
       ) {
