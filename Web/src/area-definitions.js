@@ -302,10 +302,10 @@ export const areaAssets = {
     bytes: 2163444,
   },
   "audio.combat": {
-    kind: "wav",
-    path: "audio/combat.wav",
-    sha256: "b1b0717db6f559f5708df996284d81e015070e2c7255c955de6b3d66eadfc70d",
-    bytes: 1848908,
+    kind: "audio",
+    path: "audio/combat.m4a",
+    sha256: "22f4c8e97bd1c4ed6b2e293cf2ef5a9225e01915e76587a900fe0a5d9b1d5087",
+    bytes: 284152,
   },
   "layout.east-bridge": {
     kind: "layout",

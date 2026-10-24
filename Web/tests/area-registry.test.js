@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {createAreaRegistry,publicAreaRegistry,validateAreaEntries} from '../src/area-registry.js';
 import {areaDefinitions,areaAssets} from '../src/area-definitions.js';
 import {createGeometry} from '../src/world-geometry.js';
@@ -38,4 +39,9 @@ test('manifest mismatches fail before loading; blocked entries fail real geometr
  const changed=structuredClone(manifest);changed.links[0].entry.x=.2;assert.throws(()=>createAreaRegistry({manifest:changed}),/adjacency mismatch/);
  const files=structuredClone(manifest);files.files=files.files.filter(f=>!f.path.endsWith('east/layout.json'));assert.throws(()=>createAreaRegistry({manifest:files}),/asset reference mismatch/);
  const areas=structuredClone(areaDefinitions);areas[0].entry={x:0,y:0};assert.throws(()=>clearance(createAreaRegistry({areas})),/westminster/);
+});
+test('registered audio asset is the served m4a and matches its pinned bytes and hash',()=>{
+ const ref=areaAssets[areaDefinitions[0].audioRef],body=readFileSync(new URL('../public/'+ref.path,import.meta.url));
+ assert.equal(ref.kind,'audio');assert.equal(ref.path,'audio/combat.m4a');assert.equal(body.length,ref.bytes);assert.equal(createHash('sha256').update(body).digest('hex'),ref.sha256);
+ const wrong=structuredClone(areaAssets);wrong['audio.combat'].path='audio/combat.mp3';assert.throws(()=>createAreaRegistry({assets:wrong}),/invalid asset path/);
 });
