@@ -206,6 +206,38 @@ test("the view pools one figure per player and frees what leaves", () => {
   assert.equal(scene.children.length, 0);
 });
 
+test("an optional survivor kit supplies the figure; the view keeps the pool, position, facing and tag, and falls back to the capsule", () => {
+  const scene = new THREE.Scene(),
+    calls = [];
+  const kit = {
+    spawn(id) {
+      calls.push(["spawn", id]);
+      if (id === 2) return null; // model not loaded for this one
+      const root = new THREE.Group();
+      return {
+        root,
+        update: (state) => calls.push(["update", id, state.moving, state.facing]),
+        dispose: () => calls.push(["dispose", id]),
+      };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: kit });
+  view.update([
+    { id: 1, x: 3, z: 4, facing: 0.5, moving: true },
+    { id: 2, x: 0, z: 0, facing: 0, moving: false },
+  ]);
+  const [one, two] = view.group.children;
+  assert.equal(one.name, "Player 1");
+  assert.equal(one.position.x, 3);
+  assert.equal(one.rotation.y, 0.5);
+  assert.ok(two.children.length >= 2, "the capsule fallback for the one the kit could not make");
+  assert.deepEqual(calls.filter((c) => c[0] === "update"), [["update", 1, true, 0.5]]);
+  view.update([{ id: 1, x: 3, z: 4, facing: 0.5, moving: false }]);
+  assert.deepEqual(calls.filter((c) => c[0] === "spawn").length, 2, "one spawn per player, then pooled");
+  view.dispose();
+  assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
+});
+
 test("guests are named by id until the server sends names", () => {
   assert.equal(guestName(12), "Guest 12");
   assert.equal(guestName(12, "Sam"), "Sam");

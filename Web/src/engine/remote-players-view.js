@@ -30,7 +30,7 @@ function nameTexture(text) {
   return map;
 }
 
-export function createRemotePlayersView({ scene, toRender }) {
+export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   const group = new THREE.Group();
   group.name = "Other players";
   scene.add(group);
@@ -39,6 +39,14 @@ export function createRemotePlayersView({ scene, toRender }) {
     head = new THREE.SphereGeometry(0.2, 12, 8);
 
   function make(id) {
+    // Optional look: survivors.spawn(id) -> { root, update({ moving, facing }), dispose() } (Characters' kit). When it is missing
+    // or gives nothing (model not loaded) the plain capsule below is used. The view still owns the pool, position, facing and tag.
+    const survivor = survivors?.spawn?.(id) ?? null;
+    if (survivor?.root) {
+      survivor.root.name = `Player ${id}`;
+      group.add(survivor.root);
+      return { root: survivor.root, parts: [], label: null, tag: null, survivor };
+    }
     const colour = new THREE.Color().setHSL(hue(id), 0.45, 0.55),
       material = new THREE.MeshBasicMaterial({ color: colour, toneMapped: false }),
       root = new THREE.Group(),
@@ -77,6 +85,7 @@ export function createRemotePlayersView({ scene, toRender }) {
     if (!figure) return;
     group.remove(figure.root);
     for (const part of [...figure.parts, ...(figure.tag?.parts ?? [])]) part.dispose();
+    figure.survivor?.dispose();
     figures.delete(id);
   }
 
@@ -92,6 +101,7 @@ export function createRemotePlayersView({ scene, toRender }) {
         setLabel(figure, guestName(sample.id, sample.name));
         figure.root.position.copy(toRender({ x: sample.x, z: sample.z }, 0));
         figure.root.rotation.y = sample.facing;
+        figure.survivor?.update({ moving: sample.moving, facing: sample.facing });
       }
       for (const id of [...figures.keys()]) if (!present.has(id)) drop(id);
     },
