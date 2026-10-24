@@ -89,7 +89,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  actors.completeFinisherPreparation();
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
  const groundingSource=game.enemies[0],translated={...groundingSource,id:1700,pos:{x:17,z:-3},mobSize:groundingSource.mobSize*1.15},sourceGrounding=actors.views.get(groundingSource.id).finisher.stats().runGrounding;
- game.enemies.push(translated);actors.update(game,0);const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
+ game.enemies.push(translated);actors.update(game,0);actors.completeFinisherPreparation();const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
  assert(reusedGrounding.cacheHitsSkinned>0,'actual cloned skinned draws at another world position and scale reuse compatible native floors');assert.equal(reusedGrounding.maxLocalLift,sourceGrounding.maxLocalLift);assert.equal(reusedGrounding.vertices,sourceGrounding.vertices);
  game.enemies.pop();actors.update(game,0);
  // Controlled actual-rig feedback: one owner composes render flinch without

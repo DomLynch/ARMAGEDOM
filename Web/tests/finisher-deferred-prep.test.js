@@ -186,7 +186,8 @@ test("a kill before preparation is done falls back to a plain death and never bu
   const outcome = pistolKill(p.support);
   // Whatever the sim picks from what is prepared, the presentation plays a complete ordinary death.
   const recipe = p.start({ ...outcome, direction: { x: 1, z: 0 } });
-  assert.ok(["ordinary", "pistol-directional"].includes(recipe.id), `played ${recipe.id}`);
+  assert.deepEqual(recipe.parts, [], `played ${recipe.id}, which detaches nothing`);
+  assert.equal(recipe.cost, 0);
   assert.equal(p.stats().detached, false);
   assert.ok(Number.isFinite(p.pose(0.5).phase));
   assert.equal(p.stats().ownedGeometries, 0, "no geometry was built for the kill");
