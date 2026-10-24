@@ -43,7 +43,7 @@ begin
   return answer;
 end $$;
 drop function public.arma_grant_kill_cash();
-drop function public.arma_check_cash(text, jsonb);
+drop function public.arma_cash_ceiling(text);
 drop table public.arma_cash;
 drop table public.arma_payout_rules;
 delete from public.arma_config where key in ('start_cash_total', 'enforce_cash');
