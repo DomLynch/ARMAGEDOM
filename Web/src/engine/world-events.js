@@ -22,6 +22,7 @@ import { UNIQUE_REWARDS } from "./unique-reward-runtime.js";
 import { MELEE_VARIANTS } from "./melee-equipment-data.js";
 import { BONE_SAW_RULES } from "./bone-saw.js";
 import { creatureCatalogue, animalFoundationParameters } from "./creature-catalogue.js";
+import { creatureDefinitions } from "./creature-definitions.js";
 import { populationPlacements, populationAllowsDrone } from "./area-population.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
 import { AREA_MOB_SPAWNS, residentEncounterHealth } from "../area-mob-spawns.js";
@@ -34,7 +35,10 @@ import { RAT_BITE, DOG_BITE, ROACH_BITE } from "../combat.js";
 // The game steps at a fixed 60 Hz (stepGame refuses any other dt); tests pin this against the real step.
 export const TICK_HZ = 60;
 
-export const WORLD_EVENT_RULES = Object.freeze({
+// The drone is the one creature foundation whose weapon is the bolt (read from the catalogue rows, not named here).
+const DRONE_FOUNDATION = creatureDefinitions.find((d) => d.stats.weapon === "bolt").id;
+
+export const WORLD_EVENT_RULES =Object.freeze({
   playerKey: "player",
   // Positions, headings and hp are rounded to 1/quantum so a live value and its event always compare equal.
   quantum: 1000,
@@ -356,16 +360,16 @@ export function worldSpawnRows(content, cycle = "A") {
         .filter(
           (d) =>
             populationAllowsDrone(content.populationData, area, d.key) &&
-            !placed.some((p) => p.foundationRef === "low-hover-drone" && p.key === d.key),
+            !placed.some((p) => p.foundationRef === DRONE_FOUNDATION && p.key === d.key),
         )
-        .map((d) => ({ ...d, foundationRef: "low-hover-drone" }));
+        .map((d) => ({ ...d, foundationRef: DRONE_FOUNDATION }));
     for (const row of [...placed, ...drones]) {
       const foundationRef = row.foundationRef ?? "hollow-scavenger",
         foundation = creatureCatalogue.get(foundationRef),
         boss = row.bossRef ? content.bossData?.profiles[row.bossRef] : null;
       let reach = knifeReach;
       if (boss) reach = Math.max(...Object.values(boss.attacks ?? {}).map((a) => a.range), boss.weapon?.range ?? 0);
-      else if (foundation.runtimeIdentity === "low-hover-drone") reach = DRONE_RULES.boltRange;
+      else if (foundation.runtimeIdentity === DRONE_FOUNDATION) reach = DRONE_RULES.boltRange;
       else if (foundation.runtimeIdentity !== "hollow-scavenger")
         reach = animalFoundationParameters(foundationRef, 1).contactGoalReach;
       rows.push({
