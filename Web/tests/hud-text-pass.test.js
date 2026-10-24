@@ -11,7 +11,7 @@ test("vitals, ammo and the three centre lines share one flex column, so they can
   const column = /#hud-top\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
   assert.match(column, /display:\s*flex/);
   assert.match(column, /flex-direction:\s*column/);
-  const inside = /<div id="hud-top">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? "";
+  const inside = /<div id="hud-top">([\s\S]*?)<button id="menu-button"/.exec(html)?.[1] ?? "";
   for (const id of ["vitals", "ammo", "notice", "expedition-objective", "marked-status"])
     assert.ok(inside.includes(`id="${id}"`), `${id} is in the column`);
 });
