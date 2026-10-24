@@ -64,6 +64,7 @@ export function createSaveClient({
   setTimer = (fn, ms) => globalThis.setTimeout(fn, ms),
   clearTimer = (id) => globalThis.clearTimeout(id),
   onCash = () => {},
+  onClosed = () => {},
   log = () => {},
   tuning = GAME_DATA.saveClient,
 }) {
@@ -77,7 +78,8 @@ export function createSaveClient({
     sending = false,
     lastSentAt = -Infinity,
     timer = null,
-    stopped = false;
+    stopped = false,
+    halted = false; // the world answered "closed": no requests until resume() (the next status read said yes)
 
   const read = (key) => {
     try {
@@ -120,6 +122,14 @@ export function createSaveClient({
         body: JSON.stringify(body),
       });
       const payload = await response.json().catch(() => ({}));
+      if (!response.ok && payload?.error === GAME_DATA.world.closedError && !halted) {
+        halted = true; // closed or not allow-listed: stop the loop (keep the character, revision and sequence) and ask for a status read
+        try {
+          onClosed();
+        } catch {
+          /* The listener must not break the save path. */
+        }
+      }
       return response.ok
         ? payload
         : { error: payload?.error ?? `http-${response.status}`, status: response.status, ...payload };
@@ -207,14 +217,14 @@ export function createSaveClient({
   }
 
   function schedule() {
-    if (timer !== null || sending || stopped || latest === null) return;
+    if (timer !== null || sending || stopped || halted || latest === null) return;
     const wait = Math.max(0, lastSentAt + tuning.minSaveIntervalMs - now());
     timer = setTimer(flush, wait);
   }
 
   async function flush() {
     timer = null;
-    if (sending || stopped || latest === null) return;
+    if (sending || stopped || halted || latest === null) return;
     const { raw, run } = latest;
     latest = null;
     sending = true;
@@ -239,6 +249,15 @@ export function createSaveClient({
       schedule();
     },
     flush,
+    // A status read says the world is open again: carry on with the newest queued record.
+    resume() {
+      if (!halted) return;
+      halted = false;
+      schedule();
+    },
+    get halted() {
+      return halted;
+    },
     stop() {
       stopped = true;
       if (timer !== null) clearTimer(timer);
