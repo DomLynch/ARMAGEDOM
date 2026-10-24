@@ -38,7 +38,7 @@ export const TICK_HZ = 60;
 // The drone is the one creature foundation whose weapon is the bolt (read from the catalogue rows, not named here).
 const DRONE_FOUNDATION = creatureDefinitions.find((d) => d.stats.weapon === "bolt").id;
 
-export const WORLD_EVENT_RULES =Object.freeze({
+export const WORLD_EVENT_RULES = Object.freeze({
   playerKey: "player",
   // Positions, headings and hp are rounded to 1/quantum so a live value and its event always compare equal.
   quantum: 1000,
