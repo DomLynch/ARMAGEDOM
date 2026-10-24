@@ -2,12 +2,16 @@
 // Binds 127.0.0.1:8892 (the writer is 8891; Frankendom uses 8787, 8788 and 8793). Keys come from the environment, never from the repo:
 //   SUPABASE_URL        https://<ref>.supabase.co
 //   SUPABASE_ANON_KEY   the publishable key, used only to ask /auth/v1/user who a token belongs to
+//   ARMA_INTERNAL_KEY   shared with the writer (its /internal/hits and /internal/location); presence holds no database credential
 //   ARMA_AREA_DATA      path to the JSON that Web/scripts/area-presence-rows.mjs writes ({ version, maxSpeedCmPerS, areas })
-//   ARMA_AREA_CONTENT   optional path to area-content.json, for the knockback allowance (default Web/public/world/area-content.json)
+//   ARMA_AREA_CONTENT   optional path to area-content.json (knockback allowance, weapon caps; default Web/public/world/area-content.json)
+//   WRITER_URL          optional, default http://127.0.0.1:8891
 import fs from "node:fs";
 import { loadAreaRows } from "./area-rules.js";
+import { weaponCaps } from "./caps.js";
 import { presenceLimits } from "./limits.js";
 import { createPresence } from "./server.js";
+import { writerClient } from "./writer-client.js";
 
 if (process.env.ARMA_PRESENCE !== "1") {
   console.log("presence: OFF (set ARMA_PRESENCE=1 to start); nothing is listening");
@@ -23,6 +27,7 @@ const readJson = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
 const rules = loadAreaRows(readJson(need("ARMA_AREA_DATA")));
 const content = readJson(process.env.ARMA_AREA_CONTENT ?? new URL("../../Web/public/world/area-content.json", import.meta.url));
 const limits = presenceLimits(rules, content);
+const writer = writerClient({ baseUrl: process.env.WRITER_URL ?? "http://127.0.0.1:8891", key: need("ARMA_INTERNAL_KEY") });
 const url = need("SUPABASE_URL"),
   anon = need("SUPABASE_ANON_KEY");
 const verify = async (token) => {
@@ -34,9 +39,20 @@ const verify = async (token) => {
   }
 };
 
-const presence = createPresence({ rules, limits, verify, log: console.log });
+const presence = createPresence({ rules, limits, verify, weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, log: console.log });
 presence.server.listen(port, host, () => console.log(`presence listening on ${host}:${port}, layout ${rules.version}, push ${limits.impulseCm} cm`));
-const timer = setInterval(() => presence.tick(), tickMs);
+let ticking = false; // a slow writer must not stack ticks up
+const timer = setInterval(async () => {
+  if (ticking) return;
+  ticking = true;
+  try {
+    await presence.tick();
+  } catch (error) {
+    console.error(`presence tick failed: ${error?.message}`);
+  } finally {
+    ticking = false;
+  }
+}, tickMs);
 for (const signal of ["SIGINT", "SIGTERM"])
   process.on(signal, () => {
     clearInterval(timer);
