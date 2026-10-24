@@ -91,8 +91,7 @@ export function createAreaLifecycle(s) {
       s.game.ratContact = s.actors.ratContact();
       console.info("ARMAGEDOM_TRAVEL", JSON.stringify({ area: s.world.areaId, position: s.game.player.pos }));
       accepted = true;
-      if (prefetch)
-        limitParkedAreas(s.actors, new Set([request.areaId, previousArea]), PARKED_AREA_LIMIT.maxAreas);
+      if (prefetch) limitParkedAreas(s.actors, new Set([request.areaId, previousArea]), PARKED_AREA_LIMIT.maxAreas);
       if (areaPreparation) queueNeighbours(areaPreparation);
       return true;
     } catch (error) {

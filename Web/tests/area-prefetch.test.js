@@ -86,7 +86,10 @@ test("bytes arrive no faster than the rate limit, one request at a time", async 
   let before = 0;
   for (const read of backdrop) {
     // Bytes already received before this chunk never exceed what the rate allows by its start.
-    assert.ok(before <= ((read.t - t0) / 1000) * PREFETCH_LIMITS.bytesPerSecond + 1, `${before} bytes by ${read.t - t0} ms`);
+    assert.ok(
+      before <= ((read.t - t0) / 1000) * PREFETCH_LIMITS.bytesPerSecond + 1,
+      `${before} bytes by ${read.t - t0} ms`,
+    );
     before += read.size;
   }
   assert.ok(backdrop.at(-1).t - t0 >= 2800, "3 MB takes about 3 s at 1 MB/s");
@@ -110,8 +113,14 @@ test("no read while a fight is live; it resumes afterwards without a burst", asy
   });
   prefetch.enter();
   await drain();
-  assert.ok(log.reads.some((r) => r.t < fight.from), "reads before the fight");
-  assert.ok(log.reads.some((r) => r.t >= fight.to), "reads after the fight");
+  assert.ok(
+    log.reads.some((r) => r.t < fight.from),
+    "reads before the fight",
+  );
+  assert.ok(
+    log.reads.some((r) => r.t >= fight.to),
+    "reads after the fight",
+  );
   assert.ok(!log.reads.some((r) => r.t >= fight.from + PREFETCH_LIMITS.recheckMs && r.t < fight.to));
   assert.equal(log.maxOpen, 1);
   const layout = log.reads.filter((r) => r.url === "/east/layout.json"),
@@ -133,7 +142,7 @@ test("a failed file is skipped and the rest still download", async () => {
 });
 
 test("cancel aborts the in-flight request and leaves the connection alone until enter", async () => {
-  const { log, clock, prefetch, drain } = rig({ files: { "/east/layout.json": 5_000_000 }, neighbours: ["east"] });
+  const { log, clock, prefetch, drain } = rig({ files: { "/east/layout.json": 500_000_000 }, neighbours: ["east"] });
   prefetch.enter();
   for (let i = 0; i < 400 && log.reads.length < 3; i++) await new Promise((resolve) => setImmediate(resolve));
   assert.ok(log.reads.length >= 3);

@@ -12,7 +12,12 @@ function session({ prefetchAreas = true, enemies = [] } = {}) {
   const stage = { scene: {}, camera: {} };
   const world = {
     areaId: "westminster",
-    registry: { links: () => [{ to: "east", condition: { xMin: 0.9 } }, { to: "south", condition: { yMin: 0.9 } }] },
+    registry: {
+      links: () => [
+        { to: "east", condition: { xMin: 0.9 } },
+        { to: "south", condition: { yMin: 0.9 } },
+      ],
+    },
     manifest: { links: [] },
     geometry: { point: () => ({ x: 0.5, y: 0.5 }), ground: (p) => ({ x: p.x * 100, z: p.y * 100 }) },
     prepareArea: async () => stage,
@@ -145,7 +150,12 @@ test("trimParkedStages keeps the area just left; evicts least recently used past
     trimParkedStages: LondonWorld.prototype.trimParkedStages,
   });
   // Three parked areas of 14 MB: past both limits; the oldest (not the previous) goes first.
-  const count = make({ now: stage(14), old: stage(14), prev: stage(14), mid: stage(14) }, "prev", { old: 1, mid: 2, prev: 3, now: 4 });
+  const count = make({ now: stage(14), old: stage(14), prev: stage(14), mid: stage(14) }, "prev", {
+    old: 1,
+    mid: 2,
+    prev: 3,
+    now: 4,
+  });
   count.trimParkedStages();
   assert.deepEqual([...count.areaCache.stages.keys()].sort(), ["mid", "now", "prev"]);
   // Two parked areas but 40 MB: the bytes limit trips first and evicts the older one, not the previous.
