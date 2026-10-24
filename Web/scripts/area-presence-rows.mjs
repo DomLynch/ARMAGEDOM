@@ -52,8 +52,7 @@ function arrivalPoints(area, walk, homes) {
     take = (at, from) => picked.push({ at, from });
   const named = [{ at: geo.ground(registry.get(area).entry), from: null }];
   for (const other of registry.ids)
-    for (const l of registry.links(other))
-      if (l.to === area) named.push({ at: geo.ground(l.entry), from: other });
+    for (const l of registry.links(other)) if (l.to === area) named.push({ at: geo.ground(l.entry), from: other });
   for (const n of named)
     if (picked.length < ARRIVAL.max && ok(n.at) && far(n.at, picked, ARRIVAL.spacing)) take(n.at, n.from);
   // Fill up with the free cell farthest from every point so far (and from the residents), deterministic.
@@ -83,10 +82,7 @@ export function areaPresenceRows(content = loadContent()) {
       xs = geo.road.map((p) => cm(p.x)),
       zs = geo.road.map((p) => cm(p.z)),
       bounds = { minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) },
-      placed = [
-        ...(content.residents?.[area] ?? AREA_MOB_SPAWNS[area] ?? []),
-        ...(AREA_DRONE_SPAWNS[area] ?? []),
-      ],
+      placed = [...(content.residents?.[area] ?? AREA_MOB_SPAWNS[area] ?? []), ...(AREA_DRONE_SPAWNS[area] ?? [])],
       enemies = spawns
         .filter((s) => s.area === area)
         .map((s) => {

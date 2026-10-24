@@ -28,7 +28,12 @@ for (const row of rows) {
   test(`${row.area}: bounds enclose the road and fit u16 centimetres from the origin`, () => {
     const xs = row.road.map((p) => p.x),
       zs = row.road.map((p) => p.z);
-    assert.deepEqual(row.bounds, { minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) });
+    assert.deepEqual(row.bounds, {
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minZ: Math.min(...zs),
+      maxZ: Math.max(...zs),
+    });
     assert.deepEqual(row.originCm, { x: row.bounds.minX, z: row.bounds.minZ });
     assert.ok(row.bounds.maxX - row.bounds.minX <= U16 && row.bounds.maxZ - row.bounds.minZ <= U16);
     assert.equal(row.playerRadiusCm, PLAYER_RADIUS * 100);
@@ -44,16 +49,16 @@ for (const row of rows) {
       assert.ok(geo.clear(p, PLAYER_RADIUS), `${a.id} is clear at the player radius`);
       assert.ok(geo.clear(p, ARRIVAL.margin - 0.01), `${a.id} keeps its wall margin after rounding to centimetres`);
       assert.ok(inMain(p), `${a.id} is in the region the player can walk from the entry`);
-      assert.ok(
-        !registry.links(row.area).some((l) => inLink(l, geo.point(p))),
-        `${a.id} is outside every exit zone`,
-      );
+      assert.ok(!registry.links(row.area).some((l) => inLink(l, geo.point(p))), `${a.id} is outside every exit zone`);
       assert.ok(a.from === null || registry.ids.includes(a.from));
     }
     for (let i = 0; i < row.arrivals.length; i++)
       for (let j = i + 1; j < row.arrivals.length; j++) {
         const gap = Math.hypot(row.arrivals[i].x - row.arrivals[j].x, row.arrivals[i].z - row.arrivals[j].z);
-        assert.ok(gap >= ARRIVAL.spacing * 100 - 1, `${row.arrivals[i].id} and ${row.arrivals[j].id} are ${gap} cm apart`);
+        assert.ok(
+          gap >= ARRIVAL.spacing * 100 - 1,
+          `${row.arrivals[i].id} and ${row.arrivals[j].id} are ${gap} cm apart`,
+        );
       }
   });
 
