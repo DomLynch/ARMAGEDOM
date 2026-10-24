@@ -1,0 +1,35 @@
+{
+  "purpose": "Reduced remote-player mesh (other players' look): same skeleton as the player, no clips, three draw calls, about 8.7k body triangles. Generated from the shipped player model; not a new character.",
+  "file": {
+    "path": "Web/public/assets/donor/remote-survivor.glb",
+    "source": "Web/public/assets/donor/warrior-phone.glb",
+    "sourceSha256": "466de6efd5292fbde1705ad6ae98114ca640a5fb346a87da13961345c8aab52f",
+    "sha256": "45033a44093ecc5f8e2a5a0c530dc4f882fdf8688e24e3475e8b07404fa820b0",
+    "bytes": 514140
+  },
+  "tool": {
+    "script": "art/phone-texture/lod/build-remote-survivor.mjs <src> <dst> 8700",
+    "stack": "Node, @gltf-transform/core+extensions+functions 4.x (read/write/prune), meshoptimizer simplifier (simplifyWithAttributes, error cap 1, no border lock), sharp (texture decode only)",
+    "settings": "triangle budget 8700 split across the three groups in proportion to their source triangles; attribute weights normal .5 x3, colour 1 x3, skin weights 1 x4",
+    "steps": [
+      "remove the weapon nodes (the kit equips the shared knife exactly as for the player)",
+      "merge the 15 per-mesh skins into one (they are identical: same joint names and inverse binds, checked by hash)",
+      "bake each vertex's base-colour (texture sampled bilinear at its UV, times the material factor) into COLOR_0; the Heraldry factor is not baked because the kit replaces it with the variant accent",
+      "group primitives into Skin (skin, face, head photo, leather, brass, steel), Gambeson (tunic, wraps) and Heraldry (skirt cloth); drop PhotoEyes and PhotoTeeth (about 2k triangles of eye/teeth overlays)",
+      "simplify each group's index buffer with meshoptimizer: vertices are kept, never moved, so every surviving vertex keeps its original joints and weights",
+      "compact the vertex buffers, drop UVs, tangents, textures and all clips, write GLB"
+    ]
+  },
+  "verification": {
+    "script": "art/phone-texture/lod/verify-remote-survivor.mjs <src> <dst>, result in verify-result.json",
+    "result": "65 joints: names, order, hierarchy, inverse binds identical; joint local TRS identical within 4.8e-6 (gltf-transform omits a bone scale within about 1e-5 of 1; the source has 0.99999988..0.999995 on thigh_l/r and thumb_02_l/r); all 7,361 surviving vertices match a source vertex on position + joints + weights (0 mismatches)",
+    "clips": "none shipped; the kit plays the player model's own clips (same joint names), so clip data is the untouched original"
+  },
+  "budget": {
+    "bodyTriangles": 8694,
+    "knifeTriangles": 3194,
+    "ringTriangles": 80,
+    "figureTriangles": 11968,
+    "drawCalls": "3 body + 2 knife + 1 ring = 6"
+  }
+}
