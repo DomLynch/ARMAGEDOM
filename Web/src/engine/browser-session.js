@@ -337,7 +337,11 @@ export function createBrowserSession(options = {}) {
     const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
     auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
   }
-  presence = createPresenceSession(context, { config: worldConfig, getToken: options.presenceToken ?? auth?.getToken });
+  presence = createPresenceSession(context, {
+    config: worldConfig,
+    getToken: options.presenceToken ?? auth?.getToken,
+    stats: new URLSearchParams(location.search).get("stats") === "1",
+  });
   account = mountAccountControl({ auth });
   const hud = createHUD({
     onAssist: (enabled) => {

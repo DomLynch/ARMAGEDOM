@@ -330,6 +330,53 @@ test("a library that is replaced (a restart) gets its own request", async () => 
   assert.equal(requested.length, 2);
 });
 
+test("a mesh that finishes loading after dispose() builds no kit", async () => {
+  const t = setup();
+  let release,
+    built = 0;
+  const library = {
+    models: new Map([
+      ["remote-survivor", {}],
+      ["vagrant", { get gltf() { built++; return { animations: [] }; } }], // only read when a kit is being built
+    ]),
+    ensureModels: () => new Promise((resolve) => (release = resolve)),
+  };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.dispose();
+  release();
+  await flush();
+  assert.equal(built, 0);
+});
+
+test("?stats=1 logs the renderer's totals for the whole previous frame every 120 frames, and resets them each frame; off by default", () => {
+  const lines = [];
+  let resets = 0;
+  const info = { autoReset: true, render: { calls: 31, triangles: 5000 }, reset: () => resets++ };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 120; i++) t.session.update();
+  assert.equal(info.autoReset, false, "totals add up over every pass of the frame");
+  assert.equal(resets, 120);
+  assert.deepEqual(lines.filter((l) => l.includes("frame draw calls")), ["[arma-world] frame draw calls=31 triangles=5000 remotes=0"]);
+  const quiet = setup({ log: (line) => lines.push(line) });
+  quiet.s.renderer = { info: { autoReset: true, render: {}, reset: () => assert.fail("not asked for") } };
+  for (let i = 0; i < 120; i++) quiet.session.update();
+  assert.equal(quiet.s.renderer.info.autoReset, true);
+});
+
+test("the view asks for the kit once a frame, however many players are on screen", () => {
+  const scene = new THREE.Scene();
+  let asked = 0;
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => (asked++, null) });
+  view.update([1, 2, 3, 4].map((id) => ({ id, x: id, z: 0, facing: 0, moving: false })));
+  assert.equal(asked, 1);
+  view.dispose();
+});
+
 test("guests are named by id until the server sends names", () => {
   assert.equal(guestName(12), "Guest 12");
   assert.equal(guestName(12, "Sam"), "Sam");
