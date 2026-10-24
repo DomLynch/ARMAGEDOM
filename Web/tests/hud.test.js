@@ -335,11 +335,11 @@ test('vest notice persists after transient expires, uses existing unlock and hid
  const {hud,el}=setup(t),g=vestGame();hud.update(g);assert.equal(el('notice').textContent,'');
  g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-2',position:{x:0,z:0},hp:0}).state;hud.update(g);assert.equal(el('notice').textContent,'');
  g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:'westminster-roamer-4',position:{x:0,z:0},hp:0}).state;g.message='Scavenged rounds';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,'Scavenged rounds');
- g.time=11;hud.update(g);const stashNotice=el('notice').textContent;assert.match(stashNotice,/vest/i);assert.ok(shortLine(stashNotice,60));g.time=50;hud.update(g);assert.equal(el('notice').textContent,stashNotice);
+ g.time=11;hud.update(g);const stashNotice=el('notice').textContent;assert.equal(stashNotice,'','the vest fallback line is gone (Dom, 24 Oct)');g.time=50;hud.update(g);assert.equal(el('notice').textContent,stashNotice);
  g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,'');g.world.areaId='westminster';g.finished=true;hud.update(g);assert.equal(el('notice').textContent,'');g.finished=false;g.player.hp=0;hud.update(g);assert.equal(el('notice').textContent,'');
 });
 test('equipped vest status follows authoritative restore, holster, transient priority and fresh Retry',t=>{
- const {hud,el}=setup(t),g=vestGame();unlockVest(g);g.vest.equipped=true;hud.update(g);const equippedNotice=el('notice').textContent;assert.match(equippedNotice,/vest/i);assert.ok(shortLine(equippedNotice,60));
+ const {hud,el}=setup(t),g=vestGame();unlockVest(g);g.vest.equipped=true;hud.update(g);const equippedNotice=el('notice').textContent;assert.equal(equippedNotice,'','no always-on vest line');
  g.pistol.equipped=false;g.world.areaId='east';hud.update(g);assert.equal(el('notice').textContent,equippedNotice);
  g.message='OUT OF AMMO · Switch to melee.';g.messageUntil=11;hud.update(g);assert.equal(el('notice').textContent,g.message);g.time=12;hud.update(g);assert.equal(el('notice').textContent,equippedNotice);
  const restored=vestGame();applySavedRun(restored,restoreRun(restored,encodeRun(g)));hud.update(restored);assert.equal(el('notice').textContent,equippedNotice);
@@ -415,6 +415,7 @@ test("centre status lines use the route arrow's pale gold, bold, below the bount
   const rule = /#notice:not\(\.hint\),\s*#marked-status,[^{]*\{([^}]*)\}/.exec(css);
   assert.ok(popup && rule);
   assert.ok(rule[1].includes("color: #f1d28c"));
-  assert.ok(rule[1].includes("font-weight: 900"));
+  assert.ok(rule[1].includes("font-weight: 600"));
+  assert.ok(rule[1].includes("font-size: 13px"));
   assert.ok(Number(/font-size: (\d+)px/.exec(rule[1])[1]) < Number(popup[2]));
 });

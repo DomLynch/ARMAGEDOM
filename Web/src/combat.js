@@ -263,11 +263,10 @@ export function createGame(world, options = {}) {
       hurtUntil: 0,
       dodgeStart: -Infinity,
     });
-    g.message = "LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.";
     if (encounter) {
       g.encounter = encounter;
       g.nextEnemyAttackAt = 0;
-      g.message = "LONDON · Hollow scavengers. Keep space, guard, then counter.";
+      g.message = "Hollow scavengers";
     }
   }
   if (options.healthRegen === true) g.healthRegen = true;
@@ -521,11 +520,8 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
     }
     event(g, e.type, { ...e, actor: p });
     if (e.type === "pickup")
-      notify(
-        g,
-        "PISTOL EQUIPPED · Tap an enemy to select and fire; hold Fire to keep shooting. Mouse aims on desktop.",
-      );
-    if (e.type === "holster") notify(g, "KNIFE EQUIPPED · Equip pistol with the equipment button or G.");
+      notify(g, "PISTOL EQUIPPED");
+    if (e.type === "holster") notify(g, "KNIFE EQUIPPED");
     if (e.type === "equip") notify(g, "PISTOL EQUIPPED");
     if (e.type === "dry") notify(g, g.pistol.reserve ? "EMPTY · Reload." : "OUT OF AMMO · Switch to melee.");
     if (e.type === "shot" && e.targetId !== null && e.targetId !== undefined) {

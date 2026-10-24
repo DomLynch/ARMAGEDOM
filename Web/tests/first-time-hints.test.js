@@ -307,7 +307,7 @@ test("the browser loop feeds events to the hints and passes the text to the exis
   assert.match(loop, /s\.hud\.update\(s\.game, hint, hints\.overMessage\)/);
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
   assert.match(hud, /update\(g, hint = "", hintFirst = false\)/);
-  assert.match(hud, /hintFirst && hint\s*\? hint\s*: g\.time < g\.messageUntil\s*\? g\.message\s*: hint \|\|/);
+  assert.match(hud, /hintFirst && hint\s*\? hint\s*: g\.time < g\.messageUntil\s*\? hudMessage\(g\.message\)\s*: hint \|\|/);
 });
 
 test("picking up the Ember flamethrower teaches how to fire it, once", () => {

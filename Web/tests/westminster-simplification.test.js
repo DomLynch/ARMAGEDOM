@@ -22,7 +22,7 @@ test('both former shortcut thresholds stop travelling and their guidance/entranc
   const layout=read('../public/world/'+id+'/layout.json'),g=createGeometry(layout),position=g.ground(at);
   assert(g.clear(position,.4));assert(!registry.links(id).some(l=>l.to===target));assert(!layout.guidance.some(row=>row.to===target));
   assert.equal(LondonWorld.prototype.travelAt.call({areaId:id,registry,geometry:g},position),null);
-  const world={THREE,layout,geometry:g,group:new THREE.Group(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
+  const world={areaId:'westminster',THREE,layout,geometry:g,group:new THREE.Group(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
   const cue=createRouteGuidance(world);assert(cue);assert.equal(cue.group.getObjectByName('Central Safehouse side entrance'),undefined);cue.dispose();
  }
  assert.deepEqual(registry.links('central-hub').map(l=>l.to).sort(),['area7','east','south']);
@@ -30,14 +30,14 @@ test('both former shortcut thresholds stop travelling and their guidance/entranc
 test('original Shelter tutorial retains every legal waypoint and clearly names Westminster Shelter',()=>{
  const layout=read('../public/world/westminster/layout.json'),g=createGeometry(layout),row=validateTutorialPath(layout,g),anchor=data.safehouseData.props.find(p=>p.id==='comms').standing;
  assert.deepEqual(layout.tutorialPath.at(-1),anchor);assert.equal(row.path.length,6);
- const world={THREE,layout,geometry:g,group:new THREE.Group(),camera:new THREE.PerspectiveCamera(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
+ const world={areaId:'westminster',THREE,layout,geometry:g,group:new THREE.Group(),camera:new THREE.PerspectiveCamera(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
  const cue=createRouteGuidance(world);cue.setTutorial(true);
  for(let i=0;i<row.path.length-1;i++){const p=row.path[i],next=cue.resolve(p);assert(next);assert(capsuleSegmentClear(g,p,next.target));assert.match(cue.hint(p),/WESTMINSTER SHELTER/);assert(!cue.hint(p).includes('CENTRAL'));}
  cue.dispose();
 });
 test('the uncollected pistol is the first route target, then the arrow moves on to the shelter',()=>{
  const layout=read('../public/world/westminster/layout.json'),g=createGeometry(layout),start=g.ground(layout.tutorialPath[0]),pistol={x:-0.85,z:-6.15};
- const world={THREE,layout,geometry:g,group:new THREE.Group(),camera:new THREE.PerspectiveCamera(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
+ const world={areaId:'westminster',THREE,layout,geometry:g,group:new THREE.Group(),camera:new THREE.PerspectiveCamera(),toRender:(p,y=0)=>new THREE.Vector3(p.x,y,-p.z),travelAt:()=>null};
  const cue=createRouteGuidance(world);cue.setTutorial(true);
  assert.equal(cue.resolve(start).row.kind,'tutorial');
  cue.setPistolTarget(pistol);

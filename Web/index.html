@@ -56,6 +56,8 @@
       aria-label="Westminster fight. WASD to move; left click slash, right click stab, Q heavy, E special, Space dodge, F guard."
     ></canvas>
     <div id="hud" hidden>
+      <!-- One column: vitals, ammo, then the three centre lines, so none of them can overlap however many lines they wrap to. -->
+      <div id="hud-top">
       <section id="vitals" aria-label="Survivor status">
         <div class="hud-name">
           SURVIVOR <span id="health-number">100 / 100</span>
@@ -81,13 +83,14 @@
         <div id="objective">WESTMINSTER · WAVE 0 / 3</div>
         <div id="mastery" hidden></div>
       </section>
-      <button id="menu-button" aria-label="Open game menu">☰</button>
-      <p id="notice" role="status"></p>
       <p id="ammo" hidden aria-live="polite"></p>
-      <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
-      <button id="pistol-interact" hidden>Equip pistol · G</button>
+      <p id="notice" role="status"></p>
       <p id="expedition-objective" hidden></p>
       <p id="marked-status" hidden role="status"></p>
+      </div>
+      <button id="menu-button" aria-label="Open game menu">☰</button>
+      <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
+      <button id="pistol-interact" hidden>Equip pistol · G</button>
       <span id="safehouse-status" hidden>SAFEHOUSE · WEAPONS LOWERED</span>
       <span id="expedition-case-label" class="expedition-world-label" hidden>STOLEN SUPPLY CASE</span>
       <span id="flame-pickup-label" class="expedition-world-label" hidden></span>
