@@ -292,8 +292,8 @@ export const areaAssets = {
   "layout.east": {
     kind: "layout",
     path: "world/east/layout.json",
-    sha256: "5886ddf717a42e29b61f9d9a4e5d8924fa0c693f53d921282b189031b3569208",
-    bytes: 9911,
+    sha256: "7f8b408ecacbb83ab6311e908698975a50139cce025c4c7f18b9658f2de34459",
+    bytes: 11117,
   },
   "backdrop.east": {
     kind: "backdrop",
