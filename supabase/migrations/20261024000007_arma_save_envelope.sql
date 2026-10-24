@@ -104,6 +104,17 @@ begin
     ) e
     where w.depth <= max_depth
   ),
+  -- A capped path must hold the kind of value its cap judges: a "num" row needs a number, a "len" row an array or a string (null stays allowed).
+  -- Without this a cap is dodged by changing the JSON type ("1e15", {n:5}, [99999], true).
+  typed as (
+    select w.path from walk w
+    join lateral (
+      select c.kind from public.arma_record_caps c
+      where w.path like replace(replace(c.path_pattern, '_', '\_'), '*', '%') escape '\'
+      order by length(c.path_pattern) desc limit 1
+    ) c on true
+    where w.t <> 'null' and ((c.kind = 'num' and w.t <> 'number') or (c.kind = 'len' and w.t not in ('array', 'string')))
+  ),
   numbers as (
     select w.path, w.val, c.path_pattern, c.min_value, c.max_value, c.integer_only
     from walk w
@@ -127,6 +138,7 @@ begin
   select reason into bad from (
     select 1 as pri, 'cap:record-depth' as reason from walk where depth > max_depth
     union all select 2, 'cap:record-nodes' from walk having count(*) > max_nodes
+    union all select 3, 'shape:type:' || path from typed
     -- numbers: a whole number unless the cap row says otherwise; no cap row means up to the default.
     union all select 4, 'shape:integer:' || path from numbers where coalesce(integer_only, true) and (val #>> '{}') !~ '^-?[0-9]+$'
     union all select 5, 'cap:' || path from numbers
@@ -177,7 +189,12 @@ begin
   why := public.arma_check_record(p_record);
   if why is not null then return jsonb_build_object('refused', split_part(why, ':', 1), 'reason', why); end if;
   if not existed then
-    insert into public.arma_runs (character, era, record) values (p_character, p_era, p_record) returning * into r;
+    begin
+      insert into public.arma_runs (character, era, record) values (p_character, p_era, p_record) returning * into r;
+    exception when unique_violation then
+      -- A concurrent first save won the race: this phone is stale, not broken.
+      return jsonb_build_object('refused', 'stale', 'revision', 1);
+    end;
   else
     update public.arma_runs set era = p_era, record = p_record, revision = r.revision + 1, saved_at = now() where character = p_character returning * into r;
   end if;

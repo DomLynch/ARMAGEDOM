@@ -134,6 +134,17 @@ test("a record is checked for shape and caps before it is stored, and the refusa
     assert.equal(await reason(withPath((r) => (r.flameFuel.fuelUnits = 10001))), "cap:flameFuel.fuelUnits");
     assert.equal(await reason(withPath((r) => (r.progression.awards = Array.from({ length: 201 }, () => ({}))))), "cap:progression.awards");
     assert.equal(await reason(withPath((r) => (r.vest.itemId = "x".repeat(201)))), "cap:vest.itemId");
+    // A cap cannot be dodged by changing the JSON type of the value.
+    assert.equal(await reason(withPath((r) => (r.hp = "1000000"))), "shape:type:hp");
+    assert.equal(await reason(withPath((r) => (r.hp = true))), "shape:type:hp");
+    assert.equal(await reason(withPath((r) => (r.marked.bank = "1e15"))), "shape:type:marked.bank");
+    assert.equal(await reason(withPath((r) => (r.marked.bank = { n: 5 }))), "shape:type:marked.bank");
+    assert.equal(await reason(withPath((r) => (r.pistol.reserve = [99999]))), "shape:type:pistol.reserve");
+    assert.equal(await reason(withPath((r) => (r.progression.attributes.strength = "99"))), "shape:type:progression.attributes.strength");
+    assert.equal(await reason(withPath((r) => (r.flameFuel.fuelUnits = "1e9"))), "shape:type:flameFuel.fuelUnits");
+    assert.equal(await reason(withPath((r) => (r.progression.awards = Object.fromEntries(Array.from({ length: 1000 }, (_, i) => ["k" + i, 1]))))), "shape:type:progression.awards");
+    assert.equal(await reason(withPath((r) => (r.progression.awards = true))), "shape:type:progression.awards");
+    assert.equal(await reason(withPath((r) => (r.supplies.pending[0].position.x = "1"))), "shape:type:supplies.pending[].position.x");
     // 'refused' carries the kind.
     assert.equal((await save(withPath((r) => (r.hp = 1e6)))).refused, "cap");
     assert.equal((await save(withPath((r) => (r.nope = 1)))).refused, "shape");
