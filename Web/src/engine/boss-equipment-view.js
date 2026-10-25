@@ -3,6 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { autoEquipAfterClaim } from "./auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
@@ -300,6 +301,12 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           position: state.dropPosition,
           run() {
             execute(field, { type: "claimPickup", pickupId: data.itemId });
+            if (g.bossEquipment?.[field]?.status === "owned")
+              void autoEquipAfterClaim(g, {
+                equip: () => equipHandlers.get(field)?.(),
+                active: () => !!g.bossEquipment?.[field]?.selected,
+                itemId: data.itemId,
+              });
             return true;
           },
         };

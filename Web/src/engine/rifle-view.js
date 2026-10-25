@@ -1,6 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
+import { autoEquipAfterClaim } from "./auto-equip.js";
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),
@@ -91,8 +92,10 @@ export function createRifleView(s, dispatch) {
   };
   const claim = () => {
     const g = s.game;
-    if (!s.paused && g.rifle?.status === "pending")
-      execute({ type: "claimPickup", pickupId: g.world.rifleData.itemId });
+    if (s.paused || g.rifle?.status !== "pending") return;
+    execute({ type: "claimPickup", pickupId: g.world.rifleData.itemId });
+    if (g.rifle?.status === "owned")
+      void autoEquipAfterClaim(g, { equip, active: () => !!g.rifle?.selected, itemId: g.world.rifleData.itemId });
   };
   button.addEventListener("click", equip);
   pickup.addEventListener("click", claim);

@@ -2,6 +2,7 @@ import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { autoEquipAfterClaim } from "./auto-equip.js";
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
@@ -187,6 +188,11 @@ export function createFlameView(s, persistence) {
       g.events.push(...result.events);
       g.message = "Flamethrower collected. Equip it in Gear.";
       g.messageUntil = g.time + 4;
+      void autoEquipAfterClaim(g, {
+        equip,
+        active: () => !!g.flame?.equipped,
+        itemId: g.world.flameData.pickupId,
+      }).then(repaint);
     }
     repaint();
     return true;
