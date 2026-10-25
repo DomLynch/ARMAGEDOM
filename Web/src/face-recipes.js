@@ -1,20 +1,14 @@
 // Authored ingredients only; World allocates these IDs from the full roster.
-export const FACE_APPEARANCE_VERSION = "armagedom-face-v1";
+import { GAME_DATA } from "./engine/game-data.js";
+// The ingredient rows live in Web/src/data/visual.json `faces` (read through game-data.js); the recipes below are derived from them.
+const FACES = GAME_DATA.visual.faces;
+export const FACE_APPEARANCE_VERSION = FACES.version;
 export const ORIGINAL_FACE_ID = "face-original";
 const freeze = (o) => Object.freeze(o);
-export const FACE_HEADS = freeze([
-  freeze({ id: "narrow", width: 0.87, height: 1.035 }),
-  freeze({ id: "broad", width: 1.12, height: 0.98 }),
-]);
-export const FACE_HAIRS = freeze(["buzz", "rough-crop", "crest", "back-crop", "messy"]);
-export const FACE_SKINS = freeze([
-  freeze({ id: "light", photo: freeze([1.3, 1.22, 1.12]) }),
-  freeze({ id: "tan", photo: freeze([1.02, 0.91, 0.78]) }),
-  freeze({ id: "olive", photo: freeze([0.8, 0.79, 0.62]) }),
-  freeze({ id: "brown", photo: freeze([0.62, 0.43, 0.3]) }),
-  freeze({ id: "deep", photo: freeze([0.43, 0.29, 0.2]) }),
-]);
-export const FACE_WEATHERING = freeze(["dust", "stubble", "scar", "ash", "grime"]);
+export const FACE_HEADS = FACES.heads;
+export const FACE_HAIRS = FACES.hairs;
+export const FACE_SKINS = FACES.skins;
+export const FACE_WEATHERING = FACES.weathering;
 // Alternate head shapes and stride through complexion/hair contrasts. Every
 // approved combination appears once; ordering is part of this library version.
 export const FACE_RECIPES = freeze(

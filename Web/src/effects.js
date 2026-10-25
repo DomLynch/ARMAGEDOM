@@ -12,7 +12,12 @@ import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js"
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
-const colors = { slash: 0xe3e9ec, stab: 0xe3e9ec, heavy: 0xffa64c, special: 0xe8bc65 };
+import { GAME_DATA } from "./engine/game-data.js";
+// Web/src/data/visual.json `effects`: hex strings, read as numbers once.
+const hexNumber = (hex) => parseInt(hex, 16);
+const colors = Object.fromEntries(
+  Object.entries(GAME_DATA.visual.effects.swingColours).map(([name, hex]) => [name, hexNumber(hex)]),
+);
 export function createEffects(
   scene,
   world,
@@ -44,7 +49,9 @@ export function createEffects(
     transient = [],
     loot = new Map(),
     gem = new THREE.OctahedronGeometry(0.21),
-    lootMaterials = [0xdca64d, 0x48b9c5, 0x70c66e].map((color) => new THREE.MeshBasicMaterial({ color }));
+    lootMaterials = GAME_DATA.visual.effects.lootColours.map(
+      (hex) => new THREE.MeshBasicMaterial({ color: hexNumber(hex) }),
+    );
   const droneLasers = createDroneLaserBolts({ scene, world, camera: world.camera });
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
   let confirmation = null;

@@ -4,6 +4,7 @@
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
+import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
@@ -107,10 +108,94 @@ export function validateWorld(d) {
   if (typeof d.closedError !== "string" || !/^[A-Za-z0-9_-]{1,16}$/.test(d.closedError)) fail("world", "closedError");
 }
 
+// visual.json: how things look (survivor outfits, face ingredients, clothing swatches, effect colours). Colours are 6-digit hex strings
+// or channel factors; the code derives its recipes from these rows.
+const id = (file, field, v) => {
+  if (typeof v !== "string" || !/^[a-z0-9-]{1,24}$/.test(v)) fail(file, `${field} must be a lowercase id`);
+};
+const hex = (field, v) => {
+  if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("visual", `${field} must be 6 lowercase hex digits`);
+};
+const channels = (field, v, max) => {
+  if (!Array.isArray(v) || v.length !== 3) fail("visual", `${field} must be three channels`);
+  v.forEach((c, i) => {
+    number("visual", `${field}[${i}]`, c);
+    if (c > max) fail("visual", `${field}[${i}] above ${max}`);
+  });
+};
+const unique = (field, ids) => {
+  if (new Set(ids).size !== ids.length) fail("visual", `${field} has a repeated id`);
+};
+const list = (field, v, min, max) => {
+  if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
+};
+export function validateVisual(d) {
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects"]);
+  list("survivorVariants", d.survivorVariants, 1, 64);
+  for (const v of d.survivorVariants) {
+    closed(v, ["id", "garment", "accent"]);
+    id("visual", "survivorVariants id", v.id);
+    channels(`survivorVariants.${v.id}.garment`, v.garment, 2);
+    channels(`survivorVariants.${v.id}.accent`, v.accent, 2);
+  }
+  unique("survivorVariants", d.survivorVariants.map((v) => v.id));
+  const f = d.faces;
+  closed(f, ["version", "heads", "hairs", "skins", "weathering"]);
+  if (typeof f.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(f.version)) fail("visual", "faces.version");
+  list("faces.heads", f.heads, 1, 16);
+  for (const h of f.heads) {
+    closed(h, ["id", "width", "height"]);
+    id("visual", "faces.heads id", h.id);
+    number("visual", "faces.heads width", h.width, 0.1);
+    number("visual", "faces.heads height", h.height, 0.1);
+  }
+  list("faces.skins", f.skins, 1, 16);
+  for (const s of f.skins) {
+    closed(s, ["id", "photo"]);
+    id("visual", "faces.skins id", s.id);
+    channels(`faces.skins.${s.id}.photo`, s.photo, 4);
+  }
+  for (const name of ["hairs", "weathering"]) {
+    list(`faces.${name}`, f[name], 1, 16);
+    f[name].forEach((v) => id("visual", `faces.${name}`, v));
+  }
+  unique("faces.heads", f.heads.map((h) => h.id));
+  unique("faces.skins", f.skins.map((s) => s.id));
+  unique("faces.hairs", f.hairs);
+  unique("faces.weathering", f.weathering);
+  const c = d.clothing;
+  closed(c, ["version", "tops", "trousers", "partners"]);
+  if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
+  const families = (name) => {
+    list(`clothing.${name}`, c[name], 1, 64);
+    for (const [family, ...swatches] of c[name]) {
+      id("visual", `clothing.${name} family`, family);
+      list(`clothing.${name}.${family}`, swatches, 1, 16);
+      swatches.forEach((h) => hex(`clothing.${name}.${family}`, h));
+    }
+    unique(`clothing.${name}`, c[name].map((row) => row[0]));
+    return c[name].map((row) => row[0]);
+  };
+  const topFamilies = families("tops");
+  const trouserFamilies = new Set(families("trousers"));
+  closed(c.partners, topFamilies);
+  for (const family of topFamilies) {
+    list(`clothing.partners.${family}`, c.partners[family], 1, 64);
+    for (const p of c.partners[family])
+      if (!trouserFamilies.has(p)) fail("visual", `clothing.partners.${family} names unknown trousers family ${p}`);
+  }
+  closed(d.effects, ["swingColours", "lootColours"]);
+  closed(d.effects.swingColours, ["slash", "stab", "heavy", "special"]);
+  for (const [name, h] of Object.entries(d.effects.swingColours)) hex(`effects.swingColours.${name}`, h);
+  list("effects.lootColours", d.effects.lootColours, 1, 16);
+  d.effects.lootColours.forEach((h) => hex("effects.lootColours", h));
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   saveClient: [saveClient, validateSaveClient],
+  visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
 });
