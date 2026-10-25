@@ -526,8 +526,8 @@
     "layout.east": {
       "kind": "layout",
       "path": "world/east/layout.json",
-      "sha256": "7f8b408ecacbb83ab6311e908698975a50139cce025c4c7f18b9658f2de34459",
-      "bytes": 11117
+      "sha256": "db1e8b464168a30375a07112d0a08c33be1fecd8ba6dbcaa6c6d3a75a4ec7a9d",
+      "bytes": 11463
     },
     "backdrop.east": {
       "kind": "backdrop",

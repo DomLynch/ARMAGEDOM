@@ -14,12 +14,18 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "a73671a59684a3c4a545772e43692ec38d6acb2fe3d57e3c981281aa7ba2f804");
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "1aef2b46ca632bf40749ec2943b9f8953fa145c3fde43288221fb6c15c298cbc");
 });
 
-test("areaDefinitions and areaAssets equal the old in-code export exactly (values and key order) and are frozen", () => {
+test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
+  // The old table still carried layout.east's identity from before the East exit work (#133 changed the file): 11117 bytes, sha 7f8b408e.
+  // Nothing at runtime reads sha256/bytes (world.js uses only the path); tools/validate-area-registry.mjs does, and failed on main.
+  // This is the only deliberate difference; the row now matches public/world/east/layout.json and manifest.json.
+  const stale = old.assets["layout.east"];
+  assert.deepEqual({ bytes: stale.bytes, sha256: stale.sha256.slice(0, 8) }, { bytes: 11117, sha256: "7f8b408e" });
   assert.deepEqual(areaDefinitions, old.areas);
-  assert.deepEqual(areaAssets, old.assets);
+  assert.deepEqual(areaAssets, { ...old.assets, "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 } });
+  assert(areaAssets["layout.east"].sha256.startsWith("db1e8b46"));
   assert.deepEqual(areaDefinitions.map((a) => a.id), old.areas.map((a) => a.id));
   assert.deepEqual(Object.keys(areaAssets), Object.keys(old.assets));
   assert.equal(areaDefinitions, GAME_DATA.areas.areas);
@@ -28,7 +34,7 @@ test("areaDefinitions and areaAssets equal the old in-code export exactly (value
 
 test("the default registry still builds from the data and the manifest agrees with every world asset row", () => {
   const registry = createAreaRegistry({ manifest });
-  assert.deepEqual(registry.ids?.() ?? areaDefinitions.map((a) => a.id), areaDefinitions.map((a) => a.id));
+  assert.deepEqual([...registry.ids], areaDefinitions.map((a) => a.id));
   const files = new Map(manifest.files.map((f) => [f.path, f]));
   let checked = 0;
   for (const [ref, asset] of Object.entries(areaAssets)) {
@@ -40,6 +46,14 @@ test("the default registry still builds from the data and the manifest agrees wi
     checked++;
   }
   assert(checked >= 12);
+});
+
+test("every asset row names the bytes that are on disk (what tools/validate-area-registry.mjs checks, which nothing ran in CI)", () => {
+  for (const [ref, asset] of Object.entries(areaAssets)) {
+    const bytes = fs.readFileSync(new URL(`../public/${asset.path}`, import.meta.url));
+    assert.equal(bytes.length, asset.bytes, `${ref} bytes`);
+    assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), asset.sha256, `${ref} sha256`);
+  }
 });
 
 test("the loader rejects a broken areas file", () => {
