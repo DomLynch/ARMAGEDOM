@@ -4,6 +4,7 @@ import fs from "node:fs";
 import * as THREE from "three";
 import { createGeometry } from "../src/world-geometry.js";
 import { createRouteGuidance, huntTarget } from "../src/engine/route-guidance.js";
+import { progressionObjective } from "../src/engine/expedition-runtime.js";
 import { createFirstTimeHints, HINT_STORAGE_KEY } from "../src/first-time-hints.js";
 import { createTileFlash, TILE_FLASH_KEY } from "../src/engine/weapon-tiles.js";
 
@@ -30,6 +31,25 @@ test("the hunt chain leads to the salamander, then the Ember Matron, then stops 
   g.bossEquipment = { emberProjector: { status: "owned" } };
   assert.equal(huntTarget(g), null, "an owned Ember Projector ends the chain too");
   assert.equal(huntTarget({ enemies: [] }), null);
+});
+
+test("the standing Ember Matron objective is hidden during the salamander step and returns for her step", () => {
+  const sal = salamander(10, 4),
+    witch = matron(-8, 2),
+    g = {
+      enemies: [sal, witch],
+      bossEquipment: { emberProjector: { status: "locked" } },
+      world: {
+        areaId: "westminster",
+        safehouseData: {},
+        registry: { links: () => [{ to: "east", requiresDefeat: "witch-key" }] },
+        bossData: { placements: [{ key: "witch-key", profileRef: "witch" }], profiles: { witch: { name: "Ember Matron" } } },
+        bossEquipmentData: { emberProjector: { source: { placementKey: "witch-key" } } },
+      },
+    };
+  assert.equal(progressionObjective(g).objective, "", "salamander step: only the arrow line shows");
+  sal.hp = 0;
+  assert.equal(progressionObjective(g).objective, "Kill the Ember Matron", "her step: the standing line is back");
 });
 
 test("the route arrow follows the hunt target's live position and names the kill", () => {

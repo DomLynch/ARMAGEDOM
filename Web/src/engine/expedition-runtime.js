@@ -1,5 +1,6 @@
 import { lockerStored } from "./locker-core.js";
 import { bossExitGate } from "./area-bosses.js";
+import { huntTarget, SALAMANDER_STEP } from "./route-guidance.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { expeditionEligible, selectedPistolProfile, contractEnabled } from "./expedition-core.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
@@ -70,8 +71,10 @@ export function journalPresentation(g, data, allowed = true) {
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
+  // While the route arrow sends the player after the salamander, its line is the only one: the standing
+  // "Kill the Ember Matron" objective comes back when the arrow moves on to her.
   return gate && !gate.allowed
-    ? { target: "westminster", objective: gate.message }
+    ? { target: "westminster", objective: huntTarget(g)?.label === SALAMANDER_STEP ? "" : gate.message }
     : { target: "east", objective: "Reach East." };
 }
 // The stolen supply case is a prop in East only while the contract is on.
