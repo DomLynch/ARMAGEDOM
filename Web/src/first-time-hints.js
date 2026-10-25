@@ -8,13 +8,14 @@ const PISTOL_REACH = 1.3;
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const alive = (e) => e.hp > 0;
+// The Ember Matron's drop is the Ember Projector boss-equipment pickup: pending, in its source area, on the ground.
 const flameDropWithin = (g, meters) => {
-  const data = g.world?.flameData;
+  const data = g.world?.bossEquipmentData?.emberProjector,
+    state = g.bossEquipment?.emberProjector;
   return (
-    data?.groundPickupEnabled === true &&
-    !g.flameFuel?.collected &&
-    g.world.areaId === data.areaId &&
-    distance(g.player.pos, data.position) <= meters
+    state?.status === "pending" &&
+    g.world.areaId === data.source.areaId &&
+    distance(g.player.pos, state.dropPosition) <= meters
   );
 };
 

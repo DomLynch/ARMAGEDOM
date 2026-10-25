@@ -249,7 +249,7 @@ export function createFlameView(s, persistence) {
     if (!g?.world.flameData || !nearby(g)) return null;
     return {
       id: g.world.flameData.pickupId,
-      label: "Pick up Ember",
+      label: "Collect Flamethrower",
       position: g.world.flameData.position,
       run: interact,
     };

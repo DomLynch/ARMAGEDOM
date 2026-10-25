@@ -26,6 +26,9 @@ test("the hunt chain leads to the salamander, then the Ember Matron, then stops 
   witch.hp = 120;
   g.flameFuel.collected = true;
   assert.equal(huntTarget(g), null, "a collected flamethrower ends the chain even with a live Matron");
+  g.flameFuel.collected = false;
+  g.bossEquipment = { emberProjector: { status: "owned" } };
+  assert.equal(huntTarget(g), null, "an owned Ember Projector ends the chain too");
   assert.equal(huntTarget({ enemies: [] }), null);
 });
 
@@ -64,26 +67,29 @@ test("the route arrow follows the hunt target's live position and names the kill
 test("the Ember drop shows a pick-up notice once, and only while it is uncollected and in reach", () => {
   const storage = memory(),
     hints = createFirstTimeHints({ storage }),
-    flameData = { groundPickupEnabled: true, areaId: "westminster", position: { x: 5, z: 5 } },
     g = {
       time: 10,
       finished: false,
       events: [],
       player: { pos: { x: 5.5, z: 5 }, hp: 100 },
       enemies: [],
-      flameFuel: { collected: false },
+      bossEquipment: { emberProjector: { status: "pending", dropPosition: { x: 5, z: 5 } } },
       pistol: { collected: true, pickupAreaId: "westminster", pickupPos: { x: 0, z: 0 } },
-      world: { areaId: "westminster", exitHint: () => "", flameData },
+      world: {
+        areaId: "westminster",
+        exitHint: () => "",
+        bossEquipmentData: { emberProjector: { source: { areaId: "westminster" } } },
+      },
     };
   assert.equal(hints.current(g), "Tap PICK UP EMBER to take it.");
   g.time += 30;
   assert.equal(hints.current(g), "Tap PICK UP EMBER to take it.", "it stays while the drop is uncollected within 6 m");
-  g.flameFuel.collected = true;
+  g.bossEquipment.emberProjector.status = "owned";
   g.time += 0.5;
   assert.notEqual(hints.current(g), "Tap PICK UP EMBER to take it.");
   assert(JSON.parse(storage.data.get(HINT_STORAGE_KEY)).includes("ember-pickup"));
   const again = createFirstTimeHints({ storage });
-  g.flameFuel.collected = false;
+  g.bossEquipment.emberProjector.status = "pending";
   assert.notEqual(again.current(g), "Tap PICK UP EMBER to take it.", "a seen hint does not repeat");
 });
 

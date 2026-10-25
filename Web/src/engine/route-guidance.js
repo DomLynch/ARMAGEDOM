@@ -31,10 +31,10 @@ export const arrowOpacity = (seconds) =>
   ARROW_MIN_OPACITY + (1 - ARROW_MIN_OPACITY) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / ARROW_PULSE_SECONDS));
 // After the shelter the tutorial sends the player after Westminster's two named kills, one at a time: the roaming
 // giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
-// Nothing is shown once the flamethrower has been collected, or for a kill that is not in this area.
+// Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
 const HUNT_ARRIVED = 1.5;
 export function huntTarget(g) {
-  if (!g?.enemies || g.flameFuel?.collected) return null;
+  if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
   const live = (e) => e.hp > 0,
     salamander = g.enemies.find((e) => live(e) && e.rig === "giant-salamander"),
     matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
