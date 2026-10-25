@@ -12,7 +12,7 @@ function death(f,field='emberProjector'){
  g.supplies=issueSupply(g.supplies,{areaId:f.world.areaId,placementKey:e.placementKey,position:e.pos,hp:0,rules:g.lootRules,cycle:g.animalCycle}).state;stageProgressionDeath(g,e,'knife',e.maxHP);g.corpses.push(e);
 }
 test('actual committed Witch drop names the weapon once without collecting, equipping or granting fuel',()=>{
- const f=fresh(),g=f.g,fuel=structuredClone(g.flameFuel);g.message='before';death(f);assert.notEqual(g.message,notice);assert(f.p.persistRun(g));assert.equal(g.message,notice);assert.equal(g.messageUntil,g.time+4);assert.equal(g.bossEquipment.emberProjector.status,'pending');assert.deepEqual(g.flameFuel,fuel);assert.equal(g.flame.equipped,false);
+ const f=fresh(),g=f.g,fuel=structuredClone(g.flameFuel);g.message='before';death(f);assert.notEqual(g.message,notice);assert(f.p.persistRun(g));assert.equal(g.message,notice);assert.equal(g.messageUntil,g.time+8,'hold raised 4 -> 8 s: Dom missed the 4 s toast on LIVE 246');assert.equal(g.bossEquipment.emberProjector.status,'pending');assert.deepEqual(g.flameFuel,fuel);assert.equal(g.flame.equipped,false);
  const event=g.events.find(e=>e.type==='boss-equipment-drop');assert.equal(event.itemId,'ember-flamethrower-v1');assert.equal(JSON.parse(f.records.get(key)).bossEquipment.emberProjector.status,'pending');
  const until=g.messageUntil;g.time+=1;assert(f.p.persistRun(g));assert.equal(g.messageUntil,until,'ordinary save ticks never refresh the toast');g.message='other message';assert(f.p.persistRun(g));assert.equal(g.message,'other message');
 });
