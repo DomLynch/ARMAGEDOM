@@ -3,7 +3,7 @@ import { needsUniqueDeathCommit } from "./unique-reward-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { applyAreaLighting } from "./area-lighting.js";
 import { publicAreaRegistry } from "../area-registry.js";
-import { warmFramebuffer } from "./warm-framebuffer.js";
+import { warmFramebuffer, warmFramebufferSteps } from "./warm-framebuffer.js";
 import { createStageAhead } from "./stage-ahead.js";
 import { resetMobileControls, initializeAreaResidents } from "../combat.js";
 import { prepareParkedResidents } from "../parked-area-preparation.js";
@@ -413,14 +413,28 @@ export function createAreaLifecycle(s) {
     }
   }
 
+  // One graphics phase per area at a time: a travel that starts while the stage-ahead run is mid-warm joins it.
   async function prepareGraphics(areaId, state) {
+    const running = state?.graphics?.get(areaId);
+    if (running) return running;
+    const run = graphicsPhase(areaId, state);
+    if (!state) return run;
+    const graphics = (state.graphics ??= new Map());
+    graphics.set(areaId, run);
+    const clear = () => graphics.get(areaId) === run && graphics.delete(areaId);
+    run.then(clear, clear);
+    return run;
+  }
+  async function graphicsPhase(areaId, state) {
     if (s.world.isAreaReady(areaId)) return;
-    if (!state || state.cancelled || s.game !== state.game || !s.traveling) throw Error("Area preparation cancelled");
+    const aheadRun = () => state.ahead === areaId && state.abortArea !== areaId;
+    if (!state || state.cancelled || s.game !== state.game || (!s.traveling && !aheadRun()))
+      throw Error("Area preparation cancelled");
     const task = state.tasks.get(areaId),
       release = s.world.leaseArea?.(areaId) ?? (() => {});
     try {
       const stage = await s.world.prepareArea(areaId);
-      if (state.cancelled || s.game !== state.game || s.contextLost || !s.traveling)
+      if (state.cancelled || s.game !== state.game || s.contextLost || (!s.traveling && !aheadRun()))
         throw Error("Area preparation cancelled");
       s.actors.bindPreparedArea(areaId, stage.scene);
       await s.renderer.compileAsync(stage.scene, stage.camera, s.scene);
@@ -433,7 +447,20 @@ export function createAreaLifecycle(s) {
       const started = performance.now();
       try {
         await preparationTurn(state);
-        warmFramebuffer(s.renderer, stage.scene, stage.camera);
+        if (!s.traveling && aheadRun()) {
+          // Idle: warm a few objects per turn. A travel that arrives meanwhile finishes the rest without waiting.
+          const steps = warmFramebufferSteps(
+            s.renderer,
+            stage.scene,
+            stage.camera,
+            s.stageAhead?.limits.warmGroupObjects,
+          );
+          for (const _ of steps) {
+            if (!s.traveling) await preparationTurn(state);
+            if (state.cancelled || s.contextLost || (state.abortArea === areaId && !s.traveling))
+              throw Error("Area preparation cancelled");
+          }
+        } else warmFramebuffer(s.renderer, stage.scene, stage.camera);
       } finally {
         for (const light of lights) light.removeFromParent();
       }
@@ -471,7 +498,6 @@ export function createAreaLifecycle(s) {
     if (!stageAhead || !state || state.ahead || s.traveling || state.cancelled || !stageAhead.due()) return;
     const id = neighbourIds()[0];
     if (!id || aheadFailed.has(`${s.world.areaId}>${id}`) || s.world.isAreaReady(id)) return;
-    if (["prepared", "ready"].includes(state.tasks.get(id)?.status)) return;
     if (exitDistance(id) > stageAhead.limits.exitRangeMeters || !stageAhead.open()) return;
     runStageAhead(id, state);
   }
@@ -485,8 +511,8 @@ export function createAreaLifecycle(s) {
       limitParkedAreas(s.actors, new Set([s.world.areaId, id]), PARKED_AREA_LIMIT.maxAreas - 1, (evicted) =>
         s.world.unmarkAreaReady?.(evicted),
       );
-      // The CPU side only (stage, actor views); the graphics phase stays in the travel pause.
       await queueDestination(id, state);
+      await prepareGraphics(id, state);
       outcome = "completed";
     } catch (error) {
       if (!state.cancelled && state.abortArea !== id) {

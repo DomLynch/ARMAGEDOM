@@ -13,7 +13,17 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
     end = indexOfToken(source, "function checkExit()", start);
   assert(start >= 0 && end > start);
   let clock = 0;
-  const log = { starts: [], closed: [], discards: [], outcomes: [], graphics: 0, leases: [], released: [] };
+  const log = {
+    starts: [],
+    closed: [],
+    discards: [],
+    outcomes: [],
+    graphics: 0,
+    warmed: 0,
+    ready: [],
+    leases: [],
+    released: [],
+  };
   const task = (areaId) => {
     let resolve, reject;
     const promise = new Promise((yes, no) => {
@@ -49,7 +59,8 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
     registry: { links: () => links },
     manifest: { links },
     geometry: { point: (p) => ({ x: p.x, y: p.z }), ground: (p) => ({ x: p.x, z: p.y }) },
-    isAreaReady: () => false,
+    isAreaReady: (area) => log.ready.includes(area),
+    markAreaReady: (area) => log.ready.push(area),
     leaseArea(area) {
       log.leases.push(area);
       return () => log.released.push(area);
@@ -91,8 +102,18 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
         log.graphics++;
         return Promise.resolve();
       },
+      getContext: () => ({
+        SYNC_GPU_COMMANDS_COMPLETE: 1,
+        ALREADY_SIGNALED: 2,
+        CONDITION_SATISFIED: 3,
+        fenceSync: () => ({}),
+        flush() {},
+        clientWaitSync: () => 2,
+        deleteSync() {},
+      }),
     },
   };
+  s.stageAhead.limits.warmGroupObjects = 4;
   const context = vm.createContext({
     s,
     testState: state,
@@ -108,6 +129,13 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
     initializeAreaResidents() {},
     applyAreaLighting() {},
     warmFramebuffer() {},
+    *warmFramebufferSteps() {
+      for (let i = 0; i < 3; i++) {
+        if (i === 1 && state.midWarm) state.midWarm();
+        log.warmed++;
+        yield 1;
+      }
+    },
   });
   vm.runInContext(`${source.slice(start, end)}\nareaPreparation = testState;`, context);
   state.midRun = null;
@@ -115,18 +143,45 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
 }
 const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
 
-test("near the exit and quiet, the nearest neighbour's destination preparation runs without travelling", async () => {
+test("near the exit and quiet, the nearest neighbour is prepared and warmed without travelling, then marked ready", async () => {
   const r = setup();
   r.run("maybeStageAhead()");
   assert.equal(r.state.ahead, "south", "nearest exit first");
   await settle();
   assert.deepEqual(r.log.starts, ["south"]);
-  assert.equal(r.state.tasks.get("south").status, "prepared");
+  assert.equal(r.state.tasks.get("south").status, "ready");
   assert.equal(r.state.tasks.get("east").status, "queued");
   assert.equal(r.state.ahead, null);
   assert.deepEqual(r.log.outcomes, ["completed"]);
-  assert.equal(r.log.graphics, 0, "the graphics phase stays in the travel pause");
-  assert.deepEqual(r.log.released, ["south"], "the stage lease is given back");
+  assert.equal(r.log.graphics, 1, "shaders compiled once");
+  assert.equal(r.log.warmed, 3, "warmed in steps, not in one render");
+  assert.deepEqual(r.log.ready, ["south"]);
+  assert.deepEqual(r.log.released, ["south", "south"], "the stage leases are given back");
+});
+
+test("a travel to another area during the warm stops it before the area is marked ready", async () => {
+  const r = setup();
+  r.state.midWarm = () => r.run("abortStageAhead('east')");
+  r.run("maybeStageAhead()");
+  await settle();
+  assert.deepEqual(r.log.ready, [], "never marked ready");
+  assert.deepEqual(r.log.outcomes, ["aborted"]);
+  assert.equal(r.state.ahead, null);
+  assert.equal(r.state.abortArea, null);
+  assert.equal(r.run("aheadFailed.size"), 0);
+  assert.ok(r.log.warmed < 3, "the remaining steps did not run");
+  assert.deepEqual(r.log.released, ["south", "south"]);
+});
+
+test("a travel to the same area during the warm finishes the rest without waiting", async () => {
+  const r = setup();
+  r.state.midWarm = () => {
+    r.s.traveling = true;
+  };
+  r.run("maybeStageAhead()");
+  await settle();
+  assert.equal(r.log.warmed, 3);
+  assert.deepEqual(r.log.ready, ["south"]);
 });
 
 test("nothing starts while the gate is closed, out of range, or once the area is prepared", async () => {
@@ -171,7 +226,7 @@ test("a travel to the same area keeps the run going", async () => {
   r.state.midRun = () => r.run("abortStageAhead('south')");
   r.run("maybeStageAhead()");
   await settle();
-  assert.equal(r.state.tasks.get("south").status, "prepared");
+  assert.equal(r.state.tasks.get("south").status, "ready");
   assert.deepEqual(r.log.outcomes, ["completed"]);
 });
 

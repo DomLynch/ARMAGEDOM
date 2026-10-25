@@ -1,5 +1,6 @@
 // Stage-ahead: while the player is near the exit to the nearest neighbour area and nothing is fighting, that
-// neighbour's destination preparation (stage, actor views) runs in idle slices instead of inside the travel pause.
+// neighbour's destination preparation and graphics (stage, actor views, shader compile, warm) run in idle slices
+// instead of inside the travel pause. If it finishes, the area is ready and the later travel skips both phases.
 //
 // The limits live in stage-ahead-data.json; `?stageahead=0` turns the whole thing off.
 import input from "./stage-ahead-data.json" with { type: "json" };
@@ -17,6 +18,7 @@ export function validateStageAheadData(value) {
     "skipFrameMs",
     "fightQuietMs",
     "recheckMs",
+    "warmGroupObjects",
   ]);
   if (
     d.version !== 1 ||
@@ -26,7 +28,9 @@ export function validateStageAheadData(value) {
     !finite(d.sliceMs, 0.5, 8) ||
     !finite(d.skipFrameMs, 16, 100) ||
     !finite(d.fightQuietMs, 0, 10000) ||
-    !finite(d.recheckMs, 16, 2000)
+    !finite(d.recheckMs, 16, 2000) ||
+    !Number.isInteger(d.warmGroupObjects) ||
+    !finite(d.warmGroupObjects, 1, 64)
   )
     throw TypeError("Invalid stage-ahead data");
   return freeze(d);
