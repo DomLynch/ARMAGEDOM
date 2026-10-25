@@ -38,7 +38,13 @@ export function validateGuidance(layout, g, links = null) {
   return rows.map((row) => {
     if (
       !row ||
-      Object.keys(row).some((k) => !["id", "kind", "to", "path", "edge", "segment"].includes(k)) ||
+      Object.keys(row).some((k) => !["id", "kind", "to", "path", "edge", "segment", "sign"].includes(k)) ||
+      (row.sign !== undefined &&
+        (row.kind !== "exit" ||
+          !Array.isArray(row.sign) ||
+          row.sign.length < 1 ||
+          row.sign.length > 2 ||
+          row.sign.some((line) => typeof line !== "string" || !/^[A-Z0-9 ·→-]{1,22}$/.test(line)))) ||
       typeof row.id !== "string" ||
       !/^[a-z0-9-]+$/.test(row.id) ||
       ids.has(row.id) ||
@@ -203,12 +209,13 @@ export function createRouteGuidance(world) {
   arrow.name = "Safe route direction";
   arrow.visible = false;
   group.add(arrow);
-  // Mark the actual side threshold; the marker never expands its trigger.
-  const entrance = rows.find((row) => row.to === "central-hub"),
-    marker = entrance ? new THREE.Group() : null;
-  if (marker) {
-    const at = entrance.path.at(-1);
-    marker.name = "Central Safehouse side entrance";
+  // Mark the actual threshold of an exit (a gold ring and a sign); the marker never expands its trigger. The Central Safehouse side
+  // entrance has always had one; any other exit row can ask for one with `sign: [line, line]`.
+  const markers = [];
+  function addMarker(row, name, lines) {
+    const marker = new THREE.Group(),
+      at = row.path.at(-1);
+    marker.name = name;
     marker.position.copy(world.toRender(at, 0.045));
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.48, 0.62, 32),
@@ -230,9 +237,9 @@ export function createRouteGuidance(world) {
         ctx.textAlign = "center";
         ctx.fillStyle = "#f1d28c";
         ctx.font = "bold 34px sans-serif";
-        ctx.fillText("CENTRAL SAFEHOUSE", 256, 53);
+        ctx.fillText(lines[0], 256, 53);
         ctx.font = "26px sans-serif";
-        ctx.fillText("SIDE ENTRANCE", 256, 96);
+        ctx.fillText(lines[1] ?? "", 256, 96);
         const map = new THREE.CanvasTexture(canvas);
         map.colorSpace = THREE.SRGBColorSpace;
         const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }));
@@ -242,7 +249,12 @@ export function createRouteGuidance(world) {
       }
     }
     group.add(marker);
+    markers.push({ marker, at });
   }
+  const entrance = rows.find((row) => row.to === "central-hub");
+  if (entrance) addMarker(entrance, "Central Safehouse side entrance", ["CENTRAL SAFEHOUSE", "SIDE ENTRANCE"]);
+  for (const row of rows.filter((r) => r.sign && r !== entrance))
+    addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign);
   let cachedPosition = null,
     cached = null,
     disposed = false,
@@ -289,7 +301,7 @@ export function createRouteGuidance(world) {
     return cached;
   }
   function update(position, activeWorld = world) {
-    if (marker) marker.visible = distance(position, entrance.path.at(-1)) < 9;
+    for (const { marker, at } of markers) marker.visible = distance(position, at) < 9;
     const cue = activeWorld.travelAt(position) ? null : resolve(position);
     arrow.visible = !!cue && activeWorld.areaId === TUTORIAL_AREA; // the tutorial ends in Westminster: no route arrows elsewhere
     if (!arrow.visible) return;

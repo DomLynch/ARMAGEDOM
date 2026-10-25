@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createAreaRegistry } from "../src/area-registry.js";
 import { createGeometry } from "../src/world-geometry.js";
-import { validateGuidance, resolveGuidance } from "../src/engine/route-guidance.js";
+import * as THREE from "three";
+import { validateGuidance, resolveGuidance, createRouteGuidance } from "../src/engine/route-guidance.js";
 import { probe, inLink } from "../scripts/exit-probe.mjs";
 
 // Dom, 25 Oct (live 241): in East the exit to East Bridge "still seems blocked a little". The trigger was a 2 m x 1.5 m patch on the
@@ -68,6 +69,39 @@ test("arriving from East Bridge puts the player clear of the exit, in the main p
         nearest = Math.min(nearest, Math.hypot(q.x - at.x, q.z - at.z));
     }
   assert.ok(nearest >= 1.5, `arrival is ${nearest.toFixed(2)} m from the trigger`);
+});
+
+test("the exit is marked with a gold ring and sign at the trigger, shown near it and only there", () => {
+  const world = {
+    areaId: "east",
+    THREE,
+    layout,
+    geometry: geo,
+    group: new THREE.Group(),
+    toRender: (p, y = 0) => new THREE.Vector3(p.x, y, -p.z),
+    travelAt: () => null,
+  };
+  const guidance = createRouteGuidance(world);
+  const marker = guidance.group.getObjectByName("East Bridge exit marker");
+  assert.ok(marker, "marker exists");
+  assert.ok(guidance.group.getObjectByName("Central Safehouse side entrance"), "the hub marker is unchanged");
+  const row = rows.find((r) => r.to === "east-bridge");
+  const end = row.path.at(-1);
+  assert.equal(inLink(out, geo.point(end)), true, "the marker sits inside the trigger");
+  guidance.update({ x: end.x - 6, z: end.z }, world);
+  assert.equal(marker.visible, true, "shown within 9 m");
+  guidance.update({ x: end.x - 14, z: end.z }, world);
+  assert.equal(marker.visible, false, "hidden far away");
+  guidance.dispose();
+});
+
+test("a sign must be one or two plain upper-case lines on an exit row", () => {
+  const good = (sign, kind = "exit") => ({
+    guidance: layout.guidance.map((r) => (r.id === "east-bridge-entry" ? { ...r, kind, sign } : r)),
+  });
+  assert.doesNotThrow(() => validateGuidance(good(["EAST BRIDGE", "EXIT"]), geo, registry.links("east")));
+  for (const bad of [[], ["a b"], ["TOO LONG A LINE FOR THE SIGN BOARD"], ["A", "B", "C"], "EAST", [7]])
+    assert.throws(() => validateGuidance(good(bad), geo, registry.links("east")), /Invalid route guidance/);
 });
 
 test("the exit has a guidance arrow that ends inside the trigger and shows across the plaza", () => {

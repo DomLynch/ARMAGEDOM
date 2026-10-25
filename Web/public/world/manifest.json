@@ -37,8 +37,8 @@
       "area": "east",
       "path": "east/layout.json",
       "source": "Owner-marked East136 bounded clearance and direct East/South route",
-      "bytes": 11424,
-      "sha256": "7c53a5b1949eada427f4725e316cac674a567826e999ad1a6473e90dba178046"
+      "bytes": 11463,
+      "sha256": "db1e8b464168a30375a07112d0a08c33be1fecd8ba6dbcaa6c6d3a75a4ec7a9d"
     },
     {
       "area": "east",

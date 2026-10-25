@@ -743,6 +743,7 @@
       "id": "east-bridge-entry",
       "kind": "exit",
       "to": "east-bridge",
+      "sign": ["EAST BRIDGE", "EXIT"],
       "path": [
         {
           "x": 0.72,
