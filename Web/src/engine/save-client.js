@@ -128,7 +128,9 @@ export function createSaveClient({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok && payload?.error === GAME_DATA.world.closedError && !halted) {
-        halted = true; // closed or not allow-listed: stop the loop (keep the character, revision and sequence) and ask for a status read
+        halted = true; // closed or not allow-listed: stop the loop (keep the character and sequence) and ask for a status read
+        revision = null; // the server may move on while we are stopped: the next send learns the revision again first
+        loadedRun = null;
         try {
           onClosed();
         } catch {

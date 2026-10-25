@@ -342,6 +342,17 @@ export function createBrowserSession(options = {}) {
   loop = createBrowserLoop(context);
   // Nothing online exists until the status read says the world is open: no guest signup, no presence socket, no save traffic.
   const worldGate = worldConfig && !privateContent ? createWorldGate({ baseUrl: location.origin }) : null;
+  // The OAuth return parameters never stay in the address bar, whether or not the world starts: keep the query for the code exchange,
+  // then strip link, code, the error fields and any #access_token hash at load.
+  let returnedSearch = null;
+  {
+    const params = new URLSearchParams(location.search);
+    if (params.has("link") || params.has("code") || location.hash.includes("access_token=")) {
+      returnedSearch = location.search;
+      for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
+      history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
+    }
+  }
   let worldStarted = false,
     bootPull = Promise.resolve(),
     syncedNotice = false;
@@ -350,15 +361,8 @@ export function createBrowserSession(options = {}) {
     worldStarted = true;
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
     const auth = createGuestAuth({ ...WORLD_AUTH, storage: runStorage });
-    // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
-    // link, code and any hash are always stripped from the address bar afterwards.
-    if (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token=")) {
-      const params = new URLSearchParams(location.search),
-        returned = location.search;
-      for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
-      const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
-      auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
-    }
+    // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read.
+    if (returnedSearch !== null) auth.takeRedirect(returnedSearch);
     const getToken = options.presenceToken ?? auth.getToken;
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({

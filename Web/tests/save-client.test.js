@@ -160,13 +160,17 @@ test("the cached character is keyed by account: a new guest session gets its own
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
 });
 
-test("an O0007 refusal (world switched off / not allow-listed) is only logged: the character id, revision and sequence are kept", async () => {
-  const t = make({ save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 1, savedAt: "t" }) });
+test("an O0007 refusal (world switched off / not allow-listed) is only logged: the character id and sequence are kept, the cached revision is dropped", async () => {
+  const t = make({
+    save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 8, savedAt: "t" }),
+    load_run: (body, n) => ({ run: n === 0 ? null : { revision: 7 } }),
+  });
   t.client.queue(record());
   await t.run();
   assert.match(t.lines[0], /not saved: O0007/);
   assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc", "the cache is NOT cleared");
   assert.equal(t.client.halted, true, "the save loop stops: no 5 s retry forever");
+  assert.equal(t.client.state.revision, null, "the cached revision is reset: the server may have moved on");
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 2 }));
   assert.equal(t.timers.length, 0, "nothing is scheduled while halted");
@@ -175,6 +179,8 @@ test("an O0007 refusal (world switched off / not allow-listed) is only logged: t
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 1, "no second character");
   assert.equal(t.w.calls.at(-1).body.character, "pc:abc");
   assert.equal(t.client.state.seq, 2, "the sequence continues");
+  assert.equal(t.w.calls.filter((c) => c.op === "load_run").length, 2, "the revision is learned again after the halt");
+  assert.equal(t.w.calls.at(-1).body.revision, 7, "the save carries the server's current revision, not the stale one");
 });
 
 test("a record queued while a save is in flight is lowered by the adopted drop, so the clamp is not applied twice (500 -> 300, not 100)", async () => {
