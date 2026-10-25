@@ -1,4 +1,4 @@
-import { GAME_DATA } from "./game-data.js";
+import { GAME_DATA } from "./engine/game-data.js";
 
 // Dom, 25 Oct 2026: "anytime you pick up a new weapon, it replaces the weapon you have, because newbies won't know to change their
 // weapon". A weapon the player did not carry becomes the active one the moment it is collected; the old weapon stays carried (equipping

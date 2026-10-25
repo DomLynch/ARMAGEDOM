@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {fixture} from './helpers/rifle-fixture.js';
 import {createRifleView} from '../src/engine/rifle-view.js';
-import {autoEquipAfterClaim} from '../src/engine/auto-equip.js';
+import {autoEquipAfterClaim} from '../src/auto-equip.js';
 import {GAME_DATA, validateWeapons} from '../src/engine/game-data.js';
 
 // Dom, 25 Oct 2026: picking up a weapon you did not carry makes it the active weapon at once; the old one stays carried.

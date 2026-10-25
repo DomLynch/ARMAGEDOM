@@ -1,7 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
-import { autoEquipAfterClaim } from "./auto-equip.js";
+import { autoEquipAfterClaim } from "../auto-equip.js";
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),

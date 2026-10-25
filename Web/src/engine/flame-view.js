@@ -2,7 +2,7 @@ import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
-import { autoEquipAfterClaim } from "./auto-equip.js";
+import { autoEquipAfterClaim } from "../auto-equip.js";
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
