@@ -1,0 +1,382 @@
+{
+  "table": {
+    "westminster-roamer-1": {
+      "kind": "rounds",
+      "amount": 3
+    },
+    "westminster-roamer-2": null,
+    "westminster-roamer-3": {
+      "kind": "rounds",
+      "amount": 2
+    },
+    "westminster-roamer-4": null,
+    "westminster-roamer-5": {
+      "kind": "dressing",
+      "amount": 1
+    },
+    "westminster-roamer-6": null
+  },
+  "keys": [
+    "westminster-roamer-1",
+    "westminster-roamer-2",
+    "westminster-roamer-3",
+    "westminster-roamer-4",
+    "westminster-roamer-5",
+    "westminster-roamer-6"
+  ],
+  "vestBag": {
+    "x": -2,
+    "z": -6.15
+  },
+  "lootRules": {
+    "westminster-roamer-1": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-1",
+      "dropId": "area1-supply-v1:westminster-roamer-1",
+      "outcomes": [
+        {
+          "itemId": "rounds",
+          "quantity": 3,
+          "weight": 1,
+          "conditions": [
+            "pistol-owned",
+            "reserve-space"
+          ]
+        }
+      ],
+      "legacy": true
+    },
+    "westminster-roamer-2": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-2",
+      "dropId": "area1-supply-v1:westminster-roamer-2",
+      "outcomes": [
+        {
+          "itemId": null,
+          "quantity": 0,
+          "weight": 1,
+          "conditions": []
+        }
+      ],
+      "legacy": true
+    },
+    "westminster-roamer-3": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-3",
+      "dropId": "area1-supply-v1:westminster-roamer-3",
+      "outcomes": [
+        {
+          "itemId": "rounds",
+          "quantity": 2,
+          "weight": 1,
+          "conditions": [
+            "pistol-owned",
+            "reserve-space"
+          ]
+        }
+      ],
+      "legacy": true
+    },
+    "westminster-roamer-4": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-4",
+      "dropId": "area1-supply-v1:westminster-roamer-4",
+      "outcomes": [
+        {
+          "itemId": null,
+          "quantity": 0,
+          "weight": 1,
+          "conditions": []
+        }
+      ],
+      "legacy": true
+    },
+    "westminster-roamer-5": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-5",
+      "dropId": "area1-supply-v1:westminster-roamer-5",
+      "outcomes": [
+        {
+          "itemId": "dressing",
+          "quantity": 1,
+          "weight": 1,
+          "conditions": [
+            "health-missing"
+          ]
+        }
+      ],
+      "legacy": true
+    },
+    "westminster-roamer-6": {
+      "areaId": "westminster",
+      "tableRef": "legacy-westminster-roamer-6",
+      "dropId": "area1-supply-v1:westminster-roamer-6",
+      "outcomes": [
+        {
+          "itemId": null,
+          "quantity": 0,
+          "weight": 1,
+          "conditions": []
+        }
+      ],
+      "legacy": true
+    }
+  },
+  "issued": {
+    "westminster-roamer-1": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-1"
+        ],
+        "collected": [],
+        "pending": [
+          {
+            "id": "area1-supply-v1:westminster-roamer-1",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-1",
+            "kind": "rounds",
+            "position": {
+              "x": 1,
+              "z": 2
+            },
+            "remaining": 3
+          }
+        ]
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": {
+        "dropId": "area1-supply-v1:westminster-roamer-1",
+        "kind": "rounds",
+        "amount": 3
+      }
+    },
+    "westminster-roamer-2": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-2"
+        ],
+        "collected": [],
+        "pending": []
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": null
+    },
+    "westminster-roamer-3": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-3"
+        ],
+        "collected": [],
+        "pending": [
+          {
+            "id": "area1-supply-v1:westminster-roamer-3",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-3",
+            "kind": "rounds",
+            "position": {
+              "x": 1,
+              "z": 2
+            },
+            "remaining": 2
+          }
+        ]
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": {
+        "dropId": "area1-supply-v1:westminster-roamer-3",
+        "kind": "rounds",
+        "amount": 2
+      }
+    },
+    "westminster-roamer-4": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-4"
+        ],
+        "collected": [],
+        "pending": []
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": null
+    },
+    "westminster-roamer-5": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-5"
+        ],
+        "collected": [],
+        "pending": [
+          {
+            "id": "area1-supply-v1:westminster-roamer-5",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-5",
+            "kind": "dressing",
+            "position": {
+              "x": 1,
+              "z": 2
+            },
+            "remaining": 1
+          }
+        ]
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": {
+        "dropId": "area1-supply-v1:westminster-roamer-5",
+        "kind": "dressing",
+        "amount": 30
+      }
+    },
+    "westminster-roamer-6": {
+      "state": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-6"
+        ],
+        "collected": [],
+        "pending": []
+      },
+      "valid": true,
+      "legacy": 1,
+      "award": null
+    }
+  },
+  "roundTrip": {
+    "raw": {
+      "version": 2,
+      "pistol": {
+        "version": 1,
+        "pickupId": "westminster-start-pistol-v1",
+        "collected": false,
+        "equipped": false,
+        "magazine": 0,
+        "reserve": 0
+      },
+      "hp": 150,
+      "supplies": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-1",
+          "westminster-roamer-3",
+          "westminster-roamer-5"
+        ],
+        "collected": [],
+        "pending": [
+          {
+            "id": "area1-supply-v1:westminster-roamer-1",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-1",
+            "kind": "rounds",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 3
+          },
+          {
+            "id": "area1-supply-v1:westminster-roamer-3",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-3",
+            "kind": "rounds",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 2
+          },
+          {
+            "id": "area1-supply-v1:westminster-roamer-5",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-5",
+            "kind": "dressing",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 1
+          }
+        ]
+      },
+      "vest": {
+        "version": 1,
+        "itemId": "westminster-worn-vest-v1",
+        "equipped": false
+      },
+      "droneDeaths": [],
+      "animalCycle": "A"
+    },
+    "reencoded": {
+      "version": 2,
+      "pistol": {
+        "version": 1,
+        "pickupId": "westminster-start-pistol-v1",
+        "collected": false,
+        "equipped": false,
+        "magazine": 0,
+        "reserve": 0
+      },
+      "hp": 150,
+      "supplies": {
+        "version": 1,
+        "issued": [
+          "westminster-roamer-1",
+          "westminster-roamer-3",
+          "westminster-roamer-5"
+        ],
+        "collected": [],
+        "pending": [
+          {
+            "id": "area1-supply-v1:westminster-roamer-1",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-1",
+            "kind": "rounds",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 3
+          },
+          {
+            "id": "area1-supply-v1:westminster-roamer-3",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-3",
+            "kind": "rounds",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 2
+          },
+          {
+            "id": "area1-supply-v1:westminster-roamer-5",
+            "areaId": "westminster",
+            "placementKey": "westminster-roamer-5",
+            "kind": "dressing",
+            "position": {
+              "x": -2,
+              "z": -6.15
+            },
+            "remaining": 1
+          }
+        ]
+      },
+      "vest": {
+        "version": 1,
+        "itemId": "westminster-worn-vest-v1",
+        "equipped": false
+      },
+      "droneDeaths": [],
+      "animalCycle": "A"
+    },
+    "same": true
+  }
+}

@@ -1,14 +1,8 @@
 import { isExtendedSupplies, issueExtendedSupply } from "./supply-ledger-v2.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // Area1-only rules; caller owns actual kill authority and atomic run persistence.
 export const SUPPLY_RULES = Object.freeze({ pickupRadius: 1.3, reserveCap: 12, healFraction: 0.2 });
-export const AREA1_SUPPLIES = Object.freeze({
-  "westminster-roamer-1": Object.freeze({ kind: "rounds", amount: 3 }),
-  "westminster-roamer-2": null,
-  "westminster-roamer-3": Object.freeze({ kind: "rounds", amount: 2 }),
-  "westminster-roamer-4": null,
-  "westminster-roamer-5": Object.freeze({ kind: "dressing", amount: 1 }),
-  "westminster-roamer-6": null,
-});
+export const AREA1_SUPPLIES = GAME_DATA.supplies.area1; // data/supplies.json: roamer key -> { kind, amount } or null
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const copy = (p) => ({ x: p.x, z: p.z });
 const dropId = (key) => `area1-supply-v1:${key}`;
