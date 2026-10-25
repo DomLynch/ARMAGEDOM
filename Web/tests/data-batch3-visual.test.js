@@ -10,6 +10,15 @@ import {GAME_DATA, validateVisual} from '../src/engine/game-data.js';
 // into Web/src/data/visual.json. tests/fixtures/visual-pre-data.json is the old in-code values dumped from main before the move.
 const old = JSON.parse(fs.readFileSync(new URL('./fixtures/visual-pre-data.json', import.meta.url)));
 const plain = value => JSON.parse(JSON.stringify(value));
+// The linear colours come from Math.pow, which differs in the last digit between platforms (the fixture was dumped on the Mac, the
+// suite also runs on Linux): numbers match within 1e-12, everything else exactly.
+function assertClose(actual, expected, label, path = '') {
+  if (typeof expected === 'number') return assert(Math.abs(actual - expected) < 1e-12, `${label} ${path}: ${actual} vs ${expected}`);
+  if (expected && typeof expected === 'object') {
+    assert.deepEqual(Object.keys(actual ?? {}), Object.keys(expected), `${label} ${path} keys`);
+    for (const key of Object.keys(expected)) assertClose(actual[key], expected[key], label, `${path}/${key}`);
+  } else assert.equal(actual, expected, `${label} ${path}`);
+}
 
 test('SURVIVOR_VARIANTS equal the old in-code rows exactly, in order, and are frozen', () => {
   assert.deepEqual(plain(SURVIVOR_VARIANTS), old.survivorVariants);
@@ -26,15 +35,15 @@ test('the face ingredients and all 50 derived recipes equal the old ones exactly
   assert(Object.isFrozen(FACE_RECIPES) && Object.isFrozen(FACE_SKINS[0].photo));
 });
 
-test('the clothing swatches, every approved pairing and all 840 outfits equal the old ones exactly (linear colours bit for bit)', () => {
+test('the clothing swatches, every approved pairing and all 840 outfits equal the old ones (linear colours to 1e-12)', () => {
   assert.equal(CLOTHING_PALETTE_VERSION, old.clothing.version);
-  assert.deepEqual(plain(TOP_COLOURS), old.clothing.tops);
-  assert.deepEqual(plain(TROUSER_COLOURS), old.clothing.trousers);
+  assertClose(plain(TOP_COLOURS), old.clothing.tops, 'tops');
+  assertClose(plain(TROUSER_COLOURS), old.clothing.trousers, 'trousers');
   assert.deepEqual(plain(PAIRINGS), old.clothing.pairings);
   let outfits = 0;
   for (const [top, trousers] of Object.entries(PAIRINGS))
     for (const trouser of trousers) {
-      assert.deepEqual(plain(outfitFor(top, trouser)), old.clothing.outfits[`${top}/${trouser}`], `${top}/${trouser}`);
+      assertClose(plain(outfitFor(top, trouser)), old.clothing.outfits[`${top}/${trouser}`], `${top}/${trouser}`);
       outfits++;
     }
   assert.equal(outfits, Object.keys(old.clothing.outfits).length);
