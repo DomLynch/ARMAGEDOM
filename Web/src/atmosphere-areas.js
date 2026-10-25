@@ -3,12 +3,11 @@ import { GAME_DATA } from "./engine/game-data.js";
 // Presets, anchors and budgets live in data/atmosphere.json (painting coordinates, Y down); this file only resolves them.
 export const ATMOSPHERE_PRESETS = GAME_DATA.atmosphere.presets;
 export const AREA_ATMOSPHERE = GAME_DATA.atmosphere.areas;
-const empty = Object.freeze([]),
-  emptyBudget = Object.freeze({ quads: 0, drawCalls: 0, textureBytes: 0 });
-export const atmosphereBudget = (area, provided) => provided ?? GAME_DATA.atmosphere.budgets[area] ?? emptyBudget;
+export const atmosphereBudget = (area, provided) =>
+  provided ?? GAME_DATA.atmosphere.budgets[area] ?? { quads: 0, drawCalls: 0, textureBytes: 0 };
 // Pure deterministic resolution: stable through re-entry, reset and reload.
 export function atmosphereForArea(area, provided) {
-  return (provided ?? AREA_ATMOSPHERE[area] ?? empty).map((p) => {
+  return (provided ?? AREA_ATMOSPHERE[area] ?? []).map((p) => {
     if (p.preserve) return provided ? { ...ATMOSPHERE_PRESETS[p.preset], ...p } : p;
     const base = { ...ATMOSPHERE_PRESETS[p.preset], ...p };
     let state = p.seed >>> 0;
