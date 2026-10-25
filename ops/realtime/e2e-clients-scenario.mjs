@@ -22,6 +22,26 @@ export async function run({ launch, newClient, crossLatency, serverUsage, client
     clients.push(c);
   }
   const qa = (c) => c.page.evaluate(() => window.__qa?.state()).catch(() => null);
+  // The run record the client keeps, sampled DURING play (a record read after the fight is a dead player's, hp 0): every non-integer number seen, and the richest hurt records.
+  const seenFractional = new Set(),
+    hurtRecords = [];
+  const walkRec = (value, trail) => {
+    if (Array.isArray(value)) for (const v of value) walkRec(v, `${trail}[]`);
+    else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) walkRec(v, trail ? `${trail}.${k}` : k);
+    else if (typeof value === "number" && !Number.isInteger(value)) seenFractional.add(trail);
+  };
+  const sampleRecord = async (c) => {
+    const raw = await c.page.evaluate(() => localStorage.getItem("armagedom:marked-run:v18")).catch(() => null);
+    if (!raw) return;
+    try {
+      const rec = JSON.parse(raw);
+      const before = seenFractional.size;
+      walkRec(rec, "");
+      if (seenFractional.size > before || (Number.isFinite(rec.hp) && !Number.isInteger(rec.hp) && hurtRecords.length < 6)) hurtRecords.push(raw);
+    } catch {
+      /* unreadable: skip */
+    }
+  };
 
   // 1. enter
   await Promise.all(
@@ -134,6 +154,7 @@ export async function run({ launch, newClient, crossLatency, serverUsage, client
         continue;
       }
       c.minDist = Math.min(c.minDist, view.best.d);
+      if (Date.now() - (c.lastSample ?? 0) > 1000) ((c.lastSample = Date.now()), await sampleRecord(c));
       const keys = new Set();
       if (view.best.d > 2.0) {
         if (Math.abs(view.best.dx) > 0.4) keys.add(view.best.dx > 0 ? "KeyD" : "KeyA");
@@ -195,14 +216,18 @@ export async function run({ launch, newClient, crossLatency, serverUsage, client
     else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) walk(v, trail ? `${trail}.${k}` : k);
     else if (typeof value === "number" && !Number.isInteger(value)) fractional.add(trail);
   };
-  for (const raw of await Promise.all(clients.map((c) => c.page.evaluate(() => localStorage.getItem("armagedom:marked-run:v18")).catch(() => null)))) {
+  const rawRecords = await Promise.all(clients.map((c) => c.page.evaluate(() => localStorage.getItem("armagedom:marked-run:v18")).catch(() => null)));
+  rawRecords.forEach((raw, i) => {
     try {
       walk(JSON.parse(raw), "");
+      fs.writeFileSync(path.join(OUT, `record-client-${i}.json`), raw); // a real played run record, exactly as the client would send it
     } catch {
       /* no record */
     }
-  }
-  log(`non-integer numbers in the clients' run records: ${JSON.stringify([...fractional])}`);
+  });
+  for (const p of seenFractional) fractional.add(p);
+  hurtRecords.forEach((raw, i) => fs.writeFileSync(path.join(OUT, `record-played-${i}.json`), raw));
+  log(`non-integer numbers in the clients' run records (sampled through play): ${JSON.stringify([...fractional])}`);
 
   // 4b. a second device of the same guest: only the sign-in session is copied, so its run and character caches are empty and it must pull the run from the server.
   const RUN_KEY = "armagedom:marked-run:v18",
