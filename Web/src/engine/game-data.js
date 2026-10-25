@@ -64,7 +64,8 @@ export function validateWeapons(d) {
 // metres and the share of a hit it absorbs.
 export function validateVest(v) {
   closed(v, ["itemId", "areaId", "requiredKills", "pickupRadius", "reduction"]);
-  for (const f of ["itemId", "areaId"]) if (typeof v[f] !== "string" || !/^[a-z0-9-]{1,40}$/.test(v[f])) fail("weapons", `vest.${f}`);
+  for (const f of ["itemId", "areaId"])
+    if (typeof v[f] !== "string" || !/^[a-z0-9-]{1,40}$/.test(v[f])) fail("weapons", `vest.${f}`);
   count("weapons", "vest.requiredKills", v.requiredKills, 0, 100);
   number("weapons", "vest.pickupRadius", v.pickupRadius);
   number("weapons", "vest.reduction", v.reduction);
