@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
@@ -10,6 +11,7 @@ import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
+import { resolveCreatureMoves } from "./creature-move-resolver.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -174,6 +176,51 @@ export function validateMelee(m) {
       fail("weapons", `melee.cleaver.lowMoves.${rig}`);
     for (const f of ticks) count("weapons", `melee.cleaver.lowMoves.${rig}.${f}`, row[f], 1, 600);
   }
+}
+
+// creatures.json: the creature bite and low-strike move rows (resolved by engine/creature-moves.js) and the salamander's flame breath.
+// A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
+export function validateCreatures(d) {
+  closed(d, ["schema_version", "moves", "salamanderBreath"]);
+  if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
+  for (const [name, row] of Object.entries(d.moves)) {
+    id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
+    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `moves.${name} must be an object`);
+    for (const [field, v] of Object.entries(row)) {
+      if (field === "extends") {
+        const refs = [v].flat();
+        if (!refs.length || !refs.every((r) => typeof r === "string" && r)) fail("creatures", `moves.${name}.extends`);
+      } else if (!(v === null || ["number", "string", "boolean"].includes(typeof v)) || (typeof v === "number" && !Number.isFinite(v)))
+        fail("creatures", `moves.${name}.${field} must be a finite number, string, boolean or null`);
+    }
+    for (const f of ["windupTicks", "activeTicks", "recoveryTicks"])
+      if (f in row) count("creatures", `moves.${name}.${f}`, row[f], 1, 600);
+  }
+  resolveCreatureMoves(d.moves, {
+    light_right: {},
+    light_left: {},
+    thrust: {},
+    heavy_overhead: {},
+    skill_pommel: {},
+  });
+  const b = d.salamanderBreath;
+  closed(b, [
+    "kind",
+    "range",
+    "coneDegrees",
+    "windupTicks",
+    "activeTicks",
+    "intervalTicks",
+    "recoveryTicks",
+    "damage",
+    "minDistance",
+    "acquisitionRange",
+  ]);
+  if (b.kind !== "flame") fail("creatures", "salamanderBreath.kind");
+  for (const f of ["range", "coneDegrees", "damage", "minDistance", "acquisitionRange"])
+    number("creatures", `salamanderBreath.${f}`, b[f]);
+  for (const f of ["windupTicks", "activeTicks", "intervalTicks", "recoveryTicks"])
+    count("creatures", `salamanderBreath.${f}`, b[f], 1, 600);
 }
 
 export function validateWorld(d) {
@@ -347,6 +394,7 @@ export function validateSpawns(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],

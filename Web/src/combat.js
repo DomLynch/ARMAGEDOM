@@ -28,8 +28,9 @@ import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
 import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/flame-runtime.js";
-import { WOLF_BITE, wolfResponse, wolfBiteDirection } from "./wolf-native.js";
-import { SALAMANDER_BITE, SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
+import { wolfResponse, wolfBiteDirection } from "./wolf-native.js";
+import { SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
+import { CREATURE_MOVES } from "./engine/creature-moves.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
@@ -87,41 +88,10 @@ export const attacks = {
 const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
   behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
 });
-const RAT_LOW = Object.freeze({
-  ...KNIFE_MOVES.light_right,
-  moveId: "rat_low",
-  clip: "RatLowSlash",
-  path: null,
-  native: true,
-  ratLow: true,
-  windupTicks: 20,
-  activeTicks: 6,
-  recoveryTicks: 28,
-  windup: 20 / 60,
-  active: 6 / 60,
-  recovery: 28 / 60,
-  stepIn: 0,
-  knockback: 0,
-});
-export const RAT_BITE = Object.freeze({
-  ...RAT_LOW,
-  moveId: "rat_bite",
-  clip: "rat_bite",
-  ratLow: false,
-  ratBite: true,
-  windupTicks: 15,
-  activeTicks: 6,
-  recoveryTicks: 15,
-  windup: 15 / 60,
-  active: 6 / 60,
-  recovery: 15 / 60,
-  damage: 6,
-  staminaDamage: 6,
-  stamina: 0,
-  parryable: false,
-  range: 0.95,
-});
-const RAT_BITE_LOW = Object.freeze({ ...RAT_BITE, clip: "rat_bite_low" });
+// The bite and low-strike moves are rows of Web/src/data/creatures.json, resolved in engine/creature-moves.js.
+const RAT_LOW = CREATURE_MOVES.rat_low;
+export const RAT_BITE = CREATURE_MOVES.rat_bite;
+const RAT_BITE_LOW = CREATURE_MOVES.rat_bite_low;
 const droneLow = (def) => ({
   ...RAT_LOW,
   clip: "DogMidSlash",
@@ -132,35 +102,15 @@ const droneLow = (def) => ({
   stagger: def.stagger,
   cooldown: def.cooldown,
 });
-const ROACH_LOW = Object.freeze({ ...RAT_LOW, moveId: "roach_low" });
-export const ROACH_BITE = Object.freeze({
-  ...RAT_BITE,
-  moveId: "roach_bite",
-  clip: "roach_bite",
-  damage: 4,
-  staminaDamage: 4,
-  range: 0.93,
-});
-const ROACH_BITE_SCALED = Object.freeze({ ...ROACH_BITE, clip: "roach_bite_scaled" });
-const DOG_LOW = Object.freeze({ ...RAT_LOW, moveId: "dog_low" });
-const DOG_MID = Object.freeze({ ...DOG_LOW, clip: "DogMidSlash" });
-export const DOG_BITE = Object.freeze({
-  ...RAT_BITE,
-  moveId: "dog_bite",
-  clip: "dog_bite_calf",
-  windupTicks: 18,
-  activeTicks: 6,
-  recoveryTicks: 24,
-  windup: 18 / 60,
-  active: 6 / 60,
-  recovery: 24 / 60,
-  damage: 8,
-  staminaDamage: 8,
-  range: 1.17,
-});
-const DOG_BITE_SCALED = Object.freeze({ ...DOG_BITE, clip: "dog_bite_scaled" });
-const WOLF_ATTACK = Object.freeze({ ...RAT_BITE, ...WOLF_BITE });
-const SALAMANDER_ATTACK = Object.freeze({ ...RAT_BITE, ...SALAMANDER_BITE });
+const ROACH_LOW = CREATURE_MOVES.roach_low;
+export const ROACH_BITE = CREATURE_MOVES.roach_bite;
+const ROACH_BITE_SCALED = CREATURE_MOVES.roach_bite_scaled;
+const DOG_LOW = CREATURE_MOVES.dog_low;
+const DOG_MID = CREATURE_MOVES.dog_mid;
+export const DOG_BITE = CREATURE_MOVES.dog_bite;
+const DOG_BITE_SCALED = CREATURE_MOVES.dog_bite_scaled;
+const WOLF_ATTACK = CREATURE_MOVES.wolf_attack;
+const SALAMANDER_ATTACK = CREATURE_MOVES.salamander_attack;
 const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
