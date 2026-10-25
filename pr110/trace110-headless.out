@@ -1,0 +1,11 @@
+load 5.78 4.02 3.75
+{"label":"prep-on-r1","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1202,"p50":16.7,"p95":16.7,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":152,"steps":213,"backoffs":0,"prepared":2,"abandoned":0,"running":1},"alerted":2,"playerHp":0}
+{"label":"prep-off-r1","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1202,"p50":16.7,"p95":16.7,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":0,"steps":0,"backoffs":0,"prepared":0,"abandoned":0,"running":0},"alerted":2,"playerHp":0}
+load 5.17 4.11 3.79
+{"label":"prep-on-r2","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1201,"p50":16.7,"p95":16.8,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":155,"steps":215,"backoffs":0,"prepared":2,"abandoned":0,"running":1},"alerted":2,"playerHp":0}
+{"label":"prep-off-r2","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1202,"p50":16.7,"p95":16.8,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":0,"steps":0,"backoffs":0,"prepared":0,"abandoned":0,"running":0},"alerted":2,"playerHp":0}
+load 4.20 4.01 3.77
+{"label":"prep-on-r3","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1202,"p50":16.7,"p95":16.7,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":244,"steps":301,"backoffs":0,"prepared":2,"abandoned":0,"running":1},"alerted":2,"playerHp":0}
+{"label":"prep-off-r3","gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)","frames":1202,"p50":16.7,"p95":16.8,"p99":16.8,"max":16.8,"over33":0,"prep":{"slices":0,"steps":0,"backoffs":0,"prepared":0,"abandoned":0,"running":0},"alerted":2,"playerHp":0}
+load 6.18 4.58 3.99
+DONE
