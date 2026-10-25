@@ -15,14 +15,20 @@ function labelSprite(text, style) {
   canvas.width = 384;
   canvas.height = 64;
   const ctx = canvas.getContext?.("2d");
-  if (!ctx) return null;
+  // Only fillRect and fillText are used (the border is four filled bars), so a minimal 2D context is enough.
+  if (typeof ctx?.fillRect !== "function" || typeof ctx.fillText !== "function") return null;
   ctx.fillStyle = `#${style.labelBacking}`;
   ctx.globalAlpha = 0.96;
   ctx.fillRect(0, 0, 384, 64);
   ctx.globalAlpha = 1;
-  ctx.strokeStyle = `#${style.ringColour}`;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(2, 2, 380, 60);
+  ctx.fillStyle = `#${style.ringColour}`;
+  for (const [x, y, w, h] of [
+    [0, 0, 384, 3],
+    [0, 61, 384, 3],
+    [0, 0, 3, 64],
+    [381, 0, 3, 64],
+  ])
+    ctx.fillRect(x, y, w, h);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = `#${style.labelColour}`;
@@ -44,7 +50,7 @@ function glowMesh(style) {
   const canvas = globalThis.document.createElement("canvas");
   canvas.width = canvas.height = 256;
   const ctx = canvas.getContext?.("2d");
-  if (!ctx) return null;
+  if (typeof ctx?.createRadialGradient !== "function" || typeof ctx.fillRect !== "function") return null;
   const inner = style.ringInner / style.glowOuter,
     outer = style.ringOuter / style.glowOuter,
     rgb = new T.Color(`#${style.ringColour}`).toArray().map((c) => Math.round(c * 255)),
