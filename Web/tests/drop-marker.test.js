@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import * as THREE from "three";
-import { createDropMarker, createMarkerOnlyDrop, dropPulse, markDrop } from "../src/engine/drop-marker.js";
+import { createDropMarker, createMarkerOnlyDrop, dropPulse, markDrop, markerGeometry } from "../src/engine/drop-marker.js";
 import { GAME_DATA, validateVisual } from "../src/engine/game-data.js";
 
 const style = GAME_DATA.visual.dropMarker;
@@ -18,18 +18,22 @@ test("the marker is a gold ground ring sized from data; rendering it pulses the 
   const marker = createDropMarker("Ember Projector"),
     root = new THREE.Group();
   root.add(marker.group);
-  const { parameters } = marker.ring.geometry;
-  assert.equal(parameters.innerRadius, style.ringInner);
-  assert.equal(parameters.outerRadius, style.ringOuter);
+  marker.ring.geometry.computeBoundingBox();
+  const { max } = marker.ring.geometry.boundingBox;
+  assert.ok(Math.abs(max.x - (style.shape === "diamond" ? style.ringOuter * Math.SQRT2 : style.ringOuter)) < 1e-6, "the footprint comes from ringOuter");
   assert.equal(marker.ring.material.color.getHexString(), style.ringColour);
   assert.ok(Math.abs(marker.ring.rotation.x + Math.PI / 2) < 1e-9, "flat on the ground");
   marker.ring.onBeforeRender();
-  assert.ok(marker.ring.material.opacity >= style.minOpacity - 1e-9 && marker.ring.material.opacity <= 1);
+  assert.ok(
+    marker.ring.material.opacity >= style.peakOpacity * style.minOpacity - 1e-9 &&
+      marker.ring.material.opacity <= style.peakOpacity + 1e-9,
+    "the ring never exceeds peakOpacity",
+  );
   const scale = root.scale.x;
   assert.ok(Math.abs(scale - 1) <= style.itemPulse / 2 + 1e-9, "the item pulses by at most itemPulse");
   assert.ok(Math.abs(marker.group.scale.x * scale - 1) < 1e-9, "the marker takes the item's scale back off");
   assert.ok(marker.ring.scale.x >= 1 && marker.ring.scale.x <= 1 + style.ringPulse + 1e-9, "the ring swells by at most ringPulse");
-  assert.ok(style.ringOuter >= 1.5 && style.ringOuter - style.ringInner >= 0.4, "a wide, thick band, like the hub storage marker");
+  assert.ok(style.ringOuter >= 0.9 && style.ringOuter - style.ringInner <= 0.3, "a wide, thin band: a ring, not a donut");
   marker.dispose();
   marker.dispose();
   assert.equal(marker.group.parent, null);
@@ -63,7 +67,35 @@ test("the loader rejects an unknown, missing or out-of-range dropMarker field", 
   assert.throws(broken((d) => { d.dropMarker.itemPulse = 0.9; }));
   assert.throws(broken((d) => { d.dropMarker.glowOuter = d.dropMarker.ringOuter; }));
   assert.throws(broken((d) => { d.dropMarker.ringPulse = 2; }));
+  assert.throws(broken((d) => { d.dropMarker.peakOpacity = 1.5; }));
+  assert.throws(broken((d) => { d.dropMarker.shape = "star"; }));
+  assert.throws(broken((d) => { delete d.dropMarker.shape; }));
+  assert.throws(broken((d) => { d.dropMarker.bracketArm = 0.9; }));
+  assert.throws(broken((d) => { delete d.dropMarker.labelBackingOpacity; }));
   assert.throws(broken((d) => { d.dropMarker.labelBacking = "black"; }));
+});
+
+test("each marker shape is a band of the data width on the ringOuter footprint; brackets leave the middle of each side open", () => {
+  const extent = (shape) => {
+    const g = markerGeometry({ ...style, shape });
+    g.computeBoundingBox();
+    return { box: g.boundingBox, verts: g.getAttribute("position").count };
+  };
+  const o = style.ringOuter;
+  for (const shape of ["circle", "square", "brackets"]) assert.ok(Math.abs(extent(shape).box.max.x - o) < 1e-6, shape);
+  assert.ok(Math.abs(extent("diamond").box.max.x - o * Math.SQRT2) < 1e-6);
+  assert.equal(extent("square").verts, 4 * 6);
+  assert.equal(extent("brackets").verts, 8 * 6);
+  // no band triangle of the brackets covers the middle of the top edge
+  const g = markerGeometry({ ...style, shape: "brackets" }),
+    p = g.getAttribute("position");
+  for (let k = 0; k < p.count; k++) assert.ok(!(Math.abs(p.getX(k)) < o * (1 - 2 * style.bracketArm) - 1e-4 && Math.abs(p.getY(k)) > style.ringInner + 1e-4), "bracket vertex in the open middle");
+});
+
+test("only a round marker gets the radial glow; the shipped corner brackets are the band alone", () => {
+  assert.equal(style.shape, "brackets");
+  const hasPlane = (group) => group.children.some((c) => c.geometry?.type === "PlaneGeometry");
+  assert.equal(hasPlane(createDropMarker("Ember Projector").group), false);
 });
 
 test("every ground weapon or reward drop view carries the marker", () => {

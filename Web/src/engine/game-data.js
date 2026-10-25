@@ -451,10 +451,14 @@ export function validateVisual(d) {
   // (width and height above the ground in metres) and a gentle pulse of the drop itself (a share of its size).
   const m = d.dropMarker;
   closed(m, [
+    "shape",
+    "bracketArm",
     "ringInner",
     "ringOuter",
     "glowOuter",
     "glowOpacity",
+    "peakOpacity",
+    "labelBackingOpacity",
     "ringPulse",
     "ringColour",
     "labelColour",
@@ -468,9 +472,11 @@ export function validateVisual(d) {
   for (const f of ["ringColour", "labelColour", "labelBacking"]) hex(`dropMarker.${f}`, m[f]);
   for (const f of ["ringInner", "ringOuter", "glowOuter", "pulseSeconds", "labelHeight", "labelWidth"])
     number("visual", `dropMarker.${f}`, m[f], 0.01);
+  if (!["circle", "square", "brackets", "diamond"].includes(m.shape)) fail("visual", "dropMarker.shape must be circle, square, brackets or diamond");
+  if (!(m.bracketArm >= 0.05 && m.bracketArm <= 0.5)) fail("visual", "dropMarker.bracketArm must be 0.05 to 0.5 of a side");
   if (m.ringOuter <= m.ringInner) fail("visual", "dropMarker.ringOuter must exceed ringInner");
   if (m.glowOuter <= m.ringOuter) fail("visual", "dropMarker.glowOuter must exceed ringOuter");
-  for (const f of ["glowOpacity", "ringPulse"])
+  for (const f of ["glowOpacity", "peakOpacity", "labelBackingOpacity", "ringPulse"])
     if (!(m[f] >= 0 && m[f] <= 1)) fail("visual", `dropMarker.${f} must be 0 to 1`);
   if (!(m.minOpacity >= 0 && m.minOpacity <= 1)) fail("visual", "dropMarker.minOpacity must be 0 to 1");
   if (!(m.itemPulse >= 0 && m.itemPulse <= 0.3)) fail("visual", "dropMarker.itemPulse must be 0 to 0.3");
