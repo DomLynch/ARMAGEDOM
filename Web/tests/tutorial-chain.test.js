@@ -4,7 +4,7 @@ import fs from "node:fs";
 import * as THREE from "three";
 import { createGeometry } from "../src/world-geometry.js";
 import { createRouteGuidance, huntTarget } from "../src/engine/route-guidance.js";
-import { progressionObjective } from "../src/engine/expedition-runtime.js";
+import { hudObjectiveLine, progressionObjective } from "../src/engine/expedition-runtime.js";
 import { createFirstTimeHints, HINT_STORAGE_KEY } from "../src/first-time-hints.js";
 import { createTileFlash, TILE_FLASH_KEY } from "../src/engine/weapon-tiles.js";
 
@@ -47,16 +47,18 @@ test("the standing Ember Matron objective is hidden while either hunt step shows
         bossEquipmentData: { emberProjector: { source: { placementKey: "witch-key" } } },
       },
     };
-  assert.equal(progressionObjective(g).objective, "", "salamander step: only the arrow line shows");
+  const objective = progressionObjective(g);
+  assert.equal(objective.objective, "Kill the Ember Matron", "the objective state itself is never blanked");
+  assert.equal(hudObjectiveLine(g, objective), "", "salamander step: only the arrow line shows");
   sal.hp = 0;
-  assert.equal(progressionObjective(g).objective, "", "her step: only the arrow line shows");
+  assert.equal(progressionObjective(g).objective, "Kill the Ember Matron");
+  assert.equal(hudObjectiveLine(g, objective), "", "her step: only the arrow line shows");
   g.bossEquipment.emberProjector.status = "owned";
   witch.hp = 0;
   assert.equal(huntTarget(g), null);
-  g.flameFuel = { collected: false };
   g.bossEquipment.emberProjector.status = "locked";
   g.enemies = [];
-  assert.equal(progressionObjective(g).objective, "Kill the Ember Matron", "no hunt step: the standing line is unchanged");
+  assert.equal(hudObjectiveLine(g, objective), "Kill the Ember Matron", "no hunt step: the standing line is unchanged");
 });
 
 test("the route arrow follows the hunt target's live position and names the kill", () => {
@@ -108,16 +110,17 @@ test("the Ember drop shows a pick-up notice once, and only while it is uncollect
         bossEquipmentData: { emberProjector: { source: { areaId: "westminster" } } },
       },
     };
-  assert.equal(hints.current(g), "Tap PICK UP EMBER to take it.");
+  const notice = "Tap COLLECT EMBER PROJECTOR to take it.";
+  assert.equal(hints.current(g), notice);
   g.time += 30;
-  assert.equal(hints.current(g), "Tap PICK UP EMBER to take it.", "it stays while the drop is uncollected within 6 m");
+  assert.equal(hints.current(g), notice, "it stays while the drop is uncollected within 6 m");
   g.bossEquipment.emberProjector.status = "owned";
   g.time += 0.5;
-  assert.notEqual(hints.current(g), "Tap PICK UP EMBER to take it.");
+  assert.notEqual(hints.current(g), notice);
   assert(JSON.parse(storage.data.get(HINT_STORAGE_KEY)).includes("ember-pickup"));
   const again = createFirstTimeHints({ storage });
   g.bossEquipment.emberProjector.status = "pending";
-  assert.notEqual(again.current(g), "Tap PICK UP EMBER to take it.", "a seen hint does not repeat");
+  assert.notEqual(again.current(g), notice, "a seen hint does not repeat");
 });
 
 test("the tile flash fires once per newly carried weapon and never for the first look at a save", () => {

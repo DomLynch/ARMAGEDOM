@@ -303,7 +303,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           return null;
         return {
           id: data.itemId,
-          label: field === "emberProjector" ? "Pick up Ember" : "Collect " + data.name,
+          label: "Collect " + data.name,
           position: state.dropPosition,
           run() {
             execute(field, { type: "claimPickup", pickupId: data.itemId });

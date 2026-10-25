@@ -16,7 +16,7 @@
     "id": "ember-pickup",
     "when": { "flameDropPickup": true },
     "stays": { "flameDropUncollectedWithin": 6 },
-    "text": "Tap PICK UP EMBER to take it."
+    "text": "Tap COLLECT EMBER PROJECTOR to take it."
   },
   {
     "id": "ember-fire",

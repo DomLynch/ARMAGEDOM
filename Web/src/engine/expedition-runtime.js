@@ -68,13 +68,14 @@ export function journalPresentation(g, data, allowed = true) {
     next: gate && !gate.allowed ? `${gate.message}\n${next}` : next,
   };
 }
+// The HUD text for the objective. While the route arrow names the current kill (salamander, then Ember Matron) its line is
+// the only one shown; the objective itself is unchanged and the standing gate line returns when the hunt chain is not active.
+export const hudObjectiveLine = (g, progression) => (huntTarget(g) ? "" : (progression?.objective ?? ""));
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
-  // While the route arrow names the current kill (salamander, then Ember Matron) its line is the only one shown;
-  // the standing gate message returns if the chain is not active.
   return gate && !gate.allowed
-    ? { target: "westminster", objective: huntTarget(g) ? "" : gate.message }
+    ? { target: "westminster", objective: gate.message }
     : { target: "east", objective: "Reach East." };
 }
 // The stolen supply case is a prop in East only while the contract is on.
@@ -341,7 +342,7 @@ export function createExpeditionView(s, dispatch) {
     const objectiveLine = el("expedition-objective");
     objectiveLine.hidden = !allowed() || g.player.hp <= 0;
     // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
-    paint(objectiveLine, progression?.objective ?? "");
+    paint(objectiveLine, hudObjectiveLine(g, progression));
     const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
