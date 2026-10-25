@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
@@ -452,8 +453,72 @@ export function validateWorldEvents(d) {
     fail("worldEvents", "legacyPickupEvents fields must be itemId or pickupId");
 }
 
+// atmosphere.json: the painted-fire and smoke anchors per area (atmosphere-areas.js), their presets and quad budgets, and the two
+// bridge road bend chains (bridge-steering.js). Coordinates are fractions of the area painting, Y down.
+const ATMOSPHERE_NUMBERS = ["width", "rise", "smoke", "opacity", "fireWidth", "fireHeight", "embers"];
+const fraction = (field, v, min = 0, max = 1) => {
+  if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) fail("atmosphere", `${field} must be ${min} to ${max}`);
+};
+const atmosphereRow = (field, row, allowSmokeColor = true) => {
+  for (const key of ATMOSPHERE_NUMBERS) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
+  if (Object.hasOwn(row, "smokeColor")) {
+    if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3) fail("atmosphere", `${field}.smokeColor`);
+    row.smokeColor.forEach((c, i) => fraction(`${field}.smokeColor[${i}]`, c));
+  }
+};
+export function validateAtmosphere(d) {
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends"]);
+  const presets = Object.keys(d.presets);
+  if (!presets.length) fail("atmosphere", "presets");
+  for (const [name, p] of Object.entries(d.presets)) {
+    id("atmosphere", "preset", name);
+    closed(p, ["width", "rise", "smoke", "opacity", "fireWidth", "fireHeight", "embers"], ["smokeColor"]);
+    atmosphereRow(`presets.${name}`, p);
+  }
+  closed(d.budgets, Object.keys(d.areas));
+  for (const [area, rows] of Object.entries(d.areas)) {
+    id("atmosphere", "area", area);
+    closed(d.budgets[area], ["quads", "drawCalls", "textureBytes"]);
+    count("atmosphere", `budgets.${area}.quads`, d.budgets[area].quads, 0, 200);
+    count("atmosphere", `budgets.${area}.drawCalls`, d.budgets[area].drawCalls, 0, 20);
+    count("atmosphere", `budgets.${area}.textureBytes`, d.budgets[area].textureBytes, 0, 0);
+    if (!Array.isArray(rows) || rows.length > 32) fail("atmosphere", `areas.${area} must list up to 32 anchors`);
+    const ids = new Set();
+    for (const row of rows) {
+      closed(row, ["id", "preset", "x", "y", "seed", "scale", "intensity"], ["foot", "depth", ...ATMOSPHERE_NUMBERS, "smokeColor", "preserve"]);
+      id("atmosphere", `${area} anchor id`, row.id);
+      if (ids.has(row.id)) fail("atmosphere", `${area} repeats anchor ${row.id}`);
+      ids.add(row.id);
+      if (!presets.includes(row.preset)) fail("atmosphere", `${row.id}.preset is not a preset`);
+      fraction(`${row.id}.x`, row.x);
+      fraction(`${row.id}.y`, row.y);
+      count("atmosphere", `${row.id}.seed`, row.seed, 0, 4294967295);
+      fraction(`${row.id}.scale`, row.scale, 0.1, 4);
+      fraction(`${row.id}.intensity`, row.intensity, 0, 4);
+      if (Object.hasOwn(row, "depth") && row.depth !== null) count("atmosphere", `${row.id}.depth`, row.depth, 0, 1000);
+      if (Object.hasOwn(row, "foot") && row.foot !== null) {
+        closed(row.foot, ["x", "y"]);
+        fraction(`${row.id}.foot.x`, row.foot.x);
+        fraction(`${row.id}.foot.y`, row.foot.y);
+      }
+      if (Object.hasOwn(row, "preserve") && row.preserve !== true) fail("atmosphere", `${row.id}.preserve`);
+      atmosphereRow(row.id, row);
+    }
+  }
+  closed(d.bends, ["westminster", "east"]);
+  for (const [area, chain] of Object.entries(d.bends)) {
+    if (!Array.isArray(chain) || chain.length < 2 || chain.length > 32) fail("atmosphere", `bends.${area} must list 2 to 32 points`);
+    chain.forEach((p, i) => {
+      if (!Array.isArray(p) || p.length !== 2) fail("atmosphere", `bends.${area}[${i}]`);
+      fraction(`bends.${area}[${i}].x`, p[0]);
+      fraction(`bends.${area}[${i}].y`, p[1]);
+    });
+  }
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  atmosphere: [atmosphere, validateAtmosphere],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],

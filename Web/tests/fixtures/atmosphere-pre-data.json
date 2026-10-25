@@ -1,0 +1,833 @@
+{
+  "presets": {
+    "light-smoulder": {
+      "width": 0.018,
+      "rise": 0.05,
+      "smoke": 3,
+      "opacity": 0.35,
+      "smokeColor": [
+        0.57,
+        0.54,
+        0.49
+      ],
+      "fireWidth": 0,
+      "fireHeight": 0,
+      "embers": 0
+    },
+    "heavy-smoke": {
+      "width": 0.024,
+      "rise": 0.065,
+      "smoke": 4,
+      "opacity": 0.28,
+      "smokeColor": [
+        0.32,
+        0.3,
+        0.27
+      ],
+      "fireWidth": 0,
+      "fireHeight": 0,
+      "embers": 0
+    },
+    "small-fire": {
+      "width": 0.011,
+      "rise": 0.035,
+      "smoke": 0,
+      "opacity": 0,
+      "fireWidth": 0.007,
+      "fireHeight": 0.026,
+      "embers": 1
+    },
+    "structural-fire": {
+      "width": 0.016,
+      "rise": 0.055,
+      "smoke": 2,
+      "opacity": 0.16,
+      "fireWidth": 0.011,
+      "fireHeight": 0.036,
+      "embers": 2
+    },
+    "fire-with-smoke": {
+      "width": 0.016,
+      "rise": 0.048,
+      "smoke": 2,
+      "opacity": 0.22,
+      "fireWidth": 0.008,
+      "fireHeight": 0.032,
+      "embers": 1
+    }
+  },
+  "areas": {
+    "westminster": [
+      {
+        "id": "bus-roof",
+        "x": 0.425,
+        "y": 0.287,
+        "foot": {
+          "x": 0.42,
+          "y": 0.415
+        },
+        "depth": null,
+        "width": 0.032,
+        "rise": 0.078,
+        "smoke": 5,
+        "opacity": 0.75,
+        "smokeColor": [
+          0.68,
+          0.65,
+          0.6
+        ],
+        "fireWidth": 0,
+        "fireHeight": 0,
+        "embers": 0,
+        "preset": "light-smoulder",
+        "seed": 100,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "tower-breach",
+        "x": 0.751,
+        "y": 0.159,
+        "depth": 80,
+        "width": 0.012,
+        "rise": 0.047,
+        "smoke": 2,
+        "opacity": 0.16,
+        "fireWidth": 0.009,
+        "fireHeight": 0.035,
+        "embers": 2,
+        "preset": "fire-with-smoke",
+        "seed": 101,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "parliament-base-fire",
+        "x": 0.452,
+        "y": 0.259,
+        "depth": 80,
+        "width": 0.012,
+        "rise": 0.032,
+        "smoke": 2,
+        "opacity": 0.13,
+        "fireWidth": 0.011,
+        "fireHeight": 0.029,
+        "embers": 1,
+        "preset": "fire-with-smoke",
+        "seed": 104,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "parliament-west-blaze",
+        "x": 0.348,
+        "y": 0.215,
+        "depth": 80,
+        "width": 0.017,
+        "rise": 0.06,
+        "smoke": 2,
+        "opacity": 0.18,
+        "fireWidth": 0.011,
+        "fireHeight": 0.043,
+        "embers": 3,
+        "preset": "fire-with-smoke",
+        "seed": 105,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      }
+    ],
+    "east": [
+      {
+        "id": "east-bus-smoulder",
+        "preset": "light-smoulder",
+        "x": 0.56,
+        "y": 0.275,
+        "foot": {
+          "x": 0.56,
+          "y": 0.37
+        },
+        "depth": null,
+        "seed": 201,
+        "scale": 1,
+        "intensity": 1,
+        "width": 0.022,
+        "rise": 0.056,
+        "opacity": 0.3
+      },
+      {
+        "id": "east-midbridge-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.41,
+        "y": 0.365,
+        "foot": {
+          "x": 0.42,
+          "y": 0.4
+        },
+        "depth": null,
+        "seed": 204,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.006,
+        "fireHeight": 0.022,
+        "width": 0.011,
+        "rise": 0.035
+      },
+      {
+        "id": "east-bank-drum",
+        "preset": "small-fire",
+        "x": 0.834,
+        "y": 0.327,
+        "foot": {
+          "x": 0.835,
+          "y": 0.37
+        },
+        "depth": null,
+        "seed": 205,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.006,
+        "fireHeight": 0.021
+      },
+      {
+        "id": "east-bank-edge-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.971,
+        "y": 0.414,
+        "foot": {
+          "x": 0.97,
+          "y": 0.46
+        },
+        "depth": null,
+        "seed": 206,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.006,
+        "fireHeight": 0.024,
+        "width": 0.012,
+        "rise": 0.04
+      },
+      {
+        "id": "east-building-breach",
+        "preset": "structural-fire",
+        "x": 0.85,
+        "y": 0.153,
+        "foot": null,
+        "depth": 80,
+        "seed": 207,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.009,
+        "fireHeight": 0.03,
+        "width": 0.013,
+        "rise": 0.045
+      }
+    ],
+    "south": [
+      {
+        "id": "south-central-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.444,
+        "y": 0.383,
+        "foot": {
+          "x": 0.46,
+          "y": 0.46
+        },
+        "depth": null,
+        "seed": 301,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.008,
+        "fireHeight": 0.03
+      },
+      {
+        "id": "south-near-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.389,
+        "y": 0.73,
+        "foot": {
+          "x": 0.4,
+          "y": 0.79
+        },
+        "depth": null,
+        "seed": 302,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.008,
+        "fireHeight": 0.032,
+        "width": 0.016,
+        "rise": 0.05
+      },
+      {
+        "id": "south-bus-smoulder",
+        "preset": "light-smoulder",
+        "x": 0.778,
+        "y": 0.611,
+        "foot": {
+          "x": 0.79,
+          "y": 0.82
+        },
+        "depth": null,
+        "seed": 303,
+        "scale": 1,
+        "intensity": 1,
+        "opacity": 0.27,
+        "width": 0.025,
+        "rise": 0.05
+      },
+      {
+        "id": "south-upper-wreck",
+        "preset": "heavy-smoke",
+        "x": 0.596,
+        "y": 0.115,
+        "foot": {
+          "x": 0.6,
+          "y": 0.19
+        },
+        "depth": null,
+        "seed": 304,
+        "scale": 1,
+        "intensity": 1,
+        "width": 0.016,
+        "rise": 0.047,
+        "opacity": 0.22,
+        "smoke": 3
+      },
+      {
+        "id": "south-left-rubble-fire",
+        "preset": "small-fire",
+        "x": 0.04,
+        "y": 0.369,
+        "foot": {
+          "x": 0.1,
+          "y": 0.42
+        },
+        "depth": null,
+        "seed": 305,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.006,
+        "fireHeight": 0.022
+      },
+      {
+        "id": "south-distant-breach",
+        "preset": "structural-fire",
+        "x": 0.975,
+        "y": 0.273,
+        "foot": null,
+        "depth": 80,
+        "seed": 306,
+        "scale": 1,
+        "intensity": 1,
+        "fireWidth": 0.006,
+        "fireHeight": 0.019,
+        "width": 0.01,
+        "rise": 0.03
+      }
+    ]
+  },
+  "budgets": {
+    "westminster": {
+      "quads": 28,
+      "drawCalls": 3,
+      "textureBytes": 0
+    },
+    "east": {
+      "quads": 28,
+      "drawCalls": 3,
+      "textureBytes": 0
+    },
+    "south": {
+      "quads": 28,
+      "drawCalls": 3,
+      "textureBytes": 0
+    }
+  },
+  "bends": {
+    "westminster": [
+      [
+        0.52,
+        0.78
+      ],
+      [
+        0.603125,
+        0.6875
+      ],
+      [
+        0.70625,
+        0.575
+      ],
+      [
+        0.770833333333,
+        0.516666666667
+      ],
+      [
+        0.835416666667,
+        0.458333333333
+      ],
+      [
+        0.9,
+        0.4
+      ],
+      [
+        0.97,
+        0.34
+      ]
+    ],
+    "east": [
+      [
+        0.1,
+        0.72
+      ],
+      [
+        0.12,
+        0.68
+      ],
+      [
+        0.17,
+        0.66
+      ],
+      [
+        0.21,
+        0.61
+      ],
+      [
+        0.26,
+        0.57
+      ],
+      [
+        0.31,
+        0.54
+      ],
+      [
+        0.4,
+        0.51
+      ],
+      [
+        0.44,
+        0.45
+      ],
+      [
+        0.44,
+        0.36
+      ]
+    ]
+  },
+  "resolved": {
+    "westminster": [
+      {
+        "id": "bus-roof",
+        "x": 0.425,
+        "y": 0.287,
+        "foot": {
+          "x": 0.42,
+          "y": 0.415
+        },
+        "depth": null,
+        "width": 0.032,
+        "rise": 0.078,
+        "smoke": 5,
+        "opacity": 0.75,
+        "smokeColor": [
+          0.68,
+          0.65,
+          0.6
+        ],
+        "fireWidth": 0,
+        "fireHeight": 0,
+        "embers": 0,
+        "preset": "light-smoulder",
+        "seed": 100,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "tower-breach",
+        "x": 0.751,
+        "y": 0.159,
+        "depth": 80,
+        "width": 0.012,
+        "rise": 0.047,
+        "smoke": 2,
+        "opacity": 0.16,
+        "fireWidth": 0.009,
+        "fireHeight": 0.035,
+        "embers": 2,
+        "preset": "fire-with-smoke",
+        "seed": 101,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "parliament-base-fire",
+        "x": 0.452,
+        "y": 0.259,
+        "depth": 80,
+        "width": 0.012,
+        "rise": 0.032,
+        "smoke": 2,
+        "opacity": 0.13,
+        "fireWidth": 0.011,
+        "fireHeight": 0.029,
+        "embers": 1,
+        "preset": "fire-with-smoke",
+        "seed": 104,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      },
+      {
+        "id": "parliament-west-blaze",
+        "x": 0.348,
+        "y": 0.215,
+        "depth": 80,
+        "width": 0.017,
+        "rise": 0.06,
+        "smoke": 2,
+        "opacity": 0.18,
+        "fireWidth": 0.011,
+        "fireHeight": 0.043,
+        "embers": 3,
+        "preset": "fire-with-smoke",
+        "seed": 105,
+        "scale": 1,
+        "intensity": 1,
+        "preserve": true
+      }
+    ],
+    "east": [
+      {
+        "width": 0.02150887026824057,
+        "rise": 0.05607858585786074,
+        "smoke": 3,
+        "opacity": 0.30622847805172204,
+        "smokeColor": [
+          0.5646577952306717,
+          0.5533388133994304,
+          0.5041757808930241
+        ],
+        "fireWidth": 0,
+        "fireHeight": 0,
+        "embers": 0,
+        "id": "east-bus-smoulder",
+        "preset": "light-smoulder",
+        "x": 0.56,
+        "y": 0.275,
+        "foot": {
+          "x": 0.56,
+          "y": 0.37
+        },
+        "depth": null,
+        "seed": 201,
+        "scale": 1,
+        "intensity": 1,
+        "smokeSpeed": 0.13437587999339615,
+        "phase": 0.44589650025591254,
+        "noiseOffset": 0.757095119683072,
+        "wind": 0.5694696972705424
+      },
+      {
+        "width": 0.010755969841731711,
+        "rise": 0.036382461509061985,
+        "smoke": 2,
+        "opacity": 0.21622770961560306,
+        "fireWidth": 0.006,
+        "fireHeight": 0.02206202207073569,
+        "embers": 1,
+        "id": "east-midbridge-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.41,
+        "y": 0.365,
+        "foot": {
+          "x": 0.42,
+          "y": 0.4
+        },
+        "depth": null,
+        "seed": 204,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09410620554627384,
+          0.08323960430151783,
+          0.07398876231734175
+        ],
+        "smokeSpeed": 0.13831520526536872,
+        "phase": 0.500021317275241,
+        "noiseOffset": 1.5344388037919998,
+        "wind": 0.4928109306748957
+      },
+      {
+        "width": 0.01075648141093552,
+        "rise": 0.03682690995836165,
+        "smoke": 0,
+        "opacity": 0,
+        "fireWidth": 0.006,
+        "fireHeight": 0.02091833986150101,
+        "embers": 1,
+        "id": "east-bank-drum",
+        "preset": "small-fire",
+        "x": 0.834,
+        "y": 0.327,
+        "foot": {
+          "x": 0.835,
+          "y": 0.37
+        },
+        "depth": null,
+        "seed": 205,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09220506321555004,
+          0.0870529297236586,
+          0.0759284289625939
+        ],
+        "smokeSpeed": 0.1396283136893596,
+        "phase": 0.18472958961501718,
+        "noiseOffset": 1.7935533651616424,
+        "wind": 0.5472580084763468
+      },
+      {
+        "width": 0.01173490143287927,
+        "rise": 0.042595838180184364,
+        "smoke": 2,
+        "opacity": 0.21653448231182992,
+        "fireWidth": 0.006,
+        "fireHeight": 0.023745687814056872,
+        "embers": 1,
+        "id": "east-bank-edge-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.971,
+        "y": 0.414,
+        "foot": {
+          "x": 0.97,
+          "y": 0.46
+        },
+        "depth": null,
+        "seed": 206,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.0960039208848262,
+          0.08576625514579937,
+          0.07336809560784603
+        ],
+        "smokeSpeed": 0.14094142211335045,
+        "phase": 0.8694378619547933,
+        "noiseOffset": 2.052667926531285,
+        "wind": 0.48170508627779784
+      },
+      {
+        "width": 0.012713414467405527,
+        "rise": 0.04219175167323556,
+        "smoke": 2,
+        "opacity": 0.16399117720723153,
+        "fireWidth": 0.009,
+        "fireHeight": 0.029480876875855027,
+        "embers": 2,
+        "id": "east-building-breach",
+        "preset": "structural-fire",
+        "x": 0.85,
+        "y": 0.153,
+        "foot": null,
+        "depth": 80,
+        "seed": 207,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.0941027785541024,
+          0.08447958056794015,
+          0.07530776225309818
+        ],
+        "smokeSpeed": 0.14225453053734133,
+        "phase": 0.5541461342945695,
+        "noiseOffset": 2.3117824879009277,
+        "wind": 0.5361521640792489
+      }
+    ],
+    "south": [
+      {
+        "width": 0.015717224806547164,
+        "rise": 0.04854028949640692,
+        "smoke": 2,
+        "opacity": 0.22230618538260458,
+        "fireWidth": 0.008,
+        "fireHeight": 0.029764985054545102,
+        "embers": 1,
+        "id": "south-central-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.444,
+        "y": 0.383,
+        "foot": {
+          "x": 0.46,
+          "y": 0.46
+        },
+        "depth": null,
+        "seed": 301,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09779539946606383,
+          0.08593217024917249,
+          0.07313642690679989
+        ],
+        "smokeSpeed": 0.15140100810676813,
+        "phase": 0.9167237342335284,
+        "noiseOffset": 5.6685512566473335,
+        "wind": 0.3441774774156511
+      },
+      {
+        "width": 0.015717968907207253,
+        "rise": 0.0511977279148996,
+        "smoke": 2,
+        "opacity": 0.213659571730718,
+        "fireWidth": 0.008,
+        "fireHeight": 0.03153466897368431,
+        "embers": 1,
+        "id": "south-near-drum",
+        "preset": "fire-with-smoke",
+        "x": 0.389,
+        "y": 0.73,
+        "foot": {
+          "x": 0.4,
+          "y": 0.79
+        },
+        "depth": null,
+        "seed": 302,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09589425713534,
+          0.08464549567131326,
+          0.07507609355205204
+        ],
+        "smokeSpeed": 0.15271411653075898,
+        "phase": 0.6014320065733045,
+        "noiseOffset": 5.927665818016976,
+        "wind": 0.39862455521710216
+      },
+      {
+        "width": 0.024560489074792715,
+        "rise": 0.05183265427104198,
+        "smoke": 3,
+        "opacity": 0.27320681218765674,
+        "smokeColor": [
+          0.5639586888276972,
+          0.5295736869466491,
+          0.503169633289054
+        ],
+        "fireWidth": 0,
+        "fireHeight": 0,
+        "embers": 0,
+        "id": "south-bus-smoulder",
+        "preset": "light-smoulder",
+        "x": 0.778,
+        "y": 0.611,
+        "foot": {
+          "x": 0.79,
+          "y": 0.82
+        },
+        "depth": null,
+        "seed": 303,
+        "scale": 1,
+        "intensity": 1,
+        "smokeSpeed": 0.15402722495474985,
+        "phase": 0.2861402789130807,
+        "noiseOffset": 6.186780379386619,
+        "wind": 0.33307163301855325
+      },
+      {
+        "width": 0.015719457108527422,
+        "rise": 0.0493195257895533,
+        "smoke": 3,
+        "opacity": 0.21396634442694484,
+        "smokeColor": [
+          0.32940453885942694,
+          0.30766639946680513,
+          0.26803953663320285
+        ],
+        "fireWidth": 0,
+        "fireHeight": 0,
+        "embers": 0,
+        "id": "south-upper-wreck",
+        "preset": "heavy-smoke",
+        "x": 0.596,
+        "y": 0.115,
+        "foot": {
+          "x": 0.6,
+          "y": 0.19
+        },
+        "depth": null,
+        "seed": 304,
+        "scale": 1,
+        "intensity": 1,
+        "smokeSpeed": 0.13248319052159785,
+        "phase": 0.9708485512528569,
+        "noiseOffset": 6.445894940756261,
+        "wind": 0.38751871082000433
+      },
+      {
+        "width": 0.010807638331316411,
+        "rise": 0.037171754888328724,
+        "smoke": 0,
+        "opacity": 0,
+        "fireWidth": 0.006,
+        "fireHeight": 0.021237372557632625,
+        "embers": 1,
+        "id": "south-left-rubble-fire",
+        "preset": "small-fire",
+        "x": 0.04,
+        "y": 0.369,
+        "foot": {
+          "x": 0.1,
+          "y": 0.42
+        },
+        "depth": null,
+        "seed": 305,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09589083014316857,
+          0.08588547193773557,
+          0.07639509348780847
+        ],
+        "smokeSpeed": 0.13379629894558873,
+        "phase": 0.655556823592633,
+        "noiseOffset": 6.705009502125904,
+        "wind": 0.3219657886214554
+      },
+      {
+        "width": 0.009825590818654747,
+        "rise": 0.02804246000368148,
+        "smoke": 2,
+        "opacity": 0.15583499427139758,
+        "fireWidth": 0.006,
+        "fireHeight": 0.0197339197107777,
+        "embers": 2,
+        "id": "south-distant-breach",
+        "preset": "structural-fire",
+        "x": 0.975,
+        "y": 0.273,
+        "foot": null,
+        "depth": 80,
+        "seed": 306,
+        "scale": 1,
+        "intensity": 1,
+        "smokeColor": [
+          0.09398968781244475,
+          0.08459879735987634,
+          0.07383476013306062
+        ],
+        "smokeSpeed": 0.13510940736957958,
+        "phase": 0.34026509593240917,
+        "noiseOffset": 6.964124063495547,
+        "wind": 0.3764128664229065
+      }
+    ],
+    "area7": []
+  }
+}
