@@ -209,8 +209,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "36347e021295cef02e9ed46a262d0b1e89d5952d7356459db0f5fee3855bae0b",
-      "bytes": 1941460,
+      "sha256": "51462117470d86f2e8b70d4f78f33f8c47f460a4196c060ac5536c5d7ccebeb0",
+      "bytes": 1493636,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -235,8 +235,8 @@
       },
       "armSever": {
         "url": "hollow-scavenger/left-arm-parts.glb",
-        "bytes": 1093144,
-        "sha256": "65ca424e6235a21dc6f194f4e41f99ccaea341cc28d330b0b5702ded02b78199",
+        "bytes": 561780,
+        "sha256": "a2c6c7c5ca34cb914ebb358db4ccfb8cf4d4b97efcced0204a3cadb7da3bf49c",
         "sourceModelSHA256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
       }
     },
@@ -704,8 +704,8 @@
     },
     "player-flamethrower": {
       "url": "weapons/flamethrower-phone.glb",
-      "bytes": 907392,
-      "sha256": "ae9b8ef7346b512ccb03b64502f953647ce3bf9c3134475c10188b775eb75ae0",
+      "bytes": 172688,
+      "sha256": "edbf4f923a42d8e8374ed873a11dee64c69b276c7f404eb80a701c99d57def12",
       "textureCapSource": {"file": "weapons/flamethrower.glb", "bytes": 4253028, "sha256": "858eff807c441f49e56cfd1c80fb9b470b862a5af815e918d56dc2b419d08a99"},
       "deferred": true,
       "rig": "rigid-equipment",
@@ -838,8 +838,8 @@
       "url": "bosses/boss-westminster-witch.glb",
       "rig": "boss-westminster-witch",
       "deferred": true,
-      "bytes": 2261980,
-      "sha256": "ab5d377d5fce6d75e447b166c3d99c6072c594d79bebbc48c0152210183f56ab",
+      "bytes": 2110400,
+      "sha256": "6d85e64c55f997f8154c7d9b793aa281689de45e65447c9dd6ad43835d29ef14",
       "provenance": {
         "portableIntake": "four-boss-portable-20261018",
         "carrier": "boss-surgeon",
@@ -1245,8 +1245,8 @@
         "flee": "Flee"
       },
       "deferred": true,
-      "sha256": "54494bda42c57233432ccaccd68a5550a699f9d4eb54d40baea70e8ebc95f912",
-      "bytes": 1014612,
+      "sha256": "d2355f72e809e3dce63bc7187f96cc2cdd218cb878b3f2bf5b2e38988617f800",
+      "bytes": 668628,
       "name": "Ember Salamander",
       "contact": {
         "canines": [
@@ -1341,8 +1341,8 @@
   "files": {
     "player-phone": {
       "file": "donor/warrior-phone.glb",
-      "bytes": 3509924,
-      "sha256": "9b59267aaa86feebeaaca3e874323690dfd07438763f8d27d2af63280c2bd1d0",
+      "bytes": 2796160,
+      "sha256": "40fd47ee14e7cd0ef7290cdab5c0e70d958b79bf02e3485ec3f1408c3072d3ce",
       "errors": 0,
       "textureCapSource": {"file": "donor/warrior.glb", "bytes": 6749796, "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"}
     },
@@ -1368,8 +1368,8 @@
     },
     "hollow-phone": {
       "file": "hollow-scavenger/hollow-scavenger-phone.glb",
-      "bytes": 1941460,
-      "sha256": "36347e021295cef02e9ed46a262d0b1e89d5952d7356459db0f5fee3855bae0b",
+      "bytes": 1493636,
+      "sha256": "51462117470d86f2e8b70d4f78f33f8c47f460a4196c060ac5536c5d7ccebeb0",
       "errors": 0,
       "textureCapSource": {"file": "hollow-scavenger/hollow-scavenger.glb", "bytes": 4329068, "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"}
     },
@@ -1387,8 +1387,8 @@
     },
     "boss-westminster-witch": {
       "file": "bosses/boss-westminster-witch.glb",
-      "bytes": 2261980,
-      "sha256": "ab5d377d5fce6d75e447b166c3d99c6072c594d79bebbc48c0152210183f56ab",
+      "bytes": 2110400,
+      "sha256": "6d85e64c55f997f8154c7d9b793aa281689de45e65447c9dd6ad43835d29ef14",
       "errors": 0,
       "warnings": 45723
     },
@@ -1425,8 +1425,8 @@
     },
     "hollow-left-arm-parts": {
       "file": "hollow-scavenger/left-arm-parts.glb",
-      "bytes": 1093144,
-      "sha256": "65ca424e6235a21dc6f194f4e41f99ccaea341cc28d330b0b5702ded02b78199"
+      "bytes": 561780,
+      "sha256": "a2c6c7c5ca34cb914ebb358db4ccfb8cf4d4b97efcced0204a3cadb7da3bf49c"
     },
     "marked-hunter": {
       "file": "hunters/hunter-goblin-l8.glb",
@@ -1435,8 +1435,8 @@
     },
     "giant-salamander/giant-salamander.glb": {
       "file": "giant-salamander/giant-salamander.glb",
-      "bytes": 1014612,
-      "sha256": "54494bda42c57233432ccaccd68a5550a699f9d4eb54d40baea70e8ebc95f912"
+      "bytes": 668628,
+      "sha256": "d2355f72e809e3dce63bc7187f96cc2cdd218cb878b3f2bf5b2e38988617f800"
     }
   },
   "pistol": {
