@@ -1286,6 +1286,7 @@ export function createActors(
               entity: view.entity,
               isPrepared: () => view.finisherPrepFailed || view.finisher.isPrepared(),
               start: () => view.finisher.prepare(),
+              settle: () => view.finisher.settle(),
               around: (run) => atBuildPose(view, run),
               fail() {
                 view.finisherPrepFailed = true;

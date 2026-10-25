@@ -4,7 +4,9 @@
 //  - nothing during the first `startDelayMs` after arrival;
 //  - one slice per frame of at most `sliceMs` (the steps themselves are a few ms each);
 //  - whenever a frame takes longer than `backoffFrameMs` the pump stays quiet for `backoffMs`;
-//  - an alerted resident goes to the front of the queue, then the nearest to the player.
+//  - nearest to the player first;
+//  - while any resident is alerted, only the closest alerted one is prepared, in `fightSliceMs` slices, skipping
+//    frames that follow a frame over `fightSkipFrameMs`; the rest wait until the fight is over plus `quietAfterFightMs`.
 //
 // A kill before a resident's preparation is done is safe: its recipe list only offers recipes that are fully
 // prepared, so the sim picks the ordinary death (see finisher-presentation.js).
@@ -33,13 +35,16 @@ export function createFinisherPrepPump({ config, now = () => performance.now(), 
   const running = new Map();
   let enteredAt = now(),
     lastFrameAt = null,
-    pausedUntil = 0;
+    pausedUntil = 0,
+    lastFightAt = -Infinity;
   const stats = { slices: 0, steps: 0, backoffs: 0, prepared: 0, abandoned: 0 };
-  function forget(key) {
+  // `settle`: the resident died; stop the steps but let the candidate keep what it has finished.
+  function forget(key, settle = null) {
     const iterator = running.get(key);
     if (!iterator) return;
     running.delete(key);
     stats.abandoned++;
+    settle?.();
     iterator.return();
   }
   return {
@@ -49,14 +54,22 @@ export function createFinisherPrepPump({ config, now = () => performance.now(), 
     },
     forget,
     // `candidates`: [{ key, entity: { hp, alerted, pos }, isPrepared(), start() -> iterator,
-    //                 around(run), fail(error) }], `from`: the player's { x, z }.
+    //                 around(run), fail(error), settle?() }], `from`: the player's { x, z }.
     pump(candidates, from) {
       const t = now(),
         frame = lastFrameAt === null ? 0 : t - lastFrameAt;
       lastFrameAt = t;
       const pending = candidates.filter((c) => c.entity.hp > 0 && !c.isPrepared());
-      // A resident that died or left mid-preparation is dropped, which also frees its partial pieces.
-      for (const key of [...running.keys()]) if (!pending.some((c) => c.key === key)) forget(key);
+      // A resident that left mid-preparation is dropped, which also frees its partial pieces. One that died keeps
+      // its finished pieces, because the sim may already have picked a recipe from them.
+      for (const key of [...running.keys()]) {
+        if (pending.some((c) => c.key === key)) continue;
+        forget(key, candidates.find((c) => c.key === key && c.entity.hp <= 0)?.settle);
+      }
+      // During a fight only the closest alerted resident is prepared, in short slices and never after a long
+      // frame; everyone else waits until no enemy is alerted, plus `quietAfterFightMs`.
+      const alerted = candidates.filter((c) => c.entity.hp > 0 && c.entity.alerted);
+      if (alerted.length) lastFightAt = t;
       if (!config.enabled || !pending.length) return false;
       if (frame > config.backoffFrameMs) {
         pausedUntil = t + config.backoffMs;
@@ -64,8 +77,18 @@ export function createFinisherPrepPump({ config, now = () => performance.now(), 
       }
       if (t < enteredAt + config.startDelayMs || t < pausedUntil) return false;
       const distance = (c) => Math.hypot(c.entity.pos.x - from.x, c.entity.pos.z - from.z);
-      pending.sort((a, b) => Number(!!b.entity.alerted) - Number(!!a.entity.alerted) || distance(a) - distance(b));
-      const next = pending[0];
+      let next, sliceMs;
+      if (alerted.length) {
+        if (frame > config.fightSkipFrameMs) return false;
+        next = alerted.reduce((best, c) => (distance(c) < distance(best) ? c : best));
+        if (!pending.includes(next)) return false;
+        sliceMs = config.fightSliceMs;
+      } else {
+        if (t < lastFightAt + config.quietAfterFightMs) return false;
+        pending.sort((a, b) => distance(a) - distance(b));
+        next = pending[0];
+        sliceMs = config.sliceMs;
+      }
       let iterator = running.get(next.key);
       if (!iterator) running.set(next.key, (iterator = next.start()));
       stats.slices++;
@@ -80,7 +103,7 @@ export function createFinisherPrepPump({ config, now = () => performance.now(), 
               stats.prepared++;
               return;
             }
-            if (now() - started >= config.sliceMs) return;
+            if (now() - started >= sliceMs) return;
           }
         } catch (error) {
           running.delete(next.key);

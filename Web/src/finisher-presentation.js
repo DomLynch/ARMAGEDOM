@@ -272,13 +272,15 @@ export function* createFinisherPresentationSteps({
     crownPreparationError = null,
     preparationError = null,
     featuresPrepared = false,
-    featuresPreparing = false;
+    featuresPreparing = false,
+    keepOnAbandon = false,
+    settled = false;
   try {
     // The heavy part: ground the run-through death, snapshot the head, cut the crown, bake the opened body,
     // prepare the arm. Each result lands in the variables above and its recipe in `support`, which the sim reads
     // by reference when a kill picks a recipe, so a recipe appears there only once it is fully prepared.
     function* prepareFeatures() {
-      if (featuresPrepared || featuresPreparing || disposed) return;
+      if (featuresPrepared || featuresPreparing || settled || disposed) return;
       featuresPreparing = true;
       let finished = false;
       try {
@@ -287,7 +289,12 @@ export function* createFinisherPresentationSteps({
       } finally {
         featuresPreparing = false;
         if (finished && !disposed) featuresPrepared = true;
-        else {
+        else if (keepOnAbandon && !disposed) {
+          // The resident died mid-preparation: the sim may already have picked a recipe whose piece is done, so
+          // keep every finished piece (only the step in progress is dropped) and stop preparing.
+          settled = true;
+          support.splice(0, support.length, ...withFinisherAliases(support));
+        } else {
           // Abandoned half way (area left, cancelled, disposed): drop the partial pieces so a later run starts clean.
           arm?.dispose();
           opened?.dispose();
@@ -475,6 +482,10 @@ export function* createFinisherPresentationSteps({
       support,
       // Steps that finish a deferred preparation; a no-op when already prepared or being prepared.
       prepare: prepareFeatures,
+      // The resident died while preparing: the next abandon keeps the finished pieces instead of releasing them.
+      settle() {
+        keepOnAbandon = true;
+      },
       isPrepared: () => featuresPrepared,
       setScene(next) {
         if (!next?.isScene) throw Error("Finisher scene missing");

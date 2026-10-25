@@ -470,7 +470,10 @@
       "startDelayMs": 1000,
       "sliceMs": 2,
       "backoffFrameMs": 25,
-      "backoffMs": 2000
+      "backoffMs": 2000,
+      "fightSliceMs": 1,
+      "fightSkipFrameMs": 20,
+      "quietAfterFightMs": 1000
     }
   },
   "cosmetics": [
