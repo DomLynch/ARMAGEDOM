@@ -19,12 +19,13 @@ const dist = normalize(arg("dist", "dist")),
   mbps = Number(arg("mbps", 9)),
   rttMs = Number(arg("rtt-ms", 170)),
   failPartArg = arg("fail", null),
-  hangPart = arg("hang", null), // URLs containing this never answer (a stalled connection)
+  hangPartArg = arg("hang", null), // URLs containing this never answer (a stalled connection)
   recover = process.argv.includes("--recover"), // after a failed load: stop failing, press the button again, and see whether the game starts
   bytesPerMs = (mbps * 1e6) / 8 / 1000;
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".glb": "model/gltf-binary", ".webp": "image/webp", ".png": "image/png", ".m4a": "audio/mp4", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 const GZIP = new Set([".html", ".js", ".css", ".json"]);
-let failPart = failPartArg;
+let failPart = failPartArg,
+  hangPart = hangPartArg;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let phase = "page",
   linkFree = 0; // the shared link: the time (ms) at which it is next free
@@ -118,11 +119,15 @@ await quiet(2000);
 let recovered = null;
 if (recover && !loaded) {
   failPart = null;
+  hangPart = null;
   const button = await page.evaluate(() => ({ text: document.getElementById("enter")?.textContent, disabled: document.getElementById("enter")?.disabled }));
   recovered = { buttonBefore: button, started: false };
   if (!button.disabled) {
+    const from = served.length;
     await page.click("#enter");
     recovered.started = await page.waitForFunction(() => globalThis.__qa?.state?.().loaded === true, null, { timeout: 90000 }).then(() => true, () => false);
+    recovered.requests = served.slice(from).map((r) => ({ url: r.url, status: r.status, sent: r.bytes, done: r.end !== null }));
+    recovered.text = await page.evaluate(() => document.body.innerText.slice(0, 200)).catch(() => null);
   }
 }
 const state = await page.evaluate(() => ({ qa: globalThis.__qa?.state?.() ?? null, enter: document.getElementById("enter")?.textContent, enterDisabled: document.getElementById("enter")?.disabled, hudHidden: document.getElementById("hud")?.hidden, text: document.body.innerText.slice(0, 400) })).catch(() => null);

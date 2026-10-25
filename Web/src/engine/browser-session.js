@@ -359,7 +359,8 @@ export function createBrowserSession(options = {}) {
       history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
     }
   }
-  let lastLoadProgress = 0, // when a model last finished loading (the stall watchdog in start() reads it)
+  let loadAttempt = 0, // failed attempts so far: a retry uses fresh URLs (see start())
+    lastLoadProgress = 0, // when a model last finished loading (the stall watchdog in start() reads it)
     beacon = null, // the client error beacon (engine/client-log.js), made when the world starts
     worldStarted = false,
     runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
@@ -725,6 +726,12 @@ export function createBrowserSession(options = {}) {
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
       hud.loading("Loading London and the original character rigs…");
+      // After a failed or stalled attempt every loader URL gets a new query: the browser queues a second request for the same URL behind a
+      // stuck one, so a plain retry would wait for the very request that stalled. (A static file server ignores the query.)
+      if (loadAttempt > 0)
+        THREE.DefaultLoadingManager?.setURLModifier?.((url) =>
+          /^(blob|data):/.test(url) ? url : `${url}${url.includes("?") ? "&" : "?"}retry=${loadAttempt}`,
+        );
       const encounter = prepareEncounter();
       // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
       // above, so nothing here can delay it) and the run is read only after it, never waiting longer than bootSyncWaitMs from Enter.
@@ -853,6 +860,7 @@ export function createBrowserSession(options = {}) {
       console.error("ARMAGEDOM_LOAD_FAILED", error);
       // Some failures carry no message (an image or audio error event): the card must still say something.
       hud.failed(error?.message || "A game file could not be loaded. Check your connection, then tap Retry.");
+      loadAttempt++;
       if (!loaded) {
         actors?.dispose();
         pendingLibrary?.dispose();
