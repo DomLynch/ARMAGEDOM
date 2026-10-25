@@ -81,6 +81,8 @@ const EXPLORE_OPTIONS = (cycle) => ({
     character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 },
   },
 });
+// Alpha item 6: one row per boss, taken from the same real area initialisation (the boss residents merged into area-content).
+const bossRows = new Map();
 function liveCreatureRows() {
   const rows = new Map();
   for (const areaId of registry.ids)
@@ -103,7 +105,18 @@ function liveCreatureRows() {
         },
         g = createGame(world, EXPLORE_OPTIONS(cycle));
       for (const e of g.enemies) {
-        if (e.bossProfile || e.markedHunter) continue;
+        if (e.bossProfile) {
+          if (!bossRows.has(e.rig))
+            bossRows.set(e.rig, {
+              name: e.rig,
+              areaId,
+              cycle,
+              placementKey: e.placementKey,
+              template: structuredClone(e),
+            });
+          continue;
+        }
+        if (e.markedHunter) continue;
         // Plain residents only: skip declared appearance/recipe variants (gaunt, Hale) for the human rows.
         if (e.rig === "hollow-scavenger" && (e.humanBodyRecipe || e.appearanceRef !== undefined)) continue;
         const name =
@@ -528,6 +541,71 @@ function measureCell(attack, row) {
 }
 
 const statusOf = (cell) => (!cell.hit ? "no-hit" : cell.killed ? "ok" : "hit-no-kill");
+
+// Alpha item 6, kill half: every boss x the four starting attacks (knife, cleaver, pistol, flame), through the same real-sim cells.
+// Bosses are held inert like the creatures, so this proves each boss body takes damage from each attack and dies; reach, the
+// boss-time AI and the drop are covered by public-area-bosses, boss-pursuit and boss-drop-always.
+const STARTING_ATTACKS = [
+  "knife-slash",
+  "knife-stab",
+  "knife-heavy",
+  "knife-special",
+  "cleaver-slash",
+  "cleaver-stab",
+  "cleaver-heavy",
+  "cleaver-special",
+  "pistol-fire",
+  "ember-flame",
+  "ember-flame-touch",
+];
+const BOSS_GAPS = {};
+export function defineBossMatrix(part, parts) {
+  const attacks = ATTACKS.filter((a) => STARTING_ATTACKS.includes(a.id)).filter((_, i) => i % parts === part);
+  for (const attack of attacks) {
+    if (ONLY_ATTACK && !ONLY_ATTACK.includes(attack.id)) continue;
+    test(`attack ${attack.id} against every boss`, { timeout: 900000 }, () => {
+      const unexpected = [];
+      for (const row of bossRows.values()) {
+        if (ONLY && !ONLY.includes(row.name)) continue;
+        const cell = measureCell(attack, row),
+          id = `${row.name}/${attack.id}`,
+          status = statusOf(cell);
+        console.log(
+          "BOSS_CELL",
+          id,
+          status,
+          JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }),
+        );
+        if (Object.hasOwn(BOSS_GAPS, id) ? status === "ok" : status !== "ok")
+          unexpected.push(
+            Object.hasOwn(BOSS_GAPS, id) ? `${id} now passes: remove it from BOSS_GAPS` : `${id}: ${status}`,
+          );
+      }
+      assert.deepEqual(unexpected, []);
+    });
+  }
+  if (part === 0)
+    test("boss matrix covers all seven bosses and every starting attack", () => {
+      assert.equal(bossRows.size, 7, "seven boss rows: " + [...bossRows.keys()].join());
+      assert.deepEqual(
+        ATTACKS.filter((a) => STARTING_ATTACKS.includes(a.id))
+          .map((a) => a.id)
+          .sort(),
+        [...STARTING_ATTACKS].sort(),
+      );
+      console.log(
+        "BOSS_ROWS",
+        JSON.stringify(
+          [...bossRows.values()].map((r) => ({
+            name: r.name,
+            area: r.areaId,
+            key: r.placementKey,
+            hp: r.template.maxHP,
+          })),
+        ),
+      );
+    });
+}
 
 // CI shards by file, so the matrix is registered in `parts` thin test files: part k owns every attack whose
 // index % parts === k. Part 0 also owns the coverage test. Cells, KNOWN_GAPS and assertions are unchanged.
