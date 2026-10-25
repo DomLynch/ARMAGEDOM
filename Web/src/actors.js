@@ -76,6 +76,7 @@ import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
 import { allocateFaceRecipes } from "./face-allocator.js";
+import { createFinisherPrepPump, captureRig, applyRig } from "./engine/finisher-prep-pump.js";
 const residentFaces = allocateFaceRecipes(
   "london-residents",
   Object.values(AREA_MOB_SPAWNS)
@@ -281,6 +282,12 @@ export function createActors(
   const parkedViews = new Map(),
     groundingCache = new WeakMap(),
     goreOwners = new Set();
+  // Residents whose finisher geometry is still to be prepared after arrival (see engine/finisher-prep-pump.js).
+  const deferredViews = new Set(),
+    finisherPump = createFinisherPrepPump({
+      config: FINISHER_DATA.preparation.deferred,
+      onError: (view, error) => console.warn("ARMAGEDOM_FINISHER_PREP", view.entity?.placementKey, error?.message),
+    });
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -504,7 +511,13 @@ export function createActors(
       renderScene.add(root, shadow);
       yield "actor-motion";
       if (finishers && entity.kind >= 0 && entity.rig === "hollow-scavenger") {
+        // A living resident is built with the ordinary death only; its finisher geometry is prepared after arrival.
+        const defer = FINISHER_DATA.preparation.deferred.enabled && entity.hp > 0;
+        if (defer) view.finisherPose0 = captureRig(model);
+        view.rigEpoch = 0;
         view.finisher = yield* createFinisherPresentationSteps({
+          deferPreparation: defer,
+          rigEpoch: () => view.rigEpoch,
           root,
           model,
           rig: entity.rig,
@@ -533,6 +546,7 @@ export function createActors(
             !stageWorld.geometry.clear(point, radius) || (!!from && !stageWorld.geometry.lineClear(from, point)),
         });
         entity.finisherSupport = view.finisher.support;
+        if (defer) deferredViews.add(view);
         view.restoredCorpse = restoreCorpses && entity.hp <= 0;
       }
       if (finishers && entity.kind >= 0)
@@ -543,6 +557,29 @@ export function createActors(
       if (!completed) remove(entity.id, store);
     }
     return view;
+  }
+  // Runs `run` with the rig in the pose it had when the resident was built, then puts the live pose back. The
+  // epoch tells the grounding bake that the pose was rewritten, so it re-poses from scratch (see finisher-grounding.js).
+  function atBuildPose(view, run) {
+    view.rigEpoch++;
+    const live = captureRig(view.model);
+    applyRig(view.finisherPose0, view.root, view.model);
+    try {
+      return run();
+    } finally {
+      applyRig(live, view.root, view.model);
+    }
+  }
+  function* finishDeferredSteps() {
+    for (const view of [...deferredViews]) {
+      if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
+      const steps = view.finisher.prepare();
+      for (;;) {
+        const step = atBuildPose(view, () => steps.next());
+        if (step.done) break;
+        yield step.value;
+      }
+    }
   }
   function remove(id, store = views) {
     const view = store.get(id);
@@ -561,6 +598,8 @@ export function createActors(
     view.salamanderReceiver?.dispose();
     view.wolfReceiver?.dispose();
     view.ratReceiver?.dispose();
+    finisherPump.forget(view);
+    deferredViews.delete(view);
     view.finisher?.dispose();
     if (view.finisher) {
       view.entity.finisherSupport = [];
@@ -896,7 +935,15 @@ export function createActors(
         view.finisher?.setScene(renderScene);
       }
     },
+    // Finish every deferred finisher preparation now, in one go (tests, and tools that need the full recipe set).
+    completeFinisherPreparation() {
+      for (const _ of finishDeferredSteps());
+    },
+    // The same preparation as one step at a time (what the idle pump runs a slice of), rig pose held per step.
+    deferredFinisherSteps: finishDeferredSteps,
+    finisherPreparationStats: () => finisherPump.stats(),
     activateArea(areaId) {
+      finisherPump.enter();
       const stored = parkedViews.get(areaId);
       if (!stored) return;
       for (const [id, view] of stored) {
@@ -1230,6 +1277,24 @@ export function createActors(
       pistolRecoil = 0,
       { presentationDt = dt, restoreCorpses = false, contactOnly = false, projectileContactIds, combatVisibleIds } = {},
     ) {
+      if (deferredViews.size && dt > 0 && !contactOnly) {
+        finisherPump.pump(
+          [...deferredViews]
+            .filter((view) => views.get(view.entity.id) === view)
+            .map((view) => ({
+              key: view,
+              entity: view.entity,
+              isPrepared: () => view.finisherPrepFailed || view.finisher.isPrepared(),
+              start: () => view.finisher.prepare(),
+              settle: () => view.finisher.settle(),
+              around: (run) => atBuildPose(view, run),
+              fail() {
+                view.finisherPrepFailed = true;
+              },
+            })),
+          game.player.pos,
+        );
+      }
       if (
         reaperSelected(game) &&
         game.player.hp > 0 &&

@@ -85,9 +85,11 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  actors.reset();world.areaId='westminster';game.finishers={maxHeads:2,recentRecipeId:null};game.corpses=[];
  game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
  actors.update(game,0);
+ for(const e of game.enemies)assert.ok(!e.finisherSupport.some(s=>s.id==='decapitation'),'a living resident is built with the ordinary death only; the rest is prepared after arrival');
+ actors.completeFinisherPreparation();
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
  const groundingSource=game.enemies[0],translated={...groundingSource,id:1700,pos:{x:17,z:-3},mobSize:groundingSource.mobSize*1.15},sourceGrounding=actors.views.get(groundingSource.id).finisher.stats().runGrounding;
- game.enemies.push(translated);actors.update(game,0);const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
+ game.enemies.push(translated);actors.update(game,0);actors.completeFinisherPreparation();const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
  assert(reusedGrounding.cacheHitsSkinned>0,'actual cloned skinned draws at another world position and scale reuse compatible native floors');assert.equal(reusedGrounding.maxLocalLift,sourceGrounding.maxLocalLift);assert.equal(reusedGrounding.vertices,sourceGrounding.vertices);
  game.enemies.pop();actors.update(game,0);
  // Controlled actual-rig feedback: one owner composes render flinch without
@@ -114,7 +116,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  game.time+=7;actors.update(game,7);assert.equal(cutView.finisher.stats().expired,true);assert.equal(cut.finisherHeadUntil,0);assert.equal(sceneHeadCount(actors),0);assert.equal(native(gunView).currentClip,'Death');
  actors.reset();actors.update(game,0,0,{restoreCorpses:true});assert.equal(actors.views.get(cut.id).model.getObjectByName('Photo').visible,false);assert.equal(actors.views.get(gun.id).model.getObjectByName('Photo').visible,false);assert.equal(sceneHeadCount(actors),0);
  // Regression: the real Crooked resident must use the same native pose for LUT preparation and death rendering.
- actors.reset();game.corpses=[];const rune={...cohort[0],id:777,placementKey:'westminster-roamer-3',pos:{x:0,z:1},mobSize:1.1,humanBodyRecipe:null,hp:40,response:null,finisher:null};game.enemies=[rune];actors.update(game,0);
+ actors.reset();game.corpses=[];const rune={...cohort[0],id:777,placementKey:'westminster-roamer-3',pos:{x:0,z:1},mobSize:1.1,humanBodyRecipe:null,hp:40,response:null,finisher:null};game.enemies=[rune];actors.update(game,0);actors.completeFinisherPreparation();
  const runeView=actors.views.get(rune.id);assert.equal(runeView.locomotionVariant,'crooked-hollow');rune.finisher=selectFinisher({victimId:rune.id,lethal:true,weapon:'knife',moveId:'thrust',impactDirection:{x:1,z:0}},{support:rune.finisherSupport,budget:2,ordinal:1});assert.equal(rune.finisher.recipeId,'run-through');rune.hp=0;rune.response={start:game.time,ticks:60,clip:'Death'};game.enemies=[];game.corpses=[rune];const runeStart=game.time;
  for(const age of [.05,.25,.7,1.1]){game.time=runeStart+age;actors.update(game,.05);runeView.root.updateWorldMatrix(true,true);runeView.model.traverse(n=>{if(n.skeleton)n.skeleton.update();});let minimum=Infinity;const point=new THREE.Vector3();runeView.model.traverse(n=>{if(!n.isMesh)return;for(let p=n;p&&p!==runeView.root;p=p.parent)if(!p.visible)return;const index=n.geometry.index,pos=n.geometry.attributes.position;for(let i=0;i<(index?.count??pos.count);i++){n.getVertexPosition(index?index.getX(i):i,point).applyMatrix4(n.matrixWorld);minimum=Math.min(minimum,point.y);}});const pose=runeView.finisher.pose(runeView.finisherAge);assert.ok(minimum>=-.0001,JSON.stringify({age,minimum,root:runeView.root.position.toArray(),pose,clip:native(runeView).currentClip,phase:native(runeView).currentPhase,grounding:runeView.finisher.stats().runGrounding}));}
  actors.dispose();assert.equal(hairDisposed,hair.length);

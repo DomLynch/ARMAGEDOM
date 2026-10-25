@@ -111,8 +111,34 @@ export function validateFinisherData(value) {
     )
       fail();
   }
-  closed(d.preparation, ["openedPlacements"]);
+  closed(d.preparation, ["openedPlacements", "deferred"]);
   if (!list(d.preparation.openedPlacements)) fail();
+  // Finisher geometry for living residents is prepared after arrival, in slices of `sliceMs` per frame, starting
+  // `startDelayMs` after arrival, and pausing `backoffMs` whenever a frame takes longer than `backoffFrameMs`.
+  // During a fight only the closest alerted resident is prepared (`fightSliceMs` slices, skipped after a frame over
+  // `fightSkipFrameMs`); everyone else waits `quietAfterFightMs` after the last alerted enemy.
+  closed(d.preparation.deferred, [
+    "enabled",
+    "startDelayMs",
+    "sliceMs",
+    "backoffFrameMs",
+    "backoffMs",
+    "fightSliceMs",
+    "fightSkipFrameMs",
+    "quietAfterFightMs",
+  ]);
+  const deferred = d.preparation.deferred;
+  if (
+    typeof deferred.enabled !== "boolean" ||
+    !finite(deferred.startDelayMs, 0, 10000) ||
+    !finite(deferred.sliceMs, 0.5, 8) ||
+    !finite(deferred.backoffFrameMs, 16, 100) ||
+    !finite(deferred.backoffMs, 0, 10000) ||
+    !finite(deferred.fightSliceMs, 0.5, 8) ||
+    !finite(deferred.fightSkipFrameMs, 16, 100) ||
+    !finite(deferred.quietAfterFightMs, 0, 10000)
+  )
+    fail();
   closed(d.impactLimits, ["bursts", "particles", "trails"]);
   for (const [k, max] of Object.entries({ bursts: 2, particles: 48, trails: 8 }))
     if (!Number.isInteger(d.impactLimits[k]) || !finite(d.impactLimits[k], 0, max)) fail();

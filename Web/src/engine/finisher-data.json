@@ -464,7 +464,17 @@
       "westminster-roamer-3",
       "east-roamer-3",
       "south-roamer-4"
-    ]
+    ],
+    "deferred": {
+      "enabled": true,
+      "startDelayMs": 1000,
+      "sliceMs": 2,
+      "backoffFrameMs": 25,
+      "backoffMs": 2000,
+      "fightSliceMs": 1,
+      "fightSkipFrameMs": 20,
+      "quietAfterFightMs": 1000
+    }
   },
   "cosmetics": [
     {
