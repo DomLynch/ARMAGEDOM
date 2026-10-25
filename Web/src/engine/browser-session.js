@@ -27,6 +27,7 @@ import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./s
 import { createWorldGate } from "./world-gate.js";
 import { GAME_DATA } from "./game-data.js";
 import { createGuestAuth } from "./guest-auth.js";
+import { installQaBridge } from "./qa-bridge.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
@@ -812,7 +813,7 @@ export function createBrowserSession(options = {}) {
   listen(enter, "click", start);
   if (options.prewarm !== false) prepareEncounter();
 
-  return Object.freeze({
+  const api = Object.freeze({
     start,
     input(value) {
       if (!disposed) loop.input(value);
@@ -870,4 +871,18 @@ export function createBrowserSession(options = {}) {
         });
     },
   });
+  // Local QA only (loopback host and ?qa=1): window.__qa, a read-only window on the game for drivers. Never on a real host.
+  installQaBridge({
+    location,
+    target: window,
+    view: {
+      session: () => api,
+      game: () => game,
+      world: () => world,
+      presence: () => presence,
+      loaded: () => loaded,
+      areaId: () => world?.areaId,
+    },
+  });
+  return api;
 }

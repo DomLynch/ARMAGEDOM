@@ -100,6 +100,10 @@ export function createPresenceSession(
     get view() {
       return view;
     },
+    // How many other players were drawn in the last frame (read by the local QA bridge).
+    get remotes() {
+      return remotes;
+    },
     // Every frame, after the game has moved: join or change layers when the area changed, report my position, draw the others.
     update() {
       const g = s.game;
