@@ -54,7 +54,8 @@ export function validateSaveClient(d) {
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
   closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged"]);
-  if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
+  if (typeof d.autoEquipOnFirstPickup !== "boolean")
+    fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
