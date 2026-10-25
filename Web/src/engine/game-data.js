@@ -10,6 +10,7 @@ import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
+import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -400,6 +401,29 @@ export function validateSpawns(d) {
   if (d.crookedResidents.some((key) => !mobKeys.has(key))) fail("spawns", "crookedResidents must name a mob row");
 }
 
+// worldEvents.json: how the world-event journal reads the legacy run (engine/world-events.js). The legacy event types that become
+// drop events, the legacy pickup event types with the field that names the item, and the persistence dispatchers it wraps.
+// Client-side mapping only: the wire schema (event fields, codes, weapon ids) stays in code, the server trusts it.
+export function validateWorldEvents(d) {
+  closed(d, ["schema_version", "legacyDropEvents", "legacyPickupEvents", "dispatchers"]);
+  const names = (list, field) => {
+    if (
+      !Array.isArray(list) ||
+      !list.length ||
+      new Set(list).size !== list.length ||
+      list.some((n) => typeof n !== "string" || !/^[A-Za-z][A-Za-z0-9-]{0,40}$/.test(n))
+    )
+      fail("worldEvents", field);
+  };
+  names(d.legacyDropEvents, "legacyDropEvents");
+  names(d.dispatchers, "dispatchers");
+  const pickups = d.legacyPickupEvents;
+  if (!pickups || typeof pickups !== "object" || Array.isArray(pickups)) fail("worldEvents", "legacyPickupEvents");
+  names(Object.keys(pickups), "legacyPickupEvents");
+  if (Object.values(pickups).some((field) => !["itemId", "pickupId"].includes(field)))
+    fail("worldEvents", "legacyPickupEvents fields must be itemId or pickupId");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   creatures: [creatures, validateCreatures],
@@ -410,6 +434,7 @@ const sources = () => ({
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
+  worldEvents: [worldEvents, validateWorldEvents],
 });
 
 /**

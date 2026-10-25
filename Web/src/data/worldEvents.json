@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "legacyDropEvents": ["rifle-drop", "boss-equipment-drop", "unique-reward-drop"],
+  "legacyPickupEvents": {
+    "pickup": "itemId",
+    "rifle-pickup": "itemId",
+    "boss-equipment-pickup": "itemId",
+    "unique-reward-pickup": "itemId",
+    "flame-pickup": "pickupId"
+  },
+  "dispatchers": ["dispatchPistol", "dispatchRifle", "dispatchBossEquipment", "dispatchUniqueReward", "dispatchFlame"]
+}

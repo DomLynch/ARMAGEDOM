@@ -54,7 +54,7 @@
     "engine/weapon-catalog.js": 2,
     "engine/weapon-credit-policy.js": 1,
     "engine/world-config.js": 1,
-    "engine/world-events.js": 12,
+    "engine/world-events.js": 10,
     "face-appearance.js": 2,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
