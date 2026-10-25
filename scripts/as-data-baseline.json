@@ -42,7 +42,6 @@
     "engine/creature-sim.js": 1,
     "engine/flame-fuel-state.js": 1,
     "engine/locker-state.js": 2,
-    "engine/player-health.js": 1,
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
