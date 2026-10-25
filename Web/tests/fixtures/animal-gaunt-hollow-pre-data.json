@@ -1,0 +1,48 @@
+{
+  "animalCycles": {
+    "A": {
+      "westminster-roamer-2": "roach-sewer",
+      "westminster-roamer-4": "rat-ash",
+      "westminster-roamer-6": "dog-ash-coated",
+      "east-roamer-4": "dog-pack-chaser",
+      "east-roamer-5": "roach-rust-shell",
+      "east-roamer-7": "rat-sewer",
+      "east-roamer-9": "dog-street-mongrel",
+      "south-roamer-2": "roach-heavy-shell",
+      "south-roamer-3": "rat-mangy",
+      "south-roamer-8": "dog-street-mongrel"
+    },
+    "B": {
+      "westminster-roamer-2": "roach-ash",
+      "westminster-roamer-4": "rat-soot",
+      "westminster-roamer-6": "dog-mangy-stray",
+      "east-roamer-4": "dog-gaunt-hound",
+      "east-roamer-5": "rat-heavy",
+      "east-roamer-7": "rat-sewer",
+      "east-roamer-9": "dog-stocky-yard",
+      "south-roamer-2": "roach-skitter",
+      "south-roamer-3": "rat-nest-defender",
+      "south-roamer-8": "dog-street-mongrel"
+    }
+  },
+  "gauntHumanCycles": {
+    "A": {
+      "westminster": "westminster-roamer-1",
+      "east": "east-roamer-1",
+      "south": "south-roamer-9"
+    },
+    "B": {
+      "westminster": "westminster-roamer-1",
+      "east": "east-roamer-1",
+      "south": "south-roamer-9"
+    }
+  },
+  "hollowTuning": {
+    "count": 3,
+    "health": 40,
+    "moveSpeed": 2.1,
+    "regen": 1,
+    "aggression": 0.6,
+    "recovery": 0.55
+  }
+}

@@ -1,13 +1,8 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Optional source preset. Art supplies bodyScale and the matched donor path rig;
 // this file does not approve an asset or silently substitute Goblin proportions.
-export const HOLLOW_TUNING = Object.freeze({
-  count: 3,
-  health: 40,
-  moveSpeed: 2.1,
-  regen: 1,
-  aggression: 0.6,
-  recovery: 0.55,
-});
+// The numbers live in Web/src/data/creatures.json `hollowTuning`.
+export const HOLLOW_TUNING = GAME_DATA.creatures.hollowTuning;
 export function createHollowEncounter(character, tuning = {}) {
   if (
     character?.rig !== "hollow-scavenger" ||

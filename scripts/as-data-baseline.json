@@ -61,7 +61,6 @@
   },
   "constantTables": {
     "animal-appearance.js": 1,
-    "animal-cycle.js": 1,
     "clothing-palettes.js": 1,
     "core/index.js": 1,
     "crooked-hollow.js": 1,
@@ -95,9 +94,7 @@
     "feral-coat-profiles.js": 1,
     "finisher-impact-profile.js": 2,
     "finisher-presentation.js": 1,
-    "gaunt-human-bindings.js": 2,
     "gaunt-shape.js": 2,
-    "hollow-encounter.js": 1,
     "hollow-palette.js": 2,
     "low-hover-drone.js": 1,
     "mobile-combat-aim.js": 2,

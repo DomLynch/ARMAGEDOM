@@ -185,7 +185,19 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone", "catalogue", "behaviours"]);
+  closed(d, [
+    "schema_version",
+    "moves",
+    "playerAttacks",
+    "playerHealth",
+    "salamanderBreath",
+    "drone",
+    "catalogue",
+    "behaviours",
+    "animalCycles",
+    "gauntHumanCycles",
+    "hollowTuning",
+  ]);
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
   for (const [name, row] of Object.entries(d.playerAttacks)) {
@@ -275,6 +287,38 @@ export function validateCreatures(d) {
     if (!Object.hasOwn(d.catalogue.support, name)) fail("creatures", `catalogue.reach.${name} has no support row`);
   }
   validateBehaviours(d.behaviours);
+  validateEncounterTables(d);
+}
+
+// creatures.json `animalCycles`, `gauntHumanCycles` and `hollowTuning` (animal-cycle.js, gaunt-human-bindings.js, hollow-encounter.js).
+// Cycle rows pair a roamer placement key with a creature recipe (animals) or an area with the placement key that gets the gaunt body.
+function validateEncounterTables(d) {
+  const word = (field, v, pattern) => {
+    if (typeof v !== "string" || !pattern.test(v)) fail("creatures", `${field} has an invalid name`);
+  };
+  for (const [table, keyPattern, valuePattern] of [
+    ["animalCycles", /^[a-z]+-roamer-\d+$/, /^[a-z0-9-]{1,40}$/],
+    ["gauntHumanCycles", /^[a-z][a-z0-9-]{0,40}$/, /^[a-z]+-roamer-\d+$/],
+  ]) {
+    closed(d[table], ["A", "B"]);
+    for (const cycle of ["A", "B"]) {
+      const rows = Object.entries(d[table][cycle]);
+      if (!rows.length) fail("creatures", `${table}.${cycle} is empty`);
+      for (const [key, value] of rows) {
+        word(`${table}.${cycle}`, key, keyPattern);
+        word(`${table}.${cycle}.${key}`, value, valuePattern);
+      }
+    }
+  }
+  if (Object.keys(d.animalCycles.A).join() !== Object.keys(d.animalCycles.B).join())
+    fail("creatures", "animalCycles A and B must list the same placement keys");
+  // The ranges createHollowEncounter enforces on the encounter built from these.
+  closed(d.hollowTuning, ["count", "health", "moveSpeed", "regen", "aggression", "recovery"]);
+  count("creatures", "hollowTuning.count", d.hollowTuning.count, 3, 5);
+  for (const [field, min, max] of [["health", 1, 120], ["moveSpeed", 0.1, 6], ["regen", 0.1, 2], ["aggression", 0.1, 5], ["recovery", 0, 5]]) {
+    const v = d.hollowTuning[field];
+    if (!Number.isFinite(v) || v < min || v > max) fail("creatures", `hollowTuning.${field} must be from ${min} to ${max}`);
+  }
 }
 
 // creatures.json `behaviours`: the per-resident tuning presets and wake/leash/retreat intents (creature-behaviour-presets.js and
