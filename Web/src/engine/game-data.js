@@ -50,9 +50,10 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged", "knife"]);
+  closed(d, ["schema_version", "ranged", "knife", "melee"]);
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
+  validateMelee(d.melee);
 }
 const number = (file, field, v, min = 0) => {
   if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);
@@ -93,6 +94,52 @@ export function validateKnife(k) {
   for (const [name, v] of Object.entries(k.staminaCosts)) number("weapons", `knife.staminaCosts.${name}`, v);
   closed(k.cooldowns, ["heavy", "special", "dodgeTicks"]);
   for (const [name, v] of Object.entries(k.cooldowns)) number("weapons", `knife.cooldowns.${name}`, v);
+}
+
+// The two knife variants. Each move row lists only the fields that differ from the knife move of the same id; the code derives the
+// rest (seconds, step-in, reach, contact paths) from the knife and the traced paths. Ticks are at 60 Hz.
+export function validateMelee(m) {
+  closed(m, ["boneSaw", "cleaver"]);
+  const moves = (variant, rows, fields) => {
+    closed(rows, ["light_right", "light_left", "thrust", "heavy_overhead"]);
+    for (const [id, row] of Object.entries(rows)) {
+      closed(row, fields);
+      for (const f of fields) number("weapons", `melee.${variant}.moves.${id}.${f}`, row[f]);
+    }
+  };
+  const pair = (variant, v) => {
+    if (!Array.isArray(v) || v.length !== 2) fail("weapons", `melee.${variant}.contact must be two numbers`);
+    v.forEach((n, i) => number("weapons", `melee.${variant}.contact[${i}]`, n));
+  };
+  const costs = (variant, c, fields) => {
+    closed(c, fields);
+    for (const f of fields) number("weapons", `melee.${variant}.costs.${f}`, c[f]);
+  };
+  const saw = m.boneSaw;
+  closed(saw, ["name", "modelVariantId", "contact", "moves", "costs"]);
+  if (typeof saw.name !== "string" || typeof saw.modelVariantId !== "string") fail("weapons", "melee.boneSaw name/model");
+  pair("boneSaw", saw.contact);
+  moves("boneSaw", saw.moves, ["damage", "stamina"]);
+  costs("boneSaw", saw.costs, ["slash", "stab", "heavy"]);
+  const cleaver = m.cleaver;
+  closed(cleaver, ["contact", "targeting", "clipOverrides", "moves", "costs", "lowMoves"]);
+  pair("cleaver", cleaver.contact);
+  closed(cleaver.targeting, ["nearest", "coneDegrees"]);
+  if (typeof cleaver.targeting.nearest !== "boolean") fail("weapons", "melee.cleaver.targeting.nearest");
+  number("weapons", "melee.cleaver.targeting.coneDegrees", cleaver.targeting.coneDegrees);
+  for (const [from, to] of Object.entries(cleaver.clipOverrides ?? {}))
+    if (typeof to !== "string") fail("weapons", `melee.cleaver.clipOverrides.${from}`);
+  const ticks = ["windupTicks", "activeTicks", "recoveryTicks"];
+  moves("cleaver", cleaver.moves, ["damage", "stamina", ...ticks, "staggerTicks"]);
+  for (const row of Object.values(cleaver.moves))
+    for (const f of ticks) count("weapons", `melee.cleaver.moves.${f}`, row[f], 1, 600);
+  costs("cleaver", cleaver.costs, ["slash", "stab", "heavy", "special", "dodge"]);
+  for (const [rig, row] of Object.entries(cleaver.lowMoves ?? {})) {
+    closed(row, ["clip", "slashMoveId", "includeRadius", ...ticks]);
+    if (typeof row.clip !== "string" || typeof row.slashMoveId !== "string" || typeof row.includeRadius !== "boolean")
+      fail("weapons", `melee.cleaver.lowMoves.${rig}`);
+    for (const f of ticks) count("weapons", `melee.cleaver.lowMoves.${rig}.${f}`, row[f], 1, 600);
+  }
 }
 
 export function validateWorld(d) {

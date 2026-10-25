@@ -160,5 +160,38 @@
     },
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
     "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
+  },
+  "melee": {
+    "boneSaw": {
+      "name": "The Bone Saw",
+      "modelVariantId": "bone-saw",
+      "contact": [0.4, 0.9],
+      "moves": {
+        "light_right": { "damage": 12, "stamina": 18 },
+        "light_left": { "damage": 12, "stamina": 18 },
+        "thrust": { "damage": 16, "stamina": 18 },
+        "heavy_overhead": { "damage": 16, "stamina": 26 }
+      },
+      "costs": { "slash": 18, "stab": 18, "heavy": 26 }
+    },
+    "cleaver": {
+      "contact": [0.14, 0.86],
+      "targeting": { "nearest": false, "coneDegrees": 45 },
+      "clipOverrides": { "RatLowSlash": "CleaverRatLowSlash" },
+      "moves": {
+        "light_right": { "damage": 14, "stamina": 22, "windupTicks": 24, "activeTicks": 6, "recoveryTicks": 26, "staggerTicks": 24 },
+        "light_left": { "damage": 14, "stamina": 22, "windupTicks": 24, "activeTicks": 6, "recoveryTicks": 26, "staggerTicks": 24 },
+        "thrust": { "damage": 12, "stamina": 18, "windupTicks": 20, "activeTicks": 4, "recoveryTicks": 30, "staggerTicks": 20 },
+        "heavy_overhead": { "damage": 20, "stamina": 34, "windupTicks": 34, "activeTicks": 5, "recoveryTicks": 40, "staggerTicks": 32 }
+      },
+      "costs": { "slash": 22, "stab": 18, "heavy": 34, "special": 40, "dodge": 30 },
+      "lowMoves": {
+        "original-wolf": { "clip": "DogMidSlash", "slashMoveId": "wolf_low", "includeRadius": true, "windupTicks": 20, "activeTicks": 6, "recoveryTicks": 28 },
+        "original-rat": { "clip": "RatLowSlash", "slashMoveId": "rat_low", "includeRadius": false, "windupTicks": 20, "activeTicks": 6, "recoveryTicks": 28 },
+        "original-roach": { "clip": "RatLowSlash", "slashMoveId": "roach_low", "includeRadius": true, "windupTicks": 20, "activeTicks": 6, "recoveryTicks": 28 },
+        "original-dog": { "clip": "DogMidSlash", "slashMoveId": "dog_low", "includeRadius": true, "windupTicks": 20, "activeTicks": 6, "recoveryTicks": 28 },
+        "low-hover-drone": { "clip": "DogMidSlash", "slashMoveId": "drone_low", "includeRadius": true, "windupTicks": 20, "activeTicks": 6, "recoveryTicks": 28 }
+      }
+    }
   }
 }
