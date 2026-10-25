@@ -309,7 +309,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
             execute(field, { type: "claimPickup", pickupId: data.itemId });
             if (g.bossEquipment?.[field]?.status === "owned")
               void autoEquipAfterClaim(g, {
-                equip: () => equipHandlers.get(field)?.(),
+                equip: (options) => equipHandlers.get(field)?.(options),
                 active: () => !!g.bossEquipment?.[field]?.selected,
                 itemId: data.itemId,
               });

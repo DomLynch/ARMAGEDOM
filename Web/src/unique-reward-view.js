@@ -161,7 +161,7 @@ export function createUniqueRewardView(s, dispatch) {
       claimed = execute({ type: "claimPickup", pickupId: itemId }).ok;
     if (claimed)
       void autoEquipAfterClaim(g, {
-        equip: () => equipHandlers.get(itemId)?.(),
+        equip: (options) => equipHandlers.get(itemId)?.(options),
         active: () => g.uniqueReward?.selectedMeleeVariant === itemId,
         itemId,
       });

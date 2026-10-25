@@ -6,7 +6,7 @@ import {stageProgressionDeath} from '../src/engine/progression-runtime.js';
 import {BOSS_EQUIPMENT_PROFILES as profiles} from '../src/engine/boss-equipment-data.js';
 import {createBossEquipmentView} from '../src/engine/boss-equipment-view.js';
 import {setFlameEquipped} from '../src/engine/flame-runtime.js';
-import {dispatchEquipmentSelection} from '../src/engine/run-views.js';
+import {createFlameView} from '../src/engine/flame-view.js';
 
 // Auditor finding on #140: the Gear Equip handlers are toggles. With the legacy area-8 flamethrower equipped, collecting the Ember
 // Projector must RAISE the Ember Projector (auto-equip is raise-only), never lower the flamethrower and leave the player unarmed.
@@ -17,6 +17,8 @@ class Element extends EventTarget {
   constructor() { super(); this.style = {}; this.dataset = {}; this.children = []; this.textContent = ''; this.hidden = false; this.attributes = new Map(); }
   append(...nodes) { this.children.push(...nodes); }
   setAttribute(k, v) { this.attributes.set(k, String(v)); }
+  removeAttribute(k) { this.attributes.delete(k); }
+  getAttribute(k) { return this.attributes.get(k) ?? null; }
   toggleAttribute() {}
   remove() {}
 }
@@ -45,14 +47,18 @@ function stage({legacyFlame}) {
   const nodes = new Map();
   const el = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   globalThis.document = {getElementById: el, createElement: () => new Element()};
+  // Not ready while the cards are built (no 3D drop model is created in a unit run), ready afterwards (the pickup is offered).
+  let ready = false;
   const state = {
     game: g, world: f.world, loaded: true, paused: false, input: {clear() {}},
-    actors: {equipmentReady: () => true, ensureEquipment: async () => {}, views: new Map()},
+    actors: {equipmentReady: () => ready, ensureEquipment: async () => {}, flameReady: () => true, ensureFlame: async () => {}, views: new Map()},
   };
-  const dispatch = (run, command, allowed) => dispatchEquipmentSelection(run, command, allowed, f.p.dispatchBossEquipment);
-  const view = createBossEquipmentView(state, dispatch);
+  // Wired exactly as run-views.js does it: the Ember card hands over to the legacy flamethrower's own Equip while that is up.
+  const flameView = createFlameView(state, f.p);
+  const view = createBossEquipmentView(state, f.p.dispatchBossEquipment, () => flameView.equip());
   view.update();
-  return {f, g, view, restore: () => { view.dispose(); globalThis.document = previous; }};
+  ready = true;
+  return {f, g, view, restore: () => { view.dispose(); flameView.dispose(); globalThis.document = previous; }};
 }
 
 test('Ember Projector collected while the legacy flamethrower is equipped raises the Ember Projector and lowers nothing silently', async () => {
@@ -61,11 +67,12 @@ test('Ember Projector collected while the legacy flamethrower is equipped raises
     const {g} = ctx;
     const [candidate] = ctx.view.interaction();
     assert.equal(candidate.label, 'Collect Ember Projector');
+    assert.equal(g.flame.equipped, true, 'the legacy flamethrower is up when the Ember Projector is collected');
     assert(candidate.run());
     await flush();
     assert.equal(g.bossEquipment.emberProjector.status, 'owned');
     assert.equal(g.bossEquipment.emberProjector.selected, true, 'the Ember Projector is the active weapon');
-    assert.equal(g.flame.equipped, false, 'the legacy flamethrower hands over; it is not the active weapon any more');
+    assert.equal(g.flame.equipped, true, 'a flamethrower is still in hand (the Ember Projector); the player is not left unarmed');
     assert.deepEqual(g.events.filter(e => e.type === 'auto-equip').map(e => e.itemId), [profiles.emberProjector.itemId]);
     // The selection is in the durable record.
     const cold = fixture({areaId: profiles.emberProjector.source.areaId, extraWorld: {bossEquipmentData: profiles}, records: ctx.f.records});
