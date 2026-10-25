@@ -359,7 +359,9 @@ export function createBrowserSession(options = {}) {
       history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
     }
   }
-  let beacon = null, // the client error beacon (engine/client-log.js), made when the world starts
+  let loadAttempt = 0, // failed attempts so far: a retry uses fresh URLs (see start())
+    lastLoadProgress = 0, // when a model last finished loading (the stall watchdog in start() reads it)
+    beacon = null, // the client error beacon (engine/client-log.js), made when the world starts
     worldStarted = false,
     runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
     bootPull = Promise.resolve(),
@@ -679,7 +681,7 @@ export function createBrowserSession(options = {}) {
     // Fetch and decode on page arrival, rather than making Enter start every request.
     return (startup ??= Promise.allSettled([
       createWorld({ THREE, scene, camera, baseUrl, viewZoomMultiplier, content: privateContent }),
-      loadActors(baseUrl, () => {}, actorManifest),
+      loadActors(baseUrl, () => (lastLoadProgress = performance.now()), actorManifest),
     ]));
   }
   listen(canvas, "webglcontextlost", (event) => {
@@ -724,6 +726,12 @@ export function createBrowserSession(options = {}) {
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
       hud.loading("Loading London and the original character rigs…");
+      // After a failed or stalled attempt every loader URL gets a new query: the browser queues a second request for the same URL behind a
+      // stuck one, so a plain retry would wait for the very request that stalled. (A static file server ignores the query.)
+      if (loadAttempt > 0)
+        THREE.DefaultLoadingManager?.setURLModifier?.((url) =>
+          /^(blob|data):/.test(url) ? url : `${url}${url.includes("?") ? "&" : "?"}retry=${loadAttempt}`,
+        );
       const encounter = prepareEncounter();
       // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
       // above, so nothing here can delay it) and the run is read only after it, never waiting longer than bootSyncWaitMs from Enter.
@@ -731,7 +739,30 @@ export function createBrowserSession(options = {}) {
         Promise.resolve(worldBoot).catch(() => {}),
         new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
       ]);
-      const results = await encounter;
+      // A stalled connection must not leave the card on "Loading Westminster…" for ever: when no model has finished for loadStallMs,
+      // the load fails with a message and Retry. The abandoned load is disposed when (if) it ever arrives.
+      lastLoadProgress = performance.now();
+      let stopStall = () => {};
+      const stalled = new Promise((_, reject) => {
+        const timer = setInterval(() => {
+          if (performance.now() - lastLoadProgress > GAME_DATA.diagnostics.loadStallMs)
+            reject(Error("Loading has stopped. Check your connection, then tap Retry."));
+        }, 1000);
+        stopStall = () => clearInterval(timer);
+      });
+      stalled.catch(() => {}); // settled by the race below; never an unhandled rejection
+      let results;
+      try {
+        results = await Promise.race([encounter, stalled]);
+      } catch (error) {
+        startup = null;
+        encounter.then((late) => {
+          for (const result of late) if (result.status === "fulfilled") result.value.dispose();
+        });
+        throw error;
+      } finally {
+        stopStall();
+      }
       startup = null;
       if (contextLost || disposed) {
         for (const result of results) if (result.status === "fulfilled") result.value.dispose();
@@ -827,7 +858,9 @@ export function createBrowserSession(options = {}) {
     } catch (error) {
       if (contextLost || disposed) return;
       console.error("ARMAGEDOM_LOAD_FAILED", error);
-      hud.failed(error.message);
+      // Some failures carry no message (an image or audio error event): the card must still say something.
+      hud.failed(error?.message || "A game file could not be loaded. Check your connection, then tap Retry.");
+      loadAttempt++;
       if (!loaded) {
         actors?.dispose();
         pendingLibrary?.dispose();

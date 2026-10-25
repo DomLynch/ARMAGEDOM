@@ -21,8 +21,10 @@ const count = (file, field, value, min, max) => {
 };
 
 export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine"]);
+  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
+  // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
+  count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
 }
 
 // A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;

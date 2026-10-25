@@ -1,4 +1,5 @@
 {
   "schema_version": 1,
-  "statsFramesPerLine": 120
+  "statsFramesPerLine": 120,
+  "loadStallMs": 60000
 }
