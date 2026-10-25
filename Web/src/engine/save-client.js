@@ -146,9 +146,16 @@ export function createSaveClient({
           /* The listener must not break the save path. */
         }
       }
+      // A proxy's 429 carries its wait in the Retry-After header (seconds) and no JSON: honour it like the writer's own retryMs.
+      const header = Number(response.headers?.get?.("retry-after"));
       return response.ok
         ? payload
-        : { error: payload?.error ?? `http-${response.status}`, status: response.status, ...payload };
+        : {
+            error: payload?.error ?? `http-${response.status}`,
+            status: response.status,
+            ...(Number.isFinite(header) && header > 0 ? { retryMs: Math.ceil(header * 1000) } : {}),
+            ...payload,
+          };
     } catch {
       return { error: "network" };
     }
@@ -220,7 +227,7 @@ export function createSaveClient({
       }
       if (reply.error) {
         if (reply.status === 429) seq--; // refused before it was counted: the same sequence number goes out again
-        return { ok: false, reason: reply.error, retryMs: reply.retryMs };
+        return { ok: false, reason: reply.error, retryMs: reply.retryMs, status: reply.status };
       }
       if (reply.refused === "stale-seq" || reply.refused === "seq-conflict") {
         seq = reply.lastSeq; // the next loop iteration sends lastSeq + 1
@@ -288,10 +295,11 @@ export function createSaveClient({
       if (!result.ok) {
         log(`[arma-save] not saved: ${result.reason}`);
         // Never drop the record: a rate limit or a network failure leaves it queued (a newer record, if one arrived, replaces it).
-        if (result.reason === "rate-limited" || result.reason === "network") {
+        if (result.reason === "network" || result.status === 429 || result.status >= 500) {
           if (latest === null) latest = taken;
           urgentPending = urgentPending || wasUrgent;
-          retryWait = Math.max(result.retryMs ?? 0, result.reason === "network" ? tuning.minSaveIntervalMs : 0, 250);
+          // The writer's (or a proxy's) own wait when it gave one; otherwise the normal interval, so a down server is not hammered.
+          retryWait = Math.max(250, result.retryMs ?? tuning.minSaveIntervalMs);
         }
       }
     } catch (error) {

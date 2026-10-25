@@ -34,7 +34,12 @@ function writer(script = {}) {
     const answer = await (script[op] ?? (() => ({})))(body, n);
     if (answer instanceof Error) throw answer;
     const status = answer.status ?? 200;
-    return { ok: status < 400, status, json: async () => answer.body ?? answer };
+    return {
+      ok: status < 400,
+      status,
+      headers: { get: (name) => answer.headers?.[name.toLowerCase()] ?? null },
+      json: async () => answer.body ?? answer,
+    };
   };
   return { calls, fetchImpl };
 }
@@ -488,6 +493,62 @@ test("a record that arrived while a rate-limited save was refused replaces the k
   await t.run();
   await t.run();
   assert.deepEqual(saves(t).map((c) => c.body.record.hp), [9, 7]);
+});
+
+test("a proxy's 429 (Retry-After header, no JSON body) is honoured the same way: the record is kept and resent after the wait", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 429, headers: { "retry-after": "7" }, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.equal(t.timers.at(-1).ms, 7000);
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [0, 0]);
+  assert.equal(t.client.state.revision, 1);
+});
+
+test("a server error (5xx) keeps the record and retries after the normal interval, not at once", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 503, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record({ hp: 5 }));
+  await t.run();
+  assert.equal(t.timers.at(-1).ms, GAME_DATA.saveClient.minSaveIntervalMs);
+  await t.run();
+  assert.equal(saves(t).length, 2);
+});
+
+test("the real wiring: a dead run written through the watched storage is sent at once; the tab closed 1 s later loses nothing", async () => {
+  const t = make();
+  const raw = memory();
+  const game = { player: { hp: 14 }, finished: false };
+  const watched = observeStorage(raw, isRunKey, (value) => t.client.queue(value, game, { urgent: runIsOver(game) }));
+  watched.setItem(CURRENT_ERA.key, record({ hp: 14 }));
+  await t.run();
+  t.clock.ms += 1000;
+  game.player.hp = 0; // the player dies; the run is persisted in the same step
+  watched.setItem(CURRENT_ERA.key, dead());
+  assert.equal(t.timers.at(-1).ms, 0, "no wait for the interval");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [14, 0], "the server's newest record is the death");
+  assert.equal(t.client.flushOnHide(), false, "the tab closes: nothing is left unsent");
+});
+
+test("a death that happens while a routine save is in flight goes out the moment that save returns, with no interval wait", async () => {
+  let release;
+  let n = 0;
+  const t = make({
+    save_run: () => (++n === 1 ? new Promise((resolve) => (release = () => resolve({ revision: 1, savedAt: "t" }))) : { revision: 2, savedAt: "t" }),
+  });
+  const run = { id: "r" };
+  t.client.queue(record({ hp: 14 }), run);
+  const inFlight = t.run();
+  await new Promise((r) => setTimeout(r, 5)); // the routine save is on the wire
+  t.client.queue(dead(), run, { urgent: true });
+  assert.equal(t.timers.length, 0, "nothing can be sent while one is in flight");
+  release();
+  await inFlight;
+  assert.equal(t.timers.at(-1).ms, 0, "the death is next, at once");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => [c.body.record.hp, c.body.revision]), [[14, 0], [0, 1]]);
 });
 
 test("a network failure keeps the record queued for another try", async () => {
