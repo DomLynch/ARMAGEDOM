@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
@@ -548,6 +549,26 @@ export function validateAtmosphere(d) {
   }
 }
 
+// areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,
+// bytes). createAreaRegistry (area-registry.js) does the deep checks (graph, refs, conditions); this only holds the shapes closed.
+// tests/data-areas.test.js ties the asset rows to public/world/manifest.json so the two cannot drift.
+export function validateAreas(d) {
+  closed(d, ["schema_version", "areas", "assets"]);
+  if (!Array.isArray(d.areas) || d.areas.length < 1 || d.areas.length > 64) fail("areas", "areas must list 1 to 64 rows");
+  for (const row of d.areas) {
+    closed(row, ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"]);
+    closed(row.entry, ["x", "y"]);
+    if (!Array.isArray(row.exits)) fail("areas", `${row.id} exits`);
+    for (const exit of row.exits) closed(exit, ["id", "target", "condition", "entry"], ["requiresDefeat", "requiresVisited"]);
+  }
+  if (!d.assets || typeof d.assets !== "object" || Array.isArray(d.assets)) fail("areas", "assets");
+  for (const [ref, asset] of Object.entries(d.assets)) {
+    closed(asset, ["kind", "path", "sha256", "bytes"]);
+    if (!/^[0-9a-f]{64}$/.test(asset.sha256)) fail("areas", `${ref}.sha256`);
+    count("areas", `${ref}.bytes`, asset.bytes, 1, 100000000);
+  }
+}
+
 // supplies.json: which Westminster roamers issue a supply drop and what it holds (supplies.js AREA1_SUPPLIES, null = none), and where the
 // worn-vest bag lies (run-state.js VEST_BAG_POSITION). The keys are save keys (the supplies ledger lists them), so they never change.
 export function validateSupplies(d) {
@@ -568,6 +589,7 @@ export function validateSupplies(d) {
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   atmosphere: [atmosphere, validateAtmosphere],
+  areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],
