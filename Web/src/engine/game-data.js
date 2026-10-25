@@ -4,6 +4,7 @@
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
+import weapons from "../data/weapons.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
@@ -27,6 +28,13 @@ export function validateSaveClient(d) {
   count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
   if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))
     fail("saveClient", "characterName");
+}
+
+// weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
+// which runs on this data when that module loads; the loader checks the shape.
+export function validateWeapons(d) {
+  closed(d, ["schema_version", "ranged"]);
+  if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
 }
 
 export function validateWorld(d) {
@@ -61,6 +69,7 @@ export function validateWorld(d) {
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   saveClient: [saveClient, validateSaveClient],
+  weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
 });
 
