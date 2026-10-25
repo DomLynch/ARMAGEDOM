@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import appearance from "../data/appearance.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
@@ -59,13 +60,70 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged", "vest"]);
+  closed(d, [
+    "schema_version",
+    "autoEquipOnFirstPickup",
+    "ranged",
+    "knife",
+    "melee",
+    "bossRanged",
+    "bossEquipment",
+    "vest",
+  ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
+  validateBossEquipment(d.bossEquipment, d.ranged);
   validateKnife(d.knife);
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
+}
+// The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
+// four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.
+export function validateBossEquipment(b, ranged) {
+  closed(b, ["order", "ranged", "boneSawRules", "surgicalKnife", "emberProjector"]);
+  const text = (field, v) => {
+    if (typeof v !== "string" || !v) fail("weapons", `bossEquipment.${field} must be a non-empty string`);
+  };
+  const names = [...Object.keys(b.ranged), "surgicalKnife", "emberProjector"];
+  if (!Array.isArray(b.order) || b.order.length !== names.length || !names.every((n) => b.order.includes(n)))
+    fail("weapons", "bossEquipment.order must list every reward field once");
+  for (const [field, itemId] of Object.entries(b.ranged))
+    if (!Object.hasOwn(ranged, itemId)) fail("weapons", `bossEquipment.ranged.${field} names an unknown weapon`);
+  closed(b.boneSawRules, [
+    "interval",
+    "damage",
+    "range",
+    "coneDegrees",
+    "moveScale",
+    "staminaPerSecond",
+    "staggerAfter",
+    "staggerSeconds",
+    "staggerRecovery",
+  ]);
+  for (const [f, v] of Object.entries(b.boneSawRules)) number("weapons", `bossEquipment.boneSawRules.${f}`, v);
+  for (const field of ["surgicalKnife", "emberProjector"]) {
+    const row = b[field],
+      saw = field === "surgicalKnife";
+    closed(row, [
+      "itemId",
+      "name",
+      "family",
+      "weaponKey",
+      "delivery",
+      "modelRef",
+      "finisherBinding",
+      saw ? "pickupRadius" : "rules",
+      "source",
+    ]);
+    for (const f of ["itemId", "name", "family", "weaponKey", "delivery", "finisherBinding"])
+      text(`${field}.${f}`, row[f]);
+    if (row.modelRef !== null) text(`${field}.modelRef`, row.modelRef);
+    if (saw) number("weapons", `bossEquipment.${field}.pickupRadius`, row.pickupRadius);
+    else for (const [f, v] of Object.entries(row.rules)) number("weapons", `bossEquipment.${field}.rules.${f}`, v);
+    closed(row.source, ["placementKey", "areaId", "receiptId"]);
+    for (const f of Object.keys(row.source)) text(`${field}.source.${f}`, row.source[f]);
+  }
 }
 // The Westminster worn vest: its item id and area (both saved identities), the kills that unlock the stash, the pickup radius in
 // metres and the share of a hit it absorbs.
@@ -621,6 +679,48 @@ export function validateAtmosphere(d) {
   }
 }
 
+// appearance.json: the survivor face mesh constants (face-appearance.js), the two hollow garment material names (hollow-palette.js)
+// and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
+// body-width factor and patch the share of worn patches, as those modules apply them.
+export function validateAppearance(d) {
+  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches"]);
+  const between = (field, v, min, max) => {
+    if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
+  };
+  const triple = (field, v, max) => {
+    if (!Array.isArray(v) || v.length !== 3) fail("appearance", `${field} must list 3 numbers`);
+    v.forEach((n, i) => between(`${field}[${i}]`, n, 0, max));
+  };
+  const named = (field, v) => {
+    if (typeof v !== "string" || !v) fail("appearance", `${field} must be a non-empty string`);
+  };
+  closed(d.faceMesh, ["cheek", "headNames"]);
+  triple("faceMesh.cheek", d.faceMesh.cheek, 1);
+  if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
+    fail("appearance", "faceMesh.headNames must list 3 different mesh names");
+  d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
+  closed(d.hollowGarments, ["jacket", "trousers"]);
+  named("hollowGarments.jacket", d.hollowGarments.jacket);
+  named("hollowGarments.trousers", d.hollowGarments.trousers);
+  if (d.hollowGarments.jacket === d.hollowGarments.trousers) fail("appearance", "hollowGarments names must differ");
+  const rows = (table, fields, tintField) => {
+    const seen = new Set();
+    if (!Array.isArray(d[table]) || !d[table].length || d[table].length > 64) fail("appearance", `${table} must list 1 to 64 rows`);
+    for (const row of d[table]) {
+      closed(row, fields);
+      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,32}$/.test(row.id) || seen.has(row.id)) fail("appearance", `${table} id ${row.id}`);
+      seen.add(row.id);
+      named(`${table}.${row.id}.name`, row.name);
+      if ("foundation" in row) named(`${table}.${row.id}.foundation`, row.foundation); // animal-appearance.js checks it against its coat names
+      between(`${table}.${row.id}.width`, row.width, 0.1, 3);
+      between(`${table}.${row.id}.patch`, row.patch, 0, 1);
+      triple(`${table}.${row.id}.${tintField}`, row[tintField], 100);
+    }
+  };
+  rows("animals", ["id", "foundation", "name", "width", "tint", "patch"], "tint");
+  rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
+}
+
 // areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,
 // bytes). createAreaRegistry (area-registry.js) does the deep checks (graph, refs, conditions); this only holds the shapes closed.
 // tests/data-areas.test.js ties the asset rows to public/world/manifest.json so the two cannot drift.
@@ -678,6 +778,7 @@ export function validateAreaRuntime(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
