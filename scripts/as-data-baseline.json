@@ -37,7 +37,6 @@
     "engine/bone-saw.js": 1,
     "engine/boss-equipment-core.js": 1,
     "engine/boss-equipment-data.js": 3,
-    "engine/boss-ranged.js": 1,
     "engine/commander/match.js": 1,
     "engine/contracts.js": 1,
     "engine/creature-catalogue.js": 3,

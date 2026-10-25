@@ -53,10 +53,28 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged", "knife", "melee"]);
+  closed(d, ["schema_version", "ranged", "knife", "melee", "bossRanged"]);
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
+  validateBossRanged(d.bossRanged);
+}
+// What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
+// The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.
+export function validateBossRanged(b) {
+  closed(b, ["boss-south-nightborn", "boss-butcher"]);
+  for (const [rig, row] of Object.entries(b)) {
+    closed(
+      row,
+      ["kind", "field", "modelRef", "warning", "recovery", "range", "damage"],
+      ["speed", "radius", "maxLife", "maxLive"],
+    );
+    for (const f of ["kind", "field", "modelRef"])
+      if (typeof row[f] !== "string" || !row[f]) fail("weapons", `bossRanged.${rig}.${f}`);
+    for (const f of ["warning", "recovery", "range", "damage", "speed", "radius", "maxLife", "maxLive"])
+      if (f in row) number("weapons", `bossRanged.${rig}.${f}`, row[f]);
+    if ((row.kind === "rocket") !== "speed" in row) fail("weapons", `bossRanged.${rig} rocket fields`);
+  }
 }
 const number = (file, field, v, min = 0) => {
   if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);

@@ -292,6 +292,30 @@
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
     "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
   },
+  "bossRanged": {
+    "boss-south-nightborn": {
+      "kind": "shotgun",
+      "field": "shotgun",
+      "modelRef": "player-shotgun",
+      "warning": 0.4,
+      "recovery": 0.7,
+      "range": 6,
+      "damage": 8
+    },
+    "boss-butcher": {
+      "kind": "rocket",
+      "field": "rocketLauncher",
+      "modelRef": "player-rocket-launcher",
+      "warning": 0.6,
+      "recovery": 0.75,
+      "range": 12,
+      "damage": 14,
+      "speed": 10,
+      "radius": 1.5,
+      "maxLife": 1.2,
+      "maxLive": 1
+    }
+  },
   "melee": {
     "boneSaw": {
       "name": "The Bone Saw",
