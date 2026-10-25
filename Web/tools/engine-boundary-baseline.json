@@ -10,6 +10,7 @@
     "area-drone-spawns.js",
     "area-mob-spawns.js",
     "atmosphere-areas.js",
+    "atmosphere-westminster.js",
     "atmosphere.js",
     "bridge-steering.js",
     "clothing-allocator.js",
