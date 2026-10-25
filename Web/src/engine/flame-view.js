@@ -2,6 +2,7 @@ import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
@@ -104,12 +105,13 @@ export function createFlameView(s, persistence) {
     s.effects?.clearFlameFeedback?.();
     repaint();
   }
-  async function equip() {
+  async function equip(options) {
     if (lockerStored(s.game, "flamethrower-area8-v1")) return;
     const g = s.game;
     if (!g?.world.flameData || !safe(g) || load) return;
     if (g.flame.equipped && !g.bossEquipment?.emberProjector?.selected) {
-      lower(g);
+      // Equip is a toggle: pressed again it lowers. An automatic switch (raise-only) never lowers.
+      if (options?.raiseOnly !== true) lower(g);
       return;
     }
     if (!g.flameFuel?.collected) return;
@@ -185,8 +187,14 @@ export function createFlameView(s, persistence) {
     );
     if (result.ok) {
       g.events.push(...result.events);
-      g.message = "Flamethrower collected. Equip it in Gear.";
+      g.message = collectedMessage("Flamethrower");
       g.messageUntil = g.time + 4;
+      void autoEquipAfterClaim(g, {
+        equip,
+        active: () => !!g.flame?.equipped,
+        itemId: g.world.flameData.pickupId,
+        name: "Flamethrower",
+      }).then(repaint);
     }
     repaint();
     return true;

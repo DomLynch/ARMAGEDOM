@@ -3,6 +3,7 @@ import { effectiveWeaponDamage } from "./engine/progression-runtime.js";
 import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
+import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
 };
@@ -99,7 +100,7 @@ export function createUniqueRewardView(s, dispatch) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? "Pitborn Cleaver collected. Equip it in Gear."
+          ? collectedMessage("Pitborn Cleaver")
           : MELEE_VARIANTS[command.itemId].name + " equipped.";
       g.messageUntil = g.time + 4;
       if (command.type === "equip") s.input.clear();
@@ -156,7 +157,16 @@ export function createUniqueRewardView(s, dispatch) {
   function interact() {
     const g = s.game;
     if (!g || !eligible(g)) return false;
-    return execute({ type: "claimPickup", pickupId: g.world.uniqueRewardData.itemId }).ok;
+    const itemId = g.world.uniqueRewardData.itemId,
+      claimed = execute({ type: "claimPickup", pickupId: itemId }).ok;
+    if (claimed)
+      void autoEquipAfterClaim(g, {
+        equip: (options) => equipHandlers.get(itemId)?.(options),
+        active: () => g.uniqueReward?.selectedMeleeVariant === itemId,
+        itemId,
+        name: "Pitborn Cleaver",
+      });
+    return claimed;
   }
   function createDrop(data) {
     const view = createMeleePickupView(source(data.itemId), data);

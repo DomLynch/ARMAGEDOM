@@ -18,6 +18,7 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
     "warningSeconds",
     "spawnCooldown",
     "arrivalDelay",
+    "respawnDelay",
     "hunterHealth",
     "hunterSpeed",
     "shop",
@@ -25,8 +26,10 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
   closed(input, MARKED_KEYS, ["projection", "projections", "hunters", "bounty"]);
   for (const k of ["hunters", "bounty"])
     if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
+  // hunterBounty is the bounty needed before a hunter comes; 0 means none is needed (hunters always on). Every other rule is positive.
   for (const key of MARKED_KEYS.filter((k) => k !== "shop"))
-    if (!Number.isFinite(input[key]) || input[key] <= 0) throw TypeError("Invalid Marked rule");
+    if (!Number.isFinite(input[key]) || input[key] < 0 || (input[key] === 0 && key !== "hunterBounty"))
+      throw TypeError("Invalid Marked rule");
   if (
     input.version !== 1 ||
     input.maxHunters !== 1 ||
@@ -37,6 +40,7 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
     input.warningSeconds < 2 ||
     input.spawnCooldown < 30 ||
     input.arrivalDelay < 6 ||
+    input.respawnDelay < 30 ||
     input.hunterHealth > 120 ||
     input.hunterSpeed > 4
   )

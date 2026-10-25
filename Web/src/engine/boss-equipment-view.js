@@ -3,6 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
@@ -56,7 +57,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? g.world.bossEquipmentData[field].name + " collected. Equip it in Gear."
+          ? collectedMessage(g.world.bossEquipmentData[field].name)
           : command.equipped
             ? g.world.bossEquipmentData[field].name + " equipped."
             : "Returned to your normal weapon.";
@@ -76,10 +77,12 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     button.id = "boss-equip-" + field;
     section.append(title, label, button);
     panel.append(section);
-    const equip = async () => {
-      const owner = s.game;
+    const equip = async (options) => {
+      const owner = s.game,
+        raiseOnly = options?.raiseOnly === true;
       if (!safe(owner)) return;
       if (
+        !raiseOnly &&
         field === "emberProjector" &&
         typeof legacyFlameEquip === "function" &&
         (!ownsEmberReward(owner) || (owner.flame?.equipped && !owner.bossEquipment.emberProjector.selected))
@@ -96,7 +99,11 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         return;
       }
       if (!disposed && s.game === owner && safe(owner) && owner.bossEquipment?.[field]?.status === "owned")
-        execute(field, { type: "equip", itemId: data.itemId, equipped: !owner.bossEquipment[field].selected });
+        execute(field, {
+          type: "equip",
+          itemId: data.itemId,
+          equipped: raiseOnly || !owner.bossEquipment[field].selected,
+        });
       update();
     };
     equipHandlers.set(field, equip);
@@ -300,6 +307,13 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           position: state.dropPosition,
           run() {
             execute(field, { type: "claimPickup", pickupId: data.itemId });
+            if (g.bossEquipment?.[field]?.status === "owned")
+              void autoEquipAfterClaim(g, {
+                equip: (options) => equipHandlers.get(field)?.(options),
+                active: () => !!g.bossEquipment?.[field]?.selected,
+                itemId: data.itemId,
+                name: data.name,
+              });
             return true;
           },
         };

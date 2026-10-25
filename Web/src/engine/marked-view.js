@@ -158,7 +158,7 @@ export function createMarkedView(s, dispatch) {
       text = ""; // the money, bounty and hunter lines are not shown on the HUD for now (the state keeps the cash)
     hud.hidden = !text;
     if (hud.textContent !== text) hud.textContent = text;
-    hud.dataset.marked = String(effectiveBounty(g) >= c.hunterBounty);
+    hud.dataset.marked = String(c.bounty !== false && effectiveBounty(g) >= c.hunterBounty);
     summary.textContent =
       `Carried ${money(current.carried)} · Bank ${money(current.bank)}` +
       (c.bounty === false ? "" : ` · Bounty ${money(current.bounty)}`);

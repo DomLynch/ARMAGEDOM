@@ -10,6 +10,7 @@ import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
+import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -54,7 +55,8 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged", "knife", "melee", "bossRanged", "vest"]);
+  closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged", "vest"]);
+  if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
@@ -180,7 +182,7 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath"]);
+  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone"]);
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
   for (const [name, row] of Object.entries(d.playerAttacks)) {
@@ -236,6 +238,22 @@ export function validateCreatures(d) {
     number("creatures", `salamanderBreath.${f}`, b[f]);
   for (const f of ["windupTicks", "activeTicks", "intervalTicks", "recoveryTicks"])
     count("creatures", `salamanderBreath.${f}`, b[f], 1, 600);
+  // The hover drone (drone-mechanics.js): metres, seconds and hit points. weaponRules() reads its bolt damage for the server rows.
+  closed(d.drone, [
+    "hoverHeight",
+    "hp",
+    "radius",
+    "moveSpeed",
+    "wakeDistance",
+    "homeLeash",
+    "attackRange",
+    "warningSeconds",
+    "recoverySeconds",
+    "damage",
+    "boltSpeed",
+    "boltRange",
+  ]);
+  for (const [name, v] of Object.entries(d.drone)) number("creatures", `drone.${name}`, v);
 }
 
 export function validateWorld(d) {
@@ -411,6 +429,29 @@ export function validateSpawns(d) {
   if (d.crookedResidents.some((key) => !mobKeys.has(key))) fail("spawns", "crookedResidents must name a mob row");
 }
 
+// worldEvents.json: how the world-event journal reads the legacy run (engine/world-events.js). The legacy event types that become
+// drop events, the legacy pickup event types with the field that names the item, and the persistence dispatchers it wraps.
+// Client-side mapping only: the wire schema (event fields, codes, weapon ids) stays in code, the server trusts it.
+export function validateWorldEvents(d) {
+  closed(d, ["schema_version", "legacyDropEvents", "legacyPickupEvents", "dispatchers"]);
+  const names = (list, field) => {
+    if (
+      !Array.isArray(list) ||
+      !list.length ||
+      new Set(list).size !== list.length ||
+      list.some((n) => typeof n !== "string" || !/^[A-Za-z][A-Za-z0-9-]{0,40}$/.test(n))
+    )
+      fail("worldEvents", field);
+  };
+  names(d.legacyDropEvents, "legacyDropEvents");
+  names(d.dispatchers, "dispatchers");
+  const pickups = d.legacyPickupEvents;
+  if (!pickups || typeof pickups !== "object" || Array.isArray(pickups)) fail("worldEvents", "legacyPickupEvents");
+  names(Object.keys(pickups), "legacyPickupEvents");
+  if (Object.values(pickups).some((field) => !["itemId", "pickupId"].includes(field)))
+    fail("worldEvents", "legacyPickupEvents fields must be itemId or pickupId");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   creatures: [creatures, validateCreatures],
@@ -421,6 +462,7 @@ const sources = () => ({
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
+  worldEvents: [worldEvents, validateWorldEvents],
 });
 
 /**
