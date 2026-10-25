@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "1d62d3e0db1a6903b8f62caa94eb9f2e512f2eec746f2c7944e9a44250d3ba40");
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "89bc5648e8548836ac6f0a0834d0b3125d6b0bd4f068397d0cd994872a2064da");
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -47,8 +47,9 @@ test("exit triggers: every closed box is at least 0.04 each way, only ever grew 
       for (const [lo, hi] of [["xMin", "xMax"], ["yMin", "yMax"]]) {
         if (was[lo] === undefined || was[hi] === undefined) continue;
         // East to South cannot reach 0.04 high: the East gate rule (east-south-shortcut.test.js) wants every sampled gate point fully
-        // clear at player radius, and the plaza edge there is a 0.037-high band at most (searched on the real collision). It was 0.013.
-        const floor = exit.id === "exit.east.south" && lo === "yMin" ? 0.037 - 1e-9 : MIN;
+        // clear at player radius, and the plaza edge there is a 0.033-high band at most for a box that still contains the old strip and clears the arrival from South
+        // (searched on the real collision). It was 0.013 high and 0.05 wide; it is now 0.033 high and 0.07 wide.
+        const floor = exit.id === "exit.east.south" && lo === "yMin" ? 0.033 - 1e-9 : MIN;
         assert(now[hi] - now[lo] >= floor, `${exit.id} ${lo}/${hi} is wide enough`);
         assert(now[lo] <= was[lo] + 1e-9 && now[hi] >= was[hi] - 1e-9, `${exit.id} ${lo}/${hi} contains the old box`);
         if (now[lo] !== was[lo] || now[hi] !== was[hi]) widened.push(`${exit.id} ${lo}`);

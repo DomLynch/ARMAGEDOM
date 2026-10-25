@@ -97,9 +97,9 @@
           "id": "exit.east.south",
           "target": "south",
           "condition": {
-            "xMin": 0.73,
-            "xMax": 0.78,
-            "yMin": 0.352,
+            "xMin": 0.72,
+            "xMax": 0.79,
+            "yMin": 0.356,
             "yMax": 0.389
           },
           "entry": {
