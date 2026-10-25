@@ -146,5 +146,23 @@
     "damage": 6,
     "boltSpeed": 8,
     "boltRange": 6
+  },
+  "catalogue": {
+    "support": {
+      "hollow-scavenger": { "controller": "resident-knife", "weapon": "knife", "rig": "hollow-scavenger", "actions": ["slash", "stab", "heavy"] },
+      "original-rat": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-rat", "actions": ["attack", "attackLow"] },
+      "original-dog": { "controller": "dog-native-bite", "weapon": "teeth", "rig": "original-dog", "actions": ["attack"] },
+      "original-roach": { "controller": "roach-native-bite", "weapon": "teeth", "rig": "original-roach", "actions": ["attack"] },
+      "low-hover-drone": { "controller": "drone-selector", "weapon": "bolt", "rig": null, "actions": [] },
+      "original-wolf": { "controller": "wolf-native-bite", "weapon": "teeth", "rig": "original-wolf", "actions": ["attack"] },
+      "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] }
+    },
+    "reach": {
+      "original-wolf": 2.375,
+      "original-rat": 1.050307904880233,
+      "original-dog": 1.635623468495986,
+      "original-roach": 1.6063268331546576,
+      "giant-salamander": 3.1078573708270647
+    }
   }
 }

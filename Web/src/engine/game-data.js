@@ -185,7 +185,7 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone"]);
+  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone", "catalogue"]);
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
   for (const [name, row] of Object.entries(d.playerAttacks)) {
@@ -257,6 +257,23 @@ export function validateCreatures(d) {
     "boltRange",
   ]);
   for (const [name, v] of Object.entries(d.drone)) number("creatures", `drone.${name}`, v);
+  // The creature catalogue (engine/creature-catalogue.js): per reviewed foundation, the controller, weapon, rig and clip actions it must
+  // carry, and the native contact reach in metres. The catalogue still checks each foundation row against these.
+  closed(d.catalogue, ["support", "reach"]);
+  for (const [name, row] of Object.entries(d.catalogue.support)) {
+    id("creatures", `catalogue.support.${name}`, name);
+    closed(row, ["controller", "weapon", "rig", "actions"]);
+    for (const f of ["controller", "weapon"])
+      if (typeof row[f] !== "string" || !row[f]) fail("creatures", `catalogue.support.${name}.${f}`);
+    if (row.rig !== null && (typeof row.rig !== "string" || !row.rig)) fail("creatures", `catalogue.support.${name}.rig`);
+    if (!Array.isArray(row.actions) || !row.actions.every((a) => typeof a === "string" && a))
+      fail("creatures", `catalogue.support.${name}.actions`);
+  }
+  for (const [name, v] of Object.entries(d.catalogue.reach)) {
+    id("creatures", `catalogue.reach.${name}`, name);
+    number("creatures", `catalogue.reach.${name}`, v);
+    if (!Object.hasOwn(d.catalogue.support, name)) fail("creatures", `catalogue.reach.${name} has no support row`);
+  }
 }
 
 export function validateWorld(d) {

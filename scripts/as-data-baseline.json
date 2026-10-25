@@ -16,6 +16,9 @@
     "engine/contracts.js": [
       { "name": "SESSION_OPERATIONS", "reason": "public browser-session operation names: an API contract checked by assertSession" }
     ],
+    "engine/creature-catalogue.js": [
+      { "name": "ENGINE_CREATURE_CAPABILITIES", "reason": "engine capability list: the mechanics the engine provides; data may not grant itself one, the catalogue checks against it" }
+    ],
     "engine/rifle-core.js": [
       { "name": "RIFLE_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
     ],
@@ -48,7 +51,7 @@
     "engine/area-content.js": 1,
     "engine/area-population.js": 9,
     "engine/commander/match.js": 1,
-    "engine/creature-catalogue.js": 18,
+    "engine/creature-catalogue.js": 2,
     "engine/creature-definitions.js": 45,
     "pistol-targeting.js": 8,
     "rat-melee-definition.js": 5,
@@ -74,7 +77,7 @@
     "engine/boss-equipment-data.js": 3,
     "engine/commander/match.js": 1,
     "engine/contracts.js": 1,
-    "engine/creature-catalogue.js": 3,
+    "engine/creature-catalogue.js": 1,
     "engine/creature-sim.js": 1,
     "engine/flame-fuel-state.js": 1,
     "engine/locker-state.js": 2,
