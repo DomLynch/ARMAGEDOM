@@ -469,8 +469,7 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
       shotDirection = e.direction;
     }
     event(g, e.type, { ...e, actor: p });
-    if (e.type === "pickup")
-      notify(g, "PISTOL EQUIPPED");
+    if (e.type === "pickup") notify(g, "PISTOL EQUIPPED");
     if (e.type === "holster") notify(g, "KNIFE EQUIPPED");
     if (e.type === "equip") notify(g, "PISTOL EQUIPPED");
     if (e.type === "dry") notify(g, g.pistol.reserve ? "EMPTY · Reload." : "OUT OF AMMO · Switch to melee.");

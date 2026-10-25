@@ -190,7 +190,10 @@ export function validateCreatures(d) {
       if (field === "extends") {
         const refs = [v].flat();
         if (!refs.length || !refs.every((r) => typeof r === "string" && r)) fail("creatures", `moves.${name}.extends`);
-      } else if (!(v === null || ["number", "string", "boolean"].includes(typeof v)) || (typeof v === "number" && !Number.isFinite(v)))
+      } else if (
+        !(v === null || ["number", "string", "boolean"].includes(typeof v)) ||
+        (typeof v === "number" && !Number.isFinite(v))
+      )
         fail("creatures", `moves.${name}.${field} must be a finite number, string, boolean or null`);
     }
     for (const f of ["windupTicks", "activeTicks", "recoveryTicks"])
@@ -237,7 +240,11 @@ export function validateWorld(d) {
   ]);
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
   closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
-  if (!Array.isArray(d.clientLog.kinds) || d.clientLog.kinds.length < 1 || !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k)))
+  if (
+    !Array.isArray(d.clientLog.kinds) ||
+    d.clientLog.kinds.length < 1 ||
+    !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k))
+  )
     fail("world", "clientLog.kinds");
   count("world", "clientLog.maxBodyBytes", d.clientLog.maxBodyBytes, 500, 4000); // the writer refuses a body over 4096 bytes
   if (typeof d.clientLog.path !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.clientLog.path))
