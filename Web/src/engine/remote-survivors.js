@@ -5,16 +5,11 @@
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { equipDonorPlayer } from "../donor-motion.js";
+import { GAME_DATA } from "./game-data.js";
 
 // garment: multiplies the tunic and wraps; accent: the heraldry cloth and the ground ring. Skin, face and steel stay untouched.
-export const SURVIVOR_VARIANTS = Object.freeze([
-  { id: "azure", garment: [0.55, 0.8, 1.0], accent: [0.2, 0.55, 1.0] },
-  { id: "jade", garment: [0.6, 1.0, 0.7], accent: [0.1, 0.85, 0.45] },
-  { id: "amber", garment: [1.0, 0.85, 0.45], accent: [1.0, 0.75, 0.15] },
-  { id: "violet", garment: [0.8, 0.65, 1.0], accent: [0.6, 0.35, 1.0] },
-  { id: "snow", garment: [1.15, 1.15, 1.2], accent: [0.85, 0.95, 1.0] },
-  { id: "lime", garment: [0.85, 1.0, 0.5], accent: [0.6, 0.95, 0.15] },
-]);
+// The rows live in Web/src/data/visual.json `survivorVariants` (read through game-data.js).
+export const SURVIVOR_VARIANTS = GAME_DATA.visual.survivorVariants;
 const GARMENTS = new Set(["Gambeson", "Wrap"]),
   ACCENTS = new Set(["Heraldry"]);
 const RING_INNER = 0.62,
