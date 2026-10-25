@@ -1,14 +1,7 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Original ground insect shell recipes; Combat supplies rhythm and role.
-export const ROACH_APPEARANCES = Object.freeze(
-  [
-    { id: "roach-sewer", name: "Sewer Roach", width: 1, shellTint: [1, 1, 1], patch: 0 },
-    { id: "roach-ash", name: "Ash Roach", width: 1, shellTint: [2.4, 6.0, 24.0], patch: 0.15 },
-    { id: "roach-rust-shell", name: "Rust-shell Roach", width: 1, shellTint: [1.3, 0.76, 0.56], patch: 0.22 },
-    { id: "roach-heavy-shell", name: "Heavy-shell Roach", width: 1.5, shellTint: [0.76, 0.8, 0.88], patch: 0.1 },
-    { id: "roach-skitter", name: "Skitter Roach", width: 0.68, shellTint: [1.08, 0.92, 0.76], patch: 0.15 },
-    { id: "roach-nest-guard", name: "Nest Guard", width: 1, shellTint: [0.85, 0.74, 0.6], patch: 0.36 },
-  ].map(Object.freeze),
-);
+// The six rows (id, name, width, shellTint, patch) live in Web/src/data/appearance.json `roaches` (read through game-data.js).
+export const ROACH_APPEARANCES = GAME_DATA.appearance.roaches;
 const SHELL = new Set(["abdomen", "thorax"]);
 export function createRoachAppearanceLibrary(T) {
   const caches = new WeakMap(),

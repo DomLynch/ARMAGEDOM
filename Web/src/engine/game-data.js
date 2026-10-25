@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import appearance from "../data/appearance.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -677,6 +678,48 @@ export function validateAtmosphere(d) {
   }
 }
 
+// appearance.json: the survivor face mesh constants (face-appearance.js), the two hollow garment material names (hollow-palette.js)
+// and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
+// body-width factor and patch the share of worn patches, as those modules apply them.
+export function validateAppearance(d) {
+  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches"]);
+  const between = (field, v, min, max) => {
+    if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
+  };
+  const triple = (field, v, max) => {
+    if (!Array.isArray(v) || v.length !== 3) fail("appearance", `${field} must list 3 numbers`);
+    v.forEach((n, i) => between(`${field}[${i}]`, n, 0, max));
+  };
+  const named = (field, v) => {
+    if (typeof v !== "string" || !v) fail("appearance", `${field} must be a non-empty string`);
+  };
+  closed(d.faceMesh, ["cheek", "headNames"]);
+  triple("faceMesh.cheek", d.faceMesh.cheek, 1);
+  if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
+    fail("appearance", "faceMesh.headNames must list 3 different mesh names");
+  d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
+  closed(d.hollowGarments, ["jacket", "trousers"]);
+  named("hollowGarments.jacket", d.hollowGarments.jacket);
+  named("hollowGarments.trousers", d.hollowGarments.trousers);
+  if (d.hollowGarments.jacket === d.hollowGarments.trousers) fail("appearance", "hollowGarments names must differ");
+  const rows = (table, fields, tintField) => {
+    const seen = new Set();
+    if (!Array.isArray(d[table]) || !d[table].length || d[table].length > 64) fail("appearance", `${table} must list 1 to 64 rows`);
+    for (const row of d[table]) {
+      closed(row, fields);
+      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,32}$/.test(row.id) || seen.has(row.id)) fail("appearance", `${table} id ${row.id}`);
+      seen.add(row.id);
+      named(`${table}.${row.id}.name`, row.name);
+      if ("foundation" in row) named(`${table}.${row.id}.foundation`, row.foundation); // animal-appearance.js checks it against its coat names
+      between(`${table}.${row.id}.width`, row.width, 0.1, 3);
+      between(`${table}.${row.id}.patch`, row.patch, 0, 1);
+      triple(`${table}.${row.id}.${tintField}`, row[tintField], 100);
+    }
+  };
+  rows("animals", ["id", "foundation", "name", "width", "tint", "patch"], "tint");
+  rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
+}
+
 // areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,
 // bytes). createAreaRegistry (area-registry.js) does the deep checks (graph, refs, conditions); this only holds the shapes closed.
 // tests/data-areas.test.js ties the asset rows to public/world/manifest.json so the two cannot drift.
@@ -716,6 +759,7 @@ export function validateSupplies(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
