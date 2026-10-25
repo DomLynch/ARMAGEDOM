@@ -23,7 +23,15 @@ test("the hunt chain leads to the salamander, then the Ember Matron, then stops 
   sal.hp = 0;
   assert.deepEqual(huntTarget(g), { pos: witch.pos, label: "KILL THE EMBER MATRON" });
   witch.hp = 0;
-  assert.equal(huntTarget(g), null);
+  assert.equal(huntTarget(g), null, "a dead Matron with no drop yet has nothing to lead to");
+  const dropPosition = { x: 11.064, z: 0.971 };
+  g.world = { areaId: "westminster", bossEquipmentData: { emberProjector: { source: { areaId: "westminster" } } } };
+  g.bossEquipment = { emberProjector: { status: "pending", dropPosition } };
+  assert.deepEqual(huntTarget(g), { pos: dropPosition, label: "COLLECT THE EMBER PROJECTOR" });
+  g.world.areaId = "lambeth";
+  assert.equal(huntTarget(g), null, "the drop arrow only shows in its source area");
+  delete g.world;
+  delete g.bossEquipment;
   witch.hp = 120;
   g.flameFuel.collected = true;
   assert.equal(huntTarget(g), null, "a collected flamethrower ends the chain even with a live Matron");
