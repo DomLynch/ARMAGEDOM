@@ -16,6 +16,12 @@
     "engine/contracts.js": [
       { "name": "SESSION_OPERATIONS", "reason": "public browser-session operation names: an API contract checked by assertSession" }
     ],
+    "clothing-palettes.js": [
+      { "name": "PAIRINGS", "reason": "derived view of data: the approved top/trouser pairs computed at load from the visual.json swatches, partners and a tonal-separation rule" }
+    ],
+    "hollow-palette.js": [
+      { "name": "library", "reason": "derived view of data: the clothing library handed to the allocator, assembled at load from clothing-palettes.js" }
+    ],
     "engine/creature-catalogue.js": [
       { "name": "ENGINE_CREATURE_CAPABILITIES", "reason": "engine capability list: the mechanics the engine provides; data may not grant itself one, the catalogue checks against it" }
     ],
@@ -43,7 +49,7 @@
   },
   "rigLiterals": {
     "actors.js": 22,
-    "animal-appearance.js": 14,
+    "animal-appearance.js": 2,
     "animal-role-bindings.js": 2,
     "area-mob-spawns.js": 3,
     "combat.js": 96,
@@ -60,7 +66,6 @@
     "wolf-native.js": 1
   },
   "constantTables": {
-    "animal-appearance.js": 1,
     "animal-cycle.js": 1,
     "clothing-palettes.js": 1,
     "core/index.js": 1,
@@ -90,7 +95,6 @@
     "engine/weapon-credit-policy.js": 1,
     "engine/world-config.js": 1,
     "engine/world-events.js": 10,
-    "face-appearance.js": 2,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
     "finisher-impact-profile.js": 2,
@@ -98,13 +102,12 @@
     "gaunt-human-bindings.js": 2,
     "gaunt-shape.js": 2,
     "hollow-encounter.js": 1,
-    "hollow-palette.js": 2,
+    "hollow-palette.js": 1,
     "low-hover-drone.js": 1,
     "mobile-combat-aim.js": 2,
     "pistol-targeting.js": 2,
     "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1,
-    "roach-appearance.js": 1,
     "supplies.js": 2
   }
 }
