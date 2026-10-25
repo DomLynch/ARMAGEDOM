@@ -209,8 +209,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "51462117470d86f2e8b70d4f78f33f8c47f460a4196c060ac5536c5d7ccebeb0",
-      "bytes": 1493636,
+      "sha256": "e0a8f468c48cec410d29bdf545d5cb481d627454a7672c551037217ed9c7d2ff",
+      "bytes": 1549644,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -1341,8 +1341,8 @@
   "files": {
     "player-phone": {
       "file": "donor/warrior-phone.glb",
-      "bytes": 2796160,
-      "sha256": "40fd47ee14e7cd0ef7290cdab5c0e70d958b79bf02e3485ec3f1408c3072d3ce",
+      "bytes": 2869808,
+      "sha256": "c9d7741ae67f188c3bad85475b14ab721d6d8f05a7b6cb00308fefdd45d5701c",
       "errors": 0,
       "textureCapSource": {"file": "donor/warrior.glb", "bytes": 6749796, "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"}
     },
@@ -1368,8 +1368,8 @@
     },
     "hollow-phone": {
       "file": "hollow-scavenger/hollow-scavenger-phone.glb",
-      "bytes": 1493636,
-      "sha256": "51462117470d86f2e8b70d4f78f33f8c47f460a4196c060ac5536c5d7ccebeb0",
+      "bytes": 1549644,
+      "sha256": "e0a8f468c48cec410d29bdf545d5cb481d627454a7672c551037217ed9c7d2ff",
       "errors": 0,
       "textureCapSource": {"file": "hollow-scavenger/hollow-scavenger.glb", "bytes": 4329068, "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"}
     },

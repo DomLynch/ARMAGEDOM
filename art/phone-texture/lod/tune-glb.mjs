@@ -6,8 +6,8 @@
 //        the base colour map of that material is resized so its longest side is `size` (Lanczos, never enlarged) and stored as lossy
 //        WebP at `quality`; a map exactly `size` wide is only re-encoded; smaller maps are skipped.
 //     "quantize": true
-//        NORMAL -> int8 normalized (renormalised on read), WEIGHTS_n -> uint8 normalized (largest weight absorbs the rounding so each
-//        vertex still sums to 1), COLOR_n -> uint8 normalized, TEXCOORD_n -> uint16 normalized when every value is in [0, 1]. The
+//        NORMAL -> int8 normalized (renormalised on read), WEIGHTS_n -> uint16 normalized (uint8 with "weightBits": 8; the largest weight absorbs
+//        the rounding so each vertex still sums to 1), COLOR_n -> uint8 normalized, TEXCOORD_n -> uint16 normalized when every value is in [0, 1]. The
 //        boss and salamander files already store NORMAL and WEIGHTS_0 this way (KHR_mesh_quantization). The largest error of each
 //        is printed.
 //   }
@@ -56,7 +56,7 @@ if (plan.quantize) {
     for (const prim of mesh.listPrimitives())
       for (const semantic of prim.listSemantics()) {
         const accessor = prim.getAttribute(semantic);
-        if (done.has(accessor) || accessor.getComponentType() !== 5126) continue;
+        if (done.has(accessor) || accessor.getComponentType() !== 5126 || plan.skip?.some((s) => semantic.startsWith(s))) continue;
         done.add(accessor);
         const a = accessor.getArray(),
           n = accessor.getElementSize();
@@ -72,17 +72,19 @@ if (plan.quantize) {
           }
           swap(accessor, q, "NORMAL");
         } else if (semantic.startsWith("WEIGHTS_")) {
-          const q = new Uint8Array(a.length);
+          // 16-bit by default: 8-bit weights moved a posed vertex enough to flip a railgun trace in the creature attack matrix.
+          const max = plan.weightBits === 8 ? 255 : 65535,
+            q = max === 255 ? new Uint8Array(a.length) : new Uint16Array(a.length);
           for (let i = 0; i < a.length; i += 4) {
             let sum = 0,
               big = 0;
             for (let k = 0; k < 4; k++) {
-              q[i + k] = Math.round(Math.max(0, Math.min(1, a[i + k])) * 255);
+              q[i + k] = Math.round(Math.max(0, Math.min(1, a[i + k])) * max);
               sum += q[i + k];
               if (q[i + k] > q[i + big]) big = k;
             }
-            if (sum > 0) q[i + big] += 255 - sum;
-            for (let k = 0; k < 4; k++) errors.weight = Math.max(errors.weight, Math.abs(q[i + k] / 255 - a[i + k]));
+            if (sum > 0) q[i + big] += max - sum;
+            for (let k = 0; k < 4; k++) errors.weight = Math.max(errors.weight, Math.abs(q[i + k] / max - a[i + k]));
           }
           swap(accessor, q, semantic);
         } else if (semantic.startsWith("COLOR_")) {
