@@ -7,6 +7,7 @@ import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
+import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
@@ -278,11 +279,46 @@ export function validateVisual(d) {
   d.effects.lootColours.forEach((h) => hex("effects.lootColours", h));
 }
 
+// spawns.json: the resident and drone placements of the areas whose rows were code before the data layer (Westminster, East, South),
+// and which of those residents walk with the crooked gait. The rest of the area-content rules (geometry, creature identity, health
+// range, a boss or unique-reward row naming a placement) are checked where the rows are used (engine/area-content.js).
+export function validateSpawns(d) {
+  closed(d, ["schema_version", "mob", "drones", "crookedResidents"]);
+  const keys = new Set(),
+    point = (name, p) => {
+      closed(p, ["x", "z"]);
+      if (!Number.isFinite(p.x) || !Number.isFinite(p.z)) fail("spawns", `${name} must be finite`);
+    };
+  for (const [table, rows] of [
+    ["mob", d.mob],
+    ["drones", d.drones],
+  ]) {
+    if (!rows || typeof rows !== "object" || Array.isArray(rows)) fail("spawns", `${table} must be an object by area`);
+    for (const [area, list] of Object.entries(rows)) {
+      if (!/^[a-z][a-z0-9-]*$/.test(area) || !Array.isArray(list)) fail("spawns", `${table}.${area}`);
+      for (const row of list) {
+        closed(row, ["key", "pos", "patrol"], ["appearanceRef", "encounter", "foundationRef", "recipeRef"]);
+        if (typeof row.key !== "string" || !/^[a-z][a-z0-9-]*$/.test(row.key) || keys.has(row.key))
+          fail("spawns", `${table}.${area} key`);
+        keys.add(row.key);
+        point(`${row.key}.pos`, row.pos);
+        if (!Array.isArray(row.patrol) || row.patrol.length < 2) fail("spawns", `${row.key}.patrol`);
+        row.patrol.forEach((p) => point(`${row.key}.patrol`, p));
+      }
+    }
+  }
+  if (!Array.isArray(d.crookedResidents) || new Set(d.crookedResidents).size !== d.crookedResidents.length)
+    fail("spawns", "crookedResidents");
+  const mobKeys = new Set(Object.values(d.mob).flatMap((list) => list.map((row) => row.key)));
+  if (d.crookedResidents.some((key) => !mobKeys.has(key))) fail("spawns", "crookedResidents must name a mob row");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
+  spawns: [spawns, validateSpawns],
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
