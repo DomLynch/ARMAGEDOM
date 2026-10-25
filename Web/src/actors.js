@@ -1319,13 +1319,16 @@ export function createActors(
         reaperView?.dispose();
         reaperView = null;
       }
-      // Start the deferred hunter model once the player first holds marked money, ahead of the warning.
+      // Start the deferred hunter model ahead of the warning: once the player first holds marked money, or half way through the
+      // first-arrival wait. Never in the first-input bytes.
       if (
         !earlyHunterLoad &&
         game.world?.markedData &&
         game.world.markedData.hunters !== false &&
         library.manifest.models?.["marked-hunter"] &&
-        (game.marked?.carried > 0 || game.marked?.bounty > 0)
+        (game.marked?.carried > 0 ||
+          game.marked?.bounty > 0 ||
+          (game.markedHunt && game.time >= game.markedHunt.arrivedAt + game.world.markedData.arrivalDelay / 2))
       ) {
         earlyHunterLoad = true;
         library.ensureModels?.(["marked-hunter"])?.catch(() => {
