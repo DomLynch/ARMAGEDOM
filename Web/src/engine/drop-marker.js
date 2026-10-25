@@ -18,7 +18,7 @@ function labelSprite(text, style) {
   // Only fillRect and fillText are used (the border is four filled bars), so a minimal 2D context is enough.
   if (typeof ctx?.fillRect !== "function" || typeof ctx.fillText !== "function") return null;
   ctx.fillStyle = `#${style.labelBacking}`;
-  ctx.globalAlpha = 0.96;
+  ctx.globalAlpha = style.labelBackingOpacity;
   ctx.fillRect(0, 0, 384, 64);
   ctx.globalAlpha = 1;
   ctx.fillStyle = `#${style.ringColour}`;
@@ -105,7 +105,7 @@ export function createDropMarker(label, style = STYLE) {
     const p = dropPulse(globalThis.performance?.now?.() / 1000 || 0, style),
       swell = 1 + style.ringPulse * ((p - style.minOpacity) / (1 - style.minOpacity)),
       item = 1 + style.itemPulse * (p - 0.5);
-    ring.material.opacity = p;
+    ring.material.opacity = style.peakOpacity * p;
     ring.scale.setScalar(swell);
     if (glow) {
       glow.material.opacity = style.glowOpacity * p;

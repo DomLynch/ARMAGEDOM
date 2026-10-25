@@ -401,6 +401,8 @@ export function validateVisual(d) {
     "ringOuter",
     "glowOuter",
     "glowOpacity",
+    "peakOpacity",
+    "labelBackingOpacity",
     "ringPulse",
     "ringColour",
     "labelColour",
@@ -416,7 +418,7 @@ export function validateVisual(d) {
     number("visual", `dropMarker.${f}`, m[f], 0.01);
   if (m.ringOuter <= m.ringInner) fail("visual", "dropMarker.ringOuter must exceed ringInner");
   if (m.glowOuter <= m.ringOuter) fail("visual", "dropMarker.glowOuter must exceed ringOuter");
-  for (const f of ["glowOpacity", "ringPulse"])
+  for (const f of ["glowOpacity", "peakOpacity", "labelBackingOpacity", "ringPulse"])
     if (!(m[f] >= 0 && m[f] <= 1)) fail("visual", `dropMarker.${f} must be 0 to 1`);
   if (!(m.minOpacity >= 0 && m.minOpacity <= 1)) fail("visual", "dropMarker.minOpacity must be 0 to 1");
   if (!(m.itemPulse >= 0 && m.itemPulse <= 0.3)) fail("visual", "dropMarker.itemPulse must be 0 to 0.3");

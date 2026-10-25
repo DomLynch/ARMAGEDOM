@@ -77,10 +77,12 @@
     "lootColours": ["dca64d", "48b9c5", "70c66e"]
   },
   "dropMarker": {
-    "ringInner": 1.15,
+    "ringInner": 1.425,
     "ringOuter": 1.7,
-    "glowOuter": 2.7,
-    "glowOpacity": 0.55,
+    "glowOuter": 2.4,
+    "glowOpacity": 0.25,
+    "peakOpacity": 0.8,
+    "labelBackingOpacity": 0.8,
     "ringPulse": 0.16,
     "ringColour": "f2a93b",
     "labelColour": "ffe3a6",
