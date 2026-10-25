@@ -1,3 +1,4 @@
+import { GAME_DATA } from "./game-data.js";
 import { stopBossFlames } from "./boss-flame.js";
 import { needsUniqueDeathCommit } from "./unique-reward-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
@@ -11,7 +12,7 @@ import { relieveGeometryBudget, limitParkedAreas, protectedAreas } from "./parke
 import { createAreaPrefetch, PREFETCH_LIMITS } from "./area-prefetch.js";
 import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
 // Parked-area budget with the prefetch flag: two areas or 30 MB of their textures, whichever comes first.
-export const PARKED_AREA_LIMIT = Object.freeze({ maxAreas: 2, maxBytes: 30 * 1024 * 1024 });
+export const PARKED_AREA_LIMIT = GAME_DATA.areaRuntime.parkedAreas; // data/areaRuntime.json: 2 areas, 30 MiB
 export const TRAVEL_MESSAGE_DELAY_MS = 300;
 // The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
 // Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.

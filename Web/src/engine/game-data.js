@@ -3,6 +3,7 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
+import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -757,10 +758,29 @@ export function validateSupplies(d) {
   for (const axis of ["x", "z"]) number("supplies", `vestBagPosition.${axis}`, d.vestBagPosition[axis], -1000);
 }
 
+// areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
+// (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
+export function validateAreaRuntime(d) {
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas"]);
+  closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
+  for (const [name, v] of Object.entries(d.defaultLighting))
+    if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);
+  closed(d.prefetch, ["bytesPerSecond", "startDelayMs", "maxNeighbours", "recheckMs", "fightQuietMs"]);
+  count("areaRuntime", "prefetch.bytesPerSecond", d.prefetch.bytesPerSecond, 10000, 100000000);
+  count("areaRuntime", "prefetch.startDelayMs", d.prefetch.startDelayMs, 0, 600000);
+  count("areaRuntime", "prefetch.maxNeighbours", d.prefetch.maxNeighbours, 1, 8);
+  count("areaRuntime", "prefetch.recheckMs", d.prefetch.recheckMs, 10, 60000);
+  count("areaRuntime", "prefetch.fightQuietMs", d.prefetch.fightQuietMs, 0, 600000);
+  closed(d.parkedAreas, ["maxAreas", "maxBytes"]);
+  count("areaRuntime", "parkedAreas.maxAreas", d.parkedAreas.maxAreas, 1, 8);
+  count("areaRuntime", "parkedAreas.maxBytes", d.parkedAreas.maxBytes, 1048576, 1073741824);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
+  areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
