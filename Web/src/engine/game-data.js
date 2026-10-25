@@ -455,12 +455,12 @@ export function validateWorldEvents(d) {
 
 // atmosphere.json: the painted-fire and smoke anchors per area (atmosphere-areas.js), their presets and quad budgets, and the two
 // bridge road bend chains (bridge-steering.js). Coordinates are fractions of the area painting, Y down.
-const ATMOSPHERE_NUMBERS = ["width", "rise", "smoke", "opacity", "fireWidth", "fireHeight", "embers"];
+const atmosphereNumbers = () => ["width", "rise", "smoke", "opacity", "fireWidth", "fireHeight", "embers"];
 const fraction = (field, v, min = 0, max = 1) => {
   if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) fail("atmosphere", `${field} must be ${min} to ${max}`);
 };
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
-  for (const key of ATMOSPHERE_NUMBERS) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
+  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
   if (Object.hasOwn(row, "smokeColor")) {
     if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3) fail("atmosphere", `${field}.smokeColor`);
     row.smokeColor.forEach((c, i) => fraction(`${field}.smokeColor[${i}]`, c));
@@ -485,7 +485,11 @@ export function validateAtmosphere(d) {
     if (!Array.isArray(rows) || rows.length > 32) fail("atmosphere", `areas.${area} must list up to 32 anchors`);
     const ids = new Set();
     for (const row of rows) {
-      closed(row, ["id", "preset", "x", "y", "seed", "scale", "intensity"], ["foot", "depth", ...ATMOSPHERE_NUMBERS, "smokeColor", "preserve"]);
+      closed(
+        row,
+        ["id", "preset", "x", "y", "seed", "scale", "intensity"],
+        ["foot", "depth", ...atmosphereNumbers(), "smokeColor", "preserve"],
+      );
       id("atmosphere", `${area} anchor id`, row.id);
       if (ids.has(row.id)) fail("atmosphere", `${area} repeats anchor ${row.id}`);
       ids.add(row.id);
