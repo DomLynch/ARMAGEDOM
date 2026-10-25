@@ -342,7 +342,11 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow"]);
+  // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
+  // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
+  closed(d.routeArrow, ["peakOpacity"]);
+  if (typeof d.routeArrow.peakOpacity !== "number" || !(d.routeArrow.peakOpacity > 0 && d.routeArrow.peakOpacity <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);

@@ -144,7 +144,7 @@ summary:focus-visible {
   text-shadow: 0 1px 4px #000;
   margin: 0;
 }
-/* First-time hint pop-up: the route arrow's gold (0xf1d28c) on the HUD's dark pill. It floats (fixed), outside the column. */
+/* First-time hint pop-up: the HUD's pale gold (#f1d28c) on its dark pill. It floats (fixed), outside the column. */
 #notice.hint {
   position: fixed;
   top: calc(var(--safe-t) + 93px);
@@ -637,7 +637,7 @@ summary {
 #commander-result button { margin:8px; }
 @media(max-width:600px) { .mode-panels { grid-template-columns:1fr; gap:10px; margin-top:12px; }.mode-panel { padding:14px; }.mode-panel p { min-height:0; margin:8px 0 12px; }.mode-card h1 { font-size:2rem; }.mode-card { padding:20px; }.commander-summary { padding:9px 11px; }.commander-summary h2 { font-size:.9rem; } }
 @media(max-height:550px) and (min-width:601px) { .commander-summary { width:320px; }.commander-orders { left:auto; width:360px; }.mode-card { padding:14px; }.mode-panel { padding:12px; } }
-/* Centre status lines: bold, in the route arrow's pale gold (0xf1d28c), with the dark outline for contrast. */
+/* Centre status lines: bold, in the HUD's pale gold (#f1d28c), with the dark outline for contrast. */
 #notice:not(.hint),
 #marked-status,
 #marked-status[data-marked="true"],
