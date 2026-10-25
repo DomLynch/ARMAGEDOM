@@ -127,6 +127,34 @@ export function tileGesture() {
     },
   };
 }
+// A weapon picked up for the first time makes the tiles flash for a few seconds, with a "switch" chevron beside them.
+// "Seen" weapon ids live in their own localStorage key (like the first-time hints), never in the run save, and the
+// first update only records what is already carried, so loading a save never flashes.
+export const TILE_FLASH_KEY = "armagedom.weaponTileFlash.v1";
+export const TILE_FLASH_SECONDS = 5;
+export function createTileFlash(storage = globalThis.localStorage) {
+  const seen = new Set();
+  try {
+    const stored = JSON.parse(storage?.getItem(TILE_FLASH_KEY) ?? "[]");
+    if (Array.isArray(stored)) for (const id of stored) if (typeof id === "string") seen.add(id);
+  } catch {
+    /* Unreadable storage only means a flash may repeat. */
+  }
+  let known = null;
+  // Returns true when a carried weapon is new this session and has never flashed.
+  return (ids) => {
+    const fresh = known ? ids.filter((id) => !known.has(id) && !seen.has(id)) : [];
+    known = new Set(ids);
+    if (!fresh.length) return false;
+    for (const id of fresh) seen.add(id);
+    try {
+      storage?.setItem(TILE_FLASH_KEY, JSON.stringify([...seen]));
+    } catch {
+      /* The flash simply shows again next time. */
+    }
+    return true;
+  };
+}
 export function createWeaponTiles(s, select) {
   const root = document.getElementById("weapon-tiles"),
     track = document.getElementById("weapon-tiles-track"),
@@ -138,7 +166,9 @@ export function createWeaponTiles(s, select) {
   const gesture = tileGesture(),
     listeners = [],
     buttons = new Map();
-  let order = "",
+  const newWeapon = createTileFlash();
+  let flashUntil = 0,
+    order = "",
     selecting = false,
     disposed = false;
   const listen = (node, type, fn, options) => {
@@ -213,6 +243,9 @@ export function createWeaponTiles(s, select) {
     if (root.hidden) return;
     const rows = carriedWeaponTiles(g),
       next = rows.map((r) => r.id).join("|");
+    const now = globalThis.performance?.now?.() ?? 0;
+    if (newWeapon(rows.map((r) => r.id))) flashUntil = now + TILE_FLASH_SECONDS * 1000;
+    root.classList.toggle("flash", now < flashUntil);
     if (next !== order) {
       const oldPage = Math.round(track.scrollLeft / 110);
       track.replaceChildren();

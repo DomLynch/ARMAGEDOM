@@ -596,6 +596,10 @@ summary {
 #weapon-tiles-track .weapon-page{display:flex;flex:0 0 110px;width:110px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
 #weapon-tiles .weapon-browse{flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#e1bb65;font-size:22px;line-height:44px;text-align:center;touch-action:none;}
 #weapon-tiles-prev{position:absolute;left:0;bottom:100%;}
+#weapon-tiles.flash #weapon-tiles-track button{animation:tile-flash .8s ease-in-out infinite alternate;}
+#weapon-tiles.flash::after{content:"‹ › SWITCH";position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:6px;color:#e1bb65;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;pointer-events:none;animation:tile-flash .8s ease-in-out infinite alternate;}
+@keyframes tile-flash{from{opacity:.55;}to{opacity:1;box-shadow:0 0 8px #e1bb65;}}
+@media(prefers-reduced-motion:reduce){#weapon-tiles.flash #weapon-tiles-track button,#weapon-tiles.flash::after{animation:none;}}
 @media(orientation:portrait)and(max-width:374px){#weapon-tiles{bottom:calc(var(--safe-b) + 232px);}}
 
 #marked-status{position:absolute;top:calc(var(--safe-t) + 180px);left:12px;right:12px;margin:0;text-align:center;white-space:pre-line;font-size:10px;line-height:1.5;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
