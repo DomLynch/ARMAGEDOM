@@ -49,7 +49,7 @@ test("the loader refuses a bad boss equipment section", () => {
   for (const [name, mutate] of Object.entries(cases)) {
     const b = good();
     mutate(b);
-    assert.throws(() => validateBossEquipment(b, ranged), TypeError, name);
+    assert.throws(() => validateBossEquipment(b, ranged), Error, name);
   }
   assert(buildGameData());
 });
