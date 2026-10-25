@@ -245,7 +245,7 @@ export function createWeaponTiles(s, select) {
       next = rows.map((r) => r.id).join("|");
     const now = globalThis.performance?.now?.() ?? 0;
     if (newWeapon(rows.map((r) => r.id))) flashUntil = now + TILE_FLASH_SECONDS * 1000;
-    root.classList.toggle("flash", now < flashUntil);
+    root.classList?.toggle("flash", now < flashUntil);
     if (next !== order) {
       const oldPage = Math.round(track.scrollLeft / 110);
       track.replaceChildren();
