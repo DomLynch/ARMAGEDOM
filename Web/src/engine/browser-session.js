@@ -715,7 +715,9 @@ export function createBrowserSession(options = {}) {
     enter.disabled = true;
     enter.textContent = "Loading Westminster…";
     const start = performance.now();
-    const audioReady = audio.unlock();
+    // The Enter gesture unlocks audio now; the cue file (0.3 MB) is fetched once the game can take input, so it does not compete with
+    // the models and world for the first seconds of a slow connection.
+    const audioReady = audio.unlock({ deferLoad: true });
     try {
       renderer ??= new THREE.WebGLRenderer({
         canvas,
@@ -824,6 +826,9 @@ export function createBrowserSession(options = {}) {
         throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet.");
       loaded = true;
       hud.ready();
+      audio.preload?.().then((ok) => {
+        if (!ok && audio.state.error && !disposed) console.warn("ARMAGEDOM_AUDIO_FAILED", audio.state.error);
+      });
       if (syncedNotice && game) {
         syncedNotice = false;
         game.message = "Progress synced";

@@ -102,6 +102,49 @@ test("a resume refused during the interruption is contained and the next gesture
   await audio.dispose();
 });
 
+test("deferLoad: the gesture resumes the context but fetches nothing; preload then loads the cues once", async (t) => {
+  const made = install(t);
+  const audio = make();
+  assert.equal(await audio.unlock({ deferLoad: true }), true, "reports running");
+  assert.equal(audio.state.context, "running");
+  assert.equal(audio.state.ready, false, "the cue file is not loaded yet");
+  assert.equal(globalThis.fetch.mock.callCount(), 0, "no request at Enter");
+  assert.equal(await audio.preload(), true);
+  assert.equal(audio.state.ready, true);
+  assert.equal(globalThis.fetch.mock.callCount(), 2, "the manifest and the cue file");
+  assert.equal(await audio.preload(), true);
+  assert.equal(await audio.unlock(), true);
+  assert.equal(globalThis.fetch.mock.callCount(), 2, "later gestures and preloads never fetch twice");
+  assert.equal(made.length, 1);
+  await audio.dispose();
+});
+
+test("preload before any gesture does nothing; after a pause it neither resumes the context nor clears the pause", async (t) => {
+  const made = install(t);
+  const audio = make();
+  assert.equal(await audio.preload(), false, "no context yet: nothing is fetched");
+  assert.equal(globalThis.fetch.mock.callCount(), 0);
+  await audio.unlock({ deferLoad: true });
+  await audio.pause();
+  assert.equal(audio.state.context, "suspended");
+  assert.equal(await audio.preload(), true);
+  assert.equal(audio.state.context, "suspended", "preload does not resume a paused game's audio");
+  assert.equal(audio.state.ready, true);
+  assert.equal(made.length, 1);
+  await audio.dispose();
+});
+
+test("a gesture while a deferred load is already in flight shares it", async (t) => {
+  install(t);
+  const audio = make();
+  await audio.unlock({ deferLoad: true });
+  const early = audio.preload();
+  assert.equal(await audio.unlock(), true);
+  assert.equal(await early, true);
+  assert.equal(globalThis.fetch.mock.callCount(), 2, "one load, not two");
+  await audio.dispose();
+});
+
 test("screen lock or app switch: pause suspends, the Resume gesture runs it again", async (t) => {
   const made = install(t);
   const audio = make();
