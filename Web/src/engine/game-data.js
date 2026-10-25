@@ -53,11 +53,22 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged", "knife", "melee", "bossRanged"]);
+  closed(d, ["schema_version", "ranged", "knife", "melee", "bossRanged", "vest"]);
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
+  validateVest(d.vest);
+}
+// The Westminster worn vest: its item id and area (both saved identities), the kills that unlock the stash, the pickup radius in
+// metres and the share of a hit it absorbs.
+export function validateVest(v) {
+  closed(v, ["itemId", "areaId", "requiredKills", "pickupRadius", "reduction"]);
+  for (const f of ["itemId", "areaId"]) if (typeof v[f] !== "string" || !/^[a-z0-9-]{1,40}$/.test(v[f])) fail("weapons", `vest.${f}`);
+  count("weapons", "vest.requiredKills", v.requiredKills, 0, 100);
+  number("weapons", "vest.pickupRadius", v.pickupRadius);
+  number("weapons", "vest.reduction", v.reduction);
+  if (v.reduction >= 1) fail("weapons", "vest.reduction must be below 1");
 }
 // What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
 // The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.

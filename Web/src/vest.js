@@ -1,12 +1,8 @@
 import { isSuppliesState, legacyIssuedCount } from "./supplies.js";
+import { GAME_DATA } from "./engine/game-data.js";
 
-export const VEST_RULES = Object.freeze({
-  itemId: "westminster-worn-vest-v1",
-  areaId: "westminster",
-  requiredKills: 2,
-  pickupRadius: 1.3,
-  reduction: 0.1,
-});
+// The numbers live in Web/src/data/weapons.json `vest` (read through game-data.js).
+export const VEST_RULES = GAME_DATA.weapons.vest;
 
 export function createVestState() {
   return { version: 1, itemId: VEST_RULES.itemId, equipped: false };
