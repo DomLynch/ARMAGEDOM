@@ -346,7 +346,8 @@ export function validateVisual(d) {
   // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
   // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
   closed(d.routeArrow, ["peakOpacity"]);
-  if (typeof d.routeArrow.peakOpacity !== "number" || !(d.routeArrow.peakOpacity > 0 && d.routeArrow.peakOpacity <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
+  const peak = d.routeArrow.peakOpacity;
+  if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);
