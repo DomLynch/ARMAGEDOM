@@ -107,7 +107,13 @@ function liveCreatureRows() {
       for (const e of g.enemies) {
         if (e.bossProfile) {
           if (!bossRows.has(e.rig))
-            bossRows.set(e.rig, { name: e.rig, areaId, cycle, placementKey: e.placementKey, template: structuredClone(e) });
+            bossRows.set(e.rig, {
+              name: e.rig,
+              areaId,
+              cycle,
+              placementKey: e.placementKey,
+              template: structuredClone(e),
+            });
           continue;
         }
         if (e.markedHunter) continue;
@@ -571,7 +577,9 @@ export function defineBossMatrix(part, parts) {
           JSON.stringify({ n: cell.reach.length, lo: cell.reach[0], hi: cell.reach.at(-1), hpLeft: cell.hpLeft }),
         );
         if (Object.hasOwn(BOSS_GAPS, id) ? status === "ok" : status !== "ok")
-          unexpected.push(Object.hasOwn(BOSS_GAPS, id) ? `${id} now passes: remove it from BOSS_GAPS` : `${id}: ${status}`);
+          unexpected.push(
+            Object.hasOwn(BOSS_GAPS, id) ? `${id} now passes: remove it from BOSS_GAPS` : `${id}: ${status}`,
+          );
       }
       assert.deepEqual(unexpected, []);
     });
@@ -580,10 +588,22 @@ export function defineBossMatrix(part, parts) {
     test("boss matrix covers all seven bosses and every starting attack", () => {
       assert.equal(bossRows.size, 7, "seven boss rows: " + [...bossRows.keys()].join());
       assert.deepEqual(
-        ATTACKS.filter((a) => STARTING_ATTACKS.includes(a.id)).map((a) => a.id).sort(),
+        ATTACKS.filter((a) => STARTING_ATTACKS.includes(a.id))
+          .map((a) => a.id)
+          .sort(),
         [...STARTING_ATTACKS].sort(),
       );
-      console.log("BOSS_ROWS", JSON.stringify([...bossRows.values()].map((r) => ({ name: r.name, area: r.areaId, key: r.placementKey, hp: r.template.maxHP }))));
+      console.log(
+        "BOSS_ROWS",
+        JSON.stringify(
+          [...bossRows.values()].map((r) => ({
+            name: r.name,
+            area: r.areaId,
+            key: r.placementKey,
+            hp: r.template.maxHP,
+          })),
+        ),
+      );
     });
 }
 
