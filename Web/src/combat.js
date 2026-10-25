@@ -31,6 +31,7 @@ import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/fla
 import { wolfResponse, wolfBiteDirection } from "./wolf-native.js";
 import { SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
@@ -70,21 +71,8 @@ import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
-export const attacks = {
-  slash: { windup: 0.14, recovery: 0.28, range: 2.6, arc: 100, multiplier: 1, stagger: 0.1, cooldown: 0 },
-  stab: {
-    windup: 0.12,
-    recovery: 0.24,
-    range: 3.1,
-    arc: 24,
-    multiplier: 1.2,
-    stagger: 0.12,
-    cooldown: 0,
-    single: true,
-  },
-  heavy: { windup: 0.36, recovery: 0.42, range: 3.2, arc: 130, multiplier: 2.1, stagger: 0.3, cooldown: 1.6 },
-  special: { windup: 0.2, recovery: 0.38, range: 4.2, arc: 360, multiplier: 2.2, stagger: 0.3, cooldown: 7 },
-};
+// The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
+export const attacks = GAME_DATA.creatures.playerAttacks;
 const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
   behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
 });

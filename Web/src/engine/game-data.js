@@ -180,7 +180,18 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "salamanderBreath"]);
+  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath"]);
+  // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
+  closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
+  for (const [name, row] of Object.entries(d.playerAttacks)) {
+    closed(row, ["windup", "recovery", "range", "arc", "multiplier", "stagger", "cooldown"], ["single"]);
+    for (const f of ["windup", "recovery", "range", "arc", "multiplier", "stagger", "cooldown"])
+      number("creatures", `playerAttacks.${name}.${f}`, row[f]);
+    if ("single" in row && typeof row.single !== "boolean") fail("creatures", `playerAttacks.${name}.single`);
+  }
+  // Health comes back over this many seconds of active play, from empty to full.
+  closed(d.playerHealth, ["regenerationSeconds"]);
+  number("creatures", "playerHealth.regenerationSeconds", d.playerHealth.regenerationSeconds, 1);
   if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
   for (const [name, row] of Object.entries(d.moves)) {
     id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
