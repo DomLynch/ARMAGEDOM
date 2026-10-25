@@ -2,6 +2,7 @@ import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
@@ -243,7 +244,7 @@ export function createFlameView(s, persistence) {
       const ready = s.actors.flameReady();
       if (!drop || ready !== dropReady) {
         clearDrop();
-        drop = createFlamePickupView(s.actors.flameAsset());
+        drop = markDrop(createFlamePickupView(s.actors.flameAsset()), "Flamethrower");
         dropReady = ready;
         s.scene.add(drop.root);
       }

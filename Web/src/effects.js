@@ -12,6 +12,7 @@ import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js"
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
+import { createDropMarker } from "./engine/drop-marker.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // Web/src/data/visual.json `effects`: hex strings, read as numbers once.
 const hexNumber = (hex) => parseInt(hex, 16);
@@ -567,6 +568,8 @@ export function createEffects(
     }
     pickup.add(gun);
   }
+  const pickupMarker = createDropMarker("Starting pistol");
+  pickup.add(pickupMarker.group);
   const bracketGeometry = (padding) => {
     const vertices = [];
     const rect = (x, y, w, h) => {
@@ -1098,6 +1101,7 @@ export function createEffects(
       delete pool.userData.finisherImpact;
       scene.remove(pickup, reticle);
       for (const contour of pickupContours) contour.dispose();
+      pickupMarker.dispose();
       outlineGeometry.dispose();
       cueGeometry.dispose();
       accentGeometry.dispose();

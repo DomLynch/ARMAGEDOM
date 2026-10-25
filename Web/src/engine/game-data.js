@@ -322,7 +322,7 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker"]);
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);
@@ -393,6 +393,33 @@ export function validateVisual(d) {
   for (const [name, h] of Object.entries(d.effects.swingColours)) hex(`effects.swingColours.${name}`, h);
   list("effects.lootColours", d.effects.lootColours, 1, 16);
   d.effects.lootColours.forEach((h) => hex("effects.lootColours", h));
+  // The ground marker on every unclaimed weapon or reward drop (engine/drop-marker.js): a pulsing ring (metres), a short floating label
+  // (width and height above the ground in metres) and a gentle pulse of the drop itself (a share of its size).
+  const m = d.dropMarker;
+  closed(m, [
+    "ringInner",
+    "ringOuter",
+    "glowOuter",
+    "glowOpacity",
+    "ringPulse",
+    "ringColour",
+    "labelColour",
+    "labelBacking",
+    "pulseSeconds",
+    "minOpacity",
+    "itemPulse",
+    "labelHeight",
+    "labelWidth",
+  ]);
+  for (const f of ["ringColour", "labelColour", "labelBacking"]) hex(`dropMarker.${f}`, m[f]);
+  for (const f of ["ringInner", "ringOuter", "glowOuter", "pulseSeconds", "labelHeight", "labelWidth"])
+    number("visual", `dropMarker.${f}`, m[f], 0.01);
+  if (m.ringOuter <= m.ringInner) fail("visual", "dropMarker.ringOuter must exceed ringInner");
+  if (m.glowOuter <= m.ringOuter) fail("visual", "dropMarker.glowOuter must exceed ringOuter");
+  for (const f of ["glowOpacity", "ringPulse"])
+    if (!(m[f] >= 0 && m[f] <= 1)) fail("visual", `dropMarker.${f} must be 0 to 1`);
+  if (!(m.minOpacity >= 0 && m.minOpacity <= 1)) fail("visual", "dropMarker.minOpacity must be 0 to 1");
+  if (!(m.itemPulse >= 0 && m.itemPulse <= 0.3)) fail("visual", "dropMarker.itemPulse must be 0 to 0.3");
 }
 
 // spawns.json: the resident and drone placements of the areas whose rows were code before the data layer (Westminster, East, South),

@@ -43,7 +43,16 @@ export function createMeleePickupView(source, data) {
     },
   };
 }
-export function createUniqueRewardView(s, dispatch) {
+// `markers` is the engine's drop marker (engine/drop-marker.js: markDrop, createMarkerOnlyDrop), handed in by run-views.js because
+// this file sits outside the engine boundary. Without it the drop has no ring or label.
+const noMarkers = {
+  markDrop: (view) => view,
+  createMarkerOnlyDrop() {
+    const root = new T.Group();
+    return { root, dispose: () => root.removeFromParent() };
+  },
+};
+export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
   const el = (id) => document.getElementById(id),
     panel = el("melee-equipment"),
     label = el("unique-reward-label");
@@ -168,8 +177,11 @@ export function createUniqueRewardView(s, dispatch) {
       });
     return claimed;
   }
-  function createDrop(data) {
-    const view = createMeleePickupView(source(data.itemId), data);
+  function createDrop(data, ready) {
+    const name = MELEE_VARIANTS[data.itemId]?.name ?? "Weapon",
+      view = ready
+        ? Object.assign(markers.markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
+        : markers.createMarkerOnlyDrop(name);
     s.scene.add(view.root);
     return view;
   }
@@ -228,8 +240,11 @@ export function createUniqueRewardView(s, dispatch) {
     const visible = available() && state.status === "pending" && g.world.areaId === data.areaId;
     if (visible && !source(data.itemId) && !loads.has(data.itemId) && !failed.has(data.itemId))
       prepare(data.itemId).catch(() => {});
-    if (visible && source(data.itemId)) {
-      if (!drop) drop = createDrop(data);
+    if (visible) {
+      // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
+      const ready = !!source(data.itemId);
+      if (drop && ready && !drop.model) clearDrop();
+      drop ??= createDrop(data, ready);
       drop.root.position.copy(g.world.toRender(state.dropPosition));
     } else clearDrop();
     label.hidden = true;
