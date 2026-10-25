@@ -40,7 +40,13 @@ export function huntTarget(g) {
     salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
     matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
   if (salamander) return { pos: salamander.pos, label: "KILL THE SALAMANDER" };
-  return matron ? { pos: matron.pos, label: "KILL THE EMBER MATRON" } : null;
+  if (matron) return { pos: matron.pos, label: "KILL THE EMBER MATRON" };
+  // The Matron is dead and her drop is still on the ground: the arrow leads to it instead of falling through to the exit.
+  const ember = g.bossEquipment?.emberProjector,
+    source = g.world?.bossEquipmentData?.emberProjector?.source;
+  return ember?.status === "pending" && ember.dropPosition && source?.areaId === g.world.areaId
+    ? { pos: ember.dropPosition, label: "COLLECT THE EMBER PROJECTOR" }
+    : null;
 }
 export function validateGuidance(layout, g, links = null) {
   const rows = layout.guidance ?? [];
