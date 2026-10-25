@@ -3,7 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
-import { createMarkerOnlyDrop, markDrop } from "../drop-marker.js";
+import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
@@ -280,6 +280,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         drop = null;
       }
       if (!drop) {
+        if (!ready && !s.scene) continue; // no scene to show the marker in yet
         if (ready) {
           const source = s.actors.equipmentAsset(field);
           drop = markDrop(

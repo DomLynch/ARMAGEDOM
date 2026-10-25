@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import * as THREE from "three";
-import { createDropMarker, createMarkerOnlyDrop, dropPulse, markDrop } from "../src/drop-marker.js";
+import { createDropMarker, createMarkerOnlyDrop, dropPulse, markDrop } from "../src/engine/drop-marker.js";
 import { GAME_DATA, validateVisual } from "../src/engine/game-data.js";
 
 const style = GAME_DATA.visual.dropMarker;
@@ -72,7 +72,8 @@ test("every ground weapon or reward drop view carries the marker", () => {
   assert.match(src("../src/engine/boss-equipment-view.js"), /createMarkerOnlyDrop\(profile\.name\)/);
   assert.match(src("../src/engine/rifle-view.js"), /createDropMarker\(/);
   assert.match(src("../src/engine/rifle-view.js"), /createMarkerOnlyDrop\(/);
-  assert.match(src("../src/unique-reward-view.js"), /markDrop\(createMeleePickupView/);
+  assert.match(src("../src/unique-reward-view.js"), /markers\.markDrop\(createMeleePickupView/);
+  assert.match(src("../src/engine/run-views.js"), /\{ markDrop, createMarkerOnlyDrop \}/);
   assert.match(src("../src/engine/flame-view.js"), /markDrop\(createFlamePickupView/);
   assert.match(src("../src/effects.js"), /createDropMarker\("Starting pistol"\)/);
 });

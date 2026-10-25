@@ -22,6 +22,7 @@ import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
 import { withWorldJournal } from "./world-events.js";
+import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
@@ -95,12 +96,16 @@ export function createRunViews(s) {
   const rifleView = createRifleView(s, (g, command, allowed) =>
     dispatchEquipmentSelection(g, command, allowed, persistence.dispatchRifle),
   );
-  const uniqueView = createUniqueRewardView(s, (g, command, allowed) => {
-    const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchUniqueReward);
-    if (result.ok && command.type === "equip") resetMobileControls(g);
-    s.updateExpedition?.();
-    return result;
-  });
+  const uniqueView = createUniqueRewardView(
+    s,
+    (g, command, allowed) => {
+      const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchUniqueReward);
+      if (result.ok && command.type === "equip") resetMobileControls(g);
+      s.updateExpedition?.();
+      return result;
+    },
+    { markDrop, createMarkerOnlyDrop },
+  );
   const expeditionView = createExpeditionView(s, (g, command, allowed) => {
     const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchExpedition);
     s.updateExpedition?.();

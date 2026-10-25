@@ -12,7 +12,7 @@ import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js"
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
-import { createDropMarker } from "./drop-marker.js";
+import { createDropMarker } from "./engine/drop-marker.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // Web/src/data/visual.json `effects`: hex strings, read as numbers once.
 const hexNumber = (hex) => parseInt(hex, 16);

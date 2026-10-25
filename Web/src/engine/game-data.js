@@ -393,7 +393,7 @@ export function validateVisual(d) {
   for (const [name, h] of Object.entries(d.effects.swingColours)) hex(`effects.swingColours.${name}`, h);
   list("effects.lootColours", d.effects.lootColours, 1, 16);
   d.effects.lootColours.forEach((h) => hex("effects.lootColours", h));
-  // The ground marker on every unclaimed weapon or reward drop (src/drop-marker.js): a pulsing ring (metres), a short floating label
+  // The ground marker on every unclaimed weapon or reward drop (engine/drop-marker.js): a pulsing ring (metres), a short floating label
   // (width and height above the ground in metres) and a gentle pulse of the drop itself (a share of its size).
   const m = d.dropMarker;
   closed(m, [

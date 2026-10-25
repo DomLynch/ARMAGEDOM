@@ -3,7 +3,6 @@ import { effectiveWeaponDamage } from "./engine/progression-runtime.js";
 import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
-import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
@@ -44,7 +43,16 @@ export function createMeleePickupView(source, data) {
     },
   };
 }
-export function createUniqueRewardView(s, dispatch) {
+// `markers` is the engine's drop marker (engine/drop-marker.js: markDrop, createMarkerOnlyDrop), handed in by run-views.js because
+// this file sits outside the engine boundary. Without it the drop has no ring or label.
+const noMarkers = {
+  markDrop: (view) => view,
+  createMarkerOnlyDrop() {
+    const root = new T.Group();
+    return { root, dispose: () => root.removeFromParent() };
+  },
+};
+export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
   const el = (id) => document.getElementById(id),
     panel = el("melee-equipment"),
     label = el("unique-reward-label");
@@ -172,8 +180,8 @@ export function createUniqueRewardView(s, dispatch) {
   function createDrop(data, ready) {
     const name = MELEE_VARIANTS[data.itemId]?.name ?? "Weapon",
       view = ready
-        ? Object.assign(markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
-        : createMarkerOnlyDrop(name);
+        ? Object.assign(markers.markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
+        : markers.createMarkerOnlyDrop(name);
     s.scene.add(view.root);
     return view;
   }

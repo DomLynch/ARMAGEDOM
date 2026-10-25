@@ -1,5 +1,5 @@
 import * as T from "three";
-import { GAME_DATA } from "./engine/game-data.js";
+import { GAME_DATA } from "./game-data.js";
 
 // The ground marker on every unclaimed weapon or reward drop, so a drop is easy to see: a pulsing gold ring (the same gold as the hub
 // storage entrance ring in route guidance), a short floating label, and a gentle pulse of the drop itself. Styling is
