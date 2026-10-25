@@ -28,7 +28,8 @@ function labelSprite(text, style) {
   ctx.fillText(text, 192, 34, 360);
   const map = new T.CanvasTexture(canvas);
   map.colorSpace = T.SRGBColorSpace;
-  const sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, toneMapped: false }));
+  const sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
+  sprite.renderOrder = 10; // drawn over the player and the drop, so the name is never clipped by a body standing on it
   sprite.scale.set(style.labelWidth, style.labelWidth / 6, 1);
   sprite.position.y = style.labelHeight;
   return sprite;
