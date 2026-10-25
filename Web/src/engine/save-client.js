@@ -6,7 +6,11 @@
 import { GAME_DATA } from "./game-data.js";
 import { CURRENT_ERA } from "./save-eras.js";
 
-export const CHARACTER_KEY = "armagedom.world.character.v1";
+// Browsers cap the body of a keepalive request at 64 KiB in all; stay under it, else the page-hide send is a plain request.
+const KEEPALIVE_MAX_BYTES = 60000;
+// A run that is over (dead or finished): its save is sent at once, never held for the interval.
+export const runIsOver = (game) => !!game && (game.finished === true || game.player?.hp <= 0);
+export const CHARACTER_KEY ="armagedom.world.character.v1";
 // The newest server revision this device has synced (saved to or loaded from), per account: `{ character, revision }`.
 export const SYNCED_KEY = "armagedom.world.synced.v1";
 export const syncedKey = (account) => `${SYNCED_KEY}:${account}`;
@@ -83,6 +87,10 @@ export function createSaveClient({
     sending = false,
     lastSentAt = -Infinity,
     timer = null,
+    urgentPending = false, // the queued record is a death record: send it at once, not at the next interval
+    urgentRun = null, // the run whose death was already marked urgent (later writes of the same dead run are routine)
+    retryWait = 0, // after a refused or failed send: how long to wait before sending the kept record again
+    lastToken = null, // the newest token seen, for the page-hide send (which cannot wait for an async token)
     stopped = false,
     halted = false; // the world answered "closed": no requests until resume() (the next status read said yes)
 
@@ -105,6 +113,7 @@ export function createSaveClient({
   async function who() {
     const token = await getToken();
     if (!token) return null;
+    lastToken = token;
     const next = accountOf(token);
     if (next !== account) {
       account = next;
@@ -209,7 +218,10 @@ export function createSaveClient({
         uncertain = true;
         return { ok: false, reason: "network" };
       }
-      if (reply.error) return { ok: false, reason: reply.error, retryMs: reply.retryMs };
+      if (reply.error) {
+        if (reply.status === 429) seq--; // refused before it was counted: the same sequence number goes out again
+        return { ok: false, reason: reply.error, retryMs: reply.retryMs };
+      }
       if (reply.refused === "stale-seq" || reply.refused === "seq-conflict") {
         seq = reply.lastSeq; // the next loop iteration sends lastSeq + 1
         continue;
@@ -249,22 +261,39 @@ export function createSaveClient({
     }
   }
 
+  // One request in flight and the newest record queued behind it (older unsent records are dropped: the newest carries all state).
+  // A refused or failed send keeps its record queued and waits `retryWait` (the writer's Retry-After); a death record skips the interval.
   function schedule() {
-    if (timer !== null || sending || stopped || halted || latest === null) return;
-    const wait = Math.max(0, lastSentAt + tuning.minSaveIntervalMs - now());
+    if (sending || stopped || halted || latest === null) return;
+    const wait = retryWait > 0 ? retryWait : urgentPending ? 0 : Math.max(0, lastSentAt + tuning.minSaveIntervalMs - now());
+    if (timer !== null) {
+      if (wait > 0) return;
+      clearTimer(timer); // a waiting routine send is overtaken by an urgent one
+    }
     timer = setTimer(flush, wait);
   }
 
   async function flush() {
     timer = null;
     if (sending || stopped || halted || latest === null) return;
-    const { raw, run } = latest;
+    const taken = latest,
+      wasUrgent = urgentPending;
     latest = null;
+    urgentPending = false;
+    retryWait = 0;
     sending = true;
     lastSentAt = now();
     try {
-      const result = await send(raw, run);
-      if (!result.ok) log(`[arma-save] not saved: ${result.reason}`);
+      const result = await send(taken.raw, taken.run);
+      if (!result.ok) {
+        log(`[arma-save] not saved: ${result.reason}`);
+        // Never drop the record: a rate limit or a network failure leaves it queued (a newer record, if one arrived, replaces it).
+        if (result.reason === "rate-limited" || result.reason === "network") {
+          if (latest === null) latest = taken;
+          urgentPending = urgentPending || wasUrgent;
+          retryWait = Math.max(result.retryMs ?? 0, result.reason === "network" ? tuning.minSaveIntervalMs : 0, 250);
+        }
+      }
     } catch (error) {
       log(`[arma-save] error: ${error?.message}`);
     } finally {
@@ -273,15 +302,73 @@ export function createSaveClient({
     }
   }
 
+  // The page is going away (pagehide, or the tab turned hidden): send the newest unsent record NOW with a keepalive request, which the
+  // browser finishes after the page is gone. It starts synchronously from the cached token, character and revision (an async token or
+  // load would not finish in time); if any is unknown the record stays queued. Only the newest record is sent. A request already in
+  // flight is not waited for: if it lands first this one is refused as stale (the in-flight one carried older state).
+  function flushOnHide() {
+    if (stopped || halted || latest === null || revision === null || !character || !lastToken) return false;
+    let record;
+    try {
+      record = JSON.parse(latest.raw);
+    } catch {
+      return false;
+    }
+    const taken = latest,
+      body = JSON.stringify({ character, era: record.version, record, revision, seq: ++seq });
+    latest = null;
+    urgentPending = false;
+    retryWait = 0;
+    lastSentAt = now();
+    uncertain = true; // until the answer comes, a "stale" reply to a later send may be this very save landing
+    const keep = () => {
+      if (latest === null) latest = taken;
+    };
+    let request;
+    try {
+      request = fetchImpl(`${baseUrl}/save_run`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" },
+        body,
+        keepalive: body.length < KEEPALIVE_MAX_BYTES,
+      });
+    } catch {
+      keep();
+      return false;
+    }
+    Promise.resolve(request)
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (response.ok && !payload.refused && !payload.error) {
+          uncertain = false;
+          revision = payload.revision;
+          markSynced(revision);
+        } else {
+          keep();
+          if (payload?.retryMs) retryWait = payload.retryMs;
+        }
+      })
+      .catch(keep)
+      .finally(schedule);
+    return true;
+  }
+
   return {
     // The newest local save: at most one request every minSaveIntervalMs, older unsent records are dropped (the newest carries all state).
     // `run` is the live game the record was built from: the server's cash correction is only applied back to that same run.
-    queue(raw, run = null) {
+    // `urgent` marks a death record: the first one of a run goes out at once (the player may close the tab in the next second, and the
+    // server must not keep a living save); later writes of the same dead run are routine.
+    queue(raw, run = null, { urgent = false } = {}) {
       if (typeof raw !== "string") return;
       latest = { raw, run };
+      if (urgent && run !== null && urgentRun !== run) {
+        urgentRun = run;
+        urgentPending = true;
+      }
       schedule();
     },
     flush,
+    flushOnHide,
     // A status read says the world is open again: carry on with the newest queued record.
     resume() {
       if (!halted) return;

@@ -7,6 +7,7 @@ import {
   createSaveClient,
   isRunKey,
   observeStorage,
+  runIsOver,
   syncedKey,
 } from "../src/engine/save-client.js";
 import { CURRENT_ERA } from "../src/engine/save-eras.js";
@@ -29,7 +30,7 @@ function writer(script = {}) {
     const op = url.split("/").pop(),
       body = JSON.parse(init.body),
       n = calls.filter((c) => c.op === op).length;
-    calls.push({ op, body, auth: init.headers.Authorization });
+    calls.push({ op, body, auth: init.headers.Authorization, keepalive: init.keepalive === true });
     const answer = await (script[op] ?? (() => ({})))(body, n);
     if (answer instanceof Error) throw answer;
     const status = answer.status ?? 200;
@@ -420,6 +421,119 @@ test("pull: a record of another era is not applied (it would not override the ne
   assert.equal(other.target.getItem(CURRENT_ERA.key), null);
   const down = make({ load_run: () => new Error("down") }, {});
   assert.equal((await down.client.pull({ target: memory() })).status, "offline");
+});
+
+// Death must not be escapable by closing the tab: the dead run's record leaves at once (no interval), a rate limit never drops it, and
+// the page-hide send carries the newest record with a keepalive request.
+const dead = (extra = {}) => record({ hp: 0, ...extra });
+const saves = (t) => t.w.calls.filter((c) => c.op === "save_run");
+
+test("runIsOver: a finished run or one at 0 hp, nothing else", () => {
+  assert.equal(runIsOver({ finished: true, player: { hp: 50 } }), true);
+  assert.equal(runIsOver({ player: { hp: 0 } }), true);
+  assert.equal(runIsOver({ player: { hp: 14 } }), false);
+  assert.equal(runIsOver(null), false);
+});
+
+test("a death record skips the interval: queued 1 s after a routine save it is sent at once, with the dead state", async () => {
+  const t = make();
+  const run = { id: "run-1" };
+  t.client.queue(record({ hp: 14 }), run);
+  await t.run();
+  t.clock.ms += 1000; // the tab will close right after this
+  t.client.queue(dead(), run, { urgent: true });
+  assert.equal(t.timers.at(-1).ms, 0, "no wait for the 5 s interval");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => JSON.parse(JSON.stringify(c.body.record)).hp), [14, 0]);
+  assert.deepEqual(saves(t).map((c) => c.body.seq), [1, 2]);
+});
+
+test("only the first death record of a run is urgent: later writes of the same dead run wait the interval", async () => {
+  const t = make();
+  const run = { id: "run-1" };
+  t.client.queue(dead(), run, { urgent: true });
+  await t.run();
+  t.client.queue(dead({ extra: 1 }), run, { urgent: true });
+  assert.ok(t.timers.at(-1).ms > 0, "a repeat of the same death is routine");
+  t.client.queue(dead(), { id: "run-2" }, { urgent: true });
+  assert.equal(t.timers.at(-1).ms, 0, "a new run's death is urgent again");
+});
+
+test("a 429 never drops the record: it stays queued, waits the writer's retryMs, is sent again with the same sequence number", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 429, body: { error: "rate-limited", retryMs: 3000 } } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.match(t.lines[0], /not saved: rate-limited/);
+  assert.equal(t.timers.at(-1).ms, 3000, "waits the Retry-After");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => [c.body.seq, c.body.record.hp]), [[1, 0], [1, 0]]);
+  assert.equal(t.client.state.revision, 1);
+});
+
+test("a record that arrived while a rate-limited save was refused replaces the kept one (the newest wins)", async () => {
+  let n = 0;
+  let queueMore = () => {};
+  const t = make({
+    save_run: () => {
+      if (++n === 1) {
+        queueMore();
+        return { status: 429, body: { error: "rate-limited", retryMs: 1000 } };
+      }
+      return { revision: 1, savedAt: "t" };
+    },
+  });
+  queueMore = () => t.client.queue(record({ hp: 7 }));
+  t.client.queue(record({ hp: 9 }));
+  await t.run();
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [9, 7]);
+});
+
+test("a network failure keeps the record queued for another try", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? new Error("offline") : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.ok(t.timers.at(-1).ms >= 250, "a retry is scheduled");
+  await t.run();
+  assert.equal(saves(t).length, 2);
+  assert.equal(saves(t)[1].body.record.hp, 0);
+});
+
+test("pagehide: the newest unsent record leaves synchronously with a keepalive request, and nothing is left queued", async () => {
+  const t = make();
+  t.client.queue(record({ hp: 14 }));
+  await t.run(); // learns the character and revision, caches the token
+  t.client.queue(dead());
+  const before = t.w.calls.length;
+  assert.equal(t.client.flushOnHide(), true);
+  assert.equal(t.w.calls.length, before + 1, "the request starts inside the handler, not after an await");
+  const last = t.w.calls.at(-1);
+  assert.deepEqual([last.op, last.keepalive, last.body.record.hp, last.body.seq, last.body.revision], ["save_run", true, 0, 2, 1]);
+  assert.equal(last.auth, `Bearer ${jwt("user-1")}`);
+  assert.equal(t.client.flushOnHide(), false, "nothing newer to send");
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(t.client.state.uncertain, false, "the reply settled the outcome");
+});
+
+test("pagehide before the character and revision are known sends nothing and keeps the record queued", () => {
+  const t = make();
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), false);
+  assert.equal(t.w.calls.length, 0);
+});
+
+test("a failed pagehide send puts the record back, so the next flush resends it", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 2 ? new Error("offline") : { revision: n, savedAt: "t" }) });
+  t.client.queue(record({ hp: 14 }));
+  await t.run();
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), true);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(t.client.state.uncertain, true, "the outcome is unknown after a network error");
+  assert.equal(t.client.flushOnHide(), true, "the record was kept");
 });
 
 test("a successful save records its revision as synced, so the next boot does not re-apply the server's copy of it", async () => {

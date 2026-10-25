@@ -23,7 +23,7 @@ import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
-import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./save-client.js";
+import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
 import { GAME_DATA } from "./game-data.js";
 import { createGuestAuth } from "./guest-auth.js";
@@ -341,7 +341,9 @@ export function createBrowserSession(options = {}) {
   const worldConfig = presenceConfig({ search: location.search, location });
   if (worldConfig && !privateContent) {
     baseRunStorage = runStorage;
-    runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient?.queue(raw, context.game));
+    runStorage = observeStorage(runStorage, isRunKey, (raw) =>
+      saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) }),
+    );
   }
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
@@ -446,8 +448,11 @@ export function createBrowserSession(options = {}) {
   if (worldGate) {
     worldBoot = recheckWorld().then(() => bootPull);
     listen(document, "visibilitychange", () => {
-      if (!document.hidden && (!worldGate.open || saveClient?.halted || presence?.client.closed)) recheckWorld();
+      if (document.hidden) saveClient?.flushOnHide();
+      else if (!worldGate.open || saveClient?.halted || presence?.client.closed) recheckWorld();
     });
+    // Closing the tab: the newest unsent record leaves now (keepalive), so a death is never replaced by the older server save.
+    listen(window, "pagehide", () => saveClient?.flushOnHide());
   }
   const hud = createHUD({
     onAssist: (enabled) => {
