@@ -418,8 +418,8 @@
       "url": "bosses/boss-surgeon.glb",
       "rig": "boss-surgeon",
       "deferred": true,
-      "bytes": 2086488,
-      "sha256": "04d867c7b812ce229b700268f5ebffb72da990c038067bee9491b04f627f3c27",
+      "bytes": 1951248,
+      "sha256": "78091f12e5b87002720fadd9c03afae472c9add4dfbc51f9ab99eda841f09ddd",
       "provenance": {
         "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
         "levelSelection": "L2 browncloth/leather mask",
@@ -454,8 +454,8 @@
       "url": "bosses/boss-butcher.glb",
       "rig": "boss-butcher",
       "deferred": true,
-      "bytes": 2638856,
-      "sha256": "87b8d35bda1f3526ea2a667ab88318baeaab049ddda8378bc1662a91db7038e1",
+      "bytes": 2545444,
+      "sha256": "8a5b3ee901226aa9b23db46fe6b43c6c58546f72ac4a73141d6468fb65f206a8",
       "provenance": {
         "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
         "levelSelection": "L2 hood/cloth+cleaverreplacingScythegeometry",
@@ -490,8 +490,8 @@
       "url": "bosses/boss-warden.glb",
       "rig": "boss-warden",
       "deferred": true,
-      "bytes": 3350680,
-      "sha256": "fb2305801e9a82152a161851b8476b1ab709a72e637aba2c17a7b113795896c1",
+      "bytes": 2941568,
+      "sha256": "0b4704cfca4ec8e5bf06fd66b7228b61ae11e9cfae36eebe3d093426961ca39a",
       "provenance": {
         "source": "Shieldmaiden appearance on frozen Warden maul carrier",
         "intakeSHA256": "9888d24390461befb354111fc80e104735ef4e7a24e894791acb46cdc1d57b64",
@@ -635,8 +635,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "4f7ed45e83656010dd355f040c09baabed91fc40614975089dac43d651ab1931",
-      "bytes": 2225848,
+      "sha256": "ec00e7304e0ad825b2c48672a9228f4f101609d5ae5941d5c5b34add3d33a970",
+      "bytes": 2051024,
       "name": "Hale Pitborn appearance",
       "modularMeshNames": [
         "Recovered_donor_lower_neck",
@@ -838,8 +838,8 @@
       "url": "bosses/boss-westminster-witch.glb",
       "rig": "boss-westminster-witch",
       "deferred": true,
-      "bytes": 2060340,
-      "sha256": "d1faa525a263d5e007739671fed66ac6faa7cdb2716bec48a515b6f507ae284a",
+      "bytes": 1967588,
+      "sha256": "1d825f146bd4c67ed6443b5792c897a92a0cb6434619e6f629411b89aec9cb27",
       "provenance": {
         "portableIntake": "four-boss-portable-20261018",
         "carrier": "boss-surgeon",
@@ -870,8 +870,8 @@
       "url": "bosses/boss-south-nightborn.glb",
       "rig": "boss-south-nightborn",
       "deferred": true,
-      "bytes": 2230404,
-      "sha256": "17e0ca96782fa1253690747d155c63f7ef3ff3e4e99510aabf83f2dbe84dcff5",
+      "bytes": 2160384,
+      "sha256": "494cb2915cae7f8b33941c2ff42e291881018f90215bf85d2b554e9685e708d5",
       "provenance": {
         "portableIntake": "four-boss-portable-20261018",
         "carrier": "boss-surgeon",
@@ -902,8 +902,8 @@
       "url": "bosses/boss-area8-veteran.glb",
       "rig": "boss-area8-veteran",
       "deferred": true,
-      "bytes": 3335052,
-      "sha256": "68ba72b65375d15e70efac28c386d14dda2786126e42d5322b1399898ca5d16c",
+      "bytes": 2886344,
+      "sha256": "95f5d3a63687f46b703b61b7fc9e073070a2ad3b3f99a50d7649a25862cc89aa",
       "provenance": {
         "portableIntake": "four-boss-portable-20261018",
         "carrier": "boss-warden",
@@ -934,8 +934,8 @@
       "url": "bosses/boss-area7-knight.glb",
       "rig": "boss-area7-knight",
       "deferred": true,
-      "bytes": 3303752,
-      "sha256": "d046aa346013232546bcac7a9c80c9033743df0096cf04c087d4b01fe0e9e655",
+      "bytes": 2902944,
+      "sha256": "3542e131e93a84b53f43a4b3cc55ca9eb89720369b332b7ad000ed7ed9d02e42",
       "provenance": {
         "portableIntake": "four-boss-portable-20261018",
         "carrier": "boss-warden",
@@ -1387,29 +1387,29 @@
     },
     "boss-westminster-witch": {
       "file": "bosses/boss-westminster-witch.glb",
-      "bytes": 2060340,
-      "sha256": "d1faa525a263d5e007739671fed66ac6faa7cdb2716bec48a515b6f507ae284a",
+      "bytes": 1967588,
+      "sha256": "1d825f146bd4c67ed6443b5792c897a92a0cb6434619e6f629411b89aec9cb27",
       "errors": 0,
       "warnings": 45723
     },
     "boss-south-nightborn": {
       "file": "bosses/boss-south-nightborn.glb",
-      "bytes": 2230404,
-      "sha256": "17e0ca96782fa1253690747d155c63f7ef3ff3e4e99510aabf83f2dbe84dcff5",
+      "bytes": 2160384,
+      "sha256": "494cb2915cae7f8b33941c2ff42e291881018f90215bf85d2b554e9685e708d5",
       "errors": 0,
       "warnings": 3893
     },
     "boss-area8-veteran": {
       "file": "bosses/boss-area8-veteran.glb",
-      "bytes": 3335052,
-      "sha256": "68ba72b65375d15e70efac28c386d14dda2786126e42d5322b1399898ca5d16c",
+      "bytes": 2886344,
+      "sha256": "95f5d3a63687f46b703b61b7fc9e073070a2ad3b3f99a50d7649a25862cc89aa",
       "errors": 0,
       "warnings": 1131
     },
     "boss-area7-knight": {
       "file": "bosses/boss-area7-knight.glb",
-      "bytes": 3303752,
-      "sha256": "d046aa346013232546bcac7a9c80c9033743df0096cf04c087d4b01fe0e9e655",
+      "bytes": 2902944,
+      "sha256": "3542e131e93a84b53f43a4b3cc55ca9eb89720369b332b7ad000ed7ed9d02e42",
       "errors": 0,
       "warnings": 0
     },
