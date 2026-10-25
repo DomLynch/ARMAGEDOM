@@ -14,13 +14,12 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 10));
 function stage() {
   const f = fixture();
   f.restore();
+  assert(f.kill(), 'the rifle holder dies and drops the rifle');
   const g = f.g;
-  // Carrying the Starting Pistol, equipped: the weapon the rifle must replace.
+  assert.equal(g.rifle.status, 'pending');
+  // Carrying the Starting Pistol, equipped: the weapon the rifle must replace (the claim writes it into the record).
   g.pistol = {...g.pistol, collected: true, equipped: true, magazine: 4, reserve: 9};
   g.player.weapon = 'pistol';
-  assert(f.p.persistRun(g));
-  assert(f.kill(), 'the rifle holder dies and drops the rifle');
-  assert.equal(g.rifle.status, 'pending');
   g.player.pos = {...g.rifle.dropPosition};
   const listeners = new Map();
   const element = id => ({id, style: {}, addEventListener: (type, fn) => listeners.set(id + ':' + type, fn), removeEventListener() {}});
