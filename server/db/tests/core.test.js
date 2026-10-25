@@ -130,6 +130,19 @@ test("the run: create, stale refusal, era and shape checks, ownership, and a rea
   assert.deepEqual(await as(db, "authenticated", ids.bob, () => call(db, "select character from public.arma_runs")), []);
 });
 
+test("hp is a number the game moves in fractions (damage, regeneration): 142.25 is saved, 1000.5 is still out of range (000012)", async () => {
+  const { db, alice } = await setup();
+  let seq = 0;
+  const save = (record, expected) => call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, $4, $5) as r", [ids.alice, alice, JSON.stringify(record), expected, ++seq]).then((r) => r[0].r);
+  const hurt = await save({ ...v18, hp: 142.25 }, 0);
+  assert.equal(hurt.refused, undefined, JSON.stringify(hurt));
+  assert.equal(hurt.revision, 1, "the save landed and the revision moved");
+  assert.equal((await call(db, "select public.arma_load_run($1, $2) as r", [ids.alice, alice]))[0].r.record.hp, 142.25);
+  assert.match(String((await save({ ...v18, hp: 1000.5 }, 1)).refused), /cap|shape/, "the range is unchanged");
+  assert.match(String((await save({ ...v18, hp: -0.5 }, 1)).refused), /cap|shape/, "and so is the floor");
+  assert.equal((await save({ ...v18, hp: "142.25" }, 1)).refused !== undefined, true, "a string is still not a number");
+});
+
 test("events are idempotent: the second insert of an id raises O0001", async () => {
   const { db, alice } = await setup();
   const record = () => call(db, "select public.arma_record_event($1, $2, 'save:e1', 'save', '{}')", [ids.alice, alice]);
