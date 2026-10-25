@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { call, freshDb, ids, openFor } from "./helpers.js";
-import { createWriter, spawnRowsFrom } from "../../writer/writer.js";
+import { createWriter, DEFAULT_LIMITS, spawnRowsFrom } from "../../writer/writer.js";
 
 const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
 const KEY = "internal-key-for-tests";
@@ -220,6 +220,28 @@ test("rate limit: a per-account token bucket on save_run and load_run, refilled 
     // Routes with no limit are untouched.
     assert.equal((await t.post("/arma/spawn_state", { instances: [] }, { as: ids.alice })).status, 200);
     assert.equal((await (await fetch(t.base + "/health")).json()).refused["rate-limited"] >= 3, true, "refusals are counted for /health");
+  } finally {
+    await t.close();
+  }
+});
+
+test("rate limit, production numbers: save_run takes a burst of 6, refuses the 7th with retryMs 5000, and one token returns every 5 s", async () => {
+  assert.deepEqual(DEFAULT_LIMITS.save_run, { burst: 6, refillMs: 5000 });
+  let clock = 1_000_000;
+  const t = await start({ limits: DEFAULT_LIMITS, now: () => clock });
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    const save = () => t.post("/arma/save_run", { character, era: 18, record: v18, revision: 0, seq: 1 }, { as: ids.alice });
+    const burst = [];
+    for (let i = 0; i < 6; i++) burst.push((await save()).status);
+    assert.deepEqual(burst, [200, 200, 200, 200, 200, 200], "six saves in a row (a fight, then a death flush) are all accepted");
+    const seventh = await save();
+    assert.deepEqual([seventh.status, seventh.body.error, seventh.body.retryMs], [429, "rate-limited", 5000]);
+    clock += 4999;
+    assert.equal((await save()).status, 429, "just under one refill is still refused");
+    clock += 1;
+    assert.equal((await save()).status, 200, "one token is back after 5 s");
+    assert.equal((await save()).status, 429, "and only one");
   } finally {
     await t.close();
   }

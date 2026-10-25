@@ -41,7 +41,7 @@ so a reinstall or a second device must load the run and continue from `lastSeq +
 - `arma_check_record(prev, next)`: a CLOSED set of top-level keys (the v18 list above), integers only where the game has integers, every
   number inside a cap row in `arma_record_caps` (hp, ammo, fuel, attribute 10..20, proficiency 0..100, awards length, record size). Refusals
   carry a reason (`shape`, `cap:<path>`), so the Auditor can see which path failed.
-- Writer: a per-account token bucket on `save_run` (proposal: sustained 1 save per 5 s, burst 3) and on `load_run` (1 per second). 429 on excess.
+- Writer: a per-account token bucket on `save_run` (sustained 1 save per 5 s, burst 6 since 25 Oct: a fight's save triggers plus the death or pagehide flush must not be refused) and on `load_run` (1 per second). 429 on excess.
 
 **PR 2: money the client cannot raise.** BUILT in migration 000008 (not applied anywhere), as a CLAMP (Lead's ruling), not a refusal: kills the database settles credit
 `arma_cash.earned` through the table `arma_payout_rules` (generated from the game: creature 100, boss 200; no bounty); a save whose `marked.carried + marked.bank` is above
