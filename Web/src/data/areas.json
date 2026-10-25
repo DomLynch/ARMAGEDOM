@@ -83,10 +83,10 @@
           "id": "exit.east.area7",
           "target": "area7",
           "condition": {
-            "xMin": 0.435,
-            "xMax": 0.465,
-            "yMin": 0.53,
-            "yMax": 0.56
+            "xMin": 0.43,
+            "xMax": 0.47,
+            "yMin": 0.525,
+            "yMax": 0.565
           },
           "entry": {
             "x": 0.39656639,
@@ -97,10 +97,10 @@
           "id": "exit.east.south",
           "target": "south",
           "condition": {
-            "xMin": 0.73,
+            "xMin": 0.72,
             "xMax": 0.78,
-            "yMin": 0.372,
-            "yMax": 0.385
+            "yMin": 0.358,
+            "yMax": 0.389
           },
           "entry": {
             "x": 0.62,
@@ -111,10 +111,10 @@
           "id": "exit.east.central-hub",
           "target": "central-hub",
           "condition": {
-            "xMin": 0.773,
-            "xMax": 0.797,
-            "yMin": 0.40299999999999997,
-            "yMax": 0.427
+            "xMin": 0.765,
+            "xMax": 0.805,
+            "yMin": 0.4,
+            "yMax": 0.44
           },
           "entry": {
             "x": 0.925,
@@ -153,8 +153,8 @@
           "condition": {
             "xMin": 0.65,
             "xMax": 0.7,
-            "yMin": 0.9,
-            "yMax": 0.93
+            "yMin": 0.895,
+            "yMax": 0.935
           },
           "entry": {
             "x": 0.11317835,
@@ -165,10 +165,10 @@
           "id": "exit.south.east",
           "target": "east",
           "condition": {
-            "xMin": 0.62,
-            "xMax": 0.65,
-            "yMin": 0.27,
-            "yMax": 0.3
+            "xMin": 0.615,
+            "xMax": 0.655,
+            "yMin": 0.265,
+            "yMax": 0.305
           },
           "entry": {
             "x": 0.7,
@@ -179,10 +179,10 @@
           "id": "exit.south.central-hub",
           "target": "central-hub",
           "condition": {
-            "xMin": 0.20099999999999998,
-            "xMax": 0.221,
-            "yMin": 0.6839999999999999,
-            "yMax": 0.704
+            "xMin": 0.191,
+            "xMax": 0.231,
+            "yMin": 0.674,
+            "yMax": 0.714
           },
           "entry": {
             "x": 0.495,
@@ -232,10 +232,10 @@
           "id": "exit.east-bridge.area8",
           "target": "area8",
           "condition": {
-            "xMin": 0.415,
-            "xMax": 0.445,
-            "yMin": 0.6749999999999999,
-            "yMax": 0.705
+            "xMin": 0.41,
+            "xMax": 0.45,
+            "yMin": 0.67,
+            "yMax": 0.71
           },
           "entry": {
             "x": 0.47620754,
@@ -311,10 +311,10 @@
           "id": "exit.lambeth.area8",
           "target": "area8",
           "condition": {
-            "xMin": 0.45499999999999996,
-            "xMax": 0.485,
-            "yMin": 0.52,
-            "yMax": 0.55
+            "xMin": 0.45,
+            "xMax": 0.49,
+            "yMin": 0.515,
+            "yMax": 0.555
           },
           "entry": {
             "x": 0.89769144,
@@ -377,10 +377,10 @@
           "id": "exit.area7.central-hub",
           "target": "central-hub",
           "condition": {
-            "xMin": 0.27,
-            "xMax": 0.29000000000000004,
-            "yMin": 0.525,
-            "yMax": 0.545
+            "xMin": 0.26,
+            "xMax": 0.3,
+            "yMin": 0.515,
+            "yMax": 0.555
           },
           "entry": {
             "x": 0.5,
@@ -418,8 +418,8 @@
           "target": "east-bridge",
           "condition": {
             "yMax": 0.445,
-            "xMin": 0.422,
-            "xMax": 0.458
+            "xMin": 0.42,
+            "xMax": 0.46
           },
           "entry": {
             "x": 0.36307082936808827,
@@ -475,8 +475,8 @@
             "yMax": 0.49
           },
           "entry": {
-            "x": 0.785,
-            "y": 0.365
+            "x": 0.815,
+            "y": 0.335
           },
           "requiresDefeat": "boss-witch-v1",
           "requiresVisited": true
@@ -486,8 +486,8 @@
           "target": "area7",
           "condition": {
             "yMax": 0.045,
-            "xMin": 0.485,
-            "xMax": 0.515
+            "xMin": 0.48,
+            "xMax": 0.52
           },
           "entry": {
             "x": 0.375,

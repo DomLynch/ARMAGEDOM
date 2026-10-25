@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "1aef2b46ca632bf40749ec2943b9f8953fa145c3fde43288221fb6c15c298cbc");
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "6d07873adc350ae2f8fe7f22e624588c070df8fb4d1f3ca2372c2d527db61643");
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -25,13 +25,53 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   // This is the only deliberate difference; the row now matches public/world/east/layout.json and manifest.json.
   const stale = old.assets["layout.east"];
   assert.deepEqual({ bytes: stale.bytes, sha256: stale.sha256.slice(0, 8) }, { bytes: 11117, sha256: "7f8b408e" });
-  assert.deepEqual(areaDefinitions, old.areas);
+  // Exit triggers: the pre-move table, minus the `condition` boxes that were deliberately widened and the one arrival that moved
+  // with them (both checked in the next test), is unchanged.
+  const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, entry, ...rest }) => rest) }));
+  assert.deepEqual(withoutConditions(areaDefinitions), withoutConditions(old.areas));
   assert.deepEqual(areaAssets, { ...old.assets, "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 } });
   assert(areaAssets["layout.east"].sha256.startsWith("db1e8b46"));
   assert.deepEqual(areaDefinitions.map((a) => a.id), old.areas.map((a) => a.id));
   assert.deepEqual(Object.keys(areaAssets), Object.keys(old.assets));
   assert.equal(areaDefinitions, GAME_DATA.areas.areas);
   assert(Object.isFrozen(areaDefinitions) && Object.isFrozen(areaDefinitions[0].exits[0]) && Object.isFrozen(areaAssets));
+});
+
+test("exit triggers: every closed box is at least 0.04 each way, only ever grew around its old centre, and no two zones in an area overlap", () => {
+  const MIN = 0.04 - 1e-9;
+  const widened = [];
+  for (const [i, area] of areaDefinitions.entries())
+    for (const [j, exit] of area.exits.entries()) {
+      const was = old.areas[i].exits[j].condition,
+        now = exit.condition;
+      assert.deepEqual(Object.keys(now), Object.keys(was), `${exit.id} keeps the same condition keys`);
+      for (const [lo, hi] of [["xMin", "xMax"], ["yMin", "yMax"]]) {
+        if (was[lo] === undefined || was[hi] === undefined) continue;
+        // East to South cannot reach 0.04 high: the East gate rule (east-south-shortcut.test.js) wants every sampled gate point fully
+        // clear at player radius, and the plaza edge there is a 0.031-high band at most for a box that still contains the old strip (searched on the real collision).
+        // It was 0.013 high and 0.05 wide; it is now 0.031 high and 0.06 wide.
+        const floor = exit.id === "exit.east.south" && lo === "yMin" ? 0.031 - 1e-9 : MIN;
+        assert(now[hi] - now[lo] >= floor, `${exit.id} ${lo}/${hi} is wide enough`);
+        assert(now[lo] <= was[lo] + 1e-9 && now[hi] >= was[hi] - 1e-9, `${exit.id} ${lo}/${hi} contains the old box`);
+        if (now[lo] !== was[lo] || now[hi] !== was[hi]) widened.push(`${exit.id} ${lo}`);
+      }
+      for (const key of Object.keys(was)) if (!/^[xy]M(in|ax)$/.test(key)) assert.equal(now[key], was[key]);
+      for (const key of ["xMin", "yMin"]) if (was[key] !== undefined && was[key] === 0) assert.equal(now[key], 0);
+    }
+  assert(widened.length >= 15, `the thin exits were widened (${widened.length} edges)`);
+  const box = (c) => ({ x0: c.xMin ?? -1, x1: c.xMax ?? 2, y0: c.yMin ?? -1, y1: c.yMax ?? 2 });
+  for (const area of areaDefinitions)
+    for (let i = 0; i < area.exits.length; i++)
+      for (let j = i + 1; j < area.exits.length; j++) {
+        const p = box(area.exits[i].condition), q = box(area.exits[j].condition);
+        assert(!(p.x0 < q.x1 && q.x0 < p.x1 && p.y0 < q.y1 && q.y0 < p.y1), `${area.exits[i].id} overlaps ${area.exits[j].id}`);
+      }
+  // The arrival points did not move, except one: the widened East to South box now reaches the old Central Hub to East arrival
+  // (0.785, 0.365), which would have bounced a player straight back to South; it moved to the nearest clear point 0.042 away.
+  const moved = [];
+  areaDefinitions.forEach((a, i) => a.exits.forEach((e, j) => { if (JSON.stringify(e.entry) !== JSON.stringify(old.areas[i].exits[j].entry)) moved.push(e.id); }));
+  assert.deepEqual(moved, ["exit.central-hub.east"]);
+  assert.deepEqual(areaDefinitions.at(-1).exits[1].entry, { x: 0.815, y: 0.335 });
 });
 
 test("the default registry still builds from the data and the manifest agrees with every world asset row", () => {
