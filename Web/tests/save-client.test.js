@@ -471,6 +471,7 @@ test("a 429 never drops the record: it stays queued, waits the writer's retryMs,
   await t.run();
   assert.match(t.lines[0], /not saved: rate-limited/);
   assert.equal(t.timers.at(-1).ms, 3000, "waits the Retry-After");
+  t.clock.ms += 5000; // the wait passes (the bucket refills)
   await t.run();
   assert.deepEqual(saves(t).map((c) => [c.body.seq, c.body.record.hp]), [[1, 0], [1, 0]]);
   assert.equal(t.client.state.revision, 1);
@@ -491,7 +492,7 @@ test("a record that arrived while a rate-limited save was refused replaces the k
   queueMore = () => t.client.queue(record({ hp: 7 }));
   t.client.queue(record({ hp: 9 }));
   await t.run();
-  await t.run();
+  await drain(t);
   assert.deepEqual(saves(t).map((c) => c.body.record.hp), [9, 7]);
 });
 
@@ -501,6 +502,7 @@ test("a proxy's 429 (Retry-After header, no JSON body) is honoured the same way:
   t.client.queue(dead(), { id: "r" }, { urgent: true });
   await t.run();
   assert.equal(t.timers.at(-1).ms, 7000);
+  t.clock.ms += 7000;
   await t.run();
   assert.deepEqual(saves(t).map((c) => c.body.record.hp), [0, 0]);
   assert.equal(t.client.state.revision, 1);
@@ -617,21 +619,23 @@ for (const order of ["B's reply first, then A arrives", "A arrives first, B's re
     // Nothing older is queued behind it: a later routine save carries on from the server's revision.
     t.clock.ms += 6000;
     t.client.queue(dead({ extra: 1 }));
-    while (t.timers.length) await t.run();
+    await drain(t);
     assert.equal(server.written.at(-1), 0);
   });
 }
 
-test("a page-hide send refused as stale (the in-flight save landed first) adopts the revision and resends the newer record", async () => {
+test("a page-hide send refused as stale stops: the server's revision is not adopted and the record is not resent (the server wins a save conflict)", async () => {
   const server = orderedServer(),
-    aArrives = gate();
-  let release;
+    aArrives = gate(),
+    aReplies = gate();
   const t = make({
     save_run: async (body, n) => {
       if (n === 0) return server.arrive(body);
       if (n === 1) {
         await aArrives.promise;
-        return server.arrive(body); // A lands BEFORE B arrives
+        const answer = server.arrive(body); // A lands BEFORE B arrives ...
+        await aReplies.promise; // ... but its reply has not reached the client yet
+        return answer;
       }
       return server.arrive(body); // B: built with the old revision -> stale
     },
@@ -644,11 +648,112 @@ test("a page-hide send refused as stale (the in-flight save landed first) adopts
   t.client.queue(dead());
   aArrives.open(); // A reaches the server first
   await tick();
-  t.client.flushOnHide(); // B is built from the cached revision, which A has already moved on
+  t.client.flushOnHide(); // B is built from the cached revision, which A has already moved on at the server
+  await tick();
+  aReplies.open();
   await inFlight;
   await tick();
-  while (t.timers.length) await t.run();
-  assert.equal(server.written.at(-1), 0, "the death is sent again on top of A, so the server ends on it");
+  await drain(t);
+  assert.deepEqual(server.written, [20, 14], "the server's newer save stays; the refused death is not forced over it");
+  assert.equal(saves(t).length, 3, "no resend");
+  assert.equal(t.client.state.revision, 2, "the server's revision was not adopted (A's own reply set it; the refusal did not)");
+  assert.match(t.lines.join("\n"), /page-hide save refused: stale/);
+});
+
+test("another device's newer save is never overwritten by a page-hide send: stale stops, even with the outcome marked uncertain", async () => {
+  const server = orderedServer();
+  const t = make({ save_run: (body) => server.arrive(body) });
+  t.client.queue(record({ hp: 20 }));
+  await t.run(); // revision 1
+  server.revision = 5; // a second device saved meanwhile (revision 5)
+  server.lastSeq = 0;
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), true);
+  assert.equal(t.client.state.uncertain, false, "nothing was in flight: a later stale is another device, never our own save");
+  await tick();
+  assert.deepEqual(server.written, [20], "the hide send was refused");
+  assert.equal(t.client.state.revision, 1, "no adoption of revision 5");
+  assert.equal(t.client.flushOnHide(), false, "nothing is requeued");
+  await drain(t); // any timer left from the queue call finds nothing to send
+  assert.equal(saves(t).length, 2, "no resend: the first save and the refused hide send only");
+  assert.deepEqual(server.written, [20]);
+});
+
+// Run every pending send, letting each wait pass on the test clock first; capped so a send that never settles fails instead of hanging.
+async function drain(t, cap = 100) {
+  for (let i = 0; t.timers.length; i++) {
+    assert.ok(i < cap, "the sends never settle");
+    t.clock.ms += t.timers[0].ms;
+    await t.run();
+  }
+}
+// The writer's per-account save bucket (server/writer DEFAULT_LIMITS: burst 6, one token per 5 s) on the test clock: 429 when empty.
+function bucketServer(clock, burst = 6, refillMs = 5000) {
+  const s = { tokens: burst, at: clock.ms, limited: 0, written: [], revision: 0 };
+  s.arrive = (body) => {
+    s.tokens = Math.min(burst, s.tokens + (clock.ms - s.at) / refillMs);
+    s.at = clock.ms;
+    if (s.tokens < 1) {
+      s.limited++;
+      return { status: 429, body: { error: "rate-limited", retryMs: Math.ceil((1 - s.tokens) * refillMs) } };
+    }
+    s.tokens -= 1;
+    s.revision++;
+    s.written.push(body.record.hp);
+    return { revision: s.revision, savedAt: "t" };
+  };
+  return s;
+}
+
+test("pacing: routine saves never spend the 2-token reserve, however fast they are asked for; the death save may", async () => {
+  let server;
+  const t = make({ save_run: (body) => server.arrive(body) });
+  server = bucketServer(t.clock);
+  const run = { id: "fight" };
+  for (let i = 0; i < 10; i++) {
+    t.client.queue(record({ hp: 100 - i }), run);
+    await t.run(); // asked for with no time passing: far faster than the bucket refills
+  }
+  assert.equal(server.written.length, GAME_DATA.saveClient.bucketBurst - GAME_DATA.saveClient.bucketReserve, "4 routine saves, then the client holds back");
+  assert.equal(server.limited, 0, "the client never got a 429: it paced itself");
+  t.client.queue(dead(), run, { urgent: true });
+  await drain(t);
+  assert.equal(server.limited, 0);
+  assert.equal(server.written.at(-1), 0, "the death save used the reserve and was written");
+});
+
+test("a fight-length burst of routine saves, then the death within 1 s: the death is sent with no 429 (Backend's 1 s close, 6 of 6)", async () => {
+  let server;
+  const t = make({ save_run: (body) => server.arrive(body) });
+  server = bucketServer(t.clock);
+  const run = { id: "fight" };
+  for (let i = 0; i < 24; i++) {
+    t.client.queue(record({ hp: 100 - i }), run);
+    t.clock.ms += 2500; // routine records arrive twice as fast as the bucket refills: the client must hold some back
+    await t.run();
+  }
+  t.clock.ms += 1000; // the player dies; the tab is closed 1 s later
+  t.client.queue(dead(), run, { urgent: true });
+  t.timers.length = 0; // only the death send matters now: the one timer the urgent queue asked for (wait 0)
+  t.timers.push({ fn: () => t.client.flush(), ms: 0 });
+  await t.run();
+  assert.equal(server.limited, 0, "not one 429 in the whole fight, so none on the death save");
+  assert.equal(server.written.at(-1), 0, "the server's newest record is the death");
+  assert.equal(t.client.flushOnHide(), false, "nothing is left unsent when the tab closes");
+});
+
+test("every request costs a token, a stale-seq retry too, and a server 429 empties our copy of the bucket", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { refused: "stale-seq", lastSeq: 5 } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record());
+  await t.run(); // the refusal and the retry are two requests
+  assert.equal(saves(t).length, 2);
+  const limited = make({ save_run: () => ({ status: 429, body: { error: "rate-limited", retryMs: 4000 } }) });
+  limited.client.queue(record());
+  await limited.run();
+  limited.client.queue(record({ hp: 1 }));
+  await limited.run(); // the copy says empty: nothing is sent until the wait has passed
+  assert.equal(saves(limited).length, 1);
 });
 
 test("a 502 or 504 (the writer may have committed) leaves the outcome uncertain, so the next 'stale' is our own save", async () => {

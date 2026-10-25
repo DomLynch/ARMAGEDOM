@@ -49,7 +49,23 @@ export function validateRenderBudget(d) {
 }
 
 export function validateSaveClient(d) {
-  closed(d, ["schema_version", "minSaveIntervalMs", "staleSeqRetries", "characterName", "bootSyncWaitMs"]);
+  closed(d, [
+    "schema_version",
+    "minSaveIntervalMs",
+    "staleSeqRetries",
+    "characterName",
+    "bootSyncWaitMs",
+    "bucketBurst",
+    "bucketRefillMs",
+    "bucketReserve",
+  ]);
+  // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
+  // request costs one, a stale-seq retry too). A routine save never spends the last `bucketReserve` tokens: only a death save and the
+  // page-hide send may, so a long fight can never leave the death save refused. Keep these equal to the writer's numbers.
+  count("saveClient", "bucketBurst", d.bucketBurst, 1, 100);
+  count("saveClient", "bucketRefillMs", d.bucketRefillMs, 100, 600000);
+  count("saveClient", "bucketReserve", d.bucketReserve, 0, 50);
+  if (d.bucketReserve >= d.bucketBurst) fail("saveClient", "bucketReserve must be below bucketBurst");
   count("saveClient", "bootSyncWaitMs", d.bootSyncWaitMs, 0, 15000); // how long Enter waits for the server record at most
   count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
   count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);

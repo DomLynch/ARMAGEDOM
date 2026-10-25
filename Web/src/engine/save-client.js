@@ -95,6 +95,24 @@ export function createSaveClient({
     stopped = false,
     halted = false; // the world answered "closed": no requests until resume() (the next status read said yes)
 
+  // Our copy of the writer's per-account bucket for save_run: `tokens` refill continuously up to bucketBurst, every request spends one.
+  // A routine save needs bucketReserve + 1 (it never spends the last bucketReserve); a death save needs 1; the page-hide send just goes.
+  let tokens = tuning.bucketBurst,
+    tokensAt = now();
+  const refill = () => {
+    const t = now();
+    tokens = Math.min(tuning.bucketBurst, tokens + Math.max(0, t - tokensAt) / tuning.bucketRefillMs);
+    tokensAt = t;
+  };
+  const waitForTokens = (need) => {
+    refill();
+    return Math.max(0, Math.ceil((need - tokens) * tuning.bucketRefillMs));
+  };
+  const spendToken = () => {
+    refill();
+    tokens = Math.max(0, tokens - 1);
+  };
+
   const read = (key) => {
     try {
       return storage?.getItem(key) ?? null;
@@ -209,7 +227,7 @@ export function createSaveClient({
       write(syncedKey(account), JSON.stringify({ character, revision: value }));
   }
 
-  async function send(raw, run) {
+  async function send(raw, run, { urgent = false } = {}) {
     let record;
     try {
       record = JSON.parse(raw);
@@ -224,8 +242,16 @@ export function createSaveClient({
       // A page-hide send left after this one began: it carries a NEWER record. This record must never be sent (or resent) now, or the
       // server would end on the older state (a living save over a death). Nothing is requeued: the newer record is sent or kept.
       if (hideGen !== generation) return { ok: false, reason: "superseded" };
+      // Not enough tokens (a routine save leaves the reserve alone): nothing is sent, the record waits for the bucket to refill.
+      const wait = waitForTokens(urgent ? 1 : 1 + tuning.bucketReserve);
+      if (wait > 0) return { ok: false, reason: "rate-limited", status: 429, retryMs: wait, local: true };
+      spendToken();
       seq++;
       const reply = await call("save_run", { character, era: record.version, record, revision, seq });
+      if (reply.status === 429) {
+        refill();
+        tokens = 0; // the writer says its bucket is empty, whatever we thought
+      }
       const overtaken = hideGen !== generation;
       if (reply.error === "network") {
         uncertain = true;
@@ -299,9 +325,9 @@ export function createSaveClient({
     sending = true;
     lastSentAt = now();
     try {
-      const result = await send(taken.raw, taken.run);
+      const result = await send(taken.raw, taken.run, { urgent: wasUrgent });
       if (!result.ok) {
-        log(`[arma-save] not saved: ${result.reason}`);
+        if (!result.local) log(`[arma-save] not saved: ${result.reason}`); // our own bucket holding a save back is not a failure to report
         // Never drop the record: a rate limit or a network failure leaves it queued (a newer record, if one arrived, replaces it).
         if (result.reason === "network" || result.status === 429 || result.status >= 500) {
           if (latest === null) latest = taken;
@@ -330,14 +356,18 @@ export function createSaveClient({
     } catch {
       return false;
     }
+    const inFlight = sending;
     hideGen++; // a routine send already in flight is now older than this one: it stops instead of retrying over it
+    spendToken(); // it may use the reserve; the writer decides if the bucket really had one
     const taken = latest,
       body = JSON.stringify({ character, era: record.version, record, revision, seq: ++seq });
     latest = null;
     urgentPending = false;
     retryWait = 0;
     lastSentAt = now();
-    uncertain = true; // until the answer comes, a "stale" reply to a later send may be this very save landing
+    // Only when a routine send was in flight is a later "stale" possibly our own save landing; with nothing in flight a stale reply
+    // means another device and must not be overwritten (a network failure of this send itself also makes the outcome unknown, below).
+    if (inFlight) uncertain = true;
     const keep = () => {
       if (latest === null) latest = taken;
     };
@@ -360,19 +390,22 @@ export function createSaveClient({
           uncertain = false;
           revision = payload.revision;
           markSynced(revision);
+        } else if (payload?.refused === "stale") {
+          // The server holds a newer revision than this send was built on (another device saved, or an older save of ours landed first).
+          // The server wins a save conflict: stop. The server's revision is NOT adopted and the record is NOT resent, so a newer save
+          // from another device is never overwritten; this device pulls the server record on its next boot.
+          uncertain = false;
+          log("[arma-save] page-hide save refused: stale (the server's newer save stays)");
         } else {
           keep();
           if (payload?.retryMs) retryWait = payload.retryMs;
-          // Refused as stale: the routine save that was in flight landed first (this send was unsure of it). Take the server's
-          // revision so the kept, newer record is resent on top of it (page still alive: a tab that only turned hidden).
-          if (payload?.refused === "stale" && Number.isInteger(payload.revision)) {
-            revision = payload.revision;
-            uncertain = false;
-          }
           if (response.status === 502 || response.status === 504) uncertain = true;
         }
       })
-      .catch(keep)
+      .catch(() => {
+        keep();
+        uncertain = true; // a network failure: this save may have landed
+      })
       .finally(schedule);
     return true;
   }
