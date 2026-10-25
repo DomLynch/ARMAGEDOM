@@ -67,6 +67,10 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     async create_character({ account, body }) {
       return { character: await call("arma_create_character", [account, String(body.name ?? "")]) };
     },
+    // The account's active character (null when it has none or arma is closed to it): a second device joins it instead of creating one.
+    async active({ account }) {
+      return { character: (await call("arma_active", [account])) ?? null };
+    },
     async set_active({ account, body }) {
       return { ok: await call("arma_set_active", [account, String(body.character ?? "")]) };
     },

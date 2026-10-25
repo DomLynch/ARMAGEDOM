@@ -75,6 +75,19 @@ test("a character and its run round-trip through the writer, and a stale phone i
   }
 });
 
+test("active: the account's active character, or null before it has one (a second device joins it instead of creating another)", async () => {
+  const t = await start();
+  try {
+    assert.equal((await t.post("/arma/active", {})).status, 401);
+    assert.deepEqual((await t.post("/arma/active", {}, { as: ids.alice })).body, { character: null });
+    const made = await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice });
+    assert.deepEqual((await t.post("/arma/active", {}, { as: ids.alice })).body, { character: made.body.character });
+    assert.deepEqual((await t.post("/arma/active", {}, { as: ids.bob })).body, { character: null }, "never another account's character");
+  } finally {
+    await t.close();
+  }
+});
+
 test("requests for one account run one at a time: two racing saves cannot both win", async () => {
   const t = await start();
   try {

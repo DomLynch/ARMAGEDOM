@@ -7,7 +7,11 @@ import {
   createSaveClient,
   isRunKey,
   observeStorage,
+  syncedKey,
 } from "../src/engine/save-client.js";
+import { CURRENT_ERA } from "../src/engine/save-eras.js";
+import { MARKED_SAVE_KEY } from "../src/engine/marked-core.js";
+import { make as makeRun } from "./helpers/marked-fixture.js";
 import { GAME_DATA, validateSaveClient } from "../src/engine/game-data.js";
 
 const memory = () => {
@@ -70,8 +74,8 @@ test("the first save creates the character once (remembered), learns revision 0,
   const t = make();
   t.client.queue(record());
   await t.run();
-  assert.deepEqual(t.w.calls.map((c) => c.op), ["create_character", "load_run", "save_run"]);
-  const save = t.w.calls[2];
+  assert.deepEqual(t.w.calls.map((c) => c.op), ["active", "create_character", "load_run", "save_run"]);
+  const save = t.w.calls[3];
   assert.equal(save.auth, `Bearer ${jwt("user-1")}`);
   assert.deepEqual([save.body.character, save.body.era, save.body.revision, save.body.seq], ["pc:abc", 18, 0, 1]);
   assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc");
@@ -80,7 +84,7 @@ test("the first save creates the character once (remembered), learns revision 0,
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 5 }));
   await t.run();
-  assert.deepEqual(t.w.calls.slice(3).map((c) => [c.op, c.body.seq, c.body.revision]), [["save_run", 2, 1]]);
+  assert.deepEqual(t.w.calls.slice(4).map((c) => [c.op, c.body.seq, c.body.revision]), [["save_run", 2, 1]]);
 });
 
 test("saves are coalesced: at most one request per interval, and only the newest record is sent", async () => {
@@ -156,13 +160,17 @@ test("the cached character is keyed by account: a new guest session gets its own
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 2);
 });
 
-test("an O0007 refusal (world switched off / not allow-listed) is only logged: the character id, revision and sequence are kept", async () => {
-  const t = make({ save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 1, savedAt: "t" }) });
+test("an O0007 refusal (world switched off / not allow-listed) is only logged: the character id and sequence are kept, the cached revision is dropped", async () => {
+  const t = make({
+    save_run: (body, n) => (n === 0 ? { status: 403, body: { error: "O0007" } } : { revision: 8, savedAt: "t" }),
+    load_run: (body, n) => ({ run: n === 0 ? null : { revision: 7 } }),
+  });
   t.client.queue(record());
   await t.run();
   assert.match(t.lines[0], /not saved: O0007/);
   assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc", "the cache is NOT cleared");
   assert.equal(t.client.halted, true, "the save loop stops: no 5 s retry forever");
+  assert.equal(t.client.state.revision, null, "the cached revision is reset: the server may have moved on");
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 2 }));
   assert.equal(t.timers.length, 0, "nothing is scheduled while halted");
@@ -171,6 +179,8 @@ test("an O0007 refusal (world switched off / not allow-listed) is only logged: t
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 1, "no second character");
   assert.equal(t.w.calls.at(-1).body.character, "pc:abc");
   assert.equal(t.client.state.seq, 2, "the sequence continues");
+  assert.equal(t.w.calls.filter((c) => c.op === "load_run").length, 2, "the revision is learned again after the halt");
+  assert.equal(t.w.calls.at(-1).body.revision, 7, "the save carries the server's current revision, not the stale one");
 });
 
 test("a record queued while a save is in flight is lowered by the adopted drop, so the clamp is not applied twice (500 -> 300, not 100)", async () => {
@@ -310,15 +320,111 @@ test("observeStorage reports run-save writes and passes everything through untou
   const storage = memory(),
     seen = [];
   const watched = observeStorage(storage, isRunKey, (raw) => seen.push(raw));
-  watched.setItem("armagedom:area-run:v3", "a");
+  watched.setItem(CURRENT_ERA.key, "a");
   watched.setItem("armagedom:area1-run:v1", "b");
   watched.setItem("armagedom:pistol:v1", "c");
-  assert.deepEqual(seen, ["a", "b"]);
+  assert.deepEqual(seen, ["a"], "only the newest era's key is the run record");
   assert.equal(storage.getItem("armagedom:pistol:v1"), "c");
-  assert.equal(watched.getItem("armagedom:area-run:v3"), "a");
+  assert.equal(watched.getItem(CURRENT_ERA.key), "a");
   const broken = observeStorage(storage, isRunKey, () => {
     throw Error("listener");
   });
-  assert.doesNotThrow(() => broken.setItem("armagedom:area-run:v3", "d"));
-  assert.equal(storage.getItem("armagedom:area-run:v3"), "d");
+  assert.doesNotThrow(() => broken.setItem(CURRENT_ERA.key, "d"));
+  assert.equal(storage.getItem(CURRENT_ERA.key), "d");
+});
+
+test("REAL run persistence: the full v18 record a real save writes is under the key the save client watches", () => {
+  const f = makeRun();
+  f.p.persistRun(f.g);
+  const written = f.writes.filter((w) => isRunKey(w.key));
+  assert.ok(written.length > 0, `no write under ${CURRENT_ERA.key}; the real writes were: ${[...new Set(f.writes.map((w) => w.key))]}`);
+  assert.equal(CURRENT_ERA.key, MARKED_SAVE_KEY);
+  const record = JSON.parse(written.at(-1).raw);
+  assert.equal(record.version, CURRENT_ERA.version);
+  assert.ok(record.marked && record.pistol && record.supplies, "it is the whole run, not a layer");
+});
+
+function pullSetup({ run, synced, character = "pc:abc" } = {}) {
+  const t = make({ load_run: () => ({ run: run ?? null }) }),
+    target = memory();
+  if (synced !== undefined) t.storage.map.set(syncedKey("user-1"), JSON.stringify({ character, revision: synced }));
+  t.storage.map.set(characterKey("user-1"), character);
+  return { ...t, target };
+}
+const serverRun = (revision, extra = {}) => ({ revision, era: 18, record: { version: 18, hp: 77, ...extra }, savedAt: "t" });
+
+test("pull: a server record newer than this device's last sync replaces the local run, the old one is kept as .pre-sync", async () => {
+  const t = pullSetup({ run: serverRun(5), synced: 3 });
+  t.target.setItem(CURRENT_ERA.key, "local-raw");
+  const result = await t.client.pull({ target: t.target });
+  assert.deepEqual(result, { status: "applied", revision: 5 });
+  assert.equal(JSON.parse(t.target.getItem(CURRENT_ERA.key)).hp, 77);
+  assert.equal(t.target.getItem(`${CURRENT_ERA.key}.pre-sync`), "local-raw", "the local run is never lost");
+  assert.deepEqual(JSON.parse(t.storage.map.get(syncedKey("user-1"))), { character: "pc:abc", revision: 5 });
+  assert.equal(t.client.state.revision, 5, "the next save continues from the server's revision");
+});
+
+test("pull: the same or an older server revision, or no server run, keeps the local run untouched", async () => {
+  for (const run of [serverRun(3), serverRun(2), null]) {
+    const t = pullSetup({ run, synced: 3 });
+    t.target.setItem(CURRENT_ERA.key, "local-raw");
+    assert.equal((await t.client.pull({ target: t.target })).status, "kept");
+    assert.equal(t.target.getItem(CURRENT_ERA.key), "local-raw");
+    assert.equal(t.target.getItem(`${CURRENT_ERA.key}.pre-sync`), null);
+  }
+});
+
+test("pull: a device that never synced (new device, cleared storage) takes the server's record: one character per account", async () => {
+  const t = pullSetup({ run: serverRun(2) }); // no synced marker
+  const result = await t.client.pull({ target: t.target });
+  assert.equal(result.status, "applied");
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 0, "the cached/known character is reused");
+  assert.equal(JSON.parse(t.target.getItem(CURRENT_ERA.key)).hp, 77);
+});
+
+test("pull: a record that arrives after the run was read (canApply false) is kept late: no write, no .pre-sync, no synced mark", async () => {
+  const t = pullSetup({ run: serverRun(5), synced: 3 });
+  t.target.setItem(CURRENT_ERA.key, "local-raw");
+  const result = await t.client.pull({ target: t.target, canApply: () => false });
+  assert.deepEqual(result, { status: "kept", reason: "late" });
+  assert.equal(t.target.getItem(CURRENT_ERA.key), "local-raw", "phone 1's newer progress is never overwritten by a stale local run");
+  assert.equal(t.target.getItem(`${CURRENT_ERA.key}.pre-sync`), null);
+  assert.deepEqual(JSON.parse(t.storage.map.get(syncedKey("user-1"))), { character: "pc:abc", revision: 3 }, "not marked synced");
+});
+
+test("a fresh second phone (no cached character id) joins the account's active character instead of creating one", async () => {
+  const t = make({ active: () => ({ character: "pc:first" }), load_run: () => ({ run: serverRun(2) }) });
+  assert.equal(t.storage.map.get(characterKey("user-1")), undefined, "nothing pre-seeded");
+  const result = await t.client.pull({ target: memory() });
+  assert.equal(result.status, "applied");
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 0, "no new character: the first phone stays active");
+  assert.equal(t.w.calls.find((c) => c.op === "load_run").body.character, "pc:first");
+  assert.equal(t.storage.map.get(characterKey("user-1")), "pc:first", "remembered for the next boot");
+});
+
+test("no active character on the server: one is created; a failed lookup creates nothing", async () => {
+  const none = make({ active: () => ({ character: null }) });
+  none.client.queue(record());
+  await none.run();
+  assert.equal(none.w.calls.filter((c) => c.op === "create_character").length, 1);
+  const failed = make({ active: () => ({ status: 500, body: { error: "error" } }) });
+  failed.client.queue(record());
+  await failed.run();
+  assert.equal(failed.w.calls.filter((c) => c.op === "create_character").length, 0, "unknown is not 'none'");
+  assert.equal(failed.w.calls.filter((c) => c.op === "save_run").length, 0);
+});
+
+test("pull: a record of another era is not applied (it would not override the newest-era key); an unreachable server plays local", async () => {
+  const other = pullSetup({ run: { revision: 9, record: { version: 11, hp: 1 } }, synced: 1 });
+  assert.deepEqual(await other.client.pull({ target: other.target }), { status: "kept", reason: "other-era" });
+  assert.equal(other.target.getItem(CURRENT_ERA.key), null);
+  const down = make({ load_run: () => new Error("down") }, {});
+  assert.equal((await down.client.pull({ target: memory() })).status, "offline");
+});
+
+test("a successful save records its revision as synced, so the next boot does not re-apply the server's copy of it", async () => {
+  const t = make({ save_run: () => ({ revision: 4, savedAt: "t" }) });
+  t.client.queue(record());
+  await t.run();
+  assert.deepEqual(JSON.parse(t.storage.map.get(syncedKey("user-1"))), { character: "pc:abc", revision: 4 });
 });

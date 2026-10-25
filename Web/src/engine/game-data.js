@@ -23,7 +23,8 @@ export function validateDiagnostics(d) {
 }
 
 export function validateSaveClient(d) {
-  closed(d, ["schema_version", "minSaveIntervalMs", "staleSeqRetries", "characterName"]);
+  closed(d, ["schema_version", "minSaveIntervalMs", "staleSeqRetries", "characterName", "bootSyncWaitMs"]);
+  count("saveClient", "bootSyncWaitMs", d.bootSyncWaitMs, 0, 15000); // how long Enter waits for the server record at most
   count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
   count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
   if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))

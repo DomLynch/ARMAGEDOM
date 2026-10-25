@@ -25,13 +25,15 @@ import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
+import { GAME_DATA } from "./game-data.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
-  let runStorage;
+  let runStorage,
+    baseRunStorage = null; // the unwrapped storage: a server record is written here so it is not queued straight back
   try {
     runStorage = globalThis.localStorage;
   } catch {
@@ -331,28 +333,37 @@ export function createBrowserSession(options = {}) {
   // it off for this page load. The storage is wrapped BEFORE the run views capture it: it only passes writes through, and queues the
   // local run save for the writer once the save client exists.
   const worldConfig = presenceConfig({ search: location.search, location });
-  if (worldConfig && !privateContent)
+  if (worldConfig && !privateContent) {
+    baseRunStorage = runStorage;
     runStorage = observeStorage(runStorage, isRunKey, (raw) => saveClient?.queue(raw, context.game));
+  }
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);
   loop = createBrowserLoop(context);
   // Nothing online exists until the status read says the world is open: no guest signup, no presence socket, no save traffic.
   const worldGate = worldConfig && !privateContent ? createWorldGate({ baseUrl: location.origin }) : null;
-  let worldStarted = false;
+  // The OAuth return parameters never stay in the address bar, whether or not the world starts: keep the query for the code exchange,
+  // then strip link, code, the error fields and any #access_token hash at load.
+  let returnedSearch = null;
+  {
+    const params = new URLSearchParams(location.search);
+    if (params.has("link") || params.has("code") || location.hash?.includes("access_token=")) {
+      returnedSearch = location.search;
+      for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
+      history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
+    }
+  }
+  let worldStarted = false,
+    runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
+    bootPull = Promise.resolve(),
+    syncedNotice = false;
   function startWorld() {
     if (worldStarted || disposed) return;
     worldStarted = true;
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
     const auth = createGuestAuth({ ...WORLD_AUTH, storage: runStorage });
-    // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read. The
-    // link, code and any hash are always stripped from the address bar afterwards.
-    if (new URLSearchParams(location.search).has("link") || location.hash.includes("access_token=")) {
-      const params = new URLSearchParams(location.search),
-        returned = location.search;
-      for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
-      const clean = `${location.pathname}${params.size ? `?${params}` : ""}`;
-      auth.takeRedirect(returned).finally(() => history.replaceState(null, "", clean));
-    }
+    // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read.
+    if (returnedSearch !== null) auth.takeRedirect(returnedSearch);
     const getToken = options.presenceToken ?? auth.getToken;
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({
@@ -363,6 +374,14 @@ export function createBrowserSession(options = {}) {
       onClosed: () => recheckWorld(),
       log: (line) => console.info(line),
     });
+    // The server save wins when it is online: a newer server record replaces the local run BEFORE the run is read (Enter waits for
+    // this, at most bootSyncWaitMs). Unreachable or closed: play local; the queue sends it later.
+    bootPull = saveClient
+      .pull({ target: baseRunStorage ?? runStorage, canApply: () => !runRestored })
+      .then((result) => {
+        syncedNotice = result.status === "applied";
+      })
+      .catch(() => {});
     presence = createPresenceSession(context, {
       config: worldConfig,
       getToken,
@@ -382,8 +401,9 @@ export function createBrowserSession(options = {}) {
     saveClient?.resume();
     presence?.client.reopen();
   }
+  let worldBoot = Promise.resolve();
   if (worldGate) {
-    recheckWorld();
+    worldBoot = recheckWorld().then(() => bootPull);
     listen(document, "visibilitychange", () => {
       if (!document.hidden && (!worldGate.open || saveClient?.halted || presence?.client.closed)) recheckWorld();
     });
@@ -665,7 +685,14 @@ export function createBrowserSession(options = {}) {
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
       hud.loading("Loading London and the original character rigs…");
-      const results = await prepareEncounter();
+      const encounter = prepareEncounter();
+      // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
+      // above, so nothing here can delay it) and the run is read only after it, never waiting longer than bootSyncWaitMs from Enter.
+      const bootSync = Promise.race([
+        Promise.resolve(worldBoot).catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
+      ]);
+      const results = await encounter;
       startup = null;
       if (contextLost || disposed) {
         for (const result of results) if (result.status === "fulfilled") result.value.dispose();
@@ -675,6 +702,11 @@ export function createBrowserSession(options = {}) {
         if (results[0].status === "fulfilled") results[0].value.dispose();
         if (results[1].status === "fulfilled") results[1].value.dispose();
         throw results.find((r) => r.status === "rejected").reason;
+      }
+      await bootSync;
+      if (contextLost || disposed) {
+        for (const result of results) result.value.dispose();
+        return;
       }
       const [nextWorld, library] = results.map((r) => r.value);
       const character = library.manifest.models["hollow-scavenger"];
@@ -689,6 +721,7 @@ export function createBrowserSession(options = {}) {
       pendingLibrary = library;
       game = createGame(world, { ...pilot, residentPlacements: world.residentPlacements ?? pilot.residentPlacements });
       game.mobileAssistEnabled = mobileAssistEnabled;
+      runRestored = true;
       resources.restoreSavedRun(game);
       actors = createActors(scene, world, library, {
         visualScale: actorVisualScale,
@@ -721,6 +754,11 @@ export function createBrowserSession(options = {}) {
         throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet.");
       loaded = true;
       hud.ready();
+      if (syncedNotice && game) {
+        syncedNotice = false;
+        game.message = "Progress synced";
+        game.messageUntil = game.time + 3;
+      }
       if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
       hud.loading("");
       document.getElementById("version").textContent = "Three.js · Starting pistol V1 · Approved006 framing";
