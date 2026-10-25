@@ -61,17 +61,16 @@ export function validateWeapons(d) {
 export function validateBossRanged(b) {
   closed(b, ["boss-south-nightborn", "boss-butcher"]);
   for (const [rig, row] of Object.entries(b)) {
-    closed(row, ["kind", "field", "modelRef", "warning", "recovery", "range", "damage"], [
-      "speed",
-      "radius",
-      "maxLife",
-      "maxLive",
-    ]);
+    closed(
+      row,
+      ["kind", "field", "modelRef", "warning", "recovery", "range", "damage"],
+      ["speed", "radius", "maxLife", "maxLive"],
+    );
     for (const f of ["kind", "field", "modelRef"])
       if (typeof row[f] !== "string" || !row[f]) fail("weapons", `bossRanged.${rig}.${f}`);
     for (const f of ["warning", "recovery", "range", "damage", "speed", "radius", "maxLife", "maxLive"])
       if (f in row) number("weapons", `bossRanged.${rig}.${f}`, row[f]);
-    if ((row.kind === "rocket") !== ("speed" in row)) fail("weapons", `bossRanged.${rig} rocket fields`);
+    if ((row.kind === "rocket") !== "speed" in row) fail("weapons", `bossRanged.${rig} rocket fields`);
   }
 }
 const number = (file, field, v, min = 0) => {
