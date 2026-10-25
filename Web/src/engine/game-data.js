@@ -292,7 +292,16 @@ function validateBehaviours(b) {
     if ("attackPattern" in row && !(Array.isArray(row.attackPattern) && row.attackPattern.length && row.attackPattern.every((a) => typeof a === "string" && a)))
       fail("creatures", `behaviours.presets.${preset}.attackPattern`);
   }
-  const intentFields = ["wakeDistance", "homeLeash", "holdUntilWake", "retreatSeconds", "companionDistance", "isolationDistance", "burstSeconds", "pauseSeconds"];
+  const intentFields = [
+    "wakeDistance",
+    "homeLeash",
+    "holdUntilWake",
+    "retreatSeconds",
+    "companionDistance",
+    "isolationDistance",
+    "burstSeconds",
+    "pauseSeconds",
+  ];
   for (const [intent, row] of Object.entries(b.intents)) {
     name(`intents.${intent}`, intent);
     closed(row, "pursuitScope" in row ? [...intentFields, "pursuitScope"] : intentFields);
