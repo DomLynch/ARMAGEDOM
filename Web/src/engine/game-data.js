@@ -11,6 +11,7 @@ import saveClient from "../data/saveClient.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
+import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
@@ -568,6 +569,23 @@ export function validateAreas(d) {
   }
 }
 
+// supplies.json: which Westminster roamers issue a supply drop and what it holds (supplies.js AREA1_SUPPLIES, null = none), and where the
+// worn-vest bag lies (run-state.js VEST_BAG_POSITION). The keys are save keys (the supplies ledger lists them), so they never change.
+export function validateSupplies(d) {
+  closed(d, ["schema_version", "area1", "vestBagPosition"]);
+  const keys = Object.keys(d.area1);
+  if (keys.length !== 6 || keys.some((k, i) => k !== `westminster-roamer-${i + 1}`))
+    fail("supplies", "area1 must list westminster-roamer-1 to 6 in order");
+  for (const [key, rule] of Object.entries(d.area1)) {
+    if (rule === null) continue;
+    closed(rule, ["kind", "amount"]);
+    if (!["rounds", "dressing"].includes(rule.kind)) fail("supplies", `${key}.kind must be rounds or dressing`);
+    count("supplies", `${key}.amount`, rule.amount, 1, 12);
+  }
+  closed(d.vestBagPosition, ["x", "z"]);
+  for (const axis of ["x", "z"]) number("supplies", `vestBagPosition.${axis}`, d.vestBagPosition[axis], -1000);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   atmosphere: [atmosphere, validateAtmosphere],
@@ -577,6 +595,7 @@ const sources = () => ({
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
+  supplies: [supplies, validateSupplies],
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],

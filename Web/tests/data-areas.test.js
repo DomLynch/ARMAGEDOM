@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import crypto from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { areaDefinitions, areaAssets } from "../src/area-definitions.js";
 import { createAreaRegistry } from "../src/area-registry.js";
 import { GAME_DATA, validateAreas } from "../src/engine/game-data.js";
@@ -54,6 +56,14 @@ test("every asset row names the bytes that are on disk (what tools/validate-area
     assert.equal(bytes.length, asset.bytes, `${ref} bytes`);
     assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), asset.sha256, `${ref} sha256`);
   }
+});
+
+test("tools/validate-area-registry.mjs passes, so drift between the registry, the assets and the manifest fails the build", () => {
+  const run = spawnSync(process.execPath, [fileURLToPath(new URL("../tools/validate-area-registry.mjs", import.meta.url))], {
+    encoding: "utf8",
+    env: { ...process.env, NODE_TEST_CONTEXT: undefined },
+  });
+  assert.equal(run.status, 0, `${run.stderr}`.slice(0, 600));
 });
 
 test("the loader rejects a broken areas file", () => {
