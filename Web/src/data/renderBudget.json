@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "provisional": true,
+  "westminster": { "remotes": 8, "maxDrawCalls": 200, "maxTriangles": 500000 },
+  "perRemote": { "maxDrawCalls": 8, "maxTriangles": 15000 }
+}

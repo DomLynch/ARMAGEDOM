@@ -2,8 +2,10 @@
 // (real presence server + N standing bots, no Supabase, no VPS) and reports the renderer's draw calls and triangles per frame
 // (?stats=1) plus the frame time p50/p95 from requestAnimationFrame, with the GPU string.
 //   node scripts/world-harness.mjs --origin http://127.0.0.1:8890 --walk north,east,...   (N entries = N bots; none for 0)
-//   node scripts/remote-cost.mjs [--seconds 20] [--width 375] [--height 812]
+//   node scripts/remote-cost.mjs [--seconds 20] [--width 375] [--height 812] [--out result.json] [--check zero-result.json]
+// Budget check: run once with 0 bots and --out zero.json, then with 8 bots and --check zero.json (exit 1 when over budget).
 // Needs playwright-core (PLAYWRIGHT_CORE=<path to its index.mjs>) and a Chrome (PLAYWRIGHT_BROWSERS_PATH or CHROME=<executable>).
+import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const arg = (name, fallback) => {
@@ -66,15 +68,25 @@ await page.screenshot({ path: process.env.SHOT ?? "/tmp/remote-cost.png" });
 const q = (p) => [...frames].sort((a, b) => a - b)[Math.min(frames.length - 1, Math.floor(p * frames.length))];
 const stat = lines.filter((l) => l.includes("[arma-world] frame draw calls=")).map((l) => /calls=(\d+) triangles=(\d+) remotes=(\d+)/.exec(l).slice(1).map(Number));
 const last = stat.at(-1);
-console.log(
-  JSON.stringify({
-    gpu,
-    viewport: `${width}x${height}@2`,
-    frames: frames.length,
-    frameMs: { p50: +q(0.5).toFixed(1), p95: +q(0.95).toFixed(1), max: +q(1).toFixed(1) },
-    lastStats: last && { drawCalls: last[0], triangles: last[1], remotes: last[2] },
-    statLines: stat.length,
-    errors: lines.filter((l) => /PAGEERROR|ARMAGEDOM_LOAD_FAILED/.test(l)).slice(0, 3),
-  }),
-);
+const result = {
+  gpu,
+  viewport: `${width}x${height}@2`,
+  frames: frames.length,
+  frameMs: { p50: +q(0.5).toFixed(1), p95: +q(0.95).toFixed(1), max: +q(1).toFixed(1) },
+  lastStats: last && { drawCalls: last[0], triangles: last[1], remotes: last[2] },
+  statLines: stat.length,
+  errors: lines.filter((l) => /PAGEERROR|ARMAGEDOM_LOAD_FAILED/.test(l)).slice(0, 3),
+};
+console.log(JSON.stringify(result));
 await browser.close();
+if (arg("out", null)) writeFileSync(arg("out"), JSON.stringify(result));
+// --check <zero.json>: this run is the one WITH remotes; the file is the --out of a run with none. Exits 1 over the budget
+// (Web/src/data/renderBudget.json), so the per-remote cost cannot creep unnoticed.
+if (arg("check", null)) {
+  const { remoteCostProblems } = await import("../src/engine/render-budget.js");
+  const zero = JSON.parse(readFileSync(arg("check"), "utf8")).lastStats;
+  const problems = result.errors.length ? [`page errors: ${result.errors.join("; ")}`] : remoteCostProblems(zero, result.lastStats);
+  for (const problem of problems) console.error(`remote cost over budget: ${problem}`);
+  console.log(problems.length ? "BUDGET FAIL" : "BUDGET OK");
+  process.exitCode = problems.length ? 1 : 0;
+}
