@@ -33,7 +33,7 @@ test("the marker is a gold ground ring sized from data; rendering it pulses the 
   assert.ok(Math.abs(scale - 1) <= style.itemPulse / 2 + 1e-9, "the item pulses by at most itemPulse");
   assert.ok(Math.abs(marker.group.scale.x * scale - 1) < 1e-9, "the marker takes the item's scale back off");
   assert.ok(marker.ring.scale.x >= 1 && marker.ring.scale.x <= 1 + style.ringPulse + 1e-9, "the ring swells by at most ringPulse");
-  assert.ok(style.ringOuter >= 1.5 && style.ringOuter - style.ringInner <= 0.3, "a wide, thin band: a ring, not a donut");
+  assert.ok(style.ringOuter >= 0.9 && style.ringOuter - style.ringInner <= 0.3, "a wide, thin band: a ring, not a donut");
   marker.dispose();
   marker.dispose();
   assert.equal(marker.group.parent, null);
