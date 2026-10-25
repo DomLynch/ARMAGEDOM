@@ -30,7 +30,7 @@ import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
 import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/flame-runtime.js";
 import { wolfResponse, wolfBiteDirection } from "./wolf-native.js";
 import { SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
-import { CREATURE_MOVES } from "./engine/creature-moves.js";
+import { CREATURE_MOVES } from "./creature-moves.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
@@ -88,7 +88,7 @@ export const attacks = {
 const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
   behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
 });
-// The bite and low-strike moves are rows of Web/src/data/creatures.json, resolved in engine/creature-moves.js.
+// The bite and low-strike moves are rows of Web/src/data/creatures.json, resolved in creature-moves.js.
 const RAT_LOW = CREATURE_MOVES.rat_low;
 export const RAT_BITE = CREATURE_MOVES.rat_bite;
 const RAT_BITE_LOW = CREATURE_MOVES.rat_bite_low;

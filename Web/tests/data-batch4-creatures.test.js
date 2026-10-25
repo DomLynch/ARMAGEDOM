@@ -4,8 +4,7 @@ import fs from 'node:fs';
 import {RAT_BITE, ROACH_BITE, DOG_BITE} from '../src/combat.js';
 import {WOLF_BITE} from '../src/wolf-native.js';
 import {SALAMANDER_BITE, SALAMANDER_BREATH} from '../src/salamander-native.js';
-import {CREATURE_MOVES} from '../src/engine/creature-moves.js';
-import {resolveCreatureMoves} from '../src/engine/creature-move-resolver.js';
+import {CREATURE_MOVES, resolveCreatureMoves} from '../src/creature-moves.js';
 import {GAME_DATA, buildGameData, validateCreatures} from '../src/engine/game-data.js';
 
 // Data batch 4, PR A: the creature bite / low-strike tables moved from combat.js, wolf-native.js and salamander-native.js into

@@ -1,6 +1,6 @@
-import { CREATURE_MOVES, SALAMANDER_BREATH } from "./engine/creature-moves.js";
+import { CREATURE_MOVES, SALAMANDER_BREATH } from "./creature-moves.js";
 export const SALAMANDER_RIG = "giant-salamander";
-// The bite and the flame breath are rows of Web/src/data/creatures.json (resolved in engine/creature-moves.js).
+// The bite and the flame breath are rows of Web/src/data/creatures.json (resolved in creature-moves.js).
 export const SALAMANDER_BITE = CREATURE_MOVES.salamander_bite;
 export function salamanderResponse(alive, start) {
   return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };

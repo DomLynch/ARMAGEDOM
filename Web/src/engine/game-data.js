@@ -11,7 +11,6 @@ import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
-import { resolveCreatureMoves } from "./creature-move-resolver.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -178,7 +177,7 @@ export function validateMelee(m) {
   }
 }
 
-// creatures.json: the creature bite and low-strike move rows (resolved by engine/creature-moves.js) and the salamander's flame breath.
+// creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
   closed(d, ["schema_version", "moves", "salamanderBreath"]);
@@ -199,13 +198,15 @@ export function validateCreatures(d) {
     for (const f of ["windupTicks", "activeTicks", "recoveryTicks"])
       if (f in row) count("creatures", `moves.${name}.${f}`, row[f], 1, 600);
   }
-  resolveCreatureMoves(d.moves, {
-    light_right: {},
-    light_left: {},
-    thrust: {},
-    heavy_overhead: {},
-    skill_pommel: {},
-  });
+  // Every parent must be a knife move or an earlier row (creature-moves.js resolves them in file order).
+  const earlier = new Set(),
+    knifeIds = ["light_right", "light_left", "thrust", "heavy_overhead", "skill_pommel"];
+  for (const [name, row] of Object.entries(d.moves)) {
+    for (const ref of [row.extends ?? []].flat())
+      if (!(earlier.has(ref) || (ref.startsWith("knife:") && knifeIds.includes(ref.slice(6)))))
+        fail("creatures", `moves.${name} extends unknown or later row "${ref}"`);
+    earlier.add(name);
+  }
   const b = d.salamanderBreath;
   closed(b, [
     "kind",

@@ -1,7 +1,7 @@
-import { CREATURE_MOVES } from "./engine/creature-moves.js";
+import { CREATURE_MOVES } from "./creature-moves.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
 export const WOLF_RIG = "original-wolf";
-// The bite is a row of Web/src/data/creatures.json (resolved in engine/creature-moves.js).
+// The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
 export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
 export function wolfResponse(alive, start) {
   return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };
