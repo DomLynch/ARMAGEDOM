@@ -1,4 +1,5 @@
 import { areaDisplayName } from "../area-registry.js";
+import { rigCapability } from "../rig-capabilities.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
@@ -29,6 +30,18 @@ export const ARROW_PULSE_SECONDS = 1.3,
   ARROW_MIN_OPACITY = 0.35;
 export const arrowOpacity = (seconds) =>
   ARROW_MIN_OPACITY + (1 - ARROW_MIN_OPACITY) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / ARROW_PULSE_SECONDS));
+// After the shelter the tutorial sends the player after Westminster's two named kills, one at a time: the roaming
+// giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
+// Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
+const HUNT_ARRIVED = 1.5;
+export function huntTarget(g) {
+  if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
+  const live = (e) => e.hp > 0,
+    salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
+    matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
+  if (salamander) return { pos: salamander.pos, label: "KILL THE SALAMANDER" };
+  return matron ? { pos: matron.pos, label: "KILL THE EMBER MATRON" } : null;
+}
 export function validateGuidance(layout, g, links = null) {
   const rows = layout.guidance ?? [];
   if (!Array.isArray(rows) || rows.length > 5) throw Error("Invalid route guidance");
@@ -260,6 +273,7 @@ export function createRouteGuidance(world) {
     disposed = false,
     tutorialActive = false,
     pistolTarget = null,
+    hunt = null,
     arrival = null;
   function setTutorial(active) {
     if (tutorialActive !== !!active) {
@@ -272,6 +286,14 @@ export function createRouteGuidance(world) {
     const next = position ? { x: position.x, z: position.z } : null;
     if (next?.x !== pistolTarget?.x || next?.z !== pistolTarget?.z) {
       pistolTarget = next;
+      cachedPosition = null;
+    }
+  }
+  // The salamander/Ember Matron target follows a moving enemy, so a change of position drops the cached cue.
+  function setHuntTarget(next) {
+    const to = next ? { pos: { x: next.pos.x, z: next.pos.z }, label: next.label } : null;
+    if (to?.pos.x !== hunt?.pos.x || to?.pos.z !== hunt?.pos.z || to?.label !== hunt?.label) {
+      hunt = to;
       cachedPosition = null;
     }
   }
@@ -291,6 +313,15 @@ export function createRouteGuidance(world) {
           index: 0,
           gap: 0,
           remaining: toPistol,
+        });
+      const toHunt = !tutorialActive && hunt ? distance(position, hunt.pos) : 0;
+      if (toHunt > HUNT_ARRIVED)
+        return (cached = {
+          row: { id: "hunt", kind: "hunt", to: "westminster", label: hunt.label },
+          target: hunt.pos,
+          index: 0,
+          gap: 0,
+          remaining: toHunt,
         });
       cached = resolveGuidance(
         tutorialActive && tutorial ? [tutorial] : rows.filter((row) => row.to !== arrival?.from),
@@ -326,7 +357,9 @@ export function createRouteGuidance(world) {
       name =
         cue.row.kind === "pistol"
           ? "PISTOL"
-          : cue.row.kind === "tutorial"
+          : cue.row.kind === "hunt"
+            ? cue.row.label
+            : cue.row.kind === "tutorial"
             ? "WESTMINSTER SHELTER"
             : areaDisplayName(cue.row.to).toUpperCase();
     if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < 1.2)
@@ -344,6 +377,7 @@ export function createRouteGuidance(world) {
     resolve,
     setTutorial,
     setPistolTarget,
+    setHuntTarget,
     arrive,
     allowsExitHint: (to) => !tutorialActive && to !== arrival?.from,
     dispose() {

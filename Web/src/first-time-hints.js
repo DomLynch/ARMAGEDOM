@@ -8,6 +8,16 @@ const PISTOL_REACH = 1.3;
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const alive = (e) => e.hp > 0;
+// The Ember Matron's drop is the Ember Projector boss-equipment pickup: pending, in its source area, on the ground.
+const flameDropWithin = (g, meters) => {
+  const data = g.world?.bossEquipmentData?.emberProjector,
+    state = g.bossEquipment?.emberProjector;
+  return (
+    state?.status === "pending" &&
+    g.world.areaId === data.source.areaId &&
+    distance(g.player.pos, state.dropPosition) <= meters
+  );
+};
 
 // One check per `when` key; each answers "is this lesson relevant right now?".
 const checks = {
@@ -24,6 +34,8 @@ const checks = {
     );
   },
   flameEquipped: (_, { g }) => !!g.flame?.equipped,
+  // The Ember Matron's drop is on the ground within reach.
+  flameDropPickup: (_, { g }) => flameDropWithin(g, PISTOL_REACH),
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
 };
@@ -41,6 +53,7 @@ const stays = {
       distance(g.player.pos, pistol.pickupPos) <= meters
     );
   },
+  flameDropUncollectedWithin: (meters, { g }) => flameDropWithin(g, meters),
 };
 
 export function validateHintTable(rows) {

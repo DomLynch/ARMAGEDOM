@@ -1,5 +1,6 @@
 import { lockerStored } from "./locker-core.js";
 import { bossExitGate } from "./area-bosses.js";
+import { huntTarget } from "./route-guidance.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { expeditionEligible, selectedPistolProfile, contractEnabled } from "./expedition-core.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
@@ -67,6 +68,9 @@ export function journalPresentation(g, data, allowed = true) {
     next: gate && !gate.allowed ? `${gate.message}\n${next}` : next,
   };
 }
+// The HUD text for the objective. While the route arrow names the current kill (salamander, then Ember Matron) its line is
+// the only one shown; the objective itself is unchanged and the standing gate line returns when the hunt chain is not active.
+export const hudObjectiveLine = (g, progression) => (huntTarget(g) ? "" : (progression?.objective ?? ""));
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: "" };
   const gate = bossExitGate(g, "east");
@@ -338,7 +342,7 @@ export function createExpeditionView(s, dispatch) {
     const objectiveLine = el("expedition-objective");
     objectiveLine.hidden = !allowed() || g.player.hp <= 0;
     // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
-    paint(objectiveLine, progression?.objective ?? "");
+    paint(objectiveLine, hudObjectiveLine(g, progression));
     const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();

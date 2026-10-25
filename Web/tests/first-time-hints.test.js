@@ -42,7 +42,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "pistol", "ember-fire", "ember-matron"],
+    ["attack", "dodge-guard", "pistol", "ember-pickup", "ember-fire", "ember-matron"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(
@@ -113,14 +113,14 @@ test("the pistol hint stays past 5 s until the pistol is collected or the player
   assert.equal(run(other, o, HINT_SECONDS + 1), "", "ordinary hints still run down after HINT_SECONDS");
 });
 
-test("stay conditions are validated and only the pistol row has one", () => {
+test("stay conditions are validated and only the pistol and Ember pickup rows have one", () => {
   assert.throws(
     () => validateHintTable([{ id: "x", when: { tookHit: true }, stays: { nope: 1 }, text: "t" }]),
     /Unknown hint stay condition/,
   );
   assert.deepEqual(
     table.filter((row) => row.stays).map((row) => row.id),
-    ["pistol"],
+    ["pistol", "ember-pickup"],
   );
 });
 

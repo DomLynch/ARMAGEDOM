@@ -13,6 +13,12 @@
     "text": "Tap COLLECT STARTING PISTOL to take it."
   },
   {
+    "id": "ember-pickup",
+    "when": { "flameDropPickup": true },
+    "stays": { "flameDropUncollectedWithin": 6 },
+    "text": "Tap COLLECT EMBER PROJECTOR to take it."
+  },
+  {
     "id": "ember-fire",
     "when": { "flameEquipped": true },
     "text": "Hold FLAME to burn the enemy in front of you."

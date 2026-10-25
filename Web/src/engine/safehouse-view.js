@@ -9,6 +9,7 @@ import {
   safehouseProtected,
 } from "./safehouse.js";
 import { lockerInventory, lockerStored } from "./locker-core.js";
+import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 const names = [
   "Starting pistol · shared variants",
@@ -334,6 +335,7 @@ export function createSafehouseView(s, dispatch) {
     w.routeGuidance?.setPistolTarget?.(
       pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
     );
+    w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
     if (data.patch && !texture && !loading && !failed && inArea) {
       loading = true;
       new w.THREE.TextureLoader().load(
