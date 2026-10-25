@@ -90,6 +90,7 @@ export function createSaveClient({
     urgentPending = false, // the queued record is a death record: send it at once, not at the next interval
     urgentRun = null, // the run whose death was already marked urgent (later writes of the same dead run are routine)
     retryWait = 0, // after a refused or failed send: how long to wait before sending the kept record again
+    retryFromUrgent = false, // that wait came from a death save's own refusal (a routine save's hold must not delay a death)
     lastToken = null, // the newest token seen, for the page-hide send (which cannot wait for an async token)
     hideGen = 0, // counts page-hide sends: a routine send that one overtook is stale and must stop, never retry (see send())
     stopped = false,
@@ -306,7 +307,9 @@ export function createSaveClient({
   // A refused or failed send keeps its record queued and waits `retryWait` (the writer's Retry-After); a death record skips the interval.
   function schedule() {
     if (sending || stopped || halted || latest === null) return;
-    const wait = retryWait > 0 ? retryWait : urgentPending ? 0 : Math.max(0, lastSentAt + tuning.minSaveIntervalMs - now());
+    // A hold left by a routine save does not delay a death record (it may use the reserve); a hold left by a death save's own refusal does.
+    const held = retryWait > 0 && (!urgentPending || retryFromUrgent);
+    const wait = held ? retryWait : urgentPending ? 0 : Math.max(0, lastSentAt + tuning.minSaveIntervalMs - now());
     if (timer !== null) {
       if (wait > 0) return;
       clearTimer(timer); // a waiting routine send is overtaken by an urgent one
@@ -322,6 +325,7 @@ export function createSaveClient({
     latest = null;
     urgentPending = false;
     retryWait = 0;
+    retryFromUrgent = false;
     sending = true;
     lastSentAt = now();
     try {
@@ -334,6 +338,7 @@ export function createSaveClient({
           urgentPending = urgentPending || wasUrgent;
           // The writer's (or a proxy's) own wait when it gave one; otherwise the normal interval, so a down server is not hammered.
           retryWait = Math.max(250, result.retryMs ?? tuning.minSaveIntervalMs);
+          retryFromUrgent = wasUrgent;
         }
       }
     } catch (error) {
@@ -395,7 +400,14 @@ export function createSaveClient({
           // The server wins a save conflict: stop. The server's revision is NOT adopted and the record is NOT resent, so a newer save
           // from another device is never overwritten; this device pulls the server record on its next boot.
           uncertain = false;
-          log("[arma-save] page-hide save refused: stale (the server's newer save stays)");
+          if (inFlight) {
+            // A routine save of ours was in flight at hide time: most likely IT landed first. Its reply sets the revision, then this newest
+            // record is sent on top at once (flush waits for the in-flight send to finish). If the stale was really another device's
+            // save, the resend is refused again and nothing is overwritten (a normal send never adopts a revision unless uncertain).
+            keep();
+            urgentPending = true;
+            log("[arma-save] page-hide save refused: stale (our own save landed first; the newest record is sent again)");
+          } else log("[arma-save] page-hide save refused: stale (the server's newer save stays)");
         } else {
           keep();
           if (payload?.retryMs) retryWait = payload.retryMs;

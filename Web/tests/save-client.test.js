@@ -624,7 +624,7 @@ for (const order of ["B's reply first, then A arrives", "A arrives first, B's re
   });
 }
 
-test("a page-hide send refused as stale stops: the server's revision is not adopted and the record is not resent (the server wins a save conflict)", async () => {
+test("a page-hide send refused as stale because our OWN in-flight save landed first is kept and sent again on top of it (the death is not lost)", async () => {
   const server = orderedServer(),
     aArrives = gate(),
     aReplies = gate();
@@ -654,10 +654,69 @@ test("a page-hide send refused as stale stops: the server's revision is not adop
   await inFlight;
   await tick();
   await drain(t);
-  assert.deepEqual(server.written, [20, 14], "the server's newer save stays; the refused death is not forced over it");
-  assert.equal(saves(t).length, 3, "no resend");
-  assert.equal(t.client.state.revision, 2, "the server's revision was not adopted (A's own reply set it; the refusal did not)");
-  assert.match(t.lines.join("\n"), /page-hide save refused: stale/);
+  assert.deepEqual(server.written, [20, 14, 0], "A landed, then the kept death was sent on A's revision: the server ends on the death");
+  assert.equal(saves(t).length, 4, "the stale-refused hide send and exactly one resend");
+  assert.equal(t.client.state.revision, 3);
+  assert.match(t.lines.join("\n"), /our own save landed first/);
+});
+
+test("a hide send refused as stale with our own save in flight, when the stale was really another device's, is resent once and refused again: nothing is overwritten", async () => {
+  const server = orderedServer(),
+    aArrives = gate();
+  const t = make({
+    save_run: async (body, n) => {
+      if (n === 0) return server.arrive(body);
+      if (n === 1) {
+        await aArrives.promise;
+        return server.arrive(body); // A arrives after the other device moved the revision: stale too
+      }
+      return server.arrive(body);
+    },
+  });
+  t.client.queue(record({ hp: 20 }));
+  await t.run();
+  t.client.queue(record({ hp: 14 }));
+  const inFlight = t.run();
+  await tick();
+  t.client.queue(dead());
+  server.revision = 5; // a second device saved
+  server.lastSeq = 0;
+  t.client.flushOnHide(); // B: stale
+  await tick();
+  aArrives.open(); // A: stale as well, superseded
+  await inFlight;
+  await tick();
+  await drain(t);
+  assert.deepEqual(server.written, [20], "the other device's revision 5 is never overwritten");
+  assert.equal(saves(t).length <= 4, true, "the resend happened at most once, no loop");
+});
+
+test("a death queued during a LOCAL bucket hold goes out at once on the reserve; it does not wait out the routine hold", async () => {
+  let server;
+  const t = make({ save_run: (body) => server.arrive(body) });
+  server = bucketServer(t.clock);
+  const run = { id: "fight" };
+  for (let i = 0; i < 5; i++) {
+    t.client.queue(record({ hp: 100 - i }), run);
+    await t.run(); // the first 4 are sent; the 5th is held back locally (the reserve is not for routine saves)
+  }
+  assert.equal(server.written.length, 4);
+  assert.ok(t.timers.at(-1).ms > 0, "the routine record is waiting out its hold");
+  t.client.queue(dead(), run, { urgent: true });
+  assert.equal(t.timers.at(-1).ms, 0, "the death does not wait for the routine hold");
+  await t.run();
+  assert.equal(server.written.at(-1), 0, "sent on the reserve");
+  assert.equal(server.limited, 0);
+});
+
+test("a death save's OWN refusal still waits its Retry-After (an urgent record must not spin against the bucket)", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 429, body: { error: "rate-limited", retryMs: 3000 } } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.equal(t.timers.at(-1).ms, 3000, "the death waits the 429's Retry-After, not zero");
+  t.client.queue(dead({ extra: 1 }), { id: "r" }, { urgent: true }); // the same run again: routine, still the same hold
+  assert.equal(t.timers.at(-1).ms, 3000);
 });
 
 test("another device's newer save is never overwritten by a page-hide send: stale stops, even with the outcome marked uncertain", async () => {
