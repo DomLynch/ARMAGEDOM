@@ -1,0 +1,14 @@
+{
+  "hoverHeight": 0.9,
+  "hp": 20,
+  "radius": 1.1,
+  "moveSpeed": 1.6,
+  "wakeDistance": 6,
+  "homeLeash": 12,
+  "attackRange": 3,
+  "warningSeconds": 0.6,
+  "recoverySeconds": 1.4,
+  "damage": 6,
+  "boltSpeed": 8,
+  "boltRange": 6
+}

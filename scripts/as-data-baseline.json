@@ -1,4 +1,36 @@
 {
+  "keepInCode": {
+    "core/index.js": [
+      { "name": "fields", "reason": "Core command schema: the closed field list the sole writer validates every command against" }
+    ],
+    "engine/boss-equipment-core.js": [
+      { "name": "BOSS_EQUIPMENT_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
+    ],
+    "engine/contracts.js": [
+      { "name": "SESSION_OPERATIONS", "reason": "public browser-session operation names: an API contract checked by assertSession" }
+    ],
+    "engine/rifle-core.js": [
+      { "name": "RIFLE_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
+    ],
+    "engine/save-eras.js": [
+      { "name": "SAVE_ERAS", "reason": "save format registry: era versions to layer and storage key, built from the save-key constants" }
+    ],
+    "engine/unique-reward-core.js": [
+      { "name": "UNIQUE_REWARD_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
+    ],
+    "engine/world-events.js": [
+      { "name": "WORLD_EVENT_RULES", "reason": "wire protocol: key pattern, quantum and rates the server also relies on" },
+      { "name": "WORLD_EVENT_FIELDS", "reason": "wire protocol: the closed field list of every world event" },
+      { "name": "WORLD_EVENT_TYPES", "reason": "wire protocol: event types, derived from WORLD_EVENT_FIELDS" },
+      { "name": "MOVE_STATES", "reason": "wire protocol: move state enum (wire codes are table positions)" },
+      { "name": "MOVE_FLAGS", "reason": "wire protocol: move flag bits" },
+      { "name": "ATTACK_CLASSES", "reason": "wire protocol: attack class enum (wire codes are table positions)" },
+      { "name": "WEAPON_IDS", "reason": "wire protocol: weapon ids read by presence caps, the weapon rule rows and the seed" },
+      { "name": "DROP_MODES", "reason": "wire protocol: drop mode enum" },
+      { "name": "KEY_FIELDS", "reason": "wire protocol: which event fields carry keys, used by validateWorldEvent" },
+      { "name": "EMPTY", "reason": "a shared frozen empty array, not data" }
+    ]
+  },
   "rigLiterals": {
     "actors.js": 22,
     "animal-appearance.js": 14,
@@ -24,13 +56,12 @@
     "atmosphere-westminster.js": 2,
     "bridge-steering.js": 1,
     "clothing-palettes.js": 1,
-    "combat.js": 12,
     "core/index.js": 1,
     "creature-behaviour-intents.js": 2,
     "creature-behaviour-presets.js": 2,
     "crooked-hollow.js": 1,
     "donor/knife.js": 2,
-    "drone-mechanics.js": 2,
+    "drone-mechanics.js": 1,
     "engine/area-lighting.js": 1,
     "engine/area-prefetch.js": 1,
     "engine/areas.js": 1,
@@ -55,7 +86,7 @@
     "engine/weapon-catalog.js": 2,
     "engine/weapon-credit-policy.js": 1,
     "engine/world-config.js": 1,
-    "engine/world-events.js": 12,
+    "engine/world-events.js": 10,
     "face-appearance.js": 2,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
@@ -71,9 +102,6 @@
     "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1,
     "roach-appearance.js": 1,
-    "salamander-native.js": 2,
-    "supplies.js": 3,
-    "vest.js": 1,
-    "wolf-native.js": 1
+    "supplies.js": 3
   }
 }

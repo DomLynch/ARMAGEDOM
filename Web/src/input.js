@@ -1,4 +1,5 @@
 import { mobileStickVector } from "./mobile-combat-aim.js";
+import { installTapFallback } from "./engine/tap-fallback.js";
 // How far the knob travels at full tilt: a third of the pad's width, so a larger pad moves the knob further (136 px pad: 46 px; the old
 // 106 px pad and a pad whose size is not known: 36 px). The finger travel for full tilt (mobileStickVector's 46 px) is unchanged.
 const knobTravel = (element) => Math.round((element?.offsetWidth || 106) * 0.34);
@@ -448,6 +449,8 @@ export function attachInput({
   }
   listen(window, "blur", clear);
   listen(document, "visibilitychange", clear);
+  // A tap on a HUD button (weapon tile, menu, Pick up) made while the move thumb is down gets no browser click: see tap-fallback.js.
+  listeners.push(installTapFallback({ target: document }));
   return {
     state,
     clear,

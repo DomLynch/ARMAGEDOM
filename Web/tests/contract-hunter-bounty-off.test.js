@@ -9,7 +9,8 @@ import {stepMarkedHunters} from '../src/engine/marked-hunters.js';
 import {journalPresentation, expeditionObjective, supplyCaseShown} from '../src/engine/expedition-runtime.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
 
-// Dom, 24 Oct: no optional contract, no bounty hunters, no bounty. Cash and bank stay.
+// Dom, 24 Oct: no optional contract and no bounty. Cash and bank stay. Dom, 25 Oct: the hunters came back, always on (no bounty gate);
+// tests/hunters-always-on.test.js covers them. The hunters switch itself still works and is covered below.
 const base = 'westminster-start-pistol-v1';
 const receipt = 'west-east-stolen-supply-v1:watchmans-pistol-v1';
 const reward = 'watchmans-pistol-v1';
@@ -29,10 +30,10 @@ const reopen = (f, data) => {
   return again;
 };
 
-test('shipped data switches the contract, hunters and bounty off but keeps cash rules and the reward catalogue', () => {
+test('shipped data switches the contract and bounty off, hunters on, and keeps cash rules and the reward catalogue', () => {
   assert.equal(contract.enabled, false);
   assert.equal(contractEnabled(shipped.expedition), false);
-  assert.equal(shipped.markedData.hunters, false);
+  assert.equal(shipped.markedData.hunters, true);
   assert.equal(shipped.markedData.bounty, false);
   assert.equal(shipped.markedData.cashPerKill, 100);
   assert.equal(shipped.markedData.bossCash, 200);
@@ -113,7 +114,7 @@ test('bounty off: kills still add carried cash, bank still works, the bounty cou
   assert.deepEqual(again.g.marked, {version: 1, carried: 100, bank: 0, bounty: 0});
 });
 
-test('hunters off: a save carrying a bounty loads, spawns no warning or hunter, and clears a leftover hunter', () => {
+test('a save carrying a bounty loads with bounty off; with the hunters switch off no warning or hunter comes and a leftover hunter is cleared', () => {
   const f = make({data: shipped});
   f.g.enemies = [];
   f.g.marked = {version: 1, carried: 300, bank: 40, bounty: 500};
@@ -128,6 +129,7 @@ test('hunters off: a save carrying a bounty loads, spawns no warning or hunter, 
   assert.equal(again.world.group?.children?.length ?? 0, 0, 'no WANTED poster is built');
   poster.dispose();
   const g = again.g;
+  g.world = {...g.world, markedData: {...g.world.markedData, hunters: false}}; // the hunters switch, flipped off
   g.marked.bounty = 500; // even with a bounty in memory the hunters switch holds
   g.enemies = [];
   const spawn = () => assert.fail('no hunter may be built');
