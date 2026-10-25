@@ -448,7 +448,7 @@ summary {
     font-size: 11px;
   }
   #notice.hint {
-    top: calc(var(--safe-t) + 108px);
+    top: calc(var(--safe-t) + 144px);
   }
   #boss {
     top: calc(var(--safe-t) + 83px);
@@ -457,8 +457,8 @@ summary {
     font-size: 9px;
   }
   #move {
-    width: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);
-    height: calc(min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);
+    width: min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px));
+    height: min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px));
     bottom: calc(var(--safe-b) + 24px);
   }
   #action-cluster {
@@ -591,7 +591,7 @@ summary {
 #weapon-tiles-track button:disabled{opacity:.45;}
 #weapon-tiles-track span{display:block;font-size:8px;font-weight:600;letter-spacing:.09em;line-height:10px;}
 #weapon-tiles-track small{font-size:8px;line-height:9px;display:block;margin:0;letter-spacing:.02em;}
-@media(orientation:portrait){#weapon-tiles{bottom:calc(var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) * .75);}}
+@media(orientation:portrait){#weapon-tiles{bottom:calc(var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)));}}
 
 #weapon-tiles-track .weapon-page{display:flex;flex:0 0 110px;width:110px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
 #weapon-tiles .weapon-browse{flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#e1bb65;font-size:22px;line-height:44px;text-align:center;touch-action:none;}

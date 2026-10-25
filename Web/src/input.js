@@ -1,4 +1,7 @@
 import { mobileStickVector } from "./mobile-combat-aim.js";
+// How far the knob travels at full tilt: a third of the pad's width, so a larger pad moves the knob further (136 px pad: 46 px; the old
+// 106 px pad and a pad whose size is not known: 36 px). The finger travel for full tilt (mobileStickVector's 46 px) is unchanged.
+const knobTravel = (element) => Math.round((element?.offsetWidth || 106) * 0.34);
 const clampStick = (value, radius) => {
   const length = Math.hypot(value.x, value.y);
   const divisor = length > radius ? length : radius;
@@ -270,8 +273,8 @@ export function attachInput({
     listen(element, "pointermove", (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
       if (kind === "move") {
-        element.style.setProperty("--knob-x", `${state.stick.x * 36}px`);
-        element.style.setProperty("--knob-y", `${state.stick.y * 36}px`);
+        element.style.setProperty("--knob-x", `${state.stick.x * knobTravel(element)}px`);
+        element.style.setProperty("--knob-y", `${state.stick.y * knobTravel(element)}px`);
       } else {
         const aim = state.pointers.get(event.pointerId)?.aim;
         if (aim) {
@@ -293,8 +296,8 @@ export function attachInput({
         element.style.setProperty("--aim-angle", "0rad");
       }
       if (kind === "move") {
-        element.style.setProperty("--knob-x", `${state.stick.x * 36}px`);
-        element.style.setProperty("--knob-y", `${state.stick.y * 36}px`);
+        element.style.setProperty("--knob-x", `${state.stick.x * knobTravel(element)}px`);
+        element.style.setProperty("--knob-y", `${state.stick.y * knobTravel(element)}px`);
       }
     };
     for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
