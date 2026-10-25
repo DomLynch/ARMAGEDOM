@@ -3,6 +3,13 @@
     "core/index.js": [
       { "name": "fields", "reason": "Core command schema: the closed field list the sole writer validates every command against" }
     ],
+    "donor/knife.js": [
+      { "name": "KNIFE_MOVES", "reason": "derived view of data: per-move rows computed at load from weapons.json knife (seconds from ticks)" },
+      { "name": "KNIFE_COOLDOWNS", "reason": "derived view of data: cooldowns computed at load from weapons.json knife" }
+    ],
+    "drone-mechanics.js": [
+      { "name": "DRONE_KEYS", "reason": "derived view of data: placement key to area, built from the drone spawn rows; validates the saved death ledger" }
+    ],
     "engine/boss-equipment-core.js": [
       { "name": "BOSS_EQUIPMENT_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
     ],
