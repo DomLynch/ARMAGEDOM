@@ -27,8 +27,8 @@ const same = (a, b) => {
 };
 
 // Per-account token buckets on the client routes that cost a database round trip: `burst` requests at once, then one more every `refillMs`.
-// Proposed numbers (docs/MULTIPLAYER-DATA-LAYER.md): saves 1 per 5 s, burst 3; loads 1 per second, burst 3.
-export const DEFAULT_LIMITS = { save_run: { burst: 3, refillMs: 5000 }, load_run: { burst: 3, refillMs: 1000 } };
+// Numbers (docs/MULTIPLAYER-DATA-LAYER.md): saves 1 per 5 s, burst 6 (a fight's save triggers, then the death or pagehide flush, must not be refused); loads 1 per second, burst 3.
+export const DEFAULT_LIMITS = { save_run: { burst: 6, refillMs: 5000 }, load_run: { burst: 3, refillMs: 1000 } };
 
 /** spawnRows over a plain object of world rows; names like "constructor" or "__proto__" are unknown spawns, not prototype values. */
 export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, instance) ? spawns[instance] : null);
