@@ -45,6 +45,7 @@ for (const [mode, claim] of [
       assert.equal(g.rifle.status, 'owned');
       assert.equal(g.rifle.selected, true, 'the rifle is the active weapon');
       assert.equal(g.player.weapon, 'rifle');
+      assert.equal(g.message, 'Bridge Rifle equipped.');
       assert.equal(g.pistol.collected, true, 'the pistol is still carried');
       assert.equal(g.pistol.equipped, false);
       assert.equal(g.pistol.magazine, pistolBefore.magazine);

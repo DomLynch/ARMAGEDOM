@@ -3,7 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
-import { autoEquipAfterClaim } from "../auto-equip.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
@@ -57,7 +57,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? g.world.bossEquipmentData[field].name + " collected. Equip it in Gear."
+          ? collectedMessage(g.world.bossEquipmentData[field].name)
           : command.equipped
             ? g.world.bossEquipmentData[field].name + " equipped."
             : "Returned to your normal weapon.";
@@ -312,6 +312,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
                 equip: (options) => equipHandlers.get(field)?.(options),
                 active: () => !!g.bossEquipment?.[field]?.selected,
                 itemId: data.itemId,
+                name: data.name,
               });
             return true;
           },

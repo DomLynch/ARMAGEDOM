@@ -1,7 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
-import { autoEquipAfterClaim } from "../auto-equip.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),
@@ -63,7 +63,7 @@ export function createRifleView(s, dispatch) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? "Bridge Rifle collected. Equip it in Gear."
+          ? collectedMessage("Bridge Rifle")
           : command.equipped
             ? "RIFLE EQUIPPED"
             : "Returned to melee.";
@@ -95,7 +95,12 @@ export function createRifleView(s, dispatch) {
     if (s.paused || g.rifle?.status !== "pending") return;
     execute({ type: "claimPickup", pickupId: g.world.rifleData.itemId });
     if (g.rifle?.status === "owned")
-      void autoEquipAfterClaim(g, { equip, active: () => !!g.rifle?.selected, itemId: g.world.rifleData.itemId });
+      void autoEquipAfterClaim(g, {
+        equip,
+        active: () => !!g.rifle?.selected,
+        itemId: g.world.rifleData.itemId,
+        name: "Bridge Rifle",
+      });
   };
   button.addEventListener("click", equip);
   pickup.addEventListener("click", claim);
