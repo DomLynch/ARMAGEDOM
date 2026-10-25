@@ -1,26 +1,7 @@
-// Only the two registered bridge-side road bend chains; no global navigation graph.
-const BENDS = {
-  westminster: [
-    [0.52, 0.78],
-    [0.603125, 0.6875],
-    [0.70625, 0.575],
-    [0.770833333333, 0.516666666667],
-    [0.835416666667, 0.458333333333],
-    [0.9, 0.4],
-    [0.97, 0.34],
-  ],
-  east: [
-    [0.1, 0.72],
-    [0.12, 0.68],
-    [0.17, 0.66],
-    [0.21, 0.61],
-    [0.26, 0.57],
-    [0.31, 0.54],
-    [0.4, 0.51],
-    [0.44, 0.45],
-    [0.44, 0.36],
-  ],
-};
+// Only the two registered bridge-side road bend chains (data/atmosphere.json bends); no global navigation graph.
+import { GAME_DATA } from "./engine/game-data.js";
+
+const BENDS = GAME_DATA.atmosphere.bends;
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 function pointSegmentSq(p, a, b) {
   const x = b.x - a.x,

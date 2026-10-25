@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import {createGeometry} from '../src/world-geometry.js';
 import {atmosphereForArea,ATMOSPHERE_PRESETS,atmosphereBudget}from'../src/atmosphere-areas.js';
 import {createAtmosphere} from '../src/atmosphere.js';
-import {WESTMINSTER_ATMOSPHERE,ATMOSPHERE_BUDGET} from '../src/atmosphere-westminster.js';
+import {AREA_ATMOSPHERE} from '../src/atmosphere-areas.js';
+const WESTMINSTER_ATMOSPHERE=AREA_ATMOSPHERE.westminster;
 
 function fixture(){
   const layout=JSON.parse(fs.readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url)));

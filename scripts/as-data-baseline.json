@@ -59,9 +59,6 @@
   "constantTables": {
     "animal-appearance.js": 1,
     "animal-cycle.js": 1,
-    "atmosphere-areas.js": 4,
-    "atmosphere-westminster.js": 2,
-    "bridge-steering.js": 1,
     "clothing-palettes.js": 1,
     "core/index.js": 1,
     "creature-behaviour-intents.js": 2,
