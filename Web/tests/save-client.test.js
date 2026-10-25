@@ -382,6 +382,38 @@ test("pull: a device that never synced (new device, cleared storage) takes the s
   assert.equal(JSON.parse(t.target.getItem(CURRENT_ERA.key)).hp, 77);
 });
 
+test("pull: a record that arrives after the run was read (canApply false) is kept late: no write, no .pre-sync, no synced mark", async () => {
+  const t = pullSetup({ run: serverRun(5), synced: 3 });
+  t.target.setItem(CURRENT_ERA.key, "local-raw");
+  const result = await t.client.pull({ target: t.target, canApply: () => false });
+  assert.deepEqual(result, { status: "kept", reason: "late" });
+  assert.equal(t.target.getItem(CURRENT_ERA.key), "local-raw", "phone 1's newer progress is never overwritten by a stale local run");
+  assert.equal(t.target.getItem(`${CURRENT_ERA.key}.pre-sync`), null);
+  assert.deepEqual(JSON.parse(t.storage.map.get(syncedKey("user-1"))), { character: "pc:abc", revision: 3 }, "not marked synced");
+});
+
+test("a fresh second phone (no cached character id) joins the account's active character instead of creating one", async () => {
+  const t = make({ active: () => ({ character: "pc:first" }), load_run: () => ({ run: serverRun(2) }) });
+  assert.equal(t.storage.map.get(characterKey("user-1")), undefined, "nothing pre-seeded");
+  const result = await t.client.pull({ target: memory() });
+  assert.equal(result.status, "applied");
+  assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 0, "no new character: the first phone stays active");
+  assert.equal(t.w.calls.find((c) => c.op === "load_run").body.character, "pc:first");
+  assert.equal(t.storage.map.get(characterKey("user-1")), "pc:first", "remembered for the next boot");
+});
+
+test("no active character on the server: one is created; a failed lookup creates nothing", async () => {
+  const none = make({ active: () => ({ character: null }) });
+  none.client.queue(record());
+  await none.run();
+  assert.equal(none.w.calls.filter((c) => c.op === "create_character").length, 1);
+  const failed = make({ active: () => ({ status: 500, body: { error: "error" } }) });
+  failed.client.queue(record());
+  await failed.run();
+  assert.equal(failed.w.calls.filter((c) => c.op === "create_character").length, 0, "unknown is not 'none'");
+  assert.equal(failed.w.calls.filter((c) => c.op === "save_run").length, 0);
+});
+
 test("pull: a record of another era is not applied (it would not override the newest-era key); an unreachable server plays local", async () => {
   const other = pullSetup({ run: { revision: 9, record: { version: 11, hp: 1 } }, synced: 1 });
   assert.deepEqual(await other.client.pull({ target: other.target }), { status: "kept", reason: "other-era" });

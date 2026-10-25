@@ -354,6 +354,7 @@ export function createBrowserSession(options = {}) {
     }
   }
   let worldStarted = false,
+    runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
     bootPull = Promise.resolve(),
     syncedNotice = false;
   function startWorld() {
@@ -376,7 +377,7 @@ export function createBrowserSession(options = {}) {
     // The server save wins when it is online: a newer server record replaces the local run BEFORE the run is read (Enter waits for
     // this, at most bootSyncWaitMs). Unreachable or closed: play local; the queue sends it later.
     bootPull = saveClient
-      .pull({ target: baseRunStorage ?? runStorage })
+      .pull({ target: baseRunStorage ?? runStorage, canApply: () => !runRestored })
       .then((result) => {
         syncedNotice = result.status === "applied";
       })
@@ -675,9 +676,10 @@ export function createBrowserSession(options = {}) {
     const start = performance.now();
     const audioReady = audio.unlock();
     try {
-      // With the world open the server record may replace the local run first; never wait longer than bootSyncWaitMs for it.
-      await Promise.race([
-        worldBoot,
+      // With the world open the server record may replace the local run first; the sync runs alongside the model loading and the run
+      // is read only after it, never waiting longer than bootSyncWaitMs from Enter.
+      const bootSync = Promise.race([
+        Promise.resolve(worldBoot).catch(() => {}),
         new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
       ]);
       renderer ??= new THREE.WebGLRenderer({
@@ -700,6 +702,11 @@ export function createBrowserSession(options = {}) {
         if (results[1].status === "fulfilled") results[1].value.dispose();
         throw results.find((r) => r.status === "rejected").reason;
       }
+      await bootSync;
+      if (contextLost || disposed) {
+        for (const result of results) result.value.dispose();
+        return;
+      }
       const [nextWorld, library] = results.map((r) => r.value);
       const character = library.manifest.models["hollow-scavenger"];
       pilot.encounter = createHollowEncounter({
@@ -713,6 +720,7 @@ export function createBrowserSession(options = {}) {
       pendingLibrary = library;
       game = createGame(world, { ...pilot, residentPlacements: world.residentPlacements ?? pilot.residentPlacements });
       game.mobileAssistEnabled = mobileAssistEnabled;
+      runRestored = true;
       resources.restoreSavedRun(game);
       actors = createActors(scene, world, library, {
         visualScale: actorVisualScale,

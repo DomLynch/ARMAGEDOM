@@ -149,6 +149,15 @@ export function createSaveClient({
     if (!(await who())) return null;
     if (!character && account) character = read(characterKey(account)) || null;
     if (character) return character;
+    // A device with no cached id (a second phone on the same account) joins the account's active character; creating one here would
+    // take the active slot from the first phone. Unknown (the lookup failed): create nothing, try again on the next send.
+    const found = await call("active", {});
+    if (found.error) return null;
+    if (typeof found.character === "string") {
+      character = found.character;
+      if (account) write(characterKey(account), character);
+      return character;
+    }
     const made = await call("create_character", { name: tuning.characterName });
     if (typeof made.character === "string") {
       character = made.character;
@@ -286,13 +295,16 @@ export function createSaveClient({
     // what this device last synced (or this device never synced), it replaces the local run in `target` (the UNWRAPPED storage, so the
     // write is not queued back). The replaced local record is kept under `<key>.pre-sync`, never lost. Only a record of the CURRENT era
     // is applied: an older one would not override the local newest-era key. Unreachable server: play local (the queue sends it later).
-    async pull({ target = storage, current = CURRENT_ERA } = {}) {
+    // `canApply` is the cut-off: once the caller has read the local run (the game holds it and will save it), a late server record must
+    // neither replace the stored run nor mark this device synced, or the next save would overwrite the newer server record.
+    async pull({ target = storage, current = CURRENT_ERA, canApply = () => true } = {}) {
       if (!target || !(await sync()) || !character) return { status: "offline" };
       const run = loadedRun;
       if (!run || typeof run.record !== "object" || run.record === null) return { status: "kept" };
       const synced = readSynced();
       if (synced !== null && run.revision <= synced) return { status: "kept" };
       if (run.record.version !== current.version) return { status: "kept", reason: "other-era" };
+      if (!canApply()) return { status: "kept", reason: "late" };
       try {
         const before = target.getItem(current.key);
         if (before != null) target.setItem(`${current.key}.pre-sync`, before);
