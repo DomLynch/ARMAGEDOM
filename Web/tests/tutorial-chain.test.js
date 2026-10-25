@@ -33,7 +33,7 @@ test("the hunt chain leads to the salamander, then the Ember Matron, then stops 
   assert.equal(huntTarget({ enemies: [] }), null);
 });
 
-test("the standing Ember Matron objective is hidden during the salamander step and returns for her step", () => {
+test("the standing Ember Matron objective is hidden while either hunt step shows its arrow line", () => {
   const sal = salamander(10, 4),
     witch = matron(-8, 2),
     g = {
@@ -49,7 +49,14 @@ test("the standing Ember Matron objective is hidden during the salamander step a
     };
   assert.equal(progressionObjective(g).objective, "", "salamander step: only the arrow line shows");
   sal.hp = 0;
-  assert.equal(progressionObjective(g).objective, "Kill the Ember Matron", "her step: the standing line is back");
+  assert.equal(progressionObjective(g).objective, "", "her step: only the arrow line shows");
+  g.bossEquipment.emberProjector.status = "owned";
+  witch.hp = 0;
+  assert.equal(huntTarget(g), null);
+  g.flameFuel = { collected: false };
+  g.bossEquipment.emberProjector.status = "locked";
+  g.enemies = [];
+  assert.equal(progressionObjective(g).objective, "Kill the Ember Matron", "no hunt step: the standing line is unchanged");
 });
 
 test("the route arrow follows the hunt target's live position and names the kill", () => {

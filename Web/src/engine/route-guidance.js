@@ -33,13 +33,12 @@ export const arrowOpacity = (seconds) =>
 // giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
 // Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
 const HUNT_ARRIVED = 1.5;
-export const SALAMANDER_STEP = "KILL THE SALAMANDER";
 export function huntTarget(g) {
   if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
   const live = (e) => e.hp > 0,
     salamander = g.enemies.find((e) => live(e) && e.rig === "giant-salamander"),
     matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
-  if (salamander) return { pos: salamander.pos, label: SALAMANDER_STEP };
+  if (salamander) return { pos: salamander.pos, label: "KILL THE SALAMANDER" };
   return matron ? { pos: matron.pos, label: "KILL THE EMBER MATRON" } : null;
 }
 export function validateGuidance(layout, g, links = null) {
