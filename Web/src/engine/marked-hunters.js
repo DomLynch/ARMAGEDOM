@@ -3,13 +3,22 @@ import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false } = {}) {
   if (!g.world.markedData) return;
+  const hadHunter = g.enemies.some((e) => e.markedHunter && e.hp > 0);
   g.enemies = g.enemies.filter((e) => !e.markedHunter);
   if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter);
-  const old = g.markedHunt;
+  const old = g.markedHunt,
+    c = g.world.markedData;
   g.markedHunt = {
     areaId,
     arrivedAt: g.time,
-    nextSpawnAt: death ? g.time + g.world.markedData.arrivalDelay : (old?.nextSpawnAt ?? g.time),
+    // Death restarts the first-arrival wait. Leaving an area with a hunter alive counts as the hunter leaving: the next one comes
+    // after the re-arrival delay (the first-arrival wait for the new area still applies on top of it).
+    nextSpawnAt: death
+      ? g.time + c.arrivalDelay
+      : hadHunter
+        ? Math.max(old?.nextSpawnAt ?? 0, g.time + c.respawnDelay)
+        : (old?.nextSpawnAt ?? g.time),
+    hadHunter: false,
     warning: null,
     nextAttemptAt: g.time,
   };
@@ -83,6 +92,10 @@ export function stepMarkedHunters(g, spawn) {
   }
   if (!g.markedHunt || g.markedHunt.areaId !== g.world.areaId) clearMarkedHunters(g);
   const s = g.markedHunt;
+  // A hunter that has died is gone: the next one comes after the re-arrival delay.
+  const present = g.enemies.some((e) => e.markedHunter && e.hp > 0);
+  if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);
+  s.hadHunter = present;
   if (
     g.finished ||
     g.runSaveInvalid ||
