@@ -1,38 +1,8 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Per-resident parameter preparation only. No AI clock, targeting or movement.
-const preset = (speedFactor, recoveryAdd, attackPattern) =>
-  Object.freeze({
-    speedFactor,
-    recoveryAdd,
-    ...(attackPattern ? { attackPattern: Object.freeze(attackPattern) } : {}),
-  });
-export const CREATURE_BEHAVIOURS = Object.freeze({
-  baseline: preset(1, 0),
-  cautious: preset(0.85, 0.15),
-  brisk: preset(1.1, 0),
-  "gaunt-thrust": preset(1, 0, ["stab"]),
-  "stocky-heavy": preset(0.85, 0.15, ["heavy"]),
-});
-export const RECIPE_BEHAVIOURS = Object.freeze({
-  "human-street-scavenger": "baseline",
-  "human-crooked-hollow": "baseline",
-  "human-gaunt-skulker": "gaunt-thrust",
-  "human-stocky-brute": "stocky-heavy",
-  "human-ragged-runner": "brisk",
-  "human-wounded-straggler": "cautious",
-  "human-scarred-veteran": "cautious",
-  "salamander-ember-guard": "baseline",
-  "wolf-east-guard": "baseline",
-  "rat-sewer": "baseline",
-  "rat-ash": "brisk",
-  "rat-heavy": "cautious",
-  "dog-street-mongrel": "baseline",
-  "dog-ash-coated": "baseline",
-  "dog-stocky-yard": "cautious",
-  "roach-sewer": "baseline",
-  "roach-ash": "baseline",
-  "roach-rust-shell": "baseline",
-  "roach-heavy-shell": "cautious",
-});
+// The presets and which one each recipe uses live in Web/src/data/creatures.json `behaviours` (read through game-data.js).
+export const CREATURE_BEHAVIOURS = GAME_DATA.creatures.behaviours.presets;
+export const RECIPE_BEHAVIOURS = GAME_DATA.creatures.behaviours.recipeBehaviours;
 export function resolveCreatureBehaviour(name, foundation) {
   const p = Object.hasOwn(CREATURE_BEHAVIOURS, name) ? CREATURE_BEHAVIOURS[name] : null;
   if (!p) throw Error("Unknown creature behaviour");
