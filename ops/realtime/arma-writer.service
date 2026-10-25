@@ -10,6 +10,9 @@ Wants=network-online.target
 WorkingDirectory=/opt/armagedom-realtime/current
 # Read by systemd as root before the service drops to its own user, so the file stays root:root 0600 (see ops/realtime/check-env.sh).
 EnvironmentFile=/etc/armagedom/writer.env
+# Supabase's pooler chains to "Supabase Root 2021 CA", which the host does not trust. This ADDS that root to Node's trust (full chain and hostname
+# checks stay on; nothing is disabled). The cert is public, so it lives outside the 0750 /etc/armagedom that the DynamicUser cannot read.
+Environment=NODE_EXTRA_CA_CERTS=/etc/ssl/armagedom/supabase-prod-ca-2021.crt
 ExecStart=/usr/bin/env node server/writer/main.js
 Restart=on-failure
 RestartSec=3

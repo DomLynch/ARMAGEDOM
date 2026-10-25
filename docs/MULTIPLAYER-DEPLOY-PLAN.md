@@ -28,6 +28,10 @@ Everything below is run on the VPS as root. No secret appears in a command line,
    writer password and `ARMA_INTERNAL_KEY` on the box, writes `writer.env` and `presence.env` (root:root 0600, flags OFF, presence port 8894) and
    `arma_writer.verifier.sql` (one `alter role ... password '<SCRAM verifier>'` statement). Apply that one statement to the project with the Supabase SQL tool.
    `sh ops/realtime/check-env.sh` then proves the files load under the units' own confinement without printing a value.
+   **Database CA** (found at A5, 25 Oct): the pooler's chain ends at the self-signed "Supabase Root 2021 CA", which the VPS does not trust, so the writer fails with
+   `SELF_SIGNED_CERT_IN_CHAIN`. Install Supabase's official `prod-ca-2021.crt` (check its fingerprint against Supabase's published one) as
+   `/etc/ssl/armagedom/supabase-prod-ca-2021.crt` (root:root 0644; not under `/etc/armagedom`, which the unit's DynamicUser cannot read). The unit template sets
+   `NODE_EXTRA_CA_CERTS` to it. That adds a trusted root; verification of the chain and hostname stays on. Never set `sslmode=no-verify` or `rejectUnauthorized: false`.
 3. **Units**: install `arma-writer.service` and `arma-presence.service`, `systemctl daemon-reload`. They start with the flags OFF (the process exits 0, nothing listens).
 4. **nginx** (Deploy): the example's per-IP limit zones in `conf.d/`, the three locations in the 443 block for `playarmagedom.com` (`/arma/api/` -> 8891, `/arma/ws` -> 8894).
 5. **Flip**: set `ARMA_WRITER=1`, start the writer, `curl -s http://127.0.0.1:8891/health`; set `ARMA_PRESENCE=1`, start presence; health on loopback only. The hosted
