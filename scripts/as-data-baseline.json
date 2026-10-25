@@ -81,7 +81,6 @@
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
-    "engine/run-state.js": 1,
     "engine/save-eras.js": 1,
     "engine/sever-blood-data.js": 1,
     "engine/unique-reward-core.js": 1,
@@ -105,6 +104,6 @@
     "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1,
     "roach-appearance.js": 1,
-    "supplies.js": 3
+    "supplies.js": 2
   }
 }

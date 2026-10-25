@@ -1,4 +1,5 @@
 import { upgradeSupplies } from "../supply-ledger-v2.js";
+import { GAME_DATA } from "./game-data.js";
 import { initializeAreaResidents } from "../combat.js";
 import { DRONE_KEYS } from "../drone-mechanics.js";
 import {
@@ -11,7 +12,7 @@ import {
 } from "../supplies.js";
 import { createVestState, isVestState, collectVest } from "../vest.js";
 // Clear native circle movement/LOS from spawn;1.15m from the pistol stash.
-export const VEST_BAG_POSITION = Object.freeze({ x: -2, z: -6.15 });
+export const VEST_BAG_POSITION = GAME_DATA.supplies.vestBagPosition; // data/supplies.json
 // Only this pilot's ownership and finite ammunition; no inventory/run framework.
 export const PISTOL_SAVE_KEY = "armagedom:pistol:v1";
 export function encodePistol(state) {
