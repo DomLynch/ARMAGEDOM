@@ -153,7 +153,19 @@ export function validateWorld(d) {
     "closedCloseCodes",
     "closedRefuseReasons",
     "closedError",
+    "clientLog",
   ]);
+  // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
+  closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
+  if (!Array.isArray(d.clientLog.kinds) || d.clientLog.kinds.length < 1 || !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k)))
+    fail("world", "clientLog.kinds");
+  count("world", "clientLog.maxBodyBytes", d.clientLog.maxBodyBytes, 500, 4000); // the writer refuses a body over 4096 bytes
+  if (typeof d.clientLog.path !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.clientLog.path))
+    fail("world", "clientLog.path");
+  count("world", "clientLog.minIntervalMs", d.clientLog.minIntervalMs, 5000, 3600000);
+  count("world", "clientLog.maxEvents", d.clientLog.maxEvents, 1, 10);
+  count("world", "clientLog.maxDistinct", d.clientLog.maxDistinct, 1, 200);
+  count("world", "clientLog.messageChars", d.clientLog.messageChars, 20, 200);
   if (typeof d.statusPath !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.statusPath))
     fail("world", "statusPath");
   count("world", "statusTimeoutMs", d.statusTimeoutMs, 500, 60000);
