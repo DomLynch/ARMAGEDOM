@@ -91,6 +91,7 @@ export function createSaveClient({
     urgentRun = null, // the run whose death was already marked urgent (later writes of the same dead run are routine)
     retryWait = 0, // after a refused or failed send: how long to wait before sending the kept record again
     lastToken = null, // the newest token seen, for the page-hide send (which cannot wait for an async token)
+    hideGen = 0, // counts page-hide sends: a routine send that one overtook is stale and must stop, never retry (see send())
     stopped = false,
     halted = false; // the world answered "closed": no requests until resume() (the next status read said yes)
 
@@ -215,20 +216,27 @@ export function createSaveClient({
     } catch {
       return { ok: false, reason: "bad-record" };
     }
+    const generation = hideGen;
     await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
     if (!(await sync()) || !character) return { ok: false, reason: "offline" };
     const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
     for (let attempt = 0; attempt <= tuning.staleSeqRetries; attempt++) {
+      // A page-hide send left after this one began: it carries a NEWER record. This record must never be sent (or resent) now, or the
+      // server would end on the older state (a living save over a death). Nothing is requeued: the newer record is sent or kept.
+      if (hideGen !== generation) return { ok: false, reason: "superseded" };
       seq++;
       const reply = await call("save_run", { character, era: record.version, record, revision, seq });
+      const overtaken = hideGen !== generation;
       if (reply.error === "network") {
         uncertain = true;
         return { ok: false, reason: "network" };
       }
       if (reply.error) {
         if (reply.status === 429) seq--; // refused before it was counted: the same sequence number goes out again
+        if (reply.status === 502 || reply.status === 504) uncertain = true; // the writer may have committed before the proxy gave up
         return { ok: false, reason: reply.error, retryMs: reply.retryMs, status: reply.status };
       }
+      if (overtaken && ["stale", "stale-seq", "seq-conflict"].includes(reply.refused)) return { ok: false, reason: "superseded" };
       if (reply.refused === "stale-seq" || reply.refused === "seq-conflict") {
         seq = reply.lastSeq; // the next loop iteration sends lastSeq + 1
         continue;
@@ -322,6 +330,7 @@ export function createSaveClient({
     } catch {
       return false;
     }
+    hideGen++; // a routine send already in flight is now older than this one: it stops instead of retrying over it
     const taken = latest,
       body = JSON.stringify({ character, era: record.version, record, revision, seq: ++seq });
     latest = null;
@@ -338,7 +347,7 @@ export function createSaveClient({
         method: "POST",
         headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" },
         body,
-        keepalive: body.length < KEEPALIVE_MAX_BYTES,
+        keepalive: new TextEncoder().encode(body).length < KEEPALIVE_MAX_BYTES,
       });
     } catch {
       keep();
@@ -354,6 +363,13 @@ export function createSaveClient({
         } else {
           keep();
           if (payload?.retryMs) retryWait = payload.retryMs;
+          // Refused as stale: the routine save that was in flight landed first (this send was unsure of it). Take the server's
+          // revision so the kept, newer record is resent on top of it (page still alive: a tab that only turned hidden).
+          if (payload?.refused === "stale" && Number.isInteger(payload.revision)) {
+            revision = payload.revision;
+            uncertain = false;
+          }
+          if (response.status === 502 || response.status === 504) uncertain = true;
         }
       })
       .catch(keep)

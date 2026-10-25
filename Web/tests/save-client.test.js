@@ -551,6 +551,114 @@ test("a death that happens while a routine save is in flight goes out the moment
   assert.deepEqual(saves(t).map((c) => [c.body.record.hp, c.body.revision]), [[14, 0], [0, 1]]);
 });
 
+// The Auditor's probe (#166): a routine save A is in flight when the page hides; the death B leaves by keepalive and lands first. A must
+// stop (stale-seq / stale), never retry over B. The fake writer applies the real check order (seq < last: stale-seq, = last:
+// seq-conflict, then the revision guard) at the moment a request ARRIVES; a reply can be held back separately.
+function orderedServer() {
+  const s = { revision: 0, lastSeq: 0, written: [] };
+  s.arrive = (body) => {
+    if (body.seq < s.lastSeq) return { refused: "stale-seq", lastSeq: s.lastSeq };
+    if (body.seq === s.lastSeq) return { refused: "seq-conflict", lastSeq: s.lastSeq };
+    if (body.revision !== s.revision) return { refused: "stale", revision: s.revision };
+    s.revision++;
+    s.lastSeq = body.seq;
+    s.written.push(body.record.hp);
+    return { revision: s.revision, savedAt: "t" };
+  };
+  return s;
+}
+const gate = () => {
+  let open;
+  const promise = new Promise((resolve) => (open = resolve));
+  return { promise, open };
+};
+const tick = () => new Promise((r) => setTimeout(r, 5));
+
+for (const order of ["B's reply first, then A arrives", "A arrives first, B's reply held until after"]) {
+  test(`a routine save in flight when the page hides never overwrites the death (${order})`, async () => {
+    const server = orderedServer(),
+      aArrives = gate(),
+      bReplies = gate();
+    const t = make({
+      save_run: async (body, n) => {
+        if (n === 0) return server.arrive(body); // the first routine save: learns revision 1 (n counts earlier save_run calls)
+        if (n === 1) {
+          await aArrives.promise; // A is held in the network
+          return server.arrive(body);
+        }
+        const answer = server.arrive(body); // B, the page-hide send: lands at once
+        await bReplies.promise;
+        return answer;
+      },
+    });
+    t.client.queue(record({ hp: 20 }));
+    await t.run();
+    t.client.queue(record({ hp: 14 }));
+    const inFlight = t.run(); // A: revision 1, seq 2
+    await tick();
+    t.client.queue(dead());
+    assert.equal(t.client.flushOnHide(), true);
+    await tick();
+    assert.deepEqual(server.written, [20, 0], "B landed");
+    if (order.startsWith("B's")) {
+      bReplies.open();
+      await tick();
+      aArrives.open();
+    } else {
+      aArrives.open();
+      await tick();
+      bReplies.open();
+    }
+    await inFlight;
+    await tick();
+    assert.deepEqual(server.written, [20, 0], "the death is the last write: A was never accepted");
+    assert.equal(saves(t).length, 3, "A was not retried");
+    assert.match(t.lines.join("\n"), /not saved: superseded/);
+    // Nothing older is queued behind it: a later routine save carries on from the server's revision.
+    t.clock.ms += 6000;
+    t.client.queue(dead({ extra: 1 }));
+    while (t.timers.length) await t.run();
+    assert.equal(server.written.at(-1), 0);
+  });
+}
+
+test("a page-hide send refused as stale (the in-flight save landed first) adopts the revision and resends the newer record", async () => {
+  const server = orderedServer(),
+    aArrives = gate();
+  let release;
+  const t = make({
+    save_run: async (body, n) => {
+      if (n === 0) return server.arrive(body);
+      if (n === 1) {
+        await aArrives.promise;
+        return server.arrive(body); // A lands BEFORE B arrives
+      }
+      return server.arrive(body); // B: built with the old revision -> stale
+    },
+  });
+  t.client.queue(record({ hp: 20 }));
+  await t.run();
+  t.client.queue(record({ hp: 14 }));
+  const inFlight = t.run();
+  await tick();
+  t.client.queue(dead());
+  aArrives.open(); // A reaches the server first
+  await tick();
+  t.client.flushOnHide(); // B is built from the cached revision, which A has already moved on
+  await inFlight;
+  await tick();
+  while (t.timers.length) await t.run();
+  assert.equal(server.written.at(-1), 0, "the death is sent again on top of A, so the server ends on it");
+});
+
+test("a 502 or 504 (the writer may have committed) leaves the outcome uncertain, so the next 'stale' is our own save", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 504, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record());
+  await t.run();
+  assert.equal(t.client.state.uncertain, true);
+});
+
 test("a network failure keeps the record queued for another try", async () => {
   let n = 0;
   const t = make({ save_run: () => (++n === 1 ? new Error("offline") : { revision: 1, savedAt: "t" }) });
