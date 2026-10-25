@@ -3,5 +3,8 @@
   "minSaveIntervalMs": 5000,
   "staleSeqRetries": 2,
   "characterName": "Survivor",
-  "bootSyncWaitMs": 3000
+  "bootSyncWaitMs": 3000,
+  "bucketBurst": 6,
+  "bucketRefillMs": 5000,
+  "bucketReserve": 2
 }

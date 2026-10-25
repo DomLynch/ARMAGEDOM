@@ -7,6 +7,7 @@ import {
   createSaveClient,
   isRunKey,
   observeStorage,
+  runIsOver,
   syncedKey,
 } from "../src/engine/save-client.js";
 import { CURRENT_ERA } from "../src/engine/save-eras.js";
@@ -29,11 +30,16 @@ function writer(script = {}) {
     const op = url.split("/").pop(),
       body = JSON.parse(init.body),
       n = calls.filter((c) => c.op === op).length;
-    calls.push({ op, body, auth: init.headers.Authorization });
+    calls.push({ op, body, auth: init.headers.Authorization, keepalive: init.keepalive === true });
     const answer = await (script[op] ?? (() => ({})))(body, n);
     if (answer instanceof Error) throw answer;
     const status = answer.status ?? 200;
-    return { ok: status < 400, status, json: async () => answer.body ?? answer };
+    return {
+      ok: status < 400,
+      status,
+      headers: { get: (name) => answer.headers?.[name.toLowerCase()] ?? null },
+      json: async () => answer.body ?? answer,
+    };
   };
   return { calls, fetchImpl };
 }
@@ -420,6 +426,388 @@ test("pull: a record of another era is not applied (it would not override the ne
   assert.equal(other.target.getItem(CURRENT_ERA.key), null);
   const down = make({ load_run: () => new Error("down") }, {});
   assert.equal((await down.client.pull({ target: memory() })).status, "offline");
+});
+
+// Death must not be escapable by closing the tab: the dead run's record leaves at once (no interval), a rate limit never drops it, and
+// the page-hide send carries the newest record with a keepalive request.
+const dead = (extra = {}) => record({ hp: 0, ...extra });
+const saves = (t) => t.w.calls.filter((c) => c.op === "save_run");
+
+test("runIsOver: a finished run or one at 0 hp, nothing else", () => {
+  assert.equal(runIsOver({ finished: true, player: { hp: 50 } }), true);
+  assert.equal(runIsOver({ player: { hp: 0 } }), true);
+  assert.equal(runIsOver({ player: { hp: 14 } }), false);
+  assert.equal(runIsOver(null), false);
+});
+
+test("a death record skips the interval: queued 1 s after a routine save it is sent at once, with the dead state", async () => {
+  const t = make();
+  const run = { id: "run-1" };
+  t.client.queue(record({ hp: 14 }), run);
+  await t.run();
+  t.clock.ms += 1000; // the tab will close right after this
+  t.client.queue(dead(), run, { urgent: true });
+  assert.equal(t.timers.at(-1).ms, 0, "no wait for the 5 s interval");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => JSON.parse(JSON.stringify(c.body.record)).hp), [14, 0]);
+  assert.deepEqual(saves(t).map((c) => c.body.seq), [1, 2]);
+});
+
+test("only the first death record of a run is urgent: later writes of the same dead run wait the interval", async () => {
+  const t = make();
+  const run = { id: "run-1" };
+  t.client.queue(dead(), run, { urgent: true });
+  await t.run();
+  t.client.queue(dead({ extra: 1 }), run, { urgent: true });
+  assert.ok(t.timers.at(-1).ms > 0, "a repeat of the same death is routine");
+  t.client.queue(dead(), { id: "run-2" }, { urgent: true });
+  assert.equal(t.timers.at(-1).ms, 0, "a new run's death is urgent again");
+});
+
+test("a 429 never drops the record: it stays queued, waits the writer's retryMs, is sent again with the same sequence number", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 429, body: { error: "rate-limited", retryMs: 3000 } } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.match(t.lines[0], /not saved: rate-limited/);
+  assert.equal(t.timers.at(-1).ms, 3000, "waits the Retry-After");
+  t.clock.ms += 5000; // the wait passes (the bucket refills)
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => [c.body.seq, c.body.record.hp]), [[1, 0], [1, 0]]);
+  assert.equal(t.client.state.revision, 1);
+});
+
+test("a record that arrived while a rate-limited save was refused replaces the kept one (the newest wins)", async () => {
+  let n = 0;
+  let queueMore = () => {};
+  const t = make({
+    save_run: () => {
+      if (++n === 1) {
+        queueMore();
+        return { status: 429, body: { error: "rate-limited", retryMs: 1000 } };
+      }
+      return { revision: 1, savedAt: "t" };
+    },
+  });
+  queueMore = () => t.client.queue(record({ hp: 7 }));
+  t.client.queue(record({ hp: 9 }));
+  await t.run();
+  await drain(t);
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [9, 7]);
+});
+
+test("a proxy's 429 (Retry-After header, no JSON body) is honoured the same way: the record is kept and resent after the wait", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 429, headers: { "retry-after": "7" }, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.equal(t.timers.at(-1).ms, 7000);
+  t.clock.ms += 7000;
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [0, 0]);
+  assert.equal(t.client.state.revision, 1);
+});
+
+test("a server error (5xx) keeps the record and retries after the normal interval, not at once", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 503, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record({ hp: 5 }));
+  await t.run();
+  assert.equal(t.timers.at(-1).ms, GAME_DATA.saveClient.minSaveIntervalMs);
+  await t.run();
+  assert.equal(saves(t).length, 2);
+});
+
+test("the real wiring: a dead run written through the watched storage is sent at once; the tab closed 1 s later loses nothing", async () => {
+  const t = make();
+  const raw = memory();
+  const game = { player: { hp: 14 }, finished: false };
+  const watched = observeStorage(raw, isRunKey, (value) => t.client.queue(value, game, { urgent: runIsOver(game) }));
+  watched.setItem(CURRENT_ERA.key, record({ hp: 14 }));
+  await t.run();
+  t.clock.ms += 1000;
+  game.player.hp = 0; // the player dies; the run is persisted in the same step
+  watched.setItem(CURRENT_ERA.key, dead());
+  assert.equal(t.timers.at(-1).ms, 0, "no wait for the interval");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => c.body.record.hp), [14, 0], "the server's newest record is the death");
+  assert.equal(t.client.flushOnHide(), false, "the tab closes: nothing is left unsent");
+});
+
+test("a death that happens while a routine save is in flight goes out the moment that save returns, with no interval wait", async () => {
+  let release;
+  let n = 0;
+  const t = make({
+    save_run: () => (++n === 1 ? new Promise((resolve) => (release = () => resolve({ revision: 1, savedAt: "t" }))) : { revision: 2, savedAt: "t" }),
+  });
+  const run = { id: "r" };
+  t.client.queue(record({ hp: 14 }), run);
+  const inFlight = t.run();
+  await new Promise((r) => setTimeout(r, 5)); // the routine save is on the wire
+  t.client.queue(dead(), run, { urgent: true });
+  assert.equal(t.timers.length, 0, "nothing can be sent while one is in flight");
+  release();
+  await inFlight;
+  assert.equal(t.timers.at(-1).ms, 0, "the death is next, at once");
+  await t.run();
+  assert.deepEqual(saves(t).map((c) => [c.body.record.hp, c.body.revision]), [[14, 0], [0, 1]]);
+});
+
+// The Auditor's probe (#166): a routine save A is in flight when the page hides; the death B leaves by keepalive and lands first. A must
+// stop (stale-seq / stale), never retry over B. The fake writer applies the real check order (seq < last: stale-seq, = last:
+// seq-conflict, then the revision guard) at the moment a request ARRIVES; a reply can be held back separately.
+function orderedServer() {
+  const s = { revision: 0, lastSeq: 0, written: [] };
+  s.arrive = (body) => {
+    if (body.seq < s.lastSeq) return { refused: "stale-seq", lastSeq: s.lastSeq };
+    if (body.seq === s.lastSeq) return { refused: "seq-conflict", lastSeq: s.lastSeq };
+    if (body.revision !== s.revision) return { refused: "stale", revision: s.revision };
+    s.revision++;
+    s.lastSeq = body.seq;
+    s.written.push(body.record.hp);
+    return { revision: s.revision, savedAt: "t" };
+  };
+  return s;
+}
+const gate = () => {
+  let open;
+  const promise = new Promise((resolve) => (open = resolve));
+  return { promise, open };
+};
+const tick = () => new Promise((r) => setTimeout(r, 5));
+
+for (const order of ["B's reply first, then A arrives", "A arrives first, B's reply held until after"]) {
+  test(`a routine save in flight when the page hides never overwrites the death (${order})`, async () => {
+    const server = orderedServer(),
+      aArrives = gate(),
+      bReplies = gate();
+    const t = make({
+      save_run: async (body, n) => {
+        if (n === 0) return server.arrive(body); // the first routine save: learns revision 1 (n counts earlier save_run calls)
+        if (n === 1) {
+          await aArrives.promise; // A is held in the network
+          return server.arrive(body);
+        }
+        const answer = server.arrive(body); // B, the page-hide send: lands at once
+        await bReplies.promise;
+        return answer;
+      },
+    });
+    t.client.queue(record({ hp: 20 }));
+    await t.run();
+    t.client.queue(record({ hp: 14 }));
+    const inFlight = t.run(); // A: revision 1, seq 2
+    await tick();
+    t.client.queue(dead());
+    assert.equal(t.client.flushOnHide(), true);
+    await tick();
+    assert.deepEqual(server.written, [20, 0], "B landed");
+    if (order.startsWith("B's")) {
+      bReplies.open();
+      await tick();
+      aArrives.open();
+    } else {
+      aArrives.open();
+      await tick();
+      bReplies.open();
+    }
+    await inFlight;
+    await tick();
+    assert.deepEqual(server.written, [20, 0], "the death is the last write: A was never accepted");
+    assert.equal(saves(t).length, 3, "A was not retried");
+    assert.match(t.lines.join("\n"), /not saved: superseded/);
+    // Nothing older is queued behind it: a later routine save carries on from the server's revision.
+    t.clock.ms += 6000;
+    t.client.queue(dead({ extra: 1 }));
+    await drain(t);
+    assert.equal(server.written.at(-1), 0);
+  });
+}
+
+test("a page-hide send refused as stale stops: the server's revision is not adopted and the record is not resent (the server wins a save conflict)", async () => {
+  const server = orderedServer(),
+    aArrives = gate(),
+    aReplies = gate();
+  const t = make({
+    save_run: async (body, n) => {
+      if (n === 0) return server.arrive(body);
+      if (n === 1) {
+        await aArrives.promise;
+        const answer = server.arrive(body); // A lands BEFORE B arrives ...
+        await aReplies.promise; // ... but its reply has not reached the client yet
+        return answer;
+      }
+      return server.arrive(body); // B: built with the old revision -> stale
+    },
+  });
+  t.client.queue(record({ hp: 20 }));
+  await t.run();
+  t.client.queue(record({ hp: 14 }));
+  const inFlight = t.run();
+  await tick();
+  t.client.queue(dead());
+  aArrives.open(); // A reaches the server first
+  await tick();
+  t.client.flushOnHide(); // B is built from the cached revision, which A has already moved on at the server
+  await tick();
+  aReplies.open();
+  await inFlight;
+  await tick();
+  await drain(t);
+  assert.deepEqual(server.written, [20, 14], "the server's newer save stays; the refused death is not forced over it");
+  assert.equal(saves(t).length, 3, "no resend");
+  assert.equal(t.client.state.revision, 2, "the server's revision was not adopted (A's own reply set it; the refusal did not)");
+  assert.match(t.lines.join("\n"), /page-hide save refused: stale/);
+});
+
+test("another device's newer save is never overwritten by a page-hide send: stale stops, even with the outcome marked uncertain", async () => {
+  const server = orderedServer();
+  const t = make({ save_run: (body) => server.arrive(body) });
+  t.client.queue(record({ hp: 20 }));
+  await t.run(); // revision 1
+  server.revision = 5; // a second device saved meanwhile (revision 5)
+  server.lastSeq = 0;
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), true);
+  assert.equal(t.client.state.uncertain, false, "nothing was in flight: a later stale is another device, never our own save");
+  await tick();
+  assert.deepEqual(server.written, [20], "the hide send was refused");
+  assert.equal(t.client.state.revision, 1, "no adoption of revision 5");
+  assert.equal(t.client.flushOnHide(), false, "nothing is requeued");
+  await drain(t); // any timer left from the queue call finds nothing to send
+  assert.equal(saves(t).length, 2, "no resend: the first save and the refused hide send only");
+  assert.deepEqual(server.written, [20]);
+});
+
+// Run every pending send, letting each wait pass on the test clock first; capped so a send that never settles fails instead of hanging.
+async function drain(t, cap = 100) {
+  for (let i = 0; t.timers.length; i++) {
+    assert.ok(i < cap, "the sends never settle");
+    t.clock.ms += t.timers[0].ms;
+    await t.run();
+  }
+}
+// The writer's per-account save bucket (server/writer DEFAULT_LIMITS: burst 6, one token per 5 s) on the test clock: 429 when empty.
+function bucketServer(clock, burst = 6, refillMs = 5000) {
+  const s = { tokens: burst, at: clock.ms, limited: 0, written: [], revision: 0 };
+  s.arrive = (body) => {
+    s.tokens = Math.min(burst, s.tokens + (clock.ms - s.at) / refillMs);
+    s.at = clock.ms;
+    if (s.tokens < 1) {
+      s.limited++;
+      return { status: 429, body: { error: "rate-limited", retryMs: Math.ceil((1 - s.tokens) * refillMs) } };
+    }
+    s.tokens -= 1;
+    s.revision++;
+    s.written.push(body.record.hp);
+    return { revision: s.revision, savedAt: "t" };
+  };
+  return s;
+}
+
+test("pacing: routine saves never spend the 2-token reserve, however fast they are asked for; the death save may", async () => {
+  let server;
+  const t = make({ save_run: (body) => server.arrive(body) });
+  server = bucketServer(t.clock);
+  const run = { id: "fight" };
+  for (let i = 0; i < 10; i++) {
+    t.client.queue(record({ hp: 100 - i }), run);
+    await t.run(); // asked for with no time passing: far faster than the bucket refills
+  }
+  assert.equal(server.written.length, GAME_DATA.saveClient.bucketBurst - GAME_DATA.saveClient.bucketReserve, "4 routine saves, then the client holds back");
+  assert.equal(server.limited, 0, "the client never got a 429: it paced itself");
+  t.client.queue(dead(), run, { urgent: true });
+  await drain(t);
+  assert.equal(server.limited, 0);
+  assert.equal(server.written.at(-1), 0, "the death save used the reserve and was written");
+});
+
+test("a fight-length burst of routine saves, then the death within 1 s: the death is sent with no 429 (Backend's 1 s close, 6 of 6)", async () => {
+  let server;
+  const t = make({ save_run: (body) => server.arrive(body) });
+  server = bucketServer(t.clock);
+  const run = { id: "fight" };
+  for (let i = 0; i < 24; i++) {
+    t.client.queue(record({ hp: 100 - i }), run);
+    t.clock.ms += 2500; // routine records arrive twice as fast as the bucket refills: the client must hold some back
+    await t.run();
+  }
+  t.clock.ms += 1000; // the player dies; the tab is closed 1 s later
+  t.client.queue(dead(), run, { urgent: true });
+  t.timers.length = 0; // only the death send matters now: the one timer the urgent queue asked for (wait 0)
+  t.timers.push({ fn: () => t.client.flush(), ms: 0 });
+  await t.run();
+  assert.equal(server.limited, 0, "not one 429 in the whole fight, so none on the death save");
+  assert.equal(server.written.at(-1), 0, "the server's newest record is the death");
+  assert.equal(t.client.flushOnHide(), false, "nothing is left unsent when the tab closes");
+});
+
+test("every request costs a token, a stale-seq retry too, and a server 429 empties our copy of the bucket", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { refused: "stale-seq", lastSeq: 5 } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record());
+  await t.run(); // the refusal and the retry are two requests
+  assert.equal(saves(t).length, 2);
+  const limited = make({ save_run: () => ({ status: 429, body: { error: "rate-limited", retryMs: 4000 } }) });
+  limited.client.queue(record());
+  await limited.run();
+  limited.client.queue(record({ hp: 1 }));
+  await limited.run(); // the copy says empty: nothing is sent until the wait has passed
+  assert.equal(saves(limited).length, 1);
+});
+
+test("a 502 or 504 (the writer may have committed) leaves the outcome uncertain, so the next 'stale' is our own save", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? { status: 504, body: {} } : { revision: 1, savedAt: "t" }) });
+  t.client.queue(record());
+  await t.run();
+  assert.equal(t.client.state.uncertain, true);
+});
+
+test("a network failure keeps the record queued for another try", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 1 ? new Error("offline") : { revision: 1, savedAt: "t" }) });
+  t.client.queue(dead(), { id: "r" }, { urgent: true });
+  await t.run();
+  assert.ok(t.timers.at(-1).ms >= 250, "a retry is scheduled");
+  await t.run();
+  assert.equal(saves(t).length, 2);
+  assert.equal(saves(t)[1].body.record.hp, 0);
+});
+
+test("pagehide: the newest unsent record leaves synchronously with a keepalive request, and nothing is left queued", async () => {
+  const t = make();
+  t.client.queue(record({ hp: 14 }));
+  await t.run(); // learns the character and revision, caches the token
+  t.client.queue(dead());
+  const before = t.w.calls.length;
+  assert.equal(t.client.flushOnHide(), true);
+  assert.equal(t.w.calls.length, before + 1, "the request starts inside the handler, not after an await");
+  const last = t.w.calls.at(-1);
+  assert.deepEqual([last.op, last.keepalive, last.body.record.hp, last.body.seq, last.body.revision], ["save_run", true, 0, 2, 1]);
+  assert.equal(last.auth, `Bearer ${jwt("user-1")}`);
+  assert.equal(t.client.flushOnHide(), false, "nothing newer to send");
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(t.client.state.uncertain, false, "the reply settled the outcome");
+});
+
+test("pagehide before the character and revision are known sends nothing and keeps the record queued", () => {
+  const t = make();
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), false);
+  assert.equal(t.w.calls.length, 0);
+});
+
+test("a failed pagehide send puts the record back, so the next flush resends it", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 2 ? new Error("offline") : { revision: n, savedAt: "t" }) });
+  t.client.queue(record({ hp: 14 }));
+  await t.run();
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), true);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(t.client.state.uncertain, true, "the outcome is unknown after a network error");
+  assert.equal(t.client.flushOnHide(), true, "the record was kept");
 });
 
 test("a successful save records its revision as synced, so the next boot does not re-apply the server's copy of it", async () => {
