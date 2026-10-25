@@ -1,5 +1,6 @@
 import { areaDisplayName } from "../area-registry.js";
 import { rigCapability } from "../rig-capabilities.js";
+import { GAME_DATA } from "./game-data.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
@@ -218,7 +219,7 @@ export function createRouteGuidance(world) {
   const arrow = new THREE.Mesh(
     arrowGeometry,
     new THREE.MeshBasicMaterial({
-      color: 0xf1d28c,
+      color: new THREE.Color(`#${GAME_DATA.visual.dropMarker.ringColour}`),
       side: THREE.DoubleSide,
       depthWrite: false,
       toneMapped: false,
@@ -349,7 +350,7 @@ export function createRouteGuidance(world) {
       p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, 0.4);
     arrow.position.copy(world.toRender(p, 0.04));
     arrow.rotation.y = Math.atan2(dx, -dz);
-    arrow.material.opacity = arrowOpacity(globalThis.performance?.now?.() / 1000 || 0);
+    arrow.material.opacity = GAME_DATA.visual.routeArrow.peakOpacity * arrowOpacity(globalThis.performance?.now?.() / 1000 || 0);
   }
   function hint(position, activeWorld = world) {
     const cue = resolve(position);

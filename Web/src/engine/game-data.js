@@ -186,7 +186,7 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone", "catalogue"]);
+  closed(d, ["schema_version", "moves", "playerAttacks", "playerHealth", "salamanderBreath", "drone", "catalogue", "behaviours"]);
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
   for (const [name, row] of Object.entries(d.playerAttacks)) {
@@ -275,6 +275,49 @@ export function validateCreatures(d) {
     number("creatures", `catalogue.reach.${name}`, v);
     if (!Object.hasOwn(d.catalogue.support, name)) fail("creatures", `catalogue.reach.${name} has no support row`);
   }
+  validateBehaviours(d.behaviours);
+}
+
+// creatures.json `behaviours`: the per-resident tuning presets and wake/leash/retreat intents (creature-behaviour-presets.js and
+// creature-behaviour-intents.js resolve them), and which preset and intent each creature recipe uses. Intent rows carry every field.
+function validateBehaviours(b) {
+  closed(b, ["presets", "recipeBehaviours", "intents", "recipeIntents"]);
+  const name = (field, v) => {
+    if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `behaviours.${field} must be a lowercase name`);
+  };
+  for (const [preset, row] of Object.entries(b.presets)) {
+    name(`presets.${preset}`, preset);
+    closed(row, "attackPattern" in row ? ["speedFactor", "recoveryAdd", "attackPattern"] : ["speedFactor", "recoveryAdd"]);
+    number("creatures", `behaviours.presets.${preset}.speedFactor`, row.speedFactor, 0.1);
+    number("creatures", `behaviours.presets.${preset}.recoveryAdd`, row.recoveryAdd);
+    if ("attackPattern" in row && !(Array.isArray(row.attackPattern) && row.attackPattern.length && row.attackPattern.every((a) => typeof a === "string" && a)))
+      fail("creatures", `behaviours.presets.${preset}.attackPattern`);
+  }
+  const intentFields = [
+    "wakeDistance",
+    "homeLeash",
+    "holdUntilWake",
+    "retreatSeconds",
+    "companionDistance",
+    "isolationDistance",
+    "burstSeconds",
+    "pauseSeconds",
+  ];
+  for (const [intent, row] of Object.entries(b.intents)) {
+    name(`intents.${intent}`, intent);
+    closed(row, "pursuitScope" in row ? [...intentFields, "pursuitScope"] : intentFields);
+    for (const f of intentFields) {
+      if (f === "holdUntilWake") {
+        if (typeof row[f] !== "boolean") fail("creatures", `behaviours.intents.${intent}.${f} must be true or false`);
+      } else number("creatures", `behaviours.intents.${intent}.${f}`, row[f]);
+    }
+    if ("pursuitScope" in row && row.pursuitScope !== "area") fail("creatures", `behaviours.intents.${intent}.pursuitScope`);
+  }
+  for (const [table, rows] of [["recipeBehaviours", b.presets], ["recipeIntents", b.intents]])
+    for (const [recipe, ref] of Object.entries(b[table])) {
+      name(`${table}.${recipe}`, recipe);
+      if (typeof ref !== "string" || !Object.hasOwn(rows, ref)) fail("creatures", `behaviours.${table}.${recipe} names an unknown row`);
+    }
 }
 
 export function validateWorld(d) {
@@ -343,7 +386,12 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow"]);
+  // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
+  // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
+  closed(d.routeArrow, ["peakOpacity"]);
+  const peak = d.routeArrow.peakOpacity;
+  if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);

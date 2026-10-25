@@ -323,10 +323,8 @@ test("picking up the Ember flamethrower teaches how to fire it, once", () => {
   assert.equal(createFirstTimeHints({ storage }).current(g), "");
 });
 
-test("the hint pop-up is gold in the route arrow's colour and only for hints", () => {
+test("the hint pop-up is pale gold (the HUD text colour) and only for hints", () => {
   const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
-  const guidance = readFileSync(new URL("../src/engine/route-guidance.js", import.meta.url), "utf8");
-  assert.match(guidance, /color: 0xf1d28c/);
   assert.match(css, /#notice\.hint \{[^}]*#f1d28c/);
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
   assert.match(hud, /classList\.toggle\("hint", gold\)/);

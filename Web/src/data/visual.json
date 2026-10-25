@@ -94,5 +94,8 @@
     "itemPulse": 0.07,
     "labelHeight": 1.6,
     "labelWidth": 3.4
+  },
+  "routeArrow": {
+    "peakOpacity": 0.6
   }
 }
