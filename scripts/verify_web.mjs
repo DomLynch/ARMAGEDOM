@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { asDataProblems, constantTableProblems, dataImportProblems } from "./as-data-gate.mjs";
+import { asDataProblems, constantTableProblems, dataDebt, dataImportProblems } from "./as-data-gate.mjs";
 
 function files(directory, suffix) {
   return readdirSync(directory, { withFileTypes: true })
@@ -84,6 +84,14 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
   ];
   if (dataLayer.length)
     throw Error(`Web data-layer gate failed:\n${dataLayer.join("\n")}`);
+  if (!quiet) {
+    const debt = dataDebt(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    );
+    console.log(`Data debt: ${debt.debt} constant table(s) to move (${debt.tables} total, ${debt.kept} kept in code).`);
+  }
   // A gate invoked by a test must still start a fresh test runner.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
