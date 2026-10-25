@@ -13,7 +13,15 @@
       "attachment": "hand_r",
       "modelRef": "player-rocket-launcher",
       "finisherBinding": "grenade",
-      "rules": { "capacity": 1, "reserve": 3, "damage": 80, "range": 20, "cadence": 0.8, "reload": 3.2, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 1,
+        "reserve": 3,
+        "damage": 80,
+        "range": 20,
+        "cadence": 0.8,
+        "reload": 3.2,
+        "pickupRadius": 1.3
+      },
       "source": {
         "placementKey": "boss-butcher-v1",
         "areaId": "elephant-and-castle",
@@ -33,7 +41,15 @@
       "attachment": "model-root",
       "modelRef": null,
       "finisherBinding": "pistol",
-      "rules": { "capacity": 6, "reserve": 12, "damage": 25, "range": 18, "cadence": 1.2, "reload": 1.3, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 6,
+        "reserve": 12,
+        "damage": 25,
+        "range": 18,
+        "cadence": 1.2,
+        "reload": 1.3,
+        "pickupRadius": 1.3
+      },
       "source": null
     },
     "bridge-warden-rifle-v1": {
@@ -48,7 +64,15 @@
       "attachment": "hand_r",
       "modelRef": "player-rifle",
       "finisherBinding": "pistol",
-      "rules": { "capacity": 8, "reserve": 16, "damage": 45, "range": 24, "cadence": 0.65, "reload": 2, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 8,
+        "reserve": 16,
+        "damage": 45,
+        "range": 24,
+        "cadence": 0.65,
+        "reload": 2,
+        "pickupRadius": 1.3
+      },
       "source": {
         "placementKey": "boss-warden-v1",
         "areaId": "east-bridge",
@@ -67,7 +91,15 @@
       "attachment": "hand_r",
       "modelRef": "player-shotgun",
       "finisherBinding": "pistol",
-      "rules": { "capacity": 2, "reserve": 12, "damage": 64, "range": 6, "cadence": 0.8, "reload": 2.4, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 2,
+        "reserve": 12,
+        "damage": 64,
+        "range": 6,
+        "cadence": 0.8,
+        "reload": 2.4,
+        "pickupRadius": 1.3
+      },
       "source": {
         "placementKey": "boss-nightborn-v1",
         "areaId": "south",
@@ -87,13 +119,28 @@
       "attachment": "hand_r",
       "modelRef": "player-grenade",
       "finisherBinding": "grenade",
-      "rules": { "capacity": 3, "reserve": 0, "damage": 60, "range": 8, "cadence": 0.8, "reload": 0, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 3,
+        "reserve": 0,
+        "damage": 60,
+        "range": 8,
+        "cadence": 0.8,
+        "reload": 0,
+        "pickupRadius": 1.3
+      },
       "source": {
         "placementKey": "boss-knight-v1",
         "areaId": "area7",
         "receiptId": "boss-knight-v1:standard-grenade-v1"
       },
-      "payload": { "itemId": "standard-grenade-v1", "capacity": 3, "maxRange": 8, "fuseSeconds": 1, "radius": 3, "maxDamage": 60 }
+      "payload": {
+        "itemId": "standard-grenade-v1",
+        "capacity": 3,
+        "maxRange": 8,
+        "fuseSeconds": 1,
+        "radius": 3,
+        "maxDamage": 60
+      }
     },
     "borough-marshals-pistol-v1": {
       "itemId": "borough-marshals-pistol-v1",
@@ -107,7 +154,15 @@
       "attachment": "hand_r",
       "modelRef": "player-rifle",
       "finisherBinding": "pistol",
-      "rules": { "capacity": 1, "reserve": 3, "damage": 90, "range": 32, "cadence": 2.2, "reload": 2.5, "pickupRadius": 1.3 },
+      "rules": {
+        "capacity": 1,
+        "reserve": 3,
+        "damage": 90,
+        "range": 32,
+        "cadence": 2.2,
+        "reload": 2.5,
+        "pickupRadius": 1.3
+      },
       "source": {
         "placementKey": "boss-veteran-v1",
         "areaId": "area8",
@@ -152,13 +207,185 @@
       "skillCooldown": 900
     },
     "moves": {
-      "light_right": { "clip": "Attack", "path": "light_right", "windupTicks": 14, "activeTicks": 6, "recoveryTicks": 16, "damage": 10, "staminaDamage": 10, "staggerTicks": 18, "chip": 0, "reach": 1.2, "stepIn": 0.4, "knockback": 2, "sourceContact": 0.34, "stamina": 18 },
-      "light_left": { "clip": "Return", "path": "light_left", "windupTicks": 14, "activeTicks": 6, "recoveryTicks": 16, "damage": 10, "staminaDamage": 10, "staggerTicks": 18, "chip": 0, "reach": 1.2, "stepIn": 0.4, "knockback": 2, "sourceContact": 0.34, "stamina": 18 },
-      "thrust": { "clip": "Riposte", "path": "thrust", "windupTicks": 12, "activeTicks": 4, "recoveryTicks": 20, "damage": 9, "staminaDamage": 12, "staggerTicks": 14, "chip": 0, "reach": 1.45, "stepIn": 1, "knockback": 2, "sourceContact": 0.34, "stamina": 14 },
-      "heavy_overhead": { "clip": "Heavy", "path": "heavy_overhead", "windupTicks": 22, "activeTicks": 5, "recoveryTicks": 26, "damage": 14, "staminaDamage": 20, "staggerTicks": 20, "chip": 0.2, "reach": 1.55, "stepIn": 0.55, "knockback": 3, "sourceContact": 0.48, "stamina": 26 },
-      "skill_pommel": { "clip": "Skill_Pommel", "path": null, "windupTicks": 18, "activeTicks": 4, "recoveryTicks": 18, "damage": 20, "staminaDamage": 30, "staggerTicks": 50, "chip": 0.4, "reach": 1.3, "stepIn": 0.55, "knockback": 0, "sourceContact": 0.45, "stamina": 40, "cooldown": 15 }
+      "light_right": {
+        "clip": "Attack",
+        "path": "light_right",
+        "windupTicks": 14,
+        "activeTicks": 6,
+        "recoveryTicks": 16,
+        "damage": 10,
+        "staminaDamage": 10,
+        "staggerTicks": 18,
+        "chip": 0,
+        "reach": 1.2,
+        "stepIn": 0.4,
+        "knockback": 2,
+        "sourceContact": 0.34,
+        "stamina": 18
+      },
+      "light_left": {
+        "clip": "Return",
+        "path": "light_left",
+        "windupTicks": 14,
+        "activeTicks": 6,
+        "recoveryTicks": 16,
+        "damage": 10,
+        "staminaDamage": 10,
+        "staggerTicks": 18,
+        "chip": 0,
+        "reach": 1.2,
+        "stepIn": 0.4,
+        "knockback": 2,
+        "sourceContact": 0.34,
+        "stamina": 18
+      },
+      "thrust": {
+        "clip": "Riposte",
+        "path": "thrust",
+        "windupTicks": 12,
+        "activeTicks": 4,
+        "recoveryTicks": 20,
+        "damage": 9,
+        "staminaDamage": 12,
+        "staggerTicks": 14,
+        "chip": 0,
+        "reach": 1.45,
+        "stepIn": 1,
+        "knockback": 2,
+        "sourceContact": 0.34,
+        "stamina": 14
+      },
+      "heavy_overhead": {
+        "clip": "Heavy",
+        "path": "heavy_overhead",
+        "windupTicks": 22,
+        "activeTicks": 5,
+        "recoveryTicks": 26,
+        "damage": 14,
+        "staminaDamage": 20,
+        "staggerTicks": 20,
+        "chip": 0.2,
+        "reach": 1.55,
+        "stepIn": 0.55,
+        "knockback": 3,
+        "sourceContact": 0.48,
+        "stamina": 26
+      },
+      "skill_pommel": {
+        "clip": "Skill_Pommel",
+        "path": null,
+        "windupTicks": 18,
+        "activeTicks": 4,
+        "recoveryTicks": 18,
+        "damage": 20,
+        "staminaDamage": 30,
+        "staggerTicks": 50,
+        "chip": 0.4,
+        "reach": 1.3,
+        "stepIn": 0.55,
+        "knockback": 0,
+        "sourceContact": 0.45,
+        "stamina": 40,
+        "cooldown": 15
+      }
     },
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
     "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
+  },
+  "melee": {
+    "boneSaw": {
+      "name": "The Bone Saw",
+      "modelVariantId": "bone-saw",
+      "contact": [0.4, 0.9],
+      "moves": {
+        "light_right": { "damage": 12, "stamina": 18 },
+        "light_left": { "damage": 12, "stamina": 18 },
+        "thrust": { "damage": 16, "stamina": 18 },
+        "heavy_overhead": { "damage": 16, "stamina": 26 }
+      },
+      "costs": { "slash": 18, "stab": 18, "heavy": 26 }
+    },
+    "cleaver": {
+      "contact": [0.14, 0.86],
+      "targeting": { "nearest": false, "coneDegrees": 45 },
+      "clipOverrides": { "RatLowSlash": "CleaverRatLowSlash" },
+      "moves": {
+        "light_right": {
+          "damage": 14,
+          "stamina": 22,
+          "windupTicks": 24,
+          "activeTicks": 6,
+          "recoveryTicks": 26,
+          "staggerTicks": 24
+        },
+        "light_left": {
+          "damage": 14,
+          "stamina": 22,
+          "windupTicks": 24,
+          "activeTicks": 6,
+          "recoveryTicks": 26,
+          "staggerTicks": 24
+        },
+        "thrust": {
+          "damage": 12,
+          "stamina": 18,
+          "windupTicks": 20,
+          "activeTicks": 4,
+          "recoveryTicks": 30,
+          "staggerTicks": 20
+        },
+        "heavy_overhead": {
+          "damage": 20,
+          "stamina": 34,
+          "windupTicks": 34,
+          "activeTicks": 5,
+          "recoveryTicks": 40,
+          "staggerTicks": 32
+        }
+      },
+      "costs": { "slash": 22, "stab": 18, "heavy": 34, "special": 40, "dodge": 30 },
+      "lowMoves": {
+        "original-wolf": {
+          "clip": "DogMidSlash",
+          "slashMoveId": "wolf_low",
+          "includeRadius": true,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        },
+        "original-rat": {
+          "clip": "RatLowSlash",
+          "slashMoveId": "rat_low",
+          "includeRadius": false,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        },
+        "original-roach": {
+          "clip": "RatLowSlash",
+          "slashMoveId": "roach_low",
+          "includeRadius": true,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        },
+        "original-dog": {
+          "clip": "DogMidSlash",
+          "slashMoveId": "dog_low",
+          "includeRadius": true,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        },
+        "low-hover-drone": {
+          "clip": "DogMidSlash",
+          "slashMoveId": "drone_low",
+          "includeRadius": true,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        }
+      }
+    }
   }
 }

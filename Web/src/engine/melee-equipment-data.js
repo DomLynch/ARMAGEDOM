@@ -2,6 +2,7 @@ import { KNIFE_MOVES, KNIFE_STAMINA_COSTS, KNIFE_RULES } from "../donor/knife.js
 import { knifePaths } from "../donor/knife-paths.js";
 import cleaverPaths from "../donor/cleaver-paths.json" with { type: "json" };
 import { CLEAVER_ITEM_ID, UNIQUE_REWARDS } from "./unique-reward-runtime.js";
+import { GAME_DATA } from "./game-data.js";
 const freeze = (value) => {
   if (value && typeof value === "object") {
     for (const child of Object.values(value)) freeze(child);
@@ -9,22 +10,13 @@ const freeze = (value) => {
   }
   return value;
 };
-const low = (clip, slashMoveId, includeRadius) => ({
-  clip,
-  slashMoveId,
-  includeRadius,
-  windupTicks: 20,
-  activeTicks: 6,
-  recoveryTicks: 28,
-  range: KNIFE_MOVES.light_right.range,
-});
-const cleaverLow = freeze({
-  "original-wolf": low("DogMidSlash", "wolf_low", true),
-  "original-rat": low("RatLowSlash", "rat_low", false),
-  "original-roach": low("RatLowSlash", "roach_low", true),
-  "original-dog": low("DogMidSlash", "dog_low", true),
-  "low-hover-drone": low("DogMidSlash", "drone_low", true),
-});
+// The numbers live in Web/src/data/weapons.json `melee` (read through game-data.js); this file derives the rest from the knife.
+const { boneSaw: BONE_SAW, cleaver: CLEAVER } = GAME_DATA.weapons.melee;
+const cleaverLow = freeze(
+  Object.fromEntries(
+    Object.entries(CLEAVER.lowMoves).map(([rig, row]) => [rig, { ...row, range: KNIFE_MOVES.light_right.range }]),
+  ),
+);
 // The same source age drives both measured blade samples and the displayed pose.
 export function retimedMeleeAge(age, timing, source) {
   const w = timing.windup,
@@ -42,12 +34,6 @@ export function retimedMeleeAge(age, timing, source) {
       ? source.windup + ((t - w) / a) * source.active
       : source.windup + source.active + ((t - w - a) / r) * source.recovery;
 }
-const changes = {
-  light_right: [14, 22, 24, 6, 26, 24],
-  light_left: [14, 22, 24, 6, 26, 24],
-  thrust: [12, 18, 20, 4, 30, 20],
-  heavy_overhead: [20, 34, 34, 5, 40, 32],
-};
 function reach(rows, move) {
   return Math.max(
     ...rows
@@ -58,8 +44,8 @@ function reach(rows, move) {
 export const CLEAVER_MOVES = freeze(
   Object.fromEntries(
     Object.entries(KNIFE_MOVES).map(([id, base]) => {
-      if (!changes[id]) return [id, base];
-      const [damage, stamina, windupTicks, activeTicks, recoveryTicks, staggerTicks] = changes[id];
+      if (!CLEAVER.moves[id]) return [id, base];
+      const { damage, stamina, windupTicks, activeTicks, recoveryTicks, staggerTicks } = CLEAVER.moves[id];
       return [
         id,
         {
@@ -105,25 +91,19 @@ const surgeonMoves = freeze(
   Object.fromEntries(
     Object.entries(KNIFE_MOVES).map(([id, base]) => [
       id,
-      ["light_right", "light_left", "thrust", "heavy_overhead"].includes(id)
-        ? {
-            ...base,
-            damage: id === "thrust" ? 16 : id === "heavy_overhead" ? 16 : 12,
-            stamina: id === "heavy_overhead" ? 26 : 18,
-          }
-        : base,
+      BONE_SAW.moves[id] ? { ...base, ...BONE_SAW.moves[id] } : base,
     ]),
   ),
 );
 export const MELEE_VARIANTS = freeze({
   "surgeons-knife-v1": {
     itemId: "surgeons-knife-v1",
-    name: "The Bone Saw",
+    name: BONE_SAW.name,
     moves: surgeonMoves,
-    costs: { ...KNIFE_STAMINA_COSTS, slash: 18, stab: 18, heavy: 26 },
+    costs: { ...KNIFE_STAMINA_COSTS, ...BONE_SAW.costs },
     modelRef: null,
-    modelVariantId: "bone-saw",
-    contact: [0.4, 0.9],
+    modelVariantId: BONE_SAW.modelVariantId,
+    contact: BONE_SAW.contact,
     contactPaths: null,
     clipOverrides: null,
   },
@@ -138,12 +118,12 @@ export const MELEE_VARIANTS = freeze({
   [CLEAVER_ITEM_ID]: {
     ...UNIQUE_REWARDS[CLEAVER_ITEM_ID],
     moves: CLEAVER_MOVES,
-    costs: { slash: 22, stab: 18, heavy: 34, special: 40, dodge: 30 },
-    contact: [0.14, 0.86],
+    costs: CLEAVER.costs,
+    contact: CLEAVER.contact,
     contactPaths,
-    targeting: { nearest: false, coneDegrees: 45 },
+    targeting: CLEAVER.targeting,
     lowMoves: cleaverLow,
-    clipOverrides: { RatLowSlash: "CleaverRatLowSlash" },
+    clipOverrides: CLEAVER.clipOverrides,
   },
 });
 
