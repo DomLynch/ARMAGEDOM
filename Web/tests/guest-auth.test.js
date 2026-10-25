@@ -84,6 +84,20 @@ test("concurrent callers share one request", async () => {
   assert.equal(f.calls.length, 1);
 });
 
+test("a refused signup (anonymous sign-ins off, a 422) is still null but its reason is handed to onError; a throwing listener changes nothing", async () => {
+  const reasons = [];
+  const f = fake({ "/auth/v1/signup": () => ({ status: 422, body: { error_code: "anonymous_provider_disabled" } }) });
+  const auth = createGuestAuth({ ...base, fetchImpl: f.fetchImpl, onError: (error) => reasons.push([error.status, error.message]) });
+  assert.equal(await auth.getToken(), null);
+  assert.deepEqual(reasons, [[422, "auth /auth/v1/signup: 422"]]);
+  const loud = createGuestAuth({ ...base, fetchImpl: f.fetchImpl, onError: () => { throw Error("listener bug"); } });
+  assert.equal(await loud.getToken(), null);
+  const offline = [];
+  const down = createGuestAuth({ ...base, fetchImpl: async () => { throw new Error("offline"); }, onError: (error) => offline.push(error.status ?? "network") });
+  assert.equal(await down.getToken(), null);
+  assert.deepEqual(offline, ["network"]);
+});
+
 test("a failing auth service gives null (the presence client stays offline and retries), never a throw", async () => {
   const f = fake({ "/auth/v1/signup": () => ({ status: 500 }) });
   const auth = createGuestAuth({ ...base, fetchImpl: f.fetchImpl });

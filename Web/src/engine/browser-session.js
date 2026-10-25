@@ -368,7 +368,11 @@ export function createBrowserSession(options = {}) {
     if (worldStarted || disposed) return;
     worldStarted = true;
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
-    const auth = createGuestAuth({ ...WORLD_AUTH, storage: runStorage });
+    const auth = createGuestAuth({
+      ...WORLD_AUTH,
+      storage: runStorage,
+      onError: (error) => beacon?.report("boot", `auth-${error?.status ?? "network"}`, error),
+    });
     // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read.
     if (returnedSearch !== null) auth.takeRedirect(returnedSearch);
     // The error beacon exists only from here on (the online path): uncaught errors and the boot, presence and sync failures below.
