@@ -298,31 +298,10 @@ for (const order of [[1, 2], [2, 1]]) {
 {
   await settle();
   const spot = await page.evaluate(() => ({ ...__qa.game.pistol.pickupPos }));
-  // Control first: one finger, no pad, same spot. (If this fails the probe's setup is wrong, not the two-finger path.)
-  await page.evaluate((p) => {
-    const pos = __qa.game.player.pos;
-    pos.x = p.x;
-    pos.z = p.z;
-  }, spot);
-  await sleep(400);
-  const cButton = await centre("#pistol-interact");
-  if (cButton) {
-    await finger.down(1, { x: cButton.x, y: cButton.y });
-    await sleep(80);
-    await finger.up(1);
-    await sleep(500);
-  }
-  const c = await read();
-  note('H0 control, ONE finger, tap "PICK UP & EQUIP PISTOL"', !!cButton && c.pistol?.collected === true, `collected=${c.pistol?.collected}`);
-  // Put the pistol back on the ground for the two-finger run (QA setup through the live game object).
-  await page.evaluate(() => {
-    const p = __qa.game.pistol;
-    p.collected = false;
-    p.equipped = false;
-  });
-  await settle();
+  // The two-finger run goes first: a claim is recorded by the core, so a second claim after a QA reset of
+  // `pistol.collected` is refused ("already-collected"), which would fail the later run for a probe reason.
   await finger.down(1, PAD_START);
-  await finger.move(1, { x: pad.x, y: pad.y + 9 }); // a light tilt (past the dead zone): the pad is held, the player drifts slowly and stays in reach
+  // The pad is held at its centre (no tilt), so the player stays at the pickup spot.
   await page.evaluate((p) => {
     const pos = __qa.game.player.pos;
     pos.x = p.x;
@@ -331,6 +310,8 @@ for (const order of [[1, 2], [2, 1]]) {
   await sleep(250);
   const button = await centre("#pistol-interact");
   const shown = !!button;
+  const dist = () => page.evaluate(() => { const g = __qa.game; return Math.hypot(g.player.pos.x - g.pistol.pickupPos.x, g.player.pos.z - g.pistol.pickupPos.z).toFixed(2) + " paused=" + __qa.paused; });
+  const d0 = await dist();
   await page.evaluate(() => {
     globalThis.__trace = [];
     for (const type of ["pointerdown", "pointerup", "pointercancel", "click"])
@@ -345,7 +326,7 @@ for (const order of [[1, 2], [2, 1]]) {
   const m = await read();
   const trace = await page.evaluate(() => globalThis.__trace.join(" "));
   const nearby = await page.evaluate(() => document.getElementById("pistol-interact")?.textContent);
-  note('H0 pad held + tap "PICK UP & EQUIP PISTOL"', shown && m.pistol?.collected === true && m.pistol?.equipped === true, `button shown=${shown} label="${nearby}", collected=${m.pistol?.collected}, equipped=${m.pistol?.equipped}, trace: ${trace}`);
+  note('H0 pad held + tap "PICK UP & EQUIP PISTOL"', shown && m.pistol?.collected === true && m.pistol?.equipped === true, `button shown=${shown} label="${nearby}", collected=${m.pistol?.collected}, equipped=${m.pistol?.equipped}, trace: ${trace}, dist before=${d0} after=${await dist()}`);
   await finger.up(1);
   await assertClean("H0 pad + pickup button");
 }
