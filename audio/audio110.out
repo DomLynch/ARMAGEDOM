@@ -1,0 +1,124 @@
+[
+ {
+  "label": "before first touch",
+  "acs": []
+ },
+ {
+  "label": "after Enter tap",
+  "acState": [
+   "running"
+  ],
+  "audio": {
+   "context": "running",
+   "ready": true,
+   "played": 0,
+   "error": null
+  },
+  "paused": false,
+  "hidden": false
+ },
+ {
+  "label": "cue after first touch",
+  "before": 0,
+  "after": 5
+ },
+ {
+  "label": "tab hidden (lock/call)",
+  "acState": [
+   "suspended"
+  ],
+  "audio": {
+   "context": "suspended",
+   "ready": true,
+   "played": 5,
+   "error": null
+  },
+  "paused": true,
+  "hidden": true
+ },
+ {
+  "label": "tab visible again, nothing tapped",
+  "acState": [
+   "suspended"
+  ],
+  "audio": {
+   "context": "suspended",
+   "ready": true,
+   "played": 5,
+   "error": null
+  },
+  "paused": true,
+  "hidden": false
+ },
+ {
+  "label": "after Resume tap",
+  "acState": [
+   "running"
+  ],
+  "audio": {
+   "context": "running",
+   "ready": true,
+   "played": 7,
+   "error": null
+  },
+  "paused": false,
+  "hidden": false
+ },
+ {
+  "label": "cue after resume",
+  "before": 7,
+  "after": 11
+ },
+ {
+  "label": "system suspend, game running",
+  "acState": [
+   "running"
+  ],
+  "audio": {
+   "context": "running",
+   "ready": true,
+   "played": 12,
+   "error": null
+  },
+  "paused": false,
+  "hidden": false
+ },
+ {
+  "label": "cue after system suspend",
+  "before": 12,
+  "after": 17
+ },
+ {
+  "label": "system suspend, resume refused",
+  "acState": [
+   "suspended"
+  ],
+  "audio": {
+   "context": "suspended",
+   "ready": true,
+   "played": 17,
+   "error": null
+  },
+  "paused": false,
+  "hidden": false
+ },
+ {
+  "label": "after one touch",
+  "acState": [
+   "running"
+  ],
+  "audio": {
+   "context": "running",
+   "ready": true,
+   "played": 18,
+   "error": null
+  },
+  "paused": false,
+  "hidden": false
+ },
+ {
+  "label": "cue after one touch",
+  "before": 18,
+  "after": 22
+ }
+]
