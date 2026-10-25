@@ -76,6 +76,7 @@ export function createGuestAuth({
   now = nowS,
   nonce = newNonce,
   verifier = newVerifier,
+  onError = null,
 }) {
   if (!url || !anonKey) return null; // not configured: the live world stays offline
   let session = read(storage),
@@ -134,7 +135,14 @@ export function createGuestAuth({
       try {
         pending ??= obtain().finally(() => (pending = null));
         return (await pending)?.access_token ?? null;
-      } catch {
+      } catch (error) {
+        // Still null (the client stays offline and retries), but the reason is handed on: a refused signup (anonymous sign-ins off, a 422)
+        // must not be a silent offline game.
+        try {
+          onError?.(error);
+        } catch {
+          /* The listener must not break sign-in. */
+        }
         return null;
       }
     },

@@ -6,5 +6,14 @@
   "presenceBackoffMs": [1000, 2000, 4000, 8000, 15000, 30000],
   "closedCloseCodes": [4001, 4003],
   "closedRefuseReasons": ["closed", "auth"],
-  "closedError": "O0007"
+  "closedError": "O0007",
+  "clientLog": {
+    "path": "/arma/api/clientlog",
+    "kinds": ["error", "boot", "presence", "sync"],
+    "minIntervalMs": 10000,
+    "maxEvents": 10,
+    "maxDistinct": 40,
+    "messageChars": 200,
+    "maxBodyBytes": 3800
+  }
 }

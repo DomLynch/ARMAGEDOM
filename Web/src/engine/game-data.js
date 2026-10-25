@@ -7,6 +7,7 @@ import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
+import spawns from "../data/spawns.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
@@ -20,8 +21,10 @@ const count = (file, field, value, min, max) => {
 };
 
 export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine"]);
+  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
+  // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
+  count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
 }
 
 // A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
@@ -50,10 +53,28 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged", "knife", "melee"]);
+  closed(d, ["schema_version", "ranged", "knife", "melee", "bossRanged"]);
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
+  validateBossRanged(d.bossRanged);
+}
+// What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
+// The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.
+export function validateBossRanged(b) {
+  closed(b, ["boss-south-nightborn", "boss-butcher"]);
+  for (const [rig, row] of Object.entries(b)) {
+    closed(
+      row,
+      ["kind", "field", "modelRef", "warning", "recovery", "range", "damage"],
+      ["speed", "radius", "maxLife", "maxLive"],
+    );
+    for (const f of ["kind", "field", "modelRef"])
+      if (typeof row[f] !== "string" || !row[f]) fail("weapons", `bossRanged.${rig}.${f}`);
+    for (const f of ["warning", "recovery", "range", "damage", "speed", "radius", "maxLife", "maxLive"])
+      if (f in row) number("weapons", `bossRanged.${rig}.${f}`, row[f]);
+    if ((row.kind === "rocket") !== "speed" in row) fail("weapons", `bossRanged.${rig} rocket fields`);
+  }
 }
 const number = (file, field, v, min = 0) => {
   if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);
@@ -153,7 +174,19 @@ export function validateWorld(d) {
     "closedCloseCodes",
     "closedRefuseReasons",
     "closedError",
+    "clientLog",
   ]);
+  // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
+  closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
+  if (!Array.isArray(d.clientLog.kinds) || d.clientLog.kinds.length < 1 || !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k)))
+    fail("world", "clientLog.kinds");
+  count("world", "clientLog.maxBodyBytes", d.clientLog.maxBodyBytes, 500, 4000); // the writer refuses a body over 4096 bytes
+  if (typeof d.clientLog.path !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.clientLog.path))
+    fail("world", "clientLog.path");
+  count("world", "clientLog.minIntervalMs", d.clientLog.minIntervalMs, 5000, 3600000);
+  count("world", "clientLog.maxEvents", d.clientLog.maxEvents, 1, 10);
+  count("world", "clientLog.maxDistinct", d.clientLog.maxDistinct, 1, 200);
+  count("world", "clientLog.messageChars", d.clientLog.messageChars, 20, 200);
   if (typeof d.statusPath !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.statusPath))
     fail("world", "statusPath");
   count("world", "statusTimeoutMs", d.statusTimeoutMs, 500, 60000);
@@ -266,11 +299,46 @@ export function validateVisual(d) {
   d.effects.lootColours.forEach((h) => hex("effects.lootColours", h));
 }
 
+// spawns.json: the resident and drone placements of the areas whose rows were code before the data layer (Westminster, East, South),
+// and which of those residents walk with the crooked gait. The rest of the area-content rules (geometry, creature identity, health
+// range, a boss or unique-reward row naming a placement) are checked where the rows are used (engine/area-content.js).
+export function validateSpawns(d) {
+  closed(d, ["schema_version", "mob", "drones", "crookedResidents"]);
+  const keys = new Set(),
+    point = (name, p) => {
+      closed(p, ["x", "z"]);
+      if (!Number.isFinite(p.x) || !Number.isFinite(p.z)) fail("spawns", `${name} must be finite`);
+    };
+  for (const [table, rows] of [
+    ["mob", d.mob],
+    ["drones", d.drones],
+  ]) {
+    if (!rows || typeof rows !== "object" || Array.isArray(rows)) fail("spawns", `${table} must be an object by area`);
+    for (const [area, list] of Object.entries(rows)) {
+      if (!/^[a-z][a-z0-9-]*$/.test(area) || !Array.isArray(list)) fail("spawns", `${table}.${area}`);
+      for (const row of list) {
+        closed(row, ["key", "pos", "patrol"], ["appearanceRef", "encounter", "foundationRef", "recipeRef"]);
+        if (typeof row.key !== "string" || !/^[a-z][a-z0-9-]*$/.test(row.key) || keys.has(row.key))
+          fail("spawns", `${table}.${area} key`);
+        keys.add(row.key);
+        point(`${row.key}.pos`, row.pos);
+        if (!Array.isArray(row.patrol) || row.patrol.length < 2) fail("spawns", `${row.key}.patrol`);
+        row.patrol.forEach((p) => point(`${row.key}.patrol`, p));
+      }
+    }
+  }
+  if (!Array.isArray(d.crookedResidents) || new Set(d.crookedResidents).size !== d.crookedResidents.length)
+    fail("spawns", "crookedResidents");
+  const mobKeys = new Set(Object.values(d.mob).flatMap((list) => list.map((row) => row.key)));
+  if (d.crookedResidents.some((key) => !mobKeys.has(key))) fail("spawns", "crookedResidents must name a mob row");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
+  spawns: [spawns, validateSpawns],
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],

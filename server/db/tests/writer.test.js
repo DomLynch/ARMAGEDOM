@@ -138,7 +138,8 @@ test("a record is checked for shape and caps before it is stored, and the refusa
     };
     assert.equal(await reason(withPath((r) => (r.hp = 1e6))), "cap:hp");
     assert.equal(await reason(withPath((r) => (r.hp = -1))), "cap:hp");
-    assert.equal(await reason(withPath((r) => (r.hp = 10.5))), "shape:integer:hp");
+    // hp itself may be fractional since 000012 (core.test.js); a number that must stay whole still names its path:
+    assert.equal(await reason(withPath((r) => (r.marked.carried = 10.5))), "shape:integer:marked.carried");
     assert.equal(await reason(withPath((r) => (r.cheat = 1))), "shape:key:cheat", "a closed set of top-level keys");
     assert.equal(await reason(withPath((r) => (r.marked.carried = 1e12))), "cap:marked.carried");
     assert.equal(await reason(withPath((r) => (r.progression.attributes.strength = 21))), "cap:progression.attributes.strength");

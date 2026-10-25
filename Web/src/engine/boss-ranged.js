@@ -2,32 +2,11 @@ import { tracePistol } from "../pistol.js";
 import { combatTargetHeight } from "../pistol-targeting.js";
 import { radialBlastHits } from "./radial-blast.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
+import { GAME_DATA } from "./game-data.js";
 
 // NPC-only rules. Player weapons, ammunition and paid-action clocks stay separate.
-export const BOSS_RANGED_RULES = Object.freeze({
-  "boss-south-nightborn": Object.freeze({
-    kind: "shotgun",
-    field: "shotgun",
-    modelRef: "player-shotgun",
-    warning: 0.4,
-    recovery: 0.7,
-    range: 6,
-    damage: 8,
-  }),
-  "boss-butcher": Object.freeze({
-    kind: "rocket",
-    field: "rocketLauncher",
-    modelRef: "player-rocket-launcher",
-    warning: 0.6,
-    recovery: 0.75,
-    range: 12,
-    damage: 14,
-    speed: 10,
-    radius: 1.5,
-    maxLife: 1.2,
-    maxLive: 1,
-  }),
-});
+// The numbers live in Web/src/data/weapons.json `bossRanged` (read through game-data.js).
+export const BOSS_RANGED_RULES = GAME_DATA.weapons.bossRanged;
 const EPS = 1e-8,
   flat = (p) => ({ x: p.x, z: -p.z }),
   lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });

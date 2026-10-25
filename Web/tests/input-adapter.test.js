@@ -242,6 +242,19 @@ test('cancelling a reused pointer ID preserves its earlier completed quick tap',
   assert.deepEqual(input.take().actions, ['slash']);
 });
 
+test('the knob travels a third of the pad width at full tilt: 46 px on the 136 px pad, 36 px on the old 106 px pad, and back to 0 on release', (t) => {
+  for (const [width, travel] of [[136, '46px'], [106, '36px'], [102, '35px']]) {
+    const { elements: e, input } = setup(t);
+    e.move.offsetWidth = width;
+    send(e.move, 'pointerdown', { pointerId: 1 });
+    send(e.move, 'pointermove', { pointerId: 1, clientX: 46 });
+    assert.equal(e.move.style.get('--knob-x'), travel, `${width}px pad`);
+    send(e.move, 'pointerup', { pointerId: 1 });
+    assert.equal(e.move.style.get('--knob-x'), '0px');
+    input.take();
+  }
+});
+
 for (const ending of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   test(`second movement touch cannot steal steering or stop the owner on ${ending}`, (t) => {
     const { elements: e, input } = setup(t);

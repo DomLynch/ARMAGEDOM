@@ -28,6 +28,7 @@ import { createWorldGate } from "./world-gate.js";
 import { GAME_DATA } from "./game-data.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { installQaBridge } from "./qa-bridge.js";
+import { createClientLog, releaseOf } from "./client-log.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
@@ -358,7 +359,10 @@ export function createBrowserSession(options = {}) {
       history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
     }
   }
-  let worldStarted = false,
+  let loadAttempt = 0, // failed attempts so far: a retry uses fresh URLs (see start())
+    lastLoadProgress = 0, // when a model last finished loading (the stall watchdog in start() reads it)
+    beacon = null, // the client error beacon (engine/client-log.js), made when the world starts
+    worldStarted = false,
     runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
     bootPull = Promise.resolve(),
     syncedNotice = false;
@@ -366,10 +370,26 @@ export function createBrowserSession(options = {}) {
     if (worldStarted || disposed) return;
     worldStarted = true;
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
-    const auth = createGuestAuth({ ...WORLD_AUTH, storage: runStorage });
+    const auth = createGuestAuth({
+      ...WORLD_AUTH,
+      storage: runStorage,
+      onError: (error) => beacon?.report("boot", `auth-${error?.status ?? "network"}`, error),
+    });
     // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read.
     if (returnedSearch !== null) auth.takeRedirect(returnedSearch);
-    const getToken = options.presenceToken ?? auth.getToken;
+    // The error beacon exists only from here on (the online path): uncaught errors and the boot, presence and sync failures below.
+    beacon = createClientLog({
+      baseUrl: location.origin,
+      release: releaseOf(location.pathname),
+      getArea: () => world?.areaId ?? "",
+    });
+    listeners.push(beacon.install(window), () => beacon.stop());
+    const source = options.presenceToken ?? auth.getToken;
+    const getToken = async () => {
+      const token = await source();
+      if (!token) beacon.report("boot", "no-token");
+      return token;
+    };
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({
       baseUrl: `${location.origin}/arma/api`,
@@ -377,7 +397,10 @@ export function createBrowserSession(options = {}) {
       storage: runStorage,
       onCash: (reply, info) => adoptServerCash(context.game, reply, info),
       onClosed: () => recheckWorld(),
-      log: (line) => console.info(line),
+      log: (line) => {
+        console.info(line);
+        if (/not saved|error:|refused/.test(line)) beacon.report("sync", "save", line);
+      },
     });
     // The server save wins when it is online: a newer server record replaces the local run BEFORE the run is read (Enter waits for
     // this, at most bootSyncWaitMs). Unreachable or closed: play local; the queue sends it later.
@@ -385,14 +408,22 @@ export function createBrowserSession(options = {}) {
       .pull({ target: baseRunStorage ?? runStorage, canApply: () => !runRestored })
       .then((result) => {
         syncedNotice = result.status === "applied";
+        if (result.status === "offline") beacon.report("sync", "pull-offline");
+        if (result.reason === "late" || result.reason === "storage") beacon.report("sync", `pull-${result.reason}`);
       })
-      .catch(() => {});
+      .catch((error) => beacon.report("sync", "pull-failed", error));
     presence = createPresenceSession(context, {
       config: worldConfig,
       getToken,
       stats: new URLSearchParams(location.search).get("stats") === "1",
     });
     presence?.client.on("closed", () => recheckWorld());
+    // A normal close, a replaced session and the server's own "closed" codes are not failures worth a row; everything else is.
+    presence?.client.on("close", ({ code }) => {
+      if (![1000, 1001, 4010].includes(code) && !GAME_DATA.world.closedCloseCodes.includes(code))
+        beacon.report("presence", `close-${code ?? "none"}`);
+    });
+    presence?.client.on("refuse", ({ reason }) => beacon.report("presence", `refuse-${reason ?? "none"}`));
     account = mountAccountControl({ auth });
   }
   // A status read (never faster than data/world.json recheckMinMs). A FRESH "open" starts the world, or lets a halted save loop and a
@@ -401,6 +432,11 @@ export function createBrowserSession(options = {}) {
     if (!worldGate) return;
     const before = worldGate.reads,
       open = await worldGate.check();
+    // A fresh status read decides whether the beacon may talk: closed means silence, open again means it may report again.
+    if (worldGate.reads !== before) {
+      if (open) beacon?.resume();
+      else beacon?.pause();
+    }
     if (!open || worldGate.reads === before || disposed) return;
     startWorld();
     saveClient?.resume();
@@ -645,7 +681,7 @@ export function createBrowserSession(options = {}) {
     // Fetch and decode on page arrival, rather than making Enter start every request.
     return (startup ??= Promise.allSettled([
       createWorld({ THREE, scene, camera, baseUrl, viewZoomMultiplier, content: privateContent }),
-      loadActors(baseUrl, () => {}, actorManifest),
+      loadActors(baseUrl, () => (lastLoadProgress = performance.now()), actorManifest),
     ]));
   }
   listen(canvas, "webglcontextlost", (event) => {
@@ -679,7 +715,9 @@ export function createBrowserSession(options = {}) {
     enter.disabled = true;
     enter.textContent = "Loading Westminster…";
     const start = performance.now();
-    const audioReady = audio.unlock();
+    // The Enter gesture unlocks audio now; the cue file (0.3 MB) is fetched once the game can take input, so it does not compete with
+    // the models and world for the first seconds of a slow connection.
+    const audioReady = audio.unlock({ deferLoad: true });
     try {
       renderer ??= new THREE.WebGLRenderer({
         canvas,
@@ -690,6 +728,12 @@ export function createBrowserSession(options = {}) {
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
       hud.loading("Loading London and the original character rigs…");
+      // After a failed or stalled attempt every loader URL gets a new query: the browser queues a second request for the same URL behind a
+      // stuck one, so a plain retry would wait for the very request that stalled. (A static file server ignores the query.)
+      if (loadAttempt > 0)
+        THREE.DefaultLoadingManager?.setURLModifier?.((url) =>
+          /^(blob|data):/.test(url) ? url : `${url}${url.includes("?") ? "&" : "?"}retry=${loadAttempt}`,
+        );
       const encounter = prepareEncounter();
       // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
       // above, so nothing here can delay it) and the run is read only after it, never waiting longer than bootSyncWaitMs from Enter.
@@ -697,7 +741,30 @@ export function createBrowserSession(options = {}) {
         Promise.resolve(worldBoot).catch(() => {}),
         new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
       ]);
-      const results = await encounter;
+      // A stalled connection must not leave the card on "Loading Westminster…" for ever: when no model has finished for loadStallMs,
+      // the load fails with a message and Retry. The abandoned load is disposed when (if) it ever arrives.
+      lastLoadProgress = performance.now();
+      let stopStall = () => {};
+      const stalled = new Promise((_, reject) => {
+        const timer = setInterval(() => {
+          if (performance.now() - lastLoadProgress > GAME_DATA.diagnostics.loadStallMs)
+            reject(Error("Loading has stopped. Check your connection, then tap Retry."));
+        }, 1000);
+        stopStall = () => clearInterval(timer);
+      });
+      stalled.catch(() => {}); // settled by the race below; never an unhandled rejection
+      let results;
+      try {
+        results = await Promise.race([encounter, stalled]);
+      } catch (error) {
+        startup = null;
+        encounter.then((late) => {
+          for (const result of late) if (result.status === "fulfilled") result.value.dispose();
+        });
+        throw error;
+      } finally {
+        stopStall();
+      }
       startup = null;
       if (contextLost || disposed) {
         for (const result of results) if (result.status === "fulfilled") result.value.dispose();
@@ -759,6 +826,9 @@ export function createBrowserSession(options = {}) {
         throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet.");
       loaded = true;
       hud.ready();
+      audio.preload?.().then((ok) => {
+        if (!ok && audio.state.error && !disposed) console.warn("ARMAGEDOM_AUDIO_FAILED", audio.state.error);
+      });
       if (syncedNotice && game) {
         syncedNotice = false;
         game.message = "Progress synced";
@@ -793,7 +863,9 @@ export function createBrowserSession(options = {}) {
     } catch (error) {
       if (contextLost || disposed) return;
       console.error("ARMAGEDOM_LOAD_FAILED", error);
-      hud.failed(error.message);
+      // Some failures carry no message (an image or audio error event): the card must still say something.
+      hud.failed(error?.message || "A game file could not be loaded. Check your connection, then tap Retry.");
+      loadAttempt++;
       if (!loaded) {
         actors?.dispose();
         pendingLibrary?.dispose();

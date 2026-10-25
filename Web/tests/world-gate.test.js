@@ -21,6 +21,24 @@ const clock = () => {
   return { c, now: () => c.ms };
 };
 
+test("the status read bypasses the browser HTTP cache (no-store), so a 404 cached earlier is never served, and a non-200 is not remembered past the page", async () => {
+  const s = spy(answer(404, { error: "route" }));
+  const t = clock();
+  const gate = createWorldGate({ baseUrl: "https://x.test", fetchImpl: s.fetchImpl, now: t.now });
+  assert.equal(await gate.check(), false);
+  assert.equal(s.calls[0].init.cache, "no-store");
+  assert.equal(s.calls[0].url, "https://x.test/arma/api/status");
+  // The 404 lives only in this page's memory: a new page (a new gate) asks again, and the route being back opens the world.
+  const later = createWorldGate({ baseUrl: "https://x.test", fetchImpl: spy(answer(200, { enabled: true, open: true })).fetchImpl, now: t.now });
+  assert.equal(await later.check(), true);
+  // Within the page, a closed answer is only held for recheckMinMs, then read again.
+  assert.equal(await gate.check(), false);
+  assert.equal(s.calls.length, 1, "inside the interval the answer is the held one");
+  t.c.ms += tuning.recheckMinMs;
+  assert.equal(await gate.check(), false);
+  assert.equal(s.calls.length, 2, "after the interval the status is read again");
+});
+
 test("the status path, timeout and recheck interval are data, and the loader refuses a bad file", () => {
   assert.equal(tuning.statusPath, "/arma/api/status");
   assert.throws(() => validateWorld({ ...tuning, statusPath: "https://evil.example/status" }));
