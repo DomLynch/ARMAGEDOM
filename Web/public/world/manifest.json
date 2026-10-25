@@ -246,7 +246,7 @@
       "to": "east-bridge",
       "condition": {
         "xMin": 0.82,
-        "xMax": 0.89,
+        "xMax": 0.885,
         "yMin": 0.245,
         "yMax": 0.285
       },

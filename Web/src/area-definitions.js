@@ -40,7 +40,7 @@ export const areaDefinitions = [
       {
         id: "exit.east.east-bridge",
         target: "east-bridge",
-        condition: { xMin: 0.82, xMax: 0.89, yMin: 0.245, yMax: 0.285 },
+        condition: { xMin: 0.82, xMax: 0.885, yMin: 0.245, yMax: 0.285 },
         entry: { x: 0.07, y: 0.835 },
       },
       {
