@@ -16,6 +16,7 @@
 // placementKey (the legacy opening group), floor items of layers with no drop event (the base flamethrower), hits
 // whose weapon is not in WEAPON_IDS (the reaper): their weaponId is null.
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
+import { GAME_DATA } from "./game-data.js";
 import { RIFLE_PROFILE, RANGED_WEAPON_CATALOG } from "./weapon-catalog.js";
 import { BOSS_EQUIPMENT_PROFILES, EMBER_PROJECTOR_PROFILE } from "./boss-equipment-data.js";
 import { UNIQUE_REWARDS } from "./unique-reward-runtime.js";
@@ -93,15 +94,9 @@ export const WEAPON_IDS = Object.freeze([
 export const WEAPON_CODES = codes(WEAPON_IDS);
 export const DROP_MODES = Object.freeze(["local", "server"]);
 
-// Legacy event types that become world events. Everything else is presentation or per-player state.
-const LEGACY_DROP_EVENTS = new Set(["rifle-drop", "boss-equipment-drop", "unique-reward-drop"]);
-const LEGACY_PICKUP_EVENTS = Object.freeze({
-  pickup: "itemId",
-  "rifle-pickup": "itemId",
-  "boss-equipment-pickup": "itemId",
-  "unique-reward-pickup": "itemId",
-  "flame-pickup": "pickupId",
-});
+// Legacy event types that become world events (Web/src/data/worldEvents.json). Everything else is presentation or per-player state.
+export const LEGACY_DROP_EVENTS = new Set(GAME_DATA.worldEvents.legacyDropEvents);
+export const LEGACY_PICKUP_EVENTS = GAME_DATA.worldEvents.legacyPickupEvents;
 
 const PLAYER = WORLD_EVENT_RULES.playerKey;
 const STATE = MOVE_STATE_CODES;
@@ -673,10 +668,4 @@ export function withWorldJournal(persistence, session, names = WORLD_DISPATCHERS
       };
   return wrapped;
 }
-const WORLD_DISPATCHERS = Object.freeze([
-  "dispatchPistol",
-  "dispatchRifle",
-  "dispatchBossEquipment",
-  "dispatchUniqueReward",
-  "dispatchFlame",
-]);
+export const WORLD_DISPATCHERS = GAME_DATA.worldEvents.dispatchers;
