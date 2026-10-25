@@ -49,13 +49,10 @@ ARMA_ENV_DIR="$BASE/etc" bash "$SRC/ops/realtime/apply-migrations.sh" 2>&1 | tai
 echo "== test accounts and the world switched ON (local database only)"
 sql -c "insert into auth.users values ('00000000-0000-4000-8000-00000000000a'), ('00000000-0000-4000-8000-00000000000b')"
 sql -c "update public.arma_config set value = 'true'::jsonb where key in ('arma_enabled', 'arma_open_access')"
-BOTS="${ARMA_E2E_BOTS:-0}" # the load driver's accounts: 00000000-0000-4000-8000-<12 hex digits from 0x100 up>
-[[ "$BOTS" =~ ^[0-9]+$ ]] && [ "$BOTS" -le 500 ] || { echo "ARMA_E2E_BOTS must be 0..500"; exit 2; }
-[ "$BOTS" -gt 0 ] && sql -c "insert into auth.users select ('00000000-0000-4000-8000-' || lpad(to_hex(255 + g), 12, '0'))::uuid from generate_series(1, $BOTS) g"
 
 echo "== release bundle from this tree (npm ci)"
 (cd "$SRC/Web" && node scripts/area-presence-rows.mjs "$BASE/area.json" >/dev/null)
 node "$SRC/ops/realtime/build-release.mjs" --out "$BASE/rel" --name e2e --area-data "$BASE/area.json" 2>&1 | tail -2
 
 echo "== drive the world"
-ARMA_E2E_BUNDLE="$BASE/rel/e2e" ARMA_E2E_PG_PORT=$PORT ARMA_E2E_AREA="$BASE/area.json" ARMA_E2E_SRC="$SRC" ARMA_E2E_BOTS="$BOTS" node "$HERE/${ARMA_E2E_DRIVER:-e2e-driver.mjs}"
+ARMA_E2E_BUNDLE="$BASE/rel/e2e" ARMA_E2E_PG_PORT=$PORT ARMA_E2E_AREA="$BASE/area.json" ARMA_E2E_SRC="$SRC" node "$HERE/e2e-driver.mjs"
