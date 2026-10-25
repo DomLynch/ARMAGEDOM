@@ -347,7 +347,7 @@ export function createBrowserSession(options = {}) {
   let returnedSearch = null;
   {
     const params = new URLSearchParams(location.search);
-    if (params.has("link") || params.has("code") || location.hash.includes("access_token=")) {
+    if (params.has("link") || params.has("code") || location.hash?.includes("access_token=")) {
       returnedSearch = location.search;
       for (const name of ["link", "code", "error", "error_code", "error_description"]) params.delete(name);
       history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
