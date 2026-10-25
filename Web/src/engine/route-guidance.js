@@ -1,4 +1,5 @@
 import { areaDisplayName } from "../area-registry.js";
+import { rigCapability } from "../rig-capabilities.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
@@ -36,7 +37,7 @@ const HUNT_ARRIVED = 1.5;
 export function huntTarget(g) {
   if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
   const live = (e) => e.hp > 0,
-    salamander = g.enemies.find((e) => live(e) && e.rig === "giant-salamander"),
+    salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
     matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
   if (salamander) return { pos: salamander.pos, label: "KILL THE SALAMANDER" };
   return matron ? { pos: matron.pos, label: "KILL THE EMBER MATRON" } : null;

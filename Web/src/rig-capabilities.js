@@ -6,6 +6,8 @@
 // lowStrike: the rig is a low target. Knife attacks against it use the low strike moves, its
 //   melee reach is measured to its low contact point, and its bites are swept against the
 //   player's body receiver.
+// tutorialHunt: the Westminster tutorial's route arrow sends the player after this rig ("Kill the salamander"), before the
+//   Ember Matron (engine/route-guidance.js huntTarget).
 import rows from "./rig-capabilities.json" with { type: "json" };
 
 export const RIG_CAPABILITIES = Object.freeze(
