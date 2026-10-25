@@ -37,8 +37,8 @@
       "area": "east",
       "path": "east/layout.json",
       "source": "Owner-marked East136 bounded clearance and direct East/South route",
-      "bytes": 11117,
-      "sha256": "7f8b408ecacbb83ab6311e908698975a50139cce025c4c7f18b9658f2de34459"
+      "bytes": 11463,
+      "sha256": "db1e8b464168a30375a07112d0a08c33be1fecd8ba6dbcaa6c6d3a75a4ec7a9d"
     },
     {
       "area": "east",
@@ -245,10 +245,10 @@
       "from": "east",
       "to": "east-bridge",
       "condition": {
-        "xMin": 0.845,
-        "xMax": 0.87,
+        "xMin": 0.82,
+        "xMax": 0.885,
         "yMin": 0.245,
-        "yMax": 0.26
+        "yMax": 0.285
       },
       "entry": {
         "x": 0.07,
@@ -362,7 +362,7 @@
       },
       "entry": {
         "x": 0.85,
-        "y": 0.275
+        "y": 0.31
       }
     },
     {
