@@ -74,8 +74,8 @@ test("the first save creates the character once (remembered), learns revision 0,
   const t = make();
   t.client.queue(record());
   await t.run();
-  assert.deepEqual(t.w.calls.map((c) => c.op), ["create_character", "load_run", "save_run"]);
-  const save = t.w.calls[2];
+  assert.deepEqual(t.w.calls.map((c) => c.op), ["active", "create_character", "load_run", "save_run"]);
+  const save = t.w.calls[3];
   assert.equal(save.auth, `Bearer ${jwt("user-1")}`);
   assert.deepEqual([save.body.character, save.body.era, save.body.revision, save.body.seq], ["pc:abc", 18, 0, 1]);
   assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc");
@@ -84,7 +84,7 @@ test("the first save creates the character once (remembered), learns revision 0,
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 5 }));
   await t.run();
-  assert.deepEqual(t.w.calls.slice(3).map((c) => [c.op, c.body.seq, c.body.revision]), [["save_run", 2, 1]]);
+  assert.deepEqual(t.w.calls.slice(4).map((c) => [c.op, c.body.seq, c.body.revision]), [["save_run", 2, 1]]);
 });
 
 test("saves are coalesced: at most one request per interval, and only the newest record is sent", async () => {
