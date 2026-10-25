@@ -1,5 +1,6 @@
-// Intensities only: keep existing light types, colours, fog and exposure.
-export const DEFAULT_LIGHTING = Object.freeze({ fillIntensity: 1.6, keyIntensity: 2.3 });
+import { GAME_DATA } from "./game-data.js";
+// Intensities only: keep existing light types, colours, fog and exposure. The default is data/areaRuntime.json defaultLighting.
+export const DEFAULT_LIGHTING = GAME_DATA.areaRuntime.defaultLighting;
 export function validateAreaLighting(input, registry) {
   const fail = () => {
     throw Error("Invalid area lighting preset");

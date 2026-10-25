@@ -1,3 +1,4 @@
+import { GAME_DATA } from "./game-data.js";
 // Network-only prefetch of the nearest neighbour areas' files into the browser's HTTP cache.
 //
 // Release 204 gated all offscreen area preparation to the travel pause because CPU and GPU work
@@ -5,13 +6,8 @@
 // almost nothing, so this brings back only the download: one request at a time, paced to at most
 // `bytesPerSecond`, silent while a fight is live and for the first seconds after start. The bytes are
 // read and discarded; nothing is decoded, parsed or kept in memory, so the real load later is a cache hit.
-export const PREFETCH_LIMITS = Object.freeze({
-  bytesPerSecond: 2_000_000,
-  startDelayMs: 3000,
-  maxNeighbours: 2,
-  recheckMs: 250,
-  fightQuietMs: 1000,
-});
+// The pacing numbers are data/areaRuntime.json prefetch.
+export const PREFETCH_LIMITS = GAME_DATA.areaRuntime.prefetch;
 
 export function createAreaPrefetch({
   urlsFor,

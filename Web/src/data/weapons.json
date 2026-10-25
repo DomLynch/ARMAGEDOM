@@ -293,6 +293,64 @@
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
     "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
   },
+  "bossEquipment": {
+    "order": ["shotgun", "grenade", "surgicalKnife", "commanderPistol", "emberProjector", "rocketLauncher"],
+    "ranged": {
+      "shotgun": "south-stalker-shotgun-v1",
+      "grenade": "standard-grenade-v1",
+      "commanderPistol": "borough-marshals-pistol-v1",
+      "rocketLauncher": "borough-butchers-rocket-launcher-v1"
+    },
+    "boneSawRules": {
+      "interval": 0.2,
+      "damage": 5,
+      "range": 1.55,
+      "coneDegrees": 38,
+      "moveScale": 0.4,
+      "staminaPerSecond": 10,
+      "staggerAfter": 3,
+      "staggerSeconds": 0.16,
+      "staggerRecovery": 1.4
+    },
+    "surgicalKnife": {
+      "itemId": "surgeons-knife-v1",
+      "name": "The Bone Saw",
+      "family": "blades",
+      "weaponKey": "knife",
+      "delivery": "melee",
+      "modelRef": null,
+      "finisherBinding": "knife",
+      "pickupRadius": 1.3,
+      "source": {
+        "placementKey": "boss-surgeon-v1",
+        "areaId": "lambeth",
+        "receiptId": "boss-surgeon-v1:surgeons-knife-v1"
+      }
+    },
+    "emberProjector": {
+      "itemId": "ember-flamethrower-v1",
+      "name": "Ember Projector",
+      "family": "flamethrowers",
+      "weaponKey": "knife",
+      "delivery": "cone",
+      "modelRef": "player-flamethrower",
+      "finisherBinding": "flamethrower",
+      "rules": {
+        "damage": 10,
+        "interval": 0.2,
+        "range": 3,
+        "fuelCapacity": 1000,
+        "unitsPerSecond": 10,
+        "saveCoalesceSeconds": 1,
+        "pickupRadius": 1.3
+      },
+      "source": {
+        "placementKey": "boss-witch-v1",
+        "areaId": "westminster",
+        "receiptId": "boss-witch-v1:ember-flamethrower-v1"
+      }
+    }
+  },
   "vest": {
     "itemId": "westminster-worn-vest-v1",
     "areaId": "westminster",

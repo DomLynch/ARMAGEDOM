@@ -3,6 +3,7 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
+import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -59,13 +60,70 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged", "vest"]);
+  closed(d, [
+    "schema_version",
+    "autoEquipOnFirstPickup",
+    "ranged",
+    "knife",
+    "melee",
+    "bossRanged",
+    "bossEquipment",
+    "vest",
+  ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
+  validateBossEquipment(d.bossEquipment, d.ranged);
   validateKnife(d.knife);
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
+}
+// The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
+// four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.
+export function validateBossEquipment(b, ranged) {
+  closed(b, ["order", "ranged", "boneSawRules", "surgicalKnife", "emberProjector"]);
+  const text = (field, v) => {
+    if (typeof v !== "string" || !v) fail("weapons", `bossEquipment.${field} must be a non-empty string`);
+  };
+  const names = [...Object.keys(b.ranged), "surgicalKnife", "emberProjector"];
+  if (!Array.isArray(b.order) || b.order.length !== names.length || !names.every((n) => b.order.includes(n)))
+    fail("weapons", "bossEquipment.order must list every reward field once");
+  for (const [field, itemId] of Object.entries(b.ranged))
+    if (!Object.hasOwn(ranged, itemId)) fail("weapons", `bossEquipment.ranged.${field} names an unknown weapon`);
+  closed(b.boneSawRules, [
+    "interval",
+    "damage",
+    "range",
+    "coneDegrees",
+    "moveScale",
+    "staminaPerSecond",
+    "staggerAfter",
+    "staggerSeconds",
+    "staggerRecovery",
+  ]);
+  for (const [f, v] of Object.entries(b.boneSawRules)) number("weapons", `bossEquipment.boneSawRules.${f}`, v);
+  for (const field of ["surgicalKnife", "emberProjector"]) {
+    const row = b[field],
+      saw = field === "surgicalKnife";
+    closed(row, [
+      "itemId",
+      "name",
+      "family",
+      "weaponKey",
+      "delivery",
+      "modelRef",
+      "finisherBinding",
+      saw ? "pickupRadius" : "rules",
+      "source",
+    ]);
+    for (const f of ["itemId", "name", "family", "weaponKey", "delivery", "finisherBinding"])
+      text(`${field}.${f}`, row[f]);
+    if (row.modelRef !== null) text(`${field}.modelRef`, row.modelRef);
+    if (saw) number("weapons", `bossEquipment.${field}.pickupRadius`, row.pickupRadius);
+    else for (const [f, v] of Object.entries(row.rules)) number("weapons", `bossEquipment.${field}.rules.${f}`, v);
+    closed(row.source, ["placementKey", "areaId", "receiptId"]);
+    for (const f of Object.keys(row.source)) text(`${field}.source.${f}`, row.source[f]);
+  }
 }
 // The Westminster worn vest: its item id and area (both saved identities), the kills that unlock the stash, the pickup radius in
 // metres and the share of a hit it absorbs.
@@ -744,10 +802,29 @@ export function validateSupplies(d) {
   for (const axis of ["x", "z"]) number("supplies", `vestBagPosition.${axis}`, d.vestBagPosition[axis], -1000);
 }
 
+// areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
+// (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
+export function validateAreaRuntime(d) {
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas"]);
+  closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
+  for (const [name, v] of Object.entries(d.defaultLighting))
+    if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);
+  closed(d.prefetch, ["bytesPerSecond", "startDelayMs", "maxNeighbours", "recheckMs", "fightQuietMs"]);
+  count("areaRuntime", "prefetch.bytesPerSecond", d.prefetch.bytesPerSecond, 10000, 100000000);
+  count("areaRuntime", "prefetch.startDelayMs", d.prefetch.startDelayMs, 0, 600000);
+  count("areaRuntime", "prefetch.maxNeighbours", d.prefetch.maxNeighbours, 1, 8);
+  count("areaRuntime", "prefetch.recheckMs", d.prefetch.recheckMs, 10, 60000);
+  count("areaRuntime", "prefetch.fightQuietMs", d.prefetch.fightQuietMs, 0, 600000);
+  closed(d.parkedAreas, ["maxAreas", "maxBytes"]);
+  count("areaRuntime", "parkedAreas.maxAreas", d.parkedAreas.maxAreas, 1, 8);
+  count("areaRuntime", "parkedAreas.maxBytes", d.parkedAreas.maxBytes, 1048576, 1073741824);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
+  areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
