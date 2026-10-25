@@ -45,7 +45,16 @@ const frame = (text) => {
 const DIRECTIONS = { north: [0, 1], south: [0, -1], east: [1, 0], west: [-1, 0] }; // game space: north (up the screen) is +z, toRender flips z
 
 // Where the bots stand (cm), a few metres from where the player enters Westminster, so they are in the fight camera.
-const START = [{ x: 200, z: -300 }, { x: -100, z: 300 }, { x: 300, z: 300 }];
+const START = [
+  { x: 200, z: -300 },
+  { x: -100, z: 300 },
+  { x: 300, z: 300 },
+  { x: -300, z: -200 },
+  { x: 400, z: 0 },
+  { x: -400, z: 100 },
+  { x: 100, z: 450 },
+  { x: -200, z: -450 },
+];
 function bot(index, direction) {
   const [dx, dz] = DIRECTIONS[direction],
     req = http.request({
