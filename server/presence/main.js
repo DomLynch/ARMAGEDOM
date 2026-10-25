@@ -1,5 +1,5 @@
 // node server/presence/main.js: the presence service. OFF unless ARMA_PRESENCE=1, so nothing listens by accident (a kill flag, as in Origins).
-// Binds 127.0.0.1:8892 (the writer is 8891; Frankendom uses 8787, 8788 and 8793). Keys come from the environment, never from the repo:
+// Binds 127.0.0.1:8894 (the writer is 8891; Frankendom uses 8787, 8788 and 8793; 8892 is taken by a static preview server on the VPS). Keys come from the environment, never from the repo:
 //   SUPABASE_URL        https://<ref>.supabase.co
 //   SUPABASE_ANON_KEY   the publishable key, used only to ask /auth/v1/user who a token belongs to
 //   ARMA_INTERNAL_KEY   shared with the writer (its /internal/hits and /internal/location); presence holds no database credential
@@ -21,7 +21,7 @@ if (process.env.ARMA_PRESENCE !== "1") {
 }
 const need = (name) => process.env[name] || (() => { throw new Error(`set ${name}`); })();
 const host = process.env.PRESENCE_HOST ?? "127.0.0.1",
-  port = Number(process.env.PRESENCE_PORT ?? 8892),
+  port = Number(process.env.PRESENCE_PORT ?? 8894),
   tickMs = Number(process.env.PRESENCE_TICK_MS ?? 100);
 if (host !== "127.0.0.1" && process.env.ARMA_ALLOW_PUBLIC !== "1") throw new Error("presence binds 127.0.0.1 only");
 
@@ -45,7 +45,9 @@ const verify = async (token) => {
 
 // Only the game's own site may open a socket. PRESENCE_ORIGINS (comma list) replaces the default; PRESENCE_DEV=1 also allows http://localhost.
 const allowedOrigins = process.env.PRESENCE_ORIGINS ? process.env.PRESENCE_ORIGINS.split(",").map((s) => s.trim()) : ["https://playarmagedom.com"];
-const presence = createPresence({ rules, limits, verify, weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, allowedOrigins, devOrigins: process.env.PRESENCE_DEV === "1", log: console.log });
+// The world admits an account only when the database says so (kill switch, allow-list, open access): the writer answers arma_allowed through arma_world_status.
+const isAllowed = async (account) => (await writer.status(account)).allowed === true;
+const presence = createPresence({ rules, limits, verify, isAllowed,weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, allowedOrigins, devOrigins: process.env.PRESENCE_DEV === "1", log: console.log });
 presence.server.listen(port, host, () => console.log(`presence listening on ${host}:${port}, layout ${rules.version}, push ${limits.impulseCm} cm`));
 let ticking = false; // a slow writer must not stack ticks up
 const timer = setInterval(async () => {

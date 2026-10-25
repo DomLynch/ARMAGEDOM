@@ -162,8 +162,11 @@ test("an O0007 refusal (world switched off / not allow-listed) is only logged: t
   await t.run();
   assert.match(t.lines[0], /not saved: O0007/);
   assert.equal(t.storage.map.get(characterKey("user-1")), "pc:abc", "the cache is NOT cleared");
+  assert.equal(t.client.halted, true, "the save loop stops: no 5 s retry forever");
   t.clock.ms += 6000;
   t.client.queue(record({ hp: 2 }));
+  assert.equal(t.timers.length, 0, "nothing is scheduled while halted");
+  t.client.resume(); // a fresh status read said the world is open
   await t.run();
   assert.equal(t.w.calls.filter((c) => c.op === "create_character").length, 1, "no second character");
   assert.equal(t.w.calls.at(-1).body.character, "pc:abc");

@@ -5,6 +5,7 @@
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
+import world from "../data/world.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -36,11 +37,40 @@ export function validateWeapons(d) {
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
 }
 
+export function validateWorld(d) {
+  closed(d, [
+    "schema_version",
+    "statusPath",
+    "statusTimeoutMs",
+    "recheckMinMs",
+    "presenceBackoffMs",
+    "closedCloseCodes",
+    "closedRefuseReasons",
+    "closedError",
+  ]);
+  if (typeof d.statusPath !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.statusPath))
+    fail("world", "statusPath");
+  count("world", "statusTimeoutMs", d.statusTimeoutMs, 500, 60000);
+  count("world", "recheckMinMs", d.recheckMinMs, 5000, 3600000);
+  if (!Array.isArray(d.presenceBackoffMs) || d.presenceBackoffMs.length < 1 || d.presenceBackoffMs.length > 12)
+    fail("world", "presenceBackoffMs must list 1 to 12 delays");
+  d.presenceBackoffMs.forEach((ms, i) => {
+    count("world", `presenceBackoffMs[${i}]`, ms, 250, 120000);
+    if (i > 0 && ms < d.presenceBackoffMs[i - 1]) fail("world", "presenceBackoffMs must not shrink");
+  });
+  if (!Array.isArray(d.closedCloseCodes)) fail("world", "closedCloseCodes");
+  d.closedCloseCodes.forEach((code) => count("world", "closedCloseCodes", code, 4000, 4999));
+  if (!Array.isArray(d.closedRefuseReasons) || !d.closedRefuseReasons.every((r) => /^[a-z-]{1,24}$/.test(r)))
+    fail("world", "closedRefuseReasons");
+  if (typeof d.closedError !== "string" || !/^[A-Za-z0-9_-]{1,16}$/.test(d.closedError)) fail("world", "closedError");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   saveClient: [saveClient, validateSaveClient],
   weapons: [weapons, validateWeapons],
+  world: [world, validateWorld],
 });
 
 /**

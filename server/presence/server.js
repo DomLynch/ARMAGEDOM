@@ -19,6 +19,9 @@ import { displayName } from "./names.js";
 
 export const PROTOCOL = "arma.v1";
 export const CLOSE_REPLACED = 4010;
+// A verified account that the world refuses (kill switch on, or not on the allow-list): the upgrade is ACCEPTED and then closed with this code, so the
+// page can tell "closed" from a bad token (which is an HTTP 401 before the upgrade, a code-less close in a browser). The page then re-reads /arma/api/status.
+export const CLOSE_CLOSED = 4003;
 const TOKEN_PREFIX = "token.";
 
 /**
@@ -27,6 +30,8 @@ const TOKEN_PREFIX = "token.";
  * weaponCaps: { [weapon]: { maxDamage, maxHitsPerS } } (maxDamage already includes the progression ceiling, see caps.js);
  * sendHits(rows) -> the writer's per-row results, in order (rows: { account, token, weapon, applied, hits });
  * sendLocation({ account, area, x, z, atMs }) -> void. Without sendHits / sendLocation those features answer "off" / do nothing.
+ * isAllowed(account) -> true when the world admits this verified account (main.js asks the writer); anything but true, a throw or a hang past verifyTimeoutMs
+ * means CLOSED: the upgrade is accepted and closed with CLOSE_CLOSED (4003), never admitted to a layer. Without it every verified account is admitted (tests).
  * allowedOrigins: the only web origins that may open a socket (default https://playarmagedom.com); devOrigins: also http://localhost[:port].
  */
 export function createPresence({
@@ -42,6 +47,7 @@ export function createPresence({
   locationEveryMs = 5000,
   hitSlack = 1.25,
   verifyTimeoutMs = 5000,
+  isAllowed = null,
   allowedOrigins = ["https://playarmagedom.com"],
   devOrigins = false,
   log = () => {},
@@ -220,11 +226,24 @@ export function createPresence({
     let deadline;
     const timedOut = new Promise((_, reject) => (deadline = setTimeout(() => reject(new Error("verify timed out")), verifyTimeoutMs)));
     Promise.race([Promise.resolve(verify(token)), timedOut]).finally(() => clearTimeout(deadline)).then(
-      (verified) => {
+      async (verified) => {
         const account = typeof verified === "string" ? verified : verified?.id;
         if (typeof account !== "string" || !account) return deny();
         if (socket.destroyed) return;
+        let admitted = true;
+        if (isAllowed) {
+          let gateDeadline;
+          const gateTimeout = new Promise((resolve) => (gateDeadline = setTimeout(() => resolve(false), verifyTimeoutMs)));
+          admitted = (await Promise.race([Promise.resolve().then(() => isAllowed(account)).catch(() => false), gateTimeout]).finally(() => clearTimeout(gateDeadline))) === true;
+        }
+        if (socket.destroyed) return;
         if (!handshake(req, socket, { protocol: PROTOCOL })) return;
+        if (!admitted) {
+          // Accepted then closed with a code: the page can tell "the world is closed to me" from a bad token. Never added to a layer, no state sent.
+          const refused = connection(socket, { maxMessage, onMessage: () => {}, onClose: () => {} });
+          refused.close(CLOSE_CLOSED);
+          return;
+        }
         const client = { id: nextId++, account, name: displayName(account, typeof verified === "object" ? verified.name : null), area: null, x: 0, z: 0, atMs: 0, windowStart: now(), windowCount: 0, lastHit: new Map(), reportedAt: -Infinity, reported: null };
         client.conn = connection(socket, {
           maxMessage,

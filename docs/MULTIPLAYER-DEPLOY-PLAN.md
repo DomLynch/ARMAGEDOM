@@ -9,11 +9,30 @@ a shared link opens playarmagedom.com, Play, and you are in it.
 | Service | Unit | Binds | Talks to | Holds |
 | --- | --- | --- | --- | --- |
 | writer | `arma-writer.service` | 127.0.0.1:8891 | Postgres (role `arma_writer`), Supabase Auth (`/auth/v1/user`) | `DATABASE_URL`, the shared internal key |
-| presence | `arma-presence.service` | 127.0.0.1:8892 | the writer on :8891, Supabase Auth | the shared internal key only; **no database credential** |
+| presence | `arma-presence.service` | 127.0.0.1:8894 | the writer on :8891, Supabase Auth | the shared internal key only; **no database credential** |
 
 Browser path: `wss://playarmagedom.com/arma/ws` (presence) and `https://playarmagedom.com/arma/api/<op>` (writer client routes). The writer's
 `/internal/*` and `/health` are never proxied. Each service is OFF unless its flag is set (`ARMA_WRITER=1`, `ARMA_PRESENCE=1`).
-Ports 8891 and 8892 are free on the VPS (checked 24 Oct: only 8787, 8788 and 8793, which are Frankendom's, listen).
+Ports 8891 and 8894 are free on the VPS (checked 25 Oct: 8787, 8788 and 8793 are Frankendom's; **8892 is taken** by a static preview server, `serve-immutable.mjs ... 8892`, so
+presence moved to 8894 through `PRESENCE_PORT`).
+
+## Install runbook (A5; Deploy owns nginx and `systemctl`, Backend owns the bundle and the env files)
+
+Everything below is run on the VPS as root. No secret appears in a command line, a chat or the repo.
+1. **Bundle** (`/opt/armagedom-realtime/releases/<name>`, immutable; `current` is a symlink Deploy flips): from the repo checkout,
+   `(cd Web && node scripts/area-presence-rows.mjs /tmp/area.json)` then
+   `node ops/realtime/build-release.mjs --out /opt/armagedom-realtime/releases --area-data /tmp/area.json --name <sha>`. It traces what the two entry points import,
+   copies only that (plus `server/data/spawns.json`, `area-content.json`, the validated area data), pins `pg` and `three`, and writes a MANIFEST of sha256s. Then
+   `ln -sfn releases/<name> /opt/armagedom-realtime/current`.
+2. **Env files** (once): `sudo bash ops/realtime/make-env.sh --supabase-url https://<ref>.supabase.co --anon-key <publishable key> --pooler-host <host>` generates the
+   writer password and `ARMA_INTERNAL_KEY` on the box, writes `writer.env` and `presence.env` (root:root 0600, flags OFF, presence port 8894) and
+   `arma_writer.verifier.sql` (one `alter role ... password '<SCRAM verifier>'` statement). Apply that one statement to the project with the Supabase SQL tool.
+   `sh ops/realtime/check-env.sh` then proves the files load under the units' own confinement without printing a value.
+3. **Units**: install `arma-writer.service` and `arma-presence.service`, `systemctl daemon-reload`. They start with the flags OFF (the process exits 0, nothing listens).
+4. **nginx** (Deploy): the example's per-IP limit zones in `conf.d/`, the three locations in the 443 block for `playarmagedom.com` (`/arma/api/` -> 8891, `/arma/ws` -> 8894).
+5. **Flip**: set `ARMA_WRITER=1`, start the writer, `curl -s http://127.0.0.1:8891/health`; set `ARMA_PRESENCE=1`, start presence; health on loopback only. The hosted
+   database stays `arma_enabled = false` until Lead's gate: services up does not mean the world is open.
+6. **Kill**: `ARMA_*=0` + restart (or `systemctl stop`), or `touch /etc/armagedom/DISABLED` plus an nginx reload.
 
 Verified on the VPS on 24 Oct (read-only): Node v22.23.2; system user `armagedom` (uid 983) exists; `/etc/nginx/sites-enabled/playarmagedom.conf`
 exists with a 443 block for `playarmagedom.com` that ends in `location / { return 404; }`; `/etc/armagedom/` does not exist yet; Frankendom's

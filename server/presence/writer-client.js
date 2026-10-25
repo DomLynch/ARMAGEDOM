@@ -16,6 +16,8 @@ export function writerClient({ baseUrl, key, fetchImpl = fetch, timeoutMs = 2000
   return {
     /** rows: [{ account, token, weapon, applied, hits }] -> one result per row, in order. */
     sendHits: (rows) => post("/internal/hits", { batch: rows }),
+    /** account -> { enabled, open, allowed }: may this verified account be in the world right now. */
+    status: (account) => post("/internal/status", { account }),
     /** { account, area, x, z, atMs } -> { character, stored }. */
     sendLocation: (report) => post("/internal/location", report),
   };
