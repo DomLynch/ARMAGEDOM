@@ -18,7 +18,7 @@ function labelSprite(text, style) {
   // Only fillRect and fillText are used (the border is four filled bars), so a minimal 2D context is enough.
   if (typeof ctx?.fillRect !== "function" || typeof ctx.fillText !== "function") return null;
   ctx.fillStyle = `#${style.labelBacking}`;
-  ctx.globalAlpha = 0.96;
+  ctx.globalAlpha = style.labelBackingOpacity;
   ctx.fillRect(0, 0, 384, 64);
   ctx.globalAlpha = 1;
   ctx.fillStyle = `#${style.ringColour}`;
@@ -78,11 +78,36 @@ function glowMesh(style) {
   return glow;
 }
 
+// The marker's band as a flat geometry in the XY plane (the ring mesh lies it on the ground). "circle" is a round band; the others are
+// built from rectangles of the band's width on a square of half-width ringOuter, laid along the world axes: "square" a full outline,
+// "brackets" only the four corners (each arm bracketArm of a side long), "diamond" the square turned 45 degrees.
+export function markerGeometry(style) {
+  if (style.shape === "circle") return new T.RingGeometry(style.ringInner, style.ringOuter, 48);
+  const o = style.ringOuter,
+    i = style.ringInner,
+    arm = o - 2 * o * style.bracketArm,
+    rects = [];
+  if (style.shape === "brackets")
+    for (const sx of [-1, 1])
+      for (const sy of [-1, 1]) {
+        rects.push([sx * arm, sx * o, sy * i, sy * o]); // the arm along the horizontal edge, corner square included
+        rects.push([sx * i, sx * o, sy * arm, sy * i]); // the arm along the vertical edge, corner square left out
+      }
+  else rects.push([-o, o, i, o], [-o, o, -o, -i], [-o, -i, -i, i], [i, o, -i, i]);
+  const positions = [];
+  for (const [x0, x1, y0, y1] of rects)
+    positions.push(x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y0, 0, x1, y1, 0, x0, y1, 0);
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
+  if (style.shape === "diamond") geometry.rotateZ(Math.PI / 4);
+  return geometry;
+}
+
 export function createDropMarker(label, style = STYLE) {
   const group = new T.Group(),
-    glow = glowMesh(style),
+    glow = style.shape === "circle" ? glowMesh(style) : null, // the glow is radial: only a round band gets one
     ring = new T.Mesh(
-      new T.RingGeometry(style.ringInner, style.ringOuter, 48),
+      markerGeometry(style),
       new T.MeshBasicMaterial({
         color: new T.Color(`#${style.ringColour}`),
         side: T.DoubleSide,
@@ -105,7 +130,7 @@ export function createDropMarker(label, style = STYLE) {
     const p = dropPulse(globalThis.performance?.now?.() / 1000 || 0, style),
       swell = 1 + style.ringPulse * ((p - style.minOpacity) / (1 - style.minOpacity)),
       item = 1 + style.itemPulse * (p - 0.5);
-    ring.material.opacity = p;
+    ring.material.opacity = style.peakOpacity * p;
     ring.scale.setScalar(swell);
     if (glow) {
       glow.material.opacity = style.glowOpacity * p;
