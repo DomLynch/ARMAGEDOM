@@ -110,7 +110,7 @@ function* hairGeometrySteps(source, h, style) {
         key = [
           ...p.toArray(),
           ...Array.from({ length: 4 }, (_, k) => joints.array[id * 4 + k]),
-          ...Array.from({ length: 4 }, (_, k) => weights.array[id * 4 + k]),
+          ...Array.from({ length: 4 }, (_, k) => weights.getComponent(id, k)),
         ]
           .map((v) => Math.round(v * 1e6))
           .join("/");
@@ -155,7 +155,7 @@ function* hairGeometrySteps(source, h, style) {
         uvs.push(uv.getX(id), uv.getY(id));
         for (let k = 0; k < 4; k++) {
           js.push(joints.array[id * 4 + k]);
-          ws.push(weights.array[id * 4 + k]);
+          ws.push(weights.getComponent(id, k));
         }
         if ((++built & 127) === 0 && performance.now() - since >= 4) {
           yield "face-hair-build";

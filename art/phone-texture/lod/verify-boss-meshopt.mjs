@@ -85,8 +85,11 @@ const COLOUR = new Set();
 for (const m of ra.listMaterials()) for (const t of [m.getBaseColorTexture(), m.getEmissiveTexture()]) if (t) COLOUR.add(t);
 const rgba = async (t) => (await sharp(Buffer.from(t.getImage())).ensureAlpha().raw().toBuffer({ resolveWithObject: true }));
 const textures = [];
-check("textures", ra.listTextures().length, rb.listTextures().length);
-for (const [i, t] of ra.listTextures().entries()) {
+// A texture no material references is dropped by the build, so only the referenced ones are paired (in order).
+const used = (t) => t.listParents().some((parent) => parent.propertyType === "Material"),
+  usedA = ra.listTextures().filter(used);
+check("textures", usedA.length, rb.listTextures().length);
+for (const [i, t] of usedA.entries()) {
   const u = rb.listTextures()[i];
   if (!u) break;
   const [x, y] = [await rgba(t), await rgba(u)],
