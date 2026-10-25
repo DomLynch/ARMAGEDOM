@@ -5,6 +5,7 @@
 //   internal routes POST /internal/<op>   x-arma-internal-key: <shared key>               (presence only: location and hit batches)
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { CLIENTLOG_LIMIT, CLIENTLOG_MAX_BODY, cleanClientLog, clientIp, ipLimiter } from "./clientlog.js";
 
 const MAX_BODY = 256 * 1024;
 const STATUS_MAX_AGE_S = 30,
@@ -116,12 +117,13 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     },
   };
 
-  async function readJson(req) {
+  const allowClientLog = ipLimiter(CLIENTLOG_LIMIT, now);
+  async function readJson(req, maxBody = MAX_BODY) {
     const chunks = [];
     let size = 0;
     for await (const chunk of req) {
       size += chunk.length;
-      if (size > MAX_BODY) throw new HttpError(413, "too-large");
+      if (size > maxBody) throw new HttpError(413, "too-large");
       chunks.push(chunk);
     }
     try {
@@ -171,7 +173,19 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
         }
         return send(res, 200, await call("arma_world_status", [account]), { "Cache-Control": "private, no-store" });
       }
-      if (req.method !== "POST") throw new HttpError(405, "method");
+      // The phone's error beacon: public, per-IP limited, journal only (clientlog.js). It never reads the Authorization header.
+      if (req.method === "POST" && area === "arma" && op === "clientlog") {
+        if (!allowClientLog(clientIp(req))) throw new HttpError(429, "rate", { retryAfterMs: CLIENTLOG_LIMIT.refillMs });
+        const entry = cleanClientLog(await readJson(req, CLIENTLOG_MAX_BODY));
+        if (!entry) throw new HttpError(400, "bad-request");
+        counts.clientlog = (counts.clientlog ?? 0) + entry.events.length;
+        for (const event of entry.events) log(`clientlog ${JSON.stringify({ release: entry.release, area: entry.area, ...event })}`);
+        res.writeHead(204, { "Cache-Control": "no-store", Vary: "Authorization" });
+        return res.end();
+      }
+      // A wrong method on a route that exists is a 405; on anything else it is simply not a route.
+      const knownPost = (area === "internal" && internalOps[op]) || (area === "arma" && clientOps[op]);
+      if (req.method !== "POST") throw new HttpError(knownPost ? 405 : 404, knownPost ? "method" : "route");
       if (area === "internal" && internalOps[op]) {
         if (!internalKey || !same(req.headers["x-arma-internal-key"], internalKey)) throw new HttpError(401, "key");
         return send(res, 200, await internalOps[op]({ body: await readJson(req) }));

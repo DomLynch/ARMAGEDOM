@@ -22,6 +22,20 @@ location = /arma/ws {
     proxy_buffering off;
 }
 
+# The phone's error beacon: public (no token), journal only. The writer rate-limits it per client IP from X-Real-IP, so this location MUST set that header
+# from $remote_addr (proxy_set_header REPLACES any value the client sent) and must not forward Authorization. Body cap 4 KB is enforced by the writer too.
+location = /arma/api/clientlog {
+    limit_req zone=arma_api burst=5 nodelay;
+    limit_req_status 429;
+    client_max_body_size 8k;
+    proxy_pass http://127.0.0.1:8891/arma/clientlog;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Authorization "";
+    add_header Cache-Control "no-store" always;
+}
+
 # The writer's client routes (engage a creature, load/save the run, ...): /arma/api/<op> -> 127.0.0.1:8891/arma/<op>.
 # Only this prefix is proxied, so /internal/* and /health on the writer are NOT reachable from outside.
 location ^~ /arma/api/ {
