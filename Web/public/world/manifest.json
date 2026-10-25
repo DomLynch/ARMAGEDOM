@@ -274,8 +274,8 @@
       "to": "south",
       "condition": {
         "xMin": 0.72,
-        "xMax": 0.79,
-        "yMin": 0.356,
+        "xMax": 0.78,
+        "yMin": 0.358,
         "yMax": 0.389
       },
       "entry": {
@@ -560,8 +560,8 @@
         "yMax": 0.49
       },
       "entry": {
-        "x": 0.785,
-        "y": 0.365
+        "x": 0.815,
+        "y": 0.335
       },
       "requiresDefeat": "boss-witch-v1",
       "requiresVisited": true
