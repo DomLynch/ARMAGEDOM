@@ -16,13 +16,18 @@ const SECRETS = [
   /\bBearer\s+\S+/gi,
   /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g, // an email address
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, // an account or character uuid
+];
+const FREE_TEXT_ONLY = [
   /\?[^\s]*/g, // a query string
   /[A-Za-z0-9_\-+/=]{24,}/g, // any other long opaque run (keys, hashes)
 ];
-export const scrub = (text) => SECRETS.reduce((s, re) => s.replace(re, "[x]"), String(text)).replace(/[^\x20-\x7e]/g, " ");
+const redact = (rules, text) => rules.reduce((s, re) => s.replace(re, "[x]"), String(text));
+/** Free text (message): every rule, then control characters flattened. */
+export const scrub = (text) => redact([...SECRETS, ...FREE_TEXT_ONLY], text).replace(/[^\x20-\x7e]/g, " ");
 
+/** An identifier field (release, area, code): the structured secret rules first (a commit sha of 40 hex characters must survive, so no opaque-run rule), then the charset and length cut. */
 const word = (value, max, fallback = "") => {
-  const s = typeof value === "string" ? value.replace(/[^A-Za-z0-9._/:-]/g, "_").slice(0, max) : "";
+  const s = typeof value === "string" ? redact(SECRETS, value).replace(/[^A-Za-z0-9._/:-]/g, "_").slice(0, max) : "";
   return s || fallback;
 };
 

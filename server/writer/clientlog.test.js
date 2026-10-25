@@ -45,6 +45,13 @@ test("cleanClientLog enforces the schema and the length limits, and drops unknow
   assert.ok(!JSON.stringify(out).includes("dropped"));
 });
 
+test("release, area and code are scrubbed of structured secrets too, but a 40-char commit sha survives", () => {
+  const out = cleanClientLog({ v: 1, release: `${JWT}`, area: "me@example.com", events: [event({ code: "Bearer abc", message: "ok" })] });
+  const text = JSON.stringify(out);
+  for (const secret of ["eyJ", "example.com", "Bearer", "abc"]) assert.ok(!text.includes(secret), `still has ${secret}`);
+  assert.equal(cleanClientLog({ v: 1, release: "0123456789abcdef0123456789abcdef01234567", events: [event()] }).release, "0123456789abcdef0123456789abcdef01234567");
+});
+
 test("ipLimiter: a burst, then one per refill, per IP, and the table stays bounded", () => {
   let t = 0;
   const allow = ipLimiter({ burst: 3, refillMs: 10_000 }, () => t);

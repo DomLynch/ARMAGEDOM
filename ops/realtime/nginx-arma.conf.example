@@ -17,6 +17,7 @@ location = /arma/ws {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
     proxy_read_timeout 120s;                    # presence sends a state frame every tick; an idle socket is a dead one
     proxy_send_timeout 120s;
     proxy_buffering off;
@@ -45,6 +46,7 @@ location ^~ /arma/api/ {
     proxy_pass http://127.0.0.1:8891/arma/;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;    # REPLACES anything the client sent: the writer trusts this header (clientlog's per-IP limit), so EVERY location that reaches it sets it
     proxy_set_header Authorization $http_authorization;
     add_header Cache-Control "no-store" always;
 }
