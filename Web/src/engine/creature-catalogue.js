@@ -1,6 +1,7 @@
 import { creatureDefinitions, recipeFoundations, nativeRoleDefinitions } from "./creature-definitions.js";
 import { resolveCreatureBehaviour } from "../creature-behaviour-presets.js";
 import { resolveResidentIntent } from "../creature-behaviour-intents.js";
+import { GAME_DATA } from "./game-data.js";
 // Capabilities provided by existing resident movement/native completion/neighbour seams.
 export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "home",
@@ -11,22 +12,8 @@ export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "nativeLocomotion",
   "eligibleCompanions",
 ]);
-const support = Object.freeze({
-  "hollow-scavenger": ["resident-knife", "knife", "hollow-scavenger", ["slash", "stab", "heavy"]],
-  "original-rat": ["rat-native-bite", "teeth", "original-rat", ["attack", "attackLow"]],
-  "original-dog": ["dog-native-bite", "teeth", "original-dog", ["attack"]],
-  "original-roach": ["roach-native-bite", "teeth", "original-roach", ["attack"]],
-  "low-hover-drone": ["drone-selector", "bolt", null, []],
-  "original-wolf": ["wolf-native-bite", "teeth", "original-wolf", ["attack"]],
-  "giant-salamander": ["salamander-native-bite", "teeth", "giant-salamander", ["attack"]],
-});
-const reach = Object.freeze({
-  "original-wolf": 2.375,
-  "original-rat": 1.050307904880233,
-  "original-dog": 1.635623468495986,
-  "original-roach": 1.6063268331546576,
-  "giant-salamander": 3.1078573708270647,
-});
+// The per-foundation controller/weapon/rig/actions and the native contact reach live in Web/src/data/creatures.json `catalogue`.
+const { support, reach } = GAME_DATA.creatures.catalogue;
 const freeze = (value) => {
   if (value && typeof value === "object") {
     for (const child of Object.values(value)) freeze(child);
@@ -89,16 +76,16 @@ export function createCreatureCatalogue({
       "provenanceRef",
       "runtimeIdentity",
     ]);
-    const pair = support[row.runtimeIdentity];
-    if (!pair || row.id !== row.runtimeIdentity || map.has(row.id)) throw Error("Unknown or duplicate foundation");
+    const pair = Object.hasOwn(support, row.runtimeIdentity) ? support[row.runtimeIdentity] : null;
+    if (!pair ||row.id !== row.runtimeIdentity || map.has(row.id)) throw Error("Unknown or duplicate foundation");
     closed(row.behaviour, ["controllerRef", "parameterPreset", "intentPolicyRef"]);
     closed(row.stats, ["health", "radius", "moveSpeed", "recoveryDelay", "weapon"]);
     closed(row.scale, ["model", "character", "visual", "mobSizeMode", "bodyScale", "appliedBy"]);
     if (
-      row.rig !== pair[2] ||
-      row.behaviour.controllerRef !== pair[0] ||
-      row.stats.weapon !== pair[1] ||
-      pair[3].some((action) => typeof row.clips[action] !== "string")
+      row.rig !== pair.rig ||
+      row.behaviour.controllerRef !== pair.controller ||
+      row.stats.weapon !== pair.weapon ||
+      pair.actions.some((action) => typeof row.clips[action] !== "string")
     )
       throw Error("Controller/foundation/action mismatch");
     if (row.runtimeIdentity === "low-hover-drone") {
