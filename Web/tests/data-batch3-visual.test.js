@@ -38,7 +38,7 @@ test('the clothing swatches, every approved pairing and all 840 outfits equal th
       outfits++;
     }
   assert.equal(outfits, Object.keys(old.clothing.outfits).length);
-  assert.throws(() => outfitFor('top-charcoal-01', 'trousers-sand-04'), /unapproved/);
+  assert.throws(() => outfitFor('top-charcoal-01', 'trousers-charcoal-01'), /unapproved/);
 });
 
 test('the effect colours read as the same numbers as the old 0x literals', () => {
