@@ -130,17 +130,63 @@ test("the run: create, stale refusal, era and shape checks, ownership, and a rea
   assert.deepEqual(await as(db, "authenticated", ids.bob, () => call(db, "select character from public.arma_runs")), []);
 });
 
-test("hp is a number the game moves in fractions (damage, regeneration): 142.25 is saved, 1000.5 is still out of range (000012)", async () => {
+// 000012: the game saves hp, flameFuel.fuelUnits and locker.ammo.flame-fuel in fractions (damage/regeneration; burn = units per second * frame seconds; the one
+// non-integer locker resource). The two played records are REAL: captured from the client's own localStorage run key while 4 headless players fought in the local
+// stack (ops/realtime/e2e-clients-scenario.mjs); both carry a fractional hp. Before 000012 the server refused each as 'shape:integer:hp' with HTTP 200 {refused:"shape"}.
+const playedRecords = ["played-v18-hurt-midfight.json", "played-v18-hurt-early.json"].map((name) => [name, JSON.parse(fs.readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8"))]);
+
+test("a whole REAL played record with a fractional hp is saved, and the revision moves (000012)", async () => {
   const { db, alice } = await setup();
-  let seq = 0;
-  const save = (record, expected) => call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, $4, $5) as r", [ids.alice, alice, JSON.stringify(record), expected, ++seq]).then((r) => r[0].r);
-  const hurt = await save({ ...v18, hp: 142.25 }, 0);
-  assert.equal(hurt.refused, undefined, JSON.stringify(hurt));
-  assert.equal(hurt.revision, 1, "the save landed and the revision moved");
-  assert.equal((await call(db, "select public.arma_load_run($1, $2) as r", [ids.alice, alice]))[0].r.record.hp, 142.25);
-  assert.match(String((await save({ ...v18, hp: 1000.5 }, 1)).refused), /cap|shape/, "the range is unchanged");
-  assert.match(String((await save({ ...v18, hp: -0.5 }, 1)).refused), /cap|shape/, "and so is the floor");
-  assert.equal((await save({ ...v18, hp: "142.25" }, 1)).refused !== undefined, true, "a string is still not a number");
+  let seq = 0,
+    revision = 0;
+  const save = (record) => call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, $4, $5) as r", [ids.alice, alice, JSON.stringify(record), revision, ++seq]).then((r) => r[0].r);
+  for (const [name, record] of playedRecords) {
+    assert.ok(!Number.isInteger(record.hp), `${name} really has a fractional hp (${record.hp})`);
+    const saved = await save(record);
+    assert.equal(saved.refused, undefined, `${name}: ${JSON.stringify(saved)}`);
+    assert.equal(saved.revision, revision + 1, `${name}: the revision moved, not just HTTP 200`);
+    revision = saved.revision;
+    const loaded = (await call(db, "select public.arma_load_run($1, $2) as r", [ids.alice, alice]))[0].r;
+    assert.deepEqual(loaded.record, record, `${name}: the stored record is exactly what was played`);
+  }
+});
+
+test("each fractional field is accepted in range and refused out of it; every other number stays whole (000012)", async () => {
+  const { db, alice } = await setup();
+  let seq = 0,
+    revision = 0;
+  const base = playedRecords[0][1];
+  const withFields = (over) => ({ ...base, ...over });
+  const save = async (record) => {
+    const r = await call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, $4, $5) as r", [ids.alice, alice, JSON.stringify(record), revision, ++seq]).then((rows) => rows[0].r);
+    if (r.revision && !r.refused) revision = r.revision;
+    return r;
+  };
+  const accepted = async (what, record) => {
+    const r = await save(record);
+    assert.equal(r.refused, undefined, `${what}: ${JSON.stringify(r)}`);
+  };
+  const refused = async (what, record) => {
+    const before = revision;
+    const r = await save(record);
+    assert.ok(r.refused, `${what} must be refused: ${JSON.stringify(r)}`);
+    assert.equal(revision, before, `${what}: the revision did not move`);
+  };
+  await accepted("hp 142.25", withFields({ hp: 142.25 }));
+  await refused("hp 1000.5 (above the range)", withFields({ hp: 1000.5 }));
+  await refused("hp -0.5 (below the range)", withFields({ hp: -0.5 }));
+  await refused("hp as a string", withFields({ hp: "142.25" }));
+  const flame = (fuelUnits) => withFields({ flameFuel: { version: 1, collected: true, fuelUnits } });
+  await accepted("flameFuel.fuelUnits 987.35", flame(987.35));
+  await refused("flameFuel.fuelUnits 10000.5 (above the range)", flame(10000.5));
+  await refused("flameFuel.fuelUnits -0.5 (below the range)", flame(-0.5));
+  const locker = (ammo) => withFields({ locker: { ...(base.locker ?? {}), ammo: { ...(base.locker?.ammo ?? {}), ...ammo } } });
+  await accepted("locker.ammo.flame-fuel 123.45", locker({ "flame-fuel": 123.45 }));
+  await refused("locker.ammo.flame-fuel 1000.5 (above its own cap)", locker({ "flame-fuel": 1000.5 }));
+  await refused("locker.ammo.flame-fuel -1.5 (below the range)", locker({ "flame-fuel": -1.5 }));
+  await refused("another locker ammo kind stays whole", locker({ "pistol-9mm": 1.5 }));
+  await refused("pistol.magazine stays whole", withFields({ pistol: { ...(base.pistol ?? {}), magazine: 1.5 } }));
+  await refused("marked.carried stays whole", withFields({ marked: { ...base.marked, carried: 10.5 } }));
 });
 
 test("events are idempotent: the second insert of an id raises O0001", async () => {
