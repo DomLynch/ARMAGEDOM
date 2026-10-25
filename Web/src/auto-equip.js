@@ -5,9 +5,11 @@ import { GAME_DATA } from "./engine/game-data.js";
 // never drops anything). The switch is the weapon's own Equip action, so asset loading, ammo and the saved selection behave exactly as
 // when the player presses Equip in Gear. Ammo pickups for a weapon already carried never come through here. Rule in weapons.json
 // `autoEquipOnFirstPickup`. Emits {type: "auto-equip", itemId} on g.events once the weapon is active, for the HUD (tile flash, prompt).
+// The Gear Equip handlers are toggles (a second press lowers the weapon, and the Ember Projector hands over to the legacy flamethrower
+// handler while that is up), so the switch is asked to be raise-only: it may raise this weapon and never lowers anything.
 export async function autoEquipAfterClaim(g, { equip, active, itemId }) {
   if (GAME_DATA.weapons.autoEquipOnFirstPickup !== true) return false;
-  await equip();
+  await equip({ raiseOnly: true });
   if (!active()) return false;
   g.events.push({ type: "auto-equip", itemId });
   return true;

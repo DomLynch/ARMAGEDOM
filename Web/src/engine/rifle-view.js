@@ -72,7 +72,7 @@ export function createRifleView(s, dispatch) {
     }
     s.updateExpedition?.();
   }
-  const equip = async () => {
+  const equip = async (options) => {
     const owner = s.game;
     if (!safe(owner)) return;
     try {
@@ -86,7 +86,7 @@ export function createRifleView(s, dispatch) {
       execute({
         type: "equip",
         itemId: owner.world.rifleData.itemId,
-        equipped: !!owner.flame?.equipped || !owner.rifle.selected,
+        equipped: options?.raiseOnly === true || !!owner.flame?.equipped || !owner.rifle.selected,
       });
     update();
   };

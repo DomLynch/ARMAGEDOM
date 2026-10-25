@@ -105,12 +105,13 @@ export function createFlameView(s, persistence) {
     s.effects?.clearFlameFeedback?.();
     repaint();
   }
-  async function equip() {
+  async function equip(options) {
     if (lockerStored(s.game, "flamethrower-area8-v1")) return;
     const g = s.game;
     if (!g?.world.flameData || !safe(g) || load) return;
     if (g.flame.equipped && !g.bossEquipment?.emberProjector?.selected) {
-      lower(g);
+      // Equip is a toggle: pressed again it lowers. An automatic switch (raise-only) never lowers.
+      if (options?.raiseOnly !== true) lower(g);
       return;
     }
     if (!g.flameFuel?.collected) return;

@@ -77,10 +77,12 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     button.id = "boss-equip-" + field;
     section.append(title, label, button);
     panel.append(section);
-    const equip = async () => {
-      const owner = s.game;
+    const equip = async (options) => {
+      const owner = s.game,
+        raiseOnly = options?.raiseOnly === true;
       if (!safe(owner)) return;
       if (
+        !raiseOnly &&
         field === "emberProjector" &&
         typeof legacyFlameEquip === "function" &&
         (!ownsEmberReward(owner) || (owner.flame?.equipped && !owner.bossEquipment.emberProjector.selected))
@@ -97,7 +99,11 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         return;
       }
       if (!disposed && s.game === owner && safe(owner) && owner.bossEquipment?.[field]?.status === "owned")
-        execute(field, { type: "equip", itemId: data.itemId, equipped: !owner.bossEquipment[field].selected });
+        execute(field, {
+          type: "equip",
+          itemId: data.itemId,
+          equipped: raiseOnly || !owner.bossEquipment[field].selected,
+        });
       update();
     };
     equipHandlers.set(field, equip);
