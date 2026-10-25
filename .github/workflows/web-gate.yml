@@ -57,6 +57,8 @@ jobs:
         working-directory: server/db
       # server/presence imports Web/src rule tables; it has no package of its own.
       - run: node --test server/presence/*.test.js
+      # The release builder (bundle completeness, immutability, manifest, lockfile); it builds with --no-install, so no network.
+      - run: node --test ops/realtime/build-release.test.mjs
 
   web-gate:
     name: web-gate

@@ -137,7 +137,8 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
   };
   let statusMemo = null; // { at, body }: the anonymous status answer
   const send = (res, status, payload, headers = {}) => {
-    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store", ...headers });
+    // Vary: the status answer differs with and without a token, so a shared cache must not serve one in place of the other.
+    res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store", Vary: "Authorization", ...headers });
     res.end(JSON.stringify(payload));
   };
 

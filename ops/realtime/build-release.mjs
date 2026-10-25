@@ -19,7 +19,9 @@ const arg = (name) => {
 const ENTRIES = ["server/writer/main.js", "server/presence/main.js"];
 // Read at runtime by path, not by import: the writer's spawn rows, and the area content presence loads for its weapon caps and knockback allowance.
 const DATA = ["server/data/spawns.json", "Web/public/world/area-content.json"];
-const RUNTIME_PACKAGES = { pg: "8.13.1", three: "0.182.0" };
+// The bundle's package.json and package-lock.json live in ops/realtime/release/ and are copied as they are, so `npm ci` installs exactly the locked tree.
+const RELEASE_PACKAGE = path.join(repo, "ops/realtime/release/package.json");
+const RUNTIME_PACKAGES = JSON.parse(fs.readFileSync(RELEASE_PACKAGE, "utf8")).dependencies;
 const IMPORT = /(?:import|export)\s+(?:[^'"]*?from\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
 
 /** Every repo file the entries import (relative specifiers only), plus the bare package names they use. */
@@ -69,11 +71,15 @@ export function build({ root = repo, out, name, install = true, areaData, valida
   }
   fs.writeFileSync(path.join(dir, "server/data/area-presence.json"), JSON.stringify(areaJson) + "\n");
   manifest.push(`${crypto.createHash("sha256").update(fs.readFileSync(path.join(dir, "server/data/area-presence.json"))).digest("hex")}  server/data/area-presence.json`);
-  fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "armagedom-realtime", private: true, type: "module", dependencies: RUNTIME_PACKAGES }, null, 2) + "\n");
+  for (const file of ["package.json", "package-lock.json"]) {
+    const from = path.join(repo, "ops/realtime/release", file);
+    fs.copyFileSync(from, path.join(dir, file));
+    manifest.push(`${crypto.createHash("sha256").update(fs.readFileSync(from)).digest("hex")}  ${file}`);
+  }
   fs.writeFileSync(path.join(dir, "MANIFEST"), manifest.join("\n") + "\n");
   if (install) {
-    const run = spawnSync("npm", ["install", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: dir, stdio: "inherit" });
-    if (run.status !== 0) throw new Error("npm install failed");
+    const run = spawnSync("npm", ["ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: dir, stdio: "inherit" });
+    if (run.status !== 0) throw new Error("npm ci failed");
   }
   return { dir, files: files.length + DATA.length, bare };
 }
