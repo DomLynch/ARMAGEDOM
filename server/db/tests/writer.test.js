@@ -217,11 +217,12 @@ test("status: GET /arma/status answers {enabled, open} to anyone and {allowed} t
   try {
     const get = async (headers = {}) => {
       const res = await fetch(t.base + "/arma/status", { headers });
-      return { status: res.status, cache: res.headers.get("cache-control"), body: await res.json() };
+      return { status: res.status, cache: res.headers.get("cache-control"), vary: res.headers.get("vary"), body: await res.json() };
     };
     const as = (id) => ({ Authorization: `Bearer user:${id}` });
     const anon = await get();
     assert.deepEqual([anon.status, anon.cache, anon.body], [200, "public, max-age=30", { enabled: true, open: false }], "no account, no `allowed`, nothing else; cacheable for 30 s");
+    assert.equal(anon.vary, "Authorization", "a shared cache keys the public answer on the token header");
     const mine = await get(as(ids.alice));
     assert.deepEqual([mine.cache, mine.body], ["private, no-store", { enabled: true, open: false, allowed: true }], "an answer for a token is per account: never cached");
     assert.equal((await get({ Authorization: "Bearer forged" })).cache, "no-store", "errors are never cached");

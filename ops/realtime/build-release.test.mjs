@@ -27,6 +27,8 @@ test("package.json is ESM with exactly the two runtime packages pinned; the mani
   assert.equal(pkg.type, "module");
   assert.deepEqual(Object.keys(pkg.dependencies), ["pg", "three"]);
   assert.ok(Object.values(pkg.dependencies).every((v) => /^\d+\.\d+\.\d+$/.test(v)), "exact versions");
+  const lock = JSON.parse(fs.readFileSync(path.join(result.dir, "package-lock.json"), "utf8"));
+  for (const [name, version] of Object.entries(pkg.dependencies)) assert.equal(lock.packages[`node_modules/${name}`]?.version, version, `${name} is locked at the pinned version`);
   for (const line of fs.readFileSync(path.join(result.dir, "MANIFEST"), "utf8").trim().split("\n")) {
     const [sha, rel] = line.split("  ");
     assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.join(result.dir, rel))).digest("hex"), sha, rel);

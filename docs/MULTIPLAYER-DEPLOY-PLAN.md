@@ -22,7 +22,7 @@ Everything below is run on the VPS as root. No secret appears in a command line,
 1. **Bundle** (`/opt/armagedom-realtime/releases/<name>`, immutable; `current` is a symlink Deploy flips): from the repo checkout,
    `(cd Web && node scripts/area-presence-rows.mjs /tmp/area.json)` then
    `node ops/realtime/build-release.mjs --out /opt/armagedom-realtime/releases --area-data /tmp/area.json --name <sha>`. It traces what the two entry points import,
-   copies only that (plus `server/data/spawns.json`, `area-content.json`, the validated area data), pins `pg` and `three`, and writes a MANIFEST of sha256s. Then
+   copies only that (plus `server/data/spawns.json`, `area-content.json`, the validated area data), ships the committed `ops/realtime/release/package.json` and `package-lock.json` (`pg`, `three`; installed with `npm ci`), and writes a MANIFEST of sha256s. To change a package: edit that package.json, run `npm install --package-lock-only` there, commit both. Then
    `ln -sfn releases/<name> /opt/armagedom-realtime/current`.
 2. **Env files** (once): `sudo bash ops/realtime/make-env.sh --supabase-url https://<ref>.supabase.co --anon-key <publishable key> --pooler-host <host>` generates the
    writer password and `ARMA_INTERNAL_KEY` on the box, writes `writer.env` and `presence.env` (root:root 0600, flags OFF, presence port 8894) and
