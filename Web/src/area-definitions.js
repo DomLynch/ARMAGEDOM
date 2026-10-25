@@ -40,7 +40,7 @@ export const areaDefinitions = [
       {
         id: "exit.east.east-bridge",
         target: "east-bridge",
-        condition: { xMin: 0.845, xMax: 0.87, yMin: 0.245, yMax: 0.26 },
+        condition: { xMin: 0.82, xMax: 0.89, yMin: 0.245, yMax: 0.285 },
         entry: { x: 0.07, y: 0.835 },
       },
       {
@@ -109,7 +109,7 @@ export const areaDefinitions = [
         id: "exit.east-bridge.east",
         target: "east",
         condition: { xMax: 0.045, yMin: 0.8, yMax: 0.865 },
-        entry: { x: 0.85, y: 0.275 },
+        entry: { x: 0.85, y: 0.31 },
       },
       {
         id: "exit.east-bridge.elephant-and-castle",
