@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "1aef2b46ca632bf40749ec2943b9f8953fa145c3fde43288221fb6c15c298cbc");
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "ec4573397ad721e305d910a103c794a7da2d3d58bb5f825ea8916c2bb316f506");
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -25,13 +25,44 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   // This is the only deliberate difference; the row now matches public/world/east/layout.json and manifest.json.
   const stale = old.assets["layout.east"];
   assert.deepEqual({ bytes: stale.bytes, sha256: stale.sha256.slice(0, 8) }, { bytes: 11117, sha256: "7f8b408e" });
-  assert.deepEqual(areaDefinitions, old.areas);
+  // Exit triggers: the pre-move table, minus the `condition` boxes that were deliberately widened (see the next test), is unchanged.
+  const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, ...rest }) => rest) }));
+  assert.deepEqual(withoutConditions(areaDefinitions), withoutConditions(old.areas));
   assert.deepEqual(areaAssets, { ...old.assets, "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 } });
   assert(areaAssets["layout.east"].sha256.startsWith("db1e8b46"));
   assert.deepEqual(areaDefinitions.map((a) => a.id), old.areas.map((a) => a.id));
   assert.deepEqual(Object.keys(areaAssets), Object.keys(old.assets));
   assert.equal(areaDefinitions, GAME_DATA.areas.areas);
   assert(Object.isFrozen(areaDefinitions) && Object.isFrozen(areaDefinitions[0].exits[0]) && Object.isFrozen(areaAssets));
+});
+
+test("exit triggers: every closed box is at least 0.04 each way, only ever grew around its old centre, and no two zones in an area overlap", () => {
+  const MIN = 0.04 - 1e-9;
+  const widened = [];
+  for (const [i, area] of areaDefinitions.entries())
+    for (const [j, exit] of area.exits.entries()) {
+      const was = old.areas[i].exits[j].condition,
+        now = exit.condition;
+      assert.deepEqual(Object.keys(now), Object.keys(was), `${exit.id} keeps the same condition keys`);
+      for (const [lo, hi] of [["xMin", "xMax"], ["yMin", "yMax"]]) {
+        if (was[lo] === undefined || was[hi] === undefined) continue;
+        assert(now[hi] - now[lo] >= MIN, `${exit.id} ${lo}/${hi} is at least 0.04 wide`);
+        assert(now[lo] <= was[lo] + 1e-9 && now[hi] >= was[hi] - 1e-9, `${exit.id} ${lo}/${hi} contains the old box`);
+        if (now[lo] !== was[lo] || now[hi] !== was[hi]) widened.push(`${exit.id} ${lo}`);
+      }
+      for (const key of Object.keys(was)) if (!/^[xy]M(in|ax)$/.test(key)) assert.equal(now[key], was[key]);
+      for (const key of ["xMin", "yMin"]) if (was[key] !== undefined && was[key] === 0) assert.equal(now[key], 0);
+    }
+  assert(widened.length >= 15, `the thin exits were widened (${widened.length} edges)`);
+  const box = (c) => ({ x0: c.xMin ?? -1, x1: c.xMax ?? 2, y0: c.yMin ?? -1, y1: c.yMax ?? 2 });
+  for (const area of areaDefinitions)
+    for (let i = 0; i < area.exits.length; i++)
+      for (let j = i + 1; j < area.exits.length; j++) {
+        const p = box(area.exits[i].condition), q = box(area.exits[j].condition);
+        assert(!(p.x0 < q.x1 && q.x0 < p.x1 && p.y0 < q.y1 && q.y0 < p.y1), `${area.exits[i].id} overlaps ${area.exits[j].id}`);
+      }
+  // The arrival points did not move: the exit work only widens triggers.
+  areaDefinitions.forEach((a, i) => a.exits.forEach((e, j) => assert.deepEqual(e.entry, old.areas[i].exits[j].entry)));
 });
 
 test("the default registry still builds from the data and the manifest agrees with every world asset row", () => {
