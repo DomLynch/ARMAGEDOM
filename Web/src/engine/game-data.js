@@ -117,7 +117,8 @@ export function validateMelee(m) {
   };
   const saw = m.boneSaw;
   closed(saw, ["name", "modelVariantId", "contact", "moves", "costs"]);
-  if (typeof saw.name !== "string" || typeof saw.modelVariantId !== "string") fail("weapons", "melee.boneSaw name/model");
+  if (typeof saw.name !== "string" || typeof saw.modelVariantId !== "string")
+    fail("weapons", "melee.boneSaw name/model");
   pair("boneSaw", saw.contact);
   moves("boneSaw", saw.moves, ["damage", "stamina"]);
   costs("boneSaw", saw.costs, ["slash", "stab", "heavy"]);
@@ -200,7 +201,10 @@ export function validateVisual(d) {
     channels(`survivorVariants.${v.id}.garment`, v.garment, 2);
     channels(`survivorVariants.${v.id}.accent`, v.accent, 2);
   }
-  unique("survivorVariants", d.survivorVariants.map((v) => v.id));
+  unique(
+    "survivorVariants",
+    d.survivorVariants.map((v) => v.id),
+  );
   const f = d.faces;
   closed(f, ["version", "heads", "hairs", "skins", "weathering"]);
   if (typeof f.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(f.version)) fail("visual", "faces.version");
@@ -221,8 +225,14 @@ export function validateVisual(d) {
     list(`faces.${name}`, f[name], 1, 16);
     f[name].forEach((v) => id("visual", `faces.${name}`, v));
   }
-  unique("faces.heads", f.heads.map((h) => h.id));
-  unique("faces.skins", f.skins.map((s) => s.id));
+  unique(
+    "faces.heads",
+    f.heads.map((h) => h.id),
+  );
+  unique(
+    "faces.skins",
+    f.skins.map((s) => s.id),
+  );
   unique("faces.hairs", f.hairs);
   unique("faces.weathering", f.weathering);
   const c = d.clothing;
@@ -235,7 +245,10 @@ export function validateVisual(d) {
       list(`clothing.${name}.${family}`, swatches, 1, 16);
       swatches.forEach((h) => hex(`clothing.${name}.${family}`, h));
     }
-    unique(`clothing.${name}`, c[name].map((row) => row[0]));
+    unique(
+      `clothing.${name}`,
+      c[name].map((row) => row[0]),
+    );
     return c[name].map((row) => row[0]);
   };
   const topFamilies = families("tops");
