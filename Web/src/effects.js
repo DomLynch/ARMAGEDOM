@@ -562,7 +562,7 @@ export function createEffects(
     });
     for (const mesh of surfaces) {
       const contour = addPickupGlow(mesh);
-      // Same gold as the route arrow (0xf1d28c), so the arrow and the pistol read as one cue.
+      // The HUD's pale gold (0xf1d28c); the ground arrow itself now takes the drop marker's orange (visual.json routeArrow).
       contour.halo.material.uniforms.color.value.set(0xf1d28c);
       pickupContours.push(contour);
     }
