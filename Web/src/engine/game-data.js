@@ -33,8 +33,49 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "ranged"]);
+  closed(d, ["schema_version", "ranged", "knife"]);
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
+  validateKnife(d.knife);
+}
+const number = (file, field, v, min = 0) => {
+  if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);
+};
+// The donor knife: tuning rules, the five named moves, the stamina costs and the cooldowns. Moves are rows of named fields (ticks at 60 Hz).
+export function validateKnife(k) {
+  closed(k, ["rules", "moves", "staminaCosts", "cooldowns"]);
+  if (!k.rules || typeof k.rules !== "object") fail("weapons", "knife.rules");
+  for (const [name, v] of Object.entries(k.rules)) number("weapons", `knife.rules.${name}`, v);
+  const ids = Object.keys(k.moves ?? {});
+  if (ids.join() !== "light_right,light_left,thrust,heavy_overhead,skill_pommel") fail("weapons", "knife.moves ids");
+  const base = [
+    "clip",
+    "path",
+    "windupTicks",
+    "activeTicks",
+    "recoveryTicks",
+    "damage",
+    "staminaDamage",
+    "staggerTicks",
+    "chip",
+    "reach",
+    "stepIn",
+    "knockback",
+    "sourceContact",
+    "stamina",
+  ];
+  for (const id of ids) {
+    const row = k.moves[id];
+    closed(row, id === "skill_pommel" ? [...base, "cooldown"] : base);
+    if (typeof row.clip !== "string" || !(row.path === null || typeof row.path === "string"))
+      fail("weapons", `knife.moves.${id} clip/path`);
+    for (const f of base.slice(2)) number("weapons", `knife.moves.${id}.${f}`, row[f]);
+    for (const f of ["windupTicks", "activeTicks", "recoveryTicks", "staggerTicks"])
+      count("weapons", `knife.moves.${id}.${f}`, row[f], 0, 600);
+  }
+  closed(k.staminaCosts, ["slash", "stab", "heavy", "special", "dodge"]);
+  for (const [name, v] of Object.entries(k.staminaCosts)) number("weapons", `knife.staminaCosts.${name}`, v);
+  closed(k.cooldowns, ["heavy", "special", "dodgeTicks"]);
+  for (const [name, v] of Object.entries(k.cooldowns)) number("weapons", `knife.cooldowns.${name}`, v);
 }
 
 export function validateWorld(d) {

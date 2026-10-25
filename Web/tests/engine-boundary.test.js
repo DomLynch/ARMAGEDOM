@@ -54,7 +54,9 @@ test('public session contract requires all lifecycle operations and preserves fi
 // The frozen maximum is digest-pinned below. Web removes active exceptions as
 // extraction lands; growing the maximum is an explicit policy change, not a fix.
 test('legacy maximum remains the reviewed frozen policy',()=>{
-  assert.equal(createHash('sha256').update(policyRaw).digest('hex'),'eb037423e17a3dac1e0ce7196e4a52146f37ca9297b5047e271386c3be68a110');
+  assert.equal(createHash('sha256').update(policyRaw).digest('hex'),'42059ec196576db2ac8216878555ac320482b320275b68e2ce251eda037637b2');
+  // Re-pinned 25 Oct for one added public door, engine/game-data.js (the single data loader), which donor/knife.js reads. No legacy exception was added.
+  assert.deepEqual(policy.publicEntries,['engine/game-data.js','engine/index.js','engine/server.js']);
 });
 // The only growth of the frozen list: six rows hidden by the compact import style until the step 1 format.
 test('formatted-only legacy rows are recorded once and never grow again',()=>{
