@@ -181,7 +181,7 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, ["schema_version", "moves", "salamanderBreath"]);
+  closed(d, ["schema_version", "moves", "salamanderBreath", "drone"]);
   if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
   for (const [name, row] of Object.entries(d.moves)) {
     id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
@@ -226,6 +226,22 @@ export function validateCreatures(d) {
     number("creatures", `salamanderBreath.${f}`, b[f]);
   for (const f of ["windupTicks", "activeTicks", "intervalTicks", "recoveryTicks"])
     count("creatures", `salamanderBreath.${f}`, b[f], 1, 600);
+  // The hover drone (drone-mechanics.js): metres, seconds and hit points. weaponRules() reads its bolt damage for the server rows.
+  closed(d.drone, [
+    "hoverHeight",
+    "hp",
+    "radius",
+    "moveSpeed",
+    "wakeDistance",
+    "homeLeash",
+    "attackRange",
+    "warningSeconds",
+    "recoverySeconds",
+    "damage",
+    "boltSpeed",
+    "boltRange",
+  ]);
+  for (const [name, v] of Object.entries(d.drone)) number("creatures", `drone.${name}`, v);
 }
 
 export function validateWorld(d) {
