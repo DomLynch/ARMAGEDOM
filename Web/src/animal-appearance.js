@@ -1,69 +1,7 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Owned original rat/dog appearance only. No stats, motion, placement or damage.
-export const ANIMAL_APPEARANCES = Object.freeze(
-  [
-    { id: "rat-sewer", foundation: "original-rat", name: "Sewer Rat", width: 1, tint: [1, 1, 1], patch: 0 },
-    { id: "rat-ash", foundation: "original-rat", name: "Ash Rat", width: 1, tint: [1.6, 1.65, 1.66], patch: 0 },
-    { id: "rat-soot", foundation: "original-rat", name: "Soot Rat", width: 1, tint: [0.49, 0.51, 0.53], patch: 0 },
-    { id: "rat-mangy", foundation: "original-rat", name: "Mangy Rat", width: 1, tint: [1.08, 0.85, 0.72], patch: 0.57 },
-    { id: "rat-heavy", foundation: "original-rat", name: "Heavy Rat", width: 1.6, tint: [0.88, 0.79, 0.7], patch: 0 },
-    {
-      id: "rat-nest-defender",
-      foundation: "original-rat",
-      name: "Nest Defender",
-      width: 1,
-      tint: [1.13, 0.97, 0.71],
-      patch: 0.18,
-    },
-    {
-      id: "dog-street-mongrel",
-      foundation: "original-dog",
-      name: "Street Mongrel",
-      width: 1,
-      tint: [1, 1, 1],
-      patch: 0,
-    },
-    {
-      id: "dog-gaunt-hound",
-      foundation: "original-dog",
-      name: "Gaunt Hound",
-      width: 0.62,
-      tint: [0.88, 0.84, 0.76],
-      patch: 0.22,
-    },
-    {
-      id: "dog-stocky-yard",
-      foundation: "original-dog",
-      name: "Stocky Yard Dog",
-      width: 1.6,
-      tint: [0.7, 0.68, 0.66],
-      patch: 0,
-    },
-    {
-      id: "dog-ash-coated",
-      foundation: "original-dog",
-      name: "Ash-coated Hound",
-      width: 1,
-      tint: [1.6, 2.3, 3.2],
-      patch: 0,
-    },
-    {
-      id: "dog-mangy-stray",
-      foundation: "original-dog",
-      name: "Mangy Stray",
-      width: 1,
-      tint: [1.02, 0.79, 0.65],
-      patch: 0.6,
-    },
-    {
-      id: "dog-pack-chaser",
-      foundation: "original-dog",
-      name: "Pack Chaser",
-      width: 1,
-      tint: [0.72, 0.78, 0.86],
-      patch: 0.12,
-    },
-  ].map(Object.freeze),
-);
+// The twelve rows (id, foundation, name, width, tint, patch) live in Web/src/data/appearance.json `animals` (read through game-data.js).
+export const ANIMAL_APPEARANCES = GAME_DATA.appearance.animals;
 const coatNames = { "original-rat": "Ash and soot worn fur", "original-dog": "Weathered brindle coat" };
 const torso = new Set(["pelvis", "spine", "chest"]);
 // Apply to SkeletonUtils.clone(foundation.scene). Cache once per loaded foundation,

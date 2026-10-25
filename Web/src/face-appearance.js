@@ -1,8 +1,9 @@
 import * as T from "three";
 import { FACE_HEADS, FACE_SKINS, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
+import { GAME_DATA } from "./engine/game-data.js";
 
-const CHEEK = [0.2961382707983211, 0.1589608350608804, 0.09989872824711388];
-const HEAD_NAMES = ["Photo", "PhotoEyes", "PhotoTeeth"];
+// The cheek tint and the three head mesh names live in Web/src/data/appearance.json `faceMesh` (read through game-data.js).
+const { cheek: CHEEK, headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
 const SKIN_NAMES = new Set(["Ash-grey affected skin", "Photo-matched exposed lower neck"]);
 function field(p, head) {
   const u = T.MathUtils.clamp((p.y - 1.59) / 0.07, 0, 1),
