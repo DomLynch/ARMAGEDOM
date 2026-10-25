@@ -2,9 +2,10 @@
 // keep their vertex order, index order, positions and skeleton; animation is untouched (exact index order is kept, as in the build).
 // usage: node tune-glb.mjs <src.glb> <dst.glb> '<json>'
 //   json: {
-//     "textures": { "<material name>": { "size": 1024, "quality": 88 } },
-//        the base colour map of that material is resized so its longest side is `size` (Lanczos, never enlarged) and stored as lossy
-//        WebP at `quality`; a map exactly `size` wide is only re-encoded; smaller maps are skipped.
+//     "textures": { "<material name>[:base|normal|mr|occ]": { "size": 1024, "quality": 88 } },
+//        that map of the material (base colour by default) is resized so its longest side is `size` (Lanczos, never enlarged) and stored
+//        as lossy WebP at `quality` (data maps that are JPEG stay JPEG); a map exactly `size` wide is only re-encoded; smaller maps are
+//        skipped.
 //     "quantize": true
 //        NORMAL -> int8 normalized (renormalised on read), WEIGHTS_n -> uint16 normalized (uint8 with "weightBits": 8; the largest weight absorbs
 //        the rounding so each vertex still sums to 1), COLOR_n -> uint8 normalized, TEXCOORD_n -> uint16 normalized when every value is in [0, 1]. The
@@ -28,20 +29,35 @@ const io = new NodeIO()
 const doc = await io.read(src);
 const root = doc.getRoot();
 
-const textures = [];
-for (const material of root.listMaterials()) {
-  const row = plan.textures?.[material.getName()],
-    texture = material.getBaseColorTexture();
-  if (!row || !texture) continue;
-  const before = texture.getImage().length,
-    meta = await sharp(Buffer.from(texture.getImage())).metadata();
-  if (Math.max(meta.width, meta.height) < row.size) continue;
-  const scale = Math.min(1, row.size / Math.max(meta.width, meta.height)),
-    [w, h] = [Math.round(meta.width * scale), Math.round(meta.height * scale)],
-    image = await sharp(Buffer.from(texture.getImage())).resize(w, h, { kernel: "lanczos3" }).webp({ quality: row.quality, effort: 6 }).toBuffer();
-  texture.setImage(new Uint8Array(image)).setMimeType("image/webp");
-  textures.push({ material: material.getName(), from: `${meta.width}x${meta.height} ${before}`, to: `${w}x${h} ${image.length}` });
-}
+const textures = [],
+  resized = new Set();
+const SLOTS = {
+  base: (m) => m.getBaseColorTexture(),
+  normal: (m) => m.getNormalTexture(),
+  mr: (m) => m.getMetallicRoughnessTexture(),
+  occ: (m) => m.getOcclusionTexture(),
+};
+for (const material of root.listMaterials())
+  for (const [key, row] of Object.entries(plan.textures ?? {})) {
+    const [name, slot = "base"] = key.split(":");
+    const texture = name === material.getName() ? SLOTS[slot](material) : null;
+    // A map shared by several materials or slots is re-encoded once.
+    if (!texture || resized.has(texture)) continue;
+    const before = texture.getImage().length,
+      meta = await sharp(Buffer.from(texture.getImage())).metadata();
+    if (Math.max(meta.width, meta.height) < row.size) continue;
+    resized.add(texture);
+    const scale = Math.min(1, row.size / Math.max(meta.width, meta.height)),
+      [w, h] = [Math.round(meta.width * scale), Math.round(meta.height * scale)],
+      source = sharp(Buffer.from(texture.getImage())).resize(w, h, { kernel: "lanczos3" }),
+      // A JPEG stays a JPEG (data maps, as in the build); everything else becomes lossy WebP.
+      keepJpeg = texture.getMimeType() === "image/jpeg" && slot !== "base",
+      image = keepJpeg
+        ? await source.jpeg({ quality: row.quality, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer()
+        : await source.webp({ quality: row.quality, effort: 6 }).toBuffer();
+    texture.setImage(new Uint8Array(image)).setMimeType(keepJpeg ? "image/jpeg" : "image/webp");
+    textures.push({ map: key, from: `${meta.width}x${meta.height} ${before}`, to: `${w}x${h} ${image.length}` });
+  }
 if (textures.length && !root.listExtensionsUsed().some((e) => e.extensionName === "EXT_texture_webp")) doc.createExtension(EXTTextureWebP).setRequired(true);
 
 const errors = { normalDeg: 0, weight: 0, color: 0, uv: 0 },
