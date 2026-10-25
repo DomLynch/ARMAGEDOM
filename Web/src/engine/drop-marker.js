@@ -105,7 +105,7 @@ export function markerGeometry(style) {
 
 export function createDropMarker(label, style = STYLE) {
   const group = new T.Group(),
-    glow = glowMesh(style),
+    glow = style.shape === "circle" ? glowMesh(style) : null, // the glow is radial: only a round band gets one
     ring = new T.Mesh(
       markerGeometry(style),
       new T.MeshBasicMaterial({

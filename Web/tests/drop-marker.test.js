@@ -92,6 +92,12 @@ test("each marker shape is a band of the data width on the ringOuter footprint; 
   for (let k = 0; k < p.count; k++) assert.ok(!(Math.abs(p.getX(k)) < o * (1 - 2 * style.bracketArm) - 1e-4 && Math.abs(p.getY(k)) > style.ringInner + 1e-4), "bracket vertex in the open middle");
 });
 
+test("only a round marker gets the radial glow; the shipped corner brackets are the band alone", () => {
+  assert.equal(style.shape, "brackets");
+  const hasPlane = (group) => group.children.some((c) => c.geometry?.type === "PlaneGeometry");
+  assert.equal(hasPlane(createDropMarker("Ember Projector").group), false);
+});
+
 test("every ground weapon or reward drop view carries the marker", () => {
   const src = (p) => fs.readFileSync(new URL(p, import.meta.url), "utf8");
   assert.match(src("../src/engine/boss-equipment-view.js"), /markDrop\(\s*createPickupModel/);

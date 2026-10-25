@@ -77,7 +77,7 @@
     "lootColours": ["dca64d", "48b9c5", "70c66e"]
   },
   "dropMarker": {
-    "shape": "square",
+    "shape": "brackets",
     "bracketArm": 0.3,
     "ringInner": 0.94,
     "ringOuter": 1.05,
