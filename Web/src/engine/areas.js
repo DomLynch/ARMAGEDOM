@@ -4,6 +4,7 @@ import { bossExitGate } from "./area-bosses.js";
 import { applyAreaLighting } from "./area-lighting.js";
 import { publicAreaRegistry } from "../area-registry.js";
 import { warmFramebuffer } from "./warm-framebuffer.js";
+import { createStageAhead } from "./stage-ahead.js";
 import { resetMobileControls, initializeAreaResidents } from "../combat.js";
 import { prepareParkedResidents } from "../parked-area-preparation.js";
 import { relieveGeometryBudget, limitParkedAreas, protectedAreas } from "./parked-view-budget.js";
@@ -50,6 +51,21 @@ export function createAreaLifecycle(s) {
     : null;
   // Read off the session, not a closure name, so functions sliced out of this file by tests need no stub.
   if (prefetch) s.areaPrefetch = prefetch;
+  // Stage-ahead (on by default, ?stageahead=0 off): idle preparation of the nearest neighbour; it rides on the
+  // prefetch flag's parked-area limits, so it is off whenever prefetch is.
+  const stageAhead =
+    s.stageAheadLimits && prefetch
+      ? createStageAhead({
+          limits: s.stageAheadLimits,
+          fighting: () => !!s.game && (s.game.player.hp <= 0 || s.game.enemies.some((e) => e.hp > 0 && e.alerted)),
+          traveling: () => s.traveling || s.resetting || s.contextLost || !s.loaded || !s.game,
+        })
+      : null;
+  // Read off the session like areaPrefetch, so functions sliced out of this file by tests need no stub.
+  if (stageAhead) {
+    s.stageAhead = stageAhead;
+    s.stageAheadHooks = { maybe: maybeStageAhead, abort: abortStageAhead };
+  }
   async function crossArea(request) {
     if (s.resetting) return false;
     const gate = bossExitGate(s.game, request.areaId);
@@ -76,6 +92,7 @@ export function createAreaLifecycle(s) {
     const releaseSource = ownerWorld.leaseArea?.(previousArea) ?? (() => {});
     stopBossFlames(ownerGame, "travel");
     s.traveling = true;
+    s.stageAheadHooks?.abort(request.areaId);
     s.areaPrefetch?.cancel();
     s.resetClock();
     s.input.clear({ keepMovement });
@@ -157,6 +174,7 @@ export function createAreaLifecycle(s) {
         if (!recoveryFailed) s.renderer.render(s.scene, s.camera);
         // Failed or not, the neighbours of wherever the player now stands are the next to warm.
         if (!recoveryFailed) s.areaPrefetch?.enter();
+        s.stageAhead?.enter();
       }
     }
   }
@@ -180,7 +198,12 @@ export function createAreaLifecycle(s) {
     return new Promise((resolve, reject) => {
       const deadlineAt = performance.now() + 16;
       const check = () => {
-        if (state.cancelled || s.game !== state.game || s.contextLost) {
+        if (
+          state.cancelled ||
+          s.game !== state.game ||
+          s.contextLost ||
+          (state.abortArea && state.abortArea === state.current)
+        ) {
           reject(new Error("Area preparation cancelled"));
           return false;
         }
@@ -193,10 +216,21 @@ export function createAreaLifecycle(s) {
         }, 0);
         return;
       }
+      // Stage-ahead work waits for a quiet moment (no fight, no long frame); a travel never waits.
+      if (!state.urgent && state.hold?.()) {
+        setTimeout(() => {
+          if (check()) preparationTurn(state).then(resolve, reject);
+        }, state.holdMs ?? 250);
+        return;
+      }
       const idle = (deadline) => {
         if (!check()) return;
         if (deadline.didTimeout || performance.now() >= deadlineAt || deadline.timeRemaining() >= 4 || state.urgent)
-          resolve(state.urgent ? 12 : Math.min(4, Math.max(1, deadline.timeRemaining() - 1)));
+          resolve(
+            state.urgent
+              ? 12
+              : Math.min((state.ahead && state.sliceMs) || 4, Math.max(1, deadline.timeRemaining() - 1)),
+          );
         else requestIdleCallback(idle, { timeout: Math.max(1, deadlineAt - performance.now()) });
       };
       // A busy renderer must not starve preparation indefinitely. Timeout grants
@@ -233,6 +267,12 @@ export function createAreaLifecycle(s) {
       iterator: null,
       stats: { steps: 0, cpuMilliseconds: 0, maxStepMs: 0, areas: {} },
     });
+    if (stageAhead) {
+      state.sliceMs = stageAhead.limits.sliceMs;
+      state.holdMs = stageAhead.limits.recheckMs;
+      state.hold = () => !s.traveling && !stageAhead.open();
+      stageAhead.enter();
+    }
     s.world.preparationProgress = state.stats;
     s.world.prepareArea(s.world.areaId).catch(() => {});
     s.world.markAreaReady(s.world.areaId);
@@ -284,13 +324,13 @@ export function createAreaLifecycle(s) {
   async function pumpDestinations(state) {
     // Keep neighbours queued, but admit their indivisible actor/finisher work only
     // during the announced destination-entry pause, never alongside live play.
-    if (state.running || !s.traveling || !state.urgent) return;
+    // The announced travel pause, or (stage-ahead) one neighbour in idle slices.
+    const target = () => (s.traveling ? state.urgent : state.ahead);
+    if (state.running || !target()) return;
     state.running = true;
     try {
       for (;;) {
-        const queued = [...state.tasks.values()].filter(
-          (t) => t.status === "queued" && t.areaId === state.urgent && s.traveling,
-        );
+        const queued = [...state.tasks.values()].filter((t) => t.status === "queued" && t.areaId === target());
         if (!queued.length || state.cancelled) return;
         const task = queued[0];
         task.status = "running";
@@ -423,7 +463,51 @@ export function createAreaLifecycle(s) {
     }
   }
 
+  // Nearest neighbour, close enough to its exit, nothing fighting: prepare it ahead of the player.
+  const aheadFailed = new Set();
+  function maybeStageAhead() {
+    const state = areaPreparation,
+      stageAhead = s.stageAhead;
+    if (!stageAhead || !state || state.ahead || s.traveling || state.cancelled || !stageAhead.due()) return;
+    const id = neighbourIds()[0];
+    if (!id || aheadFailed.has(`${s.world.areaId}>${id}`) || s.world.isAreaReady(id)) return;
+    if (["prepared", "ready"].includes(state.tasks.get(id)?.status)) return;
+    if (exitDistance(id) > stageAhead.limits.exitRangeMeters || !stageAhead.open()) return;
+    runStageAhead(id, state);
+  }
+  async function runStageAhead(id, state) {
+    const stageAhead = s.stageAhead;
+    state.ahead = id;
+    stageAhead.begin();
+    let outcome = "aborted";
+    try {
+      // Inside the two-area limit: the area just left plus this one; anything older goes first.
+      limitParkedAreas(s.actors, new Set([s.world.areaId, id]), PARKED_AREA_LIMIT.maxAreas - 1, (evicted) =>
+        s.world.unmarkAreaReady?.(evicted),
+      );
+      // The CPU side only (stage, actor views); the graphics phase stays in the travel pause.
+      await queueDestination(id, state);
+      outcome = "completed";
+    } catch (error) {
+      if (!state.cancelled && state.abortArea !== id) {
+        aheadFailed.add(`${s.world.areaId}>${id}`);
+        console.warn("ARMAGEDOM_STAGE_AHEAD", id, error?.message);
+      }
+    } finally {
+      if (state.ahead === id) state.ahead = null;
+      if (state.abortArea === id) state.abortArea = null;
+      stageAhead.end(outcome);
+    }
+  }
+  // A travel to another area drops the stage-ahead run (what it finished stays); one to the same area joins it.
+  function abortStageAhead(toArea) {
+    const state = areaPreparation;
+    if (!state?.ahead || state.ahead === toArea) return;
+    state.abortArea = state.ahead;
+    state.ahead = null;
+  }
   function checkExit() {
+    s.stageAheadHooks?.maybe();
     const request = s.world.travelAt(s.game.player.pos);
     if (!request) {
       travelLatch = false;

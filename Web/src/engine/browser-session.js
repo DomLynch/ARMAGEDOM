@@ -30,6 +30,7 @@ import { createGuestAuth } from "./guest-auth.js";
 import { mountAccountControl } from "./account-control.js";
 import { WORLD_AUTH } from "./world-config.js";
 import { readonlyState, eventSnapshot } from "./state.js";
+import { STAGE_AHEAD } from "./stage-ahead.js";
 export function createBrowserSession(options = {}) {
   const privateContent = options.privateContent ? preparePrivateAreaContent(options.privateContent) : null;
   let runStorage,
@@ -204,6 +205,9 @@ export function createBrowserSession(options = {}) {
     },
     // On by default (Dom, 24 Oct); ?prefetch=0 turns it off for diagnosis.
     prefetchAreas: new URLSearchParams(location.search).get("prefetch") !== "0",
+    // Idle preparation of the nearest neighbour area (limits in stage-ahead-data.json); ?stageahead=0 turns it off.
+    stageAheadLimits:
+      STAGE_AHEAD.enabled && new URLSearchParams(location.search).get("stageahead") !== "0" ? STAGE_AHEAD : null,
     get scene() {
       return scene;
     },

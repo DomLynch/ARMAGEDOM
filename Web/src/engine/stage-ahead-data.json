@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "enabled": true,
+  "exitRangeMeters": 30,
+  "startDelayMs": 3000,
+  "sliceMs": 2,
+  "skipFrameMs": 20,
+  "fightQuietMs": 1000,
+  "recheckMs": 250
+}
