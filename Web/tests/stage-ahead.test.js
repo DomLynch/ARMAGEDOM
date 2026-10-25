@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createStageAhead, validateStageAheadData, STAGE_AHEAD } from "../src/engine/stage-ahead.js";
+import { warmFramebufferSteps } from "../src/engine/warm-framebuffer.js";
 
 function clock(extra = {}) {
   const t = { now: 100_000, fight: false, travel: false, frames: [] };
@@ -21,7 +22,7 @@ test("the shipped limits validate and are frozen", () => {
   for (const [key, bad] of [
     ["sliceMs", 99],
     ["skipFrameMs", 5],
-    ["recheckMs", 1],
+    ["warmGroupObjects", 0],
     ["exitRangeMeters", -1],
     ["enabled", "yes"],
   ])
@@ -79,4 +80,58 @@ test("the start check is throttled to recheckMs", () => {
   assert.equal(gate.due(), false);
   t.now += STAGE_AHEAD.recheckMs + 1;
   assert.equal(gate.due(), true);
+});
+
+function fakeScene(names) {
+  const children = names.map((name) => ({ name, visible: true, isLight: name.startsWith("light") }));
+  return { children };
+}
+function fakeRenderer(scene, seen) {
+  return {
+    getRenderTarget: () => null,
+    getViewport: (v) => v,
+    getScissor: (v) => v,
+    getScissorTest: () => false,
+    autoClear: true,
+    setRenderTarget() {},
+    setViewport() {},
+    setScissor() {},
+    setScissorTest() {},
+    render: () => seen.push(scene.children.filter((c) => c.visible).map((c) => c.name)),
+  };
+}
+
+test("warm steps render a few objects at a time, keep lights, and restore visibility before each yield", () => {
+  const scene = fakeScene(["backdrop", "light-a", "a", "b", "c", "d", "e"]),
+    seen = [];
+  scene.children[4].visible = false; // `c` was hidden by the game
+  const steps = warmFramebufferSteps(fakeRenderer(scene, seen), scene, {}, 2);
+  let n = 0;
+  for (const _ of steps) {
+    n++;
+    assert.deepEqual(
+      scene.children.map((c) => c.visible),
+      [true, true, true, true, false, true, true],
+      "visibility is back before the yield",
+    );
+  }
+  assert.equal(n, 3, "6 non-light objects in groups of 2");
+  assert.deepEqual(seen, [
+    ["backdrop", "light-a", "a"],
+    ["light-a", "b"],
+    ["light-a", "d", "e"],
+  ]);
+});
+
+test("a throwing render still restores visibility", () => {
+  const scene = fakeScene(["a", "b"]),
+    renderer = fakeRenderer(scene, []);
+  renderer.render = () => {
+    throw Error("lost");
+  };
+  assert.throws(() => warmFramebufferSteps(renderer, scene, {}, 1).next(), /lost/);
+  assert.deepEqual(
+    scene.children.map((c) => c.visible),
+    [true, true],
+  );
 });
