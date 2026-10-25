@@ -3,6 +3,7 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
@@ -20,6 +21,20 @@ const count = (file, field, value, min, max) => {
 export function validateDiagnostics(d) {
   closed(d, ["schema_version", "statsFramesPerLine"]);
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
+}
+
+// A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
+// engine/render-budget.js compares a measurement to it). Dom's phone is the judge; these numbers stop the cost creeping meanwhile.
+export function validateRenderBudget(d) {
+  closed(d, ["schema_version", "provisional", "westminster", "perRemote"]);
+  if (typeof d.provisional !== "boolean") fail("renderBudget", "provisional must be true or false");
+  closed(d.westminster, ["remotes", "maxDrawCalls", "maxTriangles"]);
+  count("renderBudget", "westminster.remotes", d.westminster.remotes, 1, 64);
+  count("renderBudget", "westminster.maxDrawCalls", d.westminster.maxDrawCalls, 1, 10000);
+  count("renderBudget", "westminster.maxTriangles", d.westminster.maxTriangles, 1, 10000000);
+  closed(d.perRemote, ["maxDrawCalls", "maxTriangles"]);
+  count("renderBudget", "perRemote.maxDrawCalls", d.perRemote.maxDrawCalls, 0, 1000);
+  count("renderBudget", "perRemote.maxTriangles", d.perRemote.maxTriangles, 0, 1000000);
 }
 
 export function validateSaveClient(d) {
@@ -110,6 +125,7 @@ export function validateWorld(d) {
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
+  renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
