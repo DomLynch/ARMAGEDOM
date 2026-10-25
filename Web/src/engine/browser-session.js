@@ -676,12 +676,6 @@ export function createBrowserSession(options = {}) {
     const start = performance.now();
     const audioReady = audio.unlock();
     try {
-      // With the world open the server record may replace the local run first; the sync runs alongside the model loading and the run
-      // is read only after it, never waiting longer than bootSyncWaitMs from Enter.
-      const bootSync = Promise.race([
-        Promise.resolve(worldBoot).catch(() => {}),
-        new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
-      ]);
       renderer ??= new THREE.WebGLRenderer({
         canvas,
         antialias: true,
@@ -691,7 +685,14 @@ export function createBrowserSession(options = {}) {
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
       hud.loading("Loading London and the original character rigs…");
-      const results = await prepareEncounter();
+      const encounter = prepareEncounter();
+      // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
+      // above, so nothing here can delay it) and the run is read only after it, never waiting longer than bootSyncWaitMs from Enter.
+      const bootSync = Promise.race([
+        Promise.resolve(worldBoot).catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, GAME_DATA.saveClient.bootSyncWaitMs)),
+      ]);
+      const results = await encounter;
       startup = null;
       if (contextLost || disposed) {
         for (const result of results) if (result.status === "fulfilled") result.value.dispose();
