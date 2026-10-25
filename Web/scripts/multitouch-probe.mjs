@@ -250,7 +250,16 @@ for (const third of THIRD) {
   await finger.up(3);
   await sleep(300);
   const after = await read();
-  note(`D  third finger on ${third.name}: stick and guard survive`, mid.knob.x > 30 && (mid.guarding || mid.pressed.guard) && after.knob.x > 30 && (after.guarding || after.pressed.guard), `knob ${mid.knob.x.toFixed(1)}/${after.knob.x.toFixed(1)} px, guard ${mid.guarding}/${after.guarding}`);
+  // Starting an attack drops the guard by the game's own rule; the guard FINGER must still be held down by the input (pressed) and the
+  // guard must be back once the swing is over, so the check below reads the guard again later.
+  const slashThird = third.name.includes("slash");
+  await sleep(700);
+  const later = await read();
+  note(
+    `D  third finger on ${third.name}: stick and guard survive`,
+    mid.knob.x > 30 && after.knob.x > 30 && later.knob.x > 30 && (slashThird ? later.guarding && later.pressed.guard : (mid.guarding || mid.pressed.guard) && (after.guarding || after.pressed.guard) && later.guarding),
+    `knob ${mid.knob.x.toFixed(1)}/${after.knob.x.toFixed(1)}/${later.knob.x.toFixed(1)} px, guarding ${mid.guarding}/${after.guarding}/${later.guarding}, guard pressed ${mid.pressed.guard}/${after.pressed.guard}/${later.pressed.guard}, events=${[...new Set(mid.events)]}`,
+  );
   await finger.up(2); // guard lifted: the pad finger (still down, under a third finger's history) must walk the player
   await sleep(800);
   const w0 = await read();
@@ -283,6 +292,62 @@ for (const order of [[1, 2], [2, 1]]) {
   await finger.cancelAll(); // the system takes the touches (a notification pull-down, a palm)
   await sleep(400);
   await assertClean("E  every contact cancelled (touchcancel)");
+}
+
+// ---- H0: the ground pickup button ("PICK UP & EQUIP PISTOL") tapped while the pad is held
+{
+  await settle();
+  const spot = await page.evaluate(() => ({ ...__qa.game.pistol.pickupPos }));
+  // Control first: one finger, no pad, same spot. (If this fails the probe's setup is wrong, not the two-finger path.)
+  await page.evaluate((p) => {
+    const pos = __qa.game.player.pos;
+    pos.x = p.x;
+    pos.z = p.z;
+  }, spot);
+  await sleep(400);
+  const cButton = await centre("#pistol-interact");
+  if (cButton) {
+    await finger.down(1, { x: cButton.x, y: cButton.y });
+    await sleep(80);
+    await finger.up(1);
+    await sleep(500);
+  }
+  const c = await read();
+  note('H0 control, ONE finger, tap "PICK UP & EQUIP PISTOL"', !!cButton && c.pistol?.collected === true, `collected=${c.pistol?.collected}`);
+  // Put the pistol back on the ground for the two-finger run (QA setup through the live game object).
+  await page.evaluate(() => {
+    const p = __qa.game.pistol;
+    p.collected = false;
+    p.equipped = false;
+  });
+  await settle();
+  await finger.down(1, PAD_START);
+  await finger.move(1, { x: pad.x, y: pad.y + 9 }); // a light tilt (past the dead zone): the pad is held, the player drifts slowly and stays in reach
+  await page.evaluate((p) => {
+    const pos = __qa.game.player.pos;
+    pos.x = p.x;
+    pos.z = p.z;
+  }, spot);
+  await sleep(250);
+  const button = await centre("#pistol-interact");
+  const shown = !!button;
+  await page.evaluate(() => {
+    globalThis.__trace = [];
+    for (const type of ["pointerdown", "pointerup", "pointercancel", "click"])
+      document.addEventListener(type, (e) => globalThis.__trace.push(`${type}:${e.pointerId ?? ""}:${e.target?.id || e.target?.tagName}`), true);
+  });
+  if (button) {
+    await finger.down(2, { x: button.x, y: button.y });
+    await sleep(80);
+    await finger.up(2);
+    await sleep(600);
+  }
+  const m = await read();
+  const trace = await page.evaluate(() => globalThis.__trace.join(" "));
+  const nearby = await page.evaluate(() => document.getElementById("pistol-interact")?.textContent);
+  note('H0 pad held + tap "PICK UP & EQUIP PISTOL"', shown && m.pistol?.collected === true && m.pistol?.equipped === true, `button shown=${shown} label="${nearby}", collected=${m.pistol?.collected}, equipped=${m.pistol?.equipped}, trace: ${trace}`);
+  await finger.up(1);
+  await assertClean("H0 pad + pickup button");
 }
 
 // ---- F: pistol controls (Fire, Reload) and the weapon tiles with the pad held
@@ -330,6 +395,97 @@ for (const tile of tilePoints.filter((t) => t.visible)) {
   note(`F  pad held + tap weapon tile "${tile.text}": the stick keeps steering`, mid.knob.x > 30 && dist2(before.pos, mid.pos) > 0.2, `knob ${mid.knob.x.toFixed(1)} px, moved ${dist2(before.pos, mid.pos).toFixed(2)} m`);
   await finger.up(1);
   await assertClean(`F  pad + tile ${tile.text}`);
+}
+// ---- G: pistol Fire and Reload with the pad held, and Fire held before the pad
+await settle();
+await finger.down(1, { x: tilePoints.find((t) => t.text.startsWith("PISTOL")).x, y: tilePoints.find((t) => t.text.startsWith("PISTOL")).y });
+await sleep(80);
+await finger.up(1);
+await sleep(600);
+await page.evaluate(() => {
+  __qa.game.pistol.magazine = 6;
+  __qa.game.pistol.reserve = 12;
+});
+{
+  await settle();
+  const before = await read();
+  await finger.down(1, PAD_START);
+  await finger.move(1, PAD_FULL);
+  await sleep(300);
+  await finger.down(2, { x: action.slash.x, y: action.slash.y });
+  await sleep(120);
+  await finger.up(2);
+  await sleep(700);
+  const m = await read();
+  note("G  pistol: pad held + tap Fire shoots a round", m.pistol?.equipped === true && m.pistol.magazine < before.pistol.magazine, `magazine ${before.pistol?.magazine}->${m.pistol?.magazine}, equipped=${m.pistol?.equipped}, knob ${m.knob.x.toFixed(1)} px`);
+  await finger.up(1);
+  await assertClean("G  pad + Fire");
+}
+{
+  await settle();
+  await page.evaluate(() => {
+    __qa.game.pistol.magazine = 2;
+    __qa.game.pistol.reloadingUntil = 0;
+  });
+  const before = await read();
+  await finger.down(1, PAD_START);
+  await finger.move(1, PAD_FULL);
+  await sleep(300);
+  await finger.down(2, { x: action.stab.x, y: action.stab.y });
+  await sleep(120);
+  await finger.up(2);
+  await sleep(500);
+  const m = await read();
+  note("G  pistol: pad held + tap Reload starts a reload", m.pistol?.reloadingUntil > before.t || m.pistol?.magazine > 2, `magazine ${before.pistol?.magazine}->${m.pistol?.magazine}, reloadingUntil ${m.pistol?.reloadingUntil} (game time ${m.t}), knob ${m.knob.x.toFixed(1)} px`);
+  await finger.up(1);
+  await sleep(2500);
+  await assertClean("G  pad + Reload");
+}
+{
+  await settle();
+  await page.evaluate(() => {
+    __qa.game.pistol.magazine = 6;
+    __qa.game.pistol.reloadingUntil = 0;
+  });
+  const before = await read();
+  await finger.down(1, { x: action.slash.x, y: action.slash.y }); // Fire held first
+  await sleep(250);
+  await finger.down(2, PAD_START);
+  await finger.move(2, PAD_FULL);
+  await sleep(700);
+  const m = await read();
+  note("G  pistol: Fire held, then the pad: both register", m.pistol.magazine < before.pistol.magazine && m.knob.x > 30, `magazine ${before.pistol.magazine}->${m.pistol.magazine}, knob ${m.knob.x.toFixed(1)} px, Fire pressed=${m.pressed.slash}`);
+  await finger.up(1);
+  await sleep(300);
+  await finger.up(2);
+  await assertClean("G  Fire then pad");
+}
+
+// ---- H: the menu button tapped while the pad is held (opens the menu; the pad contact must not stick)
+{
+  await settle();
+  const menu = await centre("#menu-button");
+  await finger.down(1, PAD_START);
+  await finger.move(1, PAD_FULL);
+  await sleep(300);
+  await finger.down(2, { x: menu.x, y: menu.y });
+  await sleep(80);
+  await finger.up(2);
+  await sleep(500);
+  const open = await page.evaluate(() => !!document.getElementById("menu")?.open);
+  note("H  pad held + tap the menu button opens the menu", open, `menu open=${open}`);
+  await finger.up(1);
+  await sleep(400);
+  if (open) {
+    const close = await centre("#close-menu");
+    await finger.down(1, { x: close.x, y: close.y });
+    await sleep(80);
+    await finger.up(1);
+    await sleep(500);
+  }
+  const closed = await page.evaluate(() => !document.getElementById("menu")?.open);
+  await assertClean("H  pad + menu button");
+  note("H  the menu closes again with one tap, nothing stuck", closed);
 }
 if (shots) await page.screenshot({ path: join(shots, "multitouch-end.png") });
 
