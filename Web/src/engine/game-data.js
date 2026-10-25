@@ -433,7 +433,13 @@ export function validateWorld(d) {
     "closedRefuseReasons",
     "closedError",
     "clientLog",
+    "auth",
   ]);
+  // Where the guest sign-in lives (engine/world-config.js). Both values are PUBLIC: the project URL and its publishable key. A legacy
+  // anon JWT or any secret key fails the pattern, so a secret cannot be added here by accident.
+  closed(d.auth, ["url", "anonKey"]);
+  if (typeof d.auth.url !== "string" || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(d.auth.url)) fail("world", "auth.url");
+  if (typeof d.auth.anonKey !== "string" || !/^sb_publishable_[A-Za-z0-9_-]{16,64}$/.test(d.auth.anonKey)) fail("world", "auth.anonKey");
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
   closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
   if (
