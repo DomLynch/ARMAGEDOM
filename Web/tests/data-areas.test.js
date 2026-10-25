@@ -25,8 +25,9 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   // This is the only deliberate difference; the row now matches public/world/east/layout.json and manifest.json.
   const stale = old.assets["layout.east"];
   assert.deepEqual({ bytes: stale.bytes, sha256: stale.sha256.slice(0, 8) }, { bytes: 11117, sha256: "7f8b408e" });
-  // Exit triggers: the pre-move table, minus the `condition` boxes that were deliberately widened (see the next test), is unchanged.
-  const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, ...rest }) => rest) }));
+  // Exit triggers: the pre-move table, minus the `condition` boxes that were deliberately widened and the one arrival that moved
+  // with them (both checked in the next test), is unchanged.
+  const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, entry, ...rest }) => rest) }));
   assert.deepEqual(withoutConditions(areaDefinitions), withoutConditions(old.areas));
   assert.deepEqual(areaAssets, { ...old.assets, "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 } });
   assert(areaAssets["layout.east"].sha256.startsWith("db1e8b46"));
