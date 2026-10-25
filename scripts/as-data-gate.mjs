@@ -11,11 +11,56 @@ export const GAME_DATA_LOADER = "engine/game-data.js";
 
 // Constant tables: a top-level `const UPPER_CASE = {...}`, `[...]` or `Object.freeze(...)`, and any top-level lower-case
 // `const x = Object.freeze(...)`, with or without `export`. Legacy counts live in scripts/as-data-baseline.json (`constantTables`).
-const TABLE = /^(?:export )?const (?:[A-Z][A-Z0-9_]*\s*=\s*(?:Object\.freeze\(|[[{])|[a-z]\w*\s*=\s*Object\.freeze\()/gm;
-export const countConstantTables = (text) => (text.match(TABLE) ?? []).length;
+const TABLE =
+  /^(?:export )?const (?:([A-Z][A-Z0-9_]*)\s*=\s*(?:Object\.freeze\(|[[{])|([a-z]\w*)\s*=\s*Object\.freeze\()/gm;
+export const tableNames = (text) => [...text.matchAll(TABLE)].map((m) => m[1] ?? m[2]);
+export const countConstantTables = (text) => tableNames(text).length;
+
+// A table that must stay in code (a wire protocol the server trusts, a saved-era enum) is recorded in the baseline's `keepInCode`
+// as { "<file>": [{ "name": "WEAPON_IDS", "reason": "..." }] }. The remaining DATA debt of a file is its constant tables minus these.
+// A kept name must still be a top-level table in the file, once, with a reason.
+export function keepInCodeProblems(paths, baseline = {}, sourceRoot = "") {
+  const problems = [],
+    keep = baseline.keepInCode ?? {},
+    keys = new Set(paths.map((path) => (sourceRoot ? relative(sourceRoot, path) : path)));
+  for (const file of Object.keys(keep))
+    if (!keys.has(file)) problems.push(`${file}: keepInCode names a file that is not in Web/src.`);
+  for (const path of paths) {
+    const key = sourceRoot ? relative(sourceRoot, path) : path;
+    if (!keep[key]) continue;
+    const present = new Set(tableNames(readFileSync(path, "utf8"))),
+      seen = new Set();
+    for (const row of keep[key]) {
+      if (typeof row?.name !== "string" || typeof row.reason !== "string" || !row.reason.trim())
+        problems.push(`${key}: every keepInCode entry needs a name and a reason.`);
+      else if (seen.has(row.name)) problems.push(`${key}: keepInCode lists ${row.name} twice.`);
+      else if (!present.has(row.name))
+        problems.push(`${key}: keepInCode names ${row.name}, which is no longer a top-level constant table here. Remove the entry.`);
+      seen.add(row?.name);
+    }
+  }
+  return problems;
+}
+
+// Per file: { tables, kept, debt } for every file with at least one constant table, plus the totals.
+export function dataDebt(paths, baseline = {}, sourceRoot = "") {
+  const files = {};
+  let tables = 0,
+    kept = 0;
+  for (const path of paths) {
+    const key = sourceRoot ? relative(sourceRoot, path) : path,
+      found = countConstantTables(readFileSync(path, "utf8")),
+      keptHere = Math.min(found, baseline.keepInCode?.[key]?.length ?? 0);
+    if (!found) continue;
+    files[key] = { tables: found, kept: keptHere, debt: found - keptHere };
+    tables += found;
+    kept += keptHere;
+  }
+  return { files, tables, kept, debt: tables - kept };
+}
 
 export function constantTableProblems(paths, baseline = {}, sourceRoot = "") {
-  const problems = [];
+  const problems = keepInCodeProblems(paths, baseline, sourceRoot);
   for (const path of paths) {
     const key = sourceRoot ? relative(sourceRoot, path) : path;
     const allowed = baseline.constantTables?.[key] ?? 0;
