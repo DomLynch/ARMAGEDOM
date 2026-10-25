@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "defaultLighting": { "fillIntensity": 1.6, "keyIntensity": 2.3 },
+  "prefetch": {
+    "bytesPerSecond": 2000000,
+    "startDelayMs": 3000,
+    "maxNeighbours": 2,
+    "recheckMs": 250,
+    "fightQuietMs": 1000
+  },
+  "parkedAreas": { "maxAreas": 2, "maxBytes": 31457280 }
+}

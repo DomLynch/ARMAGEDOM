@@ -1,0 +1,17 @@
+{
+  "DEFAULT_LIGHTING": {
+    "fillIntensity": 1.6,
+    "keyIntensity": 2.3
+  },
+  "PREFETCH_LIMITS": {
+    "bytesPerSecond": 2000000,
+    "startDelayMs": 3000,
+    "maxNeighbours": 2,
+    "recheckMs": 250,
+    "fightQuietMs": 1000
+  },
+  "PARKED_AREA_LIMIT": {
+    "maxAreas": 2,
+    "maxBytes": 31457280
+  }
+}
