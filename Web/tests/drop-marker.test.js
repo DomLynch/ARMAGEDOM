@@ -27,6 +27,9 @@ test("the marker is a gold ground ring sized from data; rendering it pulses the 
   assert.ok(marker.ring.material.opacity >= style.minOpacity - 1e-9 && marker.ring.material.opacity <= 1);
   const scale = root.scale.x;
   assert.ok(Math.abs(scale - 1) <= style.itemPulse / 2 + 1e-9, "the item pulses by at most itemPulse");
+  assert.ok(Math.abs(marker.group.scale.x * scale - 1) < 1e-9, "the marker takes the item's scale back off");
+  assert.ok(marker.ring.scale.x >= 1 && marker.ring.scale.x <= 1 + style.ringPulse + 1e-9, "the ring swells by at most ringPulse");
+  assert.ok(style.ringOuter >= 1.5 && style.ringOuter - style.ringInner >= 0.4, "a wide, thick band, like the hub storage marker");
   marker.dispose();
   marker.dispose();
   assert.equal(marker.group.parent, null);
@@ -58,6 +61,9 @@ test("the loader rejects an unknown, missing or out-of-range dropMarker field", 
   assert.throws(broken((d) => { d.dropMarker.ringOuter = d.dropMarker.ringInner; }));
   assert.throws(broken((d) => { d.dropMarker.minOpacity = 2; }));
   assert.throws(broken((d) => { d.dropMarker.itemPulse = 0.9; }));
+  assert.throws(broken((d) => { d.dropMarker.glowOuter = d.dropMarker.ringOuter; }));
+  assert.throws(broken((d) => { d.dropMarker.ringPulse = 2; }));
+  assert.throws(broken((d) => { d.dropMarker.labelBacking = "black"; }));
 });
 
 test("every ground weapon or reward drop view carries the marker", () => {

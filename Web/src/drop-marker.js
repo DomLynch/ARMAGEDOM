@@ -16,8 +16,10 @@ function labelSprite(text, style) {
   canvas.height = 64;
   const ctx = canvas.getContext?.("2d");
   if (!ctx) return null;
-  ctx.fillStyle = "rgba(22,23,20,.88)";
+  ctx.fillStyle = `#${style.labelBacking}`;
+  ctx.globalAlpha = 0.96;
   ctx.fillRect(0, 0, 384, 64);
+  ctx.globalAlpha = 1;
   ctx.strokeStyle = `#${style.ringColour}`;
   ctx.lineWidth = 3;
   ctx.strokeRect(2, 2, 380, 60);
@@ -35,8 +37,44 @@ function labelSprite(text, style) {
   return sprite;
 }
 
+// A soft glow around and just inside the band: a radial gradient that is clear in the middle (the drop stays visible), warm at
+// the band and fades out to glowOuter.
+function glowMesh(style) {
+  if (typeof globalThis.document?.createElement !== "function") return null;
+  const canvas = globalThis.document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  const ctx = canvas.getContext?.("2d");
+  if (!ctx) return null;
+  const inner = style.ringInner / style.glowOuter,
+    outer = style.ringOuter / style.glowOuter,
+    rgb = new T.Color(`#${style.ringColour}`).toArray().map((c) => Math.round(c * 255)),
+    gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  for (const [at, alpha] of [
+    [0, 0],
+    [inner * 0.8, 0.05],
+    [inner, 0.45],
+    [(inner + outer) / 2, 0.6],
+    [outer, 0.45],
+    [Math.min(1, outer + (1 - outer) * 0.35), 0.18],
+    [1, 0],
+  ])
+    gradient.addColorStop(at, `rgba(${rgb.join(",")},${alpha})`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 256);
+  const map = new T.CanvasTexture(canvas);
+  map.colorSpace = T.SRGBColorSpace;
+  const glow = new T.Mesh(
+    new T.PlaneGeometry(style.glowOuter * 2, style.glowOuter * 2),
+    new T.MeshBasicMaterial({ map, transparent: true, depthWrite: false, toneMapped: false, side: T.DoubleSide }),
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.04;
+  return glow;
+}
+
 export function createDropMarker(label, style = STYLE) {
   const group = new T.Group(),
+    glow = glowMesh(style),
     ring = new T.Mesh(
       new T.RingGeometry(style.ringInner, style.ringOuter, 48),
       new T.MeshBasicMaterial({
@@ -51,15 +89,27 @@ export function createDropMarker(label, style = STYLE) {
   group.name = "Drop marker";
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.045;
+  if (glow) group.add(glow);
   group.add(ring);
   if (sprite) group.add(sprite);
-  // Animated from the render of the ring itself: no view needs a per-frame call. The parent (the drop's root) is scaled a few
-  // per cent in step with the ring, which is the pulse of the item.
+  // Animated from the render of the ring itself: no view needs a per-frame call. The ring and its glow swell by ringPulse and
+  // fade with the pulse; the parent (the drop's root) is scaled a few per cent in step, which is the pulse of the item, and the
+  // marker group takes that scale back off so the ring and label keep their own size.
   ring.onBeforeRender = () => {
-    const p = dropPulse(globalThis.performance?.now?.() / 1000 || 0, style);
+    const p = dropPulse(globalThis.performance?.now?.() / 1000 || 0, style),
+      swell = 1 + style.ringPulse * ((p - style.minOpacity) / (1 - style.minOpacity)),
+      item = 1 + style.itemPulse * (p - 0.5);
     ring.material.opacity = p;
-    if (sprite) sprite.material.opacity = 0.7 + 0.3 * p;
-    group.parent?.scale.setScalar(1 + style.itemPulse * (p - 0.5));
+    ring.scale.setScalar(swell);
+    if (glow) {
+      glow.material.opacity = style.glowOpacity * p;
+      glow.scale.setScalar(swell);
+    }
+    if (sprite) sprite.material.opacity = 0.75 + 0.25 * p;
+    if (group.parent) {
+      group.parent.scale.setScalar(item);
+      group.scale.setScalar(1 / item);
+    }
   };
   let disposed = false;
   return {
@@ -72,6 +122,9 @@ export function createDropMarker(label, style = STYLE) {
       group.removeFromParent();
       ring.geometry.dispose();
       ring.material.dispose();
+      glow?.geometry.dispose();
+      glow?.material.map?.dispose();
+      glow?.material.dispose();
       sprite?.material.map?.dispose();
       sprite?.material.dispose();
     },
