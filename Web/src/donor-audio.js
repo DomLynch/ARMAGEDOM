@@ -229,7 +229,9 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         error,
       };
     },
-    async unlock() {
+    // deferLoad: resume the context inside the gesture but leave the cue file for a later unlock() (the Enter click starts the game's own
+    // downloads; the 0.3 MB of cues waits until the game can take input). Without it the first unlock() also loads the cues.
+    async unlock({ deferLoad = false } = {}) {
       const token = generation;
       try {
         requestPlaybackAudioSession();
@@ -241,7 +243,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         // Resume directly within the gesture call, before awaiting network/decode.
         await context.resume();
         if (token !== generation) return false;
-        if (!buffer) {
+        if (!buffer && !deferLoad) {
           if (!loading) {
             // An aborted decode can finish after the next gesture starts a load.
             const pending = load().finally(() => {
@@ -253,6 +255,24 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         }
         error = null;
         return token === generation && context.state === "running";
+      } catch (e) {
+        if (token === generation && e.name !== "AbortError") error = e.message;
+        return false;
+      }
+    },
+    // Fetch and decode the cue file if a deferred unlock() left it: touches nothing else (a paused or suspended context stays that way).
+    async preload() {
+      if (buffer) return true;
+      if (!context) return false;
+      const token = generation;
+      try {
+        if (!loading) {
+          const pending = load().finally(() => {
+            if (loading === pending) loading = null;
+          });
+          loading = pending;
+        }
+        return await loading;
       } catch (e) {
         if (token === generation && e.name !== "AbortError") error = e.message;
         return false;
