@@ -10,7 +10,8 @@ import {createGame} from '../src/combat.js';
 import {travelTo} from '../src/travel.js';
 const base=new URL('../public/world/',import.meta.url),manifest=JSON.parse(readFileSync(new URL('manifest.json',base)));
 const layouts=Object.fromEntries(['westminster','east','south'].map(id=>[id,JSON.parse(readFileSync(new URL(`${id}/layout.json`,base)))]));
-function fixture(t,{defer=false,registry=null,size={width:1672,height:941},loadSize=null}={}){
+// 2554 x 1437 x 4 B = 14.68 MB: the memory pressure a 1672 x 941 backdrop used to put on the budget when it was charged at 7/3 (mips).
+function fixture(t,{defer=false,registry=null,size={width:2554,height:1437},loadSize=null}={}){
  const requests=[],textures=[],originalFetch=globalThis.fetch;let release;
  globalThis.fetch=async url=>{const id=new URL(url).pathname.split('/').at(-2);requests.push(id);return{ok:true,json:async()=>registry?privateLayout(layouts[id]):layouts[id]};};
  t.after(()=>{globalThis.fetch=originalFetch;});

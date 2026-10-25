@@ -5,6 +5,9 @@ import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
 const ASPECT = 1672 / 941;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+// GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
+export const backdropTextureBytes = (texture, mipped = false) =>
+  (texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * (mipped ? 4 / 3 : 1);
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
 function damp(value, target, velocity, time, dt) {
   const omega = 2 / Math.max(0.0001, time),
@@ -110,6 +113,10 @@ export class LondonWorld {
     this.ndc = new THREE.Vector2();
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+    // The backdrop is never drawn smaller than its pixels (view zoom is at least 1), so it needs no mip chain: no generation at area
+    // preparation and a third less GPU memory. See textureBytes().
+    texture.generateMipmaps = false;
+    texture.minFilter = texture.magFilter = THREE.LinearFilter;
     this.backdrop = this.quad(
       [
         { x: 0, y: 1 },
@@ -397,7 +404,7 @@ export class LondonWorld {
       let next;
       try {
         if (cache.disposed) throw Error("London cache disposed");
-        this.admitTexture(((texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * 7) / 3);
+        this.admitTexture(backdropTextureBytes(texture));
         next = new LondonWorld({
           THREE: this.THREE,
           scene: new this.THREE.Scene(),
@@ -448,7 +455,7 @@ export class LondonWorld {
     }
   }
   textureBytes() {
-    return ((this.texture.image?.width ?? 0) * (this.texture.image?.height ?? 0) * 4 * 7) / 3;
+    return backdropTextureBytes(this.texture);
   }
   preparationStats() {
     const c = this.areaCache;
