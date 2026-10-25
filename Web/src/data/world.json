@@ -15,5 +15,9 @@
     "maxDistinct": 40,
     "messageChars": 200,
     "maxBodyBytes": 3800
+  },
+  "auth": {
+    "url": "https://fdbqnupceqytizxnoiua.supabase.co",
+    "anonKey": "sb_publishable_lrqe_EIp22G8SbUwhwYzsQ_oKAbYROI"
   }
 }
