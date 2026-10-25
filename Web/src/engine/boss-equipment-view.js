@@ -3,6 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { createMarkerOnlyDrop, markDrop } from "../drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
@@ -266,18 +267,30 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
             : (field === "emberProjector" ? g.flame?.equipped : state?.selected)
               ? "Return to normal weapon"
               : "Equip " + profile.name;
-      if (state?.status !== "pending" || g.world.areaId !== profile.source.areaId || !ready) {
+      if (state?.status !== "pending" || g.world.areaId !== profile.source.areaId) {
         drops.get(field)?.dispose();
         drops.delete(field);
         continue;
       }
+      // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
       let drop = drops.get(field);
+      if (drop && ready && !drop.model) {
+        drop.dispose();
+        drops.delete(field);
+        drop = null;
+      }
       if (!drop) {
-        const source = s.actors.equipmentAsset(field);
-        drop = createPickupModel(source.gltf, {
-          rootName: source.description?.pose?.root ?? null,
-          rotate: ["shotguns", "blades"].includes(profile.family),
-        });
+        if (ready) {
+          const source = s.actors.equipmentAsset(field);
+          drop = markDrop(
+            createPickupModel(source.gltf, {
+              rootName: source.description?.pose?.root ?? null,
+              rotate: ["shotguns", "blades"].includes(profile.family),
+            }),
+            profile.name,
+          );
+          drop.model = true;
+        } else drop = createMarkerOnlyDrop(profile.name);
         s.scene.add(drop.root);
         drops.set(field, drop);
       }

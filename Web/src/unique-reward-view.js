@@ -3,6 +3,7 @@ import { effectiveWeaponDamage } from "./engine/progression-runtime.js";
 import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
+import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
@@ -168,8 +169,11 @@ export function createUniqueRewardView(s, dispatch) {
       });
     return claimed;
   }
-  function createDrop(data) {
-    const view = createMeleePickupView(source(data.itemId), data);
+  function createDrop(data, ready) {
+    const name = MELEE_VARIANTS[data.itemId]?.name ?? "Weapon",
+      view = ready
+        ? Object.assign(markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
+        : createMarkerOnlyDrop(name);
     s.scene.add(view.root);
     return view;
   }
@@ -228,8 +232,11 @@ export function createUniqueRewardView(s, dispatch) {
     const visible = available() && state.status === "pending" && g.world.areaId === data.areaId;
     if (visible && !source(data.itemId) && !loads.has(data.itemId) && !failed.has(data.itemId))
       prepare(data.itemId).catch(() => {});
-    if (visible && source(data.itemId)) {
-      if (!drop) drop = createDrop(data);
+    if (visible) {
+      // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
+      const ready = !!source(data.itemId);
+      if (drop && ready && !drop.model) clearDrop();
+      drop ??= createDrop(data, ready);
       drop.root.position.copy(g.world.toRender(state.dropPosition));
     } else clearDrop();
     label.hidden = true;

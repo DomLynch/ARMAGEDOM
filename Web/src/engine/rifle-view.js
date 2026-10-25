@@ -1,6 +1,7 @@
 import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
+import { createDropMarker, createMarkerOnlyDrop } from "../drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
@@ -27,8 +28,9 @@ export function createRifleView(s, dispatch) {
   function clear() {
     if (!drop) return;
     drop.root.removeFromParent();
-    for (const c of drop.contours) c.dispose();
-    for (const m of drop.materials) m.dispose();
+    for (const c of drop.contours ?? []) c.dispose();
+    for (const m of drop.materials ?? []) m.dispose();
+    drop.marker.dispose();
     drop = null;
   }
   function prepare() {
@@ -132,8 +134,10 @@ export function createRifleView(s, dispatch) {
     box = new T.Box3().setFromObject(root);
     const center = box.getCenter(new T.Vector3());
     display.position.set(-center.x, 0.025 - box.min.y, -center.z);
+    const marker = createDropMarker(s.game?.world?.rifleData?.name ?? "Rifle");
+    root.add(marker.group);
     s.scene.add(root);
-    return { root, materials, contours };
+    return { root, materials, contours, marker, model: true };
   }
   function update() {
     if (disposed) return;
@@ -168,11 +172,20 @@ export function createRifleView(s, dispatch) {
           : state?.selected && !g.flame?.equipped
             ? "Return to melee"
             : "Equip rifle";
-    if (state?.status !== "pending" || g.world.areaId !== data.source.areaId || !ready) {
+    if (state?.status !== "pending" || g.world.areaId !== data.source.areaId) {
       clear();
       return;
     }
-    drop ??= createDrop(s.actors.rifleAsset());
+    // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
+    if (drop && ready && !drop.model) clear();
+    if (!drop) {
+      if (ready) drop = createDrop(s.actors.rifleAsset());
+      else {
+        const bare = createMarkerOnlyDrop(data.name);
+        s.scene.add(bare.root);
+        drop = { root: bare.root, marker: bare.marker, model: false };
+      }
+    }
     drop.root.position.copy(s.world.toRender(state.dropPosition));
   }
   function interaction() {
