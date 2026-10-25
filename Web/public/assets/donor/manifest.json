@@ -65,8 +65,8 @@
   "files": {
     "player-phone": {
       "file": "warrior-phone.glb",
-      "bytes": 3660712,
-      "sha256": "80f10aad35ffcb654950e75d48455736cde79b6c0951f997f05855496c5db631",
+      "bytes": 3509924,
+      "sha256": "9b59267aaa86feebeaaca3e874323690dfd07438763f8d27d2af63280c2bd1d0",
       "errors": 0,
       "textureCapSource": {"file": "warrior.glb", "bytes": 6749796, "sha256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769"}
     },

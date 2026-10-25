@@ -25,6 +25,14 @@ const io = new NodeIO()
   .registerDependencies({ "meshopt.decoder": MeshoptDecoder, "meshopt.encoder": MeshoptEncoder });
 const doc = await io.read(src);
 
+// Textures that no material references are never sampled; they only add bytes (the player's source carries three).
+let unusedTextures = 0;
+for (const texture of doc.getRoot().listTextures())
+  if (!texture.listParents().some((parent) => parent.propertyType === "Material")) {
+    texture.dispose();
+    unusedTextures++;
+  }
+
 const TOLERANCE = Number(process.env.RESAMPLE_TOLERANCE ?? 1e-4);
 await doc.transform(resample({ tolerance: TOLERANCE }));
 
@@ -85,5 +93,5 @@ writeFileSync(dst, out);
 const sha = (b) => createHash("sha256").update(b).digest("hex"),
   before = readFileSync(src);
 console.log(
-  JSON.stringify({ src, srcBytes: before.length, srcSha256: sha(before), dst, bytes: out.length, sha256: sha(out), saved: +(1 - out.length / before.length).toFixed(4), pngToWebp, capped, exactIndices: exact }),
+  JSON.stringify({ src, srcBytes: before.length, srcSha256: sha(before), dst, bytes: out.length, sha256: sha(out), saved: +(1 - out.length / before.length).toFixed(4), pngToWebp, capped, unusedTextures, exactIndices: exact }),
 );
