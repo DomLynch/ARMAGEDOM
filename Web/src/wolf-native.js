@@ -1,20 +1,8 @@
+import { CREATURE_MOVES } from "./creature-moves.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
 export const WOLF_RIG = "original-wolf";
-export const WOLF_BITE = Object.freeze({
-  moveId: "wolf_bite",
-  clip: "Bite",
-  foundationRef: WOLF_RIG,
-  windupTicks: 20,
-  activeTicks: 12,
-  recoveryTicks: 24,
-  windup: 20 / 60,
-  active: 12 / 60,
-  recovery: 24 / 60,
-  damage: 8,
-  staminaDamage: 8,
-  range: 2.5,
-  weapon: "teeth",
-});
+// The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
+export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
 export function wolfResponse(alive, start) {
   return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };
 }

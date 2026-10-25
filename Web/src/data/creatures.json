@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "moves": {
+    "rat_low": {
+      "extends": "knife:light_right",
+      "moveId": "rat_low",
+      "clip": "RatLowSlash",
+      "path": null,
+      "native": true,
+      "ratLow": true,
+      "windupTicks": 20,
+      "activeTicks": 6,
+      "recoveryTicks": 28,
+      "stepIn": 0,
+      "knockback": 0
+    },
+    "rat_bite": {
+      "extends": "rat_low",
+      "moveId": "rat_bite",
+      "clip": "rat_bite",
+      "ratLow": false,
+      "ratBite": true,
+      "windupTicks": 15,
+      "activeTicks": 6,
+      "recoveryTicks": 15,
+      "damage": 6,
+      "staminaDamage": 6,
+      "stamina": 0,
+      "parryable": false,
+      "range": 0.95
+    },
+    "rat_bite_low": { "extends": "rat_bite", "clip": "rat_bite_low" },
+    "roach_low": { "extends": "rat_low", "moveId": "roach_low" },
+    "roach_bite": {
+      "extends": "rat_bite",
+      "moveId": "roach_bite",
+      "clip": "roach_bite",
+      "damage": 4,
+      "staminaDamage": 4,
+      "range": 0.93
+    },
+    "roach_bite_scaled": { "extends": "roach_bite", "clip": "roach_bite_scaled" },
+    "dog_low": { "extends": "rat_low", "moveId": "dog_low" },
+    "dog_mid": { "extends": "dog_low", "clip": "DogMidSlash" },
+    "dog_bite": {
+      "extends": "rat_bite",
+      "moveId": "dog_bite",
+      "clip": "dog_bite_calf",
+      "windupTicks": 18,
+      "activeTicks": 6,
+      "recoveryTicks": 24,
+      "damage": 8,
+      "staminaDamage": 8,
+      "range": 1.17
+    },
+    "dog_bite_scaled": { "extends": "dog_bite", "clip": "dog_bite_scaled" },
+    "wolf_bite": {
+      "moveId": "wolf_bite",
+      "clip": "Bite",
+      "foundationRef": "original-wolf",
+      "windupTicks": 20,
+      "activeTicks": 12,
+      "recoveryTicks": 24,
+      "damage": 8,
+      "staminaDamage": 8,
+      "range": 2.5,
+      "weapon": "teeth"
+    },
+    "salamander_bite": {
+      "moveId": "salamander_bite",
+      "clip": "Bite",
+      "foundationRef": "giant-salamander",
+      "windupTicks": 20,
+      "activeTicks": 12,
+      "recoveryTicks": 24,
+      "damage": 4,
+      "staminaDamage": 4,
+      "range": 1.25,
+      "weapon": "teeth"
+    },
+    "wolf_attack": { "extends": ["rat_bite", "wolf_bite"] },
+    "salamander_attack": { "extends": ["rat_bite", "salamander_bite"] }
+  },
+  "salamanderBreath": {
+    "kind": "flame",
+    "range": 4.86,
+    "coneDegrees": 40,
+    "windupTicks": 20,
+    "activeTicks": 12,
+    "intervalTicks": 6,
+    "recoveryTicks": 54,
+    "damage": 4,
+    "minDistance": 3.45,
+    "acquisitionRange": 7.96
+  }
+}

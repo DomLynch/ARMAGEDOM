@@ -24,7 +24,6 @@
     "atmosphere-westminster.js": 2,
     "bridge-steering.js": 1,
     "clothing-palettes.js": 1,
-    "combat.js": 12,
     "core/index.js": 1,
     "creature-behaviour-intents.js": 2,
     "creature-behaviour-presets.js": 2,
@@ -71,9 +70,6 @@
     "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1,
     "roach-appearance.js": 1,
-    "salamander-native.js": 2,
-    "supplies.js": 3,
-    "vest.js": 1,
-    "wolf-native.js": 1
+    "supplies.js": 3
   }
 }

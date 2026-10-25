@@ -2,6 +2,7 @@
 // and nowhere else (the as-data gate fails any other importer), validated, and frozen once at load. Engine code reads GAME_DATA.<name>.
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
+import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
@@ -53,13 +54,25 @@ export function validateSaveClient(d) {
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
 // which runs on this data when that module loads; the loader checks the shape.
 export function validateWeapons(d) {
-  closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged"]);
+  closed(d, ["schema_version", "autoEquipOnFirstPickup", "ranged", "knife", "melee", "bossRanged", "vest"]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean")
     fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateKnife(d.knife);
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
+  validateVest(d.vest);
+}
+// The Westminster worn vest: its item id and area (both saved identities), the kills that unlock the stash, the pickup radius in
+// metres and the share of a hit it absorbs.
+export function validateVest(v) {
+  closed(v, ["itemId", "areaId", "requiredKills", "pickupRadius", "reduction"]);
+  for (const f of ["itemId", "areaId"])
+    if (typeof v[f] !== "string" || !/^[a-z0-9-]{1,40}$/.test(v[f])) fail("weapons", `vest.${f}`);
+  count("weapons", "vest.requiredKills", v.requiredKills, 0, 100);
+  number("weapons", "vest.pickupRadius", v.pickupRadius);
+  number("weapons", "vest.reduction", v.reduction);
+  if (v.reduction >= 1) fail("weapons", "vest.reduction must be below 1");
 }
 // What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
 // The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.
@@ -166,6 +179,56 @@ export function validateMelee(m) {
   }
 }
 
+// creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
+// A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
+export function validateCreatures(d) {
+  closed(d, ["schema_version", "moves", "salamanderBreath"]);
+  if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
+  for (const [name, row] of Object.entries(d.moves)) {
+    id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
+    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `moves.${name} must be an object`);
+    for (const [field, v] of Object.entries(row)) {
+      if (field === "extends") {
+        const refs = [v].flat();
+        if (!refs.length || !refs.every((r) => typeof r === "string" && r)) fail("creatures", `moves.${name}.extends`);
+      } else if (
+        !(v === null || ["number", "string", "boolean"].includes(typeof v)) ||
+        (typeof v === "number" && !Number.isFinite(v))
+      )
+        fail("creatures", `moves.${name}.${field} must be a finite number, string, boolean or null`);
+    }
+    for (const f of ["windupTicks", "activeTicks", "recoveryTicks"])
+      if (f in row) count("creatures", `moves.${name}.${f}`, row[f], 1, 600);
+  }
+  // Every parent must be a knife move or an earlier row (creature-moves.js resolves them in file order).
+  const earlier = new Set(),
+    knifeIds = ["light_right", "light_left", "thrust", "heavy_overhead", "skill_pommel"];
+  for (const [name, row] of Object.entries(d.moves)) {
+    for (const ref of [row.extends ?? []].flat())
+      if (!(earlier.has(ref) || (ref.startsWith("knife:") && knifeIds.includes(ref.slice(6)))))
+        fail("creatures", `moves.${name} extends unknown or later row "${ref}"`);
+    earlier.add(name);
+  }
+  const b = d.salamanderBreath;
+  closed(b, [
+    "kind",
+    "range",
+    "coneDegrees",
+    "windupTicks",
+    "activeTicks",
+    "intervalTicks",
+    "recoveryTicks",
+    "damage",
+    "minDistance",
+    "acquisitionRange",
+  ]);
+  if (b.kind !== "flame") fail("creatures", "salamanderBreath.kind");
+  for (const f of ["range", "coneDegrees", "damage", "minDistance", "acquisitionRange"])
+    number("creatures", `salamanderBreath.${f}`, b[f]);
+  for (const f of ["windupTicks", "activeTicks", "intervalTicks", "recoveryTicks"])
+    count("creatures", `salamanderBreath.${f}`, b[f], 1, 600);
+}
+
 export function validateWorld(d) {
   closed(d, [
     "schema_version",
@@ -180,7 +243,11 @@ export function validateWorld(d) {
   ]);
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
   closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
-  if (!Array.isArray(d.clientLog.kinds) || d.clientLog.kinds.length < 1 || !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k)))
+  if (
+    !Array.isArray(d.clientLog.kinds) ||
+    d.clientLog.kinds.length < 1 ||
+    !d.clientLog.kinds.every((k) => /^[a-z]{1,16}$/.test(k))
+  )
     fail("world", "clientLog.kinds");
   count("world", "clientLog.maxBodyBytes", d.clientLog.maxBodyBytes, 500, 4000); // the writer refuses a body over 4096 bytes
   if (typeof d.clientLog.path !== "string" || !/^\/arma\/api\/[a-z_]{1,24}$/.test(d.clientLog.path))
@@ -337,6 +404,7 @@ export function validateSpawns(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
