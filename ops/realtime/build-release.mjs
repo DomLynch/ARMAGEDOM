@@ -18,7 +18,8 @@ const arg = (name) => {
 };
 const ENTRIES = ["server/writer/main.js", "server/presence/main.js"];
 // Read at runtime by path, not by import: the writer's spawn rows, and the area content presence loads for its weapon caps and knockback allowance.
-const DATA = ["server/data/spawns.json", "Web/public/world/area-content.json"];
+// Also the Supabase root CA the writer pins for the database (server/writer/db-config.js).
+const DATA = ["server/data/spawns.json", "Web/public/world/area-content.json", "server/writer/certs/supabase-prod-ca-2021.crt"];
 // The bundle's package.json and package-lock.json live in ops/realtime/release/ and are copied as they are, so `npm ci` installs exactly the locked tree.
 const RELEASE_PACKAGE = path.join(repo, "ops/realtime/release/package.json");
 const RUNTIME_PACKAGES = JSON.parse(fs.readFileSync(RELEASE_PACKAGE, "utf8")).dependencies;

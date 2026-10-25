@@ -20,6 +20,7 @@ test("the bundle holds every file the entries import, and nothing imports outsid
   assert.ok(files.includes("Web/src/engine/world-events.js") && files.includes("server/writer/writer.js"));
   assert.deepEqual(result.bare, ["pg", "three"]);
   assert.ok(fs.existsSync(path.join(result.dir, "server/data/spawns.json")), "the generated spawn rows ship with the writer");
+  assert.ok(fs.existsSync(path.join(result.dir, "server/writer/certs/supabase-prod-ca-2021.crt")), "the pinned database root CA ships with the writer");
 });
 
 test("package.json is ESM with exactly the two runtime packages pinned; the manifest matches the files", () => {

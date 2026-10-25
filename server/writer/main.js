@@ -6,6 +6,7 @@
 //   ARMA_INTERNAL_KEY   shared with the presence service for /internal/* (location, hits)
 //   ARMA_SPAWNS         optional path to the spawn rows JSON (default server/data/spawns.json)
 import fs from "node:fs";
+import { poolConfig } from "./db-config.js";
 import { createWriter, spawnRowsFrom } from "./writer.js";
 
 if (process.env.ARMA_WRITER !== "1") {
@@ -18,7 +19,7 @@ const host = process.env.WRITER_HOST ?? "127.0.0.1",
 if (host !== "127.0.0.1" && process.env.ARMA_ALLOW_PUBLIC !== "1") throw new Error("the writer binds 127.0.0.1 only");
 
 const { default: pg } = await import("pg");
-const pool = new pg.Pool({ connectionString: need("DATABASE_URL"), max: 4 });
+const pool = new pg.Pool(poolConfig(need("DATABASE_URL"))); // pins Supabase's root CA with verification on (db-config.js)
 const db = { query: async (sql, params) => (await pool.query(sql, params)).rows };
 const url = need("SUPABASE_URL"),
   anon = need("SUPABASE_ANON_KEY");
