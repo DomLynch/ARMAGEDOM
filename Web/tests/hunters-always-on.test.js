@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {make, shipped} from './helpers/marked-fixture.js';
 import {stepMarkedHunters, clearMarkedHunters} from '../src/engine/marked-hunters.js';
 import {LondonWorld} from '../src/world.js';
+import {stepGame} from '../src/combat.js';
 import {effectiveBounty, validateMarkedData} from '../src/engine/marked.js';
 import {safehouseTouches} from '../src/engine/safehouse.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
@@ -57,6 +58,22 @@ test('a hunter comes with no money and no bounty: nothing before 75 s, the warni
   stepMarkedHunters(g, spawn);
   assert.equal(g.enemies.filter(e => e.markedHunter).length, 1, 'the hunter arrives');
   assert.equal(effectiveBounty(g), 0, 'bounty stays off');
+});
+
+test('through the real game step the shipped data builds a real Hollow hunter that pursues the whole area, with no money and no bounty', () => {
+  const g = run().g;
+  g.time = 75;
+  stepMarkedHunters(g, spawn);
+  assert(g.markedHunt.warning, 'warning at 75 s');
+  g.time = 77;
+  stepGame(g, {}, 1 / 60);
+  const hunter = g.enemies.find(e => e.markedHunter);
+  assert(hunter, 'the game factory builds the hunter');
+  assert.equal(hunter.rig, 'hollow-scavenger');
+  assert.equal(hunter.hp, c.hunterHealth);
+  assert.equal(hunter.residentIntent.pursuitScope, 'area');
+  assert(hunter.alerted);
+  assert.equal(g.marked.bounty, 0);
 });
 
 test('after the hunter dies the next one comes 105 s later (not before), one at a time', () => {
