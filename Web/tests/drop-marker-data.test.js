@@ -42,7 +42,7 @@ function withRecordingDocument(run) {
 }
 
 test("the moved drop-marker numbers equal the old inline ones", () => {
-  assert.deepEqual(style.label, { canvasWidth: 384, canvasHeight: 64, textY: 34, textMaxWidth: 360, opacityBase: 0.75, opacitySwing: 0.25 });
+  assert.deepEqual(style.label, { canvasWidth: 384, canvasHeight: 64, textY: 34, textMaxWidth: 360, opacityBase: 0.75, opacitySwing: 0.25, borderPx: 3, renderOrder: 10 });
   assert.deepEqual(style.glow, { canvasPx: 256, groundY: 0.04, clearShare: 0.8, clearAlpha: 0.05, innerAlpha: 0.45, bandAlpha: 0.6, outerAlpha: 0.45, tailShare: 0.35, tailAlpha: 0.18 });
   assert.equal(style.ringY, 0.045);
   assert.equal(style.ringSegments, 48);

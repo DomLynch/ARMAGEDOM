@@ -2,9 +2,11 @@
 // stays under its size limit; game-data.js re-exports them and still imports every JSON file itself (the as-data gate allows no other importer).
 import { closed } from "./content-schema.js";
 import { count, fail } from "./game-data-checks.js";
+import { validateMovementTrace } from "./movement-trace-schema.js";
 
 export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
+  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs", "movementTrace"]);
+  validateMovementTrace(d.movementTrace);
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
   // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
   count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);

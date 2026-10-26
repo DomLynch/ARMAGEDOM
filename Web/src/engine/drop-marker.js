@@ -6,12 +6,13 @@ import { GAME_DATA } from "./game-data.js";
 // Web/src/data/visual.json `dropMarker`. It lives in the drop's own group, so it is gone with the drop on pickup.
 const STYLE = GAME_DATA.visual.dropMarker;
 // Same slow fade in and out as the route arrow: opacity from minOpacity up to 1 and back every pulseSeconds.
+const wave = (seconds, period) => 0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / period); // tuning-ok: a raised cosine, 0 to 1, one turn per period
 export const dropPulse = (seconds, style = STYLE) =>
-  style.minOpacity + (1 - style.minOpacity) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / style.pulseSeconds));
+  style.minOpacity + (1 - style.minOpacity) * wave(seconds, style.pulseSeconds);
 
 function labelSprite(text, style) {
   if (typeof globalThis.document?.createElement !== "function") return null; // no page (tests, workers): the ring alone
-  const { canvasWidth: W, canvasHeight: H, textY, textMaxWidth } = style.label,
+  const { canvasWidth: W, canvasHeight: H, textY, textMaxWidth, borderPx: B, renderOrder } = style.label,
     canvas = globalThis.document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -24,21 +25,21 @@ function labelSprite(text, style) {
   ctx.globalAlpha = 1;
   ctx.fillStyle = `#${style.ringColour}`;
   for (const [x, y, w, h] of [
-    [0, 0, W, 3],
-    [0, H - 3, W, 3],
-    [0, 0, 3, H],
-    [W - 3, 0, 3, H],
+    [0, 0, W, B],
+    [0, H - B, W, B],
+    [0, 0, B, H],
+    [W - B, 0, B, H],
   ])
     ctx.fillRect(x, y, w, h);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = `#${style.labelColour}`;
   ctx.font = "600 30px sans-serif";
-  ctx.fillText(text, W / 2, textY, textMaxWidth);
+  ctx.fillText(text, W / 2, textY, textMaxWidth); // tuning-ok: the text is centred on the canvas
   const map = new T.CanvasTexture(canvas);
   map.colorSpace = T.SRGBColorSpace;
   const sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
-  sprite.renderOrder = 10; // drawn over the player and the drop, so the name is never clipped by a body standing on it
+  sprite.renderOrder = renderOrder; // drawn over the player and the drop, so the name is never clipped by a body standing on it
   sprite.scale.set(style.labelWidth, style.labelWidth / (W / H), 1); // the sprite keeps the canvas aspect ratio
   sprite.position.y = style.labelHeight;
   return sprite;
@@ -56,13 +57,13 @@ function glowMesh(style) {
   const inner = style.ringInner / style.glowOuter,
     outer = style.ringOuter / style.glowOuter,
     rgb = new T.Color(`#${style.ringColour}`).toArray().map((c) => Math.round(c * 255)),
-    middle = G.canvasPx / 2,
+    middle = G.canvasPx / 2, // tuning-ok: the gradient is centred on the canvas
     gradient = ctx.createRadialGradient(middle, middle, 0, middle, middle, middle);
   for (const [at, alpha] of [
     [0, 0],
     [inner * G.clearShare, G.clearAlpha],
     [inner, G.innerAlpha],
-    [(inner + outer) / 2, G.bandAlpha],
+    [(inner + outer) / 2, G.bandAlpha], // tuning-ok: the middle of the band
     [outer, G.outerAlpha],
     [Math.min(1, outer + (1 - outer) * G.tailShare), G.tailAlpha],
     [1, 0],
@@ -73,10 +74,10 @@ function glowMesh(style) {
   const map = new T.CanvasTexture(canvas);
   map.colorSpace = T.SRGBColorSpace;
   const glow = new T.Mesh(
-    new T.PlaneGeometry(style.glowOuter * 2, style.glowOuter * 2),
+    new T.PlaneGeometry(style.glowOuter * 2, style.glowOuter * 2), // tuning-ok: a radius is half the plane's side
     new T.MeshBasicMaterial({ map, transparent: true, depthWrite: false, toneMapped: false, side: T.DoubleSide }),
   );
-  glow.rotation.x = -Math.PI / 2;
+  glow.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the glow flat on the ground
   glow.position.y = G.groundY;
   return glow;
 }
@@ -88,7 +89,7 @@ export function markerGeometry(style) {
   if (style.shape === "circle") return new T.RingGeometry(style.ringInner, style.ringOuter, style.ringSegments);
   const o = style.ringOuter,
     i = style.ringInner,
-    arm = o - 2 * o * style.bracketArm,
+    arm = o - 2 * o * style.bracketArm, // tuning-ok: a side is two half-widths long
     rects = [];
   if (style.shape === "brackets")
     for (const sx of [-1, 1])
@@ -101,8 +102,8 @@ export function markerGeometry(style) {
   for (const [x0, x1, y0, y1] of rects)
     positions.push(x0, y0, 0, x1, y0, 0, x1, y1, 0, x0, y0, 0, x1, y1, 0, x0, y1, 0);
   const geometry = new T.BufferGeometry();
-  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
-  if (style.shape === "diamond") geometry.rotateZ(Math.PI / 4);
+  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3)); // tuning-ok: x, y, z per vertex
+  if (style.shape === "diamond") geometry.rotateZ(Math.PI / 4); // tuning-ok: an eighth of a turn, 45 degrees
   return geometry;
 }
 
@@ -121,7 +122,7 @@ export function createDropMarker(label, style = STYLE) {
     ),
     sprite = labelSprite(String(label).toUpperCase(), style);
   group.name = "Drop marker";
-  ring.rotation.x = -Math.PI / 2;
+  ring.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the ring flat on the ground
   ring.position.y = style.ringY;
   if (glow) group.add(glow);
   group.add(ring);
@@ -132,7 +133,7 @@ export function createDropMarker(label, style = STYLE) {
   ring.onBeforeRender = () => {
     const p = dropPulse(globalThis.performance?.now?.() / 1000 || 0, style),
       swell = 1 + style.ringPulse * ((p - style.minOpacity) / (1 - style.minOpacity)),
-      item = 1 + style.itemPulse * (p - 0.5);
+      item = 1 + style.itemPulse * (p - 0.5); // tuning-ok: the item pulse swings about the middle of the fade
     ring.material.opacity = style.peakOpacity * p;
     ring.scale.setScalar(swell);
     if (glow) {

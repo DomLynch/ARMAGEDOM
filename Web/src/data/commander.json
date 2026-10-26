@@ -35,7 +35,12 @@
     "aggroDistance": 8,
     "swingAfterWindup": 0.35,
     "firstWaveDelay": 5,
-    "waveGap": 10
+    "waveGap": 10,
+    "startMachines": 3,
+    "defenders": 2,
+    "defenderOffset": { "x": 3, "z": 2 },
+    "waveCount": 2,
+    "waveSize": 2
   },
   "view": {
     "backdropSize": [1672, 941],

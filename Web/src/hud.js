@@ -6,6 +6,10 @@ import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js";
 import { PISTOL_RULES } from "./pistol.js";
 import { keySuffix } from "./engine/key-hint.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// Button cooldown fallbacks, the pistol prompt reach and the default grenade range: data/visual.json `hud`.
+const HUD = GAME_DATA.visual.hud;
+const percentBonus = (multiplier) => Math.round((multiplier - 1) * 1000) / 10; // tuning-ok: a damage multiplier as a percent, to one decimal
 // Lines the HUD never shows (Dom's text pass, 24 Oct): the hunter warnings, whichever system still sets them.
 const HIDDEN_MESSAGE = /^(HUNTER INBOUND|A hunter is after you|Hunter in \d)/;
 export const hudMessage = (message) => (HIDDEN_MESSAGE.test(message ?? "") ? "" : (message ?? ""));
@@ -336,12 +340,9 @@ export function createHUD({
           const weapon = p.weapon === "pistol" ? "westminster-start-pistol-v1" : "knife",
             label = weapon === "knife" ? "KNIFE" : "PISTOL";
           const bonus = (id) =>
-            Math.round(
-              (pilotBonuses(g.world.progressionData, DEFAULT_ATTRIBUTES, id, progression.proficiency[id])
-                .damageMultiplier -
-                1) *
-                1000,
-            ) / 10;
+            percentBonus(
+              pilotBonuses(g.world.progressionData, DEFAULT_ATTRIBUTES, id, progression.proficiency[id]).damageMultiplier,
+            );
           el("mastery").textContent = ["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon)
             ? `${p.weapon.toUpperCase()} · no mastery bonus`
             : `${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}%`;
@@ -350,7 +351,7 @@ export function createHUD({
               .map(([id, value]) => `${id[0].toUpperCase() + id.slice(1)} ${value}`)
               .join(" · ") + ". Intelligence has no effect in this pilot.";
           el("progression-weapons").textContent =
-            `Knife ${progression.proficiency.knife}/100 (+${bonus("knife")}% mastery damage) · Pistol ${progression.proficiency["westminster-start-pistol-v1"]}/100 (+${bonus("westminster-start-pistol-v1")}% mastery damage). Combined damage bonus: +${["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon) ? 0 : Math.round((model.bonuses(progression, weapon).damageMultiplier - 1) * 1000) / 10}%.`;
+            `Knife ${progression.proficiency.knife}/100 (+${bonus("knife")}% mastery damage) · Pistol ${progression.proficiency["westminster-start-pistol-v1"]}/100 (+${bonus("westminster-start-pistol-v1")}% mastery damage). Combined damage bonus: +${["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon) ? 0 : percentBonus(model.bonuses(progression, weapon).damageMultiplier)}%.`;
         }
         // A survival hint (hintFirst) outranks even a live game message; every other hint waits for it.
         const message =
@@ -368,8 +369,8 @@ export function createHUD({
           lastGold = gold;
         }
         for (const [id, ready, fallback] of [
-          ["heavy", p.heavyReady, 1.6],
-          ["dodge", p.dodgeReady, 1.05],
+          ["heavy", p.heavyReady, HUD.heavyFallbackSeconds],
+          ["dodge", p.dodgeReady, HUD.dodgeFallbackSeconds],
         ]) {
           const button = el(id),
             left = Math.max(0, ready - g.time),
@@ -446,7 +447,7 @@ export function createHUD({
           const nearby =
             !pistol.collected &&
             (g.world.areaId ?? "westminster") === pistol.pickupAreaId &&
-            Math.hypot(p.pos.x - pistol.pickupPos.x, p.pos.z - pistol.pickupPos.z) <= 1.3;
+            Math.hypot(p.pos.x - pistol.pickupPos.x, p.pos.z - pistol.pickupPos.z) <= HUD.pistolInteractRadius;
           el("pistol-interact").hidden = g.finished || (!nearby && (!pistol.collected || equipped));
           el("pistol-interact").textContent = (nearby ? "PICK UP & EQUIP PISTOL" : "EQUIP PISTOL") + keySuffix();
           el("pistol-icon").hidden = true;
@@ -521,7 +522,7 @@ export function createHUD({
                   : `${state.magazine}/${capacity}`
                 : id === "stab"
                   ? grenade
-                    ? `${g.grenadeThrowRange ?? 5}m`
+                    ? `${g.grenadeThrowRange ?? HUD.grenadeDefaultRange}m`
                     : clock.reloadingUntil
                       ? `${Math.max(0, clock.reloadingUntil - g.time).toFixed(1)}s`
                       : ""
@@ -609,7 +610,7 @@ export function createHUD({
           el("stab").hidden = el("heavy").hidden = true;
           lastPistolEquipped = null;
         }
-        const boss = g.enemies.find((e) => e.kind === 3);
+        const boss = g.enemies.find((e) => e.kind === 3); // tuning-ok: creature kind 3 is the boss
         el("boss").hidden = !boss;
         if (boss) el("boss-fill").style.width = `${(boss.hp / boss.maxHP) * 100}%`;
         el("ending").hidden = !g.finished || g.player.hp > 0;
