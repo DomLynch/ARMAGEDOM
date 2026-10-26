@@ -19,6 +19,8 @@
 // bodyReceiver: the player gets the whole-body bite receiver (wolf-native.js wolfBodyReceiverBindings) for this rig's bites.
 //
 // Names (read with `rigText(rig, name)`):
+// populationSlot: a placement's creature slot (data area population) may hold this rig; the wolf is placed directly, never in a slot.
+// appearanceRecipe: the prefix of the appearance recipe ids that dress this rig (rat-, dog-, roach-); a rig with none takes none.
 // species: the kind of creature (rat, dog, roach, salamander, wolf, drone), one rig each; `rigOfSpecies(species)` is the rig id, for
 //   the few places that address one kind by name.
 // brain: which per-tick behaviour drives the rig in combat.js stepEnemy: rat, dog (dogs, roaches, wolves, salamanders) or drone.

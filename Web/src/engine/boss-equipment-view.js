@@ -318,6 +318,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         return {
           id: data.itemId,
           label: "Collect " + data.name,
+          pickup: true,
           position: state.dropPosition,
           run() {
             execute(field, { type: "claimPickup", pickupId: data.itemId });

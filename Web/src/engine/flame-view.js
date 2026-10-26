@@ -259,6 +259,7 @@ export function createFlameView(s, persistence) {
     return {
       id: g.world.flameData.pickupId,
       label: "Collect Flamethrower",
+      pickup: true,
       position: g.world.flameData.position,
       run: interact,
     };

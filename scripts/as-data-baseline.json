@@ -68,11 +68,7 @@
     ]
   },
   "rigLiterals": {
-    "area-mob-spawns.js": 3,
-    "engine/area-content.js": 1,
-    "engine/area-population.js": 9,
-    "engine/commander/match.js": 1,
-    "engine/creature-definitions.js": 45
+    "engine/commander/match.js": 1
   },
   "constantTables": {
     "clothing-palettes.js": 1,
@@ -92,7 +88,6 @@
     "engine/save-eras.js": 1,
     "engine/sever-blood-data.js": 1,
     "engine/unique-reward-core.js": 1,
-    "engine/unique-reward-runtime.js": 1,
     "engine/world-events.js": 10,
     "finisher-impact-profile.js": 1,
     "hollow-palette.js": 1,
