@@ -7,6 +7,7 @@ import audio from "../data/audio.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
+import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -31,6 +32,51 @@ const count = (file, field, value, min, max) => {
   if (!Number.isSafeInteger(value) || value < min || value > max)
     fail(file, `${field} must be an integer from ${min} to ${max}`);
 };
+
+// combatRules.json: the numbers combat.js used to carry inline (Dom's rule: no tuning values in code). `legacy` is the original
+// non-pilot goblin game: four enemy kinds (index = kind) and the shared swing, projectile, formation and loot numbers. Seconds, metres,
+// degrees; `moveSpeed` is metres per second.
+const legacyKind = ["hp", "radius", "damage", "swingRadius", "swingArc", "windupSeconds", "recoverSeconds", "readySeconds", "moveSpeed"];
+export function validateCombatRules(d) {
+  closed(d, ["schema_version", "legacy"]);
+  const l = d.legacy;
+  closed(l, [
+    "kinds",
+    "wideSwing",
+    "alertDistance",
+    "rangedReach",
+    "reachSlack",
+    "aimDot",
+    "swingSeconds",
+    "boltSpeed",
+    "boltHitRadius",
+    "formation",
+    "loot",
+  ]);
+  if (!Array.isArray(l.kinds) || l.kinds.length !== 4) fail("combatRules", "legacy.kinds must list the four enemy kinds");
+  l.kinds.forEach((row, i) => {
+    closed(row, legacyKind);
+    for (const f of legacyKind) number("combatRules", `legacy.kinds[${i}].${f}`, row[f], f === "hp" || f.endsWith("Seconds") ? 0.01 : 0);
+  });
+  closed(l.wideSwing, ["radius", "arc"]);
+  number("combatRules", "legacy.wideSwing.radius", l.wideSwing.radius, 0.01);
+  number("combatRules", "legacy.wideSwing.arc", l.wideSwing.arc, 1);
+  for (const f of ["alertDistance", "rangedReach", "reachSlack", "swingSeconds", "boltSpeed", "boltHitRadius"])
+    number("combatRules", `legacy.${f}`, l[f], 0.001);
+  number("combatRules", "legacy.aimDot", l.aimDot, 0);
+  if (l.aimDot >= 1) fail("combatRules", "legacy.aimDot must be below 1");
+  closed(l.formation, ["columns", "xSpacing", "zSpacing"]);
+  count("combatRules", "legacy.formation.columns", l.formation.columns, 1, 20);
+  number("combatRules", "legacy.formation.xSpacing", l.formation.xSpacing, 0);
+  number("combatRules", "legacy.formation.zSpacing", l.formation.zSpacing, 0);
+  closed(l.loot, ["pickupRadius", "blade", "armour", "tonic"]);
+  number("combatRules", "legacy.loot.pickupRadius", l.loot.pickupRadius, 0.01);
+  for (const kind of ["blade", "armour", "tonic"]) {
+    closed(l.loot[kind], ["base", "step"]);
+    number("combatRules", `legacy.loot.${kind}.base`, l.loot[kind].base, 0);
+    number("combatRules", `legacy.loot.${kind}.step`, l.loot[kind].step, 0);
+  }
+}
 
 // creatureDefinitions.json: the creature foundations (one row per rig: clips, scale, stats, behaviour), the recipe -> foundation map and
 // the native animal roles. engine/creature-catalogue.js validates every row in depth when it builds the catalogue; the loader checks
@@ -1235,6 +1281,7 @@ const sources = () => ({
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
+  combatRules: [combatRules, validateCombatRules],
   creatures: [creatures, validateCreatures],
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],
