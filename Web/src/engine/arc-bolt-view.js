@@ -185,7 +185,8 @@ export function createArcBolts({ scene, data, camera, viewportHeight = () => 667
     for (let i = 0; i < l.n - 1; i++) {
       const a = base + i * VERTS,
         b = a + VERTS;
-      for (const t of [a, a + 1, b, a + 1, b + 1, b, a + 1, a + 2, b + 1, a + 2, b + 2, b + 1]) index[indices++] = t; // tuning-ok: four triangles of the ribbon segment
+      // tuning-ok: four triangles between a point's left, centre and right vertices and the next point's
+      for (const t of [a, a + 1, b, a + 1, b + 1, b, a + 1, a + 2, b + 1, a + 2, b + 2, b + 1]) index[indices++] = t;
     }
   }
   const glow = (l, widthPx, rgb, alpha) => strip(l, widthPx, rgb, alpha, 0),
