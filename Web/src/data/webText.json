@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "texts": {
+    "runCore.savingUnavailable.supplies": "Run saving unavailable. Supplies kept.",
+    "runCore.savingUnavailable.contract": "Saving unavailable. Contract and equipment kept.",
+    "runCore.savingUnavailable.equipment": "Saving unavailable. Equipment kept.",
+    "runCore.savingUnavailable.rifle": "Saving unavailable. Rifle and ammunition kept.",
+    "runCore.savedRunUnreadable": "Saved run could not be read. Open the menu and choose Reset game to start fresh.",
+    "runCore.pickup.pistol": "Pistol collected and equipped.",
+    "runCore.pickup.vest": "Worn vest equipped · 10% protection.",
+    "runCore.pickup.rounds": "Scavenged {amount} spare rounds.",
+    "runCore.pickup.dressing": "Dressing restored {amount} health.",
+    "runCore.refusal.pistol-required": "Collect the pistol first. Rounds kept.",
+    "runCore.refusal.reserve-full": "Spare rounds full. Supply kept.",
+    "runCore.refusal.health-full": "Health full. Dressing kept.",
+    "runCore.bossDrop": "{name} dropped.",
+    "runCore.vestEquipped": "Worn vest equipped · 10% protection from unblocked hits."
+  }
+}
