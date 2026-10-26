@@ -8,6 +8,7 @@
 //   player's body receiver.
 // tutorialHunt: the Westminster tutorial's route arrow sends the player after this rig ("Kill the salamander"), before the
 //   Ember Matron (engine/route-guidance.js huntTarget).
+// breathEmitter: while its boss weapon is active the rig is the source of the fire-breath glow (effects.js getEmission).
 //
 // hoverTarget: the rig flies; shots and flame aim at its animated hover height (drone-mechanics.js droneHoverHeight).
 //

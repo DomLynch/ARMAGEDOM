@@ -660,7 +660,22 @@ export function validateVisual(d) {
     for (const p of c.partners[family])
       if (!trouserFamilies.has(p)) fail("visual", `clothing.partners.${family} names unknown trousers family ${p}`);
   }
-  closed(d.effects, ["swingColours", "lootColours"]);
+  closed(d.effects, ["swingColours", "lootColours", "targetHeights"]);
+  // effects.js aims its hit burst, kill confirmation, tracer end and target reticle at a height that depends on the target's rig. Per
+  // site, a `default` row plus one row per rig: `fixed` metres, `drone` (the hovering drone's height), `cue` (the cue's own height) or
+  // `scaled` metres times the rig's view scale; an empty row means "use the site's own fallback".
+  closed(d.effects.targetHeights, ["burst", "confirm", "tracer", "reticle"]);
+  for (const [site, rows] of Object.entries(d.effects.targetHeights)) {
+    if (!Object.hasOwn(rows, "default")) fail("visual", `effects.targetHeights.${site} needs a default row`);
+    for (const [rig, row] of Object.entries(rows)) {
+      const where = `effects.targetHeights.${site}.${rig}`;
+      if (!/^[a-z][a-z0-9-]{0,40}$/.test(rig) && rig !== "default") fail("visual", `${where} is not a rig id`);
+      closed(row, [], ["fixed", "drone", "cue", "scaled"]);
+      if (Object.keys(row).length > 1) fail("visual", `${where} must use one of fixed, drone, cue or scaled`);
+      for (const k of ["fixed", "scaled"]) if (k in row) number("visual", `${where}.${k}`, row[k], 0.01);
+      for (const k of ["drone", "cue"]) if (k in row && row[k] !== true) fail("visual", `${where}.${k} must be true`);
+    }
+  }
   closed(d.effects.swingColours, ["slash", "stab", "heavy", "special"]);
   for (const [name, h] of Object.entries(d.effects.swingColours)) hex(`effects.swingColours.${name}`, h);
   list("effects.lootColours", d.effects.lootColours, 1, 16);
