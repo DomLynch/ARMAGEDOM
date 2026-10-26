@@ -133,7 +133,6 @@
     "engine/warm-framebuffer.js": 1,
     "engine/weapon-tiles.js": 13,
     "engine/world-events.js": 10,
-    "face-appearance.js": 42,
     "face-recipes.js": 7,
     "feral-body-shapes.js": 1,
     "finisher-crown.js": 18,
@@ -154,8 +153,7 @@
     "roach-appearance.js": 5,
     "roach-territory.js": 1,
     "travel.js": 1,
-    "wolf-native.js": 5,
-    "world-geometry.js": 16
+    "wolf-native.js": 5
   },
   "constantTables": {
     "clothing-palettes.js": 1,
