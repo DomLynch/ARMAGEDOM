@@ -2,6 +2,7 @@ import { creatureDefinitions, recipeFoundations, nativeRoleDefinitions } from ".
 import { resolveCreatureBehaviour } from "../creature-behaviour-presets.js";
 import { resolveResidentIntent } from "../creature-behaviour-intents.js";
 import { GAME_DATA } from "./game-data.js";
+import { rigText } from "../rig-capabilities.js";
 // Capabilities provided by existing resident movement/native completion/neighbour seams.
 export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "home",
@@ -88,7 +89,7 @@ export function createCreatureCatalogue({
       pair.actions.some((action) => typeof row.clips[action] !== "string")
     )
       throw Error("Controller/foundation/action mismatch");
-    if (row.runtimeIdentity === "low-hover-drone") {
+    if (rigText(row.runtimeIdentity, "species") === "drone") {
       if (
         Object.keys(row.clips).length ||
         row.behaviour.parameterPreset !== null ||
@@ -137,7 +138,7 @@ export function createCreatureCatalogue({
     if (!Object.hasOwn(recipeFoundations, recipe) || recipeFoundations[recipe] !== foundation || !map.has(foundation))
       throw Error("Unknown recipe/foundation reference");
   for (const [recipe, foundation] of Object.entries(recipeMap))
-    if (foundation !== "low-hover-drone") resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
+    if (rigText(foundation, "species") !== "drone") resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
   const roleRows = structuredClone(roles);
   if (JSON.stringify(roleRows) !== JSON.stringify(nativeRoleDefinitions))
     throw Error("Unreviewed exact role activation");

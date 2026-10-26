@@ -26,6 +26,7 @@
 // lowSwing: which low melee pose the player's knife uses against it (dog, roach); a native-skeleton rig uses the dog's mid pose,
 //   the drone its own, and the rat the rat pose.
 // appearanceKit: which coat library dresses a rig with an appearance id in actors.js (rat, roach); a rig with none gets the dog coats.
+// coatName: the name of the coat material animal-appearance.js recolours on this rig's foundation model (rat, dog).
 // biteMove: which bite the rig throws (wolf, salamander, roach); a rig with none throws the dog bite.
 // breathEmitter: while its boss weapon is active the rig is the source of the fire-breath glow (effects.js getEmission).
 //
