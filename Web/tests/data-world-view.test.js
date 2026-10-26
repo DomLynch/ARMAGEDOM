@@ -12,13 +12,17 @@ import { GAME_DATA, validateAreaRuntime } from "../src/engine/game-data.js";
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/world-view-pre-data.json", import.meta.url)));
 const rawText = fs.readFileSync(new URL("../src/data/areaRuntime.json", import.meta.url), "utf8");
 
+// `defaultCharacterScale` was added to the section later (tests/data-default-character-scale.test.js): these two tests cover the camera rows.
+const { defaultCharacterScale, ...cameraRows } = JSON.parse(rawText).view;
+
 test("the view section is pinned", () => {
-  const section = JSON.stringify(JSON.parse(rawText).view);
+  const section = JSON.stringify(cameraRows);
   assert.equal(crypto.createHash("sha256").update(section).digest("hex"), "ea8e54ff5f34bbdaf78e967f6efcd668fd149080bd8938772698853ae1953e7d");
 });
 
 test("every value equals the literal it replaced", () => {
-  assert.deepEqual(GAME_DATA.areaRuntime.view, {
+  const { defaultCharacterScale: _scale, ...view } = GAME_DATA.areaRuntime.view;
+  assert.deepEqual(view, {
     textureBudgetMiB: 48,
     textureBudgetMinMiB: 16,
     cameraNear: 0.1,

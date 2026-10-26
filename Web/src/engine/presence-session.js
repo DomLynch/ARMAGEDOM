@@ -53,7 +53,7 @@ export function createPresenceSession(
           kit = createSurvivorKit({
             source,
             animations: player.gltf.animations,
-            characterScale: s.world?.layout?.characterScale ?? 1.265,
+            characterScale: s.world?.layout?.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale,
           });
         })
         .catch(() => {});
@@ -73,7 +73,7 @@ export function createPresenceSession(
     lastStateAt = at;
     if (intervals.length >= STATS_EVERY) {
       log(
-        `[arma-world] state interval ms p50=${percentile(intervals, 0.5)} p95=${percentile(intervals, 0.95)} n=${intervals.length}`,
+        `[arma-world] state interval ms p50=${percentile(intervals, 0.5)} p95=${percentile(intervals, 0.95)} n=${intervals.length}`, // tuning-ok: the 95th percentile, a statistic
       );
       intervals.length = 0;
     }
