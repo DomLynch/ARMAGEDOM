@@ -575,6 +575,20 @@
       }
     },
     "sampleLimit": 64,
+    "placement": {
+      "influenceWeightMin": 0.5,
+      "sparseZoneDivisor": 4,
+      "normalMinLengthSq": 0.9,
+      "footprintHalf": 0.555,
+      "reliefDrop": 0.03,
+      "visibleBottom": 0.004,
+      "fleshOffsetWeight": 0.5,
+      "fleshFacingWeight": 0.15,
+      "otherOffsetWeight": 0.35,
+      "facingMin": 0.05,
+      "rayMinDistance": 0.01,
+      "rayBackoff": 0.005
+    },
     "profiles": [
       {
         "recipeId": "pistol-directional",
