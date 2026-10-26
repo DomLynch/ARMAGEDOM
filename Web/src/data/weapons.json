@@ -170,7 +170,7 @@
         "areaId": "area8",
         "receiptId": "boss-veteran-v1:borough-marshals-pistol-v1"
       },
-      "charge": { "seconds": 0.3, "maxSeconds": 3.5 },
+      "charge": { "seconds": 0.3, "maxSeconds": 3.5, "statusSeconds": 0.8 },
       "arc": { "jumps": 3, "hopRange": 4.5, "hopDamageFactor": 0.75, "stunSeconds": 0.6, "bossStunSeconds": 0.2 }
     }
   },
@@ -313,7 +313,10 @@
       "staminaPerSecond": 10,
       "staggerAfter": 3,
       "staggerSeconds": 0.16,
-      "staggerRecovery": 1.4
+      "staggerRecovery": 1.4,
+      "hitStagger": 0.12,
+      "hitChip": 0.1,
+      "recoveryReadySeconds": 0.1
     },
     "surgicalKnife": {
       "itemId": "surgeons-knife-v1",

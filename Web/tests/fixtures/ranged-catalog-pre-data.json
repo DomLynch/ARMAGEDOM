@@ -178,7 +178,8 @@
     },
     "charge": {
       "seconds": 0.3,
-      "maxSeconds": 3.5
+      "maxSeconds": 3.5,
+      "statusSeconds": 0.8
     },
     "arc": {
       "jumps": 3,
