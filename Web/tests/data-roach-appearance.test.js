@@ -4,18 +4,25 @@ import fs from "node:fs";
 import { GAME_DATA, validateAppearance } from "../src/engine/game-data.js";
 import { countNumberLiterals } from "../../scripts/number-literal-gate.mjs";
 import { roachSignatures } from "./helpers/roach-signatures.js";
+import { assertClose } from "./helpers/assert-close.js";
 
-// Data move: the shell taper band and the wear noise of roach-appearance.js moved to appearance.json `roachCoat`. The fixture holds one SHA-256
-// per roach recipe over the geometry (position, normal, colour) and the material it writes onto a 240-vertex synthetic roach mesh whose shell
-// weight sweeps 0 to 1, dumped from the old module.
+// Data move: the shell taper band and the wear noise of roach-appearance.js moved to appearance.json `roachCoat`. The fixture holds, per roach
+// recipe, the geometry arrays (position, normal, colour) and the material it writes onto a 240-vertex synthetic roach mesh whose shell weight
+// sweeps 0 to 1, dumped from the module (identical to the pre-move hashes, which passed on the same input).
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/roach-appearance-pre-data.json", import.meta.url)));
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/appearance.json", import.meta.url))));
 
 test("every roach recipe produces exactly the old geometry, colours and material", () => {
   const now = roachSignatures();
   assert.deepEqual(Object.keys(now), Object.keys(old));
-  for (const [id, hash] of Object.entries(old)) assert.equal(now[id], hash, id);
-  assert.equal(new Set(Object.values(old)).size, 6, "the fixture covers six distinct looks");
+  // The wear field uses sin and cos, which can differ in the last digit between machines: compare the float32 arrays to 1e-6.
+  for (const [id, expected] of Object.entries(old))
+    assertClose(now[id], expected, id, { relative: 1e-6, absolute: 1e-6 });
+  assert.equal(
+    new Set(Object.values(old).map((v) => JSON.stringify(v))).size,
+    6,
+    "the fixture covers six distinct looks",
+  );
 });
 
 test("the numbers are frozen data read through game-data.js", () => {

@@ -9,6 +9,11 @@ export const appearanceExtraKeys = () => [
   "animalCoat",
   "roachCoat",
   "animalOffsets",
+  "feralTorsoMask",
+  "pickupGlow",
+  "crownSplit",
+  "finisherCosmetics",
+  "severBloodEffect",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -17,6 +22,33 @@ export function validateAppearanceExtras(d, tools) {
   validateAnimalCoat(d, tools);
   validateRoachCoat(d, tools);
   validateAnimalOffsets(d, tools);
+  validateFeralAndGlow(d, tools);
+  validateFinisherLooks(d, tools);
+}
+
+const hexColour = (fail, field, v) => {
+  if (typeof v !== "string" || !/^#[0-9a-f]{6}$/.test(v)) fail("appearance", `${field} must be #rrggbb`);
+};
+// finisher-crown.js: the vertex budget, the cut colour and how far the halves open (radians, metres). finisher-cosmetics.js: the corpse
+// glow pulse (base share and swing) and how much of the pulse tints the colour. sever-blood-effect.js: the jet cone, the pool disc, the
+// blood colour and the pool's lift off the ground.
+function validateFinisherLooks(d, { fail, between }) {
+  closed(d.crownSplit, ["maxVertices", "cutColor", "openRadians", "openMetres"]);
+  between("crownSplit.maxVertices", d.crownSplit.maxVertices, 1000, 1000000);
+  hexColour(fail, "crownSplit.cutColor", d.crownSplit.cutColor);
+  between("crownSplit.openRadians", d.crownSplit.openRadians, 0, 1);
+  between("crownSplit.openMetres", d.crownSplit.openMetres, 0, 0.1);
+  closed(d.finisherCosmetics, ["pulseBase", "pulseSwing", "hotMix"]);
+  for (const k of ["pulseBase", "pulseSwing", "hotMix"])
+    between(`finisherCosmetics.${k}`, d.finisherCosmetics[k], 0, 1);
+  closed(d.severBloodEffect, ["jetTopRadius", "jetSegments", "poolSegments", "color", "groundLift"]);
+  between("severBloodEffect.jetTopRadius", d.severBloodEffect.jetTopRadius, 0, 10);
+  for (const k of ["jetSegments", "poolSegments"]) {
+    between(`severBloodEffect.${k}`, d.severBloodEffect[k], 3, 64);
+    if (!Number.isInteger(d.severBloodEffect[k])) fail("appearance", `severBloodEffect.${k} must be a whole number`);
+  }
+  hexColour(fail, "severBloodEffect.color", d.severBloodEffect.color);
+  between("severBloodEffect.groundLift", d.severBloodEffect.groundLift, 0, 0.1);
 }
 
 // animal-cycle.js: per cycle (A, B) the roamers whose body sits off its placement point, as x and z offsets in metres.
@@ -29,6 +61,19 @@ function validateAnimalOffsets(d, { fail, between }) {
       between(`animalOffsets.${cycle}.${key}.x`, offset.x, -1, 1);
       between(`animalOffsets.${cycle}.${key}.z`, offset.z, -1, 1);
     }
+}
+
+// feral-body-shapes.js: the torso taper band (`from`, `range`) maps a skin weight to 0..1. pickup-glow.js: the contour stroke width in
+// pixels, its colour (#rrggbb) and how far its render order sits above the pickup's own.
+function validateFeralAndGlow(d, { fail, between }) {
+  closed(d.feralTorsoMask, ["from", "range"]);
+  between("feralTorsoMask.from", d.feralTorsoMask.from, -10, 10);
+  between("feralTorsoMask.range", d.feralTorsoMask.range, 0.001, 100);
+  closed(d.pickupGlow, ["stroke", "color", "orderOffset"]);
+  between("pickupGlow.stroke", d.pickupGlow.stroke, 0.1, 20);
+  between("pickupGlow.orderOffset", d.pickupGlow.orderOffset, 0.0001, 1);
+  if (typeof d.pickupGlow.color !== "string" || !/^#[0-9a-f]{6}$/.test(d.pickupGlow.color))
+    fail("appearance", "pickupGlow.color must be #rrggbb");
 }
 
 // visual.json clothing.minTonalGap: the least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable
@@ -189,4 +234,48 @@ export function validateMobSize(m, { fail, number }) {
     if (!Number.isFinite(f) || f < m.min || f > m.max)
       fail("creatures", `mobSize.factors ${f} is outside ${m.min} to ${m.max}`);
   if (m.factors.some((f, i) => i && f <= m.factors[i - 1])) fail("creatures", "mobSize.factors must rise");
+}
+
+// The top-level keys of creatures.json. (The list lives here, not in game-data.js, to keep that file under the density limit.)
+export const creatureKeys = () => [
+  "schema_version",
+  "moves",
+  "playerAttacks",
+  "playerHealth",
+  "defaultResponse",
+  "salamanderBreath",
+  "drone",
+  "catalogue",
+  "behaviours",
+  "animalCycles",
+  "gauntHumanCycles",
+  "hollowTuning",
+  "creatureSim",
+  "mobSize",
+  "feralBodyShapes",
+  "feralCoatProfiles",
+  "gauntShape",
+  "rigCapabilities",
+  "bridgeSteering",
+  "droneLaser",
+];
+
+// creatures.json bridgeSteering (bridge-steering.js) and droneLaser (drone-laser.js): metres, seconds and a leash radius.
+export function validateCreatureExtras(d, { fail, number }) {
+  closed(d.bridgeSteering, ["edgeMargin", "leash", "progressStep", "stallSeconds", "waypointReach"]);
+  for (const [name, min, max] of [
+    ["edgeMargin", 0, 1],
+    ["leash", 0.1, 1000],
+    ["progressStep", 0.001, 5],
+    ["stallSeconds", 0.05, 60],
+    ["waypointReach", 0.01, 5],
+  ]) {
+    number("creatures", `bridgeSteering.${name}`, d.bridgeSteering[name], min);
+    if (d.bridgeSteering[name] > max) fail("creatures", `bridgeSteering.${name} above ${max}`);
+  }
+  closed(d.droneLaser, ["trailMetres", "width"]);
+  for (const name of ["trailMetres", "width"]) {
+    number("creatures", `droneLaser.${name}`, d.droneLaser[name], 0.001);
+    if (d.droneLaser[name] > 10) fail("creatures", `droneLaser.${name} above 10`);
+  }
 }

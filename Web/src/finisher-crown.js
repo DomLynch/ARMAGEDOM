@@ -1,4 +1,8 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+// The vertex budget, the cut colour and how far the halves open are appearance.json `crownSplit`.
+const CROWN = GAME_DATA.appearance.crownSplit;
+const KEY_PRECISION = 1e5; // cap loop welding: cut-plane positions equal to a hundred-thousandth of a metre are one point
 
 // Owned static skull buffers only. The caller's prepared head materials/maps,
 // private actor skeleton and original model remain borrowed and unchanged.
@@ -9,7 +13,7 @@ export function prepareSplitCrown(head, options) {
     if (step.done) return step.value;
   }
 }
-export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
+export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices } = {}) {
   if (!head?.group || !head.center || !Number.isSafeInteger(maxVertices) || maxVertices < 1)
     throw Error("Invalid crown preparation");
   const names = [...(head.headParts ?? ["Photo", "PhotoEyes", "PhotoTeeth"]), "Scavenger hair"];
@@ -27,7 +31,12 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
   const geometries = [],
     caps = [],
     halves = [],
-    cut = new T.MeshStandardMaterial({ name: "Owned crown cut", color: 0x49251f, roughness: 1, side: T.DoubleSide });
+    cut = new T.MeshStandardMaterial({
+      name: "Owned crown cut",
+      color: CROWN.cutColor,
+      roughness: 1,
+      side: T.DoubleSide,
+    });
   let vertices = 0,
     triangles = 0,
     capTriangles = 0,
@@ -144,7 +153,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
         if (segments.length) {
           const points = new Map(),
             edges = new Map(),
-            key = (p) => [p.y, p.z].map((v) => Math.round(v * 1e5)).join("/");
+            key = (p) => [p.y, p.z].map((v) => Math.round(v * KEY_PRECISION)).join("/");
           for (const [a, b] of segments) {
             const ka = key(a),
               kb = key(b);
@@ -246,8 +255,8 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
         const t = T.MathUtils.clamp(amount, 0, 1);
         halves.forEach((h, i) => {
           const side = i ? 1 : -1;
-          h.rotation.z = -side * 0.19 * t;
-          h.position.x = plane + side * 0.008 * t;
+          h.rotation.z = -side * CROWN.openRadians * t;
+          h.position.x = plane + side * CROWN.openMetres * t;
         });
       },
       stats() {
