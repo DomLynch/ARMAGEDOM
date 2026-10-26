@@ -148,7 +148,6 @@
     "engine/weapon-tiles.js": 6,
     "engine/world-events.js": 6,
     "face-allocator.js": 2,
-    "face-appearance.js": 80,
     "face-recipes.js": 9,
     "feral-body-shapes.js": 2,
     "finisher-crown.js": 5,
