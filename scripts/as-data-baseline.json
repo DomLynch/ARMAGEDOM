@@ -71,12 +71,10 @@
   "rigLiterals": {},
   "numberLiterals": {
     "engine/bone-saw.js": 3,
-    "engine/creature-sim.js": 2,
     "engine/marked-hunters.js": 12,
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
     "engine/reaper.js": 3,
-    "engine/sever-blood-data.js": 2,
     "finisher-impact-profile.js": 8,
     "hollow-encounter.js": 11
   },

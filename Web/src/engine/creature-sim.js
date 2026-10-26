@@ -6,7 +6,7 @@ import { createGame, stepCreatureAI, resolveCreatureContacts, rangedHit } from "
 import { GAME_DATA } from "./game-data.js";
 
 const TICK = 1 / 60; // the knife pilot requires fixed 60 Hz ticks
-const MAX_DT = 0.25;
+const { maxStepSeconds: MAX_DT, defaultStepSeconds: DEFAULT_DT } = GAME_DATA.creatures.creatureSim; // data/creatures.json
 const snapshot = (e) => ({ ...e, pos: { ...e.pos }, facing: { ...e.facing } });
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const point = (p) => ({ x: p.x, z: p.z });
@@ -105,7 +105,7 @@ export function createCreatureSim({ game, world, pilot, creatures } = {}) {
     game: g,
     /** The sim's own copy of a reported player (hp, stamina, hurt timers after creature attacks), or null. */
     player: (id) => entities.get(id) ?? null,
-    step({ players = [], hits = [], dt = 0.1, services = {}, rules = {} } = {}) {
+    step({ players = [], hits = [], dt = DEFAULT_DT, services = {}, rules = {} } = {}) {
       const events = [];
       try {
         if (!Number.isFinite(dt) || dt < 0) throw new TypeError("Finite nonnegative dt required");
