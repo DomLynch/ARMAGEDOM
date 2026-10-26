@@ -4,6 +4,9 @@ import { weaponTileIcon } from "./weapon-tile-icons.js";
 import { lockerStored } from "./locker-core.js";
 import { MELEE_VARIANTS } from "../melee-equipment.js";
 import { WEAPON_TILES as TILES } from "./weapon-tiles-data.js";
+import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./game-data-combat-text.js";
+const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.json
 const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
 const dry = (magazine, reserve) => !magazine && !reserve;
@@ -58,7 +61,7 @@ export function carriedWeaponTiles(g) {
     );
   add(
     flameId,
-    "Ember Projector",
+    GEAR_TEXT.emberProjector,
     emberOwned ? "boss-equip-emberProjector" : "flame-equip",
     g.flameFuel?.collected || emberOwned,
     g.flameFuel?.fuelUnits > 0
@@ -85,7 +88,7 @@ export function carriedWeaponTiles(g) {
             : p.family === "pistols"
               ? `${g.pistol?.magazine ?? 0}/6 · ${g.pistol?.reserve ?? 0}`
               : field === "grenade"
-                ? `${state?.magazine ?? 0} charges`
+                ? fillText(GEAR_TEXT.charges, { count: state?.magazine ?? 0 })
                 : `${state?.magazine ?? 0}/${p.rules.capacity} · ${state?.reserve ?? 0}`;
     add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? "Empty" : ammo, empty);
   }
@@ -98,7 +101,7 @@ export function carriedWeaponTiles(g) {
       owned: true,
       companion: true,
       empty: false,
-      ammo: reaperSelected(g) ? "Deployed" : "Recall / Deploy",
+      ammo: reaperSelected(g) ? "Deployed" : GEAR_TEXT.recallDeploy,
     });
   return rows;
 }
@@ -193,7 +196,7 @@ export function createWeaponTiles(s, select) {
     const control = document.getElementById(row.control);
     if (row.empty && control?.disabled) {
       // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
-      s.game.message = `${row.name} is empty.`;
+      s.game.message = fillText(GEAR_TEXT.empty, { name: row.name });
       s.game.messageUntil = s.game.time + TILES.emptyMessageSeconds;
       return;
     }
@@ -282,13 +285,13 @@ export function createWeaponTiles(s, select) {
       const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
       b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;
       b.setAttribute("aria-pressed", String(row.active));
-      b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? " · equipped" : " · tap to equip"}`);
+      b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? GEAR_TEXT.equippedSuffix : GEAR_TEXT.tapToEquip}`);
       const ammo = b.querySelector("small");
       ammo.hidden = row.ammo === "Melee";
       ammo.textContent = ammo.hidden ? "" : row.ammo.replace("% fuel", "%");
     }
     const active = rows.find((r) => r.active);
-    current.textContent = active ? `${active.name} · ${active.ammo}` : "Weapon selection";
+    current.textContent = active ? `${active.name} · ${active.ammo}` : GEAR_TEXT.weaponSelection;
     hint();
   }
   return {

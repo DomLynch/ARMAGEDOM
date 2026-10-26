@@ -25,7 +25,7 @@ const unsupported = (reason) => ({ supported: false, reason, setRecoil() {}, res
 export function attachPistolSlide(mount) {
   const container = mount?.getObjectByName("PistolMesh");
   if (!container || container.getObjectByName("PistolSlide"))
-    return unsupported("Missing pistol container, or slide already attached");
+    return unsupported("Missing pistol container, or slide already attached"); // text-ok: asset-inspection diagnostic, never shown to the player
   const meshes = container.children;
   if (
     meshes.length !== 3 ||
@@ -33,7 +33,7 @@ export function attachPistolSlide(mount) {
     container.quaternion.angleTo(new T.Quaternion()) > 1e-6 ||
     container.scale.distanceTo(new T.Vector3(1, 1, 1)) > 1e-6
   )
-    return unsupported("Pistol container differs from the inspected asset");
+    return unsupported("Pistol container differs from the inspected asset"); // text-ok: asset-inspection diagnostic, never shown to the player
   const names = ["CharcoalGrip", "WornSteel", "MuzzleRecess"],
     counts = [264, 1980, 1848];
   const splits = [],
@@ -55,7 +55,7 @@ export function attachPistolSlide(mount) {
       mesh.quaternion.angleTo(new T.Quaternion()) > 1e-6 ||
       mesh.scale.distanceTo(new T.Vector3(1, 1, 1)) > 1e-6
     )
-      return unsupported("Pistol primitive differs from the inspected asset");
+      return unsupported("Pistol primitive differs from the inspected asset"); // text-ok: asset-inspection diagnostic, never shown to the player
     const vertices = new Map(),
       parents = new Map(),
       triangles = [];
@@ -89,7 +89,7 @@ export function attachPistolSlide(mount) {
     const fixedIndices = [],
       slideIndices = [];
     for (const part of parts.values()) {
-      if (part.length !== 44) return unsupported("Authored bevel island topology differs");
+      if (part.length !== 44) return unsupported("Authored bevel island topology differs"); // text-ok: asset-inspection diagnostic, never shown to the player
       islands++;
       const bounds = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
       for (const triangle of part)
@@ -104,7 +104,7 @@ export function attachPistolSlide(mount) {
       const signature = key(bounds),
         upper = expected.has(signature);
       if (upper) {
-        if (matched.has(signature)) return unsupported("Duplicate upper island");
+        if (matched.has(signature)) return unsupported("Duplicate upper island"); // text-ok: asset-inspection diagnostic, never shown to the player
         matched.add(signature);
       }
       const target = upper ? slideIndices : fixedIndices;
@@ -113,7 +113,7 @@ export function attachPistolSlide(mount) {
     if (slideIndices.length) splits.push({ mesh, source, fixedIndices, slideIndices });
   }
   if (islands !== 31 || matched.size !== 14 || splits.length !== 2)
-    return unsupported("Upper assembly does not match all fourteen authored islands");
+    return unsupported("Upper assembly does not match all fourteen authored islands"); // text-ok: asset-inspection diagnostic, never shown to the player
   const slide = new T.Group();
   slide.name = "PistolSlide";
   const owned = [];

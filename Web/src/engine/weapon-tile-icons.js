@@ -1,3 +1,4 @@
+import { GAME_DATA } from "./game-data.js";
 // Small local silhouettes of the carried weapon families; no model/image requests.
 const paths = {
   railgun:
@@ -16,20 +17,21 @@ const paths = {
   grenade: "M42 13H60L68 24 67 35 58 42H43L34 35 33 24Z M43 6H57V14H43Z M53 6H68L76 22 72 25 63 12H53Z M47 0H55V6H47Z",
   rocket: "M3 15H11V11H17V15H75L83 10 97 20 83 30 75 25H54L50 39H43L46 25H29V31H22V25H17V29H11V25H3Z M36 9H48V15H36Z",
 };
-const styles = {
-  knife: ["knife", "KNIFE"],
-  "hale-pitborn-cleaver-v1": ["cleaver", "CLEAVER"],
-  "surgeons-knife-v1": ["saw", "BONE SAW"],
-  "westminster-start-pistol-v1": ["pistol", "PISTOL"],
-  "watchmans-pistol-v1": ["drone", "REAPER"],
-  "borough-marshals-pistol-v1": ["railgun", "ARC GUN"],
-  "bridge-warden-rifle-v1": ["rifle", "RIFLE"],
-  "flamethrower-area8-v1": ["flame", "EMBER"],
-  "ember-flamethrower-v1": ["flame", "EMBER"],
-  "south-stalker-shotgun-v1": ["shotgun", "SHOTGUN"],
-  "standard-grenade-v1": ["grenade", "GRENADE"],
-  "borough-butchers-rocket-launcher-v1": ["rocket", "ROCKET"],
+const families = {
+  knife: "knife",
+  "hale-pitborn-cleaver-v1": "cleaver",
+  "surgeons-knife-v1": "saw",
+  "westminster-start-pistol-v1": "pistol",
+  "watchmans-pistol-v1": "drone",
+  "borough-marshals-pistol-v1": "railgun",
+  "bridge-warden-rifle-v1": "rifle",
+  "flamethrower-area8-v1": "flame",
+  "ember-flamethrower-v1": "flame",
+  "south-stalker-shotgun-v1": "shotgun",
+  "standard-grenade-v1": "grenade",
+  "borough-butchers-rocket-launcher-v1": "rocket",
 };
+const CAPTIONS = GAME_DATA.combatText.gear.iconCaptions; // data/combatText.json: the caption under each silhouette
 const icons = Object.fromEntries(
   Object.entries(paths).map(([id, d]) => [
     id,
@@ -39,7 +41,7 @@ const icons = Object.fromEntries(
   ]),
 );
 export function weaponTileIcon(itemId) {
-  const style = styles[itemId];
-  if (!style) throw Error("Missing carried weapon silhouette: " + itemId);
-  return { family: style[0], caption: style[1], mask: icons[style[0]] };
+  const family = families[itemId];
+  if (!family || !CAPTIONS[itemId]) throw Error("Missing carried weapon silhouette: " + itemId);
+  return { family, caption: CAPTIONS[itemId], mask: icons[family] };
 }
