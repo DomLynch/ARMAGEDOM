@@ -73,8 +73,10 @@ async function snapshot() {
     grenade: { gltf: { scene: grenadeScene } },
     shotgun: { gltf: { scene: model("Shotgun", [3, 0.2, 0.4]) }, description: { pose: { root: null } } },
   };
+  // The owned grenade's card text is built from its payload (weapons.json), so the fixture carries the real grenade payload.
+  const { GRENADE_PROFILE } = await import("../src/engine/weapon-catalog.js");
   const data = {
-    grenade: profile("g1", "grenades"),
+    grenade: profile("g1", "grenades", { payload: GRENADE_PROFILE.payload }),
     shotgun: profile("s1", "shotguns"),
     rifle: profile("r1", "rifles"),
   };

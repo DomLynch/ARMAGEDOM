@@ -216,7 +216,7 @@ export function createRifleView(s, dispatch) {
       return null;
     return {
       id: data.itemId,
-      label: "Collect " + data.name,
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: data.name }),
       pickup: true,
       position: state.dropPosition,
       run() {

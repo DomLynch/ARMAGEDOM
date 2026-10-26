@@ -282,7 +282,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
     if (!g || !eligible(g)) return null;
     return {
       id: g.world.uniqueRewardData.itemId,
-      label: TEXT.collectLabel,
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: CLEAVER }),
       pickup: true,
       position: g.uniqueReward.dropPosition,
       run() {

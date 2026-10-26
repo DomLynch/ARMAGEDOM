@@ -14,18 +14,18 @@ const text = (field, v, placeholders = []) => {
 // Each section, each key with the {placeholders} its text must use; a nested object is a closed group of keys. A function, not a
 // table, so this module adds nothing to the constant-table baseline.
 const spec = () => ({
-  shared: { storedInSafehouse: [] },
+  shared: { storedInSafehouse: [], pickupCollect: ["name"] },
   uniqueReward: {
     equipped: ["name"], cleaverLoadFailed: [], weaponLoadFailed: [], fallbackName: [], stateRetry: [], statePending: [],
     stateLegacyDead: [], stateOwned: ["name", "status"], storedForMelee: [], ownedEquipped: [], stateLocked: [],
     buttonStored: ["name"], button: ["action", "name"],
     actions: { loading: [], retryLoading: [], loadWeapon: [], equipped: [], equip: [], locked: [] },
-    comparison: ["name", "slash", "heavy", "slashCost", "heavyCost"], collectLabel: [],
+    comparison: ["name", "slash", "heavy", "slashCost", "heavyCost"],
   },
   flame: {
     name: [], outOfFuel: [], loadFailed: [], ready: [], benefit: ["damage", "interval", "range"], stateLocked: ["benefit"],
     stateEmpty: [], stateOwned: ["status", "benefit", "fuel", "seconds"], statusEquipped: [], statusStored: [],
-    buttonLoading: [], buttonLower: [], buttonRetry: [], buttonEmpty: [], buttonEquip: [], collectLabel: [],
+    buttonLoading: [], buttonLower: [], buttonRetry: [], buttonEmpty: [], buttonEquip: [],
   },
   bossEquipment: {
     loadFailed: [], equipped: ["name"], returned: [],

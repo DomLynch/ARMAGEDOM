@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
   "shared": {
-    "storedInSafehouse": "Stored in safehouse"
+    "storedInSafehouse": "Stored in safehouse",
+    "pickupCollect": "Collect {name}"
   },
   "uniqueReward": {
     "equipped": "{name} equipped.",
@@ -25,9 +26,7 @@
       "equip": "Equip",
       "locked": "Locked"
     },
-    "comparison": "{name}: Slash {slash} / Heavy {heavy} damage · stamina {slashCost}/{heavyCost}",
-    "collectLabel": "Collect Pitborn Cleaver"
-  },
+    "comparison": "{name}: Slash {slash} / Heavy {heavy} damage · stamina {slashCost}/{heavyCost}"  },
   "flame": {
     "name": "Flamethrower",
     "outOfFuel": "Flamethrower is out of fuel.",
@@ -43,9 +42,7 @@
     "buttonLower": "Return to normal weapon",
     "buttonRetry": "Retry loading & equip flamethrower",
     "buttonEmpty": "Empty flamethrower",
-    "buttonEquip": "Equip Ember Projector",
-    "collectLabel": "Collect Flamethrower"
-  },
+    "buttonEquip": "Equip Ember Projector"  },
   "bossEquipment": {
     "loadFailed": "Weapon loading unavailable. Your reward is kept; retry in Gear.",
     "equipped": "{name} equipped.",

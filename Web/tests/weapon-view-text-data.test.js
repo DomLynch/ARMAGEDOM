@@ -122,7 +122,7 @@ test("unique reward (cleaver) text reads string-equal to the text that was in co
     fillText(t.comparison, { name: "Knife", slash: 12.5, heavy: 30, slashCost: 8, heavyCost: 20 }),
     "Knife: Slash 12.5 / Heavy 30 damage · stamina 8/20",
   );
-  assert.equal(t.collectLabel, "Collect Pitborn Cleaver");
+  assert.equal(fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: GAME_DATA.combatText.rewardNames.cleaver }), "Collect Pitborn Cleaver");
 });
 
 test("flamethrower text reads string-equal to the text that was in code", () => {
@@ -151,7 +151,8 @@ test("flamethrower text reads string-equal to the text that was in code", () => 
   assert.equal(t.buttonRetry, "Retry loading & equip flamethrower");
   assert.equal(t.buttonEmpty, "Empty flamethrower");
   assert.equal(t.buttonEquip, "Equip Ember Projector");
-  assert.equal(t.collectLabel, "Collect Flamethrower");
+  assert.equal(fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: t.name }), "Collect Flamethrower");
+  assert.equal(fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: "Bridge Rifle" }), "Collect " + "Bridge Rifle");
 });
 
 test("boss equipment text reads string-equal to the text that was in code", () => {

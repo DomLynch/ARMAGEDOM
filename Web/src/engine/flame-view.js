@@ -271,7 +271,7 @@ export function createFlameView(s, persistence) {
     if (!g?.world.flameData || !nearby(g)) return null;
     return {
       id: g.world.flameData.pickupId,
-      label: TEXT.collectLabel,
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: TEXT.name }),
       pickup: true,
       position: g.world.flameData.position,
       run: interact,
