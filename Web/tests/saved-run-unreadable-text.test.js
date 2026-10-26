@@ -16,10 +16,10 @@ test("the in-game message for an unreadable saved run points at Reset game, not 
 
 test("disabled Retry encounter and Try again carry a hint to use the menu", () => {
   const source = read("../src/engine/expedition-runtime.js");
+  // The hint is data (sessionText.json, expedition.resetHint); the title is set from it, and still points at Reset game.
   assert.ok(
-    source.includes(
-      'el("retry").title = el("again").title = g.runSaveInvalid ? "Open the menu and choose Reset game." : "";',
-    ),
+    source.includes('el("retry").title = el("again").title = g.runSaveInvalid ? text("expedition.resetHint") : "";'),
   );
+  assert.equal(JSON.parse(read("../src/data/sessionText.json")).expedition.resetHint, "Open the menu and choose Reset game.");
   assert.ok(source.indexOf('el("retry").disabled') < source.indexOf('el("retry").title'));
 });

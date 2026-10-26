@@ -150,7 +150,7 @@ export function createSaveClient({
     try {
       const response = await fetchImpl(`${baseUrl}/${op}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, // text-ok: HTTP authorization header
         body: JSON.stringify(body),
       });
       const payload = await response.json().catch(() => ({}));
@@ -380,7 +380,7 @@ export function createSaveClient({
     try {
       request = fetchImpl(`${baseUrl}/save_run`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" }, // text-ok: HTTP authorization header
         body,
         keepalive: new TextEncoder().encode(body).length < tuning.keepaliveMaxBytes,
       });
