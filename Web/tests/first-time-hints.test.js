@@ -250,7 +250,7 @@ test("seen flags live in their own key and unavailable or corrupt storage cannot
 test("the browser loop feeds events to the hints and passes the text to the existing notice line", () => {
   const loop = readFileSync(new URL("../src/engine/loop.js", import.meta.url), "utf8");
   assert.match(loop, /hints\.observe\(s\.game\)/);
-  assert.match(loop, /s\.paused \|\| s\.traveling \? "" : hints\.current\(s\.game\)/);
+  assert.match(loop, /s\.paused \|\| s\.traveling \? "" : hints\.current\(s\.game, routeActive\)/);
   assert.match(loop, /s\.hud\.update\(s\.game, hint, hints\.overMessage\)/);
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
   assert.match(hud, /update\(g, hint = "", hintFirst = false\)/);

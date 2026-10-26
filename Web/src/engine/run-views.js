@@ -36,9 +36,7 @@ export function claimStartingPistol(g, dispatch, clearInput) {
   const result = dispatch(g, { type: "claimPickup", pickupId: "westminster-start-pistol-v1" }, true);
   if (result.ok) {
     g.events.push(...result.events);
-    g.message = `Starting Pistol · ${g.pistol.magazine} loaded · ${g.pistol.reserve} spare.`;
-    g.messageUntil = g.time + 3;
-    clearInput();
+    clearInput(); // no message: the pistol tile already shows the loaded and spare rounds
   }
   return true;
 }
