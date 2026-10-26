@@ -8,7 +8,7 @@ const squared = (x) => x ** 2; // tuning-ok: a square
 // the caller's presentation clock owns age; no gameplay events, timers or saves.
 export function createSeverBloodEffect({ THREE: T, scene, world }) {
   const group = new T.Group();
-  group.name = "Sever neck jets and ground pools";
+  group.name = "Sever neck jets and ground pools"; // text-ok: scene-graph object name
   scene.add(group);
   const jetGeometry = new T.CylinderGeometry(1, LOOK.jetTopRadius, 1, LOOK.jetSegments),
     poolGeometry = new T.CircleGeometry(1, LOOK.poolSegments),
@@ -32,12 +32,12 @@ export function createSeverBloodEffect({ THREE: T, scene, world }) {
       mesh.name = name;
       mesh.visible = false;
       mesh.frustumCulled = false;
-      mesh.renderOrder = name === "Sever arterial jet" ? JET_ORDER : 0;
+      mesh.renderOrder = name === "Sever arterial jet" ? JET_ORDER : 0; // text-ok: scene-graph object name
       group.add(mesh);
       return { mesh, token: null, start: 0 };
     });
-  const jets = slots(DATA.jet.capacity, jetGeometry, "Sever arterial jet"),
-    pools = slots(DATA.pool.capacity, poolGeometry, "Sever ground blood pool");
+  const jets = slots(DATA.jet.capacity, jetGeometry, "Sever arterial jet"), // text-ok: scene-graph object name
+    pools = slots(DATA.pool.capacity, poolGeometry, "Sever ground blood pool"); // text-ok: scene-graph object name
   for (const slot of pools) slot.mesh.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the pool flat
   const stop = (slot) => {
     slot.token = null;
