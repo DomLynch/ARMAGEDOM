@@ -14,8 +14,9 @@ const attempt = (fn) => {
 };
 const hashAttributes = (g) => {
   const h = createHash("sha256");
+  // Quantised to 1e-5: the cap shade and the fall use sin and cos, which differ in the last bit between Mac and Linux V8.
   for (const [name, a] of Object.entries(g.attributes))
-    h.update(name).update(new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength));
+    h.update(name).update(Int32Array.from(a.array, (v) => Math.round(v * 1e5)));
   if (g.index) h.update(new Uint8Array(g.index.array.buffer, g.index.array.byteOffset, g.index.array.byteLength));
   for (const g2 of g.groups) h.update(`${g2.start}/${g2.count}/${g2.materialIndex}`);
   return h.digest("hex");
@@ -84,7 +85,8 @@ function rig() {
   return { model, root, clips: [clip] };
 }
 
-const round = (v) => JSON.parse(JSON.stringify(v));
+// Plain data, numbers to 9 decimals (the same last-bit reason as the hashes).
+const round = (v) => JSON.parse(JSON.stringify(v), (_k, x) => (typeof x === "number" ? Math.round(x * 1e9) / 1e9 : x));
 
 export function openedValues() {
   const out = { poses: {}, start: {} };
