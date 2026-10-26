@@ -76,7 +76,6 @@
     "combat.js": 1,
     "creature-behaviour-presets.js": 3,
     "creature-moves.js": 1,
-    "donor-motion.js": 15,
     "donor/knife.js": 10,
     "drone-laser.js": 3,
     "drone-mechanics.js": 1,
