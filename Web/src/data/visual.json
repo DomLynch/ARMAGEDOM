@@ -130,7 +130,21 @@
     "minOpacity": 0.6,
     "itemPulse": 0.07,
     "labelHeight": 1.6,
-    "labelWidth": 3.4
+    "labelWidth": 3.4,
+    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25 },
+    "glow": {
+      "canvasPx": 256,
+      "groundY": 0.04,
+      "clearShare": 0.8,
+      "clearAlpha": 0.05,
+      "innerAlpha": 0.45,
+      "bandAlpha": 0.6,
+      "outerAlpha": 0.45,
+      "tailShare": 0.35,
+      "tailAlpha": 0.18
+    },
+    "ringY": 0.045,
+    "ringSegments": 48
   },
   "routeArrow": {
     "peakOpacity": 0.6,

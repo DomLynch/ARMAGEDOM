@@ -85,7 +85,6 @@
     "engine/commander/session.js": 7,
     "engine/creature-catalogue.js": 1,
     "engine/creature-sim.js": 1,
-    "engine/drop-marker.js": 33,
     "engine/expedition-core.js": 4,
     "engine/expedition-runtime.js": 14,
     "engine/finisher-arm.js": 13,
