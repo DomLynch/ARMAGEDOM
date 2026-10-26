@@ -1,6 +1,6 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
-import { rigCapability, rigText } from "./rig-capabilities.js";
+import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
@@ -74,6 +74,11 @@ import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bl
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
 export const attacks = GAME_DATA.creatures.playerAttacks;
+// The rig ids of the kinds addressed by name below (rig-capabilities.json species).
+const DRONE_RIG = rigOfSpecies("drone"),
+  RAT_RIG = rigOfSpecies("rat"),
+  ROACH_RIG = rigOfSpecies("roach"),
+  DOG_RIG = rigOfSpecies("dog");
 const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
   behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
 });
@@ -1459,7 +1464,7 @@ function hollowActor(g, position, index = 0, mobSize = 1) {
   );
 }
 function droneResident(g, placement) {
-  const foundation = creatureCatalogue.get("low-hover-drone");
+  const foundation = creatureCatalogue.get(DRONE_RIG);
   return Object.assign(enemy(0, placement.pos), {
     rig: foundation.runtimeIdentity,
     areaId: g.world.areaId,
@@ -1501,7 +1506,7 @@ function markedHunter(g, position, config) {
 }
 function declaredResident(g, placement, mobSize) {
   const foundation = placement.foundationRef ? creatureCatalogue.get(placement.foundationRef) : null;
-  if (foundation?.runtimeIdentity === "low-hover-drone") {
+  if (foundation?.runtimeIdentity === DRONE_RIG) {
     if (DRONE_KEYS[placement.key] !== g.world.areaId) throw Error("Unsupported declared drone death placement");
     return droneResident(g, placement);
   }
@@ -1535,7 +1540,7 @@ export function initializeAreaResidents(g) {
         !dead.has(p.key) &&
         (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) ||
           !g.supplies?.issued.includes(p.key)) &&
-        (p.foundationRef !== "low-hover-drone" || !(g.droneDeaths ?? []).includes(p.key)),
+        (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key)),
     )
     .map((placement) =>
       Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
@@ -1550,17 +1555,17 @@ export function initializeAreaResidents(g) {
     const rat = residents.find((e) =>
       ["westminster-roamer-4", "east-roamer-7", "south-roamer-3"].includes(e.placementKey),
     );
-    if (rat) Object.assign(rat, animalFoundationParameters("original-rat", g.player.combatScale));
+    if (rat) Object.assign(rat, animalFoundationParameters(RAT_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.roach) {
     const roach = residents.find((e) => e.placementKey === "westminster-roamer-2");
-    if (roach) Object.assign(roach, animalFoundationParameters("original-roach", g.player.combatScale));
+    if (roach) Object.assign(roach, animalFoundationParameters(ROACH_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.dog) {
     const dog = residents.find((e) =>
       ["westminster-roamer-6", "east-roamer-4", "south-roamer-8"].includes(e.placementKey),
     );
-    if (dog) Object.assign(dog, animalFoundationParameters("original-dog", g.player.combatScale));
+    if (dog) Object.assign(dog, animalFoundationParameters(DOG_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.animalVariants)
     for (const e of residents) {
@@ -1573,7 +1578,7 @@ export function initializeAreaResidents(g) {
         area === "east" &&
         e.placementKey === "east-roamer-4" &&
         recipe === "dog-pack-chaser" &&
-        rig === "original-dog"
+        rig === DOG_RIG
       )
         e.residentIntent = PACK_CHASER;
       e.pos = { x: e.pos.x + offset.x, z: e.pos.z + offset.z };
@@ -1619,7 +1624,7 @@ export function initializeAreaResidents(g) {
         populationAllowsDrone(policy, area, placement.key) &&
         !dead.has(placement.key) &&
         !g.droneDeaths.includes(placement.key) &&
-        !placements.some((p) => p.foundationRef === "low-hover-drone" && p.key === placement.key)
+        !placements.some((p) => p.foundationRef === DRONE_RIG && p.key === placement.key)
       )
         residents.push(
           Object.assign(droneResident(g, placement), {
@@ -1672,7 +1677,7 @@ function residentPatrol(g, e, dt) {
     e.packCompanions = observeResidentCompanions(
       e.residentIntent,
       e,
-      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === "original-dog"),
+      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === DOG_RIG),
       { areaId: g.world.areaId, lineClear: (a, b) => g.world.lineClear(a, b) },
     );
   const playerDistance = mag(sub(g.player.pos, e.pos)),
