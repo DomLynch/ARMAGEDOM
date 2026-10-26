@@ -250,7 +250,21 @@ export function validateBossRanged(b) {
 }
 // The donor knife: tuning rules, the five named moves, the stamina costs and the cooldowns. Moves are rows of named fields (ticks at 60 Hz).
 export function validateKnife(k) {
-  closed(k, ["rules", "moves", "staminaCosts", "cooldowns"]);
+  closed(k, ["rules", "moves", "staminaCosts", "cooldowns", "swingCurve", "bladeContact"]);
+  // donor/knife.js: where a swing reaches contact (the default contact fraction of the clip and of the donor's source clip), how far
+  // into the windup the curve bends (ratios of those), the follow-through gap, and the body capsule a swept blade is tested against
+  // (bottom and top heights and radius, metres, scaled by the target's body scale; the sweep is sampled every stepMetres).
+  closed(k.swingCurve, [
+    "contact",
+    "sourceContact",
+    "windupContactRatio",
+    "windupSourceRatio",
+    "followContactGap",
+    "followSourceRatio",
+  ]);
+  for (const [f, v] of Object.entries(k.swingCurve)) number("weapons", `knife.swingCurve.${f}`, v, 0.0001);
+  closed(k.bladeContact, ["stepMetres", "bodyBottom", "bodyTop", "radius"]);
+  for (const [f, v] of Object.entries(k.bladeContact)) number("weapons", `knife.bladeContact.${f}`, v, 0.0001);
   if (!k.rules || typeof k.rules !== "object") fail("weapons", "knife.rules");
   for (const [name, v] of Object.entries(k.rules)) number("weapons", `knife.rules.${name}`, v);
   const ids = Object.keys(k.moves ?? {});
