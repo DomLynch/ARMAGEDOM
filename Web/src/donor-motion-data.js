@@ -1,7 +1,14 @@
 // Presentation numbers for donor-motion.js: the swing-phase curve, the bone-saw poses and the locomotion clock.
 import input from "./donor-motion-data.json" with { type: "json" };
-import { closed, freeze } from "./engine/content-schema.js";
 
+const closed = (x, keys) => {
+  if (!x || typeof x !== "object" || Object.keys(x).length !== keys.length || keys.some((k) => !Object.hasOwn(x, k)))
+    throw TypeError("Invalid donor motion data");
+};
+const freeze = (x) => {
+  for (const child of Object.values(x)) if (child && typeof child === "object") freeze(child);
+  return Object.freeze(x);
+};
 const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
 const fail = () => {
   throw TypeError("Invalid donor motion data");
