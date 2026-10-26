@@ -7,6 +7,7 @@ import bossRangedExtra from "../data/bossRangedExtra.json" with { type: "json" }
 import donorMotion from "../data/donorMotion.json" with { type: "json" };
 import finisher from "../data/finisherData.json" with { type: "json" };
 import audio from "../data/audio.json" with { type: "json" };
+import browserSession from "../data/browserSession.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
@@ -34,6 +35,7 @@ import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
+import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
@@ -63,6 +65,7 @@ import {
 export {
   validateBossEquipment,
   validateBossRanged,
+  validateBrowserSession,
   validateCombatRules,
   validateCommanderSession,
   validateCreatures,
@@ -842,6 +845,7 @@ export function validateRemoteSurvivors(d) {
 const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
+  browserSession: [browserSession, validateBrowserSession],
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   appearance: [appearance, validateAppearance],
