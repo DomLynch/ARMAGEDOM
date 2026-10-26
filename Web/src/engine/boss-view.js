@@ -1,6 +1,7 @@
 import * as T from "three";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { BOSS_VIEW as V } from "./boss-view-data.js";
+import { GAME_DATA } from "./game-data.js";
 export function createBossView(s) {
   const host = document.getElementById("boss-labels");
   if (!host) return { update() {}, dispose() {} };
@@ -34,7 +35,7 @@ export function createBossView(s) {
       const near = Math.hypot(e.pos.x - g.player.pos.x, e.pos.z - g.player.pos.z) < V.labelRange;
       el.hidden = !active || !near;
       if (el.hidden) continue;
-      const name = e.markedHunter ? "HUNTER" : e.bossName;
+      const name = e.markedHunter ? GAME_DATA.combatText.markedHunter.label : e.bossName;
       if (el.textContent !== name) el.textContent = name;
       const position = positionHead(s.actors?.views.get(e.id), el.getBoundingClientRect(), s.camera, {
         width: innerWidth,

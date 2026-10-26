@@ -10,8 +10,10 @@ const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.json
 const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
 const dry = (magazine, reserve) => !magazine && !reserve;
-const rounds = (magazine, capacity, reserve) =>
-  dry(magazine, reserve) ? "Empty" : `${magazine ?? 0}/${capacity} · ${reserve ?? 0}`;
+const ammoText = (magazine, capacity, reserve) =>
+  fillText(GEAR_TEXT.ammoCount, { magazine: magazine ?? 0, capacity, reserve: reserve ?? 0 });
+const fuelText = (units, capacity) => `${Math.ceil((units / capacity) * 100)}${GEAR_TEXT.fuelSuffix}`;
+const rounds = (magazine, capacity, reserve) => (dry(magazine, reserve) ? GEAR_TEXT.ammoEmpty : ammoText(magazine, capacity, reserve));
 // Presentation only: every selection still uses its existing Gear control/writer.
 export function carriedWeaponTiles(g) {
   if (!g?.world) return [];
@@ -31,7 +33,7 @@ export function carriedWeaponTiles(g) {
             ? "westminster-start-pistol-v1"
             : (g.expedition?.selectedPistolVariant ?? "westminster-start-pistol-v1")
           : (g.uniqueReward?.selectedMeleeVariant ?? "knife");
-  const add = (id, name, control, owned, ammo = "Melee", empty = false) => {
+  const add = (id, name, control, owned, ammo = GEAR_TEXT.ammoMelee, empty = false) => {
     if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo, empty });
   };
   for (const id of ["knife", g.world.uniqueRewardData?.itemId].filter(Boolean)) {
@@ -65,8 +67,8 @@ export function carriedWeaponTiles(g) {
     emberOwned ? "boss-equip-emberProjector" : "flame-equip",
     g.flameFuel?.collected || emberOwned,
     g.flameFuel?.fuelUnits > 0
-      ? `${Math.ceil((g.flameFuel.fuelUnits / (g.world.flameData?.capacity ?? 1000)) * 100)}% fuel`
-      : "Empty",
+      ? fuelText(g.flameFuel.fuelUnits, g.world.flameData?.capacity ?? 1000)
+      : GEAR_TEXT.ammoEmpty,
     !(g.flameFuel?.fuelUnits > 0),
   );
   for (const [field, p] of Object.entries(g.world.bossEquipmentData ?? {})) {
@@ -82,15 +84,15 @@ export function carriedWeaponTiles(g) {
               : dry(state?.magazine, state?.reserve),
       ammo =
         p.family === "flamethrowers"
-          ? `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% fuel`
+          ? fuelText(g.flameFuel?.fuelUnits ?? 0, 1000)
           : p.family === "blades"
-            ? "Melee"
+            ? GEAR_TEXT.ammoMelee
             : p.family === "pistols"
-              ? `${g.pistol?.magazine ?? 0}/6 · ${g.pistol?.reserve ?? 0}`
+              ? ammoText(g.pistol?.magazine, TILES.pistolCapacity, g.pistol?.reserve)
               : field === "grenade"
                 ? fillText(GEAR_TEXT.charges, { count: state?.magazine ?? 0 })
-                : `${state?.magazine ?? 0}/${p.rules.capacity} · ${state?.reserve ?? 0}`;
-    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? "Empty" : ammo, empty);
+                : ammoText(state?.magazine, p.rules.capacity, state?.reserve);
+    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? GEAR_TEXT.ammoEmpty : ammo, empty);
   }
   if (g.world.reaperData && ownsReaper(g) && !lockerStored(g, REAPER_ITEM_ID))
     rows.push({
@@ -101,7 +103,7 @@ export function carriedWeaponTiles(g) {
       owned: true,
       companion: true,
       empty: false,
-      ammo: reaperSelected(g) ? "Deployed" : GEAR_TEXT.recallDeploy,
+      ammo: reaperSelected(g) ? GEAR_TEXT.ammoDeployed : GEAR_TEXT.recallDeploy,
     });
   return rows;
 }
@@ -216,7 +218,7 @@ export function createWeaponTiles(s, select) {
       extra = count > PAGE;
     root.dataset.page = String(page);
     root.dataset.pages = String(last + 1);
-    position.textContent = `${page + 1} / ${last + 1}`;
+    position.textContent = fillText(GEAR_TEXT.pageOf, { page: page + 1, total: last + 1 });
     for (const [button, disabled] of [
       [prev, page === 0],
       [nextButton, page === last],
@@ -285,13 +287,16 @@ export function createWeaponTiles(s, select) {
       const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
       b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;
       b.setAttribute("aria-pressed", String(row.active));
-      b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? GEAR_TEXT.equippedSuffix : GEAR_TEXT.tapToEquip}`);
+      b.setAttribute(
+        "aria-label",
+        fillText(GEAR_TEXT.tileLabel, { name: row.name, ammo: row.ammo }) + (row.active ? GEAR_TEXT.equippedSuffix : GEAR_TEXT.tapToEquip),
+      );
       const ammo = b.querySelector("small");
-      ammo.hidden = row.ammo === "Melee";
-      ammo.textContent = ammo.hidden ? "" : row.ammo.replace("% fuel", "%");
+      ammo.hidden = row.ammo === GEAR_TEXT.ammoMelee;
+      ammo.textContent = ammo.hidden ? "" : row.ammo.replace(GEAR_TEXT.fuelSuffix, "%");
     }
     const active = rows.find((r) => r.active);
-    current.textContent = active ? `${active.name} · ${active.ammo}` : GEAR_TEXT.weaponSelection;
+    current.textContent = active ? fillText(GEAR_TEXT.tileLabel, { name: active.name, ammo: active.ammo }) : GEAR_TEXT.weaponSelection;
     hint();
   }
   return {
