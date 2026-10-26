@@ -1255,7 +1255,10 @@ export function validateAreaRuntime(d) {
     "landscapeLift",
     "maxFollowSeconds",
     "exitHintMeters",
+    "defaultCharacterScale",
   ]);
+  // defaultCharacterScale: the hero scale for a layout that names none (presence-session.js draws the other players with it).
+  number("areaRuntime", "view.defaultCharacterScale", d.view.defaultCharacterScale, 0.1);
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
   count("areaRuntime", "view.textureBudgetMinMiB", d.view.textureBudgetMinMiB, 1, d.view.textureBudgetMiB);
   number("areaRuntime", "view.cameraNear", d.view.cameraNear, 0.001);

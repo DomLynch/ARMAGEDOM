@@ -119,7 +119,6 @@
     "engine/loop.js": 3,
     "engine/marked-hunters.js": 6,
     "engine/movement-trace.js": 6,
-    "engine/presence-session.js": 2,
     "engine/progression-runtime.js": 1,
     "engine/progression-state.js": 2,
     "engine/qa-bridge.js": 1,
