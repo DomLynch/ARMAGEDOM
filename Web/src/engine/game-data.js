@@ -472,7 +472,7 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation", "render"]);
   // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
   // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
   closed(d.variation, [
