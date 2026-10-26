@@ -152,7 +152,8 @@ export function createExplosionEffects(s) {
         slot.at.z + Math.sin(angle) * out,
       );
       const fadeIn = Math.min(1, puffAge / M.fadeInSeconds);
-      put(smoke, index * M.count + k, facing, place, (M.startDiameterRatio + (M.endDiameterRatio - M.startDiameterRatio) * t) * r, colour.smoke, M.opacity * fadeIn * (1 - t));
+      const diameter = (M.startDiameterRatio + (M.endDiameterRatio - M.startDiameterRatio) * t) * r;
+      put(smoke, index * M.count + k, facing, place, diameter, colour.smoke, M.opacity * fadeIn * (1 - t));
     }
     const burnT = age / C.seconds;
     if (burnT < 1) {
