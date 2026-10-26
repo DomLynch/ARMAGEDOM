@@ -1,4 +1,5 @@
-const ASPECT = 1672 / 941;
+import { WORLD_GEOMETRY } from "./engine/world-geometry-data.js";
+const ASPECT = WORLD_GEOMETRY.imageWidth / WORLD_GEOMETRY.imageHeight;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 function inside(p, poly) {
   let hit = false;
@@ -13,7 +14,7 @@ function distanceSq(p, a, b) {
   const x = b.x - a.x,
     z = b.z - a.z;
   const t = clamp(((p.x - a.x) * x + (p.z - a.z) * z) / (x * x + z * z), 0, 1);
-  return (p.x - a.x - t * x) ** 2 + (p.z - a.z - t * z) ** 2;
+  return (p.x - a.x - t * x) ** 2 + (p.z - a.z - t * z) ** 2; // tuning-ok: squared distance
 }
 const cross = (a, b, p) => (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
 function intersects(a, b, c, d) {
@@ -35,18 +36,18 @@ export function createGeometry(layout) {
     forward = (d + targetZ) / length,
     tan = Math.tan((fieldOfView * Math.PI) / 360);
   function ground(p) {
-    const v = 1 - 2 * p.y,
+    const v = 1 - 2 * p.y, // tuning-ok: image fraction to NDC
       dy = -down + v * forward * tan,
       dz = forward + v * down * tan;
     if (dy >= 0) throw Error("Artwork point is above the ground horizon");
     const t = -h / dy;
-    return { x: (2 * p.x - 1) * tan * ASPECT * t, z: -d + dz * t };
+    return { x: (2 * p.x - 1) * tan * ASPECT * t, z: -d + dz * t }; // tuning-ok: image fraction to NDC
   }
   function point(p, y = 0) {
     const depth = (h - y) * down + (p.z + d) * forward;
     return {
-      x: 0.5 + (p.x / (depth * tan * ASPECT)) * 0.5,
-      y: 0.5 - (((y - h) * forward + (p.z + d) * down) / (depth * tan)) * 0.5,
+      x: 0.5 + (p.x / (depth * tan * ASPECT)) * 0.5, // tuning-ok: NDC to image fraction
+      y: 0.5 - (((y - h) * forward + (p.z + d) * down) / (depth * tan)) * 0.5, // tuning-ok: NDC to image fraction
       depth,
     };
   }
@@ -58,16 +59,17 @@ export function createGeometry(layout) {
     return (
       inside(p, road) &&
       !blockers.some((poly) => inside(p, poly)) &&
-      edges.every(([a, b]) => distanceSq(p, a, b) > (radius + 0.061) ** 2)
+      edges.every(([a, b]) => distanceSq(p, a, b) > (radius + WORLD_GEOMETRY.wallMargin) ** 2) // tuning-ok: squared distance
     );
   }
   function lineClear(a, b) {
     return clear(a) && clear(b) && !edges.some(([c, d]) => intersects(a, b, c, d));
   }
-  function move(position, delta, radius = 0.4) {
+  function move(position, delta, radius = WORLD_GEOMETRY.defaultRadius) {
     let p = { x: position.x, z: position.z };
     if (![delta.x, delta.z, radius].every(Number.isFinite) || radius < 0) return p;
-    const count = Math.max(1, Math.ceil(Math.hypot(delta.x, delta.z) / Math.max(0.025, Math.min(0.2, radius * 0.5))));
+    const { minStep, maxStep, stepRadiusShare } = WORLD_GEOMETRY,
+      count = Math.max(1, Math.ceil(Math.hypot(delta.x, delta.z) / Math.max(minStep, Math.min(maxStep, radius * stepRadiusShare))));
     const dx = delta.x / count,
       dz = delta.z / count;
     for (let i = 0; i < count; i++) {
