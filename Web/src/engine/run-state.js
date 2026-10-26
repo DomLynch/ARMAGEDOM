@@ -11,7 +11,7 @@ import {
   legacyIssuedCount,
   collectedGearSource,
 } from "../supplies.js";
-import { createVestState, isVestState, collectVest } from "../vest.js";
+import { createVestState, isVestState, collectVest, VEST_RULES } from "../vest.js";
 import { PISTOL_RULES } from "../pistol.js";
 
 const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
@@ -232,6 +232,6 @@ export function collectNearbyVest(g, save) {
   if (!result.equipped || !save({ ...g, vest: result.state })) return;
   g.vest = result.state;
   g.events.push({ type: "vest-pickup", actor: g.player, itemId: result.state.itemId });
-  g.message = sessionText("run.vestEquipped");
+  g.message = sessionText("run.vestEquipped", { percent: Math.round(VEST_RULES.reduction * 100) });
   g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
 }
