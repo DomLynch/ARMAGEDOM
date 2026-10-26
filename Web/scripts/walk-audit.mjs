@@ -141,13 +141,18 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
       if (clearance[i] <= 0 || !inZone(link.condition, g.point(at(i % width, (i - (i % width)) / width)))) continue;
       if (target < 0 || best[i] > best[target]) target = i;
     }
-    const reachable = target >= 0 && best[target] > radius;
+    const reachable = target >= 0 && best[target] > radius,
+      // The exit fires when the character steps into the zone, so the route that counts runs from the entry to the first zone cell.
+      // Ground inside the zone is not a corridor: a zone against the picture's edge is shallow by nature.
+      full = reachable ? routeTo(target).reverse() : [],
+      enter = full.findIndex((i) => inZone(link.condition, g.point(at(i % width, (i - (i % width)) / width)))),
+      route = enter >= 0 ? full.slice(0, enter + 1) : full;
     return {
       to: link.to,
       reachable,
-      widestRoute: target >= 0 ? 2 * best[target] : 0, // metres: clear width at the tightest point of the best route
-      cell: target >= 0 ? label(target) : null,
-      route: reachable ? routeTo(target) : [],
+      widestRoute: reachable ? 2 * Math.min(...route.map((i) => clearance[i])) : 0, // metres at the tightest point before the zone
+      cell: route.length ? label(route.at(-1)) : null,
+      route,
     };
   });
   // Where players arrive from other areas must be walkable and joined to the entry too.
@@ -193,7 +198,8 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
     pockets,
     exits: exits.map(({ route, ...e }) => e),
     arrivals,
-    chokes: chokes.map(({ width: w, cell: c }) => ({ width: w, cell: c })),
+    // `at` is the ground point in metres and `picture` the same spot as image fractions, for finding the edges that make the choke.
+    chokes: chokes.map(({ p, width: w, cell: c }) => ({ width: w, cell: c, at: p, picture: g.point(p) })),
     walkableShare: cells([...best.keys()].filter((i) => best[i] > radius)).length / Math.max(1, clearance.filter((c) => c > radius).length),
   };
 }
