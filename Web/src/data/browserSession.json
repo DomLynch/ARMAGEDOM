@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "actorVisualScale": 1.3225,
+  "maxPixelRatio": 1.5,
+  "messageSeconds": 5,
+  "sceneLights": {
+    "hemiSky": "#b9bec9",
+    "hemiGround": "#4b3828",
+    "sunColor": "#ffd7a0",
+    "sunPosition": [-7, 12, 6],
+    "rimColor": "#d4c7a5",
+    "rimIntensity": 3.2,
+    "rimDistance": 5
+  }
+}

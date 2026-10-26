@@ -4,6 +4,7 @@
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
 import audio from "../data/audio.json" with { type: "json" };
+import browserSession from "../data/browserSession.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
@@ -1430,12 +1431,29 @@ export function validateCommander(d) {
     else number("commander", `rules.${name}`, v, 0.001);
 }
 
+// browserSession.json: the page's scene set-up (engine/browser-session.js): actor scale, pixel-ratio cap, the on-screen message time and the
+// three starting lights. The hemisphere and sun intensities are areaRuntime defaultLighting (applyAreaLighting changes them per area).
+export function validateBrowserSession(d) {
+  closed(d, ["schema_version", "actorVisualScale", "maxPixelRatio", "messageSeconds", "sceneLights"]);
+  for (const [name, min, max] of [["actorVisualScale", 0.1, 4], ["maxPixelRatio", 1, 4], ["messageSeconds", 1, 60]])
+    if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("browserSession", `${name} must be ${min} to ${max}`);
+  const l = d.sceneLights;
+  closed(l, ["hemiSky", "hemiGround", "sunColor", "sunPosition", "rimColor", "rimIntensity", "rimDistance"]);
+  for (const name of ["hemiSky", "hemiGround", "sunColor", "rimColor"])
+    if (typeof l[name] !== "string" || !/^#[0-9a-f]{6}$/.test(l[name])) fail("browserSession", `sceneLights.${name} must be #rrggbb`);
+  if (!Array.isArray(l.sunPosition) || l.sunPosition.length !== 3 || !l.sunPosition.every((n) => Number.isFinite(n) && Math.abs(n) <= 100))
+    fail("browserSession", "sceneLights.sunPosition must be three numbers within 100");
+  if (!Number.isFinite(l.rimIntensity) || l.rimIntensity < 0 || l.rimIntensity > 20) fail("browserSession", "sceneLights.rimIntensity");
+  if (!Number.isFinite(l.rimDistance) || l.rimDistance <= 0 || l.rimDistance > 100) fail("browserSession", "sceneLights.rimDistance");
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
   commander: [commander, validateCommander],
   appearance: [appearance, validateAppearance],
+  browserSession: [browserSession, validateBrowserSession],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],

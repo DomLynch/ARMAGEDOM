@@ -90,7 +90,6 @@
     "engine/boss-label.js": 2,
     "engine/boss-ranged.js": 13,
     "engine/boss-weapon-runtime.js": 7,
-    "engine/browser-session.js": 17,
     "engine/client-log.js": 2,
     "engine/commander/match.js": 28,
     "engine/commander/session.js": 7,

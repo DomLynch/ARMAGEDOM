@@ -23,6 +23,7 @@ import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
 import { createPresenceSession, presenceConfig } from "./presence-session.js";
+import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
 import { GAME_DATA } from "./game-data.js";
@@ -77,7 +78,7 @@ export function createBrowserSession(options = {}) {
     residentPlacements: privateContent?.residents,
   };
   // Scale bodies and equipped gear independently of camera framing and combat.
-  const actorVisualScale = 1.3225;
+  const actorVisualScale = GAME_DATA.browserSession.actorVisualScale;
   // Dom selected preview006: retain enlarged actors without extra scene zoom.
   const viewZoomMultiplier = 1;
   const actorManifest = "assets/manifest-hollow.json";
@@ -112,11 +113,14 @@ export function createBrowserSession(options = {}) {
     diagnostics = null;
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera();
-  const hemi = new THREE.HemisphereLight(0xb9bec9, 0x4b3828, 1.6),
-    sun = new THREE.DirectionalLight(0xffd7a0, 2.3);
-  sun.position.set(-7, 12, 6);
+  // Colours are "#rrggbb" in data; three reads them as the same sRGB number the code used to hold (0xb9bec9 ...).
+  const lights = GAME_DATA.browserSession.sceneLights,
+    startLighting = GAME_DATA.areaRuntime.defaultLighting; // data/areaRuntime.json: the intensities before an area's own lighting applies
+  const hemi = new THREE.HemisphereLight(lights.hemiSky, lights.hemiGround, startLighting.fillIntensity),
+    sun = new THREE.DirectionalLight(lights.sunColor, startLighting.keyIntensity);
+  sun.position.set(...lights.sunPosition);
   scene.add(hemi, sun);
-  const rim = new THREE.PointLight(0xd4c7a5, 3.2, 5, 2);
+  const rim = new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, 2);
   scene.add(rim);
   function pause(value) {
     if (travelRecoveryFailed || resetting) value = true;
@@ -422,7 +426,7 @@ export function createBrowserSession(options = {}) {
     presence?.client.on("closed", () => recheckWorld());
     // A normal close, a replaced session and the server's own "closed" codes are not failures worth a row; everything else is.
     presence?.client.on("close", ({ code }) => {
-      if (![1000, 1001, 4010].includes(code) && !GAME_DATA.world.closedCloseCodes.includes(code))
+      if (![1000, 1001, CLOSE_REPLACED].includes(code) && !GAME_DATA.world.closedCloseCodes.includes(code)) // tuning-ok: 1000/1001 are the WebSocket normal-close codes
         beacon.report("presence", `close-${code ?? "none"}`);
     });
     presence?.client.on("refuse", ({ reason }) => beacon.report("presence", `refuse-${reason ?? "none"}`));
@@ -559,7 +563,7 @@ export function createBrowserSession(options = {}) {
       if (disposed || contextLost || game !== owner) return false;
       if (!resources.retry()) {
         game.message = "Run saving unavailable. Retry kept the current run.";
-        game.messageUntil = game.time + 5;
+        game.messageUntil = game.time + GAME_DATA.browserSession.messageSeconds;
         return;
       }
       world.invalidateReadiness();
@@ -582,7 +586,7 @@ export function createBrowserSession(options = {}) {
     } catch (error) {
       if (!disposed && !contextLost && game === owner) {
         owner.message = "Could not prepare Retry. Your current run was kept. Try again.";
-        owner.messageUntil = owner.time + 5;
+        owner.messageUntil = owner.time + GAME_DATA.browserSession.messageSeconds;
         hud.update(owner);
       }
       console.error("ARMAGEDOM_RETRY_PREPARATION_FAILED", error);
@@ -659,7 +663,7 @@ export function createBrowserSession(options = {}) {
   if (touchPreview) document.body.classList.add("touch");
   function resize() {
     if (renderer) {
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      renderer.setPixelRatio(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio));
       renderer.setSize(innerWidth, innerHeight, false);
       world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight, true);
       atmosphere?.update(0, { paused: true });
