@@ -15,7 +15,10 @@ export function combatTargetHeight(target, time) {
 }
 // Cone degrees live in weapons.json "targeting".
 const TARGETING = GAME_DATA.weapons.targeting;
+const SHOT = TARGETING.shot;
 const EPS = 1e-8;
+const SAME_SPOT = 1e-6; // tuning-ok: metres within which an aim point counts as standing on a target
+const sq = (x) => x * x;
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 
 // Stateless: caller supplies original intent, current visible cohort and weapon
@@ -180,7 +183,7 @@ export function resolveRangedAim(
   if (!trace) return null;
   let target = targets.find((t) => t.id === trace.targetId) ?? null,
     position = target ? { ...target.pos } : { ...trace.end },
-    height = target ? combatTargetHeight(target, g.time) : 1.05;
+    height = target ? combatTargetHeight(target, g.time) : SHOT.missHeight;
   if (projectile) {
     if (g.mobileAssistEnabled === false && !explicitTarget) target = null;
     if (point(aimPoint)) {
@@ -195,7 +198,7 @@ export function resolveRangedAim(
           ? (targets.find(
               (t) =>
                 t.id === aimTargetId &&
-                Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < 1e-6 &&
+                Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < SAME_SPOT &&
                 lineClear(p, t.pos),
             ) ?? null)
           : null;
@@ -209,10 +212,17 @@ export function resolveRangedAim(
     } else if (target && Math.hypot(target.pos.x - p.x, target.pos.z - p.z) > rules.range + EPS) target = null;
     if (!point(aimPoint) && !target) {
       const distance =
-        profile.field === "grenade" ? Math.min(rules.range, g.grenadeThrowRange ?? 5) - EPS : rules.range;
+        profile.field === "grenade"
+          ? Math.min(rules.range, g.grenadeThrowRange ?? SHOT.grenadeFallbackRange) - EPS
+          : rules.range;
       position = { x: p.x + direction.x * distance, z: p.z + direction.z * distance };
     }
-    height = profile.field === "grenade" ? 0.08 : target ? combatTargetHeight(target, g.time) : 0.05;
+    height =
+      profile.field === "grenade"
+        ? SHOT.grenadeLandingHeight
+        : target
+          ? combatTargetHeight(target, g.time)
+          : SHOT.landingHeight;
   }
   return {
     profile,
@@ -287,12 +297,12 @@ export function flamePointerPoint(world, views, enemies, x, y, { assist = true, 
       continue;
     const height = combatTargetHeight(e, time),
       r = e.radius,
-      v = Math.max(0.1, height * 0.65),
+      v = Math.max(SHOT.bodyMinHalfHeight, height * SHOT.bodyHeightRatio),
       o = { x: ray.origin.x - e.pos.x, y: ray.origin.y - height, z: ray.origin.z + e.pos.z },
       d = ray.direction,
-      a = (d.x / r) ** 2 + (d.y / v) ** 2 + (d.z / r) ** 2,
-      b = (o.x * d.x) / r ** 2 + (o.y * d.y) / v ** 2 + (o.z * d.z) / r ** 2,
-      c = (o.x / r) ** 2 + (o.y / v) ** 2 + (o.z / r) ** 2 - 1,
+      a = sq(d.x / r) + sq(d.y / v) + sq(d.z / r),
+      b = (o.x * d.x) / sq(r) + (o.y * d.y) / sq(v) + (o.z * d.z) / sq(r),
+      c = sq(o.x / r) + sq(o.y / v) + sq(o.z / r) - 1,
       disc = b * b - a * c;
     if (!Number.isFinite(disc) || disc < 0) continue;
     const near = (-b - Math.sqrt(disc)) / a,

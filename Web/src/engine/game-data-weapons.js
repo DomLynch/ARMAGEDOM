@@ -68,22 +68,51 @@ export function validateFamilies(f) {
 // Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
 // one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
 export function validateTargeting(t) {
-  closed(t, ["pistol", "meleeConeDegrees", "defaultHeight"]);
+  closed(t, ["pistol", "meleeConeDegrees", "defaultHeight", "shot"]);
   // The metres above the ground that shots and flame aim at a rig with no height of its own (creatures.json rigCapabilities).
   number("weapons", "targeting.defaultHeight", t.defaultHeight);
+  // How a shot is resolved (pistol-targeting.js), metres: the height a shot that hits nothing ends at, the throw range a grenade falls
+  // back to when no range was set, the heights a grenade and any other projectile land at, and the body ellipsoid a ray is tested
+  // against (half-height = max(minimum, target height x ratio)).
+  closed(t.shot, [
+    "missHeight",
+    "grenadeFallbackRange",
+    "grenadeLandingHeight",
+    "landingHeight",
+    "bodyMinHalfHeight",
+    "bodyHeightRatio",
+  ]);
+  for (const [f, v] of Object.entries(t.shot)) number("weapons", `targeting.shot.${f}`, v, 0.001);
   closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
   for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
     number("weapons", `targeting.${f}`, v);
     if (v >= 90) fail("weapons", `targeting.${f} must be below 90`);
   }
-  if (t.pistol.retainDegrees < t.pistol.acquireDegrees) fail("weapons", "targeting.pistol retain must not be below acquire");
+  if (t.pistol.retainDegrees < t.pistol.acquireDegrees)
+    fail("weapons", "targeting.pistol retain must not be below acquire");
 }
 // The touch aim assist (mobile-combat-aim.js) and the flame lock. Angles are degrees (the code converts to radians as `degrees * PI / 180`);
 // rates are per second, ranges and gaps metres, gain and margins unitless.
 export function validateMobileAim(m, f) {
-  const mobile = ["steeringRate", "headingRate", "gain", "near", "far", "deadzone", "pistolGain", "acquireMargin", "retainMargin"],
+  const mobile = [
+      "steeringRate",
+      "headingRate",
+      "gain",
+      "near",
+      "far",
+      "deadzone",
+      "pistolGain",
+      "acquireMargin",
+      "retainMargin",
+    ],
     flame = ["gain", "closeExtension", "closeEnterGap", "closeExitGap", "extensionRate"],
-    angles = ["steeringChangeDegrees", "switchConeDegrees", "switchAdvantageDegrees", "yawLimitDegrees", "downPitchDegrees"];
+    angles = [
+      "steeringChangeDegrees",
+      "switchConeDegrees",
+      "switchAdvantageDegrees",
+      "yawLimitDegrees",
+      "downPitchDegrees",
+    ];
   closed(m, [...mobile, "acquireDegrees", "retainDegrees"]);
   closed(f, [...flame, "acquireDegrees", "retainDegrees", ...angles]);
   for (const k of [...mobile, "acquireDegrees", "retainDegrees"]) number("weapons", `mobileAim.${k}`, m[k]);
@@ -95,7 +124,12 @@ export function validateMobileAim(m, f) {
 export function validateLowMelee(l) {
   closed(l, ["rigs", "clips"]);
   for (const f of ["rigs", "clips"])
-    if (!Array.isArray(l[f]) || !l[f].length || !l[f].every((s) => typeof s === "string" && s) || new Set(l[f]).size !== l[f].length)
+    if (
+      !Array.isArray(l[f]) ||
+      !l[f].length ||
+      !l[f].every((s) => typeof s === "string" && s) ||
+      new Set(l[f]).size !== l[f].length
+    )
       fail("weapons", `lowMelee.${f} must be a list of distinct non-empty strings`);
 }
 // The registered death-weapon attribution policies (engine/weapon-credit-policy.js): `mastery` credits proficiency, `none` does not.
@@ -104,7 +138,8 @@ export function validateCreditPolicies(rows) {
   const seen = new Set();
   for (const row of rows) {
     closed(row, ["id", "creditPolicy"]);
-    if (typeof row.id !== "string" || !row.id || seen.has(row.id)) fail("weapons", "creditPolicies ids must be distinct strings");
+    if (typeof row.id !== "string" || !row.id || seen.has(row.id))
+      fail("weapons", "creditPolicies ids must be distinct strings");
     seen.add(row.id);
     if (!["none", "mastery"].includes(row.creditPolicy)) fail("weapons", `creditPolicies.${row.id}.creditPolicy`);
   }
