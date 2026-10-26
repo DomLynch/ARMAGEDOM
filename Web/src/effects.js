@@ -16,7 +16,11 @@ import { createDropMarker } from "./engine/drop-marker.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { rigCapability } from "./rig-capabilities.js";
 // Web/src/data/visual.json `effects`: hex strings, read as numbers once.
-const hexNumber = (hex) => parseInt(hex, 16);
+const hexNumber = (hex) => Number(`0x${hex}`);
+// Pools, colours and finisher droplet motion: visual.json `effects.feedback`.
+const FEEL = GAME_DATA.visual.effects.feedback,
+  POOL = FEEL.pools,
+  DROP = FEEL.finisherDrop;
 const colors = Object.fromEntries(
   Object.entries(GAME_DATA.visual.effects.swingColours).map(([name, hex]) => [name, hexNumber(hex)]),
 );
@@ -62,7 +66,7 @@ export function createEffects(
   const shots = [],
     transient = [],
     loot = new Map(),
-    gem = new THREE.OctahedronGeometry(0.21),
+    gem = new THREE.OctahedronGeometry(FEEL.lootGemRadius),
     lootMaterials = GAME_DATA.visual.effects.lootColours.map(
       (hex) => new THREE.MeshBasicMaterial({ color: hexNumber(hex) }),
     );
@@ -78,14 +82,14 @@ export function createEffects(
     flashLife = 0,
     lastEquipped = false,
     basicRecoil = 0,
-    viewportWidth = globalThis.innerWidth ?? 852,
-    viewportHeight = globalThis.innerHeight ?? 393;
+    viewportWidth = globalThis.innerWidth ?? FEEL.viewportFallback.width,
+    viewportHeight = globalThis.innerHeight ?? FEEL.viewportFallback.height;
   const pool = new THREE.Group();
   pool.name = "Combat feedback pool";
   scene.add(pool);
   const unit = new THREE.BoxGeometry(1, 1, 1),
-    particleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: true, depthWrite: false }),
-    particleMesh = new THREE.InstancedMesh(unit, particleMaterial, 48),
+    particleMaterial = new THREE.MeshBasicMaterial({ color: "white", depthTest: true, depthWrite: false }),
+    particleMesh = new THREE.InstancedMesh(unit, particleMaterial, POOL.particles),
     pose = new THREE.Object3D(),
     particleColour = new THREE.Color(),
     particleUp = new THREE.Vector3(0, 0, 1),
@@ -93,7 +97,7 @@ export function createEffects(
     particleCamera = new THREE.Quaternion(),
     particleCameraInverse = new THREE.Quaternion(),
     particleSpin = new THREE.Quaternion();
-  const dropletMask = new THREE.InstancedBufferAttribute(new Float32Array(48), 1);
+  const dropletMask = new THREE.InstancedBufferAttribute(new Float32Array(POOL.particles), 1);
   unit.setAttribute("goreDrop", dropletMask);
   particleMaterial.onBeforeCompile = (shader) => {
     shader.vertexShader =
@@ -148,7 +152,7 @@ export function createEffects(
             source: { position: { x: p.x, y: p.y, z: -p.z }, direction: { x: d.x, y: d.y, z: -d.z } },
             origin: e.pos,
             contact: e.bossProfile.weapon,
-            widthScale: e.rig === "boss-westminster-witch" ? 2 : 1,
+            widthScale: e.rig === "boss-westminster-witch" ? FEEL.flameWidthScale.witch : 1,
           };
         },
       })
@@ -172,10 +176,10 @@ export function createEffects(
       );
       if (!e) return null;
       const source = salamanderMouthSource(getView(e), e, salamanderPoint);
-      return source ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: 2 } : null;
+      return source ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: FEEL.flameWidthScale.salamander } : null;
     },
   });
-  const particles = Array.from({ length: 48 }, () => ({
+  const particles = Array.from({ length: POOL.particles }, () => ({
     life: 0,
     total: 1,
     x: 0,
@@ -186,12 +190,17 @@ export function createEffects(
     vz: 0,
     size: 0,
   }));
-  const tracers = Array.from({ length: 16 }, () => {
+  const tracers = Array.from({ length: POOL.tracers }, () => {
     const geometry = new THREE.BufferGeometry().setAttribute(
         "position",
-        new THREE.Float32BufferAttribute(new Float32Array(6), 3),
+        new THREE.Float32BufferAttribute(new Float32Array(6), 3), // tuning-ok: a line segment is two points of three coordinates
       ),
-      material = new THREE.LineBasicMaterial({ color: 0xf5d498, transparent: true, opacity: 0.8, depthWrite: false }),
+      material = new THREE.LineBasicMaterial({
+        color: hexNumber(FEEL.tracer.colour),
+        transparent: true,
+        opacity: FEEL.tracer.opacity,
+        depthWrite: false,
+      }),
       mesh = new THREE.Line(geometry, material);
     mesh.name = "Combat pooled tracer";
     mesh.visible = false;
@@ -199,20 +208,20 @@ export function createEffects(
     pool.add(mesh);
     return { mesh, life: 0 };
   });
-  const muzzleFlash = new THREE.Mesh(unit, new THREE.MeshBasicMaterial({ color: 0xffedb0, depthWrite: false }));
+  const muzzleFlash = new THREE.Mesh(unit, new THREE.MeshBasicMaterial({ color: hexNumber(FEEL.muzzleFlashColour), depthWrite: false }));
   muzzleFlash.name = "Combat muzzle flash";
   muzzleFlash.visible = false;
   pool.add(muzzleFlash);
   function nextParticle() {
-    for (let n = 0; n < 48; n++) {
-      const p = particles[particleIndex++ % 48];
+    for (let n = 0; n < POOL.particles; n++) {
+      const p = particles[particleIndex++ % POOL.particles];
       if (!p.finisherOwner) return p;
     }
     return null;
   }
   function nextTracer() {
-    for (let n = 0; n < 16; n++) {
-      const t = tracers[tracerIndex++ % 16];
+    for (let n = 0; n < POOL.tracers; n++) {
+      const t = tracers[tracerIndex++ % POOL.tracers];
       if (!t.finisherOwner) return t;
     }
     return null;
@@ -312,11 +321,12 @@ export function createEffects(
           const angle =
               effect.gore?.mode === "radial"
                 ? ((i / allocated.length) * effect.gore.spreadDegrees * Math.PI) / 180
-                : ((i / (allocated.length - 1) - 0.5) *
+                : ((i / (allocated.length - 1) - 0.5) * // tuning-ok: 0.5 centres the fan on the impact direction
                     (effect.gore?.spreadDegrees ?? effect.spreadDegrees) *
                     Math.PI) /
                   180,
-            speed = effect.speed * (0.6 + (0.4 * ((i * 7) % allocated.length)) / allocated.length);
+            speed =
+              effect.speed * (DROP.speedBase + (DROP.speedSpread * ((i * DROP.speedStride) % allocated.length)) / allocated.length);
           Object.assign(p, {
             finisherOwner: view,
             impactVictimId: null,
@@ -331,8 +341,8 @@ export function createEffects(
             z: effect.origin.z,
             vx: (d.x * Math.cos(angle) - d.z * Math.sin(angle)) * speed,
             vy: effect.gore
-              ? effect.gore.verticalSpeed + effect.speed * 0.1 * (i % 3)
-              : effect.speed * (0.3 + 0.1 * (i % 3)),
+              ? effect.gore.verticalSpeed + effect.speed * DROP.liftShare * (i % DROP.liftCycle)
+              : effect.speed * (DROP.baseLift + DROP.liftShare * (i % DROP.liftCycle)),
             vz: (d.x * Math.sin(angle) + d.z * Math.cos(angle)) * speed,
             size: effect.dropSize,
           });
@@ -343,14 +353,15 @@ export function createEffects(
             leading = i < c.leadingCount,
             j = leading ? i : i - c.leadingCount,
             count = leading ? c.leadingCount : allocated.length - c.leadingCount,
-            fraction = count > 1 ? j / (count - 1) : 0.5,
+            fraction = count > 1 ? j / (count - 1) : 0.5, // tuning-ok: a lone droplet sits at the middle of the fan
             spread = (effect.gore.spreadDegrees * Math.PI) / 180,
             angle =
-              (effect.gore.mode === "radial" ? (j / count) * spread : (fraction - 0.5) * spread) +
-              (effect.gore.mode === "fan" ? Math.PI / 2 : 0),
-            speed = effect.speed * (leading ? 1 : 0.75),
+              (effect.gore.mode === "radial" ? (j / count) * spread : (fraction - 0.5) * spread) + // tuning-ok: 0.5 centres the fan
+              (effect.gore.mode === "fan" ? Math.PI / 2 : 0), // tuning-ok: a fan opens a quarter turn (pi / 2) off the direction
+            speed = effect.speed * (leading ? 1 : DROP.tailSpeedShare),
             range = c.extent[0] + (c.extent[1] - c.extent[0]) * fraction,
-            band = leading ? c.leadingSize : c.tailSize;
+            band = leading ? c.leadingSize : c.tailSize,
+            half = Math.ceil(count / 2); // tuning-ok: the first half of the droplets use the first delay, the rest the second
           Object.assign(p, {
             finisherOwner: view,
             goreComposition: true,
@@ -358,12 +369,12 @@ export function createEffects(
             spawned: false,
             finisherAnchor: effect.anchor,
             travelled: 0,
-            travelLimit: range * (leading ? 1 : 0.65),
+            travelLimit: range * (leading ? 1 : DROP.tailTravelShare),
             holdSeconds: leading ? (c.holdSeconds ?? 0) : 0,
             impactVictimId: null,
             delay: leading
-              ? (c.leadingDelays?.[j < Math.ceil(count / 2) ? 0 : 1] ?? 0)
-              : c.tailDelays[j < Math.ceil(count / 2) ? 0 : 1],
+              ? (c.leadingDelays?.[j < half ? 0 : 1] ?? 0)
+              : c.tailDelays[j < half ? 0 : 1],
             palette:
               effect.palette[
                 leading ? (c.leadingPaletteIndices?.[j] ?? i % effect.palette.length) : i % effect.palette.length
@@ -376,7 +387,7 @@ export function createEffects(
             y: effect.origin.y,
             z: effect.origin.z,
             vx: (d.x * Math.cos(angle) - d.z * Math.sin(angle)) * speed,
-            vy: effect.gore.verticalSpeed + (c.holdSeconds ? 0 : effect.speed * 0.1 * (i % 3)),
+            vy: effect.gore.verticalSpeed + (c.holdSeconds ? 0 : effect.speed * DROP.liftShare * (i % DROP.liftCycle)),
             vz: (d.x * Math.sin(angle) + d.z * Math.cos(angle)) * speed,
             size: band[0] + (band[1] - band[0]) * fraction,
           });
@@ -431,7 +442,7 @@ export function createEffects(
     if (world.camera) world.camera.getWorldQuaternion(particleCamera);
     else particleCamera.identity();
     particleCameraInverse.copy(particleCamera).invert();
-    for (let i = 0; i < 48; i++) {
+    for (let i = 0; i < POOL.particles; i++) {
       const p = particles[i];
       pose.quaternion.identity();
       dropletMask.setX(i, p.stretch ? 1 : 0);
@@ -462,12 +473,12 @@ export function createEffects(
         p.x += p.vx * horizontalDt;
         p.y += p.vy * dt;
         p.z += p.vz * horizontalDt;
-        p.vy -= (p.gravity ?? 8) * dt;
+        p.vy -= (p.gravity ?? FEEL.particle.gravity) * dt;
         if (p.groundClip && p.y <= 0) p.life = 0;
         pose.position.set(p.x, p.y, p.z);
         const visibleMass =
           p.goreComposition && p.holdSeconds > 0
-            ? Math.min(1, p.life / Math.max(0.001, p.total - p.holdSeconds))
+            ? Math.min(1, p.life / Math.max(FEEL.particle.minLife, p.total - p.holdSeconds))
             : p.life / p.total;
         if (p.stretch) {
           pose.scale.set(
@@ -483,7 +494,9 @@ export function createEffects(
           particleSpin.setFromAxisAngle(particleUp, angle);
           pose.quaternion.copy(particleCamera).multiply(particleSpin);
         } else pose.scale.setScalar(p.size * visibleMass);
-        particleColour.setHex(p.palette ?? 0xffca85).multiplyScalar(0.6 + 0.4 * visibleMass);
+        particleColour
+          .setHex(p.palette ?? hexNumber(FEEL.particle.palette))
+          .multiplyScalar(FEEL.particle.dimBase + FEEL.particle.dimSpan * visibleMass);
         particleMesh.setColorAt(i, particleColour);
       } else pose.scale.setScalar(0);
       pose.updateMatrix();
@@ -496,7 +509,7 @@ export function createEffects(
     for (const t of tracers) {
       t.life = Math.max(0, t.life - dt);
       t.mesh.visible = t.life > 0;
-      t.mesh.material.opacity = 0.8 * Math.min(1, t.life / (t.total ?? 0.065));
+      t.mesh.material.opacity = FEEL.tracer.opacity * Math.min(1, t.life / (t.total ?? FEEL.tracer.defaultSeconds));
     }
     flashLife = Math.max(0, flashLife - dt);
     muzzleFlash.visible = flashLife > 0;

@@ -36,6 +36,7 @@ import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
+import { validateEffectsFeedback } from "./effects-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
@@ -339,7 +340,8 @@ export function validateVisual(d) {
     for (const p of c.partners[family])
       if (!trouserFamilies.has(p)) fail("visual", `clothing.partners.${family} names unknown trousers family ${p}`);
   }
-  closed(d.effects, ["swingColours", "lootColours", "targetHeights"]);
+  closed(d.effects, ["swingColours", "lootColours", "targetHeights", "feedback"]);
+  validateEffectsFeedback(d.effects.feedback);
   // effects.js aims its hit burst, kill confirmation, tracer end and target reticle at a height that depends on the target's rig. Per
   // site, a `default` row plus one row per rig: `fixed` metres, `drone` (the hovering drone's height), `cue` (the cue's own height) or
   // `scaled` metres times the rig's view scale; an empty row means "use the site's own fallback".
