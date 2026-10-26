@@ -24,6 +24,7 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
+import { validateMotion } from "./motion-data.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -842,7 +843,8 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood", "motion"]);
+  validateMotion(d.motion);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
