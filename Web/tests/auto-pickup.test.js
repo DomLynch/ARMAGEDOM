@@ -22,6 +22,97 @@ test("the shared pickup step runs a walked-in pickup once and repeats nothing wh
   assert.equal(runs, 2);
 });
 
+test("a claim that did not take (still listed) is retried with a back-off: after 1 s, 2 s, then every 4 s, and stops once claimed", () => {
+  const step = createAutoPickup();
+  let runs = 0,
+    claimed = false;
+  const pickup = { id: "a", pickup: true, position: { x: 1, z: 0 }, run: () => ++runs };
+  const at = (t) => step({ x: 0, z: 0 }, claimed ? [] : [pickup], t);
+  const times = [];
+  for (let t = 0; t <= 14; t += 0.1) {
+    t = Math.round(t * 10) / 10;
+    const before = runs;
+    at(t);
+    if (runs > before) times.push(t);
+  }
+  assert.deepEqual(times, [0, 1, 3, 7, 11], "runs at 0, +1, +2, +4, +4: never every frame");
+  claimed = true;
+  at(15);
+  assert.equal(runs, 5, "once the pickup is gone it is not run again");
+});
+
+test("the back-off comes from weapons.json autoPickupRetry, is validated, and can be overridden for a test", async () => {
+  const fs = await import("node:fs");
+  const { GAME_DATA, validateWeapons } = await import("../src/engine/game-data.js");
+  assert.deepEqual(GAME_DATA.weapons.autoPickupRetry, { firstSeconds: 1, maxSeconds: 4 });
+  const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/weapons.json", import.meta.url))));
+  const broken = (mutate) => () => {
+    const d = raw();
+    mutate(d);
+    validateWeapons(d);
+  };
+  assert.doesNotThrow(broken(() => {}));
+  assert.throws(broken((d) => { delete d.autoPickupRetry; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.extra = 1; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.firstSeconds = 0; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.maxSeconds = 0.5; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.maxSeconds = 600; }));
+  const step = createAutoPickup({ firstSeconds: 2, maxSeconds: 2 });
+  let runs = 0;
+  const pickup = { id: "a", pickup: true, position: { x: 1, z: 0 }, run: () => ++runs };
+  for (const t of [0, 1, 2, 3, 4]) step({ x: 0, z: 0 }, [pickup], t);
+  assert.equal(runs, 3, "a 2 s back-off runs at 0, 2 and 4");
+});
+
+test("leaving reach resets the back-off: coming back is a fresh, immediate pickup", () => {
+  const step = createAutoPickup();
+  let runs = 0;
+  const pickup = { id: "a", pickup: true, position: { x: 1, z: 0 }, run: () => ++runs };
+  step({ x: 0, z: 0 }, [pickup], 10);
+  step({ x: 0, z: 0 }, [pickup], 10.5);
+  assert.equal(runs, 1);
+  step({ x: 9, z: 0 }, [], 11);
+  step({ x: 0, z: 0 }, [pickup], 11.2);
+  assert.equal(runs, 2);
+});
+
+test("a refused real claim (storage full) is retried once the player is still in reach and storage frees up", () => {
+  const previous = globalThis.document;
+  globalThis.document = { getElementById: () => ({}) };
+  let storageFull = true,
+    attempts = 0;
+  const g = {
+    time: 1,
+    events: [],
+    player: { hp: 150, pos: { x: 0, z: 0 }, hurtUntil: 0, dodgeUntil: 0, ready: 0 },
+    world: { areaId: "westminster", bossEquipmentData: { emberProjector: profiles.emberProjector }, lineClear: () => true },
+    bossEquipment: { emberProjector: { status: "pending", dropPosition: { x: 1, z: 0 } } },
+  };
+  const s = { game: g, loaded: true, paused: false, actors: { equipmentReady: () => true }, input: { clear() {} } };
+  const view = createBossEquipmentView(s, () => {
+    attempts++;
+    if (storageFull) return { ok: false, events: [] };
+    g.bossEquipment.emberProjector.status = "owned";
+    return { ok: true, events: [] };
+  });
+  try {
+    const step = createAutoPickup();
+    const frame = (time) => step(g.player.pos, view.interaction(), time);
+    frame(1);
+    for (let t = 1.05; t < 1.9; t += 0.05) frame(t);
+    assert.equal(attempts, 1, "refused once, not retried every frame");
+    storageFull = false;
+    frame(2.1);
+    assert.equal(attempts, 2, "retried after the back-off");
+    assert.equal(g.bossEquipment.emberProjector.status, "owned");
+    for (let t = 2.2; t < 4; t += 0.1) frame(t);
+    assert.equal(attempts, 2, "claimed: no more attempts");
+  } finally {
+    view.dispose();
+    globalThis.document = previous;
+  }
+});
+
 test("only pickups are claimed automatically; doors and contacts wait for the button", () => {
   const step = createAutoPickup();
   let door = 0,

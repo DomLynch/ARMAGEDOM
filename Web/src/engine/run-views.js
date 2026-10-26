@@ -26,6 +26,7 @@ import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
+import { GAME_DATA } from "./game-data.js";
 export function dispatchEquipmentSelection(g, command, allowed, dispatch) {
   const result = dispatch(g, command, allowed);
   if (result.ok && (command.type === "equip" || command.type === "selectVariant")) stopFlame(g, { unequip: true });
@@ -78,22 +79,27 @@ export function startingPistolCandidate(g, run) {
     ? { id: START_PISTOL_ID, label: START_PISTOL_LABEL, pickup: true, position: p.pickupPos, run }
     : null;
 }
-// Walking into the reach of a pickup claims it, once. `step(position, candidates)` runs the nearest candidate marked `pickup: true`
-// that has not been started yet and remembers its id until the candidate leaves the list (claimed, or out of reach), so a claim
-// still in flight (an async auto-equip) or one the game refused is not repeated every frame. Each pickup's own radius, line of sight,
-// loaded and safe-to-act checks decide whether it is a candidate at all.
-export function createAutoPickup() {
-  const started = new Set();
-  return function step(position, candidates) {
+// Walking into the reach of a pickup claims it. `step(position, candidates, time)` runs the nearest candidate marked `pickup: true`
+// that is due and remembers it until the candidate leaves the list (claimed, or out of reach), so a claim still in flight (an async
+// auto-equip) is not repeated every frame. A pickup still listed after its back-off (the claim was refused for a reason that can
+// pass, such as full save storage) is tried again while the player stays in reach: after 1 s, then 2 s, then every 4 s (weapons.json
+// `autoPickupRetry`). Each pickup's own radius, line of sight, loaded and safe-to-act checks decide whether it is a candidate at all.
+// `time` is game time (seconds).
+export function createAutoPickup({ firstSeconds, maxSeconds } = GAME_DATA.weapons.autoPickupRetry) {
+  const started = new Map();
+  return function step(position, candidates, time = 0) {
     const pickups = candidates.filter((c) => c?.pickup === true);
     const live = new Set(pickups.map((c) => c.id));
-    for (const id of started) if (!live.has(id)) started.delete(id);
+    for (const id of started.keys()) if (!live.has(id)) started.delete(id);
     const next = nearestInteraction(
       position,
-      pickups.filter((c) => !started.has(c.id)),
+      pickups.filter((c) => !started.has(c.id) || time >= started.get(c.id).retryAt),
     );
     if (!next) return false;
-    started.add(next.id);
+    const wait = started.has(next.id)
+      ? Math.min(started.get(next.id).wait * 2, maxSeconds)
+      : firstSeconds;
+    started.set(next.id, { retryAt: time + wait, wait });
     next.run();
     return true;
   };
@@ -184,7 +190,7 @@ export function createRunViews(s) {
     const field = document.getElementById("pistol-interact"),
       candidates = interactionCandidates(),
       position = s.game?.player.pos;
-    if (position) autoPickup(position, candidates);
+    if (position) autoPickup(position, candidates, s.game.time);
     const target = position ? nearestInteraction(position, candidates.filter((c) => !c.pickup)) : null;
     if (!field) return;
     field.hidden = !target;
