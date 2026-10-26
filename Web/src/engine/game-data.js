@@ -1174,7 +1174,19 @@ export function validateAppearance(d) {
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
   // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
   // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
-  closed(d.crookedHollow, ["bones"]);
+  closed(d.crookedHollow, [
+    "bones",
+    "lean",
+    "gait",
+    "reach",
+    "pelvisDrop",
+    "handDrop",
+    "handForward",
+    "elbowOut",
+    "footHold",
+    "cycleRate",
+  ]);
+  validateCrookedPose(d.crookedHollow, between);
   const bones = d.crookedHollow.bones;
   if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
     fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
@@ -1190,6 +1202,36 @@ export function validateAppearance(d) {
   if (s.bodyBandOffsets[0] >= s.bodyBandOffsets[1]) fail("appearance", "droneSupport.bodyBandOffsets must rise");
   between("droneSupport.attackWarningSeconds", s.attackWarningSeconds, 0.05, 10);
   between("droneSupport.deathSeconds", s.deathSeconds, 0.05, 10);
+}
+
+// appearance.json `crookedHollow` (crooked-hollow.js): the fold, the gait curve and the pose offsets. The lean rows name bones in `bones`.
+function validateCrookedPose(c, between) {
+  if (!Array.isArray(c.lean) || !c.lean.length || c.lean.length > 16) fail("appearance", "crookedHollow.lean must list 1 to 16 rows");
+  for (const [i, row] of c.lean.entries()) {
+    if (!Array.isArray(row) || row.length !== 4 || typeof row[0] !== "string" || !c.bones.includes(row[0]))
+      fail("appearance", `crookedHollow.lean[${i}] must be [bone in bones, x, y, z]`);
+    for (const k of [1, 2, 3]) between(`crookedHollow.lean[${i}][${k}]`, row[k], -Math.PI, Math.PI);
+  }
+  // The gait curve maps a walk phase to the planted-foot phase: it runs from [0, 0] to [1, 1], rising in both columns.
+  if (!Array.isArray(c.gait) || c.gait.length < 2 || c.gait.length > 16) fail("appearance", "crookedHollow.gait must list 2 to 16 keys");
+  c.gait.forEach((key, i) => {
+    if (!Array.isArray(key) || key.length !== 2) fail("appearance", `crookedHollow.gait[${i}] must be [phase, value]`);
+    between(`crookedHollow.gait[${i}][0]`, key[0], 0, 1);
+    between(`crookedHollow.gait[${i}][1]`, key[1], 0, 1);
+    if (i && (key[0] <= c.gait[i - 1][0] || key[1] < c.gait[i - 1][1])) fail("appearance", `crookedHollow.gait[${i}] must rise`);
+  });
+  if (c.gait[0].join() !== "0,0" || c.gait.at(-1).join() !== "1,1") fail("appearance", "crookedHollow.gait must run from [0, 0] to [1, 1]");
+  closed(c.reach, ["slack", "max"]);
+  between("crookedHollow.reach.slack", c.reach.slack, 0, 0.1);
+  between("crookedHollow.reach.max", c.reach.max, 0.5, 1);
+  between("crookedHollow.pelvisDrop", c.pelvisDrop, 0, 0.5);
+  between("crookedHollow.handDrop", c.handDrop, 0, 1.5);
+  between("crookedHollow.handForward", c.handForward, -0.5, 0.5);
+  between("crookedHollow.elbowOut", c.elbowOut, 0, 2);
+  closed(c.footHold, ["l", "r"]);
+  between("crookedHollow.footHold.l", c.footHold.l, 0, 1);
+  between("crookedHollow.footHold.r", c.footHold.r, 0, 1);
+  between("crookedHollow.cycleRate", c.cycleRate, 0.1, 10);
 }
 
 // areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,
