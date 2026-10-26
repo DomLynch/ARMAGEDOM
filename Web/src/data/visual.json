@@ -549,6 +549,8 @@
     "imageHeight": 941,
     "wallMargin": 0.061,
     "defaultRadius": 0.4,
+    "minCorridorWidth": 1.5,
+    "minExitDepth": 0.4,
     "stepRadiusShare": 0.5,
     "minStep": 0.025,
     "maxStep": 0.2

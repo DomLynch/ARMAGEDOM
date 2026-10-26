@@ -16,9 +16,15 @@ test("from the area entry the character can walk to every exit zone and every ar
     assert.deepEqual(r.arrivals.filter((a) => !a.reachable).map((a) => `${a.from} -> ${id}`), [], `${id}: an arrival point is cut off`);
     for (const a of r.arrivals) assert.ok(a.clearHere, `${a.id} arrives on ground the character does not fit`);
     exits += r.exits.length;
-    // No choke under the character's width: the tightest point on the best route to each exit is wider than the character.
-    for (const e of r.exits) assert.ok(e.widestRoute > 2 * radius, `${id} -> ${e.to}: ${e.widestRoute.toFixed(2)} m at the tightest point`);
-    for (const c of r.chokes) assert.ok(c.width > 2 * radius, `${id} ${c.cell}: ${c.width.toFixed(2)} m wide`);
+    // No choke under the floor in world data (visual.json worldGeometry.minCorridorWidth): the tightest point on the best route to each
+    // exit. No exit strip shallower than minExitDepth: how far inside the zone the character's centre can stand.
+    const { minCorridorWidth, minExitDepth } = WORLD_GEOMETRY;
+    assert.ok(minCorridorWidth > 2 * radius, "the width floor is above the bare character");
+    for (const e of r.exits) {
+      assert.ok(e.widestRoute >= minCorridorWidth, `${id} -> ${e.to}: ${e.widestRoute.toFixed(2)} m at the tightest point, floor ${minCorridorWidth}`);
+      assert.ok(e.stripDepth >= minExitDepth, `${id} -> ${e.to}: the trigger strip is ${e.stripDepth.toFixed(2)} m deep, floor ${minExitDepth}`);
+    }
+    for (const c of r.chokes) assert.ok(c.width >= minCorridorWidth, `${id} ${c.cell}: ${c.width.toFixed(2)} m wide`);
   }
   assert.equal(ids.length, 9);
   assert.equal(exits, 28);

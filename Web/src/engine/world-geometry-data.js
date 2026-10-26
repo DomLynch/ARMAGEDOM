@@ -9,8 +9,12 @@ const positive = (field, v) => {
   if (!Number.isFinite(v) || v <= 0) fail(`${field} must be a finite number > 0`);
 };
 export function validateWorldGeometry(g) {
-  closed(g, ["imageWidth", "imageHeight", "wallMargin", "defaultRadius", "stepRadiusShare", "minStep", "maxStep"]);
-  for (const f of ["imageWidth", "imageHeight", "wallMargin", "defaultRadius", "stepRadiusShare", "minStep", "maxStep"]) positive(f, g[f]);
+  closed(g, ["imageWidth", "imageHeight", "wallMargin", "defaultRadius", "minCorridorWidth", "minExitDepth", "stepRadiusShare", "minStep", "maxStep"]);
+  for (const f of ["imageWidth", "imageHeight", "wallMargin", "defaultRadius", "minCorridorWidth", "minExitDepth", "stepRadiusShare", "minStep", "maxStep"])
+    positive(f, g[f]);
+  // Floors the walkability audit holds every layout to (scripts/walk-audit.mjs): the clear width of the tightest point on a route to an
+  // exit, and how deep inside an exit zone the character's centre can stand. The width floor must at least fit the character.
+  if (g.minCorridorWidth < g.defaultRadius + g.defaultRadius) fail("minCorridorWidth must be at least the character's diameter");
   if (g.minStep > g.maxStep) fail("minStep must not exceed maxStep");
 }
 validateWorldGeometry(GAME_DATA.visual.worldGeometry);

@@ -137,10 +137,29 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
   // Exit zones: walkable cells whose picture position lies inside the link's rectangle (the game's own travelAt test).
   const exits = registry.links(areaId).map((link) => {
     let target = -1;
+    const zone = new Uint8Array(best.length);
     for (let i = 0; i < best.length; i++) {
       if (clearance[i] <= 0 || !inZone(link.condition, g.point(at(i % width, (i - (i % width)) / width)))) continue;
+      zone[i] = 1;
       if (target < 0 || best[i] > best[target]) target = i;
     }
+    // Standable depth of the trigger strip: how far inside the zone the character's centre can get (a spot it fits on, reachable from
+    // the entry), measured from the nearest walkable ground outside the zone. A strip a few centimetres deep is easy to miss.
+    const outside = new Float32Array(best.length).fill(Infinity);
+    for (let i = 0; i < best.length; i++) if (clearance[i] > 0 && !zone[i]) outside[i] = 0;
+    const relax = (i, j, step) => {
+      if (outside[j] + step < outside[i]) outside[i] = outside[j] + step;
+    };
+    for (let iz = 0; iz < depth; iz++)
+      for (let ix = 0; ix < width; ix++)
+        for (const [dx, dz, step] of NEIGHBOURS.slice(0, 8).filter(([a, b]) => b < 0 || (b === 0 && a < 0)))
+          if (ix + dx >= 0 && ix + dx < width && iz + dz >= 0) relax(iz * width + ix, (iz + dz) * width + ix + dx, step * cell);
+    for (let iz = depth - 1; iz >= 0; iz--)
+      for (let ix = width - 1; ix >= 0; ix--)
+        for (const [dx, dz, step] of NEIGHBOURS.filter(([a, b]) => b > 0 || (b === 0 && a > 0)))
+          if (ix + dx >= 0 && ix + dx < width && iz + dz < depth) relax(iz * width + ix, (iz + dz) * width + ix + dx, step * cell);
+    let stripDepth = 0;
+    for (let i = 0; i < best.length; i++) if (zone[i] && best[i] > radius && Number.isFinite(outside[i])) stripDepth = Math.max(stripDepth, outside[i]);
     const reachable = target >= 0 && best[target] > radius,
       // The exit fires when the character steps into the zone, so the route that counts runs from the entry to the first zone cell.
       // Ground inside the zone is not a corridor: a zone against the picture's edge is shallow by nature.
@@ -150,6 +169,7 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
     return {
       to: link.to,
       reachable,
+      stripDepth, // metres: the deepest the character's centre can stand inside the exit zone
       widestRoute: reachable ? 2 * Math.min(...route.map((i) => clearance[i])) : 0, // metres at the tightest point before the zone
       cell: route.length ? label(route.at(-1)) : null,
       route,
