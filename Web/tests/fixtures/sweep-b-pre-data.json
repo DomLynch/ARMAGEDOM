@@ -1,0 +1,2829 @@
+{
+ "feral": {
+  "dog-gaunt-hound": "319ce3885717d5f19ed4d076a88527e3740765ec1cd1b8bbf1bb7384a1caa18f",
+  "dog-stocky-yard": "6b8b4caf62f19781f8fd58fad809f6b4786cd6e79b292813f01413fa983cb53a",
+  "dog-unknown": "throws Error"
+ },
+ "faces": {
+  "westminster/1": [
+   [
+    "westminster-roamer-1",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "westminster/6": [
+   [
+    "westminster-roamer-2",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "westminster-roamer-6",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-4",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "westminster-roamer-1",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "westminster-roamer-5",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "westminster-roamer-3",
+    "face-broad-crest-light"
+   ]
+  ],
+  "westminster/9": [
+   [
+    "westminster-roamer-2",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "westminster-roamer-9",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-6",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "westminster-roamer-4",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "westminster-roamer-8",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "westminster-roamer-1",
+    "face-broad-crest-light"
+   ],
+   [
+    "westminster-roamer-5",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-3",
+    "face-broad-messy-tan"
+   ],
+   [
+    "westminster-roamer-7",
+    "face-narrow-back-crop-deep"
+   ]
+  ],
+  "westminster/14": [
+   [
+    "westminster-roamer-2",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "westminster-roamer-9",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-10",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "westminster-roamer-6",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "westminster-roamer-4",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "westminster-roamer-12",
+    "face-broad-crest-light"
+   ],
+   [
+    "westminster-roamer-8",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-13",
+    "face-broad-messy-tan"
+   ],
+   [
+    "westminster-roamer-1",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "westminster-roamer-11",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "westminster-roamer-14",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "westminster-roamer-5",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "westminster-roamer-3",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "westminster-roamer-7",
+    "face-broad-buzz-tan"
+   ]
+  ],
+  "westminster/50": [
+   [
+    "westminster-roamer-39",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "westminster-roamer-27",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-49",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "westminster-roamer-2",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "westminster-roamer-9",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "westminster-roamer-10",
+    "face-broad-crest-light"
+   ],
+   [
+    "westminster-roamer-19",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-28",
+    "face-broad-messy-tan"
+   ],
+   [
+    "westminster-roamer-6",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "westminster-roamer-22",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "westminster-roamer-35",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "westminster-roamer-47",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "westminster-roamer-26",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "westminster-roamer-4",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "westminster-roamer-12",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "westminster-roamer-32",
+    "face-broad-crest-olive"
+   ],
+   [
+    "westminster-roamer-8",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "westminster-roamer-24",
+    "face-broad-messy-brown"
+   ],
+   [
+    "westminster-roamer-36",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "westminster-roamer-40",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "westminster-roamer-17",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "westminster-roamer-30",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "westminster-roamer-13",
+    "face-narrow-crest-light"
+   ],
+   [
+    "westminster-roamer-23",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "westminster-roamer-43",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "westminster-roamer-34",
+    "face-broad-crest-deep"
+   ],
+   [
+    "westminster-roamer-1",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "westminster-roamer-11",
+    "face-broad-messy-light"
+   ],
+   [
+    "westminster-roamer-14",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-5",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "westminster-roamer-21",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "westminster-roamer-45",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "westminster-roamer-31",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "westminster-roamer-41",
+    "face-broad-buzz-light"
+   ],
+   [
+    "westminster-roamer-3",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "westminster-roamer-33",
+    "face-broad-crest-tan"
+   ],
+   [
+    "westminster-roamer-18",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "westminster-roamer-16",
+    "face-broad-messy-olive"
+   ],
+   [
+    "westminster-roamer-48",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "westminster-roamer-20",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-37",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "westminster-roamer-44",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "westminster-roamer-50",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "westminster-roamer-38",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "westminster-roamer-46",
+    "face-narrow-messy-light"
+   ],
+   [
+    "westminster-roamer-25",
+    "face-broad-crest-brown"
+   ],
+   [
+    "westminster-roamer-42",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "westminster-roamer-29",
+    "face-broad-messy-deep"
+   ],
+   [
+    "westminster-roamer-7",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "westminster-roamer-15",
+    "face-broad-rough-crop-light"
+   ]
+  ],
+  "westminster/51": [
+   [
+    "westminster-roamer-39",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "westminster-roamer-27",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-49",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "westminster-roamer-2",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "westminster-roamer-9",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "westminster-roamer-10",
+    "face-broad-crest-light"
+   ],
+   [
+    "westminster-roamer-19",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-28",
+    "face-broad-messy-tan"
+   ],
+   [
+    "westminster-roamer-6",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "westminster-roamer-22",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "westminster-roamer-35",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "westminster-roamer-47",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "westminster-roamer-26",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "westminster-roamer-4",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "westminster-roamer-12",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "westminster-roamer-32",
+    "face-broad-crest-olive"
+   ],
+   [
+    "westminster-roamer-8",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "westminster-roamer-24",
+    "face-broad-messy-brown"
+   ],
+   [
+    "westminster-roamer-36",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "westminster-roamer-40",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "westminster-roamer-17",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "westminster-roamer-30",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "westminster-roamer-13",
+    "face-narrow-crest-light"
+   ],
+   [
+    "westminster-roamer-23",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "westminster-roamer-43",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "westminster-roamer-34",
+    "face-broad-crest-deep"
+   ],
+   [
+    "westminster-roamer-1",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "westminster-roamer-11",
+    "face-broad-messy-light"
+   ],
+   [
+    "westminster-roamer-14",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "westminster-roamer-5",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "westminster-roamer-21",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "westminster-roamer-45",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "westminster-roamer-31",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "westminster-roamer-41",
+    "face-broad-buzz-light"
+   ],
+   [
+    "westminster-roamer-3",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "westminster-roamer-33",
+    "face-broad-crest-tan"
+   ],
+   [
+    "westminster-roamer-18",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "westminster-roamer-16",
+    "face-broad-messy-olive"
+   ],
+   [
+    "westminster-roamer-48",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "westminster-roamer-20",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "westminster-roamer-37",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "westminster-roamer-44",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "westminster-roamer-50",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "westminster-roamer-38",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "westminster-roamer-46",
+    "face-narrow-messy-light"
+   ],
+   [
+    "westminster-roamer-25",
+    "face-broad-crest-brown"
+   ],
+   [
+    "westminster-roamer-42",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "westminster-roamer-29",
+    "face-broad-messy-deep"
+   ],
+   [
+    "westminster-roamer-7",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "westminster-roamer-15",
+    "face-broad-rough-crop-light"
+   ],
+   [
+    "westminster-roamer-51",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "east/1": [
+   [
+    "east-roamer-1",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "east/6": [
+   [
+    "east-roamer-2",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "east-roamer-5",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "east-roamer-1",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "east-roamer-3",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "east-roamer-6",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "east-roamer-4",
+    "face-broad-crest-light"
+   ]
+  ],
+  "east/9": [
+   [
+    "east-roamer-8",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "east-roamer-2",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "east-roamer-5",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "east-roamer-1",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "east-roamer-7",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "east-roamer-3",
+    "face-broad-crest-light"
+   ],
+   [
+    "east-roamer-6",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "east-roamer-4",
+    "face-broad-messy-tan"
+   ],
+   [
+    "east-roamer-9",
+    "face-narrow-back-crop-deep"
+   ]
+  ],
+  "east/14": [
+   [
+    "east-roamer-14",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "east-roamer-8",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "east-roamer-2",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "east-roamer-12",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "east-roamer-5",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "east-roamer-1",
+    "face-broad-crest-light"
+   ],
+   [
+    "east-roamer-13",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "east-roamer-7",
+    "face-broad-messy-tan"
+   ],
+   [
+    "east-roamer-11",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "east-roamer-3",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "east-roamer-6",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "east-roamer-4",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "east-roamer-9",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "east-roamer-10",
+    "face-broad-buzz-tan"
+   ]
+  ],
+  "east/50": [
+   [
+    "east-roamer-20",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "east-roamer-17",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "east-roamer-35",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "east-roamer-25",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "east-roamer-44",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "east-roamer-31",
+    "face-broad-crest-light"
+   ],
+   [
+    "east-roamer-46",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "east-roamer-50",
+    "face-broad-messy-tan"
+   ],
+   [
+    "east-roamer-33",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "east-roamer-14",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "east-roamer-27",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "east-roamer-8",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "east-roamer-2",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "east-roamer-18",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "east-roamer-12",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "east-roamer-38",
+    "face-broad-crest-olive"
+   ],
+   [
+    "east-roamer-41",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "east-roamer-16",
+    "face-broad-messy-brown"
+   ],
+   [
+    "east-roamer-34",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "east-roamer-5",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "east-roamer-48",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "east-roamer-28",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "east-roamer-43",
+    "face-narrow-crest-light"
+   ],
+   [
+    "east-roamer-1",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "east-roamer-36",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "east-roamer-24",
+    "face-broad-crest-deep"
+   ],
+   [
+    "east-roamer-13",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "east-roamer-39",
+    "face-broad-messy-light"
+   ],
+   [
+    "east-roamer-7",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "east-roamer-11",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "east-roamer-3",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "east-roamer-21",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "east-roamer-42",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "east-roamer-15",
+    "face-broad-buzz-light"
+   ],
+   [
+    "east-roamer-37",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "east-roamer-6",
+    "face-broad-crest-tan"
+   ],
+   [
+    "east-roamer-47",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "east-roamer-32",
+    "face-broad-messy-olive"
+   ],
+   [
+    "east-roamer-23",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "east-roamer-4",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "east-roamer-9",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "east-roamer-10",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "east-roamer-26",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "east-roamer-45",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "east-roamer-30",
+    "face-narrow-messy-light"
+   ],
+   [
+    "east-roamer-22",
+    "face-broad-crest-brown"
+   ],
+   [
+    "east-roamer-19",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "east-roamer-49",
+    "face-broad-messy-deep"
+   ],
+   [
+    "east-roamer-29",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "east-roamer-40",
+    "face-broad-rough-crop-light"
+   ]
+  ],
+  "east/51": [
+   [
+    "east-roamer-20",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "east-roamer-17",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "east-roamer-35",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "east-roamer-25",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "east-roamer-44",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "east-roamer-31",
+    "face-broad-crest-light"
+   ],
+   [
+    "east-roamer-46",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "east-roamer-50",
+    "face-broad-messy-tan"
+   ],
+   [
+    "east-roamer-33",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "east-roamer-14",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "east-roamer-27",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "east-roamer-8",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "east-roamer-2",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "east-roamer-18",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "east-roamer-12",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "east-roamer-38",
+    "face-broad-crest-olive"
+   ],
+   [
+    "east-roamer-41",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "east-roamer-16",
+    "face-broad-messy-brown"
+   ],
+   [
+    "east-roamer-34",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "east-roamer-5",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "east-roamer-48",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "east-roamer-28",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "east-roamer-43",
+    "face-narrow-crest-light"
+   ],
+   [
+    "east-roamer-1",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "east-roamer-36",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "east-roamer-24",
+    "face-broad-crest-deep"
+   ],
+   [
+    "east-roamer-13",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "east-roamer-39",
+    "face-broad-messy-light"
+   ],
+   [
+    "east-roamer-7",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "east-roamer-11",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "east-roamer-3",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "east-roamer-21",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "east-roamer-42",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "east-roamer-51",
+    "face-broad-buzz-light"
+   ],
+   [
+    "east-roamer-15",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "east-roamer-37",
+    "face-broad-crest-tan"
+   ],
+   [
+    "east-roamer-6",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "east-roamer-47",
+    "face-broad-messy-olive"
+   ],
+   [
+    "east-roamer-32",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "east-roamer-23",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "east-roamer-4",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "east-roamer-9",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "east-roamer-10",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "east-roamer-26",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "east-roamer-45",
+    "face-narrow-messy-light"
+   ],
+   [
+    "east-roamer-30",
+    "face-broad-crest-brown"
+   ],
+   [
+    "east-roamer-22",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "east-roamer-19",
+    "face-broad-messy-deep"
+   ],
+   [
+    "east-roamer-49",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "east-roamer-29",
+    "face-broad-rough-crop-light"
+   ],
+   [
+    "east-roamer-40",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "south/1": [
+   [
+    "south-roamer-1",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "south/6": [
+   [
+    "south-roamer-5",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "south-roamer-4",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "south-roamer-1",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "south-roamer-3",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "south-roamer-6",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "south-roamer-2",
+    "face-broad-crest-light"
+   ]
+  ],
+  "south/9": [
+   [
+    "south-roamer-5",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "south-roamer-8",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "south-roamer-4",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "south-roamer-1",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "south-roamer-9",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "south-roamer-3",
+    "face-broad-crest-light"
+   ],
+   [
+    "south-roamer-6",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "south-roamer-2",
+    "face-broad-messy-tan"
+   ],
+   [
+    "south-roamer-7",
+    "face-narrow-back-crop-deep"
+   ]
+  ],
+  "south/14": [
+   [
+    "south-roamer-5",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "south-roamer-13",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "south-roamer-11",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "south-roamer-8",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "south-roamer-4",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "south-roamer-1",
+    "face-broad-crest-light"
+   ],
+   [
+    "south-roamer-9",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "south-roamer-3",
+    "face-broad-messy-tan"
+   ],
+   [
+    "south-roamer-6",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "south-roamer-2",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "south-roamer-10",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "south-roamer-14",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "south-roamer-12",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "south-roamer-7",
+    "face-broad-buzz-tan"
+   ]
+  ],
+  "south/50": [
+   [
+    "south-roamer-48",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "south-roamer-5",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "south-roamer-27",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "south-roamer-13",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "south-roamer-39",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "south-roamer-23",
+    "face-broad-crest-light"
+   ],
+   [
+    "south-roamer-18",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "south-roamer-11",
+    "face-broad-messy-tan"
+   ],
+   [
+    "south-roamer-8",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "south-roamer-42",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "south-roamer-15",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "south-roamer-4",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "south-roamer-37",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "south-roamer-26",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "south-roamer-24",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "south-roamer-47",
+    "face-broad-crest-olive"
+   ],
+   [
+    "south-roamer-49",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "south-roamer-1",
+    "face-broad-messy-brown"
+   ],
+   [
+    "south-roamer-32",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "south-roamer-20",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "south-roamer-50",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "south-roamer-45",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "south-roamer-9",
+    "face-narrow-crest-light"
+   ],
+   [
+    "south-roamer-3",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "south-roamer-30",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "south-roamer-19",
+    "face-broad-crest-deep"
+   ],
+   [
+    "south-roamer-29",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "south-roamer-40",
+    "face-broad-messy-light"
+   ],
+   [
+    "south-roamer-17",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "south-roamer-6",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "south-roamer-25",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "south-roamer-35",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "south-roamer-44",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "south-roamer-2",
+    "face-broad-buzz-light"
+   ],
+   [
+    "south-roamer-31",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "south-roamer-10",
+    "face-broad-crest-tan"
+   ],
+   [
+    "south-roamer-46",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "south-roamer-43",
+    "face-broad-messy-olive"
+   ],
+   [
+    "south-roamer-28",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "south-roamer-14",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "south-roamer-33",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "south-roamer-22",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "south-roamer-36",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "south-roamer-12",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "south-roamer-38",
+    "face-narrow-messy-light"
+   ],
+   [
+    "south-roamer-41",
+    "face-broad-crest-brown"
+   ],
+   [
+    "south-roamer-21",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "south-roamer-16",
+    "face-broad-messy-deep"
+   ],
+   [
+    "south-roamer-7",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "south-roamer-34",
+    "face-broad-rough-crop-light"
+   ]
+  ],
+  "south/51": [
+   [
+    "south-roamer-48",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "south-roamer-5",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "south-roamer-27",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "south-roamer-13",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "south-roamer-39",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "south-roamer-23",
+    "face-broad-crest-light"
+   ],
+   [
+    "south-roamer-18",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "south-roamer-11",
+    "face-broad-messy-tan"
+   ],
+   [
+    "south-roamer-8",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "south-roamer-42",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "south-roamer-15",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "south-roamer-4",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "south-roamer-37",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "south-roamer-26",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "south-roamer-24",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "south-roamer-47",
+    "face-broad-crest-olive"
+   ],
+   [
+    "south-roamer-49",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "south-roamer-1",
+    "face-broad-messy-brown"
+   ],
+   [
+    "south-roamer-32",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "south-roamer-20",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "south-roamer-50",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "south-roamer-45",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "south-roamer-9",
+    "face-narrow-crest-light"
+   ],
+   [
+    "south-roamer-3",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "south-roamer-30",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "south-roamer-19",
+    "face-broad-crest-deep"
+   ],
+   [
+    "south-roamer-29",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "south-roamer-40",
+    "face-broad-messy-light"
+   ],
+   [
+    "south-roamer-17",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "south-roamer-6",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "south-roamer-25",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "south-roamer-35",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "south-roamer-44",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "south-roamer-2",
+    "face-broad-buzz-light"
+   ],
+   [
+    "south-roamer-31",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "south-roamer-10",
+    "face-broad-crest-tan"
+   ],
+   [
+    "south-roamer-46",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "south-roamer-43",
+    "face-broad-messy-olive"
+   ],
+   [
+    "south-roamer-28",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "south-roamer-14",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "south-roamer-33",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "south-roamer-22",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "south-roamer-36",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "south-roamer-12",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "south-roamer-51",
+    "face-narrow-messy-light"
+   ],
+   [
+    "south-roamer-38",
+    "face-broad-crest-brown"
+   ],
+   [
+    "south-roamer-41",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "south-roamer-21",
+    "face-broad-messy-deep"
+   ],
+   [
+    "south-roamer-16",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "south-roamer-7",
+    "face-broad-rough-crop-light"
+   ],
+   [
+    "south-roamer-34",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "area7/1": [
+   [
+    "area7-roamer-1",
+    "face-narrow-buzz-light"
+   ]
+  ],
+  "area7/6": [
+   [
+    "area7-roamer-5",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "area7-roamer-2",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "area7-roamer-6",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "area7-roamer-4",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "area7-roamer-1",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "area7-roamer-3",
+    "face-broad-crest-light"
+   ]
+  ],
+  "area7/9": [
+   [
+    "area7-roamer-9",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "area7-roamer-5",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "area7-roamer-7",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "area7-roamer-8",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "area7-roamer-2",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "area7-roamer-6",
+    "face-broad-crest-light"
+   ],
+   [
+    "area7-roamer-4",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-1",
+    "face-broad-messy-tan"
+   ],
+   [
+    "area7-roamer-3",
+    "face-narrow-back-crop-deep"
+   ]
+  ],
+  "area7/14": [
+   [
+    "area7-roamer-10",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "area7-roamer-9",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "area7-roamer-12",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "area7-roamer-5",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "area7-roamer-13",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "area7-roamer-7",
+    "face-broad-crest-light"
+   ],
+   [
+    "area7-roamer-11",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-14",
+    "face-broad-messy-tan"
+   ],
+   [
+    "area7-roamer-8",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "area7-roamer-2",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "area7-roamer-6",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "area7-roamer-4",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "area7-roamer-1",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "area7-roamer-3",
+    "face-broad-buzz-tan"
+   ]
+  ],
+  "area7/50": [
+   [
+    "area7-roamer-34",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "area7-roamer-10",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "area7-roamer-49",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "area7-roamer-20",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "area7-roamer-9",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "area7-roamer-36",
+    "face-broad-crest-light"
+   ],
+   [
+    "area7-roamer-24",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-46",
+    "face-broad-messy-tan"
+   ],
+   [
+    "area7-roamer-31",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "area7-roamer-12",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "area7-roamer-48",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "area7-roamer-5",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "area7-roamer-33",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "area7-roamer-29",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "area7-roamer-43",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "area7-roamer-37",
+    "face-broad-crest-olive"
+   ],
+   [
+    "area7-roamer-17",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "area7-roamer-13",
+    "face-broad-messy-brown"
+   ],
+   [
+    "area7-roamer-7",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "area7-roamer-18",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "area7-roamer-41",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "area7-roamer-11",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "area7-roamer-14",
+    "face-narrow-crest-light"
+   ],
+   [
+    "area7-roamer-8",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "area7-roamer-2",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "area7-roamer-26",
+    "face-broad-crest-deep"
+   ],
+   [
+    "area7-roamer-32",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "area7-roamer-44",
+    "face-broad-messy-light"
+   ],
+   [
+    "area7-roamer-6",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "area7-roamer-38",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "area7-roamer-40",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "area7-roamer-16",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "area7-roamer-21",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "area7-roamer-4",
+    "face-broad-buzz-light"
+   ],
+   [
+    "area7-roamer-28",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "area7-roamer-1",
+    "face-broad-crest-tan"
+   ],
+   [
+    "area7-roamer-42",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "area7-roamer-25",
+    "face-broad-messy-olive"
+   ],
+   [
+    "area7-roamer-35",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "area7-roamer-47",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-30",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "area7-roamer-50",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "area7-roamer-39",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "area7-roamer-23",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "area7-roamer-3",
+    "face-narrow-messy-light"
+   ],
+   [
+    "area7-roamer-19",
+    "face-broad-crest-brown"
+   ],
+   [
+    "area7-roamer-27",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "area7-roamer-45",
+    "face-broad-messy-deep"
+   ],
+   [
+    "area7-roamer-15",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "area7-roamer-22",
+    "face-broad-rough-crop-light"
+   ]
+  ],
+  "area7/51": [
+   [
+    "area7-roamer-34",
+    "face-narrow-buzz-light"
+   ],
+   [
+    "area7-roamer-10",
+    "face-broad-back-crop-brown"
+   ],
+   [
+    "area7-roamer-49",
+    "face-narrow-crest-tan"
+   ],
+   [
+    "area7-roamer-20",
+    "face-broad-buzz-deep"
+   ],
+   [
+    "area7-roamer-9",
+    "face-narrow-messy-olive"
+   ],
+   [
+    "area7-roamer-36",
+    "face-broad-crest-light"
+   ],
+   [
+    "area7-roamer-24",
+    "face-narrow-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-46",
+    "face-broad-messy-tan"
+   ],
+   [
+    "area7-roamer-31",
+    "face-narrow-back-crop-deep"
+   ],
+   [
+    "area7-roamer-12",
+    "face-broad-rough-crop-olive"
+   ],
+   [
+    "area7-roamer-48",
+    "face-narrow-buzz-olive"
+   ],
+   [
+    "area7-roamer-5",
+    "face-broad-back-crop-light"
+   ],
+   [
+    "area7-roamer-33",
+    "face-narrow-crest-brown"
+   ],
+   [
+    "area7-roamer-29",
+    "face-broad-buzz-tan"
+   ],
+   [
+    "area7-roamer-43",
+    "face-narrow-messy-deep"
+   ],
+   [
+    "area7-roamer-37",
+    "face-broad-crest-olive"
+   ],
+   [
+    "area7-roamer-17",
+    "face-narrow-rough-crop-light"
+   ],
+   [
+    "area7-roamer-13",
+    "face-broad-messy-brown"
+   ],
+   [
+    "area7-roamer-7",
+    "face-narrow-back-crop-tan"
+   ],
+   [
+    "area7-roamer-18",
+    "face-broad-rough-crop-deep"
+   ],
+   [
+    "area7-roamer-41",
+    "face-narrow-buzz-deep"
+   ],
+   [
+    "area7-roamer-11",
+    "face-broad-back-crop-olive"
+   ],
+   [
+    "area7-roamer-14",
+    "face-narrow-crest-light"
+   ],
+   [
+    "area7-roamer-8",
+    "face-broad-buzz-brown"
+   ],
+   [
+    "area7-roamer-2",
+    "face-narrow-messy-tan"
+   ],
+   [
+    "area7-roamer-26",
+    "face-broad-crest-deep"
+   ],
+   [
+    "area7-roamer-32",
+    "face-narrow-rough-crop-olive"
+   ],
+   [
+    "area7-roamer-44",
+    "face-broad-messy-light"
+   ],
+   [
+    "area7-roamer-6",
+    "face-narrow-back-crop-brown"
+   ],
+   [
+    "area7-roamer-38",
+    "face-broad-rough-crop-tan"
+   ],
+   [
+    "area7-roamer-40",
+    "face-narrow-buzz-tan"
+   ],
+   [
+    "area7-roamer-16",
+    "face-broad-back-crop-deep"
+   ],
+   [
+    "area7-roamer-21",
+    "face-narrow-crest-olive"
+   ],
+   [
+    "area7-roamer-4",
+    "face-broad-buzz-light"
+   ],
+   [
+    "area7-roamer-28",
+    "face-narrow-messy-brown"
+   ],
+   [
+    "area7-roamer-1",
+    "face-broad-crest-tan"
+   ],
+   [
+    "area7-roamer-42",
+    "face-narrow-rough-crop-deep"
+   ],
+   [
+    "area7-roamer-25",
+    "face-broad-messy-olive"
+   ],
+   [
+    "area7-roamer-35",
+    "face-narrow-back-crop-light"
+   ],
+   [
+    "area7-roamer-47",
+    "face-broad-rough-crop-brown"
+   ],
+   [
+    "area7-roamer-30",
+    "face-narrow-buzz-brown"
+   ],
+   [
+    "area7-roamer-50",
+    "face-broad-back-crop-tan"
+   ],
+   [
+    "area7-roamer-39",
+    "face-narrow-crest-deep"
+   ],
+   [
+    "area7-roamer-23",
+    "face-broad-buzz-olive"
+   ],
+   [
+    "area7-roamer-3",
+    "face-narrow-messy-light"
+   ],
+   [
+    "area7-roamer-19",
+    "face-broad-crest-brown"
+   ],
+   [
+    "area7-roamer-27",
+    "face-narrow-rough-crop-tan"
+   ],
+   [
+    "area7-roamer-45",
+    "face-broad-messy-deep"
+   ],
+   [
+    "area7-roamer-15",
+    "face-narrow-back-crop-olive"
+   ],
+   [
+    "area7-roamer-51",
+    "face-broad-rough-crop-light"
+   ],
+   [
+    "area7-roamer-22",
+    "face-narrow-buzz-light"
+   ]
+  ]
+ },
+ "territory": {
+  "true/true/0/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.1/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.1/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.19999/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.19999/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.2/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.2/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/true/0.20001/1": {
+   "alerted": true,
+   "returning": true,
+   "action": "return"
+  },
+  "true/true/0.20001/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/true/0.5/1": {
+   "alerted": true,
+   "returning": true,
+   "action": "return"
+  },
+  "true/true/0.5/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/true/3/1": {
+   "alerted": true,
+   "returning": true,
+   "action": "return"
+  },
+  "true/true/3/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/0/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.1/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.1/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.19999/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.19999/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.2/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.2/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "true/false/0.20001/1": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/0.20001/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/0.5/1": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/0.5/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/3/1": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "true/false/3/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "false/true/0/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.1/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.1/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.19999/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.19999/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.2/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.2/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.20001/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.20001/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "false/true/0.5/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/0.5/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "false/true/3/1": {
+   "alerted": true,
+   "returning": false,
+   "action": "native"
+  },
+  "false/true/3/6": {
+   "alerted": false,
+   "returning": true,
+   "action": "return"
+  },
+  "false/false/0/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.1/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.1/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.19999/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.19999/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.2/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.2/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.20001/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.20001/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.5/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/0.5/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/3/1": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  },
+  "false/false/3/6": {
+   "alerted": false,
+   "returning": false,
+   "action": "native"
+  }
+ },
+ "moves": {
+  "all": {
+   "rat_low": {
+    "moveId": "rat_low",
+    "clip": "RatLowSlash",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 6,
+    "recoveryTicks": 28,
+    "windup": 0.3333333333333333,
+    "active": 0.1,
+    "recovery": 0.4666666666666667,
+    "damage": 10,
+    "staminaDamage": 10,
+    "stamina": 18,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.2,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": true,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": true
+   },
+   "rat_bite": {
+    "moveId": "rat_bite",
+    "clip": "rat_bite",
+    "path": null,
+    "windupTicks": 15,
+    "activeTicks": 6,
+    "recoveryTicks": 15,
+    "windup": 0.25,
+    "active": 0.1,
+    "recovery": 0.25,
+    "damage": 6,
+    "staminaDamage": 6,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 0.95,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "rat_bite_low": {
+    "moveId": "rat_bite",
+    "clip": "rat_bite_low",
+    "path": null,
+    "windupTicks": 15,
+    "activeTicks": 6,
+    "recoveryTicks": 15,
+    "windup": 0.25,
+    "active": 0.1,
+    "recovery": 0.25,
+    "damage": 6,
+    "staminaDamage": 6,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 0.95,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "roach_low": {
+    "moveId": "roach_low",
+    "clip": "RatLowSlash",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 6,
+    "recoveryTicks": 28,
+    "windup": 0.3333333333333333,
+    "active": 0.1,
+    "recovery": 0.4666666666666667,
+    "damage": 10,
+    "staminaDamage": 10,
+    "stamina": 18,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.2,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": true,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": true
+   },
+   "roach_bite": {
+    "moveId": "roach_bite",
+    "clip": "roach_bite",
+    "path": null,
+    "windupTicks": 15,
+    "activeTicks": 6,
+    "recoveryTicks": 15,
+    "windup": 0.25,
+    "active": 0.1,
+    "recovery": 0.25,
+    "damage": 4,
+    "staminaDamage": 4,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 0.93,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "roach_bite_scaled": {
+    "moveId": "roach_bite",
+    "clip": "roach_bite_scaled",
+    "path": null,
+    "windupTicks": 15,
+    "activeTicks": 6,
+    "recoveryTicks": 15,
+    "windup": 0.25,
+    "active": 0.1,
+    "recovery": 0.25,
+    "damage": 4,
+    "staminaDamage": 4,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 0.93,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "dog_low": {
+    "moveId": "dog_low",
+    "clip": "RatLowSlash",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 6,
+    "recoveryTicks": 28,
+    "windup": 0.3333333333333333,
+    "active": 0.1,
+    "recovery": 0.4666666666666667,
+    "damage": 10,
+    "staminaDamage": 10,
+    "stamina": 18,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.2,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": true,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": true
+   },
+   "dog_mid": {
+    "moveId": "dog_low",
+    "clip": "DogMidSlash",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 6,
+    "recoveryTicks": 28,
+    "windup": 0.3333333333333333,
+    "active": 0.1,
+    "recovery": 0.4666666666666667,
+    "damage": 10,
+    "staminaDamage": 10,
+    "stamina": 18,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.2,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": true,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": true
+   },
+   "dog_bite": {
+    "moveId": "dog_bite",
+    "clip": "dog_bite_calf",
+    "path": null,
+    "windupTicks": 18,
+    "activeTicks": 6,
+    "recoveryTicks": 24,
+    "windup": 0.3,
+    "active": 0.1,
+    "recovery": 0.4,
+    "damage": 8,
+    "staminaDamage": 8,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.17,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "dog_bite_scaled": {
+    "moveId": "dog_bite",
+    "clip": "dog_bite_scaled",
+    "path": null,
+    "windupTicks": 18,
+    "activeTicks": 6,
+    "recoveryTicks": 24,
+    "windup": 0.3,
+    "active": 0.1,
+    "recovery": 0.4,
+    "damage": 8,
+    "staminaDamage": 8,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.17,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true
+   },
+   "wolf_bite": {
+    "moveId": "wolf_bite",
+    "clip": "Bite",
+    "foundationRef": "original-wolf",
+    "windupTicks": 20,
+    "activeTicks": 12,
+    "recoveryTicks": 24,
+    "damage": 8,
+    "staminaDamage": 8,
+    "range": 2.5,
+    "weapon": "teeth",
+    "windup": 0.3333333333333333,
+    "active": 0.2,
+    "recovery": 0.4
+   },
+   "salamander_bite": {
+    "moveId": "salamander_bite",
+    "clip": "Bite",
+    "foundationRef": "giant-salamander",
+    "windupTicks": 20,
+    "activeTicks": 12,
+    "recoveryTicks": 24,
+    "damage": 4,
+    "staminaDamage": 4,
+    "range": 1.25,
+    "weapon": "teeth",
+    "windup": 0.3333333333333333,
+    "active": 0.2,
+    "recovery": 0.4
+   },
+   "wolf_attack": {
+    "moveId": "wolf_bite",
+    "clip": "Bite",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 12,
+    "recoveryTicks": 24,
+    "windup": 0.3333333333333333,
+    "active": 0.2,
+    "recovery": 0.4,
+    "damage": 8,
+    "staminaDamage": 8,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 2.5,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true,
+    "foundationRef": "original-wolf",
+    "weapon": "teeth"
+   },
+   "salamander_attack": {
+    "moveId": "salamander_bite",
+    "clip": "Bite",
+    "path": null,
+    "windupTicks": 20,
+    "activeTicks": 12,
+    "recoveryTicks": 24,
+    "windup": 0.3333333333333333,
+    "active": 0.2,
+    "recovery": 0.4,
+    "damage": 4,
+    "staminaDamage": 4,
+    "stamina": 0,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.25,
+    "stepIn": 0,
+    "knockback": 0,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": false,
+    "cooldown": 0,
+    "native": true,
+    "ratLow": false,
+    "ratBite": true,
+    "foundationRef": "giant-salamander",
+    "weapon": "teeth"
+   }
+  },
+  "knifeRef": {
+   "probe": {
+    "moveId": "light_right",
+    "clip": "Attack",
+    "path": "light_right",
+    "windupTicks": 14,
+    "activeTicks": 6,
+    "recoveryTicks": 16,
+    "windup": 0.23333333333333334,
+    "active": 0.1,
+    "recovery": 0.26666666666666666,
+    "damage": 10,
+    "staminaDamage": 10,
+    "stamina": 18,
+    "stagger": 0.3,
+    "chip": 0,
+    "range": 1.2,
+    "stepIn": 0.4,
+    "knockback": 2,
+    "sourceContact": 0.34,
+    "arc": 90,
+    "parryable": true,
+    "cooldown": 0
+   }
+  },
+  "badRef": "throws TypeError"
+ },
+ "glow": {
+  "1": {
+   "before": {
+    "order": 7.01,
+    "stroke": 1.05,
+    "colour": 16763525,
+    "hull": "6fe0f794256b386efaeb3cfb890420185e991c1db54357e0f32c462887cd5f28"
+   },
+   "afterPlain": 3.1500000000000004,
+   "afterScaled": 1.5750000000000002
+  },
+  "3": {
+   "before": {
+    "order": 7.01,
+    "stroke": 1.05,
+    "colour": 16763525,
+    "hull": "6fe0f794256b386efaeb3cfb890420185e991c1db54357e0f32c462887cd5f28"
+   },
+   "afterPlain": 3.1500000000000004,
+   "afterScaled": 1.5750000000000002
+  }
+ }
+}

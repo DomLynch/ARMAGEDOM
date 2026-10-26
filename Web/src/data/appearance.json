@@ -9,6 +9,8 @@
     "field": { "z": 63, "cosX": 45, "wobble": 1.6, "y": 99, "z2": 24 },
     "wear": { "from": 0.25, "range": 1.4 }
   },
+  "feralTorsoMask": { "from": 0.9, "range": 0.1 },
+  "pickupGlow": { "stroke": 1.05, "color": "#ffca85", "orderOffset": 0.01 },
   "animalCoat": {
     "taper": { "from": 0.9, "range": 0.1 },
     "field": { "z": 43, "cosY": 37, "wobble": 1.7, "x": 51, "y": 19 },

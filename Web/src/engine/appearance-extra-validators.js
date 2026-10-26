@@ -2,13 +2,35 @@
 // numbers. They live here, not in game-data.js, so that file stays under the Web source density limit; game-data.js hands in its own helpers.
 import { closed } from "./content-schema.js";
 
-export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair", "animalCoat", "roachCoat"];
+export const appearanceExtraKeys = () => [
+  "faceField",
+  "faceWeathering",
+  "faceHair",
+  "animalCoat",
+  "roachCoat",
+  "feralTorsoMask",
+  "pickupGlow",
+];
 
 export function validateAppearanceExtras(d, tools) {
   validateFaceTables(d, tools);
   validateCrookedPose(d, tools);
   validateAnimalCoat(d, tools);
   validateRoachCoat(d, tools);
+  validateFeralAndGlow(d, tools);
+}
+
+// feral-body-shapes.js: the torso taper band (`from`, `range`) maps a skin weight to 0..1. pickup-glow.js: the contour stroke width in
+// pixels, its colour (#rrggbb) and how far its render order sits above the pickup's own.
+function validateFeralAndGlow(d, { fail, between }) {
+  closed(d.feralTorsoMask, ["from", "range"]);
+  between("feralTorsoMask.from", d.feralTorsoMask.from, -10, 10);
+  between("feralTorsoMask.range", d.feralTorsoMask.range, 0.001, 100);
+  closed(d.pickupGlow, ["stroke", "color", "orderOffset"]);
+  between("pickupGlow.stroke", d.pickupGlow.stroke, 0.1, 20);
+  between("pickupGlow.orderOffset", d.pickupGlow.orderOffset, 0.0001, 1);
+  if (typeof d.pickupGlow.color !== "string" || !/^#[0-9a-f]{6}$/.test(d.pickupGlow.color))
+    fail("appearance", "pickupGlow.color must be #rrggbb");
 }
 
 // visual.json clothing.minTonalGap: the least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable
