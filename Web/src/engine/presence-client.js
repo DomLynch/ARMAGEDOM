@@ -7,9 +7,11 @@
 import { GAME_DATA } from "./game-data.js";
 
 export const PRESENCE_PROTOCOL = "arma.v1";
-export const CLOSE_REPLACED = 4010;
-export const LOC_INTERVAL_MS = 80; // at most 12.5 loc messages a second while moving (the server allows 40)
-const JUMP_CM_PER_S = 700; // above the server's 650 and the game's top speed (sprint and roll, 520): see `jumped` below
+export const CLOSE_REPLACED = 4010; // tuning-ok: the presence server's close code for a replaced session (wire protocol)
+// data/presenceClient.json: locIntervalMs is at most 12.5 loc messages a second while moving (the server allows 40); jumpCmPerS is above
+// the server's 650 and the game's top speed (sprint and roll, 520): see `jumped` below.
+export const LOC_INTERVAL_MS = GAME_DATA.presenceClient.locIntervalMs;
+const JUMP_CM_PER_S = GAME_DATA.presenceClient.jumpCmPerS;
 const JUMP_SLACK_CM = 100;
 // Reconnect delays are data (data/world.json presenceBackoffMs, capped at its last entry), never a retry storm.
 const retryDelays = () => GAME_DATA.world.presenceBackoffMs;

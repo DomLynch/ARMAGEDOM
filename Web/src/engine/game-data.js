@@ -17,8 +17,10 @@ import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import guestAuth from "../data/guestAuth.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
+import presenceClient from "../data/presenceClient.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
@@ -43,6 +45,7 @@ import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateGuestAuth, validatePresenceClient } from "./game-data-presence.js";
 import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
@@ -72,10 +75,12 @@ export {
   validateCreditPolicies,
   validateDiagnostics,
   validateFamilies,
+  validateGuestAuth,
   validateKnife,
   validateLowMelee,
   validateMelee,
   validateMobileAim,
+  validatePresenceClient,
   validateRenderBudget,
   validateSaveClient,
   validateTargeting,
@@ -835,10 +840,22 @@ export function validateCommander(d) {
 
 // remoteSurvivors.json: how the other players' figures are drawn and animated (engine/remote-survivors.js). Presentation only.
 export function validateRemoteSurvivors(d) {
-  closed(d, ["schema_version", "ringSegments", "ringOpacity", "markerHeight", "maxFrameSeconds", "walkBlendPerSecond"]);
+  closed(d, [
+    "schema_version",
+    "ringSegments",
+    "ringInner",
+    "ringOuter",
+    "ringOpacity",
+    "markerHeight",
+    "maxFrameSeconds",
+    "walkBlendPerSecond",
+  ]);
   count("remoteSurvivors", "ringSegments", d.ringSegments, 8, 128);
-  for (const [name, min, max] of [["ringOpacity", 0.05, 1], ["markerHeight", 0, 1], ["maxFrameSeconds", 0.01, 1], ["walkBlendPerSecond", 0.5, 60]])
+  const ranges = [["ringInner", 0.05, 5], ["ringOuter", 0.05, 5], ["ringOpacity", 0.05, 1], ["markerHeight", 0, 1]];
+  ranges.push(["maxFrameSeconds", 0.01, 1], ["walkBlendPerSecond", 0.5, 60]);
+  for (const [name, min, max] of ranges)
     if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("remoteSurvivors", `${name} must be ${min} to ${max}`);
+  if (d.ringInner >= d.ringOuter) fail("remoteSurvivors", "ringInner must be below ringOuter");
 }
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
@@ -861,6 +878,8 @@ const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
+  guestAuth: [guestAuth, validateGuestAuth],
+  presenceClient: [presenceClient, validatePresenceClient],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
   railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
