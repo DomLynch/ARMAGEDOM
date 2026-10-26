@@ -17,7 +17,8 @@ test('219 changes only six boss movement/acquisition/timing fields and uniformly
  for(const[id,p]of Object.entries(bosses.profiles)){
   const old=base.bosses.profiles[id];if(id==='witch')continue;
   assert.equal(p.moveSpeed,1.9); // 26 Oct (Dom): bosses were too passive; was the 218 speed x 1.275 (1.285 to 1.785); the witch keeps 2.275
-  assert.equal(p.wakeDistance,10);
+  // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
+  assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
   assert.equal(p.homeLeash,18);
   const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay'])]);
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);

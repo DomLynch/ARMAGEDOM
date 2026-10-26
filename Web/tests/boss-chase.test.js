@@ -23,7 +23,8 @@ const receipts = [];
 for (const row of content.bosses.placements) {
   const p = content.bosses.profiles[row.profileRef];
   test(`${row.profileRef}: wakes from ~10 m, chases, stays inside ${row.areaId}`, () => {
-    assert.equal(p.wakeDistance, 10);
+    // 10 m everywhere the area's entry is far enough that arriving does not wake the boss (entry distance > wake + 0.5 m).
+    assert.equal(p.wakeDistance, { warden: 5, nightborn: 8 }[row.profileRef] ?? 10);
     assert.equal(p.homeLeash, 18);
     assert(p.moveSpeed >= 1.9, "speed at least 1.9");
     const f = fixture({ areaId: row.areaId }),
@@ -31,7 +32,7 @@ for (const row of content.bosses.placements) {
       e = g.enemies.find((x) => x.placementKey === row.key);
     assert(e, "boss placed");
     g.enemies = [e];
-    // Just outside the old wake band, inside the new one.
+    // Just inside the wake band (0.5 m), far outside the old one (4.62 / 3.36 m).
     // Without a renderer there is no posed muzzle, so the ranged bosses (rocket, shotgun) get one at the body, as the view would.
     const services = {
       bossRangedSource: (_g, boss) => ({ x: boss.pos.x, y: 1.2, z: -boss.pos.z }),
@@ -54,9 +55,10 @@ for (const row of content.bosses.placements) {
     const gained = gap(start, e.pos);
     assert(e.alerted && !e.returning, "still engaged after 3 s");
     // A ranged boss (the Butcher's rocket reaches 12 m, the Nightborn's shotgun 6 m) stands and shoots once the player is in its range.
+    // A melee boss starting close (the Warden wakes at 5 m) may arrive at its attack reach before the 3 s are up.
     assert(
-      gained > 0.5 * p.moveSpeed * 3 || fired.size,
-      `moved ${gained.toFixed(2)} m in 3 s at ${p.moveSpeed} m/s without firing`,
+      gained > 0.5 * p.moveSpeed * 3 || fired.size || gap(e.pos, near) < 3,
+      `moved ${gained.toFixed(2)} m in 3 s at ${p.moveSpeed} m/s without firing or arriving`,
     );
     assert(inside, "never left the area's walkable ground or entered an exit");
     // Pursuit is area-wide once it has woken: a player 19 m from the spot (beyond the 18 m wake leash) is still chased.
@@ -65,7 +67,8 @@ for (const row of content.bosses.placements) {
     if (far) {
       g.player.pos = far;
       const before = gap(e.pos, far);
-      for (let i = 0; i < 90; i++) {
+      // 3 s: a boss in the middle of a committed swing (the Warden's Maul) finishes it before it walks again.
+      for (let i = 0; i < 180; i++) {
         stepGame(g, {}, 1 / 60, services);
         g.player.hp = g.player.maxHP; // the receipt is about movement, not about surviving the boss
       }
@@ -74,7 +77,7 @@ for (const row of content.bosses.placements) {
       followed = "still chased at 19 m";
     }
     receipts.push(
-      `${row.profileRef.padEnd(9)} wake ${p.wakeDistance} m  leash ${p.homeLeash} m  speed ${p.moveSpeed} m/s  3 s from 9.5 m: ${fired.size ? "fires " + [...fired].join("+") + ", " : ""}moved ${gained.toFixed(2)} m  ${followed}`,
+      `${row.profileRef.padEnd(9)} wake ${p.wakeDistance} m  leash ${p.homeLeash} m  speed ${p.moveSpeed} m/s  3 s from ${(p.wakeDistance - 0.5).toFixed(1)} m:${fired.size ? "fires " + [...fired].join("+") + ", " : ""}moved ${gained.toFixed(2)} m  ${followed}`,
     );
   });
 }
