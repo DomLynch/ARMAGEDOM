@@ -121,8 +121,11 @@ const rotate = (v, angle) => ({
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
 let serial = 0;
+// The original goblin game's numbers (hp, reach, timings per enemy kind, formation, loot) are data/combatRules.json `legacy`.
+const LEGACY = GAME_DATA.combatRules.legacy;
+const legacyKind = (kind) => LEGACY.kinds[kind] ?? LEGACY.kinds[0];
 export function enemy(kind, pos) {
-  const hp = [55, 95, 50, 400][kind];
+  const hp = LEGACY.kinds[kind]?.hp;
   return {
     id: ++serial,
     kind,
@@ -130,7 +133,7 @@ export function enemy(kind, pos) {
     facing: { x: 0, z: -1 },
     hp,
     maxHP: hp,
-    radius: kind === 3 ? 0.65 : 0.4,
+    radius: legacyKind(kind).radius,
     ready: 0,
     recoverUntil: 0,
     staggerUntil: 0,
@@ -880,13 +883,17 @@ export function spawnWave(g) {
   g.wave++;
   const count = g.wave === 3 ? 1 : 4 + g.wave;
   g.enemies = Array.from({ length: count }, (_, i) =>
-    enemy(g.wave === 3 ? 3 : i % 3, { x: count === 1 ? 0 : ((i % 5) - 2) * 1.7, z: -1 + Math.floor(i / 5) * 2.4 }),
+    enemy(g.wave === 3 ? 3 : i % 3, {
+      x: count === 1 ? 0 : ((i % LEGACY.formation.columns) - 2) * LEGACY.formation.xSpacing,
+      z: -1 + Math.floor(i / LEGACY.formation.columns) * LEGACY.formation.zSpacing,
+    }),
   );
   notify(g, g.wave === 3 ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/3`);
   event(g, "wave");
 }
-const radius = (e) => (e.kind === 3 ? (e.pattern === 1 ? 4 : 3.5) : e.kind === 1 ? 2.8 : 1.8);
-const arc = (e) => (e.kind === 3 && e.pattern === 1 ? 360 : e.kind === 1 ? 110 : 90);
+const wideSwing = (e) => e.kind === 3 && e.pattern === 1;
+const radius = (e) => (wideSwing(e) ? LEGACY.wideSwing.radius : legacyKind(e.kind).swingRadius);
+const arc = (e) => (wideSwing(e) ? LEGACY.wideSwing.arc : legacyKind(e.kind).swingArc);
 function bolt(g, pos, dir, amount) {
   g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
 }
@@ -921,14 +928,15 @@ function enemyTick(g, e, dt, services = {}) {
     offset = sub(g.player.pos, e.pos),
     distance = mag(offset),
     dir = normal(offset, e.facing);
-  if (!e.alerted && distance > 12) return;
+  const row = legacyKind(e.kind);
+  if (!e.alerted && distance > LEGACY.alertDistance) return;
   e.alerted = true;
   if (e.swing) {
     if (t + EPS >= e.swing.hitAt) {
       const s = e.swing;
       e.swing = null;
       const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
-        amount = e.kind === 3 ? 25 : e.kind === 1 ? 23 : e.kind === 2 ? 12 : 9;
+        amount = row.damage;
       if (ranged) {
         bolt(g, s.pos, s.dir, amount);
         if (e.kind === 3) {
@@ -937,27 +945,31 @@ function enemyTick(g, e, dt, services = {}) {
         }
       } else {
         const delta = sub(g.player.pos, s.pos);
-        if (mag(delta) < radius(e) + 0.25 && inside(s.dir, delta, arc(e)) && g.world.lineClear(s.pos, g.player.pos))
+        if (
+          mag(delta) < radius(e) + LEGACY.reachSlack &&
+          inside(s.dir, delta, arc(e)) &&
+          g.world.lineClear(s.pos, g.player.pos)
+        )
           receiveHit(g, { amount, origin: s.pos, attacker: e, block: e.kind !== 3, parry: e.kind === 0 });
       }
-      e.recoverUntil = Math.max(e.recoverUntil, t + (e.kind === 1 || e.kind === 3 ? 0.95 : 0.45));
-      e.ready = Math.max(e.ready, t + (e.kind === 0 ? 1.2 : 1.9));
+      e.recoverUntil = Math.max(e.recoverUntil, t + row.recoverSeconds);
+      e.ready = Math.max(e.ready, t + row.readySeconds);
       if (e.kind === 3) e.pattern = (e.pattern + 1) % 3;
     }
     return;
   }
   if (t < e.recoverUntil || t < e.staggerUntil) return;
   const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
-    reach = ranged ? 8 : radius(e) - 0.25;
+    reach = ranged ? LEGACY.rangedReach : radius(e) - LEGACY.reachSlack;
   if (distance > reach || !g.world.lineClear(e.pos, g.player.pos)) {
-    enemyMove(g, e, dir, e.kind === 1 ? 1.65 : e.kind === 3 ? 2.1 : 2.8, dt);
+    enemyMove(g, e, dir, row.moveSpeed, dt);
     return;
   }
   if (e.kind === 2 && distance < 4 && t < e.ready) enemyMove(g, e, { x: -dir.x, z: -dir.z }, 2, dt, true);
   else e.facing = turn(e.facing, dir, 360 * dt);
-  if (t + EPS >= e.ready && dot(e.facing, dir) > 0.96) {
-    const delay = e.kind === 0 ? 0.4 : e.kind === 2 ? 0.65 : 1.05;
-    e.swing = { dir, pos: { ...e.pos }, start: t, hitAt: t + delay, end: t + delay + 0.28 };
+  if (t + EPS >= e.ready && dot(e.facing, dir) > LEGACY.aimDot) {
+    const delay = row.windupSeconds;
+    e.swing = { dir, pos: { ...e.pos }, start: t, hitAt: t + delay, end: t + delay + LEGACY.swingSeconds };
     event(g, "enemy-attack", { actor: e, dir, range: radius(e), arc: arc(e) });
   }
 }
@@ -1003,7 +1015,7 @@ function projectiles(g, dt) {
       b.dead = true;
       continue;
     }
-    const next = { x: b.pos.x + b.dir.x * 8 * dt, z: b.pos.z + b.dir.z * 8 * dt };
+    const next = { x: b.pos.x + b.dir.x * LEGACY.boltSpeed * dt, z: b.pos.z + b.dir.z * LEGACY.boltSpeed * dt };
     if (!g.world.lineClear(b.pos, next)) {
       b.dead = true;
       continue;
@@ -1012,7 +1024,7 @@ function projectiles(g, dt) {
       delta = sub(g.player.pos, b.pos),
       length = dot(seg, seg),
       t = Math.max(0, Math.min(1, dot(delta, seg) / Math.max(0.0001, length)));
-    if (mag(sub(g.player.pos, { x: b.pos.x + seg.x * t, z: b.pos.z + seg.z * t })) < 0.6) {
+    if (mag(sub(g.player.pos, { x: b.pos.x + seg.x * t, z: b.pos.z + seg.z * t })) < LEGACY.boltHitRadius) {
       receiveHit(g, { amount: b.amount, origin: b.pos });
       b.dead = true;
     } else b.pos = next;
@@ -1022,21 +1034,21 @@ function projectiles(g, dt) {
 function collect(g) {
   const p = g.player;
   for (const l of g.loot) {
-    if (mag(sub(l.pos, p.pos)) >= 1.3) continue;
+    if (mag(sub(l.pos, p.pos)) >= LEGACY.loot.pickupRadius) continue;
     l.collected = true;
     if (l.kind === 0) {
-      const pct = 0.1 + l.tier * 0.025;
+      const pct = LEGACY.loot.blade.base + l.tier * LEGACY.loot.blade.step;
       p.damage *= 1 + pct;
       p.weaponLevel++;
       notify(g, `BLADE +${Math.round(pct * 100)}% damage`);
     } else if (l.kind === 1) {
-      const hp = 15 + l.tier * 5;
+      const hp = LEGACY.loot.armour.base + l.tier * LEGACY.loot.armour.step;
       p.maxHP += hp;
       p.hp = Math.min(p.maxHP, p.hp + hp);
       p.armourLevel++;
       notify(g, `ARMOUR +${hp} max HP`);
     } else {
-      const hp = 30 + l.tier * 10;
+      const hp = LEGACY.loot.tonic.base + l.tier * LEGACY.loot.tonic.step;
       p.hp = Math.min(p.maxHP, p.hp + hp);
       notify(g, `TONIC +${hp} HP`);
     }
