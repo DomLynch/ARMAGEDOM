@@ -18,5 +18,16 @@
     "defendSeconds": 30,
     "beaconHP": 100,
     "matchSeconds": 180
+  },
+  "view": {
+    "backdropSize": [1672, 941],
+    "startFocus": { "x": 0.6, "y": 0.69 },
+    "fillLight": { "sky": "b9bec9", "ground": "4b3828", "intensity": 1.6 },
+    "sun": { "colour": "ffd7a0", "intensity": 2.3, "position": [-7, 12, 6] },
+    "actorScale": 1.3225,
+    "unitRing": { "inner": 1.16, "outer": 1.22, "segments": 32, "colour": "72d3ed", "opacity": 0.4, "selectedOpacity": 0.95, "idleOpacity": 0.25, "height": 0.035 },
+    "objectiveRing": { "width": 0.06, "segments": 48, "captureColour": "e2bc72", "otherColour": "64d5c1", "opacity": 0.85, "height": 0.025 },
+    "pick": { "boxPadding": 0.12 },
+    "diagnostics": { "unitHeight": 0.9, "opponentHeight": 1.1 }
   }
 }
