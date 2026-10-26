@@ -15,8 +15,11 @@ const old = JSON.parse(fs.readFileSync(new URL("./fixtures/area-limits-pre-data.
 const rawText = fs.readFileSync(new URL("../src/data/areaRuntime.json", import.meta.url), "utf8");
 const raw = () => structuredClone(JSON.parse(rawText));
 
-test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "8cf3b17ee90070df211094f5e4fd246ad03ffde2e4d228bc95b5d0b2b3ce9634");
+test("the data file's original sections are pinned", () => {
+  // Later batches add sections to this file (travel timings, texture budget): this pin covers the three batch 7 sections only.
+  const { defaultLighting, prefetch, parkedAreas } = JSON.parse(rawText);
+  const section = JSON.stringify({ defaultLighting, prefetch, parkedAreas });
+  assert.equal(crypto.createHash("sha256").update(section).digest("hex"), "a4797e6d6a48cb3ef2af82bea202c99657e31a32f3ce41ef0e2cc8cca1ad0029");
 });
 
 test("the three exports equal the old modules' values exactly (key order too) and are frozen data rows", () => {

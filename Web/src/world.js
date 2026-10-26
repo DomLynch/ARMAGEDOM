@@ -5,7 +5,7 @@ import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
 import { GAME_DATA } from "./engine/game-data.js";
 const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
-const MIB = 1024 * 1024;
+const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
 const ASPECT = 1672 / 941;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).

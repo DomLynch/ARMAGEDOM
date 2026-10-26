@@ -179,7 +179,7 @@
     "supply-ledger-v2.js": 3,
     "wolf-native.js": 4,
     "world-geometry.js": 6,
-    "world.js": 31
+    "world.js": 12
   },
   "constantTables": {
     "clothing-palettes.js": 1,
