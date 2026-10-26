@@ -16,7 +16,7 @@ const rawText = fs.readFileSync(new URL("../src/data/supplies.json", import.meta
 const raw = () => structuredClone(JSON.parse(rawText));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "1be962bc795cfc3b2060f7203ddaa67e52f66c0e780bf9c6428115fe9c4b599c");
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "69156017db3ebe45588d34fbae08aad8e293bf897c3f58f5e47d100408639002");
 });
 
 test("behaviour is identical to before the move: table, issued drops, awards, loot rules, vest bag, save round trip", () => {
@@ -53,10 +53,10 @@ test("the loader rejects a broken supplies file", () => {
   assert.throws(broken((d) => { delete d.vestBagPosition; }));
 });
 
-test("run-state.js holds no constant table, supplies.js two (SUPPLY_RULES, GEAR_ITEMS); the baseline says so", () => {
+test("run-state.js and supplies.js hold no constant table (SUPPLY_RULES and GEAR_ITEMS moved to data); the baseline says so", () => {
   assert.equal(countConstantTables(fs.readFileSync(new URL("../src/engine/run-state.js", import.meta.url), "utf8")), 0);
-  assert.equal(countConstantTables(fs.readFileSync(new URL("../src/supplies.js", import.meta.url), "utf8")), 2);
+  assert.equal(countConstantTables(fs.readFileSync(new URL("../src/supplies.js", import.meta.url), "utf8")), 0);
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url), "utf8"));
   assert(!("engine/run-state.js" in baseline.constantTables));
-  assert.equal(baseline.constantTables["supplies.js"], 2);
+  assert(!("supplies.js" in baseline.constantTables));
 });

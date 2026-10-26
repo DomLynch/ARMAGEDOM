@@ -1,7 +1,7 @@
 import { isExtendedSupplies, issueExtendedSupply } from "./supply-ledger-v2.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // Area1-only rules; caller owns actual kill authority and atomic run persistence.
-export const SUPPLY_RULES = Object.freeze({ pickupRadius: 1.3, reserveCap: 12, healFraction: 0.2 });
+export const SUPPLY_RULES = GAME_DATA.supplies.rules; // data/supplies.json: pickupRadius, reserveCap, healFraction
 export const AREA1_SUPPLIES = GAME_DATA.supplies.area1; // data/supplies.json: roamer key -> { kind, amount } or null
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const copy = (p) => ({ x: p.x, z: p.z });
@@ -147,7 +147,7 @@ export function collectSupply(state, { dropId, areaId, position, resources, line
   };
 }
 
-export const GEAR_ITEMS = Object.freeze(["westminster-start-pistol-v1", "westminster-worn-vest-v1"]);
+export const GEAR_ITEMS = GAME_DATA.supplies.gearItems; // data/supplies.json: start pistol, then worn vest
 // The immutable issued outcome identifies the source; no reroll or second ledger.
 export function collectedGearSource(state, rules, itemId) {
   if (state?.version !== 2 || !isExtendedSupplies(state, rules)) return false;

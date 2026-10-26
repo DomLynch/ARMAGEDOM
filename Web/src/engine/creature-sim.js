@@ -3,13 +3,14 @@
 // identical. Boundary and limits: combat-w3-authority.md.
 // stepCreatureAI = boss rockets + the enemyTick loop; resolveCreatureContacts = knifeContacts + area hazards.
 import { createGame, stepCreatureAI, resolveCreatureContacts, rangedHit } from "../combat.js";
+import { GAME_DATA } from "./game-data.js";
 
 const TICK = 1 / 60; // the knife pilot requires fixed 60 Hz ticks
 const MAX_DT = 0.25;
 const snapshot = (e) => ({ ...e, pos: { ...e.pos }, facing: { ...e.facing } });
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const point = (p) => ({ x: p.x, z: p.z });
-const PLAYER_FIELDS = ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"];
+const PLAYER_FIELDS = GAME_DATA.creatures.creatureSim.playerFields; // data/creatures.json
 
 /**
  * createCreatureSim({ game } | { world, pilot, creatures })

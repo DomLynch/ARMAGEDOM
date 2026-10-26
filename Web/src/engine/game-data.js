@@ -272,7 +272,12 @@ export function validateCreatures(d) {
     "animalCycles",
     "gauntHumanCycles",
     "hollowTuning",
+    "creatureSim",
   ]);
+  // creatureSim.playerFields: the report fields engine/creature-sim.js copies onto a player entity each step.
+  closed(d.creatureSim, ["playerFields"]);
+  if (d.creatureSim.playerFields.join() !== "hp,dodgeUntil,guarding,parryUntil,stamina")
+    fail("creatures", "creatureSim.playerFields must be hp, dodgeUntil, guarding, parryUntil, stamina");
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
   for (const [name, row] of Object.entries(d.playerAttacks)) {
@@ -510,7 +515,19 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood"]);
+  // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
+  closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
+  closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
+  closed(d.severBlood.pool, ["settleSeconds", "capacity", "lifetime", "spreadSeconds", "radius", "opacity"]);
+  count("visual", "severBlood.jet.capacity", d.severBlood.jet.capacity, 1, 64);
+  count("visual", "severBlood.pool.capacity", d.severBlood.pool.capacity, 1, 64);
+  for (const f of ["duration", "length", "radius"]) number("visual", `severBlood.jet.${f}`, d.severBlood.jet[f], 0.001);
+  for (const f of ["settleSeconds", "lifetime", "spreadSeconds", "radius"])
+    number("visual", `severBlood.pool.${f}`, d.severBlood.pool[f], 0.001);
+  if (!(d.severBlood.pool.opacity > 0 && d.severBlood.pool.opacity <= 1)) fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
+  number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
+  number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
   // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
   closed(d.routeArrow, ["peakOpacity"]);
@@ -810,7 +827,15 @@ export function validateAreas(d) {
 // supplies.json: which Westminster roamers issue a supply drop and what it holds (supplies.js AREA1_SUPPLIES, null = none), and where the
 // worn-vest bag lies (run-state.js VEST_BAG_POSITION). The keys are save keys (the supplies ledger lists them), so they never change.
 export function validateSupplies(d) {
-  closed(d, ["schema_version", "area1", "vestBagPosition"]);
+  closed(d, ["schema_version", "area1", "vestBagPosition", "rules", "gearItems"]);
+  // rules: supplies.js SUPPLY_RULES (pickup radius in metres, reserve cap in rounds, heal share of max health). gearItems: the two
+  // gear drop kinds in the order supplies.js reads them (index 0 is the pistol). Both are saved drop kinds, so the ids never change.
+  closed(d.rules, ["pickupRadius", "reserveCap", "healFraction"]);
+  number("supplies", "rules.pickupRadius", d.rules.pickupRadius, 0.1);
+  count("supplies", "rules.reserveCap", d.rules.reserveCap, 1, 99);
+  if (!(d.rules.healFraction > 0 && d.rules.healFraction <= 1)) fail("supplies", "rules.healFraction must be above 0 and at most 1");
+  if (d.gearItems.join() !== "westminster-start-pistol-v1,westminster-worn-vest-v1")
+    fail("supplies", "gearItems must be the start pistol then the worn vest");
   const keys = Object.keys(d.area1);
   if (keys.length !== 6 || keys.some((k, i) => k !== `westminster-roamer-${i + 1}`))
     fail("supplies", "area1 must list westminster-roamer-1 to 6 in order");

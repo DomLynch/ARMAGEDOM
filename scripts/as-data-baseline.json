@@ -75,14 +75,12 @@
     "engine/commander/match.js": 1,
     "engine/contracts.js": 1,
     "engine/creature-catalogue.js": 1,
-    "engine/creature-sim.js": 1,
     "engine/flame-fuel-state.js": 1,
     "engine/locker-state.js": 2,
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
     "engine/save-eras.js": 1,
-    "engine/sever-blood-data.js": 1,
     "engine/unique-reward-core.js": 1,
     "engine/unique-reward-runtime.js": 1,
     "engine/weapon-catalog.js": 2,
@@ -98,7 +96,6 @@
     "mobile-combat-aim.js": 2,
     "pistol-targeting.js": 2,
     "rat-melee-definition.js": 1,
-    "rig-capabilities.js": 1,
-    "supplies.js": 2
+    "rig-capabilities.js": 1
   }
 }
