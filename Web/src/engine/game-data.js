@@ -10,6 +10,7 @@ import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
+import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
@@ -1430,6 +1431,15 @@ export function validateCommander(d) {
     else number("commander", `rules.${name}`, v, 0.001);
 }
 
+// commanderSession.json: the Commander screen's frame and input pacing (engine/commander/session.js). Not match rules.
+export function validateCommanderSession(d) {
+  closed(d, ["schema_version", "maxFrameSeconds", "maxStepsPerFrame", "panStep", "dragThresholdPx", "maxApiStepSeconds"]);
+  count("commanderSession", "maxStepsPerFrame", d.maxStepsPerFrame, 1, 30);
+  count("commanderSession", "dragThresholdPx", d.dragThresholdPx, 1, 100);
+  for (const [name, min, max] of [["maxFrameSeconds", 0.01, 1], ["panStep", 0.001, 0.5], ["maxApiStepSeconds", 0.1, 60]])
+    if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("commanderSession", `${name} must be ${min} to ${max}`);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
@@ -1440,6 +1450,7 @@ const sources = () => ({
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
   combatRules: [combatRules, validateCombatRules],
+  commanderSession: [commanderSession, validateCommanderSession],
   creatures: [creatures, validateCreatures],
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],

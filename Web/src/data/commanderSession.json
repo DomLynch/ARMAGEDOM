@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "maxFrameSeconds": 0.1,
+  "maxStepsPerFrame": 6,
+  "panStep": 0.045,
+  "dragThresholdPx": 8,
+  "maxApiStepSeconds": 5
+}

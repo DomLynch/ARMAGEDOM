@@ -7,8 +7,10 @@ import {
   stepCommander,
 } from "./match.js";
 import { createCommanderView } from "./view.js";
+import { GAME_DATA } from "../game-data.js";
 
 export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
+  const pacing = GAME_DATA.commanderSession; // data/commanderSession.json
   let view,
     match,
     loaded = false,
@@ -124,14 +126,14 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   function frame(ms) {
     if (disposed || !loaded || paused) return;
     if (!lastFrame) lastFrame = ms;
-    accumulator += Math.min(0.1, Math.max(0, (ms - lastFrame) / 1000));
+    accumulator += Math.min(pacing.maxFrameSeconds, Math.max(0, (ms - lastFrame) / 1000));
     lastFrame = ms;
     let steps = 0;
-    while (accumulator >= 1 / 60 && !match.result && steps++ < 6) {
+    while (accumulator >= 1 / 60 && !match.result && steps++ < pacing.maxStepsPerFrame) {
       tick();
       accumulator -= 1 / 60;
     }
-    render(steps ? Math.min(0.1, steps / 60) : 0);
+    render(steps ? Math.min(pacing.maxFrameSeconds, steps / 60) : 0);
     if (match.result) {
       view.renderer.setAnimationLoop(null);
       accumulator = 0;
@@ -247,8 +249,8 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   });
   for (const id of ["commander-back", "commander-result-back"]) listen(byId(id), "click", () => onMenu());
   for (const [id, dx, dy] of [
-    ["commander-pan-left", -0.045, 0],
-    ["commander-pan-right", 0.045, 0],
+    ["commander-pan-left", -pacing.panStep, 0],
+    ["commander-pan-right", pacing.panStep, 0],
   ])
     listen(byId(id), "click", () => {
       if (loaded && !disposed) {
@@ -278,7 +280,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   });
   listen(canvas, "pointermove", (e) => {
     if (!pointer || e.pointerId !== pointer.id) return;
-    if (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) > 8) pointer.drag = true;
+    if (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) > pacing.dragThresholdPx) pointer.drag = true;
     if (pointer.drag) {
       view.drag(e.clientX - pointer.lastX, e.clientY - pointer.lastY);
       render();
@@ -340,7 +342,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     pause,
     retry,
     step(seconds) {
-      if (!Number.isFinite(seconds) || seconds < 0 || seconds > 5) throw Error("Bounded Commander step required");
+      if (!Number.isFinite(seconds) || seconds < 0 || seconds > pacing.maxApiStepSeconds) throw Error("Bounded Commander step required");
       if (!loaded || paused || disposed) return;
       for (let i = 0; i < Math.floor(seconds * 60 + 1e-8) && !match.result; i++) tick();
       render();
