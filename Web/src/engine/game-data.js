@@ -229,6 +229,7 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
+    "exitArrows",
     "expeditionHud",
     "remotePlayers",
     "waterEffect",
@@ -241,6 +242,7 @@ export function validateVisual(d) {
     "combatImpact",
     "flameEffect",
     "explosion",
+    "weaponTiles",
     "bossLabel",
     "hud",
   ]);
