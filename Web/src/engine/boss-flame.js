@@ -1,6 +1,7 @@
 import { combatTargetHeight } from "../pistol-targeting.js";
 import { flameTouches } from "./flame-contact.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
+const RETREAT_DIRECTIONS = 16; // tuning-ok: sixteen evenly spaced directions tried when a flame boss backs away
 const EPS = 1e-8;
 // Transient NPC attack only. Inventory, player fuel and defeat persistence stay
 // with their existing owners. An optional validated capability selects it.
@@ -40,7 +41,7 @@ export function stepBossFlame(
     }
     e.facing = { ...s.direction };
     s.phase = age < p.windupTicks ? "warning" : "active";
-    if (s.phase === "active" && s.pulses < 2 && age >= p.windupTicks + s.pulses * p.intervalTicks) {
+    if (s.phase === "active" && s.pulses < p.activeTicks / p.intervalTicks && age >= p.windupTicks + s.pulses * p.intervalTicks) {
       s.pulses++;
       const emitted = source?.(e),
         axis = emitted?.direction,
@@ -101,8 +102,8 @@ export function stepBossFlame(
       best = EPS;
     // Reuse the collision mover to choose a free backward/side step. A blocked
     // straight retreat must not oscillate forever against an authored obstacle.
-    for (let i = 0; i < 16; i++) {
-      const a = (i * Math.PI) / 8,
+    for (let i = 0; i < RETREAT_DIRECTIONS; i++) {
+      const a = (i * 2 * Math.PI) / RETREAT_DIRECTIONS, // tuning-ok: a full turn shared by the sampled directions
         c = Math.cos(a),
         s = Math.sin(a),
         d = { x: away.x * c - away.z * s, z: away.x * s + away.z * c },

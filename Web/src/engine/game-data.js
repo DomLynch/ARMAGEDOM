@@ -232,6 +232,7 @@ export function validateVisual(d) {
     "bossEquipmentView",
     "routeGuidance",
     "exitArrows",
+    "grenadeView",
     "input",
     "touchTarget",
     "expeditionHud",
