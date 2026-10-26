@@ -5,14 +5,17 @@ import { createDroneLaserBolts } from "../../drone-laser.js";
 import { posedActorBounds } from "../grenade-surface.js";
 import { applyAreaLighting } from "../area-lighting.js";
 import { COMMANDER_RULES } from "./match.js";
-const ASPECT = 1672 / 941,
-  clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+import { COMMANDER_VIEW } from "./view-data.js";
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export async function createCommanderView({ canvas, baseUrl, signal }) {
-  const scene = new T.Scene(),
+  const V = COMMANDER_VIEW,
+    ASPECT = V.backdropSize[0] / V.backdropSize[1],
+    hex = (c) => `#${c}`,
+    scene = new T.Scene(),
     camera = new T.PerspectiveCamera(),
-    fill = new T.HemisphereLight(0xb9bec9, 0x4b3828, 1.6),
-    sun = new T.DirectionalLight(0xffd7a0, 2.3);
-  sun.position.set(-7, 12, 6);
+    fill = new T.HemisphereLight(hex(V.fillLight.sky), hex(V.fillLight.ground), V.fillLight.intensity),
+    sun = new T.DirectionalLight(hex(V.sun.colour), V.sun.intensity);
+  sun.position.set(...V.sun.position);
   scene.add(fill, sun);
   let world, library;
   const settled = await Promise.allSettled([
@@ -76,14 +79,18 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     applyAreaLighting(scene, world);
     if (world.routeGuidance?.group) world.routeGuidance.group.visible = false;
-    actors = createActors(scene, world, library, { visualScale: 1.3225, droneAppearance: "commander-compact-black" });
+    actors = createActors(scene, world, library, { visualScale: V.actorScale, droneAppearance: "commander-compact-black" });
     lasers = createDroneLaserBolts({ scene, world, camera });
-    ringGeometry = new T.RingGeometry(1.16, 1.22, 32);
-    objectiveGeometry = new T.RingGeometry(COMMANDER_RULES.captureRadius - 0.06, COMMANDER_RULES.captureRadius, 48);
+    ringGeometry = new T.RingGeometry(V.unitRing.inner, V.unitRing.outer, V.unitRing.segments);
+    objectiveGeometry = new T.RingGeometry(
+      COMMANDER_RULES.captureRadius - V.objectiveRing.width,
+      COMMANDER_RULES.captureRadius,
+      V.objectiveRing.segments,
+    );
     objectiveMaterial = new T.MeshBasicMaterial({
-      color: 0xe2bc72,
+      color: hex(V.objectiveRing.captureColour),
       transparent: true,
-      opacity: 0.85,
+      opacity: V.objectiveRing.opacity,
       depthWrite: false,
       side: T.DoubleSide,
     });
@@ -99,7 +106,7 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
   }
   let width = 1,
     height = 1,
-    focus = { x: 0.6, y: 0.69 },
+    focus = { ...V.startFocus },
     zx = 1,
     zy = 1,
     disposed = false;
@@ -170,8 +177,8 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
       actors.events(g);
       actors.update(g, paused ? 0 : dt);
       lasers.sync(paused ? [] : s.bolts, s.time);
-      objectiveRing.position.copy(world.toRender(s.objective.pos, 0.025));
-      objectiveMaterial.color.setHex(s.phase === "capture" ? 0xe2bc72 : 0x64d5c1);
+      objectiveRing.position.copy(world.toRender(s.objective.pos, V.objectiveRing.height));
+      objectiveMaterial.color.set(hex(s.phase === "capture" ? V.objectiveRing.captureColour : V.objectiveRing.otherColour));
       objectiveRing.visible = !s.result;
       const liveIds = new Set(s.units.filter((e) => e.hp > 0).map((e) => e.id));
       for (const [id, m] of rings)
@@ -186,9 +193,9 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
           m = new T.Mesh(
             ringGeometry,
             new T.MeshBasicMaterial({
-              color: 0x72d3ed,
+              color: hex(V.unitRing.colour),
               transparent: true,
-              opacity: 0.4,
+              opacity: V.unitRing.opacity,
               depthWrite: false,
               side: T.DoubleSide,
             }),
@@ -197,8 +204,8 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
           scene.add(m);
           rings.set(e.id, m);
         }
-        m.position.copy(world.toRender(e.pos, 0.035));
-        m.material.opacity = s.selected.includes(e.id) ? 0.95 : 0.25;
+        m.position.copy(world.toRender(e.pos, V.unitRing.height));
+        m.material.opacity = s.selected.includes(e.id) ? V.unitRing.selectedOpacity : V.unitRing.idleOpacity;
       }
       renderer.render(scene, camera);
     },
@@ -233,7 +240,7 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
       for (const e of [...s.units, ...s.opponents].filter((e) => e.hp > 0)) {
         const box = posedActorBounds(actors.views.get(e.id));
         if (!box) continue;
-        box.expandByScalar(0.12);
+        box.expandByScalar(V.pick.boxPadding);
         const p = ray.ray.intersectBox(box, hit);
         if (!p) continue;
         const d = ray.ray.origin.distanceTo(p);
@@ -248,11 +255,11 @@ export async function createCommanderView({ canvas, baseUrl, signal }) {
         objective: this.project(s.objective.pos),
         units: s.units.map((e) => ({
           id: e.id,
-          point: this.project(e.pos, 0.9),
+          point: this.project(e.pos, V.diagnostics.unitHeight),
           rootScale: actors.views.get(e.id)?.root.scale.x,
           viewName: actors.views.get(e.id)?.root.name,
         })),
-        opponents: s.opponents.filter((e) => e.hp > 0).map((e) => ({ id: e.id, point: this.project(e.pos, 1.1) })),
+        opponents: s.opponents.filter((e) => e.hp > 0).map((e) => ({ id: e.id, point: this.project(e.pos, V.diagnostics.opponentHeight) })),
       };
     },
     dispose() {

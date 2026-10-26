@@ -1,0 +1,567 @@
+{
+ "actors": {
+  "visualScale": 1.3225,
+  "droneAppearance": "commander-compact-black"
+ },
+ "routeGuidanceHidden": true,
+ "afterPrepare": {
+  "projection": [
+   0.277630181,
+   0,
+   0,
+   0,
+   0,
+   0.333333333,
+   0,
+   0,
+   -0.110520723,
+   0,
+   -1.002002002,
+   -1,
+   0,
+   0,
+   -0.2002002,
+   0
+  ],
+  "renderer": [
+   [
+    "pixelRatio",
+    2
+   ],
+   [
+    "size",
+    640,
+    400,
+    false
+   ]
+  ]
+ },
+ "frames": [
+  [
+   {
+    "type": "HemisphereLight",
+    "colour": 12173001,
+    "ground": 4929576,
+    "intensity": 1.6,
+    "position": [
+     0,
+     1,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "DirectionalLight",
+    "colour": 16766880,
+    "ground": null,
+    "intensity": 2.3,
+    "position": [
+     -7,
+     12,
+     6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "Mesh",
+    "colour": 14859378,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     12,
+     0.025,
+     8
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 2.74,
+     "outerRadius": 2.8,
+     "thetaSegments": 48,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.85,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     10,
+     0.035,
+     5
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.95,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     14,
+     0.035,
+     9
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.25,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   }
+  ],
+  [
+   {
+    "type": "HemisphereLight",
+    "colour": 12173001,
+    "ground": 4929576,
+    "intensity": 1.6,
+    "position": [
+     0,
+     1,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "DirectionalLight",
+    "colour": 16766880,
+    "ground": null,
+    "intensity": 2.3,
+    "position": [
+     -7,
+     12,
+     6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "Mesh",
+    "colour": 6608321,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     12,
+     0.025,
+     8
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 2.74,
+     "outerRadius": 2.8,
+     "thetaSegments": 48,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.85,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     10,
+     0.035,
+     5
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.95,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     14,
+     0.035,
+     9
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.95,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   }
+  ],
+  [
+   {
+    "type": "HemisphereLight",
+    "colour": 12173001,
+    "ground": 4929576,
+    "intensity": 1.6,
+    "position": [
+     0,
+     1,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "DirectionalLight",
+    "colour": 16766880,
+    "ground": null,
+    "intensity": 2.3,
+    "position": [
+     -7,
+     12,
+     6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": null,
+    "opacity": null,
+    "transparent": null,
+    "depthWrite": null,
+    "side": null
+   },
+   {
+    "type": "Mesh",
+    "colour": 6608321,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     12,
+     0.025,
+     8
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": false,
+    "geometry": {
+     "innerRadius": 2.74,
+     "outerRadius": 2.8,
+     "thetaSegments": 48,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.85,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     10,
+     0.035,
+     5
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.25,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   },
+   {
+    "type": "Mesh",
+    "colour": 7525357,
+    "ground": null,
+    "intensity": null,
+    "position": [
+     14,
+     0.035,
+     9
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "visible": true,
+    "geometry": {
+     "innerRadius": 1.16,
+     "outerRadius": 1.22,
+     "thetaSegments": 32,
+     "phiSegments": 1,
+     "thetaStart": 0,
+     "thetaLength": 6.283185307
+    },
+    "opacity": 0.25,
+    "transparent": true,
+    "depthWrite": false,
+    "side": 2
+   }
+  ]
+ ],
+ "pick": [
+  {
+   "id": "a",
+   "team": "player",
+   "distance": 1.2054824686931005
+  },
+  {
+   "id": "a",
+   "team": "player",
+   "distance": 1.3220547322285454
+  },
+  {
+   "id": "a",
+   "team": "player",
+   "distance": 0.19432513525033188
+  }
+ ],
+ "diagnostics": {
+  "viewport": {
+   "width": 640,
+   "height": 400
+  },
+  "camera": {
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "fov": 50,
+   "focus": {
+    "x": 0.45023923444976083,
+    "y": 0.5
+   }
+  },
+  "objective": {
+   "x": 222.10414452709875,
+   "y": 200,
+   "visible": false
+  },
+  "units": [
+   {
+    "id": "a",
+    "point": {
+     "x": 177.68331562167901,
+     "y": 212,
+     "visible": false
+    },
+    "rootScale": 1,
+    "viewName": "view-a"
+   },
+   {
+    "id": "b",
+    "point": {
+     "x": 217.16849687094106,
+     "y": 206.66666666666669,
+     "visible": false
+    },
+    "rootScale": 1,
+    "viewName": "view-b"
+   },
+   {
+    "id": "c",
+    "point": {
+     "x": 273.9284449167552,
+     "y": 204.99999999999997,
+     "visible": false
+    }
+   }
+  ],
+  "opponents": [
+   {
+    "id": "o1",
+    "point": {
+     "x": -533.0499468650372,
+     "y": 236.66666666666666,
+     "visible": false
+    }
+   }
+  ]
+ },
+ "afterPan": [
+  0.277630181,
+  0,
+  0,
+  0,
+  0,
+  0.333333333,
+  0,
+  0,
+  -0.03071865,
+  0,
+  -1.002002002,
+  -1,
+  0,
+  0,
+  -0.2002002,
+  0
+ ],
+ "afterRecentre": [
+  0.277630181,
+  0,
+  0,
+  0,
+  0,
+  0.333333333,
+  0,
+  0,
+  -0.110520723,
+  0,
+  -1.002002002,
+  -1,
+  0,
+  0,
+  -0.2002002,
+  0
+ ],
+ "project": [
+  {
+   "x": 222.10414452709875,
+   "y": 200,
+   "visible": false
+  },
+  {
+   "x": -0.6875,
+   "z": 0.5
+  }
+ ]
+}
