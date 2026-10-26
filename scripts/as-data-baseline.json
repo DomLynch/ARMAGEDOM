@@ -28,6 +28,17 @@
     "engine/rifle-core.js": [
       { "name": "RIFLE_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
     ],
+    "engine/progression-rules.js": [
+      { "name": "ATTRIBUTE_IDS", "reason": "save layer row: the closed attribute key set of a persisted progression record, also read by the server's world rows" },
+      { "name": "DEFAULT_ATTRIBUTES", "reason": "save layer row: a fresh record's attributes, derived from ATTRIBUTE_IDS; 10 is also the validator's floor" },
+      { "name": "DEFAULT_PROFICIENCY", "reason": "save layer row: the closed proficiency key set of a persisted progression record (weapon ids)" }
+    ],
+    "engine/locker-state.js": [
+      { "name": "LOCKER_WEAPON_IDS", "reason": "save layer row: the closed weapon id list of a persisted locker; other code addresses it by position" }
+    ],
+    "engine/flame-fuel-state.js": [
+      { "name": "FLAME_PILOT_PROFILE", "reason": "save layer row: pickupId is the saved award id and capacity bounds saved fuelUnits; the numbers are derived from weapons.json" }
+    ],
     "engine/save-eras.js": [
       { "name": "SAVE_ERAS", "reason": "save format registry: era versions to layer and storage key, built from the save-key constants" }
     ],
@@ -77,7 +88,7 @@
     "engine/creature-catalogue.js": 1,
     "engine/creature-sim.js": 1,
     "engine/flame-fuel-state.js": 1,
-    "engine/locker-state.js": 2,
+    "engine/locker-state.js": 1,
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
