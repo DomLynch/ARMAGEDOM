@@ -110,7 +110,6 @@
     "engine/grenade-surface.js": 9,
     "engine/guest-auth.js": 9,
     "engine/local-wound.js": 10,
-    "engine/locker-core.js": 9,
     "engine/loop.js": 5,
     "engine/marked-hunters.js": 12,
     "engine/marked-view.js": 1,
