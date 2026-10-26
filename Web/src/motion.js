@@ -3,7 +3,9 @@ const vec = () => new THREE.Vector3(),
   quat = () => new THREE.Quaternion();
 import { GAME_DATA } from "./engine/game-data.js";
 const clamp = THREE.MathUtils.clamp;
+import { validateMotion } from "./engine/motion-data.js";
 const MOTION = GAME_DATA.visual.motion;
+validateMotion(MOTION); // checked here, not in game-data.js, which is at its source density limit
 // Numerical guards for the arm solver, not tuning: the smallest length it will divide by and the share of full reach it will aim at.
 const EPSILON = 0.00001;
 const MAX_REACH = 0.99999;

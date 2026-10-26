@@ -1,5 +1,5 @@
 // visual.json `motion` (motion.js): the procedural overlay on the imported clips. Seconds, metres, or shares of a 0-1 gait cycle.
-// Checked by validateVisual in game-data.js; kept here so that file stays under the source density limit.
+// Checked when motion.js loads; kept out of game-data.js, which is at its source density limit.
 import { closed } from "./content-schema.js";
 
 const SMALLEST = 0.001; // no motion value may be below this: zero would divide or freeze the pose
