@@ -70,9 +70,6 @@
   "rigLiterals": {
     "animal-appearance.js": 2,
     "animal-role-bindings.js": 2,
-    "area-mob-spawns.js": 3,
-    "engine/area-content.js": 1,
-    "engine/area-population.js": 9,
     "engine/commander/match.js": 1,
     "engine/creature-catalogue.js": 2,
     "engine/creature-definitions.js": 45,

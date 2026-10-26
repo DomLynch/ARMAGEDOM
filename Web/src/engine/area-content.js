@@ -5,6 +5,7 @@ import { validateBossEquipmentData } from "./boss-equipment-data.js";
 import { validateRifleData } from "./rifle-runtime.js";
 import { validateFlameData, validateFlameGeometry } from "./flame-data.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
+import { rigText } from "../rig-capabilities.js";
 import { validatePopulationData } from "./area-population.js";
 import { validateUniqueRewardData } from "./unique-reward-runtime.js";
 import { validateAreaBosses, mergeBossResidents, validateBossGeometry } from "./area-bosses.js";
@@ -65,7 +66,7 @@ export function validateResidentPlacements(
       keys.add(row.key);
       const foundation = creatureCatalogue.get(row.foundationRef);
       residentEncounterHealth(row, foundation.stats.health);
-      if (foundation.runtimeIdentity === "low-hover-drone" && DRONE_KEYS[row.key] !== area)
+      if (rigText(foundation.runtimeIdentity, "brain") === "drone" && DRONE_KEYS[row.key] !== area)
         throw Error("Unsupported declared drone death placement");
       if (creatureCatalogue.forRecipe(row.recipeRef).id !== foundation.id) fail();
       point(row.pos);

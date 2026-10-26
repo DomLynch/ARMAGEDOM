@@ -1,5 +1,6 @@
 import { ANIMAL_CYCLES } from "./animal-cycle.js";
 import { GAME_DATA } from "./engine/game-data.js";
+import { rigText } from "./rig-capabilities.js";
 // Registered world metres (x right, z forward), accepted Three020 layouts. The rows live in data/spawns.json.
 // Westminster: six scattered residents; production disables the optional opening trio.
 // East/South: nine residents each. Only current-area actors update/render.
@@ -18,12 +19,9 @@ const FIRST_ANIMAL_KEYS = new Set(["westminster-roamer-4", "south-roamer-3", "we
 const firstAppearance = (key) => (FIRST_ANIMAL_KEYS.has(key) ? ANIMAL_CYCLES.A[key] : undefined);
 export function animalAppearanceFor(entity) {
   const id = entity.kind >= 0 ? (entity.animalRecipe ?? firstAppearance(entity.placementKey)) : null;
-  return id &&
-    ((id.startsWith("rat-") && entity.rig === "original-rat") ||
-      (id.startsWith("dog-") && entity.rig === "original-dog") ||
-      (id.startsWith("roach-") && entity.rig === "original-roach"))
-    ? id
-    : null;
+  // The recipe id starts with the species of the rig it dresses (rat-, dog-, roach-); the wolf and salamander have no such recipes.
+  const prefix = rigText(entity.rig, "appearanceRecipe");
+  return id && prefix && id.startsWith(`${prefix}-`) ? id : null;
 }
 
 // A placed encounter may change health without changing the shared foundation or AI.
