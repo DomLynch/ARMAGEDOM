@@ -16,6 +16,7 @@ export function validateWeapons(d) {
     "bossEquipment",
     "vest",
     "families",
+    "rocket",
     "targeting",
     "mobileAim",
     "flameAim",
@@ -37,6 +38,7 @@ export function validateWeapons(d) {
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
   validateFamilies(d.families);
+  validateRocket(d.rocket);
   validateTargeting(d.targeting);
   validateMobileAim(d.mobileAim, d.flameAim);
   validateLowMelee(d.lowMelee);
@@ -64,6 +66,26 @@ export function validateFamilies(f) {
     !f.every((s) => typeof s === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s))
   )
     fail("weapons", "families must be distinct lower-case names");
+}
+// The rocket in flight (rocket-runtime.js), metres and seconds: how far the nose sits ahead of the rocket's centre, the height at or
+// below which it has hit the ground, the height an aim point falls back to, the stick deadzone that counts as moving, how long a cached
+// aim-height check stays valid and how far the player or target may move before it is redone, and the wall search (halvings of the
+// step, then the metres it backs off the wall).
+export function validateRocket(r) {
+  closed(r, [
+    "noseLength",
+    "groundHeight",
+    "aimFallbackHeight",
+    "moveDeadzone",
+    "aimCache",
+    "wallSearchSteps",
+    "wallBackoff",
+  ]);
+  for (const f of ["noseLength", "groundHeight", "aimFallbackHeight", "moveDeadzone", "wallBackoff"])
+    number("weapons", `rocket.${f}`, r[f], 0.0001);
+  closed(r.aimCache, ["positionTolerance", "seconds"]);
+  for (const f of ["positionTolerance", "seconds"]) number("weapons", `rocket.aimCache.${f}`, r.aimCache[f], 0.0001);
+  count("weapons", "rocket.wallSearchSteps", r.wallSearchSteps, 1, 32);
 }
 // Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
 // one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
