@@ -70,22 +70,15 @@
   "jsonImports": ["first-time-hints.js", "engine/stage-ahead.js"],
   "rigLiterals": {},
   "numberLiterals": {
-    "bridge-steering.js": 5,
-    "drone-mechanics.js": 2,
     "engine/bone-saw.js": 3,
     "engine/creature-sim.js": 2,
-    "engine/game-data.js": 1,
     "engine/marked-hunters.js": 12,
-    "engine/marked.js": 1,
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
     "engine/reaper.js": 3,
-    "engine/rifle-state.js": 1,
     "engine/sever-blood-data.js": 2,
     "finisher-impact-profile.js": 8,
-    "hollow-encounter.js": 11,
-    "parked-area-preparation.js": 1,
-    "roach-territory.js": 1
+    "hollow-encounter.js": 11
   },
   "constantTables": {
     "clothing-palettes.js": 1,

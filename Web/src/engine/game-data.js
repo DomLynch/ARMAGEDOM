@@ -481,7 +481,8 @@ const fraction = (field, v, min = 0, max = 1) => {
     fail("atmosphere", `${field} must be ${min} to ${max}`);
 };
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
-  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
+  for (const key of atmosphereNumbers())
+    if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16); // tuning-ok: atmosphere validation bound
   if (Object.hasOwn(row, "smokeColor")) {
     if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3)
       fail("atmosphere", `${field}.smokeColor`);

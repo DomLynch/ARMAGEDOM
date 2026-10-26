@@ -2,7 +2,7 @@ import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
 // The values live only in area-content.json `marked`. This is the hard ceiling on any money field (a limit, not a default).
-export const MAX_MONEY_CEILING = 1e9;
+export const MAX_MONEY_CEILING = 1e9; // tuning-ok: a hard validation ceiling on any money field, a limit and not a default
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
   // The closed set of rule names the validator accepts (the schema, not data).
