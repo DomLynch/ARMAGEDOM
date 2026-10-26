@@ -3,6 +3,8 @@ import { ownsEmberReward } from "./boss-equipment-data.js";
 import { weaponTileIcon } from "./weapon-tile-icons.js";
 import { lockerStored } from "./locker-core.js";
 import { MELEE_VARIANTS } from "../melee-equipment.js";
+import { WEAPON_TILES as TILES } from "./weapon-tiles-data.js";
+const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
 const dry = (magazine, reserve) => !magazine && !reserve;
 const rounds = (magazine, capacity, reserve) =>
@@ -41,7 +43,7 @@ export function carriedWeaponTiles(g) {
       p.name,
       "variant-" + id,
       g.pistol?.collected && (id === "westminster-start-pistol-v1" || g.expedition?.status === "claimed"),
-      rounds(g.pistol?.magazine, 6, g.pistol?.reserve),
+      rounds(g.pistol?.magazine, TILES.pistolCapacity, g.pistol?.reserve),
       dry(g.pistol?.magazine, g.pistol?.reserve),
     );
   const rifle = g.world.rifleData;
@@ -111,7 +113,7 @@ export function tileGesture() {
       blocked = false;
     },
     move(e) {
-      if (start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) blocked = true;
+      if (start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) > TILES.tapSlopPx) blocked = true;
     },
     end(e) {
       if (start?.id === e.pointerId) start = null;
@@ -131,7 +133,7 @@ export function tileGesture() {
 // "Seen" weapon ids live in their own localStorage key (like the first-time hints), never in the run save, and the
 // first update only records what is already carried, so loading a save never flashes.
 export const TILE_FLASH_KEY = "armagedom.weaponTileFlash.v1";
-export const TILE_FLASH_SECONDS = 5;
+export const TILE_FLASH_SECONDS = TILES.flashSeconds;
 export function createTileFlash(storage = globalThis.localStorage) {
   const seen = new Set();
   try {
@@ -192,7 +194,7 @@ export function createWeaponTiles(s, select) {
     if (row.empty && control?.disabled) {
       // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
       s.game.message = `${row.name} is empty.`;
-      s.game.messageUntil = s.game.time + 4;
+      s.game.messageUntil = s.game.time + TILES.emptyMessageSeconds;
       return;
     }
     if (!control || control.disabled) return;
@@ -206,9 +208,9 @@ export function createWeaponTiles(s, select) {
   });
   function hint() {
     const count = buttons.size,
-      last = Math.max(0, Math.ceil(count / 2) - 1),
-      page = Math.max(0, Math.min(last, Math.round(track.scrollLeft / 110))),
-      extra = count > 2;
+      last = Math.max(0, Math.ceil(count / PAGE) - 1),
+      page = Math.max(0, Math.min(last, Math.round(track.scrollLeft / STEP))),
+      extra = count > PAGE;
     root.dataset.page = String(page);
     root.dataset.pages = String(last + 1);
     position.textContent = `${page + 1} / ${last + 1}`;
@@ -223,10 +225,10 @@ export function createWeaponTiles(s, select) {
   }
   function browse(delta) {
     if (root.hidden || s.paused || s.traveling || s.contextLost || !s.loaded) return;
-    const last = Math.max(0, Math.ceil(buttons.size / 2) - 1),
-      page = Math.round(track.scrollLeft / 110),
+    const last = Math.max(0, Math.ceil(buttons.size / PAGE) - 1),
+      page = Math.round(track.scrollLeft / STEP),
       target = Math.max(0, Math.min(last, page + delta));
-    track.scrollTo({ left: target * 110, behavior: "smooth" });
+    track.scrollTo({ left: target * STEP, behavior: "smooth" });
   }
   listen(prev, "click", () => browse(-1));
   listen(nextButton, "click", () => browse(1));
@@ -247,12 +249,12 @@ export function createWeaponTiles(s, select) {
     if (newWeapon(rows.map((r) => r.id))) flashUntil = now + TILE_FLASH_SECONDS * 1000;
     root.classList?.toggle("flash", now < flashUntil);
     if (next !== order) {
-      const oldPage = Math.round(track.scrollLeft / 110);
+      const oldPage = Math.round(track.scrollLeft / STEP);
       track.replaceChildren();
       buttons.clear();
       let page;
       for (const [index, row] of rows.entries()) {
-        if (index % 2 === 0) {
+        if (index % PAGE === 0) {
           page = document.createElement("div");
           page.className = "weapon-page";
           track.append(page);
@@ -270,7 +272,7 @@ export function createWeaponTiles(s, select) {
         page.append(b);
         buttons.set(row.id, b);
       }
-      track.scrollLeft = Math.min(oldPage, Math.max(0, Math.ceil(rows.length / 2) - 1)) * 110;
+      track.scrollLeft = Math.min(oldPage, Math.max(0, Math.ceil(rows.length / PAGE) - 1)) * STEP;
       order = next;
     }
     for (const row of rows) {
