@@ -1,4 +1,5 @@
 import { resolveResidentIntent } from "./creature-behaviour-intents.js";
+import { rigText } from "./rig-capabilities.js";
 const nest = resolveResidentIntent("roach-nest-guard", { behaviourCapabilities: ["home", "lineOfSight"] });
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 // Only one approved role/registered recipe; no actor writes, movement or timers.
@@ -8,7 +9,7 @@ export function resolveRoachNestGuard(e, { areaId, animalCycle } = {}) {
     areaId !== "east" ||
     e?.placementKey !== "east-roamer-2" ||
     e.animalRecipe !== "roach-nest-guard" ||
-    e.rig !== "original-roach" ||
+    rigText(e.rig, "species") !== "roach" ||
     (e.areaId ?? areaId) !== areaId ||
     !Number.isFinite(e.hp) ||
     e.hp <= 0 ||

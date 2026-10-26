@@ -68,14 +68,8 @@
     ]
   },
   "rigLiterals": {
-    "animal-appearance.js": 2,
-    "animal-role-bindings.js": 2,
     "engine/commander/match.js": 1,
-    "engine/creature-catalogue.js": 2,
-    "engine/creature-definitions.js": 45,
-    "roach-territory.js": 1,
-    "salamander-native.js": 1,
-    "wolf-native.js": 1
+    "engine/creature-definitions.js": 45
   },
   "constantTables": {
     "clothing-palettes.js": 1,
