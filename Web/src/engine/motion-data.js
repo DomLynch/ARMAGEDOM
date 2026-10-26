@@ -2,7 +2,7 @@
 // Checked when motion.js loads; kept out of game-data.js, which is at its source density limit.
 import { closed } from "./content-schema.js";
 
-const SMALLEST = 0.001; // no motion value may be below this: zero would divide or freeze the pose
+const SMALLEST = 0.001; // tuning-ok: the floor for any motion value; zero would divide or freeze the pose
 const fail = (why) => {
   throw TypeError(`Invalid game data visual: motion.${why}`);
 };
@@ -19,7 +19,8 @@ export function validateMotion(m) {
     heavyWindup: ["forward", "up", "aimForward"],
     guard: ["forward", "sideOffset", "drop", "aimSide"],
   };
-  closed(m, [...Object.keys(GROUPS), "bigLift", "soleWeight", "plant"]);
+  closed(m, [...Object.keys(GROUPS), "bigLift", "soleWeight", "armBendDrop", "plant"]);
+  positive("armBendDrop", m.armBendDrop);
   for (const [group, fields] of Object.entries(GROUPS)) {
     closed(m[group], fields);
     for (const f of fields) positive(`${group}.${f}`, m[group][f]);

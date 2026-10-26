@@ -387,6 +387,7 @@
     "guard": { "forward": 0.28, "sideOffset": 0.12, "drop": 0.2, "aimSide": 0.3 },
     "bigLift": 0.6,
     "soleWeight": 0.6,
+    "armBendDrop": 0.5,
     "plant": {
       "minSpeed": 0.3,
       "minRunWeight": 0.8,
@@ -438,9 +439,9 @@
     "titleX": 192,
     "portrait": { "alpha": 0.86, "x": 64, "y": 170, "width": 256, "height": 320 },
     "amount": { "x": 192, "y": 625, "fontPx": 92, "maxWidth": 300 },
-    "rules": { "alpha": 0.4, "top": { "x": 40, "y": 125, "width": 304 }, "bottom": { "x": 64, "y": 655, "width": 256 } },
-    "specks": { "count": 140, "stepX": 193, "offsetX": 31, "spanX": 384, "stepY": 271, "offsetY": 67, "spanY": 700, "alpha": 0.1, "alphaStep": 0.06 },
-    "scratches": { "count": 9, "x": 25, "stepX": 71, "spanX": 250, "y": 140, "stepY": 51, "width": 45, "widthStep": 9 },
+    "rules": { "alpha": 0.4, "thickness": 2, "top": { "x": 40, "y": 125, "width": 304 }, "bottom": { "x": 64, "y": 655, "width": 256 } },
+    "specks": { "count": 140, "stepX": 193, "offsetX": 31, "spanX": 384, "stepY": 271, "offsetY": 67, "spanY": 700, "alpha": 0.1, "alphaStep": 0.06, "alphaSteps": 4, "sizeSteps": 3 },
+    "scratches": { "count": 9, "x": 25, "stepX": 71, "spanX": 250, "y": 140, "stepY": 51, "width": 45, "widthStep": 9, "widthSteps": 4 },
     "meshColour": "dce2ca",
     "renderOrder": -95,
     "flickerHz": [17, 43]
@@ -522,6 +523,8 @@
     "minStep": 0.025,
     "maxStep": 0.2
   },
+  "tapFallback": { "graceMs": 80, "slopPx": 10 },
+  "firstTimeHints": { "seconds": 5 },
   "waterEffect": {
     "imageWidth": 1672,
     "imageHeight": 941,
@@ -531,6 +534,8 @@
     "maxStepSeconds": 0.1
   },
   "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 2, "pageWidthPx": 110 },
+  "bossLabel": { "marginPx": 8, "gapPx": 8 },
+  "hud": { "heavyFallbackSeconds": 1.6, "dodgeFallbackSeconds": 1.05, "pistolInteractRadius": 1.3, "grenadeDefaultRange": 5 },
   "explosion": {
     "maxActive": 3,
     "texture": { "size": 64, "edge": 0.55, "falloffPower": 1.1 },
