@@ -69,8 +69,8 @@ export function tracePistol(origin, aim, targets, lineClear, rules = PISTOL_RULE
   if (!lineClear(origin, at(limit))) {
     let low = 0,
       high = limit;
-    for (let i = 0; i < 20; i++) {
-      const middle = (low + high) / 2;
+    for (let i = 0; i < 20; i++) { // tuning-ok: twenty halvings pin the first blocked point to a millionth of the range
+      const middle = (low + high) / 2; // tuning-ok: bisection takes the midpoint
       if (lineClear(origin, at(middle))) low = middle;
       else high = middle;
     }

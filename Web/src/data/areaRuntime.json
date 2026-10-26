@@ -32,6 +32,9 @@
   "travel": {
     "messageDelayMs": 300,
     "failureMessageSeconds": 5,
+    "lockMessageSeconds": 4,
+    "travelMessageSeconds": 4,
+    "firstWaveDelay": 2,
     "preparation": {
       "deadlineMs": 16,
       "idleTimeoutMs": 16,
@@ -40,5 +43,6 @@
       "idleEnoughMs": 4,
       "holdMs": 250
     }
-  }
+  },
+  "bossHazard": { "bodyClearance": 0.4, "entryGap": 2 }
 }

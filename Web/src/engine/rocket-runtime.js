@@ -1,8 +1,13 @@
 import { resolveRangedAim } from "../pistol-targeting.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
 import { radialBlastHits } from "./radial-blast.js";
+import { GAME_DATA } from "./game-data.js";
+// weapons.json "rocket": nose length, ground height, aim fallback height, deadzone, aim-cache limits, wall search.
+const ROCKET = GAME_DATA.weapons.rocket;
+const SAME_HEIGHT = 1e-6; // tuning-ok: metres within which a cached aim height still matches the rule height
 const EPS = 1e-8,
-  tip = 0.18,
+  tip = ROCKET.noseLength,
+  TWO = 2, // tuning-ok: midpoint of a bracket
   flat = (p) => ({ x: p.x, z: -p.z }),
   point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z),
   length = (p) => Math.hypot(p.x, p.z),
@@ -19,7 +24,7 @@ function aimPoint(g, intent, reference, data, services) {
     aimTargetId: intent.aimTargetId,
   });
   g.rocketAimTargetId = result?.targetId ?? null;
-  let height = result?.height ?? 0.05;
+  let height = result?.height ?? ROCKET.aimFallbackHeight;
   if (result?.targetId != null && services.rocketAimHeight) {
     const source = services.rocketSource?.(g);
     if (source)
@@ -38,17 +43,17 @@ function aimPoint(g, intent, reference, data, services) {
         c &&
         c.targetId === result.targetId &&
         c.areaId === g.world.areaId &&
-        Math.abs(c.ruleHeight - height) < 1e-6 &&
-        Math.hypot(c.player.x - p.x, c.player.z - p.z) < 0.01 &&
-        Math.hypot(c.target.x - position.x, c.target.z - position.z) < 0.01 &&
+        Math.abs(c.ruleHeight - height) < SAME_HEIGHT &&
+        Math.hypot(c.player.x - p.x, c.player.z - p.z) < ROCKET.aimCache.positionTolerance &&
+        Math.hypot(c.target.x - position.x, c.target.z - position.z) < ROCKET.aimCache.positionTolerance &&
         g.time >= c.at &&
-        g.time - c.at < 0.25;
+        g.time - c.at < ROCKET.aimCache.seconds;
     if (same) height = c.height;
     else {
       const source = services.rocketSource?.(g);
       if (source) {
         const hit = services.grenadeTrace(g, source, { x: position.x, y: height, z: -position.z });
-        if (!hit) height = 0.05;
+        if (!hit) height = ROCKET.aimFallbackHeight;
         g.rocketAimValidation = {
           targetId: result.targetId,
           areaId: g.world.areaId,
@@ -80,7 +85,7 @@ export function rocketIntent(g, intent, dispatch, services = {}) {
       g.time >= p.hurtUntil &&
       g.time >= p.dodgeUntil;
   const explicit = point(intent.aim) && length(intent.aim) > EPS,
-    moving = length(intent.move ?? { x: 0, z: 0 }) > 0.01,
+    moving = length(intent.move ?? { x: 0, z: 0 }) > ROCKET.moveDeadzone,
     reference = explicit ? normal(intent.aim) : moving ? normal(intent.move) : (g.bossWeaponFacing ?? p.facing);
   g.bossWeaponFacing = { ...reference };
   g.pistolTargetId = g.pistolTargetFacing = null;
@@ -202,20 +207,20 @@ export function stepRockets(g, applyHit, services = {}) {
       from = row.previousNose;
     let fraction = Infinity,
       kind = null;
-    if (nose.y <= 0.05) {
-      fraction = Math.max(0, Math.min(1, (from.y - 0.05) / (from.y - nose.y)));
+    if (nose.y <= ROCKET.groundHeight) {
+      fraction = Math.max(0, Math.min(1, (from.y - ROCKET.groundHeight) / (from.y - nose.y)));
       kind = "ground";
     }
     if (!g.world.lineClear(flat(from), flat(nose))) {
       let lo = 0,
         hi = 1;
-      for (let i = 0; i < 14; i++) {
-        const mid = (lo + hi) / 2;
+      for (let i = 0; i < ROCKET.wallSearchSteps; i++) {
+        const mid = (lo + hi) / TWO;
         if (g.world.lineClear(flat(from), flat(lerp(from, nose, mid)))) lo = mid;
         else hi = mid;
       }
       if (lo < fraction) {
-        fraction = Math.max(0, lo - 0.001 / Math.max(EPS, Math.hypot(nose.x - from.x, nose.z - from.z)));
+        fraction = Math.max(0, lo - ROCKET.wallBackoff / Math.max(EPS, Math.hypot(nose.x - from.x, nose.z - from.z)));
         kind = "wall";
       }
     }

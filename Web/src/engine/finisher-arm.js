@@ -1,5 +1,6 @@
 import * as T from "three";
 import { FINISHER_DATA } from "./finisher-data.js";
+const half = (v) => v / 2; // tuning-ok: a full diagonal to a radius
 // Geometry/materials are prepared once. Lethal events copy only the character's bone TRS (armSever.boneCount),
 // never vertices, buffers, textures or a second complete character.
 export function prepareArmSever({
@@ -123,7 +124,7 @@ export function prepareArmSever({
       bounds.setFromObject(container, true);
       if (bounds.isEmpty()) return false;
       bounds.getCenter(center);
-      radius = bounds.getSize(new T.Vector3()).length() / 2; // tuning-ok: the bounding sphere's radius is half the box diagonal
+      radius = half(bounds.getSize(new T.Vector3()).length());
       if (!Number.isFinite(radius) || radius <= 0) return false;
       container.position.copy(center);
       assembly.matrix.premultiply(new T.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
