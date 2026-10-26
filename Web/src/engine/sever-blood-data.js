@@ -1,11 +1,7 @@
 import { insidePolygon } from "../world-geometry.js";
+import { GAME_DATA } from "./game-data.js";
 // Presentation values only. Existing FX pools own clocks, slots and disposal.
-export const SEVER_BLOOD_DATA = Object.freeze({
-  jet: Object.freeze({ capacity: 2, duration: 0.5, length: 1.2, radius: 0.075 }),
-  pool: Object.freeze({ settleSeconds: 0.1, capacity: 4, lifetime: 4, spreadSeconds: 0.4, radius: 0.5, opacity: 0.7 }),
-  headDropletLifetime: 1.25,
-  headDropletGravity: 4,
-});
+export const SEVER_BLOOD_DATA = GAME_DATA.visual.severBlood; // data/visual.json
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 function distanceSquared(p, a, b) {
   const dx = b.x - a.x,

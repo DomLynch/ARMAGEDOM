@@ -79,19 +79,16 @@
     "engine/commander/match.js": 1,
     "engine/contracts.js": 1,
     "engine/creature-catalogue.js": 1,
-    "engine/creature-sim.js": 1,
     "engine/flame-fuel-state.js": 1,
     "engine/locker-state.js": 1,
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
     "engine/save-eras.js": 1,
-    "engine/sever-blood-data.js": 1,
     "engine/unique-reward-core.js": 1,
     "engine/world-events.js": 10,
     "finisher-impact-profile.js": 1,
     "hollow-palette.js": 1,
-    "low-hover-drone.js": 1,
-    "supplies.js": 2
+    "low-hover-drone.js": 1
   }
 }

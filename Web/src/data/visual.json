@@ -133,5 +133,11 @@
   },
   "routeArrow": {
     "peakOpacity": 0.6
+  },
+  "severBlood": {
+    "jet": { "capacity": 2, "duration": 0.5, "length": 1.2, "radius": 0.075 },
+    "pool": { "settleSeconds": 0.1, "capacity": 4, "lifetime": 4, "spreadSeconds": 0.4, "radius": 0.5, "opacity": 0.7 },
+    "headDropletLifetime": 1.25,
+    "headDropletGravity": 4
   }
 }
