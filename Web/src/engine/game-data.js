@@ -85,6 +85,11 @@ export function validateWeapons(d) {
     "bossRanged",
     "bossEquipment",
     "vest",
+    "targeting",
+    "mobileAim",
+    "flameAim",
+    "lowMelee",
+    "creditPolicies",
   ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
@@ -93,6 +98,52 @@ export function validateWeapons(d) {
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
+  validateTargeting(d.targeting);
+  validateMobileAim(d.mobileAim, d.flameAim);
+  validateLowMelee(d.lowMelee);
+  validateCreditPolicies(d.creditPolicies);
+}
+// Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
+// one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
+export function validateTargeting(t) {
+  closed(t, ["pistol", "meleeConeDegrees"]);
+  closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
+  for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
+    number("weapons", `targeting.${f}`, v);
+    if (v >= 90) fail("weapons", `targeting.${f} must be below 90`);
+  }
+  if (t.pistol.retainDegrees < t.pistol.acquireDegrees) fail("weapons", "targeting.pistol retain must not be below acquire");
+}
+// The touch aim assist (mobile-combat-aim.js) and the flame lock. Angles are degrees (the code converts to radians as `degrees * PI / 180`);
+// rates are per second, ranges and gaps metres, gain and margins unitless.
+export function validateMobileAim(m, f) {
+  const mobile = ["steeringRate", "headingRate", "gain", "near", "far", "deadzone", "pistolGain", "acquireMargin", "retainMargin"],
+    flame = ["gain", "closeExtension", "closeEnterGap", "closeExitGap", "extensionRate"],
+    angles = ["steeringChangeDegrees", "switchConeDegrees", "switchAdvantageDegrees", "yawLimitDegrees", "downPitchDegrees"];
+  closed(m, [...mobile, "acquireDegrees", "retainDegrees"]);
+  closed(f, [...flame, "acquireDegrees", "retainDegrees", ...angles]);
+  for (const k of [...mobile, "acquireDegrees", "retainDegrees"]) number("weapons", `mobileAim.${k}`, m[k]);
+  for (const k of [...flame, "acquireDegrees", "retainDegrees", ...angles]) number("weapons", `flameAim.${k}`, f[k]);
+  if (m.near >= m.far) fail("weapons", "mobileAim.near must be below far");
+  if (m.pistolGain > 1) fail("weapons", "mobileAim.pistolGain must not exceed 1");
+}
+// The rigs and clips that share the rat's retimed low melee pose (rat-melee-definition.js).
+export function validateLowMelee(l) {
+  closed(l, ["rigs", "clips"]);
+  for (const f of ["rigs", "clips"])
+    if (!Array.isArray(l[f]) || !l[f].length || !l[f].every((s) => typeof s === "string" && s) || new Set(l[f]).size !== l[f].length)
+      fail("weapons", `lowMelee.${f} must be a list of distinct non-empty strings`);
+}
+// The registered death-weapon attribution policies (engine/weapon-credit-policy.js): `mastery` credits proficiency, `none` does not.
+export function validateCreditPolicies(rows) {
+  if (!Array.isArray(rows) || !rows.length) fail("weapons", "creditPolicies must be a non-empty list");
+  const seen = new Set();
+  for (const row of rows) {
+    closed(row, ["id", "creditPolicy"]);
+    if (typeof row.id !== "string" || !row.id || seen.has(row.id)) fail("weapons", "creditPolicies ids must be distinct strings");
+    seen.add(row.id);
+    if (!["none", "mastery"].includes(row.creditPolicy)) fail("weapons", `creditPolicies.${row.id}.creditPolicy`);
+  }
 }
 // The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
 // four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.

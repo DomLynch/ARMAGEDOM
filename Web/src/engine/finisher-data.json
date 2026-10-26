@@ -459,6 +459,7 @@
     "particles": 48,
     "trails": 8
   },
+  "impactPalette": [6622235, 8590376, 4392978],
   "preparation": {
     "openedPlacements": [
       "westminster-roamer-3",

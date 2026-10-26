@@ -16,6 +16,9 @@
     "engine/contracts.js": [
       { "name": "SESSION_OPERATIONS", "reason": "public browser-session operation names: an API contract checked by assertSession" }
     ],
+    "finisher-impact-profile.js": [
+      { "name": "FINISHER_IMPACT_LIMITS", "reason": "derived view of data: the impact caps from finisher-data.json impactLimits plus the head-droplet lifetime from the sever-blood data" }
+    ],
     "clothing-palettes.js": [
       { "name": "PAIRINGS", "reason": "derived view of data: the approved top/trouser pairs computed at load from the visual.json swatches, partners and a tonal-separation rule" }
     ],
@@ -60,7 +63,6 @@
     "engine/creature-catalogue.js": 2,
     "engine/creature-definitions.js": 45,
     "pistol-targeting.js": 8,
-    "rat-melee-definition.js": 5,
     "roach-territory.js": 1,
     "salamander-native.js": 1,
     "wolf-native.js": 1
@@ -86,18 +88,14 @@
     "engine/unique-reward-core.js": 1,
     "engine/unique-reward-runtime.js": 1,
     "engine/weapon-catalog.js": 2,
-    "engine/weapon-credit-policy.js": 1,
     "engine/world-events.js": 10,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
-    "finisher-impact-profile.js": 2,
+    "finisher-impact-profile.js": 1,
     "finisher-presentation.js": 1,
     "gaunt-shape.js": 2,
     "hollow-palette.js": 1,
     "low-hover-drone.js": 1,
-    "mobile-combat-aim.js": 2,
-    "pistol-targeting.js": 2,
-    "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1,
     "supplies.js": 2
   }

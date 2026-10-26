@@ -18,6 +18,7 @@ export function validateFinisherData(value) {
     "bindings",
     "flameDeath",
     "impactLimits",
+    "impactPalette",
     "preparation",
     "cosmetics",
     "gore",
@@ -142,6 +143,13 @@ export function validateFinisherData(value) {
   closed(d.impactLimits, ["bursts", "particles", "trails"]);
   for (const [k, max] of Object.entries({ bursts: 2, particles: 48, trails: 8 }))
     if (!Number.isInteger(d.impactLimits[k]) || !finite(d.impactLimits[k], 0, max)) fail();
+  // The blood colours of an impact burst that carries no gore style of its own (finisher-impact-profile.js).
+  if (
+    !Array.isArray(d.impactPalette) ||
+    d.impactPalette.length !== 3 ||
+    d.impactPalette.some((n) => !Number.isInteger(n) || !finite(n, 0, 0xffffff))
+  )
+    fail();
   const f = d.flameDeath;
   closed(f, [
     "recipeId",

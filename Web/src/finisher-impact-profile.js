@@ -9,7 +9,6 @@ export const FINISHER_IMPACT_LIMITS = Object.freeze({
   ...FINISHER_DATA.impactLimits,
   lifetime: SEVER_BLOOD_DATA.headDropletLifetime,
 });
-const palette = Object.freeze([0x650c1b, 0x831428, 0x430812]);
 const point = (p) => p && ["x", "y", "z"].every((k) => Number.isFinite(p[k]));
 const victim = (id) => (Number.isSafeInteger(id) && id > 0) || (typeof id === "string" && id.trim().length > 0);
 
@@ -40,7 +39,7 @@ export function finisherImpactProfile(event, anchors) {
     dropSize: gore?.dropSize ?? (headSever ? 0.13 : row[1] === "head" || event.recipeId === "opened" ? 0.1 : 0.055),
     gravity: gore?.burst?.gravity ?? (headSever ? SEVER_BLOOD_DATA.headDropletGravity : 8),
     groundClip: headSever,
-    palette: gore?.palette ?? palette,
+    palette: gore?.palette ?? FINISHER_DATA.impactPalette,
     ...(gore
       ? {
           gore: {
