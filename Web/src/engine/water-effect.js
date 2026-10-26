@@ -76,7 +76,7 @@ export function createWaterEffect({
       });
     else material.uniforms = uniforms;
     mesh = new THREE.Mesh(geometry, material);
-    mesh.name = "Restrained water";
+    mesh.name = "Restrained water"; // text-ok: internal mesh name
     mesh.renderOrder = WATER_EFFECT.renderOrder;
     mesh.frustumCulled = false;
     scene.add(mesh);

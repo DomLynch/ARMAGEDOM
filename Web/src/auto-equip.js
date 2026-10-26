@@ -1,4 +1,4 @@
-import { GAME_DATA } from "./engine/game-data.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
 
 // Dom, 25 Oct 2026: "anytime you pick up a new weapon, it replaces the weapon you have, because newbies won't know to change their
 // weapon". A weapon the player did not carry becomes the active one the moment it is collected; the old weapon stays carried (equipping
@@ -8,7 +8,8 @@ import { GAME_DATA } from "./engine/game-data.js";
 const autoEquip = () => GAME_DATA.weapons.autoEquipOnFirstPickup === true;
 
 // What the claim says: with auto-equip the player is not told to go to Gear (the equipped line follows once the weapon is in hand).
-export const collectedMessage = (name) => (autoEquip() ? `${name} collected.` : `${name} collected. Equip it in Gear.`);
+export const collectedMessage = (name) =>
+  fillText(autoEquip() ? GAME_DATA.combatText.gear.collected : GAME_DATA.combatText.gear.collectedEquipInGear, { name });
 
 // The Gear Equip handlers are toggles (a second press lowers the weapon, and the Ember Projector hands over to the legacy flamethrower
 // handler while that is up), so the switch is asked to be raise-only: it may raise this weapon and never lowers anything.
@@ -18,7 +19,7 @@ export async function autoEquipAfterClaim(g, { equip, active, itemId, name }) {
   if (!active()) return false;
   g.events.push({ type: "auto-equip", itemId });
   if (name) {
-    g.message = `${name} equipped.`;
+    g.message = fillText(GAME_DATA.combatText.gear.equipped, { name });
     g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
   }
   return true;

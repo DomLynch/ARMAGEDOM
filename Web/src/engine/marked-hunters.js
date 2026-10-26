@@ -123,7 +123,7 @@ export function stepMarkedHunters(g, spawn) {
     s.nextAttemptAt = g.time + 1;
     if (!p) return;
     s.warning = { position: p, startedAt: g.time, arrivesAt: g.time + c.warningSeconds };
-    g.message = "HUNTER INBOUND · find cover or reach a safehouse.";
+    g.message = GAME_DATA.combatText.markedHunter.warning;
     g.messageUntil = s.warning.arrivesAt;
     g.events.push({ type: "marked-hunter-warning", position: { ...p }, seconds: c.warningSeconds });
     return;
@@ -138,6 +138,6 @@ export function stepMarkedHunters(g, spawn) {
   g.enemies.push(actor);
   s.nextSpawnAt = g.time + c.spawnCooldown;
   g.events.push({ type: "marked-hunter-arrived", actor, position: { ...p } });
-  g.message = "A hunter is after you";
+  g.message = GAME_DATA.combatText.markedHunter.arrived;
   g.messageUntil = g.time + SPAWN.messageSeconds;
 }

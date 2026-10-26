@@ -64,7 +64,7 @@ export function createExitRings(world) {
       transparent: true,
       opacity: EXIT_RINGS.opacity,
     });
-  group.name = "Exit rings";
+  group.name = "Exit rings"; // text-ok: internal mesh name
   for (const link of links) {
     if (signed.has(link.to)) continue;
     const zone = zoneGround(g, link.condition, EXIT_RINGS.anchor);
@@ -72,7 +72,7 @@ export function createExitRings(world) {
     const nudge = EXIT_RINGS.offsets[`${world.areaId}>${link.to}`] ?? { x: 0, z: 0 },
       at = ringSpot(g, { x: zone.x + nudge.x, z: zone.z + nudge.z }, 0),
       mesh = new THREE.Mesh(geometry, material);
-    mesh.name = `Exit ring to ${link.to}`;
+    mesh.name = `Exit ring to ${link.to}`; // text-ok: internal mesh name
     mesh.position.copy(world.toRender(at, EXIT_RINGS.height));
     mesh.rotation.x = EXIT_RINGS.flatRotation;
     group.add(mesh);

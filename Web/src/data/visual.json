@@ -304,6 +304,15 @@
       }
     }
   },
+  "areaNames": {
+    "overrides": { "central-hub": "Central Safehouse" },
+    "numbered": "Area {number}"
+  },
+  "travelText": {
+    "travelling": "Traveling to {area}…",
+    "recoveryFailed": "Travel recovery failed. Reload the page to continue.",
+    "loadFailed": "Could not load that area. Move away and try the exit again."
+  },
   "exitRings": {
     "inner": 0.48,
     "outer": 0.62,
@@ -336,6 +345,18 @@
     "arrivalRadius": 4,
     "pistolArrived": 0.3,
     "huntArrived": 1.5,
+    "text": {
+      "killSalamander": "KILL THE SALAMANDER",
+      "killMatron": "KILL THE EMBER MATRON",
+      "walkToProjector": "WALK TO THE EMBER PROJECTOR",
+      "pistol": "PISTOL",
+      "shelter": "WESTMINSTER SHELTER",
+      "exit": "EXIT → {area}",
+      "roadClosed": "ROAD CLOSED · ",
+      "cue": "{closed}{direction} {name} · {metres}m",
+      "compass": ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
+      "entranceSign": ["CENTRAL SAFEHOUSE", "SIDE ENTRANCE"]
+    },
     "rail": {
       "sideProbe": 0.3,
       "sideOffset": 0.12,
