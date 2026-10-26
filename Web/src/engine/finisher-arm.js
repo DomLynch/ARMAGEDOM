@@ -123,7 +123,7 @@ export function prepareArmSever({
       bounds.setFromObject(container, true);
       if (bounds.isEmpty()) return false;
       bounds.getCenter(center);
-      radius = bounds.getSize(new T.Vector3()).length() / 2;
+      radius = bounds.getSize(new T.Vector3()).length() / 2; // tuning-ok: the bounding sphere's radius is half the box diagonal
       if (!Number.isFinite(radius) || radius <= 0) return false;
       container.position.copy(center);
       assembly.matrix.premultiply(new T.Matrix4().makeTranslation(-center.x, -center.y, -center.z));

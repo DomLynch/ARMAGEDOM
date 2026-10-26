@@ -217,6 +217,7 @@ export function validateFinisherData(value) {
     "holdSeconds",
     "collapseTailSeconds",
     "maxSeconds",
+    "nativeSeconds",
     "fadeSeconds",
     "anchorBones",
     "pelvisBones",
@@ -240,6 +241,7 @@ export function validateFinisherData(value) {
     !finite(f.holdSeconds, 0.1, 5) ||
     !finite(f.collapseTailSeconds, 0, 0.2) ||
     !finite(f.maxSeconds, 1, 10) ||
+    !finite(f.nativeSeconds, 0, 10) ||
     !finite(f.fadeSeconds, 0.01, 2) ||
     f.holdSeconds + f.fadeSeconds >= f.maxSeconds ||
     !Array.isArray(f.anchorBones) ||
