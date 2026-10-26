@@ -347,6 +347,32 @@
     "renderOrder": -95,
     "flickerHz": [17, 43]
   },
+  "weaponViews": {
+    "rocket": {
+      "blast": {
+        "seconds": 0.35,
+        "fallbackRadius": 3,
+        "ringInnerRatio": 0.9733333333,
+        "ringSegments": 40,
+        "ringColour": "ffc064",
+        "ringOpacity": 0.8,
+        "coreRadius": 0.25,
+        "coreWidthSegments": 8,
+        "coreHeightSegments": 6,
+        "coreColour": "ffd797",
+        "coreOpacity": 0.85,
+        "coreHeight": 0.25,
+        "groundLift": 0.025,
+        "startScale": 0.2,
+        "growScale": 0.8
+      }
+    },
+    "flame": {
+      "pickup": { "fitSize": 0.72, "lift": 0.025 },
+      "ring": { "radius": 0.35, "tube": 0.025, "radialSegments": 4, "tubularSegments": 20, "colour": "ffbd62", "lift": 0.025 },
+      "messageSeconds": 4
+    }
+  },
   "combatImpact": {
     "settleBelow": 0.001,
     "lowEnergy": 0.4,

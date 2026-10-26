@@ -221,6 +221,7 @@ export function validateVisual(d) {
     "motion",
     "safehouseView",
     "wantedPoster",
+    "weaponViews",
     "combatImpact",
     "flameEffect",
   ]);

@@ -1,5 +1,8 @@
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
+const FLASH = WEAPON_VIEWS.rocket.blast,
+  hex = (c) => `#${c}`;
 export function createRocketView(s) {
   const projectiles = new Map(),
     blasts = new Map(),
@@ -63,26 +66,35 @@ export function createRocketView(s) {
       for (const blast of [g.bossEquipmentAction?.rocketLauncher?.lastBlast, g.bossRocketBlast]) {
         if (blast && !blasts.has(blast.id) && blast.id !== lastBlast && blast.areaId === g.world.areaId) {
           lastBlast = blast.id;
-          if (g.time - blast.time <= 0.35) {
+          if (g.time - blast.time <= FLASH.seconds) {
             const root = new T.Group(),
               ring = new T.Mesh(
-                new T.RingGeometry((blast.radius ?? 3) * 0.9733333333, blast.radius ?? 3, 40),
+                new T.RingGeometry(
+                  (blast.radius ?? FLASH.fallbackRadius) * FLASH.ringInnerRatio,
+                  blast.radius ?? FLASH.fallbackRadius,
+                  FLASH.ringSegments,
+                ),
                 new T.MeshBasicMaterial({
-                  color: 0xffc064,
+                  color: hex(FLASH.ringColour),
                   transparent: true,
-                  opacity: 0.8,
+                  opacity: FLASH.ringOpacity,
                   depthWrite: false,
                   side: T.DoubleSide,
                 }),
               ),
               core = new T.Mesh(
-                new T.SphereGeometry(0.25, 8, 6),
-                new T.MeshBasicMaterial({ color: 0xffd797, transparent: true, opacity: 0.85, depthWrite: false }),
+                new T.SphereGeometry(FLASH.coreRadius, FLASH.coreWidthSegments, FLASH.coreHeightSegments),
+                new T.MeshBasicMaterial({
+                  color: hex(FLASH.coreColour),
+                  transparent: true,
+                  opacity: FLASH.coreOpacity,
+                  depthWrite: false,
+                }),
               );
-            ring.rotation.x = -Math.PI / 2;
-            core.position.y = 0.25;
+            ring.rotation.x = -Math.PI / 2; // tuning-ok: quarter turn lays the ring flat on the ground
+            core.position.y = FLASH.coreHeight;
             root.add(ring, core);
-            root.position.copy(s.world.toRender(blast.position, 0.025));
+            root.position.copy(s.world.toRender(blast.position, FLASH.groundLift));
             s.scene.add(root);
             blasts.set(blast.id, { root, start: blast.time, npc: blast.id.startsWith("boss-rocket:") });
           }
@@ -90,7 +102,7 @@ export function createRocketView(s) {
       }
       for (const [id, row] of blasts) {
         const age = g.time - row.start;
-        if (age >= 0.35 || (row.npc && g.bossRocketBlast?.id !== id)) {
+        if (age >= FLASH.seconds || (row.npc && g.bossRocketBlast?.id !== id)) {
           row.root.removeFromParent();
           for (const mesh of row.root.children) {
             mesh.geometry.dispose();
@@ -99,8 +111,8 @@ export function createRocketView(s) {
           blasts.delete(id);
           continue;
         }
-        row.root.scale.setScalar(0.2 + (age / 0.35) * 0.8);
-        for (const mesh of row.root.children) mesh.material.opacity = 0.85 * (1 - age / 0.35);
+        row.root.scale.setScalar(FLASH.startScale + (age / FLASH.seconds) * FLASH.growScale);
+        for (const mesh of row.root.children) mesh.material.opacity = FLASH.coreOpacity * (1 - age / FLASH.seconds);
       }
     },
   };

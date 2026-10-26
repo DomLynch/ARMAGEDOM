@@ -4,6 +4,8 @@ import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
 import { markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
+const FLAME = WEAPON_VIEWS.flame;
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
@@ -18,11 +20,11 @@ export function createFlamePickupView(source) {
     root.updateMatrixWorld(true);
     let box = new T.Box3().setFromObject(display),
       size = box.getSize(new T.Vector3());
-    display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+    display.scale.setScalar(Math.min(1, FLAME.pickup.fitSize / Math.hypot(size.x, size.z)));
     root.updateMatrixWorld(true);
     box = new T.Box3().setFromObject(display);
     const center = box.getCenter(new T.Vector3());
-    display.position.set(-center.x, 0.025 - box.min.y, -center.z);
+    display.position.set(-center.x, FLAME.pickup.lift - box.min.y, -center.z);
     const meshes = [];
     display.traverse((mesh) => {
       if (mesh.isMesh) meshes.push(mesh);
@@ -30,11 +32,11 @@ export function createFlamePickupView(source) {
     for (const mesh of meshes) contours.push(addPickupGlow(mesh));
   } else {
     ring = new T.Mesh(
-      new T.TorusGeometry(0.35, 0.025, 4, 20),
-      new T.MeshBasicMaterial({ color: 0xffbd62, depthTest: true }),
+      new T.TorusGeometry(FLAME.ring.radius, FLAME.ring.tube, FLAME.ring.radialSegments, FLAME.ring.tubularSegments),
+      new T.MeshBasicMaterial({ color: `#${FLAME.ring.colour}`, depthTest: true }),
     );
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.025;
+    ring.rotation.x = -Math.PI / 2; // tuning-ok: quarter turn lays the ring flat on the ground
+    ring.position.y = FLAME.ring.lift;
     root.add(ring);
   }
   let disposed = false;
@@ -118,7 +120,7 @@ export function createFlameView(s, persistence) {
     if (!g.flameFuel?.collected) return;
     if (g.flameFuel.fuelUnits <= 0) {
       g.message = "Flamethrower is out of fuel.";
-      g.messageUntil = g.time + 4;
+      g.messageUntil = g.time + FLAME.messageSeconds;
       return;
     }
     const before = {
@@ -136,7 +138,7 @@ export function createFlameView(s, persistence) {
         if (!disposed && s.game === g) {
           failed = true;
           g.message = "Could not load flamethrower. Try Equip again.";
-          g.messageUntil = g.time + 4;
+          g.messageUntil = g.time + FLAME.messageSeconds;
         }
         return;
       } finally {
@@ -168,7 +170,7 @@ export function createFlameView(s, persistence) {
     if (setFlameEquipped(g, true)) {
       s.input?.clear({ keepMovement: true });
       g.message = "Ember Projector ready · hold Flame to fire.";
-      g.messageUntil = g.time + 4;
+      g.messageUntil = g.time + FLAME.messageSeconds;
       repaint();
     }
   }
@@ -189,7 +191,7 @@ export function createFlameView(s, persistence) {
     if (result.ok) {
       g.events.push(...result.events);
       g.message = collectedMessage("Flamethrower");
-      g.messageUntil = g.time + 4;
+      g.messageUntil = g.time + FLAME.messageSeconds;
       void autoEquipAfterClaim(g, {
         equip,
         active: () => !!g.flame?.equipped,
