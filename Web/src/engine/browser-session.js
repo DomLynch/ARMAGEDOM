@@ -368,11 +368,21 @@ export function createBrowserSession(options = {}) {
   }
   let loadAttempt = 0, // failed attempts so far: a retry uses fresh URLs (see start())
     lastLoadProgress = 0, // when a model last finished loading (the stall watchdog in start() reads it)
-    beacon = null, // the client error beacon (engine/client-log.js), made when the world starts
+    beacon = null, // the client error beacon (engine/client-log.js), made at boot on the online path, before any network step
     worldStarted = false,
     runRestored = false, // set when the game reads the saved run: a server record that arrives later is not applied
     bootPull = Promise.resolve(),
     syncedNotice = false;
+  // The error beacon exists from boot, before the status read or any other network step, so a boot failure or an offline start is
+  // reported too (a closed world still silences it: recheckWorld pauses it). Each page load has its own random session id.
+  if (worldGate) {
+    beacon = createClientLog({
+      baseUrl: location.origin,
+      release: releaseOf(location.pathname),
+      getArea: () => world?.areaId ?? "",
+    });
+    listeners.push(beacon.install(window), () => beacon.stop());
+  }
   function startWorld() {
     if (worldStarted || disposed) return;
     worldStarted = true;
@@ -384,13 +394,6 @@ export function createBrowserSession(options = {}) {
     });
     // Coming back from Google (PKCE): exchange the code only for a link this tab started. A token in the URL hash is never read.
     if (returnedSearch !== null) auth.takeRedirect(returnedSearch);
-    // The error beacon exists only from here on (the online path): uncaught errors and the boot, presence and sync failures below.
-    beacon = createClientLog({
-      baseUrl: location.origin,
-      release: releaseOf(location.pathname),
-      getArea: () => world?.areaId ?? "",
-    });
-    listeners.push(beacon.install(window), () => beacon.stop());
     const source = options.presenceToken ?? auth.getToken;
     const getToken = async () => {
       const token = await source();

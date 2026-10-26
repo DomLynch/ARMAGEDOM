@@ -77,7 +77,9 @@ test('a row carries kind, code, scrubbed message, count, area and release - and 
   assert.equal(url, 'https://x.test/arma/api/clientlog');
   assert.equal(init.credentials, 'omit');
   assert.equal(init.headers.Authorization, undefined);
-  assert.deepEqual(body, {v: 1, release: '/armagedom/preview/three-1/', area: 'westminster', events: [{kind: 'sync', code: 'pull-failed', message: 'boom at https://x.test/a', n: 1}]});
+  const {session, ...rest} = body;
+  assert.match(session, /^[0-9a-f]{12}$/, 'a random per-page-load id, nothing tied to the account');
+  assert.deepEqual(rest, {v: 1, release: '/armagedom/preview/three-1/', area: 'westminster', events: [{kind: 'sync', code: 'pull-failed', message: 'boom at https://x.test/a', n: 1}]});
   assert(!init.body.includes('SECRET'));
 });
 
