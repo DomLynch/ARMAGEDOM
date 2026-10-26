@@ -114,7 +114,6 @@
     "engine/grenade-state.js": 1,
     "engine/grenade-surface.js": 4,
     "engine/guest-auth.js": 7,
-    "engine/local-wound.js": 20,
     "engine/locker-core.js": 6,
     "engine/loop.js": 3,
     "engine/marked-hunters.js": 6,
