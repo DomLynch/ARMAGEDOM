@@ -30,6 +30,32 @@ test("save-layer rejection messages read string-equal to the text that was in co
   });
 });
 
+test("HUD and gear text read string-equal to the text that was in code", () => {
+  const { hud, gear } = GAME_DATA.combatText;
+  assert.equal(hud.emptyReload, "EMPTY · Reload.");
+  assert.equal(hud.outOfAmmo, "OUT OF AMMO · Switch to melee.");
+  assert.equal(hud.parry, "PARRY · Counter while they recover.");
+  assert.equal(hud.guardBroken, "GUARD BROKEN · Dodge or make space.");
+  assert.equal(hud.hollowCleared, "LONDON · Hollow encounter cleared.");
+  assert.equal(fillText(hud.bossDefeated, { name: "Witch" }) + hud.suppliesAwait, "Witch defeated. Supplies await near the body.");
+  assert.equal(fillText(hud.waveCleared, { hp: 5 }), "WAVE CLEARED · +5 HP");
+  assert.equal(fillText(hud.wave, { wave: 2, final: 3 }), "WESTMINSTER · Wave 2/3");
+  assert.equal(fillText(hud.blade, { pct: 12 }), "BLADE +12% damage");
+  assert.equal(fillText(hud.armour, { hp: 8 }), "ARMOUR +8 max HP");
+  assert.equal(fillText(hud.tonic, { hp: 9 }), "TONIC +9 HP");
+  assert.equal(hud.warlord, "ORC WARLORD · Dodge, then strike.");
+  assert.equal(hud.enterCombat, "Move to enter combat. Survive three waves.");
+  assert.equal(fillText(gear.charges, { count: 2 }), "2 charges");
+  assert.equal(fillText(gear.empty, { name: "Rifle" }), "Rifle is empty.");
+  assert.equal(gear.equippedSuffix + gear.tapToEquip, " · equipped · tap to equip");
+  assert.equal(fillText(gear.collected, { name: "Rifle" }), "Rifle collected.");
+  assert.equal(fillText(gear.collectedEquipInGear, { name: "Rifle" }), "Rifle collected. Equip it in Gear.");
+  assert.equal(fillText(gear.equipped, { name: "Rifle" }), "Rifle equipped.");
+  assert.equal(gear.startPistolLabel, "Collect Starting Pistol");
+  assert.equal(gear.iconCaptions["surgeons-knife-v1"], "BONE SAW");
+  assert.equal(gear.iconCaptions["borough-marshals-pistol-v1"], "ARC GUN");
+});
+
 test("hunter, flame boss and reward text read string-equal to the text that was in code", () => {
   const t = GAME_DATA.combatText;
   assert.equal(t.markedHunter.warning, "HUNTER INBOUND · find cover or reach a safehouse.");
