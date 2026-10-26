@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "linkTtlSeconds": 600,
+  "fallbackExpiresInSeconds": 3600,
+  "nonceBytes": 16,
+  "verifierBytes": 32
+}

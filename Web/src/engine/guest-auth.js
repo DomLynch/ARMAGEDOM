@@ -5,6 +5,8 @@
 //   POST {url}/auth/v1/token?grant_type=refresh_token     -> new session
 //   GET  {url}/auth/v1/user/identities/authorize?provider=google&skip_http_redirect=true&redirect_to=...  (Bearer) -> { url }
 // The project URL and the PUBLISHABLE (anon) key are passed in; nothing secret ever lives here.
+import { GAME_DATA } from "./game-data.js";
+
 export const SESSION_KEY = "armagedom.world.session.v1";
 const EARLY_S = 60; // refresh a minute before the token really expires
 
@@ -32,7 +34,7 @@ function shape(body, now = nowS) {
   return {
     access_token: body.access_token,
     refresh_token: body.refresh_token,
-    expires_at: Number.isFinite(body.expires_at) ? body.expires_at : now() + (Number(body.expires_in) || 3600),
+    expires_at: Number.isFinite(body.expires_at) ? body.expires_at : now() + (Number(body.expires_in) || GAME_DATA.guestAuth.fallbackExpiresInSeconds),
     user_id: body.user?.id ?? null,
     anonymous: body.user?.is_anonymous !== false,
   };
@@ -42,7 +44,7 @@ function shape(body, now = nowS) {
 // Google and travels back in the redirect URL (?link=<nonce>). A link someone else sends (a hash with tokens and no nonce) is
 // ignored, so a stranger cannot swap their account into the player's game.
 export const LINK_KEY = "armagedom.world.link.v1";
-const LINK_TTL_S = 600;
+const LINK_TTL_S = GAME_DATA.guestAuth.linkTtlSeconds;
 const browserSessionStorage = () => {
   try {
     return globalThis.sessionStorage ?? null;
@@ -51,8 +53,8 @@ const browserSessionStorage = () => {
   }
 };
 const newNonce = () => {
-  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
-  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(GAME_DATA.guestAuth.nonceBytes));
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join(""); // tuning-ok: two hex digits per byte
 };
 // PKCE: the code Google/Supabase sends back is useless without the verifier that only this tab holds, so a code an attacker puts in
 // a link cannot be exchanged by (or for) anyone else. No token ever travels in the URL.
@@ -61,11 +63,11 @@ const base64url = (bytes) =>
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-const newVerifier = () => base64url(globalThis.crypto.getRandomValues(new Uint8Array(32)));
+const newVerifier = () => base64url(globalThis.crypto.getRandomValues(new Uint8Array(GAME_DATA.guestAuth.verifierBytes)));
 const challengeFor = async (verifier) =>
   base64url(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
 // 400 / 401 / 403 from the refresh endpoint mean the server definitively refused this refresh token; 5xx and network errors do not.
-const rejected = (error) => [400, 401, 403].includes(error?.status);
+const rejected = (error) => [400, 401, 403].includes(error?.status); // tuning-ok: HTTP status codes
 
 export function createGuestAuth({
   url,

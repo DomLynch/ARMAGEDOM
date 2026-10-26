@@ -12,8 +12,6 @@ import { GAME_DATA } from "./game-data.js";
 export const SURVIVOR_VARIANTS = GAME_DATA.visual.survivorVariants;
 const GARMENTS = new Set(["Gambeson", "Wrap"]),
   ACCENTS = new Set(["Heraldry"]);
-const RING_INNER = 0.62,
-  RING_OUTER = 0.74;
 
 // FNV-1a over the id's text: every client maps the same id to the same variant.
 export function survivorVariantIndex(id, count = SURVIVOR_VARIANTS.length) {
@@ -39,8 +37,8 @@ export function createSurvivorKit({
     clips = description.clips,
     scale = characterScale * (description.scale ?? 1);
   const look = GAME_DATA.remoteSurvivors; // data/remoteSurvivors.json
-  const ringGeometry = new THREE.RingGeometry(RING_INNER, RING_OUTER, look.ringSegments);
-  ringGeometry.rotateX(-Math.PI / 2);
+  const ringGeometry = new THREE.RingGeometry(look.ringInner, look.ringOuter, look.ringSegments);
+  ringGeometry.rotateX(-Math.PI / 2); // tuning-ok: lays the ring flat on the ground (a quarter turn)
   const variantParts = new Map(), // variant index -> { materials: Map(original -> tinted), ring }
     owned = [],
     figures = new Set();
