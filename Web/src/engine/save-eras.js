@@ -21,21 +21,21 @@ const era = (version, layer, key) => Object.freeze({ version, layer, key });
 export const SAVE_ERAS = Object.freeze([
   era(1, "run", RUN_SAVE_KEY),
   era(4, "progression", PROGRESSION_SAVE_KEY),
-  era(5, "expedition", EXPEDITION_SAVE_KEY),
-  era(6, "area-boss", AREA_BOSS_SAVE_KEY),
-  era(7, "unique-reward", UNIQUE_REWARD_SAVE_KEY),
-  era(8, "flame", FLAME_SAVE_KEY),
-  era(9, "rifle", RIFLE_SAVE_KEY),
+  era(5, "expedition", EXPEDITION_SAVE_KEY), // tuning-ok: save era version
+  era(6, "area-boss", AREA_BOSS_SAVE_KEY), // tuning-ok: save era version
+  era(7, "unique-reward", UNIQUE_REWARD_SAVE_KEY), // tuning-ok: save era version
+  era(8, "flame", FLAME_SAVE_KEY), // tuning-ok: save era version
+  era(9, "rifle", RIFLE_SAVE_KEY), // tuning-ok: save era version
   era(10, "boss-equipment", PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY),
-  era(11, "boss-equipment", BOSS_EQUIPMENT_SAVE_KEY),
-  era(12, "locker", LOCKER_SAVE_KEY),
+  era(11, "boss-equipment", BOSS_EQUIPMENT_SAVE_KEY), // tuning-ok: save era version
+  era(12, "locker", LOCKER_SAVE_KEY), // tuning-ok: save era version
   // The opening-story layer's first key was retired when it moved to v14; real records under it still exist.
-  era(13, "opening-story", PREVIOUS_OPENING_STORY_SAVE_KEY),
-  era(14, "opening-story", OPENING_STORY_SAVE_KEY),
-  era(15, "reaper", REAPER_SAVE_KEY),
-  era(16, "railgun", RAILGUN_SAVE_KEY),
-  era(17, "hub", HUB_SAVE_KEY),
-  era(18, "marked", MARKED_SAVE_KEY),
+  era(13, "opening-story", PREVIOUS_OPENING_STORY_SAVE_KEY), // tuning-ok: save era version
+  era(14, "opening-story", OPENING_STORY_SAVE_KEY), // tuning-ok: save era version
+  era(15, "reaper", REAPER_SAVE_KEY), // tuning-ok: save era version
+  era(16, "railgun", RAILGUN_SAVE_KEY), // tuning-ok: save era version
+  era(17, "hub", HUB_SAVE_KEY), // tuning-ok: save era version
+  era(18, "marked", MARKED_SAVE_KEY), // tuning-ok: save era version
 ]);
 
 export const CURRENT_ERA = SAVE_ERAS[SAVE_ERAS.length - 1];
