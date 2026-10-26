@@ -76,6 +76,25 @@
   "effects": {
     "swingColours": { "slash": "e3e9ec", "stab": "e3e9ec", "heavy": "ffa64c", "special": "e8bc65" },
     "lootColours": ["dca64d", "48b9c5", "70c66e"],
+    "feedback": {
+      "pools": { "particles": 48, "tracers": 16 },
+      "viewportFallback": { "width": 852, "height": 393 },
+      "lootGemRadius": 0.21,
+      "flameWidthScale": { "witch": 2, "salamander": 2 },
+      "tracer": { "colour": "f5d498", "opacity": 0.8, "defaultSeconds": 0.065 },
+      "muzzleFlashColour": "ffedb0",
+      "particle": { "palette": "ffca85", "gravity": 8, "minLife": 0.001, "dimBase": 0.6, "dimSpan": 0.4 },
+      "finisherDrop": {
+        "speedBase": 0.6,
+        "speedSpread": 0.4,
+        "speedStride": 7,
+        "liftShare": 0.1,
+        "liftCycle": 3,
+        "baseLift": 0.3,
+        "tailSpeedShare": 0.75,
+        "tailTravelShare": 0.65
+      }
+    },
     "targetHeights": {
       "burst": {
         "default": { "scaled": 1.1 },
