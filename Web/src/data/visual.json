@@ -133,7 +133,8 @@
     "labelWidth": 3.4
   },
   "routeArrow": {
-    "peakOpacity": 0.6
+    "peakOpacity": 0.6,
+    "tailGap": 1
   },
   "routeGuidance": {
     "clearance": 0.4,

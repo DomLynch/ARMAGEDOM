@@ -9,6 +9,10 @@
     "field": { "z": 63, "cosX": 45, "wobble": 1.6, "y": 99, "z2": 24 },
     "wear": { "from": 0.25, "range": 1.4 }
   },
+  "animalOffsets": {
+    "A": { "east-roamer-9": { "x": -0.014, "z": -0.278 }, "east-roamer-5": { "x": 0, "z": -0.046 } },
+    "B": { "east-roamer-9": { "x": -0.014, "z": -0.278 } }
+  },
   "animalCoat": {
     "taper": { "from": 0.9, "range": 0.1 },
     "field": { "z": 43, "cosY": 37, "wobble": 1.7, "x": 51, "y": 19 },

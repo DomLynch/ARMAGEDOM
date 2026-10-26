@@ -859,7 +859,7 @@ export function validateVisual(d) {
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   // The ground arrow (route-guidance.js) takes the drop marker's ringColour; peakOpacity tops its pulse.
-  closed(d.routeArrow, ["peakOpacity"]);
+  closed(d.routeArrow, ["peakOpacity", "tailGap"]);
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   validateRouteGuidance(d.routeGuidance);
@@ -1415,7 +1415,7 @@ export function validateAudio(d) {
 // recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
 export function validateCommander(d) {
   const counts = ["unitCap", "reserve", "deployCost", "machineHP", "biologicalHP", "biologicalDamage", "beaconHP"];
-  closed(d, ["schema_version", "rules"]);
+  closed(d, ["schema_version", "rules", "view"]);
   closed(d.rules, [
     ...counts,
     "machineSpeed",

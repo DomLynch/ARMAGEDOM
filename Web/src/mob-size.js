@@ -1,4 +1,6 @@
-const factors = [0.85, 0.9, 1, 1.1, 1.15];
+import { GAME_DATA } from "./engine/game-data.js";
+// The approved size factors are creatures.json `mobSize.factors`.
+const factors = GAME_DATA.creatures.mobSize.factors;
 
 // Derive once from the unmodified spawn profile, never from a resized actor.
 // Native blades use combatScale; capsules use combatScale * bodyScale.
