@@ -32,7 +32,7 @@ test("the attribute baseline is the server's record-cap floor", () => {
 
 test("the drop ring visits the same angles as before", () => {
   const steps = GAME_DATA.uniqueReward.dropSearch.ringSteps;
-  for (let i = 0; i < steps; i++) assert.equal((i * Math.PI * 2) / steps, (i * Math.PI) / 8, `step ${i}`);
+  for (let i = 0; i < steps; i++) assert.equal((i * Math.PI) / (steps >> 1), (i * Math.PI) / 8, `step ${i}`);
 });
 
 test("the knife damage scaling still divides by 20, other weapons are untouched", () => {
@@ -68,6 +68,7 @@ test("the loader refuses missing, extra and out-of-range numbers", () => {
   assert.throws(broken(validateUniqueReward, "uniqueReward", (d) => { d.pickupRadius = 9; }));
   assert.throws(broken(validateUniqueReward, "uniqueReward", (d) => { d.dropSearch.ringSteps = 2; }));
   assert.throws(broken(validateUniqueReward, "uniqueReward", (d) => { d.dropSearch.ringSteps = 12.5; }));
+  assert.throws(broken(validateUniqueReward, "uniqueReward", (d) => { d.dropSearch.ringSteps = 15; }), "half a turn must be whole steps");
 });
 
 test("the gate counts 0 in the eight files and their baseline entries are gone", () => {

@@ -56,7 +56,7 @@ export function uniqueRewardDropPosition(g, corpse, data = g.world.uniqueRewardD
   const ring = (radii, accept) => {
     for (const radius of radii)
       for (let i = 0; i < ringSteps; i++) {
-        const angle = (i * Math.PI * 2) / ringSteps,
+        const angle = (i * Math.PI) / (ringSteps >> 1), // ringSteps is even: half a turn is that many steps
           p = { x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius };
         if (accept(p)) return p;
       }

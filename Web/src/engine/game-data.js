@@ -704,6 +704,7 @@ export function validateUniqueReward(d) {
   if (d.pickupRadius > 5) fail("uniqueReward", "pickupRadius must be up to 5 m");
   closed(d.dropSearch, ["ringSteps", "nearRadii", "fallbackRadii"]);
   count("uniqueReward", "dropSearch.ringSteps", d.dropSearch.ringSteps, 4, 64);
+  if (d.dropSearch.ringSteps % 2) fail("uniqueReward", "dropSearch.ringSteps must be even (half a turn is a whole number of steps)");
   for (const name of ["nearRadii", "fallbackRadii"]) {
     const rows = d.dropSearch[name];
     if (!Array.isArray(rows) || rows.length < 1 || rows.length > 16) fail("uniqueReward", `dropSearch.${name} must list 1 to 16 radii`);
