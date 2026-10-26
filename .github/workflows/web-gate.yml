@@ -62,6 +62,8 @@ jobs:
       - run: node --test ops/realtime/build-release.test.mjs
       # The layout gate (presence's running layout must equal the release's): pure hash comparison over fake lines and files.
       - run: node --test ops/realtime/check-presence-layout.test.mjs
+      # The hosted drift check: a changed row, function, grant, RLS flag, policy or registry sha must be reported (pglite, no network).
+      - run: node --test ops/realtime/check-db-drift.test.mjs
 
   web-gate:
     name: web-gate
