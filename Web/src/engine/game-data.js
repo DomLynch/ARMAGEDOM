@@ -538,6 +538,7 @@ export function validateCreatures(d) {
     "gauntHumanCycles",
     "hollowTuning",
     "creatureSim",
+    "mobSize",
     "feralBodyShapes",
     "feralCoatProfiles",
     "gauntShape",
@@ -642,11 +643,11 @@ export function validateCreatures(d) {
   }
   validateBehaviours(d.behaviours);
   validateEncounterTables(d);
+  extra.validateMobSize(d.mobSize, { fail, number });
   validateRigTables(d);
 }
 
-// creatures.json `feralBodyShapes`, `feralCoatProfiles`, `gauntShape` and `rigCapabilities` (feral-body-shapes.js, feral-coat-profiles.js,
-// gaunt-shape.js, rig-capabilities.js). Recipe ids are unique; a rig capability is a closed set of boolean flags.
+// creatures.json feralBodyShapes, feralCoatProfiles, gauntShape, rigCapabilities: recipe ids are unique; a capability is a flag, name or number.
 function validateRigTables(d) {
   const recipeId = (field, v) => {
     if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `${field} must be a lowercase id`);

@@ -151,3 +151,22 @@ function validateCrookedPose(d, { fail, between }) {
   between("crookedHollow.footHold.r", c.footHold.r, 0, 1);
   between("crookedHollow.cycleRate", c.cycleRate, 0.1, 10);
 }
+
+// creatures.json `mobSize` (mob-size-allocation.js, mob-size.js): the approved body-size factors and the range every factor must stay inside.
+export function validateMobSize(m, { fail, number }) {
+  closed(m, ["factors", "min", "max"]);
+  number("creatures", "mobSize.min", m.min, 0.1);
+  number("creatures", "mobSize.max", m.max, 0.1);
+  if (m.min > 1 || m.max < 1 || m.max > 3) fail("creatures", "mobSize range must bracket 1 and stay at or below 3");
+  if (
+    !Array.isArray(m.factors) ||
+    m.factors.length < 1 ||
+    m.factors.length > 16 ||
+    new Set(m.factors).size !== m.factors.length
+  )
+    fail("creatures", "mobSize.factors must list 1 to 16 different numbers");
+  for (const f of m.factors)
+    if (!Number.isFinite(f) || f < m.min || f > m.max)
+      fail("creatures", `mobSize.factors ${f} is outside ${m.min} to ${m.max}`);
+  if (m.factors.some((f, i) => i && f <= m.factors[i - 1])) fail("creatures", "mobSize.factors must rise");
+}

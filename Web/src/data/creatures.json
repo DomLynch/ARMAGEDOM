@@ -301,6 +301,7 @@
       "calf_r": ["foot_r", 0.82]
     }
   },
+  "mobSize": { "factors": [0.85, 0.9, 1, 1.1, 1.15], "min": 0.85, "max": 1.15 },
   "rigCapabilities": {
     "original-rat": {
       "lowStrike": true,
