@@ -72,7 +72,6 @@
   "numberLiterals": {
     "actors.js": 61,
     "animal-appearance.js": 7,
-    "atmosphere.js": 31,
     "auto-equip.js": 1,
     "bridge-steering.js": 5,
     "clothing-allocator.js": 3,
@@ -93,7 +92,6 @@
     "engine/browser-session.js": 19,
     "engine/client-log.js": 2,
     "engine/commander/match.js": 13,
-    "engine/commander/session.js": 11,
     "engine/commander/view.js": 15,
     "engine/creature-catalogue.js": 2,
     "engine/creature-sim.js": 2,
@@ -106,7 +104,6 @@
     "engine/flame-contact.js": 12,
     "engine/flame-core.js": 1,
     "engine/flame-data.js": 14,
-    "engine/flame-effect.js": 38,
     "engine/flame-fuel-state.js": 2,
     "engine/flame-presentation.js": 9,
     "engine/flame-view.js": 13,
