@@ -1,4 +1,5 @@
 import { EMBER_PROJECTOR_PROFILE as EMBER } from "./boss-equipment-data.js";
+import { GAME_DATA } from "./game-data.js";
 // Historical identity is an access/save alias, not another weapon profile.
 // The Witch reward owns the sole canonical rules; fresh standalone pickup is disabled.
 // Required-config local fuel model. Runtime validates pickup and active flame;
@@ -12,7 +13,7 @@ export const FLAME_PILOT_PROFILE = Object.freeze({
   unitsPerSecond: EMBER.rules.unitsPerSecond,
   contact: Object.freeze({
     range: EMBER.rules.range,
-    coneDegrees: 40,
+    coneDegrees: GAME_DATA.weapons.bossEquipment.emberContactConeDegrees,
     interval: EMBER.rules.interval,
     damage: EMBER.rules.damage,
     afterburnDamage: 0,
