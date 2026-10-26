@@ -74,6 +74,12 @@ test("the validator rejects malformed combat rules", () => {
     [(d) => (d.legacy.formation.columns = 0), /columns/],
     [(d) => (d.legacy.loot.tonic.step = -1), /finite number/],
     [(d) => (d.legacy.extra = 1), Error],
+    [(d) => (d.hitFlashSeconds = 0), /hitFlashSeconds/],
+    [(d) => (d.reactions.blockImpactTicks = 0), /blockImpactTicks/],
+    [(d) => (d.reactions.droneDeath.clip = ""), /droneDeath/],
+    [(d) => delete d.legacy.player.dodge.speed, Error],
+    [(d) => (d.legacy.player.guard.arc = -1), /finite number/],
+    [(d) => delete d.legacy.waveClearHeal, Error],
   ]) {
     const d = raw();
     edit(d);

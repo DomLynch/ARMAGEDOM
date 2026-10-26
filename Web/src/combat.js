@@ -122,7 +122,8 @@ const rotate = (v, angle) => ({
 });
 let serial = 0;
 // The original goblin game's numbers (hp, reach, timings per enemy kind, formation, loot) are data/combatRules.json `legacy`.
-const LEGACY = GAME_DATA.combatRules.legacy;
+const RULES = GAME_DATA.combatRules,
+  LEGACY = RULES.legacy;
 const legacyKind = (kind) => LEGACY.kinds[kind] ?? LEGACY.kinds[0];
 export function enemy(kind, pos) {
   const hp = LEGACY.kinds[kind]?.hp;
@@ -264,7 +265,7 @@ export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
   const amount = Math.min(target.hp, damage);
   target.hp = Math.max(0, target.hp - damage);
-  target.flashUntil = g.time + 0.12;
+  target.flashUntil = g.time + RULES.hitFlashSeconds;
   if (target.home) alertResident(g, target);
   event(g, "hit", {
     actor: target,
@@ -523,8 +524,12 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
     return false;
   }
   if (p.ready > g.time + EPS) {
-    if (p.ready - g.time <= (g.pilot ? R.bufferWindow / 60 : 0.12) + EPS)
-      p.buffer = { action, dir: normal(direction), until: p.ready + (g.pilot ? R.bufferTtl / 60 : 0.12) };
+    if (p.ready - g.time <= (g.pilot ? R.bufferWindow / 60 : LEGACY.player.bufferSeconds) + EPS)
+      p.buffer = {
+        action,
+        dir: normal(direction),
+        until: p.ready + (g.pilot ? R.bufferTtl / 60 : LEGACY.player.bufferSeconds),
+      };
     return false;
   }
   if (g.pilot && ["slash", "stab", "heavy", "special"].includes(action)) {
@@ -589,7 +594,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
   p.buffer = null;
   p.guarding = false;
   p.parryUntil = 0;
-  p.guardRecoverAt = g.time + (g.pilot ? R.regenDelay / 60 : 0.45);
+  p.guardRecoverAt = g.time + (g.pilot ? R.regenDelay / 60 : LEGACY.player.guardRecoverSeconds);
   p.facing = normal(direction, p.facing);
   const windupTicks = def.windupTicks ?? Math.floor(def.windup * 60),
     range =
@@ -631,7 +636,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
   }
   if (selected && !nearest) {
     p.swing.turnTo = { ...selected.direction };
-    p.swing.assistUntil = g.time + Math.min(def.windup - 1 / 60, 8 / 60);
+    p.swing.assistUntil = g.time + Math.min(def.windup - 1 / 60, RULES.reactions.swingAssistTicks / 60);
   }
   if (action === "heavy") p.heavyReady = g.time + def.cooldown;
   if (action === "special") p.specialReady = g.time + def.cooldown;
@@ -659,9 +664,9 @@ function dodge(g, move, aim) {
   p.velocity = { x: 0, z: 0 };
   p.dodgeDirection = normal(move ?? p.facing, p.facing);
   p.facing = { ...p.dodgeDirection };
-  p.dodgeUntil = g.time + 0.22;
-  p.invulnerableUntil = g.time + 0.25;
-  p.dodgeReady = g.time + 1.05;
+  p.dodgeUntil = g.time + LEGACY.player.dodge.seconds;
+  p.invulnerableUntil = g.time + LEGACY.player.dodge.invulnerableSeconds;
+  p.dodgeReady = g.time + LEGACY.player.dodge.cooldownSeconds;
   g.started = true;
   event(g, "dodge", { actor: p });
 }
@@ -672,14 +677,17 @@ export function receiveHit(g, hit) {
     t = g.time;
   if (g.finished || p.hp <= 0 || t < p.invulnerableUntil) return false;
   let amount = hit.amount;
-  if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), 140)) {
-    p.guardRecoverAt = t + 0.45;
+  if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), LEGACY.player.guard.arc)) {
+    p.guardRecoverAt = t + LEGACY.player.guardRecoverSeconds;
     if (t < p.parryUntil && hit.parry && p.guard >= amount) {
       p.guard -= amount;
       p.parryUntil = 0;
       if (hit.attacker && hit.attacker.kind !== 3) {
         hit.attacker.swing = null;
-        hit.attacker.ready = hit.attacker.recoverUntil = hit.attacker.staggerUntil = t + 0.9;
+        hit.attacker.ready =
+          hit.attacker.recoverUntil =
+          hit.attacker.staggerUntil =
+            t + LEGACY.player.guard.parryStunSeconds;
       }
       notify(g, "PARRY · Counter while they recover.");
       event(g, "parry", { actor: p });
@@ -688,19 +696,19 @@ export function receiveHit(g, hit) {
     const cost = amount * 3;
     if (p.guard >= cost) {
       p.guard -= cost;
-      amount *= 0.25;
+      amount *= LEGACY.player.guard.blockedDamageFactor;
       event(g, "block", { actor: p });
     } else {
       p.guard = 0;
       p.guarding = false;
       p.parryUntil = 0;
-      p.guardBrokenUntil = t + 0.9;
+      p.guardBrokenUntil = t + LEGACY.player.guard.brokenSeconds;
       notify(g, "GUARD BROKEN · Dodge or make space.");
       event(g, "guard-break", { actor: p });
     }
   }
   p.hp = Math.max(0, p.hp - amount);
-  p.flashUntil = t + 0.12;
+  p.flashUntil = t + RULES.hitFlashSeconds;
   event(g, "hit", { actor: p, amount });
   if (p.hp <= 0) {
     g.activeGrenades = [];
@@ -715,7 +723,7 @@ function flameHit(g, target, damage, { source }) {
   const amount = Math.min(target.hp, damage);
   if (!(amount > 0)) return;
   target.hp = Math.max(0, target.hp - amount);
-  target.flashUntil = g.time + 0.12;
+  target.flashUntil = g.time + RULES.hitFlashSeconds;
   target.flameBurnUntil = g.time + FLAME_VISUAL_DATA.burnSeconds;
   target.flameBurnFrom = { x: source.position.x, z: source.position.z };
   if (target.home) alertResident(g, target);
@@ -751,7 +759,7 @@ function kill(g, e, meta = {}) {
     const death = recordDroneDeath(g.droneDeaths, { placementKey: e.placementKey, areaId: g.world.areaId, hp: e.hp });
     if (!death.grantKillCredit) return;
     g.droneDeaths = death.keys;
-    e.response = { clip: "drone_death", start: g.time, ticks: 48 };
+    e.response = { clip: RULES.reactions.droneDeath.clip, start: g.time, ticks: RULES.reactions.droneDeath.ticks };
   }
   if (g.finishers && !e.finisher && meta.attackClass !== "saw") {
     const active = (g.corpses ?? []).reduce(
@@ -764,7 +772,10 @@ function kill(g, e, meta = {}) {
         victimKey: e.placementKey ?? e.id,
         areaId: g.world.areaId,
         lethal: e.hp <= 0,
-        nativeDeath: { clip: e.response?.clip ?? "Death", seconds: (e.response?.ticks ?? 144) / 60 },
+        nativeDeath: {
+          clip: e.response?.clip ?? "Death",
+          seconds: (e.response?.ticks ?? GAME_DATA.creatures.defaultResponse.deathTicks) / 60,
+        },
         ...meta,
       },
       {
@@ -826,9 +837,9 @@ function kill(g, e, meta = {}) {
   if (g.kills % 2 === 0)
     g.loot.push({ id: ++serial, pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
   if (!g.enemies.length) {
-    g.player.hp = Math.min(g.player.maxHP, g.player.hp + 25);
+    g.player.hp = Math.min(g.player.maxHP, g.player.hp + LEGACY.waveClearHeal);
     g.nextWave = g.time + 4;
-    notify(g, "WAVE CLEARED · +25 HP");
+    notify(g, `WAVE CLEARED · +${LEGACY.waveClearHeal} HP`);
   }
 }
 function strike(g, s) {
@@ -847,12 +858,12 @@ function strike(g, s) {
   for (const e of def.single ? candidates.slice(0, 1) : candidates) {
     const delta = normal(sub(e.pos, p.pos));
     e.hp = Math.max(0, e.hp - p.damage * def.multiplier);
-    e.flashUntil = g.time + 0.12;
+    e.flashUntil = g.time + RULES.hitFlashSeconds;
     event(g, "hit", { actor: e, amount: p.damage * def.multiplier });
     if (e.hp <= 0) kill(g, e);
     else if (e.kind !== 3) {
       e.staggerUntil = g.time + def.stagger;
-      moveBody(g, e, { x: delta.x * 0.18, z: delta.z * 0.18 });
+      moveBody(g, e, { x: delta.x * LEGACY.hitKnockback, z: delta.z * LEGACY.hitKnockback });
     }
   }
 }
@@ -1225,7 +1236,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     dodging = t < p.dodgeUntil - EPS;
   p.guarding = !!intent.guard && !dodging && !swinging && t >= p.guardBrokenUntil && p.guard > 0;
   if (g.pilot) knifeGuard(g, intent, swinging, dodging);
-  else if (p.guarding && intent.guardPressed) p.parryUntil = t + 0.16;
+  else if (p.guarding && intent.guardPressed) p.parryUntil = t + LEGACY.player.guard.parryWindowSeconds;
   if (!g.pilot && !p.guarding) p.parryUntil = 0;
   const sprintCandidate = !!(
     g.pilot &&
@@ -1241,7 +1252,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) {
     if (!sprintCandidate) knifeRegen(g, p, dt, swinging || dodging || t < p.hurtUntil || p.saw?.active);
   } else if (!intent.guard && t >= p.guardRecoverAt && t >= p.guardBrokenUntil)
-    p.guard = Math.min(100, p.guard + 35 * dt);
+    p.guard = Math.min(100, p.guard + LEGACY.player.guard.regenPerSecond * dt);
   if (intent.aim && mag(intent.aim) > 0.001 && !swinging && !dodging) p.facing = normal(intent.aim);
   if (p.buffer && t > p.buffer.until) p.buffer = null;
   const attackDirection = validDirection(intent.aim) ? normal(intent.aim) : mag(move) > 0.01 ? normal(move) : p.facing;
@@ -1274,17 +1285,23 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (!g.finished) {
     if (dodging)
       moveBody(g, p, {
-        x: p.dodgeDirection.x * (g.pilot ? R.rollSpeed : 16) * dt,
-        z: p.dodgeDirection.z * (g.pilot ? R.rollSpeed : 16) * dt,
+        x: p.dodgeDirection.x * (g.pilot ? R.rollSpeed : LEGACY.player.dodge.speed) * dt,
+        z: p.dodgeDirection.z * (g.pilot ? R.rollSpeed : LEGACY.player.dodge.speed) * dt,
       });
     else if (!p.swing && (!g.pilot || t >= p.hurtUntil)) {
       const m = mag(move) > 1 ? normal(move) : move;
-      const speed = g.pilot ? (sprintCandidate ? R.runSpeed : R.walkSpeed * (p.exhausted ? R.exhaustWalk : 1)) : 4.2;
-      const scale = (p.guarding ? (g.pilot ? R.guardSpeed : 0.4) : 1) * (p.saw?.active ? BONE_SAW_RULES.moveScale : 1);
+      const speed = g.pilot
+        ? sprintCandidate
+          ? R.runSpeed
+          : R.walkSpeed * (p.exhausted ? R.exhaustWalk : 1)
+        : LEGACY.player.walkSpeed;
+      const scale =
+        (p.guarding ? (g.pilot ? R.guardSpeed : LEGACY.player.guardMoveScale) : 1) *
+        (p.saw?.active ? BONE_SAW_RULES.moveScale : 1);
       const vel = { x: m.x * speed * scale, z: m.z * speed * scale },
         difference = sub(vel, p.velocity),
         n = mag(difference),
-        step = (mag(m) > 0.01 ? 48 : 34) * dt;
+        step = (mag(m) > 0.01 ? LEGACY.player.accelerate : LEGACY.player.decelerate) * dt;
       p.velocity =
         n <= step ? vel : { x: p.velocity.x + (difference.x / n) * step, z: p.velocity.z + (difference.z / n) * step };
       const start = { ...p.pos };
@@ -1293,7 +1310,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         p.running = true;
         p.guard = p.stamina - R.runDrain * dt; // No action recovery delay.
       }
-      if (!intent.aim && mag(m) > 0.01 && !p.guarding) p.facing = turn(p.facing, m, 720 * dt);
+      if (!intent.aim && mag(m) > 0.01 && !p.guarding) p.facing = turn(p.facing, m, LEGACY.player.turnRate * dt);
     } else {
       p.velocity = { x: 0, z: 0 };
       if (g.pilot) knifeStepIn(g, p, dt);
@@ -1897,30 +1914,36 @@ function knifeReceive(g, hit) {
       blocked = true;
       knifeSpend(g, p, cost);
       amount = perfect ? 0 : Math.round(amount * (def?.chip ?? 0));
-      p.response = { clip: "BlockImpact", start: t, ticks: 12 };
+      p.response = { clip: "BlockImpact", start: t, ticks: RULES.reactions.blockImpactTicks };
       event(g, "block", { actor: p, amount, perfect, cost, ...meta });
     } else {
       knifeSpend(g, p, R.breakCost);
       p.guarding = false;
       p.parryUntil = 0;
-      p.guardBrokenUntil = t + (def?.stagger ?? 0.3);
+      p.guardBrokenUntil = t + (def?.stagger ?? RULES.reactions.defaultStaggerSeconds);
       event(g, "guard-break", { actor: p, ...meta });
     }
   }
   if (amount <= 0) return false;
   amount = damageAfterVest(amount, g.vest, { blocked });
   p.hp = Math.max(0, p.hp - amount);
-  p.flashUntil = t + 0.12;
+  p.flashUntil = t + RULES.hitFlashSeconds;
   if (blocked && p.hp > 0) {
     event(g, "hit", { actor: p, amount, blocked: true, ...meta });
     return true;
   }
-  p.hurtUntil = t + (def?.stagger ?? 0.3);
+  p.hurtUntil = t + (def?.stagger ?? RULES.reactions.defaultStaggerSeconds);
   p.swing = null;
   p.buffer = null;
   p.dodgeUntil = t;
   p.ready = p.hurtUntil;
-  p.response = { clip: p.hp ? "Hit" : "Death", start: t, ticks: p.hp ? Math.round((def?.stagger ?? 0.3) * 60) : 144 };
+  p.response = {
+    clip: p.hp ? "Hit" : "Death",
+    start: t,
+    ticks: p.hp
+      ? Math.round((def?.stagger ?? RULES.reactions.defaultStaggerSeconds) * 60)
+      : GAME_DATA.creatures.defaultResponse.deathTicks,
+  };
   if (def?.knockback) {
     const dir = normal(sub(p.pos, hit.origin));
     moveBody(g, p, { x: (dir.x * R.walkSpeed * def.knockback) / 60, z: (dir.z * R.walkSpeed * def.knockback) / 60 });
@@ -1990,7 +2013,7 @@ function knifeEnemy(g, e, dt, services) {
         ? {
             profile: SALAMANDER_BREATH,
             onStart: (g, e) => {
-              e.response = { clip: "Bite", start: g.time, ticks: 56 };
+              e.response = { clip: "Bite", start: g.time, ticks: RULES.reactions.breathStartTicks };
             },
           }
         : {}),
@@ -2347,7 +2370,7 @@ function knifeContacts(g, before, ratBefore) {
         amount = Math.min(d.hp, damage);
       d.hp = Math.max(0, d.hp - damage);
       if (d.hp <= 0) stageProgressionDeath(g, d, "knife", amount);
-      d.flashUntil = g.time + 0.12;
+      d.flashUntil = g.time + RULES.hitFlashSeconds;
       if (d.home) alertResident(g, d);
       d.recoverUntil = d.staggerUntil = g.time + def.stagger;
       d.ready = d.recoverUntil + (d.recoveryDelay ?? 0);

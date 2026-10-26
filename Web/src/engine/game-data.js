@@ -39,9 +39,39 @@ const count = (file, field, value, min, max) => {
 // degrees; `moveSpeed` is metres per second.
 const legacyKind = ["hp", "radius", "damage", "swingRadius", "swingArc", "windupSeconds", "recoverSeconds", "readySeconds", "moveSpeed"];
 export function validateCombatRules(d) {
-  closed(d, ["schema_version", "legacy"]);
+  closed(d, ["schema_version", "hitFlashSeconds", "reactions", "legacy"]);
+  number("combatRules", "hitFlashSeconds", d.hitFlashSeconds, 0.01);
+  closed(d.reactions, ["blockImpactTicks", "defaultStaggerSeconds", "swingAssistTicks", "droneDeath", "breathStartTicks"]);
+  for (const f of ["blockImpactTicks", "swingAssistTicks", "breathStartTicks"])
+    count("combatRules", `reactions.${f}`, d.reactions[f], 1, 600);
+  number("combatRules", "reactions.defaultStaggerSeconds", d.reactions.defaultStaggerSeconds, 0.01);
+  closed(d.reactions.droneDeath, ["clip", "ticks"]);
+  if (typeof d.reactions.droneDeath.clip !== "string" || !d.reactions.droneDeath.clip) fail("combatRules", "reactions.droneDeath.clip");
+  count("combatRules", "reactions.droneDeath.ticks", d.reactions.droneDeath.ticks, 1, 600);
   const l = d.legacy;
+  closed(l.player, [
+    "bufferSeconds",
+    "guardRecoverSeconds",
+    "dodge",
+    "walkSpeed",
+    "guardMoveScale",
+    "accelerate",
+    "decelerate",
+    "turnRate",
+    "guard",
+  ]);
+  for (const f of ["bufferSeconds", "guardRecoverSeconds", "walkSpeed", "guardMoveScale", "accelerate", "decelerate", "turnRate"])
+    number("combatRules", `legacy.player.${f}`, l.player[f], 0.001);
+  closed(l.player.dodge, ["seconds", "invulnerableSeconds", "cooldownSeconds", "speed"]);
+  for (const [f, v] of Object.entries(l.player.dodge)) number("combatRules", `legacy.player.dodge.${f}`, v, 0.001);
+  closed(l.player.guard, ["arc", "parryWindowSeconds", "regenPerSecond", "blockedDamageFactor", "brokenSeconds", "parryStunSeconds"]);
+  for (const [f, v] of Object.entries(l.player.guard)) number("combatRules", `legacy.player.guard.${f}`, v, 0);
+  number("combatRules", "legacy.waveClearHeal", l.waveClearHeal, 0);
+  number("combatRules", "legacy.hitKnockback", l.hitKnockback, 0);
   closed(l, [
+    "player",
+    "waveClearHeal",
+    "hitKnockback",
     "kinds",
     "wideSwing",
     "alertDistance",
