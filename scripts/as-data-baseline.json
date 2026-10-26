@@ -163,8 +163,7 @@
     "roach-appearance.js": 5,
     "roach-territory.js": 1,
     "travel.js": 1,
-    "wolf-native.js": 5,
-    "world-geometry.js": 16
+    "wolf-native.js": 5
   },
   "constantTables": {
     "clothing-palettes.js": 1,

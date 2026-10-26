@@ -223,6 +223,7 @@ export function validateVisual(d) {
     "expeditionHud",
     "remotePlayers",
     "waterEffect",
+    "worldGeometry",
     "severBlood",
     "motion",
     "safehouseView",
