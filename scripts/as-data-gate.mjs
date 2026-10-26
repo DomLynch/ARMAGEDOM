@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { basename, dirname, relative, resolve } from "node:path";
 import { KEEP_IN_CODE, KEEP_IN_CODE_FILE } from "./number-literal-gate.mjs";
 
-export { countNumberLiterals, numberLiteralProblems, isNumberExempt } from "./number-literal-gate.mjs";
+export { countNumberLiterals, numberLiteralProblems, isNumberExempt, tuningMarkProblems } from "./number-literal-gate.mjs";
 
 export const AS_DATA_OWNER = "rig-capabilities.js";
 export const DATA_FOLDER = "Web/public/world/";
