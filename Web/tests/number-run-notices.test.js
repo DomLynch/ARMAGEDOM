@@ -21,8 +21,9 @@ test("the data holds exactly the durations the run files used to hold in code", 
 });
 
 test("the pistol save bounds are the pistol's own capacity and reserve (6 and 12 before)", () => {
-  assert.equal(PISTOL_RULES.capacity, 6);
-  assert.equal(PISTOL_RULES.reserve, 12);
+  const why = "restorePistol rejects saves above these; a lower cap needs a restore clamp or a save migration first";
+  assert.equal(PISTOL_RULES.capacity, 6, why);
+  assert.equal(PISTOL_RULES.reserve, 12, why);
 });
 
 test("the run files read every duration from the data row", () => {
