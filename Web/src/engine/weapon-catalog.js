@@ -2,18 +2,8 @@ import { freeze } from "./content-schema.js";
 import { GAME_DATA } from "./game-data.js";
 
 // Family vocabulary is not a promise that every family is playable.
-export const WEAPON_FAMILY_IDS = Object.freeze([
-  "blades",
-  "blunt",
-  "pistols",
-  "rifles",
-  "shotguns",
-  "grenades",
-  "traps",
-  "flamethrowers",
-  "launchers",
-  "drones",
-]);
+// The list lives in weapons.json "families".
+export const WEAPON_FAMILY_IDS = GAME_DATA.weapons.families;
 export const RIFLE_ITEM_ID = "bridge-warden-rifle-v1";
 const key = (value) =>
   typeof value === "string" &&
@@ -173,23 +163,5 @@ export const GRENADE_PROFILE = RANGED_WEAPON_CATALOG["standard-grenade-v1"];
 
 export const MARSHAL_PISTOL_PROFILE = RANGED_WEAPON_CATALOG["borough-marshals-pistol-v1"];
 
-export const WEAPON_AUDIO = Object.freeze({
-  shotgun: Object.freeze({
-    from: 180,
-    to: 40,
-    seconds: 0.14,
-    gain: 0.24,
-    noiseSeconds: 0.08,
-    noiseGain: 0.17,
-    cutoff: 800,
-  }),
-  grenade: Object.freeze({
-    from: 110,
-    to: 32,
-    seconds: 0.2,
-    gain: 0.2,
-    noiseSeconds: 0.15,
-    noiseGain: 0.2,
-    cutoff: 350,
-  }),
-});
+// The shotgun and grenade blast cues live in weapons.json "audio".
+export const WEAPON_AUDIO = GAME_DATA.weapons.audio;

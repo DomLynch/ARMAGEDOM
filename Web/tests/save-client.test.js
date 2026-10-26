@@ -869,6 +869,36 @@ test("a failed pagehide send puts the record back, so the next flush resends it"
   assert.equal(t.client.flushOnHide(), true, "the record was kept");
 });
 
+test("the beacon's log lines name the HTTP status, and a death save's failure says [death]", async () => {
+  const routine = make({ save_run: () => ({ status: 429, body: { error: "rate-limited", retryMs: 4000 } }) });
+  routine.client.queue(record());
+  await routine.run();
+  assert.equal(routine.lines[0], "[arma-save] not saved: rate-limited (http 429)");
+  const death = make({ save_run: () => ({ status: 429, body: { error: "rate-limited", retryMs: 4000 } }) });
+  death.client.queue(dead(), { id: "r" }, { urgent: true });
+  await death.run();
+  assert.equal(death.lines[0], "[arma-save] not saved: rate-limited (http 429) [death]");
+});
+
+test("a pagehide send the writer refuses or never answers is logged with its status (the keepalive answer was invisible before)", async () => {
+  let n = 0;
+  const t = make({ save_run: () => (++n === 2 ? { status: 429, body: { error: "rate-limited" } } : { revision: n, savedAt: "t" }) });
+  t.client.queue(record({ hp: 14 }));
+  await t.run();
+  t.client.queue(dead());
+  assert.equal(t.client.flushOnHide(), true);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(t.lines, ["[arma-save] page-hide save not saved: rate-limited (http 429)"]);
+  let m = 0; // a second client whose hide send fails on the network
+  const net = make({ save_run: () => (++m === 2 ? new Error("offline") : { revision: m, savedAt: "t" }) });
+  net.client.queue(record({ hp: 14 }));
+  await net.run();
+  net.client.queue(dead());
+  net.client.flushOnHide();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(net.lines, ["[arma-save] page-hide save not saved: network"]);
+});
+
 test("a successful save records its revision as synced, so the next boot does not re-apply the server's copy of it", async () => {
   const t = make({ save_run: () => ({ revision: 4, savedAt: "t" }) });
   t.client.queue(record());
