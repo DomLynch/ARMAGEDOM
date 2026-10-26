@@ -26,6 +26,7 @@
   },
   "clothing": {
     "version": "armagedom-clothing-033-v1",
+    "minTonalGap": 0.035,
     "tops": [
       ["charcoal", "24272a", "353a3b", "4b4d49", "62655f"],
       ["ash", "70746e", "878c84", "a0a198", "b4b8ac"],
@@ -139,5 +140,33 @@
     "pool": { "settleSeconds": 0.1, "capacity": 4, "lifetime": 4, "spreadSeconds": 0.4, "radius": 0.5, "opacity": 0.7 },
     "headDropletLifetime": 1.25,
     "headDropletGravity": 4
+  },
+  "motion": {
+    "posePhase": { "windupShare": 0.45, "minSeconds": 0.01 },
+    "gait": {
+      "walkStride": 1.31,
+      "otherStride": 3.5,
+      "fullRunSpeed": 1.3,
+      "runBlendSeconds": 0.14,
+      "strikeBlendSeconds": 0.08,
+      "guardBlendSeconds": 0.1,
+      "minStepSeconds": 0.001
+    },
+    "swingFallback": { "windupSeconds": 0.14, "recoverSeconds": 0.28 },
+    "stab": { "startExtension": 0.05, "peakExtension": 0.9, "sideOffset": 0.08, "drop": 0.2 },
+    "heavyWindup": { "forward": 0.25, "up": 0.2, "aimForward": 0.25 },
+    "guard": { "forward": 0.28, "sideOffset": 0.12, "drop": 0.2, "aimSide": 0.3 },
+    "bigLift": 0.6,
+    "soleWeight": 0.6,
+    "plant": {
+      "minSpeed": 0.3,
+      "minRunWeight": 0.8,
+      "groundClearance": 0.012,
+      "maxDrift": 0.45,
+      "contactWindows": {
+        "walking": [[0.05, 0.45], [0.55, 0.95]],
+        "other": [[0.03, 0.2], [0.55, 0.74]]
+      }
+    }
   }
 }
