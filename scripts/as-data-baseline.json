@@ -71,14 +71,10 @@
   "rigLiterals": {},
   "numberLiterals": {
     "engine/bone-saw.js": 3,
-    "engine/boss-flame.js": 3,
-    "engine/grenade-state.js": 3,
-    "engine/grenade-surface.js": 9,
     "engine/marked-hunters.js": 12,
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
     "engine/reaper.js": 3,
-    "engine/sticky-grenade-runtime.js": 4,
     "finisher-impact-profile.js": 8,
     "hollow-encounter.js": 11
   },

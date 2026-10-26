@@ -1,4 +1,5 @@
 import { createStickyAttachmentModel } from "./sticky-grenade-state.js";
+import { GRENADE_FUSE_SECONDS, GRENADE_VIEW } from "./grenade-view-data.js";
 const model = (g) =>
   g.stickyGrenadeModel ?? (g.stickyGrenadeModel = createStickyAttachmentModel({ areaIds: g.world.registry.ids }));
 const target = (g, e) =>
@@ -12,11 +13,11 @@ const target = (g, e) =>
       }
     : null;
 export function grenadeFlightPoint(row, time) {
-  const t = Math.max(0, Math.min(1, (time - (row.intent.detonateAt - 1)) / 0.35)),
+  const t = Math.max(0, Math.min(1, (time - (row.intent.detonateAt - GRENADE_FUSE_SECONDS)) / GRENADE_VIEW.flightSeconds)),
     start = row.flightStart;
   return {
     x: start.x + (row.landing.x - start.x) * t,
-    y: start.y + (0.05 - start.y) * t + Math.sin(Math.PI * t) * 1.2,
+    y: start.y + (GRENADE_VIEW.groundHeight - start.y) * t + Math.sin(Math.PI * t) * GRENADE_VIEW.arcHeight,
     z: start.z + (-row.landing.z - start.z) * t,
   };
 }
@@ -72,7 +73,7 @@ export function stepStickyGrenade(g, row, services) {
     });
   } else {
     row.surfacePosition = point;
-    if (g.time >= row.intent.detonateAt - 1 + 0.35) {
+    if (g.time >= row.intent.detonateAt - GRENADE_FUSE_SECONDS + GRENADE_VIEW.flightSeconds) {
       row.sticky = m.attach(
         row.intent,
         { confirmed: true, victimId: null, areaId: g.world.areaId, position: row.landing },
