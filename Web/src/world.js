@@ -5,6 +5,7 @@ import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
 import { GAME_DATA } from "./engine/game-data.js";
+import { fillText } from "./engine/text-template.js";
 const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
 const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
 const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];
@@ -99,7 +100,7 @@ export class LondonWorld {
     this.center = { x: 0.5, y: 0.5 }; // tuning-ok: centre of the painting
     this.velocity = { x: 0, y: 0 };
     this.group = new THREE.Group();
-    this.group.name = "London registered image stage";
+    this.group.name = "London registered image stage"; // text-ok: internal mesh name
     camera.fov = layout.fieldOfView;
     camera.aspect = ASPECT;
     camera.near = VIEW.cameraNear;
@@ -139,7 +140,7 @@ export class LondonWorld {
       }),
       -100,
     );
-    this.backdrop.name = "Original London image";
+    this.backdrop.name = "Original London image"; // text-ok: internal mesh name
     const depth = new THREE.MeshBasicMaterial({
       colorWrite: false,
       depthWrite: true,
@@ -229,7 +230,7 @@ export class LondonWorld {
         nearest = link.to;
       }
     }
-    return nearest ? `EXIT → ${areaDisplayName(nearest).toUpperCase()}` : "";
+    return nearest ? fillText(GAME_DATA.visual.routeGuidance.text.exit, { area: areaDisplayName(nearest).toUpperCase() }) : "";
   }
   async loadArea(areaId, entryPoint = this.registry.get(areaId)?.entry) {
     if (!this.registry.has(areaId) || !entryPoint) throw Error("Unknown London area");

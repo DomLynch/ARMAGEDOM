@@ -1,4 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./text-template.js";
 import { stopBossFlames } from "./boss-flame.js";
 import { needsUniqueDeathCommit } from "./unique-reward-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
@@ -29,7 +30,7 @@ export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_ME
   let cancelled = false;
   const timer = setTimer(() => {
     if (cancelled) return;
-    game.message = `Traveling to ${areaId.toUpperCase()}…`;
+    game.message = fillText(GAME_DATA.visual.travelText.travelling, { area: areaId.toUpperCase() });
     game.messageUntil = game.time + TRAVEL.travelMessageSeconds;
     s.hud.update(game);
   }, delayMs);
@@ -166,8 +167,8 @@ export function createAreaLifecycle(s) {
         }
       }
       s.game.message = recoveryFailed
-        ? "Travel recovery failed. Reload the page to continue."
-        : "Could not load that area. Move away and try the exit again.";
+        ? GAME_DATA.visual.travelText.recoveryFailed
+        : GAME_DATA.visual.travelText.loadFailed;
       s.game.messageUntil = s.game.time + TRAVEL.failureMessageSeconds;
       return false;
     } finally {

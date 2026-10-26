@@ -1,6 +1,7 @@
 import { areaDisplayName } from "../area-registry.js";
 import { rigCapability } from "../rig-capabilities.js";
 import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./text-template.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
@@ -32,13 +33,14 @@ export function huntTarget(g) {
   const live = (e) => e.hp > 0,
     salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
     matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
-  if (salamander) return { pos: salamander.pos, label: "KILL THE SALAMANDER" };
-  if (matron) return { pos: matron.pos, label: "KILL THE EMBER MATRON" };
+  const text = GAME_DATA.visual.routeGuidance.text;
+  if (salamander) return { pos: salamander.pos, label: text.killSalamander };
+  if (matron) return { pos: matron.pos, label: text.killMatron };
   // The Matron is dead and her drop is still on the ground: the arrow leads to it instead of falling through to the exit.
   const ember = g.bossEquipment?.emberProjector,
     source = g.world?.bossEquipmentData?.emberProjector?.source;
   return ember?.status === "pending" && ember.dropPosition && source?.areaId === g.world.areaId
-    ? { pos: ember.dropPosition, label: "WALK TO THE EMBER PROJECTOR" }
+    ? { pos: ember.dropPosition, label: text.walkToProjector }
     : null;
 }
 export function validateGuidance(layout, g, links = null) {
@@ -150,7 +152,7 @@ export function createRouteGuidance(world) {
   if (!rows.length && !tutorial) return null;
   const { THREE, geometry: g } = world,
     group = new THREE.Group();
-  group.name = "Registered road guidance";
+  group.name = "Registered road guidance"; // text-ok: internal mesh name
   world.group.add(group);
   const { rail, marker: markerShape } = tune(),
     positions = [],
@@ -206,7 +208,7 @@ export function createRouteGuidance(world) {
     geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3)); // tuning-ok: r, g, b per vertex
     geo.setIndex(indices);
     barrier = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }));
-    barrier.name = "Road closed rail outside authored boundary";
+    barrier.name = "Road closed rail outside authored boundary"; // text-ok: internal mesh name
     group.add(barrier);
   }
   // Mark the actual threshold of an exit (a gold ring and a sign); the marker never expands its trigger. The Central Safehouse side
@@ -257,7 +259,7 @@ export function createRouteGuidance(world) {
     markers.push({ marker, at });
   }
   const entrance = rows.find((row) => row.to === "central-hub");
-  if (entrance) addMarker(entrance, "Central Safehouse side entrance", ["CENTRAL SAFEHOUSE", "SIDE ENTRANCE"]);
+  if (entrance) addMarker(entrance, "Central Safehouse side entrance", tune().text.entranceSign); // text-ok: internal mesh name
   for (const row of rows.filter((r) => r.sign && r !== entrance))
     addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign);
   let cachedPosition = null,
@@ -333,20 +335,26 @@ export function createRouteGuidance(world) {
     const a = activeWorld.toRender(position).project(activeWorld.camera),
       b = activeWorld.toRender(cue.target).project(activeWorld.camera),
       angle = Math.atan2(b.y - a.y, b.x - a.x),
-      arrows = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
-      direction = arrows[(Math.round(angle / (Math.PI / 4)) + arrows.length) % arrows.length], // tuning-ok: eight compass sectors
+      text = tune().text,
+      marks = text.compass.length, // one compass mark per equal slice of the circle
+      direction = text.compass[(Math.round((angle / (Math.PI + Math.PI)) * marks) + marks) % marks],
       name =
         cue.row.kind === "pistol"
-          ? "PISTOL"
+          ? text.pistol
           : cue.row.kind === "hunt"
             ? cue.row.label
             : cue.row.kind === "tutorial"
-            ? "WESTMINSTER SHELTER"
-            : areaDisplayName(cue.row.to).toUpperCase();
+              ? text.shelter
+              : areaDisplayName(cue.row.to).toUpperCase();
     if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < markerShape.exitHintRemaining)
-      return `EXIT → ${name}`;
+      return fillText(text.exit, { area: name });
     if (activeWorld.areaId !== TUTORIAL_AREA) return ""; // outside Westminster only the exit label above is shown
-    return `${cue.row.kind === "boundary" ? "ROAD CLOSED · " : ""}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;
+    return fillText(text.cue, {
+      closed: cue.row.kind === "boundary" ? text.roadClosed : "",
+      direction,
+      name,
+      metres: Math.ceil(cue.remaining),
+    });
   }
   return {
     rows,

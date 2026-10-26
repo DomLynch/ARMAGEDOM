@@ -39,6 +39,7 @@ import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
+import { validateTravelText } from "./text-template.js";
 import { validateWorldEventRules } from "./world-events-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateArcGun } from "./game-data-arc-gun.js";
@@ -239,6 +240,7 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
+    "travelText",
     "exitRings",
     "grenadeView",
     "input",
@@ -281,6 +283,7 @@ export function validateVisual(d) {
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   validateRouteGuidance(d.routeGuidance);
+  validateTravelText(d.travelText);
   validateInput(d.input);
   validateTouchTarget(d.touchTarget);
   list("survivorVariants", d.survivorVariants, 1, 64);
