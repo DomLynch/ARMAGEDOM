@@ -12,7 +12,7 @@ const text = (field, v, placeholders = []) => {
 };
 
 export function validateCombatText(d) {
-  closed(d, ["schema_version", "exitGate", "hud", "gear", "layerMessages"]);
+  closed(d, ["schema_version", "exitGate", "hud", "gear", "markedHunter", "bossFlame", "rewardNames", "layerMessages"]);
   // Each key with the {placeholders} its text must use.
   const hud = {
     enterCombat: [], hollowScavengers: [], pistolEquipped: [], knifeEquipped: [], emptyReload: [], outOfAmmo: [], parry: [],
@@ -29,6 +29,15 @@ export function validateCombatText(d) {
   for (const [k, placeholders] of Object.entries(gear)) text(`gear.${k}`, d.gear[k], placeholders);
   if (!d.gear.iconCaptions || typeof d.gear.iconCaptions !== "object") fail("combatText", "gear.iconCaptions must be an object");
   for (const [id, caption] of Object.entries(d.gear.iconCaptions)) text(`gear.iconCaptions.${id}`, caption);
+  closed(d.markedHunter, ["warning", "arrived"]);
+  text("markedHunter.warning", d.markedHunter.warning);
+  text("markedHunter.arrived", d.markedHunter.arrived);
+  closed(d.bossFlame, ["defaultBossName", "warning"]);
+  text("bossFlame.defaultBossName", d.bossFlame.defaultBossName);
+  text("bossFlame.warning", d.bossFlame.warning, ["name"]);
+  closed(d.rewardNames, ["cleaver", "reaper"]);
+  text("rewardNames.cleaver", d.rewardNames.cleaver);
+  text("rewardNames.reaper", d.rewardNames.reaper);
   closed(d.exitGate, ["needsKill", "needsVisit", "saveUnavailable"]);
   text("exitGate.needsKill", d.exitGate.needsKill, ["name"]);
   text("exitGate.needsVisit", d.exitGate.needsVisit, ["destination"]);

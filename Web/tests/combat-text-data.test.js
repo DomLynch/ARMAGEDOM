@@ -56,6 +56,15 @@ test("HUD and gear text read string-equal to the text that was in code", () => {
   assert.equal(gear.iconCaptions["borough-marshals-pistol-v1"], "ARC GUN");
 });
 
+test("hunter, flame boss and reward text read string-equal to the text that was in code", () => {
+  const t = GAME_DATA.combatText;
+  assert.equal(t.markedHunter.warning, "HUNTER INBOUND · find cover or reach a safehouse.");
+  assert.equal(t.markedHunter.arrived, "A hunter is after you");
+  assert.equal(fillText(t.bossFlame.warning, { name: t.bossFlame.defaultBossName }), "SALAMANDER · FLAME BURST — MOVE ASIDE");
+  assert.equal(fillText(t.bossFlame.warning, { name: "WITCH" }), "WITCH · FLAME BURST — MOVE ASIDE");
+  assert.deepEqual({ ...t.rewardNames }, { cleaver: "Pitborn Cleaver", reaper: "Reaper Drone" });
+});
+
 test("the validator rejects empty text, wrong placeholders and unknown keys", () => {
   validateCombatText(text());
   const bad = [

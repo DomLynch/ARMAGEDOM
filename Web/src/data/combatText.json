@@ -54,6 +54,18 @@
       "borough-butchers-rocket-launcher-v1": "ROCKET"
     }
   },
+  "markedHunter": {
+    "warning": "HUNTER INBOUND · find cover or reach a safehouse.",
+    "arrived": "A hunter is after you"
+  },
+  "bossFlame": {
+    "defaultBossName": "SALAMANDER",
+    "warning": "{name} · FLAME BURST — MOVE ASIDE"
+  },
+  "rewardNames": {
+    "cleaver": "Pitborn Cleaver",
+    "reaper": "Reaper Drone"
+  },
   "layerMessages": {
     "bossEquipment": {
       "envelope": "Invalid boss equipment envelope",
