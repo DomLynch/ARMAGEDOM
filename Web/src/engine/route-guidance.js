@@ -3,6 +3,8 @@ import { rigCapability } from "../rig-capabilities.js";
 import { GAME_DATA } from "./game-data.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+// The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
+const tune = () => GAME_DATA.visual.routeGuidance;
 // The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
 // only standing on it (no direction left to show) hands the arrow on to the shelter.
 const PISTOL_ARRIVED = 0.3;
@@ -18,9 +20,10 @@ const enters = (p, c) =>
   );
 export function capsuleSegmentClear(g, a, b) {
   if (!g.lineClear(a, b)) return false;
-  const steps = Math.max(1, Math.ceil(distance(a, b) / 0.1));
+  const { clearance, sampleStep } = tune(),
+    steps = Math.max(1, Math.ceil(distance(a, b) / sampleStep));
   for (let i = 0; i <= steps; i++)
-    if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, 0.4)) return false;
+    if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, clearance)) return false;
   return true;
 }
 // The arrow's tail starts this far out from the player's centre, clear of the character's footprint (radius 0.4).
@@ -79,7 +82,7 @@ export function validateGuidance(layout, g, links = null) {
     ids.add(row.id);
     const path = row.path.map(g.ground);
     if (
-      path.some((p) => !g.clear(p, 0.4)) ||
+      path.some((p) => !g.clear(p, tune().clearance)) ||
       path.slice(1).some((p, i) => distance(path[i], p) < 0.1 || !capsuleSegmentClear(g, path[i], p))
     )
       throw Error("Blocked route guidance path");
@@ -120,18 +123,22 @@ export function validateTutorialPath(layout, g) {
   )
     throw Error("Invalid shelter tutorial path");
   const points = path.map(g.ground);
-  if (points.some((p) => !g.clear(p, 0.4)) || points.slice(1).some((p, i) => !capsuleSegmentClear(g, points[i], p)))
+  if (points.some((p) => !g.clear(p, tune().clearance)) || points.slice(1).some((p, i) => !capsuleSegmentClear(g, points[i], p)))
     throw Error("Blocked shelter tutorial path");
   return { id: "westminster-shelter-tutorial", kind: "tutorial", to: "westminster", path: points };
 }
 export function resolveGuidance(rows, g, position) {
+  const { boundaryReach, exitReach, boundaryStartReach } = tune();
   let selected = null;
   for (const row of rows) {
     const gap =
       row.kind === "boundary"
         ? distance(position, pointOnSegment(position, ...row.segment))
         : Math.min(...row.path.slice(1).map((p, i) => distance(position, pointOnSegment(position, row.path[i], p))));
-    if (gap > (row.kind === "boundary" ? 3.5 : 5) || (distance(position, row.path[0]) > 7 && row.kind === "boundary"))
+    if (
+      gap > (row.kind === "boundary" ? boundaryReach : exitReach) ||
+      (distance(position, row.path[0]) > boundaryStartReach && row.kind === "boundary")
+    )
       continue;
     // Choose a visible-in-collision-space waypoint; never point through a prop or across the road edge.
     let index = -1;
@@ -156,7 +163,8 @@ export function createRouteGuidance(world) {
     group = new THREE.Group();
   group.name = "Registered road guidance";
   world.group.add(group);
-  const positions = [],
+  const { rail, arrow: arrowShape, marker: markerShape } = tune(),
+    positions = [],
     colors = [],
     indices = [],
     box = new THREE.BoxGeometry(1, 1, 1),
@@ -184,15 +192,22 @@ export function createRouteGuidance(world) {
       mid = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
     let nx = -dz / length,
       nz = dx / length;
-    if (g.clear({ x: mid.x + nx * 0.3, z: mid.z + nz * 0.3 }, 0)) {
+    if (g.clear({ x: mid.x + nx * rail.sideProbe, z: mid.z + nz * rail.sideProbe }, 0)) {
       nx = -nx;
       nz = -nz;
     }
-    const at = (t, y) => world.toRender({ x: a.x + dx * t + nx * 0.12, z: a.z + dz * t + nz * 0.12 }, y),
+    const at = (t, y) =>
+        world.toRender({ x: a.x + dx * t + nx * rail.sideOffset, z: a.z + dz * t + nz * rail.sideOffset }, y),
       yaw = Math.atan2(dz, dx);
-    for (let i = 0; i < 8; i++)
-      cuboid(at((i + 0.5) / 8, 0.72), [length / 8, 0.28, 0.12], yaw, i % 2 ? 0x252522 : 0xd0a943);
-    for (const t of [0, 0.5, 1]) cuboid(at(t, 0.53), [0.12, 1.06, 0.12], 0, 0x363b3a);
+    for (let i = 0; i < rail.segments; i++)
+      cuboid(
+        at((i + 0.5) / rail.segments, rail.centreHeight),
+        [length / rail.segments, rail.thickness, rail.depth],
+        yaw,
+        `#${rail.colours[i % 2]}`,
+      );
+    for (const t of [0, 0.5, 1])
+      cuboid(at(t, rail.post.centreHeight), [rail.post.width, rail.post.height, rail.post.width], 0, `#${rail.post.colour}`);
   }
   box.dispose();
   let barrier = null;
@@ -208,13 +223,7 @@ export function createRouteGuidance(world) {
   const arrowGeometry = new THREE.BufferGeometry();
   arrowGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(
-      [
-        -0.13, 0, 0, 0.13, 0, 0, 0.13, 0, 1.05, -0.13, 0, 0, 0.13, 0, 1.05, -0.13, 0, 1.05, -0.32, 0, 0.97, 0.32, 0,
-        0.97, 0, 0, 1.43,
-      ],
-      3,
-    ),
+    new THREE.Float32BufferAttribute(arrowShape.triangles.flat(2), 3),
   );
   const arrow = new THREE.Mesh(
     arrowGeometry,
@@ -236,35 +245,40 @@ export function createRouteGuidance(world) {
     const marker = new THREE.Group(),
       at = row.path.at(-1);
     marker.name = name;
-    marker.position.copy(world.toRender(at, 0.045));
+    marker.position.copy(world.toRender(at, markerShape.height));
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.48, 0.62, 32),
-      new THREE.MeshBasicMaterial({ color: 0xdfba59, side: THREE.DoubleSide, depthWrite: false, toneMapped: false }),
+      new THREE.RingGeometry(markerShape.ring.inner, markerShape.ring.outer, markerShape.ring.segments),
+      new THREE.MeshBasicMaterial({
+        color: `#${markerShape.ring.colour}`,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        toneMapped: false,
+      }),
     );
     ring.rotation.x = -Math.PI / 2;
     marker.add(ring);
     if (typeof document !== "undefined") {
       const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 128;
+      const card = markerShape.sign;
+      [canvas.width, canvas.height] = card.canvas;
       const ctx = canvas.getContext?.("2d");
       if (ctx) {
         ctx.fillStyle = "rgba(22,23,20,.92)";
-        ctx.fillRect(0, 0, 512, 128);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = "#dfba59";
-        ctx.lineWidth = 5;
-        ctx.strokeRect(3, 3, 506, 122);
+        ctx.lineWidth = card.borderWidth;
+        ctx.strokeRect(...card.border);
         ctx.textAlign = "center";
         ctx.fillStyle = "#f1d28c";
-        ctx.font = "bold 34px sans-serif";
-        ctx.fillText(lines[0], 256, 53);
-        ctx.font = "26px sans-serif";
-        ctx.fillText(lines[1] ?? "", 256, 96);
+        ctx.font = card.fonts[0];
+        ctx.fillText(lines[0], card.textX, card.lineY[0]);
+        ctx.font = card.fonts[1];
+        ctx.fillText(lines[1] ?? "", card.textX, card.lineY[1]);
         const map = new THREE.CanvasTexture(canvas);
         map.colorSpace = THREE.SRGBColorSpace;
         const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }));
-        sign.scale.set(3.6, 0.9, 1);
-        sign.position.y = 1.65;
+        sign.scale.set(...card.size, 1);
+        sign.position.y = card.height;
         marker.add(sign);
       }
     }
@@ -339,7 +353,7 @@ export function createRouteGuidance(world) {
     return cached;
   }
   function update(position, activeWorld = world) {
-    for (const { marker, at } of markers) marker.visible = distance(position, at) < 9;
+    for (const { marker, at } of markers) marker.visible = distance(position, at) < markerShape.showDistance;
     const cue = activeWorld.travelAt(position) ? null : resolve(position);
     arrow.visible = !!cue && activeWorld.areaId === TUTORIAL_AREA; // the tutorial ends in Westminster: no route arrows elsewhere
     if (!arrow.visible) return;
@@ -347,8 +361,8 @@ export function createRouteGuidance(world) {
       dz = cue.target.z - position.z,
       length = Math.hypot(dx, dz),
       step = ARROW_TAIL_GAP,
-      p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, 0.4);
-    arrow.position.copy(world.toRender(p, 0.04));
+      p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, tune().clearance);
+    arrow.position.copy(world.toRender(p, arrowShape.height));
     arrow.rotation.y = Math.atan2(dx, -dz);
     arrow.material.opacity = GAME_DATA.visual.routeArrow.peakOpacity * arrowOpacity(globalThis.performance?.now?.() / 1000 || 0);
   }
@@ -360,7 +374,7 @@ export function createRouteGuidance(world) {
       b = activeWorld.toRender(cue.target).project(activeWorld.camera),
       angle = Math.atan2(b.y - a.y, b.x - a.x),
       arrows = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
-      direction = arrows[(Math.round(angle / (Math.PI / 4)) + 8) % 8],
+      direction = arrows[(Math.round(angle / (Math.PI / 4)) + arrows.length) % arrows.length],
       name =
         cue.row.kind === "pistol"
           ? "PISTOL"
@@ -369,7 +383,7 @@ export function createRouteGuidance(world) {
             : cue.row.kind === "tutorial"
             ? "WESTMINSTER SHELTER"
             : areaDisplayName(cue.row.to).toUpperCase();
-    if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < 1.2)
+    if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < markerShape.exitHintRemaining)
       return `EXIT → ${name}`;
     if (activeWorld.areaId !== TUTORIAL_AREA) return ""; // outside Westminster only the exit label above is shown
     return `${cue.row.kind === "boundary" ? "ROAD CLOSED · " : ""}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;

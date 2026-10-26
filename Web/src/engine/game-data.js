@@ -24,6 +24,7 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
+import { validateRouteGuidance } from "./route-guidance-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -842,7 +843,7 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "routeGuidance", "severBlood"]);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -860,6 +861,7 @@ export function validateVisual(d) {
   closed(d.routeArrow, ["peakOpacity"]);
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
+  validateRouteGuidance(d.routeGuidance);
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);

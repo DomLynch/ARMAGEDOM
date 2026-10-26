@@ -128,7 +128,6 @@
     "engine/remote-survivors.js": 8,
     "engine/rifle-state.js": 1,
     "engine/rocket-runtime.js": 12,
-    "engine/route-guidance.js": 60,
     "engine/run-core.js": 10,
     "engine/run-state.js": 2,
     "engine/run-views.js": 3,
