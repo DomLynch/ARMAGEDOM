@@ -340,7 +340,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.4220482798454558,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
@@ -472,7 +472,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.4220482798454558,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
@@ -718,7 +718,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.4220482798454558,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
@@ -891,7 +891,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.42240146252722927,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
@@ -1011,7 +1011,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.42240146252722927,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
@@ -1137,7 +1137,7 @@
    "frustumCulled": false,
    "material": {
     "type": "LineMaterial",
-    "opacity": 0.42240146252722927,
+    "opacity": 0.9746575944531684,
     "transparent": true,
     "depthTest": false,
     "depthWrite": false,
