@@ -85,6 +85,7 @@ export function validateWeapons(d) {
     "bossRanged",
     "bossEquipment",
     "vest",
+    "families",
     "targeting",
     "mobileAim",
     "flameAim",
@@ -99,6 +100,7 @@ export function validateWeapons(d) {
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
+  validateFamilies(d.families);
   validateTargeting(d.targeting);
   validateMobileAim(d.mobileAim, d.flameAim);
   validateLowMelee(d.lowMelee);
@@ -117,10 +119,22 @@ export function validateWeaponAudio(a) {
     for (const f of ["gain", "noiseGain"]) if (cue[f] > 1) fail("weapons", `audio.${weapon}.${f} must not exceed 1`);
   }
 }
+// The weapon family vocabulary (engine/weapon-catalog.js WEAPON_FAMILY_IDS). A family name is not a promise that the family is playable.
+export function validateFamilies(f) {
+  if (
+    !Array.isArray(f) ||
+    !f.length ||
+    new Set(f).size !== f.length ||
+    !f.every((s) => typeof s === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s))
+  )
+    fail("weapons", "families must be distinct lower-case names");
+}
 // Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
 // one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
 export function validateTargeting(t) {
-  closed(t, ["pistol", "meleeConeDegrees"]);
+  closed(t, ["pistol", "meleeConeDegrees", "defaultHeight"]);
+  // The metres above the ground that shots and flame aim at a rig with no height of its own (rig-capabilities.json).
+  number("weapons", "targeting.defaultHeight", t.defaultHeight);
   closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
   for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
     number("weapons", `targeting.${f}`, v);

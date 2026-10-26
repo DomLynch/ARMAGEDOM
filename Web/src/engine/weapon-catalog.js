@@ -2,18 +2,8 @@ import { freeze } from "./content-schema.js";
 import { GAME_DATA } from "./game-data.js";
 
 // Family vocabulary is not a promise that every family is playable.
-export const WEAPON_FAMILY_IDS = Object.freeze([
-  "blades",
-  "blunt",
-  "pistols",
-  "rifles",
-  "shotguns",
-  "grenades",
-  "traps",
-  "flamethrowers",
-  "launchers",
-  "drones",
-]);
+// The list lives in weapons.json "families".
+export const WEAPON_FAMILY_IDS = GAME_DATA.weapons.families;
 export const RIFLE_ITEM_ID = "bridge-warden-rifle-v1";
 const key = (value) =>
   typeof value === "string" &&

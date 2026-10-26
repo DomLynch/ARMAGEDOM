@@ -23,9 +23,9 @@ test("WEAPON_AUDIO equals the old table exactly (values and key order) and is fr
 
 test("the constant table is gone and the baseline is lowered", () => {
   const text = fs.readFileSync(new URL("../src/engine/weapon-catalog.js", import.meta.url), "utf8");
-  assert.equal(countConstantTables(text), 1); // WEAPON_FAMILY_IDS stays
+  assert.equal(countConstantTables(text), 0);
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
-  assert.equal(baseline.constantTables["engine/weapon-catalog.js"], 1);
+  assert.equal(baseline.constantTables["engine/weapon-catalog.js"], undefined);
 });
 
 test("the validator rejects malformed cues", () => {

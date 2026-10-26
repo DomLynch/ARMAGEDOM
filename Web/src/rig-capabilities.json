@@ -1,8 +1,8 @@
 {
-  "original-rat": { "lowStrike": true },
-  "original-dog": { "lowStrike": true },
-  "original-roach": { "lowStrike": true },
-  "giant-salamander": { "lowStrike": true, "tutorialHunt": true },
-  "original-wolf": { "lowStrike": true },
-  "low-hover-drone": { "lowStrike": true }
+  "original-rat": { "lowStrike": true, "targetHeight": 0.54 },
+  "original-dog": { "lowStrike": true, "targetHeight": 0.35, "targetHeightReach": 0.7 },
+  "original-roach": { "lowStrike": true, "targetHeight": 0.08, "targetHeightReach": 0.24 },
+  "giant-salamander": { "lowStrike": true, "tutorialHunt": true, "targetHeight": 1.08 },
+  "original-wolf": { "lowStrike": true, "targetHeight": 1.625, "fixedPointerScale": true },
+  "low-hover-drone": { "lowStrike": true, "hoverTarget": true }
 }
