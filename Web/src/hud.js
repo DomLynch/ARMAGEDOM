@@ -573,7 +573,7 @@ export function createHUD({
           );
           el("stab").setAttribute("aria-label", "Reload Thundercoil Arc Gun");
           el("ammo").textContent =
-            `RAILGUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            `ARC GUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
         }
         if (flameEquipped) {
           const percent = Math.ceil((g.flameFuel.fuelUnits / g.world.flameData.capacity) * 100);

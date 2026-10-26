@@ -1,10 +1,12 @@
 import * as T from "three";
-// The Thundercoil Arc Gun's lightning: a jagged blue-white bolt from the muzzle to each target in turn (a short flicker), sparks on
-// each hit and a crackle around stunned enemies. Everything is pooled (nothing is allocated while playing) and disposed with the
-// effects. Every number is data/visual.json `arcGun` (see game-data-arc-gun.js); `variant` picks the look.
-const MAX_HALOS = 3; // tuning-ok: the most halo lines any look may use (game-data-arc-gun.js caps `halos` at 3)
-const MAX_SPARKS = 16; // tuning-ok: the most sparks any look may use (game-data-arc-gun.js caps `sparkCount` at 16)
+// The Thundercoil Arc Gun's lightning. Each hop is one jagged bolt drawn as a camera-facing ribbon: a white-hot core and a wider blue
+// glow that fades to nothing at its edges, plus a few short side forks. The shape re-jags a couple of times while it fades. Enemies the
+// bolt hit get a small crackle ribbon. All ribbons are written into ONE pooled mesh (one draw call) and the sparks are one Points object,
+// so nothing is allocated while playing. Every number is data/visual.json `arcGun` (see game-data-arc-gun.js); widths are screen pixels.
 const LOOP = Math.PI * 2; // tuning-ok: full turn
+const VERTS = 3; // tuning-ok: a ribbon point has a left, a centre and a right vertex
+const RGBA = 4; // tuning-ok: vertex colour channels
+const XYZ = 3; // tuning-ok: position channels
 
 // A small seeded generator, so a bolt's shape is repeatable in tests and stills.
 function generator(seed) {
@@ -18,56 +20,98 @@ function generator(seed) {
   };
 }
 
-export function createArcBolts({ scene, data, bodyHeight = () => 1, seed = 1 }) {
+const vertexShader = `
+attribute vec4 aColor;
+varying vec4 vColor;
+void main() {
+  vColor = aColor;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const fragmentShader = `
+varying vec4 vColor;
+void main() {
+  gl_FragColor = vColor;
+  #include <colorspace_fragment>
+}`;
+
+// `camera` and `viewportHeight()` turn a width in screen pixels into metres at each point's distance from the camera.
+export function createArcBolts({ scene, data, camera, viewportHeight = () => 667, bodyHeight = () => 1, seed = 1 }) {
   const root = new T.Group();
   root.name = "Arc gun lightning";
   scene.add(root);
-  let look = data.variants[data.variant];
   const random = generator(seed),
-    linePoints = Math.max(...Object.values(data.variants).map((v) => v.jagSegments)) + 1,
-    stunPoints = Math.max(...Object.values(data.variants).map((v) => v.stunSegments)) + 1,
-    makeLine = (points) => {
-      const geometry = new T.BufferGeometry();
-      geometry.setAttribute("position", new T.BufferAttribute(new Float32Array(points * 3), 3)); // tuning-ok: xyz
-      const line = new T.Line(
-        geometry,
-        new T.LineBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending }),
-      );
-      line.frustumCulled = false;
-      line.visible = false;
-      root.add(line);
-      return line;
-    };
-  const bolts = Array.from({ length: data.maxLinks }, () => ({
-      lines: Array.from({ length: 1 + MAX_HALOS }, () => makeLine(linePoints)),
+    pointsPerLine = Math.max(data.jagSegments, data.forkSegments, data.stunSegments) + 1,
+    mainLines = data.maxLinks * (1 + data.forks),
+    strips = (mainLines + data.maxStuns) * 2, // tuning-ok: every line is drawn as a halo strip and a core strip
+    maxVerts = strips * pointsPerLine * VERTS,
+    maxIndices = strips * (pointsPerLine - 1) * 12, // tuning-ok: four triangles of three indices per ribbon segment
+    position = new Float32Array(maxVerts * XYZ),
+    colour = new Float32Array(maxVerts * RGBA),
+    index = new Uint32Array(maxIndices),
+    geometry = new T.BufferGeometry(),
+    material = new T.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: T.AdditiveBlending,
+    });
+  geometry.setAttribute("position", new T.BufferAttribute(position, XYZ));
+  geometry.setAttribute("aColor", new T.BufferAttribute(colour, RGBA));
+  geometry.setIndex(new T.BufferAttribute(index, 1));
+  const ribbon = new T.Mesh(geometry, material);
+  ribbon.frustumCulled = false;
+  ribbon.visible = false;
+  ribbon.renderOrder = 999; // tuning-ok: drawn after the scene
+  root.add(ribbon);
+
+  const line = () => ({ pts: new Float32Array(pointsPerLine * XYZ), n: 0 }),
+    bolts = Array.from({ length: data.maxLinks }, () => ({
+      main: line(),
+      forks: Array.from({ length: data.forks }, line),
       from: new T.Vector3(),
       to: new T.Vector3(),
       start: 0,
-      age: -1,
-      flicker: 0,
+      live: false,
+      shapes: 0,
       sparks: 0,
     })),
-    stuns = Array.from({ length: data.maxStuns }, () => ({ line: makeLine(stunPoints), actor: null, flicker: 0 }));
+    stuns = Array.from({ length: data.maxStuns }, () => ({ ...line(), actor: null, until: 0, flicker: -1, height: 1 }));
   const sparkGeometry = new T.BufferGeometry(),
-    sparkPositions = new Float32Array(data.maxLinks * MAX_SPARKS * 3), // tuning-ok: xyz
+    sparkPositions = new Float32Array(data.maxLinks * data.sparkCount * XYZ),
     sparkVelocity = new Float32Array(sparkPositions.length),
-    sparkAge = new Float32Array(data.maxLinks * MAX_SPARKS).fill(-1);
-  sparkGeometry.setAttribute("position", new T.BufferAttribute(sparkPositions, 3)); // tuning-ok: xyz
+    sparkAge = new Float32Array(data.maxLinks * data.sparkCount).fill(-1);
+  sparkGeometry.setAttribute("position", new T.BufferAttribute(sparkPositions, XYZ));
   const sparks = new T.Points(
     sparkGeometry,
-    new T.PointsMaterial({ sizeAttenuation: false, transparent: true, depthWrite: false, blending: T.AdditiveBlending }),
+    new T.PointsMaterial({
+      sizeAttenuation: false,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: T.AdditiveBlending,
+      size: data.sparkSize,
+      color: data.sparkColour,
+    }),
   );
   sparks.frustumCulled = false;
   sparks.visible = false;
   root.add(sparks);
+
   const dir = new T.Vector3(),
     across = new T.Vector3(),
     up = new T.Vector3(),
-    point = new T.Vector3();
+    point = new T.Vector3(),
+    tangent = new T.Vector3(),
+    view = new T.Vector3(),
+    side = new T.Vector3(),
+    tint = new T.Color();
+  let verts = 0,
+    indices = 0;
 
-  // Writes a jagged polyline from `a` to `b` into the line's position attribute and draws `segments + 1` points of it.
-  function jag(line, a, b, segments, amplitude) {
-    const position = line.geometry.attributes.position;
+  // Writes a jagged polyline from `a` to `b` into `out`; `segments + 1` points. The ends stay on the muzzle / the target.
+  function jag(out, a, b, segments, amplitude) {
     dir.subVectors(b, a);
     const length = dir.length();
     dir.divideScalar(length || 1);
@@ -77,160 +121,194 @@ export function createArcBolts({ scene, data, bodyHeight = () => 1, seed = 1 }) 
     up.crossVectors(dir, across).normalize();
     for (let i = 0; i <= segments; i++) {
       const t = i / segments,
-        wobble = Math.sin(Math.PI * t) * amplitude * length; // the ends stay on the muzzle and the target
+        wobble = Math.sin(Math.PI * t) * amplitude * length;
       point.lerpVectors(a, b, t);
       point.addScaledVector(across, (random() - 0.5) * 2 * wobble); // tuning-ok: centred random in -1..1
       point.addScaledVector(up, (random() - 0.5) * 2 * wobble); // tuning-ok: centred random in -1..1
-      position.setXYZ(i, point.x, point.y, point.z);
+      out.pts[i * XYZ] = point.x;
+      out.pts[i * XYZ + 1] = point.y;
+      out.pts[i * XYZ + 2] = point.z;
     }
-    line.geometry.setDrawRange(0, segments + 1);
-    position.needsUpdate = true;
+    out.n = segments + 1;
   }
-  function style(bolt, fade) {
-    bolt.lines.forEach((line, n) => {
-      const halo = n > 0,
-        on = !halo || n <= look.halos;
-      line.visible = on && fade > 0;
-      if (!on) return;
-      line.material.color.setHex(halo ? look.haloColour : look.coreColour);
-      line.material.opacity = (halo ? look.haloOpacity : look.coreOpacity) * fade;
+  const at = (l, i, into) => into.set(l.pts[i * XYZ], l.pts[i * XYZ + 1], l.pts[i * XYZ + 2]);
+
+  // A fresh shape for one bolt: the main path plus up to `forks` short branches leaving it at random interior points.
+  function reshape(bolt) {
+    jag(bolt.main, bolt.from, bolt.to, data.jagSegments, data.jitter);
+    const length = bolt.from.distanceTo(bolt.to);
+    bolt.forks.forEach((fork) => {
+      const k = 1 + Math.floor(random() * (data.jagSegments - 1)), // an interior point of the main path
+        start = at(bolt.main, k, new T.Vector3()),
+        heading = new T.Vector3(random() - 0.5, (random() - 0.5) * 0.5, random() - 0.5) // tuning-ok: forks mostly stay level
+          .normalize()
+          .addScaledVector(dir.subVectors(bolt.to, bolt.from).normalize(), 0.6) // tuning-ok: forks lean along the bolt
+          .normalize();
+      jag(
+        fork,
+        start,
+        start.clone().addScaledVector(heading, length * data.forkLength),
+        data.forkSegments,
+        data.jitter,
+      );
     });
   }
+
+  // Metres across one screen pixel at `p`.
+  function pixel(p) {
+    if (camera.isOrthographicCamera) return (camera.top - camera.bottom) / camera.zoom / viewportHeight();
+    return (2 * camera.position.distanceTo(p) * Math.tan((camera.fov * Math.PI) / 360)) / viewportHeight(); // tuning-ok: half the field of view, in radians
+  }
+  // Appends one ribbon along `l`: `widthPx` wide, centre alpha `mid`, edge alpha `edge` (0 gives the fading glow).
+  function strip(l, widthPx, rgb, mid, edge) {
+    if (l.n < 2 || mid <= 0) return; // tuning-ok: a ribbon needs two points
+    const base = verts;
+    tint.setHex(rgb);
+    for (let i = 0; i < l.n; i++) {
+      at(l, Math.min(i + 1, l.n - 1), tangent).sub(at(l, Math.max(i - 1, 0), point));
+      at(l, i, point);
+      view.subVectors(camera.position, point);
+      side
+        .crossVectors(tangent, view)
+        .normalize()
+        .multiplyScalar((pixel(point) * widthPx) / 2); // tuning-ok: half width each side
+      for (let v = 0; v < VERTS; v++) {
+        const o = verts++,
+          s = v - 1, // -1 left, 0 centre, 1 right
+          alpha = s === 0 ? mid : edge;
+        position[o * XYZ] = point.x + side.x * s;
+        position[o * XYZ + 1] = point.y + side.y * s;
+        position[o * XYZ + 2] = point.z + side.z * s;
+        colour.set([tint.r, tint.g, tint.b, alpha], o * RGBA);
+      }
+    }
+    for (let i = 0; i < l.n - 1; i++) {
+      const a = base + i * VERTS,
+        b = a + VERTS;
+      for (const t of [a, a + 1, b, a + 1, b + 1, b, a + 1, a + 2, b + 1, a + 2, b + 2, b + 1]) index[indices++] = t; // tuning-ok: four triangles of the ribbon segment
+    }
+  }
+  const glow = (l, widthPx, rgb, alpha) => strip(l, widthPx, rgb, alpha, 0),
+    solid = (l, widthPx, rgb, alpha) => strip(l, widthPx, rgb, alpha, alpha);
+
   return {
     root,
-    get variant() {
-      return data.variant;
-    },
-    setVariant(name) {
-      if (!Object.hasOwn(data.variants, name)) throw RangeError("Unknown arc gun look");
-      look = data.variants[name];
-    },
     // `links` are the muzzle-to-target segments of one shot, in render coordinates; they light up one after the other.
     fire(links, now) {
-      links.slice(0, data.maxLinks).forEach((link, i) => {
-        const bolt = bolts[i];
+      bolts.forEach((bolt, i) => {
+        const link = links[i];
+        bolt.live = !!link && i < data.maxLinks;
+        if (!bolt.live) return;
         bolt.from.set(link.from.x, link.from.y, link.from.z);
         bolt.to.set(link.to.x, link.to.y, link.to.z);
-        bolt.start = now + i * look.hopDelay;
-        bolt.age = 0;
-        bolt.flicker = 0;
-        bolt.sparks = link.targetId != null ? look.sparkCount : 0;
+        bolt.start = now + i * data.hopDelay;
+        bolt.shapes = -1; // reshaped on the first frame it shows
+        bolt.sparks = link.targetId != null ? data.sparkCount : 0;
       });
-      for (let i = links.length; i < bolts.length; i++) bolts[i].age = -1;
     },
     stun(actor, until, now) {
       const slot = stuns.find((s) => s.actor === actor) ?? stuns.find((s) => !s.actor) ?? stuns[0];
       slot.actor = actor;
       slot.until = until;
-      slot.flicker = now;
+      slot.flicker = now - data.stunFlickerSeconds;
     },
     update(now, dt) {
-      let any = false;
-      for (const [index, bolt] of bolts.entries()) {
-        if (bolt.age < 0) {
-          for (const line of bolt.lines) line.visible = false;
-          continue;
-        }
+      verts = 0;
+      indices = 0;
+      for (const [slot, bolt] of bolts.entries()) {
+        if (!bolt.live) continue;
         const age = now - bolt.start;
         if (age < 0) continue;
-        if (age >= look.boltSeconds) {
-          bolt.age = -1;
-          for (const line of bolt.lines) line.visible = false;
+        if (age >= data.boltSeconds) {
+          bolt.live = false;
           continue;
         }
-        any = true;
-        if (bolt.age === 0 || now - bolt.flicker >= look.flickerSeconds) {
-          bolt.flicker = now;
-          bolt.lines.forEach((line, n) => {
-            if (n <= look.halos) jag(line, bolt.from, bolt.to, look.jagSegments, look.jitter * (n ? look.haloSpread : 1));
-          });
-          if (bolt.age === 0 && bolt.sparks)
+        const shape = Math.min(data.reJags, Math.floor((age / data.boltSeconds) * (data.reJags + 1))); // tuning-ok: 1 + reJags shapes over the life
+        if (shape !== bolt.shapes) {
+          reshape(bolt);
+          if (bolt.shapes < 0 && bolt.sparks)
             for (let s = 0; s < bolt.sparks; s++) {
-              const at = (index * MAX_SPARKS + s) * 3; // tuning-ok: xyz
-              sparkPositions.set([bolt.to.x, bolt.to.y, bolt.to.z], at);
-              const spin = random() * LOOP,
-                lift = random();
-              sparkVelocity.set([Math.cos(spin) * look.sparkSpeed, lift * look.sparkSpeed, Math.sin(spin) * look.sparkSpeed], at);
-              sparkAge[index * MAX_SPARKS + s] = 0;
+              const o = slot * data.sparkCount + s,
+                spin = random() * LOOP;
+              sparkPositions.set([bolt.to.x, bolt.to.y, bolt.to.z], o * XYZ);
+              sparkVelocity.set(
+                [Math.cos(spin) * data.sparkSpeed, random() * data.sparkSpeed, Math.sin(spin) * data.sparkSpeed],
+                o * XYZ,
+              );
+              sparkAge[o] = 0;
             }
+          bolt.shapes = shape;
         }
-        bolt.age = age + 1e-9; // tuning-ok: keeps age above 0 after the first frame
-        style(bolt, (1 - age / look.boltSeconds) * (0.7 + 0.3 * random())); // tuning-ok: 70 to 100 per cent flicker
+        const fade = (1 - age / data.boltSeconds) ** 2; // tuning-ok: quick falloff
+        for (const l of [bolt.main, ...bolt.forks]) glow(l, data.haloWidth, data.haloColour, data.haloOpacity * fade);
+        for (const l of [bolt.main, ...bolt.forks]) solid(l, data.coreWidth, data.coreColour, data.coreOpacity * fade);
       }
       let sparkLive = false;
       for (let i = 0; i < sparkAge.length; i++) {
         if (sparkAge[i] < 0) continue;
         sparkAge[i] += dt;
-        if (sparkAge[i] >= look.sparkSeconds) {
+        if (sparkAge[i] >= data.sparkSeconds) {
           sparkAge[i] = -1;
-          sparkPositions.fill(1e6, i * 3, i * 3 + 3); // tuning-ok: parks a dead spark far off screen
+          sparkPositions.fill(1e6, i * XYZ, i * XYZ + XYZ); // tuning-ok: parks a dead spark far off screen
           continue;
         }
         sparkLive = true;
-        for (let k = 0; k < 3; k++) sparkPositions[i * 3 + k] += sparkVelocity[i * 3 + k] * dt; // tuning-ok: xyz
+        for (let k = 0; k < XYZ; k++) sparkPositions[i * XYZ + k] += sparkVelocity[i * XYZ + k] * dt;
       }
       sparks.visible = sparkLive;
-      sparks.material.size = look.sparkSize;
-      sparks.material.color.setHex(look.sparkColour);
-      sparks.material.opacity = 1;
       sparkGeometry.attributes.position.needsUpdate = true;
       for (const slot of stuns) {
         const actor = slot.actor;
         if (!actor || now >= slot.until || actor.hp <= 0) {
           slot.actor = null;
-          slot.line.visible = false;
           continue;
         }
-        any = true;
-        if (now - slot.flicker >= look.flickerSeconds || !slot.line.visible) {
+        if (now - slot.flicker >= data.stunFlickerSeconds) {
           slot.flicker = now;
-          const position = slot.line.geometry.attributes.position,
-            y = bodyHeight(actor),
-            n = look.stunSegments;
-          for (let i = 0; i <= n; i++) {
-            const turn = (i / n) * LOOP,
-              radius = look.stunRadius * (0.6 + 0.8 * random()); // tuning-ok: 60 to 140 per cent crackle radius
-            position.setXYZ(
-              i,
-              actor.pos.x + Math.cos(turn) * radius,
-              y * (0.6 + 0.8 * random()), // tuning-ok: crackle spans 60 to 140 per cent of chest height
-              -actor.pos.z + Math.sin(turn) * radius,
-            );
+          const height = bodyHeight(actor);
+          for (let i = 0; i <= data.stunSegments; i++) {
+            const turn = (i / data.stunSegments) * LOOP,
+              radius = data.stunRadius * (0.6 + 0.8 * random()), // tuning-ok: 60 to 140 per cent crackle radius
+              o = i * XYZ;
+            slot.pts[o] = actor.pos.x + Math.cos(turn) * radius;
+            slot.pts[o + 1] = height * (0.6 + 0.8 * random()); // tuning-ok: crackle spans 60 to 140 per cent of chest height
+            slot.pts[o + 2] = -actor.pos.z + Math.sin(turn) * radius;
           }
-          slot.line.geometry.setDrawRange(0, n + 1);
-          position.needsUpdate = true;
+          slot.n = data.stunSegments + 1;
         }
-        slot.line.visible = true;
-        slot.line.material.color.setHex(look.stunColour);
-        slot.line.material.opacity = look.stunOpacity * Math.min(1, (slot.until - now) / look.boltSeconds);
+        const fade = Math.min(1, (slot.until - now) / data.boltSeconds);
+        glow(slot, data.stunHaloWidth, data.haloColour, data.stunOpacity * fade * data.haloOpacity);
+        solid(slot, data.stunCoreWidth, data.stunColour, data.stunOpacity * fade);
       }
-      root.visible = any || sparkLive;
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.aColor.needsUpdate = true;
+      geometry.index.needsUpdate = true;
+      geometry.setDrawRange(0, indices);
+      ribbon.visible = indices > 0;
+      root.visible = ribbon.visible || sparkLive;
     },
     reset() {
-      for (const bolt of bolts) {
-        bolt.age = -1;
-        for (const line of bolt.lines) line.visible = false;
-      }
+      for (const bolt of bolts) bolt.live = false;
+      for (const slot of stuns) slot.actor = null;
       sparkAge.fill(-1);
       sparks.visible = false;
-      for (const slot of stuns) {
-        slot.actor = null;
-        slot.line.visible = false;
-      }
+      ribbon.visible = false;
+      indices = 0;
+      geometry.setDrawRange(0, 0);
     },
     stats() {
       return {
-        lines: bolts.flatMap((b) => b.lines).filter((l) => l.visible).length + stuns.filter((s) => s.line.visible).length,
-        sparks: [...sparkAge].filter((a) => a >= 0).length,
         drawObjects: root.children.length,
-      };
+        ribbonTriangles: indices / 3,
+        sparks: [...sparkAge].filter((a) => a >= 0).length,
+      }; // tuning-ok: three indices per triangle
     },
     dispose() {
       scene.remove(root);
-      for (const line of root.children) {
-        line.geometry?.dispose();
-        line.material?.dispose();
-      }
+      geometry.dispose();
+      material.dispose();
+      sparkGeometry.dispose();
+      sparks.material.dispose();
     },
   };
 }

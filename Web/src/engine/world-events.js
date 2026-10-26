@@ -319,16 +319,15 @@ export function weaponRules() {
     for (const m of Object.values(variant.moves ?? {})) move("knife", m);
   for (const bite of [RAT_BITE, DOG_BITE, ROACH_BITE, WOLF_BITE, SALAMANDER_BITE]) move("teeth", bite);
   add("bone-saw", BONE_SAW_RULES.damage, 1 / BONE_SAW_RULES.interval, BONE_SAW_RULES.range);
-  // The Arc Gun's one shot lands on up to 1 + jumps bodies at once, each hop reaching hopRange past the last body.
-  for (const row of Object.values(RANGED_WEAPON_CATALOG)) {
-    const bodies = 1 + (row.arc?.jumps ?? 0);
+  // The Arc Gun's reach is its first-body range plus every hop. Its rate stays 1 / cadence: the server's rate is per spawn (per
+  // engagement) and a chain hits each body at most once per shot, so the extra bodies of one shot do not raise it.
+  for (const row of Object.values(RANGED_WEAPON_CATALOG))
     add(
       row.weaponKey,
       row.rules.damage,
-      bodies / row.rules.cadence,
+      1 / row.rules.cadence,
       row.rules.range + (row.arc?.jumps ?? 0) * (row.arc?.hopRange ?? 0),
     );
-  }
   const ember = EMBER_PROJECTOR_PROFILE.rules;
   add("flamethrower", ember.damage, 1 / ember.interval, ember.range);
   add(

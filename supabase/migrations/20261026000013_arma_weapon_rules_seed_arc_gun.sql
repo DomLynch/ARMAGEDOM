@@ -10,7 +10,7 @@ insert into public.arma_weapon_rules (weapon, max_damage_per_hit, max_hits_per_s
   ('shotgun', 64, 1.25),
   ('grenade', 60, 1.25),
   ('rocket', 80, 1.25),
-  ('railgun', 45, 5),
+  ('railgun', 45, 1.25),
   ('flamethrower', 10, 5)
 on conflict (weapon) do update set max_damage_per_hit = excluded.max_damage_per_hit, max_hits_per_s = excluded.max_hits_per_s;
 commit;

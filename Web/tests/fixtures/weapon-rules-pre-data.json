@@ -64,7 +64,7 @@
   {
    "weaponId": "railgun",
    "maxDamagePerHit": 45,
-   "maxHitsPerS": 5,
+   "maxHitsPerS": 1.25,
    "reachM": 18
   },
   {

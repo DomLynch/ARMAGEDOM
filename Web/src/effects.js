@@ -80,7 +80,13 @@ export function createEffects(
   const droneLasers = createDroneLaserBolts({ scene, world, camera: world.camera });
   // Built on the first arc shot, so scenes that never fire the Arc Gun carry none of its pooled lines.
   let arcBolts = null;
-  const arcView = () => (arcBolts ??= createArcBolts({ scene, data: GAME_DATA.visual.arcGun }));
+  const arcView = () =>
+    (arcBolts ??= createArcBolts({
+      scene,
+      data: GAME_DATA.visual.arcGun,
+      camera: world.camera,
+      viewportHeight: () => viewportHeight,
+    }));
   let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
   let confirmation = null;
