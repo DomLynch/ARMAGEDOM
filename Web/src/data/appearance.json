@@ -15,7 +15,7 @@
     "A": { "east-roamer-9": { "x": -0.014, "z": -0.278 }, "east-roamer-5": { "x": 0, "z": -0.046 } },
     "B": { "east-roamer-9": { "x": -0.014, "z": -0.278 } }
   },
-  "crownSplit": { "maxVertices": 100000, "cutColor": "#49251f", "openRadians": 0.19, "openMetres": 0.008 },
+  "crownSplit": { "maxVertices": 100000, "cutColor": "#49251f", "openRadians": 0.19, "openMetres": 0.008, "sliceMs": 4, "weldPrecision": 100000 },
   "finisherCosmetics": { "pulseBase": 0.65, "pulseSwing": 0.35, "hotMix": 0.8 },
   "severBloodEffect": { "jetTopRadius": 0.35, "jetSegments": 8, "poolSegments": 24, "color": "#831428", "groundLift": 0.006 },
   "faceBuild": { "sliceMs": 4, "yieldEvery": 128, "yieldEveryTriangles": 256, "weldPrecision": 1000000 },

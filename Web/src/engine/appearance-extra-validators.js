@@ -259,8 +259,10 @@ const hexColour = (fail, field, v) => {
 // glow pulse (base share and swing) and how much of the pulse tints the colour. sever-blood-effect.js: the jet cone, the pool disc, the
 // blood colour and the pool's lift off the ground.
 function validateFinisherLooks(d, { fail, between }) {
-  closed(d.crownSplit, ["maxVertices", "cutColor", "openRadians", "openMetres"]);
+  closed(d.crownSplit, ["maxVertices", "cutColor", "openRadians", "openMetres", "sliceMs", "weldPrecision"]);
   between("crownSplit.maxVertices", d.crownSplit.maxVertices, 1000, 1000000);
+  between("crownSplit.sliceMs", d.crownSplit.sliceMs, 0.1, 1000);
+  between("crownSplit.weldPrecision", d.crownSplit.weldPrecision, 10, 100000000);
   hexColour(fail, "crownSplit.cutColor", d.crownSplit.cutColor);
   between("crownSplit.openRadians", d.crownSplit.openRadians, 0, 1);
   between("crownSplit.openMetres", d.crownSplit.openMetres, 0, 0.1);
