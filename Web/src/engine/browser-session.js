@@ -120,7 +120,7 @@ export function createBrowserSession(options = {}) {
     sun = new THREE.DirectionalLight(lights.sunColor, startLighting.keyIntensity);
   sun.position.set(...lights.sunPosition);
   scene.add(hemi, sun);
-  const rim = new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, 2);
+  const rim = new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, lights.rimDecay);
   scene.add(rim);
   function pause(value) {
     if (travelRecoveryFailed || resetting) value = true;
@@ -840,7 +840,7 @@ export function createBrowserSession(options = {}) {
       if (syncedNotice && game) {
         syncedNotice = false;
         game.message = "Progress synced";
-        game.messageUntil = game.time + 3;
+        game.messageUntil = game.time + GAME_DATA.browserSession.syncedNoticeSeconds;
       }
       if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
       hud.loading("");

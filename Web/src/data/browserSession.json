@@ -10,6 +10,8 @@
     "sunPosition": [-7, 12, 6],
     "rimColor": "#d4c7a5",
     "rimIntensity": 3.2,
-    "rimDistance": 5
-  }
+    "rimDistance": 5,
+    "rimDecay": 2
+  },
+  "syncedNoticeSeconds": 3
 }

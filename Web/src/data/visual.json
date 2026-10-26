@@ -130,11 +130,116 @@
     "minOpacity": 0.6,
     "itemPulse": 0.07,
     "labelHeight": 1.6,
-    "labelWidth": 3.4
+    "labelWidth": 3.4,
+    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25 },
+    "glow": {
+      "canvasPx": 256,
+      "groundY": 0.04,
+      "clearShare": 0.8,
+      "clearAlpha": 0.05,
+      "innerAlpha": 0.45,
+      "bandAlpha": 0.6,
+      "outerAlpha": 0.45,
+      "tailShare": 0.35,
+      "tailAlpha": 0.18
+    },
+    "ringY": 0.045,
+    "ringSegments": 48
   },
   "routeArrow": {
     "peakOpacity": 0.6,
     "tailGap": 1
+  },
+  "bossView": {
+    "labelRange": 12,
+    "hazard": {
+      "ringInner": 0.91,
+      "segments": 48,
+      "height": 0.025,
+      "initialFillOpacity": 0.14,
+      "initialEdgeOpacity": 0.9,
+      "warning": { "colour": "ffcb59", "fillOpacity": 0.1, "edgeBase": 0.65, "edgeSwing": 0.3, "pulseRate": 10 },
+      "active": { "colour": "8ed04d", "fillOpacity": 0.24, "edgeOpacity": 0.9 }
+    }
+  },
+  "pickupModel": {
+    "fitDiameter": 0.72,
+    "groundLift": 0.025
+  },
+  "bossEquipmentView": {
+    "loadFailureSeconds": 4,
+    "claimMessageSeconds": 3,
+    "grenade": {
+      "startHeight": 1.15,
+      "landHeight": 0.05,
+      "arcHeight": 1.2,
+      "flightSeconds": 0.35,
+      "spinPi": 3,
+      "ring": {
+        "inner": 2.92,
+        "outer": 3,
+        "segments": 40,
+        "colour": "ffbc58",
+        "opacity": 0.45,
+        "height": 0.018,
+        "pulseBase": 0.25,
+        "pulseSwing": 0.35,
+        "pulseRate": 6
+      },
+      "blast": {
+        "seconds": 0.35,
+        "colour": "ffe5a0",
+        "startScale": 0.2,
+        "growth": 0.8,
+        "opacity": 0.8
+      }
+    }
+  },
+  "routeGuidance": {
+    "clearance": 0.4,
+    "sampleStep": 0.1,
+    "boundaryReach": 3.5,
+    "exitReach": 5,
+    "boundaryStartReach": 7,
+    "waypointMin": 0.5,
+    "arrivalRadius": 4,
+    "pistolArrived": 0.3,
+    "huntArrived": 1.5,
+    "pulse": { "seconds": 1.3, "minOpacity": 0.35 },
+    "rail": {
+      "sideProbe": 0.3,
+      "sideOffset": 0.12,
+      "segments": 8,
+      "centreHeight": 0.72,
+      "thickness": 0.28,
+      "depth": 0.12,
+      "colours": ["d0a943", "252522"],
+      "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a", "along": [0, 0.5, 1] }
+    },
+    "arrow": {
+      "height": 0.04,
+      "triangles": [
+        [[-0.13, 0, 0], [0.13, 0, 0], [0.13, 0, 1.05]],
+        [[-0.13, 0, 0], [0.13, 0, 1.05], [-0.13, 0, 1.05]],
+        [[-0.32, 0, 0.97], [0.32, 0, 0.97], [0, 0, 1.43]]
+      ]
+    },
+    "marker": {
+      "height": 0.045,
+      "showDistance": 9,
+      "exitHintRemaining": 1.2,
+      "ring": { "inner": 0.48, "outer": 0.62, "segments": 32, "colour": "dfba59" },
+      "sign": {
+        "canvas": [512, 128],
+        "borderWidth": 5,
+        "border": [3, 3, 506, 122],
+        "textX": 256,
+        "lineY": [53, 96],
+        "fonts": ["bold 34px sans-serif", "26px sans-serif"],
+        "size": [3.6, 0.9],
+        "height": 1.65
+      }
+    }
   },
   "severBlood": {
     "jet": { "capacity": 2, "duration": 0.5, "length": 1.2, "radius": 0.075 },
@@ -170,6 +275,29 @@
       }
     }
   },
+  "flameEffect": {
+    "texture": { "falloffPower": 1.6, "peakAlpha": 240 },
+    "alphaTest": 0.01,
+    "renderOrder": 2,
+    "cyclesPerSecond": 4,
+    "floorClearance": 0.02,
+    "spread": { "radiusShare": 0.55, "jitterRate": 19.3 },
+    "phaseClamp": [0.03, 0.97],
+    "corpseDeathFallbackSeconds": 2.4,
+    "burnSurface": { "maxOffset": 0.8, "defaultRadius": 0.4, "margin": 0.05 },
+    "burnWisp": { "spacing": 0.24, "baseHeight": 0.13, "wobbleRate": 14, "wobbleHeight": 0.08 }
+  },
+  "safehouseView": {
+    "cue": { "period": 3.5, "reducedOpacity": 0.75, "pulseExponent": 8, "floor": { "selected": 0.82, "near": 0.7, "idle": 0.4 } },
+    "patchRenderOrder": -99,
+    "contour": { "colour": "ddba70", "linewidth": 2, "opacity": 0.4, "renderOrder": -98 },
+    "amountDigits": 2,
+    "silhouettes": {
+      "locker": [[0.09, 0.05], [0.91, 0], [1, 0.86], [0.77, 1], [0, 0.88]],
+      "comms": [[0, 0.31], [0.76, 0], [1, 0.23], [0.96, 0.84], [0.25, 1], [0.02, 0.82]],
+      "map": [[0, 0.13], [0.91, 0], [1, 0.84], [0.08, 1]]
+    }
+  },
   "wantedPoster": {
     "canvas": { "width": 384, "height": 768 },
     "titleX": 192,
@@ -181,5 +309,14 @@
     "meshColour": "dce2ca",
     "renderOrder": -95,
     "flickerHz": [17, 43]
+  },
+  "combatImpact": {
+    "settleBelow": 0.001,
+    "lowEnergy": 0.4,
+    "waveRate": 45,
+    "holdSeconds": { "death": 0.08, "pistol": 0.05, "other": 0.04 },
+    "kick": { "death": 8, "hit": 4, "shot": 3, "max": 8 },
+    "decayRate": { "shotPistol": 12, "shotOther": 18, "camera": 18, "reaction": 12, "reactionKilled": 10 },
+    "reactionHoldSeconds": { "hit": 0.045, "killed": 0.08 }
   }
 }

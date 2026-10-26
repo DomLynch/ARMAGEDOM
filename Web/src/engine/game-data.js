@@ -20,6 +20,7 @@ import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -30,11 +31,16 @@ import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
+import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateFlameEffect } from "./flame-effect-data.js";
+import { validateCombatImpact } from "./combat-impact-data.js";
+import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -235,7 +241,27 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood", "motion", "wantedPoster"]);
+  closed(d, [
+    "schema_version",
+    "survivorVariants",
+    "faces",
+    "clothing",
+    "effects",
+    "dropMarker",
+    "routeArrow",
+    "bossView",
+    "pickupModel",
+    "bossEquipmentView",
+    "routeGuidance",
+    "severBlood",
+    "motion",
+    "safehouseView",
+    "wantedPoster",
+    "combatImpact",
+    "flameEffect",
+  ]);
+  validateCombatImpact(d.combatImpact);
+  validateFlameEffect(d.flameEffect);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -248,11 +274,11 @@ export function validateVisual(d) {
   if (!(d.severBlood.pool.opacity > 0 && d.severBlood.pool.opacity <= 1)) fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
-  // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
-  // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
+  // The ground arrow (route-guidance.js) takes the drop marker's ringColour; peakOpacity tops its pulse.
   closed(d.routeArrow, ["peakOpacity", "tailGap"]);
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
+  validateRouteGuidance(d.routeGuidance);
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);
@@ -360,7 +386,12 @@ export function validateVisual(d) {
     "itemPulse",
     "labelHeight",
     "labelWidth",
+    "label",
+    "glow",
+    "ringY",
+    "ringSegments",
   ]);
+  validateDropMarkerLayout(m);
   for (const f of ["ringColour", "labelColour", "labelBacking"]) hex(`dropMarker.${f}`, m[f]);
   for (const f of ["ringInner", "ringOuter", "glowOuter", "pulseSeconds", "labelHeight", "labelWidth"])
     number("visual", `dropMarker.${f}`, m[f], 0.01);
@@ -447,7 +478,7 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation", "render"]);
   // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
   // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
   closed(d.variation, [
@@ -852,6 +883,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
+  railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],

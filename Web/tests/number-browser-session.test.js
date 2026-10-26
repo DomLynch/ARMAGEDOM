@@ -29,6 +29,8 @@ test("the data converts to exactly the numbers the code used to hold", () => {
   assert.deepEqual([...l.sunPosition], [-7, 12, 6]);
   assert.equal(l.rimIntensity, 3.2);
   assert.equal(l.rimDistance, 5);
+  assert.equal(l.rimDecay, 2);
+  assert.equal(d.syncedNoticeSeconds, 3);
   assert.equal(GAME_DATA.areaRuntime.defaultLighting.fillIntensity, 1.6, "hemisphere starts at the default fill");
   assert.equal(GAME_DATA.areaRuntime.defaultLighting.keyIntensity, 2.3, "sun starts at the default key");
   assert.equal(CLOSE_REPLACED, 4010);
@@ -42,7 +44,8 @@ test("the session source reads each value from the data rows", () => {
     "new THREE.HemisphereLight(lights.hemiSky, lights.hemiGround, startLighting.fillIntensity)",
     "new THREE.DirectionalLight(lights.sunColor, startLighting.keyIntensity)",
     "sun.position.set(...lights.sunPosition)",
-    "new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, 2)",
+    "new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, lights.rimDecay)",
+    "game.messageUntil = game.time + GAME_DATA.browserSession.syncedNoticeSeconds",
     "Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio)",
     "[1000, 1001, CLOSE_REPLACED]",
   ])
@@ -63,6 +66,8 @@ test("the loader refuses missing, extra, malformed or out-of-range values", () =
   assert.throws(broken((d) => { d.sceneLights.sunPosition = [1, 2]; }));
   assert.throws(broken((d) => { d.sceneLights.sunPosition = [1, 2, 1000]; }));
   assert.throws(broken((d) => { d.sceneLights.rimDistance = 0; }));
+  assert.throws(broken((d) => { d.sceneLights.rimDecay = 11; }));
+  assert.throws(broken((d) => { delete d.syncedNoticeSeconds; }));
 });
 
 test("the gate counts 0 in browser-session.js (one marked WebSocket close-code line) and the baseline entry is gone", () => {
