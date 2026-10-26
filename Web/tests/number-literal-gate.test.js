@@ -126,7 +126,6 @@ test("the real tree matches the seeded baseline file by file", () => {
       );
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
   assert.deepEqual(numberLiteralProblems(walk(root), baseline, root), []);
-  // A smoke check that the baseline was not emptied by accident. The burn-down removes entries as files reach zero, so it only requires one.
-  assert(Object.keys(baseline.numberLiterals).length > 0);
+  assert(Object.keys(baseline.numberLiterals).length > 50);
   assert(Object.values(baseline.numberLiterals).every((n) => Number.isInteger(n) && n > 0));
 });
