@@ -293,7 +293,16 @@
       }
     },
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
-    "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
+    "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 },
+    "swingCurve": {
+      "contact": 0.35,
+      "sourceContact": 0.34,
+      "windupContactRatio": 0.7,
+      "windupSourceRatio": 0.44,
+      "followContactGap": 0.16,
+      "followSourceRatio": 0.56
+    },
+    "bladeContact": { "stepMetres": 0.02, "bodyBottom": 0.55, "bodyTop": 1.45, "radius": 0.31 }
   },
   "bossEquipment": {
     "order": ["shotgun", "grenade", "surgicalKnife", "commanderPistol", "emberProjector", "rocketLauncher"],
