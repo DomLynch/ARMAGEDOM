@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "swing": {
     "windupKeyFraction": 0.7,
     "windupSourceFraction": 0.44,

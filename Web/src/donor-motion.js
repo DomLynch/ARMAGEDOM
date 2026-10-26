@@ -1,6 +1,8 @@
 import { ratMeleePosePhase } from "./rat-melee-definition.js";
 import * as THREE from "three";
-import { DONOR_MOTION } from "./donor-motion-data.js";
+import { GAME_DATA } from "./engine/game-data.js";
+
+const DONOR_MOTION = GAME_DATA.donorMotion;
 
 // Native hand transform and per-player clip overrides; never mutate the cache.
 // The caller supplies an independently SkeletonUtils-cloned character scene.
