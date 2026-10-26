@@ -1,7 +1,9 @@
 import { combatTargetHeight } from "../pistol-targeting.js";
 import { flameTouches } from "./flame-contact.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
-const RETREAT_DIRECTIONS = 16; // tuning-ok: sixteen evenly spaced directions tried when a flame boss backs away
+import { GAME_DATA } from "./game-data.js";
+// weapons.json `bossFlame.retreatDirections`: evenly spaced directions tried when a flame boss backs away.
+const RETREAT_DIRECTIONS = GAME_DATA.weapons.bossFlame.retreatDirections;
 const EPS = 1e-8;
 // Transient NPC attack only. Inventory, player fuel and defeat persistence stay
 // with their existing owners. An optional validated capability selects it.

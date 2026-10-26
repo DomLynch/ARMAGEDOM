@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { asDataProblems, constantTableProblems, dataDebt, dataImportProblems, numberLiteralProblems } from "./as-data-gate.mjs";
+import { asDataProblems, constantTableProblems, dataDebt, dataImportProblems, numberLiteralProblems, tuningMarkProblems } from "./as-data-gate.mjs";
 
 function files(directory, suffix) {
   return readdirSync(directory, { withFileTypes: true })
@@ -86,6 +86,11 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
       JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
     ),
     ...numberLiteralProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+    ...tuningMarkProblems(
       source,
       JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
       join(root, "Web/src"),

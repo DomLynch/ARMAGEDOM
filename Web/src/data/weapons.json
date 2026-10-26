@@ -544,6 +544,9 @@
     "movingThreshold": 0.01,
     "minTargetDistance": 0.01
   },
+  "bossFlame": {
+    "retreatDirections": 16
+  },
   "flameAim": {
     "gain": 1,
     "acquireDegrees": 45,

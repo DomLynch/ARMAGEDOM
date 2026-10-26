@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { countNumberLiterals, isNumberExempt, numberLiteralProblems } from "../../scripts/as-data-gate.mjs";
+import { countNumberLiterals, isNumberExempt, numberLiteralProblems, tuningMarkProblems } from "../../scripts/as-data-gate.mjs";
 import { NUMBER_SHRINK_TOLERANCE } from "../../scripts/number-literal-gate.mjs";
 
 const count = (src) => countNumberLiterals(src).count;
@@ -135,4 +135,33 @@ test("the real tree matches the seeded baseline file by file", () => {
   // The burn-down is finished: the table is empty and the gate runs strict, so no file may carry a tuning number.
   assert.deepEqual(baseline.numberLiterals, {});
   assert.equal(NUMBER_SHRINK_TOLERANCE, false);
+});
+
+test("tuning-ok marks only go down and each carries a reason", () => {
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? "/tmp"), "tuning-marks-"));
+  const file = path.join(dir, "a.js");
+  const write = (text) => fs.writeFileSync(file, text);
+  const strict = { shrinkTolerance: false };
+  write("const a = 7; // tuning-ok: seven lanes\nconst b = 9; // tuning-ok: nine rows\n");
+  assert.deepEqual(tuningMarkProblems([file], { tuningOkCount: 2 }, dir, strict), []);
+  write("const a = 7; // tuning-ok: seven lanes\nconst b = 9; // tuning-ok: nine rows\nconst c = 5; // tuning-ok: five\n");
+  assert.match(tuningMarkProblems([file], { tuningOkCount: 2 }, dir, strict).join("\n"), /3 .*marks, limit 2/);
+  write("const a = 7; // tuning-ok: seven lanes\n");
+  assert.match(tuningMarkProblems([file], { tuningOkCount: 2 }, dir, strict).join("\n"), /Lower tuningOkCount/);
+  assert.deepEqual(tuningMarkProblems([file], { tuningOkCount: 2 }, dir, { shrinkTolerance: true }), []);
+  write("const a = 7; // tuning-ok:   \n");
+  assert.match(tuningMarkProblems([file], { tuningOkCount: 1 }, dir, strict).join("\n"), /a\.js:1: .*needs a reason/);
+  fs.rmSync(dir, { recursive: true });
+});
+
+test("the real tree holds exactly the recorded number of tuning-ok marks", () => {
+  const root = new URL("../src/", import.meta.url).pathname;
+  const walk = (d) =>
+    fs
+      .readdirSync(d, { withFileTypes: true })
+      .flatMap((e) =>
+        e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith(".js") ? [path.join(d, e.name)] : [],
+      );
+  const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
+  assert.deepEqual(tuningMarkProblems(walk(root), baseline, root), []);
 });
