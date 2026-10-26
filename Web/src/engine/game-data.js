@@ -11,6 +11,7 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
@@ -1172,6 +1173,26 @@ export function validateUniqueReward(d) {
   }
 }
 
+// knifePaths.json: the baked blade paths of the donor knife (donor/knife.js bladePose, engine/melee-equipment-data.js). For the hero and the
+// goblin rig, four unchained swings; each is a list of frames, a frame is the blade's base and tip as x, y, z, x, y, z in metres in the
+// rig's local space. Baked from the donor (provenance in donor/provenance.json), never hand-edited: only the shape is checked here.
+export function validateKnifePaths(d) {
+  closed(d, ["schema_version", "paths"]);
+  closed(d.paths, ["hero", "goblin"]);
+  const frames = { light_right: 37, light_left: 37, heavy_overhead: 54, thrust: 37 };
+  for (const rig of ["hero", "goblin"]) {
+    closed(d.paths[rig], Object.keys(frames));
+    for (const [name, length] of Object.entries(frames)) {
+      const rows = d.paths[rig][name];
+      if (!Array.isArray(rows) || rows.length !== length) fail("knifePaths", `${rig}.${name} must list ${length} frames`);
+      rows.forEach((frame, i) => {
+        if (!Array.isArray(frame) || frame.length !== 6 || frame.some((v) => !Number.isFinite(v)))
+          fail("knifePaths", `${rig}.${name}[${i}] must be six finite numbers`);
+      });
+    }
+  }
+}
+
 // audio.json: the synthesized combat cues and the voice engine of donor-audio.js. Frequencies in Hz, times in seconds, gains 0 to 1.
 // A tone row is { from, to, seconds, gain, type? } (type defaults to triangle in donor-audio.js); a noise row is { seconds, gain, cutoff }.
 export function validateAudio(d) {
@@ -1283,6 +1304,7 @@ export function validateCommander(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
   commander: [commander, validateCommander],
   appearance: [appearance, validateAppearance],
