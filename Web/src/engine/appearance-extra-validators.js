@@ -2,13 +2,33 @@
 // numbers. They live here, not in game-data.js, so that file stays under the Web source density limit; game-data.js hands in its own helpers.
 import { closed } from "./content-schema.js";
 
-export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair", "animalCoat", "roachCoat"];
+export const appearanceExtraKeys = () => [
+  "faceField",
+  "faceWeathering",
+  "faceHair",
+  "animalCoat",
+  "roachCoat",
+  "animalOffsets",
+];
 
 export function validateAppearanceExtras(d, tools) {
   validateFaceTables(d, tools);
   validateCrookedPose(d, tools);
   validateAnimalCoat(d, tools);
   validateRoachCoat(d, tools);
+  validateAnimalOffsets(d, tools);
+}
+
+// animal-cycle.js: per cycle (A, B) the roamers whose body sits off its placement point, as x and z offsets in metres.
+function validateAnimalOffsets(d, { fail, between }) {
+  closed(d.animalOffsets, ["A", "B"]);
+  for (const [cycle, rows] of Object.entries(d.animalOffsets))
+    for (const [key, offset] of Object.entries(rows)) {
+      if (!/^[a-z]+-roamer-\d+$/.test(key)) fail("appearance", `animalOffsets.${cycle} has an invalid placement key`);
+      closed(offset, ["x", "z"]);
+      between(`animalOffsets.${cycle}.${key}.x`, offset.x, -1, 1);
+      between(`animalOffsets.${cycle}.${key}.z`, offset.z, -1, 1);
+    }
 }
 
 // visual.json clothing.minTonalGap: the least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable
