@@ -222,6 +222,7 @@ export function validateVisual(d) {
     "routeGuidance",
     "expeditionHud",
     "remotePlayers",
+    "waterEffect",
     "severBlood",
     "motion",
     "safehouseView",

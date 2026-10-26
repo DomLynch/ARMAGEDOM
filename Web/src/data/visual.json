@@ -460,5 +460,13 @@
     "kick": { "death": 8, "hit": 4, "shot": 3, "max": 8 },
     "decayRate": { "shotPistol": 12, "shotOther": 18, "camera": 18, "reaction": 12, "reactionKilled": 10 },
     "reactionHoldSeconds": { "hit": 0.045, "killed": 0.08 }
+  },
+  "waterEffect": {
+    "imageWidth": 1672,
+    "imageHeight": 941,
+    "ndcDepth": 0.5,
+    "planeDistance": 99,
+    "renderOrder": -85,
+    "maxStepSeconds": 0.1
   }
 }
