@@ -1,6 +1,9 @@
 // Pure shared pilot rules. Core owns durable awards; combat owns physical eligibility.
 export const ATTRIBUTE_IDS = Object.freeze(["vitality", "strength", "dexterity", "endurance", "intelligence"]);
-export const DEFAULT_ATTRIBUTES = Object.freeze(Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, 10])));
+// Every attribute starts at, and bonuses count from, this baseline: the server's arma_record_caps floor for progression.attributes.*
+// (migration 000007), so it stays in code beside the shared rules (the writer imports this file); a test pins both.
+export const ATTRIBUTE_BASELINE = 10; // tuning-ok: mirrors the server's record-cap floor for attributes
+export const DEFAULT_ATTRIBUTES = Object.freeze(Object.fromEntries(ATTRIBUTE_IDS.map((id) => [id, ATTRIBUTE_BASELINE])));
 export const DEFAULT_PROFICIENCY = Object.freeze({ knife: 0, "westminster-start-pistol-v1": 0 });
 const own = (o, k) => Object.hasOwn(o, k);
 const plain = (o) => o && Object.getPrototypeOf(o) === Object.prototype;
@@ -66,10 +69,10 @@ export function pilotBonuses(data, attributes, weaponId, score) {
   checkedAttributes(attributes);
   checkedScore(score, data);
   if (typeof weaponId !== "string" || !own(data.weapons, weaponId)) fail();
-  const attribute = attributes[data.weapons[weaponId].damageAttribute] - 10;
+  const attribute = attributes[data.weapons[weaponId].damageAttribute] - ATTRIBUTE_BASELINE;
   return Object.freeze({
-    healthBonus: (attributes.vitality - 10) * data.hpPerVitality,
-    staminaBonus: (attributes.endurance - 10) * data.staminaPerEndurance,
+    healthBonus: (attributes.vitality - ATTRIBUTE_BASELINE) * data.hpPerVitality,
+    staminaBonus: (attributes.endurance - ATTRIBUTE_BASELINE) * data.staminaPerEndurance,
     damageMultiplier: (1 + attribute * data.damagePerAttribute) * (1 + score * data.damagePerPoint),
   });
 }

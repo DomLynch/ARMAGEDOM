@@ -22,8 +22,7 @@ test("the era registry is unchanged: same versions and layers in the same order,
 test("the gate counts 0 here, every exemption is a marked save version, and the baseline entry is gone", () => {
   const r = countNumberLiterals(fs.readFileSync(new URL("../src/engine/save-eras.js", import.meta.url), "utf8"));
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url), "utf8"));
-  // The tightened gate (2, 3, 4, 10, 0.5 and named constants count) still finds numbers here: the baseline entry is the ratchet.
-  assert.equal(r.count, baseline.numberLiterals["engine/save-eras.js"] ?? 0);
-  assert(r.reasons.length >= 13);
-  assert(r.reasons.filter((line) => /save era version$/.test(line)).length === 13, "the 13 save versions stay marked");
+  assert.equal(r.count, 0);
+  assert(!("engine/save-eras.js" in baseline.numberLiterals));
+  assert(r.reasons.filter((line) => /save era version$/.test(line)).length === 15, "all 15 save era versions are marked");
 });

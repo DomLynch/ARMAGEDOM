@@ -20,13 +20,13 @@ import { MARKED_SAVE_KEY } from "./marked-core.js";
 const era = (version, layer, key) => Object.freeze({ version, layer, key });
 export const SAVE_ERAS = Object.freeze([
   era(1, "run", RUN_SAVE_KEY),
-  era(4, "progression", PROGRESSION_SAVE_KEY),
+  era(4, "progression", PROGRESSION_SAVE_KEY), // tuning-ok: save era version
   era(5, "expedition", EXPEDITION_SAVE_KEY), // tuning-ok: save era version
   era(6, "area-boss", AREA_BOSS_SAVE_KEY), // tuning-ok: save era version
   era(7, "unique-reward", UNIQUE_REWARD_SAVE_KEY), // tuning-ok: save era version
   era(8, "flame", FLAME_SAVE_KEY), // tuning-ok: save era version
   era(9, "rifle", RIFLE_SAVE_KEY), // tuning-ok: save era version
-  era(10, "boss-equipment", PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY),
+  era(10, "boss-equipment", PREVIOUS_BOSS_EQUIPMENT_SAVE_KEY), // tuning-ok: save era version
   era(11, "boss-equipment", BOSS_EQUIPMENT_SAVE_KEY), // tuning-ok: save era version
   era(12, "locker", LOCKER_SAVE_KEY), // tuning-ok: save era version
   // The opening-story layer's first key was retired when it moved to v14; real records under it still exist.

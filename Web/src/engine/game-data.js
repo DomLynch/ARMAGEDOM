@@ -21,6 +21,7 @@ import guestAuth from "../data/guestAuth.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import presenceClient from "../data/presenceClient.json" with { type: "json" };
+import progressionBase from "../data/progressionBase.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
@@ -47,6 +48,7 @@ import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateEffectsFeedback } from "./effects-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateGuestAuth, validatePresenceClient } from "./game-data-presence.js";
+import { validateProgressionBase } from "./game-data-progression.js";
 import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
@@ -82,6 +84,7 @@ export {
   validateMelee,
   validateMobileAim,
   validatePresenceClient,
+  validateProgressionBase,
   validateRenderBudget,
   validateSaveClient,
   validateTargeting,
@@ -702,8 +705,12 @@ export function validateAreaRuntime(d) {
 // uniqueReward.json: where a boss's drop is placed when its corpse is against a wall or exit (engine/unique-reward-runtime.js). Metres,
 // searched outward in 16 directions: the near rings first, then the wider ones. Placement only; item identity and saved shape stay in code.
 export function validateUniqueReward(d) {
-  closed(d, ["schema_version", "dropSearch"]);
-  closed(d.dropSearch, ["nearRadii", "fallbackRadii"]);
+  closed(d, ["schema_version", "pickupRadius", "dropSearch"]);
+  number("uniqueReward", "pickupRadius", d.pickupRadius, 0.1);
+  if (d.pickupRadius > 5) fail("uniqueReward", "pickupRadius must be up to 5 m");
+  closed(d.dropSearch, ["ringSteps", "nearRadii", "fallbackRadii"]);
+  count("uniqueReward", "dropSearch.ringSteps", d.dropSearch.ringSteps, 4, 64);
+  if (d.dropSearch.ringSteps % 2) fail("uniqueReward", "dropSearch.ringSteps must be even (half a turn is a whole number of steps)");
   for (const name of ["nearRadii", "fallbackRadii"]) {
     const rows = d.dropSearch[name];
     if (!Array.isArray(rows) || rows.length < 1 || rows.length > 16) fail("uniqueReward", `dropSearch.${name} must list 1 to 16 radii`);
@@ -885,6 +892,7 @@ const sources = () => ({
   renderBudget: [renderBudget, validateRenderBudget],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],
+  progressionBase: [progressionBase, validateProgressionBase],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
   railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
