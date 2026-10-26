@@ -250,6 +250,7 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
+    "remotePlayers",
     "severBlood",
     "motion",
     "safehouseView",
