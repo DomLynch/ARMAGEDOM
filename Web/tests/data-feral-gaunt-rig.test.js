@@ -66,7 +66,8 @@ test("the loader rejects a broken block", () => {
   assert.throws(broken((d) => { d.gauntShape.segments.pelvis = ["spine_01", 1.2]; }));
   assert.throws(broken((d) => { d.gauntShape.segments["bad name"] = ["spine_01", 0.5]; }));
   assert.throws(broken((d) => { d.rigCapabilities = {}; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].lowStrike = "yes"; }));
+  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].lowStrike = ""; }));
+  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].hitTicks = null; }));
   assert.throws(broken((d) => { d.rigCapabilities["original-rat"].targetHeight = -1; }));
   assert.throws(broken((d) => { d.rigCapabilities["original-rat"]["Bad name"] = true; }));
 });
