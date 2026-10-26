@@ -1,5 +1,6 @@
 import { DRONE_RULES, droneHoverHeight } from "../../drone-mechanics.js";
 import { GAME_DATA } from "../game-data.js";
+import { rigOfSpecies } from "../../rig-capabilities.js";
 import { tracePistol } from "../../pistol.js";
 import { bodyLineClear, createBridgeSteering } from "../../bridge-steering.js";
 
@@ -19,6 +20,7 @@ const EPS = 1e-8,
   distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z),
   live = (a) => a.hp > 0,
   point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+const DRONE_RIG = rigOfSpecies("drone"); // the machine side's rig, from the rig capability rows
 const all = (s) => [...s.units, ...s.opponents];
 function actor(s, team, pos) {
   const id = s.nextId++,
@@ -27,7 +29,7 @@ function actor(s, team, pos) {
   return {
     id,
     kind: 0,
-    rig: machine ? "low-hover-drone" : "hollow-scavenger",
+    rig: machine ? DRONE_RIG : "hollow-scavenger",
     team,
     areaId: "westminster",
     placementKey: "commander-" + id,
