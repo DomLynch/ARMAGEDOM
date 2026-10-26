@@ -4,8 +4,9 @@ import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
 import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
-import { WEAPON_VIEWS } from "./engine/weapon-view-data.js";
-const REWARD = WEAPON_VIEWS.uniqueReward;
+import { GAME_DATA } from "./engine/game-data.js";
+// Checked by engine/weapon-view-data.js, which the engine weapon views load.
+const REWARD = GAME_DATA.visual.weaponViews.uniqueReward;
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
 };

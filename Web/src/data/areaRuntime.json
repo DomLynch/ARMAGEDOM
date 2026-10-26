@@ -21,7 +21,13 @@
     "landscapeLift": 0.1,
     "maxFollowSeconds": 0.1,
     "exitHintMeters": 6,
-    "defaultCharacterScale": 1.265
+    "defaultCharacterScale": 1.265,
+    "artSize": [1672, 941],
+    "londonEntry": { "x": 0, "z": -6 },
+    "entryClearance": 0.4,
+    "followReference": { "x": 0.52, "y": 0.78 },
+    "referenceHeight": 2,
+    "maxZoom": 4
   },
   "travel": {
     "messageDelayMs": 300,

@@ -7,6 +7,7 @@ import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { createVestBagView } from "../vest-view.js";
 import { areaDisplayName as areaName } from "../area-registry.js";
+import { EXPEDITION_HUD } from "./expedition-hud-data.js";
 export function selectedAtlasRoute(registry, from, to) {
   const route = [];
   if (!to || from === to) return route;
@@ -26,16 +27,18 @@ const paint = (element, value) => {
 // Long schematic links use the gaps between cards, so crossing an unrelated
 // area never looks like a connection to it. Endpoints remain the real graph.
 export function atlasConnectionPoints(a, b) {
-  const start = { x: a.column * 100 + 50, y: a.row * 100 + 50 },
-    end = { x: b.column * 100 + 50, y: b.row * 100 + 50 };
+  const { cell, gutter, columns, rows, lanes } = EXPEDITION_HUD.atlas,
+    half = cell / 2, // tuning-ok: the centre of a card
+    start = { x: a.column * cell + half, y: a.row * cell + half },
+    end = { x: b.column * cell + half, y: b.row * cell + half };
   if (a.row === b.row && Math.abs(a.column - b.column) > 1) {
-    const y = a.row === 0 ? 0 : a.row === 2 ? 300 : 100;
+    const y = a.row === 0 ? 0 : a.row === rows - 1 ? rows * cell : cell;
     return [start, { x: start.x, y }, { x: end.x, y }, end];
   }
   if (a.column === b.column && Math.abs(a.row - b.row) > 1) {
-    const x = a.column === 0 ? -3 : a.column === 2 ? 303 : 100,
-      near = start.y < end.y ? 100 : 200,
-      far = start.y < end.y ? 200 : 100;
+    const x = a.column === 0 ? -gutter : a.column === columns - 1 ? columns * cell + gutter : cell,
+      near = start.y < end.y ? lanes[0] : lanes[1],
+      far = start.y < end.y ? lanes[1] : lanes[0];
     return [start, { x: start.x, y: near }, { x, y: near }, { x, y: far }, { x: end.x, y: far }, end];
   }
   return [start, end];
@@ -208,16 +211,6 @@ export function createExpeditionView(s, dispatch) {
       if (action) execute({ type: "expedition", action });
     });
   }
-  function label(element, position, height, text) {
-    const p = s.world.toRender(position, height).project(s.camera),
-      visible = Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && p.z >= -1 && p.z <= 1;
-    element.hidden = !visible;
-    if (!visible) return;
-    element.textContent = text;
-    const portrait = innerWidth < innerHeight;
-    element.style.left = `${Math.max(95, Math.min(innerWidth - 95, ((p.x + 1) * innerWidth) / 2))}px`;
-    element.style.top = `${Math.max(portrait ? 185 : 150, Math.min(innerHeight - 110, ((1 - p.y) * innerHeight) / 2))}px`;
-  }
   function interact() {
     const g = s.game;
     if (!g || !allowed() || s.paused) return false;
@@ -347,7 +340,7 @@ export function createExpeditionView(s, dispatch) {
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
       caseView.root.name = "Stolen supply case";
-      caseView.root.scale.setScalar(1.35);
+      caseView.root.scale.setScalar(EXPEDITION_HUD.caseScale);
       s.scene.add(caseView.root);
     }
     if (caseView) {
@@ -363,7 +356,7 @@ export function createExpeditionView(s, dispatch) {
       allowed() &&
       g.world.areaId === c.guard.areaId &&
       guard &&
-      Math.hypot(guard.pos.x - g.player.pos.x, guard.pos.z - g.player.pos.z) < 10
+      Math.hypot(guard.pos.x - g.player.pos.x, guard.pos.z - g.player.pos.z) < EXPEDITION_HUD.guardLabelDistance
     ) {
       guardLabel.hidden = false;
       paint(guardLabel, c.guard.name);

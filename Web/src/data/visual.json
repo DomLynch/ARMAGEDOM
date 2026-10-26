@@ -76,6 +76,25 @@
   "effects": {
     "swingColours": { "slash": "e3e9ec", "stab": "e3e9ec", "heavy": "ffa64c", "special": "e8bc65" },
     "lootColours": ["dca64d", "48b9c5", "70c66e"],
+    "feedback": {
+      "pools": { "particles": 48, "tracers": 16 },
+      "viewportFallback": { "width": 852, "height": 393 },
+      "lootGemRadius": 0.21,
+      "flameWidthScale": { "witch": 2, "salamander": 2 },
+      "tracer": { "colour": "f5d498", "opacity": 0.8, "defaultSeconds": 0.065 },
+      "muzzleFlashColour": "ffedb0",
+      "particle": { "palette": "ffca85", "gravity": 8, "minLife": 0.001, "dimBase": 0.6, "dimSpan": 0.4 },
+      "finisherDrop": {
+        "speedBase": 0.6,
+        "speedSpread": 0.4,
+        "speedStride": 7,
+        "liftShare": 0.1,
+        "liftCycle": 3,
+        "baseLift": 0.3,
+        "tailSpeedShare": 0.75,
+        "tailTravelShare": 0.65
+      }
+    },
     "targetHeights": {
       "burst": {
         "default": { "scaled": 1.1 },
@@ -146,9 +165,39 @@
     "ringY": 0.045,
     "ringSegments": 48
   },
+  "expeditionHud": {
+    "atlas": { "cell": 100, "gutter": 3, "columns": 3, "rows": 3, "lanes": [100, 200] },
+    "caseScale": 1.35,
+    "guardLabelDistance": 10
+  },
+  "remotePlayers": {
+    "capsule": { "bodyHeight": 1, "radius": 0.3, "capSegments": 4, "radialSegments": 8, "saturation": 0.45, "lightness": 0.55, "hueStep": 47 },
+    "head": { "radius": 0.2, "widthSegments": 12, "heightSegments": 8 },
+    "tag": {
+      "height": 2.05,
+      "scale": [1.6, 0.4],
+      "canvas": [256, 64],
+      "band": [0, 8, 256, 48],
+      "textX": 128,
+      "textY": 33,
+      "fonts": ["bold 30px sans-serif"]
+    }
+  },
   "routeArrow": {
     "peakOpacity": 0.6,
     "tailGap": 1
+  },
+  "bossView": {
+    "labelRange": 12,
+    "hazard": {
+      "ringInner": 0.91,
+      "segments": 48,
+      "height": 0.025,
+      "initialFillOpacity": 0.14,
+      "initialEdgeOpacity": 0.9,
+      "warning": { "colour": "ffcb59", "fillOpacity": 0.1, "edgeBase": 0.65, "edgeSwing": 0.3, "pulseRate": 10 },
+      "active": { "colour": "8ed04d", "fillOpacity": 0.24, "edgeOpacity": 0.9 }
+    }
   },
   "pickupModel": {
     "fitDiameter": 0.72,
@@ -189,6 +238,11 @@
     "boundaryReach": 3.5,
     "exitReach": 5,
     "boundaryStartReach": 7,
+    "waypointMin": 0.5,
+    "arrivalRadius": 4,
+    "pistolArrived": 0.3,
+    "huntArrived": 1.5,
+    "pulse": { "seconds": 1.3, "minOpacity": 0.35 },
     "rail": {
       "sideProbe": 0.3,
       "sideOffset": 0.12,
@@ -197,7 +251,7 @@
       "thickness": 0.28,
       "depth": 0.12,
       "colours": ["d0a943", "252522"],
-      "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a" }
+      "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a", "along": [0, 0.5, 1] }
     },
     "arrow": {
       "height": 0.04,
@@ -256,6 +310,29 @@
         "walking": [[0.05, 0.45], [0.55, 0.95]],
         "other": [[0.03, 0.2], [0.55, 0.74]]
       }
+    }
+  },
+  "flameEffect": {
+    "texture": { "falloffPower": 1.6, "peakAlpha": 240 },
+    "alphaTest": 0.01,
+    "renderOrder": 2,
+    "cyclesPerSecond": 4,
+    "floorClearance": 0.02,
+    "spread": { "radiusShare": 0.55, "jitterRate": 19.3 },
+    "phaseClamp": [0.03, 0.97],
+    "corpseDeathFallbackSeconds": 2.4,
+    "burnSurface": { "maxOffset": 0.8, "defaultRadius": 0.4, "margin": 0.05 },
+    "burnWisp": { "spacing": 0.24, "baseHeight": 0.13, "wobbleRate": 14, "wobbleHeight": 0.08 }
+  },
+  "safehouseView": {
+    "cue": { "period": 3.5, "reducedOpacity": 0.75, "pulseExponent": 8, "floor": { "selected": 0.82, "near": 0.7, "idle": 0.4 } },
+    "patchRenderOrder": -99,
+    "contour": { "colour": "ddba70", "linewidth": 2, "opacity": 0.4, "renderOrder": -98 },
+    "amountDigits": 2,
+    "silhouettes": {
+      "locker": [[0.09, 0.05], [0.91, 0], [1, 0.86], [0.77, 1], [0, 0.88]],
+      "comms": [[0, 0.31], [0.76, 0], [1, 0.23], [0.96, 0.84], [0.25, 1], [0.02, 0.82]],
+      "map": [[0, 0.13], [0.91, 0], [1, 0.84], [0.08, 1]]
     }
   },
   "wantedPoster": {

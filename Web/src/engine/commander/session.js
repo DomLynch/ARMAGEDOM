@@ -7,8 +7,11 @@ import {
   stepCommander,
 } from "./match.js";
 import { createCommanderView } from "./view.js";
+import { GAME_DATA } from "../game-data.js";
 
+const isSecondaryButton = (p) => p.button === 2; // tuning-ok: DOM pointer event button 2 is the secondary (right) mouse button
 export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
+  const pacing = GAME_DATA.commanderSession; // data/commanderSession.json
   let view,
     match,
     loaded = false,
@@ -40,7 +43,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   }
   function tell(message) {
     notice = message;
-    noticeUntil = (match?.time ?? 0) + 4;
+    noticeUntil = (match?.time ?? 0) + pacing.noticeSeconds;
   }
   function snapshot() {
     return {
@@ -124,14 +127,14 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   function frame(ms) {
     if (disposed || !loaded || paused) return;
     if (!lastFrame) lastFrame = ms;
-    accumulator += Math.min(0.1, Math.max(0, (ms - lastFrame) / 1000));
+    accumulator += Math.min(pacing.maxFrameSeconds, Math.max(0, (ms - lastFrame) / 1000));
     lastFrame = ms;
     let steps = 0;
-    while (accumulator >= 1 / 60 && !match.result && steps++ < 6) {
+    while (accumulator >= 1 / 60 && !match.result && steps++ < pacing.maxStepsPerFrame) {
       tick();
       accumulator -= 1 / 60;
     }
-    render(steps ? Math.min(0.1, steps / 60) : 0);
+    render(steps ? Math.min(pacing.maxFrameSeconds, steps / 60) : 0);
     if (match.result) {
       view.renderer.setAnimationLoop(null);
       accumulator = 0;
@@ -247,8 +250,8 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   });
   for (const id of ["commander-back", "commander-result-back"]) listen(byId(id), "click", () => onMenu());
   for (const [id, dx, dy] of [
-    ["commander-pan-left", -0.045, 0],
-    ["commander-pan-right", 0.045, 0],
+    ["commander-pan-left", -pacing.panStep, 0],
+    ["commander-pan-right", pacing.panStep, 0],
   ])
     listen(byId(id), "click", () => {
       if (loaded && !disposed) {
@@ -278,7 +281,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   });
   listen(canvas, "pointermove", (e) => {
     if (!pointer || e.pointerId !== pointer.id) return;
-    if (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) > 8) pointer.drag = true;
+    if (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) > pacing.dragThresholdPx) pointer.drag = true;
     if (pointer.drag) {
       view.drag(e.clientX - pointer.lastX, e.clientY - pointer.lastY);
       render();
@@ -295,15 +298,15 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       x = e.clientX - rect.left,
       y = e.clientY - rect.top,
       hit = view.pick(match, x, y);
-    if (hit?.team === "machine" && p.button !== 2) {
+    if (hit?.team === "machine" && !isSecondaryButton(p)) {
       input({ type: "select", ids: [hit.id] });
       return;
     }
-    if (hit?.team === "biological" && (command === "attack" || p.button === 2)) {
+    if (hit?.team === "biological" && (command === "attack" || isSecondaryButton(p))) {
       input({ type: "attack", targetId: hit.id });
       return;
     }
-    if (command === "move" || p.button === 2) {
+    if (command === "move" || isSecondaryButton(p)) {
       const point = view.ground(x, y);
       input({ type: "move", point });
     } else tell("Tap a biological opponent to attack");
@@ -340,7 +343,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     pause,
     retry,
     step(seconds) {
-      if (!Number.isFinite(seconds) || seconds < 0 || seconds > 5) throw Error("Bounded Commander step required");
+      if (!Number.isFinite(seconds) || seconds < 0 || seconds > pacing.maxApiStepSeconds) throw Error("Bounded Commander step required");
       if (!loaded || paused || disposed) return;
       for (let i = 0; i < Math.floor(seconds * 60 + 1e-8) && !match.result; i++) tick();
       render();

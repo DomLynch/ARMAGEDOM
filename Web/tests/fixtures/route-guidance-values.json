@@ -102,7 +102,54 @@
     -2.543889223377986
    ]
   ],
-  "reach": "faa161d7b9d8e8ad81b045303a01f6d6e3b1ccf438beaa824550e103b6671b2f"
+  "reach": "faa161d7b9d8e8ad81b045303a01f6d6e3b1ccf438beaa824550e103b6671b2f",
+  "edge": "b53cf6f848ddee6be51c467a7afb93dd935bd8ebbd6e808dde43b28a367bdfbf",
+  "cues": [
+   [
+    "exit",
+    4.112561774,
+    "↖ EAST · 5m"
+   ],
+   [
+    "exit",
+    4.112561774,
+    "↖ EAST · 5m"
+   ],
+   [
+    "exit",
+    4.112561774,
+    "↖ EAST · 5m"
+   ],
+   [
+    "exit",
+    4.112561774,
+    "↖ EAST · 5m"
+   ],
+   [
+    "exit",
+    4.112561774
+   ],
+   [
+    "exit",
+    4.112561774
+   ],
+   [
+    "hunt",
+    1.51
+   ],
+   [
+    "hunt",
+    3
+   ],
+   [
+    null,
+    null
+   ],
+   [
+    null,
+    null
+   ]
+  ]
  },
  "area7": {
   "rows": 2,
@@ -207,7 +254,54 @@
     2.7729770609239464
    ]
   ],
-  "reach": "e99f81f0da9cfb2c2ed0bbc0718a0fb795a7fec43a1dbfef45bf473f374b116c"
+  "reach": "e99f81f0da9cfb2c2ed0bbc0718a0fb795a7fec43a1dbfef45bf473f374b116c",
+  "edge": "dc758b80a547520ac1261742212c78c2ed05ba76f70ddc66f139c7e304987f2c",
+  "cues": [
+   [
+    "exit",
+    3.373438851,
+    "↗ EAST · 4m"
+   ],
+   [
+    "exit",
+    3.373438851,
+    "↗ EAST · 4m"
+   ],
+   [
+    "pistol",
+    0.31,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "pistol",
+    1,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "exit",
+    3.373438851
+   ],
+   [
+    "exit",
+    3.373438851
+   ],
+   [
+    "hunt",
+    1.51
+   ],
+   [
+    "hunt",
+    3
+   ],
+   [
+    null,
+    null
+   ],
+   [
+    "east-approach",
+    4.268808445
+   ]
+  ]
  },
  "lambeth": {
   "rows": 3,
@@ -255,6 +349,64 @@
     -2.189414875098104
    ]
   ],
-  "reach": "e4a7658e42df1881f5cf7e966b1ba9e80ebfafcc5b999a8702f9a52e19a9fe3d"
- }
+  "reach": "e4a7658e42df1881f5cf7e966b1ba9e80ebfafcc5b999a8702f9a52e19a9fe3d",
+  "edge": "691921abdb2b98ff003e4e482e4536b5578a1621526143a536eb50c604ce2af9",
+  "cues": [
+   [
+    "boundary",
+    31.141062497,
+    "ROAD CLOSED · ↖ ELEPHANT AND CASTLE · 32m"
+   ],
+   [
+    "boundary",
+    31.141062497,
+    "ROAD CLOSED · ↖ ELEPHANT AND CASTLE · 32m"
+   ],
+   [
+    "boundary",
+    31.141062497,
+    "ROAD CLOSED · ↖ ELEPHANT AND CASTLE · 32m"
+   ],
+   [
+    "boundary",
+    31.141062497,
+    "ROAD CLOSED · ↖ ELEPHANT AND CASTLE · 32m"
+   ],
+   [
+    "boundary",
+    31.141062497
+   ],
+   [
+    "boundary",
+    31.141062497
+   ],
+   [
+    "hunt",
+    1.51
+   ],
+   [
+    "hunt",
+    3
+   ],
+   [
+    null,
+    null
+   ],
+   [
+    null,
+    null
+   ]
+  ]
+ },
+ "pulse": [
+  1.3,
+  0.35,
+  1,
+  1,
+  0.6048701360504629,
+  0.35,
+  1,
+  0.4317340068443921,
+  0.7141744210829807
+ ]
 }

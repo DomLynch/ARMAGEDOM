@@ -2,11 +2,13 @@
 // Presentation only: no collision, no hits, no effect on the game state. A figure is a pooled group removed (and disposed) when its
 // player leaves the layer.
 import * as THREE from "three";
+import { REMOTE_PLAYERS as V } from "./remote-players-view-data.js";
 
-const BODY_HEIGHT = 1.0,
-  RADIUS = 0.3,
-  TAG_Y = 2.05;
-const hue = (id) => ((id * 47) % 360) / 360;
+// The sizes, segment counts, colour and name-card layout live in visual.json `remotePlayers`.
+const BODY_HEIGHT = V.capsule.bodyHeight,
+  RADIUS = V.capsule.radius,
+  TAG_Y = V.tag.height;
+const hue = (id) => ((id * V.capsule.hueStep) % 360) / 360;
 
 // The server's display name when it sent one, otherwise 'Guest <id>'.
 export const guestName = (id, name = null) => (typeof name === "string" && name ? name : `Guest ${id}`);
@@ -14,17 +16,16 @@ export const guestName = (id, name = null) => (typeof name === "string" && name 
 function nameTexture(text) {
   if (typeof document === "undefined") return null;
   const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 64;
+  [canvas.width, canvas.height] = V.tag.canvas;
   const ctx = canvas.getContext?.("2d");
   if (!ctx) return null;
   ctx.fillStyle = "rgba(13,24,27,.72)";
-  ctx.fillRect(0, 8, 256, 48);
+  ctx.fillRect(...V.tag.band);
   ctx.fillStyle = "#f1d28c";
-  ctx.font = "bold 30px sans-serif";
+  ctx.font = V.tag.fonts[0];
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, 128, 33);
+  ctx.fillText(text, V.tag.textX, V.tag.textY);
   const map = new THREE.CanvasTexture(canvas);
   map.colorSpace = THREE.SRGBColorSpace;
   return map;
@@ -35,8 +36,8 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   group.name = "Other players";
   scene.add(group);
   const figures = new Map(); // id -> { root, parts: [disposables] }
-  const body = new THREE.CapsuleGeometry(RADIUS, BODY_HEIGHT, 4, 8),
-    head = new THREE.SphereGeometry(0.2, 12, 8);
+  const body = new THREE.CapsuleGeometry(RADIUS, BODY_HEIGHT, V.capsule.capSegments, V.capsule.radialSegments),
+    head = new THREE.SphereGeometry(V.head.radius, V.head.widthSegments, V.head.heightSegments);
 
   // The figure's root owns position, facing and the name tag; its LOOK is a child: the plain capsule (cheap), or, for the players the
   // caller picks as `full`, Characters' survivor kit: survivors.spawn(id) -> { root, update({ moving, facing }), dispose() }.
@@ -50,14 +51,14 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   function showCapsule(figure, id) {
     if (!figure.capsule) {
       const material = new THREE.MeshBasicMaterial({
-          color: new THREE.Color().setHSL(hue(id), 0.45, 0.55),
+          color: new THREE.Color().setHSL(hue(id), V.capsule.saturation, V.capsule.lightness),
           toneMapped: false,
         }),
         look = new THREE.Group(),
         torso = new THREE.Mesh(body, material),
         skull = new THREE.Mesh(head, material);
-      torso.position.y = RADIUS + BODY_HEIGHT / 2;
-      skull.position.y = BODY_HEIGHT + RADIUS * 2 + 0.2;
+      torso.position.y = RADIUS + BODY_HEIGHT / 2; // tuning-ok: the torso is centred on half its height
+      skull.position.y = BODY_HEIGHT + RADIUS * 2 + V.head.radius; // tuning-ok: the capsule's two caps, then the head's radius
       look.add(torso, skull);
       figure.capsule = look;
       figure.parts.push(material);
@@ -104,7 +105,7 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
     const spriteMaterial = new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }),
       sprite = new THREE.Sprite(spriteMaterial);
     sprite.name = "Name tag";
-    sprite.scale.set(1.6, 0.4, 1);
+    sprite.scale.set(...V.tag.scale, 1);
     sprite.position.y = TAG_Y;
     figure.root.add(sprite);
     figure.tag = { sprite, parts: [spriteMaterial, map] };
