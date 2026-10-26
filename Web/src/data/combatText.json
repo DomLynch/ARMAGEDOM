@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "exitGate": {
+    "needsKill": "Kill the {name}",
+    "needsVisit": "Visit {destination} first",
+    "saveUnavailable": "Saving unavailable. Exit locked."
+  },
+  "markedHunter": {
+    "warning": "HUNTER INBOUND · find cover or reach a safehouse.",
+    "arrived": "A hunter is after you"
+  },
+  "bossFlame": {
+    "defaultBossName": "SALAMANDER",
+    "warning": "{name} · FLAME BURST — MOVE ASIDE"
+  },
+  "rewardNames": {
+    "cleaver": "Pitborn Cleaver",
+    "reaper": "Reaper Drone"
+  },
+  "layerMessages": {
+    "bossEquipment": {
+      "envelope": "Invalid boss equipment envelope",
+      "base": "Boss equipment requires existing v9",
+      "snapshot": "Invalid equipment snapshot"
+    },
+    "rifle": {
+      "envelope": "Invalid rifle envelope",
+      "base": "Rifle requires existing v8",
+      "snapshot": "Invalid rifle snapshot"
+    },
+    "uniqueReward": {
+      "envelope": "Invalid unique reward envelope",
+      "base": "Unique reward requires base v6",
+      "snapshot": "Invalid unique reward snapshot"
+    }
+  }
+}

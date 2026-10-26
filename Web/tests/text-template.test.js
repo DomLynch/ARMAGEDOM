@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { GAME_DATA, validateVisual } from "../src/engine/game-data.js";
+import { GAME_DATA, validateVisual, fillText } from "../src/engine/game-data.js";
 import { checkTemplate } from "../src/engine/text-template.js";
-import { fillText } from "../src/text-fill.js";
 import { areaDisplayName } from "../src/area-registry.js";
 
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/visual.json", import.meta.url), "utf8")));

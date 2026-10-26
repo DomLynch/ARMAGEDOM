@@ -1,7 +1,7 @@
 import { closed } from "./content-schema.js";
-import { PLACEHOLDER } from "../text-fill.js";
-// checkTemplate is what the data validators call (the words are filled by ../text-fill.js): a typo or a missing placeholder fails at
-// load instead of showing "{ara}" on screen.
+// checkTemplate is what the data validators call (the words are filled by fillText, exported from game-data.js): a typo or a missing
+// placeholder fails at load instead of showing "{ara}" on screen.
+const PLACEHOLDER = /\{([A-Za-z]+)\}/g;
 export function checkTemplate(field, template, allowed, fail, required = []) {
   if (typeof template !== "string" || !template.trim()) fail(`${field} must be a non-empty string`);
   const used = [...template.matchAll(PLACEHOLDER)].map((m) => m[1]);

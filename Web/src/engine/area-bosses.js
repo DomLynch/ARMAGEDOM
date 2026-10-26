@@ -1,7 +1,9 @@
 import { closed, freeze } from "./content-schema.js";
 import { GAME_DATA } from "./game-data.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
-const HAZARD_PLACEMENT = GAME_DATA.areaRuntime.bossHazard; // data/areaRuntime.json: clearance and entry gap for a boss hazard
+import { fillText } from "./game-data-combat-text.js";
+const EXIT_TEXT = GAME_DATA.combatText.exitGate; // data/combatText.json: the exit-gate prompts
+const HAZARD_PLACEMENT =GAME_DATA.areaRuntime.bossHazard; // data/areaRuntime.json: clearance and entry gap for a boss hazard
 const fail = () => {
   throw TypeError("Invalid area boss catalogue");
 };
@@ -308,10 +310,10 @@ export function bossExitGate(game, target = null) {
     message: allowed
       ? ""
       : !defeated
-        ? `Kill the ${name}`
+        ? fillText(EXIT_TEXT.needsKill, { name })
         : !visited
-          ? `Visit ${destination.replace(/\b\w/g, (c) => c.toUpperCase())} first`
-          : "Saving unavailable. Exit locked.",
+          ? fillText(EXIT_TEXT.needsVisit, { destination: destination.replace(/\b\w/g, (c) => c.toUpperCase()) })
+          : EXIT_TEXT.saveUnavailable,
   };
 }
 export function bossHazardPosition(game, actor) {

@@ -1,6 +1,5 @@
 import { areaDefinitions, areaAssets } from "./area-definitions.js";
-import { GAME_DATA } from "./engine/game-data.js";
-import { fillText } from "./text-fill.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
 // The name a player reads for an area: a data override (visual.json areaNames.overrides), else "Area {number}" for areaN ids, else the
 // id with its dashes as spaces and each word capitalised, so a new area needs no code.
 export const areaDisplayName = (id) => {

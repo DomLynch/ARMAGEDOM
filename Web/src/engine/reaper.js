@@ -209,7 +209,7 @@ export function validateReaperData(input, expedition) {
     input.version !== 1 ||
     input.itemId !== REAPER_ITEM_ID ||
     input.receiptId !== REAPER_RECEIPT ||
-    input.name !== "Reaper Drone" ||
+    input.name !== GAME_DATA.combatText.rewardNames.reaper ||
     input.visual !== "low-hover-watcher" ||
     expedition?.contract.rewardVariantId !== input.itemId ||
     expedition.contract.receiptId !== input.receiptId ||

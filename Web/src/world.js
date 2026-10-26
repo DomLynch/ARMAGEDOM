@@ -4,8 +4,7 @@ import { createExitRings } from "./engine/exit-rings.js";
 import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
-import { GAME_DATA } from "./engine/game-data.js";
-import { fillText } from "./text-fill.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
 const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
 const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
 const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];

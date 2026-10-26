@@ -16,6 +16,7 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import runNotices from "../data/runNotices.json" with { type: "json" };
+import combatText from "../data/combatText.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -50,6 +51,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateCombatText } from "./game-data-combat-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
@@ -79,6 +81,8 @@ import {
 } from "./game-data-weapons.js";
 
 // The combat, weapons and creatures validators live in game-data-*.js (this loader stays small); they are still exported from here.
+// fillText is the game's one placeholder filler: it swaps each {name} in a data string, and files outside engine/ import it from here.
+export { fillText } from "./game-data-combat-text.js";
 export {
   validateBossEquipment,
   validateBossRanged,
@@ -970,6 +974,7 @@ const sources = () => ({
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   runNotices: [runNotices, validateRunNotices],
+  combatText: [combatText, validateCombatText],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
