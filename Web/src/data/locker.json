@@ -1,5 +1,17 @@
 {
   "schema_version": 1,
+  "weaponIds": [
+    "westminster-start-pistol-v1",
+    "bridge-warden-rifle-v1",
+    "flamethrower-area8-v1",
+    "hale-pitborn-cleaver-v1",
+    "south-stalker-shotgun-v1",
+    "standard-grenade-v1",
+    "surgeons-knife-v1",
+    "borough-butchers-rocket-launcher-v1",
+    "watchmans-pistol-v1",
+    "borough-marshals-pistol-v1"
+  ],
   "resourceCaps": {
     "railgun-reserve": 8,
     "pistol-reserve": 12,
