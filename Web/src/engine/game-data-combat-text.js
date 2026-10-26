@@ -11,7 +11,16 @@ const text = (field, v, placeholders = []) => {
 };
 
 export function validateCombatText(d) {
-  closed(d, ["schema_version", "exitGate", "layerMessages"]);
+  closed(d, ["schema_version", "exitGate", "markedHunter", "bossFlame", "rewardNames", "layerMessages"]);
+  closed(d.markedHunter, ["warning", "arrived"]);
+  text("markedHunter.warning", d.markedHunter.warning);
+  text("markedHunter.arrived", d.markedHunter.arrived);
+  closed(d.bossFlame, ["defaultBossName", "warning"]);
+  text("bossFlame.defaultBossName", d.bossFlame.defaultBossName);
+  text("bossFlame.warning", d.bossFlame.warning, ["name"]);
+  closed(d.rewardNames, ["cleaver", "reaper"]);
+  text("rewardNames.cleaver", d.rewardNames.cleaver);
+  text("rewardNames.reaper", d.rewardNames.reaper);
   closed(d.exitGate, ["needsKill", "needsVisit", "saveUnavailable"]);
   text("exitGate.needsKill", d.exitGate.needsKill, ["name"]);
   text("exitGate.needsVisit", d.exitGate.needsVisit, ["destination"]);

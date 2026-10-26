@@ -2,6 +2,8 @@ import { combatTargetHeight } from "../pistol-targeting.js";
 import { flameTouches } from "./flame-contact.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
 import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./game-data-combat-text.js";
+const FLAME_TEXT = GAME_DATA.combatText.bossFlame; // data/combatText.json
 // weapons.json `bossFlame.retreatDirections`: evenly spaced directions tried when a flame boss backs away.
 const RETREAT_DIRECTIONS = GAME_DATA.weapons.bossFlame.retreatDirections;
 const EPS = 1e-8;
@@ -134,7 +136,7 @@ export function stepBossFlame(
     source: null,
   };
   onStart?.(g, e);
-  g.message = (e.bossName ?? "SALAMANDER") + " · FLAME BURST — MOVE ASIDE";
+  g.message = fillText(FLAME_TEXT.warning, { name: e.bossName ?? FLAME_TEXT.defaultBossName });
   g.messageUntil = g.time + p.windupTicks / 60;
   emit(g, "boss-flame-warning", { actor: e, dir: { ...direction }, range: p.range, arc: p.coneDegrees });
   return true;
