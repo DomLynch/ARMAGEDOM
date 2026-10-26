@@ -24,7 +24,7 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
-import { appearanceExtraKeys, validateAppearanceExtras } from "./appearance-extra-validators.js";
+import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
@@ -539,6 +539,7 @@ export function validateCreatures(d) {
     "gauntHumanCycles",
     "hollowTuning",
     "creatureSim",
+    "mobSize",
     "feralBodyShapes",
     "feralCoatProfiles",
     "gauntShape",
@@ -643,11 +644,11 @@ export function validateCreatures(d) {
   }
   validateBehaviours(d.behaviours);
   validateEncounterTables(d);
+  extra.validateMobSize(d.mobSize, { fail, number });
   validateRigTables(d);
 }
 
-// creatures.json `feralBodyShapes`, `feralCoatProfiles`, `gauntShape` and `rigCapabilities` (feral-body-shapes.js, feral-coat-profiles.js,
-// gaunt-shape.js, rig-capabilities.js). Recipe ids are unique; a rig capability is a closed set of boolean flags.
+// creatures.json feralBodyShapes, feralCoatProfiles, gauntShape, rigCapabilities: recipe ids are unique; a capability is a flag, name or number.
 function validateRigTables(d) {
   const recipeId = (field, v) => {
     if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `${field} must be a lowercase id`);
@@ -844,7 +845,7 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "routeGuidance", "severBlood"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "routeGuidance", "severBlood", "motion"]);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -904,8 +905,9 @@ export function validateVisual(d) {
   unique("faces.hairs", f.hairs);
   unique("faces.weathering", f.weathering);
   const c = d.clothing;
-  closed(c, ["version", "tops", "trousers", "partners"]);
+  closed(c, ["version", "minTonalGap", "tops", "trousers", "partners"]);
   if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
+  extra.validateClothingGap(c, { fail });
   const families = (name) => {
     list(`clothing.${name}`, c[name], 1, 64);
     for (const [family, ...swatches] of c[name]) {
@@ -1138,7 +1140,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", ...appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, ["schema_version", "faceMesh", ...extra.appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -1154,7 +1156,7 @@ export function validateAppearance(d) {
   if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
-  validateAppearanceExtras(d, { fail, between, triple });
+  extra.validateAppearanceExtras(d, { fail, between, triple });
   closed(d.hollowGarments, ["jacket", "trousers"]);
   named("hollowGarments.jacket", d.hollowGarments.jacket);
   named("hollowGarments.trousers", d.hollowGarments.trousers);
@@ -1177,7 +1179,6 @@ export function validateAppearance(d) {
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
   // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
   // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
-  closed(d.crookedHollow, ["bones"]);
   const bones = d.crookedHollow.bones;
   if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
     fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
