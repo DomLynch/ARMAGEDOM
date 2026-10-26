@@ -240,6 +240,7 @@ export function validateVisual(d) {
     "combatImpact",
     "flameEffect",
     "explosion",
+    "flamePresentation",
   ]);
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);

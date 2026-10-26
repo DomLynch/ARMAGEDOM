@@ -7,7 +7,10 @@ import { attachPistol, applyPistolAim, PISTOL_ARM_EXTENSION } from "../pistol-po
 import { FLAME_AIM } from "../mobile-combat-aim.js";
 import profile from "../donor/flame-right-digit-profile.json" with { type: "json" };
 export const FLAME_DOWN_PITCH = FLAME_AIM.downPitch;
-const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) => [1, 2, 3].map((i) => `${f}_0${i}_r`));
+import { FLAME_PRESENTATION as FP } from "./flame-presentation-data.js";
+const JOINTS = [1, 2, 3]; // tuning-ok: the rig has three joints on each finger
+const PITCH_UP = -(Math.PI * FP.pitchUpDegrees) / 180; // the highest the barrel tilts above level, in radians
+const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) => JOINTS.map((i) => `${f}_0${i}_r`));
 const validated = new WeakMap();
 // The one accepted profile is bound to this exact hero, not retargeted or fitted.
 export function flameGripProfile(model, heroSHA) {
@@ -26,7 +29,7 @@ export function flameGripProfile(model, heroSHA) {
       !Array.isArray(q) ||
       q.length !== 4 ||
       !q.every(Number.isFinite) ||
-      Math.abs(Math.hypot(...q) - 1) > 1e-5
+      Math.abs(Math.hypot(...q) - 1) > 1e-5 // tuning-ok: how far from unit length a profile quaternion may be
     )
       throw Error("Flame grip bone/quaternion mismatch");
   }
@@ -50,7 +53,7 @@ export function attachFlame(model, source, { bindHand = false } = {}) {
   const mount = attachPistol(model, source.scene);
   mount.name = "FlamethrowerMount";
   // Art's one measured scene-child offset is not baked into the immutable GLB.
-  mount.children[0].position.add({ x: -0.01262174057948523, y: 0.07164552251435374, z: 0.014197067151910436 });
+  mount.children[0].position.add(FP.mountOffset);
   mount.visible = false;
   if (bindHand) {
     // Calibrate the existing ready grip once, then restore the native pose exactly.
@@ -143,7 +146,7 @@ function projectedPitch({ shoulder, muzzle, axis, forward }, target) {
     below = to.dot(down),
     radius = Math.hypot(along, below);
   const pitch = radius > 1e-8 ? Math.atan2(below, along) - Math.asin(Math.max(-1, Math.min(1, offset / radius))) : 0;
-  return Math.max(-Math.PI / 6, Math.min(FLAME_DOWN_PITCH, pitch));
+  return Math.max(PITCH_UP, Math.min(FLAME_DOWN_PITCH, pitch));
 }
 // Read-only prediction of the SAME shoulder transform used by the renderer.
 // Capture before pitching; prospective yaw follows the ordinary body facing.
@@ -271,7 +274,7 @@ export function flameAimPose(model, mount, g) {
           lineClear: (a, b) => g.world.lineClear(a, b),
           range: selectedFlameProfile(g).contact.range,
           rangeOffset: (t) => t.radius,
-          coneDegrees: selectedFlameProfile(g).contact.coneDegrees / 2,
+          coneDegrees: selectedFlameProfile(g).contact.coneDegrees / 2, // tuning-ok: the cone's half angle either side of the aim
           areaId: g.world.areaId,
         })?.targetId,
     );
@@ -300,7 +303,7 @@ export function applyFlamePitch(model, mount, pitch, yaw = 0) {
   const upper = model.getObjectByName("upperarm_r");
   if (!upper || mount.parent !== model) throw Error("Flame aim mount mismatch");
   if (pitched.has(model)) throw Error("Restore flame pitch before gait/sample");
-  pitch = Math.max(-Math.PI / 6, Math.min(FLAME_DOWN_PITCH, pitch));
+  pitch = Math.max(PITCH_UP, Math.min(FLAME_DOWN_PITCH, pitch));
   yaw = Math.max(-FLAME_AIM.yawLimit, Math.min(FLAME_AIM.yawLimit, yaw));
   if (Math.abs(pitch) < 1e-8 && Math.abs(yaw) < 1e-8) return;
   model.updateWorldMatrix(true, true);

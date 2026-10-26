@@ -520,6 +520,10 @@
     "renderOrder": -85,
     "maxStepSeconds": 0.1
   },
+  "flamePresentation": {
+    "mountOffset": { "x": -0.01262174057948523, "y": 0.07164552251435374, "z": 0.014197067151910436 },
+    "pitchUpDegrees": 30
+  },
   "explosion": {
     "maxActive": 3,
     "texture": { "size": 64, "edge": 0.55, "falloffPower": 1.1 },
