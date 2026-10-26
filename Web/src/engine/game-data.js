@@ -1176,7 +1176,6 @@ export function validateAppearance(d) {
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
   // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
   // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
-  closed(d.crookedHollow, ["bones"]);
   const bones = d.crookedHollow.bones;
   if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
     fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
