@@ -297,6 +297,7 @@
   },
   "bossEquipment": {
     "order": ["shotgun", "grenade", "surgicalKnife", "commanderPistol", "emberProjector", "rocketLauncher"],
+    "emberContactConeDegrees": 40,
     "ranged": {
       "shotgun": "south-stalker-shotgun-v1",
       "grenade": "standard-grenade-v1",
