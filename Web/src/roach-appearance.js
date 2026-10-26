@@ -5,6 +5,8 @@ export const ROACH_APPEARANCES = GAME_DATA.appearance.roaches;
 // The shell taper band and the wear noise (appearance.json `roachCoat`): wear is a smooth noise of the vertex position.
 const COAT = GAME_DATA.appearance.roachCoat;
 const SHELL = new Set(["abdomen", "thorax"]);
+const XYZ = 3; // tuning-ok: a colour packed as three floats
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 export function createRoachAppearanceLibrary(T) {
   const caches = new WeakMap(),
     ownedG = new Set(),
@@ -34,11 +36,11 @@ export function createRoachAppearanceLibrary(T) {
           const p = g.attributes.position,
             ix = g.attributes.skinIndex,
             w = g.attributes.skinWeight,
-            c = new Float32Array(p.count * 3),
+            c = new Float32Array(p.count * XYZ),
             original = m.geometry.attributes.color;
           for (let i = 0; i < p.count; i++) {
             let shell = 0;
-            for (let k = 0; k < 4; k++)
+            for (let k = 0; k < INFLUENCES; k++)
               if (SHELL.has(m.skeleton.bones[ix.getComponent(i, k)]?.name)) shell += w.getComponent(i, k);
             const mask = Math.max(0, Math.min(1, (shell - COAT.taper.from) / COAT.taper.range)),
               x = p.getX(i),
@@ -48,10 +50,10 @@ export function createRoachAppearanceLibrary(T) {
             const f = COAT.field,
               field = Math.sin(z * f.z + Math.cos(x * f.cosX) * f.wobble) + Math.sin(y * f.y + z * f.z2),
               wear = 1 - r.patch * Math.max(0, Math.min(1, (field - COAT.wear.from) / COAT.wear.range)) * mask;
-            for (let k = 0; k < 3; k++)
-              c[i * 3 + k] = (original ? original.getComponent(i, k) : 1) * (1 + (r.shellTint[k] - 1) * mask) * wear;
+            for (let k = 0; k < XYZ; k++)
+              c[i * XYZ + k] = (original ? original.getComponent(i, k) : 1) * (1 + (r.shellTint[k] - 1) * mask) * wear;
           }
-          g.setAttribute("color", new T.BufferAttribute(c, 3));
+          g.setAttribute("color", new T.BufferAttribute(c, XYZ));
           mat.vertexColors = true;
           if (r.width !== 1) g.computeVertexNormals();
           g.computeBoundingBox();

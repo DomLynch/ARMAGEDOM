@@ -14,6 +14,14 @@
     "homeLeash": 12
   },
   "awareness": { "ratContactDistance": 6, "sightDistance": 6 },
+  "bossWeapon": {
+    "moveThreshold": 0.01,
+    "grenadeLandingClearance": 0.05,
+    "grenadeAimHeight": 0.08,
+    "rocketAimHeight": 0.05,
+    "grenadeThrowRanges": [3, 5, 8],
+    "defaultThrowRange": 5
+  },
   "spawning": {
     "distances": [4, 6, 8],
     "laterals": [0, 1.4, -1.4, 2.8, -2.8],

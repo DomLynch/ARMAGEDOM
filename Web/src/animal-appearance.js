@@ -7,6 +7,8 @@ export const ANIMAL_APPEARANCES = GAME_DATA.appearance.animals;
 const COAT = GAME_DATA.appearance.animalCoat;
 // The coat material name of each foundation rig is its creatures.json rigCapabilities `coatName`.
 const torso = new Set(["pelvis", "spine", "chest"]);
+const XYZ = 3; // tuning-ok: a colour packed as three floats
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 // Apply to SkeletonUtils.clone(foundation.scene). Cache once per loaded foundation,
 // dispose after its last actor is removed. Originals and clips remain immutable.
 export function createAnimalAppearanceLibrary(THREE) {
@@ -24,10 +26,10 @@ export function createAnimalAppearanceLibrary(THREE) {
       p = g.attributes.position,
       ix = g.attributes.skinIndex,
       w = g.attributes.skinWeight;
-    const colors = new Float32Array(p.count * 3);
+    const colors = new Float32Array(p.count * XYZ);
     for (let i = 0; i < p.count; i++) {
       let body = 0;
-      for (let k = 0; k < 4; k++)
+      for (let k = 0; k < INFLUENCES; k++)
         if (torso.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) body += w.getComponent(i, k);
       // Smooth influence taper; head/neck/teeth/legs/paws/tail stay exact.
       const mask = Math.max(0, Math.min(1, (body - COAT.taper.from) / COAT.taper.range));
@@ -40,11 +42,9 @@ export function createAnimalAppearanceLibrary(THREE) {
         field = Math.sin(z * f.z + Math.cos(y * f.cosY) * f.wobble) + Math.sin(x * f.x - y * f.y);
       const patch = Math.max(0, Math.min(1, (field - COAT.patch.from) / COAT.patch.range));
       const value = 1 - recipe.patch * patch;
-      colors[i * 3] = value;
-      colors[i * 3 + 1] = value;
-      colors[i * 3 + 2] = value;
+      colors.fill(value, i * XYZ, (i + 1) * XYZ);
     }
-    if (recipe.patch > 0) g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    if (recipe.patch > 0) g.setAttribute("color", new THREE.BufferAttribute(colors, XYZ));
     if (recipe.width !== 1) g.computeVertexNormals();
     g.computeBoundingBox();
     g.computeBoundingSphere();

@@ -18,6 +18,8 @@
   "crownSplit": { "maxVertices": 100000, "cutColor": "#49251f", "openRadians": 0.19, "openMetres": 0.008, "sliceMs": 4, "weldPrecision": 100000 },
   "finisherCosmetics": { "pulseBase": 0.65, "pulseSwing": 0.35, "hotMix": 0.8 },
   "severBloodEffect": { "jetTopRadius": 0.35, "jetSegments": 8, "poolSegments": 24, "color": "#831428", "groundLift": 0.006 },
+  "faceRecipeCycle": { "hairStride": 2, "skinStride": 2, "sideShift": 3, "weatherSideShift": 2 },
+  "wolfNative": { "bodyWeightMin": 0.5 },
   "faceBuild": { "sliceMs": 4, "yieldEvery": 128, "yieldEveryTriangles": 256, "weldPrecision": 1000000 },
   "finisherPresentation": {
     "poseEmphasis": { "share": 0.25, "window": 0.2 },
