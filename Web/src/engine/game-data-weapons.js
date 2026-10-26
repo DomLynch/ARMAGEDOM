@@ -195,6 +195,9 @@ export function validateBossEquipment(b, ranged) {
     "staggerAfter",
     "staggerSeconds",
     "staggerRecovery",
+    "hitStagger",
+    "hitChip",
+    "recoveryReadySeconds",
   ]);
   for (const [f, v] of Object.entries(b.boneSawRules)) number("weapons", `bossEquipment.boneSawRules.${f}`, v);
   for (const field of ["surgicalKnife", "emberProjector"]) {
