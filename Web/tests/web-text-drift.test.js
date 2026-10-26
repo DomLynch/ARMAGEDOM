@@ -14,6 +14,12 @@ const DYNAMIC_PREFIXES = [
   { prefix: "runCore.refusal.", reason: "run-core.js picks the supply refusal line by the collectSupply reason (pistol-required, reserve-full, health-full)" },
 ];
 
+// An id read by something other than a webText() call counts as used; each names who reads it and which test keeps the copy in step.
+const EXTERNAL_READERS = [
+  { id: "boot.failed", reason: "copied into index.html data-boot-failed for the inline boot-failure script; web-text-boot-card.test.js keeps them equal" },
+  { id: "boot.retry", reason: "copied into index.html data-boot-retry for the inline boot-failure script; web-text-boot-card.test.js keeps them equal" },
+];
+
 const walk = (dir) =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
     entry.isDirectory() ? walk(path.join(dir, entry.name)) : entry.name.endsWith(".js") ? [path.join(dir, entry.name)] : [],
@@ -83,7 +89,7 @@ export function readCalls(files, root = SRC) {
 }
 
 // The findings for a set of calls against a set of ids: dead ids, calls to missing ids, and calls whose id cannot be read.
-export function driftProblems(calls, ids, dynamic = DYNAMIC_PREFIXES) {
+export function driftProblems(calls, ids, dynamic = DYNAMIC_PREFIXES, external = EXTERNAL_READERS) {
   const problems = [],
     used = new Set();
   for (const call of calls) {
@@ -102,6 +108,11 @@ export function driftProblems(calls, ids, dynamic = DYNAMIC_PREFIXES) {
     const under = ids.filter((id) => id.startsWith(prefix));
     if (!under.length) problems.push(`DYNAMIC_PREFIXES "${prefix}" matches no id in webText.json; remove it`);
     for (const id of under) used.add(id);
+  }
+  for (const { id, reason } of external) {
+    if (!reason?.trim()) problems.push(`EXTERNAL_READERS "${id}" needs a reason`);
+    if (!ids.includes(id)) problems.push(`EXTERNAL_READERS "${id}" is not in webText.json; remove it`);
+    used.add(id);
   }
   for (const id of ids) if (!used.has(id)) problems.push(`webText.json "${id}" has no caller in Web/src (dead text); remove it`);
   return problems;

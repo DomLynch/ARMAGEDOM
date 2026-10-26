@@ -31,7 +31,18 @@ function fakePage({ entryHidden = false, booted = false, readyState = "complete"
     },
     ...extra,
   });
-  const nodes = { entry: node({ hidden: entryHidden }), enter: node(), loading: node() };
+  // The entry card carries the failure text as data attributes in index.html, exactly as the page ships them.
+  const html = readFileSync(indexUrl, "utf8"),
+    attribute = (name) => new RegExp(`${name}="([^"]*)"`).exec(html)?.[1];
+  const nodes = {
+    entry: node({
+      hidden: entryHidden,
+      attributes: { "data-boot-failed": attribute("data-boot-failed"), "data-boot-retry": attribute("data-boot-retry") },
+    }),
+    enter: node(),
+    loading: node(),
+  };
+  const logged = [];
   const reloads = [];
   const win = {
     __armagedomBooted: booted,
@@ -44,9 +55,10 @@ function fakePage({ entryHidden = false, booted = false, readyState = "complete"
     getElementById: (id) => nodes[id] ?? null,
     addEventListener: (type, fn) => docListeners.set(type, fn),
   };
-  new Function("window", "document", inlineScript(readFileSync(indexUrl, "utf8")))(win, doc);
+  new Function("window", "document", "console", inlineScript(html))(win, doc, { error: (...args) => logged.push(args) });
   return {
     nodes,
+    logged,
     reloads,
     listeners,
     docListeners,
@@ -59,18 +71,22 @@ test("a failed game module import shows a message and a Retry that reloads", asy
   const failure = await import("../src/does-not-exist-boot-probe.js").catch((error) => error);
   assert.ok(failure instanceof Error);
   page.fire("unhandledrejection", { reason: failure });
-  assert.match(page.nodes.loading.textContent, /^Could not load the game: .+Check your connection and retry\.$/);
+  assert.equal(page.nodes.loading.textContent, "Could not load the game. Check your connection and retry.");
+  assert.doesNotMatch(page.nodes.loading.textContent, /does-not-exist-boot-probe/, "the failure detail never reaches the card");
+  assert.equal(page.logged[0][1], failure.message, "the failure goes to the console");
   assert.equal(page.nodes.enter.textContent, "Retry loading");
   assert.equal(page.nodes.enter.disabled, false);
   page.nodes.enter.clicks[0]();
   assert.equal(page.reloads.length, 1);
 });
 
-test("a script element that fails to download is caught in the capture phase and named", () => {
+test("a script element that fails to download is caught in the capture phase; the card never names the file", () => {
   const page = fakePage();
   assert.equal(page.listeners.get("error").capture, true);
   page.fire("error", { target: { src: "https://example.test/assets/index-abc.js" } });
-  assert.match(page.nodes.loading.textContent, /could not fetch https:\/\/example\.test\/assets\/index-abc\.js/);
+  assert.equal(page.nodes.loading.textContent, "Could not load the game. Check your connection and retry.");
+  assert.doesNotMatch(page.nodes.loading.textContent, /example\.test|index-abc/);
+  assert.match(String(page.logged[0][1]), /could not fetch https:\/\/example\.test\/assets\/index-abc\.js/);
   assert.equal(page.nodes.enter.textContent, "Retry loading");
 });
 
@@ -79,7 +95,8 @@ test("repeated failures add one reload handler, not one per error", () => {
   page.fire("error", { message: "first" });
   page.fire("error", { message: "second" });
   assert.equal(page.nodes.enter.clicks.length, 1);
-  assert.match(page.nodes.loading.textContent, /second/);
+  assert.equal(page.nodes.loading.textContent, "Could not load the game. Check your connection and retry.");
+  assert.equal(page.logged.length, 2, "each failure is logged");
 });
 
 test("a failure that arrives before the entry card is parsed is shown once the page has loaded", () => {
@@ -87,7 +104,7 @@ test("a failure that arrives before the entry card is parsed is shown once the p
   page.fire("error", { target: { src: "https://example.test/assets/index-abc.js" } });
   assert.equal(page.nodes.loading.textContent, "");
   page.docListeners.get("DOMContentLoaded")();
-  assert.match(page.nodes.loading.textContent, /could not fetch/);
+  assert.equal(page.nodes.loading.textContent, "Could not load the game. Check your connection and retry.");
   assert.equal(page.nodes.enter.textContent, "Retry loading");
 });
 

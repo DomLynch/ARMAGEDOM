@@ -22,6 +22,8 @@
     "hud.assistOn": "Assist: 100%",
     "hud.assistOff": "Assist: Off",
     "hud.retryLoading": "Retry loading",
+    "boot.failed": "Could not load the game. Check your connection and retry.",
+    "boot.retry": "Retry loading",
     "hud.guardBroken": "GUARD BROKEN",
     "hud.dodgeRoll": "Dodge Roll",
     "hud.lowStamina": "{label} · Low stamina",
