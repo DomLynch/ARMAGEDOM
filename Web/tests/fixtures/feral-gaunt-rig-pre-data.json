@@ -66,12 +66,57 @@
     }
   ],
   "rigCapabilities": {
-    "original-rat": { "lowStrike": true, "targetHeight": 0.54 },
-    "original-dog": { "lowStrike": true, "targetHeight": 0.35, "targetHeightReach": 0.7 },
-    "original-roach": { "lowStrike": true, "targetHeight": 0.08, "targetHeightReach": 0.24 },
-    "giant-salamander": { "lowStrike": true, "tutorialHunt": true, "breathEmitter": true, "targetHeight": 1.08 },
-    "original-wolf": { "lowStrike": true, "targetHeight": 1.625, "fixedPointerScale": true },
-    "low-hover-drone": { "lowStrike": true, "hoverTarget": true }
+    "original-rat": {
+      "lowStrike": true,
+      "targetHeight": 0.54,
+      "hitClip": "rat_hit",
+      "deathClip": "rat_death",
+      "hitTicks": 20,
+      "deathTicks": 54
+    },
+    "original-dog": {
+      "lowStrike": true,
+      "targetHeight": 0.35,
+      "targetHeightReach": 0.7,
+      "hitClip": "dog_hit",
+      "deathClip": "dog_death",
+      "hitTicks": 24,
+      "deathTicks": 60
+    },
+    "original-roach": {
+      "lowStrike": true,
+      "targetHeight": 0.08,
+      "targetHeightReach": 0.24,
+      "hitClip": "roach_hit",
+      "deathClip": "roach_death",
+      "hitTicks": 18,
+      "deathTicks": 48
+    },
+    "giant-salamander": {
+      "lowStrike": true,
+      "tutorialHunt": true,
+      "breathEmitter": true,
+      "targetHeight": 1.08,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74
+    },
+    "original-wolf": {
+      "lowStrike": true,
+      "targetHeight": 1.625,
+      "fixedPointerScale": true,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74
+    },
+    "low-hover-drone": {
+      "lowStrike": true,
+      "hoverTarget": true
+    }
   },
   "gauntTargets": [
     "Torn_modern_canvas_jacket",

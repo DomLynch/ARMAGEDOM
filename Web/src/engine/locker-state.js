@@ -1,3 +1,4 @@
+import { GAME_DATA } from "./game-data.js";
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
 export const LOCKER_WEAPON_IDS = Object.freeze([
@@ -23,19 +24,18 @@ const resourceOwner = {
   "flame-fuel": weaponIdsAllowed[2],
 };
 const resources = Object.keys(resourceOwner);
-export const LOCKER_RESOURCE_RULES = Object.freeze(
-  Object.fromEntries(
-    Object.entries({
-      "railgun-reserve": 3,
-      "pistol-reserve": 12,
-      "rifle-reserve": 16,
-      "shotgun-reserve": 12,
-      "rocket-reserve": 3,
-      "grenade-charges": 3,
-      "flame-fuel": 1000,
-    }).map(([key, cap]) => [key, Object.freeze({ carryCap: cap, stashCap: cap, integer: key !== "flame-fuel" })]),
-  ),
-);
+// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
+// tests/data-locker.test.js checks the client copy against them.
+const lockerRules = (caps) =>
+  Object.freeze(
+    Object.fromEntries(
+      Object.entries(caps).map(([key, cap]) => [
+        key,
+        Object.freeze({ carryCap: cap, stashCap: cap, integer: key !== "flame-fuel" }),
+      ]),
+    ),
+  );
+export const LOCKER_RESOURCE_RULES = lockerRules(GAME_DATA.locker.resourceCaps);
 const closed = (value, keys) =>
   !!value &&
   Object.getPrototypeOf(value) === Object.prototype &&

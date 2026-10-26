@@ -14,6 +14,11 @@
 //
 // fixedPointerScale: touch aim does not rescale the rig by its rendered size (pistol-targeting.js rangedPointerPoint).
 //
+// strictAlive: the rig counts as alive only above 0 health; other rigs count any non-zero health as alive (rig-response.js).
+//
+// Names and numbers for the hit and death reactions (rig-response.js; a rig with none uses creatures.json defaultResponse):
+// hitClip / deathClip: the clip names; hitTicks / deathTicks: how long the reaction holds, in 60 Hz ticks.
+//
 // Numbers (a row may also carry measured values, read with `rigNumber(rig, name)`):
 // targetHeight / targetHeightReach: metres above the ground where shots and flame aim at the rig. `targetHeightReach` replaces
 //   `targetHeight` while the rig is reaching for a contact goal (pistol-targeting.js combatTargetHeight).
@@ -24,6 +29,12 @@ export const RIG_CAPABILITIES = GAME_DATA.creatures.rigCapabilities;
 
 export function rigNumber(rig, name) {
   return Object.hasOwn(RIG_CAPABILITIES, rig) && Number.isFinite(RIG_CAPABILITIES[rig][name])
+    ? RIG_CAPABILITIES[rig][name]
+    : undefined;
+}
+
+export function rigText(rig, name) {
+  return Object.hasOwn(RIG_CAPABILITIES, rig) && typeof RIG_CAPABILITIES[rig][name] === "string"
     ? RIG_CAPABILITIES[rig][name]
     : undefined;
 }

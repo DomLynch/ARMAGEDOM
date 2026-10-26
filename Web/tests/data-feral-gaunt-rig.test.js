@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { GAME_DATA, validateCreatures } from "../src/engine/game-data.js";
 import { FERAL_BODY_SHAPES } from "../src/feral-body-shapes.js";
 import { FERAL_COAT_PROFILES } from "../src/feral-coat-profiles.js";
-import { RIG_CAPABILITIES, rigCapability, rigNumber } from "../src/rig-capabilities.js";
+import { RIG_CAPABILITIES, rigCapability, rigNumber, rigText } from "../src/rig-capabilities.js";
 import { countConstantTables } from "../../scripts/as-data-gate.mjs";
 
 // Data move: FERAL_BODY_SHAPES, FERAL_COAT_PROFILES, the gaunt-shape TARGETS/SHAPE tables and RIG_CAPABILITIES moved into
@@ -34,9 +34,11 @@ test("every table equals the old in-code table exactly (values and key order) an
 
 test("rigCapability answers as before", () => {
   for (const [rig, row] of Object.entries(old.rigCapabilities)) {
-    for (const flag of ["lowStrike", "tutorialHunt", "breathEmitter", "hoverTarget", "fixedPointerScale"])
+    for (const flag of ["lowStrike", "tutorialHunt", "breathEmitter", "hoverTarget", "fixedPointerScale", "strictAlive"])
       assert.equal(rigCapability(rig, flag), row[flag] === true, `${rig} ${flag}`);
-    for (const name of ["targetHeight", "targetHeightReach"]) assert.equal(rigNumber(rig, name), row[name], `${rig} ${name}`);
+    for (const name of ["targetHeight", "targetHeightReach", "hitTicks", "deathTicks"])
+      assert.equal(rigNumber(rig, name), row[name], `${rig} ${name}`);
+    for (const name of ["hitClip", "deathClip"]) assert.equal(rigText(rig, name), row[name], `${rig} ${name}`);
   }
   assert.equal(rigCapability("hero", "lowStrike"), false);
 });

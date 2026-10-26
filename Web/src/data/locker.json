@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "resourceCaps": {
+    "railgun-reserve": 3,
+    "pistol-reserve": 12,
+    "rifle-reserve": 16,
+    "shotgun-reserve": 12,
+    "rocket-reserve": 3,
+    "grenade-charges": 3,
+    "flame-fuel": 1000
+  }
+}

@@ -8,6 +8,7 @@ import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import locker from "../data/locker.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -32,6 +33,24 @@ export function validateDiagnostics(d) {
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
   // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
   count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
+}
+
+// The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
+// the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
+export function validateLocker(d) {
+  closed(d, ["schema_version", "resourceCaps"]);
+  closed(d.resourceCaps, [
+    "railgun-reserve",
+    "pistol-reserve",
+    "rifle-reserve",
+    "shotgun-reserve",
+    "rocket-reserve",
+    "grenade-charges",
+    "flame-fuel",
+  ]);
+  for (const [key, cap] of Object.entries(d.resourceCaps))
+    if (!Number.isFinite(cap) || cap <= 0 || cap > 100000 || (key !== "flame-fuel" && !Number.isSafeInteger(cap)))
+      fail("locker", `resourceCaps.${key}`);
 }
 
 // A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
@@ -344,6 +363,7 @@ export function validateCreatures(d) {
     "moves",
     "playerAttacks",
     "playerHealth",
+    "defaultResponse",
     "salamanderBreath",
     "drone",
     "catalogue",
@@ -367,6 +387,11 @@ export function validateCreatures(d) {
   // Health comes back over this many seconds of active play, from empty to full.
   closed(d.playerHealth, ["regenerationSeconds"]);
   number("creatures", "playerHealth.regenerationSeconds", d.playerHealth.regenerationSeconds, 1);
+  // The hit and death reaction of a rig with no row of its own in creatures.json rigCapabilities (rig-response.js).
+  closed(d.defaultResponse, ["hitClip", "deathClip", "deathTicks"]);
+  for (const f of ["hitClip", "deathClip"])
+    if (typeof d.defaultResponse[f] !== "string" || !d.defaultResponse[f]) fail("creatures", `defaultResponse.${f}`);
+  count("creatures", "defaultResponse.deathTicks", d.defaultResponse.deathTicks, 1, 600);
   if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
   for (const [name, row] of Object.entries(d.moves)) {
     id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
@@ -492,10 +517,12 @@ function validateRigTables(d) {
   for (const [rig, row] of Object.entries(d.rigCapabilities)) {
     id("creatures", `rigCapabilities.${rig}`, rig);
     if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `rigCapabilities.${rig} must be an object`);
-    // A capability is a flag (true or false) or a measured number (metres, 0 or more), read with rigCapability / rigNumber.
+    // A capability is a flag (true or false), a name (a clip) or a measured number (0 or more), read with rigCapability / rigText / rigNumber.
     for (const [name, value] of Object.entries(row)) {
       if (!/^[a-z][A-Za-z]{0,30}$/.test(name)) fail("creatures", `rigCapabilities.${rig}.${name} is not a capability name`);
-      if (typeof value !== "boolean") number("creatures", `rigCapabilities.${rig}.${name}`, value);
+      if (typeof value === "string") {
+        if (!value) fail("creatures", `rigCapabilities.${rig}.${name} must not be empty`);
+      } else if (typeof value !== "boolean") number("creatures", `rigCapabilities.${rig}.${name}`, value);
     }
   }
 }
@@ -1018,6 +1045,7 @@ const sources = () => ({
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
+  locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
