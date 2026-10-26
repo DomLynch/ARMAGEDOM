@@ -1,14 +1,19 @@
 import { CREATURE_MOVES } from "./creature-moves.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { rigNumber, rigOfSpecies } from "./rig-capabilities.js";
+import { rigResponse } from "./rig-response.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
 // The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
+const WOLF = rigOfSpecies("wolf");
 export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
+// The reaction clips and ticks are the wolf's rigCapabilities row.
 export function wolfResponse(alive, start) {
-  return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };
+  return rigResponse(WOLF, alive ? 1 : 0, start);
 }
-// The measured mouth surface is .24995m to the actor's right. Aim the
+// The measured mouth surface is rigCapabilities `mouthOffset` metres to the actor's right, at the wolf's bite reach. Aim the
 // existing native root so that surface, rather than the body centre, faces the torso.
 export function wolfBiteDirection(direction) {
-  const angle = Math.atan2(0.24995, 2.375),
+  const angle = Math.atan2(rigNumber(WOLF, "mouthOffset"), GAME_DATA.creatures.catalogue.reach[WOLF]),
     c = Math.cos(angle),
     s = Math.sin(angle);
   return { x: direction.x * c - direction.z * s, z: direction.x * s + direction.z * c };

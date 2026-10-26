@@ -179,30 +179,16 @@ export function createHUD({
     menu.close();
     onRetry();
   };
-  const resetPanel = el("reset-confirmation"),
-    resetStatus = el("reset-status"),
-    confirmReset = el("confirm-reset"),
-    cancelReset = el("cancel-reset"),
+  const resetStatus = el("reset-status"),
     resetButton = el("reset-game");
-  resetPanel.hidden = true;
-  resetButton.onclick = () => {
-    if (!loaded || resetBusy) return;
-    resetPanel.hidden = false;
-    resetStatus.textContent = "";
-  };
-  cancelReset.onclick = () => {
-    if (!resetBusy) {
-      resetPanel.hidden = true;
-      resetStatus.textContent = "";
-    }
-  };
   listen(menu, "cancel", (event) => {
     if (resetBusy) event.preventDefault();
   });
-  confirmReset.onclick = async () => {
-    if (resetBusy || resetPanel.hidden) return;
+  // One tap resets (Dom, 26 Oct: no second "Reset the game?" box). The reset itself is unchanged.
+  resetButton.onclick = async () => {
+    if (!loaded || resetBusy) return;
     resetBusy = true;
-    confirmReset.disabled = cancelReset.disabled = resetButton.disabled = true;
+    resetButton.disabled = true;
     resetStatus.textContent = "Starting fresh…";
     let result;
     try {
@@ -214,7 +200,7 @@ export function createHUD({
     resetStatus.textContent = result?.message ?? "Reset failed. Your current run was kept.";
     if (!result?.ok) {
       resetBusy = false;
-      confirmReset.disabled = cancelReset.disabled = resetButton.disabled = false;
+      resetButton.disabled = false;
     }
   };
   el("again").onclick = onRetry;
@@ -242,8 +228,6 @@ export function createHUD({
     "menu-button",
     "retry",
     "reset-game",
-    "confirm-reset",
-    "cancel-reset",
     "again",
     "pistol-interact",
     "sound",
