@@ -33,6 +33,7 @@ import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
@@ -247,7 +248,9 @@ export function validateVisual(d) {
     "motion",
     "safehouseView",
     "wantedPoster",
+    "combatImpact",
   ]);
+  validateCombatImpact(d.combatImpact);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
