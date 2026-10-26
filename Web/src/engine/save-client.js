@@ -6,8 +6,6 @@
 import { GAME_DATA } from "./game-data.js";
 import { CURRENT_ERA } from "./save-eras.js";
 
-// Browsers cap the body of a keepalive request at 64 KiB in all; stay under it, else the page-hide send is a plain request.
-const KEEPALIVE_MAX_BYTES = 60000;
 // A run that is over (dead or finished): its save is sent at once, never held for the interval.
 export const runIsOver = (game) => !!game && (game.finished === true || game.player?.hp <= 0);
 export const CHARACTER_KEY ="armagedom.world.character.v1";
@@ -245,11 +243,11 @@ export function createSaveClient({
       if (hideGen !== generation) return { ok: false, reason: "superseded" };
       // Not enough tokens (a routine save leaves the reserve alone): nothing is sent, the record waits for the bucket to refill.
       const wait = waitForTokens(urgent ? 1 : 1 + tuning.bucketReserve);
-      if (wait > 0) return { ok: false, reason: "rate-limited", status: 429, retryMs: wait, local: true };
+      if (wait > 0) return { ok: false, reason: "rate-limited", status: 429, retryMs: wait, local: true }; // tuning-ok: HTTP status code
       spendToken();
       seq++;
       const reply = await call("save_run", { character, era: record.version, record, revision, seq });
-      if (reply.status === 429) {
+      if (reply.status === 429) { // tuning-ok: HTTP status code
         refill();
         tokens = 0; // the writer says its bucket is empty, whatever we thought
       }
@@ -259,8 +257,9 @@ export function createSaveClient({
         return { ok: false, reason: "network" };
       }
       if (reply.error) {
-        if (reply.status === 429) seq--; // refused before it was counted: the same sequence number goes out again
-        if (reply.status === 502 || reply.status === 504) uncertain = true; // the writer may have committed before the proxy gave up
+        if (reply.status === 429) seq--; // tuning-ok: HTTP status code (refused before it was counted: the same sequence number goes out again)
+        // The writer may have committed before the proxy gave up.
+        if (reply.status === 502 || reply.status === 504) uncertain = true; // tuning-ok: HTTP status codes
         return { ok: false, reason: reply.error, retryMs: reply.retryMs, status: reply.status };
       }
       if (overtaken && ["stale", "stale-seq", "seq-conflict"].includes(reply.refused)) return { ok: false, reason: "superseded" };
@@ -334,11 +333,11 @@ export function createSaveClient({
         // Our own bucket holding a save back is not a failure to report. The HTTP status and a death mark tell the beacon which send failed.
         if (!result.local) log(`[arma-save] not saved: ${result.reason}${result.status ? ` (http ${result.status})` : ""}${wasUrgent ? " [death]" : ""}`);
         // Never drop the record: a rate limit or a network failure leaves it queued (a newer record, if one arrived, replaces it).
-        if (result.reason === "network" || result.status === 429 || result.status >= 500) {
+        if (result.reason === "network" || result.status === 429 || result.status >= 500) { // tuning-ok: HTTP status codes
           if (latest === null) latest = taken;
           urgentPending = urgentPending || wasUrgent;
           // The writer's (or a proxy's) own wait when it gave one; otherwise the normal interval, so a down server is not hammered.
-          retryWait = Math.max(250, result.retryMs ?? tuning.minSaveIntervalMs);
+          retryWait = Math.max(tuning.retryFloorMs, result.retryMs ?? tuning.minSaveIntervalMs);
           retryFromUrgent = wasUrgent;
         }
       }
@@ -383,7 +382,7 @@ export function createSaveClient({
         method: "POST",
         headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" },
         body,
-        keepalive: new TextEncoder().encode(body).length < KEEPALIVE_MAX_BYTES,
+        keepalive: new TextEncoder().encode(body).length < tuning.keepaliveMaxBytes,
       });
     } catch {
       keep();
@@ -413,7 +412,7 @@ export function createSaveClient({
           keep();
           log(`[arma-save] page-hide save not saved: ${payload?.error ?? "refused"} (http ${response.status})`);
           if (payload?.retryMs) retryWait = payload.retryMs;
-          if (response.status === 502 || response.status === 504) uncertain = true;
+          if (response.status === 502 || response.status === 504) uncertain = true; // tuning-ok: HTTP status codes
         }
       })
       .catch(() => {

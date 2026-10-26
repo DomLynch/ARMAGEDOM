@@ -1,6 +1,11 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
 import { FLAME_VISUAL_DATA as DATA } from "./flame-data.js";
 import { combatTargetHeight } from "../pistol-targeting.js";
+import { GAME_DATA } from "./game-data.js";
+// Falloff texture, puff spread and cosmetic burn placement: data/visual.json `flameEffect`.
+const FX = GAME_DATA.visual.flameEffect;
+// The golden angle in radians, pi * (3 - sqrt 5): each emitter puff turns by this much round the stream, so they never line up.
+const GOLDEN_ANGLE = 2.399963229728653; // tuning-ok: the golden angle in radians, a mathematical constant
 // One private draw with fixed slots. Cosmetic victim fire never dispatches damage.
 export function createFlameEffect({
   THREE: T,
@@ -13,13 +18,14 @@ export function createFlameEffect({
   reducedMotion = () => false,
 }) {
   const size = DATA.textureSize,
-    pixels = new Uint8Array(size * size * 4);
+    pixels = new Uint8Array(size * size * 4), // tuning-ok: four bytes (RGBA) per pixel
+    half = size / 2; // tuning-ok: the texture centre is half its size
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
-      const at = (y * size + x) * 4,
-        r = Math.hypot((x + 0.5 - size / 2) / (size / 2), (y + 0.5 - size / 2) / (size / 2));
-      pixels[at] = pixels[at + 1] = pixels[at + 2] = 255;
-      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** 1.6 * 240);
+      const at = (y * size + x) * 4, // tuning-ok: four bytes (RGBA) per pixel
+        r = Math.hypot((x + 0.5 - half) / half, (y + 0.5 - half) / half); // tuning-ok: 0.5 = the pixel's centre
+      pixels[at] = pixels[at + 1] = pixels[at + 2] = 255; // tuning-ok: RGBA channel offsets, white
+      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** FX.texture.falloffPower * FX.texture.peakAlpha); // tuning-ok: alpha is channel 3
     }
   const texture = new T.DataTexture(pixels, size, size, T.RGBAFormat);
   texture.needsUpdate = true;
@@ -33,7 +39,7 @@ export function createFlameEffect({
       depthWrite: false,
       toneMapped: false,
       side: T.DoubleSide,
-      alphaTest: 0.01,
+      alphaTest: FX.alphaTest,
     }),
     capacity = DATA.emitterCount + DATA.burnSlots * DATA.burnPerVictim,
     mesh = new T.InstancedMesh(geometry, material, capacity),
@@ -46,7 +52,7 @@ export function createFlameEffect({
     anchor = new T.Vector3(),
     pelvisAnchor = new T.Vector3();
   mesh.name = "Flamethrower pooled flame and cosmetic fire";
-  mesh.renderOrder = 2;
+  mesh.renderOrder = FX.renderOrder;
   mesh.frustumCulled = false;
   mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
   scene.add(mesh);
@@ -73,12 +79,15 @@ export function createFlameEffect({
     corpseAnchors = [];
   }
   function put(i, x, y, z, r, palette, aspect = 1, lift = false) {
-    if (y <= 0.02 && !lift) return false;
+    const floor = FX.floorClearance;
+    if (y <= floor && !lift) return false;
     const q = world.camera.quaternion,
-      halfHeight =
-        (r * (Math.abs(2 * (q.x * q.y + q.w * q.z)) + aspect * Math.abs(1 - 2 * (q.x * q.x + q.z * q.z)))) / 2;
-    if (lift) y = Math.max(y, halfHeight + 0.02);
-    const floorScale = halfHeight > 0 ? Math.min(1, (y - 0.02) / halfHeight) : 1;
+      // The quad's screen-facing height from the camera quaternion's matrix terms: 2 * (xy + wz) and 1 - 2 * (xx + zz), halved.
+      tilt = 2 * (q.x * q.y + q.w * q.z), // tuning-ok: quaternion-to-matrix term
+      lean = 1 - 2 * (q.x * q.x + q.z * q.z), // tuning-ok: quaternion-to-matrix term
+      halfHeight = (r * (Math.abs(tilt) + aspect * Math.abs(lean))) / 2; // tuning-ok: half the extent
+    if (lift) y = Math.max(y, halfHeight + floor);
+    const floorScale = halfHeight > 0 ? Math.min(1, (y - floor) / halfHeight) : 1;
     pose.position.set(x, y, -z);
     pose.quaternion.copy(q);
     pose.scale.set(r * floorScale, r * aspect * floorScale, r * floorScale);
@@ -123,22 +132,23 @@ export function createFlameEffect({
         else u.normalize();
         v.crossVectors(u, direction).normalize();
         for (let i = 0; i < count; i++) {
-          const phase = light ? (i + 0.5) / count : (g.time * 4 + i / count) % 1,
+          // A reduced-motion puff sits at the middle of its slot (0.5); otherwise the stream cycles cyclesPerSecond times a second.
+          const phase = light ? (i + 0.5) / count : (g.time * FX.cyclesPerSecond + i / count) % 1, // tuning-ok: 0.5 = slot middle
             distance = data.contact.range * phase,
-            theta = i * 2.399963229728653,
-            radius = Math.tan((data.contact.coneDegrees * Math.PI) / 360) * distance * 0.55,
-            radial = light ? 0 : Math.sin(i * 19.3) * radius,
+            theta = i * GOLDEN_ANGLE,
+            radius = Math.tan((data.contact.coneDegrees * Math.PI) / 360) * distance * FX.spread.radiusShare,
+            radial = light ? 0 : Math.sin(i * FX.spread.jitterRate) * radius,
             x = s.position.x + direction.x * distance + (u.x * Math.cos(theta) + v.x * Math.sin(theta)) * radial,
             y = s.position.y + direction.y * distance + (u.y * Math.cos(theta) + v.y * Math.sin(theta)) * radial,
             z = s.position.z + direction.z * distance + (u.z * Math.cos(theta) + v.z * Math.sin(theta)) * radial,
             width =
               widthScale *
               (DATA.emitterWidth[0] + DATA.emitterWidth[1] * phase) *
-              Math.sin(Math.PI * Math.max(0.03, Math.min(0.97, phase)));
+              Math.sin(Math.PI * Math.max(FX.phaseClamp[0], Math.min(FX.phaseClamp[1], phase)));
           if (
             world.lineClear(emission?.origin ?? g.player.pos, { x: s.position.x, z: s.position.z }) &&
             world.lineClear({ x: s.position.x, z: s.position.z }, { x, z }) &&
-            put(i, x, y, z, width, DATA.palette[Math.min(2, Math.floor(phase * 3))])
+            put(i, x, y, z, width, DATA.palette[Math.min(DATA.palette.length - 1, Math.floor(phase * DATA.palette.length))])
           )
             emitter++;
         }
@@ -184,7 +194,7 @@ export function createFlameEffect({
             position: { x: anchor.x, y: anchor.y, z: -anchor.z },
             pelvisPosition: { x: pelvisAnchor.x, y: pelvisAnchor.y, z: -pelvisAnchor.z },
             expiresAge: end,
-            nativeDeathSeconds: view.finisherDeathSeconds ?? 2.4,
+            nativeDeathSeconds: view.finisherDeathSeconds ?? FX.corpseDeathFallbackSeconds,
           });
         } else {
           if (!(e.flameBurnUntil > g.time)) continue;
@@ -194,14 +204,14 @@ export function createFlameEffect({
             dx = from.x - e.pos.x,
             dz = from.z - e.pos.z,
             n = Math.hypot(dx, dz) || 1,
-            surface = Math.min(0.8, (e.radius ?? 0.4) * (e.combatScale ?? 1) + 0.05);
+            surface = Math.min(FX.burnSurface.maxOffset, (e.radius ?? FX.burnSurface.defaultRadius) * (e.combatScale ?? 1) + FX.burnSurface.margin);
           front = { x: e.pos.x + (dx / n) * surface, z: e.pos.z + (dz / n) * surface };
           if (!world.lineClear(e.pos, front)) continue;
         }
         for (let j = 0; j < count; j++) {
           const i = DATA.emitterCount + used + j,
             w = death ? FLAME_DEATH_DATA.wisps[j] : null,
-            offset = (j - 0.5) * 0.24,
+            offset = (j - 0.5) * FX.burnWisp.spacing, // tuning-ok: 0.5 puts the two burn sprites either side of the centre
             base = w?.anchor === "pelvis" ? { x: pelvisAnchor.x, z: -pelvisAnchor.z } : front,
             baseY = w?.anchor === "pelvis" ? pelvisAnchor.y : height,
             x = base.x + (w ? w.offset[0] : offset),
@@ -211,7 +221,7 @@ export function createFlameEffect({
                 ? FLAME_DEATH_DATA.anchorLift +
                   w.offset[1] +
                   FLAME_DEATH_DATA.rise * ((g.time * FLAME_DEATH_DATA.riseRate + w.phase) % 1)
-                : 0.13 + Math.sin(g.time * 14 + j) * 0.08),
+                : FX.burnWisp.baseHeight + Math.sin(g.time * FX.burnWisp.wobbleRate + j) * FX.burnWisp.wobbleHeight),
             z = base.z + (w ? w.offset[2] : 0),
             width = w
               ? w.width * (1 + FLAME_DEATH_DATA.flickerSize * Math.sin(g.time * FLAME_DEATH_DATA.flickerRate + w.phase))

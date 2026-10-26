@@ -79,7 +79,23 @@ test("the other sections equal the numbers combat.js used to write inline", () =
     homeLeash: 12,
   });
   assert.deepEqual(d.awareness, { ratContactDistance: 6, sightDistance: 6 });
-  assert.deepEqual(d.spawning, { distances: [4, 6, 8], laterals: [0, 1.4, -1.4, 2.8, -2.8], clearance: 0.35 });
+  assert.deepEqual(d.spawning, {
+    distances: [4, 6, 8],
+    laterals: [0, 1.4, -1.4, 2.8, -2.8],
+    clearance: 0.35,
+    minForward: 2,
+    minDistance: 2,
+    knifeOffsets: [
+      [0, 4],
+      [4, 0],
+      [-4, 0],
+      [0, -4],
+      [3, 3],
+      [-3, 3],
+      [3, -3],
+      [-3, -3],
+    ],
+  });
   assert.deepEqual(d.enemyAI, {
     goblinSpeedFactor: 1.2,
     attackSpacing: 0.1,
@@ -112,10 +128,30 @@ test("the other sections equal the numbers combat.js used to write inline", () =
       parryWindowSeconds: 0.16,
       regenPerSecond: 35,
       blockedDamageFactor: 0.25,
+      blockCostFactor: 3,
       brokenSeconds: 0.9,
       parryStunSeconds: 0.9,
     },
   });
+  assert.deepEqual(d.legacy.waves, {
+    firstWaveSeconds: 2,
+    messageSeconds: 4,
+    clearDelaySeconds: 4,
+    boltLifeSeconds: 4,
+    finalWave: 3,
+    baseCount: 4,
+    kindCycle: 3,
+    rangedKind: 2,
+    warlordKind: 3,
+    widePattern: 1,
+    rangedPattern: 2,
+    patternCount: 3,
+    boltSpreadPiDivisor: 10,
+    retreatDistance: 4,
+    retreatSpeed: 2,
+  });
+  assert.equal(d.legacy.formation.centerColumn, 2);
+  assert.deepEqual([d.legacy.loot.every, d.legacy.loot.kinds, d.legacy.loot.maxTier], [2, 3, 2]);
   assert.equal(d.legacy.waveClearHeal, 25);
   assert.equal(d.legacy.hitKnockback, 0.18);
   for (const section of [d.player, d.aim, d.movement, d.awareness, d.spawning, d.enemyAI, d.reactions])
@@ -141,6 +177,11 @@ test("the validator rejects malformed combat rules", () => {
     [(d) => (d.aim.targetConeDegrees = 90), /below 90/],
     [(d) => (d.enemyAI.knifeAimDot = 1), /below 1/],
     [(d) => (d.spawning.laterals = []), /laterals/],
+    [(d) => (d.spawning.knifeOffsets = [[1]]), /knifeOffsets/],
+    [(d) => (d.legacy.waves.warlordKind = 9), /warlordKind/],
+    [(d) => (d.legacy.waves.widePattern = 3), /widePattern/],
+    [(d) => (d.legacy.loot.every = 0), /every/],
+    [(d) => delete d.legacy.waves.finalWave, Error],
     [(d) => delete d.player.spawn.z, Error],
     [(d) => (d.startingPistol.x = NaN), /finite/],
     [(d) => (d.bodyRadius = 0), /bodyRadius/],

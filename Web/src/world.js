@@ -6,23 +6,23 @@ import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-conten
 import { GAME_DATA } from "./engine/game-data.js";
 const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
 const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
-const ASPECT = 1672 / 941;
+const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
 export const backdropTextureBytes = (texture, mipped = false) =>
-  (texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * (mipped ? 4 / 3 : 1);
+  (texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * (mipped ? 4 / 3 : 1); // tuning-ok: RGBA bytes; a mip chain adds a third
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
 function damp(value, target, velocity, time, dt) {
-  const omega = 2 / Math.max(0.0001, time),
+  const omega = 2 / Math.max(0.0001, time), // tuning-ok: SmoothDamp omega
     x = omega * dt,
-    decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x); // tuning-ok: SmoothDamp decay polynomial
   const change = value - target,
     temp = (velocity + omega * change) * dt;
   return [target + (change + temp) * decay, (velocity - omega * temp) * decay];
 }
 function initialSpawn(geometry, registry) {
   const row = registry.get(registry.initialArea);
-  return row.id === "westminster" || row.visibility === "private" ? { x: 0, z: -6 } : geometry.ground(row.entry);
+  return row.id === "westminster" || row.visibility === "private" ? { x: VIEW.londonEntry.x, z: VIEW.londonEntry.z } : geometry.ground(row.entry);
 }
 export class LondonWorld {
   constructor({
@@ -95,7 +95,7 @@ export class LondonWorld {
     this.baseUrl = baseUrl;
     this.areaId = this.registry.initialArea;
     this.disposed = false;
-    this.center = { x: 0.5, y: 0.5 };
+    this.center = { x: 0.5, y: 0.5 }; // tuning-ok: centre of the painting
     this.velocity = { x: 0, y: 0 };
     this.group = new THREE.Group();
     this.group.name = "London registered image stage";
@@ -155,7 +155,7 @@ export class LondonWorld {
     this.depthMaterial = depth;
     this.routeGuidance = createRouteGuidance(this);
     scene.add(this.group);
-    this.update(this.spawn, 0, 1672, 941, true);
+    this.update(this.spawn, 0, VIEW.artSize[0], VIEW.artSize[1], true);
   }
   toRender(position, height = 0) {
     return new this.THREE.Vector3(position.x, height, -position.z);
@@ -166,7 +166,7 @@ export class LondonWorld {
       uv = [],
       indices = [];
     for (const p of points) {
-      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, 0.5);
+      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, 0.5); // tuning-ok: painting fraction to NDC, mid-depth
       if (registered) v.applyMatrix4(this.calibrated.clone().invert());
       else v.unproject(camera).applyMatrix4(camera.matrixWorldInverse);
       v.multiplyScalar(distance / -v.z).applyMatrix4(camera.matrixWorld);
@@ -175,8 +175,8 @@ export class LondonWorld {
     }
     for (let i = 1; i < points.length - 1; i++) indices.push(0, i, i + 1);
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); // tuning-ok: x, y, z per vertex
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); // tuning-ok: u, v per vertex
     geometry.setIndex(indices);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.renderOrder = order;
@@ -237,7 +237,7 @@ export class LondonWorld {
     try {
       const next = await this.prepareArea(areaId),
         entry = next.geometry.ground(entryPoint);
-      if (!next.geometry.clear(entry, 0.4)) throw Error("London entry is blocked");
+      if (!next.geometry.clear(entry, VIEW.entryClearance)) throw Error("London entry is blocked");
       if (cache.disposed || generation !== cache.generation) throw Error("London load superseded");
       const { scene, camera, THREE } = this,
         source = { ...this },
@@ -505,24 +505,24 @@ export class LondonWorld {
     const p = geometry.point(playerPosition);
     let zoom = layout.zoom;
     if (layout.followPlayerSize) {
-      const reference = geometry.ground({ x: 0.52, y: 0.78 });
-      const projectedHeight = (q) => Math.abs(geometry.point(q, 2).y - geometry.point(q).y);
-      zoom = clamp((zoom * projectedHeight(reference)) / projectedHeight(playerPosition), 1, 4);
+      const reference = geometry.ground({ ...VIEW.followReference });
+      const projectedHeight = (q) => Math.abs(geometry.point(q, VIEW.referenceHeight).y - geometry.point(q).y);
+      zoom = clamp((zoom * projectedHeight(reference)) / projectedHeight(playerPosition), 1, VIEW.maxZoom);
     }
     const aspect = Math.max(1, width) / Math.max(1, height),
       portrait = aspect < 1;
     if (portrait) {
       // A scaled 2m reference stays ~portraitActorPixels CSS pixels; zoom>=1 keeps the finite painting covering the screen.
-      const actorHeight = Math.abs(geometry.point(playerPosition, 2 * layout.characterScale).y - p.y);
-      zoom = clamp(VIEW.portraitActorPixels / (actorHeight * Math.max(1, height)), 1, 4);
+      const actorHeight = Math.abs(geometry.point(playerPosition, VIEW.referenceHeight * layout.characterScale).y - p.y);
+      zoom = clamp(VIEW.portraitActorPixels / (actorHeight * Math.max(1, height)), 1, VIEW.maxZoom);
     }
     if (!portrait) zoom *= VIEW.landscapeZoomBoost;
     else zoom *= VIEW.portraitZoomBoost;
     zoom *= this.viewZoomMultiplier;
     const zx = zoom * Math.max(1, ASPECT / aspect),
       zy = zoom * Math.max(1, aspect / ASPECT);
-    const ex = 0.5 / zx,
-      ey = 0.5 / zy,
+    const ex = 0.5 / zx, // tuning-ok: half the visible painting width
+      ey = 0.5 / zy, // tuning-ok: half the visible painting height
       target = {
         x: clamp(p.x, ex, 1 - ex),
         y: clamp(1 - p.y + (portrait ? VIEW.portraitLift / zy : VIEW.landscapeLift), ey, 1 - ey),
@@ -551,8 +551,8 @@ export class LondonWorld {
     this.crop.identity();
     this.crop.elements[0] = zx;
     this.crop.elements[5] = zy;
-    this.crop.elements[12] = -2 * zx * (this.center.x - 0.5);
-    this.crop.elements[13] = -2 * zy * (this.center.y - 0.5);
+    this.crop.elements[12] = -2 * zx * (this.center.x - 0.5); // tuning-ok: painting fraction to NDC offset
+    this.crop.elements[13] = -2 * zy * (this.center.y - 0.5); // tuning-ok: painting fraction to NDC offset
     camera.projectionMatrix.multiplyMatrices(this.crop, this.calibrated);
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     this.routeGuidance?.update(playerPosition, this);
@@ -631,7 +631,7 @@ export async function createWorld({
     content?.safehouseData,
   );
   const geometry = createGeometry(layout);
-  if (!geometry.clear(initialSpawn(geometry, registry), 0.4)) throw Error("London starting spawn is blocked");
+  if (!geometry.clear(initialSpawn(geometry, registry), VIEW.entryClearance)) throw Error("London starting spawn is blocked");
   const texture = await new THREE.TextureLoader().loadAsync(
     new URL(registry.asset(row.backdropRef).path, baseUrl).href,
   );
