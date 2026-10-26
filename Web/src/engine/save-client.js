@@ -6,8 +6,6 @@
 import { GAME_DATA } from "./game-data.js";
 import { CURRENT_ERA } from "./save-eras.js";
 
-// Browsers cap the body of a keepalive request at 64 KiB in all; stay under it, else the page-hide send is a plain request.
-const KEEPALIVE_MAX_BYTES = 60000;
 // A run that is over (dead or finished): its save is sent at once, never held for the interval.
 export const runIsOver = (game) => !!game && (game.finished === true || game.player?.hp <= 0);
 export const CHARACTER_KEY ="armagedom.world.character.v1";
@@ -384,7 +382,7 @@ export function createSaveClient({
         method: "POST",
         headers: { Authorization: `Bearer ${lastToken}`, "Content-Type": "application/json" },
         body,
-        keepalive: new TextEncoder().encode(body).length < KEEPALIVE_MAX_BYTES,
+        keepalive: new TextEncoder().encode(body).length < tuning.keepaliveMaxBytes,
       });
     } catch {
       keep();

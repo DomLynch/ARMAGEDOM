@@ -3,7 +3,8 @@
 // the legacy count recorded in scripts/as-data-baseline.json. A file's count may only go down:
 // lower or delete its entry when you replace a comparison with `rigCapability(rig, name)`.
 import { readFileSync } from "node:fs";
-import { basename, relative } from "node:path";
+import { basename, dirname, relative, resolve } from "node:path";
+import { KEEP_IN_CODE, KEEP_IN_CODE_FILE } from "./number-literal-gate.mjs";
 
 export { countNumberLiterals, numberLiteralProblems, isNumberExempt } from "./number-literal-gate.mjs";
 
@@ -79,13 +80,33 @@ export function constantTableProblems(paths, baseline = {}, sourceRoot = "") {
   return problems;
 }
 
-// Only engine/game-data.js may import Web/src/data/*.json: it validates and freezes each file once, and every reader goes through it.
-const DATA_IMPORT = /(?:from\s*|import\s*\(\s*|import\s+)["'][^"']*\/data\/[^"']+\.json["']/;
-export function dataImportProblems(paths, sourceRoot = "") {
-  return paths
-    .filter((path) => (sourceRoot ? relative(sourceRoot, path) : path) !== GAME_DATA_LOADER)
-    .filter((path) => DATA_IMPORT.test(readFileSync(path, "utf8")))
-    .map((path) => `${path}: imports a data/*.json file directly. Read it through ${GAME_DATA_LOADER} instead.`);
+// Only engine/game-data.js may import a .json file: it validates and freezes each file once, and every reader goes through it.
+// The exceptions are listed with a reason in Web/src/data/keep-in-code.json (`jsonImportAllowed`, matched against the imported
+// file's path under Web/src). Legacy offenders are recorded in scripts/as-data-baseline.json `jsonImports` and may only be removed.
+const JSON_IMPORT = /(?:from\s*|import\s*\(\s*|import\s+)["']([^"']+\.json)["']/g;
+const JSON_ALLOWED = KEEP_IN_CODE.jsonImportAllowed.map((entry) => new RegExp(entry.pattern));
+export function dataImportProblems(paths, sourceRoot = "", baseline = {}) {
+  const legacy = new Set(baseline.jsonImports ?? []),
+    problems = [],
+    offenders = new Set();
+  for (const path of paths) {
+    const key = (sourceRoot ? relative(sourceRoot, path) : path).split("\\").join("/");
+    if (key === GAME_DATA_LOADER) continue;
+    const bad = [...readFileSync(path, "utf8").matchAll(JSON_IMPORT)].filter((match) => {
+      const target = relative(sourceRoot || ".", resolve(dirname(path), match[1])).split("\\").join("/");
+      return !JSON_ALLOWED.some((pattern) => pattern.test(target));
+    });
+    if (!bad.length) continue;
+    offenders.add(key);
+    if (!legacy.has(key))
+      problems.push(
+        `${path}: imports ${bad[0][1]} directly. Read it through ${GAME_DATA_LOADER} (data in Web/src/data/*.json), or add a reasoned entry to ${KEEP_IN_CODE_FILE}.`,
+      );
+  }
+  for (const key of legacy)
+    if (!offenders.has(key))
+      problems.push(`${key}: no longer imports a json file directly. Remove it from jsonImports in scripts/as-data-baseline.json.`);
+  return problems;
 }
 
 export function countRigLiterals(text, rigNames) {

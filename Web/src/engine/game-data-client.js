@@ -35,7 +35,10 @@ export function validateSaveClient(d) {
     "bucketRefillMs",
     "bucketReserve",
     "retryFloorMs",
+    "keepaliveMaxBytes",
   ]);
+  // Browsers cap the body of a keepalive request at 64 KiB in all; the page-hide send stays under this, else it is a plain request.
+  count("saveClient", "keepaliveMaxBytes", d.keepaliveMaxBytes, 1000, 65536);
   // The shortest wait before a kept record is sent again after a refused or failed send, whatever the writer's Retry-After says.
   count("saveClient", "retryFloorMs", d.retryFloorMs, 50, 5000);
   // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
