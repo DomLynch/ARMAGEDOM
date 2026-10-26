@@ -27,9 +27,17 @@ export const releaseOf = (pathname) =>
     .replace(/[^A-Za-z0-9._/:-]/g, "")
     .slice(0, 80); // tuning-ok: the longest release path kept in a client log line
 
+// A random id for this page load only: it ties one visit's rows together and is not tied to the account, the token or the device.
+// The length is data (world.json clientLog.sessionIdChars). Without crypto the id is random digits instead of hex.
+export function newSessionId(random = globalThis.crypto, chars = GAME_DATA.world.clientLog.sessionIdChars) {
+  const raw = random?.randomUUID?.() ?? String(Math.random()).replace("0.", "");
+  return raw.replace(/-/g, "").slice(0, chars);
+}
+
 export function createClientLog({
   baseUrl = "",
   release = "",
+  sessionId = newSessionId(),
   getArea = () => "",
   fetchImpl = globalThis.fetch,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
@@ -54,7 +62,7 @@ export function createClientLog({
     timer = null;
     if (stopped || rows.size === 0 || typeof fetchImpl !== "function") return;
     const events = [...rows.values()].slice(0, tuning.maxEvents),
-      head = { v: 1, release, area: cleanCode(getArea()), ...(dropped ? { dropped } : {}) },
+      head = { v: 1, release, session: sessionId, area: cleanCode(getArea()), ...(dropped ? { dropped } : {}) },
       build = () => JSON.stringify({ ...head, events });
     // The writer refuses a body over 4096 BYTES, and escapes and non-ASCII text count more than characters: drop rows from the end of
     // this batch (they stay queued for the next window) until the encoded body fits. One row alone always fits (200 characters).

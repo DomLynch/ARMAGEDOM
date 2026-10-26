@@ -14,7 +14,8 @@
     "maxEvents": 10,
     "maxDistinct": 40,
     "messageChars": 200,
-    "maxBodyBytes": 3800
+    "maxBodyBytes": 3800,
+    "sessionIdChars": 12
   },
   "auth": {
     "url": "https://fdbqnupceqytizxnoiua.supabase.co",

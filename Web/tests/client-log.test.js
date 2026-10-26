@@ -19,7 +19,7 @@ function make(options = {}) {
 }
 
 test('tuning is data: one batch per 10 s, at most 10 rows', () => {
-  assert.deepEqual(GAME_DATA.world.clientLog, {path: '/arma/api/clientlog', kinds: ['error', 'boot', 'presence', 'sync'], minIntervalMs: 10000, maxEvents: 10, maxDistinct: 40, messageChars: 200, maxBodyBytes: 3800});
+  assert.deepEqual(GAME_DATA.world.clientLog, {path: '/arma/api/clientlog', kinds: ['error', 'boot', 'presence', 'sync'], minIntervalMs: 10000, maxEvents: 10, maxDistinct: 40, messageChars: 200, maxBodyBytes: 3800, sessionIdChars: 12});
   assert(GAME_DATA.world.clientLog.maxBodyBytes < 4096, 'under the writer\'s 4096-byte limit');
 });
 
@@ -77,7 +77,9 @@ test('a row carries kind, code, scrubbed message, count, area and release - and 
   assert.equal(url, 'https://x.test/arma/api/clientlog');
   assert.equal(init.credentials, 'omit');
   assert.equal(init.headers.Authorization, undefined);
-  assert.deepEqual(body, {v: 1, release: '/armagedom/preview/three-1/', area: 'westminster', events: [{kind: 'sync', code: 'pull-failed', message: 'boom at https://x.test/a', n: 1}]});
+  const {session, ...rest} = body;
+  assert.match(session, /^[0-9a-f]{12}$/, 'a random per-page-load id, nothing tied to the account');
+  assert.deepEqual(rest, {v: 1, release: '/armagedom/preview/three-1/', area: 'westminster', events: [{kind: 'sync', code: 'pull-failed', message: 'boom at https://x.test/a', n: 1}]});
   assert(!init.body.includes('SECRET'));
 });
 
