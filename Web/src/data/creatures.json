@@ -271,5 +271,131 @@
     "B": { "westminster": "westminster-roamer-1", "east": "east-roamer-1", "south": "south-roamer-9" }
   },
   "hollowTuning": { "count": 3, "health": 40, "moveSpeed": 2.1, "regen": 1, "aggression": 0.6, "recovery": 0.55 },
-  "creatureSim": { "playerFields": ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"] }
+  "creatureSim": { "playerFields": ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"] },
+  "feralBodyShapes": [
+    { "id": "dog-gaunt-hound", "width": 0.62 },
+    { "id": "dog-stocky-yard", "width": 1.6 }
+  ],
+  "feralCoatProfiles": [
+    { "id": "dog-street-mongrel", "tint": [1, 1, 1], "shapePending": false },
+    { "id": "dog-gaunt-hound", "tint": [0.9, 0.88, 0.78], "shapePending": true },
+    { "id": "dog-stocky-yard", "tint": [0.58, 0.62, 0.68], "shapePending": true },
+    { "id": "dog-ash-coated", "tint": [1.4, 1.42, 1.45], "shapePending": false },
+    { "id": "dog-mangy-stray", "tint": [1.13, 0.8, 0.59], "shapePending": false },
+    { "id": "dog-pack-chaser", "tint": [0.72, 0.83, 1.08], "shapePending": false }
+  ],
+  "gauntShape": {
+    "targets": ["Torn_modern_canvas_jacket", "Hollow_body_and_worn_trousers"],
+    "segments": {
+      "pelvis": ["spine_01", 0.82],
+      "spine_01": ["spine_02", 0.66],
+      "spine_02": ["spine_03", 0.68],
+      "spine_03": ["neck_01", 0.82],
+      "upperarm_l": ["lowerarm_l", 0.66],
+      "upperarm_r": ["lowerarm_r", 0.66],
+      "lowerarm_l": ["hand_l", 0.78],
+      "lowerarm_r": ["hand_r", 0.78],
+      "thigh_l": ["calf_l", 0.72],
+      "thigh_r": ["calf_r", 0.72],
+      "calf_l": ["foot_l", 0.82],
+      "calf_r": ["foot_r", 0.82]
+    }
+  },
+  "rigCapabilities": {
+    "original-rat": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "rat",
+      "appearanceRecipe": "rat",
+      "populationSlot": true,
+      "brain": "rat",
+      "appearanceKit": "rat",
+      "coatName": "Ash and soot worn fur",
+      "targetHeight": 0.54,
+      "hitClip": "rat_hit",
+      "deathClip": "rat_death",
+      "hitTicks": 20,
+      "deathTicks": 54
+    },
+    "original-dog": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "dog",
+      "appearanceRecipe": "dog",
+      "populationSlot": true,
+      "brain": "dog",
+      "lowSwing": "dog",
+      "feralScale": 2,
+      "coatName": "Weathered brindle coat",
+      "targetHeight": 0.35,
+      "targetHeightReach": 0.7,
+      "hitClip": "dog_hit",
+      "deathClip": "dog_death",
+      "hitTicks": 24,
+      "deathTicks": 60
+    },
+    "original-roach": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "roach",
+      "appearanceRecipe": "roach",
+      "populationSlot": true,
+      "brain": "dog",
+      "lowSwing": "roach",
+      "biteMove": "roach",
+      "calfContact": true,
+      "appearanceKit": "roach",
+      "targetHeight": 0.08,
+      "targetHeightReach": 0.24,
+      "hitClip": "roach_hit",
+      "deathClip": "roach_death",
+      "hitTicks": 18,
+      "deathTicks": 48
+    },
+    "giant-salamander": {
+      "lowStrike": true,
+      "animal": true,
+      "nativeSkeleton": true,
+      "species": "salamander",
+      "populationSlot": true,
+      "brain": "dog",
+      "biteMove": "salamander",
+      "areaPursuit": true,
+      "fireBreath": true,
+      "tutorialHunt": true,
+      "breathEmitter": true,
+      "calfFaceReceiver": true,
+      "materialDim": 0.75,
+      "targetHeight": 1.08,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74
+    },
+    "original-wolf": {
+      "lowStrike": true,
+      "animal": true,
+      "nativeSkeleton": true,
+      "species": "wolf",
+      "brain": "dog",
+      "biteMove": "wolf",
+      "mouthAim": true,
+      "bodyReceiver": true,
+      "targetHeight": 1.625,
+      "fixedPointerScale": true,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74
+    },
+    "low-hover-drone": {
+      "lowStrike": true,
+      "species": "drone",
+      "populationSlot": true,
+      "brain": "drone",
+      "hoverTarget": true
+    }
+  }
 }

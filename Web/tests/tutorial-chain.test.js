@@ -27,7 +27,7 @@ test("the hunt chain leads to the salamander, then the Ember Matron, then stops 
   const dropPosition = { x: 11.064, z: 0.971 };
   g.world = { areaId: "westminster", bossEquipmentData: { emberProjector: { source: { areaId: "westminster" } } } };
   g.bossEquipment = { emberProjector: { status: "pending", dropPosition } };
-  assert.deepEqual(huntTarget(g), { pos: dropPosition, label: "COLLECT THE EMBER PROJECTOR" });
+  assert.deepEqual(huntTarget(g), { pos: dropPosition, label: "WALK TO THE EMBER PROJECTOR" });
   g.world.areaId = "lambeth";
   assert.equal(huntTarget(g), null, "the drop arrow only shows in its source area");
   delete g.world;
@@ -101,7 +101,7 @@ test("the route arrow follows the hunt target's live position and names the kill
   cue.dispose();
 });
 
-test("the Ember drop shows a pick-up notice once, and only while it is uncollected and in reach", () => {
+test("the Ember drop shows no tap-to-collect notice: walking onto it picks it up", () => {
   const storage = memory(),
     hints = createFirstTimeHints({ storage }),
     g = {
@@ -118,17 +118,10 @@ test("the Ember drop shows a pick-up notice once, and only while it is uncollect
         bossEquipmentData: { emberProjector: { source: { areaId: "westminster" } } },
       },
     };
-  const notice = "Tap COLLECT EMBER PROJECTOR to take it.";
-  assert.equal(hints.current(g), notice);
+  assert.equal(hints.current(g), "", "standing on the uncollected drop shows no collect notice");
   g.time += 30;
-  assert.equal(hints.current(g), notice, "it stays while the drop is uncollected within 6 m");
-  g.bossEquipment.emberProjector.status = "owned";
-  g.time += 0.5;
-  assert.notEqual(hints.current(g), notice);
-  assert(JSON.parse(storage.data.get(HINT_STORAGE_KEY)).includes("ember-pickup"));
-  const again = createFirstTimeHints({ storage });
-  g.bossEquipment.emberProjector.status = "pending";
-  assert.notEqual(again.current(g), notice, "a seen hint does not repeat");
+  assert.equal(hints.current(g), "");
+  assert.equal(storage.data.get(HINT_STORAGE_KEY) ?? "[]", "[]");
 });
 
 test("the tile flash fires once per newly carried weapon and never for the first look at a save", () => {

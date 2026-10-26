@@ -33,7 +33,7 @@ test("the height rows equal the old in-code numbers, site by site", () => {
 
 test("effects.js keeps no rig-name literal and asks for the fire-breath emitter by capability", () => {
   const source = fs.readFileSync(new URL("../src/effects.js", import.meta.url), "utf8");
-  const rigs = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/rig-capabilities.json", import.meta.url))));
+  const rigs = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))).rigCapabilities);
   assert.equal(countRigLiterals(source, rigs), 0);
   assert.equal(rigCapability("giant-salamander", "breathEmitter"), true);
   for (const rig of rigs.filter((r) => r !== "giant-salamander")) assert.equal(rigCapability(rig, "breathEmitter"), false, rig);

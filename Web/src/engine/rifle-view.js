@@ -207,6 +207,7 @@ export function createRifleView(s, dispatch) {
     return {
       id: data.itemId,
       label: "Collect " + data.name,
+      pickup: true,
       position: state.dropPosition,
       run() {
         claim();

@@ -49,5 +49,5 @@ test('rigCapability answers from the data table', () => {
     assert.equal(rigCapability(rig, 'lowStrike'), true, rig);
   for (const rig of ['hollow-scavenger', 'hero', 'toString', undefined]) assert.equal(rigCapability(rig, 'lowStrike'), false, String(rig));
   assert.equal(rigCapability('original-rat', 'nonsense'), false);
-  assert.deepEqual(Object.keys(JSON.parse(readFileSync(new URL('../src/rig-capabilities.json', import.meta.url)))), RIGS);
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(new URL('../src/data/creatures.json', import.meta.url))).rigCapabilities), RIGS);
 });

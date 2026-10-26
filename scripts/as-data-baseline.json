@@ -68,8 +68,7 @@
     ]
   },
   "rigLiterals": {
-    "engine/commander/match.js": 1,
-    "engine/creature-definitions.js": 45
+    "engine/commander/match.js": 1
   },
   "constantTables": {
     "clothing-palettes.js": 1,
@@ -88,12 +87,8 @@
     "engine/save-eras.js": 1,
     "engine/unique-reward-core.js": 1,
     "engine/world-events.js": 10,
-    "feral-body-shapes.js": 1,
-    "feral-coat-profiles.js": 1,
     "finisher-impact-profile.js": 1,
-    "gaunt-shape.js": 2,
     "hollow-palette.js": 1,
-    "low-hover-drone.js": 1,
-    "rig-capabilities.js": 1
+    "low-hover-drone.js": 1
   }
 }

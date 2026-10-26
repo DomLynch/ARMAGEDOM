@@ -5,7 +5,7 @@ import { rigCapability, rigText } from "../src/rig-capabilities.js";
 import { countRigLiterals } from "../../scripts/as-data-gate.mjs";
 
 // Data move: the six small rig-literal files read rig-capabilities rows. These pin each row to the rigs the old literal named.
-const RIGS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/rig-capabilities.json", import.meta.url))));
+const RIGS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))).rigCapabilities);
 const only = (rigs, pick) => assert.deepEqual(RIGS.filter(pick), rigs);
 const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url), "utf8"));
 

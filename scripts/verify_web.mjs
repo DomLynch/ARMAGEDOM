@@ -66,8 +66,8 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
     source,
     Object.keys(
       JSON.parse(
-        readFileSync(join(root, "Web/src/rig-capabilities.json"), "utf8"),
-      ),
+        readFileSync(join(root, "Web/src/data/creatures.json"), "utf8"),
+      ).rigCapabilities,
     ),
     JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
     join(root, "Web/src"),
