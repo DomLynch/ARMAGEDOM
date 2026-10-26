@@ -81,7 +81,7 @@ export function createBossView(s) {
         patches.set(h.ownerId, view);
       }
       const warning = g.time < h.startsAt;
-      view.root.name = warning ? "Area hazard warning" : "Area hazard active";
+      view.root.name = warning ? "Area hazard warning" : "Area hazard active"; // text-ok: three.js group name, never shown to the player
       view.root.visible = active;
       view.root.position.copy(s.world.toRender(h.position, H.height));
       view.root.scale.setScalar(h.radius);

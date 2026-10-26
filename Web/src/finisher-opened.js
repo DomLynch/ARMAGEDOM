@@ -569,7 +569,7 @@ export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked
       if (n.isSkinnedMesh) n.skeleton.update();
     });
   }
-  prepared.group.name = "Prepared Opened";
+  prepared.group.name = "Prepared Opened"; // text-ok: a scene-graph label for debugging, never shown to the player
   let disposed = false;
   const originalDispose = prepared.dispose;
   const point = new Vector3(),

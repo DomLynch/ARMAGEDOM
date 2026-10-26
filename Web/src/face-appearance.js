@@ -8,7 +8,14 @@ const { cheek: CHEEK, headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
 const FIELD = GAME_DATA.appearance.faceField,
   WEATHER = GAME_DATA.appearance.faceWeathering,
   HAIR = GAME_DATA.appearance.faceHair;
-const SKIN_NAMES = new Set(["Ash-grey affected skin", "Photo-matched exposed lower neck"]);
+const {
+  donorNeck: NECK_NAME,
+  hair: HAIR_NAME,
+  hairMaterial: HAIR_MATERIAL,
+  bodySkin: BODY_SKIN,
+  neckSkin: NECK_SKIN,
+} = GAME_DATA.appearance.meshNames;
+const SKIN_NAMES = new Set([BODY_SKIN, NECK_SKIN]);
 // Geometry builders hand control back every 128 steps (4 ms slices) so a face recipe never blocks a frame; hair edges every 256 triangles.
 // The slice, the step counts and the weld precision (positions and weights rounded to a millionth) are appearance.json `faceBuild`; both
 // step counts are powers of two so a mask test stands in for the remainder.
@@ -243,7 +250,7 @@ export function createFaceAppearanceLibrary(source) {
     if (!n?.isSkinnedMesh) throw Error("Hollow head missing: " + name);
     return n;
   });
-  const neck = source.getObjectByName(T.PropertyBinding.sanitizeNodeName("Recovered donor lower neck"));
+  const neck = source.getObjectByName(T.PropertyBinding.sanitizeNodeName(NECK_NAME));
   if (!neck?.isSkinnedMesh) throw Error("Repaired Hollow lower neck required");
   const sourceMaterials = new Set();
   source.traverse((n) => {
@@ -309,7 +316,7 @@ export function createFaceAppearanceLibrary(source) {
           m.vertexColors = true;
           m.needsUpdate = true;
         } else {
-          const body = m.name === "Ash-grey affected skin";
+          const body = m.name === BODY_SKIN;
           m.color.setRGB(
             ...CHEEK.map((v, k) => (v * skin.photo[k]) / (body ? HAIR.bodySkinDivisor : 1)),
             T.LinearSRGBColorSpace,
@@ -322,7 +329,7 @@ export function createFaceAppearanceLibrary(source) {
           hairGeometrySteps(sourceHeads[0].geometry, head, recipe.hairPreset),
         );
         hairMaterial = new T.MeshStandardMaterial({
-          name: "Private scavenger hair",
+          name: HAIR_MATERIAL,
           color: HAIR.material.color,
           map: nodes[0].material.map,
           roughness: HAIR.material.roughness,
@@ -331,7 +338,7 @@ export function createFaceAppearanceLibrary(source) {
         });
         const photo = nodes[0];
         hair = new T.SkinnedMesh(geometry, hairMaterial);
-        hair.name = "Scavenger hair";
+        hair.name = HAIR_NAME;
         hair.position.copy(photo.position);
         hair.quaternion.copy(photo.quaternion);
         hair.scale.copy(photo.scale);

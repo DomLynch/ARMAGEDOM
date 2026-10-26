@@ -3,6 +3,8 @@ import { GAME_DATA } from "./engine/game-data.js";
 // The vertex budget, the cut colour, how far the halves open, the build slice and the cap loop weld precision (cut-plane positions equal to a
 // hundred-thousandth of a metre are one point) are appearance.json `crownSplit`.
 const CROWN = GAME_DATA.appearance.crownSplit;
+const { headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
+const HAIR_NAME = GAME_DATA.appearance.meshNames.hair;
 const KEY_PRECISION = CROWN.weldPrecision;
 const SLICE_MS = CROWN.sliceMs;
 const XYZ = 3; // tuning-ok: a point or normal packed as three floats
@@ -22,9 +24,9 @@ export function prepareSplitCrown(head, options) {
 export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices } = {}) {
   if (!head?.group || !head.center || !Number.isSafeInteger(maxVertices) || maxVertices < 1)
     throw Error("Invalid crown preparation");
-  const names = [...(head.headParts ?? ["Photo", "PhotoEyes", "PhotoTeeth"]), "Scavenger hair"];
+  const names = [...(head.headParts ?? HEAD_NAMES), HAIR_NAME];
   const nodes = head.group.children.filter((n) => n.isMesh && names.includes(n.name));
-  const photo = nodes.find((n) => n.name === "Photo");
+  const photo = nodes.find((n) => n.name === HEAD_NAMES[0]);
   if (!photo) throw Error("Crown requires an authored human head");
   photo.geometry.computeBoundingBox();
   const bounds = photo.geometry.boundingBox,
@@ -32,13 +34,13 @@ export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices 
     hinge = bounds.min.y;
   if (!(plane > bounds.min.x && plane < bounds.max.x)) throw Error("Crown plane outside supported head");
   const group = new T.Group();
-  group.name = "Prepared Split Crown";
+  group.name = "Prepared Split Crown"; // text-ok: a scene-graph label for debugging, never shown to the player
   group.position.copy(head.center);
   const geometries = [],
     caps = [],
     halves = [],
     cut = new T.MeshStandardMaterial({
-      name: "Owned crown cut",
+      name: "Owned crown cut", // text-ok: a material label for debugging, never shown to the player
       color: CROWN.cutColor,
       roughness: 1,
       side: T.DoubleSide,
@@ -62,7 +64,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices 
   try {
     for (const side of [-1, 1]) {
       const half = new T.Group();
-      half.name = side < 0 ? "Crown left" : "Crown right";
+      half.name = side < 0 ? "Crown left" : "Crown right"; // text-ok: scene-graph labels for debugging, never shown to the player
       half.position.set(plane, hinge, 0);
       group.add(half);
       halves.push(half);
@@ -242,7 +244,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices 
             triangles += g.attributes.position.count / CORNERS;
             capTriangles += g.attributes.position.count / CORNERS;
             const mesh = new T.Mesh(g, cut);
-            mesh.name = node.name + " crown cap";
+            mesh.name = node.name + " crown cap"; // text-ok: a scene-graph label for debugging, never shown to the player
             mesh.frustumCulled = false;
             half.add(mesh);
             caps.push(mesh);

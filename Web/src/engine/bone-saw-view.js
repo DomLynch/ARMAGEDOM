@@ -17,7 +17,7 @@ export function createBoneSaw() {
   part(new T.BoxGeometry(0.17, 0.22, 0.13), body, 0, 0.3, 0);
   part(new T.CylinderGeometry(0.065, 0.065, 0.2, 10), steel, 0, 0.3, 0).rotation.z = Math.PI / 2;
   const blade = new T.Group();
-  blade.name = "Bone Saw reciprocating blade";
+  blade.name = "Bone Saw reciprocating blade"; // text-ok: three.js group name, never shown
   root.add(blade);
   const mesh = new T.Mesh(new T.BoxGeometry(0.065, 0.47, 0.018), steel);
   mesh.position.y = 0.62;
