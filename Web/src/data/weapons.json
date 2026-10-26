@@ -491,7 +491,8 @@
       "grenadeLandingHeight": 0.08,
       "landingHeight": 0.05,
       "bodyMinHalfHeight": 0.1,
-      "bodyHeightRatio": 0.65
+      "bodyHeightRatio": 0.65,
+      "bodyMinRadius": 0.05
     }
   },
   "families": [
