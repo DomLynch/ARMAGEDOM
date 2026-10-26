@@ -51,7 +51,7 @@ export function createFlameEffect({
     up = new T.Vector3(0, 1, 0),
     anchor = new T.Vector3(),
     pelvisAnchor = new T.Vector3();
-  mesh.name = "Flamethrower pooled flame and cosmetic fire";
+  mesh.name = "Flamethrower pooled flame and cosmetic fire"; // text-ok: scene-graph object name
   mesh.renderOrder = FX.renderOrder;
   mesh.frustumCulled = false;
   mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);

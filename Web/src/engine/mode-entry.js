@@ -1,6 +1,7 @@
 import { createBrowserSession } from "./browser-session.js";
 import { assertSession } from "./contracts.js";
 import { createCommanderSession } from "./commander/session.js";
+import { sessionText } from "./session-text.js";
 
 export function createModeEntry() {
   let current = null,
@@ -22,8 +23,8 @@ export function createModeEntry() {
     byId("hit-marker").hidden = true;
     byId("mode-cancel").hidden = true;
     byId("enter").disabled = byId("enter-ai").disabled = false;
-    byId("enter").textContent = "Play as Human";
-    byId("loading").textContent = "Choose how to play.";
+    byId("enter").textContent = sessionText("mode.playHuman");
+    byId("loading").textContent = sessionText("mode.choose");
     document.body.classList.remove("commander-mode", "menu-open");
   }
   function back() {
@@ -61,7 +62,10 @@ export function createModeEntry() {
         mode = "entry";
         failed?.dispose();
         showEntry();
-        byId("loading").textContent = `Could not start ${next === "human" ? "Human" : "Commander"}: ${error.message}`;
+        byId("loading").textContent = sessionText("mode.startFailed", {
+          mode: sessionText(next === "human" ? "mode.modeHuman" : "mode.modeCommander"),
+          error: error.message,
+        });
       }
     } finally {
       if (token === generation) {

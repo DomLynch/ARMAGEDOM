@@ -1,4 +1,5 @@
 import { closed } from "./content-schema.js";
+import { checkTemplate } from "./text-template.js";
 // Validator for visual.json `routeGuidance` (the road-guidance presentation read by engine/route-guidance.js). It lives apart from
 // game-data.js to keep that file under the source size guard. Metres unless a name says otherwise; colours are 6-digit hex strings.
 const fail = (why) => {
@@ -14,6 +15,20 @@ const ensureNumbers = (field, v, length) => {
   if (!Array.isArray(v) || v.length !== length) fail(`${field} must hold ${length} numbers`);
   v.forEach((n, i) => number(`${field}[${i}]`, n, 0.001));
 };
+// The words of the route cue, the exit label and the safehouse entrance sign. {placeholders} are checked here, at load.
+function validateGuidanceText(t) {
+  closed(t, ["killSalamander", "killMatron", "walkToProjector", "pistol", "shelter", "exit", "roadClosed", "cue", "compass", "entranceSign"]);
+  for (const f of ["killSalamander", "killMatron", "walkToProjector", "pistol", "shelter", "roadClosed"]) checkTemplate(`text.${f}`, t[f], [], fail);
+  checkTemplate("text.exit", t.exit, ["area"], fail, ["area"]);
+  checkTemplate("text.cue", t.cue, ["closed", "direction", "name", "metres"], fail, ["direction", "name", "metres"]);
+  if (!Array.isArray(t.compass) || t.compass.length !== 8) fail("text.compass must hold eight direction marks, east first, counter-clockwise");
+  t.compass.forEach((c, i) => checkTemplate(`text.compass[${i}]`, c, [], fail));
+  if (!Array.isArray(t.entranceSign) || t.entranceSign.length < 1 || t.entranceSign.length > 2) fail("text.entranceSign must hold one or two lines");
+  t.entranceSign.forEach((l, i) => {
+    checkTemplate(`text.entranceSign[${i}]`, l, [], fail);
+    if (!/^[A-Z0-9 ·→-]{1,22}$/.test(l)) fail(`text.entranceSign[${i}] must be 1 to 22 capitals, digits or spaces`);
+  });
+}
 export function validateRouteGuidance(r) {
   closed(r, [
     "clearance",
@@ -25,9 +40,11 @@ export function validateRouteGuidance(r) {
     "arrivalRadius",
     "pistolArrived",
     "huntArrived",
+    "text",
     "rail",
     "marker",
   ]);
+  validateGuidanceText(r.text);
   for (const f of ["clearance", "sampleStep", "boundaryReach", "exitReach", "boundaryStartReach"]) number(f, r[f], 0.001);
   for (const f of ["waypointMin", "arrivalRadius", "pistolArrived", "huntArrived"]) number(f, r[f], 0.001);
   const { rail, marker: m } = r;

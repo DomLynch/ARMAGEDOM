@@ -32,7 +32,7 @@ import { wolfBiteDirection } from "./wolf-native.js";
 import { SALAMANDER_BREATH } from "./salamander-native.js";
 import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
-import { GAME_DATA } from "./engine/game-data.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
@@ -71,6 +71,7 @@ import { selectCombatTarget, resolvePistolShot, resolveRangedAim, selectedRanged
 import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
+const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
 export const attacks = GAME_DATA.creatures.playerAttacks;
@@ -168,7 +169,7 @@ export function createGame(world, options = {}) {
     enemies: [],
     bolts: [],
     loot: [],
-    message: "Move to enter combat. Survive three waves.",
+    message: HUD_TEXT.enterCombat,
     messageUntil: WAVES.messageSeconds,
     player: {
       id: 0,
@@ -221,7 +222,7 @@ export function createGame(world, options = {}) {
     if (encounter) {
       g.encounter = encounter;
       g.nextEnemyAttackAt = 0;
-      g.message = "Hollow scavengers";
+      g.message = HUD_TEXT.hollowScavengers;
     }
   }
   if (options.healthRegen === true) g.healthRegen = true;
@@ -452,10 +453,10 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
       shotDirection = e.direction;
     }
     event(g, e.type, { ...e, actor: p });
-    if (e.type === "pickup") notify(g, "PISTOL EQUIPPED");
-    if (e.type === "holster") notify(g, "KNIFE EQUIPPED");
-    if (e.type === "equip") notify(g, "PISTOL EQUIPPED");
-    if (e.type === "dry") notify(g, g.pistol.reserve ? "EMPTY · Reload." : "OUT OF AMMO · Switch to melee.");
+    if (e.type === "pickup") notify(g, HUD_TEXT.pistolEquipped);
+    if (e.type === "holster") notify(g, HUD_TEXT.knifeEquipped);
+    if (e.type === "equip") notify(g, HUD_TEXT.pistolEquipped);
+    if (e.type === "dry") notify(g, g.pistol.reserve ? HUD_TEXT.emptyReload : HUD_TEXT.outOfAmmo);
     if (e.type === "shot" && e.targetId !== null && e.targetId !== undefined) {
       const target = g.enemies.find((t) => t.id === e.targetId && t.hp > 0);
       if (!target) continue;
@@ -700,7 +701,7 @@ export function receiveHit(g, hit) {
           hit.attacker.staggerUntil =
             t + LEGACY.player.guard.parryStunSeconds;
       }
-      notify(g, "PARRY · Counter while they recover.");
+      notify(g, HUD_TEXT.parry);
       event(g, "parry", { actor: p });
       return false;
     }
@@ -714,7 +715,7 @@ export function receiveHit(g, hit) {
       p.guarding = false;
       p.parryUntil = 0;
       p.guardBrokenUntil = t + LEGACY.player.guard.brokenSeconds;
-      notify(g, "GUARD BROKEN · Dodge or make space.");
+      notify(g, HUD_TEXT.guardBroken);
       event(g, "guard-break", { actor: p });
     }
   }
@@ -825,16 +826,13 @@ function kill(g, e, meta = {}) {
         g.finished = true;
         g.won = g.player.hp > 0;
       }
-      notify(g, g.encounter ? "LONDON · Hollow encounter cleared." : "LONDON · Knife encounter cleared.");
+      notify(g, g.encounter ? HUD_TEXT.hollowCleared : HUD_TEXT.knifeCleared);
     }
     if (e.bossProfile) {
       notify(
         g,
-        e.bossName +
-          " defeated." +
-          (g.supplies?.pending.some((row) => row.placementKey === e.placementKey)
-            ? " Supplies await near the body."
-            : ""),
+        fillText(HUD_TEXT.bossDefeated, { name: e.bossName }) +
+          (g.supplies?.pending.some((row) => row.placementKey === e.placementKey) ? HUD_TEXT.suppliesAwait : ""),
       );
       event(g, "boss-defeated", { actor: e, placementKey: e.placementKey, name: e.bossName });
     }
@@ -856,7 +854,7 @@ function kill(g, e, meta = {}) {
   if (!g.enemies.length) {
     g.player.hp = Math.min(g.player.maxHP, g.player.hp + LEGACY.waveClearHeal);
     g.nextWave = g.time + WAVES.clearDelaySeconds;
-    notify(g, `WAVE CLEARED · +${LEGACY.waveClearHeal} HP`);
+    notify(g, fillText(HUD_TEXT.waveCleared, { hp: LEGACY.waveClearHeal }));
   }
 }
 function strike(g, s) {
@@ -904,7 +902,7 @@ export function spawnWave(g) {
         R.goblinRegen,
       ),
     ];
-    notify(g, "LONDON · Goblin knife encounter");
+    notify(g, HUD_TEXT.goblinEncounter);
     event(g, "wave");
     return;
   }
@@ -917,7 +915,7 @@ export function spawnWave(g) {
       z: -1 + Math.floor(i / LEGACY.formation.columns) * LEGACY.formation.zSpacing,
     }),
   );
-  notify(g, finalWave ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/${WAVES.finalWave}`);
+  notify(g, finalWave ? HUD_TEXT.warlord : fillText(HUD_TEXT.wave, { wave: g.wave, final: WAVES.finalWave }));
   event(g, "wave");
 }
 const wideSwing = (e) => e.kind === WARLORD && e.pattern === WAVES.widePattern;
@@ -1070,17 +1068,17 @@ function collect(g) {
       const pct = LEGACY.loot.blade.base + l.tier * LEGACY.loot.blade.step;
       p.damage *= 1 + pct;
       p.weaponLevel++;
-      notify(g, `BLADE +${Math.round(pct * 100)}% damage`);
+      notify(g, fillText(HUD_TEXT.blade, { pct: Math.round(pct * 100) }));
     } else if (l.kind === 1) {
       const hp = LEGACY.loot.armour.base + l.tier * LEGACY.loot.armour.step;
       p.maxHP += hp;
       p.hp = Math.min(p.maxHP, p.hp + hp);
       p.armourLevel++;
-      notify(g, `ARMOUR +${hp} max HP`);
+      notify(g, fillText(HUD_TEXT.armour, { hp }));
     } else {
       const hp = LEGACY.loot.tonic.base + l.tier * LEGACY.loot.tonic.step;
       p.hp = Math.min(p.maxHP, p.hp + hp);
-      notify(g, `TONIC +${hp} HP`);
+      notify(g, fillText(HUD_TEXT.tonic, { hp }));
     }
     event(g, "loot", { actor: p });
   }
@@ -1487,7 +1485,7 @@ function hollowSpawn(g) {
     g.wave = 1;
     g.enemies = positions.map((position, index) => hollowActor(g, position, index));
     if (g.areaResidents) initializeAreaResidents(g);
-    notify(g, "LONDON · Hollow scavengers");
+    notify(g, HUD_TEXT.hollowEncounter);
     event(g, "wave", { count: profile.count, encounter: profile.id });
     return true;
   }
@@ -1922,7 +1920,7 @@ function knifeReceive(g, hit) {
         e.response = { clip: "Deflected", start: t, ticks: R.parryStun };
       }
       p.response = { clip: "Parry", start: t, ticks: R.parry };
-      notify(g, "PARRY · Counter while they recover.");
+      notify(g, HUD_TEXT.parry);
       event(g, "parry", { actor: p, ...meta });
       return false;
     }

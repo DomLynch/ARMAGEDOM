@@ -1,23 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { webText } from "../src/engine/web-text.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const MESSAGE = "Saved run could not be read. Open the menu and choose Reset game to start fresh.";
 
 test("the in-game message for an unreadable saved run points at Reset game, not at a recovery players cannot do", () => {
   const source = read("../src/engine/run-core.js");
-  assert.ok(source.includes(`g.message = "${MESSAGE}";`));
+  assert.ok(source.includes('g.message = webText("runCore.savedRunUnreadable");'));
+  assert.equal(webText("runCore.savedRunUnreadable"), MESSAGE);
   assert.ok(!source.includes("recover it before retrying"));
   assert.ok(!source.includes("Saved run invalid"));
 });
 
 test("disabled Retry encounter and Try again carry a hint to use the menu", () => {
   const source = read("../src/engine/expedition-runtime.js");
+  // The hint is data (sessionText.json, expedition.resetHint); the title is set from it, and still points at Reset game.
   assert.ok(
-    source.includes(
-      'el("retry").title = el("again").title = g.runSaveInvalid ? "Open the menu and choose Reset game." : "";',
-    ),
+    source.includes('el("retry").title = el("again").title = g.runSaveInvalid ? text("expedition.resetHint") : "";'),
   );
+  assert.equal(JSON.parse(read("../src/data/sessionText.json")).expedition.resetHint, "Open the menu and choose Reset game.");
   assert.ok(source.indexOf('el("retry").disabled') < source.indexOf('el("retry").title'));
 });

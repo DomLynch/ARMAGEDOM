@@ -4,6 +4,7 @@ import { rigOfSpecies } from "../../rig-capabilities.js";
 import { tracePistol } from "../../pistol.js";
 import { bodyLineClear, createBridgeSteering } from "../../bridge-steering.js";
 import { COMMANDER_MATCH as M } from "./match-data.js";
+import { sessionText as text } from "../session-text.js";
 
 // data/commander.json holds the match numbers; the machine's body, strike timing and bolt are the drone's own (creatures.json `drone`).
 export const commanderRules = (rules, drone) =>
@@ -71,7 +72,7 @@ function freePosition(s, world, center, radius, ignore = null) {
   return null;
 }
 export function createCommanderMatch(world) {
-  if (world.areaId !== "westminster") throw Error("Commander requires Westminster");
+  if (world.areaId !== "westminster") throw Error("Commander requires Westminster"); // text-ok: developer error
   const spawn = world.geometry.ground({ ...M.spawnPoint }),
     objective = world.geometry.ground({ ...M.objectivePoint }),
     wavePoint = world.geometry.ground({ ...M.wavePoint });
@@ -80,7 +81,7 @@ export function createCommanderMatch(world) {
     !world.geometry.clear(objective, COMMANDER_RULES.machineRadius) ||
     !bodyLineClear(world.geometry, spawn, objective, COMMANDER_RULES.machineRadius)
   )
-    throw Error("Commander registered road pocket is not body-clear");
+    throw Error("Commander registered road pocket is not body-clear"); // text-ok: developer error
   const s = {
     mode: "commander",
     time: 0,
@@ -106,12 +107,12 @@ export function createCommanderMatch(world) {
   };
   for (let i = 0; i < M.startMachines; i++) {
     const p = freePosition(s, world, spawn, COMMANDER_RULES.machineRadius);
-    if (!p) throw Error("Starting full-radius drones do not fit");
+    if (!p) throw Error("Starting full-radius drones do not fit"); // text-ok: developer error
     s.units.push(actor(s, "machine", p));
   }
   for (let i = 0; i < M.defenders; i++) {
     const p = freePosition(s, world, { x: objective.x + M.defenderOffset.x + i, z: objective.z + M.defenderOffset.z }, M.biologicalRadius);
-    if (!p) throw Error("Commander defenders do not fit");
+    if (!p) throw Error("Commander defenders do not fit"); // text-ok: developer error
     s.opponents.push(actor(s, "biological", p));
   }
   return s;
@@ -124,12 +125,12 @@ export function selectCommander(s, ids) {
 }
 export function orderCommander(s, world, request) {
   if (s.result || !request || !["move", "attack", "defend", "deploy"].includes(request.type))
-    return { ok: false, reason: "Match or order unavailable" };
+    return { ok: false, reason: text("commander.unavailable") };
   if (request.type === "deploy") {
-    if (s.units.filter(live).length >= COMMANDER_RULES.unitCap) return { ok: false, reason: "Three-unit cap reached" };
-    if (s.reserve < COMMANDER_RULES.deployCost) return { ok: false, reason: "Reserve exhausted" };
+    if (s.units.filter(live).length >= COMMANDER_RULES.unitCap) return { ok: false, reason: text("commander.capReached") };
+    if (s.reserve < COMMANDER_RULES.deployCost) return { ok: false, reason: text("commander.reserveExhausted") };
     const p = freePosition(s, world, s.spawn, COMMANDER_RULES.machineRadius);
-    if (!p) return { ok: false, reason: "Deployment point occupied" };
+    if (!p) return { ok: false, reason: text("commander.pointOccupied") };
     const e = actor(s, "machine", p);
     s.units.push(e);
     s.reserve -= COMMANDER_RULES.deployCost;
@@ -138,17 +139,17 @@ export function orderCommander(s, world, request) {
     return { ok: true, ...s.lastOrder };
   }
   const units = s.selected.map((id) => s.units.find((e) => e.id === id && live(e))).filter(Boolean);
-  if (!units.length) return { ok: false, reason: "Select a machine first" };
+  if (!units.length) return { ok: false, reason: text("commander.selectFirst") };
   let target = null;
   if (request.type === "attack") {
     target = s.opponents.find((e) => e.id === request.targetId && e.team === "biological" && live(e));
-    if (!target) return { ok: false, reason: "Choose a living biological opponent" };
+    if (!target) return { ok: false, reason: text("commander.chooseOpponent") };
   }
   if (
     request.type === "move" &&
     (!point(request.point) || !world.geometry.clear(request.point, COMMANDER_RULES.machineRadius))
   )
-    return { ok: false, reason: "Destination is outside the clear road" };
+    return { ok: false, reason: text("commander.outsideRoad") };
   const destinations = [];
   if (request.type === "move")
     for (const e of units) {
@@ -172,7 +173,7 @@ export function orderCommander(s, world, request) {
             if (bodyLineClear(world.geometry, e.pos, route, e.radius) && world.lineClear(e.pos, route)) chosen = p;
           }
         }
-      if (!chosen) return { ok: false, reason: "No body-clear route for the selected formation" };
+      if (!chosen) return { ok: false, reason: text("commander.noRoute") };
       destinations.push(chosen);
     }
   for (let i = 0; i < units.length; i++) {
@@ -375,7 +376,7 @@ function stepBiological(s, world, e, dt) {
   e.swing = { clip: "Attack", native: true, start: s.time, end: s.time + COMMANDER_RULES.meleeWindup + M.swingAfterWindup };
 }
 export function stepCommander(s, world, dt = 1 / 60) {
-  if (!Number.isFinite(dt) || Math.abs(dt - 1 / 60) > EPS) throw Error("Commander requires fixed60Hz");
+  if (!Number.isFinite(dt) || Math.abs(dt - 1 / 60) > EPS) throw Error("Commander requires fixed60Hz"); // text-ok: developer error
   if (s.result) return;
   s.events = [];
   s.time += dt;
@@ -430,12 +431,12 @@ export function stepCommander(s, world, dt = 1 / 60) {
       s.events.push({ type: "wave", number: s.waves });
     }
     if (s.objective.hp > 0 && s.objective.defend + EPS >= COMMANDER_RULES.defendSeconds)
-      finish(s, "success", "Checkpoint captured and defended");
+      finish(s, "success", text("commander.resultCaptured"));
   }
-  if (s.objective.hp <= 0) finish(s, "loss", "Checkpoint destroyed");
-  else if (s.time + EPS >= COMMANDER_RULES.matchSeconds) finish(s, "loss", "Time expired");
+  if (s.objective.hp <= 0) finish(s, "loss", text("commander.resultDestroyed"));
+  else if (s.time + EPS >= COMMANDER_RULES.matchSeconds) finish(s, "loss", text("commander.resultTime"));
   else if (!machines.length && s.reserve < COMMANDER_RULES.deployCost)
-    finish(s, "loss", "Squad and replacement reserve exhausted");
+    finish(s, "loss", text("commander.resultReserve"));
 }
 export function commanderSnapshot(s) {
   return {

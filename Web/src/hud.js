@@ -7,6 +7,7 @@ import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js"
 import { PISTOL_RULES } from "./pistol.js";
 import { keySuffix } from "./engine/key-hint.js";
 import { GAME_DATA } from "./engine/game-data.js";
+import { webText } from "./engine/web-text.js";
 // Button cooldown fallbacks, the pistol prompt reach and the default grenade range: data/visual.json `hud`.
 const HUD = GAME_DATA.visual.hud;
 const percentBonus = (multiplier) => Math.round((multiplier - 1) * 1000) / 10; // tuning-ok: a damage multiplier as a percent, to one decimal
@@ -193,15 +194,15 @@ export function createHUD({
     if (!loaded || resetBusy) return;
     resetBusy = true;
     resetButton.disabled = true;
-    resetStatus.textContent = "Starting fresh…";
+    resetStatus.textContent = webText("hud.resetting");
     let result;
     try {
       result = await onReset();
     } catch {
-      result = { ok: false, message: "Reset failed. Your current run was kept." };
+      result = { ok: false, message: webText("hud.resetFailed") };
     }
     if (!loaded) return;
-    resetStatus.textContent = result?.message ?? "Reset failed. Your current run was kept.";
+    resetStatus.textContent = result?.message ?? webText("hud.resetFailed");
     if (!result?.ok) {
       resetBusy = false;
       resetButton.disabled = false;
@@ -211,14 +212,14 @@ export function createHUD({
   el("pistol-interact").onclick = onPistol;
   el("sound").onclick = () => {
     sound = !sound;
-    el("sound").textContent = sound ? "Sound on" : "Sound off";
+    el("sound").textContent = webText(sound ? "hud.soundOn" : "hud.soundOff");
     el("sound").setAttribute("aria-pressed", String(sound));
     onSound(sound);
   };
   let assist = true;
   el("assist").onclick = () => {
     assist = !assist;
-    el("assist").textContent = assist ? "Assist: 100%" : "Assist: Off";
+    el("assist").textContent = webText(assist ? "hud.assistOn" : "hud.assistOff");
     el("assist").setAttribute("aria-pressed", String(assist));
     onAssist(assist);
   };
@@ -274,7 +275,7 @@ export function createHUD({
     },
     failed(message) {
       el("enter").disabled = false;
-      el("enter").textContent = "Retry loading";
+      el("enter").textContent = webText("hud.retryLoading");
       el("loading").textContent = message;
     },
     update(g, hint = "", hintFirst = false) {
@@ -296,7 +297,7 @@ export function createHUD({
             : Number.isFinite(cost) && cost > 0 && (stamina < cost || exhausted);
         };
         const low = stamina <= 0 || ["slash", "stab", "heavy", "dodge"].some(unaffordable);
-        const staminaState = exhausted ? "EXHAUSTED" : p.guardBrokenUntil > g.time ? "GUARD BROKEN" : low ? "LOW" : "";
+        const staminaState = exhausted ? "EXHAUSTED" : p.guardBrokenUntil > g.time ? webText("hud.guardBroken") : low ? "LOW" : "";
         el("guard-fill").style.width = `${(stamina / maximum) * 100}%`;
         el("guard-number").textContent = `${Math.ceil(stamina)} / ${maximum}`;
         const bar = el("stamina-bar");
@@ -311,26 +312,24 @@ export function createHUD({
           const button = el(id),
             lowEnergy = unaffordable(id);
           button.classList.toggle("low-energy", lowEnergy);
-          button.setAttribute(
-            "aria-label",
-            `${id === "dodge" ? "Dodge Roll" : id}${lowEnergy ? " · Low stamina" : ""}`,
-          );
+          const actionLabel = id === "dodge" ? webText("hud.dodgeRoll") : id;
+          button.setAttribute("aria-label", lowEnergy ? webText("hud.lowStamina", { label: actionLabel }) : actionLabel);
           if (id === "slash" || id === "stab" || id === "guard") button.querySelector("small").textContent = "";
         }
         const area = (g.world?.areaId ?? "westminster").toUpperCase();
-        el("menu-area").textContent = `${area} · LONDON 2030`;
+        el("menu-area").textContent = webText("hud.menuArea", { area });
         // The expedition objective owns next-step guidance; this line keeps region
         // status. Actual crossing checks and transient warnings remain unchanged.
         const guided = !!g.world?.safehouseData,
           exitGate = guided ? null : bossExitGate(g);
         const areaName = area[0] + area.slice(1).toLowerCase(),
-          enemyCount = `${g.enemies.length} ${g.enemies.length === 1 ? "enemy" : "enemies"}`;
+          enemyCount = webText(g.enemies.length === 1 ? "hud.enemyCount.one" : "hud.enemyCount.other", { count: g.enemies.length });
         el("objective").textContent =
           exitGate && !exitGate.allowed
             ? exitGate.message
             : g.encounterCleared && !g.enemies.some((e) => e.hp > 0 && e.hostile !== false)
-              ? `${areaName} · cleared`
-              : `${areaName} · ${enemyCount}`;
+              ? webText("hud.areaCleared", { area: areaName })
+              : webText("hud.areaEnemies", { area: areaName, count: enemyCount });
         const progression = g.progression,
           model = g.progressionModel;
         // Mastery detail lives in the progression panel; the HUD keeps it hidden.
@@ -344,14 +343,22 @@ export function createHUD({
               pilotBonuses(g.world.progressionData, DEFAULT_ATTRIBUTES, id, progression.proficiency[id]).damageMultiplier,
             );
           el("mastery").textContent = ["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon)
-            ? `${p.weapon.toUpperCase()} · no mastery bonus`
-            : `${label} MASTERY ${progression.proficiency[weapon]}/100 · +${bonus(weapon)}%`;
-          el("progression-attributes").textContent =
-            Object.entries(progression.attributes)
+            ? webText("hud.masteryNone", { weapon: p.weapon.toUpperCase() })
+            : webText("hud.mastery", { label, level: progression.proficiency[weapon], bonus: bonus(weapon) });
+          el("progression-attributes").textContent = webText("hud.attributes", {
+            attributes: Object.entries(progression.attributes)
               .map(([id, value]) => `${id[0].toUpperCase() + id.slice(1)} ${value}`)
-              .join(" · ") + ". Intelligence has no effect in this pilot.";
-          el("progression-weapons").textContent =
-            `Knife ${progression.proficiency.knife}/100 (+${bonus("knife")}% mastery damage) · Pistol ${progression.proficiency["westminster-start-pistol-v1"]}/100 (+${bonus("westminster-start-pistol-v1")}% mastery damage). Combined damage bonus: +${["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon) ? 0 : percentBonus(model.bonuses(progression, weapon).damageMultiplier)}%.`;
+              .join(" · "),
+          });
+          el("progression-weapons").textContent = webText("hud.weaponMastery", {
+            knife: progression.proficiency.knife,
+            knifeBonus: bonus("knife"),
+            pistol: progression.proficiency["westminster-start-pistol-v1"],
+            pistolBonus: bonus("westminster-start-pistol-v1"),
+            combined: ["rifle", "shotgun", "grenade", "rocket"].includes(p.weapon)
+              ? 0
+              : percentBonus(model.bonuses(progression, weapon).damageMultiplier),
+          });
         }
         // A survival hint (hintFirst) outranks even a live game message; every other hint waits for it.
         const message =
@@ -402,7 +409,7 @@ export function createHUD({
           if (equipped !== lastPistolEquipped) {
             for (const [id, label] of Object.entries(
               equipped
-                ? { slash: "FIRE", stab: "RELOAD", heavy: "MELEE", guard: "NO GUARD" }
+                ? { slash: "FIRE", stab: "RELOAD", heavy: "MELEE", guard: webText("hud.noGuard") }
                 : { slash: "SLASH", stab: "STAB", heavy: "HEAVY", guard: "GUARD" },
             ))
               el(id).querySelector("span").textContent = label;
@@ -411,12 +418,17 @@ export function createHUD({
             lastPistolEquipped = equipped;
           }
           if (equipped) {
-            el("guard").setAttribute("aria-label", "Guard unavailable with pistol");
+            el("guard").setAttribute("aria-label", webText("hud.guardUnavailable.pistol"));
           }
           // The pistol tile and FIRE button already show the magazine; the top-left line is a duplicate.
           el("ammo").hidden = true;
-          el("ammo").textContent =
-            `${(selectedPistolProfile(g).name ?? "PISTOL").toUpperCase()} · ${pistol.magazine} / 6 · ${pistol.reserve} RESERVE${pistol.reloadingUntil ? " · RELOADING" : ""}`;
+          el("ammo").textContent = webText("hud.ammo.pistol", {
+            name: (selectedPistolProfile(g).name ?? "PISTOL").toUpperCase(),
+            magazine: pistol.magazine,
+            capacity: PISTOL_RULES.capacity,
+            reserve: pistol.reserve,
+            reloading: pistol.reloadingUntil ? webText("hud.reloadingSuffix") : "",
+          });
           const fireLeft = Math.max(0, pistol.nextFireAt - g.time);
           el("slash").classList.toggle("pistol-aim", equipped);
           el("slash").classList.toggle("cooldown", equipped && fireLeft > 0);
@@ -437,10 +449,15 @@ export function createHUD({
               el(id).setAttribute(
                 "aria-label",
                 id === "slash"
-                  ? `Fire; ${pistol.magazine} of ${PISTOL_RULES.capacity} loaded, ${pistol.reserve} reserve${pistol.reloadingUntil ? "; reloading" : ""}; left stick aims, Fire only shoots, mouse aims on desktop`
+                  ? webText("hud.fire.pistolLabel", {
+                      magazine: pistol.magazine,
+                      capacity: PISTOL_RULES.capacity,
+                      reserve: pistol.reserve,
+                      reloading: pistol.reloadingUntil ? webText("hud.reloadingAria") : "",
+                    })
                   : id === "stab"
                     ? "Reload"
-                    : "Switch to melee",
+                    : webText("hud.switchToMelee"),
               );
             }
           }
@@ -449,7 +466,7 @@ export function createHUD({
             (g.world.areaId ?? "westminster") === pistol.pickupAreaId &&
             Math.hypot(p.pos.x - pistol.pickupPos.x, p.pos.z - pistol.pickupPos.z) <= HUD.pistolInteractRadius;
           el("pistol-interact").hidden = g.finished || (!nearby && (!pistol.collected || equipped));
-          el("pistol-interact").textContent = (nearby ? "PICK UP & EQUIP PISTOL" : "EQUIP PISTOL") + keySuffix();
+          el("pistol-interact").textContent = webText(nearby ? "hud.pickUpAndEquipPistol" : "hud.equipPistol") + keySuffix();
           el("pistol-icon").hidden = true;
         }
         if (g.rifle?.selected && !flameEquipped) {
@@ -457,13 +474,23 @@ export function createHUD({
             rules = g.world.rifleData.rules,
             clock = g.rifleAction ?? {},
             left = Math.max(0, (clock.nextFireAt ?? 0) - g.time);
-          for (const [id, text] of Object.entries({ slash: "FIRE", stab: "RELOAD", heavy: "MELEE", guard: "NO GUARD" }))
+          for (const [id, text] of Object.entries({
+            slash: "FIRE",
+            stab: "RELOAD",
+            heavy: "MELEE",
+            guard: webText("hud.noGuard"),
+          }))
             el(id).querySelector("span").textContent = text;
           el("guard").disabled = true;
-          el("guard").setAttribute("aria-label", "Guard unavailable with rifle");
+          el("guard").setAttribute("aria-label", webText("hud.guardUnavailable.rifle"));
           el("ammo").hidden = false;
-          el("ammo").textContent =
-            `RIFLE · ${rifle.magazine}/${rules.capacity} · ${rifle.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+          el("ammo").textContent = webText("hud.ammo.standard", {
+            name: "RIFLE",
+            magazine: rifle.magazine,
+            capacity: rules.capacity,
+            reserve: rifle.reserve,
+            reloading: clock.reloadingUntil ? webText("hud.reloadingSuffix") : "",
+          });
           for (const id of ["slash", "stab", "heavy"]) {
             el(id).classList.toggle("low-energy", false);
             el(id).classList.toggle("cooldown", id === "slash" && left > 0);
@@ -478,9 +505,9 @@ export function createHUD({
           el("slash").style.setProperty("--ready", String(1 - Math.min(1, left / rules.cadence)));
           el("slash").setAttribute(
             "aria-label",
-            `Fire rifle once; ${rifle.magazine} loaded and ${rifle.reserve} reserve`,
+            webText("hud.fire.rifle", { magazine: rifle.magazine, reserve: rifle.reserve }),
           );
-          el("stab").setAttribute("aria-label", "Reload rifle");
+          el("stab").setAttribute("aria-label", webText("hud.reload.rifle"));
         }
         if (bossWeapon && !flameEquipped) {
           const state = g.bossEquipment[bossWeapon],
@@ -494,15 +521,15 @@ export function createHUD({
             slash: grenade ? "THROW" : "FIRE",
             stab: grenade ? "RANGE" : "RELOAD",
             heavy: "MELEE",
-            guard: grenade ? "MODE" : "NO GUARD",
+            guard: grenade ? "MODE" : webText("hud.noGuard"),
           }))
             el(id).querySelector("span").textContent = text;
           el("guard").disabled = !grenade;
           el("guard").setAttribute(
             "aria-label",
             grenade
-              ? "Switch grenade mode; " + (g.grenadeMode === "sticky" ? "Sticky" : "Standard") + " selected"
-              : "Guard unavailable with " + data.name,
+              ? webText("hud.grenadeMode", { mode: g.grenadeMode === "sticky" ? "Sticky" : "Standard" })
+              : webText("hud.guardUnavailable.weapon", { name: data.name }),
           );
           if (grenade) {
             el("guard").classList.remove("low-energy", "cooldown", "pressed");
@@ -510,15 +537,21 @@ export function createHUD({
           }
           el("ammo").hidden = false;
           el("ammo").textContent = grenade
-            ? `${g.grenadeMode === "sticky" ? "STICKY" : "STANDARD"} GRENADES · ${state.magazine} LEFT · 1s FUSE`
-            : `${rocket ? "ROCKET" : "SHOTGUN"} · ${state.magazine}/${capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            ? webText("hud.ammo.grenade", { mode: g.grenadeMode === "sticky" ? "STICKY" : "STANDARD", magazine: state.magazine })
+            : webText("hud.ammo.standard", {
+                name: rocket ? "ROCKET" : "SHOTGUN",
+                magazine: state.magazine,
+                capacity,
+                reserve: state.reserve,
+                reloading: clock.reloadingUntil ? webText("hud.reloadingSuffix") : "",
+              });
           for (const id of ["slash", "stab", "heavy"]) {
             el(id).classList.toggle("low-energy", id === "slash" && state.magazine === 0);
             el(id).classList.toggle("cooldown", id === "slash" && left > 0);
             el(id).querySelector("small").textContent =
               id === "slash"
                 ? grenade
-                  ? `${state.magazine} left`
+                  ? webText("hud.left", { count: state.magazine })
                   : `${state.magazine}/${capacity}`
                 : id === "stab"
                   ? grenade
@@ -533,16 +566,14 @@ export function createHUD({
           el("slash").setAttribute(
             "aria-label",
             grenade
-              ? `Throw one grenade; ${state.magazine} left`
-              : `Fire ${rocket ? "rocket" : "shotgun"} once; ${state.magazine} loaded`,
+              ? webText("hud.fire.grenade", { magazine: state.magazine })
+              : webText("hud.fire.boss", { kind: rocket ? "rocket" : "shotgun", magazine: state.magazine }),
           );
           el("stab").setAttribute(
             "aria-label",
             grenade
-              ? "Cycle touch throw range: 3, 5 or 8 metres"
-              : rocket
-                ? "Reload rocket launcher"
-                : "Reload shotgun",
+              ? webText("hud.grenadeRange")
+              : webText(rocket ? "hud.reload.rocket" : "hud.reload.shotgun"),
           );
         }
         if (g.player.weapon === "railgun" && g.bossEquipment?.commanderPistol?.selected) {
@@ -570,32 +601,37 @@ export function createHUD({
           el("slash").classList.toggle("low-energy", state.magazine === 0);
           el("slash").setAttribute(
             "aria-label",
-            `Hold to charge Thundercoil Arc Gun for ${data.charge.seconds} seconds; release when ready; early release cancels`,
+            webText("hud.arcCharge", { seconds: data.charge.seconds }),
           );
-          el("stab").setAttribute("aria-label", "Reload Thundercoil Arc Gun");
-          el("ammo").textContent =
-            `ARC GUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+          el("stab").setAttribute("aria-label", webText("hud.reload.arc"));
+          el("ammo").textContent = webText("hud.ammo.standard", {
+            name: webText("hud.arcGunName"),
+            magazine: state.magazine,
+            capacity: data.rules.capacity,
+            reserve: state.reserve,
+            reloading: clock.reloadingUntil ? webText("hud.reloadingSuffix") : "",
+          });
         }
         if (flameEquipped) {
           const percent = Math.ceil((g.flameFuel.fuelUnits / g.world.flameData.capacity) * 100);
           el("ammo").hidden = false;
-          el("ammo").textContent = `EMBER · FUEL ${percent}%`;
+          el("ammo").textContent = webText("hud.ammo.ember", { percent });
           for (const [id, text] of Object.entries({
             slash: "FLAME",
             stab: "RETURN",
             heavy: "RETURN",
-            guard: "NO GUARD",
+            guard: webText("hud.noGuard"),
           }))
             el(id).querySelector("span").textContent = text;
           el("guard").disabled = true;
-          el("guard").setAttribute("aria-label", "Guard unavailable with flamethrower");
+          el("guard").setAttribute("aria-label", webText("hud.guardUnavailable.flamethrower"));
           for (const id of ["slash", "stab", "heavy"]) {
             el(id).classList.toggle("cooldown", false);
             el(id).classList.toggle("low-energy", false);
             el(id).querySelector("small").textContent = id === "slash" ? `${percent}%` : "";
             el(id).setAttribute(
               "aria-label",
-              id === "slash" ? `Hold to fire flamethrower; fuel ${percent} percent` : "Return to normal weapon",
+              id === "slash" ? webText("hud.flameFire", { percent }) : webText("hud.flameReturn"),
             );
           }
           el("slash").classList.toggle("pistol-aim", true);
@@ -606,7 +642,7 @@ export function createHUD({
           el("slash").querySelector("small").textContent = "HOLD";
           el("slash").classList.toggle("low-energy", p.stamina <= 0);
           el("slash").classList.toggle("cooldown", false);
-          el("slash").setAttribute("aria-label", "Hold to cut with the Bone Saw; movement slows while cutting");
+          el("slash").setAttribute("aria-label", webText("hud.boneSawCut"));
           el("stab").hidden = el("heavy").hidden = true;
           lastPistolEquipped = null;
         }
@@ -615,16 +651,14 @@ export function createHUD({
         if (boss) el("boss-fill").style.width = `${(boss.hp / boss.maxHP) * 100}%`;
         el("ending").hidden = !g.finished || g.player.hp > 0;
         if (g.finished && g.player.hp <= 0) {
-          el("result").textContent = "THE ASH CLAIMS YOU";
-          el("result-hint").textContent = g.runSaveInvalid
-            ? "Saved run could not be read. Open the menu and choose Reset game to start fresh."
-            : "Watch their wind-up. Dodge, then strike.";
+          el("result").textContent = webText("hud.ashClaimsYou");
+          el("result-hint").textContent = webText(g.runSaveInvalid ? "runCore.savedRunUnreadable" : "hud.deathHint");
         }
 
         el("safehouse-status").hidden = !g.weaponsLowered;
         if (g.weaponsLowered) {
           el("ammo").hidden = false;
-          el("ammo").textContent = "SAFEHOUSE · WEAPONS LOWERED";
+          el("ammo").textContent = webText("hud.safehouseLowered");
         }
       } finally {
         flush();

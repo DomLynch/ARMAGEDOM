@@ -46,7 +46,7 @@ export function createMovementTrace(
   box.id = "movement-support";
   box.style.cssText =
     "position:fixed;top:210px;left:8px;right:8px;z-index:1000;background:#000d;color:#fff;font:10px monospace;padding:5px;pointer-events:none";
-  button.textContent = "Copy movement report";
+  button.textContent = "Copy movement report"; // text-ok: QA overlay label, shown only with the movement trace on
   button.style.cssText = "pointer-events:auto;font-size:12px";
   box.append(line, button);
   doc.body.append(box);
@@ -171,14 +171,14 @@ export function createMovementTrace(
     const text = JSON.stringify(report());
     try {
       await win.navigator.clipboard.writeText(text);
-      source.textContent = "Copied movement report";
+      source.textContent = "Copied movement report"; // text-ok: QA overlay label
     } catch {
       const area = doc.createElement("textarea");
       area.readOnly = true;
       area.value = text;
       (source.closest?.("dialog") ?? box).append(area);
       area.select();
-      source.textContent = "Select and copy report below";
+      source.textContent = "Select and copy report below"; // text-ok: QA overlay label
       listeners.push(() => area.remove());
     }
   }
@@ -188,7 +188,7 @@ export function createMovementTrace(
   if (menu) {
     const menuCopy = doc.createElement("button");
     menuCopy.id = "movement-report-copy";
-    menuCopy.textContent = "Copy movement report";
+    menuCopy.textContent = "Copy movement report"; // text-ok: QA overlay label
     menu.append(menuCopy);
     menuCopy.addEventListener("click", copy);
     listeners.push(() => {
@@ -270,7 +270,8 @@ export function createMovementTrace(
       if (g.time - lastPaint >= MOVEMENT_TRACE.paintSeconds) {
         lastPaint = g.time;
         const boundary = calls.find((c) => c.boundary);
-        line.textContent = `${identity?.version ?? "Build identity loading"} ${identity?.sourceCommit?.slice(0, MOVEMENT_TRACE.commitChars) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(MOVEMENT_TRACE.decimals)},${p.pos.z.toFixed(MOVEMENT_TRACE.decimals)} r${p.radius} stick ${stick.x.toFixed(MOVEMENT_TRACE.decimals)},${stick.y.toFixed(MOVEMENT_TRACE.decimals)} · ${
+        const build = identity?.version ?? "Build identity loading"; // text-ok: QA overlay fallback
+        line.textContent = `${build} ${identity?.sourceCommit?.slice(0, MOVEMENT_TRACE.commitChars) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(MOVEMENT_TRACE.decimals)},${p.pos.z.toFixed(MOVEMENT_TRACE.decimals)} r${p.radius} stick ${stick.x.toFixed(MOVEMENT_TRACE.decimals)},${stick.y.toFixed(MOVEMENT_TRACE.decimals)} · ${
           Object.entries(locks)
             .filter(([, v]) => v)
             .map(([k]) => k)
