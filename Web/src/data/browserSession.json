@@ -12,7 +12,9 @@
     "rimColor": "#d4c7a5",
     "rimIntensity": 3.2,
     "rimDistance": 5,
-    "rimDecay": 2
+    "rimDecay": 2,
+    "rimHeight": 2.4,
+    "rimBehind": 0.8
   },
   "syncedNoticeSeconds": 3
 }
