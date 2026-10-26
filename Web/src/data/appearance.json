@@ -26,5 +26,21 @@
     { "id": "roach-heavy-shell", "name": "Heavy-shell Roach", "width": 1.5, "shellTint": [0.76, 0.8, 0.88], "patch": 0.1 },
     { "id": "roach-skitter", "name": "Skitter Roach", "width": 0.68, "shellTint": [1.08, 0.92, 0.76], "patch": 0.15 },
     { "id": "roach-nest-guard", "name": "Nest Guard", "width": 1, "shellTint": [0.85, 0.74, 0.6], "patch": 0.36 }
-  ]
+  ],
+  "crookedHollow": {
+    "bones": [
+      "pelvis", "spine_01", "spine_02", "neck_01", "clavicle_l", "clavicle_r",
+      "upperarm_l", "lowerarm_l", "hand_l", "upperarm_r", "lowerarm_r", "hand_r",
+      "thigh_l", "calf_l", "foot_l", "thigh_r", "calf_r", "foot_r"
+    ]
+  },
+  "droneSupport": {
+    "id": "low-hover-watcher",
+    "states": ["idle", "patrol", "alert", "attack", "death"],
+    "bodyBandOffsets": [-0.21, 0.19],
+    "attackWarningSeconds": 0.6,
+    "deathSeconds": 0.8,
+    "finisher": "native-weapon-cosmetic",
+    "melee": "Requires Combat actual blade/body validation; no immunity or headshot claim"
+  }
 }
