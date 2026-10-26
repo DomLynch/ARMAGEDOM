@@ -155,10 +155,11 @@ test("a role gaining BYPASSRLS, a membership, a write grant or losing its grant 
 });
 
 test("the allow-list is data: the live switches, and the service_role grants, may differ and nothing else may", async () => {
-  assert.deepEqual(Object.keys(ALLOW.liveConfigKeys).sort(), ["arma_enabled", "arma_open_access"]);
+  assert.deepEqual(Object.keys(ALLOW.liveConfigKeys).sort(), ["arma_enabled", "arma_open_access", "enforce_cash"]);
   assert.deepEqual(Object.keys(ALLOW.allowedGrantees), ["service_role"]);
   const report = await drift(async (db) => {
     await db.exec(`update public.arma_config set value = 'true'::jsonb where key in ('arma_enabled', 'arma_open_access');
+      update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash';
       create role service_role nologin;
       grant all on all tables in schema public to service_role; grant execute on all functions in schema public to service_role;`);
   });
@@ -168,9 +169,11 @@ test("the allow-list is data: the live switches, and the service_role grants, ma
 test("a live switch holding something that is not a boolean, or any other config row changed, is reported", async () => {
   const text = await drift(async (db) => { await db.exec(`update public.arma_config set value = '"yes"'::jsonb where key = 'arma_enabled'`); });
   assert.match(lines(text).join("\n"), /row:arma_config.*arma_enabled/);
-  const cash = await drift(async (db) => { await db.exec(`update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'`); });
+  const cash = await drift(async (db) => { await db.exec(`update public.arma_config set value = '5'::jsonb where key = 'start_cash_total'`); });
   assert.equal(cash.differences.length, 2);
-  assert.match(cash.text, /enforce_cash.*hosted.*repo|hosted.*enforce_cash/);
+  assert.match(cash.text, /start_cash_total.*hosted.*repo|hosted.*start_cash_total/);
+  const cashSwitch = await drift(async (db) => { await db.exec(`update public.arma_config set value = '"off"'::jsonb where key = 'enforce_cash'`); });
+  assert.match(lines(cashSwitch).join("\n"), /row:arma_config.*enforce_cash/, "enforce_cash is allowed to differ only as a boolean");
 });
 
 test("a changed seeded row is reported with the hosted value and the repo value", async () => {
