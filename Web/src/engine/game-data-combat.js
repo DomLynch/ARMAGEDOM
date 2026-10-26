@@ -17,6 +17,7 @@ export function validateCombatRules(d) {
     "aim",
     "movement",
     "awareness",
+    "bossWeapon",
     "spawning",
     "enemyAI",
     "reactions",
@@ -33,6 +34,13 @@ export function validateCombatRules(d) {
   if (d.aim.targetConeDegrees >= 90) fail("combatRules", "aim.targetConeDegrees must be below 90");
   flat("movement", ["sidestepFraction", "patrolArrive", "patrolMove", "returnArrive", "homeLeash"]);
   flat("awareness", ["ratContactDistance", "sightDistance"]);
+  // bossWeapon: the boss-equipment weapon runtime's dead zone, grenade and rocket aim heights (metres) and the grenade throw ranges it cycles.
+  const bw = d.bossWeapon;
+  closed(bw, ["moveThreshold", "grenadeLandingClearance", "grenadeAimHeight", "rocketAimHeight", "grenadeThrowRanges", "defaultThrowRange"]);
+  for (const f of ["moveThreshold", "grenadeLandingClearance", "grenadeAimHeight", "rocketAimHeight"]) number("combatRules", `bossWeapon.${f}`, bw[f], 0);
+  if (!Array.isArray(bw.grenadeThrowRanges) || !bw.grenadeThrowRanges.length || !bw.grenadeThrowRanges.every((n) => Number.isFinite(n) && n > 0))
+    fail("combatRules", "bossWeapon.grenadeThrowRanges must list positive numbers");
+  if (!bw.grenadeThrowRanges.includes(bw.defaultThrowRange)) fail("combatRules", "bossWeapon.defaultThrowRange must be one of grenadeThrowRanges");
   flat("enemyAI", [
     "goblinSpeedFactor",
     "attackSpacing",
