@@ -13,8 +13,11 @@ const old = JSON.parse(fs.readFileSync(new URL("./fixtures/atmosphere-pre-data.j
 const rawText = fs.readFileSync(new URL("../src/data/atmosphere.json", import.meta.url), "utf8");
 const raw = () => structuredClone(JSON.parse(rawText));
 
-test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "3087cd7df17c8a4fa571ba054eb21d7b87efedaab90c445a615fb3e3579d93c8");
+test("the data file's original sections are pinned", () => {
+  // The `variation` section was added later (tests/data-atmosphere-variation.test.js pins it): this pin covers the batch 3.2 sections.
+  const { presets, areas, budgets, bends } = JSON.parse(rawText);
+  const section = JSON.stringify({ presets, areas, budgets, bends });
+  assert.equal(crypto.createHash("sha256").update(section).digest("hex"), "ef5913c157fb02f37783ee633e3364cf9174188c9a88f02077603f74c906d08d");
 });
 
 test("presets, anchors, budgets and bends equal the old in-code tables exactly (values and key order)", () => {

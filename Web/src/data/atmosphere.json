@@ -416,5 +416,17 @@
         0.36
       ]
     ]
+  },
+  "variation": {
+    "size": { "min": 0.94, "span": 0.12 },
+    "rise": { "min": 0.93, "span": 0.14 },
+    "noiseOffsetSpan": 7,
+    "defaultSmokeColor": [0.095, 0.085, 0.075],
+    "tint": { "min": 0.97, "span": 0.06 },
+    "fireHeight": { "min": 0.96, "span": 0.08 },
+    "opacity": { "min": 0.96, "span": 0.08 },
+    "smokePeriod": 7,
+    "smokeSpeed": { "min": 0.92, "span": 0.16 },
+    "wind": { "east": 0.45, "other": 0.3, "span": 0.12 }
   }
 }
