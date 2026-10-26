@@ -165,6 +165,11 @@
     "ringY": 0.045,
     "ringSegments": 48
   },
+  "expeditionHud": {
+    "atlas": { "cell": 100, "gutter": 3, "columns": 3, "rows": 3, "lanes": [100, 200] },
+    "caseScale": 1.35,
+    "guardLabelDistance": 10
+  },
   "remotePlayers": {
     "capsule": { "bodyHeight": 1, "radius": 0.3, "capSegments": 4, "radialSegments": 8, "saturation": 0.45, "lightness": 0.55, "hueStep": 47 },
     "head": { "radius": 0.2, "widthSegments": 12, "heightSegments": 8 },
