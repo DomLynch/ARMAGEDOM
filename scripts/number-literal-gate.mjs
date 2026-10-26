@@ -16,10 +16,9 @@ import { relative } from "node:path";
 
 export const NUMBER_ALLOWED = new Set([0, 1, 60, 90, 180, 360, 255, 100, 1000]);
 export const NUMBER_EPSILON = 1e-6;
-// Temporary, dated exception (Strategy, 26 Oct 2026): while the last number PRs land in parallel, a file below its baseline is not a
-// finding, so those PRs need not edit as-data-baseline.json and stop conflicting with each other. Increases and new files still fail.
-// The final shrink-only baseline PR sets this back to false; done = strict gate with an empty numberLiterals table.
-export const NUMBER_SHRINK_TOLERANCE = true;
+// The temporary shrink tolerance (Strategy, 26 Oct 2026) ended with the burn-down: the numberLiterals table is empty and the gate is strict,
+// so any tuning number in Web/src fails. The option stays only so the ratchet test can still exercise both paths.
+export const NUMBER_SHRINK_TOLERANCE = false;
 // The single exemption file (Web/src/data/keep-in-code.json): which files stay outside the counter, and which JSON imports are allowed.
 export const KEEP_IN_CODE_FILE = "Web/src/data/keep-in-code.json";
 export const KEEP_IN_CODE = JSON.parse(
