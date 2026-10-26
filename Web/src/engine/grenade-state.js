@@ -1,8 +1,10 @@
 import { radialBlastHits } from "./radial-blast.js";
+import { GAME_DATA } from "./game-data.js";
 // Pure standard grenade proposals. Host commits charges before spawning and
 // consumes each active grenade once; this module owns no IO, clock or damage.
 const profileFields = ["itemId", "capacity", "maxRange", "fuseSeconds", "radius", "maxDamage"];
-const profileValues = ["standard-grenade-v1", 3, 8, 1, 3, 60];
+// The one registered profile: the grenade payload in data/weapons.json. A caller's profile must match it field for field.
+const registeredProfile = () => GAME_DATA.weapons.ranged["standard-grenade-v1"].payload;
 const closed = (value, keys) =>
   !!value &&
   Object.getPrototypeOf(value) === Object.prototype &&
@@ -17,7 +19,7 @@ const id = (value) =>
   !["constructor", "prototype", "__proto__"].includes(value);
 const point = (value) => closed(value, ["x", "z"]) && Number.isFinite(value.x) && Number.isFinite(value.z);
 export function validateGrenadeProfile(profile) {
-  if (!closed(profile, profileFields) || !profileFields.every((key, i) => profile[key] === profileValues[i]))
+  if (!closed(profile, profileFields) || !profileFields.every((key) => profile[key] === registeredProfile()[key]))
     throw TypeError("Registered standard grenade profile required");
   return Object.freeze({ ...profile });
 }
