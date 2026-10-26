@@ -32,7 +32,7 @@ function softTexture() {
   texture.needsUpdate = true;
   return texture;
 }
-function layer(texture, capacity, blending, order) {
+function layer(name, texture, capacity, blending, order) {
   const geometry = new T.PlaneGeometry(1, 1),
     material = withInstanceAlpha(
       new T.MeshBasicMaterial({
@@ -51,6 +51,7 @@ function layer(texture, capacity, blending, order) {
   mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
   mesh.setColorAt(0, new T.Color());
   mesh.instanceColor.setUsage(T.DynamicDrawUsage);
+  mesh.name = name;
   mesh.renderOrder = order;
   mesh.frustumCulled = false;
   for (let i = 0; i < capacity; i++) mesh.setMatrixAt(i, hidden);
@@ -81,9 +82,9 @@ export function createExplosionEffects(s) {
   let layers = null;
   function build() {
     const texture = softTexture(),
-      glow = layer(texture, X.maxActive * glowPer, T.AdditiveBlending, X.renderOrder),
-      smoke = layer(texture, X.maxActive * M.count, T.NormalBlending, X.renderOrder - 1),
-      scorch = layer(texture, X.maxActive, T.NormalBlending, X.renderOrder - 1);
+      glow = layer("Explosion glow", texture, X.maxActive * glowPer, T.AdditiveBlending, X.renderOrder),
+      smoke = layer("Explosion smoke", texture, X.maxActive * M.count, T.NormalBlending, X.renderOrder - 1),
+      scorch = layer("Explosion scorch", texture, X.maxActive, T.NormalBlending, X.renderOrder - 1);
     for (const l of [scorch, smoke, glow]) s.scene.add(l.mesh);
     layers = { texture, glow, smoke, scorch };
   }

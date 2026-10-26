@@ -29,6 +29,7 @@ function fakeElement() {
 function describe(root) {
   const out = [];
   root.traverse((o) => {
+    if (o.name.startsWith("Explosion ")) return; // the shared explosion's own meshes: covered by explosion-effect.test.js
     const m = o.material,
       p = o.geometry?.parameters;
     out.push({

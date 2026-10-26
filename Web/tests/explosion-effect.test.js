@@ -24,6 +24,14 @@ test("one blast costs three draw calls in all, and nothing is built until the fi
   assert.equal(meshes(s.scene).length, 0);
 });
 
+test("its three meshes are named, so view digests can leave them out", () => {
+  const s = fake(),
+    fx = createExplosionEffects(s);
+  fx.spawn(new T.Vector3(), 3, 0);
+  assert.deepEqual(meshes(s.scene).map((m) => m.name), ["Explosion scorch", "Explosion smoke", "Explosion glow"]);
+  fx.dispose();
+});
+
 test("flash, fireball, sparks, smoke and scorch show while it burns and all fade out", () => {
   const s = fake(),
     fx = createExplosionEffects(s);
