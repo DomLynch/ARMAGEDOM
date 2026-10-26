@@ -1,0 +1,282 @@
+{
+ "responses": {
+  "wolf/true": {
+   "clip": "Hurt",
+   "start": 12.5,
+   "ticks": 32
+  },
+  "salamander/true": {
+   "clip": "Hurt",
+   "start": 12.5,
+   "ticks": 32
+  },
+  "wolf/false": {
+   "clip": "Death",
+   "start": 12.5,
+   "ticks": 74
+  },
+  "salamander/false": {
+   "clip": "Death",
+   "start": 12.5,
+   "ticks": 74
+  }
+ },
+ "bite": [
+  {
+   "x": 0.9945076324485761,
+   "z": 0.10466407693916699
+  },
+  {
+   "x": 0.8089368354884008,
+   "z": 0.5878955657172557
+  },
+  {
+   "x": -0.10466407693916693,
+   "z": 0.9945076324485761
+  },
+  {
+   "x": -0.7772317693964822,
+   "z": 0.6292144122958512
+  },
+  {
+   "x": -0.9945076324485761,
+   "z": -0.10466407693916686
+  },
+  {
+   "x": 0.10466407693916681,
+   "z": -0.9945076324485761
+  },
+  {
+   "x": 0.9961828041292738,
+   "z": 0.08729158468682327
+  }
+ ],
+ "mouth": {
+  "asked": 5727,
+  "source": {
+   "position": {
+    "x": 6.727,
+    "y": 2.5,
+    "z": -2.75
+   },
+   "direction": {
+    "x": 0,
+    "y": 0,
+    "z": 1
+   }
+  },
+  "other": null
+ },
+ "offsets": {
+  "A/westminster-roamer-2": {
+   "x": 0,
+   "z": 0
+  },
+  "A/westminster-roamer-4": {
+   "x": 0,
+   "z": 0
+  },
+  "A/westminster-roamer-6": {
+   "x": 0,
+   "z": 0
+  },
+  "A/east-roamer-4": {
+   "x": 0,
+   "z": 0
+  },
+  "A/east-roamer-5": {
+   "x": 0,
+   "z": -0.046
+  },
+  "A/east-roamer-7": {
+   "x": 0,
+   "z": 0
+  },
+  "A/east-roamer-9": {
+   "x": -0.014,
+   "z": -0.278
+  },
+  "A/south-roamer-2": {
+   "x": 0,
+   "z": 0
+  },
+  "A/south-roamer-3": {
+   "x": 0,
+   "z": 0
+  },
+  "A/south-roamer-8": {
+   "x": 0,
+   "z": 0
+  },
+  "A/nowhere-1": null,
+  "B/westminster-roamer-2": {
+   "x": 0,
+   "z": 0
+  },
+  "B/westminster-roamer-4": {
+   "x": 0,
+   "z": 0
+  },
+  "B/westminster-roamer-6": {
+   "x": 0,
+   "z": 0
+  },
+  "B/east-roamer-4": {
+   "x": 0,
+   "z": 0
+  },
+  "B/east-roamer-5": {
+   "x": 0,
+   "z": 0
+  },
+  "B/east-roamer-7": {
+   "x": 0,
+   "z": 0
+  },
+  "B/east-roamer-9": {
+   "x": -0.014,
+   "z": -0.278
+  },
+  "B/south-roamer-2": {
+   "x": 0,
+   "z": 0
+  },
+  "B/south-roamer-3": {
+   "x": 0,
+   "z": 0
+  },
+  "B/south-roamer-8": {
+   "x": 0,
+   "z": 0
+  },
+  "B/nowhere-1": null,
+  "C/westminster-roamer-2": null,
+  "C/westminster-roamer-4": null,
+  "C/westminster-roamer-6": null,
+  "C/east-roamer-4": null,
+  "C/east-roamer-5": null,
+  "C/east-roamer-7": null,
+  "C/east-roamer-9": null,
+  "C/south-roamer-2": null,
+  "C/south-roamer-3": null,
+  "C/south-roamer-8": null,
+  "C/nowhere-1": null
+ },
+ "sizes": {
+  "0.85/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": {
+   "bodyScale": 1.2,
+   "combatScale": 1.105,
+   "radius": 0.34
+  },
+  "0.85/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "0.85/null": "throws RangeError",
+  "0.9/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": {
+   "bodyScale": 1.2,
+   "combatScale": 1.1700000000000002,
+   "radius": 0.36000000000000004
+  },
+  "0.9/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "0.9/null": "throws RangeError",
+  "1/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": {
+   "bodyScale": 1.2,
+   "combatScale": 1.3,
+   "radius": 0.4
+  },
+  "1/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "1/null": "throws RangeError",
+  "1.1/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": {
+   "bodyScale": 1.2,
+   "combatScale": 1.4300000000000002,
+   "radius": 0.44000000000000006
+  },
+  "1.1/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "1.1/null": "throws RangeError",
+  "1.15/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": {
+   "bodyScale": 1.2,
+   "combatScale": 1.4949999999999999,
+   "radius": 0.45999999999999996
+  },
+  "1.15/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "1.15/null": "throws RangeError",
+  "0.8/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": "throws RangeError",
+  "0.8/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "0.8/null": "throws RangeError",
+  "1.2/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": "throws RangeError",
+  "1.2/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "1.2/null": "throws RangeError",
+  "0.95/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": "throws RangeError",
+  "0.95/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "0.95/null": "throws RangeError",
+  "NaN/{\"bodyScale\":1.2,\"combatScale\":1.3,\"radius\":0.4}": "throws RangeError",
+  "NaN/{\"bodyScale\":0,\"combatScale\":1,\"radius\":1}": "throws RangeError",
+  "NaN/null": "throws RangeError"
+ },
+ "behaviours": {
+  "baseline/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": {
+   "moveSpeed": 2,
+   "recoveryDelay": 0.3
+  },
+  "baseline/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "baseline/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "baseline/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "baseline/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "baseline/{\"moveSpeed\":2}": {
+   "moveSpeed": 2,
+   "recoveryDelay": 0
+  },
+  "cautious/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": {
+   "moveSpeed": 1.7,
+   "recoveryDelay": 0.44999999999999996
+  },
+  "cautious/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "cautious/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "cautious/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "cautious/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "cautious/{\"moveSpeed\":2}": {
+   "moveSpeed": 1.7,
+   "recoveryDelay": 0.15
+  },
+  "brisk/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": {
+   "moveSpeed": 2.2,
+   "recoveryDelay": 0.3
+  },
+  "brisk/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "brisk/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "brisk/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "brisk/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "brisk/{\"moveSpeed\":2}": {
+   "moveSpeed": 2.2,
+   "recoveryDelay": 0
+  },
+  "gaunt-thrust/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": {
+   "moveSpeed": 2,
+   "recoveryDelay": 0.3,
+   "attackPattern": [
+    "stab"
+   ]
+  },
+  "gaunt-thrust/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "gaunt-thrust/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "gaunt-thrust/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "gaunt-thrust/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "gaunt-thrust/{\"moveSpeed\":2}": "throws Error",
+  "stocky-heavy/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": {
+   "moveSpeed": 1.7,
+   "recoveryDelay": 0.44999999999999996,
+   "attackPattern": [
+    "heavy"
+   ]
+  },
+  "stocky-heavy/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "stocky-heavy/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "stocky-heavy/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "stocky-heavy/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "stocky-heavy/{\"moveSpeed\":2}": "throws Error",
+  "missing/{\"moveSpeed\":2,\"recoveryDelay\":0.3,\"weapon\":\"knife\",\"supportedActions\":[\"slash\",\"stab\",\"heavy\"]}": "throws Error",
+  "missing/{\"moveSpeed\":0.05,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "missing/{\"moveSpeed\":9,\"recoveryDelay\":0,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "missing/{\"moveSpeed\":2,\"recoveryDelay\":9,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "missing/{\"moveSpeed\":2,\"recoveryDelay\":-1,\"weapon\":\"knife\",\"supportedActions\":[]}": "throws Error",
+  "missing/{\"moveSpeed\":2}": "throws Error"
+ }
+}
