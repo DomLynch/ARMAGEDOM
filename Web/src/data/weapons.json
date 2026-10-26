@@ -517,7 +517,10 @@
     "deadzone": 0.13,
     "pistolGain": 1,
     "acquireMargin": 0.6,
-    "retainMargin": 0.9
+    "retainMargin": 0.9,
+    "maxStepSeconds": 0.1,
+    "movingThreshold": 0.01,
+    "minTargetDistance": 0.01
   },
   "flameAim": {
     "gain": 1,
