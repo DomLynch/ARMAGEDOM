@@ -282,7 +282,46 @@ export function validateFinisherData(value) {
       fail();
   }
   const g = d.gore;
-  closed(g, ["wound", "residentViewBudget", "excludedSurfaceTokens", "sampleLimit", "profiles", "rigs", "palettes"]);
+  closed(g, [
+    "wound",
+    "residentViewBudget",
+    "excludedSurfaceTokens",
+    "sampleLimit",
+    "placement",
+    "profiles",
+    "rigs",
+    "palettes",
+  ]);
+  // placement: how finisher-gore.js picks the skin vertex a wound sits on (influence weight, facing, footprint, rays).
+  closed(g.placement, [
+    "influenceWeightMin",
+    "sparseZoneDivisor",
+    "normalMinLengthSq",
+    "footprintHalf",
+    "reliefDrop",
+    "visibleBottom",
+    "fleshOffsetWeight",
+    "fleshFacingWeight",
+    "otherOffsetWeight",
+    "facingMin",
+    "rayMinDistance",
+    "rayBackoff",
+  ]);
+  if (
+    !finite(g.placement.influenceWeightMin, 0.01, 1) ||
+    !finite(g.placement.sparseZoneDivisor, 1, 64) ||
+    !finite(g.placement.normalMinLengthSq, 0.1, 1) ||
+    !finite(g.placement.footprintHalf, 0.1, 1) ||
+    !finite(g.placement.reliefDrop, 0, 0.2) ||
+    !finite(g.placement.visibleBottom, 0, 0.1) ||
+    !finite(g.placement.fleshOffsetWeight, 0, 5) ||
+    !finite(g.placement.fleshFacingWeight, 0, 5) ||
+    !finite(g.placement.otherOffsetWeight, 0, 5) ||
+    !finite(g.placement.facingMin, 0, 1) ||
+    !finite(g.placement.rayMinDistance, 0.0001, 1) ||
+    !finite(g.placement.rayBackoff, 0, 1)
+  )
+    fail();
   if (
     !list(g.excludedSurfaceTokens) ||
     !Number.isInteger(g.residentViewBudget) ||

@@ -14,6 +14,7 @@ export const appearanceExtraKeys = () => [
   "crownSplit",
   "finisherCosmetics",
   "severBloodEffect",
+  "finisherOpened",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -24,6 +25,68 @@ export function validateAppearanceExtras(d, tools) {
   validateAnimalOffsets(d, tools);
   validateFeralAndGlow(d, tools);
   validateFinisherLooks(d, tools);
+  validateFinisherOpened(d, tools);
+}
+
+// finisher-opened.js: the bake's step budget (vertices, milliseconds, support reads), where the body is cut, the cap shading, the search and
+// floor-table resolution, and the three pieces' fall (phase windows as progress fractions; slides as shares of the waist height).
+function validateFinisherOpened(d, { fail, between }) {
+  const o = d.finisherOpened;
+  closed(o, [
+    "chunkVertices",
+    "stepMs",
+    "clockEvery",
+    "scanReads",
+    "maxVertices",
+    "poseAt",
+    "scaleTolerance",
+    "waistShare",
+    "armShare",
+    "cutColor",
+    "cutRoughness",
+    "capCentreShade",
+    "capShade",
+    "halfTurnSteps",
+    "sweepSteps",
+    "restTilt",
+    "floorSteps",
+    "floorLift",
+    "envelopeMargin",
+    "phases",
+    "slides",
+  ]);
+  for (const [k, min, max] of [
+    ["chunkVertices", 16, 1000000],
+    ["stepMs", 0.1, 1000],
+    ["clockEvery", 1, 4096],
+    ["scanReads", 1000, 100000000],
+    ["maxVertices", 1000, 10000000],
+    ["floorSteps", 2, 10000],
+    ["halfTurnSteps", 2, 1000],
+    ["sweepSteps", 2, 10000],
+  ]) {
+    between(`finisherOpened.${k}`, o[k], min, max);
+    if (!Number.isInteger(o[k])) fail("appearance", `finisherOpened.${k} must be a whole number`);
+  }
+  for (const k of ["poseAt", "waistShare", "armShare", "cutRoughness", "capCentreShade"])
+    between(`finisherOpened.${k}`, o[k], 0, 1);
+  for (const k of ["scaleTolerance", "restTilt", "floorLift", "envelopeMargin"])
+    between(`finisherOpened.${k}`, o[k], 0, 1);
+  hexColour(fail, "finisherOpened.cutColor", o.cutColor);
+  closed(o.capShade, ["base", "swing", "waveX", "waveZ"]);
+  for (const k of ["base", "swing"]) between(`finisherOpened.capShade.${k}`, o.capShade[k], 0, 1);
+  for (const k of ["waveX", "waveZ"]) between(`finisherOpened.capShade.${k}`, o.capShade[k], 0, 1000);
+  closed(o.phases, ["slide", "fall", "legs", "drop"]);
+  for (const [name, [from, to]] of Object.entries(o.phases)) {
+    between(`finisherOpened.phases.${name}`, from, 0, 1);
+    between(`finisherOpened.phases.${name}`, to, 0, 1);
+    if (!(to > from)) fail("appearance", `finisherOpened.phases.${name} must end after it starts`);
+  }
+  closed(o.slides, ["upper", "lower", "weapon"]);
+  for (const [name, [x, z]] of Object.entries(o.slides)) {
+    between(`finisherOpened.slides.${name}.x`, x, -2, 2);
+    between(`finisherOpened.slides.${name}.z`, z, -2, 2);
+  }
 }
 
 const hexColour = (fail, field, v) => {
