@@ -308,16 +308,6 @@
       }
     }
   },
-  "exitArrows": {
-    "opacity": 0.5,
-    "widthScale": 1,
-    "lengthScale": 1,
-    "edgeBand": 0.06,
-    "roadInset": 2.5,
-    "bottomEdgeInset": 5,
-    "searchMetres": 8,
-    "directionSteps": 16
-  },
   "input": {
     "knobPadPx": 106,
     "knobTravelShare": 0.34,

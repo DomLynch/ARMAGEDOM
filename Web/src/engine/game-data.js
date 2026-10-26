@@ -240,7 +240,6 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
-    "exitArrows",
     "grenadeView",
     "input",
     "touchTarget",
