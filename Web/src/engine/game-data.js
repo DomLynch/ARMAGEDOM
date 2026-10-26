@@ -235,7 +235,10 @@ export function validateSaveClient(d) {
     "bucketBurst",
     "bucketRefillMs",
     "bucketReserve",
+    "retryFloorMs",
   ]);
+  // The shortest wait before a kept record is sent again after a refused or failed send, whatever the writer's Retry-After says.
+  count("saveClient", "retryFloorMs", d.retryFloorMs, 50, 5000);
   // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
   // request costs one, a stale-seq retry too). A routine save never spends the last `bucketReserve` tokens: only a death save and the
   // page-hide send may, so a long fight can never leave the death save refused. Keep these equal to the writer's numbers.
