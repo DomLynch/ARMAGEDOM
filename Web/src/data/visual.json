@@ -26,6 +26,7 @@
   },
   "clothing": {
     "version": "armagedom-clothing-033-v1",
+    "minTonalGap": 0.035,
     "tops": [
       ["charcoal", "24272a", "353a3b", "4b4d49", "62655f"],
       ["ash", "70746e", "878c84", "a0a198", "b4b8ac"],

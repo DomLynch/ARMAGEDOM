@@ -11,6 +11,13 @@ export function validateAppearanceExtras(d, tools) {
   validateRoachCoat(d, tools);
 }
 
+// visual.json clothing.minTonalGap: the least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable
+// (clothing-palettes.js).
+export function validateClothingGap(c, { fail }) {
+  if (!Number.isFinite(c.minTonalGap) || c.minTonalGap < 0 || c.minTonalGap > 0.5)
+    fail("visual", "clothing.minTonalGap must be from 0 to 0.5");
+}
+
 // roach-appearance.js: a band (`from`, `range`) maps a value to 0..1; the field rows are the frequencies of the wear noise.
 function validateRoachCoat(d, { between }) {
   closed(d.roachCoat, ["taper", "field", "wear"]);

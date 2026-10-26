@@ -24,7 +24,7 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
-import { appearanceExtraKeys, validateAppearanceExtras } from "./appearance-extra-validators.js";
+import * as extra from "./appearance-extra-validators.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -903,8 +903,9 @@ export function validateVisual(d) {
   unique("faces.hairs", f.hairs);
   unique("faces.weathering", f.weathering);
   const c = d.clothing;
-  closed(c, ["version", "tops", "trousers", "partners"]);
+  closed(c, ["version", "minTonalGap", "tops", "trousers", "partners"]);
   if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
+  extra.validateClothingGap(c, { fail });
   const families = (name) => {
     list(`clothing.${name}`, c[name], 1, 64);
     for (const [family, ...swatches] of c[name]) {
@@ -1137,7 +1138,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", ...appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, ["schema_version", "faceMesh", ...extra.appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -1153,7 +1154,7 @@ export function validateAppearance(d) {
   if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
-  validateAppearanceExtras(d, { fail, between, triple });
+  extra.validateAppearanceExtras(d, { fail, between, triple });
   closed(d.hollowGarments, ["jacket", "trousers"]);
   named("hollowGarments.jacket", d.hollowGarments.jacket);
   named("hollowGarments.trousers", d.hollowGarments.trousers);
