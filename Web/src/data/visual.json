@@ -150,6 +150,18 @@
     "peakOpacity": 0.6,
     "tailGap": 1
   },
+  "bossView": {
+    "labelRange": 12,
+    "hazard": {
+      "ringInner": 0.91,
+      "segments": 48,
+      "height": 0.025,
+      "initialFillOpacity": 0.14,
+      "initialEdgeOpacity": 0.9,
+      "warning": { "colour": "ffcb59", "fillOpacity": 0.1, "edgeBase": 0.65, "edgeSwing": 0.3, "pulseRate": 10 },
+      "active": { "colour": "8ed04d", "fillOpacity": 0.24, "edgeOpacity": 0.9 }
+    }
+  },
   "pickupModel": {
     "fitDiameter": 0.72,
     "groundLift": 0.025

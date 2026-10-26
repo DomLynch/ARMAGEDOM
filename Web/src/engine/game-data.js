@@ -243,6 +243,7 @@ export function validateVisual(d) {
     "effects",
     "dropMarker",
     "routeArrow",
+    "bossView",
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",

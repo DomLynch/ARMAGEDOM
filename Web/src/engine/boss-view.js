@@ -1,5 +1,6 @@
 import * as T from "three";
 import { createHeadLabelPositioner } from "./boss-label.js";
+import { BOSS_VIEW as V } from "./boss-view-data.js";
 export function createBossView(s) {
   const host = document.getElementById("boss-labels");
   if (!host) return { update() {}, dispose() {} };
@@ -30,7 +31,7 @@ export function createBossView(s) {
         host.append(el);
         labels.set(e.id, el);
       }
-      const near = Math.hypot(e.pos.x - g.player.pos.x, e.pos.z - g.player.pos.z) < 12;
+      const near = Math.hypot(e.pos.x - g.player.pos.x, e.pos.z - g.player.pos.z) < V.labelRange;
       el.hidden = !active || !near;
       if (el.hidden) continue;
       const name = e.markedHunter ? "HUNTER" : e.bossName;
@@ -50,7 +51,8 @@ export function createBossView(s) {
         el.remove();
         labels.delete(id);
       }
-    const ids = new Set();
+    const ids = new Set(),
+      H = V.hazard;
     for (const h of g.areaHazards ?? []) {
       if (
         h.areaId !== s.world.areaId ||
@@ -61,18 +63,18 @@ export function createBossView(s) {
       ids.add(h.ownerId);
       let view = patches.get(h.ownerId);
       if (!view) {
-        ring ??= new T.RingGeometry(0.91, 1, 48);
-        disc ??= new T.CircleGeometry(1, 48);
+        ring ??= new T.RingGeometry(H.ringInner, 1, H.segments);
+        disc ??= new T.CircleGeometry(1, H.segments);
         const root = new T.Group(),
           fill = new T.Mesh(
             disc,
-            new T.MeshBasicMaterial({ transparent: true, opacity: 0.14, depthWrite: false, side: T.DoubleSide }),
+            new T.MeshBasicMaterial({ transparent: true, opacity: H.initialFillOpacity, depthWrite: false, side: T.DoubleSide }),
           ),
           edge = new T.Mesh(
             ring,
-            new T.MeshBasicMaterial({ transparent: true, opacity: 0.9, depthWrite: false, side: T.DoubleSide }),
+            new T.MeshBasicMaterial({ transparent: true, opacity: H.initialEdgeOpacity, depthWrite: false, side: T.DoubleSide }),
           );
-        root.rotation.x = -Math.PI / 2;
+        root.rotation.x = -Math.PI / 2; // tuning-ok: lays the patch flat on the ground
         root.add(fill, edge);
         s.scene.add(root);
         view = { root, fill, edge };
@@ -81,13 +83,15 @@ export function createBossView(s) {
       const warning = g.time < h.startsAt;
       view.root.name = warning ? "Area hazard warning" : "Area hazard active";
       view.root.visible = active;
-      view.root.position.copy(s.world.toRender(h.position, 0.025));
+      view.root.position.copy(s.world.toRender(h.position, H.height));
       view.root.scale.setScalar(h.radius);
-      const color = warning ? 0xffcb59 : 0x8ed04d;
-      view.fill.material.color.setHex(color);
-      view.edge.material.color.setHex(color);
-      view.fill.material.opacity = warning ? 0.1 : 0.24;
-      view.edge.material.opacity = warning ? 0.65 + 0.3 * Math.sin(g.time * 10) ** 2 : 0.9;
+      const phase = warning ? H.warning : H.active;
+      view.fill.material.color.set(`#${phase.colour}`);
+      view.edge.material.color.set(`#${phase.colour}`);
+      view.fill.material.opacity = phase.fillOpacity;
+      view.edge.material.opacity = warning
+        ? phase.edgeBase + phase.edgeSwing * Math.sin(g.time * phase.pulseRate) ** 2 // tuning-ok: squared sine pulse
+        : phase.edgeOpacity;
     }
     for (const [id, view] of patches)
       if (!ids.has(id)) {

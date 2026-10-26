@@ -90,7 +90,6 @@
     "engine/boss-flame.js": 3,
     "engine/boss-label.js": 6,
     "engine/boss-ranged.js": 2,
-    "engine/boss-view.js": 17,
     "engine/boss-weapon-runtime.js": 8,
     "engine/browser-session.js": 19,
     "engine/client-log.js": 2,
