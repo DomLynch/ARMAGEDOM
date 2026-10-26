@@ -47,7 +47,7 @@ export function createArcBolts({
   seed = 1,
 }) {
   const root = new T.Group();
-  root.name = "Arc gun lightning";
+  root.name = "Arc gun lightning"; // text-ok: three.js group name, never shown
   scene.add(root);
   const random = generator(seed),
     pointsPerLine = Math.max(data.jagSegments, data.forkSegments, data.stunSegments) + 1,
