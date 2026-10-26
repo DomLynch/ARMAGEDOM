@@ -9,10 +9,10 @@ export const finisherDefinition = (id) => FINISHER_DATA.recipes.find((r) => r.id
 export const remainingFinisherPartSeconds = (age, data = FINISHER_DATA) =>
   Math.max(0, data.limits.partLifetime - Math.max(0, age));
 
-export const flameDeathSeconds = (nativeSeconds = 2.4, data = FLAME_DEATH_DATA) =>
+export const flameDeathSeconds = (nativeSeconds = FLAME_DEATH_DATA.nativeSeconds, data = FLAME_DEATH_DATA) =>
   Math.min(
     data.maxSeconds,
-    Math.max(0, Number.isFinite(nativeSeconds) ? nativeSeconds : 2.4) +
+    Math.max(0, Number.isFinite(nativeSeconds) ? nativeSeconds : data.nativeSeconds) +
       data.collapseTailSeconds +
       data.holdSeconds +
       data.fadeSeconds,

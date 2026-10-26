@@ -6,6 +6,8 @@ import { tracePistol } from "../pistol.js";
 import { traceShotgun } from "./shotgun-pattern.js";
 import { createGrenadeModel } from "./grenade-state.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
+import { GAME_DATA } from "./game-data.js";
+const BOSS_WEAPON = GAME_DATA.combatRules.bossWeapon; // data/combatRules.json: dead zone, aim heights and grenade throw ranges
 const EPS = 1e-8,
   length = (v) => Math.hypot(v?.x ?? 0, v?.z ?? 0),
   point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
@@ -38,7 +40,7 @@ function throwTarget(g, intent, reference) {
   const p = g.player.pos,
     position = result.position,
     distance = Math.hypot(position.x - p.x, position.z - p.z);
-  return distance > 0 && g.world.geometry?.clear(position, 0.05) && g.world.lineClear(p, position)
+  return distance > 0 && g.world.geometry?.clear(position, BOSS_WEAPON.grenadeLandingClearance) && g.world.lineClear(p, position)
     ? { position, direction: normal({ x: position.x - p.x, z: position.z - p.z }, reference) }
     : null;
 }
@@ -62,7 +64,7 @@ export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}
       g.time >= p.hurtUntil &&
       g.time >= p.dodgeUntil;
   const explicit = point(intent.aim) && length(intent.aim) > EPS,
-    moving = length(intent.move) > 0.01,
+    moving = length(intent.move) > BOSS_WEAPON.moveThreshold,
     reference = explicit ? normal(intent.aim) : moving ? normal(intent.move) : (g.bossWeaponFacing ?? { ...p.facing });
   g.bossWeaponFacing = { ...reference };
   g.pistolTargetId = null;
@@ -78,8 +80,8 @@ export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}
   }
   let state = g.bossEquipment[field];
   if (field === "grenade" && canAct && actions.includes("stab")) {
-    const choices = [3, 5, 8],
-      index = choices.indexOf(g.grenadeThrowRange ?? 5);
+    const choices = BOSS_WEAPON.grenadeThrowRanges,
+      index = choices.indexOf(g.grenadeThrowRange ?? BOSS_WEAPON.defaultThrowRange);
     g.grenadeThrowRange = choices[(index + 1) % choices.length];
   }
   if (field === "shotgun") {
@@ -284,7 +286,12 @@ export function bossWeaponCue(g, { paused = false, visibleIds } = {}) {
   return position
     ? {
         position,
-        height: field === "grenade" ? 0.08 : field === "rocketLauncher" ? (g.rocketAimHeight ?? 0.05) : result.height,
+        height:
+          field === "grenade"
+            ? BOSS_WEAPON.grenadeAimHeight
+            : field === "rocketLauncher"
+              ? (g.rocketAimHeight ?? BOSS_WEAPON.rocketAimHeight)
+              : result.height,
         ground: field === "grenade",
         heightLocked: field === "rocketLauncher",
         targetId: targetId ?? null,

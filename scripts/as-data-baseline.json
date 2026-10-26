@@ -70,14 +70,10 @@
   "jsonImports": ["first-time-hints.js", "engine/stage-ahead.js"],
   "rigLiterals": {},
   "numberLiterals": {
-    "animal-appearance.js": 7,
     "bridge-steering.js": 5,
     "drone-mechanics.js": 2,
     "engine/bone-saw.js": 3,
-    "engine/boss-ranged.js": 2,
-    "engine/boss-weapon-runtime.js": 8,
     "engine/creature-sim.js": 2,
-    "engine/finisher-data.js": 2,
     "engine/game-data.js": 1,
     "engine/marked-hunters.js": 12,
     "engine/marked.js": 1,
@@ -86,16 +82,10 @@
     "engine/reaper.js": 3,
     "engine/rifle-state.js": 1,
     "engine/sever-blood-data.js": 2,
-    "engine/shotgun-pattern.js": 5,
-    "face-recipes.js": 7,
     "finisher-impact-profile.js": 8,
-    "finisher-selection.js": 3,
     "hollow-encounter.js": 11,
     "parked-area-preparation.js": 1,
-    "pickup-glow.js": 6,
-    "roach-appearance.js": 5,
-    "roach-territory.js": 1,
-    "wolf-native.js": 5
+    "roach-territory.js": 1
   },
   "constantTables": {
     "clothing-palettes.js": 1,

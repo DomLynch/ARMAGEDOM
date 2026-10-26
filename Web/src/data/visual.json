@@ -487,6 +487,16 @@
     "stunSegments": 6,
     "stunFlickerSeconds": 0.06
   },
+  "finisherImpact": {
+    "trailSeconds": 0.18,
+    "headSeverTrailSeconds": 0.28,
+    "trailLength": 0.22,
+    "headSeverTrailLength": 0.34,
+    "dropSize": 0.055,
+    "headDropSize": 0.1,
+    "headSeverDropSize": 0.13,
+    "gravity": 8
+  },
   "weaponViews": {
     "rocket": {
       "blast": {

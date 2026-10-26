@@ -1,7 +1,9 @@
+import { GAME_DATA } from "./game-data.js";
 const point = (p) => !!p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const targetId = (id) => (typeof id === "string" && id.length > 0) || (typeof id === "number" && Number.isFinite(id));
 const fields = ["pelletCount", "pelletDamage", "range", "spreadDegrees"],
-  values = [8, 8, 6, 12];
+  // The one registered profile: the shotgun payload in data/weapons.json. A caller's profile must match it field for field.
+  registered = () => GAME_DATA.weapons.ranged["south-stalker-shotgun-v1"].payload;
 export function traceShotgun(origin, aim, targets, lineClear, profile, traceRay) {
   if (
     !point(origin) ||
@@ -12,9 +14,9 @@ export function traceShotgun(origin, aim, targets, lineClear, profile, traceRay)
     !profile ||
     Object.getPrototypeOf(profile) !== Object.prototype ||
     Reflect.ownKeys(profile).length !== fields.length ||
-    !fields.every((key, i) => {
+    !fields.every((key) => {
       const d = Object.getOwnPropertyDescriptor(profile, key);
-      return d?.enumerable && "value" in d && d.value === values[i];
+      return d?.enumerable && "value" in d && d.value === registered()[key];
     })
   )
     return null;
@@ -32,8 +34,8 @@ export function traceShotgun(origin, aim, targets, lineClear, profile, traceRay)
     z = aim.z / length;
   try {
     for (let i = 0; i < profile.pelletCount; i++) {
-      const angle =
-          ((-profile.spreadDegrees / 2 + (i * profile.spreadDegrees) / (profile.pelletCount - 1)) * Math.PI) / 180,
+      const degrees = -profile.spreadDegrees / 2 + (i * profile.spreadDegrees) / (profile.pelletCount - 1), // tuning-ok: a fan centred on the aim
+        angle = (degrees * Math.PI) / 180, // tuning-ok: degrees to radians
         c = Math.cos(angle),
         s = Math.sin(angle);
       const trace = traceRay(
