@@ -556,7 +556,7 @@
   },
   "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 2, "pageWidthPx": 110 },
   "bossLabel": { "marginPx": 8, "gapPx": 8 },
-  "hud": { "heavyFallbackSeconds": 1.6, "dodgeFallbackSeconds": 1.05, "pistolInteractRadius": 1.3, "grenadeDefaultRange": 5 },
+  "hud": { "heavyFallbackSeconds": 1.6, "dodgeFallbackSeconds": 1.05, "pistolInteractRadius": 1.3, "grenadeDefaultRange": 5, "equipMessageSeconds": 3 },
   "flamePresentation": {
     "mountOffset": { "x": -0.01262174057948523, "y": 0.07164552251435374, "z": 0.014197067151910436 },
     "pitchUpDegrees": 30

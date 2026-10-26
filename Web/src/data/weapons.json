@@ -481,6 +481,15 @@
       }
     }
   },
+  "rocket": {
+    "noseLength": 0.18,
+    "groundHeight": 0.05,
+    "aimFallbackHeight": 0.05,
+    "moveDeadzone": 0.01,
+    "aimCache": { "positionTolerance": 0.01, "seconds": 0.25 },
+    "wallSearchSteps": 14,
+    "wallBackoff": 0.001
+  },
   "targeting": {
     "pistol": { "acquireDegrees": 12, "retainDegrees": 18 },
     "meleeConeDegrees": 45,
@@ -491,7 +500,8 @@
       "grenadeLandingHeight": 0.08,
       "landingHeight": 0.05,
       "bodyMinHalfHeight": 0.1,
-      "bodyHeightRatio": 0.65
+      "bodyHeightRatio": 0.65,
+      "bodyMinRadius": 0.05
     }
   },
   "families": [
@@ -517,7 +527,10 @@
     "deadzone": 0.13,
     "pistolGain": 1,
     "acquireMargin": 0.6,
-    "retainMargin": 0.9
+    "retainMargin": 0.9,
+    "maxStepSeconds": 0.1,
+    "movingThreshold": 0.01,
+    "minTargetDistance": 0.01
   },
   "flameAim": {
     "gain": 1,
