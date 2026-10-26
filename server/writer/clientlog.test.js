@@ -45,6 +45,14 @@ test("cleanClientLog enforces the schema and the length limits, and drops unknow
   assert.ok(!JSON.stringify(out).includes("dropped"));
 });
 
+test("session is a charset-limited id of at most 24 characters, 'none' when missing, and is kept on the cleaned body", () => {
+  assert.equal(cleanClientLog({ v: 1, session: "0123456789ab", events: [event()] }).session, "0123456789ab");
+  assert.equal(cleanClientLog({ v: 1, events: [event()] }).session, "none");
+  const long = cleanClientLog({ v: 1, session: "x".repeat(60) + "<b>", events: [event()] }).session;
+  assert.equal(long, "x".repeat(24));
+  assert.ok(!cleanClientLog({ v: 1, session: "me@example.com", events: [event()] }).session.includes("@"), "an email is scrubbed like any other id");
+});
+
 test("release, area and code are scrubbed of structured secrets too, but a 40-char commit sha survives", () => {
   const out = cleanClientLog({ v: 1, release: `${JWT}`, area: "me@example.com", events: [event({ code: "Bearer abc", message: "ok" })] });
   const text = JSON.stringify(out);
@@ -65,12 +73,13 @@ test("ipLimiter: a burst, then one per refill, per IP, and the table stays bound
 test("POST /arma/clientlog: 204 and one journal line per event, no token needed, secrets scrubbed, database and verify untouched", async () => {
   const t = await start();
   try {
-    const res = await t.post({ v: 1, release: "abc1234", area: "westminster", events: [event({ message: `boot failed ${JWT} ${"user@example.com"}` }), event({ kind: "presence", code: "ws.4003", message: "closed", n: 2 })] }, { "X-Real-IP": "203.0.113.9", Authorization: "Bearer should-be-ignored" });
+    const res = await t.post({ v: 1, release: "abc1234", area: "westminster", session: "a1b2c3d4e5f6", events: [event({ message: `boot failed ${JWT} ${"user@example.com"}` }), event({ kind: "presence", code: "ws.4003", message: "closed", n: 2 })] }, { "X-Real-IP": "203.0.113.9", Authorization: "Bearer should-be-ignored" });
     assert.equal(res.status, 204);
     assert.equal(t.lines.length, 2);
     assert.ok(t.lines.every((l) => l.startsWith("clientlog {")));
     const first = JSON.parse(t.lines[0].slice("clientlog ".length));
     assert.deepEqual([first.release, first.area, first.kind, first.code], ["abc1234", "westminster", "error", "boot.fail"]);
+    assert.equal(first.session, "a1b2c3d4e5f6", "the page-load id is journaled on every line");
     assert.ok(!t.lines.join("\n").includes("eyJ") && !t.lines.join("\n").includes("example.com") && !t.lines.join("\n").includes("should-be-ignored"));
   } finally {
     await t.close();
