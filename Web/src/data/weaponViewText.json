@@ -55,7 +55,7 @@
     "shotgunStats": "{pellets} pellets × {pelletDamage} damage · {range}m · {magazine}/{capacity} loaded · {reserve} reserve",
     "launcherStats": "{damage} blast damage · {radius}m radius · {magazine}/{capacity} loaded · {reserve} reserve · {range}m straight flight · {speed}m/s · {reload}s reload. No homing.",
     "grenadeStats": "{magazine} charges · {range}m max throw · {fuse}s fuse · {radius}m blast. Mouse picks landing; touch Range cycles {throwRanges}m. Mode / F switches Standard and Sticky; same charges and fuse.",
-    "pistolStats": "35 damage · 1.8s reload · shared pistol ammunition ({magazine}/{capacity}, {reserve} reserve)",
+    "pistolStats": "{damage} damage · {reload}s reload · shared pistol ammunition ({magazine}/{capacity}, {reserve} reserve)",
     "flameStats": "{damage} damage per {interval}s · {range}m · {fuel}% shared fuel",
     "throwRangeSeparator": "/",
     "legacyPending": " · Witch drop awaiting collection.",

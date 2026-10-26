@@ -54,13 +54,12 @@ test("boss equipment stats lines built from weapon data equal the old hard-coded
     }),
     `${magazine} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`,
   );
+  // Lead ruling: the old "35 damage · 1.8s reload" was stale (no weapon row had it; the branch is unreachable today), so this line
+  // now shows the starting pistol's real values.
+  const pistol = RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules;
   assert.equal(
-    fillText(t.pistolStats, {
-      magazine,
-      capacity: RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules.capacity,
-      reserve,
-    }),
-    `35 damage · 1.8s reload · shared pistol ammunition (${magazine}/6, ${reserve} reserve)`,
+    fillText(t.pistolStats, { damage: pistol.damage, reload: pistol.reload, magazine, capacity: pistol.capacity, reserve }),
+    `25 damage · 1.3s reload · shared pistol ammunition (${magazine}/6, ${reserve} reserve)`,
   );
   const ember = P.emberProjector,
     fuelUnits = 437;

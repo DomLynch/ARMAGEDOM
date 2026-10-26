@@ -34,7 +34,7 @@ const spec = () => ({
     shotgunStats: ["pellets", "pelletDamage", "range", "magazine", "capacity", "reserve"],
     launcherStats: ["damage", "radius", "magazine", "capacity", "reserve", "range", "speed", "reload"],
     grenadeStats: ["magazine", "range", "fuse", "radius", "throwRanges"],
-    pistolStats: ["magazine", "capacity", "reserve"],
+    pistolStats: ["damage", "reload", "magazine", "capacity", "reserve"],
     flameStats: ["damage", "interval", "range", "fuel"],
     throwRangeSeparator: [],
     legacyPending: [], legacyUnclaimed: [], statePending: ["boss"], stateLegacyDead: ["boss"],

@@ -10,7 +10,7 @@ import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 import { GAME_DATA, fillText } from "./game-data.js";
 import { RANGED_WEAPON_CATALOG } from "./weapon-catalog.js";
 const TEXT = GAME_DATA.weaponViewText.bossEquipment;
-// The starting pistol, whose magazine the pistols-family stats line shares.
+// The starting pistol, whose damage, reload and shared magazine the pistols-family stats line shows.
 const PISTOL_ITEM_ID = "westminster-start-pistol-v1";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
@@ -169,12 +169,16 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       });
     if (data.family === "blades")
       return fillText(TEXT.sawStats, { damage: data.rules.damage, interval: data.rules.interval });
-    if (data.family === "pistols")
+    if (data.family === "pistols") {
+      const pistol = RANGED_WEAPON_CATALOG[PISTOL_ITEM_ID].rules;
       return fillText(TEXT.pistolStats, {
+        damage: pistol.damage,
+        reload: pistol.reload,
         magazine: g.pistol.magazine,
-        capacity: RANGED_WEAPON_CATALOG[PISTOL_ITEM_ID].rules.capacity,
+        capacity: pistol.capacity,
         reserve: g.pistol.reserve,
       });
+    }
     return fillText(TEXT.flameStats, {
       damage: data.rules.damage,
       interval: data.rules.interval,
