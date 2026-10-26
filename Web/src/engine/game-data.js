@@ -242,6 +242,8 @@ export function validateVisual(d) {
     "effects",
     "dropMarker",
     "routeArrow",
+    "pickupModel",
+    "bossEquipmentView",
     "routeGuidance",
     "severBlood",
     "motion",

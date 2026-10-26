@@ -150,6 +150,39 @@
     "peakOpacity": 0.6,
     "tailGap": 1
   },
+  "pickupModel": {
+    "fitDiameter": 0.72,
+    "groundLift": 0.025
+  },
+  "bossEquipmentView": {
+    "loadFailureSeconds": 4,
+    "claimMessageSeconds": 3,
+    "grenade": {
+      "startHeight": 1.15,
+      "landHeight": 0.05,
+      "arcHeight": 1.2,
+      "flightSeconds": 0.35,
+      "spinPi": 3,
+      "ring": {
+        "inner": 2.92,
+        "outer": 3,
+        "segments": 40,
+        "colour": "ffbc58",
+        "opacity": 0.45,
+        "height": 0.018,
+        "pulseBase": 0.25,
+        "pulseSwing": 0.35,
+        "pulseRate": 6
+      },
+      "blast": {
+        "seconds": 0.35,
+        "colour": "ffe5a0",
+        "startScale": 0.2,
+        "growth": 0.8,
+        "opacity": 0.8
+      }
+    }
+  },
   "routeGuidance": {
     "clearance": 0.4,
     "sampleStep": 0.1,
