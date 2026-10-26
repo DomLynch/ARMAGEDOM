@@ -2,11 +2,24 @@
 // numbers. They live here, not in game-data.js, so that file stays under the Web source density limit; game-data.js hands in its own helpers.
 import { closed } from "./content-schema.js";
 
-export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair"];
+export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair", "animalCoat"];
 
 export function validateAppearanceExtras(d, tools) {
   validateFaceTables(d, tools);
   validateCrookedPose(d, tools);
+  validateAnimalCoat(d, tools);
+}
+
+// animal-appearance.js: a band (`from`, `range`) maps a value to 0..1; the field rows are the frequencies of the patch noise.
+function validateAnimalCoat(d, { between }) {
+  closed(d.animalCoat, ["taper", "field", "patch"]);
+  for (const band of ["taper", "patch"]) {
+    closed(d.animalCoat[band], ["from", "range"]);
+    between(`animalCoat.${band}.from`, d.animalCoat[band].from, -10, 10);
+    between(`animalCoat.${band}.range`, d.animalCoat[band].range, 0.001, 100);
+  }
+  closed(d.animalCoat.field, ["z", "cosY", "wobble", "x", "y"]);
+  for (const k of ["z", "cosY", "wobble", "x", "y"]) between(`animalCoat.field.${k}`, d.animalCoat.field[k], 0, 1000);
 }
 
 // appearance.json `faceField`, `faceWeathering` and `faceHair` (face-appearance.js): the head blend band, the five weathering overlays and the
