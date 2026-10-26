@@ -13,7 +13,6 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
     "maxMoney",
     "hunterBounty",
     "maxHunters",
-    "hostileBudget",
     "minSpawnDistance",
     "warningSeconds",
     "spawnCooldown",
@@ -33,7 +32,6 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (
     input.version !== 1 ||
     input.maxHunters !== 1 ||
-    input.hostileBudget !== 6 ||
     input.maxMoney > MAX_MONEY_CEILING ||
     !Number.isSafeInteger(input.maxMoney) ||
     input.minSpawnDistance < 8 ||
