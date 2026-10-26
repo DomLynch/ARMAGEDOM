@@ -643,12 +643,11 @@ export function validateCreatures(d) {
   }
   validateBehaviours(d.behaviours);
   validateEncounterTables(d);
-  validateMobSize(d.mobSize);
+  extra.validateMobSize(d.mobSize, { fail, number });
   validateRigTables(d);
 }
 
-// creatures.json `feralBodyShapes`, `feralCoatProfiles`, `gauntShape` and `rigCapabilities` (feral-body-shapes.js, feral-coat-profiles.js,
-// gaunt-shape.js, rig-capabilities.js). Recipe ids are unique; a rig capability is a closed set of boolean flags.
+// creatures.json feralBodyShapes, feralCoatProfiles, gauntShape, rigCapabilities: recipe ids are unique; a capability is a flag, name or number.
 function validateRigTables(d) {
   const recipeId = (field, v) => {
     if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `${field} must be a lowercase id`);
@@ -702,19 +701,6 @@ function validateRigTables(d) {
 
 // creatures.json `animalCycles`, `gauntHumanCycles` and `hollowTuning` (animal-cycle.js, gaunt-human-bindings.js, hollow-encounter.js).
 // Cycle rows pair a roamer placement key with a creature recipe (animals) or an area with the placement key that gets the gaunt body.
-// creatures.json `mobSize` (mob-size-allocation.js, mob-size.js): the approved body-size factors and the range every factor must stay inside.
-function validateMobSize(m) {
-  closed(m, ["factors", "min", "max"]);
-  number("creatures", "mobSize.min", m.min, 0.1);
-  number("creatures", "mobSize.max", m.max, 0.1);
-  if (m.min > 1 || m.max < 1 || m.max > 3) fail("creatures", "mobSize range must bracket 1 and stay at or below 3");
-  if (!Array.isArray(m.factors) || m.factors.length < 1 || m.factors.length > 16 || new Set(m.factors).size !== m.factors.length)
-    fail("creatures", "mobSize.factors must list 1 to 16 different numbers");
-  for (const f of m.factors)
-    if (!Number.isFinite(f) || f < m.min || f > m.max) fail("creatures", `mobSize.factors ${f} is outside ${m.min} to ${m.max}`);
-  if (m.factors.some((f, i) => i && f <= m.factors[i - 1])) fail("creatures", "mobSize.factors must rise");
-}
-
 function validateEncounterTables(d) {
   const word = (field, v, pattern) => {
     if (typeof v !== "string" || !pattern.test(v)) fail("creatures", `${field} has an invalid name`);
