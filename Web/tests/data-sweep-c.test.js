@@ -42,6 +42,8 @@ test("the numbers are frozen data read through game-data.js", () => {
     progressStep: 0.08,
     stallSeconds: 0.75,
     waypointReach: 0.15,
+    goalShiftMetres: 0.5,
+    creepSeconds: 0.5,
   });
   assert.deepEqual(GAME_DATA.creatures.droneLaser, { trailMetres: 0.6, width: 0.12 });
   assert.equal(GAME_DATA.appearance.crownSplit.cutColor, "#49251f");

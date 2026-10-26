@@ -3,7 +3,9 @@ import { GAME_DATA } from "./engine/game-data.js";
 // One finite phase selector for existing resident movement + projectile authority.
 // The numbers live in Web/src/data/creatures.json `drone` (read through game-data.js).
 export const DRONE_RULES = GAME_DATA.creatures.drone;
-export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(time * 3) * 0.025;
+// The hover bob (rate and swing) is creatures.json `droneHover`.
+const HOVER = GAME_DATA.creatures.droneHover;
+export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(time * HOVER.rate) * HOVER.swing;
 // placement key -> area, derived from the one spawn table so the two cannot drift
 export const DRONE_KEYS = Object.freeze(
   Object.fromEntries(Object.entries(AREA_DRONE_SPAWNS).flatMap(([area, rows]) => rows.map((row) => [row.key, area]))),

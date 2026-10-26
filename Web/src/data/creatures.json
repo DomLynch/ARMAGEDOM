@@ -301,8 +301,10 @@
       "calf_r": ["foot_r", 0.82]
     }
   },
-  "bridgeSteering": { "edgeMargin": 0.061, "leash": 12, "progressStep": 0.08, "stallSeconds": 0.75, "waypointReach": 0.15 },
+  "bridgeSteering": { "edgeMargin": 0.061, "leash": 12, "progressStep": 0.08, "stallSeconds": 0.75, "waypointReach": 0.15, "goalShiftMetres": 0.5, "creepSeconds": 0.5 },
   "droneLaser": { "trailMetres": 0.6, "width": 0.12 },
+  "droneHover": { "rate": 3, "swing": 0.025 },
+  "roachTerritory": { "homeArrivedMetres": 0.2 },
   "mobSize": { "factors": [0.85, 0.9, 1, 1.1, 1.15], "min": 0.85, "max": 1.15 },
   "rigCapabilities": {
     "original-rat": {
