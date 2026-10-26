@@ -1,7 +1,7 @@
 import { Vector4 } from "three";
 // The same warm in steps of `perStep` top-level objects (lights always stay), so idle time can run it a little at
 // a time. Visibility is restored before each yield, so nothing outside a step ever sees the hidden objects.
-export function* warmFramebufferSteps(renderer, scene, camera, perStep = 4) {
+export function* warmFramebufferSteps(renderer, scene, camera, perStep = 4) { // tuning-ok: the default batch size of one warm step
   const nodes = scene.children.filter((n) => !n.isLight);
   for (let i = 0; i < nodes.length; i += perStep) {
     const group = new Set(nodes.slice(i, i + perStep)),

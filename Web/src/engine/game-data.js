@@ -235,6 +235,8 @@ export function validateVisual(d) {
     "touchTarget",
     "expeditionHud",
     "remotePlayers",
+    "tapFallback",
+    "firstTimeHints",
     "waterEffect",
     "worldGeometry",
     "severBlood",
