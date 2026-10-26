@@ -33,7 +33,7 @@
         "deflected": "Deflected"
       },
       "equipment": {
-        "url": "donor/knife.glb",
+        "url": "donor/knife-phone.glb",
         "mount": "hand_r",
         "node": "WeaponDrawn",
         "overrides": [
@@ -58,7 +58,7 @@
         "run": "Run"
       },
       "equipment": {
-        "url": "donor/knife.glb",
+        "url": "donor/knife-phone.glb",
         "mount": "hand_r",
         "node": "WeaponDrawn",
         "overrides": [
@@ -97,7 +97,7 @@
         "deflected": "Deflected"
       },
       "equipment": {
-        "url": "donor/knife.glb",
+        "url": "donor/knife-phone.glb",
         "mount": "hand_r",
         "node": "WeaponDrawn",
         "overrides": [
@@ -209,8 +209,8 @@
       "units": "metres",
       "forward": "+Z",
       "unavailableClips": [],
-      "sha256": "645722efc7d42cd85d8659b2ce650821486b201947660fff2357fd30de7e13cb",
-      "bytes": 1480368,
+      "sha256": "b5cee5c63c8a9d65a664045024758b8b352587bbd56f50ba3bf060c1fc6a2c79",
+      "bytes": 1461708,
       "name": "Hollow Scavenger",
       "modularMeshNames": [
         "Leather.Boots",
@@ -523,7 +523,7 @@
         "deflected": "Deflected"
       },
       "equipment": {
-        "url": "donor/knife.glb",
+        "url": "donor/knife-phone.glb",
         "mount": "hand_r",
         "node": "WeaponDrawn",
         "overrides": [
@@ -696,9 +696,10 @@
         "deflected": "Deflected"
       },
       "equipment": {
-        "url": "weapons/pitborn-cleaver.glb",
-        "bytes": 410920,
-        "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"
+        "url": "weapons/pitborn-cleaver-phone.glb",
+        "bytes": 384288,
+        "sha256": "507b9b4fe26a7f90d0f477390d0d9247279355a7584e3ca57a00b66178f1a07a",
+        "textureCapSource": {"file": "weapons/pitborn-cleaver.glb", "bytes": 410920, "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"}
       },
       "deferred": true
     },
@@ -1366,10 +1367,17 @@
       "errors": 0,
       "warnings": 0
     },
+    "weapon-phone": {
+      "file": "donor/knife-phone.glb",
+      "bytes": 358480,
+      "sha256": "a31db0551c13a7b7f84b7110c51d3427256b5b571a795a0c4ae9ef704b49a011",
+      "errors": 0,
+      "textureCapSource": {"file": "donor/knife.glb", "bytes": 382956, "sha256": "b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec"}
+    },
     "hollow-phone": {
       "file": "hollow-scavenger/hollow-scavenger-phone.glb",
-      "bytes": 1480368,
-      "sha256": "645722efc7d42cd85d8659b2ce650821486b201947660fff2357fd30de7e13cb",
+      "bytes": 1461708,
+      "sha256": "b5cee5c63c8a9d65a664045024758b8b352587bbd56f50ba3bf060c1fc6a2c79",
       "errors": 0,
       "textureCapSource": {"file": "hollow-scavenger/hollow-scavenger.glb", "bytes": 4329068, "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"}
     },
