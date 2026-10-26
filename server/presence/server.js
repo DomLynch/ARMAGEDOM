@@ -47,6 +47,7 @@ export function createPresence({
   locationEveryMs = 5000,
   hitSlack = 1.25,
   verifyTimeoutMs = 5000,
+  authRetryMs = 5000,
   isAllowed = null,
   allowedOrigins = ["https://playarmagedom.com"],
   devOrigins = false,
@@ -260,7 +261,11 @@ export function createPresence({
         }
         byAccount.set(account, client);
       },
-      () => deny(),
+      // A verifier that could not answer (Supabase Auth 429, 5xx, or too slow) is "try again", not "bad token": 503 with Retry-After, never a 401.
+      (error) =>
+        error?.code === "AUTH_UNAVAILABLE" || error?.message === "verify timed out"
+          ? socket.end(`HTTP/1.1 503 Service Unavailable\r\nRetry-After: ${Math.ceil(authRetryMs / 1000)}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`)
+          : deny(),
     );
   });
 
