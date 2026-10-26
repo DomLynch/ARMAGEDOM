@@ -87,7 +87,7 @@ export function createVestView(model) {
     }
     if (!selected)
       throw Error(
-        "Vest fitting ray missed original torso at " + origin.toArray() + " direction " + direction.toArray(), // text-ok: thrown error text (the throw is on the line above)
+        "Vest fitting ray missed original torso at " + origin.toArray() + " direction " + direction.toArray(), // text-ok: thrown error text
       );
     T.Triangle.getBarycoord(point, ...selected.points, bary);
     const weights = new Map();
