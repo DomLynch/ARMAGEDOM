@@ -1,5 +1,6 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
+import { GAME_DATA } from "./game-data.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
@@ -54,8 +55,8 @@ export function createBrowserLoop(s) {
     }
     if (raw.mouse) {
       const bounds = s.canvas.getBoundingClientRect(),
-        x = ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1,
-        y = 1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2,
+        x = ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1, // tuning-ok: pixels to NDC
+        y = 1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2, // tuning-ok: pixels to NDC
         point = s.game.flame?.equipped
           ? flamePointerPoint(s.world, s.actors.views, s.game.enemies, x, y, {
               assist: s.game.mobileAssistEnabled !== false,
@@ -81,7 +82,7 @@ export function createBrowserLoop(s) {
   }
   function frame(ms, providedElapsed) {
     const elapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0),
-      dt = Math.min(0.1, elapsed);
+      dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
     last = ms;
     if (!s.world || !s.game || s.contextLost) return;
     const audioEvents = [];
@@ -167,7 +168,8 @@ export function createBrowserLoop(s) {
     });
     const severs = s.effects?.takeSeverEvents?.() ?? [];
     if (audioEvents.length || severs.length) s.audio.play(presentationAudioEvents(audioEvents, severs));
-    s.rim.position.copy(s.world.toRender(s.game.player.pos, 2.4)).add(new THREE.Vector3(0, 0, 0.8));
+    const { rimHeight, rimBehind } = GAME_DATA.browserSession.sceneLights;
+    s.rim.position.copy(s.world.toRender(s.game.player.pos, rimHeight)).add(new THREE.Vector3(0, 0, rimBehind));
     const routeActive = !!s.world?.exitHint?.(s.game.player.pos),
       hint = s.paused || s.traveling ? "" : hints.current(s.game, routeActive);
     s.hud.update(s.game, hint, hints.overMessage);

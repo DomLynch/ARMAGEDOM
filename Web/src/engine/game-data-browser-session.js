@@ -11,7 +11,7 @@ export function validateBrowserSession(d) {
   for (const [name, min, max] of ranges)
     if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("browserSession", `${name} must be ${min} to ${max}`);
   const l = d.sceneLights;
-  closed(l, ["hemiSky", "hemiGround", "sunColor", "sunPosition", "rimColor", "rimIntensity", "rimDistance", "rimDecay"]);
+  closed(l, ["hemiSky", "hemiGround", "sunColor", "sunPosition", "rimColor", "rimIntensity", "rimDistance", "rimDecay", "rimHeight", "rimBehind"]);
   for (const name of ["hemiSky", "hemiGround", "sunColor", "rimColor"])
     if (typeof l[name] !== "string" || !/^#[0-9a-f]{6}$/.test(l[name])) fail("browserSession", `sceneLights.${name} must be #rrggbb`);
   if (!Array.isArray(l.sunPosition) || l.sunPosition.length !== 3 || !l.sunPosition.every((n) => Number.isFinite(n) && Math.abs(n) <= 100))
@@ -19,4 +19,7 @@ export function validateBrowserSession(d) {
   if (!Number.isFinite(l.rimIntensity) || l.rimIntensity < 0 || l.rimIntensity > 20) fail("browserSession", "sceneLights.rimIntensity");
   if (!Number.isFinite(l.rimDistance) || l.rimDistance <= 0 || l.rimDistance > 100) fail("browserSession", "sceneLights.rimDistance");
   if (!Number.isFinite(l.rimDecay) || l.rimDecay < 0 || l.rimDecay > 10) fail("browserSession", "sceneLights.rimDecay");
+  // The rim light rides this high above the player and this far behind (towards the camera), in metres.
+  for (const name of ["rimHeight", "rimBehind"])
+    if (!Number.isFinite(l[name]) || l[name] < 0 || l[name] > 20) fail("browserSession", `sceneLights.${name} must be 0 to 20`);
 }
