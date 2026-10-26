@@ -426,8 +426,7 @@ export function createBrowserSession(options = {}) {
     presence?.client.on("closed", () => recheckWorld());
     // A normal close, a replaced session and the server's own "closed" codes are not failures worth a row; everything else is.
     presence?.client.on("close", ({ code }) => {
-      // 1000/1001 are the WebSocket normal-close codes.
-      if (![1000, 1001, CLOSE_REPLACED].includes(code) && !GAME_DATA.world.closedCloseCodes.includes(code)) // tuning-ok: normal closes
+      if (![1000, 1001, CLOSE_REPLACED].includes(code) && !GAME_DATA.world.closedCloseCodes.includes(code)) // tuning-ok: WebSocket normal-close codes
         beacon.report("presence", `close-${code ?? "none"}`);
     });
     presence?.client.on("refuse", ({ reason }) => beacon.report("presence", `refuse-${reason ?? "none"}`));
