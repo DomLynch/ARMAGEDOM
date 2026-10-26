@@ -11,14 +11,19 @@ const text = (field, v, placeholders = []) => {
     fail("safehouseText", `${field} must use exactly the placeholders ${placeholders.map((p) => `{${p}}`).join(" ") || "(none)"}`);
 };
 
-// One section: each text key with its {placeholders}, then each name table with its closed id list.
+// A name table: id -> non-empty text. Its id set is not listed here; checkSafehouseNameIds compares it with the data that owns
+// the ids once that data is loaded.
+const names = (field, table) => {
+  if (!table || typeof table !== "object" || Array.isArray(table) || !Object.keys(table).length)
+    fail("safehouseText", `${field} must be an object of names`);
+  for (const [id, name] of Object.entries(table)) text(`${field}.${id}`, name);
+};
+
+// One section: each text key with its {placeholders}, then each name table.
 const section = (field, row, keys, tables) => {
-  closed(row, [...Object.keys(keys), ...Object.keys(tables)]);
+  closed(row, [...Object.keys(keys), ...tables]);
   for (const [k, placeholders] of Object.entries(keys)) text(`${field}.${k}`, row[k], placeholders);
-  for (const [table, ids] of Object.entries(tables)) {
-    closed(row[table], ids);
-    for (const id of ids) text(`${field}.${table}.${id}`, row[table][id]);
-  }
+  for (const table of tables) names(`${field}.${table}`, row[table]);
 };
 
 export function validateSafehouseText(d) {
@@ -29,19 +34,19 @@ export function validateSafehouseText(d) {
     amountUnavailable: [], weaponRow: ["name", "state"], stored: [], equipped: [], carried: [], store: [], retrieve: [],
     resourceRow: ["title", "carried", "stored"], amountAria: ["title"],
   };
-  const weaponNames = [
-    "westminster-start-pistol-v1", "bridge-warden-rifle-v1", "flamethrower-area8-v1", "hale-pitborn-cleaver-v1",
-    "south-stalker-shotgun-v1", "standard-grenade-v1", "surgeons-knife-v1", "borough-butchers-rocket-launcher-v1",
-    "watchmans-pistol-v1", "borough-marshals-pistol-v1",
-  ];
-  const resourceNames = [
-    "railgun-reserve", "pistol-reserve", "rifle-reserve", "shotgun-reserve", "rocket-reserve", "grenade-charges", "flame-fuel",
-  ];
-  section("safehouse", d.safehouse, safehouse, { weaponNames, resourceNames });
+  section("safehouse", d.safehouse, safehouse, ["weaponNames", "resourceNames"]);
   const marked = {
     saveUnavailable: [], purchaseUnavailable: [], title: [], bank: [], hint: [], summary: ["carried", "bank"],
     bountySuffix: ["bounty"], shopButton: ["name", "amount", "unit", "price"], healUnit: [], roundsUnit: [],
     statusUnavailable: [], statusReady: [],
   };
-  section("marked", d.marked, marked, { shopNames: ["pistol", "rifle", "dressing"] });
+  section("marked", d.marked, marked, ["shopNames"]);
+}
+
+// Cross-reference: a name table must name exactly the ids its owner lists (locker.json resourceCaps for supplies, the locker's
+// weapon ids for weapons), so a new locker id needs only its data row plus its name here.
+export function checkSafehouseNameIds(table, ids, field) {
+  const keys = Object.keys(table);
+  if (keys.length !== ids.length || ids.some((id) => !Object.hasOwn(table, id)))
+    fail("safehouseText", `${field} must name exactly ${ids.join(", ")}`);
 }

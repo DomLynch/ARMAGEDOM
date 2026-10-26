@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GAME_DATA, fillText } from "../src/engine/game-data.js";
-import { validateSafehouseText } from "../src/engine/game-data-safehouse-text.js";
-import { LOCKER_WEAPON_IDS } from "../src/engine/locker-state.js";
+import { checkSafehouseNameIds, validateSafehouseText } from "../src/engine/game-data-safehouse-text.js";
+import { LOCKER_RESOURCE_RULES, LOCKER_WEAPON_IDS } from "../src/engine/locker-state.js";
 
 const text = () => structuredClone(GAME_DATA.safehouseText);
 
@@ -41,7 +41,7 @@ test("locker weapon and supply names keep the old order and wording", () => {
       "Thundercoil Arc Gun",
     ],
   );
-  assert.deepEqual(Object.entries(t.resourceNames), [
+  assert.deepEqual(Object.keys(LOCKER_RESOURCE_RULES).map((id) => [id, t.resourceNames[id]]), [
     ["railgun-reserve", "Railgun reserve"],
     ["pistol-reserve", "Pistol reserve"],
     ["rifle-reserve", "Rifle reserve"],
@@ -84,18 +84,29 @@ test("the validator rejects a missing key, a wrong placeholder and unknown keys"
   validateSafehouseText(text());
   const bad = [
     (d) => delete d.safehouse.interactLabel,
-    (d) => delete d.marked.shopNames.dressing,
-    (d) => delete d.safehouse.weaponNames["standard-grenade-v1"],
+    (d) => (d.marked.shopNames = {}),
+    (d) => (d.safehouse.weaponNames["standard-grenade-v1"] = ""),
     (d) => (d.safehouse.resourceRow = "{title} · carried {carried}"),
     (d) => (d.safehouse.amountAria = "{name} transfer amount"),
     (d) => (d.marked.title = "Cash {name}"),
     (d) => (d.marked.bank = ""),
     (d) => (d.marked.extra = "Extra"),
-    (d) => (d.safehouse.resourceNames.extra = "Extra"),
   ];
   for (const mutate of bad) {
     const d = text();
     mutate(d);
     assert.throws(() => validateSafehouseText(d));
   }
+});
+
+test("weapon and supply names must cover exactly the locker's own ids", () => {
+  const { weaponNames, resourceNames } = text().safehouse;
+  const resourceIds = Object.keys(GAME_DATA.locker.resourceCaps);
+  checkSafehouseNameIds(weaponNames, LOCKER_WEAPON_IDS, "weaponNames");
+  checkSafehouseNameIds(resourceNames, resourceIds, "resourceNames");
+  const missing = { ...weaponNames };
+  delete missing["standard-grenade-v1"];
+  assert.throws(() => checkSafehouseNameIds(missing, LOCKER_WEAPON_IDS, "weaponNames"));
+  assert.throws(() => checkSafehouseNameIds({ ...resourceNames, extra: "Extra" }, resourceIds, "resourceNames"));
+  assert.throws(() => checkSafehouseNameIds(resourceNames, [...resourceIds, "new-reserve"], "resourceNames"));
 });

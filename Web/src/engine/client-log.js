@@ -9,7 +9,7 @@ import { GAME_DATA } from "./game-data.js";
 export function scrub(value, max = GAME_DATA.world.clientLog.messageChars) {
   return String(value ?? "")
     .replace(/https?:\/\/[^\s"')]*/gi, (url) => url.replace(/[?#].*$/, ""))
-    .replace(/\bBearer\s+\S+/gi, "Bearer <x>")
+    .replace(/\bBearer\s+\S+/gi, "Bearer <x>") // text-ok: redaction marker in a diagnostic log line
     .replace(/\b(access_token|refresh_token|token|apikey|code|link)=\S+/gi, "$1=<x>")
     .replace(/\beyJ[\w-]{5,}(?:\.[\w-]+)*/g, "<jwt>")
     .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "<email>")

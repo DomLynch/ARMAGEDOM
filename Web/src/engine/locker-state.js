@@ -1,4 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
+import { checkSafehouseNameIds } from "./game-data-safehouse-text.js";
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
 export const LOCKER_WEAPON_IDS = Object.freeze([
@@ -13,6 +14,8 @@ export const LOCKER_WEAPON_IDS = Object.freeze([
   "watchmans-pistol-v1",
   "borough-marshals-pistol-v1",
 ]);
+// The safehouse panel names each locker weapon from safehouseText.json; the names must cover exactly these ids.
+checkSafehouseNameIds(GAME_DATA.safehouseText.safehouse.weaponNames, LOCKER_WEAPON_IDS, "safehouse.weaponNames");
 const weaponIdsAllowed = LOCKER_WEAPON_IDS;
 const resourceOwner = {
   "railgun-reserve": weaponIdsAllowed[9],

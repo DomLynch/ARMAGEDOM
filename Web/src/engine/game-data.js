@@ -16,6 +16,7 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import runNotices from "../data/runNotices.json" with { type: "json" };
+import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
@@ -52,8 +53,9 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
-import { validateSafehouseText } from "./game-data-safehouse-text.js";
+import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
@@ -92,6 +94,7 @@ export {
   validateCombatRules,
   validateCommanderSession,
   validateRunNotices,
+  validateSessionText,
   validateMarkedHunterSpawn,
   validateReaperMotion,
   validateCreatures,
@@ -976,6 +979,7 @@ const sources = () => ({
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   runNotices: [runNotices, validateRunNotices],
+  sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],
   safehouseText: [safehouseText, validateSafehouseText],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
@@ -1025,3 +1029,9 @@ export function buildGameData(files = sources()) {
 }
 
 export const GAME_DATA = buildGameData();
+// Supply names follow the locker's own resource list (locker.json); weapon names are checked in engine/locker-state.js.
+checkSafehouseNameIds(
+  GAME_DATA.safehouseText.safehouse.resourceNames,
+  Object.keys(GAME_DATA.locker.resourceCaps),
+  "safehouse.resourceNames",
+);

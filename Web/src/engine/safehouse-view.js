@@ -242,8 +242,9 @@ export function createSafehouseView(s, dispatch) {
       );
       panel.append(row);
     }
-    for (const [resource, title] of Object.entries(TEXT.resourceNames)) {
-      const carry = inv.ammo[resource],
+    for (const resource of Object.keys(LOCKER_RESOURCE_RULES)) {
+      const title = TEXT.resourceNames[resource],
+        carry = inv.ammo[resource],
         stash = locker?.ammo[resource] ?? 0,
         rule = LOCKER_RESOURCE_RULES[resource],
         row = document.createElement("div");
