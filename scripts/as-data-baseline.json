@@ -68,8 +68,7 @@
     ]
   },
   "rigLiterals": {
-    "engine/commander/match.js": 1,
-    "engine/creature-definitions.js": 45
+    "engine/commander/match.js": 1
   },
   "constantTables": {
     "clothing-palettes.js": 1,

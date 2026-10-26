@@ -6,6 +6,7 @@ import appearance from "../data/appearance.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
+import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
@@ -27,6 +28,36 @@ const count = (file, field, value, min, max) => {
   if (!Number.isSafeInteger(value) || value < min || value > max)
     fail(file, `${field} must be an integer from ${min} to ${max}`);
 };
+
+// creatureDefinitions.json: the creature foundations (one row per rig: clips, scale, stats, behaviour), the recipe -> foundation map and
+// the native animal roles. engine/creature-catalogue.js validates every row in depth when it builds the catalogue; the loader checks
+// the shape of the three parts.
+export function validateCreatureDefinitions(d) {
+  closed(d, ["schema_version", "definitions", "recipeFoundations", "nativeRoles"]);
+  if (
+    !Array.isArray(d.definitions) ||
+    !d.definitions.length ||
+    !d.definitions.every((r) => typeof r?.id === "string" && r.id)
+  )
+    fail("creatureDefinitions", "definitions must be a list of rows with an id");
+  if (new Set(d.definitions.map((r) => r.id)).size !== d.definitions.length)
+    fail("creatureDefinitions", "definition ids must be distinct");
+  if (!d.recipeFoundations || typeof d.recipeFoundations !== "object" || Array.isArray(d.recipeFoundations))
+    fail("creatureDefinitions", "recipeFoundations must be an object");
+  for (const [recipe, foundation] of Object.entries(d.recipeFoundations))
+    if (!d.definitions.some((r) => r.id === foundation))
+      fail("creatureDefinitions", `recipeFoundations.${recipe} names an unknown foundation`);
+  if (!Array.isArray(d.nativeRoles)) fail("creatureDefinitions", "nativeRoles must be a list");
+  for (const role of d.nativeRoles) {
+    closed(role, ["area", "placement", "recipe", "foundation", "cycles", "preset"]);
+    for (const f of ["area", "placement", "recipe", "foundation", "preset"])
+      if (typeof role[f] !== "string" || !role[f]) fail("creatureDefinitions", `nativeRoles.${f}`);
+    if (!Array.isArray(role.cycles) || !role.cycles.length || !role.cycles.every((c) => c === "A" || c === "B"))
+      fail("creatureDefinitions", "nativeRoles.cycles must list A and/or B");
+    if (!Object.hasOwn(d.recipeFoundations, role.recipe) || d.recipeFoundations[role.recipe] !== role.foundation)
+      fail("creatureDefinitions", `nativeRoles ${role.placement} recipe does not belong to its foundation`);
+  }
+}
 
 export function validateDiagnostics(d) {
   closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
@@ -986,6 +1017,7 @@ const sources = () => ({
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
+  creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
