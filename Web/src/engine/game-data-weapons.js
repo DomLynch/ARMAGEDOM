@@ -95,7 +95,7 @@ export function validateTargeting(t) {
   number("weapons", "targeting.defaultHeight", t.defaultHeight);
   // How a shot is resolved (pistol-targeting.js), metres: the height a shot that hits nothing ends at, the throw range a grenade falls
   // back to when no range was set, the heights a grenade and any other projectile land at, and the body ellipsoid a ray is tested
-  // against (half-height = max(minimum, target height x ratio)).
+  // against (half-height = max(minimum, target height x ratio); flame-contact.js also keeps the half-width at or above bodyMinRadius).
   closed(t.shot, [
     "missHeight",
     "grenadeFallbackRange",
@@ -103,6 +103,7 @@ export function validateTargeting(t) {
     "landingHeight",
     "bodyMinHalfHeight",
     "bodyHeightRatio",
+    "bodyMinRadius",
   ]);
   for (const [f, v] of Object.entries(t.shot)) number("weapons", `targeting.shot.${f}`, v, 0.001);
   closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
