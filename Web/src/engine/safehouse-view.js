@@ -24,7 +24,7 @@ const names = [
   "The Bone Saw",
   "Rocket Launcher",
   "Reaper Drone",
-  "Thundercoil Railgun",
+  "Thundercoil Arc Gun",
 ];
 const resources = {
   "railgun-reserve": "Railgun reserve",

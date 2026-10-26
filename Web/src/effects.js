@@ -6,6 +6,7 @@ import { createFlameEffect } from "./engine/flame-effect.js";
 import { createSeverBloodEffect } from "./engine/sever-blood-effect.js";
 import { createFinisherImpactGate } from "./finisher-impact-profile.js";
 import { createDroneLaserBolts } from "./drone-laser.js";
+import { createArcBolts } from "./engine/arc-bolt-view.js";
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { createCombatImpact } from "./combat-impact.js";
 import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js";
@@ -77,6 +78,16 @@ export function createEffects(
       (hex) => new THREE.MeshBasicMaterial({ color: hexNumber(hex) }),
     );
   const droneLasers = createDroneLaserBolts({ scene, world, camera: world.camera });
+  // Built on the first arc shot, so scenes that never fire the Arc Gun carry none of its pooled lines.
+  let arcBolts = null;
+  const arcView = () =>
+    (arcBolts ??= createArcBolts({
+      scene,
+      data: GAME_DATA.visual.arcGun,
+      camera: world.camera,
+      viewportHeight: () => viewportHeight,
+    }));
+  let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
   let confirmation = null;
   let requestedMode = "high",
@@ -182,7 +193,9 @@ export function createEffects(
       );
       if (!e) return null;
       const source = salamanderMouthSource(getView(e), e, salamanderPoint);
-      return source ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: FEEL.flameWidthScale.salamander } : null;
+      return source
+        ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: FEEL.flameWidthScale.salamander }
+        : null;
     },
   });
   const particles = Array.from({ length: POOL.particles }, () => ({
@@ -214,7 +227,10 @@ export function createEffects(
     pool.add(mesh);
     return { mesh, life: 0 };
   });
-  const muzzleFlash = new THREE.Mesh(unit, new THREE.MeshBasicMaterial({ color: hexNumber(FEEL.muzzleFlashColour), depthWrite: false }));
+  const muzzleFlash = new THREE.Mesh(
+    unit,
+    new THREE.MeshBasicMaterial({ color: hexNumber(FEEL.muzzleFlashColour), depthWrite: false }),
+  );
   muzzleFlash.name = "Combat muzzle flash";
   muzzleFlash.visible = false;
   pool.add(muzzleFlash);
@@ -332,7 +348,8 @@ export function createEffects(
                     Math.PI) /
                   180,
             speed =
-              effect.speed * (DROP.speedBase + (DROP.speedSpread * ((i * DROP.speedStride) % allocated.length)) / allocated.length);
+              effect.speed *
+              (DROP.speedBase + (DROP.speedSpread * ((i * DROP.speedStride) % allocated.length)) / allocated.length);
           Object.assign(p, {
             finisherOwner: view,
             impactVictimId: null,
@@ -378,9 +395,7 @@ export function createEffects(
             travelLimit: range * (leading ? 1 : DROP.tailTravelShare),
             holdSeconds: leading ? (c.holdSeconds ?? 0) : 0,
             impactVictimId: null,
-            delay: leading
-              ? (c.leadingDelays?.[j < half ? 0 : 1] ?? 0)
-              : c.tailDelays[j < half ? 0 : 1],
+            delay: leading ? (c.leadingDelays?.[j < half ? 0 : 1] ?? 0) : c.tailDelays[j < half ? 0 : 1],
             palette:
               effect.palette[
                 leading ? (c.leadingPaletteIndices?.[j] ?? i % effect.palette.length) : i % effect.palette.length
@@ -542,8 +557,16 @@ export function createEffects(
   function burst(event, killed, time) {
     const p = event.position ?? event.actor.pos,
       d = event.impactDirection ?? { x: 0, z: 1 },
-      count = feedback.mode === "off" ? BURST.counts.off : feedback.mode === "low" ? BURST.counts.low : killed ? BURST.counts.killed : BURST.counts.hit,
-      life = feedback.mode === "off" ? BURST.lifeSeconds.off : killed ? BURST.lifeSeconds.killed : BURST.lifeSeconds.hit,
+      count =
+        feedback.mode === "off"
+          ? BURST.counts.off
+          : feedback.mode === "low"
+            ? BURST.counts.low
+            : killed
+              ? BURST.counts.killed
+              : BURST.counts.hit,
+      life =
+        feedback.mode === "off" ? BURST.lifeSeconds.off : killed ? BURST.lifeSeconds.killed : BURST.lifeSeconds.hit,
       size = event.actor.mobSize ?? 1;
     for (let i = 0; i < count; i++) {
       const v = nextParticle(),
@@ -566,7 +589,14 @@ export function createEffects(
         vx: Math.cos(a) * BURST.spread + d.x,
         vy: BURST.liftBase + (i % BURST.liftCycle) * BURST.liftStep,
         vz: Math.sin(a) * BURST.spread - d.z,
-        size: (feedback.mode === "off" ? BURST.sizes.off : feedback.mode === "low" ? BURST.sizes.low : killed ? BURST.sizes.killed : BURST.sizes.hit) * size,
+        size:
+          (feedback.mode === "off"
+            ? BURST.sizes.off
+            : feedback.mode === "low"
+              ? BURST.sizes.low
+              : killed
+                ? BURST.sizes.killed
+                : BURST.sizes.hit) * size,
       });
     }
   }
@@ -604,7 +634,14 @@ export function createEffects(
         t = y + h / 2; // tuning-ok: half the height either side of the centre
       vertices.push(l, b, 0, r, b, 0, r, t, 0, l, b, 0, r, t, 0, l, t, 0);
     };
-    const { barLength: bar, barThickness: thick, cornerNear: near, cornerFar: far, cornerLength: long, cornerThickness: lip } = RETICLE;
+    const {
+      barLength: bar,
+      barThickness: thick,
+      cornerNear: near,
+      cornerFar: far,
+      cornerLength: long,
+      cornerThickness: lip,
+    } = RETICLE;
     rect(0, 0, bar + padding, thick + padding);
     rect(0, 0, thick + padding, bar + padding);
     for (const x of [-1, 1])
@@ -766,23 +803,13 @@ export function createEffects(
         const actor = event.actor,
           donor = game.pilot === "donor-knife";
         if (event.type === "railgun-shot") {
-          const t = nextTracer();
-          if (t) {
-            const a = event.origin,
-              b = event.end,
-              p = t.mesh.geometry.attributes.position;
-            p.setXYZ(0, a.x, a.y, a.z);
-            p.setXYZ(1, b.x, b.y, b.z);
-            p.needsUpdate = true;
-            t.total = EVENT.railgun.seconds;
-            t.life = EVENT.railgun.seconds;
-            t.mesh.material.color.setHex(hexNumber(EVENT.railgun.colour));
-            t.mesh.material.depthTest = true;
-            muzzleFlash.position.set(a.x, a.y, a.z);
-            muzzleFlash.scale.set(...EVENT.railgun.flashScale);
-            flashLife = EVENT.railgun.flashSeconds;
-          }
+          const a = event.origin;
+          muzzleFlash.position.set(a.x, a.y, a.z);
+          muzzleFlash.scale.set(...EVENT.railgun.flashScale);
+          flashLife = EVENT.railgun.flashSeconds;
         }
+        if (event.type === "arc-chain") arcView().fire(event.links, game.time);
+        if (event.type === "arc-stun") arcView().stun(event.actor, game.time + event.seconds, game.time);
 
         if (event.type === "boss-ranged-warning") {
           line(actor.pos, event.dir, event.range, event.arc, hexNumber(EVENT.warningColour), event.until);
@@ -806,7 +833,9 @@ export function createEffects(
             event.dir,
             event.range,
             event.arc,
-            hexNumber(actor.kind === EVENT.attackColours.specialKind ? EVENT.attackColours.special : EVENT.attackColours.other),
+            hexNumber(
+              actor.kind === EVENT.attackColours.specialKind ? EVENT.attackColours.special : EVENT.attackColours.other,
+            ),
             actor.swing.hitAt,
           );
         if (event.type === "hit" && donor && !event.blocked && event.amount > 0) {
@@ -848,7 +877,7 @@ export function createEffects(
               game.time + EVENT.lineSeconds,
               ["dog_bite", "roach_bite"].includes(event.moveId) && actor.contactGoalReach
                 ? (actor.swing?.calfGoal?.y ??
-                  (event.moveId === "roach_bite" ? EVENT.lowLine.roachBiteHeight : EVENT.lowLine.dogBiteHeight))
+                    (event.moveId === "roach_bite" ? EVENT.lowLine.roachBiteHeight : EVENT.lowLine.dogBiteHeight))
                 : ["dog_low", "drone_low"].includes(event.moveId) && actor.swing?.clip === "DogMidSlash"
                   ? EVENT.lowLine.midSlashShare * (getView(actor)?.root.scale.y ?? EVENT.lowLine.midSlashScaleFallback)
                   : EVENT.lowLine.height,
@@ -869,7 +898,9 @@ export function createEffects(
             const a = world.toRender(actor.pos, EVENT.stab.height * size),
               b = a
                 .clone()
-                .add(new THREE.Vector3(event.dir.x * EVENT.stab.length * size, 0, -event.dir.z * EVENT.stab.length * size));
+                .add(
+                  new THREE.Vector3(event.dir.x * EVENT.stab.length * size, 0, -event.dir.z * EVENT.stab.length * size),
+                );
             const mesh = new THREE.Line(
               new THREE.BufferGeometry().setFromPoints([a, b]),
               new THREE.LineBasicMaterial({ color: colors.stab, transparent: true, opacity: EVENT.stab.opacity }),
@@ -1007,7 +1038,9 @@ export function createEffects(
         // The starting pistol is the first thing a new player must find: its outline breathes until picked up.
         // The outline is a fixed screen-pixel stroke, so a phone-width screen gets a thicker one to read at that size.
         const pulse = FEEL.pickupPulse,
-          strokeScale = (pulse.base + pulse.swing * Math.sin(game.time * pulse.rate)) * (width <= pulse.phoneWidth ? pulse.phoneScale : 1);
+          strokeScale =
+            (pulse.base + pulse.swing * Math.sin(game.time * pulse.rate)) *
+            (width <= pulse.phoneWidth ? pulse.phoneScale : 1);
         for (const contour of pickupContours) contour.halo.userData.strokeScale = strokeScale;
       }
       const weaponCue = pistolCue(game, { paused, visibleIds }) ?? bossWeaponCue(game, { paused, visibleIds }),
@@ -1116,6 +1149,8 @@ export function createEffects(
       salamanderFlame.update(game, { paused });
       flameEffect?.update(game, { paused });
       droneLasers.sync(game.bolts, game.time);
+      if (!paused) arcBolts?.update(game.time, Math.max(0, game.time - arcClock));
+      arcClock = game.time;
       sync(game.loot, loot, gem, (l) => lootMaterials[l.kind], FEEL.loot.height);
     },
     reset() {
@@ -1129,6 +1164,7 @@ export function createEffects(
       for (const e of transient) erase(e);
       transient.length = 0;
       droneLasers.reset();
+      arcBolts?.reset();
       for (const map of [loot]) {
         for (const mesh of map.values()) scene.remove(mesh);
         map.clear();
@@ -1161,6 +1197,7 @@ export function createEffects(
       }
       scene.remove(pool);
       droneLasers.dispose();
+      arcBolts?.dispose();
       gem.dispose();
       for (const m of lootMaterials) m.dispose();
     },
@@ -1195,7 +1232,10 @@ export function createAudio(options = {}) {
           duration = e.type === "death" ? tone.seconds.death : tone.seconds.other;
         oscillator.type = tone.sineEvents.includes(e.type) ? "sine" : "triangle";
         oscillator.frequency.setValueAtTime(frequency, start);
-        oscillator.frequency.exponentialRampToValueAtTime(Math.max(tone.minFrequency, frequency * tone.rampShare), start + duration);
+        oscillator.frequency.exponentialRampToValueAtTime(
+          Math.max(tone.minFrequency, frequency * tone.rampShare),
+          start + duration,
+        );
         gain.gain.setValueAtTime(tone.gain, start);
         gain.gain.exponentialRampToValueAtTime(tone.gainEnd, start + duration);
         oscillator.connect(gain);

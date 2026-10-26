@@ -112,7 +112,10 @@ export function validateCreditPolicies(rows) {
 // The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
 // four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.
 export function validateBossEquipment(b, ranged) {
-  closed(b, ["order", "ranged", "boneSawRules", "surgicalKnife", "emberProjector"]);
+  closed(b, ["order", "emberContactConeDegrees", "ranged", "boneSawRules", "surgicalKnife", "emberProjector"]);
+  // The flame contact cone's full opening in degrees (the legacy pilot profile, engine/flame-fuel-state.js).
+  if (!(b.emberContactConeDegrees > 0 && b.emberContactConeDegrees < 180))
+    fail("weapons", "bossEquipment.emberContactConeDegrees must be above 0 and below 180");
   const text = (field, v) => {
     if (typeof v !== "string" || !v) fail("weapons", `bossEquipment.${field} must be a non-empty string`);
   };

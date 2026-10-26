@@ -104,7 +104,7 @@
     },
     "commanderPistol": {
       "itemId": "borough-marshals-pistol-v1",
-      "name": "Thundercoil Railgun",
+      "name": "Thundercoil Arc Gun",
       "family": "rifles",
       "weaponKey": "railgun",
       "damageType": "bullet",
@@ -115,12 +115,12 @@
       "modelRef": "player-rifle",
       "finisherBinding": "pistol",
       "rules": {
-        "capacity": 1,
-        "reserve": 3,
-        "damage": 90,
-        "range": 32,
-        "cadence": 2.2,
-        "reload": 2.5,
+        "capacity": 4,
+        "reserve": 8,
+        "damage": 45,
+        "range": 4.5,
+        "cadence": 0.8,
+        "reload": 1.8,
         "pickupRadius": 1.3
       },
       "source": {
@@ -129,8 +129,15 @@
         "receiptId": "boss-veteran-v1:borough-marshals-pistol-v1"
       },
       "charge": {
-        "seconds": 0.9,
+        "seconds": 0.3,
         "maxSeconds": 3.5
+      },
+      "arc": {
+        "jumps": 3,
+        "hopRange": 4.5,
+        "hopDamageFactor": 0.75,
+        "stunSeconds": 0.6,
+        "bossStunSeconds": 0.2
       }
     },
     "emberProjector": {

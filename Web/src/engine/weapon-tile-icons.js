@@ -22,7 +22,7 @@ const styles = {
   "surgeons-knife-v1": ["saw", "BONE SAW"],
   "westminster-start-pistol-v1": ["pistol", "PISTOL"],
   "watchmans-pistol-v1": ["drone", "REAPER"],
-  "borough-marshals-pistol-v1": ["railgun", "RAILGUN"],
+  "borough-marshals-pistol-v1": ["railgun", "ARC GUN"],
   "bridge-warden-rifle-v1": ["rifle", "RIFLE"],
   "flamethrower-area8-v1": ["flame", "EMBER"],
   "ember-flamethrower-v1": ["flame", "EMBER"],

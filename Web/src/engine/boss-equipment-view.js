@@ -118,7 +118,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   }
   function stats(data, state, g) {
     if (data.weaponKey === "railgun")
-      return `${data.rules.damage} piercing damage · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the beam; pistol ammunition is kept.`;
+      return `${data.rules.damage} arc damage, jumps ${data.arc.jumps}x and stuns · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.`;
     if (data.family === "shotguns")
       return `8 pellets × 8 damage · 6m · ${state?.magazine ?? 0}/2 loaded · ${state?.reserve ?? 0} reserve`;
     if (data.family === "launchers")
@@ -213,7 +213,8 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       }
       item.view.root.rotation.z = t < 1 ? t * Math.PI * G.spinPi : 0;
       item.warning.position.copy(s.world.toRender(row.intent.position, R.height));
-      item.warning.material.opacity = R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
+      item.warning.material.opacity =
+        R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
     }
   }
   function update() {

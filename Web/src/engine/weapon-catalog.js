@@ -50,7 +50,7 @@ export function validateRangedWeaponCatalog(input) {
       railgun = row.weaponKey === "railgun";
     if (
       !key(id) ||
-      !closed(row, railgun ? [...fields, "charge"] : payloadFamily ? [...fields, "payload"] : fields) ||
+      !closed(row, railgun ? [...fields, "charge", "arc"] : payloadFamily ? [...fields, "payload"] : fields) ||
       row.itemId !== id ||
       typeof row.name !== "string" ||
       !row.name ||
@@ -79,7 +79,25 @@ export function validateRangedWeaponCatalog(input) {
         row.charge.seconds > 2 ||
         !Number.isFinite(row.charge.maxSeconds) ||
         row.charge.maxSeconds < row.charge.seconds ||
-        row.charge.maxSeconds > 6)
+        row.charge.maxSeconds > 6 ||
+        // arc: the lightning chain. The first target is within rules.range; each jump goes to the nearest other living enemy
+        // within hopRange of the last one that has a clear line, up to `jumps` times, at hopDamageFactor of the last damage.
+        !closed(row.arc, ["jumps", "hopRange", "hopDamageFactor", "stunSeconds", "bossStunSeconds"]) ||
+        !Number.isSafeInteger(row.arc.jumps) ||
+        row.arc.jumps < 0 ||
+        row.arc.jumps > 6 ||
+        !Number.isFinite(row.arc.hopRange) ||
+        row.arc.hopRange < 0.5 ||
+        row.arc.hopRange > 12 ||
+        !Number.isFinite(row.arc.hopDamageFactor) ||
+        row.arc.hopDamageFactor <= 0 ||
+        row.arc.hopDamageFactor > 1 ||
+        !Number.isFinite(row.arc.stunSeconds) ||
+        row.arc.stunSeconds < 0 ||
+        row.arc.stunSeconds > 3 ||
+        !Number.isFinite(row.arc.bossStunSeconds) ||
+        row.arc.bossStunSeconds < 0 ||
+        row.arc.bossStunSeconds > row.arc.stunSeconds)
     )
       fail();
     weapons.add(row.weaponKey);

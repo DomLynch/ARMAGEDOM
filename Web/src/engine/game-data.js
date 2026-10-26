@@ -15,6 +15,7 @@ import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
+import runNotices from "../data/runNotices.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import guestAuth from "../data/guestAuth.json" with { type: "json" };
@@ -37,11 +38,13 @@ import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
+import { validateArcGun } from "./game-data-arc-gun.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
+import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
@@ -74,6 +77,7 @@ export {
   validateBrowserSession,
   validateCombatRules,
   validateCommanderSession,
+  validateRunNotices,
   validateCreatures,
   validateCreditPolicies,
   validateDiagnostics,
@@ -218,6 +222,7 @@ export function validateVisual(d) {
     "clothing",
     "effects",
     "dropMarker",
+    "arcGun",
     "routeArrow",
     "bossView",
     "pickupModel",
@@ -227,6 +232,7 @@ export function validateVisual(d) {
     "expeditionHud",
     "remotePlayers",
     "waterEffect",
+    "worldGeometry",
     "severBlood",
     "motion",
     "safehouseView",
@@ -237,6 +243,7 @@ export function validateVisual(d) {
   ]);
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);
+  validateArcGun(d.arcGun);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -878,6 +885,7 @@ const sources = () => ({
   browserSession: [browserSession, validateBrowserSession],
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
+  runNotices: [runNotices, validateRunNotices],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
