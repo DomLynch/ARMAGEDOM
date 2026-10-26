@@ -151,7 +151,7 @@ export function createBrowserLoop(s) {
       }
     }
     s.world.update(s.game.player.pos, s.paused ? 0 : dt, innerWidth, innerHeight);
-    s.world.exitArrows?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
+    s.world.exitRings?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();

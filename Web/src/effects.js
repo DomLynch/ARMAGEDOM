@@ -617,7 +617,7 @@ export function createEffects(
     });
     for (const mesh of surfaces) {
       const contour = addPickupGlow(mesh);
-      // The HUD's pale gold; the ground arrow itself now takes the drop marker's orange (visual.json routeArrow).
+      // The HUD's pale gold.
       contour.halo.material.uniforms.color.value.set(hexNumber(FEEL.pickupGun.contourColour));
       pickupContours.push(contour);
     }

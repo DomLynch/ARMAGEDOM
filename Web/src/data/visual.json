@@ -259,10 +259,6 @@
       "fonts": ["bold 30px sans-serif"]
     }
   },
-  "routeArrow": {
-    "peakOpacity": 0.6,
-    "tailGap": 1
-  },
   "bossView": {
     "labelRange": 12,
     "hazard": {
@@ -308,15 +304,16 @@
       }
     }
   },
-  "exitArrows": {
-    "opacity": 0.5,
-    "widthScale": 1,
-    "lengthScale": 1,
-    "edgeBand": 0.06,
-    "roadInset": 2.5,
-    "bottomEdgeInset": 5,
-    "searchMetres": 8,
-    "directionSteps": 16
+  "exitRings": {
+    "inner": 0.48,
+    "outer": 0.62,
+    "segments": 32,
+    "colour": "dfba59",
+    "opacity": 1,
+    "height": 0.045,
+    "anchor": { "x": 0.5, "y": 0.5 },
+    "flatRotation": -1.5707963267948966,
+    "offsets": {}
   },
   "input": {
     "knobPadPx": 106,
@@ -339,7 +336,6 @@
     "arrivalRadius": 4,
     "pistolArrived": 0.3,
     "huntArrived": 1.5,
-    "pulse": { "seconds": 1.3, "minOpacity": 0.35 },
     "rail": {
       "sideProbe": 0.3,
       "sideOffset": 0.12,
@@ -349,14 +345,6 @@
       "depth": 0.12,
       "colours": ["d0a943", "252522"],
       "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a", "along": [0, 0.5, 1] }
-    },
-    "arrow": {
-      "height": 0.04,
-      "triangles": [
-        [[-0.13, 0, 0], [0.13, 0, 0], [0.13, 0, 1.05]],
-        [[-0.13, 0, 0], [0.13, 0, 1.05], [-0.13, 0, 1.05]],
-        [[-0.32, 0, 0.97], [0.32, 0, 0.97], [0, 0, 1.43]]
-      ]
     },
     "marker": {
       "height": 0.045,

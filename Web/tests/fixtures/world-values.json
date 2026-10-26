@@ -6,7 +6,7 @@
  ],
  "westminster": {
   "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
-  "meshes": "13d37b7e1bbc156df28c62cea7b2a20c130e42cca58829fd70dc116179979338",
+  "meshes": "ddbace68e24af73004670628bcb176a4931f723cbe85c2c36b13876581370ecd",
   "first": [
    "spawn",
    {
@@ -30,7 +30,7 @@
  },
  "east": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "f5190ac524dfe56a8cc275ad250baca9faa680a8b6ff76987ca5754a1a284015",
+  "meshes": "f3bd5dd0a8a8b2b513f0e0a42afd2cccd4945c91b622ce8eb3651bde9efcb570",
   "first": [
    "spawn",
    {
@@ -54,7 +54,7 @@
  },
  "south": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "4a89654e65244c2d5e4f974b1abc2f662b03823e2ab6bdc583940f320af29b27",
+  "meshes": "bbb47b6ac051833042fb6fee4b8586e0af6c8da4e847c2083604ca53304ceb04",
   "first": [
    "spawn",
    {
@@ -126,7 +126,7 @@
  },
  "lambeth": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "9e3586df7a5759c6a8e0fca29af51ad644f59452d47dfe0a666c518e80bb1814",
+  "meshes": "767ec499741e836c489b9568cd048ff510636626fa8c089dfaac096dd2290980",
   "first": [
    "spawn",
    {
@@ -150,7 +150,7 @@
  },
  "area7": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "d1720e155e5d4cce19734309b68ed2b64cb6a93cc7d31297cdb862b8afb2182e",
+  "meshes": "8510754aa0cc72aa8cd9410e0f2dfefcf8902465f9d870c77744c8594bafa1b1",
   "first": [
    "spawn",
    {
@@ -198,7 +198,7 @@
  },
  "central-hub": {
   "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
-  "meshes": "6018d4e5090426e7b56bac34ae7eb77371159fbdefb718b4eb7da9bbf5405587",
+  "meshes": "b1a1713e765261032ae23eb10c7bee1beb2974debb80acc65131a8690c97fcc9",
   "first": [
    "spawn",
    {
