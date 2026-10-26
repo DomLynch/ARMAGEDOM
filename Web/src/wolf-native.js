@@ -1,10 +1,10 @@
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA } from "./engine/game-data.js";
-import { rigNumber } from "./rig-capabilities.js";
+import { rigNumber, rigOfSpecies } from "./rig-capabilities.js";
 import { rigResponse } from "./rig-response.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
 // The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
-const WOLF = "original-wolf";
+const WOLF = rigOfSpecies("wolf");
 export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
 // The reaction clips and ticks are the wolf's rigCapabilities row.
 export function wolfResponse(alive, start) {

@@ -1,11 +1,11 @@
 import { CREATURE_MOVES, SALAMANDER_BREATH } from "./creature-moves.js";
-import { rigNumber, rigText } from "./rig-capabilities.js";
+import { rigNumber, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { rigResponse } from "./rig-response.js";
 // The bite and the flame breath are rows of Web/src/data/creatures.json (resolved in creature-moves.js).
 export const SALAMANDER_BITE = CREATURE_MOVES.salamander_bite;
 // The reaction clips and ticks are the salamander's rigCapabilities row.
 export function salamanderResponse(alive, start) {
-  return rigResponse("giant-salamander", alive ? 1 : 0, start);
+  return rigResponse(rigOfSpecies("salamander"), alive ? 1 : 0, start);
 }
 
 // Native Bite opens the own mouth at ticks 20–31; its teeth swing remains separate.
