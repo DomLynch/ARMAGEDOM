@@ -661,6 +661,10 @@ summary {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Dom's phone run: the route line crowded the area line above it, so it sits a little lower with clear space between. */
+#notice:not(.hint) {
+  margin-top: 8px;
+}
 #notice:empty,
 #expedition-objective:empty,
 #marked-status:empty {

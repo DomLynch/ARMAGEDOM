@@ -133,7 +133,8 @@
     "labelWidth": 3.4
   },
   "routeArrow": {
-    "peakOpacity": 0.6
+    "peakOpacity": 0.6,
+    "tailGap": 1
   },
   "severBlood": {
     "jet": { "capacity": 2, "duration": 0.5, "length": 1.2, "radius": 0.075 },

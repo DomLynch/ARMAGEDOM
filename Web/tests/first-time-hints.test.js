@@ -41,7 +41,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "ember-fire", "ember-matron"],
+    ["attack", "dodge-guard", "ember-fire"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(
@@ -147,7 +147,7 @@ test("a timed hint is marked seen the moment it starts", () => {
   assert.match(storage.data.get(HINT_STORAGE_KEY), /attack/);
 });
 
-test("the first-hit and Matron tips are one short line each", () => {
+test("the hint tips are one short line each", () => {
   for (const row of table) assert.ok(row.text.length <= 48, row.id);
 });
 
@@ -170,15 +170,12 @@ test("only the first-hit tip may take the line over a live game message; every o
   assert.equal(hints.overMessage, false);
 });
 
-test("the Ember Matron in view teaches that she carries a flamethrower", () => {
+test("the Ember Matron in view shows no boxed tip: the yellow route line already says KILL THE EMBER MATRON", () => {
   const hints = createFirstTimeHints({ storage: memory() });
   const g = world({ enemies: [scavenger(30, 0, { bossProfile: { name: "Ember Matron" } })] });
-  assert.equal(hints.current(g), "");
   g.enemies[0].pos = { x: 12, z: 3 };
-  assert.equal(hints.current(g), text("ember-matron"));
-  const other = createFirstTimeHints({ storage: memory() });
-  g.enemies[0].bossProfile.name = "Someone Else";
-  assert.equal(other.current(g), "");
+  assert.equal(hints.current(g), "");
+  assert.ok(!table.some((row) => /matron/i.test(row.id + row.text)), "no hint row repeats the route line");
 });
 
 test("each hint shows once for a few seconds, then never again, even after a reload", () => {
