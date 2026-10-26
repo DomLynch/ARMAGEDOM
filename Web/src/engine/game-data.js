@@ -33,6 +33,7 @@ import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
@@ -370,7 +371,12 @@ export function validateVisual(d) {
     "itemPulse",
     "labelHeight",
     "labelWidth",
+    "label",
+    "glow",
+    "ringY",
+    "ringSegments",
   ]);
+  validateDropMarkerLayout(m);
   for (const f of ["ringColour", "labelColour", "labelBacking"]) hex(`dropMarker.${f}`, m[f]);
   for (const f of ["ringInner", "ringOuter", "glowOuter", "pulseSeconds", "labelHeight", "labelWidth"])
     number("visual", `dropMarker.${f}`, m[f], 0.01);
