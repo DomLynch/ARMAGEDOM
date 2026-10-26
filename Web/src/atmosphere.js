@@ -62,7 +62,7 @@ float turbulence(vec2 p){return noise(p)*.57+noise(p*2.03+3.1)*.28+noise(p*4.11+
 // No independent clock/render loop. Caller uses existing RAF and dt=0 on pause.
 export function createAtmosphere({ THREE, scene, world }) {
   const group = new THREE.Group();
-  group.name = "London restrained atmosphere";
+  group.name = "London restrained atmosphere"; // text-ok: internal mesh name
   const water = createWaterEffect({ THREE, scene, world, config: null });
   let area = null,
     elapsed = 0,
@@ -193,7 +193,7 @@ export function createAtmosphere({ THREE, scene, world }) {
       }
       material.uniforms.clock.value = elapsed;
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = `Atmosphere ${kind}`;
+      mesh.name = `Atmosphere ${kind}`; // text-ok: internal mesh name
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.
       mesh.renderOrder = R.renderOrder;

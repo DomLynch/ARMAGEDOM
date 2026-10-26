@@ -40,6 +40,7 @@ import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
+import { validateTravelText, validateAreaNames } from "./text-template.js";
 import { validateWorldEventRules } from "./world-events-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateArcGun } from "./game-data-arc-gun.js";
@@ -83,6 +84,8 @@ import {
 } from "./game-data-weapons.js";
 
 // The combat, weapons and creatures validators live in game-data-*.js (this loader stays small); they are still exported from here.
+// fillText is the game's one placeholder filler: it swaps each {name} in a data string, and files outside engine/ import it from here.
+export { fillText } from "./game-data-combat-text.js";
 export {
   validateBossEquipment,
   validateBossRanged,
@@ -244,6 +247,8 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
+    "travelText",
+    "areaNames",
     "exitRings",
     "grenadeView",
     "input",
@@ -286,6 +291,8 @@ export function validateVisual(d) {
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   validateRouteGuidance(d.routeGuidance);
+  validateTravelText(d.travelText);
+  validateAreaNames(d.areaNames);
   validateInput(d.input);
   validateTouchTarget(d.touchTarget);
   list("survivorVariants", d.survivorVariants, 1, 64);
@@ -543,7 +550,7 @@ export function validateAtmosphere(d) {
         ["id", "preset", "x", "y", "seed", "scale", "intensity"],
         ["foot", "depth", ...atmosphereNumbers(), "smokeColor", "preserve"],
       );
-      id("atmosphere", `${area} anchor id`, row.id);
+      id("atmosphere", `${area} anchor id`, row.id); // text-ok: validator field label, never shown to a player
       if (ids.has(row.id)) fail("atmosphere", `${area} repeats anchor ${row.id}`);
       ids.add(row.id);
       if (!presets.includes(row.preset)) fail("atmosphere", `${row.id}.preset is not a preset`);
