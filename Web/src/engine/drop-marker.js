@@ -11,34 +11,35 @@ export const dropPulse = (seconds, style = STYLE) =>
 
 function labelSprite(text, style) {
   if (typeof globalThis.document?.createElement !== "function") return null; // no page (tests, workers): the ring alone
-  const canvas = globalThis.document.createElement("canvas");
-  canvas.width = 384;
-  canvas.height = 64;
+  const { canvasWidth: W, canvasHeight: H, textY, textMaxWidth } = style.label,
+    canvas = globalThis.document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext?.("2d");
   // Only fillRect and fillText are used (the border is four filled bars), so a minimal 2D context is enough.
   if (typeof ctx?.fillRect !== "function" || typeof ctx.fillText !== "function") return null;
   ctx.fillStyle = `#${style.labelBacking}`;
   ctx.globalAlpha = style.labelBackingOpacity;
-  ctx.fillRect(0, 0, 384, 64);
+  ctx.fillRect(0, 0, W, H);
   ctx.globalAlpha = 1;
   ctx.fillStyle = `#${style.ringColour}`;
   for (const [x, y, w, h] of [
-    [0, 0, 384, 3],
-    [0, 61, 384, 3],
-    [0, 0, 3, 64],
-    [381, 0, 3, 64],
+    [0, 0, W, 3],
+    [0, H - 3, W, 3],
+    [0, 0, 3, H],
+    [W - 3, 0, 3, H],
   ])
     ctx.fillRect(x, y, w, h);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = `#${style.labelColour}`;
   ctx.font = "600 30px sans-serif";
-  ctx.fillText(text, 192, 34, 360);
+  ctx.fillText(text, W / 2, textY, textMaxWidth);
   const map = new T.CanvasTexture(canvas);
   map.colorSpace = T.SRGBColorSpace;
   const sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
   sprite.renderOrder = 10; // drawn over the player and the drop, so the name is never clipped by a body standing on it
-  sprite.scale.set(style.labelWidth, style.labelWidth / 6, 1);
+  sprite.scale.set(style.labelWidth, style.labelWidth / (W / H), 1); // the sprite keeps the canvas aspect ratio
   sprite.position.y = style.labelHeight;
   return sprite;
 }
@@ -47,26 +48,28 @@ function labelSprite(text, style) {
 // the band and fades out to glowOuter.
 function glowMesh(style) {
   if (typeof globalThis.document?.createElement !== "function") return null;
-  const canvas = globalThis.document.createElement("canvas");
-  canvas.width = canvas.height = 256;
+  const G = style.glow,
+    canvas = globalThis.document.createElement("canvas");
+  canvas.width = canvas.height = G.canvasPx;
   const ctx = canvas.getContext?.("2d");
   if (typeof ctx?.createRadialGradient !== "function" || typeof ctx.fillRect !== "function") return null;
   const inner = style.ringInner / style.glowOuter,
     outer = style.ringOuter / style.glowOuter,
     rgb = new T.Color(`#${style.ringColour}`).toArray().map((c) => Math.round(c * 255)),
-    gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    middle = G.canvasPx / 2,
+    gradient = ctx.createRadialGradient(middle, middle, 0, middle, middle, middle);
   for (const [at, alpha] of [
     [0, 0],
-    [inner * 0.8, 0.05],
-    [inner, 0.45],
-    [(inner + outer) / 2, 0.6],
-    [outer, 0.45],
-    [Math.min(1, outer + (1 - outer) * 0.35), 0.18],
+    [inner * G.clearShare, G.clearAlpha],
+    [inner, G.innerAlpha],
+    [(inner + outer) / 2, G.bandAlpha],
+    [outer, G.outerAlpha],
+    [Math.min(1, outer + (1 - outer) * G.tailShare), G.tailAlpha],
     [1, 0],
   ])
     gradient.addColorStop(at, `rgba(${rgb.join(",")},${alpha})`);
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillRect(0, 0, G.canvasPx, G.canvasPx);
   const map = new T.CanvasTexture(canvas);
   map.colorSpace = T.SRGBColorSpace;
   const glow = new T.Mesh(
@@ -74,7 +77,7 @@ function glowMesh(style) {
     new T.MeshBasicMaterial({ map, transparent: true, depthWrite: false, toneMapped: false, side: T.DoubleSide }),
   );
   glow.rotation.x = -Math.PI / 2;
-  glow.position.y = 0.04;
+  glow.position.y = G.groundY;
   return glow;
 }
 
@@ -82,7 +85,7 @@ function glowMesh(style) {
 // built from rectangles of the band's width on a square of half-width ringOuter, laid along the world axes: "square" a full outline,
 // "brackets" only the four corners (each arm bracketArm of a side long), "diamond" the square turned 45 degrees.
 export function markerGeometry(style) {
-  if (style.shape === "circle") return new T.RingGeometry(style.ringInner, style.ringOuter, 48);
+  if (style.shape === "circle") return new T.RingGeometry(style.ringInner, style.ringOuter, style.ringSegments);
   const o = style.ringOuter,
     i = style.ringInner,
     arm = o - 2 * o * style.bracketArm,
@@ -119,7 +122,7 @@ export function createDropMarker(label, style = STYLE) {
     sprite = labelSprite(String(label).toUpperCase(), style);
   group.name = "Drop marker";
   ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.045;
+  ring.position.y = style.ringY;
   if (glow) group.add(glow);
   group.add(ring);
   if (sprite) group.add(sprite);
@@ -136,7 +139,7 @@ export function createDropMarker(label, style = STYLE) {
       glow.material.opacity = style.glowOpacity * p;
       glow.scale.setScalar(swell);
     }
-    if (sprite) sprite.material.opacity = 0.75 + 0.25 * p;
+    if (sprite) sprite.material.opacity = style.label.opacityBase + style.label.opacitySwing * p;
     if (group.parent) {
       group.parent.scale.setScalar(item);
       group.scale.setScalar(1 / item);

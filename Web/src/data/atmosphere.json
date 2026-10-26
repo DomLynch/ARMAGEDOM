@@ -435,6 +435,6 @@
     "maxStepSeconds": 0.1,
     "smoke": { "heightShare": 0.8, "driftShare": 0.35 },
     "flame": { "alpha": 0.9 },
-    "ember": { "width": 0.0007, "height": 0.0009, "driftShare": 0.3, "riseShare": 0.6, "alpha": 0.35 }
+    "ember": { "width": 0.0007, "height": 0.0009, "driftShare": 0.3, "riseShare": 0.6, "alpha": 0.35, "periodSeconds": 4 }
   }
 }

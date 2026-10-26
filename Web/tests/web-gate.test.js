@@ -45,7 +45,7 @@ test("Web gate rejects invalid syntax and failing assertions", async (t) => {
   const { verifyWeb } = await import("../../scripts/verify_web.mjs");
   const syntax = await fixture(t, "export const value = ;");
   assert.throws(() => verifyWeb(syntax, { quiet: true }), /syntax failed/);
-  const assertion = await fixture(t, "export const value = 2;");
+  const assertion = await fixture(t, "export const value = 1;", "assert.equal(value, 2);");
   assert.throws(() => verifyWeb(assertion, { quiet: true }), /tests failed/);
 });
 

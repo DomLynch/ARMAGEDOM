@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "_note": "The one place a file or import is allowed to stay outside the number-literal ratchet and the JSON-import rule. Read by scripts/number-literal-gate.mjs and scripts/as-data-gate.mjs in CI, not by the game. One entry per pattern, each with a reason; adding or widening an entry needs Strategy's approval. Patterns are matched against paths relative to Web/src.",
+  "numberExemptFiles": [
+    {
+      "pattern": "^(supplies-view|vest-view|engine/bone-saw-view)\\.js$",
+      "reason": "procedural pickup, vest and saw models: vertex, radius and offset numbers of a mesh. Other *-view.js files mix in timings and opacities and are counted"
+    },
+    {
+      "pattern": "^(low-hover-drone|feral-dog|pistol-slide)\\.js$",
+      "reason": "procedural model geometry for the drone, the feral dog and the pistol slide"
+    },
+    {
+      "pattern": "^pistol-pose\\.js$",
+      "reason": "hand and finger pose offsets of the pistol grip (rig-space geometry)"
+    }
+  ],
+  "jsonImportAllowed": [
+    {
+      "pattern": "^donor/[^/]+\\.json$",
+      "reason": "frozen donor motion captures (clip and blade-path tables), not tuning"
+    },
+    {
+      "pattern": "^(roach|dog|rat)-data/[^/]+\\.json$",
+      "reason": "frozen per-animal motion captures (clips, blade paths, foot bindings), not tuning"
+    }
+  ]
+}

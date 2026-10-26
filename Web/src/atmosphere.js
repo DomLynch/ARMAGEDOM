@@ -3,7 +3,7 @@ import { atmosphereForArea, atmosphereBudget } from "./atmosphere-areas.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { ATMOSPHERE_RENDER as R } from "./engine/atmosphere-render-data.js";
 
-const INDICES_PER_QUAD = 6; // two triangles per particle quad
+const INDICES_PER_QUAD = 6; // tuning-ok: two triangles per particle quad
 const { defaultSmokeColor, smokePeriod } = GAME_DATA.atmosphere.variation;
 
 const vertexShader = `
@@ -86,7 +86,7 @@ export function createAtmosphere({ THREE, scene, world }) {
     right.setFromMatrixColumn(camera.matrixWorld, 0);
     up.setFromMatrixColumn(camera.matrixWorld, 1);
     const project = (x, y, depth) => {
-      const p = new THREE.Vector3(2 * x - 1, 1 - 2 * y, 0.5).applyMatrix4(inverse);
+      const p = new THREE.Vector3(2 * x - 1, 1 - 2 * y, 0.5).applyMatrix4(inverse); // tuning-ok: painting fraction to NDC, mid-depth
       return p.multiplyScalar(depth / -p.z).applyMatrix4(camera.matrixWorld);
     };
     const batches = { smoke: [], flame: [], ember: [] };
@@ -108,7 +108,7 @@ export function createAtmosphere({ THREE, scene, world }) {
           tint: anchor.smokeColor,
           variation: [anchor.wind ?? 0, anchor.noiseOffset ?? 0],
         });
-      const fireHalfHeight = anchor.fireHeight * unitY * 0.5;
+      const fireHalfHeight = anchor.fireHeight * unitY * 0.5; // tuning-ok: half the flame height
       if (anchor.fireHeight > 0)
         batches.flame.push({
           origin: origin.clone().addScaledVector(up, fireHalfHeight),
@@ -128,7 +128,7 @@ export function createAtmosphere({ THREE, scene, world }) {
           wy: R.ember.height * unitY,
           dx: anchor.width * unitX * R.ember.driftShare,
           dy: anchor.rise * unitY * R.ember.riseShare,
-          speed: 1 / 4,
+          speed: 1 / R.ember.periodSeconds,
           phase: (i / anchor.embers + (anchor.phase ?? 0)) % 1,
           alpha: R.ember.alpha,
           variation: [anchor.wind ?? 0, anchor.noiseOffset ?? 0],
@@ -162,18 +162,18 @@ export function createAtmosphere({ THREE, scene, world }) {
           tints.push(...(p.tint ?? defaultSmokeColor));
           variations.push(...(p.variation ?? [0, 0]));
         }
-        indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+        indices.push(base, base + 1, base + 2, base, base + 2, base + 3); // tuning-ok: two triangles of one quad
       }
       const geometry = new THREE.BufferGeometry();
       for (const [name, data, count] of [
-        ["position", positions, 3],
-        ["corner", corners, 2],
-        ["motion", motions, 3],
-        ["size", sizes, 2],
+        ["position", positions, 3], // tuning-ok: vec3 attribute
+        ["corner", corners, 2], // tuning-ok: vec2 attribute
+        ["motion", motions, 3], // tuning-ok: vec3 attribute
+        ["size", sizes, 2], // tuning-ok: vec2 attribute
         ["phase", phases, 1],
         ["strength", strengths, 1],
-        ["tint", tints, 3],
-        ["variation", variations, 2],
+        ["tint", tints, 3], // tuning-ok: vec3 attribute
+        ["variation", variations, 2], // tuning-ok: vec2 attribute
       ])
         geometry.setAttribute(name, new THREE.Float32BufferAttribute(data, count));
       geometry.setIndex(indices);

@@ -19,7 +19,8 @@ export function validateAtmosphereRender(r) {
   number("smoke.driftShare", r.smoke.driftShare, 0, 4);
   closed(r.flame, ["alpha"]);
   number("flame.alpha", r.flame.alpha, 0.001, 1);
-  closed(r.ember, ["width", "height", "driftShare", "riseShare", "alpha"]);
+  closed(r.ember, ["width", "height", "driftShare", "riseShare", "alpha", "periodSeconds"]);
+  number("ember.periodSeconds", r.ember.periodSeconds, 0.1, 1000);
   number("ember.width", r.ember.width, 0.00001, 1);
   number("ember.height", r.ember.height, 0.00001, 1);
   number("ember.driftShare", r.ember.driftShare, 0, 4);
