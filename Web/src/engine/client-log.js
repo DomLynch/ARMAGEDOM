@@ -20,12 +20,12 @@ export function scrub(value, max = GAME_DATA.world.clientLog.messageChars) {
 const cleanCode = (value) =>
   String(value ?? "")
     .replace(/[^A-Za-z0-9_.:-]/g, "")
-    .slice(0, 40) || "unknown";
+    .slice(0, 40) || "unknown"; // tuning-ok: the longest error code kept in a client log line
 // The release the page was served from is part of its path (/armagedom/preview/<id>/ or /armagedom/releases/<id>/); nothing else is kept.
 export const releaseOf = (pathname) =>
   String(pathname ?? "")
     .replace(/[^A-Za-z0-9._/:-]/g, "")
-    .slice(0, 80);
+    .slice(0, 80); // tuning-ok: the longest release path kept in a client log line
 
 export function createClientLog({
   baseUrl = "",

@@ -26,20 +26,22 @@ export function paintWanted(canvas, portrait, bounty) {
   if (width > money.maxWidth) c.font = `700 ${Math.floor((money.fontPx * money.maxWidth) / width)}px monospace`;
   c.fillText(amount, money.x, money.y);
   c.globalAlpha = rules.alpha;
-  c.fillRect(rules.top.x, rules.top.y, rules.top.width, 2);
-  c.fillRect(rules.bottom.x, rules.bottom.y, rules.bottom.width, 2);
+  c.fillRect(rules.top.x, rules.top.y, rules.top.width, rules.thickness);
+  c.fillRect(rules.bottom.x, rules.bottom.y, rules.bottom.width, rules.thickness);
   c.globalAlpha = 1;
   // Fixed wear, repainted only with changed content, never frame-by-frame noise.
   c.globalCompositeOperation = "destination-out";
   for (let n = 0; n < specks.count; n++) {
     const x = (n * specks.stepX + specks.offsetX) % specks.spanX,
       y = (n * specks.stepY + specks.offsetY) % specks.spanY;
-    c.fillStyle = `rgba(0,0,0,${specks.alpha + (n % 4) * specks.alphaStep})`;
-    c.fillRect(x, y, 1 + (n % 3), 1);
+    c.fillStyle = `rgba(0,0,0,${specks.alpha + (n % specks.alphaSteps) * specks.alphaStep})`;
+    c.fillRect(x, y, 1 + (n % specks.sizeSteps), 1);
   }
   for (let n = 0; n < scratches.count; n++) {
     c.fillStyle = "rgba(0,0,0,.12)";
-    c.fillRect(scratches.x + ((n * scratches.stepX) % scratches.spanX), scratches.y + n * scratches.stepY, scratches.width + (n % 4) * scratches.widthStep, 1);
+    const x = scratches.x + ((n * scratches.stepX) % scratches.spanX),
+      length = scratches.width + (n % scratches.widthSteps) * scratches.widthStep;
+    c.fillRect(x, scratches.y + n * scratches.stepY, length, 1);
   }
   c.globalCompositeOperation = "source-over";
 }
@@ -61,7 +63,7 @@ export function createWantedMesh(world, data, texture) {
   // Draw after the registered photograph and before its authored depth masks.
   // Existing actor/depth rendering therefore still places foreground actors in front.
   const mesh = world.quad(data.points, 100, material, POSTER.renderOrder, true);
-  mesh.geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2));
+  mesh.geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2)); // tuning-ok: two components (u, v) per corner
   mesh.name = "WANTED wall projection";
   mesh.userData = { areaId: data.areaId, bounty: null, textureUpdates: 0 };
   return mesh;
@@ -151,8 +153,8 @@ export function createWantedProjection(s) {
     mesh.userData.bounty = bounty;
     mesh.userData.textureUpdates = paints;
     const t = g.time ?? 0;
-    mesh.material.opacity =
-      data.opacity * (reduced?.matches ? 1 : 1 + data.flicker * (Math.sin(t * POSTER.flickerHz[0]) + Math.sin(t * POSTER.flickerHz[1])) * 0.5);
+    const wobble = (Math.sin(t * POSTER.flickerHz[0]) + Math.sin(t * POSTER.flickerHz[1])) * 0.5; // tuning-ok: the mean of two sine waves
+    mesh.material.opacity = data.opacity * (reduced?.matches ? 1 : 1 + data.flicker * wobble);
   }
   return {
     update,

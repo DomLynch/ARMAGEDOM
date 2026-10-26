@@ -1,5 +1,15 @@
 {
   "schema_version": 1,
   "statsFramesPerLine": 120,
-  "loadStallMs": 60000
+  "loadStallMs": 60000,
+  "movementTrace": {
+    "capacity": 900,
+    "answerEpsilon": 0.0001,
+    "stalledIntent": 0.01,
+    "nearbyMetres": 4,
+    "paintSeconds": 0.2,
+    "nearestEdges": 2,
+    "commitChars": 8,
+    "decimals": 2
+  }
 }

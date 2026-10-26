@@ -94,7 +94,9 @@ export function createAutoPickup({ firstSeconds, maxSeconds } = GAME_DATA.weapon
       pickups.filter((c) => !started.has(c.id) || time >= started.get(c.id).retryAt),
     );
     if (!next) return false;
-    const wait = started.has(next.id) ? Math.min(started.get(next.id).wait * 2, maxSeconds) : firstSeconds;
+    const wait = started.has(next.id)
+      ? Math.min(started.get(next.id).wait * 2, maxSeconds) // tuning-ok: each retry waits twice as long as the last
+      : firstSeconds;
     started.set(next.id, { retryAt: time + wait, wait });
     next.run();
     return true;
@@ -206,11 +208,11 @@ export function createRunViews(s) {
   const selectWeapon = (row) => {
     const id = row.control;
     if (id === "reaper-equip") return reaperView.equip();
-    if (id.startsWith("melee-variant-")) return uniqueView.equip(id.slice(14));
-    if (id.startsWith("variant-")) return expeditionView.selectVariant(id.slice(8));
+    if (id.startsWith("melee-variant-")) return uniqueView.equip(id.slice("melee-variant-".length));
+    if (id.startsWith("variant-")) return expeditionView.selectVariant(id.slice("variant-".length));
     if (id === "rifle-equip") return rifleView.equip();
     if (id === "flame-equip") return flameView.equip();
-    if (id.startsWith("boss-equip-")) return bossEquipmentView.equip(id.slice(11));
+    if (id.startsWith("boss-equip-")) return bossEquipmentView.equip(id.slice("boss-equip-".length));
   };
   const weaponTiles = createWeaponTiles(s, selectWeapon);
   // Keyboard weapon switch: the next carried weapon after the active one, in tile order, through the same

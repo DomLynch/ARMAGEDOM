@@ -1,9 +1,15 @@
 // First-time hints (first-time-hints.json): each row shows once, for a few seconds, on the
 // existing notice line. "Seen" ids live in their own localStorage key, never in the run save.
 import table from "./first-time-hints.json" with { type: "json" };
+import { GAME_DATA } from "./engine/game-data.js";
 
 export const HINT_STORAGE_KEY = "armagedom.firstTimeHints.v1";
-export const HINT_SECONDS = 5;
+// How long a hint shows: data/visual.json `firstTimeHints`.
+export const HINT_SECONDS = GAME_DATA.visual.firstTimeHints.seconds;
+function validateHintSeconds(seconds) {
+  if (!Number.isFinite(seconds) || !(seconds > 0)) throw TypeError("Invalid game data visual: firstTimeHints.seconds must be above 0");
+}
+validateHintSeconds(HINT_SECONDS);
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const alive = (e) => e.hp > 0;
