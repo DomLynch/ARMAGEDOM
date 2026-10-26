@@ -3,6 +3,7 @@ import { combatTargetHeight } from "../pistol-targeting.js";
 import { radialBlastHits } from "./radial-blast.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
 import { GAME_DATA } from "./game-data.js";
+import { BOSS_RANGED_EXTRA } from "./boss-ranged-data.js";
 
 // NPC-only rules. Player weapons, ammunition and paid-action clocks stay separate.
 // The numbers live in Web/src/data/weapons.json `bossRanged` (read through game-data.js).
@@ -75,7 +76,7 @@ export function stepBossRanged(g, e, dt, { patrol, move, receive, source, trace 
       weapon: p.kind,
       dir: { ...bearing },
       range: p.range,
-      arc: p.kind === "shotgun" ? 12 : 6,
+      arc: BOSS_RANGED_EXTRA[p.kind].warningArcDegrees,
       until: state.releaseAt,
     });
     return true;
@@ -101,8 +102,9 @@ export function stepBossRanged(g, e, dt, { patrol, move, receive, source, trace 
     if (n < EPS) return true;
     const pellets = [];
     let hits = 0;
-    for (let i = 0; i < 8; i++) {
-      const angle = ((-6 + (i * 12) / 7) * Math.PI) / 180,
+    const fan = BOSS_RANGED_EXTRA.shotgun;
+    for (let i = 0; i < fan.pellets; i++) {
+      const angle = ((-fan.spreadDegrees + (i * fan.spreadDegrees * 2) / (fan.pellets - 1)) * Math.PI) / 180,
         c = Math.cos(angle),
         s = Math.sin(angle),
         direction = { x: (dx / n) * c - (dz / n) * s, z: (dx / n) * s + (dz / n) * c };
@@ -138,7 +140,13 @@ export function stepBossRanged(g, e, dt, { patrol, move, receive, source, trace 
         moveId: "boss-shotgun",
         block: true,
         parry: false,
-        def: { weapon: "shotgun", moveId: "boss-shotgun", stagger: 0.12, chip: 0, staminaDamage: 8 },
+        def: {
+          weapon: "shotgun",
+          moveId: "boss-shotgun",
+          stagger: fan.stagger,
+          chip: 0,
+          staminaDamage: fan.staminaDamage,
+        },
       });
   } else {
     const d = { x: state.target.x - muzzle.x, y: state.target.y - muzzle.y, z: state.target.z - muzzle.z },
@@ -173,7 +181,8 @@ export function stepBossRanged(g, e, dt, { patrol, move, receive, source, trace 
 export function stepBossRockets(g, { trace, receive } = {}) {
   const pending = g.bossRockets ?? [];
   g.bossRockets = [];
-  const p = BOSS_RANGED_RULES["boss-butcher"];
+  const p = BOSS_RANGED_RULES["boss-butcher"],
+    rocket = BOSS_RANGED_EXTRA.rocket;
   if (g.finished || g.player.hp <= 0 || g.runSaveInvalid || safehouseProtected(g)) return;
   const owners = new Set();
   for (const row of pending) {
@@ -197,14 +206,14 @@ export function stepBossRockets(g, { trace, receive } = {}) {
       };
     let fraction = Infinity,
       kind = null;
-    if (to.y <= 0.05) {
-      fraction = Math.max(0, Math.min(1, (from.y - 0.05) / (from.y - to.y)));
+    if (to.y <= rocket.groundHeight) {
+      fraction = Math.max(0, Math.min(1, (from.y - rocket.groundHeight) / (from.y - to.y)));
       kind = "ground";
     }
     if (!g.world.lineClear(flat(from), flat(to)) || safehouseBlocksSegment(g, flat(from), flat(to))) {
       let lo = 0,
         hi = 1;
-      for (let i = 0; i < 14; i++) {
+      for (let i = 0; i < rocket.bisectSteps; i++) {
         const mid = (lo + hi) / 2,
           end = flat(lerp(from, to, mid));
         if (g.world.lineClear(flat(from), end) && !safehouseBlocksSegment(g, flat(from), end)) lo = mid;
@@ -270,7 +279,13 @@ export function stepBossRockets(g, { trace, receive } = {}) {
         moveId: "boss-rocket",
         block: true,
         parry: false,
-        def: { weapon: "rocket", moveId: "boss-rocket", stagger: 0.2, chip: 0, staminaDamage: 14 },
+        def: {
+          weapon: "rocket",
+          moveId: "boss-rocket",
+          stagger: rocket.stagger,
+          chip: 0,
+          staminaDamage: rocket.staminaDamage,
+        },
       });
   }
 }
