@@ -1136,7 +1136,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, ["schema_version", "faceMesh", "roachCoat", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -1152,6 +1152,15 @@ export function validateAppearance(d) {
   if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
+  // roach-appearance.js: a band (`from`, `range`) maps a value to 0..1; the field rows are the frequencies of the wear noise.
+  closed(d.roachCoat, ["taper", "field", "wear"]);
+  for (const band of ["taper", "wear"]) {
+    closed(d.roachCoat[band], ["from", "range"]);
+    between(`roachCoat.${band}.from`, d.roachCoat[band].from, -10, 10);
+    between(`roachCoat.${band}.range`, d.roachCoat[band].range, 0.001, 100);
+  }
+  closed(d.roachCoat.field, ["z", "cosX", "wobble", "y", "z2"]);
+  for (const k of ["z", "cosX", "wobble", "y", "z2"]) between(`roachCoat.field.${k}`, d.roachCoat.field[k], 0, 1000);
   closed(d.hollowGarments, ["jacket", "trousers"]);
   named("hollowGarments.jacket", d.hollowGarments.jacket);
   named("hollowGarments.trousers", d.hollowGarments.trousers);
