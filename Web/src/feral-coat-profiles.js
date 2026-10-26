@@ -1,14 +1,7 @@
 // Pigment only on the already-applied accepted feral dog. No geometry or rig edits.
-export const FERAL_COAT_PROFILES = Object.freeze(
-  [
-    { id: "dog-street-mongrel", tint: [1, 1, 1], shapePending: false },
-    { id: "dog-gaunt-hound", tint: [0.9, 0.88, 0.78], shapePending: true },
-    { id: "dog-stocky-yard", tint: [0.58, 0.62, 0.68], shapePending: true },
-    { id: "dog-ash-coated", tint: [1.4, 1.42, 1.45], shapePending: false },
-    { id: "dog-mangy-stray", tint: [1.13, 0.8, 0.59], shapePending: false },
-    { id: "dog-pack-chaser", tint: [0.72, 0.83, 1.08], shapePending: false },
-  ].map((r) => Object.freeze({ ...r, tint: Object.freeze(r.tint) })),
-);
+// The profiles (id, tint, shapePending) live in Web/src/data/creatures.json `feralCoatProfiles`.
+import { GAME_DATA } from "./engine/game-data.js";
+export const FERAL_COAT_PROFILES = GAME_DATA.creatures.feralCoatProfiles;
 // Apply AFTER feral finish, BEFORE actor-private material/flash clones.
 // Templates are borrowed by actors, owned by this cache; dispose after last actor.
 export function createFeralCoatProfileLibrary(T) {

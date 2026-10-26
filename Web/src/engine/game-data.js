@@ -184,7 +184,7 @@ export function validateFamilies(f) {
 // one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
 export function validateTargeting(t) {
   closed(t, ["pistol", "meleeConeDegrees", "defaultHeight"]);
-  // The metres above the ground that shots and flame aim at a rig with no height of its own (rig-capabilities.json).
+  // The metres above the ground that shots and flame aim at a rig with no height of its own (creatures.json rigCapabilities).
   number("weapons", "targeting.defaultHeight", t.defaultHeight);
   closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
   for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
@@ -403,6 +403,10 @@ export function validateCreatures(d) {
     "animalCycles",
     "gauntHumanCycles",
     "hollowTuning",
+    "feralBodyShapes",
+    "feralCoatProfiles",
+    "gauntShape",
+    "rigCapabilities",
   ]);
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
   closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
@@ -415,7 +419,7 @@ export function validateCreatures(d) {
   // Health comes back over this many seconds of active play, from empty to full.
   closed(d.playerHealth, ["regenerationSeconds"]);
   number("creatures", "playerHealth.regenerationSeconds", d.playerHealth.regenerationSeconds, 1);
-  // The hit and death reaction of a rig with no row of its own in rig-capabilities.json (rig-response.js).
+  // The hit and death reaction of a rig with no row of its own in creatures.json rigCapabilities (rig-response.js).
   closed(d.defaultResponse, ["hitClip", "deathClip", "deathTicks"]);
   for (const f of ["hitClip", "deathClip"])
     if (typeof d.defaultResponse[f] !== "string" || !d.defaultResponse[f]) fail("creatures", `defaultResponse.${f}`);
@@ -499,6 +503,60 @@ export function validateCreatures(d) {
   }
   validateBehaviours(d.behaviours);
   validateEncounterTables(d);
+  validateRigTables(d);
+}
+
+// creatures.json `feralBodyShapes`, `feralCoatProfiles`, `gauntShape` and `rigCapabilities` (feral-body-shapes.js, feral-coat-profiles.js,
+// gaunt-shape.js, rig-capabilities.js). Recipe ids are unique; a rig capability is a closed set of boolean flags.
+function validateRigTables(d) {
+  const recipeId = (field, v) => {
+    if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `${field} must be a lowercase id`);
+  };
+  const rows = (table, fields) => {
+    if (!Array.isArray(d[table]) || !d[table].length) fail("creatures", `${table} must be a non-empty list`);
+    const seen = new Set();
+    d[table].forEach((row, i) => {
+      closed(row, fields);
+      recipeId(`${table}[${i}].id`, row.id);
+      if (seen.has(row.id)) fail("creatures", `${table} lists ${row.id} twice`);
+      seen.add(row.id);
+    });
+  };
+  rows("feralBodyShapes", ["id", "width"]);
+  for (const row of d.feralBodyShapes) number("creatures", `feralBodyShapes.${row.id}.width`, row.width, 0.1);
+  rows("feralCoatProfiles", ["id", "tint", "shapePending"]);
+  for (const row of d.feralCoatProfiles) {
+    if (!Array.isArray(row.tint) || row.tint.length !== 3) fail("creatures", `feralCoatProfiles.${row.id}.tint must be three channels`);
+    row.tint.forEach((c, i) => number("creatures", `feralCoatProfiles.${row.id}.tint[${i}]`, c));
+    if (typeof row.shapePending !== "boolean") fail("creatures", `feralCoatProfiles.${row.id}.shapePending`);
+  }
+  // Every profile that waits on a body shape must have one.
+  for (const row of d.feralCoatProfiles)
+    if (row.shapePending && !d.feralBodyShapes.some((s) => s.id === row.id))
+      fail("creatures", `feralCoatProfiles.${row.id} is shapePending but has no feralBodyShapes row`);
+  closed(d.gauntShape, ["targets", "segments"]);
+  if (!Array.isArray(d.gauntShape.targets) || !d.gauntShape.targets.length || !d.gauntShape.targets.every((n) => typeof n === "string" && n))
+    fail("creatures", "gauntShape.targets must be a list of node names");
+  const bone = /^[A-Za-z][A-Za-z0-9_]{0,40}$/;
+  for (const [name, row] of Object.entries(d.gauntShape.segments)) {
+    if (!bone.test(name)) fail("creatures", `gauntShape.segments.${name} is not a bone name`);
+    if (!Array.isArray(row) || row.length !== 2 || !bone.test(row[0])) fail("creatures", `gauntShape.segments.${name} must be [childBone, factor]`);
+    number("creatures", `gauntShape.segments.${name}[1]`, row[1], 0.1);
+    if (row[1] > 1) fail("creatures", `gauntShape.segments.${name}[1] above 1`);
+  }
+  if (!Object.keys(d.gauntShape.segments).length) fail("creatures", "gauntShape.segments is empty");
+  if (!Object.keys(d.rigCapabilities).length) fail("creatures", "rigCapabilities is empty");
+  for (const [rig, row] of Object.entries(d.rigCapabilities)) {
+    id("creatures", `rigCapabilities.${rig}`, rig);
+    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `rigCapabilities.${rig} must be an object`);
+    // A capability is a flag (true or false), a name (a clip) or a measured number (0 or more), read with rigCapability / rigText / rigNumber.
+    for (const [name, value] of Object.entries(row)) {
+      if (!/^[a-z][A-Za-z]{0,30}$/.test(name)) fail("creatures", `rigCapabilities.${rig}.${name} is not a capability name`);
+      if (typeof value === "string") {
+        if (!value) fail("creatures", `rigCapabilities.${rig}.${name} must not be empty`);
+      } else if (typeof value !== "boolean") number("creatures", `rigCapabilities.${rig}.${name}`, value);
+    }
+  }
 }
 
 // creatures.json `animalCycles`, `gauntHumanCycles` and `hollowTuning` (animal-cycle.js, gaunt-human-bindings.js, hollow-encounter.js).

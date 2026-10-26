@@ -1,22 +1,11 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
 
-const TARGETS = ["Torn_modern_canvas_jacket", "Hollow_body_and_worn_trousers"];
-const SHAPE = {
-  pelvis: ["spine_01", 0.82],
-  spine_01: ["spine_02", 0.66],
-  spine_02: ["spine_03", 0.68],
-  spine_03: ["neck_01", 0.82],
-  upperarm_l: ["lowerarm_l", 0.66],
-  upperarm_r: ["lowerarm_r", 0.66],
-  lowerarm_l: ["hand_l", 0.78],
-  lowerarm_r: ["hand_r", 0.78],
-  thigh_l: ["calf_l", 0.72],
-  thigh_r: ["calf_r", 0.72],
-  calf_l: ["foot_l", 0.82],
-  calf_r: ["foot_r", 0.82],
-};
+// Garment nodes that get the gaunt shape, and per bind bone its [child bone, radial factor], live in
+// Web/src/data/creatures.json `gauntShape`.
+const { targets, segments } = GAME_DATA.creatures.gauntShape;
 function bodyPart(mesh) {
-  for (let node = mesh; node; node = node.parent) if (TARGETS.includes(node.name)) return true;
+  for (let node = mesh; node; node = node.parent) if (targets.includes(node.name)) return true;
   return false;
 }
 
@@ -38,7 +27,7 @@ export function createGauntShapeLibrary(sourceModel) {
         throw Error("Unsupported gaunt body geometry");
       const skeleton = mesh.skeleton,
         frames = skeleton.bones.map((bone, i) => {
-          const preset = SHAPE[bone.name];
+          const preset = segments[bone.name];
           if (!preset) return null;
           const child = skeleton.bones.findIndex((b) => b.name === preset[0]);
           if (child < 0) throw Error("Missing gaunt bind joint " + preset[0]);

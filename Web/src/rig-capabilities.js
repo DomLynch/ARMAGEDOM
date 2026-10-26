@@ -1,4 +1,4 @@
-// What each creature rig can do, as data (rig-capabilities.json). Engine code asks
+// What each creature rig can do, as data (creatures.json rigCapabilities). Engine code asks
 // `rigCapability(rig, name)` instead of listing rig names. To give a rig a behaviour, add or
 // change a row in the JSON; the as-data gate (scripts/as-data-gate.mjs) fails any PR that adds
 // a new rig-name comparison elsewhere.
@@ -47,16 +47,10 @@
 // materialDim: a multiplier applied to the colour of every material the rig's model clones (actors.js).
 // targetHeight / targetHeightReach: metres above the ground where shots and flame aim at the rig. `targetHeightReach` replaces
 //   `targetHeight` while the rig is reaching for a contact goal (pistol-targeting.js combatTargetHeight).
-import rows from "./rig-capabilities.json" with { type: "json" };
+import { GAME_DATA } from "./engine/game-data.js";
 
-for (const [rig, row] of Object.entries(rows))
-  for (const [name, value] of Object.entries(row))
-    if (typeof value !== "boolean" && !(typeof value === "string" && value) && !(Number.isFinite(value) && value >= 0))
-      throw TypeError(`Invalid rig capability ${rig}.${name}: must be true, false, a name or a finite number >= 0`);
-
-export const RIG_CAPABILITIES = Object.freeze(
-  Object.fromEntries(Object.entries(rows).map(([rig, row]) => [rig, Object.freeze({ ...row })])),
-);
+// The rows live in Web/src/data/creatures.json `rigCapabilities` (validated and frozen by game-data.js).
+export const RIG_CAPABILITIES = GAME_DATA.creatures.rigCapabilities;
 
 export function rigNumber(rig, name) {
   return Object.hasOwn(RIG_CAPABILITIES, rig) && Number.isFinite(RIG_CAPABILITIES[rig][name])

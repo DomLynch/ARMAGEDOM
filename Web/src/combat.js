@@ -74,7 +74,7 @@ import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bl
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
 export const attacks = GAME_DATA.creatures.playerAttacks;
-// The rig ids of the kinds addressed by name below (rig-capabilities.json species).
+// The rig ids of the kinds addressed by name below (creatures.json rigCapabilities species).
 const DRONE_RIG = rigOfSpecies("drone"),
   RAT_RIG = rigOfSpecies("rat"),
   ROACH_RIG = rigOfSpecies("roach"),

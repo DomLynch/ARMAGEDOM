@@ -6,7 +6,7 @@ import { countRigLiterals } from "../../scripts/as-data-gate.mjs";
 
 // Data move: actors.js no longer names rigs. Each old comparison is now a capability row; these pin that every capability picks
 // exactly the rigs the old comparison did.
-const RIGS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/rig-capabilities.json", import.meta.url))));
+const RIGS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))).rigCapabilities);
 const only = (rigs, pick) => assert.deepEqual(RIGS.filter(pick), rigs);
 
 test("each capability picks the same rigs as the comparison it replaced", () => {
