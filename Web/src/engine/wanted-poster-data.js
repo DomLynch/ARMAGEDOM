@@ -19,11 +19,26 @@ export function validateWantedPoster(p) {
   numbers("canvas", p.canvas, ["width", "height"], 16);
   numbers("portrait", p.portrait, ["alpha", "x", "y", "width", "height"]);
   numbers("amount", p.amount, ["x", "y", "fontPx", "maxWidth"], 1);
-  closed(p.rules, ["alpha", "top", "bottom"]);
+  closed(p.rules, ["alpha", "thickness", "top", "bottom"]);
+  numbers("rules", { thickness: p.rules.thickness }, ["thickness"], 1);
   numbers("rules.top", p.rules.top, ["x", "y", "width"]);
   numbers("rules.bottom", p.rules.bottom, ["x", "y", "width"]);
-  numbers("specks", p.specks, ["count", "stepX", "offsetX", "spanX", "stepY", "offsetY", "spanY", "alpha", "alphaStep"]);
-  numbers("scratches", p.scratches, ["count", "x", "stepX", "spanX", "y", "stepY", "width", "widthStep"]);
+  numbers("specks", p.specks, [
+    "count",
+    "stepX",
+    "offsetX",
+    "spanX",
+    "stepY",
+    "offsetY",
+    "spanY",
+    "alpha",
+    "alphaStep",
+    "alphaSteps",
+    "sizeSteps",
+  ]);
+  numbers("scratches", p.scratches, ["count", "x", "stepX", "spanX", "y", "stepY", "width", "widthStep", "widthSteps"]);
+  for (const [where, v] of [["specks.alphaSteps", p.specks.alphaSteps], ["specks.sizeSteps", p.specks.sizeSteps], ["scratches.widthSteps", p.scratches.widthSteps]])
+    if (!Number.isSafeInteger(v) || v < 1) fail(`${where} must be a whole number of at least 1`);
   for (const v of [p.portrait.alpha, p.rules.alpha, p.specks.alpha]) alpha("an alpha", v);
   for (const f of ["spanX", "spanY"]) if (!(p.specks[f] >= 1)) fail(`specks.${f} must be at least 1`);
   if (!(p.scratches.spanX >= 1)) fail("scratches.spanX must be at least 1");

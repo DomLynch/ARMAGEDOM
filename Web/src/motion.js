@@ -7,8 +7,8 @@ import { validateMotion } from "./engine/motion-data.js";
 const MOTION = GAME_DATA.visual.motion;
 validateMotion(MOTION); // checked here, not in game-data.js, which is at its source density limit
 // Numerical guards for the arm solver, not tuning: the smallest length it will divide by and the share of full reach it will aim at.
-const EPSILON = 0.00001;
-const MAX_REACH = 0.99999;
+const EPSILON = 0.00001; // tuning-ok: a numerical guard, the smallest length the arm solver divides by
+const MAX_REACH = 0.99999; // tuning-ok: a numerical guard, just under full reach so the elbow never flips
 export function posePhase(elapsed, windup, recovery) {
   const { windupShare, minSeconds } = MOTION.posePhase;
   return clamp(
@@ -39,7 +39,7 @@ export function solveArm(upper, lower, hand, target, pole, weight = 1) {
     bendAxis = pole.clone().addScaledVector(axis, -pole.dot(axis));
   if (bendAxis.lengthSq() < EPSILON) bendAxis.crossVectors(axis, new THREE.Vector3(0, 1, 0));
   bendAxis.normalize();
-  const along = (a * a - b * b + distance * distance) / (2 * distance),
+  const along = (a * a - b * b + distance * distance) / (2 * distance), // tuning-ok: the law of cosines, as a projection of the elbow
     bend = start
       .clone()
       .addScaledVector(axis, along)
@@ -132,7 +132,7 @@ export class ActorMotion {
         if (index < 0 || !weights || !indices) return;
         mesh.skeleton.update();
         for (let i = 0; i < weights.count; i++) {
-          for (let j = 0; j < 4; j++) {
+          for (let j = 0; j < 4; j++) { // tuning-ok: a skinned vertex carries four bone weights
             if (indices.getComponent(i, j) === index && weights.getComponent(i, j) > MOTION.soleWeight) {
               sole.push(foot.worldToLocal(mesh.getVertexPosition(i, vec()).applyMatrix4(mesh.matrixWorld)));
               break;
@@ -184,7 +184,7 @@ export class ActorMotion {
     if (entity.staggerUntil > time || entity.dodgeUntil > time) this.visualSwing = null;
     const swing = this.visualSwing,
       striking = !!swing && time < swing.end,
-      walking = entity.kind === 1 || entity.kind === 3,
+      walking = entity.kind === 1 || entity.kind === 3, // tuning-ok: creature kinds 1 and 3 walk upright
       forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.root.quaternion),
       right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.root.quaternion),
       scale = this.root.scale.x;
@@ -258,7 +258,7 @@ export class ActorMotion {
             right
               .clone()
               .multiplyScalar(side)
-              .add(new THREE.Vector3(0, -0.5, 0)),
+              .add(new THREE.Vector3(0, -MOTION.armBendDrop, 0)),
             weight,
           );
           worldRotation(
@@ -273,7 +273,7 @@ export class ActorMotion {
               ),
           );
         }
-      } else if (entity.kind === 2) {
+      } else if (entity.kind === 2) { // tuning-ok: creature kind 2 is the large kind that lifts when it strikes
         const lift = Math.max(0, scale - 1) * MOTION.bigLift * (1 - this.strikeWeight);
         if (lift > 0) {
           this.remember(shoulder);
