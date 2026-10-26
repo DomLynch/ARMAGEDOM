@@ -90,5 +90,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(im
   if (!out) throw new Error("usage: build-release.mjs --out <releases dir> [--name <name>] [--no-install]");
   const result = build({ out, name: arg("--name"), install: !process.argv.includes("--no-install"), areaData: arg("--area-data") });
   console.log(`built ${result.dir}: ${result.files} files, packages: ${result.bare.join(", ")}`);
+  console.log(`layout ${JSON.parse(fs.readFileSync(path.join(result.dir, "server/data/area-presence.json"), "utf8")).version}: after the restart, check-presence-layout.mjs must say presence runs this one`);
   console.log(`not activated: point 'current' at it only after the checks (see the install runbook)`);
 }
