@@ -271,6 +271,11 @@
     "B": { "westminster": "westminster-roamer-1", "east": "east-roamer-1", "south": "south-roamer-9" }
   },
   "hollowTuning": { "count": 3, "health": 40, "moveSpeed": 2.1, "regen": 1, "aggression": 0.6, "recovery": 0.55 },
+  "hollowBounds": {
+    "bodyScaleMax": 3,
+    "count": [3, 5],
+    "ranges": { "health": [1, 120], "moveSpeed": [0.1, 6], "regen": [0.1, 2], "aggression": [0.1, 5], "recovery": [0, 5] }
+  },
   "creatureSim": { "playerFields": ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"] },
   "feralBodyShapes": [
     { "id": "dog-gaunt-hound", "width": 0.62 },
