@@ -512,6 +512,8 @@
     "minStep": 0.025,
     "maxStep": 0.2
   },
+  "tapFallback": { "graceMs": 80, "slopPx": 10 },
+  "firstTimeHints": { "seconds": 5 },
   "waterEffect": {
     "imageWidth": 1672,
     "imageHeight": 941,

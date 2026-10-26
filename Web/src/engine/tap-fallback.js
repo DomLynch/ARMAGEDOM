@@ -1,3 +1,4 @@
+import { TAP_FALLBACK } from "./tap-fallback-data.js";
 // A tap made while another finger is already down (the thumb on the move pad) gets NO click from the browser: Chrome treats the second
 // contact as part of a multi-touch gesture. Buttons that act on click (weapon tiles, the menu button, Pick up, safehouse and equipment
 // buttons) then did nothing while the player was moving. This installs one fallback: a clean secondary tap on a button, that is not one of
@@ -7,8 +8,8 @@
 export function installTapFallback({
   target = globalThis.document,
   setTimer = (fn, ms) => setTimeout(fn, ms),
-  graceMs = 80,
-  slop = 10,
+  graceMs = TAP_FALLBACK.graceMs,
+  slop = TAP_FALLBACK.slopPx,
   exclude = "[data-action], #move",
 } = {}) {
   const touches = new Set(), // touch pointers currently down

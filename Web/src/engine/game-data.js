@@ -230,6 +230,8 @@ export function validateVisual(d) {
     "routeGuidance",
     "expeditionHud",
     "remotePlayers",
+    "tapFallback",
+    "firstTimeHints",
     "waterEffect",
     "worldGeometry",
     "severBlood",
