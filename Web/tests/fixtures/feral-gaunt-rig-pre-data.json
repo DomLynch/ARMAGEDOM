@@ -1,0 +1,143 @@
+{
+  "feralBodyShapes": [
+    {
+      "id": "dog-gaunt-hound",
+      "width": 0.62
+    },
+    {
+      "id": "dog-stocky-yard",
+      "width": 1.6
+    }
+  ],
+  "feralCoatProfiles": [
+    {
+      "id": "dog-street-mongrel",
+      "tint": [
+        1,
+        1,
+        1
+      ],
+      "shapePending": false
+    },
+    {
+      "id": "dog-gaunt-hound",
+      "tint": [
+        0.9,
+        0.88,
+        0.78
+      ],
+      "shapePending": true
+    },
+    {
+      "id": "dog-stocky-yard",
+      "tint": [
+        0.58,
+        0.62,
+        0.68
+      ],
+      "shapePending": true
+    },
+    {
+      "id": "dog-ash-coated",
+      "tint": [
+        1.4,
+        1.42,
+        1.45
+      ],
+      "shapePending": false
+    },
+    {
+      "id": "dog-mangy-stray",
+      "tint": [
+        1.13,
+        0.8,
+        0.59
+      ],
+      "shapePending": false
+    },
+    {
+      "id": "dog-pack-chaser",
+      "tint": [
+        0.72,
+        0.83,
+        1.08
+      ],
+      "shapePending": false
+    }
+  ],
+  "rigCapabilities": {
+    "original-rat": {
+      "lowStrike": true
+    },
+    "original-dog": {
+      "lowStrike": true
+    },
+    "original-roach": {
+      "lowStrike": true
+    },
+    "giant-salamander": {
+      "lowStrike": true,
+      "tutorialHunt": true
+    },
+    "original-wolf": {
+      "lowStrike": true
+    },
+    "low-hover-drone": {
+      "lowStrike": true
+    }
+  },
+  "gauntTargets": [
+    "Torn_modern_canvas_jacket",
+    "Hollow_body_and_worn_trousers"
+  ],
+  "gauntShape": {
+    "pelvis": [
+      "spine_01",
+      0.82
+    ],
+    "spine_01": [
+      "spine_02",
+      0.66
+    ],
+    "spine_02": [
+      "spine_03",
+      0.68
+    ],
+    "spine_03": [
+      "neck_01",
+      0.82
+    ],
+    "upperarm_l": [
+      "lowerarm_l",
+      0.66
+    ],
+    "upperarm_r": [
+      "lowerarm_r",
+      0.66
+    ],
+    "lowerarm_l": [
+      "hand_l",
+      0.78
+    ],
+    "lowerarm_r": [
+      "hand_r",
+      0.78
+    ],
+    "thigh_l": [
+      "calf_l",
+      0.72
+    ],
+    "thigh_r": [
+      "calf_r",
+      0.72
+    ],
+    "calf_l": [
+      "foot_l",
+      0.82
+    ],
+    "calf_r": [
+      "foot_r",
+      0.82
+    ]
+  }
+}

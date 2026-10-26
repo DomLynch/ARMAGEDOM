@@ -1,8 +1,0 @@
-{
-  "original-rat": { "lowStrike": true },
-  "original-dog": { "lowStrike": true },
-  "original-roach": { "lowStrike": true },
-  "giant-salamander": { "lowStrike": true, "tutorialHunt": true },
-  "original-wolf": { "lowStrike": true },
-  "low-hover-drone": { "lowStrike": true }
-}

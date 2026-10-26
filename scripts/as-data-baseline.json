@@ -88,17 +88,13 @@
     "engine/weapon-catalog.js": 2,
     "engine/weapon-credit-policy.js": 1,
     "engine/world-events.js": 10,
-    "feral-body-shapes.js": 1,
-    "feral-coat-profiles.js": 1,
     "finisher-impact-profile.js": 2,
     "finisher-presentation.js": 1,
-    "gaunt-shape.js": 2,
     "hollow-palette.js": 1,
     "low-hover-drone.js": 1,
     "mobile-combat-aim.js": 2,
     "pistol-targeting.js": 2,
     "rat-melee-definition.js": 1,
-    "rig-capabilities.js": 1,
     "supplies.js": 2
   }
 }
