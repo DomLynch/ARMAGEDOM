@@ -4,7 +4,14 @@ import fs from "node:fs";
 import { createHash } from "node:crypto";
 import * as THREE from "three";
 import { LondonWorld } from "../src/world.js";
-import { resolveGuidance, capsuleSegmentClear } from "../src/engine/route-guidance.js";
+import {
+  resolveGuidance,
+  capsuleSegmentClear,
+  arrowOpacity,
+  ARROW_PULSE_SECONDS,
+  ARROW_MIN_OPACITY,
+  ARROW_TAIL_GAP,
+} from "../src/engine/route-guidance.js";
 
 // Differential test: the numbers route-guidance.js reads from data produce exactly the geometry, colours, reach distances and hint
 // text the inline literals did. The expected digest was recorded from the code before the move
@@ -14,7 +21,8 @@ const manifest = read("../public/world/manifest.json"),
   fixture = read("./fixtures/phone-guidance-positions.json"),
   digestPath = new URL("./fixtures/route-guidance-values.json", import.meta.url);
 const digest = (x) => createHash("sha256").update(JSON.stringify(x)).digest("hex");
-const arr = (a) => Array.from(a, (n) => Math.round(n * 1e9) / 1e9);
+const round = (n) => Math.round(n * 1e9) / 1e9;
+const arr = (a) => Array.from(a, round);
 
 function snapshot() {
   const out = {},
@@ -98,6 +106,40 @@ function snapshot() {
           reach.push(c ? [c.index, c.gap, c.remaining, c.target, capsuleSegmentClear(g, p, c.target)] : null);
         }
       entry.reach = digest(reach);
+      // Waypoint pick distance (a point only counts as the next waypoint when it is further than half a metre) and the pistol, hunt and
+      // arrival thresholds: probe either side of each.
+      const edge = [];
+      for (const row of cue.rows)
+        for (const wp of row.path)
+          for (const off of [0.45, 0.49, 0.51, 0.55]) {
+            const p = { x: wp.x + off, z: wp.z };
+            if (!g.clear(p, 0.4)) continue;
+            const c = resolveGuidance(cue.rows, g, p);
+            edge.push(c ? [c.index, c.gap, c.remaining, c.target] : null);
+          }
+      entry.edge = digest(edge);
+      const probe = row ? g.ground(row.representative) : g.ground({ x: 0.5, y: 0.5 }),
+        cues = [];
+      cue.setTutorial(true);
+      for (const d of [0.2, 0.29, 0.31, 1]) {
+        cue.setPistolTarget({ x: probe.x + d, z: probe.z });
+        const c = cue.resolve({ ...probe });
+        cues.push([c?.row.kind, c?.remaining, cue.hint({ ...probe }, { areaId: "westminster", travelAt: () => null, toRender: world.toRender.bind(world), camera: world.camera })]);
+      }
+      cue.setPistolTarget(null);
+      cue.setTutorial(false);
+      for (const d of [1.4, 1.49, 1.51, 3]) {
+        cue.setHuntTarget({ pos: { x: probe.x + d, z: probe.z }, label: "KILL" });
+        const c = cue.resolve({ ...probe });
+        cues.push([c?.row.kind, c?.remaining]);
+      }
+      cue.setHuntTarget(null);
+      for (const d of [3.9, 4.1]) {
+        cue.arrive(cue.rows[0]?.to ?? "elsewhere", { x: probe.x, z: probe.z });
+        const c = cue.resolve({ x: probe.x + d, z: probe.z });
+        cues.push([c?.row.id, c?.remaining]);
+      }
+      entry.cues = cues.map((c) => c.map((v) => (typeof v === "number" ? round(v) : (v ?? null))));
       out[area] = entry;
       world.dispose();
     }
@@ -109,6 +151,7 @@ function snapshot() {
 
 test("route guidance geometry, colours, reach and hints are value-identical to the pre-data code", () => {
   const got = snapshot();
+  got.pulse = [ARROW_PULSE_SECONDS, ARROW_MIN_OPACITY, ARROW_TAIL_GAP, ...[0, 0.37, 0.65, 1.3, 2.1, 4.9].map(arrowOpacity)];
   if (process.env.UPDATE_ROUTE_GUIDANCE_DIGEST) fs.writeFileSync(digestPath, JSON.stringify(got, null, 1) + "\n");
   assert.deepEqual(got, JSON.parse(fs.readFileSync(digestPath)));
 });
