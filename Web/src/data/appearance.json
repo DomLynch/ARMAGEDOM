@@ -9,6 +9,8 @@
     "field": { "z": 63, "cosX": 45, "wobble": 1.6, "y": 99, "z2": 24 },
     "wear": { "from": 0.25, "range": 1.4 }
   },
+  "feralTorsoMask": { "from": 0.9, "range": 0.1 },
+  "pickupGlow": { "stroke": 1.05, "color": "#ffca85", "orderOffset": 0.01 },
   "animalOffsets": {
     "A": { "east-roamer-9": { "x": -0.014, "z": -0.278 }, "east-roamer-5": { "x": 0, "z": -0.046 } },
     "B": { "east-roamer-9": { "x": -0.014, "z": -0.278 } }

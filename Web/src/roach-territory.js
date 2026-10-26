@@ -1,6 +1,7 @@
 import { resolveResidentIntent } from "./creature-behaviour-intents.js";
 import { rigText } from "./rig-capabilities.js";
 const nest = resolveResidentIntent("roach-nest-guard", { behaviourCapabilities: ["home", "lineOfSight"] });
+const HOME_ARRIVED = 0.2; // metres from home at which a returning roach counts as home
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 // Only one approved role/registered recipe; no actor writes, movement or timers.
 export function resolveRoachNestGuard(e, { areaId, animalCycle } = {}) {
@@ -36,6 +37,6 @@ export function territoryHomeStep(p, o) {
     alerted = false;
     returning = true;
   }
-  if (returning && o.homeDistance <= 0.2) returning = false;
+  if (returning && o.homeDistance <= HOME_ARRIVED) returning = false;
   return result(returning ? (o.returnPathClear === false ? "hold" : "return") : "native");
 }

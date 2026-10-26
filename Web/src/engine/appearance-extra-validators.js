@@ -9,6 +9,8 @@ export const appearanceExtraKeys = () => [
   "animalCoat",
   "roachCoat",
   "animalOffsets",
+  "feralTorsoMask",
+  "pickupGlow",
   "crownSplit",
   "finisherCosmetics",
   "severBloodEffect",
@@ -20,6 +22,7 @@ export function validateAppearanceExtras(d, tools) {
   validateAnimalCoat(d, tools);
   validateRoachCoat(d, tools);
   validateAnimalOffsets(d, tools);
+  validateFeralAndGlow(d, tools);
   validateFinisherLooks(d, tools);
 }
 
@@ -58,6 +61,19 @@ function validateAnimalOffsets(d, { fail, between }) {
       between(`animalOffsets.${cycle}.${key}.x`, offset.x, -1, 1);
       between(`animalOffsets.${cycle}.${key}.z`, offset.z, -1, 1);
     }
+}
+
+// feral-body-shapes.js: the torso taper band (`from`, `range`) maps a skin weight to 0..1. pickup-glow.js: the contour stroke width in
+// pixels, its colour (#rrggbb) and how far its render order sits above the pickup's own.
+function validateFeralAndGlow(d, { fail, between }) {
+  closed(d.feralTorsoMask, ["from", "range"]);
+  between("feralTorsoMask.from", d.feralTorsoMask.from, -10, 10);
+  between("feralTorsoMask.range", d.feralTorsoMask.range, 0.001, 100);
+  closed(d.pickupGlow, ["stroke", "color", "orderOffset"]);
+  between("pickupGlow.stroke", d.pickupGlow.stroke, 0.1, 20);
+  between("pickupGlow.orderOffset", d.pickupGlow.orderOffset, 0.0001, 1);
+  if (typeof d.pickupGlow.color !== "string" || !/^#[0-9a-f]{6}$/.test(d.pickupGlow.color))
+    fail("appearance", "pickupGlow.color must be #rrggbb");
 }
 
 // visual.json clothing.minTonalGap: the least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable

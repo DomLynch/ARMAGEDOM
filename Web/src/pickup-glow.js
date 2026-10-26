@@ -1,4 +1,8 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+// The contour stroke width, colour and render-order lift are appearance.json `pickupGlow`.
+const GLOW = GAME_DATA.appearance.pickupGlow;
+const KEY_DECIMALS = 6; // hull welding: positions equal to a millionth of a metre are one point
 
 // Inverse hull of the actual static pickup mesh. No surface/texture mutation.
 const hulls = new WeakMap();
@@ -41,7 +45,8 @@ function acquireHull(source) {
     b = new T.Vector3(),
     c = new T.Vector3(),
     edge = new T.Vector3();
-  const key = (i) => `${p.getX(i).toFixed(6)},${p.getY(i).toFixed(6)},${p.getZ(i).toFixed(6)}`;
+  const at6 = (v) => v.toFixed(KEY_DECIMALS),
+    key = (i) => `${at6(p.getX(i))},${at6(p.getY(i))},${at6(p.getZ(i))}`;
   // Merge only outline normals at coincident positions, leaving hard-surface
   // original normals/UV seams untouched. Area-weighted triangle normals.
   const index = source.index,
@@ -87,8 +92,8 @@ export function addPickupGlow(mesh) {
     fragmentShader,
     uniforms: {
       viewport: { value: new T.Vector2(1, 1) },
-      stroke: { value: 1.05 },
-      color: { value: new T.Color(0xffca85) },
+      stroke: { value: GLOW.stroke },
+      color: { value: new T.Color(GLOW.color) },
     },
     side: T.BackSide,
     depthTest: true,
@@ -113,12 +118,12 @@ export function addPickupGlow(mesh) {
   sync();
   halo.name = "Ground pickup thin contour";
   halo.frustumCulled = false;
-  halo.renderOrder = mesh.renderOrder + 0.01;
+  halo.renderOrder = mesh.renderOrder + GLOW.orderOffset;
   halo.onBeforeRender = (renderer) => {
     sync();
     renderer.getCurrentViewport(viewport);
     material.uniforms.viewport.value.set(Math.max(1, viewport.z), Math.max(1, viewport.w));
-    material.uniforms.stroke.value = 1.05 * renderer.getPixelRatio() * (halo.userData.strokeScale ?? 1);
+    material.uniforms.stroke.value = GLOW.stroke * renderer.getPixelRatio() * (halo.userData.strokeScale ?? 1);
   };
   mesh.add(halo);
   return {

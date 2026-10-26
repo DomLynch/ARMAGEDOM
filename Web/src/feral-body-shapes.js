@@ -3,6 +3,8 @@
 import { GAME_DATA } from "./engine/game-data.js";
 export const FERAL_BODY_SHAPES = GAME_DATA.creatures.feralBodyShapes;
 const TORSO = new Set(["pelvis", "spine", "chest"]);
+// The torso skin-weight taper band is appearance.json `feralTorsoMask`.
+const MASK = GAME_DATA.appearance.feralTorsoMask;
 export function createFeralBodyShapeLibrary() {
   const cache = new WeakMap(),
     owned = new Set();
@@ -32,7 +34,7 @@ export function createFeralBodyShapeLibrary() {
           let influence = 0;
           for (let k = 0; k < 4; k++)
             if (TORSO.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) influence += w.getComponent(i, k);
-          const mask = Math.max(0, Math.min(1, (influence - 0.9) / 0.1));
+          const mask = Math.max(0, Math.min(1, (influence - MASK.from) / MASK.range));
           p.setX(i, p.getX(i) * (1 + (recipe.width - 1) * mask));
         }
         g.computeVertexNormals();
