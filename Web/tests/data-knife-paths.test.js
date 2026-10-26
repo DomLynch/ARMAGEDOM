@@ -15,7 +15,7 @@ const rawText = fs.readFileSync(new URL("../src/data/knifePaths.json", import.me
 test("the data file is pinned", () => {
   assert.equal(
     crypto.createHash("sha256").update(rawText).digest("hex"),
-    "KNIFE_PATHS_HASH",
+    "8aaa420bec9dd2ab4c1922f922417d62d00e4a325ae3a6d192c216a5605704b5",
   );
 });
 
@@ -39,7 +39,11 @@ test("every number is bit for bit what the old export held, in the same order", 
 
 test("the paths are the frozen data rows and bladePose reads them as before", () => {
   assert.equal(knifePaths, GAME_DATA.knifePaths.paths);
-  assert(Object.isFrozen(knifePaths) && Object.isFrozen(knifePaths.hero.thrust) && Object.isFrozen(knifePaths.hero.thrust[0]));
+  assert(
+    Object.isFrozen(knifePaths) &&
+      Object.isFrozen(knifePaths.hero.thrust) &&
+      Object.isFrozen(knifePaths.hero.thrust[0]),
+  );
   for (const rig of ["hero", "goblin"])
     for (const [name, frames] of Object.entries(old[rig]))
       for (const age of [0, 0.4, 1, 17.5, frames.length - 1, frames.length + 5, -2])
