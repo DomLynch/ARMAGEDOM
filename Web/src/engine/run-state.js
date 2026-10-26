@@ -1,5 +1,6 @@
 import { upgradeSupplies } from "../supply-ledger-v2.js";
 import { GAME_DATA } from "./game-data.js";
+import { sessionText } from "./session-text.js";
 import { initializeAreaResidents } from "../combat.js";
 import { DRONE_KEYS } from "../drone-mechanics.js";
 import {
@@ -200,19 +201,17 @@ export function collectNearbySupplies(g, save) {
       g.events.push({ type: "supply-pickup", ...result.award });
       g.message =
         result.award.kind === "rounds"
-          ? `Scavenged ${result.award.amount} spare rounds.`
-          : `Dressing restored ${Math.ceil(result.award.amount)} health.`;
+          ? sessionText("run.supplyRounds", { amount: result.award.amount })
+          : sessionText("run.supplyDressing", { amount: Math.ceil(result.award.amount) });
       g.messageUntil = g.time + NOTICES.supplyPickupSeconds;
     } else if (["pistol-required", "reserve-full", "health-full"].includes(result.reason)) {
       const notice = drop.id + result.reason;
       if (g.supplyNotice === notice && g.time < g.supplyNoticeUntil) continue;
       g.supplyNotice = notice;
       g.supplyNoticeUntil = g.time + NOTICES.supplyNoticeRepeatSeconds;
-      g.message = {
-        "pistol-required": "Collect the pistol first. Rounds kept.",
-        "reserve-full": "Spare rounds full. Supply kept.",
-        "health-full": "Health full. Dressing kept.",
-      }[result.reason];
+      g.message = sessionText(
+        { "pistol-required": "run.pistolRequired", "reserve-full": "run.reserveFull", "health-full": "run.healthFull" }[result.reason],
+      );
       g.messageUntil = g.time + NOTICES.supplyRefusalSeconds;
     }
   }
@@ -233,6 +232,6 @@ export function collectNearbyVest(g, save) {
   if (!result.equipped || !save({ ...g, vest: result.state })) return;
   g.vest = result.state;
   g.events.push({ type: "vest-pickup", actor: g.player, itemId: result.state.itemId });
-  g.message = "Worn vest equipped · 10% protection from unblocked hits.";
+  g.message = sessionText("run.vestEquipped");
   g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
 }
