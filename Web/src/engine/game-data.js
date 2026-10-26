@@ -857,8 +857,7 @@ export function validateVisual(d) {
   if (!(d.severBlood.pool.opacity > 0 && d.severBlood.pool.opacity <= 1)) fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
-  // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
-  // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
+  // The ground arrow (route-guidance.js) takes the drop marker's ringColour; peakOpacity tops its pulse.
   closed(d.routeArrow, ["peakOpacity"]);
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
