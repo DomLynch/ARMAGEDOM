@@ -1,5 +1,10 @@
 import { createWaterEffect } from "./engine/water-effect.js";
 import { atmosphereForArea, atmosphereBudget } from "./atmosphere-areas.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { ATMOSPHERE_RENDER as R } from "./engine/atmosphere-render-data.js";
+
+const INDICES_PER_QUAD = 6; // two triangles per particle quad
+const { defaultSmokeColor, smokePeriod } = GAME_DATA.atmosphere.variation;
 
 const vertexShader = `
 attribute vec2 corner;
@@ -86,7 +91,7 @@ export function createAtmosphere({ THREE, scene, world }) {
     };
     const batches = { smoke: [], flame: [], ember: [] };
     for (const anchor of atmosphereForArea(area, world.areaAtmosphere?.[area]?.anchors)) {
-      const depth = anchor.depth ?? world.geometry.point(world.geometry.ground(anchor.foot)).depth - 0.03;
+      const depth = anchor.depth ?? world.geometry.point(world.geometry.ground(anchor.foot)).depth - R.depthMargin;
       const origin = project(anchor.x, anchor.y, depth);
       const unitX = project(anchor.x + 1, anchor.y, depth).distanceTo(origin);
       const unitY = project(anchor.x, anchor.y - 1, depth).distanceTo(origin);
@@ -94,10 +99,10 @@ export function createAtmosphere({ THREE, scene, world }) {
         batches.smoke.push({
           origin,
           wx: anchor.width * unitX,
-          wy: anchor.width * unitY * 0.8,
-          dx: anchor.width * unitX * 0.35,
+          wy: anchor.width * unitY * R.smoke.heightShare,
+          dx: anchor.width * unitX * R.smoke.driftShare,
           dy: anchor.rise * unitY,
-          speed: anchor.smokeSpeed ?? 1 / 7,
+          speed: anchor.smokeSpeed ?? 1 / smokePeriod,
           phase: (i / anchor.smoke + (anchor.phase ?? 0)) % 1,
           alpha: anchor.opacity,
           tint: anchor.smokeColor,
@@ -113,19 +118,19 @@ export function createAtmosphere({ THREE, scene, world }) {
           dy: 0,
           speed: 0,
           phase: 0,
-          alpha: 0.9,
+          alpha: R.flame.alpha,
           variation: [0, anchor.noiseOffset ?? 0],
         });
       for (let i = 0; i < anchor.embers; i++)
         batches.ember.push({
           origin,
-          wx: 0.0007 * unitX,
-          wy: 0.0009 * unitY,
-          dx: anchor.width * unitX * 0.3,
-          dy: anchor.rise * unitY * 0.6,
+          wx: R.ember.width * unitX,
+          wy: R.ember.height * unitY,
+          dx: anchor.width * unitX * R.ember.driftShare,
+          dy: anchor.rise * unitY * R.ember.riseShare,
           speed: 1 / 4,
           phase: (i / anchor.embers + (anchor.phase ?? 0)) % 1,
-          alpha: 0.35,
+          alpha: R.ember.alpha,
           variation: [anchor.wind ?? 0, anchor.noiseOffset ?? 0],
         });
     }
@@ -154,7 +159,7 @@ export function createAtmosphere({ THREE, scene, world }) {
           sizes.push(p.wx, p.wy);
           phases.push(p.phase);
           strengths.push(p.alpha);
-          tints.push(...(p.tint ?? [0.095, 0.085, 0.075]));
+          tints.push(...(p.tint ?? defaultSmokeColor));
           variations.push(...(p.variation ?? [0, 0]));
         }
         indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
@@ -191,12 +196,12 @@ export function createAtmosphere({ THREE, scene, world }) {
       mesh.name = `Atmosphere ${kind}`;
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.
-      mesh.renderOrder = -80;
+      mesh.renderOrder = R.renderOrder;
       mesh.frustumCulled = false;
       group.add(mesh);
       resources.push(mesh);
     }
-    const quads = resources.reduce((n, m) => n + m.geometry.index.count / 6, 0);
+    const quads = resources.reduce((n, m) => n + m.geometry.index.count / INDICES_PER_QUAD, 0);
     if (quads > atmosphereBudget(area, world.areaAtmosphere?.[area]?.budget).quads) {
       clear();
       throw Error(`Atmosphere budget exceeded: ${area}`);
@@ -216,7 +221,7 @@ export function createAtmosphere({ THREE, scene, world }) {
       water.update(dt, { paused, enabled });
       group.visible = resources.length > 0 && enabled;
       if (!group.visible || paused) return;
-      if (Number.isFinite(dt) && dt > 0) elapsed += Math.min(dt, 0.1);
+      if (Number.isFinite(dt) && dt > 0) elapsed += Math.min(dt, R.maxStepSeconds);
       for (const mesh of resources) mesh.material.uniforms.clock.value = elapsed;
     },
     reset() {
@@ -231,7 +236,7 @@ export function createAtmosphere({ THREE, scene, world }) {
         area,
         visible: group.visible,
         budget: atmosphereBudget(area, world.areaAtmosphere?.[area]?.budget),
-        quads: resources.reduce((n, m) => n + m.geometry.index.count / 6, 0),
+        quads: resources.reduce((n, m) => n + m.geometry.index.count / INDICES_PER_QUAD, 0),
         drawCalls: resources.length,
         textureBytes: 0,
         time: elapsed,
