@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { countTextLiterals, textLiteralProblems } from "../../scripts/text-literal-gate.mjs";
+import { countTextLiterals, textLiteralProblems, TEXT_SHRINK_TOLERANCE } from "../../scripts/text-literal-gate.mjs";
 
 const count = (src) => countTextLiterals(src).count;
 
@@ -64,12 +64,16 @@ test("the ratchet fails an increase and a new file; strict mode also fails a mis
     assert(tolerant.some((p) => p.startsWith("c.js") && p.includes("limit 0")));
     const strict = textLiteralProblems([b], baseline, dir, { shrinkTolerance: false });
     assert(strict[0].includes("Lower it to 1"));
+    // The text-ok marks ratchet: an added mark fails, an exact count passes.
+    const marked = write("m.js", 'a.name = "Reaper Drone companion"; // text-ok: mesh name\nb.name = "Worn cloth vest"; // text-ok: mesh name');
+    assert.deepEqual(textLiteralProblems([marked], { textOkCount: 2 }, dir), []);
+    assert(textLiteralProblems([marked], { textOkCount: 1 }, dir)[0].includes("limit 1"));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test("the real tree is within the seeded text baseline", () => {
+test("the text burn-down is finished: the table is empty, the gate strict and the text-ok marks ratcheted", () => {
   const root = new URL("../src/", import.meta.url).pathname;
   const walk = (d) =>
     fs
@@ -77,5 +81,7 @@ test("the real tree is within the seeded text baseline", () => {
       .flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith(".js") ? [path.join(d, e.name)] : []));
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
   assert.deepEqual(textLiteralProblems(walk(root), baseline, root), []);
-  assert(Object.values(baseline.textLiterals).every((n) => Number.isInteger(n) && n > 0));
+  assert.deepEqual(baseline.textLiterals, {});
+  assert.equal(TEXT_SHRINK_TOLERANCE, false);
+  assert(Number.isInteger(baseline.textOkCount) && baseline.textOkCount > 0);
 });
