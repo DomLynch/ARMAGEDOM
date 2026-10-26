@@ -1396,7 +1396,7 @@ export function validateAudio(d) {
 // recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
 export function validateCommander(d) {
   const counts = ["unitCap", "reserve", "deployCost", "machineHP", "biologicalHP", "biologicalDamage", "beaconHP"];
-  closed(d, ["schema_version", "rules", "view"]);
+  closed(d, ["schema_version", "rules", "match", "view"]);
   closed(d.rules, [
     ...counts,
     "machineSpeed",
