@@ -72,7 +72,7 @@
     "animal-appearance.js": 2,
     "animal-role-bindings.js": 2,
     "area-mob-spawns.js": 3,
-    "combat.js": 31,
+    "combat.js": 9,
     "engine/area-content.js": 1,
     "engine/area-population.js": 9,
     "engine/commander/match.js": 1,

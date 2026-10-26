@@ -2,6 +2,7 @@
   "original-rat": {
     "lowStrike": true,
     "animal": true,
+    "brain": "rat",
     "targetHeight": 0.54,
     "hitClip": "rat_hit",
     "deathClip": "rat_death",
@@ -11,6 +12,8 @@
   "original-dog": {
     "lowStrike": true,
     "animal": true,
+    "brain": "dog",
+    "lowSwing": "dog",
     "targetHeight": 0.35,
     "targetHeightReach": 0.7,
     "hitClip": "dog_hit",
@@ -21,6 +24,10 @@
   "original-roach": {
     "lowStrike": true,
     "animal": true,
+    "brain": "dog",
+    "lowSwing": "roach",
+    "biteMove": "roach",
+    "calfContact": true,
     "targetHeight": 0.08,
     "targetHeightReach": 0.24,
     "hitClip": "roach_hit",
@@ -32,6 +39,10 @@
     "lowStrike": true,
     "animal": true,
     "nativeSkeleton": true,
+    "brain": "dog",
+    "biteMove": "salamander",
+    "areaPursuit": true,
+    "fireBreath": true,
     "tutorialHunt": true,
     "breathEmitter": true,
     "targetHeight": 1.08,
@@ -45,6 +56,9 @@
     "lowStrike": true,
     "animal": true,
     "nativeSkeleton": true,
+    "brain": "dog",
+    "biteMove": "wolf",
+    "mouthAim": true,
     "targetHeight": 1.625,
     "fixedPointerScale": true,
     "strictAlive": true,
@@ -53,5 +67,5 @@
     "hitTicks": 32,
     "deathTicks": 74
   },
-  "low-hover-drone": { "lowStrike": true, "hoverTarget": true }
+  "low-hover-drone": { "lowStrike": true, "brain": "drone", "hoverTarget": true }
 }
