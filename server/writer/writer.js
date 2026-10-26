@@ -185,7 +185,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
         const entry = cleanClientLog(await readJson(req, CLIENTLOG_MAX_BODY));
         if (!entry) throw new HttpError(400, "bad-request");
         counts.clientlog = (counts.clientlog ?? 0) + entry.events.length;
-        for (const event of entry.events) log(`clientlog ${JSON.stringify({ release: entry.release, area: entry.area, ...event })}`);
+        for (const event of entry.events) log(`clientlog ${JSON.stringify({ release: entry.release, area: entry.area, session: entry.session, ...event })}`);
         res.writeHead(204, { "Cache-Control": "no-store", Vary: "Authorization" });
         return res.end();
       }
