@@ -2,6 +2,7 @@
 // other numbers that used to sit inline. Called from validateVisual in game-data.js. Metres, seconds, shares, 6-digit hex colours.
 import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
+import { eventsKeys, validateEffectsEvents } from "./effects-events-data.js";
 
 const hex = (field, v) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("visual", `effects.feedback.${field} must be 6 lowercase hex digits`);
@@ -26,8 +27,10 @@ export function validateEffectsFeedback(c) {
     "reticle",
     "line",
     "frame",
+    ...eventsKeys(),
   ]);
   validateEffectsFeedbackShapes(c);
+  validateEffectsEvents(c);
   closed(c.pools, ["particles", "tracers"]);
   for (const f of ["particles", "tracers"])
     if (!Number.isInteger(c.pools[f]) || c.pools[f] < 1 || c.pools[f] > 512)
