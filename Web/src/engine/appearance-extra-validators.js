@@ -18,6 +18,8 @@ export const appearanceExtraKeys = () => [
   "actorView",
   "finisherPresentation",
   "faceBuild",
+  "faceRecipeCycle",
+  "wolfNative",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -32,6 +34,19 @@ export function validateAppearanceExtras(d, tools) {
   validateActorView(d, tools);
   validateFinisherPresentation(d, tools);
   validateFaceBuild(d, tools);
+  validateRecipeCycle(d, tools);
+}
+
+// face-recipes.js: how far each recipe steps through the hair, skin and weathering lists, and how far the second head shifts them (the order is part of
+// the library version). wolf-native.js: the share of a vertex's skin weight that must sit on the torso bones to bind a face to the body.
+function validateRecipeCycle(d, { fail, between }) {
+  closed(d.faceRecipeCycle, ["hairStride", "skinStride", "sideShift", "weatherSideShift"]);
+  for (const k of ["hairStride", "skinStride", "sideShift", "weatherSideShift"]) {
+    between(`faceRecipeCycle.${k}`, d.faceRecipeCycle[k], 0, 100);
+    if (!Number.isInteger(d.faceRecipeCycle[k])) fail("appearance", `faceRecipeCycle.${k} must be a whole number`);
+  }
+  closed(d.wolfNative, ["bodyWeightMin"]);
+  between("wolfNative.bodyWeightMin", d.wolfNative.bodyWeightMin, 0.01, 1);
 }
 
 // face-appearance.js: the build slice in milliseconds, how many steps pass between yields (powers of two, used as masks) and the weld precision.

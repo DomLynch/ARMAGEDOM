@@ -344,6 +344,7 @@
   ],
   "flameDeath": {
     "recipeId": "flame-charred-collapse",
+    "nativeSeconds": 2.4,
     "fadeSeconds": 0.75,
     "anchorLift": 0.16,
     "charBegin": 0.3,

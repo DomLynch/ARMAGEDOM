@@ -12,22 +12,26 @@ export const FACE_WEATHERING = FACES.weathering;
 // Alternate head shapes and stride through complexion/hair contrasts. Every
 // approved combination appears once; ordering is part of this library version.
 // One recipe per head x hair x skin (2 x 5 x 5 = 50); the strides below cycle the hair, skin and weathering lists, whose sizes are the moduli.
+// The stride and shift numbers are appearance.json `faceRecipeCycle`.
 const HAIRS = FACE_HAIRS.length,
   SKINS = FACE_SKINS.length,
-  WEATHERS = FACE_WEATHERING.length;
+  WEATHERS = FACE_WEATHERING.length,
+  HEADS = FACE_HEADS.length,
+  CYCLE = GAME_DATA.appearance.faceRecipeCycle;
 export const FACE_RECIPES = freeze(
-  Array.from({ length: FACE_HEADS.length * HAIRS * SKINS }, (_, i) => {
-    const side = i % 2,
+  Array.from({ length: HEADS * HAIRS * SKINS }, (_, i) => {
+    const side = i % HEADS,
       head = FACE_HEADS[side],
-      k = Math.floor(i / 2),
-      hair = FACE_HAIRS[((k % HAIRS) * 2 + side * 3) % HAIRS],
-      skin = FACE_SKINS[(Math.floor(k / HAIRS) * 2 + (k % HAIRS) + side * 3) % SKINS];
+      k = Math.floor(i / HEADS),
+      hair = FACE_HAIRS[((k % HAIRS) * CYCLE.hairStride + side * CYCLE.sideShift) % HAIRS],
+      skin = FACE_SKINS[(Math.floor(k / HAIRS) * CYCLE.skinStride + (k % HAIRS) + side * CYCLE.sideShift) % SKINS];
     return freeze({
       id: `face-${head.id}-${hair}-${skin.id}`,
       headPreset: head.id,
       hairPreset: hair,
       skinPreset: skin.id,
-      weatheringPreset: FACE_WEATHERING[(Math.floor(k / HAIRS) + (k % HAIRS) + side * 2) % WEATHERS],
+      weatheringPreset:
+        FACE_WEATHERING[(Math.floor(k / HAIRS) + (k % HAIRS) + side * CYCLE.weatherSideShift) % WEATHERS],
     });
   }),
 );

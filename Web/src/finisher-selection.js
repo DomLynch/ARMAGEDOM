@@ -9,11 +9,14 @@ const direction = (value) => {
   const n = Math.hypot(value.x, value.z);
   return Number.isFinite(n) && n > 1e-8 ? { x: value.x / n, z: value.z / n } : null;
 };
+const FNV_OFFSET = 2166136261; // tuning-ok: the 32-bit FNV-1a offset basis
+const FNV_PRIME = 16777619; // tuning-ok: the 32-bit FNV-1a prime
+const UINT32_RANGE = 4294967296; // tuning-ok: 2 to the 32, turns the hash into a draw in [0, 1)
 function draw(context, ordinal, seed, purpose) {
-  let h = 2166136261;
+  let h = FNV_OFFSET;
   const key = JSON.stringify([seed, context.areaId ?? null, context.victimKey ?? context.victimId, ordinal, purpose]);
-  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
-  return h / 4294967296;
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), FNV_PRIME) >>> 0;
+  return h / UINT32_RANGE;
 }
 // One confirmed corpse owns this stable choice. Admission, recipe weighting and
 // physical/prepared/budget fallbacks are distinct; presentation never rolls.
