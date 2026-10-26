@@ -9,7 +9,10 @@ const ROT = Object.fromEntries(
 );
 const ROTATIONS = Object.entries(ROT);
 const GAITS = new Set(["HollowIdle", "HollowWalk", "Run", "StrafeLeft", "StrafeRight"]);
-const SCRATCH_VECTORS = 12; // the pose solver's reusable vectors: indices 0 to 11 are used below
+const SCRATCH_VECTORS = 12; // tuning-ok: the pose solver's reusable vectors, indices 0 to 11 are used below
+const SCRATCH_QUATERNIONS = 4; // tuning-ok: the pose solver's reusable quaternions
+const HALF_CYCLE = 0.5; // tuning-ok: half a gait cycle, to wrap a phase difference into -0.5..0.5
+const twice = (v) => 2 * v; // tuning-ok: the doubled side of the law of cosines
 export function crookedPhase(phase) {
   const p = T.MathUtils.euclideanModulo(phase, 1);
   // Long planted interval, brisk short step, unequal second support interval.
@@ -36,7 +39,7 @@ export class CrookedHollowMotion {
     );
     this.saved = NAMES.map((n) => ({ bone: this.bones[n], position: new T.Vector3(), quaternion: new T.Quaternion() }));
     this.v = Array.from({ length: SCRATCH_VECTORS }, () => new T.Vector3());
-    this.q = Array.from({ length: 4 }, () => new T.Quaternion());
+    this.q = Array.from({ length: SCRATCH_QUATERNIONS }, () => new T.Quaternion());
     this.active = false;
     this.cycle = 0;
     this.previousCycle = native.cycle ?? 0;
@@ -88,7 +91,7 @@ export class CrookedHollowMotion {
     const d = T.MathUtils.clamp(direction.length(), Math.abs(u - v) + CROOKED.reach.slack, (u + v) * CROOKED.reach.max);
     direction.normalize();
     normal.copy(bend).addScaledVector(direction, -bend.dot(direction)).normalize();
-    const along = (u * u - v * v + d * d) / (2 * d),
+    const along = (u * u - v * v + d * d) / twice(d),
       height = Math.sqrt(Math.max(0, u * u - along * along));
     wanted.copy(origin).addScaledVector(direction, along).addScaledVector(normal, height);
     this.point(a, b, wanted);
@@ -151,7 +154,7 @@ export class CrookedHollowMotion {
     this.restore();
     this.native.update(entity, time, dt, deathPose);
     const cycle = this.native.cycle ?? 0,
-      delta = T.MathUtils.euclideanModulo(cycle - this.previousCycle + 0.5, 1) - 0.5;
+      delta = T.MathUtils.euclideanModulo(cycle - this.previousCycle + HALF_CYCLE, 1) - HALF_CYCLE;
     this.previousCycle = cycle;
     this.cycle = T.MathUtils.euclideanModulo(this.cycle + delta * CROOKED.cycleRate, 1);
     if (

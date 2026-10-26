@@ -179,13 +179,13 @@ export function stepSurgeonSaw(g, e, dt, { patrol, move, receive, contact } = {}
             block: true,
             parry: false,
             moveId: "bone-saw",
-            def: { stagger: 0.12, chip: 0.1, staminaDamage: amount },
+            def: { stagger: BONE_SAW_RULES.hitStagger, chip: BONE_SAW_RULES.hitChip, staminaDamage: amount },
           }),
       });
   }
   if (phase.phase === "recovery" && t >= phase.until) {
     e.sawPhase = null;
-    e.ready = t + 0.1;
+    e.ready = t + BONE_SAW_RULES.recoveryReadySeconds;
   }
   return true;
 }

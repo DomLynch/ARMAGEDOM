@@ -1,5 +1,8 @@
 import { FINISHER_DATA, goreProfile, finisherPresentationId } from "./engine/finisher-data.js";
 import { SEVER_BLOOD_DATA } from "./engine/sever-blood-data.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// visual.json "finisherImpact": burst defaults for an impact with no gore style of its own.
+const IMPACT = GAME_DATA.visual.finisherImpact;
 // Cosmetic admission only. Caller supplies the ACTUALLY presented lethal recipe
 // and sampled render-world anchors, after native pose/root/part matrices update.
 const rows = Object.fromEntries(
@@ -34,10 +37,16 @@ export function finisherImpactProfile(event, anchors) {
     lifetime: headSever ? SEVER_BLOOD_DATA.headDropletLifetime : row[4],
     speed: row[5],
     spreadDegrees: row[6],
-    trailLifetime: gore?.burst?.trailSeconds ?? (headSever ? 0.28 : 0.18),
-    trailLength: headSever ? 0.34 : 0.22,
-    dropSize: gore?.dropSize ?? (headSever ? 0.13 : row[1] === "head" || event.recipeId === "opened" ? 0.1 : 0.055),
-    gravity: gore?.burst?.gravity ?? (headSever ? SEVER_BLOOD_DATA.headDropletGravity : 8),
+    trailLifetime: gore?.burst?.trailSeconds ?? (headSever ? IMPACT.headSeverTrailSeconds : IMPACT.trailSeconds),
+    trailLength: headSever ? IMPACT.headSeverTrailLength : IMPACT.trailLength,
+    dropSize:
+      gore?.dropSize ??
+      (headSever
+        ? IMPACT.headSeverDropSize
+        : row[1] === "head" || event.recipeId === "opened"
+          ? IMPACT.headDropSize
+          : IMPACT.dropSize),
+    gravity: gore?.burst?.gravity ?? (headSever ? SEVER_BLOOD_DATA.headDropletGravity : IMPACT.gravity),
     groundClip: headSever,
     palette: gore?.palette ?? FINISHER_DATA.impactPalette,
     ...(gore

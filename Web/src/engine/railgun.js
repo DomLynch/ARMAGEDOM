@@ -21,7 +21,7 @@ export function railgunSelected(g) {
 export function stopRailgun(g, reason = "cancel") {
   if (!g?.railgunCharge) return;
   g.railgunCharge = null;
-  g.railgunStatus = { reason, until: g.time + 0.8 };
+  g.railgunStatus = { reason, until: g.time + g.world.bossEquipmentData.commanderPistol.charge.statusSeconds };
   g.events?.push({ type: "railgun-charge-stop", actor: g.player, weapon: "railgun", reason });
 }
 export function railgunIntent(g, intent, dispatch, applyHit, services = {}) {
@@ -161,8 +161,8 @@ export function railgunIntent(g, intent, dispatch, applyHit, services = {}) {
   else if (!line(1)) {
     let low = 0,
       high = 1;
-    for (let i = 0; i < 12; i++) {
-      const mid = (low + high) / 2;
+    for (let i = 0; i < 12; i++) { // tuning-ok: twelve halvings pin the first blocked point to a four-thousandth of the range
+      const mid = (low + high) / 2; // tuning-ok: bisection takes the midpoint
       if (line(mid)) low = mid;
       else high = mid;
     }

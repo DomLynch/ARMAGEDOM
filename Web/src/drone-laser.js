@@ -3,6 +3,9 @@ import { DRONE_RULES } from "./drone-mechanics.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // The longest visible trail and the bolt width are creatures.json `droneLaser`.
 const LASER = GAME_DATA.creatures.droneLaser;
+const BOLT_HEIGHT = 2; // tuning-ok: the bolt quad is one unit wide and two tall before the trail scales it
+const BOLT_SHIFT = -0.5; // tuning-ok: the quad's pivot sits half a unit along its width
+const QUAD_TRIANGLES = 2; // tuning-ok: a quad is two triangles
 // One local, depth-tested quad per existing live projectile. No damage, light,
 // textures, bloom, afterimage or new projectile trajectory/clock authority.
 const vertexShader = `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
@@ -21,8 +24,8 @@ gl_FragColor=vec4(color,alpha);
 export function createDroneLaserBolts({ scene, world, camera }) {
   if (!scene?.isScene || !camera?.isCamera || typeof world?.toRender !== "function")
     throw Error("Laser view requires scene/world/camera");
-  const geometry = new T.PlaneGeometry(1, 2);
-  geometry.translate(-0.5, 0, 0);
+  const geometry = new T.PlaneGeometry(1, BOLT_HEIGHT);
+  geometry.translate(BOLT_SHIFT, 0, 0);
   const entries = new Map(),
     direction = new T.Vector3(),
     toward = new T.Vector3(),
@@ -101,7 +104,7 @@ export function createDroneLaserBolts({ scene, world, camera }) {
         sharedGeometries: disposed ? 0 : 1,
         privateMaterials: entries.size,
         newTextures: 0,
-        trianglesPerBolt: 2,
+        trianglesPerBolt: QUAD_TRIANGLES,
         maxTrailMetres: LASER.trailMetres,
         disposed,
       };

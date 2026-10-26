@@ -11,7 +11,10 @@ import { GAME_DATA, validateAreaRuntime } from "../src/engine/game-data.js";
 const rawText = fs.readFileSync(new URL("../src/data/areaRuntime.json", import.meta.url), "utf8");
 
 test("the travel section is pinned", () => {
-  const section = JSON.stringify(JSON.parse(rawText).travel);
+  // The three message and wave-delay keys added later are pinned in the next test; this hash covers the original section.
+  const { lockMessageSeconds, travelMessageSeconds, firstWaveDelay, ...original } = JSON.parse(rawText).travel;
+  assert.deepEqual([lockMessageSeconds, travelMessageSeconds, firstWaveDelay], [4, 4, 2]);
+  const section = JSON.stringify(original);
   assert.equal(
     crypto.createHash("sha256").update(section).digest("hex"),
     "3c25991b5ee7bf121dd8fc3e3e7a86e409dfc1d6dce2baed56e44d55afc87962",
@@ -22,6 +25,9 @@ test("every value equals the literal it replaced", () => {
   assert.deepEqual(GAME_DATA.areaRuntime.travel, {
     messageDelayMs: 300,
     failureMessageSeconds: 5,
+    lockMessageSeconds: 4,
+    travelMessageSeconds: 4,
+    firstWaveDelay: 2,
     preparation: {
       deadlineMs: 16,
       idleTimeoutMs: 16,
