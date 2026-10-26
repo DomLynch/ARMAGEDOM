@@ -4,6 +4,29 @@
     "cheek": [0.2961382707983211, 0.1589608350608804, 0.09989872824711388],
     "headNames": ["Photo", "PhotoEyes", "PhotoTeeth"]
   },
+  "faceField": { "from": 1.59, "range": 0.07, "pivot": 1.6, "depth": 0.35 },
+  "faceWeathering": {
+    "noise": [139, 173, 97],
+    "frontZ": 0.075,
+    "stubble": { "maxY": 1.65, "base": [0.78, 0.76, 0.74], "gain": [0.09, 0.09, 0.09] },
+    "scar": { "minX": 0.02, "maxX": 0.085, "baseY": 1.682, "slope": 0.27, "halfWidth": 0.007, "color": [0.58, 0.42, 0.35] },
+    "ash": { "minY": 1.64, "noiseMin": 0.65, "color": [0.68, 0.73, 0.75] },
+    "grime": { "noiseMin": 0.53, "base": [0.67, 0.64, 0.6], "gain": [0.15, 0.15, 0.15] },
+    "dust": { "base": [0.91, 0.9, 0.86], "gain": [0.07, 0.07, 0.08] }
+  },
+  "faceHair": {
+    "minY": { "messy": 1.742, "other": 1.75 },
+    "crestHalfWidth": 0.046,
+    "backCropMaxZ": 0.045,
+    "wave": [32, 39],
+    "crest": { "height": 0.045, "floor": 0.35, "span": 0.65, "frequency": 12, "taper": 0.1, "halfWidth": 0.06 },
+    "backCropRaise": 0.018,
+    "messy": { "raise": 0.022, "waveRaise": 0.019, "scaleX": 1.04, "scaleZ": 1.035 },
+    "other": { "raise": 0.008, "waveRaise": 0.01, "scaleX": 1.02, "scaleZ": 1.02 },
+    "underside": { "drop": 0.001, "scale": 0.999 },
+    "material": { "color": "#6b6154", "roughness": 0.98 },
+    "bodySkinDivisor": 0.84
+  },
   "hollowGarments": { "jacket": "Torn charcoal canvas jacket", "trousers": "Worn tobacco trousers" },
   "animals": [
     { "id": "rat-sewer", "foundation": "original-rat", "name": "Sewer Rat", "width": 1, "tint": [1, 1, 1], "patch": 0 },
