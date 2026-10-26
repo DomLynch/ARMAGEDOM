@@ -1,13 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { webText } from "../src/engine/web-text.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const MESSAGE = "Saved run could not be read. Open the menu and choose Reset game to start fresh.";
 
 test("the in-game message for an unreadable saved run points at Reset game, not at a recovery players cannot do", () => {
   const source = read("../src/engine/run-core.js");
-  assert.ok(source.includes(`g.message = "${MESSAGE}";`));
+  assert.ok(source.includes('g.message = webText("runCore.savedRunUnreadable");'));
+  assert.equal(webText("runCore.savedRunUnreadable"), MESSAGE);
   assert.ok(!source.includes("recover it before retrying"));
   assert.ok(!source.includes("Saved run invalid"));
 });
