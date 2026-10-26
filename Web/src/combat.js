@@ -28,8 +28,9 @@ import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
 import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/flame-runtime.js";
-import { wolfResponse, wolfBiteDirection } from "./wolf-native.js";
-import { SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
+import { wolfBiteDirection } from "./wolf-native.js";
+import { SALAMANDER_BREATH } from "./salamander-native.js";
+import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
@@ -276,30 +277,7 @@ export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, itemId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon, attackClass, impactDirection: { ...shot.direction } });
   }
 }
@@ -746,30 +724,7 @@ function flameHit(g, target, damage, { source }) {
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, g.world.flameData.pickupId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon: "flamethrower", attackClass: "fire", impactDirection: direction });
   }
 }
@@ -2422,46 +2377,7 @@ function knifeContacts(g, before, ratBefore) {
       d.ready = d.recoverUntil + (d.recoveryDelay ?? 0);
       d.swing = null;
       if (d.animalRole) d.completedAttack = null;
-      d.response =
-        d.rig === "original-wolf"
-          ? wolfResponse(d.hp > 0, g.time)
-          : d.rig === "giant-salamander"
-            ? salamanderResponse(d.hp > 0, g.time)
-            : {
-                clip:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? "rat_hit"
-                      : "rat_death"
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? "dog_hit"
-                        : "dog_death"
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? "roach_hit"
-                          : "roach_death"
-                        : d.hp
-                          ? "Hit"
-                          : "Death",
-                start: g.time,
-                ticks:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? 20
-                      : 54
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? 24
-                        : 60
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? 18
-                          : 48
-                        : d.hp
-                          ? Math.round(def.stagger * 60)
-                          : 144,
-              };
+      d.response = rigResponse(d.rig, d.hp, g.time, def.stagger);
       event(g, "hit", {
         actor: d,
         amount,
