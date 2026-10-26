@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "storageUnavailableSeconds": 5,
+  "resetPromptSeconds": 5,
+  "bossDropSeconds": 8,
+  "supplyPickupSeconds": 3,
+  "supplyNoticeRepeatSeconds": 4,
+  "supplyRefusalSeconds": 2,
+  "vestEquippedSeconds": 4
+}
