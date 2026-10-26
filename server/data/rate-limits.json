@@ -1,0 +1,8 @@
+{
+  "_comment": "The writer's per-account token buckets for client routes: `burst` requests at once, then one more every `refillMs`. An op that is not listed has no bucket. Loaded by server/writer/writer.js (DEFAULT_LIMITS); the numbers are explained in docs/MULTIPLAYER-DATA-LAYER.md.",
+  "clientOps": {
+    "save_run": { "burst": 6, "refillMs": 5000 },
+    "load_run": { "burst": 3, "refillMs": 1000 },
+    "create_character": { "burst": 3, "refillMs": 60000 }
+  }
+}

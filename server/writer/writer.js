@@ -3,6 +3,7 @@
 // only public face. It performs no game rules of its own: the database is the referee.
 //   client routes   POST /arma/<op>   Authorization: Bearer <Supabase access token>      (one request at a time per account)
 //   internal routes POST /internal/<op>   x-arma-internal-key: <shared key>               (presence only: location and hit batches)
+import fs from "node:fs";
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { CLIENTLOG_LIMIT, CLIENTLOG_MAX_BODY, cleanClientLog, clientIp, ipLimiter } from "./clientlog.js";
@@ -10,7 +11,7 @@ import { CLIENTLOG_LIMIT, CLIENTLOG_MAX_BODY, cleanClientLog, clientIp, ipLimite
 const MAX_BODY = 256 * 1024;
 const STATUS_MAX_AGE_S = 30,
   STATUS_MEMO_MS = 5000;
-const STATUS = { O0007: 403, O0009: 409, O0002: 422, O0001: 200 };
+const STATUS = { O0007: 403, O0009: 409, O0010: 409, O0002: 422, O0001: 200 }; // O0010: the account already has its maximum characters
 
 class HttpError extends Error {
   constructor(status, code, extra = {}) {
@@ -28,7 +29,8 @@ const same = (a, b) => {
 
 // Per-account token buckets on the client routes that cost a database round trip: `burst` requests at once, then one more every `refillMs`.
 // Numbers (docs/MULTIPLAYER-DATA-LAYER.md): saves 1 per 5 s, burst 6 (a fight's save triggers, then the death or pagehide flush, must not be refused); loads 1 per second, burst 3.
-export const DEFAULT_LIMITS = { save_run: { burst: 6, refillMs: 5000 }, load_run: { burst: 3, refillMs: 1000 } };
+// The numbers live in server/data/rate-limits.json.
+export const DEFAULT_LIMITS = JSON.parse(fs.readFileSync(new URL("../data/rate-limits.json", import.meta.url), "utf8")).clientOps;
 
 /** spawnRows over a plain object of world rows; names like "constructor" or "__proto__" are unknown spawns, not prototype values. */
 export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, instance) ? spawns[instance] : null);

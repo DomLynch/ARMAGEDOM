@@ -42,7 +42,7 @@ const lines = (report) => report.differences.map((d) => `${d.section} ${d.key}`)
 test("an untouched database reports zero drift, and the report says what it checked", async () => {
   const report = await drift();
   assert.deepEqual(report.differences, []);
-  assert.match(report.text, /^zero drift \(14 migrations, \d+ seeded rows, 22 functions, 20 tables, 12 policies\)$/);
+  assert.match(report.text, /^zero drift \(15 migrations, \d+ seeded rows, 22 functions, 20 tables, 12 policies\)$/);
 });
 
 test("the reader role Deploy connects as: read-only, seeded tables and the registry only, no writes, no functions, no memberships", async () => {

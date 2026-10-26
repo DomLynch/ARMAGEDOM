@@ -12,7 +12,7 @@ const KEY = "internal-key-for-tests";
 const spawns = { "wolf-1": { kind: "wolf", area: "east", maxHp: 40 } };
 
 // Tests that are not about the rate limit run with limits too high to matter; the limit tests pass their own.
-const UNLIMITED = { save_run: { burst: 1e6, refillMs: 1 }, load_run: { burst: 1e6, refillMs: 1 } };
+const UNLIMITED = Object.fromEntries(Object.keys(DEFAULT_LIMITS).map((op) => [op, { burst: 1e6, refillMs: 1 }]));
 
 async function start({ limits = UNLIMITED, now } = {}) {
   const pg = await freshDb();
@@ -342,4 +342,25 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
   const run = spawnSync(process.execPath, [new URL("../../writer/main.js", import.meta.url).pathname], { env: { PATH: process.env.PATH }, encoding: "utf8" });
   assert.equal(run.status, 0);
   assert.match(run.stdout, /OFF/);
+});
+
+test("create_character: a bucket of 3 then one per 60 s, and the sixth character is a 409 O0010", async () => {
+  assert.deepEqual(DEFAULT_LIMITS.create_character, { burst: 3, refillMs: 60000 });
+  let clock = 1_000_000;
+  const t = await start({ limits: { create_character: DEFAULT_LIMITS.create_character }, now: () => clock });
+  try {
+    const make = (name) => t.post("/arma/create_character", { name }, { as: ids.alice });
+    assert.deepEqual([(await make("A")).status, (await make("B")).status, (await make("C")).status], [200, 200, 200]);
+    const limited = await make("D");
+    assert.deepEqual([limited.status, limited.body.error, limited.body.retryMs], [429, "rate-limited", 60000]);
+    clock += 60000;
+    assert.equal((await make("D")).status, 200);
+    clock += 60000;
+    assert.equal((await make("E")).status, 200);
+    clock += 60000;
+    const sixth = await make("F");
+    assert.deepEqual([sixth.status, sixth.body.error], [409, "O0010"]);
+  } finally {
+    await t.close();
+  }
 });
