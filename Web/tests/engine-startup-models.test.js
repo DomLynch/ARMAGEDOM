@@ -44,7 +44,7 @@ test('a stalled load fails with a message after loadStallMs, disposes the late l
 // shows the data text; the message goes to the console and the client-log beacon.
 test('a thrown Error message never reaches the load card, only the beacon and console',async()=>{
  const f=fixture('lambeth'),secret='validateWorld: manifest.json models[7] missing /public/x.glb';
- f.context.prepareEncounter=async()=>{throw Error(secret)};
+ f.context.prepareEncounter=async()=>[{status:'rejected',reason:Error(secret)},{status:'fulfilled',value:{dispose(){}}}];
  await f.begin();
  assert.equal(f.context.loaded,false);assert.equal(f.messages.length,1);
  assert.equal(f.messages[0],sessionText('browser.loadFailed'));assert(!f.messages[0].includes(secret));
