@@ -705,7 +705,9 @@ export function validateAreaRuntime(d) {
 // uniqueReward.json: where a boss's drop is placed when its corpse is against a wall or exit (engine/unique-reward-runtime.js). Metres,
 // searched outward in 16 directions: the near rings first, then the wider ones. Placement only; item identity and saved shape stay in code.
 export function validateUniqueReward(d) {
-  closed(d, ["schema_version", "dropSearch"]);
+  closed(d, ["schema_version", "pickupRadius", "dropSearch"]);
+  number("uniqueReward", "pickupRadius", d.pickupRadius, 0.1);
+  if (d.pickupRadius > 5) fail("uniqueReward", "pickupRadius must be up to 5 m");
   closed(d.dropSearch, ["ringSteps", "nearRadii", "fallbackRadii"]);
   count("uniqueReward", "dropSearch.ringSteps", d.dropSearch.ringSteps, 4, 64);
   if (d.dropSearch.ringSteps % 2) fail("uniqueReward", "dropSearch.ringSteps must be even (half a turn is a whole number of steps)");

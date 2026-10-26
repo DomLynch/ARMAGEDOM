@@ -31,7 +31,7 @@ export const UNIQUE_REWARD_LAYER = Object.freeze({
     "expedition",
     "uniqueReward",
   ]),
-  pickupRadius: GAME_DATA.visual.weaponViews.uniqueReward.pickupReach, // data/visual.json: the one pickup reach, shared with the view
+  pickupRadius: GAME_DATA.uniqueReward.pickupRadius, // data/uniqueReward.json: the one pickup reach, shared with the view
   pickupEpsilon: 1e-8,
   finitePosition: true,
   messages: Object.freeze({
