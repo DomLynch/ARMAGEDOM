@@ -5,6 +5,67 @@
     "needsVisit": "Visit {destination} first",
     "saveUnavailable": "Saving unavailable. Exit locked."
   },
+  "hud": {
+    "enterCombat": "Move to enter combat. Survive three waves.",
+    "hollowScavengers": "Hollow scavengers",
+    "pistolEquipped": "PISTOL EQUIPPED",
+    "knifeEquipped": "KNIFE EQUIPPED",
+    "emptyReload": "EMPTY · Reload.",
+    "outOfAmmo": "OUT OF AMMO · Switch to melee.",
+    "parry": "PARRY · Counter while they recover.",
+    "guardBroken": "GUARD BROKEN · Dodge or make space.",
+    "hollowCleared": "LONDON · Hollow encounter cleared.",
+    "knifeCleared": "LONDON · Knife encounter cleared.",
+    "bossDefeated": "{name} defeated.",
+    "suppliesAwait": " Supplies await near the body.",
+    "waveCleared": "WAVE CLEARED · +{hp} HP",
+    "goblinEncounter": "LONDON · Goblin knife encounter",
+    "warlord": "ORC WARLORD · Dodge, then strike.",
+    "wave": "WESTMINSTER · Wave {wave}/{final}",
+    "blade": "BLADE +{pct}% damage",
+    "armour": "ARMOUR +{hp} max HP",
+    "tonic": "TONIC +{hp} HP",
+    "hollowEncounter": "LONDON · Hollow scavengers"
+  },
+  "gear": {
+    "emberProjector": "Ember Projector",
+    "charges": "{count} charges",
+    "recallDeploy": "Recall / Deploy",
+    "empty": "{name} is empty.",
+    "equippedSuffix": " · equipped",
+    "tapToEquip": " · tap to equip",
+    "weaponSelection": "Weapon selection",
+    "collected": "{name} collected.",
+    "collectedEquipInGear": "{name} collected. Equip it in Gear.",
+    "equipped": "{name} equipped.",
+    "startPistolLabel": "Collect Starting Pistol",
+    "iconCaptions": {
+      "knife": "KNIFE",
+      "hale-pitborn-cleaver-v1": "CLEAVER",
+      "surgeons-knife-v1": "BONE SAW",
+      "westminster-start-pistol-v1": "PISTOL",
+      "watchmans-pistol-v1": "REAPER",
+      "borough-marshals-pistol-v1": "ARC GUN",
+      "bridge-warden-rifle-v1": "RIFLE",
+      "flamethrower-area8-v1": "EMBER",
+      "ember-flamethrower-v1": "EMBER",
+      "south-stalker-shotgun-v1": "SHOTGUN",
+      "standard-grenade-v1": "GRENADE",
+      "borough-butchers-rocket-launcher-v1": "ROCKET"
+    }
+  },
+  "markedHunter": {
+    "warning": "HUNTER INBOUND · find cover or reach a safehouse.",
+    "arrived": "A hunter is after you"
+  },
+  "bossFlame": {
+    "defaultBossName": "SALAMANDER",
+    "warning": "{name} · FLAME BURST — MOVE ASIDE"
+  },
+  "rewardNames": {
+    "cleaver": "Pitborn Cleaver",
+    "reaper": "Reaper Drone"
+  },
   "layerMessages": {
     "bossEquipment": {
       "envelope": "Invalid boss equipment envelope",

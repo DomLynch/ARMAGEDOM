@@ -82,9 +82,9 @@ export function createExplosionEffects(s) {
   let layers = null;
   function build() {
     const texture = softTexture(),
-      glow = layer("Explosion glow", texture, X.maxActive * glowPer, T.AdditiveBlending, X.renderOrder),
-      smoke = layer("Explosion smoke", texture, X.maxActive * M.count, T.NormalBlending, X.renderOrder - 1),
-      scorch = layer("Explosion scorch", texture, X.maxActive, T.NormalBlending, X.renderOrder - 1);
+      glow = layer("Explosion glow", texture, X.maxActive * glowPer, T.AdditiveBlending, X.renderOrder), // text-ok: scene-graph object name
+      smoke = layer("Explosion smoke", texture, X.maxActive * M.count, T.NormalBlending, X.renderOrder - 1), // text-ok: scene-graph object name
+      scorch = layer("Explosion scorch", texture, X.maxActive, T.NormalBlending, X.renderOrder - 1); // text-ok: scene-graph object name
     for (const l of [scorch, smoke, glow]) s.scene.add(l.mesh);
     layers = { texture, glow, smoke, scorch };
   }

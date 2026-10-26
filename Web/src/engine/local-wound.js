@@ -60,7 +60,7 @@ export function createLocalWound({ THREE: T, parent, profile }) {
     side: T.FrontSide,
   });
   const mesh = new T.Mesh(geometry, material);
-  mesh.name = "Actor-owned localized surface wound";
+  mesh.name = "Actor-owned localized surface wound"; // text-ok: scene-graph object name
   mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.matrixAutoUpdate = false;
