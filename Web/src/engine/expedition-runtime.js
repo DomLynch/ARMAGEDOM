@@ -8,6 +8,8 @@ import { createHeadLabelPositioner } from "./boss-label.js";
 import { createVestBagView } from "../vest-view.js";
 import { areaDisplayName as areaName } from "../area-registry.js";
 import { EXPEDITION_HUD } from "./expedition-hud-data.js";
+import { sessionText as text } from "./session-text.js";
+import { PISTOL_RULES } from "../pistol.js";
 export function selectedAtlasRoute(registry, from, to) {
   const route = [];
   if (!to || from === to) return route;
@@ -21,6 +23,7 @@ export function selectedAtlasRoute(registry, from, to) {
   }
   return route;
 }
+const mark = (on, key) => (on ? text(`expedition.${key}`) : ""); // an atlas mark or aria suffix, or nothing
 const paint = (element, value) => {
   if (element.textContent !== value) element.textContent = value;
 };
@@ -48,7 +51,11 @@ const nearbyAction = (g, data) =>
   g.expedition?.status === "available" && expeditionEligible(g, "recover", data)
     ? "recover"
     : stageAction[g.expedition?.status];
-const labels = { accept: "Accept contract", recover: "Recover supply case", claim: "Complete contract & claim reward" };
+const labels = {
+  accept: text("expedition.actionAccept"),
+  recover: text("expedition.actionRecover"),
+  claim: text("expedition.actionClaim"),
+};
 export function journalPresentation(g, data, allowed = true) {
   const status = g.expedition?.status,
     action = stageAction[status],
@@ -58,12 +65,10 @@ export function journalPresentation(g, data, allowed = true) {
     return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
   const next =
     {
-      available: "Optional · accept at the Westminster stash, or recover the case in East.",
-      accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
-      recovered: eligible
-        ? "At the Westminster stash · claim your reward."
-        : "Case recovered · return to the Westminster stash.",
-      claimed: "Reward claimed once · choose your earned weapon in Gear.",
+      available: text("expedition.journalAvailable"),
+      accepted: text("expedition.journalAccepted"),
+      recovered: text(eligible ? "expedition.journalRecoveredReady" : "expedition.journalRecovered"),
+      claimed: text("expedition.journalClaimed"),
     }[status] ?? "";
   return {
     eligible,
@@ -79,7 +84,7 @@ export function progressionObjective(g) {
   const gate = bossExitGate(g, "east");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
-    : { target: "east", objective: "Reach East." };
+    : { target: "east", objective: text("expedition.reachEast") };
 }
 // The stolen supply case is a prop in East only while the contract is on.
 export const supplyCaseShown = (data, areaId, status) =>
@@ -144,13 +149,22 @@ export function createExpeditionView(s, dispatch) {
     el("contract-title").textContent = data.contract.title;
     const base = data.variants[PISTOL_ITEM_ID],
       reward = data.variants[data.contract.rewardVariantId];
+    const percent = Math.round((reward.damage / base.damage - 1) * 100);
     el("contract-description").textContent = s.world.reaperData
-      ? `${data.contract.summary} Reward: ${s.world.reaperData.name}, an autonomous companion alongside your held weapon.`
-      : `${data.contract.summary} Reward: ${reward.name}, ${reward.damage} base damage (+${Math.round((reward.damage / base.damage - 1) * 100)}%; starting pistol ${base.damage}); reload ${reward.reload.toFixed(1)}s (starting pistol ${base.reload.toFixed(1)}s).`;
+      ? text("expedition.descriptionCompanion", { summary: data.contract.summary, name: s.world.reaperData.name })
+      : text("expedition.descriptionWeapon", {
+          summary: data.contract.summary,
+          name: reward.name,
+          damage: reward.damage,
+          percent,
+          baseDamage: base.damage,
+          reload: reward.reload.toFixed(1),
+          baseReload: base.reload.toFixed(1),
+        });
     if (el("contract-reward"))
       el("contract-reward").textContent = s.world.reaperData
-        ? `Reward: ${s.world.reaperData.name} · autonomous companion`
-        : `Reward: ${reward.name} · +${Math.round((reward.damage / base.damage - 1) * 100)}% base damage · ${reward.reload.toFixed(1)}s reload.`;
+        ? text("expedition.rewardCompanion", { name: s.world.reaperData.name })
+        : text("expedition.rewardWeapon", { name: reward.name, percent, reload: reward.reload.toFixed(1) });
     for (const [id, row] of Object.entries(data.variants)) {
       if (s.world.reaperData && id === data.contract.rewardVariantId) continue;
       const button = document.createElement("button");
@@ -177,7 +191,7 @@ export function createExpeditionView(s, dispatch) {
       }
     el("atlas-map").setAttribute(
       "aria-label",
-      `${registry.ids.length} areas. Select a destination to show only its route. Tile positions are schematic.`,
+      text("expedition.atlasMap", { count: registry.ids.length }),
     );
     for (const id of registry.ids) {
       const button = document.createElement("button"),
@@ -235,7 +249,7 @@ export function createExpeditionView(s, dispatch) {
     }
     if (!catalogue) build(data);
     el("retry").disabled = el("again").disabled = !!g.runSaveInvalid;
-    el("retry").title = el("again").title = g.runSaveInvalid ? "Open the menu and choose Reset game." : "";
+    el("retry").title = el("again").title = g.runSaveInvalid ? text("expedition.resetHint") : "";
     const state = g.expedition;
     if (!state) {
       panel.hidden = true;
@@ -252,7 +266,7 @@ export function createExpeditionView(s, dispatch) {
     const journal = journalPresentation(g, data, allowed());
     paint(el("contract-status"), journal.next);
     el("contract-action").hidden = !journal.showAction;
-    paint(el("contract-action"), status === "claimed" ? "View Gear" : labels[action]);
+    paint(el("contract-action"), status === "claimed" ? text("expedition.viewGear") : labels[action]);
     el("contract-action").disabled = status !== "claimed" && !eligible;
     const known = new Set([...(state.visitedIds ?? []), g.world.areaId, ...(objective ? [objective] : [])]);
     if (pin && !known.has(pin)) pin = null;
@@ -267,14 +281,26 @@ export function createExpeditionView(s, dispatch) {
       paint(
         button,
         visible
-          ? `${current ? "● " : ""}${areaName(id)}${visited ? " ✓" : ""}${target ? " ⚑" : ""}${pin === id ? " · PIN" : ""}`
-          : "? Undiscovered",
+          ? [
+              mark(current, "nodeCurrent"),
+              areaName(id),
+              mark(visited, "nodeVisited"),
+              mark(target, "nodeObjective"),
+              mark(pin === id, "nodePinned"),
+            ].join("")
+          : text("expedition.nodeUndiscovered"),
       );
       button.setAttribute(
         "aria-label",
         visible
-          ? `${areaName(id)}${current ? ", current area" : ""}${visited ? ", visited" : ""}${target ? ", objective" : ""}${pin === id ? ", pinned" : ""}`
-          : "Undiscovered area",
+          ? [
+              areaName(id),
+              mark(current, "labelCurrent"),
+              mark(visited, "labelVisited"),
+              mark(target, "labelObjective"),
+              mark(pin === id, "labelPinned"),
+            ].join("")
+          : text("expedition.labelUndiscovered"),
       );
     }
     const selectedRoute = selectedAtlasRoute(g.world.registry, g.world.areaId, pin),
@@ -288,9 +314,10 @@ export function createExpeditionView(s, dispatch) {
       gate = next ? bossExitGate(g, next.to) : null,
       route = pin
         ? next
-          ? `Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}${gate && !gate.allowed ? " · " + gate.message : ""}`
-          : `Pinned ${areaName(pin)} · you are here.`
-        : "Choose a known destination to show its route. Tile positions are schematic. ● Current · ✓ Visited · ⚑ Objective";
+          ? text("expedition.routeNext", { area: areaName(pin), next: areaName(next.to) }) +
+            (gate && !gate.allowed ? text("expedition.routeGate", { gate: gate.message }) : "")
+          : text("expedition.routeHere", { area: areaName(pin) })
+        : text("expedition.routeChoose");
     paint(el("atlas-route"), route);
     el("atlas-objective").disabled = !objective;
     const profile = selectedPistolProfile(g),
@@ -299,7 +326,18 @@ export function createExpeditionView(s, dispatch) {
         : (data.variants[state.selectedPistolVariant]?.name ?? data.variants[PISTOL_ITEM_ID].name);
     paint(
       el("equipment-state"),
-      `${g.flame?.equipped ? "Stored pistol" : g.pistol.equipped ? "Equipped pistol" : "Holstered pistol"}: ${name} · damage ${+effectiveWeaponDamage(g, PISTOL_ITEM_ID, profile.damage).toFixed(1)} · reload ${profile.reload.toFixed(1)}s · ${g.pistol.magazine}/6 loaded, ${g.pistol.reserve} reserve.${g.pistol.collected ? "" : " Collect the pistol at the stash to use your retained variant."}`,
+      text("expedition.equipmentState", {
+        stance: text(
+          g.flame?.equipped ? "expedition.pistolStored" : g.pistol.equipped ? "expedition.pistolEquipped" : "expedition.pistolHolstered",
+        ),
+        name,
+        damage: +effectiveWeaponDamage(g, PISTOL_ITEM_ID, profile.damage).toFixed(1),
+        reload: profile.reload.toFixed(1),
+        magazine: g.pistol.magazine,
+        capacity: PISTOL_RULES.capacity,
+        reserve: g.pistol.reserve,
+        hint: g.pistol.collected ? "" : text("expedition.equipmentCollect"),
+      }),
     );
     for (const [id, button] of choices) {
       const row = data.variants[id],
@@ -317,8 +355,17 @@ export function createExpeditionView(s, dispatch) {
       paint(
         button,
         lockerStored(g, id)
-          ? `Stored · ${row.name}`
-          : `${(g.world.reaperData ? id === PISTOL_ITEM_ID : state.selectedPistolVariant === id) && g.pistol.equipped && !g.flame?.equipped ? "Equipped" : owned ? "Equip" : "Locked"} · ${row.name}`,
+          ? text("expedition.variantStored", { name: row.name })
+          : text("expedition.variantChoice", {
+              state: text(
+                (g.world.reaperData ? id === PISTOL_ITEM_ID : state.selectedPistolVariant === id) && g.pistol.equipped && !g.flame?.equipped
+                  ? "expedition.stateEquipped"
+                  : owned
+                    ? "expedition.stateEquip"
+                    : "expedition.stateLocked",
+              ),
+              name: row.name,
+            }),
       );
     }
     if (el("pistol-comparison"))
@@ -328,7 +375,11 @@ export function createExpeditionView(s, dispatch) {
           .filter(([id]) => !g.world.reaperData || id === PISTOL_ITEM_ID)
           .map(
             ([, row]) =>
-              `${row.name}: ${+effectiveWeaponDamage(g, PISTOL_ITEM_ID, row.damage).toFixed(1)} damage · ${row.reload.toFixed(1)}s reload`,
+              text("expedition.comparisonRow", {
+                name: row.name,
+                damage: +effectiveWeaponDamage(g, PISTOL_ITEM_ID, row.damage).toFixed(1),
+                reload: row.reload.toFixed(1),
+              }),
           )
           .join(" / "),
       );
@@ -339,7 +390,7 @@ export function createExpeditionView(s, dispatch) {
     const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
-      caseView.root.name = "Stolen supply case";
+      caseView.root.name = "Stolen supply case"; // text-ok: scene-graph node name, never shown
       caseView.root.scale.setScalar(EXPEDITION_HUD.caseScale);
       s.scene.add(caseView.root);
     }
@@ -402,7 +453,7 @@ export function createExpeditionView(s, dispatch) {
     if ((!action && !claimed) || !expeditionEligible(g, claimed ? "claim" : action, catalogue)) return null;
     return {
       id: "expedition-" + (claimed ? "gear" : action),
-      label: claimed ? "View earned gear" : labels[action],
+      label: claimed ? text("expedition.viewEarnedGear") : labels[action],
       position: action === "recover" ? catalogue.contract.case.position : catalogue.contract.giver.position,
       run: interact,
     };
