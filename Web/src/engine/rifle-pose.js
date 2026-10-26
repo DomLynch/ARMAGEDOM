@@ -39,9 +39,9 @@ export function createRiflePose(model, source) {
     });
     const finite = (a, n) => Array.isArray(a) && a.length === n && a.every(Number.isFinite);
     if (
-      !finite(data.mount.translation, 3) ||
-      !finite(data.mount.quaternion, 4) ||
-      !finite(data.mount.scale, 3) ||
+      !finite(data.mount.translation, 3) || // tuning-ok: a translation has x, y and z
+      !finite(data.mount.quaternion, 4) || // tuning-ok: a quaternion has x, y, z and w
+      !finite(data.mount.scale, 3) || // tuning-ok: a scale has x, y and z
       data.mount.scale.some((v) => v !== 1)
     )
       throw Error("Invalid rifle mount transform");
@@ -69,7 +69,7 @@ export function createRiflePose(model, source) {
           if (!match || !bones.has(match[1]) || seen.has(match[1]) || track.ValueTypeName !== "quaternion")
             throw Error("Unexpected rifle track");
           seen.add(match[1]);
-          return { bone: bones.get(match[1]), sample: track.createInterpolant(new Float32Array(4)) };
+          return { bone: bones.get(match[1]), sample: track.createInterpolant(new Float32Array(4)) }; // tuning-ok: one quaternion sample is four floats
         });
       if (seen.size !== bones.size) throw Error("Incomplete rifle upper-body pose");
       clips.set(name, { duration: clip.duration, tracks });

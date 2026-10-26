@@ -8,7 +8,8 @@ const closed = (value, names) =>
     const d = Object.getOwnPropertyDescriptor(value, name);
     return d && d.enumerable && "value" in d;
   });
-const point = (p) => closed(p, ["x", "z"]) && Object.values(p).every((n) => Number.isFinite(n) && Math.abs(n) <= 10000); // tuning-ok: a validation bound on a position field (metres), not a value
+const COORDINATE_LIMIT = 10000; // tuning-ok: the largest world coordinate a saved rifle point may hold
+const point = (p) => closed(p, ["x", "z"]) && Object.values(p).every((n) => Number.isFinite(n) && Math.abs(n) <= COORDINATE_LIMIT);
 export function createRifleModel(profile = RIFLE_PROFILE) {
   const data = validateRangedWeaponCatalog({ [profile.itemId]: profile })[profile.itemId];
   if (data.family !== "rifles" || !data.source) throw TypeError("Rifle reward source required");

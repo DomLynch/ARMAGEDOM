@@ -26,7 +26,7 @@ export function prepareParkedResidents(game, areaWorld, initializeResidents) {
     areaInitialized: false,
     encounterCleared: false,
     wave: 0,
-    nextWave: game.time + GAME_DATA.creatures.runTimings.firstWaveDelay,
+    nextWave: game.time + GAME_DATA.areaRuntime.travel.firstWaveDelay,
     nextEnemyAttackAt: game.time,
   };
   initializeResidents(dormant);

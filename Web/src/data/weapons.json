@@ -170,7 +170,7 @@
         "areaId": "area8",
         "receiptId": "boss-veteran-v1:borough-marshals-pistol-v1"
       },
-      "charge": { "seconds": 0.3, "maxSeconds": 3.5 },
+      "charge": { "seconds": 0.3, "maxSeconds": 3.5, "statusSeconds": 0.8 },
       "arc": { "jumps": 3, "hopRange": 4.5, "hopDamageFactor": 0.75, "stunSeconds": 0.6, "bossStunSeconds": 0.2 }
     }
   },
@@ -293,7 +293,16 @@
       }
     },
     "staminaCosts": { "slash": 18, "stab": 14, "heavy": 26, "special": 40, "dodge": 30 },
-    "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 }
+    "cooldowns": { "heavy": 0, "special": 15, "dodgeTicks": 36 },
+    "swingCurve": {
+      "contact": 0.35,
+      "sourceContact": 0.34,
+      "windupContactRatio": 0.7,
+      "windupSourceRatio": 0.44,
+      "followContactGap": 0.16,
+      "followSourceRatio": 0.56
+    },
+    "bladeContact": { "stepMetres": 0.02, "bodyBottom": 0.55, "bodyTop": 1.45, "radius": 0.31 }
   },
   "bossEquipment": {
     "order": ["shotgun", "grenade", "surgicalKnife", "commanderPistol", "emberProjector", "rocketLauncher"],
@@ -313,7 +322,10 @@
       "staminaPerSecond": 10,
       "staggerAfter": 3,
       "staggerSeconds": 0.16,
-      "staggerRecovery": 1.4
+      "staggerRecovery": 1.4,
+      "hitStagger": 0.12,
+      "hitChip": 0.1,
+      "recoveryReadySeconds": 0.1
     },
     "surgicalKnife": {
       "itemId": "surgeons-knife-v1",
@@ -481,6 +493,15 @@
       }
     }
   },
+  "rocket": {
+    "noseLength": 0.18,
+    "groundHeight": 0.05,
+    "aimFallbackHeight": 0.05,
+    "moveDeadzone": 0.01,
+    "aimCache": { "positionTolerance": 0.01, "seconds": 0.25 },
+    "wallSearchSteps": 14,
+    "wallBackoff": 0.001
+  },
   "targeting": {
     "pistol": { "acquireDegrees": 12, "retainDegrees": 18 },
     "meleeConeDegrees": 45,
@@ -491,7 +512,8 @@
       "grenadeLandingHeight": 0.08,
       "landingHeight": 0.05,
       "bodyMinHalfHeight": 0.1,
-      "bodyHeightRatio": 0.65
+      "bodyHeightRatio": 0.65,
+      "bodyMinRadius": 0.05
     }
   },
   "families": [
@@ -517,7 +539,10 @@
     "deadzone": 0.13,
     "pistolGain": 1,
     "acquireMargin": 0.6,
-    "retainMargin": 0.9
+    "retainMargin": 0.9,
+    "maxStepSeconds": 0.1,
+    "movingThreshold": 0.01,
+    "minTargetDistance": 0.01
   },
   "flameAim": {
     "gain": 1,

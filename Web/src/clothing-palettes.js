@@ -3,6 +3,7 @@
 // The swatch rows and the family pairings live in Web/src/data/visual.json `clothing` (read through game-data.js).
 import { GAME_DATA } from "./engine/game-data.js";
 const CLOTHING = GAME_DATA.visual.clothing;
+const ID_DIGITS = 2; // tuning-ok: swatch ids are numbered 01, 02, ...
 export const CLOTHING_PALETTE_VERSION = CLOTHING.version;
 const linear = (hex) => {
   const rgb = parseInt(hex, 16); // tuning-ok: hex is base 16
@@ -18,7 +19,11 @@ const entries = (prefix, rows) =>
   Object.freeze(
     rows.flatMap(([family, ...hexes]) =>
       hexes.map((hex, i) =>
-        Object.freeze({ id: `${prefix}-${family}-${String(i + 1).padStart(2, "0")}`, family, linear: linear(hex) }),
+        Object.freeze({
+          id: `${prefix}-${family}-${String(i + 1).padStart(ID_DIGITS, "0")}`,
+          family,
+          linear: linear(hex),
+        }),
       ),
     ),
   );

@@ -487,7 +487,6 @@ export const creatureKeys = () => [
   "bridgeSteering",
   "droneLaser",
   "droneHover",
-  "runTimings",
   "roachTerritory",
 ];
 
@@ -519,17 +518,11 @@ export function validateCreatureExtras(d, { fail, number }) {
     number("creatures", `droneLaser.${name}`, d.droneLaser[name], 0.001);
     if (d.droneLaser[name] > 10) fail("creatures", `droneLaser.${name} above 10`);
   }
-  // drone-mechanics.js: the hover bob (radians per second, metres); run timings: the delay before an area's first wave and how long the auto-equip
-  // message shows (seconds); roach-territory.js: how close to home (metres) a returning roach counts as home.
+  // drone-mechanics.js: the hover bob (radians per second, metres); roach-territory.js: how close to home (metres) a returning roach counts as home.
   closed(d.droneHover, ["rate", "swing"]);
   number("creatures", "droneHover.rate", d.droneHover.rate, 0);
   number("creatures", "droneHover.swing", d.droneHover.swing, 0);
   if (d.droneHover.rate > 100 || d.droneHover.swing > 1) fail("creatures", "droneHover out of range");
-  closed(d.runTimings, ["firstWaveDelay", "equipMessageSeconds"]);
-  for (const name of ["firstWaveDelay", "equipMessageSeconds"]) {
-    number("creatures", `runTimings.${name}`, d.runTimings[name], 0);
-    if (d.runTimings[name] > 600) fail("creatures", `runTimings.${name} above 600`);
-  }
   closed(d.roachTerritory, ["homeArrivedMetres"]);
   number("creatures", "roachTerritory.homeArrivedMetres", d.roachTerritory.homeArrivedMetres, 0.001);
   if (d.roachTerritory.homeArrivedMetres > 10) fail("creatures", "roachTerritory.homeArrivedMetres above 10");

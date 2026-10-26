@@ -106,11 +106,16 @@ test("the ratchet fails an increase, a missing lowering and a new file, and pass
       c = write("c.js", "const x = 0.22;"),
       view = write("vest-view.js", "const x = 0.22;");
     const baseline = { numberLiterals: { "a.js": 2, "b.js": 2 } };
-    const problems = numberLiteralProblems([a, b, c, view], baseline, dir);
+    const strict = { shrinkTolerance: false };
+    const problems = numberLiteralProblems([a, b, c, view], baseline, dir, strict);
     assert.equal(problems.length, 2);
     assert(problems.some((p) => p.includes("b.js") && p.includes("Lower it to 1")));
     assert(problems.some((p) => p.includes("c.js") && p.includes("limit 0")));
-    assert.deepEqual(numberLiteralProblems([a], baseline, dir), []);
+    assert.deepEqual(numberLiteralProblems([a], baseline, dir, strict), []);
+    // The temporary shrink tolerance drops only the missing-lowering finding; a new file still fails.
+    const tolerant = numberLiteralProblems([a, b, c, view], baseline, dir, { shrinkTolerance: true });
+    assert.equal(tolerant.length, 1);
+    assert(tolerant[0].includes("c.js") && tolerant[0].includes("limit 0"));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

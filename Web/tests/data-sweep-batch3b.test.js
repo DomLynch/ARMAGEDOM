@@ -7,7 +7,7 @@ import { countNumberLiterals } from "../../scripts/number-literal-gate.mjs";
 
 // Phase 2b batch 3b: bridge-steering.js, drone-mechanics.js, auto-equip.js, travel.js, parked-area-preparation.js, roach-territory.js, marked.js,
 // rifle-state.js and game-data.js lose their last tuning numbers. The steering goal shift and creep window join creatures.json `bridgeSteering`;
-// the drone hover bob is `droneHover`, the first-wave delay and equip message are `runTimings`, the roach home radius is `roachTerritory`. The
+// the drone hover bob is `droneHover`, the roach home radius is `roachTerritory`; parked areas share travel's areaRuntime first-wave delay. The
 // marked, rifle-state and game-data numbers are validation bounds, kept in code with a reason. The steering runs stay identical (data-sweep-c.test.js
 // compares 72 walks with a fixture dumped from the module before the first move).
 const FILES = [
@@ -28,9 +28,9 @@ test("every value equals the literal it replaced", () => {
   assert.equal(c.bridgeSteering.goalShiftMetres, 0.5);
   assert.equal(c.bridgeSteering.creepSeconds, 0.5);
   assert.deepEqual(c.droneHover, { rate: 3, swing: 0.025 });
-  assert.deepEqual(c.runTimings, { firstWaveDelay: 2, equipMessageSeconds: 3 });
+  assert.equal(GAME_DATA.areaRuntime.travel.firstWaveDelay, 2);
   assert.deepEqual(c.roachTerritory, { homeArrivedMetres: 0.2 });
-  for (const key of ["droneHover", "runTimings", "roachTerritory"]) assert(Object.isFrozen(c[key]), key);
+  for (const key of ["droneHover", "roachTerritory"]) assert(Object.isFrozen(c[key]), key);
 });
 
 test("the hover height is the old expression at every time", () => {
@@ -48,8 +48,6 @@ test("the loader rejects broken blocks", () => {
   assert.throws(broken((d) => (d.bridgeSteering.goalShiftMetres = 0)));
   assert.throws(broken((d) => delete d.droneHover));
   assert.throws(broken((d) => (d.droneHover.rate = -1)));
-  assert.throws(broken((d) => (d.runTimings.firstWaveDelay = "2")));
-  assert.throws(broken((d) => (d.runTimings.extra = 1)));
   assert.throws(broken((d) => (d.roachTerritory.homeArrivedMetres = 0)));
   assert.doesNotThrow(broken(() => {}));
 });
