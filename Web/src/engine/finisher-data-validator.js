@@ -23,6 +23,7 @@ export function validateFinisherData(value) {
       "impactPalette",
       "preparation",
       "cosmetics",
+      "grounding",
       "armSever",
       "gore",
     ],
@@ -42,6 +43,30 @@ export function validateFinisherData(value) {
     "spinDamping",
     "spinMin",
   ]);
+  // grounding (finisher-grounding.js): the victim floor-lift table's sample count, vertex cap, time slice and yield cadence.
+  closed(d.grounding, [
+    "samples",
+    "maxVertices",
+    "sliceMs",
+    "indexYieldMask",
+    "readYieldMask",
+    "phaseMax",
+    "floorTolerance",
+  ]);
+  const ground = d.grounding;
+  if (
+    !Number.isSafeInteger(ground.samples) ||
+    !finite(ground.samples, 1, 1000) ||
+    !Number.isSafeInteger(ground.maxVertices) ||
+    !finite(ground.maxVertices, 1000, 10000000) ||
+    !finite(ground.sliceMs, 0.5, 50) ||
+    ![ground.indexYieldMask, ground.readYieldMask].every(
+      (m) => Number.isSafeInteger(m) && m >= 0 && (m & (m + 1)) === 0,
+    ) ||
+    !finite(ground.phaseMax, 0.9, 1) ||
+    !finite(ground.floorTolerance, 0, 0.1)
+  )
+    fail();
   const arm = d.armSever;
   if (
     !Number.isInteger(arm.boneCount) ||
