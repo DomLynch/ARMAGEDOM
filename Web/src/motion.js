@@ -1,12 +1,20 @@
 import * as THREE from "three";
 const vec = () => new THREE.Vector3(),
   quat = () => new THREE.Quaternion();
+import { GAME_DATA } from "./engine/game-data.js";
 const clamp = THREE.MathUtils.clamp;
+import { validateMotion } from "./engine/motion-data.js";
+const MOTION = GAME_DATA.visual.motion;
+validateMotion(MOTION); // checked here, not in game-data.js, which is at its source density limit
+// Numerical guards for the arm solver, not tuning: the smallest length it will divide by and the share of full reach it will aim at.
+const EPSILON = 0.00001;
+const MAX_REACH = 0.99999;
 export function posePhase(elapsed, windup, recovery) {
+  const { windupShare, minSeconds } = MOTION.posePhase;
   return clamp(
     elapsed < windup
-      ? (0.45 * elapsed) / Math.max(0.01, windup)
-      : 0.45 + (0.55 * (elapsed - windup)) / Math.max(0.01, recovery),
+      ? (windupShare * elapsed) / Math.max(minSeconds, windup)
+      : windupShare + ((1 - windupShare) * (elapsed - windup)) / Math.max(minSeconds, recovery),
     0,
     1,
   );
@@ -25,11 +33,11 @@ export function solveArm(upper, lower, hand, target, pole, weight = 1) {
   const a = start.distanceTo(middle),
     b = middle.distanceTo(end),
     delta = target.clone().sub(start),
-    distance = clamp(delta.length(), Math.abs(a - b) + 0.00001, (a + b) * 0.99999);
-  if (a < 0.00001 || b < 0.00001 || delta.length() < 0.00001) return;
+    distance = clamp(delta.length(), Math.abs(a - b) + EPSILON, (a + b) * MAX_REACH);
+  if (a < EPSILON || b < EPSILON || delta.length() < EPSILON) return;
   const axis = delta.normalize(),
     bendAxis = pole.clone().addScaledVector(axis, -pole.dot(axis));
-  if (bendAxis.lengthSq() < 0.00001) bendAxis.crossVectors(axis, new THREE.Vector3(0, 1, 0));
+  if (bendAxis.lengthSq() < EPSILON) bendAxis.crossVectors(axis, new THREE.Vector3(0, 1, 0));
   bendAxis.normalize();
   const along = (a * a - b * b + distance * distance) / (2 * distance),
     bend = start
@@ -125,7 +133,7 @@ export class ActorMotion {
         mesh.skeleton.update();
         for (let i = 0; i < weights.count; i++) {
           for (let j = 0; j < 4; j++) {
-            if (indices.getComponent(i, j) === index && weights.getComponent(i, j) > 0.6) {
+            if (indices.getComponent(i, j) === index && weights.getComponent(i, j) > MOTION.soleWeight) {
               sole.push(foot.worldToLocal(mesh.getVertexPosition(i, vec()).applyMatrix4(mesh.matrixWorld)));
               break;
             }
@@ -166,9 +174,10 @@ export class ActorMotion {
   }
   update(entity, time, dt) {
     this.restore();
-    const travel = this.root.position.clone().sub(this.last),
+    const { gait } = MOTION,
+      travel = this.root.position.clone().sub(this.last),
       distance = travel.length(),
-      speed = distance / Math.max(0.001, dt);
+      speed = distance / Math.max(gait.minStepSeconds, dt);
     this.last.copy(this.root.position);
     this.idleTime += dt;
     if (entity.swing) this.visualSwing = entity.swing;
@@ -180,13 +189,13 @@ export class ActorMotion {
       right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.root.quaternion),
       scale = this.root.scale.x;
     const signed = entity.kind >= 0 && travel.dot(forward) < 0 ? -distance : distance;
-    this.cycle = THREE.MathUtils.euclideanModulo(this.cycle + signed / ((walking ? 1.31 : 3.5) * scale), 1);
+    this.cycle = THREE.MathUtils.euclideanModulo(this.cycle + signed / ((walking ? gait.walkStride : gait.otherStride) * scale), 1);
     const toward = (value, target, amount) => value + clamp(target - value, -amount, amount);
-    this.runWeight = toward(this.runWeight, striking ? 0 : clamp(speed / 1.3, 0, 1), dt / 0.14);
-    this.strikeWeight = toward(this.strikeWeight, striking ? 1 : 0, dt / 0.08);
-    this.guardWeight = toward(this.guardWeight, entity.guarding ? 1 : 0, dt / 0.1);
-    const windup = swing ? swing.hitAt - swing.start : 0.14,
-      recovery = swing ? swing.end - swing.hitAt : 0.28,
+    this.runWeight = toward(this.runWeight, striking ? 0 : clamp(speed / gait.fullRunSpeed, 0, 1), dt / gait.runBlendSeconds);
+    this.strikeWeight = toward(this.strikeWeight, striking ? 1 : 0, dt / gait.strikeBlendSeconds);
+    this.guardWeight = toward(this.guardWeight, entity.guarding ? 1 : 0, dt / gait.guardBlendSeconds);
+    const windup = swing ? swing.hitAt - swing.start : MOTION.swingFallback.windupSeconds,
+      recovery = swing ? swing.end - swing.hitAt : MOTION.swingFallback.recoverSeconds,
       elapsed = swing ? Math.max(0, time - swing.start) : 0,
       stab = swing?.action === "stab";
     this.sample(this.runWeight, this.strikeWeight, posePhase(elapsed, windup, recovery), stab);
@@ -206,31 +215,34 @@ export class ActorMotion {
         weight = 0;
       if (entity.kind === -1 && this.bladeAxis) {
         if (striking && stab) {
-          const extension =
-            elapsed < windup
-              ? THREE.MathUtils.lerp(0.05, 0.9, THREE.MathUtils.smoothstep(elapsed / windup, 0, 1))
-              : THREE.MathUtils.lerp(0.9, 0.05, clamp((elapsed - windup) / recovery, 0, 1));
+          const { startExtension, peakExtension, sideOffset, drop } = MOTION.stab,
+            extension =
+              elapsed < windup
+                ? THREE.MathUtils.lerp(startExtension, peakExtension, THREE.MathUtils.smoothstep(elapsed / windup, 0, 1))
+                : THREE.MathUtils.lerp(peakExtension, startExtension, clamp((elapsed - windup) / recovery, 0, 1));
           target = origin
             .clone()
             .addScaledVector(forward, reach * extension)
-            .addScaledVector(right, side * 0.08)
-            .addScaledVector(new THREE.Vector3(0, 1, 0), -reach * 0.2);
+            .addScaledVector(right, side * sideOffset)
+            .addScaledVector(new THREE.Vector3(0, 1, 0), -reach * drop);
           direction = forward;
           weight = this.strikeWeight;
         } else if (striking && swing.action === "heavy" && elapsed < windup) {
+          const heavy = MOTION.heavyWindup;
           target = origin
             .clone()
-            .addScaledVector(forward, 0.25)
-            .add(new THREE.Vector3(0, 0.2, 0));
-          direction = new THREE.Vector3(0, 1, 0).addScaledVector(forward, 0.25).normalize();
+            .addScaledVector(forward, heavy.forward)
+            .add(new THREE.Vector3(0, heavy.up, 0));
+          direction = new THREE.Vector3(0, 1, 0).addScaledVector(forward, heavy.aimForward).normalize();
           weight = Math.sin(clamp(elapsed / windup, 0, 1) * Math.PI);
         } else {
+          const guard = MOTION.guard;
           target = origin
             .clone()
-            .addScaledVector(forward, 0.28)
-            .addScaledVector(right, -side * 0.12)
-            .add(new THREE.Vector3(0, -0.2, 0));
-          direction = new THREE.Vector3(0, 1, 0).addScaledVector(right, side * 0.3).normalize();
+            .addScaledVector(forward, guard.forward)
+            .addScaledVector(right, -side * guard.sideOffset)
+            .add(new THREE.Vector3(0, -guard.drop, 0));
+          direction = new THREE.Vector3(0, 1, 0).addScaledVector(right, side * guard.aimSide).normalize();
           weight = this.guardWeight;
         }
         if (weight > 0) {
@@ -262,7 +274,7 @@ export class ActorMotion {
           );
         }
       } else if (entity.kind === 2) {
-        const lift = Math.max(0, scale - 1) * 0.6 * (1 - this.strikeWeight);
+        const lift = Math.max(0, scale - 1) * MOTION.bigLift * (1 - this.strikeWeight);
         if (lift > 0) {
           this.remember(shoulder);
           this.remember(elbow);
@@ -274,19 +286,15 @@ export class ActorMotion {
         }
       }
     }
-    const grounded = time >= entity.dodgeUntil || entity.kind >= 0,
-      contacts = !striking && grounded && speed > 0.3 && this.runWeight > 0.8;
+    const { minSpeed, minRunWeight, contactWindows } = MOTION.plant,
+      grounded = time >= entity.dodgeUntil || entity.kind >= 0,
+      contacts = !striking && grounded && speed > minSpeed && this.runWeight > minRunWeight,
+      windows = walking ? contactWindows.walking : contactWindows.other;
     for (let i = 0; i < this.feet.length; i++) {
+      // Foot 0 is the left; a window is the [start, end) share of the cycle the foot stays planted.
       const foot = this.feet[i],
-        contact =
-          contacts &&
-          (i === 0
-            ? walking
-              ? this.cycle >= 0.05 && this.cycle < 0.45
-              : this.cycle >= 0.03 && this.cycle < 0.2
-            : walking
-              ? this.cycle >= 0.55 && this.cycle < 0.95
-              : this.cycle >= 0.55 && this.cycle < 0.74);
+        [from, to] = windows[i === 0 ? 0 : 1],
+        contact = contacts && this.cycle >= from && this.cycle < to;
       this.plant(foot, contact, grounded, forward, scale);
     }
   }
@@ -316,7 +324,7 @@ export class ActorMotion {
       f.contact.copy(lowest);
       f.rotation.copy(foot.getWorldQuaternion(quat()));
       f.anchor.copy(lowest).applyMatrix4(foot.matrixWorld);
-      f.anchor.y = 0.012;
+      f.anchor.y = MOTION.plant.groundClearance;
       f.planted = true;
     }
     const sampledPosition = foot.getWorldPosition(vec()),
@@ -328,11 +336,11 @@ export class ActorMotion {
               .multiplyScalar(f.contact.length() * scale),
           )
         : sampledPosition.clone();
-    ankle.y += Math.max(0, 0.012 - (bottom + ankle.y - sampledPosition.y));
+    ankle.y += Math.max(0, MOTION.plant.groundClearance - (bottom + ankle.y - sampledPosition.y));
     const reach =
       hip.getWorldPosition(vec()).distanceTo(knee.getWorldPosition(vec())) +
       knee.getWorldPosition(vec()).distanceTo(sampledPosition);
-    if (ankle.distanceTo(hip.getWorldPosition(vec())) > reach || ankle.distanceTo(sampledPosition) > 0.45 * scale) {
+    if (ankle.distanceTo(hip.getWorldPosition(vec())) > reach || ankle.distanceTo(sampledPosition) > MOTION.plant.maxDrift * scale) {
       f.planted = false;
       worldRotation(foot, sampled);
       return;

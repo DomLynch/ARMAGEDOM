@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import{COMMANDER_VIEW}from'../src/engine/commander/view-data.js';
 const source=fs.readFileSync(new URL('../src/engine/commander/view.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace('export async function createCommanderView','async function createCommanderView');
 function fixture(failAt){
  const disposed={},created=[],bump=name=>disposed[name]=(disposed[name]??0)+1,make=name=>{if(failAt===name)throw Error('injected '+name);created.push(name);};
@@ -14,7 +15,7 @@ function fixture(failAt){
  class Material{constructor(){make('material');}dispose(){bump('material');}}
  class Mesh{constructor(){make('mesh');}rotation={};removeFromParent(){bump('objectiveDetach');}}
  const T={Scene,PerspectiveCamera:class{},HemisphereLight:Light,DirectionalLight:Light,WebGLRenderer:Renderer,RingGeometry:Geometry,MeshBasicMaterial:Material,Mesh,Raycaster:class{constructor(){make('ray');}},Vector3:class{constructor(){make('vector');}},Matrix4:class{constructor(){make('matrix');}}};
- const context={T,createWorld:async()=>world,loadActors:async()=>library,applyAreaLighting(){make('lighting');},createActors(){make('actors');return{dispose(){bump('actors');library.dispose();if(failAt==='cleanup')throw Error('injected cleanup');}};},createDroneLaserBolts(){make('lasers');return{dispose(){bump('lasers');}};},COMMANDER_RULES:{captureRadius:2.8},devicePixelRatio:1,console:{error(){bump('cleanupError');}}};
+ const context={T,createWorld:async()=>world,loadActors:async()=>library,applyAreaLighting(){make('lighting');},createActors(){make('actors');return{dispose(){bump('actors');library.dispose();if(failAt==='cleanup')throw Error('injected cleanup');}};},createDroneLaserBolts(){make('lasers');return{dispose(){bump('lasers');}};},COMMANDER_RULES:{captureRadius:2.8},COMMANDER_VIEW,devicePixelRatio:1,console:{error(){bump('cleanupError');}}};
  const create=vm.runInNewContext(source+'\ncreateCommanderView',context);return{create,disposed,created};
 }
 for(const failAt of ['renderer','lighting','actors','lasers','selectionGeometry','objectiveGeometry','material','mesh','ray','vector','matrix'])test('Commander construction failure releases acquired owners: '+failAt,async()=>{

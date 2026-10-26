@@ -3,6 +3,8 @@ import { rigText } from "./rig-capabilities.js";
 // Owned original rat/dog appearance only. No stats, motion, placement or damage.
 // The twelve rows (id, foundation, name, width, tint, patch) live in Web/src/data/appearance.json `animals` (read through game-data.js).
 export const ANIMAL_APPEARANCES = GAME_DATA.appearance.animals;
+// The torso taper band and the worn-patch field (appearance.json `animalCoat`): the patch value is a smooth noise of the vertex position.
+const COAT = GAME_DATA.appearance.animalCoat;
 // The coat material name of each foundation rig is its creatures.json rigCapabilities `coatName`.
 const torso = new Set(["pelvis", "spine", "chest"]);
 // Apply to SkeletonUtils.clone(foundation.scene). Cache once per loaded foundation,
@@ -28,14 +30,15 @@ export function createAnimalAppearanceLibrary(THREE) {
       for (let k = 0; k < 4; k++)
         if (torso.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) body += w.getComponent(i, k);
       // Smooth influence taper; head/neck/teeth/legs/paws/tail stay exact.
-      const mask = Math.max(0, Math.min(1, (body - 0.9) / 0.1));
+      const mask = Math.max(0, Math.min(1, (body - COAT.taper.from) / COAT.taper.range));
       const x = p.getX(i),
         y = p.getY(i),
         z = p.getZ(i);
       p.setX(i, x * (1 + (recipe.width - 1) * mask));
       // Broad worn patches modulate the existing atlas; no replacement texture.
-      const field = Math.sin(z * 43 + Math.cos(y * 37) * 1.7) + Math.sin(x * 51 - y * 19);
-      const patch = Math.max(0, Math.min(1, (field - 0.1) / 1.2));
+      const f = COAT.field,
+        field = Math.sin(z * f.z + Math.cos(y * f.cosY) * f.wobble) + Math.sin(x * f.x - y * f.y);
+      const patch = Math.max(0, Math.min(1, (field - COAT.patch.from) / COAT.patch.range));
       const value = 1 - recipe.patch * patch;
       colors[i * 3] = value;
       colors[i * 3 + 1] = value;
