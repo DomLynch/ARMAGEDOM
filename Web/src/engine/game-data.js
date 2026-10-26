@@ -902,8 +902,10 @@ export function validateVisual(d) {
   unique("faces.hairs", f.hairs);
   unique("faces.weathering", f.weathering);
   const c = d.clothing;
-  closed(c, ["version", "tops", "trousers", "partners"]);
+  closed(c, ["version", "minTonalGap", "tops", "trousers", "partners"]);
   if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
+  // The least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable (clothing-palettes.js).
+  if (!Number.isFinite(c.minTonalGap) || c.minTonalGap < 0 || c.minTonalGap > 0.5) fail("visual", "clothing.minTonalGap must be from 0 to 0.5");
   const families = (name) => {
     list(`clothing.${name}`, c[name], 1, 64);
     for (const [family, ...swatches] of c[name]) {

@@ -4,13 +4,16 @@
 import { GAME_DATA } from "./engine/game-data.js";
 const CLOTHING = GAME_DATA.visual.clothing;
 export const CLOTHING_PALETTE_VERSION = CLOTHING.version;
-const linear = (hex) =>
-  Object.freeze(
-    [16, 8, 0].map((shift) => {
-      const c = ((parseInt(hex, 16) >> shift) & 255) / 255;
-      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const linear = (hex) => {
+  const rgb = parseInt(hex, 16); // tuning-ok: hex is base 16
+  const bytes = [rgb >> 16, rgb >> 8, rgb]; // tuning-ok: the red and green byte of a 24-bit colour sit 16 and 8 bits up
+  return Object.freeze(
+    bytes.map((byte) => {
+      const c = (byte & 255) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; // tuning-ok: the sRGB transfer function (IEC 61966-2-1)
     }),
   );
+};
 const entries = (prefix, rows) =>
   Object.freeze(
     rows.flatMap(([family, ...hexes]) =>
@@ -23,7 +26,7 @@ export const TOP_COLOURS = entries("top", CLOTHING.tops);
 export const TROUSER_COLOURS = entries("trousers", CLOTHING.trousers);
 // Family direction is curated (in the data); tonal separation below keeps both garments readable.
 const partners = CLOTHING.partners;
-const luminance = (rgb) => rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+const luminance = (rgb) => rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722; // tuning-ok: Rec. 709 luma weights of linear RGB
 export const PAIRINGS = Object.freeze(
   Object.fromEntries(
     TOP_COLOURS.map((top) => [
@@ -32,7 +35,7 @@ export const PAIRINGS = Object.freeze(
         TROUSER_COLOURS.filter(
           (trousers) =>
             partners[top.family].includes(trousers.family) &&
-            Math.abs(luminance(top.linear) - luminance(trousers.linear)) >= 0.035,
+            Math.abs(luminance(top.linear) - luminance(trousers.linear)) >= CLOTHING.minTonalGap,
         ).map((trousers) => trousers.id),
       ),
     ]),
