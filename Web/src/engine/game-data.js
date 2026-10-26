@@ -537,6 +537,7 @@ export function validateCreatures(d) {
     "gauntHumanCycles",
     "hollowTuning",
     "creatureSim",
+    "mobSize",
     "feralBodyShapes",
     "feralCoatProfiles",
     "gauntShape",
@@ -641,6 +642,7 @@ export function validateCreatures(d) {
   }
   validateBehaviours(d.behaviours);
   validateEncounterTables(d);
+  validateMobSize(d.mobSize);
   validateRigTables(d);
 }
 
@@ -699,6 +701,19 @@ function validateRigTables(d) {
 
 // creatures.json `animalCycles`, `gauntHumanCycles` and `hollowTuning` (animal-cycle.js, gaunt-human-bindings.js, hollow-encounter.js).
 // Cycle rows pair a roamer placement key with a creature recipe (animals) or an area with the placement key that gets the gaunt body.
+// creatures.json `mobSize` (mob-size-allocation.js, mob-size.js): the approved body-size factors and the range every factor must stay inside.
+function validateMobSize(m) {
+  closed(m, ["factors", "min", "max"]);
+  number("creatures", "mobSize.min", m.min, 0.1);
+  number("creatures", "mobSize.max", m.max, 0.1);
+  if (m.min > 1 || m.max < 1 || m.max > 3) fail("creatures", "mobSize range must bracket 1 and stay at or below 3");
+  if (!Array.isArray(m.factors) || m.factors.length < 1 || m.factors.length > 16 || new Set(m.factors).size !== m.factors.length)
+    fail("creatures", "mobSize.factors must list 1 to 16 different numbers");
+  for (const f of m.factors)
+    if (!Number.isFinite(f) || f < m.min || f > m.max) fail("creatures", `mobSize.factors ${f} is outside ${m.min} to ${m.max}`);
+  if (m.factors.some((f, i) => i && f <= m.factors[i - 1])) fail("creatures", "mobSize.factors must rise");
+}
+
 function validateEncounterTables(d) {
   const word = (field, v, pattern) => {
     if (typeof v !== "string" || !pattern.test(v)) fail("creatures", `${field} has an invalid name`);
