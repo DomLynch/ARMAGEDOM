@@ -25,17 +25,12 @@ export function validateRouteGuidance(r) {
     "arrivalRadius",
     "pistolArrived",
     "huntArrived",
-    "pulse",
     "rail",
-    "arrow",
     "marker",
   ]);
   for (const f of ["clearance", "sampleStep", "boundaryReach", "exitReach", "boundaryStartReach"]) number(f, r[f], 0.001);
   for (const f of ["waypointMin", "arrivalRadius", "pistolArrived", "huntArrived"]) number(f, r[f], 0.001);
-  closed(r.pulse, ["seconds", "minOpacity"]);
-  number("pulse.seconds", r.pulse.seconds, 0.1);
-  if (!(r.pulse.minOpacity >= 0 && r.pulse.minOpacity < 1)) fail("pulse.minOpacity must be from 0 up to 1");
-  const { rail, arrow, marker: m } = r;
+  const { rail, marker: m } = r;
   closed(rail, ["sideProbe", "sideOffset", "segments", "centreHeight", "thickness", "depth", "colours", "post"]);
   for (const f of ["sideProbe", "sideOffset", "centreHeight", "thickness", "depth"]) number(`rail.${f}`, rail[f], 0.001);
   if (!Number.isSafeInteger(rail.segments) || rail.segments < 1 || rail.segments > 64) fail("rail.segments must be an integer from 1 to 64");
@@ -46,12 +41,6 @@ export function validateRouteGuidance(r) {
     fail("rail.post.along must list positions from 0 to 1 along the rail");
   for (const f of ["centreHeight", "height", "width"]) number(`rail.post.${f}`, rail.post[f], 0.001);
   hex("rail.post.colour", rail.post.colour);
-  closed(arrow, ["height", "triangles"]);
-  number("arrow.height", arrow.height, 0);
-  if (!Array.isArray(arrow.triangles) || arrow.triangles.length < 1 || arrow.triangles.length > 8) fail("arrow.triangles must list 1 to 8 triangles");
-  for (const tri of arrow.triangles)
-    if (!Array.isArray(tri) || tri.length !== 3 || !tri.every((p) => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite)))
-      fail("arrow.triangles must be triangles of three [x, y, z] points");
   closed(m, ["height", "showDistance", "exitHintRemaining", "ring", "sign"]);
   for (const f of ["height", "showDistance", "exitHintRemaining"]) number(`marker.${f}`, m[f], 0);
   closed(m.ring, ["inner", "outer", "segments", "colour"]);

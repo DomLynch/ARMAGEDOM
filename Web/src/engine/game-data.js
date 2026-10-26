@@ -235,7 +235,6 @@ export function validateVisual(d) {
     "dropMarker",
     "arcGun",
     "finisherImpact",
-    "routeArrow",
     "bossView",
     "pickupModel",
     "bossEquipmentView",
@@ -281,11 +280,6 @@ export function validateVisual(d) {
     fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
-  // The ground arrow (route-guidance.js) takes the drop marker's ringColour; peakOpacity tops its pulse.
-  closed(d.routeArrow, ["peakOpacity", "tailGap"]);
-  const peak = d.routeArrow.peakOpacity;
-  if (typeof peak !== "number" || !(peak > 0 && peak <= 1))
-    fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   validateRouteGuidance(d.routeGuidance);
   validateInput(d.input);
   validateTouchTarget(d.touchTarget);

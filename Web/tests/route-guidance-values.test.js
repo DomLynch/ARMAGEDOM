@@ -4,14 +4,7 @@ import fs from "node:fs";
 import { createHash } from "node:crypto";
 import * as THREE from "three";
 import { LondonWorld } from "../src/world.js";
-import {
-  resolveGuidance,
-  capsuleSegmentClear,
-  arrowOpacity,
-  ARROW_PULSE_SECONDS,
-  ARROW_MIN_OPACITY,
-  ARROW_TAIL_GAP,
-} from "../src/engine/route-guidance.js";
+import { resolveGuidance, capsuleSegmentClear } from "../src/engine/route-guidance.js";
 
 // Differential test: the numbers route-guidance.js reads from data produce exactly the geometry, colours, reach distances and hint
 // text the inline literals did. The expected digest was recorded from the code before the move
@@ -59,7 +52,6 @@ function snapshot() {
         const attrs = cue.barrier.geometry.attributes;
         entry.barrier = digest([arr(attrs.position.array), arr(attrs.color.array), Array.from(cue.barrier.geometry.index.array)]);
       }
-      entry.arrow = digest([arr(cue.arrow.geometry.attributes.position.array), cue.arrow.material.color.getHex()]);
       entry.markers = cue.group.children
         .filter((c) => c.isGroup)
         .map((m) => [
@@ -85,15 +77,8 @@ function snapshot() {
           [844, 390],
         ]) {
           world.update(p, 0, ...size, true);
-          const c = world.routeGuidance.resolve(p),
-            a = world.routeGuidance.arrow;
-          entry.hints.push([
-            world.exitHint(p),
-            c && [c.index, c.gap, c.remaining, c.target],
-            a.visible,
-            arr(a.position.toArray()),
-            a.rotation.y,
-          ]);
+          const c = world.routeGuidance.resolve(p);
+          entry.hints.push([world.exitHint(p), c && [c.index, c.gap, c.remaining, c.target]]);
         }
         world.areaId = area;
       }
@@ -151,7 +136,6 @@ function snapshot() {
 
 test("route guidance geometry, colours, reach and hints are value-identical to the pre-data code", () => {
   const got = snapshot();
-  got.pulse = [ARROW_PULSE_SECONDS, ARROW_MIN_OPACITY, ARROW_TAIL_GAP, ...[0, 0.37, 0.65, 1.3, 2.1, 4.9].map(arrowOpacity)];
   if (process.env.UPDATE_ROUTE_GUIDANCE_DIGEST) fs.writeFileSync(digestPath, JSON.stringify(got, null, 1) + "\n");
   assert.deepEqual(got, JSON.parse(fs.readFileSync(digestPath)));
 });
