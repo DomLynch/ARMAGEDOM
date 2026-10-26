@@ -126,6 +126,7 @@ test("the real tree matches the seeded baseline file by file", () => {
       );
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
   assert.deepEqual(numberLiteralProblems(walk(root), baseline, root), []);
-  assert(Object.keys(baseline.numberLiterals).length > 50);
+  // The burn-down ends at an empty table, so only its shape is checked here, not a minimum size.
+  assert.equal(Object.getPrototypeOf(baseline.numberLiterals), Object.prototype);
   assert(Object.values(baseline.numberLiterals).every((n) => Number.isInteger(n) && n > 0));
 });
