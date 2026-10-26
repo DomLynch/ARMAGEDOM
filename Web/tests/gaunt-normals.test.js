@@ -55,6 +55,6 @@ test("the gaunt shape library keeps unit normals on the body and jacket it resha
     assert.equal(drawnWithoutNormal(m.geometry), 0, m.name);
   });
   assert(reshaped >= 5, "the garment and body meshes were reshaped");
-  handle?.release?.();
+  handle.dispose();
   library.dispose();
 });
