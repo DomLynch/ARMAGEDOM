@@ -4,6 +4,7 @@ import { GAME_DATA } from "./engine/game-data.js";
 // Garment nodes that get the gaunt shape, and per bind bone its [child bone, radial factor], live in
 // Web/src/data/creatures.json `gauntShape`.
 const { targets, segments } = GAME_DATA.creatures.gauntShape;
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 function bodyPart(mesh) {
   for (let node = mesh; node; node = node.parent) if (targets.includes(node.name)) return true;
   return false;
@@ -53,7 +54,7 @@ export function createGauntShapeLibrary(sourceModel) {
       for (let vertex = 0; vertex < position.count; vertex++) {
         point.fromBufferAttribute(position, vertex).applyMatrix4(mesh.bindMatrix);
         sum.set(0, 0, 0);
-        for (let slot = 0; slot < 4; slot++) {
+        for (let slot = 0; slot < INFLUENCES; slot++) {
           const weight = weights.getComponent(vertex, slot);
           if (!weight) continue;
           const frame = frames[indices.getComponent(vertex, slot)];
