@@ -1134,7 +1134,13 @@ export function validateSupplies(d) {
 // areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
 // (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
 export function validateAreaRuntime(d) {
-  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas"]);
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel"]);
+  // travel: the "Traveling to ..." message delay, how long a failure message shows, and the area preparation slices (engine/areas.js).
+  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "preparation"]);
+  count("areaRuntime", "travel.messageDelayMs", d.travel.messageDelayMs, 0, 10000);
+  count("areaRuntime", "travel.failureMessageSeconds", d.travel.failureMessageSeconds, 1, 60);
+  closed(d.travel.preparation, ["deadlineMs", "idleTimeoutMs", "urgentSliceMs", "ambientSliceMs", "idleEnoughMs", "holdMs"]);
+  for (const [name, v] of Object.entries(d.travel.preparation)) count("areaRuntime", `travel.preparation.${name}`, v, 1, 5000);
   closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
   for (const [name, v] of Object.entries(d.defaultLighting))
     if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);
