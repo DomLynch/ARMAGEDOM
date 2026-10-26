@@ -502,17 +502,29 @@ export const creatureKeys = () => [
   "rigCapabilities",
   "bridgeSteering",
   "droneLaser",
+  "droneHover",
+  "roachTerritory",
 ];
 
 // creatures.json bridgeSteering (bridge-steering.js) and droneLaser (drone-laser.js): metres, seconds and a leash radius.
 export function validateCreatureExtras(d, { fail, number }) {
-  closed(d.bridgeSteering, ["edgeMargin", "leash", "progressStep", "stallSeconds", "waypointReach"]);
+  closed(d.bridgeSteering, [
+    "edgeMargin",
+    "leash",
+    "progressStep",
+    "stallSeconds",
+    "waypointReach",
+    "goalShiftMetres",
+    "creepSeconds",
+  ]);
   for (const [name, min, max] of [
     ["edgeMargin", 0, 1],
     ["leash", 0.1, 1000],
     ["progressStep", 0.001, 5],
     ["stallSeconds", 0.05, 60],
     ["waypointReach", 0.01, 5],
+    ["goalShiftMetres", 0.01, 100],
+    ["creepSeconds", 0.01, 60],
   ]) {
     number("creatures", `bridgeSteering.${name}`, d.bridgeSteering[name], min);
     if (d.bridgeSteering[name] > max) fail("creatures", `bridgeSteering.${name} above ${max}`);
@@ -522,4 +534,12 @@ export function validateCreatureExtras(d, { fail, number }) {
     number("creatures", `droneLaser.${name}`, d.droneLaser[name], 0.001);
     if (d.droneLaser[name] > 10) fail("creatures", `droneLaser.${name} above 10`);
   }
+  // drone-mechanics.js: the hover bob (radians per second, metres); roach-territory.js: how close to home (metres) a returning roach counts as home.
+  closed(d.droneHover, ["rate", "swing"]);
+  number("creatures", "droneHover.rate", d.droneHover.rate, 0);
+  number("creatures", "droneHover.swing", d.droneHover.swing, 0);
+  if (d.droneHover.rate > 100 || d.droneHover.swing > 1) fail("creatures", "droneHover out of range");
+  closed(d.roachTerritory, ["homeArrivedMetres"]);
+  number("creatures", "roachTerritory.homeArrivedMetres", d.roachTerritory.homeArrivedMetres, 0.001);
+  if (d.roachTerritory.homeArrivedMetres > 10) fail("creatures", "roachTerritory.homeArrivedMetres above 10");
 }

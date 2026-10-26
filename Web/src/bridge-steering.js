@@ -4,18 +4,19 @@ import { GAME_DATA } from "./engine/game-data.js";
 const BENDS = GAME_DATA.atmosphere.bends;
 // The road-edge safety margin, the default leash, the progress and stall limits and the waypoint reach are creatures.json `bridgeSteering`.
 const STEER = GAME_DATA.creatures.bridgeSteering;
+const squared = (x) => x * x;
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 function pointSegmentSq(p, a, b) {
   const x = b.x - a.x,
     z = b.z - a.z,
     length = x * x + z * z;
   const t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * x + (p.z - a.z) * z) / length)) : 0;
-  return (p.x - a.x - t * x) ** 2 + (p.z - a.z - t * z) ** 2;
+  return squared(p.x - a.x - t * x) + squared(p.z - a.z - t * z);
 }
 // Exact capsule clearance against the SAME painted road edges and safety margin.
 export function bodyLineClear(geometry, a, b, radius) {
   if (!geometry.clear(a, radius) || !geometry.clear(b, radius) || !geometry.lineClear(a, b)) return false;
-  const limit = (radius + STEER.edgeMargin) ** 2;
+  const limit = squared(radius + STEER.edgeMargin);
   return geometry.edges.every(
     ([c, d]) =>
       Math.min(pointSegmentSq(a, c, d), pointSegmentSq(b, c, d), pointSegmentSq(c, a, b), pointSegmentSq(d, a, b)) >
@@ -58,7 +59,7 @@ export function createBridgeSteering() {
         state.homeX !== home?.x ||
         state.homeZ !== home?.z ||
         state.leash !== leash ||
-        distance(state.goal, goal) > 0.5)
+        distance(state.goal, goal) > STEER.goalShiftMetres)
     ) {
       reset(actor);
       state = null;
@@ -87,7 +88,7 @@ export function createBridgeSteering() {
         if (bodyLineClear(geometry, position, target, radius)) return target;
         reset(actor);
         state = null;
-      } else if (time - state.progressAt < 0.5) return goal;
+      } else if (time - state.progressAt < STEER.creepSeconds) return goal;
     }
     let road = roads.get(geometry);
     if (!road) {
