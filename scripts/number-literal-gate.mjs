@@ -16,6 +16,10 @@ import { relative } from "node:path";
 
 export const NUMBER_ALLOWED = new Set([0, 1, 60, 90, 180, 360, 255, 100, 1000]);
 export const NUMBER_EPSILON = 1e-6;
+// Temporary, dated exception (Strategy, 26 Oct 2026): while the last number PRs land in parallel, a file below its baseline is not a
+// finding, so those PRs need not edit as-data-baseline.json and stop conflicting with each other. Increases and new files still fail.
+// The final shrink-only baseline PR sets this back to false; done = strict gate with an empty numberLiterals table.
+export const NUMBER_SHRINK_TOLERANCE = true;
 // The single exemption file (Web/src/data/keep-in-code.json): which files stay outside the counter, and which JSON imports are allowed.
 export const KEEP_IN_CODE_FILE = "Web/src/data/keep-in-code.json";
 export const KEEP_IN_CODE = JSON.parse(
@@ -141,7 +145,7 @@ export function countNumberLiterals(text) {
 export const isNumberExempt = (key) =>
   NUMBER_EXEMPT_FILES.some((pattern) => pattern.test(key));
 
-export function numberLiteralProblems(paths, baseline = {}, sourceRoot = "") {
+export function numberLiteralProblems(paths, baseline = {}, sourceRoot = "", { shrinkTolerance = NUMBER_SHRINK_TOLERANCE } = {}) {
   const problems = [];
   for (const path of paths) {
     const key = (sourceRoot ? relative(sourceRoot, path) : path)
@@ -165,7 +169,7 @@ export function numberLiteralProblems(paths, baseline = {}, sourceRoot = "") {
       problems.push(
         `${path}: ${found} tuning number literal(s), limit ${allowed}. Put the number in a data file (Web/src/data/*.json read through engine/game-data.js) or end the line with "// tuning-ok: <reason>".`,
       );
-    else if (found < allowed)
+    else if (found < allowed && !shrinkTolerance)
       problems.push(
         `${path}: ${found} tuning number literal(s), baseline says ${allowed}. Lower it to ${found} in scripts/as-data-baseline.json.`,
       );

@@ -3,6 +3,8 @@ import { resolveCreatureBehaviour } from "../creature-behaviour-presets.js";
 import { resolveResidentIntent } from "../creature-behaviour-intents.js";
 import { GAME_DATA } from "./game-data.js";
 import { rigText } from "../rig-capabilities.js";
+const DRONE_MODEL_SCALE = 2; // tuning-ok: the drone's procedural model is authored at twice the unit scale
+const REVIEWED_FOUNDATIONS = 7; // tuning-ok: the reviewed foundation count this catalogue accepts
 // Capabilities provided by existing resident movement/native completion/neighbour seams.
 export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "home",
@@ -78,7 +80,7 @@ export function createCreatureCatalogue({
       "runtimeIdentity",
     ]);
     const pair = Object.hasOwn(support, row.runtimeIdentity) ? support[row.runtimeIdentity] : null;
-    if (!pair ||row.id !== row.runtimeIdentity || map.has(row.id)) throw Error("Unknown or duplicate foundation");
+    if (!pair || row.id !== row.runtimeIdentity || map.has(row.id)) throw Error("Unknown or duplicate foundation");
     closed(row.behaviour, ["controllerRef", "parameterPreset", "intentPolicyRef"]);
     closed(row.stats, ["health", "radius", "moveSpeed", "recoveryDelay", "weapon"]);
     closed(row.scale, ["model", "character", "visual", "mobSizeMode", "bodyScale", "appliedBy"]);
@@ -94,7 +96,7 @@ export function createCreatureCatalogue({
         Object.keys(row.clips).length ||
         row.behaviour.parameterPreset !== null ||
         row.behaviour.intentPolicyRef !== null ||
-        row.scale.model !== 2 ||
+        row.scale.model !== DRONE_MODEL_SCALE ||
         row.scale.character !== 1 ||
         row.scale.visual !== 1 ||
         row.scale.appliedBy !== "procedural-library"
@@ -132,13 +134,14 @@ export function createCreatureCatalogue({
       throw Error("Unreviewed foundation stats/scale/asset/clip");
     map.set(row.id, freeze(row));
   }
-  if (map.size !== 7) throw Error("Seven reviewed foundations required");
+  if (map.size !== REVIEWED_FOUNDATIONS) throw Error("Seven reviewed foundations required");
   const recipeMap = structuredClone(recipes);
   for (const [recipe, foundation] of Object.entries(recipeMap))
     if (!Object.hasOwn(recipeFoundations, recipe) || recipeFoundations[recipe] !== foundation || !map.has(foundation))
       throw Error("Unknown recipe/foundation reference");
   for (const [recipe, foundation] of Object.entries(recipeMap))
-    if (rigText(foundation, "species") !== "drone") resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
+    if (rigText(foundation, "species") !== "drone")
+      resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
   const roleRows = structuredClone(roles);
   if (JSON.stringify(roleRows) !== JSON.stringify(nativeRoleDefinitions))
     throw Error("Unreviewed exact role activation");
