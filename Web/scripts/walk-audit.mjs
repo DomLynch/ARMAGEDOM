@@ -137,17 +137,42 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
   // Exit zones: walkable cells whose picture position lies inside the link's rectangle (the game's own travelAt test).
   const exits = registry.links(areaId).map((link) => {
     let target = -1;
+    const zone = new Uint8Array(best.length);
     for (let i = 0; i < best.length; i++) {
       if (clearance[i] <= 0 || !inZone(link.condition, g.point(at(i % width, (i - (i % width)) / width)))) continue;
+      zone[i] = 1;
       if (target < 0 || best[i] > best[target]) target = i;
     }
-    const reachable = target >= 0 && best[target] > radius;
+    // Standable depth of the trigger strip: how far inside the zone the character's centre can get (a spot it fits on, reachable from
+    // the entry), measured from the nearest walkable ground outside the zone. A strip a few centimetres deep is easy to miss.
+    const outside = new Float32Array(best.length).fill(Infinity);
+    for (let i = 0; i < best.length; i++) if (clearance[i] > 0 && !zone[i]) outside[i] = 0;
+    const relax = (i, j, step) => {
+      if (outside[j] + step < outside[i]) outside[i] = outside[j] + step;
+    };
+    for (let iz = 0; iz < depth; iz++)
+      for (let ix = 0; ix < width; ix++)
+        for (const [dx, dz, step] of NEIGHBOURS.slice(0, 8).filter(([a, b]) => b < 0 || (b === 0 && a < 0)))
+          if (ix + dx >= 0 && ix + dx < width && iz + dz >= 0) relax(iz * width + ix, (iz + dz) * width + ix + dx, step * cell);
+    for (let iz = depth - 1; iz >= 0; iz--)
+      for (let ix = width - 1; ix >= 0; ix--)
+        for (const [dx, dz, step] of NEIGHBOURS.filter(([a, b]) => b > 0 || (b === 0 && a > 0)))
+          if (ix + dx >= 0 && ix + dx < width && iz + dz < depth) relax(iz * width + ix, (iz + dz) * width + ix + dx, step * cell);
+    let stripDepth = 0;
+    for (let i = 0; i < best.length; i++) if (zone[i] && best[i] > radius && Number.isFinite(outside[i])) stripDepth = Math.max(stripDepth, outside[i]);
+    const reachable = target >= 0 && best[target] > radius,
+      // The exit fires when the character steps into the zone, so the route that counts runs from the entry to the first zone cell.
+      // Ground inside the zone is not a corridor: a zone against the picture's edge is shallow by nature.
+      full = reachable ? routeTo(target).reverse() : [],
+      enter = full.findIndex((i) => inZone(link.condition, g.point(at(i % width, (i - (i % width)) / width)))),
+      route = enter >= 0 ? full.slice(0, enter + 1) : full;
     return {
       to: link.to,
       reachable,
-      widestRoute: target >= 0 ? 2 * best[target] : 0, // metres: clear width at the tightest point of the best route
-      cell: target >= 0 ? label(target) : null,
-      route: reachable ? routeTo(target) : [],
+      stripDepth, // metres: the deepest the character's centre can stand inside the exit zone
+      widestRoute: reachable ? 2 * Math.min(...route.map((i) => clearance[i])) : 0, // metres at the tightest point before the zone
+      cell: route.length ? label(route.at(-1)) : null,
+      route,
     };
   });
   // Where players arrive from other areas must be walkable and joined to the entry too.
@@ -193,7 +218,8 @@ export function auditArea(registry, areaId, { radius = WORLD_GEOMETRY.defaultRad
     pockets,
     exits: exits.map(({ route, ...e }) => e),
     arrivals,
-    chokes: chokes.map(({ width: w, cell: c }) => ({ width: w, cell: c })),
+    // `at` is the ground point in metres and `picture` the same spot as image fractions, for finding the edges that make the choke.
+    chokes: chokes.map(({ p, width: w, cell: c }) => ({ width: w, cell: c, at: p, picture: g.point(p) })),
     walkableShare: cells([...best.keys()].filter((i) => best[i] > radius)).length / Math.max(1, clearance.filter((c) => c > radius).length),
   };
 }

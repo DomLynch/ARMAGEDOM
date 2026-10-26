@@ -16,7 +16,7 @@
           "id": "exit.westminster.south",
           "target": "south",
           "condition": {
-            "yMin": 0.97,
+            "yMin": 0.96,
             "xMin": 0.49,
             "xMax": 0.75
           },
