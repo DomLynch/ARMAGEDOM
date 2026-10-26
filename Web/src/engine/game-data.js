@@ -148,7 +148,11 @@ export function validateCreatureDefinitions(d) {
 // The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
 // the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
 export function validateLocker(d) {
-  closed(d, ["schema_version", "resourceCaps"]);
+  closed(d, ["schema_version", "weaponIds", "resourceCaps"]);
+  // The saved weapon list: its order is the save shape (locker-core.js names the slots by index), so ids are never reordered or dropped.
+  if (!Array.isArray(d.weaponIds) || d.weaponIds.length !== 10 || new Set(d.weaponIds).size !== d.weaponIds.length)
+    fail("locker", "weaponIds must be 10 unique ids");
+  for (const id of d.weaponIds) if (typeof id !== "string" || !/^[a-z0-9-]+-v\d+$/.test(id)) fail("locker", `weaponIds ${id}`);
   closed(d.resourceCaps, [
     "railgun-reserve",
     "pistol-reserve",
