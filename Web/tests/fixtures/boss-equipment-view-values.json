@@ -1,0 +1,3907 @@
+{
+ "frames": [
+  {
+   "label": "drops",
+   "time": 10,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    }
+   ]
+  },
+  {
+   "label": "flight 10",
+   "time": 10,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      1,
+      1.15,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.25
+    }
+   ]
+  },
+  {
+   "label": "flight 10.2",
+   "time": 10.2,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      2.142857143,
+      1.691342066,
+      0.714285714
+     ],
+     "rotation": [
+      0,
+      0,
+      5.385587406
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.45572483830236177
+    }
+   ]
+  },
+  {
+   "label": "flight 10.5",
+   "time": 10.5,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      3,
+      0.05,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.2500000000000001
+    }
+   ]
+  },
+  {
+   "label": "flight 10.9",
+   "time": 10.9,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      3,
+      0.05,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.5828697807033044
+    }
+   ]
+  },
+  {
+   "label": "flight 11.2",
+   "time": 11.2,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      3,
+      0.05,
+      2
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.4557248383023613
+    }
+   ]
+  },
+  {
+   "label": "sticky",
+   "time": 11.5,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      2,
+      0.5,
+      -1
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Grenade",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 0.2,
+      "height": 0.3,
+      "depth": 0.6,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16759896,
+     "opacity": 0.2500000000000001
+    }
+   ]
+  },
+  {
+   "label": "blast 11.6",
+   "time": 11.6,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      0.2,
+      0.2,
+      0.2
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16770464,
+     "opacity": 0.8
+    }
+   ]
+  },
+  {
+   "label": "blast 11.7",
+   "time": 11.7,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      0.428571429,
+      0.428571429,
+      0.428571429
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16770464,
+     "opacity": 0.5714285714285723
+    }
+   ]
+  },
+  {
+   "label": "blast 11.8",
+   "time": 11.8,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      0.657142857,
+      0.657142857,
+      0.657142857
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16770464,
+     "opacity": 0.3428571428571404
+    }
+   ]
+  },
+  {
+   "label": "blast 11.95",
+   "time": 11.95,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      3,
+      0.018,
+      2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 2.92,
+      "outerRadius": 3,
+      "thetaSegments": 40,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16770464,
+     "opacity": 7.993605777301127e-16
+    }
+   ]
+  },
+  {
+   "label": "blast 12.1",
+   "time": 12.1,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    }
+   ]
+  },
+  {
+   "label": "removed without blast",
+   "time": 12.6,
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0.5,
+      0,
+      -0.5
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Shotgun",
+     "position": [
+      0,
+      1.525,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      1.570796327
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "width": 3,
+      "height": 0.2,
+      "depth": 0.4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+     },
+     "colour": 8421504,
+     "opacity": 1
+    },
+    {
+     "type": "Mesh",
+     "name": "Ground pickup thin contour",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker (model loading)",
+     "position": [
+      40,
+      0,
+      -40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Group",
+     "name": "Drop marker",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "position": [
+      0,
+      0.045,
+      0
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": 15903035,
+     "opacity": 1
+    }
+   ]
+  }
+ ],
+ "loadFailure": {
+  "message": "Weapon loading unavailable. Your reward is kept; retry in Gear.",
+  "untilOffset": 4
+ },
+ "claim": {
+  "commands": [
+   {
+    "type": "claimPickup",
+    "pickupId": "s1"
+   }
+  ],
+  "message": "Item s1 collected.",
+  "untilOffset": 3
+ }
+}
