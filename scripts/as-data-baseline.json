@@ -92,7 +92,7 @@
     "engine/sever-blood-data.js": 1,
     "engine/unique-reward-core.js": 1,
     "engine/unique-reward-runtime.js": 1,
-    "engine/weapon-catalog.js": 2,
+    "engine/weapon-catalog.js": 1,
     "engine/world-events.js": 10,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
