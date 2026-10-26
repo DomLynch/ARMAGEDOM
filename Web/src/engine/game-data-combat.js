@@ -51,8 +51,17 @@ export function validateCombatRules(d) {
   closed(d.startingPistol, ["x", "z"]);
   for (const point of [d.player.spawn, d.startingPistol])
     for (const f of ["x", "z"]) if (!Number.isFinite(point[f])) fail("combatRules", "spawn and pistol positions must be finite");
-  closed(d.spawning, ["distances", "laterals", "clearance"]);
+  closed(d.spawning, ["distances", "laterals", "clearance", "minForward", "minDistance", "knifeOffsets"]);
   number("combatRules", "spawning.clearance", d.spawning.clearance, 0);
+  number("combatRules", "spawning.minForward", d.spawning.minForward, 0);
+  number("combatRules", "spawning.minDistance", d.spawning.minDistance, 0);
+  // knifeOffsets: the eight [x, z] metres a knife encounter tries around the player, in order.
+  if (
+    !Array.isArray(d.spawning.knifeOffsets) ||
+    !d.spawning.knifeOffsets.length ||
+    !d.spawning.knifeOffsets.every((o) => Array.isArray(o) && o.length === 2 && o.every(Number.isFinite))
+  )
+    fail("combatRules", "spawning.knifeOffsets must list [x, z] pairs");
   for (const f of ["distances", "laterals"])
     if (!Array.isArray(d.spawning[f]) || !d.spawning[f].length || !d.spawning[f].every(Number.isFinite))
       fail("combatRules", `spawning.${f} must list finite numbers`);
@@ -79,7 +88,7 @@ export function validateCombatRules(d) {
     number("combatRules", `legacy.player.${f}`, l.player[f], 0.001);
   closed(l.player.dodge, ["seconds", "invulnerableSeconds", "cooldownSeconds", "speed"]);
   for (const [f, v] of Object.entries(l.player.dodge)) number("combatRules", `legacy.player.dodge.${f}`, v, 0.001);
-  closed(l.player.guard, ["arc", "parryWindowSeconds", "regenPerSecond", "blockedDamageFactor", "brokenSeconds", "parryStunSeconds"]);
+  closed(l.player.guard, ["arc", "parryWindowSeconds", "regenPerSecond", "blockedDamageFactor", "blockCostFactor", "brokenSeconds", "parryStunSeconds"]);
   for (const [f, v] of Object.entries(l.player.guard)) number("combatRules", `legacy.player.guard.${f}`, v, 0);
   number("combatRules", "legacy.waveClearHeal", l.waveClearHeal, 0);
   number("combatRules", "legacy.hitKnockback", l.hitKnockback, 0);
@@ -97,6 +106,7 @@ export function validateCombatRules(d) {
     "boltSpeed",
     "boltHitRadius",
     "formation",
+    "waves",
     "loot",
   ]);
   if (!Array.isArray(l.kinds) || l.kinds.length !== 4) fail("combatRules", "legacy.kinds must list the four enemy kinds");
@@ -111,11 +121,38 @@ export function validateCombatRules(d) {
     number("combatRules", `legacy.${f}`, l[f], 0.001);
   number("combatRules", "legacy.aimDot", l.aimDot, 0);
   if (l.aimDot >= 1) fail("combatRules", "legacy.aimDot must be below 1");
-  closed(l.formation, ["columns", "xSpacing", "zSpacing"]);
+  closed(l.formation, ["columns", "xSpacing", "zSpacing", "centerColumn"]);
   count("combatRules", "legacy.formation.columns", l.formation.columns, 1, 20);
+  count("combatRules", "legacy.formation.centerColumn", l.formation.centerColumn, 0, 19);
+  // waves: the wave clock, the enemy-kind roles (index into `kinds`) and the warlord's attack pattern cycle.
+  const waves = [
+    "firstWaveSeconds",
+    "messageSeconds",
+    "clearDelaySeconds",
+    "boltLifeSeconds",
+    "finalWave",
+    "baseCount",
+    "kindCycle",
+    "rangedKind",
+    "warlordKind",
+    "widePattern",
+    "rangedPattern",
+    "patternCount",
+    "boltSpreadPiDivisor",
+    "retreatDistance",
+    "retreatSpeed",
+  ];
+  closed(l.waves, waves);
+  for (const f of ["firstWaveSeconds", "messageSeconds", "clearDelaySeconds", "boltLifeSeconds", "retreatDistance", "retreatSpeed"])
+    number("combatRules", `legacy.waves.${f}`, l.waves[f], 0);
+  for (const f of ["finalWave", "baseCount", "kindCycle", "patternCount"]) count("combatRules", `legacy.waves.${f}`, l.waves[f], 1, 20);
+  for (const f of ["rangedKind", "warlordKind"]) count("combatRules", `legacy.waves.${f}`, l.waves[f], 0, l.kinds.length - 1);
+  for (const f of ["widePattern", "rangedPattern"]) count("combatRules", `legacy.waves.${f}`, l.waves[f], 0, l.waves.patternCount - 1);
+  number("combatRules", "legacy.waves.boltSpreadPiDivisor", l.waves.boltSpreadPiDivisor, 1);
   number("combatRules", "legacy.formation.xSpacing", l.formation.xSpacing, 0);
   number("combatRules", "legacy.formation.zSpacing", l.formation.zSpacing, 0);
-  closed(l.loot, ["pickupRadius", "blade", "armour", "tonic"]);
+  closed(l.loot, ["every", "kinds", "maxTier", "pickupRadius", "blade", "armour", "tonic"]);
+  for (const f of ["every", "kinds", "maxTier"]) count("combatRules", `legacy.loot.${f}`, l.loot[f], 1, 20);
   number("combatRules", "legacy.loot.pickupRadius", l.loot.pickupRadius, 0.01);
   for (const kind of ["blade", "armour", "tonic"]) {
     closed(l.loot[kind], ["base", "step"]);

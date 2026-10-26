@@ -13,12 +13,14 @@ import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
+import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -34,9 +36,12 @@ import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
+import { validateCommanderSession } from "./game-data-commander-session.js";
+import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -59,6 +64,7 @@ export {
   validateBossEquipment,
   validateBossRanged,
   validateCombatRules,
+  validateCommanderSession,
   validateCreatures,
   validateCreditPolicies,
   validateDiagnostics,
@@ -207,10 +213,13 @@ export function validateVisual(d) {
     "routeGuidance",
     "severBlood",
     "motion",
+    "safehouseView",
     "wantedPoster",
     "combatImpact",
+    "flameEffect",
   ]);
   validateCombatImpact(d.combatImpact);
+  validateFlameEffect(d.flameEffect);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -427,7 +436,7 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation", "render"]);
   // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
   // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
   closed(d.variation, [
@@ -630,7 +639,23 @@ export function validateAreaRuntime(d) {
     "maxFollowSeconds",
     "exitHintMeters",
     "defaultCharacterScale",
+    "artSize",
+    "londonEntry",
+    "entryClearance",
+    "followReference",
+    "referenceHeight",
+    "maxZoom",
   ]);
+  // artSize: the painted backdrop's pixel size (its aspect crops the view); londonEntry: the start spawn in metres; entryClearance: the
+  // body radius an entry or spawn must clear; followReference: the painting point whose projected height the player-size zoom keeps.
+  if (!Array.isArray(d.view.artSize) || d.view.artSize.length !== 2) fail("areaRuntime", "view.artSize must hold width and height");
+  d.view.artSize.forEach((n, i) => count("areaRuntime", `view.artSize[${i}]`, n, 1, 100000));
+  closed(d.view.londonEntry, ["x", "z"]);
+  closed(d.view.followReference, ["x", "y"]);
+  for (const f of ["x", "z"]) number("areaRuntime", `view.londonEntry.${f}`, d.view.londonEntry[f], -1000);
+  for (const f of ["x", "y"]) number("areaRuntime", `view.followReference.${f}`, d.view.followReference[f], 0);
+  for (const f of ["entryClearance", "referenceHeight"]) number("areaRuntime", `view.${f}`, d.view[f], 0.001);
+  number("areaRuntime", "view.maxZoom", d.view.maxZoom, 1);
   // defaultCharacterScale: the hero scale for a layout that names none (presence-session.js draws the other players with it).
   number("areaRuntime", "view.defaultCharacterScale", d.view.defaultCharacterScale, 0.1);
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
@@ -817,6 +842,7 @@ const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
   commander: [commander, validateCommander],
+  commanderSession: [commanderSession, validateCommanderSession],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
@@ -831,6 +857,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
+  railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],
