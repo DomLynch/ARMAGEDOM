@@ -8,7 +8,6 @@ const SLICE_MS = CROWN.sliceMs;
 const XYZ = 3; // tuning-ok: a point or normal packed as three floats
 const UV = 2; // tuning-ok: a texture coordinate packed as two floats
 const CORNERS = 3; // tuning-ok: a triangle has three corners
-const CORNER_INDICES = [0, 1, 2]; // tuning-ok: the three corners of a triangle
 const MAX_NEIGHBOURS = 2; // tuning-ok: a point on a closed or open contour touches at most two others
 
 // Owned static skull buffers only. The caller's prepared head materials/maps,
@@ -105,7 +104,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices 
             yield "crown-cut";
             since = performance.now();
           }
-          const tri = CORNER_INDICES.map((k) => vertex(index ? index.getX(offset + k) : offset + k)),
+          const tri = Array.from({ length: CORNERS }, (_, k) => vertex(index ? index.getX(offset + k) : offset + k)),
             polygon = [],
             cross = [];
           for (let k = 0; k < CORNERS; k++) {
