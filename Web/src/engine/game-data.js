@@ -250,6 +250,7 @@ export function validateVisual(d) {
     "weaponTiles",
     "bossLabel",
     "hud",
+    "flamePresentation",
   ]);
   validateHud(d.hud);
   validateCombatImpact(d.combatImpact);
