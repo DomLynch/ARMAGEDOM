@@ -490,6 +490,20 @@
       "settleBlend": 0.3
     }
   ],
+  "armSever": {
+    "boneCount": 65,
+    "lifetime": 6,
+    "initialRadius": 0.1,
+    "launchSpeed": 1.35,
+    "launchLift": 1.5,
+    "spinRate": 5,
+    "maxStep": 0.1,
+    "gravity": 9.8,
+    "bounceKeep": 0.2,
+    "groundFriction": 0.65,
+    "spinDamping": 0.8,
+    "spinMin": 0.02
+  },
   "gore": {
     "wound": {
       "maxZoneFraction": 0.8,
