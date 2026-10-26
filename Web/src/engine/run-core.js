@@ -702,7 +702,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
           event.itemId === g.world.bossEquipmentData?.emberProjector?.itemId &&
           g.bossEquipment?.emberProjector?.status === "pending"
         ) {
-          g.message = g.world.bossEquipmentData.emberProjector.name + " dropped. Approach to collect.";
+          g.message = g.world.bossEquipmentData.emberProjector.name + " dropped.";
           g.messageUntil = g.time + 8;
         }
       }
