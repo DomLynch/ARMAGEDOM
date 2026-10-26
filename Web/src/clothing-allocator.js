@@ -22,7 +22,7 @@ function perceptual([r, g, b]) {
     0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s, // tuning-ok: Oklab M2 row 3
   ];
 }
-const squared = (x) => x ** 2; // tuning-ok: a square
+const squared = (x) => x * x;
 const distance = (a, b) => squared(a[0] - b[0]) + squared(a[1] - b[1]) + squared(a[2] - b[2]);
 function colours(entries) {
   if (!Array.isArray(entries) || !entries.length || entries.length > 50)
