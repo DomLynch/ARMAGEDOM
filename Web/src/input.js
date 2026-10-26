@@ -283,7 +283,7 @@ export function attachInput({
         const aim = state.pointers.get(event.pointerId)?.aim;
         if (aim) {
           element.classList.add("aiming");
-          element.style.setProperty("--aim-angle", `${Math.atan2(aim.y, aim.x)}rad`);
+          element.style.setProperty("--aim-angle", `${Math.atan2(aim.y, aim.x)}rad`); // text-ok: CSS angle value, not English
         }
       }
     });

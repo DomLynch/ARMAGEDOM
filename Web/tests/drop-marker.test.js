@@ -107,5 +107,5 @@ test("every ground weapon or reward drop view carries the marker", () => {
   assert.match(src("../src/unique-reward-view.js"), /markers\.markDrop\(createMeleePickupView/);
   assert.match(src("../src/engine/run-views.js"), /\{ markDrop, createMarkerOnlyDrop \}/);
   assert.match(src("../src/engine/flame-view.js"), /markDrop\(createFlamePickupView/);
-  assert.match(src("../src/effects.js"), /createDropMarker\("Starting pistol"\)/);
+  assert.match(src("../src/effects.js"), /createDropMarker\(webText\("effects\.pistolDropLabel"\)\)/);
 });

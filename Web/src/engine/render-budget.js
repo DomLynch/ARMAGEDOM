@@ -17,8 +17,8 @@ export function remoteCostProblems(zero, loaded, budget = GAME_DATA.renderBudget
   const { remotes, maxDrawCalls, maxTriangles } = budget.westminster,
     calls = zero.drawCalls + perCalls * remotes,
     triangles = zero.triangles + perTriangles * remotes;
-  if (calls > maxDrawCalls) problems.push(`${Math.round(calls)} draw calls with ${remotes} remotes, budget ${maxDrawCalls}`);
+  if (calls > maxDrawCalls) problems.push(`${Math.round(calls)} draw calls with ${remotes} remotes, budget ${maxDrawCalls}`); // text-ok: budget-check diagnostic for tests, not shown to players
   if (triangles > maxTriangles)
-    problems.push(`${Math.round(triangles)} triangles with ${remotes} remotes, budget ${maxTriangles}`);
+    problems.push(`${Math.round(triangles)} triangles with ${remotes} remotes, budget ${maxTriangles}`); // text-ok: budget-check diagnostic for tests, not shown to players
   return problems;
 }

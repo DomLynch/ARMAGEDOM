@@ -3,6 +3,7 @@
 // player leaves the layer.
 import * as THREE from "three";
 import { REMOTE_PLAYERS as V } from "./remote-players-view-data.js";
+import { webText } from "./web-text.js";
 
 // The sizes, segment counts, colour and name-card layout live in visual.json `remotePlayers`.
 const BODY_HEIGHT = V.capsule.bodyHeight,
@@ -11,7 +12,7 @@ const BODY_HEIGHT = V.capsule.bodyHeight,
 const hue = (id) => ((id * V.capsule.hueStep) % 360) / 360;
 
 // The server's display name when it sent one, otherwise 'Guest <id>'.
-export const guestName = (id, name = null) => (typeof name === "string" && name ? name : `Guest ${id}`);
+export const guestName = (id, name = null) => (typeof name === "string" && name ? name : webText("remote.guest", { id }));
 
 function nameTexture(text) {
   if (typeof document === "undefined") return null;
@@ -33,7 +34,7 @@ function nameTexture(text) {
 
 export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   const group = new THREE.Group();
-  group.name = "Other players";
+  group.name = "Other players"; // text-ok: scene-graph group name, never shown
   scene.add(group);
   const figures = new Map(); // id -> { root, parts: [disposables] }
   const body = new THREE.CapsuleGeometry(RADIUS, BODY_HEIGHT, V.capsule.capSegments, V.capsule.radialSegments),
@@ -43,7 +44,7 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
   // caller picks as `full`, Characters' survivor kit: survivors.spawn(id) -> { root, update({ moving, facing }), dispose() }.
   function make(id) {
     const root = new THREE.Group();
-    root.name = `Player ${id}`;
+    root.name = `Player ${id}`; // text-ok: scene-graph object name, never shown
     group.add(root);
     return { root, parts: [], label: null, tag: null, capsule: null, survivor: null };
   }
@@ -104,7 +105,7 @@ export function createRemotePlayersView({ scene, toRender, survivors = null }) {
     if (!map) return;
     const spriteMaterial = new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }),
       sprite = new THREE.Sprite(spriteMaterial);
-    sprite.name = "Name tag";
+    sprite.name = "Name tag"; // text-ok: scene-graph object name, never shown
     sprite.scale.set(...V.tag.scale, 1);
     sprite.position.y = TAG_Y;
     figure.root.add(sprite);

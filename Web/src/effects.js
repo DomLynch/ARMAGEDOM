@@ -16,6 +16,7 @@ import { addPickupGlow } from "./pickup-glow.js";
 import { createDropMarker } from "./engine/drop-marker.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { rigCapability } from "./rig-capabilities.js";
+import { webText } from "./engine/web-text.js";
 // Web/src/data/visual.json `effects`: hex strings, read as numbers once.
 const hexNumber = (hex) => Number(`0x${hex}`);
 // Pools, colours and finisher droplet motion: visual.json `effects.feedback`.
@@ -102,7 +103,7 @@ export function createEffects(
     viewportWidth = globalThis.innerWidth ?? FEEL.viewportFallback.width,
     viewportHeight = globalThis.innerHeight ?? FEEL.viewportFallback.height;
   const pool = new THREE.Group();
-  pool.name = "Combat feedback pool";
+  pool.name = "Combat feedback pool"; // text-ok: scene-graph object name, never shown
   scene.add(pool);
   const unit = new THREE.BoxGeometry(1, 1, 1),
     particleMaterial = new THREE.MeshBasicMaterial({ color: "white", depthTest: true, depthWrite: false }),
@@ -130,7 +131,7 @@ export function createEffects(
     );
   };
   particleMaterial.customProgramCacheKey = () => "scoped-gore-drop-v1";
-  particleMesh.name = "Combat pooled particles";
+  particleMesh.name = "Combat pooled particles"; // text-ok: scene-graph object name, never shown
   particleMesh.renderOrder = 1;
   /* Same draw, after opaque actors0/masks-90; depth test retained. */ particleMesh.frustumCulled = false;
   particleMesh.visible = false;
@@ -221,7 +222,7 @@ export function createEffects(
         depthWrite: false,
       }),
       mesh = new THREE.Line(geometry, material);
-    mesh.name = "Combat pooled tracer";
+    mesh.name = "Combat pooled tracer"; // text-ok: scene-graph object name, never shown
     mesh.visible = false;
     mesh.frustumCulled = false;
     pool.add(mesh);
@@ -231,7 +232,7 @@ export function createEffects(
     unit,
     new THREE.MeshBasicMaterial({ color: hexNumber(FEEL.muzzleFlashColour), depthWrite: false }),
   );
-  muzzleFlash.name = "Combat muzzle flash";
+  muzzleFlash.name = "Combat muzzle flash"; // text-ok: scene-graph object name, never shown
   muzzleFlash.visible = false;
   pool.add(muzzleFlash);
   function nextParticle() {
@@ -602,8 +603,8 @@ export function createEffects(
   }
   const pickup = new THREE.Group(),
     reticle = new THREE.Group();
-  pickup.name = "Starting pistol pickup";
-  reticle.name = "Pistol aim marker";
+  pickup.name = "Starting pistol pickup"; // text-ok: scene-graph object name, never shown
+  reticle.name = "Pistol aim marker"; // text-ok: scene-graph object name, never shown
   const pickupContours = [];
   if (pistolAsset) {
     const gun = pistolAsset.scene.clone(true),
@@ -623,7 +624,7 @@ export function createEffects(
     }
     pickup.add(gun);
   }
-  const pickupMarker = createDropMarker("Starting pistol");
+  const pickupMarker = createDropMarker(webText("effects.pistolDropLabel"));
   pickup.add(pickupMarker.group);
   const bracketGeometry = (padding) => {
     const vertices = [];
