@@ -24,6 +24,7 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
+import * as extra from "./appearance-extra-validators.js";
 
 export const SUPPORTED_SCHEMA_VERSION = 1;
 const fail = (file, why) => {
@@ -904,8 +905,7 @@ export function validateVisual(d) {
   const c = d.clothing;
   closed(c, ["version", "minTonalGap", "tops", "trousers", "partners"]);
   if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
-  // The least difference in relative luminance (0 to 1) a jacket and its trousers keep so both stay readable (clothing-palettes.js).
-  if (!Number.isFinite(c.minTonalGap) || c.minTonalGap < 0 || c.minTonalGap > 0.5) fail("visual", "clothing.minTonalGap must be from 0 to 0.5");
+  extra.validateClothingGap(c, { fail });
   const families = (name) => {
     list(`clothing.${name}`, c[name], 1, 64);
     for (const [family, ...swatches] of c[name]) {
@@ -1138,7 +1138,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, ["schema_version", "faceMesh", ...extra.appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -1154,6 +1154,7 @@ export function validateAppearance(d) {
   if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
+  extra.validateAppearanceExtras(d, { fail, between, triple });
   closed(d.hollowGarments, ["jacket", "trousers"]);
   named("hollowGarments.jacket", d.hollowGarments.jacket);
   named("hollowGarments.trousers", d.hollowGarments.trousers);
@@ -1176,7 +1177,6 @@ export function validateAppearance(d) {
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
   // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
   // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
-  closed(d.crookedHollow, ["bones"]);
   const bones = d.crookedHollow.bones;
   if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
     fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");

@@ -1,28 +1,19 @@
 import * as T from "three";
 import { GAME_DATA } from "./engine/game-data.js";
+// The bones the pose layer saves and restores, the fold (`lean`, Euler radians per bone), the gait curve and the pose offsets live in
+// data/appearance.json `crookedHollow`.
+const CROOKED = GAME_DATA.appearance.crookedHollow,
+  NAMES = CROOKED.bones;
 const ROT = Object.fromEntries(
-  [
-    ["spine_01", 0.72, 0, 0.1],
-    ["spine_02", 0.42, 0.08, 0],
-    ["neck_01", 0.25, 0, -0.08],
-    ["clavicle_l", 0, 0, 0.1],
-    ["clavicle_r", 0, 0, -0.16],
-  ].map(([n, x, y, z]) => [n, new T.Quaternion().setFromEuler(new T.Euler(x, y, z))]),
+  CROOKED.lean.map(([n, x, y, z]) => [n, new T.Quaternion().setFromEuler(new T.Euler(x, y, z))]),
 );
 const ROTATIONS = Object.entries(ROT);
 const GAITS = new Set(["HollowIdle", "HollowWalk", "Run", "StrafeLeft", "StrafeRight"]);
-// The bones the pose layer saves and restores live in data/appearance.json `crookedHollow.bones`.
-const NAMES = GAME_DATA.appearance.crookedHollow.bones;
+const SCRATCH_VECTORS = 12; // the pose solver's reusable vectors: indices 0 to 11 are used below
 export function crookedPhase(phase) {
   const p = T.MathUtils.euclideanModulo(phase, 1);
   // Long planted interval, brisk short step, unequal second support interval.
-  const keys = [
-    [0, 0],
-    [0.28, 0.12],
-    [0.5, 0.5],
-    [0.82, 0.65],
-    [1, 1],
-  ];
+  const keys = CROOKED.gait;
   for (let i = 1; i < keys.length; i++)
     if (p <= keys[i][0]) {
       const [x, y] = keys[i - 1],
@@ -44,7 +35,7 @@ export class CrookedHollowMotion {
       }),
     );
     this.saved = NAMES.map((n) => ({ bone: this.bones[n], position: new T.Vector3(), quaternion: new T.Quaternion() }));
-    this.v = Array.from({ length: 12 }, () => new T.Vector3());
+    this.v = Array.from({ length: SCRATCH_VECTORS }, () => new T.Vector3());
     this.q = Array.from({ length: 4 }, () => new T.Quaternion());
     this.active = false;
     this.cycle = 0;
@@ -94,7 +85,7 @@ export class CrookedHollowMotion {
     const u = origin.distanceTo(joint),
       v = joint.distanceTo(end);
     direction.copy(target).sub(origin);
-    const d = T.MathUtils.clamp(direction.length(), Math.abs(u - v) + 0.0001, (u + v) * 0.995);
+    const d = T.MathUtils.clamp(direction.length(), Math.abs(u - v) + CROOKED.reach.slack, (u + v) * CROOKED.reach.max);
     direction.normalize();
     normal.copy(bend).addScaledVector(direction, -bend.dot(direction)).normalize();
     const along = (u * u - v * v + d * d) / (2 * d),
@@ -121,7 +112,7 @@ export class CrookedHollowMotion {
     }
     const pelvis = this.bones.pelvis,
       lower = this.v[1];
-    pelvis.getWorldPosition(lower).addScaledVector(down, 0.035 * scale);
+    pelvis.getWorldPosition(lower).addScaledVector(down, CROOKED.pelvisDrop * scale);
     pelvis.position.copy(pelvis.parent.worldToLocal(lower));
     for (const [name, rotation] of ROTATIONS) this.bones[name].quaternion.multiply(rotation);
     this.model.updateWorldMatrix(true, true);
@@ -135,8 +126,8 @@ export class CrookedHollowMotion {
       const length =
         a.getWorldPosition(this.v[0]).distanceTo(b.getWorldPosition(this.v[1])) +
         b.getWorldPosition(this.v[0]).distanceTo(c.getWorldPosition(this.v[1]));
-      target.addScaledVector(down, length * 0.92).addScaledVector(forward, 0.025 * scale);
-      elbow.set(side === "l" ? -0.35 : 0.35, 0, 1).applyQuaternion(basis);
+      target.addScaledVector(down, length * CROOKED.handDrop).addScaledVector(forward, CROOKED.handForward * scale);
+      elbow.set(side === "l" ? -CROOKED.elbowOut : CROOKED.elbowOut, 0, 1).applyQuaternion(basis);
       this.solve(a, b, c, target, elbow);
     }
     for (const f of this.feet) {
@@ -145,7 +136,7 @@ export class CrookedHollowMotion {
         foot = this.bones["foot_" + f.side],
         hip = pelvis.getWorldPosition(this.v[0]);
       const along = this.v[1].copy(f.position).sub(hip).dot(forward);
-      f.position.addScaledVector(forward, -along * (f.side === "l" ? 0.45 : 0.3));
+      f.position.addScaledVector(forward, -along * CROOKED.footHold[f.side]);
       this.solve(a, b, foot, f.position, forward);
       foot.quaternion.copy(foot.parent.getWorldQuaternion(this.q[3]).invert().multiply(f.quaternion));
     }
@@ -162,7 +153,7 @@ export class CrookedHollowMotion {
     const cycle = this.native.cycle ?? 0,
       delta = T.MathUtils.euclideanModulo(cycle - this.previousCycle + 0.5, 1) - 0.5;
     this.previousCycle = cycle;
-    this.cycle = T.MathUtils.euclideanModulo(this.cycle + delta * 1.55, 1);
+    this.cycle = T.MathUtils.euclideanModulo(this.cycle + delta * CROOKED.cycleRate, 1);
     if (
       entity.hp > 0 &&
       !entity.guarding &&
