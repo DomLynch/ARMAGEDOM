@@ -1,3 +1,4 @@
+import { MOVEMENT_TRACE } from "./movement-trace-data.js";
 const vector = (p) => (p ? { x: p.x, z: p.z } : null);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export function movementBoundary(world, point, radius) {
@@ -16,7 +17,7 @@ export function movementBoundary(world, point, radius) {
       edges.push({ name, index: i, distance: Math.hypot(point.x - a.x - t * dx, point.z - a.z - t * dz) });
     }
   edges.sort((a, b) => a.distance - b.distance);
-  return { clear: world.geometry.clear(point, radius), nearest: edges.slice(0, 2) };
+  return { clear: world.geometry.clear(point, radius), nearest: edges.slice(0, MOVEMENT_TRACE.nearestEdges) };
 }
 // Observes only. Never changes input, simulation, collision, storage or actors.
 export function createMovementTrace(
@@ -26,7 +27,7 @@ export function createMovementTrace(
     document: doc = globalThis.document,
     window: win = globalThis.window,
     identity = null,
-    capacity = 900,
+    capacity = MOVEMENT_TRACE.capacity,
   } = {},
 ) {
   if (!enabled) return null;
@@ -67,7 +68,7 @@ export function createMovementTrace(
     if (p === s.game?.player.pos && calls.length < 8) {
       const desired = { x: p.x + d.x, z: p.z + d.z },
         accepted = vector(answer),
-        partial = distance(desired, answer) > 0.0001;
+        partial = distance(desired, answer) > MOVEMENT_TRACE.answerEpsilon;
       calls.push({
         from: vector(p),
         delta: vector(d),
@@ -237,7 +238,8 @@ export function createMovementTrace(
       };
       const delta = { x: p.pos.x - before.pos.x, z: p.pos.z - before.pos.z },
         blocked =
-          Math.hypot(before.intent.move.x, before.intent.move.z) > 0.01 && Math.hypot(delta.x, delta.z) < 0.0001;
+          Math.hypot(before.intent.move.x, before.intent.move.z) > MOVEMENT_TRACE.stalledIntent &&
+          Math.hypot(delta.x, delta.z) < MOVEMENT_TRACE.answerEpsilon;
       const row = {
         type: "step",
         time: g.time,
@@ -253,7 +255,7 @@ export function createMovementTrace(
         locks,
         calls,
         nearby: g.enemies
-          .filter((e) => e.hp > 0 && distance(p.pos, e.pos) < 4)
+          .filter((e) => e.hp > 0 && distance(p.pos, e.pos) < MOVEMENT_TRACE.nearbyMetres)
           .map((e) => ({
             id: e.id,
             key: e.placementKey,
@@ -265,10 +267,10 @@ export function createMovementTrace(
         camera: { right: vector(w.cameraRight), forward: vector(w.cameraForward), center: { ...w.center } },
       };
       push(row);
-      if (g.time - lastPaint >= 0.2) {
+      if (g.time - lastPaint >= MOVEMENT_TRACE.paintSeconds) {
         lastPaint = g.time;
         const boundary = calls.find((c) => c.boundary);
-        line.textContent = `${identity?.version ?? "Build identity loading"} ${identity?.sourceCommit?.slice(0, 8) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(2)},${p.pos.z.toFixed(2)} r${p.radius} stick ${stick.x.toFixed(2)},${stick.y.toFixed(2)} · ${
+        line.textContent = `${identity?.version ?? "Build identity loading"} ${identity?.sourceCommit?.slice(0, MOVEMENT_TRACE.commitChars) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(MOVEMENT_TRACE.decimals)},${p.pos.z.toFixed(MOVEMENT_TRACE.decimals)} r${p.radius} stick ${stick.x.toFixed(MOVEMENT_TRACE.decimals)},${stick.y.toFixed(MOVEMENT_TRACE.decimals)} · ${
           Object.entries(locks)
             .filter(([, v]) => v)
             .map(([k]) => k)

@@ -105,7 +105,6 @@
     "engine/marked-hunters.js": 12,
     "engine/marked.js": 1,
     "engine/motion-data.js": 1,
-    "engine/movement-trace.js": 12,
     "engine/opening-story-core.js": 1,
     "engine/opening-story.js": 2,
     "engine/qa-bridge.js": 2,
