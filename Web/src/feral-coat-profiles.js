@@ -2,6 +2,7 @@
 // The profiles (id, tint, shapePending) live in Web/src/data/creatures.json `feralCoatProfiles`.
 import { GAME_DATA } from "./engine/game-data.js";
 export const FERAL_COAT_PROFILES = GAME_DATA.creatures.feralCoatProfiles;
+const COAT_NAME = GAME_DATA.appearance.meshNames.feralCoat;
 // Apply AFTER feral finish, BEFORE actor-private material/flash clones.
 // Templates are borrowed by actors, owned by this cache; dispose after last actor.
 export function createFeralCoatProfileLibrary(T) {
@@ -15,7 +16,7 @@ export function createFeralCoatProfileLibrary(T) {
       if (!profile) throw Error("Unknown feral coat profile " + id);
       const meshes = [];
       model.traverse((m) => {
-        if (m.isSkinnedMesh && m.material?.name === "Weathered brindle coat") meshes.push(m);
+        if (m.isSkinnedMesh && m.material?.name === COAT_NAME) meshes.push(m);
       });
       if (meshes.length !== 1 || !meshes[0].geometry.attributes.color || !meshes[0].material.vertexColors)
         throw Error("Apply accepted feral finish before coat profile");

@@ -76,7 +76,7 @@ export function createDroneLaserBolts({ scene, world, camera }) {
             side: T.DoubleSide,
           });
           mesh = new T.Mesh(geometry, material);
-          mesh.name = "ARM laser bolt " + b.id;
+          mesh.name = "ARM laser bolt " + b.id; // text-ok: a scene-graph label for debugging, never shown to the player
           mesh.frustumCulled = false;
           entries.set(b.id, mesh);
           scene.add(mesh);

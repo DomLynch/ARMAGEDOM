@@ -3,6 +3,7 @@
 import { closed } from "./content-schema.js";
 
 export const appearanceExtraKeys = () => [
+  "meshNames",
   "faceField",
   "faceWeathering",
   "faceHair",
@@ -23,6 +24,7 @@ export const appearanceExtraKeys = () => [
 ];
 
 export function validateAppearanceExtras(d, tools) {
+  validateMeshNames(d, tools);
   validateFaceTables(d, tools);
   validateCrookedPose(d, tools);
   validateAnimalCoat(d, tools);
@@ -308,6 +310,17 @@ function validateAnimalOffsets(d, { fail, between }) {
 
 // feral-body-shapes.js: the torso taper band (`from`, `range`) maps a skin weight to 0..1. pickup-glow.js: the contour stroke width in
 // pixels, its colour (#rrggbb) and how far its render order sits above the pickup's own.
+// The names the code looks meshes and materials up by in the shipped GLBs, and the names it gives the hair it builds. All different, so no
+// lookup can match another part.
+function validateMeshNames(d, { fail }) {
+  const keys = Object.keys(d.meshNames ?? {});
+  if (!keys.length) fail("appearance", "meshNames must list names");
+  for (const key of keys)
+    if (typeof d.meshNames[key] !== "string" || !d.meshNames[key].trim())
+      fail("appearance", `meshNames.${key} must be a non-empty string`);
+  if (new Set(Object.values(d.meshNames)).size !== keys.length) fail("appearance", "meshNames must all differ");
+}
+
 function validateFeralAndGlow(d, { fail, between }) {
   closed(d.feralTorsoMask, ["from", "range"]);
   between("feralTorsoMask.from", d.feralTorsoMask.from, -10, 10);

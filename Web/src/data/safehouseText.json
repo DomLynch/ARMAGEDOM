@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "safehouse": {
+    "interactAria": "Open safehouse",
+    "interactLabel": "Open Safehouse",
+    "statusUnavailable": "Storage is available anywhere on the safehouse landing.",
+    "statusReady": "Transfers save immediately. Equipped weapons must be put away first.",
+    "saveUnavailable": "Saving unavailable. Everything was kept.",
+    "transferUnavailable": "Transfer unavailable. Your equipment was kept.",
+    "amountUnavailable": "Choose an available amount within the carrying and locker limits.",
+    "weaponRow": "{name} · {state}",
+    "stored": "Stored",
+    "equipped": "Equipped",
+    "carried": "Carried",
+    "store": "Store",
+    "retrieve": "Retrieve",
+    "resourceRow": "{title} · carried {carried} · stored {stored}",
+    "amountAria": "{title} transfer amount",
+    "weaponNames": {
+      "westminster-start-pistol-v1": "Starting pistol · shared variants",
+      "bridge-warden-rifle-v1": "Bridge Rifle",
+      "flamethrower-area8-v1": "Ember Projector",
+      "hale-pitborn-cleaver-v1": "Pitborn Cleaver",
+      "south-stalker-shotgun-v1": "Stalker Shotgun",
+      "standard-grenade-v1": "Grenades",
+      "surgeons-knife-v1": "The Bone Saw",
+      "borough-butchers-rocket-launcher-v1": "Rocket Launcher",
+      "watchmans-pistol-v1": "Reaper Drone",
+      "borough-marshals-pistol-v1": "Thundercoil Arc Gun"
+    },
+    "resourceNames": {
+      "railgun-reserve": "Railgun reserve",
+      "pistol-reserve": "Pistol reserve",
+      "rifle-reserve": "Rifle reserve",
+      "shotgun-reserve": "Shotgun reserve",
+      "rocket-reserve": "Rocket reserve",
+      "grenade-charges": "Grenade charges",
+      "flame-fuel": "Flame fuel"
+    }
+  },
+  "marked": {
+    "saveUnavailable": "Saving unavailable. Cash and supplies were kept.",
+    "purchaseUnavailable": "This purchase is unavailable. Bank cash and check supply capacity.",
+    "title": "Cash & supplies",
+    "bank": "Bank carried cash",
+    "hint": "Banking does not clear your bounty. Death loses carried cash and clears the hunt; banked cash and earned gear stay.",
+    "summary": "Carried {carried} · Bank {bank}",
+    "bountySuffix": " · Bounty {bounty}",
+    "shopButton": "{name} +{amount}{unit} · {price}",
+    "healUnit": " HP",
+    "roundsUnit": " rounds",
+    "statusUnavailable": "Banking and purchases are available inside a protected safehouse.",
+    "statusReady": "Purchases use banked cash and save immediately.",
+    "shopNames": {
+      "pistol": "Pistol reserve",
+      "rifle": "Rifle reserve",
+      "dressing": "Heal"
+    }
+  }
+}

@@ -121,7 +121,7 @@ export function createDropMarker(label, style = STYLE) {
       }),
     ),
     sprite = labelSprite(String(label).toUpperCase(), style);
-  group.name = "Drop marker";
+  group.name = "Drop marker"; // text-ok: scene-graph object name, never shown
   ring.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the ring flat on the ground
   ring.position.y = style.ringY;
   if (glow) group.add(glow);
@@ -169,7 +169,7 @@ export function createDropMarker(label, style = STYLE) {
 // A drop with no model yet (its asset is still loading): only the ring and the label, so a slow phone still shows where it is.
 export function createMarkerOnlyDrop(label) {
   const root = new T.Group();
-  root.name = "Drop marker (model loading)";
+  root.name = "Drop marker (model loading)"; // text-ok: scene-graph object name, never shown
   return markDrop({ root, dispose: () => root.removeFromParent() }, label);
 }
 

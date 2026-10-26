@@ -1325,7 +1325,7 @@ export function createActors(
           actor = r?.actor ?? game.player;
         if (!reaperView) {
           reaperView = droneKits.spawn({ scene, position: world.toRender(actor.pos) });
-          reaperView.root.name = "Reaper Drone companion";
+          reaperView.root.name = "Reaper Drone companion"; // text-ok: a scene-graph label for debugging, never shown to the player
         }
         reaperView.update({
           time: game.time,

@@ -118,7 +118,7 @@ export function addPickupGlow(mesh) {
     }
   }
   sync();
-  halo.name = "Ground pickup thin contour";
+  halo.name = "Ground pickup thin contour"; // text-ok: a scene-graph label for debugging, never shown to the player
   halo.frustumCulled = false;
   halo.renderOrder = mesh.renderOrder + GLOW.orderOffset;
   halo.onBeforeRender = (renderer) => {
