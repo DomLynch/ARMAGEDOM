@@ -51,10 +51,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
-import { validateCombatText, fillText } from "./game-data-combat-text.js";
-
-// Callers outside engine/ fill {placeholders} in combatText.json through here.
-export { fillText };
+import { validateCombatText } from "./game-data-combat-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
