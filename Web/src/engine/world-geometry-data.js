@@ -1,5 +1,5 @@
-import { GAME_DATA } from "./engine/game-data.js";
-import { closed } from "./engine/content-schema.js";
+import { GAME_DATA } from "./game-data.js";
+import { closed } from "./content-schema.js";
 // How the painted artwork maps to the ground and how walking steps against walls (world-geometry.js), from data/visual.json `worldGeometry`.
 // Checked when this module loads. The image size is the painted scene's pixel size; distances are metres.
 const fail = (why) => {

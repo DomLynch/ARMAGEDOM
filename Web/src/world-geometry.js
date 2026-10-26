@@ -1,4 +1,4 @@
-import { WORLD_GEOMETRY } from "./world-geometry-data.js";
+import { WORLD_GEOMETRY } from "./engine/world-geometry-data.js";
 const ASPECT = WORLD_GEOMETRY.imageWidth / WORLD_GEOMETRY.imageHeight;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 function inside(p, poly) {
