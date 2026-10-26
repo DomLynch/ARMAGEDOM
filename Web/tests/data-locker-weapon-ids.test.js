@@ -40,9 +40,6 @@ test("every locker weapon id in a saved fixture still validates", () => {
 
 test("the locker validator rejects a short, duplicated or malformed id list", () => {
   assert.doesNotThrow(() => validateLocker(raw()));
-  const short = raw();
-  short.weaponIds.pop();
-  assert.throws(() => validateLocker(short), /weaponIds/);
   const dup = raw();
   dup.weaponIds[9] = dup.weaponIds[0];
   assert.throws(() => validateLocker(dup), /weaponIds/);
@@ -52,4 +49,26 @@ test("the locker validator rejects a short, duplicated or malformed id list", ()
   const missing = raw();
   delete missing.weaponIds;
   assert.throws(() => validateLocker(missing));
+});
+
+test("the save-era list in locker.json is the fixture list, so the pin cannot drift", () => {
+  assert.deepEqual(raw().savedEraWeaponIds, old);
+});
+
+test("weaponIds is append-only: a reorder or removal fails at load, an id added at the end passes", () => {
+  const swapped = raw();
+  [swapped.weaponIds[0], swapped.weaponIds[1]] = [swapped.weaponIds[1], swapped.weaponIds[0]];
+  assert.throws(() => validateLocker(swapped), /append-only/);
+  const removed = raw();
+  removed.weaponIds.splice(4, 1);
+  assert.throws(() => validateLocker(removed), /append-only/);
+  const shortEra = raw();
+  shortEra.savedEraWeaponIds.pop();
+  assert.throws(() => validateLocker(shortEra), /lost an id/);
+  const appended = raw();
+  appended.weaponIds.push("new-weapon-v1");
+  assert.doesNotThrow(() => validateLocker(appended));
+  const replacedEnd = raw();
+  replacedEnd.weaponIds[9] = "other-weapon-v1";
+  assert.throws(() => validateLocker(replacedEnd), /append-only/);
 });
