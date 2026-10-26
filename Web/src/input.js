@@ -1,8 +1,11 @@
 import { mobileStickVector } from "./mobile-combat-aim.js";
 import { installTapFallback } from "./engine/tap-fallback.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// Stick, aim and tap thresholds: data/visual.json `input`.
+const INPUT = GAME_DATA.visual.input;
 // How far the knob travels at full tilt: a third of the pad's width, so a larger pad moves the knob further (136 px pad: 46 px; the old
 // 106 px pad and a pad whose size is not known: 36 px). The finger travel for full tilt (mobileStickVector's 46 px) is unchanged.
-const knobTravel = (element) => Math.round((element?.offsetWidth || 106) * 0.34);
+const knobTravel = (element) => Math.round((element?.offsetWidth || INPUT.knobPadPx) * INPUT.knobTravelShare);
 const clampStick = (value, radius) => {
   const length = Math.hypot(value.x, value.y);
   const divisor = length > radius ? length : radius;
@@ -49,10 +52,10 @@ export class InputState {
     const delta = { x: at.x - pointer.start.x, y: at.y - pointer.start.y };
     if (pointer.kind === "move") {
       // Preserve the floating touch origin: donor ratios map to this 46px pad.
-      const raw = Math.hypot(delta.x, delta.y) / 46;
-      this.stick = mobileStickVector(delta.x, delta.y, 46);
-      pointer.run = raw > 1.4 + 1e-10;
-    } else if ((pointer.kind !== "fire" || pointer.aimable) && Math.hypot(delta.x, delta.y) > 12) {
+      const raw = Math.hypot(delta.x, delta.y) / INPUT.stickRadiusPx;
+      this.stick = mobileStickVector(delta.x, delta.y, INPUT.stickRadiusPx);
+      pointer.run = raw > INPUT.runTilt + 1e-10;
+    } else if ((pointer.kind !== "fire" || pointer.aimable) && Math.hypot(delta.x, delta.y) > INPUT.aimStartPx) {
       pointer.aim = clampStick(delta, 1);
       pointer.aimOrder = ++this.aimOrder;
     }
@@ -215,7 +218,7 @@ export function attachInput({
         lastTap = -Infinity;
         return;
       }
-      if (event.timeStamp - lastTap < 350) prevent(event);
+      if (event.timeStamp - lastTap < INPUT.doubleTapMs) prevent(event);
       lastTap = event.timeStamp;
     },
     { passive: false, capture: true },
@@ -310,7 +313,7 @@ export function attachInput({
 
   listen(canvas, "pointermove", (event) => {
     const contact = worldContacts.get(event.pointerId);
-    if (contact && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > 10) contact.cancelled = true;
+    if (contact && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > INPUT.worldTapSlopPx) contact.cancelled = true;
     if (event.pointerType === "mouse") {
       touch = false;
       mouse = { x: event.clientX, y: event.clientY };
@@ -334,7 +337,7 @@ export function attachInput({
       return;
     }
     if (event.pointerType !== "mouse" || isPaused()) return;
-    if (isSelectOnly() && event.button !== 2) {
+    if (isSelectOnly() && event.button !== 2) { // tuning-ok: button 2 is the secondary (right) mouse button
       onInteraction();
       event.preventDefault();
       touch = false;
@@ -351,7 +354,7 @@ export function attachInput({
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
     mouse = { x: event.clientX, y: event.clientY };
-    state.down(event.pointerId, event.button === 2 ? "stab" : isPistol() ? "fire" : "slash", mouse);
+    state.down(event.pointerId, event.button === 2 ? "stab" : isPistol() ? "fire" : "slash", mouse); // tuning-ok: button 2 is the right mouse button
   });
   listen(canvas, "pointerup", (event) => {
     const contact = worldContacts.get(event.pointerId);
@@ -361,8 +364,8 @@ export function attachInput({
       !contact.cancelled &&
       !isPaused() &&
       isWorldGun() &&
-      event.timeStamp - contact.at <= 350 &&
-      Math.hypot(event.clientX - contact.x, event.clientY - contact.y) <= 10 &&
+      event.timeStamp - contact.at <= INPUT.worldTapMaxMs &&
+      Math.hypot(event.clientX - contact.x, event.clientY - contact.y) <= INPUT.worldTapSlopPx &&
       worldSurface(event.clientX, event.clientY)
     )
       worldTap = { x: event.clientX, y: event.clientY };

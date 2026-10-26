@@ -46,6 +46,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
@@ -231,6 +232,8 @@ export function validateVisual(d) {
     "bossEquipmentView",
     "routeGuidance",
     "exitArrows",
+    "input",
+    "touchTarget",
     "expeditionHud",
     "remotePlayers",
     "tapFallback",
@@ -270,6 +273,8 @@ export function validateVisual(d) {
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   validateRouteGuidance(d.routeGuidance);
+  validateInput(d.input);
+  validateTouchTarget(d.touchTarget);
   list("survivorVariants", d.survivorVariants, 1, 64);
   for (const v of d.survivorVariants) {
     closed(v, ["id", "garment", "accent"]);
