@@ -2,12 +2,25 @@
 // numbers. They live here, not in game-data.js, so that file stays under the Web source density limit; game-data.js hands in its own helpers.
 import { closed } from "./content-schema.js";
 
-export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair", "animalCoat"];
+export const appearanceExtraKeys = () => ["faceField", "faceWeathering", "faceHair", "animalCoat", "roachCoat"];
 
 export function validateAppearanceExtras(d, tools) {
   validateFaceTables(d, tools);
   validateCrookedPose(d, tools);
   validateAnimalCoat(d, tools);
+  validateRoachCoat(d, tools);
+}
+
+// roach-appearance.js: a band (`from`, `range`) maps a value to 0..1; the field rows are the frequencies of the wear noise.
+function validateRoachCoat(d, { between }) {
+  closed(d.roachCoat, ["taper", "field", "wear"]);
+  for (const band of ["taper", "wear"]) {
+    closed(d.roachCoat[band], ["from", "range"]);
+    between(`roachCoat.${band}.from`, d.roachCoat[band].from, -10, 10);
+    between(`roachCoat.${band}.range`, d.roachCoat[band].range, 0.001, 100);
+  }
+  closed(d.roachCoat.field, ["z", "cosX", "wobble", "y", "z2"]);
+  for (const k of ["z", "cosX", "wobble", "y", "z2"]) between(`roachCoat.field.${k}`, d.roachCoat.field[k], 0, 1000);
 }
 
 // animal-appearance.js: a band (`from`, `range`) maps a value to 0..1; the field rows are the frequencies of the patch noise.
