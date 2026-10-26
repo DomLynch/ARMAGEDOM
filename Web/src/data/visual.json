@@ -530,6 +530,7 @@
     "renderOrder": -85,
     "maxStepSeconds": 0.1
   },
+  "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 2, "pageWidthPx": 110 },
   "explosion": {
     "maxActive": 3,
     "texture": { "size": 64, "edge": 0.55, "falloffPower": 1.1 },
