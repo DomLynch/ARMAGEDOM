@@ -134,7 +134,6 @@
     "engine/run-views.js": 3,
     "engine/safehouse.js": 2,
     "engine/save-client.js": 10,
-    "engine/save-eras.js": 13,
     "engine/server.js": 1,
     "engine/sever-blood-effect.js": 5,
     "engine/shotgun-pattern.js": 4,
