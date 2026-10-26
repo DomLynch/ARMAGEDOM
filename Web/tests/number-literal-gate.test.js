@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { countNumberLiterals, isNumberExempt, numberLiteralProblems } from "../../scripts/as-data-gate.mjs";
+import { NUMBER_SHRINK_TOLERANCE } from "../../scripts/number-literal-gate.mjs";
 
 const count = (src) => countNumberLiterals(src).count;
 const values = (src) => countNumberLiterals(src).items.map((i) => i.value);
@@ -131,7 +132,7 @@ test("the real tree matches the seeded baseline file by file", () => {
       );
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url)));
   assert.deepEqual(numberLiteralProblems(walk(root), baseline, root), []);
-  // The burn-down ends at an empty table, so only its shape is checked here, not a minimum size.
-  assert.equal(Object.getPrototypeOf(baseline.numberLiterals), Object.prototype);
-  assert(Object.values(baseline.numberLiterals).every((n) => Number.isInteger(n) && n > 0));
+  // The burn-down is finished: the table is empty and the gate runs strict, so no file may carry a tuning number.
+  assert.deepEqual(baseline.numberLiterals, {});
+  assert.equal(NUMBER_SHRINK_TOLERANCE, false);
 });
