@@ -276,7 +276,7 @@
     "count": [3, 5],
     "ranges": { "health": [1, 120], "moveSpeed": [0.1, 6], "regen": [0.1, 2], "aggression": [0.1, 5], "recovery": [0, 5] }
   },
-  "creatureSim": { "playerFields": ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"] },
+  "creatureSim": { "playerFields": ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"], "maxStepSeconds": 0.25, "defaultStepSeconds": 0.1 },
   "feralBodyShapes": [
     { "id": "dog-gaunt-hound", "width": 0.62 },
     { "id": "dog-stocky-yard", "width": 1.6 }

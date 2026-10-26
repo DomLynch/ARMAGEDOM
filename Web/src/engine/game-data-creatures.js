@@ -9,7 +9,9 @@ export function validateCreatures(d) {
   closed(d, extra.creatureKeys());
   extra.validateCreatureExtras(d, { fail, number });
   // creatureSim.playerFields: the report fields engine/creature-sim.js copies onto a player entity each step.
-  closed(d.creatureSim, ["playerFields"]);
+  // creatureSim.maxStepSeconds caps one sim step; defaultStepSeconds is the step when the caller passes none.
+  closed(d.creatureSim, ["playerFields", "maxStepSeconds", "defaultStepSeconds"]);
+  for (const f of ["maxStepSeconds", "defaultStepSeconds"]) number("creatures", `creatureSim.${f}`, d.creatureSim[f], 0.001);
   if (d.creatureSim.playerFields.join() !== "hp,dodgeUntil,guarding,parryUntil,stamina")
     fail("creatures", "creatureSim.playerFields must be hp, dodgeUntil, guarding, parryUntil, stamina");
   // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
