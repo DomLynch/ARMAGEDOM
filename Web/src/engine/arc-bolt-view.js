@@ -7,6 +7,9 @@ const LOOP = Math.PI * 2; // tuning-ok: full turn
 const VERTS = 3; // tuning-ok: a ribbon point has a left, a centre and a right vertex
 const RGBA = 4; // tuning-ok: vertex colour channels
 const XYZ = 3; // tuning-ok: position channels
+const Z = 2; // tuning-ok: the z channel of a position
+const TRIANGLE = 3; // tuning-ok: indices per triangle
+const FALLBACK_HEIGHT = 667; // tuning-ok: a phone screen's height in CSS pixels until the caller says
 
 // A small seeded generator, so a bolt's shape is repeatable in tests and stills.
 function generator(seed) {
@@ -35,7 +38,14 @@ void main() {
 }`;
 
 // `camera` and `viewportHeight()` turn a width in screen pixels into metres at each point's distance from the camera.
-export function createArcBolts({ scene, data, camera, viewportHeight = () => 667, bodyHeight = () => 1, seed = 1 }) {
+export function createArcBolts({
+  scene,
+  data,
+  camera,
+  viewportHeight = () => FALLBACK_HEIGHT,
+  bodyHeight = () => 1,
+  seed = 1,
+}) {
   const root = new T.Group();
   root.name = "Arc gun lightning";
   scene.add(root);
@@ -127,11 +137,11 @@ export function createArcBolts({ scene, data, camera, viewportHeight = () => 667
       point.addScaledVector(up, (random() - 0.5) * 2 * wobble); // tuning-ok: centred random in -1..1
       out.pts[i * XYZ] = point.x;
       out.pts[i * XYZ + 1] = point.y;
-      out.pts[i * XYZ + 2] = point.z;
+      out.pts[i * XYZ + Z] = point.z;
     }
     out.n = segments + 1;
   }
-  const at = (l, i, into) => into.set(l.pts[i * XYZ], l.pts[i * XYZ + 1], l.pts[i * XYZ + 2]);
+  const at = (l, i, into) => into.set(l.pts[i * XYZ], l.pts[i * XYZ + 1], l.pts[i * XYZ + Z]);
 
   // A fresh shape for one bolt: the main path plus up to `forks` short branches leaving it at random interior points.
   function reshape(bolt) {
@@ -178,15 +188,17 @@ export function createArcBolts({ scene, data, camera, viewportHeight = () => 667
           alpha = s === 0 ? mid : edge;
         position[o * XYZ] = point.x + side.x * s;
         position[o * XYZ + 1] = point.y + side.y * s;
-        position[o * XYZ + 2] = point.z + side.z * s;
+        position[o * XYZ + Z] = point.z + side.z * s;
         colour.set([tint.r, tint.g, tint.b, alpha], o * RGBA);
       }
     }
     for (let i = 0; i < l.n - 1; i++) {
-      const a = base + i * VERTS,
-        b = a + VERTS;
-      // tuning-ok: four triangles between a point's left, centre and right vertices and the next point's
-      for (const t of [a, a + 1, b, a + 1, b + 1, b, a + 1, a + 2, b + 1, a + 2, b + 2, b + 1]) index[indices++] = t;
+      const a = base + i * VERTS;
+      // Two quads per segment (left-centre, centre-right), each as two triangles to the next point's vertices.
+      for (const half of [0, 1]) {
+        const l = a + half;
+        for (const t of [l, l + 1, l + VERTS, l + 1, l + 1 + VERTS, l + VERTS]) index[indices++] = t;
+      }
     }
   }
   const glow = (l, widthPx, rgb, alpha) => strip(l, widthPx, rgb, alpha, 0),
@@ -273,7 +285,7 @@ export function createArcBolts({ scene, data, camera, viewportHeight = () => 667
               o = i * XYZ;
             slot.pts[o] = actor.pos.x + Math.cos(turn) * radius;
             slot.pts[o + 1] = height * (0.6 + 0.8 * random()); // tuning-ok: crackle spans 60 to 140 per cent of chest height
-            slot.pts[o + 2] = -actor.pos.z + Math.sin(turn) * radius;
+            slot.pts[o + Z] = -actor.pos.z + Math.sin(turn) * radius;
           }
           slot.n = data.stunSegments + 1;
         }
@@ -300,7 +312,7 @@ export function createArcBolts({ scene, data, camera, viewportHeight = () => 667
     stats() {
       return {
         drawObjects: root.children.length,
-        ribbonTriangles: indices / 3,
+        ribbonTriangles: indices / TRIANGLE,
         sparks: [...sparkAge].filter((a) => a >= 0).length,
       }; // tuning-ok: three indices per triangle
     },
