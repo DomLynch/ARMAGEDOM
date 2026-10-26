@@ -149,7 +149,7 @@ export function createExpeditionView(s, dispatch) {
     el("contract-title").textContent = data.contract.title;
     const base = data.variants[PISTOL_ITEM_ID],
       reward = data.variants[data.contract.rewardVariantId];
-    const percent = Math.round((reward.damage / base.damage - 1) * 100); // tuning-ok: a fraction shown as a percentage
+    const percent = Math.round((reward.damage / base.damage - 1) * 100);
     el("contract-description").textContent = s.world.reaperData
       ? text("expedition.descriptionCompanion", { summary: data.contract.summary, name: s.world.reaperData.name })
       : text("expedition.descriptionWeapon", {
