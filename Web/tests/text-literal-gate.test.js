@@ -12,15 +12,30 @@ test("a quoted sentence a player can read counts, in any quote style", () => {
   assert.equal(count("msg = `Scavenged ${n} spare rounds.`;"), 1);
 });
 
-test("short labels, keys, ids and lower-case strings do not count", () => {
+test("ALL CAPS banners, one-letter first words and two-word labels count", () => {
+  assert.equal(count('route("KILL THE SALAMANDER");'), 1);
+  assert.equal(count('notice("A hunter is after you");'), 1);
+  assert.equal(count('button.textContent = "Reload game";'), 1);
+  assert.equal(count('label = "Loading Westminster…";'), 1);
+});
+
+test("text that continues after a leading ${} or separator counts", () => {
+  assert.equal(count("msg = `${name} equipped.`;"), 1);
+  assert.equal(count('tag = " · tap to equip";'), 1);
+  assert.equal(count('tag = " · FLAME BURST — MOVE ASIDE";'), 1);
+});
+
+test("one-word labels, keys, ids, class lists and CSS do not count", () => {
   assert.equal(count('const id = "westminster"; el.className = "hud-row active";'), 0);
   assert.equal(count('button.textContent = "Fire";'), 0);
-  assert.equal(count('label("Two words");'), 0);
+  assert.equal(count("el.style.transform = `translate(${x}px, ${y}px)`;"), 0);
+  assert.equal(count("pos = `${x}px ${y}px`;"), 0);
 });
 
 test("error and validation text, comments and imports do not count", () => {
   assert.equal(count('throw TypeError("Rifle requires existing save data");'), 0);
   assert.equal(count('fail("atmosphere", "Smoke colour must be three numbers");'), 0);
+  assert.equal(count('showError("Saving is unavailable right now");'), 1, "UI that shows an error is still player text");
   assert.equal(count('// "This is a comment sentence"'), 0);
   assert.equal(count('const x = 1; // "Trailing comment sentence here"'), 0);
 });

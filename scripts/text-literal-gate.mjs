@@ -1,6 +1,8 @@
 // Text-literal gate: English a player can read lives in data (Web/src/data/*.json read through engine/game-data.js), not in code.
-// A sentence is a quoted string that starts with a capital letter and holds at least three words. Error and validation text
-// (a line that throws, rejects, fails or logs) is not counted, and neither is a line that ends with `// text-ok: <reason>`
+// Player text is a quoted string of at least two words that starts with a capital letter in any case ("Reload game",
+// "KILL THE SALAMANDER", "A hunter is after you"), or that continues a sentence after a leading `${…}` or separator
+// (`${name} equipped.`, " · tap to equip"). Error and validation text (a line that throws, rejects, fails a validator or logs)
+// is not counted, and neither is a line that ends with `// text-ok: <reason>`
 // (an internal mesh or profile name the player never sees). Each file may carry at most its count in
 // scripts/as-data-baseline.json `textLiterals`; a file not listed may carry none.
 import { readFileSync } from "node:fs";
@@ -12,10 +14,18 @@ import { relative } from "node:path";
 export const TEXT_SHRINK_TOLERANCE = true;
 
 const TEXT_MARK = /\/\/\s*text-ok:(.*)$/;
-const ERROR_LINE = /\bthrow\b|Error\(|\bfail\(|console\.|reject\(|assert/;
+const ERROR_LINE = /\bthrow\b|\breject\(|\bfail\(|console\.(?:log|warn|error|info|debug)\(|\bassert/;
 const QUOTED = [/"([^"\n]*)"/g, /'([^'\n]*)'/g, /`([^`\n]*)`/g];
+const LEAD = /^(?:\$\{[^}]*\}|[\s·•—–\-:,.|]+)+/;
 
-export const isSentence = (s) => /^[A-Z][a-z']/.test(s) && (s.match(/ /g) ?? []).length >= 2 && /[a-z]{2}/.test(s);
+export function isSentence(raw) {
+  const rest = raw.replace(LEAD, "");
+  const continues = rest !== raw;
+  if (!/^[A-Za-z]/.test(rest) || (!continues && !/^[A-Z]/.test(rest))) return false;
+  if (/=>|;|\{\s/.test(rest)) return false;
+  const words = raw.trim().split(/\s+/).filter((w) => /[A-Za-z]|\$\{/.test(w));
+  return words.length >= 2 && /[A-Za-z]{3,}/.test(rest.replace(/\$\{[^}]*\}/g, ""));
+}
 
 // Sentences on code lines, and text-ok marks that lack a reason.
 export function countTextLiterals(source) {
