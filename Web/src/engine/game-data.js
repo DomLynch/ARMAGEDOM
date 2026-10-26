@@ -246,6 +246,7 @@ export function validateVisual(d) {
     "severBlood",
     "motion",
     "wantedPoster",
+    "weaponViews",
   ]);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
