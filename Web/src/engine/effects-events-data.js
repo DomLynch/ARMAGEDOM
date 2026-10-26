@@ -6,7 +6,7 @@ import { closed } from "./content-schema.js";
 import { fail } from "./game-data-checks.js";
 
 // A function, not a top-level table: this is a shape description, not tuning.
-const schema = () => ({
+const checkShape = () => ({
   events: {
     railgun: { seconds: "p", colour: "h", flashScale: ["n", 3], flashSeconds: "p" },
     warningColour: "h",
@@ -68,9 +68,9 @@ function check(path, value, spec) {
   else if (spec === "s" && value > 1) fail("visual", `${path} must be 0 to 1`);
 }
 
-export const eventsKeys = () => Object.keys(schema());
+export const eventsKeys = () => Object.keys(checkShape());
 export function validateEffectsEvents(c) {
-  for (const [key, spec] of Object.entries(schema())) check(`effects.feedback.${key}`, c[key], spec);
+  for (const [key, spec] of Object.entries(checkShape())) check(`effects.feedback.${key}`, c[key], spec);
   const audio = c.audio;
   for (const name of audio.sineEvents)
     if (!Object.hasOwn(audio.frequencies, name)) fail("visual", `effects.feedback.audio.sineEvents names unknown event ${name}`);
