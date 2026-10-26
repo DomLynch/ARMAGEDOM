@@ -1,8 +1,7 @@
-import { createHash } from "node:crypto";
 import * as T from "three";
 import { ROACH_APPEARANCES, createRoachAppearanceLibrary } from "../../src/roach-appearance.js";
 
-// One SHA-256 per roach recipe over the geometry (position, normal, colour) and the material the library writes onto a synthetic roach mesh:
+// The geometry arrays (position, normal, colour, ...) and the material per roach recipe, as the library writes them onto a synthetic roach mesh:
 // 240 vertices at pseudo-random positions whose shell skin weight sweeps from 0 to 1, with an authored colour attribute. Used by the
 // differential test that proves a data move changed no value.
 function lcg(seed) {
@@ -48,12 +47,13 @@ export function roachSignatures() {
     const library = createRoachAppearanceLibrary(T),
       model = roachFixture();
     library.apply(model, recipe.id);
-    const mesh = model.children.find((c) => c.isSkinnedMesh),
-      hash = createHash("sha256");
-    for (const [name, a] of Object.entries(mesh.geometry.attributes))
-      hash.update(name).update(new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength));
-    hash.update(JSON.stringify([mesh.material.color.toArray(), mesh.material.vertexColors]));
-    out[recipe.id] = hash.digest("hex");
+    const mesh = model.children.find((c) => c.isSkinnedMesh);
+    out[recipe.id] = {
+      attributes: Object.fromEntries(
+        Object.entries(mesh.geometry.attributes).map(([name, a]) => [name, Array.from(a.array)]),
+      ),
+      material: { color: mesh.material.color.toArray(), vertexColors: mesh.material.vertexColors },
+    };
     library.dispose();
   }
   return out;

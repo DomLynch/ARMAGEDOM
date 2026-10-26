@@ -19,6 +19,24 @@
     "beaconHP": 100,
     "matchSeconds": 180
   },
+  "match": {
+    "spawnPoint": { "x": 0.52, "y": 0.78 },
+    "objectivePoint": { "x": 0.603125, "y": 0.6875 },
+    "wavePoint": { "x": 0.770833333333, "y": 0.516666666667 },
+    "biologicalRadius": 0.4,
+    "spawnSearch": { "maxRing": 8, "perRing": 16, "ringStep": 0.5, "gap": 0.08 },
+    "formationSearch": { "maxRing": 6, "perRing": 16, "ringStep": 0.6, "gap": 0.08 },
+    "flashSeconds": 0.12,
+    "hitTicks": 12,
+    "deathTicks": 144,
+    "moveProgress": 0.25,
+    "bodyGap": 0.015,
+    "arriveDistance": 0.25,
+    "aggroDistance": 8,
+    "swingAfterWindup": 0.35,
+    "firstWaveDelay": 5,
+    "waveGap": 10
+  },
   "view": {
     "backdropSize": [1672, 941],
     "startFocus": { "x": 0.6, "y": 0.69 },

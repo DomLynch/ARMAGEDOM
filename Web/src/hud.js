@@ -167,10 +167,10 @@ export function createHUD({
     else menu.showModal();
     pause();
   }
-  for (const id of ["resume", "close-menu"])
-    el(id).onclick = () => {
-      if (!resetBusy) menu.close();
-    };
+  // One way out of the menu (Dom, 26 Oct): the X. The labelled "Back to game" button duplicated it.
+  el("close-menu").onclick = () => {
+    if (!resetBusy) menu.close();
+  };
   listen(menu, "close", pause);
   listen(menu, "cancel", pause);
   el("menu-button").onclick = toggleMenu;
@@ -223,7 +223,6 @@ export function createHUD({
   listen(window, "resize", resize);
   listen(document, "visibilitychange", pause);
   const handlers = [
-    "resume",
     "close-menu",
     "menu-button",
     "retry",

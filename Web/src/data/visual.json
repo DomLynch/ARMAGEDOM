@@ -210,5 +210,17 @@
         "other": [[0.03, 0.2], [0.55, 0.74]]
       }
     }
+  },
+  "wantedPoster": {
+    "canvas": { "width": 384, "height": 768 },
+    "titleX": 192,
+    "portrait": { "alpha": 0.86, "x": 64, "y": 170, "width": 256, "height": 320 },
+    "amount": { "x": 192, "y": 625, "fontPx": 92, "maxWidth": 300 },
+    "rules": { "alpha": 0.4, "top": { "x": 40, "y": 125, "width": 304 }, "bottom": { "x": 64, "y": 655, "width": 256 } },
+    "specks": { "count": 140, "stepX": 193, "offsetX": 31, "spanX": 384, "stepY": 271, "offsetY": 67, "spanY": 700, "alpha": 0.1, "alphaStep": 0.06 },
+    "scratches": { "count": 9, "x": 25, "stepX": 71, "spanX": 250, "y": 140, "stepY": 51, "width": 45, "widthStep": 9 },
+    "meshColour": "dce2ca",
+    "renderOrder": -95,
+    "flickerHz": [17, 43]
   }
 }

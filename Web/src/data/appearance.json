@@ -9,10 +9,15 @@
     "field": { "z": 63, "cosX": 45, "wobble": 1.6, "y": 99, "z2": 24 },
     "wear": { "from": 0.25, "range": 1.4 }
   },
+  "feralTorsoMask": { "from": 0.9, "range": 0.1 },
+  "pickupGlow": { "stroke": 1.05, "color": "#ffca85", "orderOffset": 0.01 },
   "animalOffsets": {
     "A": { "east-roamer-9": { "x": -0.014, "z": -0.278 }, "east-roamer-5": { "x": 0, "z": -0.046 } },
     "B": { "east-roamer-9": { "x": -0.014, "z": -0.278 } }
   },
+  "crownSplit": { "maxVertices": 100000, "cutColor": "#49251f", "openRadians": 0.19, "openMetres": 0.008 },
+  "finisherCosmetics": { "pulseBase": 0.65, "pulseSwing": 0.35, "hotMix": 0.8 },
+  "severBloodEffect": { "jetTopRadius": 0.35, "jetSegments": 8, "poolSegments": 24, "color": "#831428", "groundLift": 0.006 },
   "animalCoat": {
     "taper": { "from": 0.9, "range": 0.1 },
     "field": { "z": 43, "cosY": 37, "wobble": 1.7, "x": 51, "y": 19 },
