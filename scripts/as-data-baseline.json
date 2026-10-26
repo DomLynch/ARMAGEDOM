@@ -149,7 +149,6 @@
     "engine/rifle-view.js": 5,
     "engine/rocket-runtime.js": 13,
     "engine/rocket-view.js": 21,
-    "engine/route-guidance.js": 22,
     "engine/run-core.js": 14,
     "engine/run-state.js": 13,
     "engine/run-views.js": 4,

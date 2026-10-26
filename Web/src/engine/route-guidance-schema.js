@@ -15,15 +15,35 @@ const ensureNumbers = (field, v, length) => {
   v.forEach((n, i) => number(`${field}[${i}]`, n, 0.001));
 };
 export function validateRouteGuidance(r) {
-  closed(r, ["clearance", "sampleStep", "boundaryReach", "exitReach", "boundaryStartReach", "rail", "arrow", "marker"]);
+  closed(r, [
+    "clearance",
+    "sampleStep",
+    "boundaryReach",
+    "exitReach",
+    "boundaryStartReach",
+    "waypointMin",
+    "arrivalRadius",
+    "pistolArrived",
+    "huntArrived",
+    "pulse",
+    "rail",
+    "arrow",
+    "marker",
+  ]);
   for (const f of ["clearance", "sampleStep", "boundaryReach", "exitReach", "boundaryStartReach"]) number(f, r[f], 0.001);
+  for (const f of ["waypointMin", "arrivalRadius", "pistolArrived", "huntArrived"]) number(f, r[f], 0.001);
+  closed(r.pulse, ["seconds", "minOpacity"]);
+  number("pulse.seconds", r.pulse.seconds, 0.1);
+  if (!(r.pulse.minOpacity >= 0 && r.pulse.minOpacity < 1)) fail("pulse.minOpacity must be from 0 up to 1");
   const { rail, arrow, marker: m } = r;
   closed(rail, ["sideProbe", "sideOffset", "segments", "centreHeight", "thickness", "depth", "colours", "post"]);
   for (const f of ["sideProbe", "sideOffset", "centreHeight", "thickness", "depth"]) number(`rail.${f}`, rail[f], 0.001);
   if (!Number.isSafeInteger(rail.segments) || rail.segments < 1 || rail.segments > 64) fail("rail.segments must be an integer from 1 to 64");
   if (!Array.isArray(rail.colours) || rail.colours.length !== 2) fail("rail.colours must hold two colours");
   rail.colours.forEach((c, i) => hex(`rail.colours[${i}]`, c));
-  closed(rail.post, ["centreHeight", "height", "width", "colour"]);
+  closed(rail.post, ["centreHeight", "height", "width", "colour", "along"]);
+  if (!Array.isArray(rail.post.along) || !rail.post.along.length || !rail.post.along.every((t) => t >= 0 && t <= 1))
+    fail("rail.post.along must list positions from 0 to 1 along the rail");
   for (const f of ["centreHeight", "height", "width"]) number(`rail.post.${f}`, rail.post[f], 0.001);
   hex("rail.post.colour", rail.post.colour);
   closed(arrow, ["height", "triangles"]);
