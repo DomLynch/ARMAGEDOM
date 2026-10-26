@@ -3,11 +3,11 @@ import { combatTargetHeight } from "../pistol-targeting.js";
 import { radialBlastHits } from "./radial-blast.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
 import { GAME_DATA } from "./game-data.js";
-import { BOSS_RANGED_EXTRA } from "./boss-ranged-data.js";
 
 // NPC-only rules. Player weapons, ammunition and paid-action clocks stay separate.
 // The numbers live in Web/src/data/weapons.json `bossRanged` (read through game-data.js).
 export const BOSS_RANGED_RULES = GAME_DATA.weapons.bossRanged;
+const BOSS_RANGED_EXTRA = GAME_DATA.bossRangedExtra;
 const EPS = 1e-8,
   flat = (p) => ({ x: p.x, z: -p.z }),
   lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
