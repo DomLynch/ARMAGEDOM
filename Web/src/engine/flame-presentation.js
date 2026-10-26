@@ -8,9 +8,10 @@ import { FLAME_AIM } from "../mobile-combat-aim.js";
 import profile from "../donor/flame-right-digit-profile.json" with { type: "json" };
 export const FLAME_DOWN_PITCH = FLAME_AIM.downPitch;
 import { FLAME_PRESENTATION as FP } from "./flame-presentation-data.js";
-const JOINTS = [1, 2, 3]; // tuning-ok: the rig has three joints on each finger
 const PITCH_UP = -(Math.PI * FP.pitchUpDegrees) / 180; // the highest the barrel tilts above level, in radians
-const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) => JOINTS.map((i) => `${f}_0${i}_r`));
+const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) =>
+  Array.from({ length: 3 }, (_, i) => `${f}_0${i + 1}_r`), // tuning-ok: the rig has three joints on each finger
+);
 const validated = new WeakMap();
 // The one accepted profile is bound to this exact hero, not retargeted or fitted.
 export function flameGripProfile(model, heroSHA) {
