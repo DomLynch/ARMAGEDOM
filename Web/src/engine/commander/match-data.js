@@ -56,7 +56,8 @@ export function validateCommanderMatch(m) {
     number(f, m[f], 0.001);
   for (const f of ["moveProgress", "bodyGap"]) number(f, m[f], 0);
   if (!(m.moveProgress <= 1)) fail("moveProgress must be at most 1");
-  for (const f of ["startMachines", "defenders", "waveCount", "waveSize"]) whole(f, m[f], 0, 16);
+  for (const f of ["startMachines", "defenders"]) whole(f, m[f], 1, 16); // a match needs at least one of each side to start
+  for (const f of ["waveCount", "waveSize"]) whole(f, m[f], 0, 16);
   closed(m.defenderOffset, ["x", "z"]);
   for (const f of ["x", "z"]) if (!Number.isFinite(m.defenderOffset[f])) fail(`defenderOffset.${f} must be a finite number`);
   whole("hitTicks", m.hitTicks, 1, 3600);
