@@ -92,7 +92,6 @@
     "engine/browser-session.js": 19,
     "engine/client-log.js": 2,
     "engine/commander/match.js": 13,
-    "engine/commander/session.js": 11,
     "engine/commander/view.js": 15,
     "engine/creature-catalogue.js": 2,
     "engine/creature-sim.js": 2,

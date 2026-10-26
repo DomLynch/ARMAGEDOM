@@ -13,6 +13,7 @@ import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
+import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
@@ -34,6 +35,7 @@ import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
@@ -61,6 +63,7 @@ export {
   validateBossEquipment,
   validateBossRanged,
   validateCombatRules,
+  validateCommanderSession,
   validateCreatures,
   validateCreditPolicies,
   validateFamilies,
@@ -865,6 +868,7 @@ const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
   commander: [commander, validateCommander],
+  commanderSession: [commanderSession, validateCommanderSession],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
