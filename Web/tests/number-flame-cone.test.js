@@ -43,8 +43,8 @@ test("the loader refuses a missing or out-of-range cone", () => {
   assert.throws(broken((b) => { b.emberContactConeDegrees = 180; }));
 });
 
-test("the gate counts 1 in flame-fuel-state.js (the 4096 ULP headroom) and the baseline agrees", () => {
+test("the gate counts 0 in flame-fuel-state.js (the 4096 ULP headroom is marked tuning-ok) and the baseline entry is gone", () => {
   const baseline = JSON.parse(text("../../scripts/as-data-baseline.json"));
-  assert.equal(countNumberLiterals(text("../src/engine/flame-fuel-state.js")).count, 1);
-  assert.equal(baseline.numberLiterals["engine/flame-fuel-state.js"], 1);
+  assert.equal(countNumberLiterals(text("../src/engine/flame-fuel-state.js")).count, 0);
+  assert(!("engine/flame-fuel-state.js" in baseline.numberLiterals));
 });

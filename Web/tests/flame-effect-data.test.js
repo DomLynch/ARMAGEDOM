@@ -18,6 +18,10 @@ test("flame-effect.js numbers live in visual.json and equal the old inline ones 
     corpseDeathFallbackSeconds: 2.4,
     burnSurface: { maxOffset: 0.8, defaultRadius: 0.4, margin: 0.05 },
     burnWisp: { spacing: 0.24, baseHeight: 0.13, wobbleRate: 14, wobbleHeight: 0.08 },
+    particles: {
+      emitterCount: 24, reducedCount: 6, burnSlots: 6, burnPerVictim: 2, burnSeconds: 0.35, textureSize: 32,
+      emitterWidth: [0.26, 0.5], burnWidth: [0.5, 0.7], burnAspect: 1.65, palette: ["fff6ce", "ffb843", "f15a10"],
+    },
   });
 });
 

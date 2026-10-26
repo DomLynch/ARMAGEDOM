@@ -83,7 +83,7 @@ export function createFlameFuelModel({ pickupId, capacity, unitsPerSecond } = {}
       remaining = Math.max(0, state.fuelUnits - spent);
     // Repeated fractional steps can leave a few ULPs after mathematical exhaustion.
     // Bound correction by both capacity precision and 1e-10 seconds of fuel.
-    const tolerance = Math.min(capacity * Number.EPSILON * 4096, unitsPerSecond * 1e-10);
+    const tolerance = Math.min(capacity * Number.EPSILON * 4096, unitsPerSecond * 1e-10); // tuning-ok: ULP headroom for fractional fuel steps
     if (remaining > 0 && remaining <= tolerance && state.fuelUnits > tolerance) {
       remaining = 0;
       spent = state.fuelUnits;
