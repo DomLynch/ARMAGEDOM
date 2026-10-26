@@ -523,5 +523,9 @@
     { "id": "knife", "creditPolicy": "mastery" },
     { "id": "westminster-start-pistol-v1", "creditPolicy": "mastery" },
     { "id": "flamethrower-area8-v1", "creditPolicy": "none" }
-  ]
+  ],
+  "audio": {
+    "shotgun": { "from": 180, "to": 40, "seconds": 0.14, "gain": 0.24, "noiseSeconds": 0.08, "noiseGain": 0.17, "cutoff": 800 },
+    "grenade": { "from": 110, "to": 32, "seconds": 0.2, "gain": 0.2, "noiseSeconds": 0.15, "noiseGain": 0.2, "cutoff": 350 }
+  }
 }

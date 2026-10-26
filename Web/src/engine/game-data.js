@@ -90,6 +90,7 @@ export function validateWeapons(d) {
     "flameAim",
     "lowMelee",
     "creditPolicies",
+    "audio",
   ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
@@ -102,6 +103,19 @@ export function validateWeapons(d) {
   validateMobileAim(d.mobileAim, d.flameAim);
   validateLowMelee(d.lowMelee);
   validateCreditPolicies(d.creditPolicies);
+  validateWeaponAudio(d.audio);
+}
+// The synthesised blast of the shotgun and the grenade (donor-audio.js): a sine sweep `from` -> `to` Hz over `seconds`, plus a noise
+// burst through a low-pass at `cutoff` Hz; gains are 0 to 1.
+export function validateWeaponAudio(a) {
+  closed(a, ["shotgun", "grenade"]);
+  for (const [weapon, cue] of Object.entries(a)) {
+    closed(cue, ["from", "to", "seconds", "gain", "noiseSeconds", "noiseGain", "cutoff"]);
+    for (const [f, v] of Object.entries(cue)) number("weapons", `audio.${weapon}.${f}`, v);
+    for (const f of ["seconds", "noiseSeconds", "cutoff", "from", "to"])
+      if (cue[f] <= 0) fail("weapons", `audio.${weapon}.${f} must be above 0`);
+    for (const f of ["gain", "noiseGain"]) if (cue[f] > 1) fail("weapons", `audio.${weapon}.${f} must not exceed 1`);
+  }
 }
 // Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
 // one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
