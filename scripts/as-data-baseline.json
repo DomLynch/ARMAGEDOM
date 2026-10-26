@@ -71,7 +71,6 @@
   "numberLiterals": {
     "animal-appearance.js": 9,
     "animal-cycle.js": 3,
-    "area-mob-spawns.js": 1,
     "atmosphere-areas.js": 23,
     "atmosphere.js": 17,
     "bridge-steering.js": 5,
@@ -123,7 +122,6 @@
     "engine/marked-hunters.js": 6,
     "engine/movement-trace.js": 6,
     "engine/presence-session.js": 2,
-    "engine/private-area-content.js": 6,
     "engine/progression-runtime.js": 1,
     "engine/progression-state.js": 2,
     "engine/qa-bridge.js": 1,

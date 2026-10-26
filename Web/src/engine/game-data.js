@@ -860,7 +860,9 @@ export function validateVisual(d) {
 // and which of those residents walk with the crooked gait. The rest of the area-content rules (geometry, creature identity, health
 // range, a boss or unique-reward row naming a placement) are checked where the rows are used (engine/area-content.js).
 export function validateSpawns(d) {
-  closed(d, ["schema_version", "mob", "drones", "crookedResidents"]);
+  closed(d, ["schema_version", "maxResidentHealth", "mob", "drones", "crookedResidents"]);
+  // maxResidentHealth: the most health a placement's `encounter` row may give a resident (area-mob-spawns.js residentEncounterHealth).
+  count("spawns", "maxResidentHealth", d.maxResidentHealth, 1, 10000);
   const keys = new Set(),
     point = (name, p) => {
       closed(p, ["x", "z"]);
