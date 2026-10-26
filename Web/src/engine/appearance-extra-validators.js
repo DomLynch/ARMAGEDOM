@@ -17,6 +17,7 @@ export const appearanceExtraKeys = () => [
   "finisherOpened",
   "actorView",
   "finisherPresentation",
+  "faceBuild",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -30,6 +31,20 @@ export function validateAppearanceExtras(d, tools) {
   validateFinisherOpened(d, tools);
   validateActorView(d, tools);
   validateFinisherPresentation(d, tools);
+  validateFaceBuild(d, tools);
+}
+
+// face-appearance.js: the build slice in milliseconds, how many steps pass between yields (powers of two, used as masks) and the weld precision.
+function validateFaceBuild(d, { fail, between }) {
+  const b = d.faceBuild;
+  closed(b, ["sliceMs", "yieldEvery", "yieldEveryTriangles", "weldPrecision"]);
+  between("faceBuild.sliceMs", b.sliceMs, 0.1, 1000);
+  for (const k of ["yieldEvery", "yieldEveryTriangles"]) {
+    between(`faceBuild.${k}`, b[k], 1, 65536);
+    if (!Number.isInteger(b[k]) || (b[k] & (b[k] - 1)) !== 0)
+      fail("appearance", `faceBuild.${k} must be a power of two`);
+  }
+  between("faceBuild.weldPrecision", b.weldPrecision, 10, 100000000);
 }
 
 // finisher-presentation.js: the victim pose emphasis, the bake clock, the neck stump and its cap, the head's throw and bounce, the hit shove and

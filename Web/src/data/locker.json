@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "resourceCaps": {
-    "railgun-reserve": 3,
+    "railgun-reserve": 8,
     "pistol-reserve": 12,
     "rifle-reserve": 16,
     "shotgun-reserve": 12,

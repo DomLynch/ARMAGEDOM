@@ -33,13 +33,13 @@ test("the loader refuses a bad particles row", () => {
   assert.throws(broken((p) => { p.burnSlots = 0; }));
 });
 
-test("the gate counts 0 in the two files, 1 in flame-fuel-state.js (the cone), and the baseline agrees", () => {
+test("the gate counts 0 in the two files and in flame-fuel-state.js, and the baseline entries are gone", () => {
   const baseline = JSON.parse(text("../../scripts/as-data-baseline.json"));
   for (const file of ["engine/flame-data.js", "engine/flame-core.js"]) {
     assert.equal(countNumberLiterals(text(`../src/${file}`)).count, 0, file);
     assert(!(file in baseline.numberLiterals), file);
   }
-  assert.equal(countNumberLiterals(text("../src/engine/flame-fuel-state.js")).count, 1);
-  assert.equal(baseline.numberLiterals["engine/flame-fuel-state.js"], 1);
+  assert.equal(countNumberLiterals(text("../src/engine/flame-fuel-state.js")).count, 0);
+  assert(!("engine/flame-fuel-state.js" in baseline.numberLiterals));
   assert.equal(GAME_DATA.visual.flameEffect.particles.palette.length, 3);
 });

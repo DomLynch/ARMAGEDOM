@@ -10,12 +10,24 @@ const FIELD = GAME_DATA.appearance.faceField,
   HAIR = GAME_DATA.appearance.faceHair;
 const SKIN_NAMES = new Set(["Ash-grey affected skin", "Photo-matched exposed lower neck"]);
 // Geometry builders hand control back every 128 steps (4 ms slices) so a face recipe never blocks a frame; hair edges every 256 triangles.
-const YIELD_MASK = 127,
-  YIELD_MASK_TRIANGLES = 255;
-const KEY_PRECISION = 1e6; // weld key: positions and weights rounded to a millionth
+// The slice, the step counts and the weld precision (positions and weights rounded to a millionth) are appearance.json `faceBuild`; both
+// step counts are powers of two so a mask test stands in for the remainder.
+const BUILD = GAME_DATA.appearance.faceBuild;
+const SLICE_MS = BUILD.sliceMs,
+  YIELD_MASK = BUILD.yieldEvery - 1,
+  YIELD_MASK_TRIANGLES = BUILD.yieldEveryTriangles - 1,
+  KEY_PRECISION = BUILD.weldPrecision;
+const XYZ = 3; // tuning-ok: a point or colour packed as three floats
+const UV = 2; // tuning-ok: a texture coordinate packed as two floats
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+const CORNERS = 3; // tuning-ok: a triangle has three corners
+const LAST_CORNER = CORNERS - 1;
+const smoothstep = (u) => u * u * (3 - 2 * u); // tuning-ok: the smoothstep polynomial
+const unitSine = (x) => 0.5 + 0.5 * Math.sin(x); // tuning-ok: maps the sine's -1..1 onto 0..1
+const squared = (x) => x ** 2; // tuning-ok: a square
 function field(p, head) {
   const u = T.MathUtils.clamp((p.y - FIELD.from) / FIELD.range, 0, 1),
-    t = u * u * (3 - 2 * u);
+    t = smoothstep(u);
   return new T.Vector3(
     p.x * (1 + (head.width - 1) * t),
     p.y + (p.y - FIELD.pivot) * (head.height - 1) * t,
@@ -24,7 +36,7 @@ function field(p, head) {
 }
 function fieldNormal(p, n, h) {
   const u = T.MathUtils.clamp((p.y - FIELD.from) / FIELD.range, 0, 1),
-    t = u * u * (3 - 2 * u),
+    t = smoothstep(u),
     dt = (6 * u * (1 - u)) / FIELD.range, // tuning-ok: derivative of the smoothstep 3u^2 - 2u^3
     sx = 1 + (h.width - 1) * t,
     sz = 1 + (h.width - 1) * FIELD.depth * t,
@@ -39,7 +51,7 @@ function fieldNormal(p, n, h) {
 }
 function weather(p, id) {
   const [nx, ny, nz] = WEATHER.noise,
-    noise = 0.5 + 0.5 * Math.sin(p.x * nx + p.y * ny + p.z * nz),
+    noise = unitSine(p.x * nx + p.y * ny + p.z * nz),
     front = p.z > WEATHER.frontZ,
     { stubble, scar, ash, grime, dust } = WEATHER;
   if (id === "stubble" && front && p.y < stubble.maxY) return stubble.base.map((b, k) => b + stubble.gain[k] * noise);
@@ -63,22 +75,22 @@ function* changedGeometrySteps(source, h, weathering = null) {
   try {
     const pos = source.getAttribute("position"),
       norm = source.getAttribute("normal"),
-      out = new Float32Array(pos.count * 3),
-      ns = new Float32Array(pos.count * 3),
-      cs = weathering ? new Float32Array(pos.count * 3) : null;
+      out = new Float32Array(pos.count * XYZ),
+      ns = new Float32Array(pos.count * XYZ),
+      cs = weathering ? new Float32Array(pos.count * XYZ) : null;
     for (let i = 0; i < pos.count; i++) {
       const p = new T.Vector3().fromBufferAttribute(pos, i);
-      field(p, h).toArray(out, i * 3);
-      fieldNormal(p, new T.Vector3().fromBufferAttribute(norm, i), h).toArray(ns, i * 3);
-      if (cs) cs.set(weather(p, weathering), i * 3);
-      if ((i & YIELD_MASK) === 0 && performance.now() - since >= 4) {
+      field(p, h).toArray(out, i * XYZ);
+      fieldNormal(p, new T.Vector3().fromBufferAttribute(norm, i), h).toArray(ns, i * XYZ);
+      if (cs) cs.set(weather(p, weathering), i * XYZ);
+      if ((i & YIELD_MASK) === 0 && performance.now() - since >= SLICE_MS) {
         yield "face-vertices";
         since = performance.now();
       }
     }
-    g.setAttribute("position", new T.BufferAttribute(out, 3));
-    g.setAttribute("normal", new T.BufferAttribute(ns, 3));
-    if (cs) g.setAttribute("color", new T.BufferAttribute(cs, 3));
+    g.setAttribute("position", new T.BufferAttribute(out, XYZ));
+    g.setAttribute("normal", new T.BufferAttribute(ns, XYZ));
+    if (cs) g.setAttribute("color", new T.BufferAttribute(cs, XYZ));
     g.computeBoundingBox();
     g.computeBoundingSphere();
     completed = true;
@@ -109,9 +121,10 @@ function* hairGeometrySteps(source, h, style) {
         (style !== "back-crop" || p.z < HAIR.backCropMaxZ)
       );
     }
-    for (let i = 0; i < ids.length; i += 3) {
-      if (keep(ids[i]) && keep(ids[i + 1]) && keep(ids[i + 2])) selected.push(ids[i], ids[i + 1], ids[i + 2]);
-      if ((i & YIELD_MASK_TRIANGLES) === 0 && performance.now() - since >= 4) {
+    for (let i = 0; i < ids.length; i += CORNERS) {
+      if (keep(ids[i]) && keep(ids[i + 1]) && keep(ids[i + LAST_CORNER]))
+        selected.push(ids[i], ids[i + 1], ids[i + LAST_CORNER]);
+      if ((i & YIELD_MASK_TRIANGLES) === 0 && performance.now() - since >= SLICE_MS) {
         yield "face-hair-select";
         since = performance.now();
       }
@@ -126,8 +139,8 @@ function* hairGeometrySteps(source, h, style) {
       const p = new T.Vector3().fromBufferAttribute(pos, id),
         key = [
           ...p.toArray(),
-          ...Array.from({ length: 4 }, (_, k) => joints.array[id * 4 + k]),
-          ...Array.from({ length: 4 }, (_, k) => weights.getComponent(id, k)),
+          ...Array.from({ length: INFLUENCES }, (_, k) => joints.array[id * INFLUENCES + k]),
+          ...Array.from({ length: INFLUENCES }, (_, k) => weights.getComponent(id, k)),
         ]
           .map((v) => Math.round(v * KEY_PRECISION))
           .join("/");
@@ -136,7 +149,7 @@ function* hairGeometrySteps(source, h, style) {
         used.push(id);
       }
       map.set(id, keys.get(key));
-      if ((++welded & YIELD_MASK) === 0 && performance.now() - since >= 4) {
+      if ((++welded & YIELD_MASK) === 0 && performance.now() - since >= SLICE_MS) {
         yield "face-hair-weld";
         since = performance.now();
       }
@@ -150,14 +163,14 @@ function* hairGeometrySteps(source, h, style) {
     for (const bottom of [false, true])
       for (const id of used) {
         const p = field(new T.Vector3().fromBufferAttribute(pos, id), h),
-          wave = 0.5 + 0.5 * Math.sin(p.x * HAIR.wave[0] + p.z * HAIR.wave[1]);
+          wave = unitSine(p.x * HAIR.wave[0] + p.z * HAIR.wave[1]);
         if (!bottom) {
           const { crest, messy, other } = HAIR,
             look = style === "messy" ? messy : other,
             raise =
               style === "crest"
                 ? crest.height *
-                  (crest.floor + crest.span * Math.cos(p.z * crest.frequency) ** 2) *
+                  (crest.floor + crest.span * squared(Math.cos(p.z * crest.frequency))) *
                   Math.max(crest.taper, 1 - Math.abs(p.x) / crest.halfWidth)
                 : style === "back-crop"
                   ? HAIR.backCropRaise
@@ -172,27 +185,27 @@ function* hairGeometrySteps(source, h, style) {
         }
         ps.push(...p.toArray());
         uvs.push(uv.getX(id), uv.getY(id));
-        for (let k = 0; k < 4; k++) {
-          js.push(joints.array[id * 4 + k]);
+        for (let k = 0; k < INFLUENCES; k++) {
+          js.push(joints.array[id * INFLUENCES + k]);
           ws.push(weights.getComponent(id, k));
         }
-        if ((++built & YIELD_MASK) === 0 && performance.now() - since >= 4) {
+        if ((++built & YIELD_MASK) === 0 && performance.now() - since >= SLICE_MS) {
           yield "face-hair-build";
           since = performance.now();
         }
       }
     const edges = new Map();
-    for (let i = 0; i < triangles.length; i += 3) {
+    for (let i = 0; i < triangles.length; i += CORNERS) {
       for (const [a, b] of [
         [triangles[i], triangles[i + 1]],
-        [triangles[i + 1], triangles[i + 2]],
-        [triangles[i + 2], triangles[i]],
+        [triangles[i + 1], triangles[i + LAST_CORNER]],
+        [triangles[i + LAST_CORNER], triangles[i]],
       ]) {
         const key = Math.min(a, b) + "/" + Math.max(a, b),
           old = edges.get(key);
         edges.set(key, old ? { ...old, count: old.count + 1 } : { a, b, count: 1 });
       }
-      if ((i & YIELD_MASK_TRIANGLES) === 0 && performance.now() - since >= 4) {
+      if ((i & YIELD_MASK_TRIANGLES) === 0 && performance.now() - since >= SLICE_MS) {
         yield "face-hair-edges";
         since = performance.now();
       }
@@ -200,17 +213,17 @@ function* hairGeometrySteps(source, h, style) {
     const indices = [...triangles];
     for (const { a, b, count: n } of edges.values()) {
       if (n === 1) indices.push(a, b, b + count, a, b + count, a + count);
-      if ((++indexed & YIELD_MASK) === 0 && performance.now() - since >= 4) {
+      if ((++indexed & YIELD_MASK) === 0 && performance.now() - since >= SLICE_MS) {
         yield "face-hair-caps";
         since = performance.now();
       }
     }
-    if (performance.now() - since >= 4) yield "face-hair-attributes";
+    if (performance.now() - since >= SLICE_MS) yield "face-hair-attributes";
     g = new T.BufferGeometry();
-    g.setAttribute("position", new T.Float32BufferAttribute(ps, 3));
-    g.setAttribute("uv", new T.Float32BufferAttribute(uvs, 2));
-    g.setAttribute("skinIndex", new T.Uint16BufferAttribute(js, 4));
-    g.setAttribute("skinWeight", new T.Float32BufferAttribute(ws, 4));
+    g.setAttribute("position", new T.Float32BufferAttribute(ps, XYZ));
+    g.setAttribute("uv", new T.Float32BufferAttribute(uvs, UV));
+    g.setAttribute("skinIndex", new T.Uint16BufferAttribute(js, INFLUENCES));
+    g.setAttribute("skinWeight", new T.Float32BufferAttribute(ws, INFLUENCES));
     g.setIndex(indices);
     g.computeVertexNormals();
     g.computeBoundingBox();

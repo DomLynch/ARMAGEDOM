@@ -2314,8 +2314,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 1,
-    "reserve": 3,
+    "magazine": 4,
+    "reserve": 8,
     "selected": false
    },
    "weapon": "knife",
@@ -2328,7 +2328,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "saveSha": "9c3cc2f5816761c0271ab92e75d3e71e43657f4902ac699b2f229743395d72be",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2345,8 +2345,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 1,
-    "reserve": 3,
+    "magazine": 4,
+    "reserve": 8,
     "selected": false
    },
    "weapon": "knife",
@@ -2359,7 +2359,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "saveSha": "9c3cc2f5816761c0271ab92e75d3e71e43657f4902ac699b2f229743395d72be",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2376,8 +2376,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 1,
-    "reserve": 3,
+    "magazine": 4,
+    "reserve": 8,
     "selected": false
    },
    "weapon": "knife",
@@ -2390,7 +2390,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "67185253397e476cfa010adbbab8f97b07753705ce9b0af0b7d6da3a32301794",
+   "saveSha": "9c3cc2f5816761c0271ab92e75d3e71e43657f4902ac699b2f229743395d72be",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2413,8 +2413,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 1,
-    "reserve": 3,
+    "magazine": 4,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2427,7 +2427,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "e758bc979475f8f838ca2f69e8733b6d3ec9346e844b269cc3e7b498fccea09a",
+   "saveSha": "b3e16173dcfab3d24dbab77551c36196c33b8ecc1ff562604eee6ff3ee021518",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2450,8 +2450,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 1,
-    "reserve": 3,
+    "magazine": 4,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2464,7 +2464,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "e758bc979475f8f838ca2f69e8733b6d3ec9346e844b269cc3e7b498fccea09a",
+   "saveSha": "b3e16173dcfab3d24dbab77551c36196c33b8ecc1ff562604eee6ff3ee021518",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2487,8 +2487,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2501,7 +2501,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2518,8 +2518,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2532,7 +2532,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2549,8 +2549,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2563,7 +2563,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2572,7 +2572,7 @@
    "step": "fire-quota-fail",
    "result": {
     "ok": false,
-    "code": "not-eligible",
+    "code": "storage-unavailable",
     "events": []
    },
    "state": {
@@ -2580,8 +2580,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2594,7 +2594,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2611,8 +2611,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2625,7 +2625,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2648,8 +2648,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": false
    },
    "weapon": "knife",
@@ -2662,7 +2662,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7bae4644a8a477c89b4340f4450a4d763752b6efc3765be48515fe3ead2c6714",
+   "saveSha": "69218b8a95231a15415a85cc4c0ada55060d3059e8c8f93e87bac52eefab1525",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2685,8 +2685,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2699,7 +2699,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2711,8 +2711,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2725,7 +2725,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 1,
-   "saveSha": "7d2dc9015a2a94121ea5f7d527f2dc98fac04dc3f1ceb0d6a3a5771a214fc746",
+   "saveSha": "43d75d78ea4d42c0097701cb8957065aea6dba4dc14812bcb3c50e431edd986e",
    "keys": [
     "armagedom:central-hub-run:v17"
    ],
@@ -2738,8 +2738,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2752,7 +2752,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 0,
-   "saveSha": "c8fe70df0326b31a9ec7042fee20afa24ec48384046d83adecfa3f64cb48c5f9",
+   "saveSha": "114a88e0bfdf62e9f0debfa55302a5ce2aa9e573909fe0512bdc14f551ab200f",
    "keys": [
     "armagedom:central-hub-run:v17"
    ]
@@ -2764,8 +2764,8 @@
     "status": "owned",
     "dropPosition": null,
     "rewardReceipt": "boss-veteran-v1:borough-marshals-pistol-v1",
-    "magazine": 0,
-    "reserve": 3,
+    "magazine": 3,
+    "reserve": 8,
     "selected": true
    },
    "weapon": "railgun",
@@ -2778,7 +2778,7 @@
     "fuelUnits": 0
    },
    "dropEvents": 0,
-   "saveSha": "c8fe70df0326b31a9ec7042fee20afa24ec48384046d83adecfa3f64cb48c5f9",
+   "saveSha": "114a88e0bfdf62e9f0debfa55302a5ce2aa9e573909fe0512bdc14f551ab200f",
    "keys": [
     "armagedom:central-hub-run:v17"
    ],

@@ -569,11 +569,11 @@ export function createHUD({
           el("slash").classList.toggle("low-energy", state.magazine === 0);
           el("slash").setAttribute(
             "aria-label",
-            `Hold to charge Thundercoil Railgun for ${data.charge.seconds} seconds; release when ready; early release cancels`,
+            `Hold to charge Thundercoil Arc Gun for ${data.charge.seconds} seconds; release when ready; early release cancels`,
           );
-          el("stab").setAttribute("aria-label", "Reload Thundercoil Railgun");
+          el("stab").setAttribute("aria-label", "Reload Thundercoil Arc Gun");
           el("ammo").textContent =
-            `RAILGUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
+            `ARC GUN · ${state.magazine}/${data.rules.capacity} · ${state.reserve} RESERVE${clock.reloadingUntil ? " · RELOADING" : ""}`;
         }
         if (flameEquipped) {
           const percent = Math.ceil((g.flameFuel.fuelUnits / g.world.flameData.capacity) * 100);
