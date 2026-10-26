@@ -1,0 +1,19 @@
+{
+  "seededTables": [
+    "arma_item_sources",
+    "arma_loot_rules",
+    "arma_payout_rules",
+    "arma_record_caps",
+    "arma_record_keys",
+    "arma_weapon_rules",
+    "arma_config",
+    "arma_world_config"
+  ],
+  "liveConfigKeys": {
+    "arma_enabled": "the live world switch: the migrations ship it false, Dom opened the world on 25 Oct 2026",
+    "arma_open_access": "the live open-access switch: the migrations ship it false, Dom opened the world on 25 Oct 2026"
+  },
+  "allowedGrantees": {
+    "service_role": "Supabase's own admin role: its default privileges on every table and function, never granted by a migration; the key stays server-side (Lead ruling, 26 Oct 2026)"
+  }
+}
