@@ -17,6 +17,8 @@
 // mouthAim: the rig turns so its measured mouth surface, not its body centre, faces the target (wolf-native.js).
 //
 // Names (read with `rigText(rig, name)`):
+// species: the kind of creature (rat, dog, roach, salamander, wolf, drone), one rig each; `rigOfSpecies(species)` is the rig id, for
+//   the few places that address one kind by name.
 // brain: which per-tick behaviour drives the rig in combat.js stepEnemy: rat, dog (dogs, roaches, wolves, salamanders) or drone.
 //   A rig with none uses the humanoid behaviour.
 // lowSwing: which low melee pose the player's knife uses against it (dog, roach); a native-skeleton rig uses the dog's mid pose,
@@ -51,6 +53,12 @@ export function rigNumber(rig, name) {
   return Object.hasOwn(RIG_CAPABILITIES, rig) && Number.isFinite(RIG_CAPABILITIES[rig][name])
     ? RIG_CAPABILITIES[rig][name]
     : undefined;
+}
+
+export function rigOfSpecies(species) {
+  const rig = Object.keys(RIG_CAPABILITIES).find((id) => RIG_CAPABILITIES[id].species === species);
+  if (!rig) throw Error(`No rig has species ${species}`);
+  return rig;
 }
 
 export function rigText(rig, name) {
