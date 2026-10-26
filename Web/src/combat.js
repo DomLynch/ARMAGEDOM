@@ -537,7 +537,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
           ? lowReach + (p.meleeLowMoves[target.rig].includeRadius ? target.radius : 0) - normalReach
           : rigCapability(target.rig, "lowStrike")
             ? lowReach +
-              (["giant-salamander", "original-wolf"].includes(target.rig)
+              (rigCapability(target.rig, "nativeSkeleton")
                 ? target.contactGoalReach - g.player.radius
                 : target.contactGoalReach || target.rig === "low-hover-drone"
                   ? target.radius
@@ -1172,16 +1172,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   const ratBefore =
     g.ratContact &&
     g.enemies.some(
-      (e) =>
-        [
-          "original-rat",
-          "original-dog",
-          "original-roach",
-          "giant-salamander",
-          "original-wolf",
-          "low-hover-drone",
-        ].includes(e.rig) &&
-        (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
+      (e) => rigCapability(e.rig, "lowStrike") && (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
     )
       ? g.ratContact.capture(g)
       : null;
@@ -1603,7 +1594,7 @@ export function initializeAreaResidents(g) {
       }
     }
   for (const e of residents)
-    if (["giant-salamander", "original-wolf"].includes(e.rig)) {
+    if (rigCapability(e.rig, "nativeSkeleton")) {
       const role = resolveBoundAnimalRole(e, {
         areaId: area,
         animalCycle: g.animalCycle,
@@ -1839,16 +1830,8 @@ function hitMetadata(attacker, victim, def) {
     position: { ...victim.pos },
     moveId: def?.moveId ?? null,
     audioWeight: def?.audioWeight,
-    weapon:
-      def?.weapon ??
-      (["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(attacker?.rig)
-        ? "teeth"
-        : "knife"),
-    material: ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(
-      attacker?.rig,
-    )
-      ? "flesh"
-      : "iron",
+    weapon: def?.weapon ?? (rigCapability(attacker?.rig, "animal") ? "teeth" : "knife"),
+    material: rigCapability(attacker?.rig, "animal") ? "flesh" : "iron",
   };
 }
 function knifeReceive(g, hit) {
@@ -2214,8 +2197,7 @@ function dogEnemy(g, e, dt) {
     if (e.packMovement === "hold") return;
   }
   // Reuse the existing backward mover to recover native mouth standoff when the player crowds the body.
-  const ownGoalDistance =
-    ["giant-salamander", "original-wolf"].includes(e.rig) && footGoal ? mag(sub(footGoal, e.pos)) : null;
+  const ownGoalDistance = rigCapability(e.rig, "nativeSkeleton") && footGoal ? mag(sub(footGoal, e.pos)) : null;
   if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - 0.001) {
     enemyMove(
       g,
@@ -2296,19 +2278,7 @@ function knifeContacts(g, before, ratBefore) {
           ? [...g.enemies].sort((a1, b1) => mag(sub(a1.pos, a.pos)) - mag(sub(b1.pos, a.pos)) || a1.id - b1.id)
           : [g.player];
       for (const d of targets) {
-        if (
-          s.def.ratLow &&
-          (![
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig) ||
-            d.id !== s.lowTargetId)
-        )
-          continue;
+        if (s.def.ratLow && (!rigCapability(d.rig, "lowStrike") || d.id !== s.lowTargetId)) continue;
         if (
           d.hp <= 0 ||
           s.hitIds.has(d.id) ||
@@ -2317,15 +2287,7 @@ function knifeContacts(g, before, ratBefore) {
         )
           continue;
         const hit =
-          ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(a.rig) ||
-          [
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig)
+          rigCapability(a.rig, "animal") || rigCapability(d.rig, "lowStrike")
             ? !!(ratBefore && g.ratContact.hit(a, d, s, ratBefore, ratAfter))
             : s.path
               ? bladeContact(
@@ -2364,7 +2326,7 @@ function knifeContacts(g, before, ratBefore) {
         block: true,
         parry: def.parryable,
         moveId: def.moveId,
-        ...(a.bossProfile || ["giant-salamander", "original-wolf"].includes(a.rig) ? { def } : {}),
+        ...(a.bossProfile || rigCapability(a.rig, "nativeSkeleton") ? { def } : {}),
       });
     else {
       const damage = effectiveWeaponDamage(g, "knife", def.damage),
