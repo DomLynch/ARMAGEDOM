@@ -53,8 +53,8 @@ export function validateAreaBosses(input, registry, residents = {}) {
       ["health", 40, 140],
       ["radius", 0.35, 0.6],
       ["moveSpeed", 0.7, 2.5],
-      ["wakeDistance", 2, 6],
-      ["homeLeash", 3, 8],
+      ["wakeDistance", 2, 12],
+      ["homeLeash", 3, 20],
       ["recoveryDelay", 0.4, 2.5],
       ["contactScale", 0.2, 3],
     ])
