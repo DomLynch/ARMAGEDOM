@@ -94,9 +94,7 @@ export function createAutoPickup({ firstSeconds, maxSeconds } = GAME_DATA.weapon
       pickups.filter((c) => !started.has(c.id) || time >= started.get(c.id).retryAt),
     );
     if (!next) return false;
-    const wait = started.has(next.id)
-      ? Math.min(started.get(next.id).wait * 2, maxSeconds)
-      : firstSeconds;
+    const wait = started.has(next.id) ? Math.min(started.get(next.id).wait * 2, maxSeconds) : firstSeconds;
     started.set(next.id, { retryAt: time + wait, wait });
     next.run();
     return true;
@@ -171,7 +169,9 @@ export function createRunViews(s) {
     const candidates = [safehouseView, flameView, expeditionView, uniqueView, rifleView, bossEquipmentView].flatMap(
       (view) => view.interaction?.() ?? [],
     );
-    const pistol = startingPistolCandidate(g, () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear({ keepMovement: true })));
+    const pistol = startingPistolCandidate(g, () =>
+      claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear({ keepMovement: true })),
+    );
     if (pistol) candidates.push(pistol);
     return candidates;
   }
@@ -189,7 +189,12 @@ export function createRunViews(s) {
       candidates = interactionCandidates(),
       position = s.game?.player.pos;
     if (position) autoPickup(position, candidates, s.game.time);
-    const target = position ? nearestInteraction(position, candidates.filter((c) => !c.pickup)) : null;
+    const target = position
+      ? nearestInteraction(
+          position,
+          candidates.filter((c) => !c.pickup),
+        )
+      : null;
     if (!field) return;
     field.hidden = !target;
     field.disabled = false;

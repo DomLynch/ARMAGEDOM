@@ -1,5 +1,5 @@
 {
-  "railgun-reserve": { "carryCap": 3, "stashCap": 3, "integer": true },
+  "railgun-reserve": { "carryCap": 8, "stashCap": 8, "integer": true },
   "pistol-reserve": { "carryCap": 12, "stashCap": 12, "integer": true },
   "rifle-reserve": { "carryCap": 16, "stashCap": 16, "integer": true },
   "shotgun-reserve": { "carryCap": 12, "stashCap": 12, "integer": true },

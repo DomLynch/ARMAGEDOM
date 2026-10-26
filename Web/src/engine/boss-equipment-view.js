@@ -213,7 +213,8 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       }
       item.view.root.rotation.z = t < 1 ? t * Math.PI * G.spinPi : 0;
       item.warning.position.copy(s.world.toRender(row.intent.position, R.height));
-      item.warning.material.opacity = R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
+      item.warning.material.opacity =
+        R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
     }
   }
   function update() {
