@@ -8,7 +8,10 @@ const share = (field, v) => {
 };
 
 export function validateDropMarkerLayout(m) {
-  closed(m.label, ["canvasWidth", "canvasHeight", "textY", "textMaxWidth", "opacityBase", "opacitySwing"]);
+  closed(m.label, ["canvasWidth", "canvasHeight", "textY", "textMaxWidth", "opacityBase", "opacitySwing", "borderPx", "renderOrder"]);
+  number("visual", "dropMarker.label.borderPx", m.label.borderPx, 0);
+  if (m.label.borderPx * 2 > Math.min(m.label.canvasWidth, m.label.canvasHeight)) fail("visual", "dropMarker.label.borderPx must fit the canvas");
+  if (!Number.isInteger(m.label.renderOrder)) fail("visual", "dropMarker.label.renderOrder must be an integer");
   for (const f of ["canvasWidth", "canvasHeight", "textMaxWidth"]) number("visual", `dropMarker.label.${f}`, m.label[f], 16);
   number("visual", "dropMarker.label.textY", m.label.textY, 0);
   if (m.label.textY > m.label.canvasHeight) fail("visual", "dropMarker.label.textY must sit inside the canvas");
