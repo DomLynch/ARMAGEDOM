@@ -115,8 +115,7 @@
     "parked-area-preparation.js": 1,
     "pistol.js": 2,
     "roach-territory.js": 1,
-    "travel.js": 1,
-    "wolf-native.js": 5
+    "travel.js": 1
   },
   "constantTables": {
     "clothing-palettes.js": 1,
