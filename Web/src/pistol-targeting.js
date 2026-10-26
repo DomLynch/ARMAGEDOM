@@ -1,27 +1,20 @@
 import { droneHoverHeight } from "./drone-mechanics.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
+import { rigCapability, rigNumber } from "./rig-capabilities.js";
 
 export function combatTargetHeight(target, time) {
-  return target.rig === "low-hover-drone"
-    ? droneHoverHeight(time)
-    : (target.rig === "original-wolf"
-        ? 1.625
-        : target.rig === "giant-salamander"
-          ? 1.08
-          : target.rig === "original-rat"
-            ? 0.54
-            : target.rig === "original-dog"
-              ? target.contactGoalReach
-                ? 0.7
-                : 0.35
-              : target.rig === "original-roach"
-                ? target.contactGoalReach
-                  ? 0.24
-                  : 0.08
-                : 1.15) * (target.mobSize ?? 1);
+  if (rigCapability(target.rig, "hoverTarget")) return droneHoverHeight(time);
+  // The per-rig heights live in rig-capabilities.json; a rig with none (the humans and bosses) uses the default.
+  const height = rigNumber(target.rig, "targetHeight"),
+    reach = rigNumber(target.rig, "targetHeightReach");
+  return (
+    (target.contactGoalReach && reach !== undefined ? reach : (height ?? GAME_DATA.weapons.targeting.defaultHeight)) *
+    (target.mobSize ?? 1)
+  );
 }
-export const PISTOL_TARGETING = Object.freeze({ acquireDegrees: 12, retainDegrees: 18 });
-export const COMBAT_TARGETING = Object.freeze({ meleeDegrees: 45 });
+// Cone degrees live in weapons.json "targeting".
+const TARGETING = GAME_DATA.weapons.targeting;
 const EPS = 1e-8;
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 
@@ -35,7 +28,7 @@ export function selectCombatTarget({
   lineClear,
   range,
   rangeOffset,
-  coneDegrees = COMBAT_TARGETING.meleeDegrees,
+  coneDegrees = TARGETING.meleeConeDegrees,
   areaId,
   nearest = false,
 } = {}) {
@@ -100,12 +93,12 @@ export function selectCombatTarget({
 // Compatible pistol policy. New runtime resolves each actual shot without a
 // retained ID; legacy opt-in hysteresis stays available to unchanged callers.
 export function selectPistolTarget({ retainedTargetId = null, switchTarget = false, ...input } = {}) {
-  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: PISTOL_TARGETING.acquireDegrees };
+  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: TARGETING.pistol.acquireDegrees };
   const retained =
     !switchTarget && retainedTargetId != null
       ? selectCombatTarget({
           ...policy,
-          coneDegrees: PISTOL_TARGETING.retainDegrees,
+          coneDegrees: TARGETING.pistol.retainDegrees,
           targets: Array.from(input.targets ?? []).filter((target) => target?.id === retainedTargetId),
         })
       : null;
@@ -122,7 +115,7 @@ export function resolvePistolShot({ position, aim, targets, visibleIds, lineClea
     lineClear,
     areaId,
     range: rules.range,
-    coneDegrees: PISTOL_TARGETING.acquireDegrees,
+    coneDegrees: TARGETING.pistol.acquireDegrees,
   });
   return tracePistol(position, selected?.direction ?? aim, targets, lineClear, rules);
 }
@@ -262,7 +255,7 @@ export function pistolCue(game, { paused = false, visibleIds } = {}) {
 function groundPointerPoint(world, views, enemies, x, y) {
   const ground = world.screenToGround(x, y),
     frames = enemies
-      .filter((e) => e.hp > 0 && e.rig === "low-hover-drone")
+      .filter((e) => e.hp > 0 && rigCapability(e.rig, "hoverTarget"))
       .map((e) => {
         const v = views.get(e.id);
         return (v?.contactModel ?? v?.model)?.getObjectByName("ARM_Drone_Rigid_Frame");
@@ -326,7 +319,9 @@ export function rangedPointerPoint(g, views, x, y, { visibleIds } = {}) {
     ),
     projectionTargets = targets.map((t) => {
       const scale = views.get(t.id)?.root?.scale?.y;
-      return t.rig !== "original-wolf" && Number.isFinite(scale) && scale > 0 ? { ...t, mobSize: scale } : t;
+      return !rigCapability(t.rig, "fixedPointerScale") && Number.isFinite(scale) && scale > 0
+        ? { ...t, mobSize: scale }
+        : t;
     }),
     position = pistolPointerPoint(g.world, views, projectionTargets, x, y, { assist, time: g.time, visibleIds });
   const target = assist && targets.find((t) => Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < EPS);

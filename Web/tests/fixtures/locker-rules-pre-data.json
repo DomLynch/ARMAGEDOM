@@ -1,0 +1,9 @@
+{
+  "railgun-reserve": { "carryCap": 3, "stashCap": 3, "integer": true },
+  "pistol-reserve": { "carryCap": 12, "stashCap": 12, "integer": true },
+  "rifle-reserve": { "carryCap": 16, "stashCap": 16, "integer": true },
+  "shotgun-reserve": { "carryCap": 12, "stashCap": 12, "integer": true },
+  "rocket-reserve": { "carryCap": 3, "stashCap": 3, "integer": true },
+  "grenade-charges": { "carryCap": 3, "stashCap": 3, "integer": true },
+  "flame-fuel": { "carryCap": 1000, "stashCap": 1000, "integer": false }
+}

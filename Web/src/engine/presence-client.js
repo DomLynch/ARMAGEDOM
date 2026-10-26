@@ -9,6 +9,8 @@ import { GAME_DATA } from "./game-data.js";
 export const PRESENCE_PROTOCOL = "arma.v1";
 export const CLOSE_REPLACED = 4010;
 export const LOC_INTERVAL_MS = 80; // at most 12.5 loc messages a second while moving (the server allows 40)
+const JUMP_CM_PER_S = 700; // above the server's 650 and the game's top speed (sprint and roll, 520): see `jumped` below
+const JUMP_SLACK_CM = 100;
 // Reconnect delays are data (data/world.json presenceBackoffMs, capped at its last entry), never a retry storm.
 const retryDelays = () => GAME_DATA.world.presenceBackoffMs;
 const isClosedCode = (code) => GAME_DATA.world.closedCloseCodes.includes(code);
@@ -137,6 +139,25 @@ export function createPresenceClient({
     ws.onerror = () => {};
   }
 
+  // The server refuses a loc that moves faster than a player can (520 cm/s x 1.25 + a push), and a refused loc never moves its copy of me.
+  // So a real jump inside one area (Retry, respawn, a position the game set) would stay refused for distance / 6.5 m/s seconds, and the
+  // others would see me frozen, then jump. Running is 5.2 m/s (41.6 cm per loc), so anything past 7 m/s plus a metre cannot be a step:
+  // start over at the new position, which the server accepts if walkable.
+  const jumped = (x, z, at) =>
+    !!lastSent && Math.hypot(x - lastSent.x, z - lastSent.z) > (JUMP_CM_PER_S * Math.max(at - lastSentAt, LOC_INTERVAL_MS)) / 1000 + JUMP_SLACK_CM;
+  function rejoin(x, z) {
+    if (!wanted) return false;
+    wanted = { area: wanted.area, x, z };
+    const ws = socket;
+    socket = null;
+    joined = false;
+    id = null;
+    attempt = 0;
+    ws?.close?.();
+    connect();
+    return true;
+  }
+
   function closeForGood() {
     if (closedForGood) return;
     closedForGood = true;
@@ -199,9 +220,11 @@ export function createPresenceClient({
         z = toCm(position.z);
       if (lastSent && lastSent.x === x && lastSent.z === z) return false;
       if (at - lastSentAt < LOC_INTERVAL_MS) return false;
+      if (jumped(x, z, at)) return rejoin(x, z);
       send({ t: "loc", x, z });
       lastSent = { x, z };
       lastSentAt = at;
+      if (wanted) wanted = { area: wanted.area, x, z };
       return true;
     },
     // Send the current position now, ignoring the 80 ms throttle (the server allows 40 messages a second). Used right before a
@@ -214,6 +237,7 @@ export function createPresenceClient({
       send({ t: "loc", x, z });
       lastSent = { x, z };
       lastSentAt = at;
+      if (wanted) wanted = { area: wanted.area, x, z };
       return true;
     },
     // Leave through an exit zone the player is standing in; the server answers with a welcome for the new area.

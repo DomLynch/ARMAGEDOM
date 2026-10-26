@@ -162,7 +162,52 @@ test("a dropped socket retries with growing delays and rejoins at the last known
   s.timers[1].fn();
   await flush();
   s.socket().open();
-  assert.deepEqual(s.socket().sent, [{ t: "join", area: "westminster", x: 123, z: -568 }]);
+  // The last position REPORTED (x 2 m = 200 cm), not the welcome's (123): rejoining at the welcome spot while the phone has walked on made the
+  // server refuse every loc as a speed jump for distance / 6.5 m/s seconds (the live n=39 in area7 after a close-1006).
+  assert.deepEqual(s.socket().sent, [{ t: "join", area: "westminster", x: 200, z: -568 }]);
+});
+
+test("a reconnect after a long walk rejoins where the player is now, not where the last welcome put them", async () => {
+  const s = setup();
+  await joined(s);
+  for (let i = 1; i <= 40; i++) {
+    s.clock.ms += LOC_INTERVAL_MS;
+    s.client.report({ x: 1.234 + i * 0.4, z: -5.678 }, s.clock.ms); // 5 m/s for 3.2 s: 16 m on from the welcome
+  }
+  s.socket().drop();
+  s.timers[0].fn();
+  await flush();
+  s.socket().open();
+  assert.deepEqual(s.socket().sent, [{ t: "join", area: "westminster", x: 1723, z: -568 }]);
+});
+
+test("a jump inside the area (Retry, respawn) starts over at the new position instead of being refused for seconds; running never triggers it", async () => {
+  const s = setup();
+  await joined(s);
+  const sockets = () => FakeSocket.all.length;
+  // Sprint and roll are 5.2 m/s: 41.6 cm per loc, 100 times in a row, never a rejoin.
+  for (let i = 1; i <= 100; i++) {
+    s.clock.ms += LOC_INTERVAL_MS;
+    assert.equal(s.client.report({ x: 1.234 + i * 0.0416, z: -5.678 }, s.clock.ms), true);
+  }
+  assert.equal(sockets(), 1);
+  assert.ok(s.client.joined);
+  // A 500 ms hitch (2.6 m of running in one report) is still a step.
+  s.clock.ms += 500;
+  assert.equal(s.client.report({ x: 1.234 + 100 * 0.0416 + 2.6, z: -5.678 }, s.clock.ms), true);
+  assert.equal(sockets(), 1);
+  // Retry puts the player 40 m away in one frame: one fresh socket, joined at the new spot, no loc sent from the old state.
+  s.clock.ms += LOC_INTERVAL_MS;
+  assert.equal(s.client.report({ x: -30, z: 4 }, s.clock.ms), true);
+  assert.equal(s.client.joined, false);
+  await flush();
+  assert.equal(sockets(), 2);
+  s.socket().open();
+  assert.deepEqual(s.socket().sent, [{ t: "join", area: "westminster", x: -3000, z: 400 }]);
+  s.socket().receive({ t: "welcome", id: 7, area: "westminster", x: -3000, z: 400, arrival: null, version: "v" });
+  s.clock.ms += LOC_INTERVAL_MS;
+  assert.equal(s.client.report({ x: -29.96, z: 4 }, s.clock.ms), true, "walking on from the new spot is a normal loc");
+  assert.equal(sockets(), 2);
 });
 
 test("a replaced session does not reconnect; close() stops everything", async () => {

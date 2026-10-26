@@ -1,6 +1,6 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
-import { rigCapability } from "./rig-capabilities.js";
+import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
@@ -28,8 +28,9 @@ import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
 import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/flame-runtime.js";
-import { wolfResponse, wolfBiteDirection } from "./wolf-native.js";
-import { SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
+import { wolfBiteDirection } from "./wolf-native.js";
+import { SALAMANDER_BREATH } from "./salamander-native.js";
+import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
@@ -73,6 +74,11 @@ import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bl
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
 export const attacks = GAME_DATA.creatures.playerAttacks;
+// The rig ids of the kinds addressed by name below (rig-capabilities.json species).
+const DRONE_RIG = rigOfSpecies("drone"),
+  RAT_RIG = rigOfSpecies("rat"),
+  ROACH_RIG = rigOfSpecies("roach"),
+  DOG_RIG = rigOfSpecies("dog");
 const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
   behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
 });
@@ -276,30 +282,7 @@ export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, itemId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon, attackClass, impactDirection: { ...shot.direction } });
   }
 }
@@ -559,9 +542,9 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
           ? lowReach + (p.meleeLowMoves[target.rig].includeRadius ? target.radius : 0) - normalReach
           : rigCapability(target.rig, "lowStrike")
             ? lowReach +
-              (["giant-salamander", "original-wolf"].includes(target.rig)
+              (rigCapability(target.rig, "nativeSkeleton")
                 ? target.contactGoalReach - g.player.radius
-                : target.contactGoalReach || target.rig === "low-hover-drone"
+                : target.contactGoalReach || rigText(target.rig, "brain") === "drone"
                   ? target.radius
                   : 0) -
               normalReach
@@ -575,19 +558,20 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       def = posedMeleeMove(weaponMove, action, p.meleeLowMoves[rig]);
       lowTargetId = slashTarget.targetId;
     } else if (rigCapability(rig, "lowStrike")) {
-      const low =
-        rig === "low-hover-drone"
+      const drone = rigText(rig, "brain") === "drone",
+        lowSwing = rigText(rig, "lowSwing"),
+        low = drone
           ? droneLow(def)
-          : rig === "original-wolf" || rig === "giant-salamander"
+          : rigCapability(rig, "nativeSkeleton")
             ? DOG_MID
-            : rig === "original-dog"
+            : lowSwing === "dog"
               ? g.enemies.find((e) => e.id === slashTarget.targetId).contactGoalReach
                 ? DOG_MID
                 : DOG_LOW
-              : rig === "original-roach"
+              : lowSwing === "roach"
                 ? ROACH_LOW
                 : RAT_LOW;
-      def = rig === "low-hover-drone" || action === "slash" ? low : ratMeleeDefinition(action, def, low, { rig });
+      def = drone || action === "slash" ? low : ratMeleeDefinition(action, def, low, { rig });
       lowTargetId = slashTarget.targetId;
       if (p.meleeMoves)
         def = {
@@ -746,30 +730,7 @@ function flameHit(g, target, damage, { source }) {
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, g.world.flameData.pickupId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon: "flamethrower", attackClass: "fire", impactDirection: direction });
   }
 }
@@ -783,7 +744,7 @@ function kill(g, e, meta = {}) {
     e.completedAttack = null;
     e.wokeAt = null;
   }
-  if (e.rig === "low-hover-drone") {
+  if (rigText(e.rig, "brain") === "drone") {
     const death = recordDroneDeath(g.droneDeaths, { placementKey: e.placementKey, areaId: g.world.areaId, hp: e.hp });
     if (!death.grantKillCredit) return;
     g.droneDeaths = death.keys;
@@ -1016,7 +977,7 @@ function enemyMove(g, e, dir, speed, dt, backward = false) {
         actor: e,
         goal,
         time: g.time,
-        ...(e.markedHunter || (e.rig === "giant-salamander" && e.residentIntent?.pursuitScope === "area")
+        ...(e.markedHunter || (rigCapability(e.rig, "areaPursuit") && e.residentIntent?.pursuitScope === "area")
           ? { leash: Infinity }
           : {}),
       });
@@ -1217,16 +1178,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   const ratBefore =
     g.ratContact &&
     g.enemies.some(
-      (e) =>
-        [
-          "original-rat",
-          "original-dog",
-          "original-roach",
-          "giant-salamander",
-          "original-wolf",
-          "low-hover-drone",
-        ].includes(e.rig) &&
-        (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
+      (e) => rigCapability(e.rig, "lowStrike") && (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
     )
       ? g.ratContact.capture(g)
       : null;
@@ -1512,7 +1464,7 @@ function hollowActor(g, position, index = 0, mobSize = 1) {
   );
 }
 function droneResident(g, placement) {
-  const foundation = creatureCatalogue.get("low-hover-drone");
+  const foundation = creatureCatalogue.get(DRONE_RIG);
   return Object.assign(enemy(0, placement.pos), {
     rig: foundation.runtimeIdentity,
     areaId: g.world.areaId,
@@ -1554,7 +1506,7 @@ function markedHunter(g, position, config) {
 }
 function declaredResident(g, placement, mobSize) {
   const foundation = placement.foundationRef ? creatureCatalogue.get(placement.foundationRef) : null;
-  if (foundation?.runtimeIdentity === "low-hover-drone") {
+  if (foundation?.runtimeIdentity === DRONE_RIG) {
     if (DRONE_KEYS[placement.key] !== g.world.areaId) throw Error("Unsupported declared drone death placement");
     return droneResident(g, placement);
   }
@@ -1588,7 +1540,7 @@ export function initializeAreaResidents(g) {
         !dead.has(p.key) &&
         (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) ||
           !g.supplies?.issued.includes(p.key)) &&
-        (p.foundationRef !== "low-hover-drone" || !(g.droneDeaths ?? []).includes(p.key)),
+        (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key)),
     )
     .map((placement) =>
       Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
@@ -1603,17 +1555,17 @@ export function initializeAreaResidents(g) {
     const rat = residents.find((e) =>
       ["westminster-roamer-4", "east-roamer-7", "south-roamer-3"].includes(e.placementKey),
     );
-    if (rat) Object.assign(rat, animalFoundationParameters("original-rat", g.player.combatScale));
+    if (rat) Object.assign(rat, animalFoundationParameters(RAT_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.roach) {
     const roach = residents.find((e) => e.placementKey === "westminster-roamer-2");
-    if (roach) Object.assign(roach, animalFoundationParameters("original-roach", g.player.combatScale));
+    if (roach) Object.assign(roach, animalFoundationParameters(ROACH_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.dog) {
     const dog = residents.find((e) =>
       ["westminster-roamer-6", "east-roamer-4", "south-roamer-8"].includes(e.placementKey),
     );
-    if (dog) Object.assign(dog, animalFoundationParameters("original-dog", g.player.combatScale));
+    if (dog) Object.assign(dog, animalFoundationParameters(DOG_RIG, g.player.combatScale));
   }
   if (!policy?.areas[area] && g.animalVariants)
     for (const e of residents) {
@@ -1626,7 +1578,7 @@ export function initializeAreaResidents(g) {
         area === "east" &&
         e.placementKey === "east-roamer-4" &&
         recipe === "dog-pack-chaser" &&
-        rig === "original-dog"
+        rig === DOG_RIG
       )
         e.residentIntent = PACK_CHASER;
       e.pos = { x: e.pos.x + offset.x, z: e.pos.z + offset.z };
@@ -1648,7 +1600,7 @@ export function initializeAreaResidents(g) {
       }
     }
   for (const e of residents)
-    if (["giant-salamander", "original-wolf"].includes(e.rig)) {
+    if (rigCapability(e.rig, "nativeSkeleton")) {
       const role = resolveBoundAnimalRole(e, {
         areaId: area,
         animalCycle: g.animalCycle,
@@ -1672,7 +1624,7 @@ export function initializeAreaResidents(g) {
         populationAllowsDrone(policy, area, placement.key) &&
         !dead.has(placement.key) &&
         !g.droneDeaths.includes(placement.key) &&
-        !placements.some((p) => p.foundationRef === "low-hover-drone" && p.key === placement.key)
+        !placements.some((p) => p.foundationRef === DRONE_RIG && p.key === placement.key)
       )
         residents.push(
           Object.assign(droneResident(g, placement), {
@@ -1725,7 +1677,7 @@ function residentPatrol(g, e, dt) {
     e.packCompanions = observeResidentCompanions(
       e.residentIntent,
       e,
-      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === "original-dog"),
+      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === DOG_RIG),
       { areaId: g.world.areaId, lineClear: (a, b) => g.world.lineClear(a, b) },
     );
   const playerDistance = mag(sub(g.player.pos, e.pos)),
@@ -1884,16 +1836,8 @@ function hitMetadata(attacker, victim, def) {
     position: { ...victim.pos },
     moveId: def?.moveId ?? null,
     audioWeight: def?.audioWeight,
-    weapon:
-      def?.weapon ??
-      (["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(attacker?.rig)
-        ? "teeth"
-        : "knife"),
-    material: ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(
-      attacker?.rig,
-    )
-      ? "flesh"
-      : "iron",
+    weapon: def?.weapon ?? (rigCapability(attacker?.rig, "animal") ? "teeth" : "knife"),
+    material: rigCapability(attacker?.rig, "animal") ? "flesh" : "iron",
   };
 }
 function knifeReceive(g, hit) {
@@ -2030,7 +1974,7 @@ function knifeEnemy(g, e, dt, services) {
       source: services?.bossFlameSource,
       receive: knifeReceive,
       emit: event,
-      ...(e.rig === "giant-salamander"
+      ...(rigCapability(e.rig, "fireBreath")
         ? {
             profile: SALAMANDER_BREATH,
             onStart: (g, e) => {
@@ -2041,20 +1985,16 @@ function knifeEnemy(g, e, dt, services) {
     })
   )
     return;
-  if (e.rig === "low-hover-drone") {
+  const brain = rigText(e.rig, "brain");
+  if (brain === "drone") {
     droneEnemy(g, e, dt);
     return;
   }
-  if (e.rig === "original-rat") {
+  if (brain === "rat") {
     ratEnemy(g, e, dt);
     return;
   }
-  if (
-    e.rig === "original-dog" ||
-    e.rig === "original-roach" ||
-    e.rig === "giant-salamander" ||
-    e.rig === "original-wolf"
-  ) {
+  if (brain === "dog") {
     dogEnemy(g, e, dt);
     return;
   }
@@ -2240,7 +2180,7 @@ function dogEnemy(g, e, dt) {
   if (animalRoleMovement(g, e, dt)) return;
   const offset = sub(g.player.pos, e.pos),
     distance = mag(offset),
-    footGoal = e.rig === "original-roach" || e.contactGoalReach ? g.ratContact?.calf(g, e) : null;
+    footGoal = rigCapability(e.rig, "calfContact") || e.contactGoalReach ? g.ratContact?.calf(g, e) : null;
   if (e.residentIntent?.companionDistance > 0) {
     const away = normal(sub(e.pos, g.player.pos), e.facing),
       next = g.world.move(e.pos, { x: away.x * e.moveSpeed * dt, z: away.z * e.moveSpeed * dt }, e.radius),
@@ -2259,8 +2199,7 @@ function dogEnemy(g, e, dt) {
     if (e.packMovement === "hold") return;
   }
   // Reuse the existing backward mover to recover native mouth standoff when the player crowds the body.
-  const ownGoalDistance =
-    ["giant-salamander", "original-wolf"].includes(e.rig) && footGoal ? mag(sub(footGoal, e.pos)) : null;
+  const ownGoalDistance = rigCapability(e.rig, "nativeSkeleton") && footGoal ? mag(sub(footGoal, e.pos)) : null;
   if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - 0.001) {
     enemyMove(
       g,
@@ -2283,10 +2222,10 @@ function dogEnemy(g, e, dt) {
     enemyMove(g, e, normal(footGoal ? sub(footGoal, e.pos) : offset), e.moveSpeed, approachDt);
     return;
   }
-  const calf = e.rig === "original-roach" || e.contactGoalReach ? footGoal : g.ratContact?.calf(g, e);
+  const calf = rigCapability(e.rig, "calfContact") || e.contactGoalReach ? footGoal : g.ratContact?.calf(g, e);
   if (!calf || (e.contactGoalReach && mag(sub(calf, e.pos)) > e.contactGoalReach + EPS)) return;
   const direct = normal(sub(calf, e.pos), e.facing),
-    dir = e.rig === "original-wolf" ? wolfBiteDirection(direct) : direct;
+    dir = rigCapability(e.rig, "mouthAim") ? wolfBiteDirection(direct) : direct;
   e.facing = turn(e.facing, dir, 360 * dt);
   if (g.time + EPS >= e.ready && dot(e.facing, dir) > 0.99) {
     e.facing = { ...dir };
@@ -2294,11 +2233,11 @@ function dogEnemy(g, e, dt) {
       g,
       e,
       "bite",
-      e.rig === "original-wolf"
+      rigText(e.rig, "biteMove") === "wolf"
         ? WOLF_ATTACK
-        : e.rig === "giant-salamander"
+        : rigText(e.rig, "biteMove") === "salamander"
           ? SALAMANDER_ATTACK
-          : e.rig === "original-roach"
+          : rigText(e.rig, "biteMove") === "roach"
             ? e.contactGoalReach
               ? ROACH_BITE_SCALED
               : ROACH_BITE
@@ -2341,19 +2280,7 @@ function knifeContacts(g, before, ratBefore) {
           ? [...g.enemies].sort((a1, b1) => mag(sub(a1.pos, a.pos)) - mag(sub(b1.pos, a.pos)) || a1.id - b1.id)
           : [g.player];
       for (const d of targets) {
-        if (
-          s.def.ratLow &&
-          (![
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig) ||
-            d.id !== s.lowTargetId)
-        )
-          continue;
+        if (s.def.ratLow && (!rigCapability(d.rig, "lowStrike") || d.id !== s.lowTargetId)) continue;
         if (
           d.hp <= 0 ||
           s.hitIds.has(d.id) ||
@@ -2362,15 +2289,7 @@ function knifeContacts(g, before, ratBefore) {
         )
           continue;
         const hit =
-          ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(a.rig) ||
-          [
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig)
+          rigCapability(a.rig, "animal") || rigCapability(d.rig, "lowStrike")
             ? !!(ratBefore && g.ratContact.hit(a, d, s, ratBefore, ratAfter))
             : s.path
               ? bladeContact(
@@ -2409,7 +2328,7 @@ function knifeContacts(g, before, ratBefore) {
         block: true,
         parry: def.parryable,
         moveId: def.moveId,
-        ...(a.bossProfile || ["giant-salamander", "original-wolf"].includes(a.rig) ? { def } : {}),
+        ...(a.bossProfile || rigCapability(a.rig, "nativeSkeleton") ? { def } : {}),
       });
     else {
       const damage = effectiveWeaponDamage(g, "knife", def.damage),
@@ -2422,46 +2341,7 @@ function knifeContacts(g, before, ratBefore) {
       d.ready = d.recoverUntil + (d.recoveryDelay ?? 0);
       d.swing = null;
       if (d.animalRole) d.completedAttack = null;
-      d.response =
-        d.rig === "original-wolf"
-          ? wolfResponse(d.hp > 0, g.time)
-          : d.rig === "giant-salamander"
-            ? salamanderResponse(d.hp > 0, g.time)
-            : {
-                clip:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? "rat_hit"
-                      : "rat_death"
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? "dog_hit"
-                        : "dog_death"
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? "roach_hit"
-                          : "roach_death"
-                        : d.hp
-                          ? "Hit"
-                          : "Death",
-                start: g.time,
-                ticks:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? 20
-                      : 54
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? 24
-                        : 60
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? 18
-                          : 48
-                        : d.hp
-                          ? Math.round(def.stagger * 60)
-                          : 144,
-              };
+      d.response = rigResponse(d.rig, d.hp, g.time, def.stagger);
       event(g, "hit", {
         actor: d,
         amount,

@@ -477,5 +477,68 @@
         }
       }
     }
+  },
+  "targeting": {
+    "pistol": { "acquireDegrees": 12, "retainDegrees": 18 },
+    "meleeConeDegrees": 45,
+    "defaultHeight": 1.15
+  },
+  "families": [
+    "blades",
+    "blunt",
+    "pistols",
+    "rifles",
+    "shotguns",
+    "grenades",
+    "traps",
+    "flamethrowers",
+    "launchers",
+    "drones"
+  ],
+  "mobileAim": {
+    "steeringRate": 10,
+    "headingRate": 24,
+    "gain": 0.4125,
+    "acquireDegrees": 6,
+    "retainDegrees": 9,
+    "near": 2,
+    "far": 6,
+    "deadzone": 0.13,
+    "pistolGain": 1,
+    "acquireMargin": 0.6,
+    "retainMargin": 0.9
+  },
+  "flameAim": {
+    "gain": 1,
+    "acquireDegrees": 45,
+    "retainDegrees": 70,
+    "switchConeDegrees": 12,
+    "switchAdvantageDegrees": 8,
+    "steeringChangeDegrees": 0.2,
+    "closeExtension": 0.5,
+    "yawLimitDegrees": 60,
+    "downPitchDegrees": 75,
+    "closeEnterGap": 0.8,
+    "closeExitGap": 1,
+    "extensionRate": 24
+  },
+  "lowMelee": {
+    "rigs": ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"],
+    "clips": ["RatLowSlash", "DogMidSlash"]
+  },
+  "creditPolicies": [
+    { "id": "borough-marshals-pistol-v1", "creditPolicy": "none" },
+    { "id": "watchmans-pistol-v1", "creditPolicy": "none" },
+    { "id": "borough-butchers-rocket-launcher-v1", "creditPolicy": "none" },
+    { "id": "south-stalker-shotgun-v1", "creditPolicy": "none" },
+    { "id": "standard-grenade-v1", "creditPolicy": "none" },
+    { "id": "bridge-warden-rifle-v1", "creditPolicy": "none" },
+    { "id": "knife", "creditPolicy": "mastery" },
+    { "id": "westminster-start-pistol-v1", "creditPolicy": "mastery" },
+    { "id": "flamethrower-area8-v1", "creditPolicy": "none" }
+  ],
+  "audio": {
+    "shotgun": { "from": 180, "to": 40, "seconds": 0.14, "gain": 0.24, "noiseSeconds": 0.08, "noiseGain": 0.17, "cutoff": 800 },
+    "grenade": { "from": 110, "to": 32, "seconds": 0.2, "gain": 0.2, "noiseSeconds": 0.15, "noiseGain": 0.2, "cutoff": 350 }
   }
 }

@@ -16,17 +16,37 @@
     "engine/contracts.js": [
       { "name": "SESSION_OPERATIONS", "reason": "public browser-session operation names: an API contract checked by assertSession" }
     ],
+    "finisher-impact-profile.js": [
+      { "name": "FINISHER_IMPACT_LIMITS", "reason": "derived view of data: the impact caps from finisher-data.json impactLimits plus the head-droplet lifetime from the sever-blood data" }
+    ],
     "clothing-palettes.js": [
       { "name": "PAIRINGS", "reason": "derived view of data: the approved top/trouser pairs computed at load from the visual.json swatches, partners and a tonal-separation rule" }
     ],
     "hollow-palette.js": [
       { "name": "library", "reason": "derived view of data: the clothing library handed to the allocator, assembled at load from clothing-palettes.js" }
     ],
+    "low-hover-drone.js": [
+      { "name": "DRONE_SUPPORT", "reason": "derived view of data: the watcher's support row, the appearance.json droneSupport values plus the creatures.json hover height and radius, and the body band scaled at load" }
+    ],
+    "engine/reaper.js": [
+      { "name": "RULE_KEYS", "reason": "validator schema: the closed set of rule names the area-content.json reaper.rules validator accepts" }
+    ],
     "engine/creature-catalogue.js": [
       { "name": "ENGINE_CREATURE_CAPABILITIES", "reason": "engine capability list: the mechanics the engine provides; data may not grant itself one, the catalogue checks against it" }
     ],
     "engine/rifle-core.js": [
       { "name": "RIFLE_LAYER", "reason": "save layer row: save keys, versions and envelope of a persisted record" }
+    ],
+    "engine/progression-rules.js": [
+      { "name": "ATTRIBUTE_IDS", "reason": "save layer row: the closed attribute key set of a persisted progression record, also read by the server's world rows" },
+      { "name": "DEFAULT_ATTRIBUTES", "reason": "save layer row: a fresh record's attributes, derived from ATTRIBUTE_IDS; 10 is also the validator's floor" },
+      { "name": "DEFAULT_PROFICIENCY", "reason": "save layer row: the closed proficiency key set of a persisted progression record (weapon ids)" }
+    ],
+    "engine/locker-state.js": [
+      { "name": "LOCKER_WEAPON_IDS", "reason": "save layer row: the closed weapon id list of a persisted locker; other code addresses it by position" }
+    ],
+    "engine/flame-fuel-state.js": [
+      { "name": "FLAME_PILOT_PROFILE", "reason": "save layer row: pickupId is the saved award id and capacity bounds saved fuelUnits; the numbers are derived from weapons.json" }
     ],
     "engine/save-eras.js": [
       { "name": "SAVE_ERAS", "reason": "save format registry: era versions to layer and storage key, built from the save-key constants" }
@@ -48,27 +68,12 @@
     ]
   },
   "rigLiterals": {
-    "actors.js": 22,
-    "animal-appearance.js": 2,
-    "animal-role-bindings.js": 2,
-    "area-mob-spawns.js": 3,
-    "combat.js": 96,
-    "effects.js": 25,
-    "engine/area-content.js": 1,
-    "engine/area-population.js": 9,
     "engine/commander/match.js": 1,
-    "engine/creature-catalogue.js": 2,
-    "engine/creature-definitions.js": 45,
-    "pistol-targeting.js": 8,
-    "rat-melee-definition.js": 5,
-    "roach-territory.js": 1,
-    "salamander-native.js": 1,
-    "wolf-native.js": 1
+    "engine/creature-definitions.js": 45
   },
   "constantTables": {
     "clothing-palettes.js": 1,
     "core/index.js": 1,
-    "crooked-hollow.js": 1,
     "donor/knife.js": 2,
     "drone-mechanics.js": 1,
     "engine/boss-equipment-core.js": 1,
@@ -76,26 +81,19 @@
     "engine/contracts.js": 1,
     "engine/creature-catalogue.js": 1,
     "engine/flame-fuel-state.js": 1,
-    "engine/locker-state.js": 2,
+    "engine/locker-state.js": 1,
     "engine/progression-rules.js": 3,
     "engine/reaper.js": 1,
     "engine/rifle-core.js": 1,
     "engine/save-eras.js": 1,
     "engine/unique-reward-core.js": 1,
-    "engine/unique-reward-runtime.js": 1,
-    "engine/weapon-catalog.js": 2,
-    "engine/weapon-credit-policy.js": 1,
     "engine/world-events.js": 10,
     "feral-body-shapes.js": 1,
     "feral-coat-profiles.js": 1,
-    "finisher-impact-profile.js": 2,
-    "finisher-presentation.js": 1,
+    "finisher-impact-profile.js": 1,
     "gaunt-shape.js": 2,
     "hollow-palette.js": 1,
     "low-hover-drone.js": 1,
-    "mobile-combat-aim.js": 2,
-    "pistol-targeting.js": 2,
-    "rat-melee-definition.js": 1,
     "rig-capabilities.js": 1
   }
 }

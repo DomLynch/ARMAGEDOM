@@ -2,10 +2,12 @@ import { closed, freeze } from "./content-schema.js";
 import { creatureCatalogue } from "./creature-catalogue.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
+import { rigCapability, rigText } from "../rig-capabilities.js";
 const fail = () => {
   throw Error("Invalid registered area population");
 };
-const foundations = ["original-rat", "original-dog", "original-roach", "low-hover-drone", "giant-salamander"];
+// A population slot may hold the rat, dog, roach, drone or salamander (populationSlot in rig-capabilities.json), not the wolf.
+const isDrone = (foundationRef) => rigText(foundationRef, "brain") === "drone";
 // Keep the complete source identity/loot registry. Only fresh combat residents
 // consume this policy, so removed placements in old death/award ledgers stay valid.
 export function validatePopulationData(input, registry, residents, uniqueRewardData = null) {
@@ -37,8 +39,8 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
     if (!active.includes(slot.placementKey) || protectedRows.some((row) => row.key === slot.placementKey)) fail();
     for (const spec of Object.values(slot.cycles)) {
       closed(spec, ["foundationRef", "recipeRef"]);
-      if (!foundations.includes(spec.foundationRef)) fail();
-      if (spec.foundationRef === "low-hover-drone") {
+      if (!rigCapability(spec.foundationRef, "populationSlot")) fail();
+      if (isDrone(spec.foundationRef)) {
         if (spec.recipeRef !== null || !drones.some((row) => row.key === slot.placementKey)) fail();
       } else if (
         typeof spec.recipeRef !== "string" ||
@@ -46,9 +48,9 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
       )
         fail();
     }
-    const drone = slot.cycles.A.foundationRef === "low-hover-drone";
+    const drone = isDrone(slot.cycles.A.foundationRef);
     if (
-      drone !== (slot.cycles.B.foundationRef === "low-hover-drone") ||
+      drone !== isDrone(slot.cycles.B.foundationRef) ||
       typeof policy.allowDroneFallback !== "boolean" ||
       policy.allowDroneFallback !== drone ||
       active.some((key) => drones.some((row) => row.key === key) && key !== slot.placementKey)
@@ -72,7 +74,7 @@ export function populationPlacements(policy, areaId, cycle, canonical) {
       if (
         areaId === "east" &&
         row.key === "east-roamer-8" &&
-        row.foundationRef === "original-wolf" &&
+        rigText(row.foundationRef, "species") === "wolf" &&
         row.recipeRef === "wolf-east-guard"
       )
         return row;

@@ -60,6 +60,8 @@ jobs:
       - run: node --test server/writer/*.test.js
       # The release builder (bundle completeness, immutability, manifest, lockfile); it builds with --no-install, so no network.
       - run: node --test ops/realtime/build-release.test.mjs
+      # The layout gate (presence's running layout must equal the release's): pure hash comparison over fake lines and files.
+      - run: node --test ops/realtime/check-presence-layout.test.mjs
 
   web-gate:
     name: web-gate
