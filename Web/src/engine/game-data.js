@@ -40,6 +40,7 @@ import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { validateWorldEventRules } from "./world-events-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateArcGun } from "./game-data-arc-gun.js";
+import { validateFinisherImpact } from "./game-data-finisher-impact.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
@@ -165,8 +166,10 @@ export function validateWorld(d) {
   // Where the guest sign-in lives (engine/world-config.js). Both values are PUBLIC: the project URL and its publishable key. A legacy
   // anon JWT or any secret key fails the pattern, so a secret cannot be added here by accident.
   closed(d.auth, ["url", "anonKey"]);
-  if (typeof d.auth.url !== "string" || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(d.auth.url)) fail("world", "auth.url");
-  if (typeof d.auth.anonKey !== "string" || !/^sb_publishable_[A-Za-z0-9_-]{16,64}$/.test(d.auth.anonKey)) fail("world", "auth.anonKey");
+  if (typeof d.auth.url !== "string" || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(d.auth.url))
+    fail("world", "auth.url");
+  if (typeof d.auth.anonKey !== "string" || !/^sb_publishable_[A-Za-z0-9_-]{16,64}$/.test(d.auth.anonKey))
+    fail("world", "auth.anonKey");
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
   closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
   if (
@@ -226,6 +229,7 @@ export function validateVisual(d) {
     "effects",
     "dropMarker",
     "arcGun",
+    "finisherImpact",
     "routeArrow",
     "bossView",
     "pickupModel",
@@ -257,6 +261,7 @@ export function validateVisual(d) {
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);
   validateArcGun(d.arcGun);
+  validateFinisherImpact(d.finisherImpact);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -266,13 +271,15 @@ export function validateVisual(d) {
   for (const f of ["duration", "length", "radius"]) number("visual", `severBlood.jet.${f}`, d.severBlood.jet[f], 0.001);
   for (const f of ["settleSeconds", "lifetime", "spreadSeconds", "radius"])
     number("visual", `severBlood.pool.${f}`, d.severBlood.pool[f], 0.001);
-  if (!(d.severBlood.pool.opacity > 0 && d.severBlood.pool.opacity <= 1)) fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
+  if (!(d.severBlood.pool.opacity > 0 && d.severBlood.pool.opacity <= 1))
+    fail("visual", "severBlood.pool.opacity must be above 0 and at most 1");
   number("visual", "severBlood.headDropletLifetime", d.severBlood.headDropletLifetime, 0.001);
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   // The ground arrow (route-guidance.js) takes the drop marker's ringColour; peakOpacity tops its pulse.
   closed(d.routeArrow, ["peakOpacity", "tailGap"]);
   const peak = d.routeArrow.peakOpacity;
-  if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
+  if (typeof peak !== "number" || !(peak > 0 && peak <= 1))
+    fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   validateRouteGuidance(d.routeGuidance);
   validateInput(d.input);
   validateTouchTarget(d.touchTarget);
@@ -393,8 +400,10 @@ export function validateVisual(d) {
   for (const f of ["ringColour", "labelColour", "labelBacking"]) hex(`dropMarker.${f}`, m[f]);
   for (const f of ["ringInner", "ringOuter", "glowOuter", "pulseSeconds", "labelHeight", "labelWidth"])
     number("visual", `dropMarker.${f}`, m[f], 0.01);
-  if (!["circle", "square", "brackets", "diamond"].includes(m.shape)) fail("visual", "dropMarker.shape must be circle, square, brackets or diamond");
-  if (!(m.bracketArm >= 0.05 && m.bracketArm <= 0.5)) fail("visual", "dropMarker.bracketArm must be 0.05 to 0.5 of a side");
+  if (!["circle", "square", "brackets", "diamond"].includes(m.shape))
+    fail("visual", "dropMarker.shape must be circle, square, brackets or diamond");
+  if (!(m.bracketArm >= 0.05 && m.bracketArm <= 0.5))
+    fail("visual", "dropMarker.bracketArm must be 0.05 to 0.5 of a side");
   if (m.ringOuter <= m.ringInner) fail("visual", "dropMarker.ringOuter must exceed ringInner");
   if (m.glowOuter <= m.ringOuter) fail("visual", "dropMarker.glowOuter must exceed ringOuter");
   for (const f of ["glowOpacity", "peakOpacity", "labelBackingOpacity", "ringPulse"])
@@ -467,13 +476,15 @@ export function validateWorldEvents(d) {
 // bridge road bend chains (bridge-steering.js). Coordinates are fractions of the area painting, Y down.
 const atmosphereNumbers = () => ["width", "rise", "smoke", "opacity", "fireWidth", "fireHeight", "embers"];
 const fraction = (field, v, min = 0, max = 1) => {
-  if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) fail("atmosphere", `${field} must be ${min} to ${max}`);
+  if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max)
+    fail("atmosphere", `${field} must be ${min} to ${max}`);
 };
 const ATMOSPHERE_ROW_MAX = 16; // tuning-ok: validator ceiling for an atmosphere row's numbers
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
   for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, ATMOSPHERE_ROW_MAX);
   if (Object.hasOwn(row, "smokeColor")) {
-    if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3) fail("atmosphere", `${field}.smokeColor`);
+    if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3)
+      fail("atmosphere", `${field}.smokeColor`);
     row.smokeColor.forEach((c, i) => fraction(`${field}.smokeColor[${i}]`, c));
   }
 };
@@ -548,7 +559,8 @@ export function validateAtmosphere(d) {
   }
   closed(d.bends, ["westminster", "east"]);
   for (const [area, chain] of Object.entries(d.bends)) {
-    if (!Array.isArray(chain) || chain.length < 2 || chain.length > 32) fail("atmosphere", `bends.${area} must list 2 to 32 points`);
+    if (!Array.isArray(chain) || chain.length < 2 || chain.length > 32)
+      fail("atmosphere", `bends.${area} must list 2 to 32 points`);
     chain.forEach((p, i) => {
       if (!Array.isArray(p) || p.length !== 2) fail("atmosphere", `bends.${area}[${i}]`);
       fraction(`bends.${area}[${i}].x`, p[0]);
@@ -561,9 +573,19 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", ...extra.appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, [
+    "schema_version",
+    "faceMesh",
+    ...extra.appearanceExtraKeys(),
+    "hollowGarments",
+    "animals",
+    "roaches",
+    "crookedHollow",
+    "droneSupport",
+  ]);
   const between = (field, v, min, max) => {
-    if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
+    if (!Number.isFinite(v) || v < min || v > max)
+      fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
   const triple = (field, v, max) => {
     if (!Array.isArray(v) || v.length !== 3) fail("appearance", `${field} must list 3 numbers`);
@@ -574,7 +596,11 @@ export function validateAppearance(d) {
   };
   closed(d.faceMesh, ["cheek", "headNames"]);
   triple("faceMesh.cheek", d.faceMesh.cheek, 1);
-  if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
+  if (
+    !Array.isArray(d.faceMesh.headNames) ||
+    d.faceMesh.headNames.length !== 3 ||
+    new Set(d.faceMesh.headNames).size !== 3
+  )
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
   extra.validateAppearanceExtras(d, { fail, between, triple });
@@ -584,10 +610,12 @@ export function validateAppearance(d) {
   if (d.hollowGarments.jacket === d.hollowGarments.trousers) fail("appearance", "hollowGarments names must differ");
   const rows = (table, fields, tintField) => {
     const seen = new Set();
-    if (!Array.isArray(d[table]) || !d[table].length || d[table].length > 64) fail("appearance", `${table} must list 1 to 64 rows`);
+    if (!Array.isArray(d[table]) || !d[table].length || d[table].length > 64)
+      fail("appearance", `${table} must list 1 to 64 rows`);
     for (const row of d[table]) {
       closed(row, fields);
-      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,32}$/.test(row.id) || seen.has(row.id)) fail("appearance", `${table} id ${row.id}`);
+      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,32}$/.test(row.id) || seen.has(row.id))
+        fail("appearance", `${table} id ${row.id}`);
       seen.add(row.id);
       named(`${table}.${row.id}.name`, row.name);
       if ("foundation" in row) named(`${table}.${row.id}.foundation`, row.foundation); // animal-appearance.js checks it against its coat names
@@ -610,7 +638,8 @@ export function validateAppearance(d) {
   if (!Array.isArray(s.states) || !s.states.length || new Set(s.states).size !== s.states.length)
     fail("appearance", "droneSupport.states must list different state names");
   s.states.forEach((n, i) => named(`droneSupport.states[${i}]`, n));
-  if (!Array.isArray(s.bodyBandOffsets) || s.bodyBandOffsets.length !== 2) fail("appearance", "droneSupport.bodyBandOffsets must list 2 numbers");
+  if (!Array.isArray(s.bodyBandOffsets) || s.bodyBandOffsets.length !== 2)
+    fail("appearance", "droneSupport.bodyBandOffsets must list 2 numbers");
   s.bodyBandOffsets.forEach((n, i) => between(`droneSupport.bodyBandOffsets[${i}]`, n, -2, 2));
   if (s.bodyBandOffsets[0] >= s.bodyBandOffsets[1]) fail("appearance", "droneSupport.bodyBandOffsets must rise");
   between("droneSupport.attackWarningSeconds", s.attackWarningSeconds, 0.05, 10);
@@ -622,12 +651,14 @@ export function validateAppearance(d) {
 // tests/data-areas.test.js ties the asset rows to public/world/manifest.json so the two cannot drift.
 export function validateAreas(d) {
   closed(d, ["schema_version", "areas", "assets"]);
-  if (!Array.isArray(d.areas) || d.areas.length < 1 || d.areas.length > 64) fail("areas", "areas must list 1 to 64 rows");
+  if (!Array.isArray(d.areas) || d.areas.length < 1 || d.areas.length > 64)
+    fail("areas", "areas must list 1 to 64 rows");
   for (const row of d.areas) {
     closed(row, ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"]);
     closed(row.entry, ["x", "y"]);
     if (!Array.isArray(row.exits)) fail("areas", `${row.id} exits`);
-    for (const exit of row.exits) closed(exit, ["id", "target", "condition", "entry"], ["requiresDefeat", "requiresVisited"]);
+    for (const exit of row.exits)
+      closed(exit, ["id", "target", "condition", "entry"], ["requiresDefeat", "requiresVisited"]);
   }
   if (!d.assets || typeof d.assets !== "object" || Array.isArray(d.assets)) fail("areas", "assets");
   for (const [ref, asset] of Object.entries(d.assets)) {
@@ -646,7 +677,8 @@ export function validateSupplies(d) {
   closed(d.rules, ["pickupRadius", "reserveCap", "healFraction"]);
   number("supplies", "rules.pickupRadius", d.rules.pickupRadius, 0.1);
   count("supplies", "rules.reserveCap", d.rules.reserveCap, 1, 99);
-  if (!(d.rules.healFraction > 0 && d.rules.healFraction <= 1)) fail("supplies", "rules.healFraction must be above 0 and at most 1");
+  if (!(d.rules.healFraction > 0 && d.rules.healFraction <= 1))
+    fail("supplies", "rules.healFraction must be above 0 and at most 1");
   if (d.gearItems.join() !== "westminster-start-pistol-v1,westminster-worn-vest-v1")
     fail("supplies", "gearItems must be the start pistol then the worn vest");
   const keys = Object.keys(d.area1);
@@ -665,7 +697,10 @@ export function validateSupplies(d) {
 // areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
 // (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
 export function validateAreaRuntime(d) {
-  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel", "view"]);
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel", "view", "bossHazard"]);
+  // bossHazard: a boss hazard is dropped on clear ground this far (metres) beyond the hazard's radius, and this far beyond it from every entry.
+  closed(d.bossHazard, ["bodyClearance", "entryGap"]);
+  for (const f of ["bodyClearance", "entryGap"]) number("areaRuntime", `bossHazard.${f}`, d.bossHazard[f], 0);
   // view: how world.js frames and budgets an area. MiB of backdrop textures, camera clip planes in metres, the portrait actor size in CSS
   // pixels, zoom boosts as factors, screen lifts as fractions of the painting, the follow step cap in seconds and the exit hint range in metres.
   closed(d.view, [
@@ -690,7 +725,8 @@ export function validateAreaRuntime(d) {
   ]);
   // artSize: the painted backdrop's pixel size (its aspect crops the view); londonEntry: the start spawn in metres; entryClearance: the
   // body radius an entry or spawn must clear; followReference: the painting point whose projected height the player-size zoom keeps.
-  if (!Array.isArray(d.view.artSize) || d.view.artSize.length !== 2) fail("areaRuntime", "view.artSize must hold width and height");
+  if (!Array.isArray(d.view.artSize) || d.view.artSize.length !== 2)
+    fail("areaRuntime", "view.artSize must hold width and height");
   d.view.artSize.forEach((n, i) => count("areaRuntime", `view.artSize[${i}]`, n, 1, 100000));
   closed(d.view.londonEntry, ["x", "z"]);
   closed(d.view.followReference, ["x", "y"]);
@@ -703,16 +739,32 @@ export function validateAreaRuntime(d) {
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
   count("areaRuntime", "view.textureBudgetMinMiB", d.view.textureBudgetMinMiB, 1, d.view.textureBudgetMiB);
   number("areaRuntime", "view.cameraNear", d.view.cameraNear, 0.001);
-  if (!(d.view.cameraFar > d.view.cameraNear && d.view.cameraFar <= 10000)) fail("areaRuntime", "view.cameraFar must be above cameraNear, at most 10000");
-  for (const f of ["portraitActorPixels", "landscapeZoomBoost", "portraitZoomBoost", "maxFollowSeconds", "exitHintMeters"])
+  if (!(d.view.cameraFar > d.view.cameraNear && d.view.cameraFar <= 10000))
+    fail("areaRuntime", "view.cameraFar must be above cameraNear, at most 10000");
+  for (const f of [
+    "portraitActorPixels",
+    "landscapeZoomBoost",
+    "portraitZoomBoost",
+    "maxFollowSeconds",
+    "exitHintMeters",
+  ])
     number("areaRuntime", `view.${f}`, d.view[f], 0.001);
   for (const f of ["portraitLift", "landscapeLift"]) number("areaRuntime", `view.${f}`, d.view[f], 0);
   // travel: the "Traveling to ..." message delay, how long a failure message shows, and the area preparation slices (engine/areas.js).
-  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "preparation"]);
+  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay", "preparation"]);
+  for (const f of ["lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay"]) count("areaRuntime", `travel.${f}`, d.travel[f], 1, 60);
   count("areaRuntime", "travel.messageDelayMs", d.travel.messageDelayMs, 0, 10000);
   count("areaRuntime", "travel.failureMessageSeconds", d.travel.failureMessageSeconds, 1, 60);
-  closed(d.travel.preparation, ["deadlineMs", "idleTimeoutMs", "urgentSliceMs", "ambientSliceMs", "idleEnoughMs", "holdMs"]);
-  for (const [name, v] of Object.entries(d.travel.preparation)) count("areaRuntime", `travel.preparation.${name}`, v, 1, 5000);
+  closed(d.travel.preparation, [
+    "deadlineMs",
+    "idleTimeoutMs",
+    "urgentSliceMs",
+    "ambientSliceMs",
+    "idleEnoughMs",
+    "holdMs",
+  ]);
+  for (const [name, v] of Object.entries(d.travel.preparation))
+    count("areaRuntime", `travel.preparation.${name}`, v, 1, 5000);
   closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
   for (const [name, v] of Object.entries(d.defaultLighting))
     if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);
@@ -735,10 +787,12 @@ export function validateUniqueReward(d) {
   if (d.pickupRadius > 5) fail("uniqueReward", "pickupRadius must be up to 5 m");
   closed(d.dropSearch, ["ringSteps", "nearRadii", "fallbackRadii"]);
   count("uniqueReward", "dropSearch.ringSteps", d.dropSearch.ringSteps, 4, 64);
-  if (d.dropSearch.ringSteps % 2) fail("uniqueReward", "dropSearch.ringSteps must be even (half a turn is a whole number of steps)");
+  if (d.dropSearch.ringSteps % 2)
+    fail("uniqueReward", "dropSearch.ringSteps must be even (half a turn is a whole number of steps)");
   for (const name of ["nearRadii", "fallbackRadii"]) {
     const rows = d.dropSearch[name];
-    if (!Array.isArray(rows) || rows.length < 1 || rows.length > 16) fail("uniqueReward", `dropSearch.${name} must list 1 to 16 radii`);
+    if (!Array.isArray(rows) || rows.length < 1 || rows.length > 16)
+      fail("uniqueReward", `dropSearch.${name} must list 1 to 16 radii`);
     rows.forEach((r, i) => {
       if (!Number.isFinite(r) || r <= 0 || r > 20 || (i > 0 && r <= rows[i - 1]))
         fail("uniqueReward", `dropSearch.${name} must be increasing radii above 0 and up to 20 m`);
@@ -757,7 +811,8 @@ export function validateKnifePaths(d) {
     closed(d.paths[rig], Object.keys(frames));
     for (const [name, length] of Object.entries(frames)) {
       const rows = d.paths[rig][name];
-      if (!Array.isArray(rows) || rows.length !== length) fail("knifePaths", `${rig}.${name} must list ${length} frames`);
+      if (!Array.isArray(rows) || rows.length !== length)
+        fail("knifePaths", `${rig}.${name} must list ${length} frames`);
       rows.forEach((frame, i) => {
         if (!Array.isArray(frame) || frame.length !== 6 || frame.some((v) => !Number.isFinite(v)))
           fail("knifePaths", `${rig}.${name}[${i}] must be six finite numbers`);
@@ -810,7 +865,8 @@ export function validateAudio(d) {
   ]);
   count("audio", "engine.voiceCapacity", d.engine.voiceCapacity, 1, 64);
   for (const f of ["outputGain", "floorGain", "lowModeFactor"]) gain(`engine.${f}`, d.engine[f]);
-  for (const f of ["attackSeconds", "stopPadSeconds", "noiseBufferSeconds"]) number("audio", `engine.${f}`, d.engine[f], 0.0001);
+  for (const f of ["attackSeconds", "stopPadSeconds", "noiseBufferSeconds"])
+    number("audio", `engine.${f}`, d.engine[f], 0.0001);
   closed(d.saw, ["frequency", "gain", "gainOff"]);
   number("audio", "saw.frequency", d.saw.frequency, 1);
   gain("saw.gain", d.saw.gain);
@@ -888,10 +944,16 @@ export function validateRemoteSurvivors(d) {
     "walkBlendPerSecond",
   ]);
   count("remoteSurvivors", "ringSegments", d.ringSegments, 8, 128);
-  const ranges = [["ringInner", 0.05, 5], ["ringOuter", 0.05, 5], ["ringOpacity", 0.05, 1], ["markerHeight", 0, 1]];
+  const ranges = [
+    ["ringInner", 0.05, 5],
+    ["ringOuter", 0.05, 5],
+    ["ringOpacity", 0.05, 1],
+    ["markerHeight", 0, 1],
+  ];
   ranges.push(["maxFrameSeconds", 0.01, 1], ["walkBlendPerSecond", 0.5, 60]);
   for (const [name, min, max] of ranges)
-    if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("remoteSurvivors", `${name} must be ${min} to ${max}`);
+    if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max)
+      fail("remoteSurvivors", `${name} must be ${min} to ${max}`);
   if (d.ringInner >= d.ringOuter) fail("remoteSurvivors", "ringInner must be below ringOuter");
 }
 

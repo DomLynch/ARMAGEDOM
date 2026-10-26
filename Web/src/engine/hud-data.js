@@ -6,7 +6,8 @@ const fail = (why) => {
   throw TypeError(`Invalid game data visual: hud.${why}`);
 };
 export function validateHud(h) {
-  closed(h, ["heavyFallbackSeconds", "dodgeFallbackSeconds", "pistolInteractRadius", "grenadeDefaultRange"]);
-  for (const f of ["heavyFallbackSeconds", "dodgeFallbackSeconds", "pistolInteractRadius", "grenadeDefaultRange"])
+  const fields = ["heavyFallbackSeconds", "dodgeFallbackSeconds", "pistolInteractRadius", "grenadeDefaultRange", "equipMessageSeconds"];
+  closed(h, fields);
+  for (const f of fields)
     if (!Number.isFinite(h[f]) || !(h[f] > 0)) fail(`${f} must be a finite number above 0`);
 }

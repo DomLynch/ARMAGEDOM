@@ -21,7 +21,7 @@ export function showExitLock(s, gate) {
   const routeLine = s.world?.exitHint?.(s.game.player.pos) ?? "";
   if (routeLine.toLowerCase().includes(gate.message.toLowerCase())) return;
   s.game.message = gate.message;
-  s.game.messageUntil = s.game.time + 4;
+  s.game.messageUntil = s.game.time + TRAVEL.lockMessageSeconds;
 }
 // The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
 // Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.
@@ -30,7 +30,7 @@ export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_ME
   const timer = setTimer(() => {
     if (cancelled) return;
     game.message = `Traveling to ${areaId.toUpperCase()}…`;
-    game.messageUntil = game.time + 4;
+    game.messageUntil = game.time + TRAVEL.travelMessageSeconds;
     s.hud.update(game);
   }, delayMs);
   return () => {
