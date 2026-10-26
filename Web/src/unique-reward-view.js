@@ -4,6 +4,9 @@ import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
 import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// Checked by engine/weapon-view-data.js, which the engine weapon views load.
+const REWARD = GAME_DATA.visual.weaponViews.uniqueReward;
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
 };
@@ -20,11 +23,11 @@ export function createMeleePickupView(source, data) {
   root.updateWorldMatrix(true, true);
   let bounds = new T.Box3().setFromObject(display),
     size = bounds.getSize(new T.Vector3());
-  display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+  display.scale.setScalar(Math.min(1, REWARD.pickup.fitSize / Math.hypot(size.x, size.z)));
   root.updateWorldMatrix(true, true);
   bounds = new T.Box3().setFromObject(display);
   const center = bounds.getCenter(new T.Vector3());
-  display.position.set(-center.x, 0.025 - bounds.min.y, -center.z);
+  display.position.set(-center.x, REWARD.pickup.lift - bounds.min.y, -center.z);
   clone.root.traverse((mesh) => {
     if (mesh.isMesh) meshes.push(mesh);
   });
@@ -111,7 +114,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
         command.type === "claimPickup"
           ? collectedMessage("Pitborn Cleaver")
           : MELEE_VARIANTS[command.itemId].name + " equipped.";
-      g.messageUntil = g.time + 4;
+      g.messageUntil = g.time + REWARD.messageSeconds;
       if (command.type === "equip") s.input.clear({ keepMovement: true });
     }
     update();
@@ -139,7 +142,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
             owner.message = loadOnly
               ? "Cleaver loading unavailable. Pending drop kept; retry in Gear."
               : "Weapon loading unavailable. Selection kept; tap Equip to retry.";
-            owner.messageUntil = owner.time + 5;
+            owner.messageUntil = owner.time + REWARD.loadFailedSeconds;
           }
         }
         update();
@@ -159,7 +162,8 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
       !s.paused &&
       g.world.areaId === data.areaId &&
       source(data.itemId) &&
-      Math.hypot(g.player.pos.x - state.dropPosition.x, g.player.pos.z - state.dropPosition.z) <= 1.3 + 1e-8 &&
+      Math.hypot(g.player.pos.x - state.dropPosition.x, g.player.pos.z - state.dropPosition.z) <=
+        REWARD.pickupReach + 1e-8 &&
       g.world.lineClear(g.player.pos, state.dropPosition)
     );
   }
