@@ -142,7 +142,7 @@
     "engine/reaper.js": 3,
     "engine/remote-players-view.js": 22,
     "engine/remote-players.js": 4,
-    "engine/remote-survivors.js": 11,
+    "engine/remote-survivors.js": 3,
     "engine/render-budget.js": 1,
     "engine/rifle-pose.js": 4,
     "engine/rifle-state.js": 1,

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "ringSegments": 40,
+  "ringOpacity": 0.85,
+  "markerHeight": 0.03,
+  "maxFrameSeconds": 0.1,
+  "walkBlendPerSecond": 6
+}
