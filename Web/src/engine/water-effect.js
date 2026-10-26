@@ -1,3 +1,4 @@
+import { WATER_EFFECT } from "./water-effect-data.js";
 // One procedural batch in original image coordinates. No borrowed world resources.
 export function createWaterEffect({
   THREE,
@@ -27,27 +28,28 @@ export function createWaterEffect({
       positions = [],
       uv = [];
     for (const p of points) {
-      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, 0.5).applyMatrix4(inverse);
-      v.multiplyScalar(99 / -v.z).applyMatrix4(world.camera.matrixWorld);
+      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, WATER_EFFECT.ndcDepth).applyMatrix4(inverse); // tuning-ok: image fraction to NDC
+      v.multiplyScalar(WATER_EFFECT.planeDistance / -v.z).applyMatrix4(world.camera.matrixWorld);
       positions.push(v.x, v.y, v.z);
       uv.push(p.x, p.y);
     }
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); // tuning-ok: xyz stride
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); // tuning-ok: uv stride
     geometry.setIndex(triangles.flat());
-    const edges = [];
+    const { imageWidth: width, imageHeight: height } = WATER_EFFECT,
+      edges = [];
     for (const region of regions)
       for (const ring of [region.points, ...region.holes])
         for (let i = 0; i < ring.length; i++) {
           const a = ring[i],
             b = ring[(i + 1) % ring.length];
-          edges.push(new THREE.Vector4(a.x * 1672, a.y * 941, b.x * 1672, b.y * 941));
+          edges.push(new THREE.Vector4(a.x * width, a.y * height, b.x * width, b.y * height));
         }
     while (edges.length < 128) edges.push(new THREE.Vector4());
     const uniforms = {
       clock: { value: elapsed },
-      imageSize: { value: new THREE.Vector2(1672, 941) },
+      imageSize: { value: new THREE.Vector2(width, height) },
       flow: { value: new THREE.Vector2(profile.flow.direction.x, profile.flow.direction.y) },
       speed: { value: profile.flow.speedPixelsPerSecond },
       spacing: { value: profile.rippleScalePixels },
@@ -59,7 +61,7 @@ export function createWaterEffect({
       feather: { value: profile.edgeFeatherPixels },
       density: { value: profile.glint.density },
       tint: { value: new THREE.Color(...profile.glint.tintLinearProposal) },
-      phase: { value: ((profile.seed >>> 0) / 4294967296) * 6.283185 },
+      phase: { value: ((profile.seed >>> 0) / 4294967296) * 6.283185 }, // tuning-ok: seed to a 0..2pi phase
     };
     if (!material)
       material = new THREE.ShaderMaterial({
@@ -75,7 +77,7 @@ export function createWaterEffect({
     else material.uniforms = uniforms;
     mesh = new THREE.Mesh(geometry, material);
     mesh.name = "Restrained water";
-    mesh.renderOrder = -85;
+    mesh.renderOrder = WATER_EFFECT.renderOrder;
     mesh.frustumCulled = false;
     scene.add(mesh);
   }
@@ -94,7 +96,7 @@ export function createWaterEffect({
       if (disposed || !mesh) return;
       mesh.visible = enabled && config.enabled;
       if (!mesh.visible || paused || reducedMotion()) return;
-      if (Number.isFinite(dt) && dt > 0) elapsed += Math.min(dt, 0.1);
+      if (Number.isFinite(dt) && dt > 0) elapsed += Math.min(dt, WATER_EFFECT.maxStepSeconds);
       material.uniforms.clock.value = elapsed;
     },
     reset() {
@@ -106,7 +108,7 @@ export function createWaterEffect({
         time: elapsed,
         drawCalls: mesh?.visible ? 1 : 0,
         vertices: mesh?.geometry.getAttribute("position").count ?? 0,
-        triangles: mesh?.geometry.index.count / 3 || 0,
+        triangles: mesh?.geometry.index.count / 3 || 0, // tuning-ok: indices per triangle
         geometryBytes: mesh
           ? Object.values(mesh.geometry.attributes).reduce(
               (n, a) => n + a.array.byteLength,
