@@ -4,12 +4,25 @@ import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
 
 export function validateFlameEffect(f) {
-  closed(f, ["texture", "alphaTest", "floorClearance", "spread", "phaseClamp", "corpseDeathFallbackSeconds", "burnSurface", "burnWisp"]);
+  closed(f, [
+    "texture",
+    "alphaTest",
+    "renderOrder",
+    "cyclesPerSecond",
+    "floorClearance",
+    "spread",
+    "phaseClamp",
+    "corpseDeathFallbackSeconds",
+    "burnSurface",
+    "burnWisp",
+  ]);
   closed(f.texture, ["falloffPower", "peakAlpha"]);
   number("visual", "flameEffect.texture.falloffPower", f.texture.falloffPower, 0.1);
   if (!(f.texture.peakAlpha >= 1 && f.texture.peakAlpha <= 255)) fail("visual", "flameEffect.texture.peakAlpha must be 1 to 255");
   if (!(f.alphaTest >= 0 && f.alphaTest < 1)) fail("visual", "flameEffect.alphaTest must be 0 up to 1");
   number("visual", "flameEffect.floorClearance", f.floorClearance, 0);
+  number("visual", "flameEffect.cyclesPerSecond", f.cyclesPerSecond, 0.01);
+  if (!Number.isInteger(f.renderOrder)) fail("visual", "flameEffect.renderOrder must be an integer");
   closed(f.spread, ["radiusShare", "jitterRate"]);
   for (const k of ["radiusShare", "jitterRate"]) number("visual", `flameEffect.spread.${k}`, f.spread[k], 0.01);
   const clamp = f.phaseClamp;

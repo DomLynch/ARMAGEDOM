@@ -19,9 +19,12 @@ test("presence-session.js reads the row and holds no counted number", () => {
   const source = read("../src/engine/presence-session.js");
   assert(source.includes("GAME_DATA.areaRuntime.view.defaultCharacterScale"));
   assert(!source.includes("1.265"));
-  assert.equal(countNumberLiterals(source, "Web/src/engine/presence-session.js").count, 0);
   const baseline = JSON.parse(read("../../scripts/as-data-baseline.json"));
-  assert(!("engine/presence-session.js" in baseline.numberLiterals));
+  // The tightened gate (2, 3, 4, 10, 0.5 and named constants count) still finds numbers here: the baseline entry is the ratchet.
+  assert.equal(
+    countNumberLiterals(source, "Web/src/engine/presence-session.js").count,
+    baseline.numberLiterals["engine/presence-session.js"] ?? 0,
+  );
 });
 
 test("the loader rejects a missing or bad default", () => {

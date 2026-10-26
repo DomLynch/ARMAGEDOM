@@ -10,6 +10,8 @@ test("flame-effect.js numbers live in visual.json and equal the old inline ones 
   assert.deepEqual(GAME_DATA.visual.flameEffect, {
     texture: { falloffPower: 1.6, peakAlpha: 240 },
     alphaTest: 0.01,
+    renderOrder: 2,
+    cyclesPerSecond: 4,
     floorClearance: 0.02,
     spread: { radiusShare: 0.55, jitterRate: 19.3 },
     phaseClamp: [0.03, 0.97],
