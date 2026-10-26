@@ -232,7 +232,19 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood", "motion", "wantedPoster", "combatImpact"]);
+  closed(d, [
+    "schema_version",
+    "survivorVariants",
+    "faces",
+    "clothing",
+    "effects",
+    "dropMarker",
+    "routeArrow",
+    "severBlood",
+    "motion",
+    "wantedPoster",
+    "combatImpact",
+  ]);
   validateCombatImpact(d.combatImpact);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);

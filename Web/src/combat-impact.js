@@ -58,7 +58,10 @@ export function createCombatImpact(options) {
       if (type === "shot") {
         pistol = !!isPistol;
         shot = config.energy() * amount;
-      } else if (config.mode() === "high") hold = Math.max(hold, type === "death" ? IMPACT.holdSeconds.death : isPistol ? IMPACT.holdSeconds.pistol : IMPACT.holdSeconds.other);
+      } else if (config.mode() === "high") {
+        const { death, pistol: gun, other } = IMPACT.holdSeconds;
+        hold = Math.max(hold, type === "death" ? death : isPistol ? gun : other);
+      }
       if (config.mode() === "high") {
         const [dx, dy] = direction(x, y);
         const kick = (type === "death" ? IMPACT.kick.death : type === "hit" ? IMPACT.kick.hit : IMPACT.kick.shot) * amount;
