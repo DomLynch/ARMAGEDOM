@@ -353,8 +353,11 @@ export function validateBossGeometry(data, areaId, g, registry) {
       clearRadius = p.hazard ? Math.max(p.radius, p.hazard.radius + 0.4) : p.radius;
     if (
       !g.clear(row.pos, clearRadius) ||
-      // A player arriving by any entry must start outside the wake distance. The leash alone cannot wake a boss at its spot.
-      entries.some((e) => Math.hypot(e.x - row.pos.x, e.z - row.pos.z) <= p.wakeDistance + 0.5)
+      // A player arriving by any entry must start outside the wake distance of the boss's spot and of every patrol goal
+      // (a goal may sit up to 0.8 m from the spot). The leash alone cannot wake a boss.
+      entries.some((e) =>
+        [row.pos, ...row.patrol].some((at) => Math.hypot(e.x - at.x, e.z - at.z) <= p.wakeDistance + 0.5),
+      )
     )
       throw Error("Unsafe optional boss pocket");
     for (const goal of row.patrol) {

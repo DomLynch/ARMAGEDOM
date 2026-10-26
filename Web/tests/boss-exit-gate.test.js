@@ -76,6 +76,6 @@ test('actual relocated Witch remains on clear East approach, outside travel trig
  assert(Math.abs(g.point(row.pos).x-.835)<1e-9);assert(Math.abs(g.point(row.pos).y-.545)<1e-9);
  assert(g.clear(row.pos,.4));validateBossGeometry(content.bosses,'westminster',g,registry);
  const returning=g.ground(registry.links('east').find(l=>l.to==='westminster').entry),profile=content.bosses.profiles[row.profileRef];
- assert(Math.hypot(returning.x-row.pos.x,returning.z-row.pos.z)>profile.wakeDistance+.5);
+ for(const at of [row.pos,...row.patrol])assert(Math.hypot(returning.x-at.x,returning.z-at.z)>profile.wakeDistance+.5,'the return arrival is outside the wake distance of the spot and every patrol goal');
  const point=g.point(row.pos);assert(!registry.links('westminster').some(l=>Object.entries(l.condition).every(([key,v])=>key==='xMin'?point.x>v:key==='xMax'?point.x<v:key==='yMin'?point.y>v:point.y<v)));
 });
