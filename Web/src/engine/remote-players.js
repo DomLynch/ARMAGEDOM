@@ -1,13 +1,16 @@
 // Other players in my area (W2): the presence server sends {tick, players:[{id,x,z}]} (integer cm) about ten times a second. Drawing
 // them straight from those snapshots would step; instead each player is shown INTERP_DELAY_MS in the past, interpolated between the two
 // snapshots around that time. Pure data: no THREE, no DOM, no clock of its own (the caller passes the time).
+import { GAME_DATA } from "./game-data.js";
 import { fromCm } from "./presence-client.js";
 
-export const INTERP_DELAY_MS = 150; // a little over one 100 ms server tick, so there is almost always a newer snapshot to blend to
+// data/presenceClient.json: interpDelayMs is a little over one 100 ms server tick, so there is almost always a newer snapshot to blend
+// to; facingMinMetres is how far a player must move to change facing; movingMetresPerSecond is the speed above which a player counts as moving.
+export const INTERP_DELAY_MS = GAME_DATA.presenceClient.interpDelayMs;
 export const KEEP_MS = 1000; // snapshots older than this are dropped
-const FACING_MIN = 0.02; // metres: moving less than this keeps the last facing
-const MAX_NAME = 24;
-const MOVING_SPEED = 0.3; // metres/second above which a player counts as moving
+const FACING_MIN = GAME_DATA.presenceClient.facingMinMetres;
+const MAX_NAME = GAME_DATA.presenceClient.maxNameLength;
+const MOVING_SPEED = GAME_DATA.presenceClient.movingMetresPerSecond;
 
 export function createRemotePlayers({ selfId = () => null } = {}) {
   const tracks = new Map(); // id -> [{ at, x, z }] oldest first, metres

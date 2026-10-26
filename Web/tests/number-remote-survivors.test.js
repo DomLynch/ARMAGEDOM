@@ -32,7 +32,7 @@ test("the variant index is the old FNV-1a result for a spread of ids and counts"
 
 test("the look data holds the old numbers", () => {
   assert.deepEqual(GAME_DATA.remoteSurvivors, {
-    schema_version: 1, ringSegments: 40, ringOpacity: 0.85, markerHeight: 0.03, maxFrameSeconds: 0.1, walkBlendPerSecond: 6,
+    schema_version: 1, ringSegments: 40, ringInner: 0.62, ringOuter: 0.74, ringOpacity: 0.85, markerHeight: 0.03, maxFrameSeconds: 0.1, walkBlendPerSecond: 6,
   });
   assert.equal(GAME_DATA.areaRuntime.view.defaultCharacterScale, 1.265);
   assert(Object.isFrozen(GAME_DATA.remoteSurvivors));
@@ -68,6 +68,7 @@ test("the gate counts 0 in remote-survivors.js (two marked hash constants) and t
   const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-baseline.json", import.meta.url), "utf8"));
   // The tightened gate (2, 3, 4, 10, 0.5 and named constants count) still finds numbers here: the baseline entry is the ratchet.
   assert.equal(r.count, baseline.numberLiterals["engine/remote-survivors.js"] ?? 0);
-  assert.equal(r.reasons.length, 2);
-  assert(r.reasons.every((line) => /FNV-1a/.test(line)));
+  assert.equal(r.count, 0);
+  assert.equal(r.reasons.length, 3, "two hash constants and the quarter turn that lays the ring flat");
+  assert(r.reasons.every((line) => /FNV-1a|quarter turn/.test(line)));
 });

@@ -6,22 +6,24 @@ export const LOCKER_SAVE_KEY = "armagedom:safehouse-run:v12";
 const model = createLockerModel({ weaponIds: LOCKER_WEAPON_IDS, resourceRules: LOCKER_RESOURCE_RULES });
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b),
   fail = (code) => ({ ok: false, code, events: [] });
-const bossFields = { 4: "shotgun", 5: "grenade", 6: "surgicalKnife", 7: "rocketLauncher" };
+// The locker's weapons by name, in the saved order of LOCKER_WEAPON_IDS (locker-state.js).
+const [PISTOL, RIFLE, FLAMETHROWER, CLEAVER, SHOTGUN, GRENADE, KNIFE, ROCKET, REAPER, COMMANDER_PISTOL] = LOCKER_WEAPON_IDS;
+const bossFields = { [SHOTGUN]: "shotgun", [GRENADE]: "grenade", [KNIFE]: "surgicalKnife", [ROCKET]: "rocketLauncher" };
 export function lockerInventory(g) {
   const weapons = Object.fromEntries(LOCKER_WEAPON_IDS.map((id) => [id, { owned: false, equipped: false }]));
-  const set = (i, owned, equipped) => (weapons[LOCKER_WEAPON_IDS[i]] = { owned: !!owned, equipped: !!equipped });
-  set(0, g.pistol?.collected, g.pistol?.equipped);
-  set(1, g.rifle?.status === "owned", g.rifle?.selected);
-  set(2, g.flameFuel?.collected, g.flame?.equipped || g.bossEquipment?.emberProjector?.selected);
-  set(3, g.uniqueReward?.status === "owned", g.uniqueReward?.selectedMeleeVariant === LOCKER_WEAPON_IDS[3]);
-  for (const [i, field] of Object.entries(bossFields))
-    set(+i, g.bossEquipment?.[field]?.status === "owned", g.bossEquipment?.[field]?.selected);
+  const set = (id, owned, equipped) => (weapons[id] = { owned: !!owned, equipped: !!equipped });
+  set(PISTOL, g.pistol?.collected, g.pistol?.equipped);
+  set(RIFLE, g.rifle?.status === "owned", g.rifle?.selected);
+  set(FLAMETHROWER, g.flameFuel?.collected, g.flame?.equipped || g.bossEquipment?.emberProjector?.selected);
+  set(CLEAVER, g.uniqueReward?.status === "owned", g.uniqueReward?.selectedMeleeVariant === CLEAVER);
+  for (const [id, field] of Object.entries(bossFields))
+    set(id, g.bossEquipment?.[field]?.status === "owned", g.bossEquipment?.[field]?.selected);
   set(
-    8,
+    REAPER,
     g.expedition?.status === "claimed" && g.expedition.rewardReceipt === REAPER_RECEIPT,
     g.expedition?.status === "claimed" && g.expedition.selectedPistolVariant === REAPER_ITEM_ID,
   );
-  set(9, g.bossEquipment?.commanderPistol?.status === "owned", g.bossEquipment?.commanderPistol?.selected);
+  set(COMMANDER_PISTOL, g.bossEquipment?.commanderPistol?.status === "owned", g.bossEquipment?.commanderPistol?.selected);
   return {
     weapons,
     ammo: {
@@ -98,7 +100,7 @@ export function createLockerComponent({
             : null;
         }
         if (
-          saved?.version !== 12 ||
+          saved?.version !== 12 || // tuning-ok: the save format version this codec reads (see LOCKER_SAVE_KEY)
           !closedData(saved, [
             "version",
             "pistol",

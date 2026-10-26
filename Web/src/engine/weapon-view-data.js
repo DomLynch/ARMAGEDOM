@@ -1,6 +1,7 @@
 import { GAME_DATA } from "./game-data.js";
 import { closed } from "./content-schema.js";
-// The rocket blast flash and the flame pickup/message presentation numbers (engine/rocket-view.js, engine/flame-view.js), from
+// The rocket blast flash, the flame/rifle/unique-reward pickup and message numbers and the marked head-total hold (engine/rocket-view.js,
+// engine/flame-view.js, engine/rifle-view.js, unique-reward-view.js, engine/marked-view.js), from
 // data/visual.json `weaponViews`. They are checked when this module loads; the key name is checked by game-data.js. Metres and seconds;
 // colours are 6-digit hex strings and opacities are 0 to 1.
 const fail = (why) => {
@@ -19,7 +20,7 @@ const opacity = (field, v) => {
   if (!(v > 0 && v <= 1)) fail(`${field} must be above 0 and at most 1`);
 };
 export function validateWeaponViews(v) {
-  closed(v, ["rocket", "flame"]);
+  closed(v, ["rocket", "flame", "rifle", "uniqueReward", "marked"]);
   closed(v.rocket, ["blast"]);
   const b = v.rocket.blast;
   closed(b, [
@@ -64,6 +65,19 @@ export function validateWeaponViews(v) {
   hex("flame.ring.colour", f.ring.colour);
   number("flame.ring.lift", f.ring.lift, 0);
   number("flame.messageSeconds", f.messageSeconds, 0.001);
+  closed(v.rifle, ["pickup", "messageSeconds", "loadFailedSeconds"]);
+  closed(v.uniqueReward, ["pickup", "messageSeconds", "loadFailedSeconds", "pickupReach"]);
+  for (const name of ["rifle", "uniqueReward"]) {
+    const row = v[name];
+    closed(row.pickup, ["fitSize", "lift"]);
+    number(`${name}.pickup.fitSize`, row.pickup.fitSize, 0.001);
+    number(`${name}.pickup.lift`, row.pickup.lift, 0);
+    number(`${name}.messageSeconds`, row.messageSeconds, 0.001);
+    number(`${name}.loadFailedSeconds`, row.loadFailedSeconds, 0.001);
+  }
+  number("uniqueReward.pickupReach", v.uniqueReward.pickupReach, 0.001);
+  closed(v.marked, ["headTotalSeconds"]);
+  number("marked.headTotalSeconds", v.marked.headTotalSeconds, 0.001);
 }
 validateWeaponViews(GAME_DATA.visual.weaponViews);
 export const WEAPON_VIEWS = GAME_DATA.visual.weaponViews;

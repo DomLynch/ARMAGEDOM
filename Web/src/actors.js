@@ -67,7 +67,11 @@ import { createHitReaction } from "./combat-impact.js";
 import { createFinisherPresentationSteps, finisherVictimPoseAge, validateHeadParts } from "./finisher-presentation.js";
 import { createVestView } from "./vest-view.js";
 import * as THREE from "three";
-const damageCrimson = new THREE.Color(0x831428);
+import { GAME_DATA } from "./engine/game-data.js";
+// The damage flash, blob shadow, marked tint, drone clocks, contact bands and hit, flame and fire/reload timings are appearance.json `actorView`.
+const LOOK = GAME_DATA.appearance.actorView;
+const damageCrimson = new THREE.Color(LOOK.damageColor);
+const SKIN_INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
@@ -251,14 +255,22 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
 }
 function shadowTexture() {
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 64;
+  const blob = LOOK.shadowBlob;
+  canvas.width = canvas.height = blob.size;
   const ctx = canvas.getContext("2d"),
-    g = ctx.createRadialGradient(32, 32, 3, 32, 32, 31);
+    g = ctx.createRadialGradient(
+      blob.centre,
+      blob.centre,
+      blob.innerRadius,
+      blob.centre,
+      blob.centre,
+      blob.outerRadius,
+    );
   g.addColorStop(0, "rgba(0,0,0,.6)");
-  g.addColorStop(0.55, "rgba(0,0,0,.25)");
+  g.addColorStop(blob.midStop, "rgba(0,0,0,.25)");
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillRect(0, 0, blob.size, blob.size);
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(
@@ -350,9 +362,10 @@ export function createActors(
         ? createFinisherGore({ root: view.root, model: view.model, rig: entity.rig, camera: stageWorld.camera })
         : null;
       if (view.gore) goreOwners.add(view.gore);
-      view.finisherDeathSeconds = 0.8;
+      view.finisherDeathSeconds = LOOK.droneDeathSeconds;
       view.restoredCorpse = restoreCorpses && entity.hp <= 0;
-      if (finishers) entity.finisherSupport = nativeFinisherSupport({ clip: "drone_death", seconds: 0.8 });
+      if (finishers)
+        entity.finisherSupport = nativeFinisherSupport({ clip: "drone_death", seconds: LOOK.droneDeathSeconds });
       store.set(entity.id, view);
       return view;
     }
@@ -376,7 +389,7 @@ export function createActors(
         THREE.AnimationClip.parse(dogMidClip),
         ...(library.manifest.models?.["vagrant-cleaver"] ? [THREE.AnimationClip.parse(cleaverLowClip)] : []),
       ];
-    if (rigText(entity.rig, "biteMove") === "roach" && (description.scale === 3 || description.scale === 4))
+    if (rigText(entity.rig, "biteMove") === "roach" && LOOK.roachBiteScales.includes(description.scale))
       animations = [...animations, THREE.AnimationClip.parse(roachBite)];
     // The clone, clip parsing and the coat work below were one 35-58 ms step; each now ends its own step.
     yield "actor-clone";
@@ -406,7 +419,7 @@ export function createActors(
     root.name = name;
     root.position.copy(stageWorld.toRender(entity.pos));
     root.scale.setScalar(
-      (stageWorld.layout.characterScale ?? 1.265) *
+      (stageWorld.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
         (description.scale ?? 1) *
         visualScale *
         (entity.kind >= 0 ? (entity.mobSize ?? 1) : 1),
@@ -424,7 +437,7 @@ export function createActors(
           const own = m.clone();
           if (materialDim !== undefined) own.color?.multiplyScalar(materialDim);
           if (palette) applyHollowPalette(own, palette, garments);
-          if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(1, 0.66, 0.55));
+          if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(...LOOK.markedTint));
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
@@ -449,8 +462,8 @@ export function createActors(
         toneMapped: false,
       }),
     );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.scale.set(1.25 * root.scale.x, 1.25 * root.scale.x, 1);
+    shadow.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the blob flat
+    shadow.scale.set(LOOK.shadowScale * root.scale.x, LOOK.shadowScale * root.scale.x, 1);
     shadow.renderOrder = 0;
     const view = {
       root,
@@ -511,7 +524,8 @@ export function createActors(
         const flame = library.models.get(entity.bossProfile.weapon.modelRef);
         if (flame) view.flameMount = attachFlame(model, flame.gltf, { bindHand: true });
       }
-      view.finisherDeathSeconds = animations.find((c) => c.name === description.clips.death)?.duration ?? 2.4;
+      view.finisherDeathSeconds =
+        animations.find((c) => c.name === description.clips.death)?.duration ?? LOOK.defaultDeathSeconds;
       view.restoredCorpse = restoreCorpses && entity.hp <= 0;
       if (finishers && entity.kind >= 0)
         entity.finisherSupport = nativeFinisherSupport({
@@ -704,7 +718,7 @@ export function createActors(
     },
     rocketAimHeight(game, start, end, targetId) {
       const target = game.enemies.find((e) => e.id === targetId && e.hp > 0);
-      if (!target) return 0.05;
+      if (!target) return LOOK.rocketAimFallback;
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([targetId]) });
       return surfaceAimHeight(views, target, start, end);
     },
@@ -740,7 +754,7 @@ export function createActors(
         .sort(
           (a, b) => Math.hypot(a.pos.x - start.x, a.pos.z + start.z) - Math.hypot(b.pos.x - start.x, b.pos.z + start.z),
         )
-        .slice(0, 32);
+        .slice(0, LOOK.rocketAimTargets);
       this.update(game, 0, 0, {
         presentationDt: 0,
         contactOnly: true,
@@ -981,7 +995,7 @@ export function createActors(
         woundResidentBudget: FINISHER_DATA.gore.residentViewBudget,
         parked: [...parkedViews].map(([area, stored]) => ({ area, count: stored.size })),
         ownedFinisherGeometryBytes: [...all].reduce((n, v) => n + (v.finisher?.stats().ownedGeometryBytes ?? 0), 0),
-        finisherGeometryBudgetBytes: 128 * 1024 * 1024,
+        finisherGeometryBudgetBytes: LOOK.finisherGeometryBudgetBytes,
       };
     },
     humanBodyStats() {
@@ -1003,10 +1017,10 @@ export function createActors(
             const indices = new Set(binding.faceBindings.flatMap((f) => f.vertices)),
               valid = [...indices].filter((i) => {
                 let total = 0;
-                for (let k = 0; k < 4; k++)
+                for (let k = 0; k < SKIN_INFLUENCES; k++)
                   if (["foot_" + side, "ball_" + side].includes(mesh.skeleton.bones[ix.getComponent(i, k)]?.name))
                     total += w.getComponent(i, k);
-                return total > 0.85;
+                return total > LOOK.footWeightMin;
               });
             const chosen = new Set();
             for (const axis of ["X", "Y", "Z"])
@@ -1030,7 +1044,7 @@ export function createActors(
       }
       function tooth(view) {
         const mesh = view.model.getObjectByName("Original_ARM_rat_surface_3");
-        mesh.getVertexPosition(80, point);
+        mesh.getVertexPosition(LOOK.toothVertex, point);
         return point.applyMatrix4(mesh.matrixWorld).toArray();
       }
       return {
@@ -1090,7 +1104,7 @@ export function createActors(
             }
           const swing = game.player.swing,
             posedMelee = game.player.meleeVariantId && game.player.meleeVariantId !== "knife" && swing?.def.ratLow,
-            contact = posedMelee ? MELEE_VARIANTS[game.player.meleeVariantId].contact : [0.12, 0.52],
+            contact = posedMelee ? MELEE_VARIANTS[game.player.meleeVariantId].contact : LOOK.ratContact,
             playerBlade =
               swing?.def.ratRetimed || posedMelee
                 ? contact.map((y) =>
@@ -1126,7 +1140,7 @@ export function createActors(
             if (!visible(mesh)) continue;
             mesh.getVertexPosition(i, point);
             point.applyMatrix4(mesh.matrixWorld);
-            if (point.y < -0.01 || point.y > 0.2) continue;
+            if (point.y < LOOK.footBand[0] || point.y > LOOK.footBand[1]) continue;
             const next = { x: point.x, y: point.y, z: -point.z },
               d = Math.hypot(next.x - rat.pos.x, next.z - rat.pos.z);
             if (d < distance && world.geometry.clear(next, 0) && world.lineClear(rat.pos, next)) {
@@ -1152,8 +1166,8 @@ export function createActors(
               mesh.getVertexPosition(i, point);
               goal.add(point.applyMatrix4(mesh.matrixWorld));
             }
-            goal.multiplyScalar(1 / 3);
-            const band = view.description.contact.calfBand ?? [0.49, 0.54];
+            goal.multiplyScalar(1 / 3); // tuning-ok: the mean of a binding's three vertices
+            const band = view.description.contact.calfBand ?? LOOK.calfBand;
             if (goal.y < band[0] || goal.y > band[1]) continue;
             const next = { x: goal.x, y: goal.y, z: -goal.z, face: binding.face },
               d = Math.hypot(next.x - dog.pos.x, next.y, next.z - dog.pos.z);
@@ -1260,7 +1274,7 @@ export function createActors(
           const v = views.get(e.actor?.id);
           if (v) {
             v.hitReactionFresh = true;
-            v.impactFlashLife = 0.1;
+            v.impactFlashLife = LOOK.hitFlashSeconds;
             if (!e.blocked)
               v.hitReaction.hit({
                 x: e.impactDirection?.x ?? 0,
@@ -1334,7 +1348,8 @@ export function createActors(
         library.manifest.models?.["marked-hunter"] &&
         (game.marked?.carried > 0 ||
           game.marked?.bounty > 0 ||
-          (game.markedHunt && game.time >= game.markedHunt.arrivedAt + game.world.markedData.arrivalDelay / 2))
+          (game.markedHunt &&
+            game.time >= game.markedHunt.arrivedAt + game.world.markedData.arrivalDelay * LOOK.huntArrivalShare))
       ) {
         earlyHunterLoad = true;
         library.ensureModels?.(["marked-hunter"])?.catch(() => {
@@ -1385,7 +1400,8 @@ export function createActors(
               ? "death"
               : warning
                 ? "alert"
-                : entity.droneState.phase === "recover" && game.time - entity.droneState.readyAt + 1.4 < 0.12
+                : entity.droneState.phase === "recover" &&
+                    game.time - entity.droneState.readyAt + LOOK.droneAttackLead < LOOK.droneAttackWindow
                   ? "attack"
                   : entity.alerted
                     ? "idle"
@@ -1397,9 +1413,9 @@ export function createActors(
             heading: Math.atan2(entity.facing.x, -entity.facing.z),
             state,
             phase: dead
-              ? (game.time - (entity.response?.start ?? game.time)) / 0.8
+              ? (game.time - (entity.response?.start ?? game.time)) / LOOK.droneDeathSeconds
               : warning
-                ? (game.time - warning.start) / 0.6
+                ? (game.time - warning.start) / LOOK.droneWarningSeconds
                 : 0,
           });
           view.root.updateWorldMatrix(true, true);
@@ -1411,7 +1427,7 @@ export function createActors(
           continue;
         }
         view.root.scale.setScalar(
-          (world.layout.characterScale ?? 1.265) *
+          (world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
             (view.description.scale ?? 1) *
             visualScale *
             (entity.kind >= 0 ? (entity.mobSize ?? 1) : 1),
@@ -1488,20 +1504,23 @@ export function createActors(
             deathPose,
           );
         const reaction = view.hitReaction.update(
-          contactOnly || view.hitReactionFresh ? 0 : Math.min(0.05, presentationDt),
+          contactOnly || view.hitReactionFresh ? 0 : Math.min(LOOK.hitStepMax, presentationDt),
           { paused: presentationDt === 0 },
         );
         if (!contactOnly && !view.hitReactionFresh)
-          view.impactFlashLife = Math.max(0, (view.impactFlashLife ?? 0) - Math.min(0.05, Math.max(0, presentationDt)));
+          view.impactFlashLife = Math.max(
+            0,
+            (view.impactFlashLife ?? 0) - Math.min(LOOK.hitStepMax, Math.max(0, presentationDt)),
+          );
         if (!contactOnly) view.hitReactionFresh = false;
         // Living flinch and native corpse pose share this sole render transform owner.
         if (entity.hp > 0) {
-          const lean = reaction.energy * 0.3;
+          const lean = reaction.energy * LOOK.leanGain;
           view.root.rotation.x = -reaction.z * lean;
           view.root.rotation.z = -reaction.x * lean;
           const flinch = {
-            x: entity.pos.x + reaction.x * reaction.energy * 0.1,
-            z: entity.pos.z + reaction.z * reaction.energy * 0.1,
+            x: entity.pos.x + reaction.x * reaction.energy * LOOK.flinchGain,
+            z: entity.pos.z + reaction.z * reaction.energy * LOOK.flinchGain,
           };
           if (
             (!world.geometry?.clear || world.geometry.clear(flinch, entity.radius)) &&
@@ -1545,7 +1564,9 @@ export function createActors(
             if (view.knife) view.knife.visible = !pose;
             if (pose)
               view.bossGunPose.apply(
-                game.time - (entity.bossRangedFiredAt ?? -Infinity) < 0.25 ? "Rifle_Fire" : "Rifle_Aim",
+                game.time - (entity.bossRangedFiredAt ?? -Infinity) < LOOK.fireWindowSeconds
+                  ? "Rifle_Fire"
+                  : "Rifle_Aim",
                 Math.max(0, game.time - (entity.bossRangedFiredAt ?? game.time)),
               );
           }
@@ -1611,7 +1632,7 @@ export function createActors(
               view.flameExtension ??= stance.extension;
               view.flameExtension +=
                 (stance.extension - view.flameExtension) *
-                (1 - Math.exp(-Math.min(0.1, Math.max(0, presentationDt)) * stance.rate));
+                (1 - Math.exp(-Math.min(LOOK.flameStepMax, Math.max(0, presentationDt)) * stance.rate));
               applyPistolAim(view.model, view.flameMount, {
                 recoil: 0,
                 gripProfile: view.flameGrip,
@@ -1643,10 +1664,14 @@ export function createActors(
             if (pose) {
               const clock = game.rifleAction ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.riflePose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
-                reloading ? 2 - (clock.reloadingUntil - game.time) : firing ? game.time - clock.firedAt : 0,
+                reloading
+                  ? LOOK.reloadClipSeconds - (clock.reloadingUntil - game.time)
+                  : firing
+                    ? game.time - clock.firedAt
+                    : 0,
               );
             }
           }
@@ -1678,11 +1703,11 @@ export function createActors(
             if (railgunPose) {
               const clock = game.bossEquipmentAction?.commanderPistol ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.railgunPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / railgun.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / railgun.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
@@ -1707,11 +1732,11 @@ export function createActors(
             if (pose) {
               const clock = game.bossEquipmentAction?.shotgun ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.shotgunPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / shotgun.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / shotgun.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
@@ -1737,11 +1762,11 @@ export function createActors(
             if (rocketPose) {
               const clock = game.bossEquipmentAction?.rocketLauncher ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.rocketPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / rocket.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / rocket.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
@@ -1767,13 +1792,13 @@ export function createActors(
           view.vest.setVisible(game.vest.equipped);
           view.vest.update();
         }
-        view.shadow.position.copy(world.toRender(entity.pos, 0.016));
+        view.shadow.position.copy(world.toRender(entity.pos, LOOK.shadowLift));
         // Only confirmed positive damage starts this window; legacy flashUntil also marks zero-damage blocks.
         const flash = (view.impactFlashLife ?? 0) > 0 && !(entity.hp <= 0 && goreProfile(entity.finisher?.recipeId));
         for (const m of view.flashMaterials) {
           if (m.material.emissive) {
             m.material.emissive.copy(flash ? damageCrimson : m.emissive);
-            m.material.emissiveIntensity = flash ? 0.35 : m.intensity;
+            m.material.emissiveIntensity = flash ? LOOK.flashIntensity : m.intensity;
           }
           if (m.color) m.material.color.copy(flash ? damageCrimson : m.color);
           if (Number.isFinite(m.roughness)) m.material.roughness = m.roughness;

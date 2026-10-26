@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "ringSegments": 40,
+  "ringInner": 0.62,
+  "ringOuter": 0.74,
   "ringOpacity": 0.85,
   "markerHeight": 0.03,
   "maxFrameSeconds": 0.1,
