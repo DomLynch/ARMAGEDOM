@@ -71,12 +71,9 @@
   "rigLiterals": {},
   "numberLiterals": {
     "engine/bone-saw.js": 3,
-    "engine/marked-hunters.js": 12,
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
-    "engine/reaper.js": 3,
-    "finisher-impact-profile.js": 8,
-    "hollow-encounter.js": 11
+    "finisher-impact-profile.js": 8
   },
   "constantTables": {
     "clothing-palettes.js": 1,

@@ -187,10 +187,17 @@ function validateEncounterTables(d) {
   }
   if (Object.keys(d.animalCycles.A).join() !== Object.keys(d.animalCycles.B).join())
     fail("creatures", "animalCycles A and B must list the same placement keys");
-  // The ranges createHollowEncounter enforces on the encounter built from these.
+  // hollowBounds: the ranges createHollowEncounter enforces on the encounter built from hollowTuning (and on a caller's override).
+  const hb = d.hollowBounds;
+  closed(hb, ["bodyScaleMax", "count", "ranges"]);
+  closed(hb.ranges, ["health", "moveSpeed", "regen", "aggression", "recovery"]);
+  number("creatures", "hollowBounds.bodyScaleMax", hb.bodyScaleMax, 0.01);
+  for (const [name, range] of [["count", hb.count], ...Object.entries(hb.ranges)])
+    if (!Array.isArray(range) || range.length !== 2 || !(range[0] <= range[1]) || !range.every(Number.isFinite))
+      fail("creatures", `hollowBounds.${name} must be [min, max]`);
   closed(d.hollowTuning, ["count", "health", "moveSpeed", "regen", "aggression", "recovery"]);
-  count("creatures", "hollowTuning.count", d.hollowTuning.count, 3, 5);
-  for (const [field, min, max] of [["health", 1, 120], ["moveSpeed", 0.1, 6], ["regen", 0.1, 2], ["aggression", 0.1, 5], ["recovery", 0, 5]]) {
+  count("creatures", "hollowTuning.count", d.hollowTuning.count, hb.count[0], hb.count[1]);
+  for (const [field, [min, max]] of Object.entries(hb.ranges)) {
     const v = d.hollowTuning[field];
     if (!Number.isFinite(v) || v < min || v > max) fail("creatures", `hollowTuning.${field} must be from ${min} to ${max}`);
   }

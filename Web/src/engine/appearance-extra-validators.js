@@ -493,6 +493,7 @@ export const creatureKeys = () => [
   "animalCycles",
   "gauntHumanCycles",
   "hollowTuning",
+  "hollowBounds",
   "creatureSim",
   "mobSize",
   "feralBodyShapes",
