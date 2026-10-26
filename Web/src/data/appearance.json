@@ -4,6 +4,16 @@
     "cheek": [0.2961382707983211, 0.1589608350608804, 0.09989872824711388],
     "headNames": ["Photo", "PhotoEyes", "PhotoTeeth"]
   },
+  "meshNames": {
+    "feralCoat": "Weathered brindle coat",
+    "feralLimbs": "Worn muzzle ear paw",
+    "feralFace": "Nose eyes mouth",
+    "feralTeeth": "Old ivory canine teeth",
+    "roachShell": "Worn rust-brown chitin",
+    "donorNeck": "Recovered donor lower neck",
+    "hair": "Scavenger hair",
+    "hairMaterial": "Private scavenger hair"
+  },
   "roachCoat": {
     "taper": { "from": 0.9, "range": 0.1 },
     "field": { "z": 63, "cosX": 45, "wobble": 1.6, "y": 99, "z2": 24 },

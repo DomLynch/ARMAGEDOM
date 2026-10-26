@@ -5,6 +5,7 @@ export const ROACH_APPEARANCES = GAME_DATA.appearance.roaches;
 // The shell taper band and the wear noise (appearance.json `roachCoat`): wear is a smooth noise of the vertex position.
 const COAT = GAME_DATA.appearance.roachCoat;
 const SHELL = new Set(["abdomen", "thorax"]);
+const SHELL_MATERIAL = GAME_DATA.appearance.meshNames.roachShell;
 const XYZ = 3; // tuning-ok: a colour packed as three floats
 const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 export function createRoachAppearanceLibrary(T) {
@@ -24,7 +25,7 @@ export function createRoachAppearanceLibrary(T) {
       if (meshes.length !== 1 || meshes[0].name !== "ARM_Original_Infected_Ground_Roach")
         throw Error("Original roach foundation required");
       const m = meshes[0];
-      if (Array.isArray(m.material) || m.material.name !== "Worn rust-brown chitin")
+      if (Array.isArray(m.material) || m.material.name !== SHELL_MATERIAL)
         throw Error("Original roach material required");
       let cache = caches.get(m.geometry);
       if (!cache) caches.set(m.geometry, (cache = new Map()));

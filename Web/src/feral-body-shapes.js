@@ -6,6 +6,7 @@ const TORSO = new Set(["pelvis", "spine", "chest"]);
 const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 // The torso skin-weight taper band is appearance.json `feralTorsoMask`.
 const MASK = GAME_DATA.appearance.feralTorsoMask;
+const COAT_NAME = GAME_DATA.appearance.meshNames.feralCoat;
 export function createFeralBodyShapeLibrary() {
   const cache = new WeakMap(),
     owned = new Set();
@@ -18,7 +19,7 @@ export function createFeralBodyShapeLibrary() {
       if (!recipe) throw Error("Unknown feral body shape " + id);
       const meshes = [];
       model.traverse((m) => {
-        if (m.isSkinnedMesh && m.material?.name === "Weathered brindle coat") meshes.push(m);
+        if (m.isSkinnedMesh && m.material?.name === COAT_NAME) meshes.push(m);
       });
       if (meshes.length !== 1 || !meshes[0].material.vertexColors || !meshes[0].geometry.attributes.color)
         throw Error("Accepted feral geometry required first");
