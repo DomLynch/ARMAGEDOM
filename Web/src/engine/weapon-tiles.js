@@ -6,7 +6,8 @@ import { MELEE_VARIANTS } from "../melee-equipment.js";
 import { WEAPON_TILES as TILES } from "./weapon-tiles-data.js";
 import { GAME_DATA } from "./game-data.js";
 import { fillText } from "./game-data-combat-text.js";
-const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.jsonconst { pageSize: PAGE, pageWidthPx: STEP } = TILES;
+const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.json
+const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
 const dry = (magazine, reserve) => !magazine && !reserve;
 const ammoText = (magazine, capacity, reserve) =>
