@@ -15,6 +15,7 @@ export const appearanceExtraKeys = () => [
   "finisherCosmetics",
   "severBloodEffect",
   "finisherOpened",
+  "actorView",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -26,6 +27,84 @@ export function validateAppearanceExtras(d, tools) {
   validateFeralAndGlow(d, tools);
   validateFinisherLooks(d, tools);
   validateFinisherOpened(d, tools);
+  validateActorView(d, tools);
+}
+
+// actors.js: the damage flash colour and strength, the blob shadow, the marked-hunter tint, the drone clocks, the contact bands and the
+// hit, flame and fire/reload timings. Plain numbers in metres, seconds and shares; the pairs are [low, high].
+function validateActorView(d, { fail, between }) {
+  const a = d.actorView;
+  closed(a, [
+    "damageColor",
+    "shadowBlob",
+    "shadowScale",
+    "shadowLift",
+    "markedTint",
+    "roachBiteScales",
+    "droneDeathSeconds",
+    "droneWarningSeconds",
+    "droneAttackLead",
+    "droneAttackWindow",
+    "defaultDeathSeconds",
+    "huntArrivalShare",
+    "rocketAimFallback",
+    "rocketAimTargets",
+    "finisherGeometryBudgetBytes",
+    "footWeightMin",
+    "toothVertex",
+    "ratContact",
+    "footBand",
+    "calfBand",
+    "hitFlashSeconds",
+    "flashIntensity",
+    "hitStepMax",
+    "flameStepMax",
+    "leanGain",
+    "flinchGain",
+    "fireWindowSeconds",
+    "reloadClipSeconds",
+  ]);
+  hexColour(fail, "actorView.damageColor", a.damageColor);
+  closed(a.shadowBlob, ["size", "centre", "innerRadius", "outerRadius", "midStop"]);
+  for (const k of ["size", "centre", "innerRadius", "outerRadius"])
+    between(`actorView.shadowBlob.${k}`, a.shadowBlob[k], 1, 1024);
+  between("actorView.shadowBlob.midStop", a.shadowBlob.midStop, 0, 1);
+  if (!(a.shadowBlob.outerRadius > a.shadowBlob.innerRadius))
+    fail("appearance", "actorView.shadowBlob radii must grow");
+  for (const [k, min, max] of [
+    ["shadowScale", 0, 10],
+    ["shadowLift", 0, 1],
+    ["droneDeathSeconds", 0.01, 60],
+    ["droneWarningSeconds", 0.01, 60],
+    ["droneAttackLead", 0, 60],
+    ["droneAttackWindow", 0, 60],
+    ["defaultDeathSeconds", 0.01, 60],
+    ["huntArrivalShare", 0, 1],
+    ["rocketAimFallback", 0, 10],
+    ["rocketAimTargets", 1, 1000],
+    ["finisherGeometryBudgetBytes", 1048576, 4294967296],
+    ["footWeightMin", 0, 1],
+    ["toothVertex", 0, 1000000],
+    ["hitFlashSeconds", 0, 10],
+    ["flashIntensity", 0, 10],
+    ["hitStepMax", 0.001, 1],
+    ["flameStepMax", 0.001, 1],
+    ["leanGain", 0, 10],
+    ["flinchGain", 0, 10],
+    ["fireWindowSeconds", 0, 10],
+    ["reloadClipSeconds", 0.01, 60],
+  ])
+    between(`actorView.${k}`, a[k], min, max);
+  for (const k of ["rocketAimTargets", "toothVertex", "finisherGeometryBudgetBytes"])
+    if (!Number.isInteger(a[k])) fail("appearance", `actorView.${k} must be a whole number`);
+  if (a.markedTint.length !== 3) fail("appearance", "actorView.markedTint must be [r, g, b]");
+  a.markedTint.forEach((n, i) => between(`actorView.markedTint[${i}]`, n, 0, 1));
+  if (!a.roachBiteScales.length) fail("appearance", "actorView.roachBiteScales must not be empty");
+  a.roachBiteScales.forEach((n, i) => between(`actorView.roachBiteScales[${i}]`, n, 0, 100));
+  for (const k of ["ratContact", "footBand", "calfBand"]) {
+    if (a[k].length !== 2 || !(a[k][1] > a[k][0])) fail("appearance", `actorView.${k} must be [low, high] rising`);
+    a[k].forEach((n, i) => between(`actorView.${k}[${i}]`, n, -10, 10));
+  }
 }
 
 // finisher-opened.js: the bake's step budget (vertices, milliseconds, support reads), where the body is cut, the cap shading, the search and

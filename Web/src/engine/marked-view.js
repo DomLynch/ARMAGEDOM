@@ -1,6 +1,7 @@
 import { safehouseInteraction } from "./safehouse.js";
 import { markedShopEligible, effectiveBounty } from "./marked.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
 const money = (n) => "$" + n.toLocaleString("en-US");
 // Ephemeral presentation of the existing committed award ledger and total.
 // Initial restores, menu transactions and area changes establish a baseline.
@@ -53,7 +54,7 @@ export function createMarkedHeadTotalView(s) {
     }
     if (count > lastCount && bounty >= lastBounty && bounty > 0) {
       label.textContent = money(bounty);
-      until = g.time + 2.5;
+      until = g.time + WEAPON_VIEWS.marked.headTotalSeconds;
     }
     lastCount = count;
     lastBounty = bounty;
