@@ -20,7 +20,11 @@ const hexNumber = (hex) => Number(`0x${hex}`);
 // Pools, colours and finisher droplet motion: visual.json `effects.feedback`.
 const FEEL = GAME_DATA.visual.effects.feedback,
   POOL = FEEL.pools,
-  DROP = FEEL.finisherDrop;
+  DROP = FEEL.finisherDrop,
+  BURST = FEEL.burst,
+  RETICLE = FEEL.reticle,
+  LINE = FEEL.line,
+  FRAME = FEEL.frame;
 const colors = Object.fromEntries(
   Object.entries(GAME_DATA.visual.effects.swingColours).map(([name, hex]) => [name, hexNumber(hex)]),
 );
@@ -531,35 +535,36 @@ export function createEffects(
       b = a.clone().add(new THREE.Vector3(d.x, 0, -d.z));
     a.project(world.camera);
     b.project(world.camera);
-    return { x: ((b.x - a.x) * viewportWidth) / 2, y: ((a.y - b.y) * viewportHeight) / 2 };
+    return { x: ((b.x - a.x) * viewportWidth) / 2, y: ((a.y - b.y) * viewportHeight) / 2 }; // tuning-ok: NDC spans 2 over the screen
   }
   function burst(event, killed, time) {
     const p = event.position ?? event.actor.pos,
       d = event.impactDirection ?? { x: 0, z: 1 },
-      count = feedback.mode === "off" ? 1 : feedback.mode === "low" ? 3 : killed ? 12 : 8,
+      count = feedback.mode === "off" ? BURST.counts.off : feedback.mode === "low" ? BURST.counts.low : killed ? BURST.counts.killed : BURST.counts.hit,
+      life = feedback.mode === "off" ? BURST.lifeSeconds.off : killed ? BURST.lifeSeconds.killed : BURST.lifeSeconds.hit,
       size = event.actor.mobSize ?? 1;
     for (let i = 0; i < count; i++) {
       const v = nextParticle(),
-        a = (i / count) * Math.PI * 2;
+        a = (i / count) * Math.PI * 2; // tuning-ok: a full turn is 2 * pi
       if (!v) break;
       Object.assign(v, {
         stretch: null,
         impactVictimId: event.actor.id,
-        palette: 0xffca85,
-        gravity: 8,
+        palette: hexNumber(FEEL.particle.palette),
+        gravity: FEEL.particle.gravity,
         groundClip: false,
-        life: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
-        total: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
+        life,
+        total: life,
         x: p.x,
         y: targetHeight("burst", event.actor.rig, {
           drone: () => droneY(event.actor, time),
           scale: () => getView(event.actor)?.root.scale.y ?? size,
         }),
         z: -p.z,
-        vx: Math.cos(a) * 1.8 + d.x,
-        vy: 1.3 + (i % 3) * 0.7,
-        vz: Math.sin(a) * 1.8 - d.z,
-        size: (feedback.mode === "off" ? 0.14 : feedback.mode === "low" ? 0.055 : killed ? 0.16 : 0.12) * size,
+        vx: Math.cos(a) * BURST.spread + d.x,
+        vy: BURST.liftBase + (i % BURST.liftCycle) * BURST.liftStep,
+        vz: Math.sin(a) * BURST.spread - d.z,
+        size: (feedback.mode === "off" ? BURST.sizes.off : feedback.mode === "low" ? BURST.sizes.low : killed ? BURST.sizes.killed : BURST.sizes.hit) * size,
       });
     }
   }
@@ -571,17 +576,17 @@ export function createEffects(
   if (pistolAsset) {
     const gun = pistolAsset.scene.clone(true),
       surfaces = [];
-    gun.rotation.set(Math.PI / 2, 0, 0.45);
-    gun.position.y = 0.15;
-    gun.scale.setScalar(1.8);
+    gun.rotation.set(Math.PI / 2, 0, FEEL.pickupGun.tilt); // tuning-ok: pi / 2 lays the gun flat, a quarter turn
+    gun.position.y = FEEL.pickupGun.height;
+    gun.scale.setScalar(FEEL.pickupGun.scale);
     gun.traverse((o) => {
       const materials = Array.isArray(o.material) ? o.material : [o.material];
       if (o.isMesh && !o.isSkinnedMesh && materials.every((m) => m?.isMeshStandardMaterial)) surfaces.push(o);
     });
     for (const mesh of surfaces) {
       const contour = addPickupGlow(mesh);
-      // The HUD's pale gold (0xf1d28c); the ground arrow itself now takes the drop marker's orange (visual.json routeArrow).
-      contour.halo.material.uniforms.color.value.set(0xf1d28c);
+      // The HUD's pale gold; the ground arrow itself now takes the drop marker's orange (visual.json routeArrow).
+      contour.halo.material.uniforms.color.value.set(hexNumber(FEEL.pickupGun.contourColour));
       pickupContours.push(contour);
     }
     pickup.add(gun);
@@ -591,32 +596,33 @@ export function createEffects(
   const bracketGeometry = (padding) => {
     const vertices = [];
     const rect = (x, y, w, h) => {
-      const l = x - w / 2,
-        r = x + w / 2,
-        b = y - h / 2,
-        t = y + h / 2;
+      const l = x - w / 2, // tuning-ok: half the width either side of the centre
+        r = x + w / 2, // tuning-ok: half the width either side of the centre
+        b = y - h / 2, // tuning-ok: half the height either side of the centre
+        t = y + h / 2; // tuning-ok: half the height either side of the centre
       vertices.push(l, b, 0, r, b, 0, r, t, 0, l, b, 0, r, t, 0, l, t, 0);
     };
-    rect(0, 0, 0.42 + padding, 0.055 + padding);
-    rect(0, 0, 0.055 + padding, 0.42 + padding);
+    const { barLength: bar, barThickness: thick, cornerNear: near, cornerFar: far, cornerLength: long, cornerThickness: lip } = RETICLE;
+    rect(0, 0, bar + padding, thick + padding);
+    rect(0, 0, thick + padding, bar + padding);
     for (const x of [-1, 1])
       for (const y of [-1, 1]) {
-        rect(x * 0.39, y * 0.5, 0.22 + padding, 0.045 + padding);
-        rect(x * 0.5, y * 0.39, 0.045 + padding, 0.22 + padding);
+        rect(x * near, y * far, long + padding, lip + padding);
+        rect(x * far, y * near, lip + padding, long + padding);
       }
-    return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)); // tuning-ok: x, y, z
   };
-  const outlineGeometry = bracketGeometry(0.06),
+  const outlineGeometry = bracketGeometry(RETICLE.outlinePad),
     cueGeometry = bracketGeometry(0),
     outlineMaterial = new THREE.MeshBasicMaterial({
-      color: 0x161b1d,
+      color: hexNumber(RETICLE.outlineColour),
       transparent: true,
       depthWrite: false,
       depthTest: false,
       toneMapped: false,
     }),
     cueMaterial = new THREE.MeshBasicMaterial({
-      color: 0xf2eee4,
+      color: hexNumber(RETICLE.cueColour),
       transparent: true,
       depthWrite: false,
       depthTest: false,
@@ -626,27 +632,27 @@ export function createEffects(
     brackets = new THREE.Mesh(cueGeometry, cueMaterial),
     accentGeometry = new THREE.BufferGeometry().setAttribute(
       "position",
-      new THREE.Float32BufferAttribute([-0.13, 0.1, 0, 0, -0.1, 0, 0.13, 0.1, 0], 3),
+      new THREE.Float32BufferAttribute(RETICLE.accentTriangle, 3), // tuning-ok: x, y, z per vertex
     ),
     accentMaterial = new THREE.MeshBasicMaterial({
-      color: 0xdca64d,
+      color: hexNumber(RETICLE.accentColour),
       depthWrite: false,
       depthTest: false,
       toneMapped: false,
     }),
     accent = new THREE.Mesh(accentGeometry, accentMaterial);
-  outline.renderOrder = 101;
-  brackets.renderOrder = 102;
-  accent.renderOrder = 103;
-  accent.position.y = 0.76;
+  outline.renderOrder = RETICLE.renderOrders.outline;
+  brackets.renderOrder = RETICLE.renderOrders.cue;
+  accent.renderOrder = RETICLE.renderOrders.accent;
+  accent.position.y = RETICLE.accentY;
   reticle.add(outline, brackets, accent);
   pickup.visible = reticle.visible = false;
   scene.add(pickup, reticle);
 
-  function line(center, dir, radius, arc, color, expires, height = 0.08, stroke = false) {
-    const ring = arc >= 359,
+  function line(center, dir, radius, arc, color, expires, height = LINE.defaultHeight, stroke = false) {
+    const ring = arc >= LINE.ringArcDegrees,
       points = [],
-      steps = 36,
+      steps = LINE.steps,
       angle = Math.atan2(dir.x, -dir.z);
     if (!ring && !stroke) points.push(new THREE.Vector3(0, height, 0));
     for (let i = 0; i <= steps; i++) {
@@ -656,7 +662,7 @@ export function createEffects(
     if (!ring && !stroke) points.push(new THREE.Vector3(0, height, 0));
     const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: LINE.opacity, depthWrite: false }),
     );
     mesh.position.copy(world.toRender(center));
     scene.add(mesh);
@@ -686,7 +692,7 @@ export function createEffects(
         clearFinisherBursts();
         clearFeedback();
       }
-      const visualDt = Math.min(0.05, Math.max(0, Number.isFinite(dt) ? dt : 0));
+      const visualDt = Math.min(FRAME.maxStep, Math.max(0, Number.isFinite(dt) ? dt : 0));
       feedback = impact.update(visualDt, { paused });
       if (!paused) {
         poolTime += visualDt;
@@ -694,8 +700,8 @@ export function createEffects(
         for (const expired of finisherGate.expire(poolTime))
           for (const [token, burst] of finisherBursts) if (burst.effect === expired) releaseFinisher(token);
         const elapsed = visualDt;
-        basicRecoil *= Math.exp(-elapsed * 12);
-        if (basicRecoil < 0.001) basicRecoil = 0;
+        basicRecoil *= Math.exp(-elapsed * FRAME.recoilDecay);
+        if (basicRecoil < FRAME.recoilSettle) basicRecoil = 0;
         tickPool(elapsed);
       }
     },
@@ -706,8 +712,8 @@ export function createEffects(
         bossFlame: bossFlame?.snapshot() ?? null,
         salamanderFlame: salamanderFlame.snapshot(),
         requestedMode,
-        particleCapacity: 48,
-        tracerCapacity: 16,
+        particleCapacity: POOL.particles,
+        tracerCapacity: POOL.tracers,
         activeParticles: particles.filter((p) => p.life > 0 && !(p.delay > 0)).length,
         activeTracers: tracers.filter((t) => t.life > 0).length,
         finisherImpact: finisherSnapshot(),
@@ -733,7 +739,7 @@ export function createEffects(
       reticle.userData.ready = false;
     },
     pistolRecoil(game) {
-      return active(game) ? (feedback.mode === "off" ? basicRecoil * 0.2 : feedback.shot) : 0;
+      return active(game) ? (feedback.mode === "off" ? basicRecoil * FRAME.offRecoilShare : feedback.shot) : 0;
     },
     render(renderer, camera, game, height, width = height * (camera.aspect ?? 1)) {
       const visible = game.player.hp > 0 && !game.finished && !reducedMotion(),
@@ -742,7 +748,8 @@ export function createEffects(
       if (!(height > 0) || (!x && !y)) return renderer.render(scene, camera);
       projection.copy(camera.projectionMatrix);
       inverse.copy(camera.projectionMatrixInverse);
-      camera.projectionMatrix.premultiply(shift.makeTranslation((2 * x) / Math.max(1, width), (-2 * y) / height, 0));
+      // tuning-ok: pixels to normalised device coordinates, which span 2 across the screen (y is flipped)
+      camera.projectionMatrix.premultiply(shift.makeTranslation((2 * x) / Math.max(1, width), (-2 * y) / height, 0)); // tuning-ok: NDC spans 2
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
       try {
         return renderer.render(scene, camera);
