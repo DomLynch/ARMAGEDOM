@@ -13,7 +13,8 @@ import { createAreaPrefetch, PREFETCH_LIMITS } from "./area-prefetch.js";
 import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
 // Parked-area budget with the prefetch flag: two areas or 30 MB of their textures, whichever comes first.
 export const PARKED_AREA_LIMIT = GAME_DATA.areaRuntime.parkedAreas; // data/areaRuntime.json: 2 areas, 30 MiB
-export const TRAVEL_MESSAGE_DELAY_MS = 300;
+const TRAVEL = GAME_DATA.areaRuntime.travel; // data/areaRuntime.json: message delay and failure message length, preparation slices
+export const TRAVEL_MESSAGE_DELAY_MS = TRAVEL.messageDelayMs;
 // The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
 // Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.
 export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_MESSAGE_DELAY_MS, setTimer = setTimeout) {
@@ -160,7 +161,7 @@ export function createAreaLifecycle(s) {
       s.game.message = recoveryFailed
         ? "Travel recovery failed. Reload the page to continue."
         : "Could not load that area. Move away and try the exit again.";
-      s.game.messageUntil = s.game.time + 5;
+      s.game.messageUntil = s.game.time + TRAVEL.failureMessageSeconds;
       return false;
     } finally {
       cancelTravelMessage();
@@ -197,7 +198,8 @@ export function createAreaLifecycle(s) {
   }
   function preparationTurn(state) {
     return new Promise((resolve, reject) => {
-      const deadlineAt = performance.now() + 16;
+      const prep = TRAVEL.preparation,
+        deadlineAt = performance.now() + prep.deadlineMs;
       const check = () => {
         if (
           state.cancelled ||
@@ -213,7 +215,7 @@ export function createAreaLifecycle(s) {
       // Entry is already announced and paused; idle scheduling can throttle this work.
       if (s.traveling && state.urgent) {
         setTimeout(() => {
-          if (check()) resolve(12);
+          if (check()) resolve(prep.urgentSliceMs);
         }, 0);
         return;
       }
@@ -221,26 +223,34 @@ export function createAreaLifecycle(s) {
       if (!state.urgent && state.hold?.()) {
         setTimeout(() => {
           if (check()) preparationTurn(state).then(resolve, reject);
-        }, state.holdMs ?? 250);
+        }, state.holdMs ?? prep.holdMs);
         return;
       }
       const idle = (deadline) => {
         if (!check()) return;
-        if (deadline.didTimeout || performance.now() >= deadlineAt || deadline.timeRemaining() >= 4 || state.urgent)
+        if (
+          deadline.didTimeout ||
+          performance.now() >= deadlineAt ||
+          deadline.timeRemaining() >= prep.idleEnoughMs ||
+          state.urgent
+        )
           resolve(
             state.urgent
-              ? 12
-              : Math.min((state.ahead && state.sliceMs) || 4, Math.max(1, deadline.timeRemaining() - 1)),
+              ? prep.urgentSliceMs
+              : Math.min(
+                  (state.ahead && state.sliceMs) || prep.ambientSliceMs,
+                  Math.max(1, deadline.timeRemaining() - 1),
+                ),
           );
         else requestIdleCallback(idle, { timeout: Math.max(1, deadlineAt - performance.now()) });
       };
       // A busy renderer must not starve preparation indefinitely. Timeout grants
       // one small unit of work; it is a scheduling bound, never an area-ready timer.
-      if (globalThis.requestIdleCallback) requestIdleCallback(idle, { timeout: 16 });
+      if (globalThis.requestIdleCallback) requestIdleCallback(idle, { timeout: prep.idleTimeoutMs });
       else
         requestAnimationFrame(() =>
           setTimeout(() => {
-            if (check()) resolve(state.urgent ? 12 : 4);
+            if (check()) resolve(state.urgent ? prep.urgentSliceMs : prep.ambientSliceMs);
           }, 0),
         );
     });

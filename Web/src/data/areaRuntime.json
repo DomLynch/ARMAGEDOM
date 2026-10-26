@@ -8,5 +8,17 @@
     "recheckMs": 250,
     "fightQuietMs": 1000
   },
-  "parkedAreas": { "maxAreas": 2, "maxBytes": 31457280 }
+  "parkedAreas": { "maxAreas": 2, "maxBytes": 31457280 },
+  "travel": {
+    "messageDelayMs": 300,
+    "failureMessageSeconds": 5,
+    "preparation": {
+      "deadlineMs": 16,
+      "idleTimeoutMs": 16,
+      "urgentSliceMs": 12,
+      "ambientSliceMs": 4,
+      "idleEnoughMs": 4,
+      "holdMs": 250
+    }
+  }
 }
