@@ -209,3 +209,16 @@ test("each migration has an exact down file", async () => {
   assert.equal((await call(db, "select count(*)::int as n from pg_tables where schemaname = 'public'"))[0].n, 0);
   assert.equal((await call(db, "select count(*)::int as n from pg_roles where rolname like 'arma\\_%'"))[0].n, 0);
 });
+
+test("an account may own at most max_characters characters; the next one is refused with O0010 and writes nothing, and another account is unaffected", async () => {
+  const db = await freshDb();
+  await openFor(db, ids.alice, ids.bob);
+  const cap = Number((await call(db, "select value #>> '{}' as v from public.arma_config where key = 'max_characters'"))[0].v);
+  assert.equal(cap, 5);
+  for (let i = 0; i < cap; i++) await call(db, "select public.arma_create_character($1, $2) as id", [ids.alice, `Alice${i}`]);
+  assert.equal((await failure(call(db, "select public.arma_create_character($1, 'One more')", [ids.alice])))?.code, "O0010");
+  assert.equal((await call(db, "select count(*)::int as n from public.arma_characters where account = $1", [ids.alice]))[0].n, cap);
+  assert.equal(typeof (await call(db, "select public.arma_create_character($1, 'Bob') as id", [ids.bob]))[0].id, "string");
+  await db.exec("update public.arma_config set value = '6'::jsonb where key = 'max_characters'");
+  assert.equal(typeof (await call(db, "select public.arma_create_character($1, 'Sixth') as id", [ids.alice]))[0].id, "string", "the cap is read from the config row");
+});
