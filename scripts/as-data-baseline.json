@@ -67,9 +67,7 @@
       { "name": "EMPTY", "reason": "a shared frozen empty array, not data" }
     ]
   },
-  "rigLiterals": {
-    "engine/commander/match.js": 1
-  },
+  "rigLiterals": {},
   "constantTables": {
     "clothing-palettes.js": 1,
     "core/index.js": 1,
