@@ -108,14 +108,18 @@ const SALAMANDER_ATTACK = CREATURE_MOVES.salamander_attack;
 const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
+// Numerical dead zones, not tuning: below these a direction, a stick push or a segment length counts as nothing.
+const NEGLIGIBLE_DISTANCE = 0.001,
+  INPUT_DEADZONE = 0.01,
+  MIN_SEGMENT = 0.0001;
 export function normal(v, fallback = { x: 0, z: 1 }) {
   const n = mag(v);
-  return n > 0.001 ? { x: v.x / n, z: v.z / n } : { ...fallback };
+  return n > NEGLIGIBLE_DISTANCE ? { x: v.x / n, z: v.z / n } : { ...fallback };
 }
-const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > 0.001;
+const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > NEGLIGIBLE_DISTANCE;
 const dot = (a, b) => a.x * b.x + a.z * b.z;
 const inside = (dir, delta, arc) =>
-  mag(delta) < 0.001 || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
+  mag(delta) < NEGLIGIBLE_DISTANCE || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
 const rotate = (v, angle) => ({
   x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
@@ -166,14 +170,14 @@ export function createGame(world, options = {}) {
     player: {
       id: 0,
       kind: -1,
-      pos: { ...(world.spawn ?? { x: 0, z: -6 }) },
+      pos: { ...(world.spawn ?? RULES.player.spawn) },
       facing: { x: 0, z: 1 },
       hp: 100,
       maxHP: 100,
-      damage: 20,
+      damage: RULES.player.damage,
       weaponLevel: 0,
       armourLevel: 0,
-      radius: 0.4,
+      radius: RULES.player.radius,
       guard: 100,
       guarding: false,
       parryUntil: 0,
@@ -250,7 +254,8 @@ export function createGame(world, options = {}) {
     g.openingGroup = world.populationData ? false : options.openingGroup !== false;
     if (!g.openingGroup) initializeAreaResidents(g);
   }
-  if (options.pistol) g.pistol = createPistolState({ pickupPos: { x: -0.85, z: -6.15 }, pickupAreaId: "westminster" });
+  if (options.pistol)
+    g.pistol = createPistolState({ pickupPos: { ...RULES.startingPistol }, pickupAreaId: "westminster" });
   return g;
 }
 function notify(g, text) {
@@ -307,7 +312,7 @@ function rifleIntent(g, intent, dispatch) {
       g.time >= p.dodgeUntil;
   let state = g.rifle;
   const explicit = validDirection(intent.aim),
-    moving = mag(intent.move ?? { x: 0, z: 0 }) > 0.01,
+    moving = mag(intent.move ?? { x: 0, z: 0 }) > INPUT_DEADZONE,
     reference = g.mobileAiming
       ? { ...p.facing }
       : explicit
@@ -378,7 +383,7 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
     canAct = p.hp > 0 && !g.finished && !intent.dodge && !p.swing && g.time >= p.hurtUntil && g.time >= p.dodgeUntil;
   const firing = wasEquipped && (actions.includes("fire") || intent.held?.includes("fire"));
   const explicit = validDirection(intent.aim);
-  const moving = mag(intent.move ?? { x: 0, z: 0 }) > 0.01;
+  const moving = mag(intent.move ?? { x: 0, z: 0 }) > INPUT_DEADZONE;
   const reference = g.mobileAiming
     ? { ...p.facing }
     : explicit
@@ -490,7 +495,7 @@ function moveBody(g, body, d) {
     const delta = sub(next, other.pos),
       n = mag(delta),
       r = body.radius + other.radius;
-    if (n < r && n > 0.001) {
+    if (n < r && n > NEGLIGIBLE_DISTANCE) {
       next = g.world.move(
         body.pos,
         { x: next.x - body.pos.x + (delta.x / n) * (r - n), z: next.z - body.pos.z + (delta.z / n) * (r - n) },
@@ -498,7 +503,8 @@ function moveBody(g, body, d) {
       );
     }
   }
-  if (body !== g.player && safehouseTouches(g, next, (body.radius ?? 0.4) + 0.03)) next = body.pos;
+  if (body !== g.player && safehouseTouches(g, next, (body.radius ?? RULES.bodyRadius) + RULES.safehouseBodyPadding))
+    next = body.pos;
   body.pos = next;
 }
 export function attack(g, action, direction = g.player.facing, visibleIds) {
@@ -557,7 +563,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
                   : 0) -
               normalReach
             : target.mobSize
-              ? 0.31 * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
+              ? RULES.aim.mobSizeReachFactor * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
               : 0,
       areaId: g.world.areaId,
     });
@@ -614,8 +620,10 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
             lineClear: (a, b) => g.world.lineClear(a, b),
             range,
             rangeOffset: (target) =>
-              target.mobSize ? 0.31 * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize) : 0,
-            coneDegrees: 45,
+              target.mobSize
+                ? RULES.aim.mobSizeReachFactor * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
+                : 0,
+            coneDegrees: RULES.aim.targetConeDegrees,
             areaId: g.world.areaId,
           });
   if (selected && nearest) p.facing = { ...selected.direction };
@@ -1008,11 +1016,11 @@ function enemyMove(g, e, dir, speed, dt, backward = false) {
   } else g.bridgeSteering?.reset(e);
   let delta = { x: dir.x * speed * dt, z: dir.z * speed * dt },
     next = g.world.move(e.pos, delta, e.radius);
-  if (mag(sub(next, e.pos)) < speed * dt * 0.25) {
+  if (mag(sub(next, e.pos)) < speed * dt * RULES.movement.sidestepFraction) {
     const side = { x: -dir.z, z: dir.x };
     delta = { x: side.x * speed * dt, z: side.z * speed * dt };
     next = g.world.move(e.pos, delta, e.radius);
-    if (mag(sub(next, e.pos)) < speed * dt * 0.25) delta = { x: -delta.x, z: -delta.z };
+    if (mag(sub(next, e.pos)) < speed * dt * RULES.movement.sidestepFraction) delta = { x: -delta.x, z: -delta.z };
     dir = normal(delta);
   }
   e.facing = turn(e.facing, backward ? { x: -dir.x, z: -dir.z } : dir, 360 * dt);
@@ -1034,7 +1042,7 @@ function projectiles(g, dt) {
     const seg = sub(next, b.pos),
       delta = sub(g.player.pos, b.pos),
       length = dot(seg, seg),
-      t = Math.max(0, Math.min(1, dot(delta, seg) / Math.max(0.0001, length)));
+      t = Math.max(0, Math.min(1, dot(delta, seg) / Math.max(MIN_SEGMENT, length)));
     if (mag(sub(g.player.pos, { x: b.pos.x + seg.x * t, z: b.pos.z + seg.z * t })) < LEGACY.boltHitRadius) {
       receiveHit(g, { amount: b.amount, origin: b.pos });
       b.dead = true;
@@ -1201,7 +1209,9 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   const ratBefore =
     g.ratContact &&
     g.enemies.some(
-      (e) => rigCapability(e.rig, "lowStrike") && (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
+      (e) =>
+        rigCapability(e.rig, "lowStrike") &&
+        (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= RULES.awareness.ratContactDistance),
     )
       ? g.ratContact.capture(g)
       : null;
@@ -1247,15 +1257,19 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     !swinging &&
     !dodging &&
     t >= p.hurtUntil &&
-    mag(move) > 0.01
+    mag(move) > INPUT_DEADZONE
   );
   if (g.pilot) {
     if (!sprintCandidate) knifeRegen(g, p, dt, swinging || dodging || t < p.hurtUntil || p.saw?.active);
   } else if (!intent.guard && t >= p.guardRecoverAt && t >= p.guardBrokenUntil)
     p.guard = Math.min(100, p.guard + LEGACY.player.guard.regenPerSecond * dt);
-  if (intent.aim && mag(intent.aim) > 0.001 && !swinging && !dodging) p.facing = normal(intent.aim);
+  if (intent.aim && mag(intent.aim) > NEGLIGIBLE_DISTANCE && !swinging && !dodging) p.facing = normal(intent.aim);
   if (p.buffer && t > p.buffer.until) p.buffer = null;
-  const attackDirection = validDirection(intent.aim) ? normal(intent.aim) : mag(move) > 0.01 ? normal(move) : p.facing;
+  const attackDirection = validDirection(intent.aim)
+    ? normal(intent.aim)
+    : mag(move) > INPUT_DEADZONE
+      ? normal(move)
+      : p.facing;
   const visibleIds = intent.combatVisibleIds ?? intent.pistolVisibleIds;
   const priority = ["special", "heavy", "stab", "slash"],
     fresh = [...(intent.cancel ? [] : (intent.actions ?? []))].sort(
@@ -1301,7 +1315,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       const vel = { x: m.x * speed * scale, z: m.z * speed * scale },
         difference = sub(vel, p.velocity),
         n = mag(difference),
-        step = (mag(m) > 0.01 ? LEGACY.player.accelerate : LEGACY.player.decelerate) * dt;
+        step = (mag(m) > INPUT_DEADZONE ? LEGACY.player.accelerate : LEGACY.player.decelerate) * dt;
       p.velocity =
         n <= step ? vel : { x: p.velocity.x + (difference.x / n) * step, z: p.velocity.z + (difference.z / n) * step };
       const start = { ...p.pos };
@@ -1310,7 +1324,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         p.running = true;
         p.guard = p.stamina - R.runDrain * dt; // No action recovery delay.
       }
-      if (!intent.aim && mag(m) > 0.01 && !p.guarding) p.facing = turn(p.facing, m, LEGACY.player.turnRate * dt);
+      if (!intent.aim && mag(m) > INPUT_DEADZONE && !p.guarding)
+        p.facing = turn(p.facing, m, LEGACY.player.turnRate * dt);
     } else {
       p.velocity = { x: 0, z: 0 };
       if (g.pilot) knifeStepIn(g, p, dt);
@@ -1332,7 +1347,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       }
     }
     stepFlame(g, dt, services, (target, amount, hit) => flameHit(g, target, amount, hit));
-    if (mag(sub(p.pos, g.world.spawn ?? { x: 0, z: -6 })) >= 1) g.started = true;
+    if (mag(sub(p.pos, g.world.spawn ?? RULES.player.spawn)) >= 1) g.started = true;
     if (g.encounterActive !== false && g.started && !g.enemies.length && t + EPS >= g.nextWave) {
       if (g.wave >= 3) {
         g.finished = true;
@@ -1420,7 +1435,7 @@ function hollowSpawn(g) {
   if (g.enemies.length || g.finished || g.wave) return false;
   const profile = g.encounter,
     c = profile.character,
-    radius = 0.4 * c.bodyScale,
+    radius = RULES.bodyRadius * c.bodyScale,
     p = g.player,
     forward = normal(p.facing);
   const sectors = [
@@ -1433,8 +1448,8 @@ function hollowSpawn(g) {
   // before changing the wave or allocating IDs; a tight road retries atomically.
   for (const direction of sectors) {
     const positions = [];
-    for (const distance of [4, 6, 8])
-      for (const lateral of [0, 1.4, -1.4, 2.8, -2.8]) {
+    for (const distance of RULES.spawning.distances)
+      for (const lateral of RULES.spawning.laterals) {
         if (positions.length === profile.count) continue;
         const position = g.world.move(
           p.pos,
@@ -1450,10 +1465,10 @@ function hollowSpawn(g) {
           !circleClear ||
           !g.world.lineClear(p.pos, position) ||
           dot(delta, direction) < 2 ||
-          mag(delta) < Math.max(2, p.radius + radius + 0.35)
+          mag(delta) < Math.max(2, p.radius + radius + RULES.spawning.clearance)
         )
           continue;
-        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + 0.35)) continue;
+        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + RULES.spawning.clearance)) continue;
         positions.push(position);
         if (positions.length === profile.count) break;
       }
@@ -1478,7 +1493,7 @@ function hollowActor(g, position, index = 0, mobSize = 1) {
       contactRig: c.contactRig,
       weapon: c.weapon,
       ...mobSizeProfile(
-        { bodyScale: c.bodyScale, combatScale: g.player.combatScale, radius: 0.4 * c.bodyScale },
+        { bodyScale: c.bodyScale, combatScale: g.player.combatScale, radius: RULES.bodyRadius * c.bodyScale },
         mobSize,
       ),
       mobSize,
@@ -1696,11 +1711,11 @@ function residentPatrol(g, e, dt) {
     e.returning = home.returning;
     if (home.action === "hold") return true;
   } else {
-    if (e.alerted && playerHome > (e.residentIntent?.homeLeash ?? 12)) {
+    if (e.alerted && playerHome > (e.residentIntent?.homeLeash ?? RULES.movement.homeLeash)) {
       e.alerted = false;
       e.returning = true;
     }
-    if (e.returning && mag(sub(e.pos, e.home)) < 0.2) e.returning = false;
+    if (e.returning && mag(sub(e.pos, e.home)) < RULES.movement.returnArrive) e.returning = false;
   }
   if (e.residentIntent?.companionDistance > 0)
     e.packCompanions = observeResidentCompanions(
@@ -1723,7 +1738,7 @@ function residentPatrol(g, e, dt) {
           playerHomeDistance: playerHome,
           ...e.packCompanions,
         })
-      : playerDistance <= 6 && lineClear);
+      : playerDistance <= RULES.awareness.sightDistance && lineClear);
   if (e.animalRole && e.returning) {
     e.completedAttack = null;
     e.wokeAt = null;
@@ -1733,17 +1748,18 @@ function residentPatrol(g, e, dt) {
   let goal = e.returning ? e.home : e.patrol[e.patrolIndex],
     delta = sub(goal, e.pos),
     distance = mag(delta);
-  if (distance < 0.15 && !e.returning) {
+  if (distance < RULES.movement.patrolArrive && !e.returning) {
     e.patrolIndex = 1 - e.patrolIndex;
     goal = e.patrol[e.patrolIndex];
     delta = sub(goal, e.pos);
     distance = mag(delta);
   }
-  if (distance > 0.05) enemyMove(g, e, normal(delta), e.moveSpeed, Math.min(dt, distance / e.moveSpeed));
+  if (distance > RULES.movement.patrolMove)
+    enemyMove(g, e, normal(delta), e.moveSpeed, Math.min(dt, distance / e.moveSpeed));
   return true;
 }
 function knifeSpawnPosition(g) {
-  const radius = 0.4,
+  const radius = RULES.bodyRadius,
     player = g.player;
   // Each projection uses the actual world collision radius. Never assume that a
   // requested offset survives sliding: it may collapse back to the start point.
@@ -1818,7 +1834,8 @@ function knifeDodge(g, move, aim) {
   p.guarding = false;
   p.parryUntil = 0;
   p.velocity = { x: 0, z: 0 };
-  const facing = aim && Number.isFinite(aim.x) && Number.isFinite(aim.z) && mag(aim) > 0.001 ? normal(aim) : p.facing;
+  const facing =
+    aim && Number.isFinite(aim.x) && Number.isFinite(aim.z) && mag(aim) > NEGLIGIBLE_DISTANCE ? normal(aim) : p.facing;
   p.dodgeDirection = normal(move, { x: -facing.x, z: -facing.z });
   p.facing = { ...p.dodgeDirection };
   p.dodgeStart = t;
@@ -1968,13 +1985,21 @@ function knifeStepIn(g, e, dt) {
         s.dir.x *
         R.walkSpeed *
         s.def.stepIn *
-        (e.moveSpeed !== undefined ? e.moveSpeed / R.walkSpeed : e.rig === "goblin" ? 1.2 : 1) *
+        (e.moveSpeed !== undefined
+          ? e.moveSpeed / R.walkSpeed
+          : e.rig === "goblin"
+            ? RULES.enemyAI.goblinSpeedFactor
+            : 1) *
         dt,
       z:
         s.dir.z *
         R.walkSpeed *
         s.def.stepIn *
-        (e.moveSpeed !== undefined ? e.moveSpeed / R.walkSpeed : e.rig === "goblin" ? 1.2 : 1) *
+        (e.moveSpeed !== undefined
+          ? e.moveSpeed / R.walkSpeed
+          : e.rig === "goblin"
+            ? RULES.enemyAI.goblinSpeedFactor
+            : 1) *
         dt,
     });
 }
@@ -2050,7 +2075,8 @@ function knifeEnemy(g, e, dt, services) {
   // Native long weapons keep their measured inner reach through ordinary movement.
   const minimum = (e.bossProfile?.minimumAttackDistance ?? 0) * e.combatScale;
   const spacing =
-    minimum > 0 && (distance < minimum || (!!e.attackSpacing && distance < minimum + 0.1 * e.combatScale));
+    minimum > 0 &&
+    (distance < minimum || (!!e.attackSpacing && distance < minimum + RULES.enemyAI.attackSpacing * e.combatScale));
   if (minimum > 0) e.attackSpacing = spacing;
   if (spacing) {
     e.facing = turn(e.facing, dir, 360 * dt);
@@ -2070,14 +2096,14 @@ function knifeEnemy(g, e, dt, services) {
     return;
   }
   if (distance > def.range * e.combatScale || !g.world.lineClear(e.pos, g.player.pos)) {
-    enemyMove(g, e, dir, e.moveSpeed ?? R.walkSpeed * 1.2, dt);
+    enemyMove(g, e, dir, e.moveSpeed ?? R.walkSpeed * RULES.enemyAI.goblinSpeedFactor, dt);
     return;
   }
   e.facing = turn(e.facing, dir, 360 * dt);
   if (
     g.time + EPS >= e.ready &&
     (!g.encounter || g.time + EPS >= g.nextEnemyAttackAt) &&
-    dot(e.facing, dir) > 0.96 &&
+    dot(e.facing, dir) > RULES.enemyAI.knifeAimDot &&
     knifeAffordable(e, def.stamina)
   ) {
     knifeSpend(g, e, def.stamina);
@@ -2180,16 +2206,16 @@ function ratEnemy(g, e, dt) {
     distance = mag(sub(g.player.pos, e.pos)),
     dir = normal(offset, e.facing);
   if (
-    distance > (e.contactGoalReach ? e.radius + g.player.radius : 0.95) + EPS ||
-    mag(offset) > (e.contactGoalReach ?? 0.35) + EPS ||
+    distance > (e.contactGoalReach ? e.radius + g.player.radius : RULES.enemyAI.animalBiteReach) + EPS ||
+    mag(offset) > (e.contactGoalReach ?? RULES.enemyAI.animalContactReach) + EPS ||
     !g.world.lineClear(e.pos, g.player.pos)
   ) {
-    enemyMove(g, e, dir, e.animalRole ? e.moveSpeed : 2.1, dt);
+    enemyMove(g, e, dir, e.animalRole ? e.moveSpeed : RULES.enemyAI.ratMoveSpeed, dt);
     return;
   }
   e.facing = turn(e.facing, dir, 360 * dt);
-  if (g.time + EPS >= e.ready && dot(e.facing, dir) > 0.99) {
-    const def = Number.isFinite(foot.y) && foot.y <= 0.06 ? RAT_BITE_LOW : RAT_BITE;
+  if (g.time + EPS >= e.ready && dot(e.facing, dir) > RULES.enemyAI.animalBiteAimDot) {
+    const def = Number.isFinite(foot.y) && foot.y <= RULES.enemyAI.ratLowFootHeight ? RAT_BITE_LOW : RAT_BITE;
     e.swing = knifeSwing(g, e, "bite", def);
     e.swing.footGoalY = foot.y;
     if (e.animalRole) e.completedAttack = null;
@@ -2197,7 +2223,7 @@ function ratEnemy(g, e, dt) {
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...e.facing },
-      range: e.contactGoalReach ? e.radius + g.player.radius : 0.95,
+      range: e.contactGoalReach ? e.radius + g.player.radius : RULES.enemyAI.animalBiteReach,
       arc: 90,
       moveId: "rat_bite",
       clip: def.clip,
@@ -2235,7 +2261,7 @@ function dogEnemy(g, e, dt) {
   }
   // Reuse the existing backward mover to recover native mouth standoff when the player crowds the body.
   const ownGoalDistance = rigCapability(e.rig, "nativeSkeleton") && footGoal ? mag(sub(footGoal, e.pos)) : null;
-  if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - 0.001) {
+  if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - NEGLIGIBLE_DISTANCE) {
     enemyMove(
       g,
       e,
@@ -2262,7 +2288,7 @@ function dogEnemy(g, e, dt) {
   const direct = normal(sub(calf, e.pos), e.facing),
     dir = rigCapability(e.rig, "mouthAim") ? wolfBiteDirection(direct) : direct;
   e.facing = turn(e.facing, dir, 360 * dt);
-  if (g.time + EPS >= e.ready && dot(e.facing, dir) > 0.99) {
+  if (g.time + EPS >= e.ready && dot(e.facing, dir) > RULES.enemyAI.animalBiteAimDot) {
     e.facing = { ...dir };
     e.swing = knifeSwing(
       g,

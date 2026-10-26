@@ -39,8 +39,55 @@ const count = (file, field, value, min, max) => {
 // degrees; `moveSpeed` is metres per second.
 const legacyKind = ["hp", "radius", "damage", "swingRadius", "swingArc", "windupSeconds", "recoverSeconds", "readySeconds", "moveSpeed"];
 export function validateCombatRules(d) {
-  closed(d, ["schema_version", "hitFlashSeconds", "reactions", "legacy"]);
+  closed(d, [
+    "schema_version",
+    "hitFlashSeconds",
+    "player",
+    "startingPistol",
+    "bodyRadius",
+    "safehouseBodyPadding",
+    "aim",
+    "movement",
+    "awareness",
+    "spawning",
+    "enemyAI",
+    "reactions",
+    "legacy",
+  ]);
   number("combatRules", "hitFlashSeconds", d.hitFlashSeconds, 0.01);
+  number("combatRules", "bodyRadius", d.bodyRadius, 0.01);
+  number("combatRules", "safehouseBodyPadding", d.safehouseBodyPadding, 0);
+  const flat = (name, fields) => {
+    closed(d[name], fields);
+    for (const f of fields) number("combatRules", `${name}.${f}`, d[name][f], 0);
+  };
+  flat("aim", ["targetConeDegrees", "mobSizeReachFactor"]);
+  if (d.aim.targetConeDegrees >= 90) fail("combatRules", "aim.targetConeDegrees must be below 90");
+  flat("movement", ["sidestepFraction", "patrolArrive", "patrolMove", "returnArrive", "homeLeash"]);
+  flat("awareness", ["ratContactDistance", "sightDistance"]);
+  flat("enemyAI", [
+    "goblinSpeedFactor",
+    "attackSpacing",
+    "knifeAimDot",
+    "animalBiteAimDot",
+    "animalBiteReach",
+    "animalContactReach",
+    "ratMoveSpeed",
+    "ratLowFootHeight",
+  ]);
+  for (const f of ["knifeAimDot", "animalBiteAimDot"])
+    if (d.enemyAI[f] >= 1) fail("combatRules", `enemyAI.${f} must be below 1`);
+  closed(d.player, ["radius", "damage", "spawn"]);
+  for (const f of ["radius", "damage"]) number("combatRules", `player.${f}`, d.player[f], 0.01);
+  closed(d.player.spawn, ["x", "z"]);
+  closed(d.startingPistol, ["x", "z"]);
+  for (const point of [d.player.spawn, d.startingPistol])
+    for (const f of ["x", "z"]) if (!Number.isFinite(point[f])) fail("combatRules", "spawn and pistol positions must be finite");
+  closed(d.spawning, ["distances", "laterals", "clearance"]);
+  number("combatRules", "spawning.clearance", d.spawning.clearance, 0);
+  for (const f of ["distances", "laterals"])
+    if (!Array.isArray(d.spawning[f]) || !d.spawning[f].length || !d.spawning[f].every(Number.isFinite))
+      fail("combatRules", `spawning.${f} must list finite numbers`);
   closed(d.reactions, ["blockImpactTicks", "defaultStaggerSeconds", "swingAssistTicks", "droneDeath", "breathStartTicks"]);
   for (const f of ["blockImpactTicks", "swingAssistTicks", "breathStartTicks"])
     count("combatRules", `reactions.${f}`, d.reactions[f], 1, 600);

@@ -64,6 +64,64 @@ test("the legacy rows equal the numbers combat.js used to write inline", () => {
   assert(Object.isFrozen(rows) && Object.isFrozen(rows[0]));
 });
 
+test("the other sections equal the numbers combat.js used to write inline", () => {
+  const d = GAME_DATA.combatRules;
+  assert.deepEqual(d.player, { radius: 0.4, damage: 20, spawn: { x: 0, z: -6 } });
+  assert.deepEqual(d.startingPistol, { x: -0.85, z: -6.15 });
+  assert.equal(d.bodyRadius, 0.4);
+  assert.equal(d.safehouseBodyPadding, 0.03);
+  assert.deepEqual(d.aim, { targetConeDegrees: 45, mobSizeReachFactor: 0.31 });
+  assert.deepEqual(d.movement, {
+    sidestepFraction: 0.25,
+    patrolArrive: 0.15,
+    patrolMove: 0.05,
+    returnArrive: 0.2,
+    homeLeash: 12,
+  });
+  assert.deepEqual(d.awareness, { ratContactDistance: 6, sightDistance: 6 });
+  assert.deepEqual(d.spawning, { distances: [4, 6, 8], laterals: [0, 1.4, -1.4, 2.8, -2.8], clearance: 0.35 });
+  assert.deepEqual(d.enemyAI, {
+    goblinSpeedFactor: 1.2,
+    attackSpacing: 0.1,
+    knifeAimDot: 0.96,
+    animalBiteAimDot: 0.99,
+    animalBiteReach: 0.95,
+    animalContactReach: 0.35,
+    ratMoveSpeed: 2.1,
+    ratLowFootHeight: 0.06,
+  });
+  assert.equal(d.hitFlashSeconds, 0.12);
+  assert.deepEqual(d.reactions, {
+    blockImpactTicks: 12,
+    defaultStaggerSeconds: 0.3,
+    swingAssistTicks: 8,
+    droneDeath: { clip: "drone_death", ticks: 48 },
+    breathStartTicks: 56,
+  });
+  assert.deepEqual(d.legacy.player, {
+    bufferSeconds: 0.12,
+    guardRecoverSeconds: 0.45,
+    dodge: { seconds: 0.22, invulnerableSeconds: 0.25, cooldownSeconds: 1.05, speed: 16 },
+    walkSpeed: 4.2,
+    guardMoveScale: 0.4,
+    accelerate: 48,
+    decelerate: 34,
+    turnRate: 720,
+    guard: {
+      arc: 140,
+      parryWindowSeconds: 0.16,
+      regenPerSecond: 35,
+      blockedDamageFactor: 0.25,
+      brokenSeconds: 0.9,
+      parryStunSeconds: 0.9,
+    },
+  });
+  assert.equal(d.legacy.waveClearHeal, 25);
+  assert.equal(d.legacy.hitKnockback, 0.18);
+  for (const section of [d.player, d.aim, d.movement, d.awareness, d.spawning, d.enemyAI, d.reactions])
+    assert(Object.isFrozen(section));
+});
+
 test("the validator rejects malformed combat rules", () => {
   validateCombatRules(raw());
   for (const [edit, why] of [
@@ -80,6 +138,12 @@ test("the validator rejects malformed combat rules", () => {
     [(d) => delete d.legacy.player.dodge.speed, Error],
     [(d) => (d.legacy.player.guard.arc = -1), /finite number/],
     [(d) => delete d.legacy.waveClearHeal, Error],
+    [(d) => (d.aim.targetConeDegrees = 90), /below 90/],
+    [(d) => (d.enemyAI.knifeAimDot = 1), /below 1/],
+    [(d) => (d.spawning.laterals = []), /laterals/],
+    [(d) => delete d.player.spawn.z, Error],
+    [(d) => (d.startingPistol.x = NaN), /finite/],
+    [(d) => (d.bodyRadius = 0), /bodyRadius/],
   ]) {
     const d = raw();
     edit(d);

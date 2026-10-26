@@ -1,6 +1,30 @@
 {
   "schema_version": 1,
   "hitFlashSeconds": 0.12,
+  "player": { "radius": 0.4, "damage": 20, "spawn": { "x": 0, "z": -6 } },
+  "startingPistol": { "x": -0.85, "z": -6.15 },
+  "bodyRadius": 0.4,
+  "safehouseBodyPadding": 0.03,
+  "aim": { "targetConeDegrees": 45, "mobSizeReachFactor": 0.31 },
+  "movement": {
+    "sidestepFraction": 0.25,
+    "patrolArrive": 0.15,
+    "patrolMove": 0.05,
+    "returnArrive": 0.2,
+    "homeLeash": 12
+  },
+  "awareness": { "ratContactDistance": 6, "sightDistance": 6 },
+  "spawning": { "distances": [4, 6, 8], "laterals": [0, 1.4, -1.4, 2.8, -2.8], "clearance": 0.35 },
+  "enemyAI": {
+    "goblinSpeedFactor": 1.2,
+    "attackSpacing": 0.1,
+    "knifeAimDot": 0.96,
+    "animalBiteAimDot": 0.99,
+    "animalBiteReach": 0.95,
+    "animalContactReach": 0.35,
+    "ratMoveSpeed": 2.1,
+    "ratLowFootHeight": 0.06
+  },
   "reactions": {
     "blockImpactTicks": 12,
     "defaultStaggerSeconds": 0.3,
