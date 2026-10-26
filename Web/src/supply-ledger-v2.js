@@ -95,11 +95,11 @@ export function issueExtendedSupply(state, { areaId, placementKey, position, hp,
   )
     return { state, drop: null };
   const rule = rules[placementKey];
-  let seed = 2166136261;
+  let seed = 2166136261; // tuning-ok: FNV-1a offset basis (a hash constant, not tuning)
   for (const char of placementKey + ":" + rule.tableRef + ":" + cycle)
-    seed = Math.imul(seed ^ char.charCodeAt(0), 16777619) >>> 0;
+    seed = Math.imul(seed ^ char.charCodeAt(0), 16777619) >>> 0; // tuning-ok: FNV-1a prime (a hash constant, not tuning)
   const sum = rule.outcomes.reduce((n, o) => n + o.weight, 0);
-  let value = (seed / 4294967296) * sum,
+  let value = (seed / 4294967296) * sum, // tuning-ok: 2^32, the 32-bit hash range
     index = rule.outcomes.length - 1;
   for (let i = 0; i < rule.outcomes.length; i++) {
     value -= rule.outcomes[i].weight;
