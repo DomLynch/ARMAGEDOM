@@ -246,7 +246,7 @@ export function createRunViews(s) {
         state = g.bossEquipment[field];
       weapon =
         field === "commanderPistol"
-          ? `${data.name} · ${data.rules.damage} piercing damage · ${data.rules.range}m · ${data.charge.seconds}s charge · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve`
+          ? `${data.name} · ${data.rules.damage} arc damage · jumps ${data.arc.jumps}x · ${data.rules.range}m · ${data.charge.seconds}s charge · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve`
           : field === "grenade"
             ? `${data.name} · ${state.magazine} charges · 1s fuse · 3m radius`
             : field === "rocketLauncher"

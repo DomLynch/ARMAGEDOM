@@ -6,6 +6,7 @@ import { createFlameEffect } from "./engine/flame-effect.js";
 import { createSeverBloodEffect } from "./engine/sever-blood-effect.js";
 import { createFinisherImpactGate } from "./finisher-impact-profile.js";
 import { createDroneLaserBolts } from "./drone-laser.js";
+import { createArcBolts } from "./engine/arc-bolt-view.js";
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { createCombatImpact } from "./combat-impact.js";
 import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js";
@@ -77,6 +78,8 @@ export function createEffects(
       (hex) => new THREE.MeshBasicMaterial({ color: hexNumber(hex) }),
     );
   const droneLasers = createDroneLaserBolts({ scene, world, camera: world.camera });
+  const arcBolts = createArcBolts({ scene, data: GAME_DATA.visual.arcGun });
+  let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
   let confirmation = null;
   let requestedMode = "high",
@@ -766,23 +769,13 @@ export function createEffects(
         const actor = event.actor,
           donor = game.pilot === "donor-knife";
         if (event.type === "railgun-shot") {
-          const t = nextTracer();
-          if (t) {
-            const a = event.origin,
-              b = event.end,
-              p = t.mesh.geometry.attributes.position;
-            p.setXYZ(0, a.x, a.y, a.z);
-            p.setXYZ(1, b.x, b.y, b.z);
-            p.needsUpdate = true;
-            t.total = EVENT.railgun.seconds;
-            t.life = EVENT.railgun.seconds;
-            t.mesh.material.color.setHex(hexNumber(EVENT.railgun.colour));
-            t.mesh.material.depthTest = true;
-            muzzleFlash.position.set(a.x, a.y, a.z);
-            muzzleFlash.scale.set(...EVENT.railgun.flashScale);
-            flashLife = EVENT.railgun.flashSeconds;
-          }
+          const a = event.origin;
+          muzzleFlash.position.set(a.x, a.y, a.z);
+          muzzleFlash.scale.set(...EVENT.railgun.flashScale);
+          flashLife = EVENT.railgun.flashSeconds;
         }
+        if (event.type === "arc-chain") arcBolts.fire(event.links, game.time);
+        if (event.type === "arc-stun") arcBolts.stun(event.actor, game.time + event.seconds, game.time);
 
         if (event.type === "boss-ranged-warning") {
           line(actor.pos, event.dir, event.range, event.arc, hexNumber(EVENT.warningColour), event.until);
@@ -1116,6 +1109,8 @@ export function createEffects(
       salamanderFlame.update(game, { paused });
       flameEffect?.update(game, { paused });
       droneLasers.sync(game.bolts, game.time);
+      if (!paused) arcBolts.update(game.time, Math.max(0, game.time - arcClock));
+      arcClock = game.time;
       sync(game.loot, loot, gem, (l) => lootMaterials[l.kind], FEEL.loot.height);
     },
     reset() {
@@ -1129,6 +1124,7 @@ export function createEffects(
       for (const e of transient) erase(e);
       transient.length = 0;
       droneLasers.reset();
+      arcBolts.reset();
       for (const map of [loot]) {
         for (const mesh of map.values()) scene.remove(mesh);
         map.clear();
@@ -1161,6 +1157,7 @@ export function createEffects(
       }
       scene.remove(pool);
       droneLasers.dispose();
+      arcBolts.dispose();
       gem.dispose();
       for (const m of lootMaterials) m.dispose();
     },

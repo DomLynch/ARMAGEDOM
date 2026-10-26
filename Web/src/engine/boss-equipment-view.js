@@ -118,7 +118,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   }
   function stats(data, state, g) {
     if (data.weaponKey === "railgun")
-      return `${data.rules.damage} piercing damage · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the beam; pistol ammunition is kept.`;
+      return `${data.rules.damage} arc damage, jumps ${data.arc.jumps}x and stuns · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.`;
     if (data.family === "shotguns")
       return `8 pellets × 8 damage · 6m · ${state?.magazine ?? 0}/2 loaded · ${state?.reserve ?? 0} reserve`;
     if (data.family === "launchers")
