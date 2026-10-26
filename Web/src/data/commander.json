@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "rules": {
+    "unitCap": 3,
+    "reserve": 30,
+    "deployCost": 10,
+    "machineHP": 60,
+    "machineSpeed": 2.3,
+    "range": 6,
+    "biologicalHP": 40,
+    "biologicalSpeed": 1.5,
+    "biologicalDamage": 6,
+    "meleeRange": 1.6,
+    "meleeWindup": 0.4,
+    "meleeRecovery": 0.9,
+    "captureRadius": 2.8,
+    "captureSeconds": 12,
+    "defendSeconds": 30,
+    "beaconHP": 100,
+    "matchSeconds": 180
+  }
+}

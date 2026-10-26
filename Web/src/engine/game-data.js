@@ -7,6 +7,7 @@ import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
+import commander from "../data/commander.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
@@ -1109,8 +1110,33 @@ export function validateUniqueReward(d) {
   }
 }
 
+// commander.json: the Commander mode match rules (engine/commander/match.js COMMANDER_RULES) that are not borrowed from the drone rules.
+// Counts are whole numbers, times in seconds, distances in metres. The drone-derived values (machine radius, damage, windup,
+// recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
+export function validateCommander(d) {
+  const counts = ["unitCap", "reserve", "deployCost", "machineHP", "biologicalHP", "biologicalDamage", "beaconHP"];
+  closed(d, ["schema_version", "rules"]);
+  closed(d.rules, [
+    ...counts,
+    "machineSpeed",
+    "range",
+    "biologicalSpeed",
+    "meleeRange",
+    "meleeWindup",
+    "meleeRecovery",
+    "captureRadius",
+    "captureSeconds",
+    "defendSeconds",
+    "matchSeconds",
+  ]);
+  for (const [name, v] of Object.entries(d.rules))
+    if (counts.includes(name)) count("commander", `rules.${name}`, v, 1, 10000);
+    else number("commander", `rules.${name}`, v, 0.001);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  commander: [commander, validateCommander],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
