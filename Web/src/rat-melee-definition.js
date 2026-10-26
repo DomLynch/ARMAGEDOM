@@ -1,7 +1,7 @@
 import { meleeContactPosePhase, retimedMeleeAge } from "./engine/melee-equipment-data.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // Stab/Heavy/Special on every low animal reuse the rat's retimed low pose (same 20/6/28 timing as its slash).
-const LOW_RIGS = ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"],
-  LOW_CLIPS = ["RatLowSlash", "DogMidSlash"];
+const { rigs: LOW_RIGS, clips: LOW_CLIPS } = GAME_DATA.weapons.lowMelee;
 // Preserve action authority/cadence. This pose is explicitly retimed, NOT 1x.
 export function ratMeleeDefinition(action, base, low, { rig } = {}) {
   const move = { stab: "thrust", heavy: "heavy_overhead", special: "skill_pommel" }[action] ?? null;

@@ -1,4 +1,5 @@
 import { droneHoverHeight } from "./drone-mechanics.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
 
 export function combatTargetHeight(target, time) {
@@ -20,8 +21,8 @@ export function combatTargetHeight(target, time) {
                   : 0.08
                 : 1.15) * (target.mobSize ?? 1);
 }
-export const PISTOL_TARGETING = Object.freeze({ acquireDegrees: 12, retainDegrees: 18 });
-export const COMBAT_TARGETING = Object.freeze({ meleeDegrees: 45 });
+// Cone degrees live in weapons.json "targeting".
+const TARGETING = GAME_DATA.weapons.targeting;
 const EPS = 1e-8;
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 
@@ -35,7 +36,7 @@ export function selectCombatTarget({
   lineClear,
   range,
   rangeOffset,
-  coneDegrees = COMBAT_TARGETING.meleeDegrees,
+  coneDegrees = TARGETING.meleeConeDegrees,
   areaId,
   nearest = false,
 } = {}) {
@@ -100,12 +101,12 @@ export function selectCombatTarget({
 // Compatible pistol policy. New runtime resolves each actual shot without a
 // retained ID; legacy opt-in hysteresis stays available to unchanged callers.
 export function selectPistolTarget({ retainedTargetId = null, switchTarget = false, ...input } = {}) {
-  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: PISTOL_TARGETING.acquireDegrees };
+  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: TARGETING.pistol.acquireDegrees };
   const retained =
     !switchTarget && retainedTargetId != null
       ? selectCombatTarget({
           ...policy,
-          coneDegrees: PISTOL_TARGETING.retainDegrees,
+          coneDegrees: TARGETING.pistol.retainDegrees,
           targets: Array.from(input.targets ?? []).filter((target) => target?.id === retainedTargetId),
         })
       : null;
@@ -122,7 +123,7 @@ export function resolvePistolShot({ position, aim, targets, visibleIds, lineClea
     lineClear,
     areaId,
     range: rules.range,
-    coneDegrees: PISTOL_TARGETING.acquireDegrees,
+    coneDegrees: TARGETING.pistol.acquireDegrees,
   });
   return tracePistol(position, selected?.direction ?? aim, targets, lineClear, rules);
 }

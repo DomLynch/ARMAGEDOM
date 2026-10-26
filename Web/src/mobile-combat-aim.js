@@ -1,35 +1,43 @@
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
+import { GAME_DATA } from "./engine/game-data.js";
 const DEG = Math.PI / 180;
-export const MOBILE_AIM = Object.freeze({
-  steeringRate: 10,
-  headingRate: 24,
-  gain: 0.4125,
-  acquire: 6 * DEG,
-  retain: 9 * DEG,
-  near: 2,
-  far: 6,
-  deadzone: 0.13,
-  pistolGain: 1,
-  pistolRange: PISTOL_RULES.range,
-  acquireMargin: 0.6,
-  retainMargin: 0.9,
-});
+// The numbers live in weapons.json (mobileAim, flameAim, angles in degrees); these are the radian views the aim code reads.
+const { mobileAim, flameAim } = GAME_DATA.weapons;
+const radians = (degrees) => degrees * DEG;
+const mobileView = () =>
+  Object.freeze({
+    steeringRate: mobileAim.steeringRate,
+    headingRate: mobileAim.headingRate,
+    gain: mobileAim.gain,
+    acquire: radians(mobileAim.acquireDegrees),
+    retain: radians(mobileAim.retainDegrees),
+    near: mobileAim.near,
+    far: mobileAim.far,
+    deadzone: mobileAim.deadzone,
+    pistolGain: mobileAim.pistolGain,
+    pistolRange: PISTOL_RULES.range,
+    acquireMargin: mobileAim.acquireMargin,
+    retainMargin: mobileAim.retainMargin,
+  });
 // Flame lock changes orientation, never contact range or hit eligibility.
 // The barrel extends beyond the player; final range/LOS use the posed muzzle.
-export const FLAME_AIM = Object.freeze({
-  gain: 1,
-  acquire: 45 * DEG,
-  retain: 70 * DEG,
-  switchCone: 12 * DEG,
-  switchAdvantage: 8 * DEG,
-  steeringChange: 0.2 * DEG,
-  closeExtension: 0.5,
-  yawLimit: Math.PI / 3,
-  downPitch: (75 * Math.PI) / 180,
-  closeEnterGap: 0.8,
-  closeExitGap: 1,
-  extensionRate: 24,
-});
+const flameView = () =>
+  Object.freeze({
+    gain: flameAim.gain,
+    acquire: radians(flameAim.acquireDegrees),
+    retain: radians(flameAim.retainDegrees),
+    switchCone: radians(flameAim.switchConeDegrees),
+    switchAdvantage: radians(flameAim.switchAdvantageDegrees),
+    steeringChange: radians(flameAim.steeringChangeDegrees),
+    closeExtension: flameAim.closeExtension,
+    yawLimit: radians(flameAim.yawLimitDegrees),
+    downPitch: radians(flameAim.downPitchDegrees),
+    closeEnterGap: flameAim.closeEnterGap,
+    closeExitGap: flameAim.closeExitGap,
+    extensionRate: flameAim.extensionRate,
+  });
+export const MOBILE_AIM = mobileView();
+export const FLAME_AIM = flameView();
 const arc = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const vector = (angle) => ({ x: Math.sin(angle), z: Math.cos(angle) });
