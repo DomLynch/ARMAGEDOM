@@ -13,6 +13,7 @@ const raw = () => structuredClone(JSON.parse(text("../src/data/commanderSession.
 test("the data holds exactly the numbers the session used to hold in code", () => {
   assert.deepEqual(GAME_DATA.commanderSession, {
     schema_version: 1, maxFrameSeconds: 0.1, maxStepsPerFrame: 6, panStep: 0.045, dragThresholdPx: 8, maxApiStepSeconds: 5,
+    noticeSeconds: 4,
   });
   assert(Object.isFrozen(GAME_DATA.commanderSession));
 });
@@ -27,6 +28,7 @@ test("the session reads every number from the data row (no literal left to drift
     '["commander-pan-right", pacing.panStep, 0]',
     "> pacing.dragThresholdPx",
     "seconds > pacing.maxApiStepSeconds",
+    "(match?.time ?? 0) + pacing.noticeSeconds",
   ])
     assert(src.includes(use), use);
 });
@@ -43,6 +45,8 @@ test("the loader refuses missing, extra and out-of-range numbers", () => {
   assert.throws(broken((d) => { d.maxFrameSeconds = 2; }));
   assert.throws(broken((d) => { d.panStep = "0.045"; }));
   assert.throws(broken((d) => { d.maxApiStepSeconds = 61; }));
+  assert.throws(broken((d) => { delete d.noticeSeconds; }));
+  assert.throws(broken((d) => { d.noticeSeconds = 31; }));
 });
 
 test("the gate counts 0 in session.js and the baseline entry is gone", () => {

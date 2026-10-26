@@ -4,9 +4,9 @@ import { closed } from "./content-schema.js";
 import { count, fail } from "./game-data-checks.js";
 
 export function validateCommanderSession(d) {
-  closed(d, ["schema_version", "maxFrameSeconds", "maxStepsPerFrame", "panStep", "dragThresholdPx", "maxApiStepSeconds"]);
+  closed(d, ["schema_version", "maxFrameSeconds", "maxStepsPerFrame", "panStep", "dragThresholdPx", "maxApiStepSeconds", "noticeSeconds"]);
   count("commanderSession", "maxStepsPerFrame", d.maxStepsPerFrame, 1, 30);
   count("commanderSession", "dragThresholdPx", d.dragThresholdPx, 1, 100);
-  for (const [name, min, max] of [["maxFrameSeconds", 0.01, 1], ["panStep", 0.001, 0.5], ["maxApiStepSeconds", 0.1, 60]])
+  for (const [name, min, max] of [["maxFrameSeconds", 0.01, 1], ["panStep", 0.001, 0.5], ["maxApiStepSeconds", 0.1, 60], ["noticeSeconds", 0.5, 30]])
     if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("commanderSession", `${name} must be ${min} to ${max}`);
 }

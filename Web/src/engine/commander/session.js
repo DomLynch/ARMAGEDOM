@@ -9,6 +9,7 @@ import {
 import { createCommanderView } from "./view.js";
 import { GAME_DATA } from "../game-data.js";
 
+const isSecondaryButton = (p) => p.button === 2; // tuning-ok: DOM pointer event button 2 is the secondary (right) mouse button
 export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   const pacing = GAME_DATA.commanderSession; // data/commanderSession.json
   let view,
@@ -42,7 +43,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   }
   function tell(message) {
     notice = message;
-    noticeUntil = (match?.time ?? 0) + 4;
+    noticeUntil = (match?.time ?? 0) + pacing.noticeSeconds;
   }
   function snapshot() {
     return {
@@ -297,15 +298,15 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       x = e.clientX - rect.left,
       y = e.clientY - rect.top,
       hit = view.pick(match, x, y);
-    if (hit?.team === "machine" && p.button !== 2) {
+    if (hit?.team === "machine" && !isSecondaryButton(p)) {
       input({ type: "select", ids: [hit.id] });
       return;
     }
-    if (hit?.team === "biological" && (command === "attack" || p.button === 2)) {
+    if (hit?.team === "biological" && (command === "attack" || isSecondaryButton(p))) {
       input({ type: "attack", targetId: hit.id });
       return;
     }
-    if (command === "move" || p.button === 2) {
+    if (command === "move" || isSecondaryButton(p)) {
       const point = view.ground(x, y);
       input({ type: "move", point });
     } else tell("Tap a biological opponent to attack");

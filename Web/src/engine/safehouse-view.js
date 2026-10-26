@@ -11,6 +11,9 @@ import {
 import { lockerInventory, lockerStored } from "./locker-core.js";
 import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { SAFEHOUSE_VIEW } from "./safehouse-view-data.js";
+const CUE = SAFEHOUSE_VIEW.cue,
+  CONTOUR = SAFEHOUSE_VIEW.contour;
 const names = [
   "Starting pistol · shared variants",
   "Bridge Rifle",
@@ -35,11 +38,14 @@ const resources = {
 // A short wall-clock presentation pulse; gameplay and storage clocks are untouched.
 export function safehouseCueOpacity(
   time,
-  { period = 3.5, phase = 0, near = false, selected = false, reduced = false } = {},
+  { period = CUE.period, phase = 0, near = false, selected = false, reduced = false } = {},
 ) {
-  if (reduced) return 0.75;
-  const pulse = Math.pow((1 + Math.sin(2 * Math.PI * (time / period - phase))) / 2, 8),
-    floor = selected ? 0.82 : near ? 0.7 : 0.4;
+  if (reduced) return CUE.reducedOpacity;
+  const pulse = Math.pow(
+      (1 + Math.sin(2 * Math.PI * (time / period - phase))) / 2, // tuning-ok: full turn, and the sine remapped from -1..1 to 0..1
+      CUE.pulseExponent,
+    ),
+    floor = selected ? CUE.floor.selected : near ? CUE.floor.near : CUE.floor.idle;
   return floor + (1 - floor) * pulse;
 }
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
@@ -94,8 +100,8 @@ export function createSafehouseView(s, dispatch) {
       target.hidden = true;
       return;
     }
-    const xs = points.map((p) => rect.left + ((p.x + 1) * rect.width) / 2),
-      ys = points.map((p) => rect.top + ((1 - p.y) * rect.height) / 2),
+    const xs = points.map((p) => rect.left + ((p.x + 1) * rect.width) / 2), // tuning-ok: NDC -1..1 to pixels is half the canvas width
+      ys = points.map((p) => rect.top + ((1 - p.y) * rect.height) / 2), // tuning-ok: NDC -1..1 to pixels is half the canvas height
       left = Math.max(rect.left, Math.min(...xs)),
       top = Math.max(rect.top, Math.min(...ys)),
       right = Math.min(rect.right, Math.max(...xs)),
@@ -122,8 +128,8 @@ export function createSafehouseView(s, dispatch) {
   function planePoint(w, x, y) {
     const a = w.backdrop.geometry.attributes.position,
       T = w.THREE,
-      tl = new T.Vector3().fromBufferAttribute(a, 3),
-      tr = new T.Vector3().fromBufferAttribute(a, 2),
+      tl = new T.Vector3().fromBufferAttribute(a, 3), // tuning-ok: vertex index of the backdrop plane's top-left corner
+      tr = new T.Vector3().fromBufferAttribute(a, 2), // tuning-ok: vertex index of the backdrop plane's top-right corner
       bl = new T.Vector3().fromBufferAttribute(a, 0);
     return tl.clone().addScaledVector(tr.sub(tl), x).addScaledVector(bl.sub(tl), y);
   }
@@ -143,11 +149,11 @@ export function createSafehouseView(s, dispatch) {
       "position",
       new T.Float32BufferAttribute(
         coords.flatMap(([x, y]) => planePoint(w, x, y).toArray()),
-        3,
+        3, // tuning-ok: x, y, z per vertex
       ),
     );
-    geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
-    geometry.setIndex([0, 1, 2, 0, 2, 3]);
+    geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2)); // tuning-ok: u, v per vertex
+    geometry.setIndex([0, 1, 2, 0, 2, 3]); // tuning-ok: vertex indices of the quad's two triangles
     const material = new T.MeshBasicMaterial({
       map: texture,
       depthTest: false,
@@ -158,34 +164,12 @@ export function createSafehouseView(s, dispatch) {
     material.color.setRGB(w.layout.exposure, w.layout.exposure, w.layout.exposure);
     const patch = new T.Mesh(geometry, material);
     patch.name = "Westminster safehouse approved art";
-    patch.renderOrder = -99;
+    patch.renderOrder = SAFEHOUSE_VIEW.patchRenderOrder;
     patch.frustumCulled = false;
     owner.add(patch);
     meshes.push(patch);
     // Each outline follows its own painted prop, never the patch rectangle.
-    const silhouettes = {
-      locker: [
-        [0.09, 0.05],
-        [0.91, 0],
-        [1, 0.86],
-        [0.77, 1],
-        [0, 0.88],
-      ],
-      comms: [
-        [0, 0.31],
-        [0.76, 0],
-        [1, 0.23],
-        [0.96, 0.84],
-        [0.25, 1],
-        [0.02, 0.82],
-      ],
-      map: [
-        [0, 0.13],
-        [0.91, 0],
-        [1, 0.84],
-        [0.08, 1],
-      ],
-    };
+    const silhouettes = SAFEHOUSE_VIEW.silhouettes;
     for (const prop of data.props) {
       const b = prop.bounds,
         paths = prop.outlines ?? [
@@ -199,18 +183,18 @@ export function createSafehouseView(s, dispatch) {
       }
       const geometry = new LineSegmentsGeometry().setPositions(segments),
         material = new LineMaterial({
-          color: 0xddba70,
-          linewidth: 2,
+          color: "#" + CONTOUR.colour,
+          linewidth: CONTOUR.linewidth,
           worldUnits: false,
           transparent: true,
-          opacity: 0.4,
+          opacity: CONTOUR.opacity,
           depthTest: false,
           depthWrite: false,
           toneMapped: false,
         }),
         line = new LineSegments2(geometry, material);
       line.name = "Safehouse " + prop.id + " painted contour";
-      line.renderOrder = -98;
+      line.renderOrder = CONTOUR.renderOrder;
       line.frustumCulled = false;
       line.userData.prop = prop;
       owner.add(line);
@@ -285,7 +269,7 @@ export function createSafehouseView(s, dispatch) {
         row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p");
-      text.textContent = `${title} · carried ${+carry.toFixed(2)} · stored ${+stash.toFixed(2)}`;
+      text.textContent = `${title} · carried ${+carry.toFixed(SAFEHOUSE_VIEW.amountDigits)} · stored ${+stash.toFixed(SAFEHOUSE_VIEW.amountDigits)}`;
       row.append(text);
       const amount = document.createElement("input");
       amount.type = "number";

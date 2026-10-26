@@ -4,5 +4,6 @@
   "maxStepsPerFrame": 6,
   "panStep": 0.045,
   "dragThresholdPx": 8,
-  "maxApiStepSeconds": 5
+  "maxApiStepSeconds": 5,
+  "noticeSeconds": 4
 }

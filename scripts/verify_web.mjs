@@ -80,7 +80,11 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
       JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
       join(root, "Web/src"),
     ),
-    ...dataImportProblems(source, join(root, "Web/src")),
+    ...dataImportProblems(
+      source,
+      join(root, "Web/src"),
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+    ),
     ...numberLiteralProblems(
       source,
       JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
