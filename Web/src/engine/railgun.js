@@ -1,6 +1,6 @@
 import { combatTargetHeight, rangedTargets, resolveRangedAim } from "../pistol-targeting.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
-import { safehouseWeaponBlocked, safehouseBlocksSegment } from "./safehouse.js";
+import { safehouseWeaponBlocked, safehouseBlocksSegment, safehouseTouches } from "./safehouse.js";
 import { RAILGUN_ITEM_ID } from "./railgun-core.js";
 const EPS = 1e-8,
   normal = (v) => {
@@ -178,21 +178,94 @@ export function railgunIntent(g, intent, dispatch, applyHit, services = {}) {
   if (!paid?.ok) return clear;
   // One bounded posed-body query at paid release. Preview/charge never scans body triangles.
   const hits = services.railgunTrace?.(g, source, end) ?? [];
+  const struckable = (e) =>
+    !!e &&
+    e.hp > 0 &&
+    e.hostile !== false &&
+    (e.areaId == null || e.areaId === g.world.areaId) &&
+    !safehouseTouches(g, e.pos, e.radius);
+  const bodyPoint = (e) =>
+    services.railgunAimPoint?.(g, e.id) ?? { x: e.pos.x, y: combatTargetHeight(e, g.time), z: -e.pos.z };
+  // Lightning: the first living body on the ray takes the bolt, then it jumps to the nearest other living enemy within hopRange of
+  // the last one that has a clear line, up to `jumps` times, each hop at hopDamageFactor of the last damage, stunning everyone it hits.
+  const first = hits
+    .map((h) => h.enemy)
+    .filter(struckable)
+    .sort((a, b) => Math.hypot(a.pos.x - origin.x, a.pos.z - origin.z) - Math.hypot(b.pos.x - origin.x, b.pos.z - origin.z))[0];
+  const links = [];
+  if (first) {
+    let from = first,
+      damage = data.rules.damage;
+    const struck = new Set([first]);
+    links.push({ from: { ...source }, to: bodyPoint(first), target: first, damage, direction: rayDirection });
+    for (let hop = 0; hop < data.arc.jumps; hop++) {
+      const next = g.enemies
+        .filter(
+          (e) =>
+            !struck.has(e) &&
+            struckable(e) &&
+            Math.hypot(e.pos.x - from.pos.x, e.pos.z - from.pos.z) <= data.arc.hopRange &&
+            g.world.lineClear(from.pos, e.pos) &&
+            !safehouseBlocksSegment(g, from.pos, e.pos),
+        )
+        .sort(
+          (a, b) =>
+            Math.hypot(a.pos.x - from.pos.x, a.pos.z - from.pos.z) - Math.hypot(b.pos.x - from.pos.x, b.pos.z - from.pos.z),
+        )[0];
+      if (!next) break;
+      damage = Math.round(damage * data.arc.hopDamageFactor);
+      links.push({
+        from: bodyPoint(from),
+        to: bodyPoint(next),
+        target: next,
+        damage,
+        direction: normal({ x: next.pos.x - from.pos.x, z: next.pos.z - from.pos.z }) ?? rayDirection,
+      });
+      struck.add(next);
+      from = next;
+    }
+  }
   g.events.push({
     type: "railgun-shot",
     actor: p,
     weapon: "railgun",
     itemId: RAILGUN_ITEM_ID,
     origin: { ...source },
-    end: { ...end },
+    end: links.length ? { ...links[0].to } : { ...end },
     direction: { x: dx / length, y: dy / length, z: -dz / length },
-    targetIds: hits.map((h) => h.enemy.id),
+    targetIds: links.map((l) => l.target.id),
     damage: data.rules.damage,
   });
-  for (const hit of hits) {
-    const e = hit.enemy;
-    if (!e || e.hp <= 0 || e.hostile === false || (e.areaId != null && e.areaId !== g.world.areaId)) continue;
-    applyHit?.({ targetId: e.id, direction: rayDirection }, "railgun", RAILGUN_ITEM_ID, data.rules.damage, "bullet");
+  // The bolt shown: muzzle to each target in turn, or to where the ray ended when nothing was in reach.
+  const bolt = links.length ? links : [{ from: { ...source }, to: { ...end }, target: null, damage: 0 }];
+  g.events.push({
+    type: "arc-chain",
+    actor: p,
+    itemId: RAILGUN_ITEM_ID,
+    links: bolt.map((l) => ({
+      from: { ...l.from },
+      to: { ...l.to },
+      targetId: l.target?.id ?? null,
+      damage: l.damage,
+    })),
+  });
+  for (const link of links) {
+    const e = link.target;
+    applyHit?.({ targetId: e.id, direction: link.direction }, "railgun", RAILGUN_ITEM_ID, link.damage, "bullet");
+    if (e.hp > 0) stunEnemy(g, e, data.arc);
   }
   return clear;
+}
+// A stun: the target loses its pending swing and cannot act until it ends. A boss keeps its committed swing and is held only briefly.
+function stunEnemy(g, e, arc) {
+  const seconds = e.bossProfile ? arc.bossStunSeconds : arc.stunSeconds;
+  if (!(seconds > 0)) return;
+  const until = g.time + seconds;
+  e.staggerUntil = Math.max(e.staggerUntil ?? 0, until);
+  e.stunUntil = Math.max(e.stunUntil ?? 0, until);
+  if (!e.bossProfile) {
+    e.swing = null;
+    e.ready = Math.max(e.ready ?? 0, until);
+  }
+  g.events.push({ type: "arc-stun", actor: e, seconds });
 }

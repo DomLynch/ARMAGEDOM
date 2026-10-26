@@ -423,6 +423,36 @@
     "renderOrder": -95,
     "flickerHz": [17, 43]
   },
+  "arcGun": {
+    "maxLinks": 4,
+    "maxStuns": 4,
+    "coreColour": 16777215,
+    "coreOpacity": 1,
+    "coreWidth": 3.5,
+    "haloColour": 7320831,
+    "haloOpacity": 0.75,
+    "haloWidth": 11,
+    "jagSegments": 7,
+    "jitter": 0.09,
+    "forks": 2,
+    "forkLength": 0.3,
+    "forkSegments": 3,
+    "boltSeconds": 0.18,
+    "reJags": 2,
+    "hopDelay": 0.05,
+    "sparkCount": 6,
+    "sparkSeconds": 0.18,
+    "sparkSpeed": 3,
+    "sparkSize": 3,
+    "sparkColour": 16777215,
+    "stunColour": 10473727,
+    "stunOpacity": 0.9,
+    "stunCoreWidth": 1.5,
+    "stunHaloWidth": 5,
+    "stunRadius": 0.4,
+    "stunSegments": 6,
+    "stunFlickerSeconds": 0.06
+  },
   "weaponViews": {
     "rocket": {
       "blast": {
