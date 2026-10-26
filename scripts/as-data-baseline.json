@@ -22,6 +22,12 @@
     "hollow-palette.js": [
       { "name": "library", "reason": "derived view of data: the clothing library handed to the allocator, assembled at load from clothing-palettes.js" }
     ],
+    "low-hover-drone.js": [
+      { "name": "DRONE_SUPPORT", "reason": "derived view of data: the watcher's support row, the appearance.json droneSupport values plus the creatures.json hover height and radius, and the body band scaled at load" }
+    ],
+    "engine/reaper.js": [
+      { "name": "RULE_KEYS", "reason": "validator schema: the closed set of rule names the area-content.json reaper.rules validator accepts" }
+    ],
     "engine/creature-catalogue.js": [
       { "name": "ENGINE_CREATURE_CAPABILITIES", "reason": "engine capability list: the mechanics the engine provides; data may not grant itself one, the catalogue checks against it" }
     ],
@@ -68,7 +74,6 @@
   "constantTables": {
     "clothing-palettes.js": 1,
     "core/index.js": 1,
-    "crooked-hollow.js": 1,
     "donor/knife.js": 2,
     "drone-mechanics.js": 1,
     "engine/boss-equipment-core.js": 1,

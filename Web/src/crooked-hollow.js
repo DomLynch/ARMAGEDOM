@@ -1,4 +1,5 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
 const ROT = Object.fromEntries(
   [
     ["spine_01", 0.72, 0, 0.1],
@@ -10,26 +11,8 @@ const ROT = Object.fromEntries(
 );
 const ROTATIONS = Object.entries(ROT);
 const GAITS = new Set(["HollowIdle", "HollowWalk", "Run", "StrafeLeft", "StrafeRight"]);
-const NAMES = [
-  "pelvis",
-  "spine_01",
-  "spine_02",
-  "neck_01",
-  "clavicle_l",
-  "clavicle_r",
-  "upperarm_l",
-  "lowerarm_l",
-  "hand_l",
-  "upperarm_r",
-  "lowerarm_r",
-  "hand_r",
-  "thigh_l",
-  "calf_l",
-  "foot_l",
-  "thigh_r",
-  "calf_r",
-  "foot_r",
-];
+// The bones the pose layer saves and restores live in data/appearance.json `crookedHollow.bones`.
+const NAMES = GAME_DATA.appearance.crookedHollow.bones;
 export function crookedPhase(phase) {
   const p = T.MathUtils.euclideanModulo(phase, 1);
   // Long planted interval, brisk short step, unequal second support interval.

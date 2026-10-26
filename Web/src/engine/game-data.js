@@ -749,7 +749,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches"]);
+  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -785,6 +785,24 @@ export function validateAppearance(d) {
   };
   rows("animals", ["id", "foundation", "name", "width", "tint", "patch"], "tint");
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
+  // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
+  // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
+  closed(d.crookedHollow, ["bones"]);
+  const bones = d.crookedHollow.bones;
+  if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
+    fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
+  bones.forEach((n, i) => named(`crookedHollow.bones[${i}]`, n));
+  const s = d.droneSupport;
+  closed(s, ["id", "states", "bodyBandOffsets", "attackWarningSeconds", "deathSeconds", "finisher", "melee"]);
+  for (const f of ["id", "finisher", "melee"]) named(`droneSupport.${f}`, s[f]);
+  if (!Array.isArray(s.states) || !s.states.length || new Set(s.states).size !== s.states.length)
+    fail("appearance", "droneSupport.states must list different state names");
+  s.states.forEach((n, i) => named(`droneSupport.states[${i}]`, n));
+  if (!Array.isArray(s.bodyBandOffsets) || s.bodyBandOffsets.length !== 2) fail("appearance", "droneSupport.bodyBandOffsets must list 2 numbers");
+  s.bodyBandOffsets.forEach((n, i) => between(`droneSupport.bodyBandOffsets[${i}]`, n, -2, 2));
+  if (s.bodyBandOffsets[0] >= s.bodyBandOffsets[1]) fail("appearance", "droneSupport.bodyBandOffsets must rise");
+  between("droneSupport.attackWarningSeconds", s.attackWarningSeconds, 0.05, 10);
+  between("droneSupport.deathSeconds", s.deathSeconds, 0.05, 10);
 }
 
 // areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,
