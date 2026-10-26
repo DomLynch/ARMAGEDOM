@@ -1,4 +1,5 @@
 import { clearBossRanged } from "./engine/boss-ranged.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import { clearMarkedHunters } from "./engine/marked-hunters.js";
 import { resetBossPursuit } from "./engine/area-bosses.js";
 import { stopBossFlame } from "./engine/boss-flame.js";
@@ -45,7 +46,7 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   game.encounterCleared = parked?.cleared ?? false;
   game.encounterActive = !game.encounterCleared && (game.areaResidents || request.areaId === "westminster");
   game.wave = parked?.wave ?? (game.areaResidents ? 0 : game.wave);
-  game.nextWave = parked?.nextWave ?? game.time + 2;
+  game.nextWave = parked?.nextWave ?? game.time + GAME_DATA.creatures.runTimings.firstWaveDelay;
   game.nextEnemyAttackAt = parked?.nextEnemyAttackAt ?? game.time;
   if (parked) {
     const elapsed = game.time - parked.parkedAt;
