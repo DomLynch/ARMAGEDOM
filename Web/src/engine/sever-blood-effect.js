@@ -1,12 +1,15 @@
 import { SEVER_BLOOD_DATA as DATA, groundPoolPlacement } from "./sever-blood-data.js";
+import { GAME_DATA } from "./game-data.js";
+// The jet cone, the pool disc, the blood colour and the pool's lift off the ground are appearance.json `severBloodEffect`.
+const LOOK = GAME_DATA.appearance.severBloodEffect;
 // Fixed private cosmetic slots. The existing finisher gate owns admission and
 // the caller's presentation clock owns age; no gameplay events, timers or saves.
 export function createSeverBloodEffect({ THREE: T, scene, world }) {
   const group = new T.Group();
   group.name = "Sever neck jets and ground pools";
   scene.add(group);
-  const jetGeometry = new T.CylinderGeometry(1, 0.35, 1, 8),
-    poolGeometry = new T.CircleGeometry(1, 24),
+  const jetGeometry = new T.CylinderGeometry(1, LOOK.jetTopRadius, 1, LOOK.jetSegments),
+    poolGeometry = new T.CircleGeometry(1, LOOK.poolSegments),
     up = new T.Vector3(0, 1, 0),
     direction = new T.Vector3();
   let disposed = false,
@@ -15,7 +18,7 @@ export function createSeverBloodEffect({ THREE: T, scene, world }) {
   const slots = (count, geometry, name) =>
     Array.from({ length: count }, () => {
       const material = new T.MeshBasicMaterial({
-          color: 0x831428,
+          color: LOOK.color,
           transparent: true,
           opacity: 0,
           depthTest: true,
@@ -105,7 +108,7 @@ export function createSeverBloodEffect({ THREE: T, scene, world }) {
         }
         slot.pending = false;
         slot.radius = placement.radius;
-        slot.mesh.position.copy(world.toRender(placement.position, 0.006));
+        slot.mesh.position.copy(world.toRender(placement.position, LOOK.groundLift));
         slot.start = clock;
         age = 0;
       }
