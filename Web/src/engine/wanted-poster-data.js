@@ -37,7 +37,12 @@ export function validateWantedPoster(p) {
     "sizeSteps",
   ]);
   numbers("scratches", p.scratches, ["count", "x", "stepX", "spanX", "y", "stepY", "width", "widthStep", "widthSteps"]);
-  for (const [where, v] of [["specks.alphaSteps", p.specks.alphaSteps], ["specks.sizeSteps", p.specks.sizeSteps], ["scratches.widthSteps", p.scratches.widthSteps]])
+  const cycles = {
+    "specks.alphaSteps": p.specks.alphaSteps,
+    "specks.sizeSteps": p.specks.sizeSteps,
+    "scratches.widthSteps": p.scratches.widthSteps,
+  };
+  for (const [where, v] of Object.entries(cycles))
     if (!Number.isSafeInteger(v) || v < 1) fail(`${where} must be a whole number of at least 1`);
   for (const v of [p.portrait.alpha, p.rules.alpha, p.specks.alpha]) alpha("an alpha", v);
   for (const f of ["spanX", "spanY"]) if (!(p.specks[f] >= 1)) fail(`specks.${f} must be at least 1`);
