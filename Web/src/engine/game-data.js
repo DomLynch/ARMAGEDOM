@@ -1088,7 +1088,29 @@ export function validateSupplies(d) {
 // areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
 // (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
 export function validateAreaRuntime(d) {
-  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas"]);
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "view"]);
+  // view: how world.js frames and budgets an area. MiB of backdrop textures, camera clip planes in metres, the portrait actor size in CSS
+  // pixels, zoom boosts as factors, screen lifts as fractions of the painting, the follow step cap in seconds and the exit hint range in metres.
+  closed(d.view, [
+    "textureBudgetMiB",
+    "textureBudgetMinMiB",
+    "cameraNear",
+    "cameraFar",
+    "portraitActorPixels",
+    "landscapeZoomBoost",
+    "portraitZoomBoost",
+    "portraitLift",
+    "landscapeLift",
+    "maxFollowSeconds",
+    "exitHintMeters",
+  ]);
+  count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
+  count("areaRuntime", "view.textureBudgetMinMiB", d.view.textureBudgetMinMiB, 1, d.view.textureBudgetMiB);
+  number("areaRuntime", "view.cameraNear", d.view.cameraNear, 0.001);
+  if (!(d.view.cameraFar > d.view.cameraNear && d.view.cameraFar <= 10000)) fail("areaRuntime", "view.cameraFar must be above cameraNear, at most 10000");
+  for (const f of ["portraitActorPixels", "landscapeZoomBoost", "portraitZoomBoost", "maxFollowSeconds", "exitHintMeters"])
+    number("areaRuntime", `view.${f}`, d.view[f], 0.001);
+  for (const f of ["portraitLift", "landscapeLift"]) number("areaRuntime", `view.${f}`, d.view[f], 0);
   closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
   for (const [name, v] of Object.entries(d.defaultLighting))
     if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);

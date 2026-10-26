@@ -3,6 +3,9 @@ import { createRouteGuidance } from "./engine/route-guidance.js";
 import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
+import { GAME_DATA } from "./engine/game-data.js";
+const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
+const MIB = 1024 * 1024;
 const ASPECT = 1672 / 941;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
@@ -32,7 +35,7 @@ export class LondonWorld {
     baseUrl = null,
     viewZoomMultiplier = 1,
     registry = null,
-    textureBudgetBytes = 48 * 1024 * 1024,
+    textureBudgetBytes = VIEW.textureBudgetMiB * MIB,
     validatedLayouts = null,
     residentPlacements = null,
     areaAtmosphere = null,
@@ -55,8 +58,8 @@ export class LondonWorld {
       throw Error("View zoom multiplier must be finite and at least 1");
     if (
       !Number.isFinite(textureBudgetBytes) ||
-      textureBudgetBytes < 16 * 1024 * 1024 ||
-      textureBudgetBytes > 48 * 1024 * 1024
+      textureBudgetBytes < VIEW.textureBudgetMinMiB * MIB ||
+      textureBudgetBytes > VIEW.textureBudgetMiB * MIB
     )
       throw Error("Invalid texture budget");
     this.markedData = markedData;
@@ -98,8 +101,8 @@ export class LondonWorld {
     this.group.name = "London registered image stage";
     camera.fov = layout.fieldOfView;
     camera.aspect = ASPECT;
-    camera.near = 0.1;
-    camera.far = 300;
+    camera.near = VIEW.cameraNear;
+    camera.far = VIEW.cameraFar;
     camera.position.set(0, layout.height, layout.distance);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, -layout.targetZ);
@@ -211,7 +214,7 @@ export class LondonWorld {
     const guidance = this.routeGuidance?.hint(position, this);
     if (guidance) return guidance;
     let nearest = null,
-      distance = 6;
+      distance = VIEW.exitHintMeters;
     for (const link of this.registry.links(this.areaId)) {
       if (this.routeGuidance?.allowsExitHint?.(link.to) === false) continue;
       const c = link.condition,
@@ -509,18 +512,21 @@ export class LondonWorld {
     const aspect = Math.max(1, width) / Math.max(1, height),
       portrait = aspect < 1;
     if (portrait) {
-      // A scaled 2m reference stays ~63 CSS pixels; zoom>=1 keeps the finite painting covering the screen.
+      // A scaled 2m reference stays ~portraitActorPixels CSS pixels; zoom>=1 keeps the finite painting covering the screen.
       const actorHeight = Math.abs(geometry.point(playerPosition, 2 * layout.characterScale).y - p.y);
-      zoom = clamp(63 / (actorHeight * Math.max(1, height)), 1, 4);
+      zoom = clamp(VIEW.portraitActorPixels / (actorHeight * Math.max(1, height)), 1, 4);
     }
-    if (!portrait) zoom *= 1.1;
-    else zoom *= 1.05;
+    if (!portrait) zoom *= VIEW.landscapeZoomBoost;
+    else zoom *= VIEW.portraitZoomBoost;
     zoom *= this.viewZoomMultiplier;
     const zx = zoom * Math.max(1, ASPECT / aspect),
       zy = zoom * Math.max(1, aspect / ASPECT);
     const ex = 0.5 / zx,
       ey = 0.5 / zy,
-      target = { x: clamp(p.x, ex, 1 - ex), y: clamp(1 - p.y + (portrait ? 0.02 / zy : 0.1), ey, 1 - ey) };
+      target = {
+        x: clamp(p.x, ex, 1 - ex),
+        y: clamp(1 - p.y + (portrait ? VIEW.portraitLift / zy : VIEW.landscapeLift), ey, 1 - ey),
+      };
     if (immediate) {
       this.center = target;
       this.velocity = { x: 0, y: 0 };
@@ -530,14 +536,14 @@ export class LondonWorld {
         target.x,
         this.velocity.x,
         layout.followSeconds,
-        Math.max(0, Math.min(dt, 0.1)),
+        Math.max(0, Math.min(dt, VIEW.maxFollowSeconds)),
       );
       [this.center.y, this.velocity.y] = damp(
         this.center.y,
         target.y,
         this.velocity.y,
         layout.followSeconds,
-        Math.max(0, Math.min(dt, 0.1)),
+        Math.max(0, Math.min(dt, VIEW.maxFollowSeconds)),
       );
     }
     this.center.x = clamp(this.center.x, ex, 1 - ex);
