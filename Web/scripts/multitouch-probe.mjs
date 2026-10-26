@@ -72,6 +72,19 @@ await page.evaluate(() => {
   globalThis.__events = [];
   globalThis.__qa.session.events((e) => globalThis.__events.push(e.type));
 });
+// The starting pistol is taken and equipped the moment a run starts (auto-pickup, 26 Oct), so the melee cases below start by
+// selecting the Knife tile with a real tap, as a player would.
+{
+  const knife = await page.evaluate(() => {
+    const b = [...document.querySelectorAll("#weapon-tiles-track button")].find((t) => t.textContent.trim().startsWith("KNIFE"));
+    const r = b?.getBoundingClientRect();
+    return r && r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), on: b.getAttribute("aria-pressed") === "true" } : null;
+  });
+  if (knife && !knife.on) {
+    await page.touchscreen.tap(knife.x, knife.y);
+    await page.waitForTimeout(800);
+  }
+}
 const centre = async (selector) =>
   page.evaluate((s) => {
     const r = document.querySelector(s)?.getBoundingClientRect();
@@ -294,7 +307,8 @@ for (const order of [[1, 2], [2, 1]]) {
   await assertClean("E  every contact cancelled (touchcancel)");
 }
 
-// ---- H0: the ground pickup button ("PICK UP & EQUIP PISTOL") tapped while the pad is held
+// ---- H0: there is no ground pickup button any more (auto-pickup, 26 Oct): standing on the pistol spot with the pad held shows no
+// pickup prompt and the pistol was already taken at the start of the run.
 {
   await settle();
   const spot = await page.evaluate(() => ({ ...__qa.game.pistol.pickupPos }));
@@ -317,16 +331,9 @@ for (const order of [[1, 2], [2, 1]]) {
     for (const type of ["pointerdown", "pointerup", "pointercancel", "click"])
       document.addEventListener(type, (e) => globalThis.__trace.push(`${type}:${e.pointerId ?? ""}:${e.target?.id || e.target?.tagName}`), true);
   });
-  if (button) {
-    await finger.down(2, { x: button.x, y: button.y });
-    await sleep(80);
-    await finger.up(2);
-    await sleep(600);
-  }
   const m = await read();
-  const trace = await page.evaluate(() => globalThis.__trace.join(" "));
   const nearby = await page.evaluate(() => document.getElementById("pistol-interact")?.textContent);
-  note('H0 pad held + tap "PICK UP & EQUIP PISTOL"', shown && m.pistol?.collected === true && m.pistol?.equipped === true, `button shown=${shown} label="${nearby}", collected=${m.pistol?.collected}, equipped=${m.pistol?.equipped}, trace: ${trace}, dist before=${d0} after=${await dist()}`);
+  note("H0 pad held on the pistol spot: no pickup button, the pistol is already carried", !shown && m.pistol?.collected === true, `button shown=${shown} label="${nearby}", collected=${m.pistol?.collected}, dist=${d0}`);
   await finger.up(1);
   await assertClean("H0 pad + pickup button");
 }
@@ -467,6 +474,129 @@ await page.evaluate(() => {
   const closed = await page.evaluate(() => !document.getElementById("menu")?.open);
   await assertClean("H  pad + menu button");
   note("H  the menu closes again with one tap, nothing stuck", closed);
+}
+// ---- I: the click-only buttons left after auto-pickup, each tapped with the pad held (a finger on the pad, a second finger on the
+// button). Staging only moves the player (and, for the arrows, drops the Ember Projector next to them so there are more than two
+// weapon tiles); the buttons are real taps.
+const moveTo = (x, z) =>
+  page.evaluate(([x, z]) => {
+    __qa.game.player.pos.x = x;
+    __qa.game.player.pos.z = z;
+  }, [x, z]);
+const visible = (selector) => page.evaluate((s) => { const e = document.querySelector(s); return !!e && !e.hidden && e.getClientRects().length > 0; }, selector);
+async function closeMenu() {
+  if (await page.evaluate(() => !!document.getElementById("menu")?.open)) {
+    const close = await centre("#close-menu");
+    if (close) {
+      await finger.down(1, { x: close.x, y: close.y });
+      await sleep(80);
+      await finger.up(1);
+      await sleep(500);
+    }
+  }
+}
+async function padHeldTap(label, selector, passed) {
+  const at = await centre(selector);
+  if (!at) return note(label, false, `${selector} is not on screen`);
+  await finger.down(1, PAD_START);
+  await sleep(250);
+  await finger.down(2, { x: at.x, y: at.y });
+  await sleep(80);
+  await finger.up(2);
+  await sleep(600);
+  const result = await passed();
+  const m = await read();
+  note(label, result.ok, `${result.detail ?? ""} knob ${m.knob.x.toFixed(1)}px`);
+  await finger.up(1);
+  await sleep(300);
+  await closeMenu();
+  await assertClean(label.split(":")[0]);
+}
+// I1: Open Safehouse, both the shelter's own button and the shared button (whichever is showing)
+{
+  await settle();
+  await moveTo(-20, 2);
+  await sleep(1200);
+  for (const selector of ["#safehouse-interact", "#pistol-interact"]) {
+    if (!(await visible(selector))) {
+      note(`I1 pad held + tap ${selector} (Open Safehouse)`, selector === "#pistol-interact", selector === "#pistol-interact" ? "not shown: the shelter's own button is the one on screen" : "button not shown at the shelter");
+      continue;
+    }
+    const text = await page.evaluate((s) => document.querySelector(s).textContent.trim(), selector);
+    await padHeldTap(`I1 pad held + tap ${selector} ("${text}"): the safehouse opens`, selector, async () => {
+      const open = await page.evaluate(() => !!document.getElementById("menu")?.open);
+      return { ok: open, detail: `menu open=${open}` };
+    });
+    await moveTo(-20, 2);
+    await sleep(900);
+  }
+}
+// I2 / I3: the contract buttons. The shipped data has the contract off, so they are only reachable if the live data is flipped.
+{
+  await settle();
+  const staged = await page.evaluate(() => {
+    try {
+      const c = __qa.world.expeditionData.contract;
+      if (!c.enabled) c.enabled = true;
+      return c.enabled === true ? { x: c.giver.position.x, z: c.giver.position.z } : null;
+    } catch {
+      return null;
+    }
+  });
+  if (!staged) {
+    note("I2 pad held + tap Accept contract", true, "N/A: the contract is off in the shipped data and the live data is frozen, so the button cannot be shown");
+    note("I3 pad held + tap View earned gear", true, "N/A: needs the contract; unreachable while it is off");
+  } else {
+    await moveTo(staged.x, staged.z + 0.3);
+    await sleep(1200);
+    const label = await page.evaluate(() => document.getElementById("pistol-interact")?.textContent.trim());
+    await padHeldTap(`I2 pad held + tap the contract button ("${label}")`, "#pistol-interact", async () => {
+      const status = await page.evaluate(() => __qa.game.expedition?.status);
+      return { ok: status !== undefined && status !== "none" && status !== "idle", detail: `expedition status=${status}` };
+    });
+    await page.evaluate(() => { __qa.game.expedition.status = "claimed"; });
+    await moveTo(staged.x, staged.z + 0.3);
+    await sleep(1200);
+    const gear = await page.evaluate(() => document.getElementById("pistol-interact")?.textContent.trim());
+    await padHeldTap(`I3 pad held + tap View earned gear ("${gear}")`, "#pistol-interact", async () => {
+      const open = await page.evaluate(() => !!document.getElementById("menu")?.open);
+      return { ok: /gear/i.test(gear ?? "") && open, detail: `menu open=${open}` };
+    });
+  }
+}
+// I4: the weapon-tile arrows (#weapon-tiles-prev / #weapon-tiles-next), shown once more than two weapons are carried
+{
+  await settle();
+  const drop = await page.evaluate(() => {
+    const g = __qa.game, e = g.bossEquipment?.emberProjector;
+    if (!e) return null;
+    const at = { x: g.player.pos.x + 7, z: g.player.pos.z };
+    e.status = "pending";
+    e.dropPosition = at;
+    return at;
+  });
+  if (!drop) note("I4 weapon-tile arrows", false, "no Ember Projector state to stage a third weapon with");
+  else {
+    await moveTo(drop.x - 0.4, drop.z);
+    await sleep(1800); // walking onto it claims and equips it (auto-pickup)
+    await moveTo(HOME.x, HOME.z);
+    await sleep(800);
+    const info = await page.evaluate(() => ({ pages: document.getElementById("weapon-tiles")?.dataset.pages, next: !document.getElementById("weapon-tiles-next")?.hidden, tiles: document.querySelectorAll("#weapon-tiles-track button").length }));
+    console.log("tiles after the Ember pickup:", JSON.stringify(info));
+    const page0 = () => page.evaluate(() => Math.round(document.getElementById("weapon-tiles-track").scrollLeft / 110));
+    const before = await page0();
+    await padHeldTap('I4 pad held + tap #weapon-tiles-next: the tiles page forward', "#weapon-tiles-next", async () => {
+      await sleep(600);
+      const p = await page0();
+      return { ok: p > before, detail: `page ${before}->${p} of ${info.pages}` };
+    });
+    const mid = await page0();
+    await padHeldTap('I4 pad held + tap #weapon-tiles-prev: the tiles page back', "#weapon-tiles-prev", async () => {
+      await sleep(600);
+      const p = await page0();
+      return { ok: p < mid, detail: `page ${mid}->${p}` };
+    });
+  }
 }
 if (shots) await page.screenshot({ path: join(shots, "multitouch-end.png") });
 
