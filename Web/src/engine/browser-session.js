@@ -27,6 +27,7 @@ import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
 import { GAME_DATA } from "./game-data.js";
+import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { installQaBridge } from "./qa-bridge.js";
 import { createClientLog, releaseOf } from "./client-log.js";
@@ -190,7 +191,7 @@ export function createBrowserSession(options = {}) {
     },
     createFreshRun({ reset = false } = {}) {
       const target = reset ? resetWorld : world;
-      if (!target) throw Error("Reset destination unavailable");
+      if (!target) throw Error("Reset destination unavailable"); // text-ok: developer error; resetGame answers with its own message
       return createGame(target, {
         ...pilot,
         residentPlacements: target.residentPlacements ?? pilot.residentPlacements,
@@ -493,7 +494,7 @@ export function createBrowserSession(options = {}) {
     if (!loaded || traveling || resetting || contextLost || disposed || travelRecoveryFailed)
       return {
         ok: false,
-        message: "Reset is unavailable during travel or recovery. Try again when the game is ready.",
+        message: sessionText("browser.resetUnavailable"),
       };
     const owner = game;
     let committed = false;
@@ -505,14 +506,13 @@ export function createBrowserSession(options = {}) {
     try {
       const target = await world.prepareArea(world.registry.initialArea);
       if (disposed || contextLost || game !== owner)
-        return { ok: false, message: "Reset cancelled because the session changed. The previous run was kept." };
+        return { ok: false, message: sessionText("browser.resetCancelled") };
       resetWorld = Object.assign(Object.create(target), { spawn: target.startingPoint() });
       const result = resources.resetRun();
       if (!result.ok)
         return {
           ok: false,
-          message:
-            "Reset could not save the fresh run. Your current run and saves were kept. Check available storage and try again.",
+          message: sessionText("browser.resetSaveFailed"),
         };
       // Durable current-schema save shadows all retained legacy records. Reload
       // starts the ordinary Westminster session with no old actors or async owners.
@@ -521,13 +521,11 @@ export function createBrowserSession(options = {}) {
       renderer.setAnimationLoop(null);
       input.clear();
       location.reload();
-      return { ok: true, message: "Fresh game saved. Reloading Westminster…" };
+      return { ok: true, message: sessionText("browser.resetSavedReloading") };
     } catch {
       return {
         ok: false,
-        message: committed
-          ? "Fresh game saved. Reload this page to start in Westminster."
-          : "Reset could not prepare Westminster. Your current run and saves were kept. Try again.",
+        message: sessionText(committed ? "browser.resetSavedReload" : "browser.resetPrepareFailed"),
       };
     } finally {
       resetWorld = null;
@@ -562,7 +560,7 @@ export function createBrowserSession(options = {}) {
       await actors.ensureAreaModels(owner, world.areaId, { fresh: true });
       if (disposed || contextLost || game !== owner) return false;
       if (!resources.retry()) {
-        game.message = "Run saving unavailable. Retry kept the current run.";
+        game.message = sessionText("browser.retrySaveUnavailable");
         game.messageUntil = game.time + GAME_DATA.browserSession.messageSeconds;
         return;
       }
@@ -585,7 +583,7 @@ export function createBrowserSession(options = {}) {
       return true;
     } catch (error) {
       if (!disposed && !contextLost && game === owner) {
-        owner.message = "Could not prepare Retry. Your current run was kept. Try again.";
+        owner.message = sessionText("browser.retryPrepareFailed");
         owner.messageUntil = owner.time + GAME_DATA.browserSession.messageSeconds;
         hud.update(owner);
       }
@@ -653,11 +651,11 @@ export function createBrowserSession(options = {}) {
   if (diagnostics)
     fetch(new URL("release.json", baseUrl))
       .then((r) => {
-        if (!r.ok) throw Error("Build identity unavailable");
+        if (!r.ok) throw Error("Build identity unavailable"); // text-ok: diagnostics build label, not game text
         return r.json();
       })
       .then((r) => diagnostics?.setIdentity(r))
-      .catch(() => diagnostics?.setIdentity({ version: "Build identity unavailable" }));
+      .catch(() => diagnostics?.setIdentity({ version: "Build identity unavailable" })); // text-ok: diagnostics build label
   const touchPreview = new URLSearchParams(location.search).get("touch") === "1";
   if (touchPreview) document.body.classList.add("touch");
   function resize() {
@@ -708,8 +706,8 @@ export function createBrowserSession(options = {}) {
     loaded = false;
     document.getElementById("entry").hidden = false;
     document.getElementById("hud").hidden = true;
-    hud.failed("Graphics paused. Reload this page to restore your fight.");
-    enter.textContent = "Reload game";
+    hud.failed(sessionText("browser.graphicsPaused"));
+    enter.textContent = sessionText("browser.reloadGame");
   });
   listen(canvas, "webglcontextrestored", () => location.reload());
   async function start() {
@@ -721,7 +719,7 @@ export function createBrowserSession(options = {}) {
     if (loading) return;
     loading = true;
     enter.disabled = true;
-    enter.textContent = "Loading Westminster…";
+    enter.textContent = sessionText("browser.loadingWestminster");
     const start = performance.now();
     // The Enter gesture unlocks audio now; the cue file (0.3 MB) is fetched once the game can take input, so it does not compete with
     // the models and world for the first seconds of a slow connection.
@@ -735,12 +733,12 @@ export function createBrowserSession(options = {}) {
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.NoToneMapping;
       resize();
-      hud.loading("Loading London and the original character rigs…");
+      hud.loading(sessionText("browser.loadingRigs"));
       // After a failed or stalled attempt every loader URL gets a new query: the browser queues a second request for the same URL behind a
       // stuck one, so a plain retry would wait for the very request that stalled. (A static file server ignores the query.)
       if (loadAttempt > 0)
         THREE.DefaultLoadingManager?.setURLModifier?.((url) =>
-          /^(blob|data):/.test(url) ? url : `${url}${url.includes("?") ? "&" : "?"}retry=${loadAttempt}`,
+          /^(blob|data):/.test(url) ? url : `${url}${url.includes("?") ? "&" : "?"}retry=${loadAttempt}`, // text-ok: URL query
         );
       const encounter = prepareEncounter();
       // With the world open the server record may replace the local run first; the sync runs alongside the model loading (started
@@ -756,7 +754,7 @@ export function createBrowserSession(options = {}) {
       const stalled = new Promise((_, reject) => {
         const timer = setInterval(() => {
           if (performance.now() - lastLoadProgress > GAME_DATA.diagnostics.loadStallMs)
-            reject(Error("Loading has stopped. Check your connection, then tap Retry."));
+            reject(Error(sessionText("browser.loadStopped")));
         }, 1000);
         stopStall = () => clearInterval(timer);
       });
@@ -831,7 +829,7 @@ export function createBrowserSession(options = {}) {
       game.ratContact = actors.ratContact();
       renderer.setAnimationLoop(loop.frame);
       if (!library.complete)
-        throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet.");
+        throw Error("Enemy exports are still being validated. This private candidate is not a complete fight yet."); // text-ok: private-candidate build gate
       loaded = true;
       hud.ready();
       audio.preload?.().then((ok) => {
@@ -839,12 +837,12 @@ export function createBrowserSession(options = {}) {
       });
       if (syncedNotice && game) {
         syncedNotice = false;
-        game.message = "Progress synced";
+        game.message = sessionText("browser.progressSynced");
         game.messageUntil = game.time + GAME_DATA.browserSession.syncedNoticeSeconds;
       }
       if ((focusLost || document.hidden) && !document.getElementById("menu").open) hud.toggleMenu();
       hud.loading("");
-      document.getElementById("version").textContent = "Three.js · Starting pistol V1 · Approved006 framing";
+      document.getElementById("version").textContent = sessionText("browser.versionLabel");
       resize();
       renderer.render(scene, camera);
       requestAnimationFrame(() => areas.start());
@@ -872,7 +870,7 @@ export function createBrowserSession(options = {}) {
       if (contextLost || disposed) return;
       console.error("ARMAGEDOM_LOAD_FAILED", error);
       // Some failures carry no message (an image or audio error event): the card must still say something.
-      hud.failed(error?.message || "A game file could not be loaded. Check your connection, then tap Retry.");
+      hud.failed(error?.message || sessionText("browser.loadFailed"));
       loadAttempt++;
       if (!loaded) {
         actors?.dispose();
@@ -902,7 +900,7 @@ export function createBrowserSession(options = {}) {
       if (!disposed) loop.step(seconds);
     },
     prepareArea(id) {
-      if (disposed || !loaded) return Promise.reject(Error("Session unavailable"));
+      if (disposed || !loaded) return Promise.reject(Error("Session unavailable")); // text-ok: developer API error
       return areas.prepare(id);
     },
     activateArea(request) {
@@ -913,8 +911,8 @@ export function createBrowserSession(options = {}) {
       return readonlyState(game, { areaId: world?.areaId, loaded, paused, traveling, disposed });
     },
     events(listener) {
-      if (disposed) throw Error("Session disposed");
-      if (typeof listener !== "function") throw new TypeError("Event listener required");
+      if (disposed) throw Error("Session disposed"); // text-ok: developer API error
+      if (typeof listener !== "function") throw new TypeError("Event listener required"); // text-ok: developer API error
       subscriptions.add(listener);
       return () => subscriptions.delete(listener);
     },
