@@ -16,6 +16,7 @@ export const appearanceExtraKeys = () => [
   "severBloodEffect",
   "finisherOpened",
   "actorView",
+  "finisherPresentation",
 ];
 
 export function validateAppearanceExtras(d, tools) {
@@ -28,6 +29,74 @@ export function validateAppearanceExtras(d, tools) {
   validateFinisherLooks(d, tools);
   validateFinisherOpened(d, tools);
   validateActorView(d, tools);
+  validateFinisherPresentation(d, tools);
+}
+
+// finisher-presentation.js: the victim pose emphasis, the bake clock, the neck stump and its cap, the head's throw and bounce, the hit shove and
+// the moment the cut opens. Metres, seconds, shares and counts.
+function validateFinisherPresentation(d, { fail, between }) {
+  const p = d.finisherPresentation;
+  closed(p, [
+    "poseEmphasis",
+    "clockMs",
+    "clockEvery",
+    "stumpBand",
+    "stumpRadius",
+    "cap",
+    "headMaxVertices",
+    "runThroughMax",
+    "headThrow",
+    "lastPhase",
+    "hitShove",
+    "shoveClearance",
+    "cutStart",
+    "crownOpenSeconds",
+    "gravity",
+    "maxSteps",
+    "bounce",
+    "spinMin",
+  ]);
+  closed(p.poseEmphasis, ["share", "window"]);
+  between("finisherPresentation.poseEmphasis.share", p.poseEmphasis.share, 0, 1);
+  between("finisherPresentation.poseEmphasis.window", p.poseEmphasis.window, 0, 10);
+  closed(p.stumpRadius, ["min", "max"]);
+  between("finisherPresentation.stumpRadius.min", p.stumpRadius.min, 0, 1);
+  between("finisherPresentation.stumpRadius.max", p.stumpRadius.max, 0, 1);
+  if (!(p.stumpRadius.max > p.stumpRadius.min)) fail("appearance", "finisherPresentation.stumpRadius must rise");
+  closed(p.cap, ["thickness", "segments", "color", "triangles"]);
+  between("finisherPresentation.cap.thickness", p.cap.thickness, 0.0001, 0.1);
+  between("finisherPresentation.cap.segments", p.cap.segments, 3, 64);
+  between("finisherPresentation.cap.triangles", p.cap.triangles, 0, 10000);
+  hexColour(fail, "finisherPresentation.cap.color", p.cap.color);
+  closed(p.headThrow, ["out", "up", "spin"]);
+  for (const k of ["out", "up", "spin"]) between(`finisherPresentation.headThrow.${k}`, p.headThrow[k], 0, 100);
+  closed(p.bounce, ["restitution", "friction", "spinDamp"]);
+  for (const k of ["restitution", "friction", "spinDamp"])
+    between(`finisherPresentation.bounce.${k}`, p.bounce[k], 0, 1);
+  for (const [k, min, max] of [
+    ["clockMs", 0.1, 1000],
+    ["clockEvery", 1, 4096],
+    ["stumpBand", 0, 1],
+    ["headMaxVertices", 1000, 10000000],
+    ["runThroughMax", 0, 60],
+    ["lastPhase", 0.5, 1],
+    ["hitShove", 0, 10],
+    ["shoveClearance", 0, 10],
+    ["cutStart", 0, 10],
+    ["crownOpenSeconds", 0.001, 10],
+    ["gravity", 0, 100],
+    ["maxSteps", 1, 1000],
+    ["spinMin", 0, 10],
+  ])
+    between(`finisherPresentation.${k}`, p[k], min, max);
+  for (const [name, v] of [
+    ["cap.segments", p.cap.segments],
+    ["cap.triangles", p.cap.triangles],
+    ["clockEvery", p.clockEvery],
+    ["maxSteps", p.maxSteps],
+    ["headMaxVertices", p.headMaxVertices],
+  ])
+    if (!Number.isInteger(v)) fail("appearance", `finisherPresentation.${name} must be a whole number`);
 }
 
 // actors.js: the damage flash colour and strength, the blob shadow, the marked-hunter tint, the drone clocks, the contact bands and the
