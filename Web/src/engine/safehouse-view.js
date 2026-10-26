@@ -12,29 +12,10 @@ import { lockerInventory, lockerStored } from "./locker-core.js";
 import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 import { SAFEHOUSE_VIEW } from "./safehouse-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
 const CUE = SAFEHOUSE_VIEW.cue,
-  CONTOUR = SAFEHOUSE_VIEW.contour;
-const names = [
-  "Starting pistol · shared variants",
-  "Bridge Rifle",
-  "Ember Projector",
-  "Pitborn Cleaver",
-  "Stalker Shotgun",
-  "Grenades",
-  "The Bone Saw",
-  "Rocket Launcher",
-  "Reaper Drone",
-  "Thundercoil Arc Gun",
-];
-const resources = {
-  "railgun-reserve": "Railgun reserve",
-  "pistol-reserve": "Pistol reserve",
-  "rifle-reserve": "Rifle reserve",
-  "shotgun-reserve": "Shotgun reserve",
-  "rocket-reserve": "Rocket reserve",
-  "grenade-charges": "Grenade charges",
-  "flame-fuel": "Flame fuel",
-};
+  CONTOUR = SAFEHOUSE_VIEW.contour,
+  TEXT = GAME_DATA.safehouseText.safehouse;
 // A short wall-clock presentation pulse; gameplay and storage clocks are untouched.
 export function safehouseCueOpacity(
   time,
@@ -74,7 +55,7 @@ export function createSafehouseView(s, dispatch) {
     target = document.createElement("button");
     target.type = "button";
     target.id = "safehouse-interact";
-    target.setAttribute("aria-label", "Open safehouse");
+    target.setAttribute("aria-label", TEXT.interactAria);
     target.hidden = true;
     target.style.cssText =
       "position:fixed;z-index:5;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;touch-action:none";
@@ -163,7 +144,7 @@ export function createSafehouseView(s, dispatch) {
     });
     material.color.setRGB(w.layout.exposure, w.layout.exposure, w.layout.exposure);
     const patch = new T.Mesh(geometry, material);
-    patch.name = "Westminster safehouse approved art";
+    patch.name = "Westminster safehouse approved art"; // text-ok: three.js mesh name, never shown to the player
     patch.renderOrder = SAFEHOUSE_VIEW.patchRenderOrder;
     patch.frustumCulled = false;
     owner.add(patch);
@@ -193,7 +174,7 @@ export function createSafehouseView(s, dispatch) {
           toneMapped: false,
         }),
         line = new LineSegments2(geometry, material);
-      line.name = "Safehouse " + prop.id + " painted contour";
+      line.name = "Safehouse " + prop.id + " painted contour"; // text-ok: three.js line object name, never shown to the player
       line.renderOrder = CONTOUR.renderOrder;
       line.frustumCulled = false;
       line.userData.prop = prop;
@@ -223,11 +204,7 @@ export function createSafehouseView(s, dispatch) {
     lastPanel = key;
     panel.replaceChildren();
     const can = allowed() && safehouseProp(g, "locker");
-    status.textContent =
-      lastError ||
-      (!can
-        ? "Storage is available anywhere on the safehouse landing."
-        : "Transfers save immediately. Equipped weapons must be put away first.");
+    status.textContent = lastError || (!can ? TEXT.statusUnavailable : TEXT.statusReady);
     const button = (row, text, action, enabled) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -238,38 +215,45 @@ export function createSafehouseView(s, dispatch) {
         lastError = result.ok
           ? ""
           : result.code === "storage-unavailable"
-            ? "Saving unavailable. Everything was kept."
-            : "Transfer unavailable. Your equipment was kept.";
+            ? TEXT.saveUnavailable
+            : TEXT.transferUnavailable;
         renderPanel(true);
         s.updateExpedition?.();
       });
       row.append(b);
     };
-    for (const [id, i] of LOCKER_WEAPON_IDS.map((id, i) => [id, i])) {
+    for (const id of LOCKER_WEAPON_IDS) {
       const item = inv.weapons[id];
       if (!item.owned) continue;
       const row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p"),
         stored = lockerStored(g, id);
-      text.textContent = `${names[i]} · ${stored ? "Stored" : item.equipped ? "Equipped" : "Carried"}`;
+      text.textContent = fillText(TEXT.weaponRow, {
+        name: TEXT.weaponNames[id],
+        state: stored ? TEXT.stored : item.equipped ? TEXT.equipped : TEXT.carried,
+      });
       row.append(text);
       button(
         row,
-        stored ? "Retrieve" : "Store",
+        stored ? TEXT.retrieve : TEXT.store,
         { type: stored ? "withdrawWeapon" : "depositWeapon", itemId: id },
         !item.equipped,
       );
       panel.append(row);
     }
-    for (const [resource, title] of Object.entries(resources)) {
+    for (const [resource, title] of Object.entries(TEXT.resourceNames)) {
       const carry = inv.ammo[resource],
         stash = locker?.ammo[resource] ?? 0,
         rule = LOCKER_RESOURCE_RULES[resource],
         row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p");
-      text.textContent = `${title} · carried ${+carry.toFixed(SAFEHOUSE_VIEW.amountDigits)} · stored ${+stash.toFixed(SAFEHOUSE_VIEW.amountDigits)}`;
+      text.textContent = fillText(TEXT.resourceRow, {
+        title,
+        carried: +carry.toFixed(SAFEHOUSE_VIEW.amountDigits),
+        stored: +stash.toFixed(SAFEHOUSE_VIEW.amountDigits),
+      });
       row.append(text);
       const amount = document.createElement("input");
       amount.type = "number";
@@ -277,12 +261,12 @@ export function createSafehouseView(s, dispatch) {
       amount.step = resource === "flame-fuel" ? ".01" : "1";
       amount.value = resource === "flame-fuel" ? "10" : "1";
       amount.max = String(Math.max(rule.carryCap, rule.stashCap));
-      amount.setAttribute("aria-label", title + " transfer amount");
+      amount.setAttribute("aria-label", fillText(TEXT.amountAria, { title }));
       row.append(amount);
       for (const type of ["depositSupply", "withdrawSupply"]) {
         const b = document.createElement("button");
         b.type = "button";
-        b.textContent = type === "depositSupply" ? "Store" : "Retrieve";
+        b.textContent = type === "depositSupply" ? TEXT.store : TEXT.retrieve;
         b.disabled = !can || !(type === "depositSupply" ? carry : stash);
         b.addEventListener("click", () => {
           const result = dispatch(
@@ -293,8 +277,8 @@ export function createSafehouseView(s, dispatch) {
           lastError = result.ok
             ? ""
             : result.code === "storage-unavailable"
-              ? "Saving unavailable. Everything was kept."
-              : "Choose an available amount within the carrying and locker limits.";
+              ? TEXT.saveUnavailable
+              : TEXT.amountUnavailable;
           renderPanel(true);
         });
         row.append(b);
@@ -376,7 +360,7 @@ export function createSafehouseView(s, dispatch) {
   function interaction() {
     const g = s.game;
     if (!g || !allowed() || s.paused || !safehouseInteraction(g)) return null;
-    return { id: "safehouse", label: "Open Safehouse", position: safehouseAnchor(g), run: interact };
+    return { id: "safehouse", label: TEXT.interactLabel, position: safehouseAnchor(g), run: interact };
   }
 
   return {
