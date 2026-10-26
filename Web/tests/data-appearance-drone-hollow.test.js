@@ -59,6 +59,14 @@ test("the loader rejects a broken crookedHollow or droneSupport block", () => {
   assert.throws(broken((d) => { d.droneSupport.melee = ""; }));
 });
 
+test("the finisher presentation reads the head mesh names from the face data instead of its own list", () => {
+  const source = text("finisher-presentation.js");
+  assert.deepEqual(GAME_DATA.appearance.faceMesh.headNames, ["Photo", "PhotoEyes", "PhotoTeeth"]);
+  assert.equal(countConstantTables(source), 0);
+  assert.ok(source.includes("GAME_DATA.appearance.faceMesh") && !source.includes('"PhotoEyes"'));
+  assert.equal(baseline.constantTables["finisher-presentation.js"], undefined);
+});
+
 test("the modules read the data; the drone row and the reaper rule names stay in code with a reason", () => {
   assert.equal(countConstantTables(text("crooked-hollow.js")), 0);
   assert.equal(baseline.constantTables["crooked-hollow.js"], undefined);
