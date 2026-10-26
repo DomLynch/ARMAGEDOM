@@ -368,8 +368,45 @@ export function validateFinisherData(value) {
     )
       fail();
   const w = g.wound;
-  closed(w, ["maxZoneFraction", "surfaceOffset", "styles"]);
+  closed(w, ["maxZoneFraction", "surfaceOffset", "mesh", "styles"]);
   if (!finite(w.maxZoneFraction, 0.1, 1) || !finite(w.surfaceOffset, 0.001, 0.01)) fail();
+  const m = w.mesh;
+  closed(m, [
+    "segments",
+    "centerRelief",
+    "backRelief",
+    "ringColors",
+    "ringRadius",
+    "ringRelief",
+    "wobbleA",
+    "wobbleAFrequency",
+    "wobbleB",
+    "wobbleBFrequency",
+    "minSurfaceRadius",
+    "minSize",
+  ]);
+  if (
+    !Number.isInteger(m.segments) ||
+    !finite(m.segments, 6, 64) ||
+    !finite(m.centerRelief, 0, 0.05) ||
+    !finite(m.backRelief, 0, 0.05) ||
+    !finite(m.wobbleA, 0, 0.3) ||
+    !finite(m.wobbleAFrequency, 0, 20) ||
+    !finite(m.wobbleB, 0, 0.3) ||
+    !finite(m.wobbleBFrequency, 0, 20) ||
+    !finite(m.minSurfaceRadius, 0.001, 0.1) ||
+    !finite(m.minSize, 0.001, 0.05) ||
+    !Array.isArray(m.ringColors) ||
+    m.ringColors.length !== m.ringRadius.length + 1 ||
+    m.ringColors.some((n) => !Number.isInteger(n) || !finite(n, 0, 0xffffff)) ||
+    !Array.isArray(m.ringRadius) ||
+    m.ringRadius.length !== 3 ||
+    m.ringRadius.some((n) => !finite(n, 0.05, 2)) ||
+    !Array.isArray(m.ringRelief) ||
+    m.ringRelief.length !== m.ringRadius.length ||
+    m.ringRelief.some((n) => !finite(n, 0, 0.05))
+  )
+    fail();
   closed(w.styles, ["bullet", "slash", "blunt", "shell"]);
   for (const style of Object.values(w.styles)) {
     closed(style, ["width", "height", "reliefScale"], ["palette", "nonOrganicSize"]);
