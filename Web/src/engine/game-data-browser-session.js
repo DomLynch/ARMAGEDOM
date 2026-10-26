@@ -5,8 +5,10 @@ import { closed } from "./content-schema.js";
 import { fail } from "./game-data-checks.js";
 
 export function validateBrowserSession(d) {
-  closed(d, ["schema_version", "actorVisualScale", "maxPixelRatio", "messageSeconds", "syncedNoticeSeconds", "sceneLights"]);
-  for (const [name, min, max] of [["actorVisualScale", 0.1, 4], ["maxPixelRatio", 1, 4], ["messageSeconds", 1, 60], ["syncedNoticeSeconds", 1, 60]])
+  closed(d, ["schema_version", "actorVisualScale", "maxPixelRatio", "messageSeconds", "maxStepSeconds", "syncedNoticeSeconds", "sceneLights"]);
+  const ranges = [["actorVisualScale", 0.1, 4], ["maxPixelRatio", 1, 4], ["messageSeconds", 1, 60], ["maxStepSeconds", 0.01, 1]];
+  ranges.push(["syncedNoticeSeconds", 1, 60]);
+  for (const [name, min, max] of ranges)
     if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("browserSession", `${name} must be ${min} to ${max}`);
   const l = d.sceneLights;
   closed(l, ["hemiSky", "hemiGround", "sunColor", "sunPosition", "rimColor", "rimIntensity", "rimDistance", "rimDecay"]);

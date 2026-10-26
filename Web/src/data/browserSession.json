@@ -3,6 +3,7 @@
   "actorVisualScale": 1.3225,
   "maxPixelRatio": 1.5,
   "messageSeconds": 5,
+  "maxStepSeconds": 0.1,
   "sceneLights": {
     "hemiSky": "#b9bec9",
     "hemiGround": "#4b3828",
