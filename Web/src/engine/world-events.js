@@ -44,9 +44,11 @@ export const WORLD_EVENT_RULES = Object.freeze({
   // Positions, headings and hp are rounded to 1/quantum so a live value and its event always compare equal.
   quantum: 1000,
   // `move` is sent on change, at most once per this many ticks per actor (15 Hz at the 60 Hz step).
-  moveEveryTicks: 4,
+  moveEveryTicks: GAME_DATA.worldEvents.rules.moveEveryTicks,
   // The session keeps the newest events only; a replay from empty needs `retain: Infinity`.
-  retainEvents: 5000,
+  retainEvents: GAME_DATA.worldEvents.rules.retainEvents,
+  // The journal is trimmed back to `retainEvents` once it holds this many times that.
+  compactFactor: GAME_DATA.worldEvents.rules.compactFactor,
   // Every actor, instance and item key on the wire.
   keyPattern: /^[a-z0-9._:-]{1,96}$/,
 });
@@ -74,7 +76,7 @@ const codes = (names) => Object.freeze(Object.fromEntries(names.map((name, i) =>
 export const WORLD_EVENT_CODES = codes(WORLD_EVENT_TYPES);
 export const MOVE_STATES = Object.freeze(["idle", "walk", "run", "attack", "dodge", "guard", "hurt", "dead"]);
 export const MOVE_STATE_CODES = codes(MOVE_STATES);
-export const MOVE_FLAGS = Object.freeze({ swinging: 1, dead: 2, carrying: 4, exhausted: 8 });
+export const MOVE_FLAGS = Object.freeze({ swinging: 1, dead: 2, carrying: 4, exhausted: 8 }); // tuning-ok: wire bit flags
 export const ATTACK_CLASSES = Object.freeze(["slash", "stab", "heavy", "shot"]);
 export const ATTACK_CLASS_CODES = codes(ATTACK_CLASSES);
 // The weapon strings a hit can carry. weaponRules() returns exactly these keys.
@@ -284,9 +286,9 @@ export function canonicalJson(value) {
 /** FNV-1a (32 bit) over the canonical JSON, as 8 hex digits. */
 export function worldDigest(view) {
   const text = canonicalJson(view);
-  let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
-  return (h >>> 0).toString(16).padStart(8, "0");
+  let h = 0x811c9dc5; // tuning-ok: FNV-1a offset basis
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193); // tuning-ok: FNV-1a prime
+  return (h >>> 0).toString(16).padStart(8, "0"); // tuning-ok: 8 hex digits of a 32-bit hash
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -418,7 +420,7 @@ export function createJournal({ retain = WORLD_EVENT_RULES.retainEvents } = {}) 
     seq = e.seq;
     applyWorldEvent(view, e);
     events.push(e);
-    if (events.length >= retain * 2) events = events.slice(-retain);
+    if (events.length >= retain * WORLD_EVENT_RULES.compactFactor) events = events.slice(-retain);
     return e;
   }
   function find(g, id) {

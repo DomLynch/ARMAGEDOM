@@ -8,5 +8,6 @@
     "unique-reward-pickup": "itemId",
     "flame-pickup": "pickupId"
   },
+  "rules": { "moveEveryTicks": 4, "retainEvents": 5000, "compactFactor": 2 },
   "dispatchers": ["dispatchPistol", "dispatchRifle", "dispatchBossEquipment", "dispatchUniqueReward", "dispatchFlame"]
 }

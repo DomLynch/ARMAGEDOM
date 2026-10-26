@@ -37,6 +37,7 @@ import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
+import { validateWorldEventRules } from "./world-events-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateArcGun } from "./game-data-arc-gun.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
@@ -429,7 +430,8 @@ export function validateSpawns(d) {
 // drop events, the legacy pickup event types with the field that names the item, and the persistence dispatchers it wraps.
 // Client-side mapping only: the wire schema (event fields, codes, weapon ids) stays in code, the server trusts it.
 export function validateWorldEvents(d) {
-  closed(d, ["schema_version", "legacyDropEvents", "legacyPickupEvents", "dispatchers"]);
+  closed(d, ["schema_version", "legacyDropEvents", "legacyPickupEvents", "rules", "dispatchers"]);
+  validateWorldEventRules(d.rules);
   const names = (list, field) => {
     if (
       !Array.isArray(list) ||
