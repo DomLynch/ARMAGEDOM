@@ -20,7 +20,7 @@ async function imageHashes(parser) {
   }
   return hashes;
 }
-const toHex = (buffer) => Array.from(new Uint8Array(buffer), (b) => b.toString(16).padStart(2, "0")).join("");
+const toHex = (buffer) => Array.from(new Uint8Array(buffer), (b) => b.toString(16).padStart(2, "0")).join(""); // tuning-ok: a hex byte is two digits
 
 // Everything that changes how a texture samples or decodes; two textures only merge when all of it matches.
 function samplerKey(texture) {
