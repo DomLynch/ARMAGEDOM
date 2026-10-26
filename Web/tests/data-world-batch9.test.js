@@ -14,9 +14,18 @@ const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 const sha = (text) => crypto.createHash("sha256").update(text).digest("hex");
 
 test("the data files are pinned", () => {
-  assert.equal(sha(read("../src/data/supplies.json")), "69156017db3ebe45588d34fbae08aad8e293bf897c3f58f5e47d100408639002");
-  assert.equal(sha(read("../src/data/visual.json")), "6febd838c069f805f01918801539cff7a9e5f8ad1d6b8afa2873d310eca833db");
-  assert.equal(sha(read("../src/data/creatures.json")), "00b717e7a9ffd918832880eda1be4034f64a1d037d107c1330cc8b88fb028350");
+  assert.equal(
+    sha(read("../src/data/supplies.json")),
+    "69156017db3ebe45588d34fbae08aad8e293bf897c3f58f5e47d100408639002",
+  );
+  assert.equal(
+    sha(read("../src/data/visual.json")),
+    "6febd838c069f805f01918801539cff7a9e5f8ad1d6b8afa2873d310eca833db",
+  );
+  assert.equal(
+    sha(read("../src/data/creatures.json")),
+    "00b717e7a9ffd918832880eda1be4034f64a1d037d107c1330cc8b88fb028350",
+  );
 });
 
 test("every moved value equals the constant it replaced", () => {
@@ -28,14 +37,24 @@ test("every moved value equals the constant it replaced", () => {
     headDropletLifetime: 1.25,
     headDropletGravity: 4,
   });
-  assert.deepEqual([...GAME_DATA.creatures.creatureSim.playerFields], ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"]);
+  assert.deepEqual(
+    [...GAME_DATA.creatures.creatureSim.playerFields],
+    ["hp", "dodgeUntil", "guarding", "parryUntil", "stamina"],
+  );
 });
 
 test("the tables are the frozen data rows", () => {
   assert.equal(SUPPLY_RULES, GAME_DATA.supplies.rules);
   assert.equal(GEAR_ITEMS, GAME_DATA.supplies.gearItems);
   assert.equal(SEVER_BLOOD_DATA, GAME_DATA.visual.severBlood);
-  for (const v of [SUPPLY_RULES, GEAR_ITEMS, SEVER_BLOOD_DATA, SEVER_BLOOD_DATA.jet, SEVER_BLOOD_DATA.pool, GAME_DATA.creatures.creatureSim.playerFields])
+  for (const v of [
+    SUPPLY_RULES,
+    GEAR_ITEMS,
+    SEVER_BLOOD_DATA,
+    SEVER_BLOOD_DATA.jet,
+    SEVER_BLOOD_DATA.pool,
+    GAME_DATA.creatures.creatureSim.playerFields,
+  ])
     assert(Object.isFrozen(v));
 });
 
@@ -48,39 +67,131 @@ const broken = (file, validate, mutate) => () => {
 test("the loader rejects broken supplies rules and gear items", () => {
   const b = (m) => broken("supplies", validateSupplies, m);
   assert.doesNotThrow(b(() => {}));
-  assert.throws(b((d) => { delete d.rules; }));
-  assert.throws(b((d) => { d.rules.extra = 1; }));
-  assert.throws(b((d) => { d.rules.reserveCap = 12.5; }));
-  assert.throws(b((d) => { d.rules.pickupRadius = "far"; }));
-  assert.throws(b((d) => { d.rules.healFraction = 0; }));
-  assert.throws(b((d) => { d.rules.healFraction = 1.5; }));
-  assert.throws(b((d) => { d.gearItems.reverse(); }));
-  assert.throws(b((d) => { d.gearItems.push("extra"); }));
-  assert.throws(b((d) => { delete d.gearItems; }));
+  assert.throws(
+    b((d) => {
+      delete d.rules;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.rules.extra = 1;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.rules.reserveCap = 12.5;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.rules.pickupRadius = "far";
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.rules.healFraction = 0;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.rules.healFraction = 1.5;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.gearItems.reverse();
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.gearItems.push("extra");
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      delete d.gearItems;
+    }),
+  );
 });
 
 test("the loader rejects broken sever blood data", () => {
   const b = (m) => broken("visual", validateVisual, m);
   assert.doesNotThrow(b(() => {}));
-  assert.throws(b((d) => { delete d.severBlood; }));
-  assert.throws(b((d) => { d.severBlood.extra = 1; }));
-  assert.throws(b((d) => { d.severBlood.jet.capacity = 0; }));
-  assert.throws(b((d) => { d.severBlood.jet.length = -1; }));
-  assert.throws(b((d) => { d.severBlood.pool.capacity = 1.5; }));
-  assert.throws(b((d) => { d.severBlood.pool.opacity = 0; }));
-  assert.throws(b((d) => { d.severBlood.pool.opacity = 2; }));
-  assert.throws(b((d) => { delete d.severBlood.pool.radius; }));
-  assert.throws(b((d) => { d.severBlood.headDropletGravity = "heavy"; }));
+  assert.throws(
+    b((d) => {
+      delete d.severBlood;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.extra = 1;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.jet.capacity = 0;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.jet.length = -1;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.pool.capacity = 1.5;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.pool.opacity = 0;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.pool.opacity = 2;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      delete d.severBlood.pool.radius;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.severBlood.headDropletGravity = "heavy";
+    }),
+  );
 });
 
 test("the loader rejects broken creature sim player fields", () => {
   const b = (m) => broken("creatures", validateCreatures, m);
   assert.doesNotThrow(b(() => {}));
-  assert.throws(b((d) => { delete d.creatureSim; }));
-  assert.throws(b((d) => { d.creatureSim.extra = 1; }));
-  assert.throws(b((d) => { d.creatureSim.playerFields.pop(); }));
-  assert.throws(b((d) => { d.creatureSim.playerFields.push("pos"); }));
-  assert.throws(b((d) => { d.creatureSim.playerFields.reverse(); }));
+  assert.throws(
+    b((d) => {
+      delete d.creatureSim;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.creatureSim.extra = 1;
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.creatureSim.playerFields.pop();
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.creatureSim.playerFields.push("pos");
+    }),
+  );
+  assert.throws(
+    b((d) => {
+      d.creatureSim.playerFields.reverse();
+    }),
+  );
 });
 
 test("the three source files hold no constant table; the baseline has no entry for them", () => {
