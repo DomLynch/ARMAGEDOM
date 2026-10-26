@@ -344,6 +344,27 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
   assert.match(run.stdout, /OFF/);
 });
 
+test("every client op has a bucket in server/data/rate-limits.json, load_run is one per 10 s, and the token-bearing status read is limited while the anonymous one is not", async () => {
+  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "create_character", "load_run", "save_run", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(DEFAULT_LIMITS.load_run, { burst: 3, refillMs: 10000 });
+  let clock = 1_000_000;
+  const t = await start({ limits: { status: { burst: 2, refillMs: 5000 }, active: { burst: 1, refillMs: 10000 } }, now: () => clock });
+  try {
+    const status = () => fetch(t.base + "/arma/status", { headers: { Authorization: `Bearer user:${ids.alice}` } });
+    assert.deepEqual([(await status()).status, (await status()).status], [200, 200]);
+    const limited = await status();
+    assert.deepEqual([limited.status, (await limited.json()).error], [429, "rate-limited"]);
+    for (let i = 0; i < 5; i++) assert.equal((await fetch(t.base + "/arma/status")).status, 200, "the anonymous answer has no bucket");
+    assert.equal((await t.post("/arma/active", {}, { as: ids.alice })).status, 200);
+    assert.equal((await t.post("/arma/active", {}, { as: ids.alice })).status, 429);
+    clock += 10000;
+    assert.equal((await t.post("/arma/active", {}, { as: ids.alice })).status, 200);
+    assert.equal(await t.writer.pruneEngages(), 0, "the prune runs against the database and reports how many it deleted");
+  } finally {
+    await t.close();
+  }
+});
+
 test("create_character: a bucket of 3 then one per 60 s, and the sixth character is a 409 O0010", async () => {
   assert.deepEqual(DEFAULT_LIMITS.create_character, { burst: 3, refillMs: 60000 });
   let clock = 1_000_000;

@@ -1,8 +1,16 @@
 {
-  "_comment": "The writer's per-account token buckets for client routes: `burst` requests at once, then one more every `refillMs`. An op that is not listed has no bucket. Loaded by server/writer/writer.js (DEFAULT_LIMITS); the numbers are explained in docs/MULTIPLAYER-DATA-LAYER.md.",
+  "_comment": "The writer's per-account token buckets for client routes: `burst` requests at once, then one more every `refillMs`. Every client route has one (`status` is the GET /arma/status read that carries a token). Loaded by server/writer/writer.js (DEFAULT_LIMITS); the numbers are explained in docs/MULTIPLAYER-DATA-LAYER.md. `maintenance` is the writer's own timers.",
   "clientOps": {
     "save_run": { "burst": 6, "refillMs": 5000 },
-    "load_run": { "burst": 3, "refillMs": 1000 },
-    "create_character": { "burst": 3, "refillMs": 60000 }
+    "load_run": { "burst": 3, "refillMs": 10000 },
+    "create_character": { "burst": 3, "refillMs": 60000 },
+    "active": { "burst": 3, "refillMs": 10000 },
+    "set_active": { "burst": 3, "refillMs": 10000 },
+    "status": { "burst": 5, "refillMs": 5000 },
+    "spawn_state": { "burst": 5, "refillMs": 2000 },
+    "spawn_engage": { "burst": 8, "refillMs": 2000 }
+  },
+  "maintenance": {
+    "pruneEngagesEveryMs": 3600000
   }
 }

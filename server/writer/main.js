@@ -7,7 +7,7 @@
 //   ARMA_SPAWNS         optional path to the spawn rows JSON (default server/data/spawns.json)
 import fs from "node:fs";
 import { poolConfig } from "./db-config.js";
-import { createWriter, spawnRowsFrom } from "./writer.js";
+import { createWriter, MAINTENANCE, spawnRowsFrom } from "./writer.js";
 
 if (process.env.ARMA_WRITER !== "1") {
   console.log("writer: OFF (set ARMA_WRITER=1 to start); nothing is listening");
@@ -34,5 +34,11 @@ const verify = async (token) => {
 const spawns = JSON.parse(fs.readFileSync(process.env.ARMA_SPAWNS ?? new URL("../data/spawns.json", import.meta.url), "utf8"));
 const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: need("ARMA_INTERNAL_KEY"), log: console.log });
 writer.server.listen(port, host, () => console.log(`writer listening on ${host}:${port}`));
+// Old spawn engages are deleted on a timer (migration 000016); a failure is logged and tried again next time, never fatal.
+const prune = setInterval(() => writer.pruneEngages().then((n) => n && console.log(`writer: pruned ${n} old spawn engages`), (error) => console.log(`writer: prune failed: ${error?.message}`)), MAINTENANCE.pruneEngagesEveryMs);
+prune.unref();
 for (const signal of ["SIGINT", "SIGTERM"])
-  process.on(signal, () => writer.server.close(() => pool.end().then(() => process.exit(0))));
+  process.on(signal, () => {
+    clearInterval(prune);
+    writer.server.close(() => pool.end().then(() => process.exit(0)));
+  });
