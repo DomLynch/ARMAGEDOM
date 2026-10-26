@@ -97,12 +97,14 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
     },
     // A live game message owns the line, so a hint neither starts nor runs down underneath it; only an
     // `overMessage` row may start or keep running while one is showing.
-    current(g) {
+    // `routeActive`: the yellow route/exit line is showing. Like a live game message it owns the line, so a boxed hint
+    // waits (and is not used up) rather than hiding it; only an `overMessage` survival row may still take the line.
+    current(g, routeActive = false) {
       const elapsed = Math.min(Math.max(g.time - lastTime, 0), 1);
       lastTime = g.time;
       over = false;
       if (g.finished || g.player.hp <= 0) return "";
-      const messageShowing = g.time < (g.messageUntil ?? 0),
+      const messageShowing = routeActive || g.time < (g.messageUntil ?? 0),
         fires = (row) => {
           const [[key, argument]] = Object.entries(row.when);
           return checks[key](argument, { g, tookHit });

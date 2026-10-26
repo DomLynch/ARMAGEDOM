@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "shotgun": {
+    "pellets": 8,
+    "spreadDegrees": 6,
+    "warningArcDegrees": 12,
+    "stagger": 0.12,
+    "staminaDamage": 8
+  },
+  "rocket": {
+    "warningArcDegrees": 6,
+    "groundHeight": 0.05,
+    "bisectSteps": 14,
+    "stagger": 0.2,
+    "staminaDamage": 14
+  }
+}

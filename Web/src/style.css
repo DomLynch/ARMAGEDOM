@@ -557,7 +557,6 @@ summary {
 #menu[open]{display:flex;flex-direction:column;}
 #menu-header{display:flex;align-items:center;gap:8px;flex:none;padding:14px 16px;border-bottom:1px solid #546c6d;}
 #menu-header .menu-brand{flex:1;min-width:0;}#menu-header h2{font-size:18px;letter-spacing:1px;margin:0;}#menu-header .eyebrow{font-size:9px;line-height:1.4;margin:5px 0 0;}
-#menu #resume{width:auto;flex:none;min-height:44px;padding:9px 12px;margin:0;color:var(--gold);}
 #menu .close{float:none;flex:none;margin:0;width:44px;min-width:44px;height:44px;}
 #menu-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));flex:none;border-bottom:1px solid #546c6d;padding:0 12px;gap:8px;}
 #menu-tabs button{margin:0;padding:10px 4px;min-height:48px;border:0;border-radius:0;background:transparent;color:#b8c8c5;}
@@ -660,6 +659,10 @@ summary {
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Dom's phone run: the route line crowded the area line above it, so it sits a little lower with clear space between. */
+#notice:not(.hint) {
+  margin-top: 8px;
 }
 #notice:empty,
 #expedition-objective:empty,

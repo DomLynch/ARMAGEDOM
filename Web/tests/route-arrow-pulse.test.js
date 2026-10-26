@@ -22,8 +22,9 @@ test("the ground arrow's peak opacity is data, the loader rejects a bad one, and
 });
 
 test("the ground arrow's tail gap clears the player's radius with a margin", () => {
-  assert.ok(ARROW_TAIL_GAP >= 0.6 && ARROW_TAIL_GAP <= 0.8);
-  assert.ok(ARROW_TAIL_GAP >= 0.4 + 0.2);
+  // Dom's phone run: 0.7 still touched the body, so the tail sits about 40-50% further out (data: visual.json routeArrow.tailGap).
+  assert.ok(ARROW_TAIL_GAP >= 0.98 && ARROW_TAIL_GAP <= 1.05 * 1.2);
+  assert.ok(ARROW_TAIL_GAP >= 0.4 + 0.5);
 });
 
 test("the ground route arrow fades slowly between 0.35 and full opacity", () => {

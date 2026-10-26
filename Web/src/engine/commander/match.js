@@ -3,6 +3,7 @@ import { GAME_DATA } from "../game-data.js";
 import { rigOfSpecies } from "../../rig-capabilities.js";
 import { tracePistol } from "../../pistol.js";
 import { bodyLineClear, createBridgeSteering } from "../../bridge-steering.js";
+import { COMMANDER_MATCH as M } from "./match-data.js";
 
 // data/commander.json holds the match numbers; the machine's body, strike timing and bolt are the drone's own (creatures.json `drone`).
 export const commanderRules = (rules, drone) =>
@@ -38,7 +39,7 @@ function actor(s, team, pos) {
     facing: { x: 1, z: 0 },
     hp,
     maxHP: hp,
-    radius: machine ? COMMANDER_RULES.machineRadius : 0.4,
+    radius: machine ? COMMANDER_RULES.machineRadius : M.biologicalRadius,
     moveSpeed: machine ? COMMANDER_RULES.machineSpeed : COMMANDER_RULES.biologicalSpeed,
     weapon: machine ? "bolt" : "knife",
     ready: 0,
@@ -56,13 +57,14 @@ function actor(s, team, pos) {
   };
 }
 function freePosition(s, world, center, radius, ignore = null) {
-  for (let ring = 0; ring <= 8; ring++)
-    for (let i = 0; i < (ring ? 16 : 1); i++) {
-      const a = (i * Math.PI) / 8,
-        p = { x: center.x + Math.cos(a) * ring * 0.5, z: center.z + Math.sin(a) * ring * 0.5 };
+  const { maxRing, perRing, ringStep, gap } = M.spawnSearch;
+  for (let ring = 0; ring <= maxRing; ring++)
+    for (let i = 0; i < (ring ? perRing : 1); i++) {
+      const a = (i * 2 * Math.PI) / perRing,
+        p = { x: center.x + Math.cos(a) * ring * ringStep, z: center.z + Math.sin(a) * ring * ringStep };
       if (
         world.geometry.clear(p, radius) &&
-        !all(s).some((e) => e !== ignore && live(e) && distance(e.pos, p) < e.radius + radius + 0.08)
+        !all(s).some((e) => e !== ignore && live(e) && distance(e.pos, p) < e.radius + radius + gap)
       )
         return p;
     }
@@ -70,9 +72,9 @@ function freePosition(s, world, center, radius, ignore = null) {
 }
 export function createCommanderMatch(world) {
   if (world.areaId !== "westminster") throw Error("Commander requires Westminster");
-  const spawn = world.geometry.ground({ x: 0.52, y: 0.78 }),
-    objective = world.geometry.ground({ x: 0.603125, y: 0.6875 }),
-    wavePoint = world.geometry.ground({ x: 0.770833333333, y: 0.516666666667 });
+  const spawn = world.geometry.ground({ ...M.spawnPoint }),
+    objective = world.geometry.ground({ ...M.objectivePoint }),
+    wavePoint = world.geometry.ground({ ...M.wavePoint });
   if (
     !world.geometry.clear(spawn, COMMANDER_RULES.machineRadius) ||
     !world.geometry.clear(objective, COMMANDER_RULES.machineRadius) ||
@@ -108,7 +110,7 @@ export function createCommanderMatch(world) {
     s.units.push(actor(s, "machine", p));
   }
   for (let i = 0; i < 2; i++) {
-    const p = freePosition(s, world, { x: objective.x + 3 + i, z: objective.z + 2 }, 0.4);
+    const p = freePosition(s, world, { x: objective.x + 3 + i, z: objective.z + 2 }, M.biologicalRadius);
     if (!p) throw Error("Commander defenders do not fit");
     s.opponents.push(actor(s, "biological", p));
   }
@@ -157,13 +159,14 @@ export function orderCommander(s, world, request) {
         ...destinations.map((pos) => ({ pos, radius: COMMANDER_RULES.machineRadius })),
       ];
       let chosen = null;
-      for (let ring = 0; ring <= 6 && !chosen; ring++)
-        for (let i = 0; i < (ring ? 16 : 1) && !chosen; i++) {
-          const a = (i * Math.PI) / 8,
-            p = { x: request.point.x + Math.cos(a) * ring * 0.6, z: request.point.z + Math.sin(a) * ring * 0.6 };
+      const { maxRing, perRing, ringStep, gap } = M.formationSearch;
+      for (let ring = 0; ring <= maxRing && !chosen; ring++)
+        for (let i = 0; i < (ring ? perRing : 1) && !chosen; i++) {
+          const a = (i * 2 * Math.PI) / perRing,
+            p = { x: request.point.x + Math.cos(a) * ring * ringStep, z: request.point.z + Math.sin(a) * ring * ringStep };
           if (
             world.geometry.clear(p, e.radius) &&
-            !occupied.some((v) => distance(p, v.pos) < e.radius + v.radius + 0.08)
+            !occupied.some((v) => distance(p, v.pos) < e.radius + v.radius + gap)
           ) {
             const route = s.navigation.steer({ world, actor: e, goal: p, time: s.time, leash: Infinity });
             if (bodyLineClear(world.geometry, e.pos, route, e.radius) && world.lineClear(e.pos, route)) chosen = p;
@@ -212,8 +215,8 @@ export function commanderDamage(s, attacker, target, amount) {
     return false;
   const paid = Math.min(target.hp, amount);
   target.hp -= paid;
-  target.flashUntil = s.time + 0.12;
-  target.response = { clip: target.hp > 0 ? "Hit" : "Death", start: s.time, ticks: target.hp > 0 ? 12 : 144 };
+  target.flashUntil = s.time + M.flashSeconds;
+  target.response = { clip: target.hp > 0 ? "Hit" : "Death", start: s.time, ticks: target.hp > 0 ? M.hitTicks : M.deathTicks };
   s.events.push({
     type: "hit",
     actor: target,
@@ -247,10 +250,10 @@ function moveActor(s, world, e, goal, dt) {
       dir = { x: axis.x * c - axis.z * sn, z: axis.x * sn + axis.z * c },
       next = world.move(e.pos, { x: dir.x * travel, z: dir.z * travel }, e.radius);
     if (
-      distance(next, e.pos) < travel * 0.25 ||
+      distance(next, e.pos) < travel * M.moveProgress ||
       !world.geometry.clear(next, e.radius) ||
       !world.lineClear(e.pos, next) ||
-      all(s).some((a) => a !== e && live(a) && distance(next, a.pos) < e.radius + a.radius + 0.015)
+      all(s).some((a) => a !== e && live(a) && distance(next, a.pos) < e.radius + a.radius + M.bodyGap)
     )
       continue;
     e.facing = dir;
@@ -302,7 +305,7 @@ function stepMachine(s, world, e, dt) {
     return;
   }
   if (e.order.type === "move") {
-    if (distance(e.pos, e.order.point) > 0.25) {
+    if (distance(e.pos, e.order.point) > M.arriveDistance) {
       moveActor(s, world, e, e.order.point, dt);
       e.droneState.phase = "patrol";
       return;
@@ -355,7 +358,7 @@ function stepBiological(s, world, e, dt) {
   }
   if (e.swing && s.time >= e.swing.end) e.swing = null;
   const enemy = nearest(e, s.units),
-    target = enemy && distance(e.pos, enemy.pos) < 8 ? enemy : s.objective,
+    target = enemy && distance(e.pos, enemy.pos) < M.aggroDistance ? enemy : s.objective,
     targetId = target === s.objective ? 0 : target.id;
   if (distance(e.pos, target.pos) > COMMANDER_RULES.meleeRange) {
     moveActor(s, world, e, target.pos, dt);
@@ -368,7 +371,7 @@ function stepBiological(s, world, e, dt) {
   e.facing = { x: dx / n, z: dz / n };
   e.attackTarget = targetId;
   e.attack = { targetId, releaseAt: s.time + COMMANDER_RULES.meleeWindup };
-  e.swing = { clip: "Attack", native: true, start: s.time, end: s.time + COMMANDER_RULES.meleeWindup + 0.35 };
+  e.swing = { clip: "Attack", native: true, start: s.time, end: s.time + COMMANDER_RULES.meleeWindup + M.swingAfterWindup };
 }
 export function stepCommander(s, world, dt = 1 / 60) {
   if (!Number.isFinite(dt) || Math.abs(dt - 1 / 60) > EPS) throw Error("Commander requires fixed60Hz");
@@ -411,18 +414,18 @@ export function stepCommander(s, world, dt = 1 / 60) {
       s.objective.capture = Math.min(COMMANDER_RULES.captureSeconds, s.objective.capture + dt);
     if (s.objective.capture + EPS >= COMMANDER_RULES.captureSeconds) {
       s.phase = "defend";
-      s.waveAt = s.time + 5;
+      s.waveAt = s.time + M.firstWaveDelay;
       s.events.push({ type: "captured" });
     }
   } else if (s.phase === "defend") {
     s.objective.defend += dt;
     if (s.waves < 2 && s.time + EPS >= s.waveAt) {
       for (let i = 0; i < 2; i++) {
-        const p = freePosition(s, world, s.wavePoint, 0.4);
+        const p = freePosition(s, world, s.wavePoint, M.biologicalRadius);
         if (p) s.opponents.push(actor(s, "biological", p));
       }
       s.waves++;
-      s.waveAt = s.time + 10;
+      s.waveAt = s.time + M.waveGap;
       s.events.push({ type: "wave", number: s.waves });
     }
     if (s.objective.hp > 0 && s.objective.defend + EPS >= COMMANDER_RULES.defendSeconds)
