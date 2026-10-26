@@ -3,6 +3,8 @@
     "lowStrike": true,
     "animal": true,
     "species": "rat",
+    "appearanceRecipe": "rat",
+    "populationSlot": true,
     "brain": "rat",
     "appearanceKit": "rat",
     "coatName": "Ash and soot worn fur",
@@ -16,6 +18,8 @@
     "lowStrike": true,
     "animal": true,
     "species": "dog",
+    "appearanceRecipe": "dog",
+    "populationSlot": true,
     "brain": "dog",
     "lowSwing": "dog",
     "feralScale": 2,
@@ -31,6 +35,8 @@
     "lowStrike": true,
     "animal": true,
     "species": "roach",
+    "appearanceRecipe": "roach",
+    "populationSlot": true,
     "brain": "dog",
     "lowSwing": "roach",
     "biteMove": "roach",
@@ -48,6 +54,7 @@
     "animal": true,
     "nativeSkeleton": true,
     "species": "salamander",
+    "populationSlot": true,
     "brain": "dog",
     "biteMove": "salamander",
     "areaPursuit": true,
@@ -80,5 +87,11 @@
     "hitTicks": 32,
     "deathTicks": 74
   },
-  "low-hover-drone": { "lowStrike": true, "species": "drone", "brain": "drone", "hoverTarget": true }
+  "low-hover-drone": {
+    "lowStrike": true,
+    "species": "drone",
+    "populationSlot": true,
+    "brain": "drone",
+    "hoverTarget": true
+  }
 }

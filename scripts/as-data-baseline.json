@@ -68,9 +68,6 @@
     ]
   },
   "rigLiterals": {
-    "area-mob-spawns.js": 3,
-    "engine/area-content.js": 1,
-    "engine/area-population.js": 9,
     "engine/commander/match.js": 1,
     "engine/creature-definitions.js": 45
   },
