@@ -249,6 +249,7 @@ export function validateVisual(d) {
     "routeGuidance",
     "severBlood",
     "motion",
+    "safehouseView",
     "wantedPoster",
     "combatImpact",
   ]);

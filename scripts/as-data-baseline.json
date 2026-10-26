@@ -147,7 +147,6 @@
     "engine/run-core.js": 14,
     "engine/run-state.js": 13,
     "engine/run-views.js": 4,
-    "engine/safehouse-view.js": 42,
     "engine/safehouse.js": 2,
     "engine/save-client.js": 11,
     "engine/save-eras.js": 2,
