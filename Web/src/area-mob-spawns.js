@@ -35,7 +35,7 @@ export function residentEncounterHealth(placement, fallback) {
     !Object.hasOwn(row, "health") ||
     !Number.isSafeInteger(row.health) ||
     row.health < 1 ||
-    row.health > 120 ||
+    row.health > GAME_DATA.spawns.maxResidentHealth ||
     (placement.foundationRef !== undefined && placement.foundationRef !== "hollow-scavenger")
   )
     throw Error("Invalid resident encounter health");
