@@ -71,7 +71,6 @@
   "rigLiterals": {},
   "numberLiterals": {
     "animal-appearance.js": 7,
-    "auto-equip.js": 1,
     "bridge-steering.js": 5,
     "clothing-allocator.js": 3,
     "clothing-palettes.js": 1,
@@ -116,7 +115,6 @@
     "mobile-combat-aim.js": 11,
     "parked-area-preparation.js": 1,
     "pickup-glow.js": 6,
-    "pistol.js": 2,
     "roach-appearance.js": 5,
     "roach-territory.js": 1,
     "travel.js": 1,
