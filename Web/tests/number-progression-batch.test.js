@@ -8,8 +8,9 @@ import { countNumberLiterals } from "../../scripts/number-literal-gate.mjs";
 
 // Backend phase 2b, batch B (value-identical): progression-rules 4, progression-core 4, progression-state 2, progression-runtime 1,
 // unique-reward-runtime 3, unique-reward-core 1, safehouse 2, save-eras 2, all to 0. The default hit points and the registry cap moved to
-// data/progressionBase.json, the drop ring's step count to data/uniqueReward.json, the one pickup reach (1.3) is data/uniqueReward.json `pickupRadius`, read by the save layer's claim gate and by the view; the old visual.weaponViews copy is gone; the knife's base damage and the
-// player radius are read from the existing combatRules.player row. Save versions and the attribute baseline stay in code, marked.
+// data/progressionBase.json, the drop ring's step count to data/uniqueReward.json. The one pickup reach (1.3) is data/uniqueReward.json
+// `pickupRadius`, read by the save layer's claim gate and by the view; the old visual.weaponViews copy is gone. The knife's base damage
+// and the player radius are read from the existing combatRules.player row. Save versions and the attribute baseline stay in code, marked.
 const text = (p) => fs.readFileSync(new URL(p, import.meta.url), "utf8");
 const engine = (name) => text(`../src/engine/${name}.js`);
 const raw = (name) => structuredClone(JSON.parse(text(`../src/data/${name}.json`)));
