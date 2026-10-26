@@ -8,6 +8,7 @@ import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
+import locker from "../data/locker.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -32,6 +33,24 @@ export function validateDiagnostics(d) {
   count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
   // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
   count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
+}
+
+// The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
+// the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
+export function validateLocker(d) {
+  closed(d, ["schema_version", "resourceCaps"]);
+  closed(d.resourceCaps, [
+    "railgun-reserve",
+    "pistol-reserve",
+    "rifle-reserve",
+    "shotgun-reserve",
+    "rocket-reserve",
+    "grenade-charges",
+    "flame-fuel",
+  ]);
+  for (const [key, cap] of Object.entries(d.resourceCaps))
+    if (!Number.isFinite(cap) || cap <= 0 || cap > 100000 || (key !== "flame-fuel" && !Number.isSafeInteger(cap)))
+      fail("locker", `resourceCaps.${key}`);
 }
 
 // A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
@@ -968,6 +987,7 @@ const sources = () => ({
   areas: [areas, validateAreas],
   creatures: [creatures, validateCreatures],
   diagnostics: [diagnostics, validateDiagnostics],
+  locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
