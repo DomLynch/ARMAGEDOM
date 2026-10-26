@@ -117,6 +117,13 @@ mode, and a clean pass.)
 - Update: unpack the new release, `systemctl restart arma-writer arma-presence` after pointing `current` at it (writer first).
 - Rollback: point `current` at the previous release and restart. The schema is rolled back separately with the `supabase/down/` files, only on
   Lead's word.
+- **Layout gate (after EVERY flip and presence restart):** presence reads its area layout (exit zones, arrivals, road) once at start and never
+  again, so a release that changes a layout without a presence restart leaves the old exit zones live: players leaving through a widened exit are
+  refused (`refuse-travel`). It happened 25-26 Oct 2026 (running `e7a262a1ef51b445`, release file `bd8545b39aa315af`, main `aea70cec4978d2da`).
+  Run `node ops/realtime/check-presence-layout.mjs --journal --tree` on the VPS (add `--release <dir>` for a release that is not `current`): it
+  compares the layout in presence's last `presence listening ... layout <hash>` line, the release's `server/data/area-presence.json` version, and what
+  the source tree generates now (`--tree` needs Web's node_modules, so run it in a checkout of the commit being released). Exit 1 means restart
+  `arma-presence` (running != release) or rebuild the bundle with a fresh `area-presence.json` (release != tree).
 - Start order: writer, then presence. Presence starts fine without the writer (it counts failures and tells hitters), but nothing is stored.
 
 ## Safety and kill switches (fastest first)
