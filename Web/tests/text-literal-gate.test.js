@@ -23,6 +23,7 @@ test("text that continues after a leading ${} or separator counts", () => {
   assert.equal(count("msg = `${name} equipped.`;"), 1);
   assert.equal(count('tag = " · tap to equip";'), 1);
   assert.equal(count('tag = " · FLAME BURST — MOVE ASIDE";'), 1);
+  assert.equal(count('notice("Rifle loading unavailable. Your gear was kept; retry in Gear.");'), 1, "a semicolon inside a sentence");
 });
 
 test("one-word labels, keys, ids, class lists and CSS do not count", () => {

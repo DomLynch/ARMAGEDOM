@@ -22,7 +22,7 @@ export function isSentence(raw) {
   const rest = raw.replace(LEAD, "");
   const continues = rest !== raw;
   if (!/^[A-Za-z]/.test(rest) || (!continues && !/^[A-Z]/.test(rest))) return false;
-  if (/=>|;|\{\s/.test(rest)) return false;
+  if (/=>|;\s*$|\{\s/.test(rest)) return false;
   const words = raw.trim().split(/\s+/).filter((w) => /[A-Za-z]|\$\{/.test(w));
   return words.length >= 2 && /[A-Za-z]{3,}/.test(rest.replace(/\$\{[^}]*\}/g, ""));
 }
