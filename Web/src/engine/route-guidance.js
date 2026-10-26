@@ -5,9 +5,6 @@ import { GAME_DATA } from "./game-data.js";
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
 const tune = () => GAME_DATA.visual.routeGuidance;
-// The pistol sits about a metre from the spawn, so the arrow keeps pointing at it until it is collected;
-// only standing on it (no direction left to show) hands the arrow on to the shelter.
-const PISTOL_ARRIVED = 0.3;
 const pointOnSegment = (p, a, b) => {
   const dx = b.x - a.x,
     dz = b.z - a.z,
@@ -28,18 +25,20 @@ export function capsuleSegmentClear(g, a, b) {
 }
 // The arrow's tail starts this far out from the player's centre (visual.json routeArrow.tailGap, metres), clear of the character's
 // footprint (radius 0.4). Dom's phone run: at 0.7 it still touched the body, so it sits further out.
+function ensureTailGap(gap) {
+  if (!(gap >= 0.5 && gap <= 3)) throw TypeError("Invalid game data visual: routeArrow.tailGap must be 0.5 to 3 metres");
+}
 export const ARROW_TAIL_GAP = GAME_DATA.visual.routeArrow.tailGap;
-if (!(ARROW_TAIL_GAP >= 0.5 && ARROW_TAIL_GAP <= 3)) throw TypeError("Invalid game data visual: routeArrow.tailGap must be 0.5 to 3 metres");
+ensureTailGap(ARROW_TAIL_GAP);
 export const TUTORIAL_AREA = "westminster";
-// The ground arrow fades slowly in and out so it is easier to notice: a 1.3 s cycle between 0.35 and 1 opacity.
-export const ARROW_PULSE_SECONDS = 1.3,
-  ARROW_MIN_OPACITY = 0.35;
+// The ground arrow fades slowly in and out so it is easier to notice (visual.json routeGuidance.pulse: a cycle between a floor and 1).
+export const ARROW_PULSE_SECONDS = GAME_DATA.visual.routeGuidance.pulse.seconds,
+  ARROW_MIN_OPACITY = GAME_DATA.visual.routeGuidance.pulse.minOpacity;
 export const arrowOpacity = (seconds) =>
-  ARROW_MIN_OPACITY + (1 - ARROW_MIN_OPACITY) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / ARROW_PULSE_SECONDS));
+  ARROW_MIN_OPACITY + (1 - ARROW_MIN_OPACITY) * (0.5 + 0.5 * Math.cos((2 * Math.PI * seconds) / ARROW_PULSE_SECONDS)); // tuning-ok: unit cosine
 // After the shelter the tutorial sends the player after Westminster's two named kills, one at a time: the roaming
 // giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
 // Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
-const HUNT_ARRIVED = 1.5;
 export function huntTarget(g) {
   if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
   const live = (e) => e.hp > 0,
@@ -145,7 +144,7 @@ export function resolveGuidance(rows, g, position) {
     // Choose a visible-in-collision-space waypoint; never point through a prop or across the road edge.
     let index = -1;
     for (let i = row.path.length - 1; i >= 0; i--)
-      if (distance(position, row.path[i]) > 0.5 && capsuleSegmentClear(g, position, row.path[i])) {
+      if (distance(position, row.path[i]) > tune().waypointMin && capsuleSegmentClear(g, position, row.path[i])) {
         index = i;
         break;
       }
@@ -191,7 +190,7 @@ export function createRouteGuidance(world) {
       dx = b.x - a.x,
       dz = b.z - a.z,
       length = distance(a, b),
-      mid = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
+      mid = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 }; // tuning-ok: midpoint
     let nx = -dz / length,
       nz = dx / length;
     if (g.clear({ x: mid.x + nx * rail.sideProbe, z: mid.z + nz * rail.sideProbe }, 0)) {
@@ -203,20 +202,20 @@ export function createRouteGuidance(world) {
       yaw = Math.atan2(dz, dx);
     for (let i = 0; i < rail.segments; i++)
       cuboid(
-        at((i + 0.5) / rail.segments, rail.centreHeight),
+        at((i + 0.5) / rail.segments, rail.centreHeight), // tuning-ok: centre of the segment cell
         [length / rail.segments, rail.thickness, rail.depth],
         yaw,
-        `#${rail.colours[i % 2]}`,
+        `#${rail.colours[i % 2]}`, // tuning-ok: alternate the two rail colours
       );
-    for (const t of [0, 0.5, 1])
+    for (const t of rail.post.along)
       cuboid(at(t, rail.post.centreHeight), [rail.post.width, rail.post.height, rail.post.width], 0, `#${rail.post.colour}`);
   }
   box.dispose();
   let barrier = null;
   if (positions.length) {
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); // tuning-ok: x, y, z per vertex
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3)); // tuning-ok: r, g, b per vertex
     geo.setIndex(indices);
     barrier = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }));
     barrier.name = "Road closed rail outside authored boundary";
@@ -225,7 +224,7 @@ export function createRouteGuidance(world) {
   const arrowGeometry = new THREE.BufferGeometry();
   arrowGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(arrowShape.triangles.flat(2), 3),
+    new THREE.Float32BufferAttribute(arrowShape.triangles.flat(2), 3), // tuning-ok: triangles of x, y, z points
   );
   const arrow = new THREE.Mesh(
     arrowGeometry,
@@ -257,7 +256,7 @@ export function createRouteGuidance(world) {
         toneMapped: false,
       }),
     );
-    ring.rotation.x = -Math.PI / 2;
+    ring.rotation.x = -Math.PI / 2; // tuning-ok: lay the ring flat
     marker.add(ring);
     if (typeof document !== "undefined") {
       const canvas = document.createElement("canvas");
@@ -327,9 +326,9 @@ export function createRouteGuidance(world) {
   function resolve(position) {
     if (!cachedPosition || distance(cachedPosition, position) > 1e-8) {
       cachedPosition = { ...position };
-      if (arrival && distance(position, arrival.position) > 4) arrival = null;
+      if (arrival && distance(position, arrival.position) > tune().arrivalRadius) arrival = null;
       const toPistol = tutorialActive && pistolTarget ? distance(position, pistolTarget) : 0;
-      if (toPistol > PISTOL_ARRIVED && capsuleSegmentClear(g, position, pistolTarget))
+      if (toPistol > tune().pistolArrived &&capsuleSegmentClear(g, position, pistolTarget))
         return (cached = {
           row: { id: "pistol-first", kind: "pistol", to: "westminster" },
           target: pistolTarget,
@@ -338,7 +337,7 @@ export function createRouteGuidance(world) {
           remaining: toPistol,
         });
       const toHunt = !tutorialActive && hunt ? distance(position, hunt.pos) : 0;
-      if (toHunt > HUNT_ARRIVED)
+      if (toHunt > tune().huntArrived)
         return (cached = {
           row: { id: "hunt", kind: "hunt", to: "westminster", label: hunt.label },
           target: hunt.pos,
@@ -376,7 +375,7 @@ export function createRouteGuidance(world) {
       b = activeWorld.toRender(cue.target).project(activeWorld.camera),
       angle = Math.atan2(b.y - a.y, b.x - a.x),
       arrows = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
-      direction = arrows[(Math.round(angle / (Math.PI / 4)) + arrows.length) % arrows.length],
+      direction = arrows[(Math.round(angle / (Math.PI / 4)) + arrows.length) % arrows.length], // tuning-ok: eight compass sectors
       name =
         cue.row.kind === "pistol"
           ? "PISTOL"
