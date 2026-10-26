@@ -188,7 +188,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         context.sampleRate,
       );
       const data = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1; // tuning-ok: white noise spans -1 to 1
     }
     const source = context.createBufferSource(),
       filter = context.createBiquadFilter();

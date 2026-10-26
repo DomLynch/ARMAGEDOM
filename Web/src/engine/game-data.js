@@ -469,8 +469,9 @@ const atmosphereNumbers = () => ["width", "rise", "smoke", "opacity", "fireWidth
 const fraction = (field, v, min = 0, max = 1) => {
   if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) fail("atmosphere", `${field} must be ${min} to ${max}`);
 };
+const ATMOSPHERE_ROW_MAX = 16; // tuning-ok: validator ceiling for an atmosphere row's numbers
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
-  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
+  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, ATMOSPHERE_ROW_MAX);
   if (Object.hasOwn(row, "smokeColor")) {
     if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3) fail("atmosphere", `${field}.smokeColor`);
     row.smokeColor.forEach((c, i) => fraction(`${field}.smokeColor[${i}]`, c));

@@ -8,7 +8,7 @@ function distanceSquared(p, a, b) {
     dz = b.z - a.z,
     denominator = dx * dx + dz * dz;
   const t = denominator ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / denominator)) : 0;
-  return (p.x - a.x - t * dx) ** 2 + (p.z - a.z - t * dz) ** 2;
+  return (p.x - a.x - t * dx) ** 2 + (p.z - a.z - t * dz) ** 2; // tuning-ok: squared distance
 }
 // Painted silhouettes include stairs/props that collision alone may permit.
 // Reject the complete circle on contact with any projected mask, not just its centre.

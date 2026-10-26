@@ -21,7 +21,10 @@ test("the data files are pinned", () => {
   // visual.json and creatures.json are shared with other batches: pin only the sections this batch added.
   const section = (file, key) => sha(JSON.stringify(JSON.parse(read(`../src/data/${file}.json`))[key]));
   assert.equal(section("visual", "severBlood"), "9e3738401e2b8c6bd241c98f511745b15f12709c04be4751e1f5cbc6c623bd9e");
-  assert.equal(section("creatures", "creatureSim"), "5c7dfde360f8a631551b7ff82a13554a9eb88e5f29df4eb6e79f01c2de4a9e11");
+  // The two step keys added later are pinned in the next test; this hash covers the original `playerFields` section.
+  const { playerFields } = JSON.parse(read("../src/data/creatures.json")).creatureSim;
+  assert.equal(sha(JSON.stringify({ playerFields })), "5c7dfde360f8a631551b7ff82a13554a9eb88e5f29df4eb6e79f01c2de4a9e11");
+  assert.deepEqual(GAME_DATA.creatures.creatureSim, { playerFields, maxStepSeconds: 0.25, defaultStepSeconds: 0.1 });
 });
 
 test("every moved value equals the constant it replaced", () => {
