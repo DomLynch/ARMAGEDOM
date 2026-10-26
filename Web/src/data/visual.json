@@ -226,7 +226,7 @@
     "itemPulse": 0.07,
     "labelHeight": 1.6,
     "labelWidth": 3.4,
-    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25 },
+    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25, "borderPx": 3, "renderOrder": 10 },
     "glow": {
       "canvasPx": 256,
       "groundY": 0.04,
