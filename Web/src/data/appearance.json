@@ -4,6 +4,11 @@
     "cheek": [0.2961382707983211, 0.1589608350608804, 0.09989872824711388],
     "headNames": ["Photo", "PhotoEyes", "PhotoTeeth"]
   },
+  "animalCoat": {
+    "taper": { "from": 0.9, "range": 0.1 },
+    "field": { "z": 43, "cosY": 37, "wobble": 1.7, "x": 51, "y": 19 },
+    "patch": { "from": 0.1, "range": 1.2 }
+  },
   "hollowGarments": { "jacket": "Torn charcoal canvas jacket", "trousers": "Worn tobacco trousers" },
   "animals": [
     { "id": "rat-sewer", "foundation": "original-rat", "name": "Sewer Rat", "width": 1, "tint": [1, 1, 1], "patch": 0 },
