@@ -70,7 +70,6 @@
   "jsonImports": ["first-time-hints.js", "engine/stage-ahead.js"],
   "rigLiterals": {},
   "numberLiterals": {
-    "actors.js": 61,
     "animal-appearance.js": 7,
     "auto-equip.js": 1,
     "bridge-steering.js": 5,
