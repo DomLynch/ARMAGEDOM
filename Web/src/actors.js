@@ -76,6 +76,7 @@ import { ActorMotion } from "./motion.js";
 import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
+import { shareIdenticalTextures } from "./actor-texture-share.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
@@ -137,12 +138,14 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     pendingModels = new Map();
   let pistolAsset = null;
   const urls = new Map();
-  const sources = new Set();
+  const sources = new Set(),
+    sharedTextures = new Map();
   function load(url) {
     if (!urls.has(url)) {
       const pending = loader
         .loadAsync(url)
-        .then((gltf) => {
+        .then(async (gltf) => {
+          if (!disposed) await shareIdenticalTextures(gltf, sharedTextures);
           if (disposed) {
             disposeActorSources(new Set([gltf]));
             throw Error("Actor library disposed");
@@ -164,6 +167,7 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     disposed = true;
     disposeActorSources(sources);
     sources.clear();
+    sharedTextures.clear();
     models.clear();
     pendingModels.clear();
     urls.clear();
