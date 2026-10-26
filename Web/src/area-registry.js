@@ -1,11 +1,18 @@
 import { areaDefinitions, areaAssets } from "./area-definitions.js";
-export const areaDisplayName = (id) =>
-  id === "central-hub"
-    ? "Central Safehouse"
-    : id
-        .replace(/^area(\d+)$/, "Area $1")
-        .replaceAll("-", " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+import { GAME_DATA } from "./engine/game-data.js";
+import { fillText } from "./text-fill.js";
+// The name a player reads for an area: a data override (visual.json areaNames.overrides), else "Area {number}" for areaN ids, else the
+// id with its dashes as spaces and each word capitalised, so a new area needs no code.
+export const areaDisplayName = (id) => {
+  const { overrides, numbered } = GAME_DATA.visual.areaNames;
+  return (
+    overrides[id] ??
+    id
+      .replace(/^area(\d+)$/, (_, number) => fillText(numbered, { number }))
+      .replaceAll("-", " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+};
 const fail = (message) => {
   throw new TypeError(`Area registry: ${message}`);
 };

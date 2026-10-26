@@ -1,5 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
-import { fillText } from "./text-template.js";
+import { fillText } from "../text-fill.js";
 import { stopBossFlames } from "./boss-flame.js";
 import { needsUniqueDeathCommit } from "./unique-reward-runtime.js";
 import { bossExitGate } from "./area-bosses.js";

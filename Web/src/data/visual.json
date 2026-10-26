@@ -304,6 +304,10 @@
       }
     }
   },
+  "areaNames": {
+    "overrides": { "central-hub": "Central Safehouse" },
+    "numbered": "Area {number}"
+  },
   "travelText": {
     "travelling": "Traveling to {area}…",
     "recoveryFailed": "Travel recovery failed. Reload the page to continue.",

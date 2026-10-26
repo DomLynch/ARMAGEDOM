@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { GAME_DATA, validateVisual } from "../src/engine/game-data.js";
-import { fillText, checkTemplate } from "../src/engine/text-template.js";
+import { checkTemplate } from "../src/engine/text-template.js";
+import { fillText } from "../src/text-fill.js";
+import { areaDisplayName } from "../src/area-registry.js";
 
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/visual.json", import.meta.url), "utf8")));
 
@@ -14,6 +16,14 @@ test("fillText swaps each named placeholder and the shipped words are unchanged"
   assert.equal(fillText(GAME_DATA.visual.travelText.travelling, { area: "EAST" }), "Traveling to EAST…");
   assert.deepEqual(text.entranceSign, ["CENTRAL SAFEHOUSE", "SIDE ENTRANCE"]);
   assert.equal(text.compass.length, 8);
+});
+
+test("area names come from data, and a new area id needs no code", () => {
+  assert.equal(areaDisplayName("central-hub"), "Central Safehouse");
+  assert.equal(areaDisplayName("area7"), "Area 7");
+  assert.equal(areaDisplayName("elephant-and-castle"), "Elephant And Castle");
+  assert.equal(areaDisplayName("area10"), "Area 10");
+  assert.equal(areaDisplayName("old-kent-road"), "Old Kent Road");
 });
 
 test("a bad template, a missing or unknown placeholder, or a stray brace is rejected at load", () => {
@@ -29,6 +39,8 @@ test("a bad template, a missing or unknown placeholder, or a stray brace is reje
     (d) => (d.travelText.travelling = "Traveling…"),
     (d) => (d.travelText.loadFailed = "Could not {load"),
     (d) => (d.travelText.extra = "x"),
+    (d) => (d.areaNames.numbered = "Area"),
+    (d) => (d.areaNames.overrides["Bad Id"] = "Name"),
   ];
   for (const mutate of bad) {
     const d = raw();

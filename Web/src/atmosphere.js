@@ -193,7 +193,7 @@ export function createAtmosphere({ THREE, scene, world }) {
       }
       material.uniforms.clock.value = elapsed;
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = `Atmosphere ${kind}`;
+      mesh.name = `Atmosphere ${kind}`; // text-ok: internal mesh name
       // Render after registered depth masks, before combat actors/tells. Camera
       // depth tests keep the distant tower behind foreground masks and actors.
       mesh.renderOrder = R.renderOrder;

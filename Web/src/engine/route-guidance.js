@@ -1,7 +1,7 @@
 import { areaDisplayName } from "../area-registry.js";
 import { rigCapability } from "../rig-capabilities.js";
 import { GAME_DATA } from "./game-data.js";
-import { fillText } from "./text-template.js";
+import { fillText } from "../text-fill.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
@@ -32,7 +32,7 @@ export function huntTarget(g) {
   if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
   const live = (e) => e.hp > 0,
     salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
-    matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron");
+    matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron"); // text-ok: boss profile name used as a lookup key, never shown
   const text = GAME_DATA.visual.routeGuidance.text;
   if (salamander) return { pos: salamander.pos, label: text.killSalamander };
   if (matron) return { pos: matron.pos, label: text.killMatron };
@@ -261,7 +261,7 @@ export function createRouteGuidance(world) {
   const entrance = rows.find((row) => row.to === "central-hub");
   if (entrance) addMarker(entrance, "Central Safehouse side entrance", tune().text.entranceSign); // text-ok: internal mesh name
   for (const row of rows.filter((r) => r.sign && r !== entrance))
-    addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign);
+    addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign); // text-ok: internal mesh name
   let cachedPosition = null,
     cached = null,
     disposed = false,
