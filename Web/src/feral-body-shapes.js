@@ -1,10 +1,7 @@
 // Feral-compatible torso shapes. Apply after accepted feral before private materials.
-export const FERAL_BODY_SHAPES = Object.freeze(
-  [
-    { id: "dog-gaunt-hound", width: 0.62 },
-    { id: "dog-stocky-yard", width: 1.6 },
-  ].map(Object.freeze),
-);
+// The recipes (id, torso width factor) live in Web/src/data/creatures.json `feralBodyShapes`.
+import { GAME_DATA } from "./engine/game-data.js";
+export const FERAL_BODY_SHAPES = GAME_DATA.creatures.feralBodyShapes;
 const TORSO = new Set(["pelvis", "spine", "chest"]);
 export function createFeralBodyShapeLibrary() {
   const cache = new WeakMap(),

@@ -5,7 +5,7 @@ import { rigCapability, rigNumber } from "./rig-capabilities.js";
 
 export function combatTargetHeight(target, time) {
   if (rigCapability(target.rig, "hoverTarget")) return droneHoverHeight(time);
-  // The per-rig heights live in rig-capabilities.json; a rig with none (the humans and bosses) uses the default.
+  // The per-rig heights live in creatures.json rigCapabilities; a rig with none (the humans and bosses) uses the default.
   const height = rigNumber(target.rig, "targetHeight"),
     reach = rigNumber(target.rig, "targetHeightReach");
   return (

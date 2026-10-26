@@ -7,7 +7,7 @@ import { combatTargetHeight } from "../src/pistol-targeting.js";
 import { rigNumber, rigCapability } from "../src/rig-capabilities.js";
 import { countRigLiterals } from "../../scripts/as-data-gate.mjs";
 
-// Data move: the per-rig target heights moved from combatTargetHeight (pistol-targeting.js) into rig-capabilities.json, the
+// Data move: the per-rig target heights moved from combatTargetHeight (pistol-targeting.js) into the rig capability rows (creatures.json rigCapabilities, once rig-capabilities.json), the
 // default height into weapons.json "targeting", and WEAPON_FAMILY_IDS into weapons.json "families".
 // tests/fixtures/target-height-pre-data.json is the old function's output over every rig x reach x size x time, taken before the move.
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/target-height-pre-data.json", import.meta.url)));
@@ -43,7 +43,7 @@ test("rig numbers are read only from rows that carry them", () => {
 
 test("pistol-targeting.js no longer names a rig", () => {
   const text = fs.readFileSync(new URL("../src/pistol-targeting.js", import.meta.url), "utf8");
-  const rigs = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/rig-capabilities.json", import.meta.url))));
+  const rigs = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))).rigCapabilities);
   assert.equal(countRigLiterals(text, rigs), 0);
 });
 
