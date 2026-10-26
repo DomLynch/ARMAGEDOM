@@ -94,6 +94,9 @@
         "staggerAfter": 3,
         "staggerSeconds": 0.16,
         "staggerRecovery": 1.4,
+        "hitStagger": 0.12,
+        "hitChip": 0.1,
+        "recoveryReadySeconds": 0.1,
         "pickupRadius": 1.3
       },
       "source": {
@@ -130,7 +133,8 @@
       },
       "charge": {
         "seconds": 0.3,
-        "maxSeconds": 3.5
+        "maxSeconds": 3.5,
+        "statusSeconds": 0.8
       },
       "arc": {
         "jumps": 3,
@@ -215,6 +219,9 @@
       "staggerAfter": 3,
       "staggerSeconds": 0.16,
       "staggerRecovery": 1.4,
+      "hitStagger": 0.12,
+      "hitChip": 0.1,
+      "recoveryReadySeconds": 0.1,
       "pickupRadius": 1.3
     },
     "source": {
@@ -255,7 +262,10 @@
     "staminaPerSecond": 10,
     "staggerAfter": 3,
     "staggerSeconds": 0.16,
-    "staggerRecovery": 1.4
+    "staggerRecovery": 1.4,
+    "hitStagger": 0.12,
+    "hitChip": 0.1,
+    "recoveryReadySeconds": 0.1
   },
   "boneSawItemId": "surgeons-knife-v1"
 }

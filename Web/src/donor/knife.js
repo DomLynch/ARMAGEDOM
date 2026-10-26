@@ -4,6 +4,9 @@ import { GAME_DATA } from "../engine/game-data.js";
 // The numbers live in Web/src/data/weapons.json `knife` (read through game-data.js); the donor's source is in provenance.json.
 const KNIFE = GAME_DATA.weapons.knife;
 export const KNIFE_RULES = KNIFE.rules;
+const CURVE = KNIFE.swingCurve;
+const BLADE = KNIFE.bladeContact;
+const POINT = 3; // tuning-ok: a baked pose holds two blade points of x, y, z each
 // One move row from its named fields. Seconds are derived from ticks at 60 Hz; every move shares one arc and is parryable.
 const move = (moveId, row) =>
   Object.freeze({
@@ -40,12 +43,12 @@ export const KNIFE_COOLDOWNS = Object.freeze({
 });
 // Shared by donor animation sampling and its offline bake. Character must use this
 // for path-backed moves; Skill_Pommel has its own authored phase map.
-export function swingProgress(progress, contact = 0.35, sourceContact = 0.34) {
+export function swingProgress(progress, contact = CURVE.contact, sourceContact = CURVE.sourceContact) {
   const keys = [
     [0, 0],
-    [contact * 0.7, sourceContact * 0.44],
+    [contact * CURVE.windupContactRatio, sourceContact * CURVE.windupSourceRatio],
     [contact, sourceContact],
-    [contact + 0.16, sourceContact + (1 - sourceContact) * 0.56],
+    [contact + CURVE.followContactGap, sourceContact + (1 - sourceContact) * CURVE.followSourceRatio],
     [1, 1],
   ];
   const p = Math.max(0, Math.min(1, progress));
@@ -96,8 +99,8 @@ export function worldBlade(body, path, age) {
   const pose = bladePose(body.rig, path, age, body.contactPaths),
     f = body.facing,
     k = body.contactScale ?? body.combatScale ?? 1;
-  return [0, 3].map((o) => {
-    const [x, y, z] = pose.slice(o, o + 3);
+  return [0, POINT].map((o) => {
+    const [x, y, z] = pose.slice(o, o + POINT);
     return [body.pos.x + k * (-x * f.z + z * f.x), y * k, body.pos.z + k * (x * f.x + z * f.z)];
   });
 }
@@ -105,12 +108,20 @@ export function bladeContact(attackerBefore, attackerAfter, targetBefore, target
   const relative = (blade, target) => blade.map((p) => [p[0] - target.pos.x, p[1], p[2] - target.pos.z]);
   const a = relative(worldBlade(attackerBefore, path, fromAge), targetBefore),
     b = relative(worldBlade(attackerAfter, path, toAge), targetAfter);
-  const steps = Math.max(1, Math.ceil(Math.max(Math.hypot(...sub(a[0], b[0])), Math.hypot(...sub(a[1], b[1]))) / 0.02));
+  const steps = Math.max(
+    1,
+    Math.ceil(Math.max(Math.hypot(...sub(a[0], b[0])), Math.hypot(...sub(a[1], b[1]))) / BLADE.stepMetres),
+  );
   const k = (targetAfter.combatScale ?? 1) * (targetAfter.bodyScale ?? 1);
   for (let i = 0; i <= steps; i++)
     if (
-      segmentDistance(mix(a[0], b[0], i / steps), mix(a[1], b[1], i / steps), [0, 0.55 * k, 0], [0, 1.45 * k, 0]) <=
-      0.31 * k
+      segmentDistance(
+        mix(a[0], b[0], i / steps),
+        mix(a[1], b[1], i / steps),
+        [0, BLADE.bodyBottom * k, 0],
+        [0, BLADE.bodyTop * k, 0],
+      ) <=
+      BLADE.radius * k
     )
       return true;
   return false;

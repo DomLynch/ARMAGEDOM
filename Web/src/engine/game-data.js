@@ -665,7 +665,10 @@ export function validateSupplies(d) {
 // areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
 // (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
 export function validateAreaRuntime(d) {
-  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel", "view"]);
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel", "view", "bossHazard"]);
+  // bossHazard: a boss hazard is dropped on clear ground this far (metres) beyond the hazard's radius, and this far beyond it from every entry.
+  closed(d.bossHazard, ["bodyClearance", "entryGap"]);
+  for (const f of ["bodyClearance", "entryGap"]) number("areaRuntime", `bossHazard.${f}`, d.bossHazard[f], 0);
   // view: how world.js frames and budgets an area. MiB of backdrop textures, camera clip planes in metres, the portrait actor size in CSS
   // pixels, zoom boosts as factors, screen lifts as fractions of the painting, the follow step cap in seconds and the exit hint range in metres.
   closed(d.view, [
@@ -708,7 +711,8 @@ export function validateAreaRuntime(d) {
     number("areaRuntime", `view.${f}`, d.view[f], 0.001);
   for (const f of ["portraitLift", "landscapeLift"]) number("areaRuntime", `view.${f}`, d.view[f], 0);
   // travel: the "Traveling to ..." message delay, how long a failure message shows, and the area preparation slices (engine/areas.js).
-  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "preparation"]);
+  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay", "preparation"]);
+  for (const f of ["lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay"]) count("areaRuntime", `travel.${f}`, d.travel[f], 1, 60);
   count("areaRuntime", "travel.messageDelayMs", d.travel.messageDelayMs, 0, 10000);
   count("areaRuntime", "travel.failureMessageSeconds", d.travel.failureMessageSeconds, 1, 60);
   closed(d.travel.preparation, ["deadlineMs", "idleTimeoutMs", "urgentSliceMs", "ambientSliceMs", "idleEnoughMs", "holdMs"]);
