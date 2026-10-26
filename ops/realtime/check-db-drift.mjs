@@ -7,7 +7,9 @@
 // The expected side is built here: every migration applied to a fresh pglite (server/db/tests/helpers.js, so `npm install` in server/db),
 // and the sha256 of each migration file for the registry. What may differ on purpose lives in ops/realtime/drift-allow.json, not here.
 // It compares: the registry (name and sha256), the rows of the seeded tables, every arma_* function (md5 of its definition, SECURITY
-// DEFINER, search_path), table and function grants (the owner and the allowed roles left out), row-level security flags and policies.
+// DEFINER, search_path, whether its owner is the tables' owner), table and function grants (the owner and the allowed roles left out),
+// row-level security flags and policies, triggers (definition and enabled state), table columns, constraints and indexes, and the arma
+// roles' attributes and memberships.
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -34,11 +36,17 @@ const grantees = (acl, owner) => {
 export function snapshotSql({ registry = false } = {}) {
   const tables = `from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and c.relname like 'arma\\_%' and c.relname <> '${REGISTRY}'`;
   const parts = [
-    `select 'func' s, p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' k, md5(pg_get_functiondef(p.oid)) || '|' || p.prosecdef::text || '|' || coalesce(p.proconfig::text, '') v from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'arma\\_%'`,
+    `select 'func' s, p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' k, md5(pg_get_functiondef(p.oid)) || '|' || p.prosecdef::text || '|' || coalesce(p.proconfig::text, '') || '|owner is the table owner:' || (p.proowner = (select relowner from pg_class where oid = 'public.arma_config'::regclass))::text v from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'arma\\_%'`,
     `select 'grant:func', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', ${grantees("coalesce(p.proacl, acldefault('f', p.proowner))", "p.proowner")} from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'arma\\_%'`,
     `select 'grant:table', c.relname, ${grantees("coalesce(c.relacl, acldefault('r', c.relowner))", "c.relowner")} ${tables}`,
     `select 'rls', c.relname, c.relrowsecurity::text || '|' || c.relforcerowsecurity::text ${tables}`,
     `select 'policy', tablename || '.' || policyname, cmd || '|' || permissive || '|' || array_to_string(roles, ',') || '|' || coalesce(qual, '') || '|' || coalesce(with_check, '') from pg_policies where schemaname = 'public' and tablename like 'arma\\_%' and tablename <> '${REGISTRY}'`,
+    // Triggers: the money path (arma_events_grant_cash) is a trigger, so a dropped, disabled or re-conditioned one must show.
+    `select 'trigger', c.relname || '.' || t.tgname, pg_get_triggerdef(t.oid) || '|' || t.tgenabled::text from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname like 'arma\\_%' and c.relname <> '${REGISTRY}' and not t.tgisinternal`,
+    // Table shape: columns (type, not null, default, generated, identity), constraints (CHECK, unique, key, foreign key) and indexes.
+    `select 'column', c.relname || '.' || a.attname, format_type(a.atttypid, a.atttypmod) || '|' || a.attnotnull::text || '|' || coalesce(pg_get_expr(d.adbin, d.adrelid), '') || '|' || a.attgenerated::text || '|' || a.attidentity::text from pg_attribute a join pg_class c on c.oid = a.attrelid join pg_namespace n on n.oid = c.relnamespace left join pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum where n.nspname = 'public' and c.relkind = 'r' and c.relname like 'arma\\_%' and c.relname <> '${REGISTRY}' and a.attnum > 0 and not a.attisdropped`,
+    `select 'constraint', c.relname || '.' || k.conname, pg_get_constraintdef(k.oid) from pg_constraint k join pg_class c on c.oid = k.conrelid join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname like 'arma\\_%' and c.relname <> '${REGISTRY}'`,
+    `select 'index', tablename || '.' || indexname, indexdef from pg_indexes where schemaname = 'public' and tablename like 'arma\\_%' and tablename <> '${REGISTRY}'`,
     // The arma roles: attributes (super, createrole, createdb, login, bypassrls, inherit, connection limit, role settings) and the roles
     // each belongs to (a grant of postgres or service_role would carry its privileges past every other check).
     `select 'role', rolname, rolsuper::text || '|' || rolcreaterole::text || '|' || rolcreatedb::text || '|' || rolcanlogin::text || '|' || rolbypassrls::text || '|' || rolinherit::text || '|' || rolconnlimit::text || '|' || coalesce(rolconfig::text, '') from pg_roles where rolname like 'arma\\_%'`,
@@ -84,7 +92,7 @@ function normalize(rows) {
   return rows.map(({ s, k, v }) => {
     if (s !== "row:arma_config") return { s, k, v };
     const row = JSON.parse(k);
-    return row.key in ALLOW.liveConfigKeys && typeof row.value === "boolean" ? { s, k: JSON.stringify({ key: row.key, value: LIVE }), v } : { s, k, v };
+    return Object.hasOwn(ALLOW.liveConfigKeys, row.key) && typeof row.value === "boolean" ? { s, k: JSON.stringify({ key: row.key, value: LIVE }), v } : { s, k, v };
   });
 }
 

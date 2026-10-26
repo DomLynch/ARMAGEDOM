@@ -89,6 +89,56 @@ test("the seeded table list in the allow-list is the list migration 000014 grant
   assert.deepEqual([...listed].sort(), [...ALLOW.seededTables].sort());
 });
 
+test("the money trigger: dropped, disabled or re-conditioned, it is reported", async () => {
+  const dropped = await drift(async (db) => { await db.exec(`drop trigger arma_events_grant_cash on public.arma_events`); });
+  assert.deepEqual(lines(dropped), ["trigger arma_events.arma_events_grant_cash"]);
+  assert.equal(dropped.differences[0].hosted, undefined);
+  const disabled = await drift(async (db) => { await db.exec(`alter table public.arma_events disable trigger arma_events_grant_cash`); });
+  assert.deepEqual(lines(disabled), ["trigger arma_events.arma_events_grant_cash"]);
+  const always = await drift(async (db) => { await db.exec(`alter table public.arma_events enable always trigger arma_events_grant_cash`); });
+  assert.deepEqual(lines(always), ["trigger arma_events.arma_events_grant_cash"]);
+  const def = (await (await hostedDb()).query(`select pg_get_triggerdef(oid) d from pg_trigger where tgname = 'arma_events_grant_cash'`)).rows[0].d;
+  assert.match(def, /WHEN \(\(new\.kind = 'kill'/);
+  const reconditioned = await drift(async (db) => {
+    await db.exec(`drop trigger arma_events_grant_cash on public.arma_events;
+      create trigger arma_events_grant_cash after insert on public.arma_events for each row when (new.kind = 'save') execute function public.arma_grant_kill_cash()`);
+  });
+  assert.deepEqual(lines(reconditioned), ["trigger arma_events.arma_events_grant_cash"]);
+  const extra = await drift(async (db) => { await db.exec(`create trigger arma_sneaky after insert on public.arma_cash for each row execute function public.arma_grant_kill_cash()`); });
+  assert.deepEqual(lines(extra), ["trigger arma_cash.arma_sneaky"]);
+});
+
+test("table shape: a dropped CHECK or key, a changed default or type, a new or dropped column, a dropped index are reported", async () => {
+  const check = (await (await hostedDb()).query(`select c.relname t, k.conname n from pg_constraint k join pg_class c on c.oid = k.conrelid where c.relname like 'arma\\_%' and k.contype = 'c' limit 1`)).rows[0];
+  const dropCheck = await drift(async (db) => { await db.exec(`alter table public.${check.t} drop constraint ${check.n}`); });
+  assert.deepEqual(lines(dropCheck), [`constraint ${check.t}.${check.n}`]);
+  const pk = await drift(async (db) => { await db.exec(`alter table public.arma_config drop constraint arma_config_pkey`); });
+  assert(lines(pk).includes("constraint arma_config.arma_config_pkey") && lines(pk).includes("index arma_config.arma_config_pkey"));
+  const added = await drift(async (db) => { await db.exec(`alter table public.arma_cash add column leak text`); });
+  assert.deepEqual(lines(added), ["column arma_cash.leak"]);
+  const dropped = await drift(async (db) => { await db.exec(`alter table public.arma_cash drop column earned`); });
+  assert(lines(dropped).includes("column arma_cash.earned"));
+  const retyped = await drift(async (db) => { await db.exec(`alter table public.arma_weapon_rules alter column max_hits_per_s type real`); });
+  assert(lines(retyped).includes("column arma_weapon_rules.max_hits_per_s"));
+  const dflt = await drift(async (db) => { await db.exec(`alter table public.arma_access alter column granted_at set default now() + interval '1 day'`); });
+  assert.deepEqual(lines(dflt), ["column arma_access.granted_at"]);
+  const notNull = await drift(async (db) => { await db.exec(`alter table public.arma_access alter column granted_at drop not null`); });
+  assert.deepEqual(lines(notNull), ["column arma_access.granted_at"]);
+  const index = await drift(async (db) => { await db.exec(`create index arma_extra_idx on public.arma_events (kind)`); });
+  assert.deepEqual(lines(index), ["index arma_events.arma_extra_idx"]);
+});
+
+test("a security definer function owned by someone other than the tables' owner is reported; the owner's name is not compared", async () => {
+  const owned = await drift(async (db) => { await db.exec(`create role elsewhere nologin; alter function public.arma_allowed(uuid) owner to elsewhere`); });
+  assert(lines(owned).includes("func arma_allowed(p_account uuid)"));
+  assert.match(owned.text, /owner is the table owner:false/);
+});
+
+test("a config key named like an object property is not mistaken for a live switch", async () => {
+  const report = await drift(async (db) => { await db.exec(`insert into public.arma_config (key, value) values ('constructor', 'true'::jsonb)`); });
+  assert.deepEqual(lines(report), ['row:arma_config {"key": "constructor", "value": true}']);
+});
+
 test("a role gaining BYPASSRLS, a membership, a write grant or losing its grant is reported", async () => {
   const bypass = await drift(async (db) => { await db.exec(`alter role arma_writer bypassrls`); });
   assert.deepEqual(lines(bypass), ["role arma_writer"]);
