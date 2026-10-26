@@ -73,8 +73,8 @@ export function createExitArrows(world) {
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(shape.triangles.flat(2), 3)); // tuning-ok: x, y, z per vertex
   // Back from the road's edge by the arrow's length and a little more, then further in until the whole arrow stands on clear ground.
   const { sampleStep } = GAME_DATA.visual.routeGuidance;
-  function alongClear(road, dir) {
-    for (let back = tipLength + EXIT_ARROWS.roadInset; back <= tipLength + EXIT_ARROWS.searchMetres; back += sampleStep) {
+  function alongClear(road, dir, inset) {
+    for (let back = tipLength + inset; back <= tipLength + EXIT_ARROWS.searchMetres; back += sampleStep) {
       const tail = { x: road.x - dir.x * back, z: road.z - dir.z * back },
         tip = { x: tail.x + dir.x * tipLength, z: tail.z + dir.z * tipLength };
       if (g.clear(tail, 0) && g.clear(tip, 0)) return tail;
@@ -82,7 +82,7 @@ export function createExitArrows(world) {
     return null;
   }
   // Keep the wanted direction when the arrow fits; otherwise turn it the least that lets it stand on clear ground.
-  function fit(road, wanted) {
+  function fit(road, wanted, inset) {
     const turn = (Math.PI * 2) / EXIT_ARROWS.directionSteps; // tuning-ok: full circle
     for (let k = 0; k <= EXIT_ARROWS.directionSteps / 2; k++) // tuning-ok: either side of the wanted direction
       for (const sign of k ? [1, -1] : [1]) {
@@ -91,7 +91,7 @@ export function createExitArrows(world) {
             x: wanted.x * Math.cos(angle) - wanted.z * Math.sin(angle),
             z: wanted.x * Math.sin(angle) + wanted.z * Math.cos(angle),
           },
-          tail = alongClear(road, dir);
+          tail = alongClear(road, dir, inset);
         if (tail) return { tail, dir };
       }
     return { tail: { x: road.x - wanted.x * tipLength, z: road.z - wanted.z * tipLength }, dir: wanted };
@@ -100,7 +100,9 @@ export function createExitArrows(world) {
     const target = zoneGround(g, link.condition);
     if (!target) continue;
     const road = nearestOnRoad(g.road, target),
-      { tail, dir } = fit(road, exitDirection(link.condition, EXIT_ARROWS.edgeBand, middle, target)),
+      // An exit on the painting's bottom edge sits further in, so its arrow clears the touch controls.
+      inset = link.condition.yMin >= 1 - EXIT_ARROWS.edgeBand ? EXIT_ARROWS.bottomEdgeInset : EXIT_ARROWS.roadInset,
+      { tail, dir } = fit(road, exitDirection(link.condition, EXIT_ARROWS.edgeBand, middle, target), inset),
       mesh = new THREE.Mesh(geometry, material);
     mesh.name = `Exit arrow to ${link.to}`;
     mesh.position.copy(world.toRender(tail, shape.height));

@@ -6,7 +6,8 @@ const fail = (why) => {
   throw TypeError(`Invalid game data visual: exitArrows.${why}`);
 };
 export function validateExitArrows(a) {
-  closed(a, ["opacity", "widthScale", "lengthScale", "edgeBand", "roadInset", "searchMetres", "directionSteps"]);
+  closed(a, ["opacity", "widthScale", "lengthScale", "edgeBand", "roadInset", "bottomEdgeInset", "searchMetres", "directionSteps"]);
+  if (!Number.isFinite(a.bottomEdgeInset) || a.bottomEdgeInset < a.roadInset || a.bottomEdgeInset > a.searchMetres) fail("bottomEdgeInset must run from roadInset to searchMetres metres");
   if (!Number.isSafeInteger(a.directionSteps) || a.directionSteps < 4 || a.directionSteps > 64) fail("directionSteps must be a whole number from 4 to 64");
   if (!Number.isFinite(a.searchMetres) || a.searchMetres < a.roadInset || a.searchMetres > 20) fail("searchMetres must run from roadInset to 20 metres");
   for (const f of ["opacity", "widthScale", "lengthScale"]) if (!(a[f] > 0 && a[f] <= 1)) fail(`${f} must be above 0 and at most 1`);
