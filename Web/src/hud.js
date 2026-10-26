@@ -303,7 +303,13 @@ export function createHUD({
             : Number.isFinite(cost) && cost > 0 && (stamina < cost || exhausted);
         };
         const low = stamina <= 0 || ["slash", "stab", "heavy", "dodge"].some(unaffordable);
-        const staminaState = exhausted ? "EXHAUSTED" : p.guardBrokenUntil > g.time ? webText("hud.guardBroken") : low ? "LOW" : "";
+        const staminaState = exhausted
+          ? webText("hud.label.exhausted")
+          : p.guardBrokenUntil > g.time
+            ? webText("hud.guardBroken")
+            : low
+              ? webText("hud.label.low")
+              : "";
         el("guard-fill").style.width = `${(stamina / maximum) * 100}%`;
         el("guard-number").textContent = `${Math.ceil(stamina)} / ${maximum}`;
         const bar = el("stamina-bar");
@@ -343,7 +349,7 @@ export function createHUD({
         el("progression-panel").hidden = !model;
         if (model) {
           const weapon = p.weapon === "pistol" ? "westminster-start-pistol-v1" : "knife",
-            label = weapon === "knife" ? "KNIFE" : "PISTOL";
+            label = webText(weapon === "knife" ? "hud.label.knife" : "hud.label.pistol");
           const bonus = (id) =>
             percentBonus(
               pilotBonuses(g.world.progressionData, DEFAULT_ATTRIBUTES, id, progression.proficiency[id]).damageMultiplier,
@@ -415,12 +421,22 @@ export function createHUD({
           if (equipped !== lastPistolEquipped) {
             for (const [id, label] of Object.entries(
               equipped
-                ? { slash: "FIRE", stab: "RELOAD", heavy: "MELEE", guard: webText("hud.noGuard") }
-                : { slash: "SLASH", stab: "STAB", heavy: "HEAVY", guard: "GUARD" },
+                ? {
+                    slash: webText("hud.label.fire"),
+                    stab: webText("hud.label.reload"),
+                    heavy: webText("hud.label.melee"),
+                    guard: webText("hud.noGuard"),
+                  }
+                : {
+                    slash: webText("hud.label.slash"),
+                    stab: webText("hud.label.stab"),
+                    heavy: webText("hud.label.heavy"),
+                    guard: webText("hud.label.guard"),
+                  },
             ))
               el(id).querySelector("span").textContent = label;
             el("guard").disabled = equipped;
-            if (!equipped) el("guard").setAttribute("aria-label", "Guard");
+            if (!equipped) el("guard").setAttribute("aria-label", webText("hud.aria.guard"));
             lastPistolEquipped = equipped;
           }
           if (equipped) {
@@ -429,7 +445,7 @@ export function createHUD({
           // The pistol tile and FIRE button already show the magazine; the top-left line is a duplicate.
           el("ammo").hidden = true;
           el("ammo").textContent = webText("hud.ammo.pistol", {
-            name: (selectedPistolProfile(g).name ?? "PISTOL").toUpperCase(),
+            name: (selectedPistolProfile(g).name ?? webText("hud.label.pistol")).toUpperCase(),
             magazine: pistol.magazine,
             capacity: PISTOL_RULES.capacity,
             reserve: pistol.reserve,
@@ -462,7 +478,7 @@ export function createHUD({
                       reloading: pistol.reloadingUntil ? webText("hud.reloadingAria") : "",
                     })
                   : id === "stab"
-                    ? "Reload"
+                    ? webText("hud.aria.reload")
                     : webText("hud.switchToMelee"),
               );
             }
@@ -481,9 +497,9 @@ export function createHUD({
             clock = g.rifleAction ?? {},
             left = Math.max(0, (clock.nextFireAt ?? 0) - g.time);
           for (const [id, text] of Object.entries({
-            slash: "FIRE",
-            stab: "RELOAD",
-            heavy: "MELEE",
+            slash: webText("hud.label.fire"),
+            stab: webText("hud.label.reload"),
+            heavy: webText("hud.label.melee"),
             guard: webText("hud.noGuard"),
           }))
             el(id).querySelector("span").textContent = text;
@@ -491,7 +507,7 @@ export function createHUD({
           el("guard").setAttribute("aria-label", webText("hud.guardUnavailable.rifle"));
           el("ammo").hidden = false;
           el("ammo").textContent = webText("hud.ammo.standard", {
-            name: "RIFLE",
+            name: webText("hud.label.rifle"),
             magazine: rifle.magazine,
             capacity: rules.capacity,
             reserve: rifle.reserve,
@@ -524,32 +540,36 @@ export function createHUD({
             rocket = bossWeapon === "rocketLauncher",
             capacity = data.rules.capacity;
           for (const [id, text] of Object.entries({
-            slash: grenade ? "THROW" : "FIRE",
-            stab: grenade ? "RANGE" : "RELOAD",
-            heavy: "MELEE",
-            guard: grenade ? "MODE" : webText("hud.noGuard"),
+            slash: webText(grenade ? "hud.label.throw" : "hud.label.fire"),
+            stab: webText(grenade ? "hud.label.range" : "hud.label.reload"),
+            heavy: webText("hud.label.melee"),
+            guard: grenade ? webText("hud.label.mode") : webText("hud.noGuard"),
           }))
             el(id).querySelector("span").textContent = text;
           el("guard").disabled = !grenade;
           el("guard").setAttribute(
             "aria-label",
             grenade
-              ? webText("hud.grenadeMode", { mode: g.grenadeMode === "sticky" ? "Sticky" : "Standard" })
+              ? webText("hud.grenadeMode", {
+                  mode: webText(g.grenadeMode === "sticky" ? "hud.aria.stickyMode" : "hud.aria.standardMode"),
+                })
               : webText("hud.guardUnavailable.weapon", { name: data.name }),
           );
           if (grenade) {
             el("guard").classList.remove("low-energy", "cooldown", "pressed");
-            el("guard").querySelector("small").textContent = g.grenadeMode === "sticky" ? "STICKY" : "STANDARD";
+            el("guard").querySelector("small").textContent = webText(
+              g.grenadeMode === "sticky" ? "hud.label.sticky" : "hud.label.standard",
+            );
           }
           el("ammo").hidden = false;
           el("ammo").textContent = grenade
             ? webText("hud.ammo.grenade", {
-                mode: g.grenadeMode === "sticky" ? "STICKY" : "STANDARD",
+                mode: webText(g.grenadeMode === "sticky" ? "hud.label.sticky" : "hud.label.standard"),
                 magazine: state.magazine,
                 fuse: GRENADE_FUSE,
               })
             : webText("hud.ammo.standard", {
-                name: rocket ? "ROCKET" : "SHOTGUN",
+                name: webText(rocket ? "hud.label.rocket" : "hud.label.shotgun"),
                 magazine: state.magazine,
                 capacity,
                 reserve: state.reserve,
@@ -577,7 +597,10 @@ export function createHUD({
             "aria-label",
             grenade
               ? webText("hud.fire.grenade", { magazine: state.magazine })
-              : webText("hud.fire.boss", { kind: rocket ? "rocket" : "shotgun", magazine: state.magazine }),
+              : webText("hud.fire.boss", {
+                  kind: webText(rocket ? "hud.aria.rocket" : "hud.aria.shotgun"),
+                  magazine: state.magazine,
+                }),
           );
           el("stab").setAttribute(
             "aria-label",
@@ -594,14 +617,14 @@ export function createHUD({
             progress = charge ? Math.min(1, (g.time - charge.startedAt) / data.charge.seconds) : 0,
             ready = charge && g.time + 1e-8 >= charge.readyAt,
             left = Math.max(0, (clock.nextFireAt ?? 0) - g.time);
-          el("slash").querySelector("span").textContent = ready ? "RELEASE" : "CHARGE";
+          el("slash").querySelector("span").textContent = webText(ready ? "hud.label.release" : "hud.label.charge");
           el("slash").querySelector("small").textContent = charge
             ? ready
-              ? "READY"
+              ? webText("hud.label.ready")
               : `${Math.floor(progress * 100)}%`
             : g.railgunStatus?.until > g.time &&
                 ["early-release", "cancel", "expired", "interrupted"].includes(g.railgunStatus.reason)
-              ? "CANCELLED"
+              ? webText("hud.label.cancelled")
               : `${state.magazine}/${data.rules.capacity}`;
           el("slash").style.setProperty(
             "--ready",
@@ -627,9 +650,9 @@ export function createHUD({
           el("ammo").hidden = false;
           el("ammo").textContent = webText("hud.ammo.ember", { percent });
           for (const [id, text] of Object.entries({
-            slash: "FLAME",
-            stab: "RETURN",
-            heavy: "RETURN",
+            slash: webText("hud.label.flame"),
+            stab: webText("hud.label.return"),
+            heavy: webText("hud.label.return"),
             guard: webText("hud.noGuard"),
           }))
             el(id).querySelector("span").textContent = text;
@@ -648,8 +671,8 @@ export function createHUD({
           el("slash").style.setProperty("--ready", "1");
         }
         if (boneSawEquipped(g)) {
-          el("slash").querySelector("span").textContent = "CUT";
-          el("slash").querySelector("small").textContent = "HOLD";
+          el("slash").querySelector("span").textContent = webText("hud.label.cut");
+          el("slash").querySelector("small").textContent = webText("hud.label.hold");
           el("slash").classList.toggle("low-energy", p.stamina <= 0);
           el("slash").classList.toggle("cooldown", false);
           el("slash").setAttribute("aria-label", webText("hud.boneSawCut"));
