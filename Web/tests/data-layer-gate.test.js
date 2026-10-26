@@ -52,16 +52,23 @@ test("a new table in engine code fails and points at the data folder; legacy cou
   assert.match(constantTableProblems(grown.paths, { constantTables: { "mod.js": 3 } }, grown.dir)[0], /Lower it to 2/);
 });
 
-test("only engine/game-data.js may import a data/*.json file, in any import form", (t) => {
+test("only engine/game-data.js may import a .json file, in any import form; keep-in-code.json names the exceptions", (t) => {
   const { dir, paths } = sample(t, {
     "a.js": 'import x from "../data/weapons.json" with { type: "json" };\n',
     "b.js": 'const x = await import("./data/creatures.json");\n',
     "c.js": 'import y from "./finisher-data.json" with { type: "json" };\n',
     "d.js": "export const ok = 1;\n",
+    "e.js": 'import z from "./donor/cleaver-paths.json" with { type: "json" };\nimport w from "./rat-data/low-slash.json" with { type: "json" };\n',
+    "f.js": 'import q from "./donor-extra/x.json" with { type: "json" };\n',
   });
   const problems = dataImportProblems(paths, dir);
-  assert.equal(problems.length, 2, "a.js and b.js, not c.js (not under data/) or d.js");
+  assert.equal(problems.length, 4, "a, b, c and f; not the donor / rat-data captures in e or d.js");
   assert.ok(problems.every((p) => p.includes(GAME_DATA_LOADER)));
+  const legacy = dataImportProblems(paths, dir, { jsonImports: ["a.js", "b.js", "c.js", "f.js"] });
+  assert.deepEqual(legacy, [], "baselined offenders pass");
+  const stale = dataImportProblems(paths, dir, { jsonImports: ["a.js", "b.js", "c.js", "f.js", "d.js"] });
+  assert.equal(stale.length, 1);
+  assert.match(stale[0], /d\.js: no longer imports a json file directly/);
 });
 
 test("the loader itself is allowed to import data files", (t) => {

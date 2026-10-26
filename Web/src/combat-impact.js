@@ -86,7 +86,8 @@ export function createCombatImpact(options) {
         cameraX = decay(cameraX, dt, IMPACT.decayRate.camera);
         cameraY = decay(cameraY, dt, IMPACT.decayRate.camera);
         // Once settled, avoid unbounded phase or Infinity for extreme finite dt.
-        cameraAge = cameraX || cameraY ? (cameraAge + dt) % ((2 * Math.PI) / IMPACT.waveRate) : 0;
+        const period = (2 * Math.PI) / IMPACT.waveRate; // tuning-ok: 2 * pi is one full turn in radians
+        cameraAge = cameraX || cameraY ? (cameraAge + dt) % period : 0;
       }
       return snapshot();
     },

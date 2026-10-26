@@ -130,11 +130,66 @@
     "minOpacity": 0.6,
     "itemPulse": 0.07,
     "labelHeight": 1.6,
-    "labelWidth": 3.4
+    "labelWidth": 3.4,
+    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25 },
+    "glow": {
+      "canvasPx": 256,
+      "groundY": 0.04,
+      "clearShare": 0.8,
+      "clearAlpha": 0.05,
+      "innerAlpha": 0.45,
+      "bandAlpha": 0.6,
+      "outerAlpha": 0.45,
+      "tailShare": 0.35,
+      "tailAlpha": 0.18
+    },
+    "ringY": 0.045,
+    "ringSegments": 48
   },
   "routeArrow": {
     "peakOpacity": 0.6,
     "tailGap": 1
+  },
+  "routeGuidance": {
+    "clearance": 0.4,
+    "sampleStep": 0.1,
+    "boundaryReach": 3.5,
+    "exitReach": 5,
+    "boundaryStartReach": 7,
+    "rail": {
+      "sideProbe": 0.3,
+      "sideOffset": 0.12,
+      "segments": 8,
+      "centreHeight": 0.72,
+      "thickness": 0.28,
+      "depth": 0.12,
+      "colours": ["d0a943", "252522"],
+      "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a" }
+    },
+    "arrow": {
+      "height": 0.04,
+      "triangles": [
+        [[-0.13, 0, 0], [0.13, 0, 0], [0.13, 0, 1.05]],
+        [[-0.13, 0, 0], [0.13, 0, 1.05], [-0.13, 0, 1.05]],
+        [[-0.32, 0, 0.97], [0.32, 0, 0.97], [0, 0, 1.43]]
+      ]
+    },
+    "marker": {
+      "height": 0.045,
+      "showDistance": 9,
+      "exitHintRemaining": 1.2,
+      "ring": { "inner": 0.48, "outer": 0.62, "segments": 32, "colour": "dfba59" },
+      "sign": {
+        "canvas": [512, 128],
+        "borderWidth": 5,
+        "border": [3, 3, 506, 122],
+        "textX": 256,
+        "lineY": [53, 96],
+        "fonts": ["bold 34px sans-serif", "26px sans-serif"],
+        "size": [3.6, 0.9],
+        "height": 1.65
+      }
+    }
   },
   "severBlood": {
     "jet": { "capacity": 2, "duration": 0.5, "length": 1.2, "radius": 0.075 },
