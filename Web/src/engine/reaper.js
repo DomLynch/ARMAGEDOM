@@ -1,5 +1,7 @@
 import { closedData } from "./progression-state.js";
 import { safehouseWeaponBlocked, safehouseTouches, safehouseBlocksSegment } from "./safehouse.js";
+import { GAME_DATA } from "./game-data.js";
+const MOTION = GAME_DATA.reaperMotion; // data/reaperMotion.json: the step bound and the orbit speed
 export const REAPER_ITEM_ID = "watchmans-pistol-v1";
 export const REAPER_RECEIPT = "west-east-stolen-supply-v1:watchmans-pistol-v1";
 export const REAPER_ACTOR_ID = -1;
@@ -68,7 +70,7 @@ export function reaperTarget(g, origin) {
 export function stepReaper(g, dt, { source, trace, aimHeight, emitBolt, hit } = {}) {
   const r = g.world.reaperData?.rules;
   if (!r) return;
-  if (!Number.isFinite(dt) || dt <= 0 || dt > 1 / 30) throw TypeError("Finite Reaper step required");
+  if (!Number.isFinite(dt) || dt <= 0 || dt > MOTION.maxStepSeconds) throw TypeError("Finite Reaper step required");
   const p = g.player;
   if (
     !reaperSelected(g) ||
@@ -95,8 +97,8 @@ export function stepReaper(g, dt, { source, trace, aimHeight, emitBolt, hit } = 
     s.actor.pos = { ...p.pos };
   }
   const goal = {
-      x: p.pos.x + Math.cos(g.time * 0.65) * r.orbitRadius,
-      z: p.pos.z + Math.sin(g.time * 0.65) * r.orbitRadius,
+      x: p.pos.x + Math.cos(g.time * MOTION.orbitRate) * r.orbitRadius,
+      z: p.pos.z + Math.sin(g.time * MOTION.orbitRate) * r.orbitRadius,
     },
     dx = goal.x - s.actor.pos.x,
     dz = goal.z - s.actor.pos.z,

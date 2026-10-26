@@ -1,4 +1,9 @@
 import * as T from "three";
+import { GRENADE_VIEW } from "./grenade-view-data.js";
+const WEIGHTS_PER_VERTEX = 4; // tuning-ok: glTF skinning carries four bone influences per vertex
+const XYZ = 3; // tuning-ok: x, y, z per cached vertex
+const WEIGHT_SUM_TOLERANCE = 1e-6; // tuning-ok: float tolerance for a vertex's bone weights summing to 1
+const COINCIDENT_DISTANCE = 1e-9; // tuning-ok: float tolerance for a zero-length aim ray
 // Actor-owned queries only: visible triangle contact, never an aim-target snap.
 const visible = (mesh) => {
   for (let n = mesh; n; n = n.parent) if (!n.visible) return false;
@@ -56,7 +61,7 @@ function posedBounds(mesh) {
     };
     for (let i = 0; i < position.count && saved.valid; i++) {
       let sum = 0;
-      for (let j = 0; j < 4; j++) {
+      for (let j = 0; j < WEIGHTS_PER_VERTEX; j++) {
         const weight = weights.getComponent(i, j),
           index = indices.getComponent(i, j);
         sum += weight;
@@ -78,7 +83,7 @@ function posedBounds(mesh) {
         box.expandByPoint(boundPoint);
       }
       const error = Math.abs(sum - 1);
-      if (!Number.isFinite(sum) || error > 1e-6) saved.valid = false;
+      if (!Number.isFinite(sum) || error > WEIGHT_SUM_TOLERANCE) saved.valid = false;
       else saved.error = Math.max(saved.error, error);
     }
     envelopes.set(mesh, saved);
@@ -129,12 +134,12 @@ export function posedActorBounds(view, { skinnedOnly = false } = {}) {
 // the current rendered bones/geometry; low bodies still fall back to ground.
 export function surfaceAimHeight(views, enemy, start, end) {
   const view = views.get(enemy?.id);
-  if (!view || !(enemy.hp > 0)) return 0.05;
+  if (!view || !(enemy.hp > 0)) return GRENADE_VIEW.groundHeight;
   view.root.updateWorldMatrix(true, true);
   const origin = new T.Vector3(start.x, start.y, start.z),
     delta = new T.Vector3(end.x, end.y, end.z).sub(origin),
     distance = delta.length();
-  if (distance < 1e-9) return 0.05;
+  if (distance < COINCIDENT_DISTANCE) return GRENADE_VIEW.groundHeight;
   const ray = new T.Ray(origin, delta.normalize()),
     local = new T.Ray();
   let found = false,
@@ -163,7 +168,7 @@ export function surfaceAimHeight(views, enemy, start, end) {
     )
       found = true;
   });
-  return found || (unknown && traceGrenadeSurface(views, [enemy], start, end)) ? end.y : 0.05;
+  return found || (unknown && traceGrenadeSurface(views, [enemy], start, end)) ? end.y : GRENADE_VIEW.groundHeight;
 }
 // Reuse exact posed positions across bounds and indexed triangle tests in one query.
 // Float64 preserves JS coordinates; no geometry, skeleton or cross-frame cache changes.
@@ -174,21 +179,21 @@ function queryVertices() {
     if (!mesh.isSkinnedMesh) return query();
     const count = mesh.geometry.attributes.position.count;
     if (seen.length < count) {
-      positions = new Float64Array(count * 3);
+      positions = new Float64Array(count * XYZ);
       seen = new Uint8Array(count);
     } else seen.fill(0, 0, count);
     const descriptor = Object.getOwnPropertyDescriptor(mesh, "getVertexPosition"),
       original = mesh.getVertexPosition;
     mesh.getVertexPosition = function (index, target) {
-      const offset = index * 3;
+      const offset = index * XYZ;
       if (!seen[index]) {
         original.call(this, index, target);
         positions[offset] = target.x;
         positions[offset + 1] = target.y;
-        positions[offset + 2] = target.z;
+        positions[offset + 2] = target.z; // tuning-ok: z of the x, y, z triple
         seen[index] = 1;
       }
-      return target.set(positions[offset], positions[offset + 1], positions[offset + 2]);
+      return target.set(positions[offset], positions[offset + 1], positions[offset + 2]); // tuning-ok: the x, y, z triple
     };
     try {
       return query();
@@ -203,7 +208,7 @@ export function traceGrenadeSurface(views, enemies, start, end, { pierce = false
     to = new T.Vector3(end.x, end.y, end.z),
     delta = to.clone().sub(from),
     distance = delta.length();
-  if (distance < 1e-9) return null;
+  if (distance < COINCIDENT_DISTANCE) return null;
   const ray = new T.Raycaster(from, delta.normalize(), 0, distance),
     meshes = [],
     owners = new Map();

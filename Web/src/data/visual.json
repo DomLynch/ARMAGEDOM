@@ -609,5 +609,6 @@
       "colour": "ffc46b"
     },
     "scorch": { "seconds": 3, "fadeStart": 0.4, "diameterRatio": 1.6, "opacity": 0.8, "colour": "0a0806" }
-  }
+  },
+  "grenadeView": { "groundHeight": 0.05, "flightSeconds": 0.35, "arcHeight": 1.2 }
 }

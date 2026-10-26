@@ -16,6 +16,8 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import runNotices from "../data/runNotices.json" with { type: "json" };
+import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
+import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import guestAuth from "../data/guestAuth.json" with { type: "json" };
@@ -47,6 +49,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -82,6 +85,8 @@ export {
   validateCombatRules,
   validateCommanderSession,
   validateRunNotices,
+  validateMarkedHunterSpawn,
+  validateReaperMotion,
   validateCreatures,
   validateCreditPolicies,
   validateDiagnostics,
@@ -236,6 +241,7 @@ export function validateVisual(d) {
     "bossEquipmentView",
     "routeGuidance",
     "exitArrows",
+    "grenadeView",
     "input",
     "touchTarget",
     "expeditionHud",
@@ -479,8 +485,9 @@ const fraction = (field, v, min = 0, max = 1) => {
   if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max)
     fail("atmosphere", `${field} must be ${min} to ${max}`);
 };
+const ATMOSPHERE_ROW_MAX = 16; // tuning-ok: validator ceiling for an atmosphere row's numbers
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
-  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, 16);
+  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, ATMOSPHERE_ROW_MAX);
   if (Object.hasOwn(row, "smokeColor")) {
     if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3)
       fail("atmosphere", `${field}.smokeColor`);
@@ -964,6 +971,8 @@ const sources = () => ({
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   runNotices: [runNotices, validateRunNotices],
+  markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
+  reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],

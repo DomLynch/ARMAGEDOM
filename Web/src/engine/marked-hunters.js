@@ -1,5 +1,7 @@
 import { safehouseTouches, safehouseSite, safehouseBlocksSegment } from "./safehouse.js";
 import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
+import { GAME_DATA } from "./game-data.js";
+const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false } = {}) {
   if (!g.world.markedData) return;
@@ -49,12 +51,12 @@ export function markedEntry(g, { position = null } = {}) {
       geometry.ground({
         x:
           l.condition.xMin !== undefined && l.condition.xMax !== undefined
-            ? (l.condition.xMin + l.condition.xMax) / 2
-            : (l.condition.xMin ?? l.condition.xMax ?? 0.5),
+            ? (l.condition.xMin + l.condition.xMax) / 2 // tuning-ok: midpoint of the gate band
+            : (l.condition.xMin ?? l.condition.xMax ?? SPAWN.gateDefaultCoordinate),
         y:
           l.condition.yMin !== undefined && l.condition.yMax !== undefined
-            ? (l.condition.yMin + l.condition.yMax) / 2
-            : (l.condition.yMin ?? l.condition.yMax ?? 0.5),
+            ? (l.condition.yMin + l.condition.yMax) / 2 // tuning-ok: midpoint of the gate band
+            : (l.condition.yMin ?? l.condition.yMax ?? SPAWN.gateDefaultCoordinate),
       }),
     );
   const candidates = [];
@@ -66,16 +68,16 @@ export function markedEntry(g, { position = null } = {}) {
     if (position && gap(p, position) > 1e-8) continue;
     if (
       gap(p, g.player.pos) < config.minSpawnDistance ||
-      !geometry.clear(p, 0.4) ||
-      safehouseTouches(g, p, 0.43) ||
+      !geometry.clear(p, SPAWN.bodyRadius) ||
+      safehouseTouches(g, p, SPAWN.safehouseRadius) ||
       w.travelAt?.(p) ||
-      gates.some((q) => gap(p, q) < 2) ||
-      g.enemies.some((e) => e.hp > 0 && gap(p, e.pos) < (e.radius ?? 0.4) + 0.65)
+      gates.some((q) => gap(p, q) < SPAWN.gateGap) ||
+      g.enemies.some((e) => e.hp > 0 && gap(p, e.pos) < (e.radius ?? SPAWN.bodyRadius) + SPAWN.enemyGap)
     )
       continue;
-    const probe = { pos: p, home: p, radius: 0.4 },
+    const probe = { pos: p, home: p, radius: SPAWN.bodyRadius },
       target = navigation.steer({ world: w, actor: probe, goal: g.player.pos, time: g.time, leash: Infinity });
-    if (!bodyLineClear(geometry, p, target, 0.4) || safehouseBlocksSegment(g, p, target)) continue;
+    if (!bodyLineClear(geometry, p, target, SPAWN.bodyRadius) || safehouseBlocksSegment(g, p, target)) continue;
     candidates.push(p);
   }
   return candidates.sort((a, b) => gap(b, g.player.pos) - gap(a, g.player.pos))[0] ?? null;
@@ -137,5 +139,5 @@ export function stepMarkedHunters(g, spawn) {
   s.nextSpawnAt = g.time + c.spawnCooldown;
   g.events.push({ type: "marked-hunter-arrived", actor, position: { ...p } });
   g.message = "A hunter is after you";
-  g.messageUntil = g.time + 4;
+  g.messageUntil = g.time + SPAWN.messageSeconds;
 }
