@@ -10,15 +10,17 @@ const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const data=read('../public/world/area-content.json'),base=read('./fixtures/boss-aggression218-baseline.json');
 test('219 changes only six boss movement/acquisition/timing fields and uniformly resampled native paths',()=>{
  const {bosses,...other}=structuredClone(data);delete other.expedition.contract.enabled;delete other.marked.hunters;delete other.marked.bounty; // the 24 Oct contract/hunter/bounty switches
- const expected=structuredClone(base.protected);for(const key of['hunterBounty','arrivalDelay','respawnDelay']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate, 75 s first arrival, 105 s re-arrival)
+ const expected=structuredClone(base.protected);for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate); 26 Oct: 60 s first arrival, 90 s re-arrival, no resident cap
  assert.deepEqual(other,expected);
- assert.deepEqual(bosses.placements,base.bosses.placements);assert.deepEqual(bosses.profiles.witch,base.bosses.profiles.witch);
+ assert.deepEqual(bosses.placements,base.bosses.placements);{const {wakeDistance,homeLeash,...witch}=bosses.profiles.witch,{wakeDistance:w0,homeLeash:h0,...witch0}=base.bosses.profiles.witch;assert.deepEqual(witch,witch0);assert.equal(wakeDistance,10);assert.equal(homeLeash,18);} // 26 Oct: witch wake/leash follow the other bosses; every other witch field is the 218 baseline
  assert.deepEqual(bosses.paths['boss-witch-attack'],base.bosses.paths['boss-witch-attack']);
  for(const[id,p]of Object.entries(bosses.profiles)){
   const old=base.bosses.profiles[id];if(id==='witch')continue;
-  assert.equal(p.moveSpeed,Math.round(old.moveSpeed*1.275*1e6)/1e6);
-  assert.equal(p.wakeDistance,['surgeon','butcher','nightborn'].includes(id)?4.62:3.36);
-  const allowed=new Set(['moveSpeed','wakeDistance',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay'])]);
+  assert.equal(p.moveSpeed,1.9); // 26 Oct (Dom): bosses were too passive; was the 218 speed x 1.275 (1.285 to 1.785); the witch keeps 2.275
+  // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
+  assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
+  assert.equal(p.homeLeash,18);
+  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay'])]);
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);
   if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);

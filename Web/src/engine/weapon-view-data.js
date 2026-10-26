@@ -66,7 +66,7 @@ export function validateWeaponViews(v) {
   number("flame.ring.lift", f.ring.lift, 0);
   number("flame.messageSeconds", f.messageSeconds, 0.001);
   closed(v.rifle, ["pickup", "messageSeconds", "loadFailedSeconds"]);
-  closed(v.uniqueReward, ["pickup", "messageSeconds", "loadFailedSeconds", "pickupReach"]);
+  closed(v.uniqueReward, ["pickup", "messageSeconds", "loadFailedSeconds"]);
   for (const name of ["rifle", "uniqueReward"]) {
     const row = v[name];
     closed(row.pickup, ["fitSize", "lift"]);
@@ -75,7 +75,6 @@ export function validateWeaponViews(v) {
     number(`${name}.messageSeconds`, row.messageSeconds, 0.001);
     number(`${name}.loadFailedSeconds`, row.loadFailedSeconds, 0.001);
   }
-  number("uniqueReward.pickupReach", v.uniqueReward.pickupReach, 0.001);
   closed(v.marked, ["headTotalSeconds"]);
   number("marked.headTotalSeconds", v.marked.headTotalSeconds, 0.001);
 }

@@ -14,12 +14,11 @@ const old = {
   maxMoney: 1000000000,
   hunterBounty: 0, // was 300 until Dom brought the hunters back always on (25 Oct): no bounty is needed
   maxHunters: 1,
-  hostileBudget: 6,
-  minSpawnDistance: 8,
+  minSpawnDistance: 8, // hostileBudget (6) is gone: area residents no longer block hunters
   warningSeconds: 2,
   spawnCooldown: 30,
-  arrivalDelay: 75, // was 6: the first hunter comes about 75 s in
-  respawnDelay: 105, // new: the next one comes this long after the previous dies or leaves
+  arrivalDelay: 60, // was 6, then 75: the first hunter comes about 60 s into the run
+  respawnDelay: 90, // was 105: the next one comes this long after the previous dies or leaves
   hunterHealth: 80,
   hunterSpeed: 3.2,
   shop: {pistol: {price: 100, amount: 6}, rifle: {price: 150, amount: 4}, dressing: {price: 100, amount: 25}},

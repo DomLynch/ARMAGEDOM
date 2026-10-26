@@ -49,20 +49,20 @@ export function uniqueRewardDropPosition(g, corpse, data = g.world.uniqueRewardD
     ![origin?.x, origin?.z].every(Number.isFinite)
   )
     return null;
-  const ground = (p) => w.geometry.clear(p, 0.4) && !w.travelAt?.(p),
+  const { nearRadii, fallbackRadii, ringSteps } = GAME_DATA.uniqueReward.dropSearch; // data/uniqueReward.json
+  const ground = (p) => w.geometry.clear(p, GAME_DATA.combatRules.player.radius) && !w.travelAt?.(p),
     legal = (p) => ground(p) && w.lineClear(origin, p);
   if (legal(origin)) return { x: origin.x, z: origin.z };
   const ring = (radii, accept) => {
     for (const radius of radii)
-      for (let i = 0; i < 16; i++) {
-        const angle = (i * Math.PI) / 8,
+      for (let i = 0; i < ringSteps; i++) {
+        const angle = (i * Math.PI) / (ringSteps >> 1), // ringSteps is even: half a turn is that many steps
           p = { x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius };
         if (accept(p)) return p;
       }
     return null;
   };
   // A corpse against a wall or exit has no spot within 1 m; widen, then drop the corpse line (pickup only needs player-to-spot clearance), then use the area entry.
-  const { nearRadii, fallbackRadii } = GAME_DATA.uniqueReward.dropSearch; // data/uniqueReward.json
   const near = ring(nearRadii, legal) ?? ring(fallbackRadii, legal) ?? ring(fallbackRadii, ground);
   if (near) return near;
   // The registry entry is a normalized artwork point; geometry.ground maps it to world metres (as world.js does).

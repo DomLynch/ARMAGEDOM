@@ -449,7 +449,7 @@
       "messageSeconds": 4
     },
     "rifle": { "pickup": { "fitSize": 0.72, "lift": 0.025 }, "messageSeconds": 4, "loadFailedSeconds": 5 },
-    "uniqueReward": { "pickup": { "fitSize": 0.72, "lift": 0.025 }, "messageSeconds": 4, "loadFailedSeconds": 5, "pickupReach": 1.3 },
+    "uniqueReward": { "pickup": { "fitSize": 0.72, "lift": 0.025 }, "messageSeconds": 4, "loadFailedSeconds": 5 },
     "marked": { "headTotalSeconds": 2.5 }
   },
   "combatImpact": {

@@ -163,7 +163,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
       g.world.areaId === data.areaId &&
       source(data.itemId) &&
       Math.hypot(g.player.pos.x - state.dropPosition.x, g.player.pos.z - state.dropPosition.z) <=
-        REWARD.pickupReach + 1e-8 &&
+        GAME_DATA.uniqueReward.pickupRadius + 1e-8 &&
       g.world.lineClear(g.player.pos, state.dropPosition)
     );
   }
