@@ -53,8 +53,8 @@ export function validateAreaBosses(input, registry, residents = {}) {
       ["health", 40, 140],
       ["radius", 0.35, 0.6],
       ["moveSpeed", 0.7, 2.5],
-      ["wakeDistance", 2, 6],
-      ["homeLeash", 3, 8],
+      ["wakeDistance", 2, 12],
+      ["homeLeash", 3, 20],
       ["recoveryDelay", 0.4, 2.5],
       ["contactScale", 0.2, 3],
     ])
@@ -353,7 +353,11 @@ export function validateBossGeometry(data, areaId, g, registry) {
       clearRadius = p.hazard ? Math.max(p.radius, p.hazard.radius + 0.4) : p.radius;
     if (
       !g.clear(row.pos, clearRadius) ||
-      entries.some((e) => Math.hypot(e.x - row.pos.x, e.z - row.pos.z) <= p.homeLeash + 0.8)
+      // A player arriving by any entry must start outside the wake distance of the boss's spot and of every patrol goal
+      // (a goal may sit up to 0.8 m from the spot). The leash alone cannot wake a boss.
+      entries.some((e) =>
+        [row.pos, ...row.patrol].some((at) => Math.hypot(e.x - at.x, e.z - at.z) <= p.wakeDistance + 0.5),
+      )
     )
       throw Error("Unsafe optional boss pocket");
     for (const goal of row.patrol) {
