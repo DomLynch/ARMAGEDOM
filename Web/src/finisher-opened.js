@@ -14,6 +14,18 @@ import {
   AnimationMixer,
   Vector3,
 } from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+
+// The bake's step budget, where the body is cut, the cap shading, the search and floor-table resolution and the three pieces' fall are
+// appearance.json `finisherOpened`. The counts that follow from the data layout (a vec3, a mat4, a triangle's corners) stay in the code.
+const LOOK = GAME_DATA.appearance.finisherOpened;
+const PHASE = LOOK.phases;
+const SLIDE = LOOK.slides;
+const HALF_TURN = LOOK.halfTurnSteps;
+const cap = LOOK.capShade;
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+const CORNERS = 3; // tuning-ok: a triangle has three corners
+const XYZ = 3; // tuning-ok: a point packed as x y z
 
 // One pose bake per encounter, prepared before combat like a cached severed prop. Exterior maps are borrowed; only the new geometry and cut material
 // belong to this effect. Cut the torso at its waist, retaining both arms with the torso and placing the copied victim knife on the registered ARM ground.
@@ -35,17 +47,17 @@ function openWaist(root, anchor, cornerSupports = false) {
 // The same bake in steps (a rank look's rebake, #918): at most CHUNK vertices or triangles of one draw per step, then the resting searches and
 // the floor table. The caller holds the bake pose around every step (characters.ts), so the rig may play between steps; each step reads the
 // rig afresh. One whole draw per step was 160 ms at CPU ×4 on the Goblin L3 body (18.7k tris, goblin-l3-packed4-d45f0f88, row C).
-const CHUNK = 2048;
+const CHUNK = LOOK.chunkVertices;
 // And at most STEP_MS of it (checked every 16): a vertex count alone let one step of the Nightborn's L8 closed helm run 54.6 ms at CPU ×4
 // (nightborn-L8-f3c54a6f, row C), where the Goblin's draws took 2–15. Where a step yields never changes what the bake cuts.
 // Checked every 256 at 8 ms, travel-prep steps still measured 8–21 ms (draw mesh, Photo, LeatherBoots); 16 at 4 keeps them under 8.
-const STEP_MS = 4;
+const STEP_MS = LOOK.stepMs;
 // The resting searches and the floor table read every support point once per candidate: at most SCAN reads per step (pure maths on the
 // baked points, so no rig refresh after these yields). The weapon roll plus the floor table's first rows was the worst step (31 ms in Node,
 // 188 ms at CPU ×4 in the browser, goblin-l3-packed4-e9fca274), read over triangle-corner duplicates; supports now hold each vertex once.
 // Those scans run once per bake, so their first steps run unoptimised: at 300k reads the first rest-search steps were still 53–56 ms at
 // CPU ×4 while later ones were 17 (goblin-l3-packed4-C-aa71088f), hence 100k.
-const SCAN = 100_000;
+const SCAN = LOOK.scanReads;
 // `cornerSupports` keeps the old one-support-per-triangle-corner path, only so a test can prove the dedupe changes nothing.
 // `drawn` picks the draws the bake cuts (default: the visible ones): a rank look is baked before it is on (characters.ts prepareLook), with its
 // hidden draws in and the rig's draws it turns off out.
@@ -63,7 +75,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
   const pelvis = root.getObjectByName("pelvis"),
     spine = root.getObjectByName("spine_01");
   const hip = pelvis.getWorldPosition(new Vector3()).applyMatrix4(inverse);
-  const waist = hip.y + (spine.getWorldPosition(new Vector3()).applyMatrix4(inverse).y - hip.y) * 0.6;
+  const waist = hip.y + (spine.getWorldPosition(new Vector3()).applyMatrix4(inverse).y - hip.y) * LOOK.waistShare;
   const group = new Group();
   group.name = "Opened";
   allocations.group = group;
@@ -72,7 +84,12 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     allocations.geometries.push(g);
     return g;
   };
-  const cut = new MeshStandardMaterial({ color: "#501c20", roughness: 0.88, side: DoubleSide, vertexColors: true });
+  const cut = new MeshStandardMaterial({
+    color: LOOK.cutColor,
+    roughness: LOOK.cutRoughness,
+    side: DoubleSide,
+    vertexColors: true,
+  });
   allocations.cut = cut;
   const lower = new Group(),
     upper = new Group(),
@@ -109,7 +126,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     const skin = object instanceof SkinnedMesh ? object : null;
     skin?.skeleton.update();
     const pause = function* (i) {
-      if (i % CHUNK === CHUNK - 1 || ((i & 15) === 15 && now() - since > STEP_MS)) {
+      if (i % CHUNK === CHUNK - 1 || (i % LOOK.clockEvery === LOOK.clockEvery - 1 && now() - since > STEP_MS)) {
         yield took();
         since = now();
         fresh();
@@ -131,11 +148,11 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
       if (skin) {
         const blended = new Matrix4();
         blended.elements.fill(0);
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < INFLUENCES; k++) {
           const b = indices.getComponent(i, k),
             w = weights.getComponent(i, k);
           if (arm?.[b]) armWeight += w;
-          for (let e = 0; e < 16; e++) blended.elements[e] += skin.skeleton.boneMatrices[b * 16 + e] * w;
+          for (let e = 0; e < 16; e++) blended.elements[e] += skin.skeleton.boneMatrices[b * 16 + e] * w; // tuning-ok: a mat4 has 16 elements
         }
         blended.premultiply(skin.bindMatrixInverse).multiply(skin.bindMatrix);
         n.applyMatrix3(new Matrix3().getNormalMatrix(blended));
@@ -165,22 +182,22 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
         normals.push(...v.n.toArray());
         uvs.push(...v.uv);
         colors.push(...v.color);
-        const s = attachment ? 2 : halfIndex;
+        const s = attachment ? 2 : halfIndex; // tuning-ok: support set 2 is the dropped weapon (0 legs, 1 torso)
         if (cornerSupports || !supported[s].has(v)) {
           supported[s].add(v);
           supports[s].push(p.x, p.y, p.z);
         }
       };
-      for (let i = 0; i < (index?.count ?? position.count); i += 3) {
-        yield* pause(i / 3);
-        const tri = [0, 1, 2].map((k) => vertices[index ? index.getX(i + k) : i + k]);
-        const wholeArm = attachment || tri.reduce((s, v) => s + v.arm, 0) / 3 > 0.5;
+      for (let i = 0; i < (index?.count ?? position.count); i += CORNERS) {
+        yield* pause(i / 3); // tuning-ok: corners per triangle
+        const tri = [0, 1, 2].map((k) => vertices[index ? index.getX(i + k) : i + k]); // tuning-ok: corner indices 0 1 2
+        const wholeArm = attachment || tri.reduce((s, v) => s + v.arm, 0) / 3 > LOOK.armShare; // tuning-ok: mean over three corners
         if (wholeArm && !halfIndex) continue;
         const polygon = [],
           crossing = [];
-        for (let k = 0; k < 3; k++) {
+        for (let k = 0; k < CORNERS; k++) {
           const a = tri[k],
-            b = tri[(k + 1) % 3],
+            b = tri[(k + 1) % 3], // tuning-ok: next corner, wrapping at three
             inside = wholeArm || (a.p.y - waist) * side >= 0;
           if (inside) polygon.push(a);
           if (wholeArm || inside === (b.p.y - waist) * side >= 0) continue;
@@ -209,14 +226,14 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
       }
       const make = (p, n, u) => {
         const g = ownGeometry();
-        g.setAttribute("position", new Float32BufferAttribute(p, 3));
-        g.setAttribute("normal", new Float32BufferAttribute(n, 3));
-        g.setAttribute("uv", new Float32BufferAttribute(u, 2));
+        g.setAttribute("position", new Float32BufferAttribute(p, 3)); // tuning-ok: xyz item size
+        g.setAttribute("normal", new Float32BufferAttribute(n, 3)); // tuning-ok: xyz item size
+        g.setAttribute("uv", new Float32BufferAttribute(u, 2)); // tuning-ok: uv item size
         return g;
       };
       if (positions.length) {
         const g = make(positions, normals, uvs);
-        if (colors.length) g.setAttribute("color", new Float32BufferAttribute(colors, 3));
+        if (colors.length) g.setAttribute("color", new Float32BufferAttribute(colors, 3)); // tuning-ok: rgb item size
         for (const entry of groups) g.addGroup(entry.start, entry.count, entry.materialIndex);
         const surface = (source) => source;
         const material = Array.isArray(object.material)
@@ -264,7 +281,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     const chain = (points) => {
       const result = [];
       for (const p of points) {
-        while (result.length > 1 && cross(result.at(-2), result.at(-1), p) <= 0) result.pop();
+        while (result.length > 1 && cross(result.at(-2), result.at(-1), p) <= 0) result.pop(); // tuning-ok: the hull's second-to-last point
         result.push(p);
       }
       return result;
@@ -285,13 +302,14 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
         : [center, hull[(i + 1) % hull.length], hull[i]]) {
         p.push(v.x, 0, v.z);
         n.push(0, h ? -1 : 1, 0);
-        const shade = v === center ? 0.9 : 0.5 + 0.12 * Math.sin(v.x * 170 + v.z * 113);
+        const shade =
+          v === center ? LOOK.capCentreShade : cap.base + cap.swing * Math.sin(v.x * cap.waveX + v.z * cap.waveZ);
         tone.push(shade, shade, shade);
       }
     const g = ownGeometry();
-    g.setAttribute("position", new Float32BufferAttribute(p, 3));
-    g.setAttribute("normal", new Float32BufferAttribute(n, 3));
-    g.setAttribute("color", new Float32BufferAttribute(tone, 3));
+    g.setAttribute("position", new Float32BufferAttribute(p, 3)); // tuning-ok: xyz item size
+    g.setAttribute("normal", new Float32BufferAttribute(n, 3)); // tuning-ok: xyz item size
+    g.setAttribute("color", new Float32BufferAttribute(tone, 3)); // tuning-ok: rgb item size
     const mesh = new Mesh(g, cut);
     mesh.name = "WaistCut";
     mesh.castShadow = false;
@@ -302,7 +320,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
   const scale = waist;
   const smooth = (p, start, end) => {
     const t = Math.max(0, Math.min(1, (p - start) / (end - start)));
-    return t * t * (3 - 2 * t);
+    return t * t * (3 - 2 * t); // tuning-ok: the smoothstep polynomial
   };
   // Find the broad resting face around the torso's long axis. A fixed roll can balance a different rig on a
   // planted hand or the end of its polearm; the lowest waist support gives the body a weighted final landing.
@@ -311,15 +329,15 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
   at("rest search");
   const rest = new Quaternion();
   let best = Infinity;
-  for (let i = -32; i <= 32; i++) {
-    const angle = (i * Math.PI) / 32,
-      q = new Quaternion().setFromEuler(new Euler(-Math.PI / 2, angle, 0));
+  for (let i = -HALF_TURN; i <= HALF_TURN; i++) {
+    const angle = (i * Math.PI) / HALF_TURN,
+      q = new Quaternion().setFromEuler(new Euler(-Math.PI / 2, angle, 0)); // tuning-ok: a quarter turn
     const m = new Matrix4().makeRotationFromQuaternion(q).elements,
       points = supports[1];
     let min = Infinity;
-    for (let j = 0; j < points.length; j += 3)
-      min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]);
-    const score = -min + 0.015 * (1 - Math.cos(angle));
+    for (let j = 0; j < points.length; j += XYZ)
+      min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]); // tuning-ok: z offset in the xyz stride
+    const score = -min + LOOK.restTilt * (1 - Math.cos(angle));
     if (score < best) {
       best = score;
       rest.copy(q);
@@ -331,14 +349,16 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
   at("leg search");
   const legRest = new Quaternion();
   let legSupport = Infinity;
-  const legFall = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI / 2);
-  for (let i = 0; i < 64; i++) {
-    const q = legFall.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (i * Math.PI) / 32));
+  const legFall = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -Math.PI / 2); // tuning-ok: a quarter turn
+  for (let i = 0; i < LOOK.sweepSteps; i++) {
+    const q = legFall
+      .clone()
+      .multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (i * Math.PI) / HALF_TURN));
     const m = new Matrix4().makeRotationFromQuaternion(q).elements,
       points = supports[0];
     let min = Infinity;
-    for (let j = 0; j < points.length; j += 3)
-      min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]);
+    for (let j = 0; j < points.length; j += XYZ)
+      min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]); // tuning-ok: z offset in the xyz stride
     if (-min < legSupport) {
       legSupport = -min;
       legRest.copy(q);
@@ -361,14 +381,14 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
   const weaponRest = aligned.clone();
   let thickness = Infinity;
   // Roll broad blades flat too: aligning only the shaft leaves a scythe head standing on its edge.
-  for (let i = 0; i < 64; i++) {
-    const q = new Quaternion().setFromAxisAngle(flat, (i * Math.PI) / 32).multiply(aligned),
+  for (let i = 0; i < LOOK.sweepSteps; i++) {
+    const q = new Quaternion().setFromAxisAngle(flat, (i * Math.PI) / HALF_TURN).multiply(aligned),
       m = new Matrix4().makeRotationFromQuaternion(q).elements;
     let low = Infinity,
       high = -Infinity;
     const points = supports[2];
-    for (let j = 0; j < points.length; j += 3) {
-      const y = m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2];
+    for (let j = 0; j < points.length; j += XYZ) {
+      const y = m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]; // tuning-ok: z offset in the xyz stride
       low = Math.min(low, y);
       high = Math.max(high, y);
     }
@@ -379,48 +399,48 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     yield* scan(points.length / 3, "weapon roll");
   }
   function place(progress) {
-    const slide = smooth(progress, 0.045, 0.3),
-      fall = smooth(progress, 0.2, 0.66),
-      legs = smooth(progress, 0.36, 0.84);
-    upper.position.set(0.5 * scale * slide, waist * (1 - fall), 0.12 * scale * slide);
+    const slide = smooth(progress, ...PHASE.slide),
+      fall = smooth(progress, ...PHASE.fall),
+      legs = smooth(progress, ...PHASE.legs);
+    upper.position.set(SLIDE.upper[0] * scale * slide, waist * (1 - fall), SLIDE.upper[1] * scale * slide);
     upper.quaternion.identity().slerp(rest, fall);
-    lower.position.set(-0.35 * scale * legs, waist * (1 - legs), -0.12 * scale * legs);
+    lower.position.set(SLIDE.lower[0] * scale * legs, waist * (1 - legs), SLIDE.lower[1] * scale * legs);
     lower.quaternion.identity().slerp(legRest, legs);
-    const drop = smooth(progress, 0.12, 0.62);
-    weapon.position.set(0.25 * scale * drop, waist * (1 - drop), -0.35 * scale * drop);
+    const drop = smooth(progress, ...PHASE.drop);
+    weapon.position.set(SLIDE.weapon[0] * scale * drop, waist * (1 - drop), SLIDE.weapon[1] * scale * drop);
     weapon.quaternion.identity().slerp(weaponRest, drop);
   }
   // Precompute exact support heights once. Per-frame playback interpolates a tiny table; no per-frame vertex scan.
   const floors = [[], [], []];
   at("floor table");
-  for (let i = 0; i <= 120; i++) {
+  for (let i = 0; i <= LOOK.floorSteps; i++) {
     yield* scan(
       supports.reduce((n, points) => n + points.length / 3, 0),
       "floor table",
     );
-    place(i / 120);
+    place(i / LOOK.floorSteps);
     for (const [h, half] of [lower, upper, weapon].entries()) {
       const m = new Matrix4().makeRotationFromQuaternion(half.quaternion).elements,
         points = supports[h];
       let min = Infinity;
-      for (let j = 0; j < points.length; j += 3)
-        min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]);
-      floors[h].push(points.length ? 0.008 - min : 0);
+      for (let j = 0; j < points.length; j += XYZ)
+        min = Math.min(min, m[1] * points[j] + m[5] * points[j + 1] + m[9] * points[j + 2]); // tuning-ok: z offset in the xyz stride
+      floors[h].push(points.length ? LOOK.floorLift - min : 0);
     }
   }
   let envelopeRadius = 0;
   for (const [h, points] of supports.entries()) {
     let r = 0;
-    for (let i = 0; i < points.length; i += 3) r = Math.max(r, Math.hypot(points[i], points[i + 1], points[i + 2]));
+    for (let i = 0; i < points.length; i += 3) r = Math.max(r, Math.hypot(points[i], points[i + 1], points[i + 2])); // tuning-ok: xyz stride and offsets
     const slide =
       h === 0
-        ? Math.hypot(0.35 * scale, 0.12 * scale)
+        ? Math.hypot(SLIDE.lower[0] * scale, SLIDE.lower[1] * scale)
         : h === 1
-          ? Math.hypot(0.5 * scale, 0.12 * scale)
-          : Math.hypot(grip.x + 0.25 * scale, grip.z - 0.35 * scale);
+          ? Math.hypot(SLIDE.upper[0] * scale, SLIDE.upper[1] * scale)
+          : Math.hypot(grip.x + SLIDE.weapon[0] * scale, grip.z + SLIDE.weapon[1] * scale);
     envelopeRadius = Math.max(envelopeRadius, r + slide);
   }
-  envelopeRadius += 0.008;
+  envelopeRadius += LOOK.envelopeMargin;
   supports.forEach((points) => {
     points.length = 0;
   });
@@ -431,10 +451,10 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
       const p = Math.max(0, Math.min(1, progress));
       place(p);
       // A rotated weapon can lie entirely above its baked origin. Let that origin descend below zero.
-      weapon.position.y += Math.min(0, floors[2][120]) * smooth(p, 0.12, 0.62);
+      weapon.position.y += Math.min(0, floors[2][LOOK.floorSteps]) * smooth(p, ...PHASE.drop);
       for (const [h, half] of [lower, upper, weapon].entries()) {
-        const at = p * 120,
-          i = Math.min(119, Math.floor(at)),
+        const at = p * LOOK.floorSteps,
+          i = Math.min(LOOK.floorSteps - 1, Math.floor(at)),
           floor = floors[h][i] + (floors[h][i + 1] - floors[h][i]) * (at - i);
         half.position.y = Math.max(half.position.y, floor);
       }
@@ -444,7 +464,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
             half.position.x = half === weapon ? grip.x : 0;
             half.position.z = half === weapon ? grip.z : 0;
           }
-      cut.color.set("#501c20");
+      cut.color.set(LOOK.cutColor);
     },
     stats() {
       let vertices = 0,
@@ -455,7 +475,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
         if (n instanceof Mesh) {
           meshes++;
           vertices += n.geometry.attributes.position.count;
-          triangles += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3;
+          triangles += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3; // tuning-ok: corners per triangle
           geometryBytes += Object.values(n.geometry.attributes).reduce((a, b) => a + b.array.byteLength, 0);
         }
       });
@@ -490,7 +510,7 @@ export function prepareOpened(options) {
     if (step.done) return step.value;
   }
 }
-export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked, maxVertices = 300000 }) {
+export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked, maxVertices = LOOK.maxVertices }) {
   const clip = clips.find((c) => c.name === "Death_SplitCrown");
   if (
     !Number.isFinite(groundY) ||
@@ -520,7 +540,7 @@ export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked
     const action = mixer.clipAction(clip);
     action.play();
     action.paused = true;
-    action.time = clip.duration * 0.045;
+    action.time = clip.duration * LOOK.poseAt;
     mixer.update(0);
     root.updateWorldMatrix(true, true);
     model.traverse((n) => {
@@ -559,7 +579,7 @@ export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked
     root.updateWorldMatrix(true, false);
     root.getWorldPosition(point);
     root.getWorldScale(size);
-    if (Math.max(size.x, size.y, size.z) - Math.min(size.x, size.y, size.z) > 1e-5) return false;
+    if (Math.max(size.x, size.y, size.z) - Math.min(size.x, size.y, size.z) > LOOK.scaleTolerance) return false;
     return (
       typeof isBlocked === "function" &&
       !isBlocked({ x: point.x, z: -point.z }, prepared.stats().envelopeRadius * size.x, { x: point.x, z: -point.z })
