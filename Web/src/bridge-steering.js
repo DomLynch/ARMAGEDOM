@@ -2,6 +2,8 @@
 import { GAME_DATA } from "./engine/game-data.js";
 
 const BENDS = GAME_DATA.atmosphere.bends;
+// The road-edge safety margin, the default leash, the progress and stall limits and the waypoint reach are creatures.json `bridgeSteering`.
+const STEER = GAME_DATA.creatures.bridgeSteering;
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 function pointSegmentSq(p, a, b) {
   const x = b.x - a.x,
@@ -10,10 +12,10 @@ function pointSegmentSq(p, a, b) {
   const t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * x + (p.z - a.z) * z) / length)) : 0;
   return (p.x - a.x - t * x) ** 2 + (p.z - a.z - t * z) ** 2;
 }
-// Exact capsule clearance against the SAME painted road edges and .061 safety margin.
+// Exact capsule clearance against the SAME painted road edges and safety margin.
 export function bodyLineClear(geometry, a, b, radius) {
   if (!geometry.clear(a, radius) || !geometry.clear(b, radius) || !geometry.lineClear(a, b)) return false;
-  const limit = (radius + 0.061) ** 2;
+  const limit = (radius + STEER.edgeMargin) ** 2;
   return geometry.edges.every(
     ([c, d]) =>
       Math.min(pointSegmentSq(a, c, d), pointSegmentSq(b, c, d), pointSegmentSq(c, a, b), pointSegmentSq(d, a, b)) >
@@ -26,7 +28,7 @@ export function createBridgeSteering() {
   function reset(actor) {
     states.delete(actor);
   }
-  function steer({ world, actor, goal, time, mode = "pursuit", leash = 12 }) {
+  function steer({ world, actor, goal, time, mode = "pursuit", leash = STEER.leash }) {
     const geometry = world.geometry,
       area = world.areaId,
       position = actor.pos,
@@ -66,18 +68,18 @@ export function createBridgeSteering() {
       return goal;
     }
     if (state) {
-      if (distance(position, state.progressPosition) > 0.08) {
+      if (distance(position, state.progressPosition) > STEER.progressStep) {
         state.progressPosition = { ...position };
         state.progressAt = time;
       }
-      if (time - state.progressAt > 0.75) {
+      if (time - state.progressAt > STEER.stallSeconds) {
         reset(actor);
         state = null;
       } else if (state.route) {
         // Advance only when the full-body next leg is legal from the current live position.
         while (
           state.index < state.route.length - 1 &&
-          distance(position, state.route[state.index]) < 0.15 &&
+          distance(position, state.route[state.index]) < STEER.waypointReach &&
           bodyLineClear(geometry, position, state.route[state.index + 1], radius)
         )
           state.index++;
