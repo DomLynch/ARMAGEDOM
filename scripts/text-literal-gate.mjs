@@ -8,10 +8,9 @@
 import { readFileSync } from "node:fs";
 import { relative } from "node:path";
 
-// Temporary, dated exception (Lead, 26 Oct 2026): while five lanes move their text in parallel, a file below its baseline is not
-// a finding, so their PRs need not edit as-data-baseline.json. Increases and new files still fail. The final Lead PR sets this to
-// false and empties the table, as #317 did for numbers.
-export const TEXT_SHRINK_TOLERANCE = true;
+// The temporary shrink tolerance (Lead, 26 Oct 2026) ended with the burn-down: the textLiterals table is empty and the gate is strict,
+// so any player sentence in Web/src code fails. `textOkCount` ratchets the exemption marks the same way tuningOkCount does.
+export const TEXT_SHRINK_TOLERANCE = false;
 
 const TEXT_MARK = /\/\/\s*text-ok:(.*)$/;
 const ERROR_LINE = /\bthrow\b|\breject\(|\bfail\(|console\.(?:log|warn|error|info|debug)\(|\bassert/;
@@ -49,6 +48,14 @@ export function countTextLiterals(source) {
 
 export function textLiteralProblems(paths, baseline = {}, sourceRoot = "", { shrinkTolerance = TEXT_SHRINK_TOLERANCE } = {}) {
   const problems = [];
+  let marks = 0;
+  for (const path of paths) marks += readFileSync(path, "utf8").split("\n").filter((line) => TEXT_MARK.test(line)).length;
+  if (baseline.textOkCount !== undefined) {
+    if (marks > baseline.textOkCount)
+      problems.push(`${marks} "// text-ok:" marks, limit ${baseline.textOkCount}. Put the text in a data file instead of adding a mark.`);
+    else if (marks < baseline.textOkCount && !shrinkTolerance)
+      problems.push(`${marks} "// text-ok:" marks, baseline says ${baseline.textOkCount}. Lower textOkCount in scripts/as-data-baseline.json to ${marks}.`);
+  }
   for (const path of paths) {
     const key = (sourceRoot ? relative(sourceRoot, path) : path).split("\\").join("/");
     const { count, items, unexplained } = countTextLiterals(readFileSync(path, "utf8"));

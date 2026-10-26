@@ -19,6 +19,7 @@ import runNotices from "../data/runNotices.json" with { type: "json" };
 import webText from "../data/webText.json" with { type: "json" };
 import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
+import weaponViewText from "../data/weaponViewText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
@@ -57,6 +58,7 @@ import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
+import { validateWeaponViewText } from "./game-data-weapon-view-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
@@ -995,6 +997,7 @@ const sources = () => ({
   webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],
+  weaponViewText: [weaponViewText, validateWeaponViewText],
   safehouseText: [safehouseText, validateSafehouseText],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   reaperMotion: [reaperMotion, validateReaperMotion],

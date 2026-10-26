@@ -24,7 +24,7 @@
     "pistolRequired": "Collect the pistol first. Rounds kept.",
     "reserveFull": "Spare rounds full. Supply kept.",
     "healthFull": "Health full. Dressing kept.",
-    "vestEquipped": "Worn vest equipped · 10% protection from unblocked hits."
+    "vestEquipped": "Worn vest equipped · {percent}% protection from unblocked hits."
   },
   "expedition": {
     "actionAccept": "Accept contract",
