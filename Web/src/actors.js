@@ -53,7 +53,12 @@ import dogMidClip from "./dog-data/mid-slash.json" with { type: "json" };
 import dogBlade from "./dog-data/blade-path.json" with { type: "json" };
 import dogReceiverAppend from "./dog-data/receiver-append.json" with { type: "json" };
 import { createRatBiteReceiver, ratLowBlade } from "./rat-contact.js";
-import { rigCapability } from "./rig-capabilities.js";
+import { rigCapability, rigNumber, rigText } from "./rig-capabilities.js";
+// The larger feral variant of a rig is the one at its `feralScale` (a rig without one has none).
+const feralVariant = (rig, scale) => {
+  const feral = rigNumber(rig, "feralScale");
+  return feral !== undefined && feral === scale;
+};
 import footBindings from "./rat-data/foot-bindings.json" with { type: "json" };
 import lowClip from "./rat-data/low-slash.json" with { type: "json" };
 import lowBlade from "./rat-data/blade-path.json" with { type: "json" };
@@ -305,7 +310,7 @@ export function createActors(
     { stageWorld = world, renderScene = scene, store = views } = {},
   ) {
     if (entity.markedHunter) finishers = false;
-    if (entity.rig === "low-hover-drone") {
+    if (rigCapability(entity.rig, "hoverTarget")) {
       const drone = droneKits.spawn({
         scene: renderScene,
         position: stageWorld.toRender(entity.pos),
@@ -367,12 +372,12 @@ export function createActors(
         THREE.AnimationClip.parse(dogMidClip),
         ...(library.manifest.models?.["vagrant-cleaver"] ? [THREE.AnimationClip.parse(cleaverLowClip)] : []),
       ];
-    if (entity.rig === "original-roach" && (description.scale === 3 || description.scale === 4))
+    if (rigText(entity.rig, "biteMove") === "roach" && (description.scale === 3 || description.scale === 4))
       animations = [...animations, THREE.AnimationClip.parse(roachBite)];
     // The clone, clip parsing and the coat work below were one 35-58 ms step; each now ends its own step.
     yield "actor-clone";
     let feral = null;
-    if (entity.rig === "original-dog" && description.scale === 2) {
+    if (feralVariant(entity.rig, description.scale)) {
       if (!dogKits.has(source.gltf.scene)) {
         dogKits.set(source.gltf.scene, createFeralDogLibrary(source.gltf.scene));
         yield "actor-clone";
@@ -385,8 +390,9 @@ export function createActors(
       ? bodyShapes.apply(model, animalAppearanceId)
       : null;
     if (animalAppearanceId) {
-      if (entity.rig === "original-rat") animalLooks.apply(model, animalAppearanceId, entity.rig);
-      else if (entity.rig === "original-roach") roachLooks.apply(model, animalAppearanceId);
+      const kit = rigText(entity.rig, "appearanceKit");
+      if (kit === "rat") animalLooks.apply(model, animalAppearanceId, entity.rig);
+      else if (kit === "roach") roachLooks.apply(model, animalAppearanceId);
       else dogCoats.apply(model, animalAppearanceId);
     }
     yield "actor-clone";
@@ -402,7 +408,8 @@ export function createActors(
         (entity.kind >= 0 ? (entity.mobSize ?? 1) : 1),
     );
     root.add(model);
-    if (["giant-salamander", "original-wolf"].includes(entity.rig)) model.position.y += description.groundOffset;
+    if (rigCapability(entity.rig, "nativeSkeleton")) model.position.y += description.groundOffset;
+    const materialDim = rigNumber(entity.rig, "materialDim");
     const hidden = new Set((description.starterHidden ?? []).map(THREE.PropertyBinding.sanitizeNodeName));
     model.traverse((o) => {
       if (hidden.has(o.name)) o.visible = false;
@@ -411,7 +418,7 @@ export function createActors(
         const original = Array.isArray(o.material) ? o.material : [o.material];
         const copies = original.map((m) => {
           const own = m.clone();
-          if (entity.rig === "giant-salamander") own.color?.multiplyScalar(0.75);
+          if (materialDim !== undefined) own.color?.multiplyScalar(materialDim);
           if (palette) applyHollowPalette(own, palette, garments);
           if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(1, 0.66, 0.55));
           materials.push({
@@ -796,7 +803,7 @@ export function createActors(
     },
     flameSource(id = 0) {
       const view = views.get(id);
-      if (view?.entity?.rig === "giant-salamander")
+      if (rigCapability(view?.entity?.rig, "fireBreath"))
         return salamanderMouthSource(view, view.entity, new THREE.Vector3());
       const mount = view?.flameMount,
         muzzle = mount?.visible && mount.getObjectByName("Muzzle");
@@ -1030,7 +1037,7 @@ export function createActors(
           preparePlayer(player);
           if (
             !player.dogReceiver &&
-            game.enemies.some((e) => e.rig === "original-dog" && views.get(e.id)?.description.scale === 2)
+            game.enemies.some((e) => feralVariant(e.rig, views.get(e.id)?.description.scale))
           ) {
             const bindings = footBindings.bindings.map((b) => ({
               ...b,
@@ -1044,7 +1051,7 @@ export function createActors(
             player.dogReceiver = createRatBiteReceiver(player.model, bindings);
           }
           if (!player.salamanderReceiver) {
-            const own = game.enemies.find((e) => e.rig === "giant-salamander"),
+            const own = game.enemies.find((e) => rigCapability(e.rig, "calfFaceReceiver")),
               faces = own && views.get(own.id)?.description.contact.calfFaces;
             if (faces) {
               const bindings = [];
@@ -1059,7 +1066,7 @@ export function createActors(
               player.salamanderReceiver = createRatBiteReceiver(player.model, bindings);
             }
           }
-          if (!player.wolfReceiver && game.enemies.some((e) => e.rig === "original-wolf"))
+          if (!player.wolfReceiver && game.enemies.some((e) => rigCapability(e.rig, "bodyReceiver")))
             player.wolfReceiver = createRatBiteReceiver(player.model, wolfBodyReceiverBindings(player.model));
           const rats = new Map();
           for (const e of game.enemies)
@@ -1154,22 +1161,17 @@ export function createActors(
           return best;
         },
         hit: (a, d, s, before, after) => {
-          if (a.rig === "original-rat") {
+          if (rigText(a.rig, "brain") === "rat") {
             const old = before.rats.get(a.id),
               now = after.rats.get(a.id);
             return old && now && views.get(0).footReceiver.sweep(before.player, after.player, old.tooth, now.tooth).hit;
           }
-          if (
-            a.rig === "original-dog" ||
-            a.rig === "original-roach" ||
-            a.rig === "giant-salamander" ||
-            a.rig === "original-wolf"
-          ) {
+          if (rigText(a.rig, "brain") === "dog") {
             const old = before.rats.get(a.id),
               now = after.rats.get(a.id),
-              scaled = a.rig === "original-dog" && now?.view.description.scale === 2,
-              own = a.rig === "giant-salamander",
-              wolf = a.rig === "original-wolf",
+              scaled = feralVariant(a.rig, now?.view.description.scale),
+              own = rigCapability(a.rig, "calfFaceReceiver"),
+              wolf = rigCapability(a.rig, "bodyReceiver"),
               receiver = wolf
                 ? views.get(0).wolfReceiver
                 : own
@@ -1472,7 +1474,7 @@ export function createActors(
           }
         }
         animateBoneSaw(view.knife, game.time, !!entity.saw?.active);
-        if (contactOnly && ["giant-salamander", "original-wolf"].includes(entity.rig))
+        if (contactOnly && rigCapability(entity.rig, "nativeSkeleton"))
           view.motion.sampleContacts(entity, game.time, deathPose);
         else
           view.motion.update(

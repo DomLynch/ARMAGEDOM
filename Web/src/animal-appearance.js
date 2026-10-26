@@ -1,8 +1,9 @@
 import { GAME_DATA } from "./engine/game-data.js";
+import { rigText } from "./rig-capabilities.js";
 // Owned original rat/dog appearance only. No stats, motion, placement or damage.
 // The twelve rows (id, foundation, name, width, tint, patch) live in Web/src/data/appearance.json `animals` (read through game-data.js).
 export const ANIMAL_APPEARANCES = GAME_DATA.appearance.animals;
-const coatNames = { "original-rat": "Ash and soot worn fur", "original-dog": "Weathered brindle coat" };
+// The coat material name of each foundation rig is its creatures.json rigCapabilities `coatName`.
 const torso = new Set(["pelvis", "spine", "chest"]);
 // Apply to SkeletonUtils.clone(foundation.scene). Cache once per loaded foundation,
 // dispose after its last actor is removed. Originals and clips remain immutable.
@@ -69,7 +70,7 @@ export function createAnimalAppearanceLibrary(THREE) {
       model.traverse((mesh) => {
         if (!mesh.isSkinnedMesh) return;
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        const coat = mats.filter((m) => m.name === coatNames[foundation]);
+        const coat = mats.filter((m) => m.name === rigText(foundation, "coatName"));
         if (!coat.length) return;
         if (mats.length !== 1) throw Error("Expected accepted one-material coat primitive");
         mesh.geometry = geometry(mesh, recipe);
