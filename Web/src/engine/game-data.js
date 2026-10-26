@@ -3,6 +3,7 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
+import audio from "../data/audio.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
@@ -1116,6 +1117,91 @@ export function validateUniqueReward(d) {
   }
 }
 
+// audio.json: the synthesized combat cues and the voice engine of donor-audio.js. Frequencies in Hz, times in seconds, gains 0 to 1.
+// A tone row is { from, to, seconds, gain, type? } (type defaults to triangle in donor-audio.js); a noise row is { seconds, gain, cutoff }.
+export function validateAudio(d) {
+  const gain = (field, v) => {
+    if (!Number.isFinite(v) || v <= 0 || v > 1) fail("audio", `${field} must be above 0 and at most 1`);
+  };
+  const tone = (field, row, extra = []) => {
+    closed(row, ["from", "to", "seconds", "gain", ...extra], ["type"]);
+    number("audio", `${field}.from`, row.from, 1);
+    number("audio", `${field}.to`, row.to, 1);
+    number("audio", `${field}.seconds`, row.seconds, 0.001);
+    gain(`${field}.gain`, row.gain);
+    if ("type" in row && !["sine", "triangle", "sawtooth"].includes(row.type)) fail("audio", `${field}.type`);
+  };
+  const noise = (field, row) => {
+    closed(row, ["seconds", "gain", "cutoff"]);
+    number("audio", `${field}.seconds`, row.seconds, 0.001);
+    gain(`${field}.gain`, row.gain);
+    number("audio", `${field}.cutoff`, row.cutoff, 1);
+  };
+  closed(d, [
+    "schema_version",
+    "engine",
+    "saw",
+    "railgunHum",
+    "cueGains",
+    "hit",
+    "railgunShot",
+    "shot",
+    "rocketLaunch",
+    "grenadeOff",
+    "pickup",
+  ]);
+  closed(d.engine, [
+    "voiceCapacity",
+    "outputGain",
+    "floorGain",
+    "attackSeconds",
+    "stopPadSeconds",
+    "lowModeFactor",
+    "noiseBufferSeconds",
+  ]);
+  count("audio", "engine.voiceCapacity", d.engine.voiceCapacity, 1, 64);
+  for (const f of ["outputGain", "floorGain", "lowModeFactor"]) gain(`engine.${f}`, d.engine[f]);
+  for (const f of ["attackSeconds", "stopPadSeconds", "noiseBufferSeconds"]) number("audio", `engine.${f}`, d.engine[f], 0.0001);
+  closed(d.saw, ["frequency", "gain", "gainOff"]);
+  number("audio", "saw.frequency", d.saw.frequency, 1);
+  gain("saw.gain", d.saw.gain);
+  gain("saw.gainOff", d.saw.gainOff);
+  closed(d.railgunHum, ["gain", "fromHz", "toHz"]);
+  gain("railgunHum.gain", d.railgunHum.gain);
+  number("audio", "railgunHum.fromHz", d.railgunHum.fromHz, 1);
+  number("audio", "railgunHum.toHz", d.railgunHum.toHz, 1);
+  closed(d.cueGains, ["sever", "hit", "whooshHeavy", "whooshLight", "roll"]);
+  for (const [name, v] of Object.entries(d.cueGains)) gain(`cueGains.${name}`, v);
+  closed(d.hit, ["off", "lethal", "normal"]);
+  closed(d.hit.off, ["lethal", "normal"]);
+  tone("hit.off.lethal", d.hit.off.lethal);
+  tone("hit.off.normal", d.hit.off.normal);
+  closed(d.hit.lethal, ["tone", "noise", "ring"]);
+  tone("hit.lethal.tone", d.hit.lethal.tone);
+  noise("hit.lethal.noise", d.hit.lethal.noise);
+  tone("hit.lethal.ring", d.hit.lethal.ring);
+  closed(d.hit.normal, ["tone", "noise"]);
+  tone("hit.normal.tone", d.hit.normal.tone);
+  noise("hit.normal.noise", d.hit.normal.noise);
+  closed(d.railgunShot, ["crack", "thump", "noise"]);
+  tone("railgunShot.crack", d.railgunShot.crack);
+  tone("railgunShot.thump", d.railgunShot.thump);
+  noise("railgunShot.noise", d.railgunShot.noise);
+  closed(d.shot, ["fallback", "off"]);
+  tone("shot.fallback", d.shot.fallback, ["noiseSeconds", "noiseGain", "cutoff"]);
+  number("audio", "shot.fallback.noiseSeconds", d.shot.fallback.noiseSeconds, 0.001);
+  gain("shot.fallback.noiseGain", d.shot.fallback.noiseGain);
+  number("audio", "shot.fallback.cutoff", d.shot.fallback.cutoff, 1);
+  tone("shot.off", d.shot.off);
+  closed(d.rocketLaunch, ["tone", "noise"]);
+  tone("rocketLaunch.tone", d.rocketLaunch.tone);
+  noise("rocketLaunch.noise", d.rocketLaunch.noise);
+  closed(d.grenadeOff, ["seconds", "gain"]);
+  number("audio", "grenadeOff.seconds", d.grenadeOff.seconds, 0.001);
+  gain("grenadeOff.gain", d.grenadeOff.gain);
+  tone("pickup", d.pickup);
+}
+
 // commander.json: the Commander mode match rules (engine/commander/match.js COMMANDER_RULES) that are not borrowed from the drone rules.
 // Counts are whole numbers, times in seconds, distances in metres. The drone-derived values (machine radius, damage, windup,
 // recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
@@ -1142,6 +1228,7 @@ export function validateCommander(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  audio: [audio, validateAudio],
   commander: [commander, validateCommander],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
