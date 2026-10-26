@@ -241,6 +241,19 @@
     "ringY": 0.045,
     "ringSegments": 48
   },
+  "remotePlayers": {
+    "capsule": { "bodyHeight": 1, "radius": 0.3, "capSegments": 4, "radialSegments": 8, "saturation": 0.45, "lightness": 0.55, "hueStep": 47 },
+    "head": { "radius": 0.2, "widthSegments": 12, "heightSegments": 8 },
+    "tag": {
+      "height": 2.05,
+      "scale": [1.6, 0.4],
+      "canvas": [256, 64],
+      "band": [0, 8, 256, 48],
+      "textX": 128,
+      "textY": 33,
+      "fonts": ["bold 30px sans-serif"]
+    }
+  },
   "routeArrow": {
     "peakOpacity": 0.6,
     "tailGap": 1

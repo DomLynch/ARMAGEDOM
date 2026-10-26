@@ -6,5 +6,7 @@
   "bootSyncWaitMs": 3000,
   "bucketBurst": 6,
   "bucketRefillMs": 5000,
-  "bucketReserve": 2
+  "bucketReserve": 2,
+  "retryFloorMs": 250,
+  "keepaliveMaxBytes": 60000
 }

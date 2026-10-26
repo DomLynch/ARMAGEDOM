@@ -88,7 +88,6 @@
     "engine/boss-label.js": 6,
     "engine/boss-ranged.js": 2,
     "engine/boss-weapon-runtime.js": 8,
-    "engine/browser-session.js": 19,
     "engine/client-log.js": 2,
     "engine/commander/match.js": 13,
     "engine/commander/view.js": 15,
@@ -130,7 +129,6 @@
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
     "engine/reaper.js": 3,
-    "engine/remote-players-view.js": 22,
     "engine/remote-players.js": 4,
     "engine/remote-survivors.js": 3,
     "engine/render-budget.js": 1,
@@ -143,7 +141,6 @@
     "engine/run-state.js": 13,
     "engine/run-views.js": 4,
     "engine/safehouse.js": 2,
-    "engine/save-client.js": 11,
     "engine/save-eras.js": 2,
     "engine/server.js": 1,
     "engine/sever-blood-data.js": 2,
@@ -187,8 +184,7 @@
     "travel.js": 1,
     "unique-reward-view.js": 5,
     "wolf-native.js": 5,
-    "world-geometry.js": 16,
-    "world.js": 33
+    "world-geometry.js": 16
   },
   "constantTables": {
     "clothing-palettes.js": 1,
