@@ -127,7 +127,6 @@
     "engine/touch-target.js": 2,
     "engine/unique-reward-core.js": 1,
     "engine/unique-reward-runtime.js": 3,
-    "engine/wanted-projection.js": 41,
     "engine/water-effect.js": 11,
     "engine/weapon-tiles.js": 6,
     "engine/world-events.js": 6,

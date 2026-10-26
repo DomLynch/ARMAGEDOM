@@ -1,38 +1,45 @@
 import * as T from "three";
 import { effectiveBounty } from "./marked.js";
+import { GAME_DATA } from "./game-data.js";
+import { validateWantedPoster } from "./wanted-poster-data.js";
+
+// Poster layout, wear pattern, mesh colour, draw order and flicker rates: data/visual.json `wantedPoster`.
+const POSTER = GAME_DATA.visual.wantedPoster;
+validateWantedPoster(POSTER);
 
 // One cached canvas on the existing registered image stage. Currency is read
 // from MARKED; this view never grants, saves, or changes a bounty.
 export function paintWanted(canvas, portrait, bounty) {
-  const c = canvas.getContext("2d");
+  const { portrait: pic, amount: money, rules, specks, scratches } = POSTER,
+    c = canvas.getContext("2d");
   c.clearRect(0, 0, canvas.width, canvas.height);
   c.fillStyle = "#e5e5df";
   c.textAlign = "center";
   c.font = "700 82px monospace";
-  c.fillText("WANTED", 192, 100);
-  c.globalAlpha = 0.86;
-  c.drawImage(portrait, 64, 170, 256, 320);
+  c.fillText("WANTED", POSTER.titleX, 100);
+  c.globalAlpha = pic.alpha;
+  c.drawImage(portrait, pic.x, pic.y, pic.width, pic.height);
   c.globalAlpha = 1;
   const amount = "$" + bounty.toLocaleString("en-US");
-  c.font = "700 92px monospace";
+  c.font = `700 ${money.fontPx}px monospace`;
   const width = c.measureText(amount).width;
-  if (width > 300) c.font = `700 ${Math.floor((92 * 300) / width)}px monospace`;
-  c.fillText(amount, 192, 625);
-  c.globalAlpha = 0.4;
-  c.fillRect(40, 125, 304, 2);
-  c.fillRect(64, 655, 256, 2);
+  if (width > money.maxWidth) c.font = `700 ${Math.floor((money.fontPx * money.maxWidth) / width)}px monospace`;
+  c.fillText(amount, money.x, money.y);
+  c.globalAlpha = rules.alpha;
+  c.fillRect(rules.top.x, rules.top.y, rules.top.width, 2);
+  c.fillRect(rules.bottom.x, rules.bottom.y, rules.bottom.width, 2);
   c.globalAlpha = 1;
   // Fixed wear, repainted only with changed content, never frame-by-frame noise.
   c.globalCompositeOperation = "destination-out";
-  for (let n = 0; n < 140; n++) {
-    const x = (n * 193 + 31) % 384,
-      y = (n * 271 + 67) % 700;
-    c.fillStyle = `rgba(0,0,0,${0.1 + (n % 4) * 0.06})`;
+  for (let n = 0; n < specks.count; n++) {
+    const x = (n * specks.stepX + specks.offsetX) % specks.spanX,
+      y = (n * specks.stepY + specks.offsetY) % specks.spanY;
+    c.fillStyle = `rgba(0,0,0,${specks.alpha + (n % 4) * specks.alphaStep})`;
     c.fillRect(x, y, 1 + (n % 3), 1);
   }
-  for (let n = 0; n < 9; n++) {
+  for (let n = 0; n < scratches.count; n++) {
     c.fillStyle = "rgba(0,0,0,.12)";
-    c.fillRect(25 + ((n * 71) % 250), 140 + n * 51, 45 + (n % 4) * 9, 1);
+    c.fillRect(scratches.x + ((n * scratches.stepX) % scratches.spanX), scratches.y + n * scratches.stepY, scratches.width + (n % 4) * scratches.widthStep, 1);
   }
   c.globalCompositeOperation = "source-over";
 }
@@ -40,7 +47,7 @@ export function paintWanted(canvas, portrait, bounty) {
 export function createWantedMesh(world, data, texture) {
   const material = new T.MeshBasicMaterial({
     map: texture,
-    color: 0xdce2ca,
+    color: Number("0x" + POSTER.meshColour),
     transparent: false,
     opacity: data.opacity,
     blending: T.AdditiveBlending,
@@ -53,7 +60,7 @@ export function createWantedMesh(world, data, texture) {
   // intentional: transparent-list quads run after actors regardless of order.
   // Draw after the registered photograph and before its authored depth masks.
   // Existing actor/depth rendering therefore still places foreground actors in front.
-  const mesh = world.quad(data.points, 100, material, -95, true);
+  const mesh = world.quad(data.points, 100, material, POSTER.renderOrder, true);
   mesh.geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2));
   mesh.name = "WANTED wall projection";
   mesh.userData = { areaId: data.areaId, bounty: null, textureUpdates: 0 };
@@ -123,8 +130,8 @@ export function createWantedProjection(s) {
     }
     if (!canvas) {
       canvas = document.createElement("canvas");
-      canvas.width = 384;
-      canvas.height = 768;
+      canvas.width = POSTER.canvas.width;
+      canvas.height = POSTER.canvas.height;
       texture = new T.CanvasTexture(canvas);
       texture.colorSpace = T.SRGBColorSpace;
       texture.generateMipmaps = false;
@@ -145,7 +152,7 @@ export function createWantedProjection(s) {
     mesh.userData.textureUpdates = paints;
     const t = g.time ?? 0;
     mesh.material.opacity =
-      data.opacity * (reduced?.matches ? 1 : 1 + data.flicker * (Math.sin(t * 17) + Math.sin(t * 43)) * 0.5);
+      data.opacity * (reduced?.matches ? 1 : 1 + data.flicker * (Math.sin(t * POSTER.flickerHz[0]) + Math.sin(t * POSTER.flickerHz[1])) * 0.5);
   }
   return {
     update,
