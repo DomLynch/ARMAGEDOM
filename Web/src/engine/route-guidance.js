@@ -46,7 +46,7 @@ export function huntTarget(g) {
   const ember = g.bossEquipment?.emberProjector,
     source = g.world?.bossEquipmentData?.emberProjector?.source;
   return ember?.status === "pending" && ember.dropPosition && source?.areaId === g.world.areaId
-    ? { pos: ember.dropPosition, label: "COLLECT THE EMBER PROJECTOR" }
+    ? { pos: ember.dropPosition, label: "WALK TO THE EMBER PROJECTOR" }
     : null;
 }
 export function validateGuidance(layout, g, links = null) {

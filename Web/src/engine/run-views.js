@@ -18,7 +18,7 @@ import { createBossView } from "./boss-view.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
 import { keySuffix } from "./key-hint.js";
-import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL } from "../pistol.js";
+import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL, PISTOL_RULES } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
 import { withWorldJournal } from "./world-events.js";
@@ -62,6 +62,41 @@ export function nearestInteraction(position, candidates) {
           a.id.localeCompare(b.id),
       )[0] ?? null
   );
+}
+// The uncollected starting pistol as a pickup candidate: in its area, in reach, in line of sight, and the player free to act.
+export function startingPistolCandidate(g, run) {
+  const p = g.pistol;
+  return p &&
+    !p.collected &&
+    g.world.areaId === p.pickupAreaId &&
+    !g.player.swing &&
+    g.time >= g.player.ready &&
+    g.time >= g.player.hurtUntil &&
+    g.time >= g.player.dodgeUntil &&
+    Math.hypot(g.player.pos.x - p.pickupPos.x, g.player.pos.z - p.pickupPos.z) <= PISTOL_RULES.pickupRadius &&
+    g.world.lineClear(g.player.pos, p.pickupPos)
+    ? { id: START_PISTOL_ID, label: START_PISTOL_LABEL, pickup: true, position: p.pickupPos, run }
+    : null;
+}
+// Walking into the reach of a pickup claims it, once. `step(position, candidates)` runs the nearest candidate marked `pickup: true`
+// that has not been started yet and remembers its id until the candidate leaves the list (claimed, or out of reach), so a claim
+// still in flight (an async auto-equip) or one the game refused is not repeated every frame. Each pickup's own radius, line of sight,
+// loaded and safe-to-act checks decide whether it is a candidate at all.
+export function createAutoPickup() {
+  const started = new Set();
+  return function step(position, candidates) {
+    const pickups = candidates.filter((c) => c?.pickup === true);
+    const live = new Set(pickups.map((c) => c.id));
+    for (const id of started) if (!live.has(id)) started.delete(id);
+    const next = nearestInteraction(
+      position,
+      pickups.filter((c) => !started.has(c.id)),
+    );
+    if (!next) return false;
+    started.add(next.id);
+    next.run();
+    return true;
+  };
 }
 export function meleeWeaponSummary(g) {
   const profile = selectedMeleeVariant(g);
@@ -114,7 +149,9 @@ export function createRunViews(s) {
   const safehouseView = createSafehouseView(s, persistence.dispatchLocker);
   const markedView = createMarkedView(s, persistence.dispatchMarked),
     wantedProjection = createWantedProjection(s);
-  function interaction() {
+  // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
+  // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
+  function interactionCandidates() {
     const g = s.game;
     if (
       !g ||
@@ -126,37 +163,29 @@ export function createRunViews(s) {
       g.runSaveInvalid ||
       g.player.hp <= 0
     )
-      return null;
+      return [];
     const candidates = [safehouseView, flameView, expeditionView, uniqueView, rifleView, bossEquipmentView].flatMap(
       (view) => view.interaction?.() ?? [],
     );
-    const p = g.pistol;
-    if (
-      p &&
-      !p.collected &&
-      g.world.areaId === p.pickupAreaId &&
-      !g.player.swing &&
-      g.time >= g.player.ready &&
-      g.time >= g.player.hurtUntil &&
-      g.time >= g.player.dodgeUntil &&
-      Math.hypot(g.player.pos.x - p.pickupPos.x, g.player.pos.z - p.pickupPos.z) <= 1.3 &&
-      g.world.lineClear(g.player.pos, p.pickupPos)
-    )
-      candidates.push({
-        id: START_PISTOL_ID,
-        label: START_PISTOL_LABEL,
-        position: p.pickupPos,
-        run: () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear()),
-      });
-    return nearestInteraction(g.player.pos, candidates);
+    const pistol = startingPistolCandidate(g, () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear()));
+    if (pistol) candidates.push(pistol);
+    return candidates;
+  }
+  function interaction() {
+    const g = s.game;
+    return g ? nearestInteraction(g.player.pos, interactionCandidates()) : null;
   }
   function interactNearby() {
     const target = interaction();
     return target ? target.run() : !!s.game?.flame?.equipped && flameView.interact();
   }
+  const autoPickup = createAutoPickup();
   function updateInteraction() {
     const field = document.getElementById("pistol-interact"),
-      target = interaction();
+      candidates = interactionCandidates(),
+      position = s.game?.player.pos;
+    if (position) autoPickup(position, candidates);
+    const target = position ? nearestInteraction(position, candidates.filter((c) => !c.pickup)) : null;
     if (!field) return;
     field.hidden = !target;
     field.disabled = false;
