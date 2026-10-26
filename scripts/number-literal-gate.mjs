@@ -1,28 +1,29 @@
-// Number-literal ratchet (part of the as-data gate): no tuning values in code. Every numeric literal in Web/src that is not a math
-// constant, a validator bound, a save version, a named top-level constant or view/art geometry counts toward a per-file legacy total
-// in scripts/as-data-baseline.json `numberLiterals`. A file's count may only go down: move the number into data (Web/src/data/*.json
+// Number-literal ratchet (part of the as-data gate): no tuning values in code. Every numeric literal in Web/src that is not a unit
+// conversion, a validator bound, a save version or pure geometry counts toward a per-file legacy total in
+// scripts/as-data-baseline.json `numberLiterals`. A file's count may only go down: move the number into data (Web/src/data/*.json
 // read through engine/game-data.js, or a rig row) and lower the entry; a new file starts at 0.
 //
 // What does NOT count:
-// - the unit scalers and angle/time conversions in NUMBER_ALLOWED (0, 1, 2, 3, 4, 10, 100, 1000, 0.5, 60, 90, 180, 360, 255), signs
-//   ignored, and any epsilon below 1e-6;
+// - the unit scalers and angle/time conversions in NUMBER_ALLOWED (0, 1, 60, 90, 180, 360, 255, 100, 1000), signs ignored, and any
+//   epsilon below 1e-6. 2, 3, 4, 10 and 0.5 count; a top-level `const UPPER_CASE = <number>` counts too;
 // - an array index (`a[7]`), a comparison against a `.length`, a comparison against or a property named like `version`;
-// - the initialiser of a top-level `const UPPER_CASE = <number>` (a named constant; tables are the constant-table rule's business);
 // - anything inside a function named validate*/check*/assert*/ensure* (bounds on data, not values);
 // - a line that ends with `// tuning-ok: <reason>` (listed so the reasons can be reviewed);
-// - files that are view or art geometry (NUMBER_EXEMPT_FILES): judged by eye, not by number.
+// - files that are pure model geometry, listed with a reason in Web/src/data/keep-in-code.json (NUMBER_EXEMPT_FILES).
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { relative } from "node:path";
 
-export const NUMBER_ALLOWED = new Set([
-  0, 1, 2, 3, 4, 10, 100, 1000, 0.5, 60, 90, 180, 360, 255,
-]);
+export const NUMBER_ALLOWED = new Set([0, 1, 60, 90, 180, 360, 255, 100, 1000]);
 export const NUMBER_EPSILON = 1e-6;
-export const NUMBER_EXEMPT_FILES = [
-  /(^|\/)[^/]*-view\.js$/,
-  /(^|\/)(actors|effects|low-hover-drone|feral-dog|pistol-slide|pistol-pose|finisher-presentation|finisher-opened|railgun-coils)\.js$/,
-];
+// The single exemption file (Web/src/data/keep-in-code.json): which files stay outside the counter, and which JSON imports are allowed.
+export const KEEP_IN_CODE_FILE = "Web/src/data/keep-in-code.json";
+export const KEEP_IN_CODE = JSON.parse(
+  readFileSync(new URL(`../${KEEP_IN_CODE_FILE}`, import.meta.url), "utf8"),
+);
+export const NUMBER_EXEMPT_FILES = KEEP_IN_CODE.numberExemptFiles.map(
+  (entry) => new RegExp(entry.pattern),
+);
 const VALIDATOR_NAME = /^(validate|check|assert|ensure)/i;
 const VERSION_NAME = /version/i;
 
@@ -86,20 +87,6 @@ function exempt(literal, ancestors, signed) {
     VERSION_NAME.test(nameOf(parent.key) ?? "")
   )
     return true;
-  if (
-    parent?.type === "VariableDeclarator" &&
-    parent.init === self &&
-    /^[A-Z][A-Z0-9_]*$/.test(nameOf(parent.id) ?? "")
-  ) {
-    const base = signed ? 3 : 2,
-      holder = ancestors[base];
-    if (
-      holder?.type === "Program" ||
-      (holder?.type === "ExportNamedDeclaration" &&
-        ancestors[base + 1]?.type === "Program")
-    )
-      return true;
-  }
   for (let i = 0; i < ancestors.length; i++)
     if (
       isFunction(ancestors[i]) &&
