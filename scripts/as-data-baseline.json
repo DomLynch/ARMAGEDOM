@@ -67,9 +67,7 @@
       { "name": "EMPTY", "reason": "a shared frozen empty array, not data" }
     ]
   },
-  "rigLiterals": {
-    "engine/commander/match.js": 1
-  },
+  "rigLiterals": {},
   "numberLiterals": {
     "animal-appearance.js": 9,
     "animal-cycle.js": 3,

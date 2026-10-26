@@ -70,7 +70,7 @@ export function createRifleView(s, dispatch) {
             ? "RIFLE EQUIPPED"
             : "Returned to melee.";
       g.messageUntil = g.time + 4;
-      s.input.clear();
+      s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
   }
