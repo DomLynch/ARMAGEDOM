@@ -80,8 +80,6 @@
     "donor/knife.js": 12,
     "drone-laser.js": 3,
     "drone-mechanics.js": 2,
-    "engine/area-bosses.js": 2,
-    "engine/areas.js": 2,
     "engine/bone-saw.js": 3,
     "engine/boss-flame.js": 3,
     "engine/boss-ranged.js": 2,
@@ -119,7 +117,6 @@
     "pistol.js": 2,
     "roach-appearance.js": 5,
     "roach-territory.js": 1,
-    "travel.js": 1,
     "wolf-native.js": 5
   },
   "constantTables": {
