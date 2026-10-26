@@ -62,7 +62,6 @@
     "animal-role-bindings.js": 2,
     "area-mob-spawns.js": 3,
     "combat.js": 96,
-    "effects.js": 25,
     "engine/area-content.js": 1,
     "engine/area-population.js": 9,
     "engine/commander/match.js": 1,
