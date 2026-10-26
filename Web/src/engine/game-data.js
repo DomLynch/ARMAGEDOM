@@ -3,6 +3,9 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
+import bossRangedExtra from "../data/bossRangedExtra.json" with { type: "json" };
+import donorMotion from "../data/donorMotion.json" with { type: "json" };
+import finisher from "../data/finisherData.json" with { type: "json" };
 import audio from "../data/audio.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
@@ -26,7 +29,10 @@ import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { count, fail, id, number } from "./game-data-checks.js";
+import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
   validateBossEquipment,
@@ -823,6 +829,9 @@ const sources = () => ({
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
+  bossRangedExtra: [bossRangedExtra, validateBossRangedData],
+  donorMotion: [donorMotion, validateDonorMotionData],
+  finisher: [finisher, validateFinisherData],
   combatRules: [combatRules, validateCombatRules],
   creatures: [creatures, validateCreatures],
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
