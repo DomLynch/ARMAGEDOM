@@ -11,6 +11,7 @@ import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
+import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
@@ -979,6 +980,21 @@ export function validateAreaRuntime(d) {
   count("areaRuntime", "parkedAreas.maxBytes", d.parkedAreas.maxBytes, 1048576, 1073741824);
 }
 
+// uniqueReward.json: where a boss's drop is placed when its corpse is against a wall or exit (engine/unique-reward-runtime.js). Metres,
+// searched outward in 16 directions: the near rings first, then the wider ones. Placement only; item identity and saved shape stay in code.
+export function validateUniqueReward(d) {
+  closed(d, ["schema_version", "dropSearch"]);
+  closed(d.dropSearch, ["nearRadii", "fallbackRadii"]);
+  for (const name of ["nearRadii", "fallbackRadii"]) {
+    const rows = d.dropSearch[name];
+    if (!Array.isArray(rows) || rows.length < 1 || rows.length > 16) fail("uniqueReward", `dropSearch.${name} must list 1 to 16 radii`);
+    rows.forEach((r, i) => {
+      if (!Number.isFinite(r) || r <= 0 || r > 20 || (i > 0 && r <= rows[i - 1]))
+        fail("uniqueReward", `dropSearch.${name} must be increasing radii above 0 and up to 20 m`);
+    });
+  }
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   appearance: [appearance, validateAppearance],
@@ -992,6 +1008,7 @@ const sources = () => ({
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],
+  uniqueReward: [uniqueReward, validateUniqueReward],
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
