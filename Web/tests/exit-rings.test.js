@@ -4,6 +4,7 @@ import fs from "node:fs";
 import * as THREE from "three";
 import { createGeometry } from "../src/world-geometry.js";
 import { createExitRings } from "../src/engine/exit-rings.js";
+import { EXIT_RINGS } from "../src/engine/exit-rings-data.js";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url), "utf8"));
 const areas = [...new Set(manifest.links.map((l) => l.from))];
@@ -39,6 +40,25 @@ test("every exit of every area gets one ring, except the exit route-guidance alr
     exits.dispose();
   }
   assert.equal(total, 27);
+});
+
+test("a tenth area, a moved exit and a data offset need no code: the ring follows the registry condition and visual.json", () => {
+  const base = fakeWorld("south"),
+    link = manifest.links.find((l) => l.from === "south" && l.to === "westminster"),
+    ringFor = (areaId, condition) => {
+      const world = { ...base, areaId, group: new THREE.Group(), registry: { links: () => [{ ...link, from: areaId, to: "area-ten-neighbour", condition }] } };
+      return createExitRings(world).rings;
+    },
+    first = ringFor("area-ten", link.condition),
+    moved = ringFor("area-ten", { ...link.condition, xMin: 0.25, xMax: 0.3, yMin: 0.69, yMax: 0.7 });
+  assert.equal(first.length, 1, "a new area id gets its ring");
+  assert.equal(first[0].to, "area-ten-neighbour");
+  assert.ok(Math.hypot(first[0].at.x - moved[0].at.x, first[0].at.z - moved[0].at.z) > 0.5, "moving the exit moves the ring");
+  // The look and any per-exit offset live in data/visual.json only (the game's data is frozen, so a test cannot edit it).
+  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "colour", "flatRotation", "height", "inner", "offsets", "opacity", "outer", "segments"]);
+  const ring = createExitRings({ ...base, group: new THREE.Group(), registry: { links: () => [link] } }).rings[0];
+  assert.equal(ring.mesh.material.color.getHexString(), EXIT_RINGS.colour);
+  assert.equal(ring.mesh.material.opacity, EXIT_RINGS.opacity);
 });
 
 test("each ring stands on clear ground, at or within two metres of its exit zone", () => {

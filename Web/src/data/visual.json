@@ -308,6 +308,17 @@
       }
     }
   },
+  "exitRings": {
+    "inner": 0.48,
+    "outer": 0.62,
+    "segments": 32,
+    "colour": "dfba59",
+    "opacity": 1,
+    "height": 0.045,
+    "anchor": { "x": 0.5, "y": 0.5 },
+    "flatRotation": -1.5707963267948966,
+    "offsets": {}
+  },
   "input": {
     "knobPadPx": 106,
     "knobTravelShare": 0.34,
