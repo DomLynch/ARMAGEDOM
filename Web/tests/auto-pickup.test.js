@@ -41,6 +41,29 @@ test("a claim that did not take (still listed) is retried with a back-off: after
   assert.equal(runs, 5, "once the pickup is gone it is not run again");
 });
 
+test("the back-off comes from weapons.json autoPickupRetry, is validated, and can be overridden for a test", async () => {
+  const fs = await import("node:fs");
+  const { GAME_DATA, validateWeapons } = await import("../src/engine/game-data.js");
+  assert.deepEqual(GAME_DATA.weapons.autoPickupRetry, { firstSeconds: 1, maxSeconds: 4 });
+  const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/weapons.json", import.meta.url))));
+  const broken = (mutate) => () => {
+    const d = raw();
+    mutate(d);
+    validateWeapons(d);
+  };
+  assert.doesNotThrow(broken(() => {}));
+  assert.throws(broken((d) => { delete d.autoPickupRetry; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.extra = 1; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.firstSeconds = 0; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.maxSeconds = 0.5; }));
+  assert.throws(broken((d) => { d.autoPickupRetry.maxSeconds = 600; }));
+  const step = createAutoPickup({ firstSeconds: 2, maxSeconds: 2 });
+  let runs = 0;
+  const pickup = { id: "a", pickup: true, position: { x: 1, z: 0 }, run: () => ++runs };
+  for (const t of [0, 1, 2, 3, 4]) step({ x: 0, z: 0 }, [pickup], t);
+  assert.equal(runs, 3, "a 2 s back-off runs at 0, 2 and 4");
+});
+
 test("leaving reach resets the back-off: coming back is a fresh, immediate pickup", () => {
   const step = createAutoPickup();
   let runs = 0;

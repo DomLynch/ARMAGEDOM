@@ -26,6 +26,7 @@ import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
+import { GAME_DATA } from "./game-data.js";
 export function dispatchEquipmentSelection(g, command, allowed, dispatch) {
   const result = dispatch(g, command, allowed);
   if (result.ok && (command.type === "equip" || command.type === "selectVariant")) stopFlame(g, { unequip: true });
@@ -81,10 +82,10 @@ export function startingPistolCandidate(g, run) {
 // Walking into the reach of a pickup claims it. `step(position, candidates, time)` runs the nearest candidate marked `pickup: true`
 // that is due and remembers it until the candidate leaves the list (claimed, or out of reach), so a claim still in flight (an async
 // auto-equip) is not repeated every frame. A pickup still listed after its back-off (the claim was refused for a reason that can
-// pass, such as full save storage) is tried again while the player stays in reach: after 1 s, then 2 s, then every 4 s. Each pickup's
-// own radius, line of sight, loaded and safe-to-act checks decide whether it is a candidate at all. `time` is game time (seconds).
-export const AUTO_PICKUP_RETRY_SECONDS = Object.freeze({ first: 1, max: 4 });
-export function createAutoPickup() {
+// pass, such as full save storage) is tried again while the player stays in reach: after 1 s, then 2 s, then every 4 s (weapons.json
+// `autoPickupRetry`). Each pickup's own radius, line of sight, loaded and safe-to-act checks decide whether it is a candidate at all.
+// `time` is game time (seconds).
+export function createAutoPickup({ firstSeconds, maxSeconds } = GAME_DATA.weapons.autoPickupRetry) {
   const started = new Map();
   return function step(position, candidates, time = 0) {
     const pickups = candidates.filter((c) => c?.pickup === true);
@@ -96,8 +97,8 @@ export function createAutoPickup() {
     );
     if (!next) return false;
     const wait = started.has(next.id)
-      ? Math.min(started.get(next.id).wait * 2, AUTO_PICKUP_RETRY_SECONDS.max)
-      : AUTO_PICKUP_RETRY_SECONDS.first;
+      ? Math.min(started.get(next.id).wait * 2, maxSeconds)
+      : firstSeconds;
     started.set(next.id, { retryAt: time + wait, wait });
     next.run();
     return true;

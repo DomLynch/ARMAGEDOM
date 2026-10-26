@@ -131,6 +131,7 @@ export function validateWeapons(d) {
   closed(d, [
     "schema_version",
     "autoEquipOnFirstPickup",
+    "autoPickupRetry",
     "ranged",
     "knife",
     "melee",
@@ -146,6 +147,12 @@ export function validateWeapons(d) {
     "audio",
   ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
+  // run-views.js createAutoPickup: a floor pickup whose claim did not take is tried again after `firstSeconds`, the wait doubling up to
+  // `maxSeconds` (game time), while the player stays in reach.
+  closed(d.autoPickupRetry, ["firstSeconds", "maxSeconds"]);
+  number("weapons", "autoPickupRetry.firstSeconds", d.autoPickupRetry.firstSeconds, 0.1);
+  number("weapons", "autoPickupRetry.maxSeconds", d.autoPickupRetry.maxSeconds, d.autoPickupRetry.firstSeconds);
+  if (d.autoPickupRetry.maxSeconds > 60) fail("weapons", "autoPickupRetry.maxSeconds must be at most 60");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateBossEquipment(d.bossEquipment, d.ranged);
   validateKnife(d.knife);
