@@ -10,7 +10,7 @@ const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const data=read('../public/world/area-content.json'),base=read('./fixtures/boss-aggression218-baseline.json');
 test('219 changes only six boss movement/acquisition/timing fields and uniformly resampled native paths',()=>{
  const {bosses,...other}=structuredClone(data);delete other.expedition.contract.enabled;delete other.marked.hunters;delete other.marked.bounty; // the 24 Oct contract/hunter/bounty switches
- const expected=structuredClone(base.protected);for(const key of['hunterBounty','arrivalDelay','respawnDelay']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate, 75 s first arrival, 105 s re-arrival)
+ const expected=structuredClone(base.protected);for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate); 26 Oct: 60 s first arrival, 90 s re-arrival, no resident cap
  assert.deepEqual(other,expected);
  assert.deepEqual(bosses.placements,base.bosses.placements);assert.deepEqual(bosses.profiles.witch,base.bosses.profiles.witch);
  assert.deepEqual(bosses.paths['boss-witch-attack'],base.bosses.paths['boss-witch-attack']);

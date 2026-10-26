@@ -10,9 +10,11 @@ export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false }
     c = g.world.markedData;
   g.markedHunt = {
     areaId,
-    arrivedAt: g.time,
+    // The clock is per run, not per area: travel keeps `arrivedAt`, so the first-arrival wait (arrivalDelay) counts from the start
+    // of the run (or from the last death) however many areas the player crosses.
+    arrivedAt: death || !old ? g.time : old.arrivedAt,
     // Death restarts the first-arrival wait. Leaving an area with a hunter alive counts as the hunter leaving: the next one comes
-    // after the re-arrival delay (the first-arrival wait for the new area still applies on top of it).
+    // after the re-arrival delay.
     nextSpawnAt: death
       ? g.time + c.arrivalDelay
       : hadHunter
@@ -107,9 +109,9 @@ export function stepMarkedHunters(g, spawn) {
     s.warning = null;
     return;
   }
-  const alive = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false),
-    hunters = alive.filter((e) => e.markedHunter);
-  if (hunters.length >= c.maxHunters || alive.length >= c.hostileBudget) {
+  // The residents of an area never block a hunter: only another living hunter does (maxHunters).
+  const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter);
+  if (hunters.length >= c.maxHunters) {
     s.warning = null;
     return;
   }
