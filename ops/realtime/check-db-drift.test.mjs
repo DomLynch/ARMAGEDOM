@@ -15,12 +15,20 @@ const files = fs.readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).s
 const sha = (file) => createHash("sha256").update(fs.readFileSync(path.join(MIGRATIONS_DIR, file))).digest("hex");
 
 // A hosted-like database: the migrations, plus the registry table from ops/realtime/apply-migrations.sh with one row per file.
-async function hosted(change = async () => {}) {
-  const db = await freshDb();
+async function hostedDb() {
+  // apply-migrations.sh creates the registry FIRST, then applies and records each migration, so a migration can grant on it.
+  const db = await freshDb({ migrations: false });
   await db.exec(`create table public.arma_schema_migrations (name text primary key, sha256 text not null check (sha256 ~ '^[0-9a-f]{64}$'), applied_at timestamptz not null default now());
     alter table public.arma_schema_migrations enable row level security;
     revoke all on public.arma_schema_migrations from public, anon, authenticated;`);
-  for (const file of files) await db.exec(`insert into public.arma_schema_migrations (name, sha256) values ('${file}', '${sha(file)}')`);
+  for (const file of files) {
+    await db.exec(fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8"));
+    await db.exec(`insert into public.arma_schema_migrations (name, sha256) values ('${file}', '${sha(file)}')`);
+  }
+  return db;
+}
+async function hosted(change = async () => {}) {
+  const db = await hostedDb();
   await change(db);
   const rows = (await db.query(snapshotSql({ registry: true }))).rows.map(({ s, k, v }) => ({ s, k, v }));
   await db.close?.();
@@ -34,7 +42,66 @@ const lines = (report) => report.differences.map((d) => `${d.section} ${d.key}`)
 test("an untouched database reports zero drift, and the report says what it checked", async () => {
   const report = await drift();
   assert.deepEqual(report.differences, []);
-  assert.match(report.text, /^zero drift \(13 migrations, \d+ seeded rows, 22 functions, 20 tables, 4 policies\)$/);
+  assert.match(report.text, /^zero drift \(14 migrations, \d+ seeded rows, 22 functions, 20 tables, 12 policies\)$/);
+});
+
+test("the reader role Deploy connects as: read-only, seeded tables and the registry only, no writes, no functions, no memberships", async () => {
+  const db = await hostedDb();
+  const q = async (sql) => (await db.query(sql)).rows;
+  assert.deepEqual(
+    (await q(`select rolsuper, rolcreaterole, rolcreatedb, rolcanlogin, rolbypassrls, rolinherit, rolconnlimit, rolconfig from pg_roles where rolname = 'arma_drift_reader'`))[0],
+    { rolsuper: false, rolcreaterole: false, rolcreatedb: false, rolcanlogin: true, rolbypassrls: false, rolinherit: false, rolconnlimit: 2, rolconfig: ["default_transaction_read_only=on", "statement_timeout=30s"] },
+  );
+  assert.deepEqual(await q(`select 1 from pg_auth_members m join pg_roles u on u.oid = m.member where u.rolname = 'arma_drift_reader'`), []);
+  const tables = (await q(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and relname like 'arma\\_%' order by 1`)).map((r) => r.relname);
+  const mayRead = [...ALLOW.seededTables, "arma_schema_migrations"].sort();
+  for (const table of tables) {
+    const priv = (p) => q(`select has_table_privilege('arma_drift_reader', 'public.${table}', '${p}') as ok`).then((r) => r[0].ok);
+    assert.equal(await priv("select"), mayRead.includes(table), `select on ${table}`);
+    for (const p of ["insert", "update", "delete", "truncate", "references", "trigger"]) assert.equal(await priv(p), false, `${p} on ${table}`);
+  }
+  assert(mayRead.every((t) => tables.includes(t)), "every table in the allow-list exists");
+  assert.deepEqual(await q(`select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'arma\\_%' and has_function_privilege('arma_drift_reader', p.oid, 'execute')`), []);
+  // And as that role, for real: it reads every row of every table it may read (the policy, not BYPASSRLS), and a write or a read of
+  // player data or a function call is refused. (pglite refuses ordinary roles the catalogs, which any role reads on real Postgres, so the
+  // catalog half of the snapshot is not run as the reader here; the hosted run covers it.)
+  const dump = (table) => q(`select coalesce(jsonb_agg(to_jsonb(x) order by to_jsonb(x)::text), '[]') as j from public.${table} x`).then((r) => r[0].j);
+  const asOwner = {};
+  for (const table of mayRead) asOwner[table] = await dump(table);
+  await db.exec("set role arma_drift_reader");
+  try {
+    for (const table of mayRead) {
+      assert.deepEqual(await dump(table), asOwner[table], `${table} reads whole`);
+      assert(asOwner[table].length > 0, `${table} is not empty`);
+    }
+    for (const sql of [`delete from public.arma_weapon_rules`, `update public.arma_config set value = 'true'::jsonb`, `insert into public.arma_schema_migrations (name, sha256) values ('x', '${"2".repeat(64)}')`, `select * from public.arma_runs`, `select * from public.arma_characters`, `select public.arma_allowed('00000000-0000-4000-8000-00000000000a')`])
+      await assert.rejects(db.exec(sql), /permission denied/, sql);
+  } finally {
+    await db.exec("reset role");
+  }
+  // Without the row-level-security policy the grant alone would return nothing: the role must not need BYPASSRLS.
+  assert.equal((await q(`select count(*)::int n from pg_policies where policyname = 'the drift reader reads the seeded rows'`))[0].n, 9);
+});
+
+test("the seeded table list in the allow-list is the list migration 000014 grants (one list, two files)", () => {
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, "20261026000014_arma_drift_reader.sql"), "utf8");
+  const listed = [...sql.match(/array\[([^\]]+)\]/)[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+  assert.deepEqual([...listed].sort(), [...ALLOW.seededTables].sort());
+});
+
+test("a role gaining BYPASSRLS, a membership, a write grant or losing its grant is reported", async () => {
+  const bypass = await drift(async (db) => { await db.exec(`alter role arma_writer bypassrls`); });
+  assert.deepEqual(lines(bypass), ["role arma_writer"]);
+  const superuser = await drift(async (db) => { await db.exec(`alter role arma_drift_reader superuser`); });
+  assert.deepEqual(lines(superuser), ["role arma_drift_reader"]);
+  const member = await drift(async (db) => { await db.exec(`grant authenticated to arma_presence`); });
+  assert.deepEqual(lines(member), ["memberof arma_presence"]);
+  const write = await drift(async (db) => { await db.exec(`grant insert on public.arma_weapon_rules to arma_drift_reader`); });
+  assert.deepEqual(lines(write), ["grant:table arma_weapon_rules"]);
+  const lost = await drift(async (db) => { await db.exec(`revoke select on public.arma_schema_migrations from arma_drift_reader`); });
+  assert.deepEqual(lines(lost), ["registry-table grants"]);
+  const gone = await drift(async (db) => { await db.exec(`drop policy "the drift reader reads the seeded rows" on public.arma_schema_migrations`); });
+  assert.deepEqual(lines(gone), ["registry-table policy the drift reader reads the seeded rows"]);
 });
 
 test("the allow-list is data: the live switches, and the service_role grants, may differ and nothing else may", async () => {

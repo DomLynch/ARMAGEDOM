@@ -1,6 +1,6 @@
 // The drift check: does the hosted ARMAGEDOM database still equal what supabase/migrations say? Read-only; it never writes to hosted.
-//   node ops/realtime/check-db-drift.mjs --hosted            runs the snapshot SQL with psql against $DRIFT_DATABASE_URL (a role that can
-//                                                            read the arma_* tables and the catalogs: the owner), compares, prints the verdict
+//   node ops/realtime/check-db-drift.mjs --hosted            runs the snapshot SQL with psql against $DRIFT_DATABASE_URL, the read-only role
+//                                                            arma_drift_reader (migration 000014; never the owner), compares, prints the verdict
 //   node ops/realtime/check-db-drift.mjs --print-sql         prints the snapshot SQL, to run anywhere (psql, the Supabase SQL editor)
 //   node ops/realtime/check-db-drift.mjs --actual <file>     compares a JSON array of {s,k,v} rows that SQL produced
 // Exit 0 and "zero drift", or exit 1 and one line per difference (section, key, hosted value, repo value). Exit 2 is an error.
@@ -39,6 +39,10 @@ export function snapshotSql({ registry = false } = {}) {
     `select 'grant:table', c.relname, ${grantees("coalesce(c.relacl, acldefault('r', c.relowner))", "c.relowner")} ${tables}`,
     `select 'rls', c.relname, c.relrowsecurity::text || '|' || c.relforcerowsecurity::text ${tables}`,
     `select 'policy', tablename || '.' || policyname, cmd || '|' || permissive || '|' || array_to_string(roles, ',') || '|' || coalesce(qual, '') || '|' || coalesce(with_check, '') from pg_policies where schemaname = 'public' and tablename like 'arma\\_%' and tablename <> '${REGISTRY}'`,
+    // The arma roles: attributes (super, createrole, createdb, login, bypassrls, inherit, connection limit, role settings) and the roles
+    // each belongs to (a grant of postgres or service_role would carry its privileges past every other check).
+    `select 'role', rolname, rolsuper::text || '|' || rolcreaterole::text || '|' || rolcreatedb::text || '|' || rolcanlogin::text || '|' || rolbypassrls::text || '|' || rolinherit::text || '|' || rolconnlimit::text || '|' || coalesce(rolconfig::text, '') from pg_roles where rolname like 'arma\\_%'`,
+    `select 'memberof', u.rolname, coalesce(string_agg(g.rolname, ',' order by g.rolname), '') from pg_roles u left join pg_auth_members m on m.member = u.oid left join pg_roles g on g.oid = m.roleid where u.rolname like 'arma\\_%' group by u.rolname`,
     ...ALLOW.seededTables.map((t) => `select 'row:${t}', to_jsonb(x)::text, '' from public.${t} x`),
   ];
   if (registry)
@@ -46,6 +50,7 @@ export function snapshotSql({ registry = false } = {}) {
       `select 'registry', name, sha256 from public.${REGISTRY}`,
       `select 'registry-table', 'rls', c.relrowsecurity::text || '|' || c.relforcerowsecurity::text from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname = '${REGISTRY}'`,
       `select 'registry-table', 'grants', ${grantees("coalesce(c.relacl, acldefault('r', c.relowner))", "c.relowner")} from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname = '${REGISTRY}'`,
+      `select 'registry-table', 'policy ' || policyname, cmd || '|' || permissive || '|' || array_to_string(roles, ',') || '|' || coalesce(qual, '') || '|' || coalesce(with_check, '') from pg_policies where schemaname = 'public' and tablename = '${REGISTRY}'`,
     );
   return `select s, k, v from (\n${parts.join("\nunion all\n")}\n) snapshot order by s, k, v`;
 }
@@ -63,7 +68,12 @@ export async function expectedSnapshot({ registry = true } = {}) {
   if (registry) {
     for (const file of fs.readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort())
       rows.push({ s: "registry", k: file, v: createHash("sha256").update(fs.readFileSync(path.join(MIGRATIONS_DIR, file))).digest("hex") });
-    rows.push({ s: "registry-table", k: "rls", v: "true|false" }, { s: "registry-table", k: "grants", v: "" });
+    // The registry is made by apply-migrations.sh, not a migration; migration 000014 gives the drift reader SELECT and a policy on it.
+    rows.push(
+      { s: "registry-table", k: "rls", v: "true|false" },
+      { s: "registry-table", k: "grants", v: "arma_drift_reader:SELECT:false" },
+      { s: "registry-table", k: "policy the drift reader reads the seeded rows", v: "SELECT|PERMISSIVE|arma_drift_reader|true|" },
+    );
   }
   await db.close?.();
   return rows;
@@ -108,7 +118,7 @@ export function driftReport(hosted, repo) {
 
 function hostedSnapshot() {
   const url = process.env.DRIFT_DATABASE_URL;
-  if (!url) throw new Error("set DRIFT_DATABASE_URL to a connection string for a role that can read the arma_* tables (the owner)");
+  if (!url) throw new Error("set DRIFT_DATABASE_URL to a connection string for the read-only role arma_drift_reader (migration 000014)");
   const sql = `select coalesce(json_agg(x), '[]'::json) from (${snapshotSql({ registry: true })}) x`;
   const run = spawnSync("psql", [url, "-X", "-At", "-v", "ON_ERROR_STOP=1", "-c", sql], {
     encoding: "utf8",
