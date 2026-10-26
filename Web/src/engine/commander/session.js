@@ -8,6 +8,7 @@ import {
 } from "./match.js";
 import { createCommanderView } from "./view.js";
 import { GAME_DATA } from "../game-data.js";
+import { sessionText as text } from "../session-text.js";
 
 const isSecondaryButton = (p) => p.button === 2; // tuning-ok: DOM pointer event button 2 is the secondary (right) mouse button
 export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
@@ -65,20 +66,32 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       r = COMMANDER_RULES;
     byId("commander-objective").textContent =
       state.phase === "capture"
-        ? `Capture checkpoint · ${state.objective.capture.toFixed(1)} / ${r.captureSeconds}s`
-        : `Defend checkpoint · ${Math.min(r.defendSeconds, state.objective.defend).toFixed(1)} / ${r.defendSeconds}s`;
-    byId("commander-integrity").textContent =
-      `Checkpoint ${state.objective.hp} / ${r.beaconHP} · ${Math.max(0, Math.ceil(r.matchSeconds - state.time))}s`;
-    byId("commander-reserve").textContent =
-      `Machines ${state.units.filter((e) => e.hp > 0).length} / ${r.unitCap} · Reserve ${state.reserve}`;
+        ? text("commander.objectiveCapture", { done: state.objective.capture.toFixed(1), total: r.captureSeconds })
+        : text("commander.objectiveDefend", {
+            done: Math.min(r.defendSeconds, state.objective.defend).toFixed(1),
+            total: r.defendSeconds,
+          });
+    byId("commander-integrity").textContent = text("commander.integrity", {
+      hp: state.objective.hp,
+      max: r.beaconHP,
+      seconds: Math.max(0, Math.ceil(r.matchSeconds - state.time)),
+    });
+    byId("commander-reserve").textContent = text("commander.reserve", {
+      alive: state.units.filter((e) => e.hp > 0).length,
+      cap: r.unitCap,
+      reserve: state.reserve,
+    });
     byId("commander-notice").textContent =
       notice && match.time <= noticeUntil
         ? notice
         : paused
-          ? "Paused"
+          ? text("commander.paused")
           : state.selected.length
-            ? `${state.selected.length} selected · ${command === "attack" ? "tap a biological opponent" : "tap clear road to move"}`
-            : "Select a drone or choose All";
+            ? text("commander.selected", {
+                count: state.selected.length,
+                hint: text(command === "attack" ? "commander.hintAttack" : "commander.hintMove"),
+              })
+            : text("commander.selectDrone");
     const list = byId("commander-units");
     for (const e of state.units) {
       let button = list.querySelector(`[data-unit="${e.id}"]`);
@@ -89,7 +102,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
         button.addEventListener("click", () => input({ type: "select", ids: [e.id] }));
         list.append(button);
       }
-      button.textContent = `Drone ${e.id} · ${e.hp}/${e.maxHP}`;
+      button.textContent = text("commander.droneButton", { id: e.id, hp: e.hp, max: e.maxHP });
       button.disabled = paused || !!state.result || e.hp <= 0;
       button.setAttribute("aria-pressed", String(state.selected.includes(e.id)));
     }
@@ -99,14 +112,14 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       byId(id).disabled = unavailable;
     byId("commander-deploy").disabled =
       unavailable || state.reserve < r.deployCost || state.units.filter((e) => e.hp > 0).length >= r.unitCap;
-    byId("commander-pause").textContent = paused ? "Resume" : "Pause";
+    byId("commander-pause").textContent = text(paused ? "commander.resume" : "commander.pause");
     byId("commander-pause").disabled = !!state.result;
     byId("commander-move").setAttribute("aria-pressed", String(command === "move"));
     byId("commander-attack").setAttribute("aria-pressed", String(command === "attack"));
     result.hidden = !state.result;
     if (state.result) {
       byId("commander-result-title").textContent =
-        state.result.kind === "success" ? "Checkpoint secured" : "Checkpoint lost";
+        text(state.result.kind === "success" ? "commander.titleSuccess" : "commander.titleLoss");
       byId("commander-result-reason").textContent = state.result.reason;
     }
   }
@@ -143,7 +156,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
   }
   function input(request) {
     if (!loaded || disposed || paused || retrying || match.result)
-      return { ok: false, reason: "Commander match unavailable" };
+      return { ok: false, reason: text("commander.matchUnavailable") };
     let ack;
     if (request?.type === "select" || request?.type === "all") {
       const ids = request.type === "all" ? match.units.filter((e) => e.hp > 0).map((e) => e.id) : request.ids;
@@ -152,12 +165,12 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       command = request.command;
       ack = { ok: true, type: "command", command };
     } else ack = orderCommander(match, view.world, request);
-    if (!ack.ok) tell(ack.reason ?? "Select a living machine");
+    if (!ack.ok) tell(ack.reason ?? text("commander.selectLiving"));
     else if (["move", "attack", "defend", "deploy"].includes(ack.type))
       tell(
         ack.type === "deploy"
-          ? "Replacement deployed"
-          : `${ack.type[0].toUpperCase() + ack.type.slice(1)} order accepted`,
+          ? text("commander.deployed")
+          : text("commander.orderAccepted", { order: ack.type[0].toUpperCase() + ack.type.slice(1) }),
       );
     render();
     return structuredClone(ack);
@@ -202,7 +215,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     if (disposed || loading || loaded) return;
     loading = true;
     byId("enter-ai").disabled = true;
-    byId("loading").textContent = "Loading Commander · Westminster…";
+    byId("loading").textContent = text("commander.loading");
     try {
       const next = await createCommanderView({ canvas, baseUrl, signal: loadingController.signal });
       if (disposed || !next) {
@@ -228,7 +241,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
       if (!disposed) {
         view?.dispose();
         view = null;
-        byId("loading").textContent = `Commander could not load: ${error.message}. Return to the menu and retry.`;
+        byId("loading").textContent = text("commander.loadFailed", { error: error.message });
         byId("enter-ai").disabled = false;
       }
       throw error;
@@ -309,7 +322,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     if (command === "move" || isSecondaryButton(p)) {
       const point = view.ground(x, y);
       input({ type: "move", point });
-    } else tell("Tap a biological opponent to attack");
+    } else tell(text("commander.tapOpponent"));
   });
   listen(canvas, "pointercancel", clearPointer);
   listen(canvas, "lostpointercapture", () => {
@@ -332,7 +345,7 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     e.preventDefault();
     if (loaded) {
       pause(true);
-      tell("Graphics interrupted · return to menu and retry");
+      tell(text("commander.graphicsInterrupted"));
     }
   });
   return Object.freeze({
@@ -343,7 +356,8 @@ export function createCommanderSession({ canvas, baseUrl, onMenu = () => {} }) {
     pause,
     retry,
     step(seconds) {
-      if (!Number.isFinite(seconds) || seconds < 0 || seconds > pacing.maxApiStepSeconds) throw Error("Bounded Commander step required");
+      if (!Number.isFinite(seconds) || seconds < 0 || seconds > pacing.maxApiStepSeconds)
+        throw Error("Bounded Commander step required"); // text-ok: developer API error
       if (!loaded || paused || disposed) return;
       for (let i = 0; i < Math.floor(seconds * 60 + 1e-8) && !match.result; i++) tick();
       render();

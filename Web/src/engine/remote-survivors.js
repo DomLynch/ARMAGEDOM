@@ -99,8 +99,8 @@ export function createSurvivorKit({
       body.add(model);
       marker.position.y = look.markerHeight;
       marker.renderOrder = 1;
-      marker.name = "Friendly ring";
-      root.name = `Survivor ${id}`;
+      marker.name = "Friendly ring"; // text-ok: scene-graph node name, never shown
+      root.name = `Survivor ${id}`; // text-ok: scene-graph node name, never shown
       root.add(body, marker);
       const mixer = new THREE.AnimationMixer(model),
         action = (name) => {

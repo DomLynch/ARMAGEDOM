@@ -175,7 +175,7 @@ export function createGuestAuth({
           JSON.stringify({ nonce: link, verifier: secret, userId: session.user_id, at: now() }),
         );
         const response = await fetchImpl(`${url}/auth/v1/user/identities/authorize?${query}`, {
-          headers: headers({ Authorization: `Bearer ${token}` }),
+          headers: headers({ Authorization: `Bearer ${token}` }), // text-ok: HTTP authorization header
         });
         if (!response.ok) return null;
         const body = await response.json();

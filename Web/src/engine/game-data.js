@@ -16,6 +16,7 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import runNotices from "../data/runNotices.json" with { type: "json" };
+import sessionText from "../data/sessionText.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -49,6 +50,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateSessionText } from "./game-data-session-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
@@ -85,6 +87,7 @@ export {
   validateCombatRules,
   validateCommanderSession,
   validateRunNotices,
+  validateSessionText,
   validateMarkedHunterSpawn,
   validateReaperMotion,
   validateCreatures,
@@ -965,6 +968,7 @@ const sources = () => ({
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   runNotices: [runNotices, validateRunNotices],
+  sessionText: [sessionText, validateSessionText],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
