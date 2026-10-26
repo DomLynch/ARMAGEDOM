@@ -19,9 +19,10 @@ const ensureNumbers = (field, v, length) => {
   if (!Array.isArray(v) || v.length !== length || !v.every(Number.isFinite)) fail(`${field} must hold ${length} numbers`);
 };
 export function validateCommanderView(v) {
-  closed(v, ["backdropSize", "startFocus", "fillLight", "sun", "actorScale", "unitRing", "objectiveRing", "pick", "diagnostics"]);
+  closed(v, ["backdropSize", "maxPixelRatio", "startFocus", "fillLight", "sun", "actorScale", "unitRing", "objectiveRing", "pick", "diagnostics"]);
   ensureNumbers("backdropSize", v.backdropSize, 2);
   if (!v.backdropSize.every((n) => n > 0)) fail("backdropSize must be positive");
+  number("maxPixelRatio", v.maxPixelRatio, 1);
   closed(v.startFocus, ["x", "y"]);
   for (const f of ["x", "y"]) if (!(v.startFocus[f] >= 0 && v.startFocus[f] <= 1)) fail(`startFocus.${f} must be from 0 to 1`);
   closed(v.fillLight, ["sky", "ground", "intensity"]);
