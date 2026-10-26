@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "autoEquipOnFirstPickup": true,
+  "autoPickupRetry": { "firstSeconds": 1, "maxSeconds": 4 },
   "ranged": {
     "borough-butchers-rocket-launcher-v1": {
       "itemId": "borough-butchers-rocket-launcher-v1",
