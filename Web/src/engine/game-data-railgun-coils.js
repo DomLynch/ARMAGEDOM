@@ -3,7 +3,7 @@
 import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
-const colour = (field, v) => count("railgunCoils", field, v, 0, 0xffffff);
+const checkColour = (field, v) => count("railgunCoils", field, v, 0, 0xffffff);
 export function validateRailgunCoils(d) {
   closed(d, ["schema_version", "ring", "material", "arc", "charge"]);
   closed(d.ring, ["radius", "tube", "radialSegments", "tubularSegments", "count", "y", "z", "zStep"]);
@@ -12,11 +12,11 @@ export function validateRailgunCoils(d) {
   count("railgunCoils", "ring.tubularSegments", d.ring.tubularSegments, 3, 64);
   count("railgunCoils", "ring.count", d.ring.count, 1, 8);
   closed(d.material, ["color", "metalness", "roughness", "emissive", "emissiveIdle"]);
-  colour("material.color", d.material.color);
-  colour("material.emissive", d.material.emissive);
+  checkColour("material.color", d.material.color);
+  checkColour("material.emissive", d.material.emissive);
   for (const f of ["metalness", "roughness", "emissiveIdle"]) number("railgunCoils", `material.${f}`, d.material[f], 0);
   closed(d.arc, ["color", "points"]);
-  colour("arc.color", d.arc.color);
+  checkColour("arc.color", d.arc.color);
   if (
     !Array.isArray(d.arc.points) ||
     d.arc.points.length < 2 ||
