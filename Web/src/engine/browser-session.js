@@ -754,7 +754,7 @@ export function createBrowserSession(options = {}) {
       const stalled = new Promise((_, reject) => {
         const timer = setInterval(() => {
           if (performance.now() - lastLoadProgress > GAME_DATA.diagnostics.loadStallMs)
-            reject(Error(sessionText("browser.loadStopped")));
+            reject(Object.assign(Error(sessionText("browser.loadStopped")), { reasonKey: "browser.loadStopped" }));
         }, 1000);
         stopStall = () => clearInterval(timer);
       });
@@ -869,8 +869,11 @@ export function createBrowserSession(options = {}) {
     } catch (error) {
       if (contextLost || disposed) return;
       console.error("ARMAGEDOM_LOAD_FAILED", error);
-      // Some failures carry no message (an image or audio error event): the card must still say something.
-      hud.failed(error?.message || sessionText("browser.loadFailed"));
+      // The card shows only data text: the thrown message is developer text (validators, file names) and goes to the console above and
+      // to the client-log beacon, never onto the player's screen.
+      beacon?.report("boot", "load-failed", error);
+      // A failure may name a keyed reason from sessionText.json (the stall watchdog does); anything else gets the general line.
+      hud.failed(sessionText(error?.reasonKey === "browser.loadStopped" ? error.reasonKey : "browser.loadFailed"));
       loadAttempt++;
       if (!loaded) {
         actors?.dispose();

@@ -28,6 +28,10 @@ import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
 import { GAME_DATA } from "./game-data.js";
+// The weapon summary lines quote these rows of data/weapons.json, so the text cannot drift from what the weapon does.
+const GRENADE = GAME_DATA.weapons.ranged["standard-grenade-v1"],
+  ROCKET = GAME_DATA.weapons.ranged["borough-butchers-rocket-launcher-v1"],
+  SHOTGUN = GAME_DATA.weapons.ranged["south-stalker-shotgun-v1"];
 export function dispatchEquipmentSelection(g, command, allowed, dispatch) {
   const result = dispatch(g, command, allowed);
   if (result.ok && (command.type === "equip" || command.type === "selectVariant")) stopFlame(g, { unequip: true });
@@ -278,10 +282,30 @@ export function createRunViews(s) {
               reserve: state.reserve,
             })
           : field === "grenade"
-            ? webText("summary.grenade", { name: data.name, magazine: state.magazine })
+            ? webText("summary.grenade", {
+                name: data.name,
+                magazine: state.magazine,
+                fuse: GRENADE.payload.fuseSeconds,
+                radius: GRENADE.payload.radius,
+              })
             : field === "rocketLauncher"
-              ? webText("summary.rocket", { name: data.name, magazine: state.magazine, reserve: state.reserve })
-              : webText("summary.shotgun", { name: data.name, magazine: state.magazine, reserve: state.reserve });
+              ? webText("summary.rocket", {
+                  name: data.name,
+                  magazine: state.magazine,
+                  reserve: state.reserve,
+                  damage: ROCKET.payload.maxDamage,
+                  radius: ROCKET.payload.radius,
+                  capacity: ROCKET.rules.capacity,
+                  reload: ROCKET.rules.reload,
+                })
+              : webText("summary.shotgun", {
+                  name: data.name,
+                  magazine: state.magazine,
+                  reserve: state.reserve,
+                  pellets: SHOTGUN.payload.pelletCount,
+                  pelletDamage: SHOTGUN.payload.pelletDamage,
+                  capacity: SHOTGUN.rules.capacity,
+                });
     } else if (g.rifle?.selected) {
       const data = g.world.rifleData;
       weapon = webText("summary.rifle", {

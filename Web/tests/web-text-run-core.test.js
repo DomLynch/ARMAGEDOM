@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { webText } from "../src/engine/web-text.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateWebText } from "../src/engine/game-data-web-text.js";
 
 // The strings the run core showed before they moved to data/webText.json: the on-screen text must not change.
@@ -11,14 +12,18 @@ const RUN_CORE = [
   ["runCore.savingUnavailable.rifle", {}, "Saving unavailable. Rifle and ammunition kept."],
   ["runCore.savedRunUnreadable", {}, "Saved run could not be read. Open the menu and choose Reset game to start fresh."],
   ["runCore.pickup.pistol", {}, "Pistol collected and equipped."],
-  ["runCore.pickup.vest", {}, "Worn vest equipped · 10% protection."],
+  ["runCore.pickup.vest", { percent: Math.round(GAME_DATA.weapons.vest.reduction * 100) }, "Worn vest equipped · 10% protection."],
   ["runCore.pickup.rounds", { amount: 12 }, "Scavenged 12 spare rounds."],
   ["runCore.pickup.dressing", { amount: 3 }, "Dressing restored 3 health."],
   ["runCore.refusal.pistol-required", {}, "Collect the pistol first. Rounds kept."],
   ["runCore.refusal.reserve-full", {}, "Spare rounds full. Supply kept."],
   ["runCore.refusal.health-full", {}, "Health full. Dressing kept."],
   ["runCore.bossDrop", { name: "Ember Projector" }, "Ember Projector dropped."],
-  ["runCore.vestEquipped", {}, "Worn vest equipped · 10% protection from unblocked hits."],
+  [
+    "runCore.vestEquipped",
+    { percent: Math.round(GAME_DATA.weapons.vest.reduction * 100) },
+    "Worn vest equipped · 10% protection from unblocked hits.",
+  ],
 ];
 
 test("run-core lines read from data are string-equal to the old literals", () => {
