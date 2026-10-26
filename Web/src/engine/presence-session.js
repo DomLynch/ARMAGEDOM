@@ -72,9 +72,8 @@ export function createPresenceSession(
     if (lastStateAt !== null) intervals.push(at - lastStateAt);
     lastStateAt = at;
     if (intervals.length >= STATS_EVERY) {
-      log(
-        `[arma-world] state interval ms p50=${percentile(intervals, 0.5)} p95=${percentile(intervals, 0.95)} n=${intervals.length}`, // tuning-ok: the 95th percentile, a statistic
-      );
+      const p95 = percentile(intervals, 0.95); // tuning-ok: the 95th percentile, a statistic
+      log(`[arma-world] state interval ms p50=${percentile(intervals, 0.5)} p95=${p95} n=${intervals.length}`);
       intervals.length = 0;
     }
   });
