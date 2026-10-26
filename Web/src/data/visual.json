@@ -169,5 +169,15 @@
         "other": [[0.03, 0.2], [0.55, 0.74]]
       }
     }
+  },
+  "flameEffect": {
+    "texture": { "falloffPower": 1.6, "peakAlpha": 240 },
+    "alphaTest": 0.01,
+    "floorClearance": 0.02,
+    "spread": { "radiusShare": 0.55, "jitterRate": 19.3 },
+    "phaseClamp": [0.03, 0.97],
+    "corpseDeathFallbackSeconds": 2.4,
+    "burnSurface": { "maxOffset": 0.8, "defaultRadius": 0.4, "margin": 0.05 },
+    "burnWisp": { "spacing": 0.24, "baseHeight": 0.13, "wobbleRate": 14, "wobbleHeight": 0.08 }
   }
 }
