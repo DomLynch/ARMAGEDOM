@@ -7,7 +7,7 @@ export const CLEAVER_ITEM_ID = "hale-pitborn-cleaver-v1";
 export const UNIQUE_REWARDS = freeze({
   [CLEAVER_ITEM_ID]: {
     itemId: CLEAVER_ITEM_ID,
-    name: "Pitborn Cleaver",
+    name: GAME_DATA.combatText.rewardNames.cleaver,
     areaId: "east",
     placementKey: "east-roamer-2",
     baseVariantId: "knife",
