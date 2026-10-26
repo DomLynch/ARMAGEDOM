@@ -64,7 +64,7 @@ export function createWantedMesh(world, data, texture) {
   // Existing actor/depth rendering therefore still places foreground actors in front.
   const mesh = world.quad(data.points, 100, material, POSTER.renderOrder, true);
   mesh.geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2)); // tuning-ok: two components (u, v) per corner
-  mesh.name = "WANTED wall projection";
+  mesh.name = "WANTED wall projection"; // text-ok: scene-graph object name, never shown
   mesh.userData = { areaId: data.areaId, bounty: null, textureUpdates: 0 };
   return mesh;
 }

@@ -10,6 +10,7 @@ import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { createRifleView } from "./rifle-view.js";
 import { selectedPistolProfile } from "./expedition-core.js";
 import { selectedMeleeVariant } from "../melee-equipment.js";
+import { webText } from "./web-text.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { createFlameView } from "./flame-view.js";
 import { stopFlame } from "./flame-runtime.js";
@@ -106,9 +107,17 @@ export function meleeWeaponSummary(g) {
   const profile = selectedMeleeVariant(g);
   if (profile.modelVariantId === "bone-saw") {
     const r = g.world.bossEquipmentData.surgicalKnife.rules;
-    return `${profile.name} · Hold CUT · ${+effectiveWeaponDamage(g, "knife", r.damage).toFixed(1)} damage / ${r.interval}s contact · slowed while cutting`;
+    return webText("summary.boneSaw", {
+      name: profile.name,
+      damage: +effectiveWeaponDamage(g, "knife", r.damage).toFixed(1),
+      interval: r.interval,
+    });
   }
-  return `${profile.name} · Slash ${+effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1)} · Heavy ${+effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1)}`;
+  return webText("summary.melee", {
+    name: profile.name,
+    slash: +effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1),
+    heavy: +effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1),
+  });
 }
 export function createRunViews(s) {
   let storage;
@@ -238,33 +247,59 @@ export function createRunViews(s) {
       g = s.game;
     if (!node || !g) return;
     const text = g.vest?.equipped
-      ? `Worn vest · ${Math.round(VEST_RULES.reduction * 100)}% hit protection`
-      : `No vest · Westminster stash after ${VEST_RULES.requiredKills} kills; pickup equips it.`;
+      ? webText("summary.vestWorn", { percent: Math.round(VEST_RULES.reduction * 100) })
+      : webText("summary.vestNone", { kills: VEST_RULES.requiredKills });
     if (node.textContent !== text) node.textContent = text;
     const active = document.getElementById("active-weapon");
     if (!active) return;
     let weapon;
     if (g.flame?.equipped) {
       const data = selectedFlameProfile(g);
-      weapon = `${data.name ?? "Flamethrower"} · ${Math.ceil((g.flameFuel.fuelUnits / data.capacity) * 100)}% fuel · ${data.contact.damage} damage per ${data.contact.interval}s contact`;
+      weapon = webText("summary.flame", {
+        name: data.name ?? webText("summary.flameDefaultName"),
+        fuel: Math.ceil((g.flameFuel.fuelUnits / data.capacity) * 100),
+        damage: data.contact.damage,
+        interval: data.contact.interval,
+      });
     } else if (selectedBossRanged(g)) {
       const field = selectedBossRanged(g),
         data = g.world.bossEquipmentData[field],
         state = g.bossEquipment[field];
       weapon =
         field === "commanderPistol"
-          ? `${data.name} · ${data.rules.damage} arc damage · jumps ${data.arc.jumps}x · ${data.rules.range}m · ${data.charge.seconds}s charge · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve`
+          ? webText("summary.arcGun", {
+              name: data.name,
+              damage: data.rules.damage,
+              jumps: data.arc.jumps,
+              range: data.rules.range,
+              seconds: data.charge.seconds,
+              magazine: state.magazine,
+              capacity: data.rules.capacity,
+              reserve: state.reserve,
+            })
           : field === "grenade"
-            ? `${data.name} · ${state.magazine} charges · 1s fuse · 3m radius`
+            ? webText("summary.grenade", { name: data.name, magazine: state.magazine })
             : field === "rocketLauncher"
-              ? `${data.name} · 80 blast damage · 3m radius · ${state.magazine}/1 loaded · ${state.reserve} reserve · 3.2s reload`
-              : `${data.name} · 8 × 8 pellets · ${state.magazine}/2 loaded · ${state.reserve} reserve`;
+              ? webText("summary.rocket", { name: data.name, magazine: state.magazine, reserve: state.reserve })
+              : webText("summary.shotgun", { name: data.name, magazine: state.magazine, reserve: state.reserve });
     } else if (g.rifle?.selected) {
       const data = g.world.rifleData;
-      weapon = `${data.name} · ${data.rules.damage} damage · ${g.rifle.magazine}/${data.rules.capacity} loaded · ${g.rifle.reserve} reserve`;
+      weapon = webText("summary.rifle", {
+        name: data.name,
+        damage: data.rules.damage,
+        magazine: g.rifle.magazine,
+        capacity: data.rules.capacity,
+        reserve: g.rifle.reserve,
+      });
     } else if (g.pistol?.equipped) {
       const profile = selectedPistolProfile(g);
-      weapon = `${profile.name ?? "Starting Pistol"} · ${+effectiveWeaponDamage(g, "westminster-start-pistol-v1", profile.damage).toFixed(1)} damage · ${g.pistol.magazine}/${profile.capacity} loaded · ${g.pistol.reserve} reserve`;
+      weapon = webText("summary.pistol", {
+        name: profile.name ?? webText("summary.pistolDefaultName"),
+        damage: +effectiveWeaponDamage(g, "westminster-start-pistol-v1", profile.damage).toFixed(1),
+        magazine: g.pistol.magazine,
+        capacity: profile.capacity,
+        reserve: g.pistol.reserve,
+      });
     } else weapon = meleeWeaponSummary(g);
     if (active.textContent !== weapon) active.textContent = weapon;
   }
