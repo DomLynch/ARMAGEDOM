@@ -33,7 +33,7 @@ const word = (value, max, fallback = "") => {
 
 /**
  * The validated, scrubbed form of a beacon body, or null when it is not one: { release, area, events: [{ kind, code, message, n }] }.
- * Limits: release <= 80 chars, area <= 32, at most 10 events, code <= 40, message <= 200, n an integer 1..1000.
+ * Limits: release <= 80 chars, area <= 32, session <= 24 (a random id per page load, not tied to the account), at most 10 events, code <= 40, message <= 200, n an integer 1..1000.
  */
 export function cleanClientLog(body) {
   if (body === null || typeof body !== "object" || Array.isArray(body) || body.v !== 1 || !Array.isArray(body.events) || body.events.length === 0) return null;
@@ -48,7 +48,7 @@ export function cleanClientLog(body) {
     });
   }
   if (!events.length) return null;
-  return { release: word(body.release, 80, "unknown"), area: word(body.area, 32, "none"), events }; // charset-limited ids, not free text: a 40-char commit sha must survive
+  return { release: word(body.release, 80, "unknown"), area: word(body.area, 32, "none"), session: word(body.session, 24, "none"), events }; // charset-limited ids, not free text: a 40-char commit sha must survive
 }
 
 /** Per-IP token buckets, bounded: when MAX_IPS keys are held the full-again ones are dropped, then the oldest. Returns allow(ip) -> boolean. */

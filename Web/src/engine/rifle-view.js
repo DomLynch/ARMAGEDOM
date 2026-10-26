@@ -138,7 +138,7 @@ export function createRifleView(s, dispatch) {
     box = new T.Box3().setFromObject(root);
     const center = box.getCenter(new T.Vector3());
     display.position.set(-center.x, RIFLE.pickup.lift - box.min.y, -center.z);
-    const marker = createDropMarker(s.game?.world?.rifleData?.name ?? "Rifle");
+    const marker = createDropMarker(s.game?.world?.rifleData?.name ?? GAME_DATA.combatText.gear.defaultRifleName);
     root.add(marker.group);
     s.scene.add(root);
     return { root, materials, contours, marker, model: true };

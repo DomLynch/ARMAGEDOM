@@ -35,6 +35,14 @@
     "equippedSuffix": " · equipped",
     "tapToEquip": " · tap to equip",
     "weaponSelection": "Weapon selection",
+    "ammoEmpty": "Empty",
+    "ammoMelee": "Melee",
+    "ammoDeployed": "Deployed",
+    "ammoCount": "{magazine}/{capacity} · {reserve}",
+    "fuelSuffix": "% fuel",
+    "pageOf": "{page} / {total}",
+    "tileLabel": "{name} · {ammo}",
+    "defaultRifleName": "Rifle",
     "collected": "{name} collected.",
     "collectedEquipInGear": "{name} collected. Equip it in Gear.",
     "equipped": "{name} equipped.",
@@ -56,7 +64,8 @@
   },
   "markedHunter": {
     "warning": "HUNTER INBOUND · find cover or reach a safehouse.",
-    "arrived": "A hunter is after you"
+    "arrived": "A hunter is after you",
+    "label": "HUNTER"
   },
   "bossFlame": {
     "defaultBossName": "SALAMANDER",
