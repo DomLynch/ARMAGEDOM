@@ -52,6 +52,11 @@ test("HUD and gear text read string-equal to the text that was in code", () => {
   assert.equal(fillText(gear.collectedEquipInGear, { name: "Rifle" }), "Rifle collected. Equip it in Gear.");
   assert.equal(fillText(gear.equipped, { name: "Rifle" }), "Rifle equipped.");
   assert.equal(gear.startPistolLabel, "Collect Starting Pistol");
+  assert.deepEqual([gear.ammoEmpty, gear.ammoMelee, gear.ammoDeployed, gear.fuelSuffix, gear.defaultRifleName], ["Empty", "Melee", "Deployed", "% fuel", "Rifle"]);
+  assert.equal(fillText(gear.ammoCount, { magazine: 3, capacity: 6, reserve: 12 }), "3/6 · 12");
+  assert.equal(fillText(gear.pageOf, { page: 1, total: 3 }), "1 / 3");
+  assert.equal(fillText(gear.tileLabel, { name: "Rifle", ammo: "5/8 · 16" }), "Rifle · 5/8 · 16");
+  assert.equal(GAME_DATA.combatText.markedHunter.label, "HUNTER");
   assert.equal(gear.iconCaptions["surgeons-knife-v1"], "BONE SAW");
   assert.equal(gear.iconCaptions["borough-marshals-pistol-v1"], "ARC GUN");
 });

@@ -23,13 +23,16 @@ export function validateCombatText(d) {
   for (const [k, placeholders] of Object.entries(hud)) text(`hud.${k}`, d.hud[k], placeholders);
   const gear = {
     emberProjector: [], charges: ["count"], recallDeploy: [], empty: ["name"], equippedSuffix: [], tapToEquip: [], weaponSelection: [],
-    collected: ["name"], collectedEquipInGear: ["name"], equipped: ["name"], startPistolLabel: [],
+    collected: ["name"], collectedEquipInGear: ["name"], equipped: ["name"], startPistolLabel: [], ammoEmpty: [], ammoMelee: [],
+    ammoDeployed: [], ammoCount: ["magazine", "capacity", "reserve"], fuelSuffix: [], pageOf: ["page", "total"],
+    tileLabel: ["name", "ammo"], defaultRifleName: [],
   };
   closed(d.gear, [...Object.keys(gear), "iconCaptions"]);
   for (const [k, placeholders] of Object.entries(gear)) text(`gear.${k}`, d.gear[k], placeholders);
   if (!d.gear.iconCaptions || typeof d.gear.iconCaptions !== "object") fail("combatText", "gear.iconCaptions must be an object");
   for (const [id, caption] of Object.entries(d.gear.iconCaptions)) text(`gear.iconCaptions.${id}`, caption);
-  closed(d.markedHunter, ["warning", "arrived"]);
+  closed(d.markedHunter, ["warning", "arrived", "label"]);
+  text("markedHunter.label", d.markedHunter.label);
   text("markedHunter.warning", d.markedHunter.warning);
   text("markedHunter.arrived", d.markedHunter.arrived);
   closed(d.bossFlame, ["defaultBossName", "warning"]);
