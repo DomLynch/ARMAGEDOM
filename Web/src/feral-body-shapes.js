@@ -3,6 +3,7 @@
 import { GAME_DATA } from "./engine/game-data.js";
 export const FERAL_BODY_SHAPES = GAME_DATA.creatures.feralBodyShapes;
 const TORSO = new Set(["pelvis", "spine", "chest"]);
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 // The torso skin-weight taper band is appearance.json `feralTorsoMask`.
 const MASK = GAME_DATA.appearance.feralTorsoMask;
 export function createFeralBodyShapeLibrary() {
@@ -32,7 +33,7 @@ export function createFeralBodyShapeLibrary() {
           w = g.attributes.skinWeight;
         for (let i = 0; i < p.count; i++) {
           let influence = 0;
-          for (let k = 0; k < 4; k++)
+          for (let k = 0; k < INFLUENCES; k++)
             if (TORSO.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) influence += w.getComponent(i, k);
           const mask = Math.max(0, Math.min(1, (influence - MASK.from) / MASK.range));
           p.setX(i, p.getX(i) * (1 + (recipe.width - 1) * mask));

@@ -19,7 +19,7 @@ export async function autoEquipAfterClaim(g, { equip, active, itemId, name }) {
   g.events.push({ type: "auto-equip", itemId });
   if (name) {
     g.message = `${name} equipped.`;
-    g.messageUntil = g.time + 3;
+    g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
   }
   return true;
 }
