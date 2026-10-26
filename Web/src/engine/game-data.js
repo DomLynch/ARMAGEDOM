@@ -85,6 +85,13 @@ export function validateWeapons(d) {
     "bossRanged",
     "bossEquipment",
     "vest",
+    "families",
+    "targeting",
+    "mobileAim",
+    "flameAim",
+    "lowMelee",
+    "creditPolicies",
+    "audio",
   ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
@@ -93,6 +100,78 @@ export function validateWeapons(d) {
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
   validateVest(d.vest);
+  validateFamilies(d.families);
+  validateTargeting(d.targeting);
+  validateMobileAim(d.mobileAim, d.flameAim);
+  validateLowMelee(d.lowMelee);
+  validateCreditPolicies(d.creditPolicies);
+  validateWeaponAudio(d.audio);
+}
+// The synthesised blast of the shotgun and the grenade (donor-audio.js): a sine sweep `from` -> `to` Hz over `seconds`, plus a noise
+// burst through a low-pass at `cutoff` Hz; gains are 0 to 1.
+export function validateWeaponAudio(a) {
+  closed(a, ["shotgun", "grenade"]);
+  for (const [weapon, cue] of Object.entries(a)) {
+    closed(cue, ["from", "to", "seconds", "gain", "noiseSeconds", "noiseGain", "cutoff"]);
+    for (const [f, v] of Object.entries(cue)) number("weapons", `audio.${weapon}.${f}`, v);
+    for (const f of ["seconds", "noiseSeconds", "cutoff", "from", "to"])
+      if (cue[f] <= 0) fail("weapons", `audio.${weapon}.${f} must be above 0`);
+    for (const f of ["gain", "noiseGain"]) if (cue[f] > 1) fail("weapons", `audio.${weapon}.${f} must not exceed 1`);
+  }
+}
+// The weapon family vocabulary (engine/weapon-catalog.js WEAPON_FAMILY_IDS). A family name is not a promise that the family is playable.
+export function validateFamilies(f) {
+  if (
+    !Array.isArray(f) ||
+    !f.length ||
+    new Set(f).size !== f.length ||
+    !f.every((s) => typeof s === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s))
+  )
+    fail("weapons", "families must be distinct lower-case names");
+}
+// Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
+// one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
+export function validateTargeting(t) {
+  closed(t, ["pistol", "meleeConeDegrees", "defaultHeight"]);
+  // The metres above the ground that shots and flame aim at a rig with no height of its own (creatures.json rigCapabilities).
+  number("weapons", "targeting.defaultHeight", t.defaultHeight);
+  closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
+  for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
+    number("weapons", `targeting.${f}`, v);
+    if (v >= 90) fail("weapons", `targeting.${f} must be below 90`);
+  }
+  if (t.pistol.retainDegrees < t.pistol.acquireDegrees) fail("weapons", "targeting.pistol retain must not be below acquire");
+}
+// The touch aim assist (mobile-combat-aim.js) and the flame lock. Angles are degrees (the code converts to radians as `degrees * PI / 180`);
+// rates are per second, ranges and gaps metres, gain and margins unitless.
+export function validateMobileAim(m, f) {
+  const mobile = ["steeringRate", "headingRate", "gain", "near", "far", "deadzone", "pistolGain", "acquireMargin", "retainMargin"],
+    flame = ["gain", "closeExtension", "closeEnterGap", "closeExitGap", "extensionRate"],
+    angles = ["steeringChangeDegrees", "switchConeDegrees", "switchAdvantageDegrees", "yawLimitDegrees", "downPitchDegrees"];
+  closed(m, [...mobile, "acquireDegrees", "retainDegrees"]);
+  closed(f, [...flame, "acquireDegrees", "retainDegrees", ...angles]);
+  for (const k of [...mobile, "acquireDegrees", "retainDegrees"]) number("weapons", `mobileAim.${k}`, m[k]);
+  for (const k of [...flame, "acquireDegrees", "retainDegrees", ...angles]) number("weapons", `flameAim.${k}`, f[k]);
+  if (m.near >= m.far) fail("weapons", "mobileAim.near must be below far");
+  if (m.pistolGain > 1) fail("weapons", "mobileAim.pistolGain must not exceed 1");
+}
+// The rigs and clips that share the rat's retimed low melee pose (rat-melee-definition.js).
+export function validateLowMelee(l) {
+  closed(l, ["rigs", "clips"]);
+  for (const f of ["rigs", "clips"])
+    if (!Array.isArray(l[f]) || !l[f].length || !l[f].every((s) => typeof s === "string" && s) || new Set(l[f]).size !== l[f].length)
+      fail("weapons", `lowMelee.${f} must be a list of distinct non-empty strings`);
+}
+// The registered death-weapon attribution policies (engine/weapon-credit-policy.js): `mastery` credits proficiency, `none` does not.
+export function validateCreditPolicies(rows) {
+  if (!Array.isArray(rows) || !rows.length) fail("weapons", "creditPolicies must be a non-empty list");
+  const seen = new Set();
+  for (const row of rows) {
+    closed(row, ["id", "creditPolicy"]);
+    if (typeof row.id !== "string" || !row.id || seen.has(row.id)) fail("weapons", "creditPolicies ids must be distinct strings");
+    seen.add(row.id);
+    if (!["none", "mastery"].includes(row.creditPolicy)) fail("weapons", `creditPolicies.${row.id}.creditPolicy`);
+  }
 }
 // The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
 // four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.
@@ -412,8 +491,12 @@ function validateRigTables(d) {
   if (!Object.keys(d.rigCapabilities).length) fail("creatures", "rigCapabilities is empty");
   for (const [rig, row] of Object.entries(d.rigCapabilities)) {
     id("creatures", `rigCapabilities.${rig}`, rig);
-    closed(row, [], ["lowStrike", "tutorialHunt"]);
-    for (const flag of Object.keys(row)) if (row[flag] !== true) fail("creatures", `rigCapabilities.${rig}.${flag} must be true`);
+    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `rigCapabilities.${rig} must be an object`);
+    // A capability is a flag (true or false) or a measured number (metres, 0 or more), read with rigCapability / rigNumber.
+    for (const [name, value] of Object.entries(row)) {
+      if (!/^[a-z][A-Za-z]{0,30}$/.test(name)) fail("creatures", `rigCapabilities.${rig}.${name} is not a capability name`);
+      if (typeof value !== "boolean") number("creatures", `rigCapabilities.${rig}.${name}`, value);
+    }
   }
 }
 
@@ -633,7 +716,22 @@ export function validateVisual(d) {
     for (const p of c.partners[family])
       if (!trouserFamilies.has(p)) fail("visual", `clothing.partners.${family} names unknown trousers family ${p}`);
   }
-  closed(d.effects, ["swingColours", "lootColours"]);
+  closed(d.effects, ["swingColours", "lootColours", "targetHeights"]);
+  // effects.js aims its hit burst, kill confirmation, tracer end and target reticle at a height that depends on the target's rig. Per
+  // site, a `default` row plus one row per rig: `fixed` metres, `drone` (the hovering drone's height), `cue` (the cue's own height) or
+  // `scaled` metres times the rig's view scale; an empty row means "use the site's own fallback".
+  closed(d.effects.targetHeights, ["burst", "confirm", "tracer", "reticle"]);
+  for (const [site, rows] of Object.entries(d.effects.targetHeights)) {
+    if (!Object.hasOwn(rows, "default")) fail("visual", `effects.targetHeights.${site} needs a default row`);
+    for (const [rig, row] of Object.entries(rows)) {
+      const where = `effects.targetHeights.${site}.${rig}`;
+      if (!/^[a-z][a-z0-9-]{0,40}$/.test(rig) && rig !== "default") fail("visual", `${where} is not a rig id`);
+      closed(row, [], ["fixed", "drone", "cue", "scaled"]);
+      if (Object.keys(row).length > 1) fail("visual", `${where} must use one of fixed, drone, cue or scaled`);
+      for (const k of ["fixed", "scaled"]) if (k in row) number("visual", `${where}.${k}`, row[k], 0.01);
+      for (const k of ["drone", "cue"]) if (k in row && row[k] !== true) fail("visual", `${where}.${k} must be true`);
+    }
+  }
   closed(d.effects.swingColours, ["slash", "stab", "heavy", "special"]);
   for (const [name, h] of Object.entries(d.effects.swingColours)) hex(`effects.swingColours.${name}`, h);
   list("effects.lootColours", d.effects.lootColours, 1, 16);
@@ -801,7 +899,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches"]);
+  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -837,6 +935,24 @@ export function validateAppearance(d) {
   };
   rows("animals", ["id", "foundation", "name", "width", "tint", "patch"], "tint");
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
+  // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
+  // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
+  closed(d.crookedHollow, ["bones"]);
+  const bones = d.crookedHollow.bones;
+  if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
+    fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
+  bones.forEach((n, i) => named(`crookedHollow.bones[${i}]`, n));
+  const s = d.droneSupport;
+  closed(s, ["id", "states", "bodyBandOffsets", "attackWarningSeconds", "deathSeconds", "finisher", "melee"]);
+  for (const f of ["id", "finisher", "melee"]) named(`droneSupport.${f}`, s[f]);
+  if (!Array.isArray(s.states) || !s.states.length || new Set(s.states).size !== s.states.length)
+    fail("appearance", "droneSupport.states must list different state names");
+  s.states.forEach((n, i) => named(`droneSupport.states[${i}]`, n));
+  if (!Array.isArray(s.bodyBandOffsets) || s.bodyBandOffsets.length !== 2) fail("appearance", "droneSupport.bodyBandOffsets must list 2 numbers");
+  s.bodyBandOffsets.forEach((n, i) => between(`droneSupport.bodyBandOffsets[${i}]`, n, -2, 2));
+  if (s.bodyBandOffsets[0] >= s.bodyBandOffsets[1]) fail("appearance", "droneSupport.bodyBandOffsets must rise");
+  between("droneSupport.attackWarningSeconds", s.attackWarningSeconds, 0.05, 10);
+  between("droneSupport.deathSeconds", s.deathSeconds, 0.05, 10);
 }
 
 // areas.json: the registered areas (layout/backdrop/audio refs, entry point, exits) and the asset rows those refs name (path, sha256,

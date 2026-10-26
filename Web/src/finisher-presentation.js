@@ -1,4 +1,5 @@
 import { prepareArmSever } from "./engine/finisher-arm.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import {
   FINISHER_DATA,
   FLAME_DEATH_DATA,
@@ -12,7 +13,8 @@ import { prepareSplitCrownSteps } from "./finisher-crown.js";
 import { prepareOpenedSteps } from "./finisher-opened.js";
 import { prepareVictimGroundingSteps } from "./finisher-grounding.js";
 
-const HEAD_NAMES = ["Photo", "PhotoEyes", "PhotoTeeth"];
+// The three head mesh names live in Web/src/data/appearance.json `faceMesh.headNames`, shared with face-appearance.js.
+const { headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
 export function validateHeadParts(parts = HEAD_NAMES) {
   if (
     !Array.isArray(parts) ||

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { GAME_DATA, validateCreatures } from "../src/engine/game-data.js";
 import { FERAL_BODY_SHAPES } from "../src/feral-body-shapes.js";
 import { FERAL_COAT_PROFILES } from "../src/feral-coat-profiles.js";
-import { RIG_CAPABILITIES, rigCapability } from "../src/rig-capabilities.js";
+import { RIG_CAPABILITIES, rigCapability, rigNumber } from "../src/rig-capabilities.js";
 import { countConstantTables } from "../../scripts/as-data-gate.mjs";
 
 // Data move: FERAL_BODY_SHAPES, FERAL_COAT_PROFILES, the gaunt-shape TARGETS/SHAPE tables and RIG_CAPABILITIES moved into
@@ -33,8 +33,11 @@ test("every table equals the old in-code table exactly (values and key order) an
 });
 
 test("rigCapability answers as before", () => {
-  for (const [rig, row] of Object.entries(old.rigCapabilities))
-    for (const flag of ["lowStrike", "tutorialHunt"]) assert.equal(rigCapability(rig, flag), row[flag] === true, `${rig} ${flag}`);
+  for (const [rig, row] of Object.entries(old.rigCapabilities)) {
+    for (const flag of ["lowStrike", "tutorialHunt", "breathEmitter", "hoverTarget", "fixedPointerScale"])
+      assert.equal(rigCapability(rig, flag), row[flag] === true, `${rig} ${flag}`);
+    for (const name of ["targetHeight", "targetHeightReach"]) assert.equal(rigNumber(rig, name), row[name], `${rig} ${name}`);
+  }
   assert.equal(rigCapability("hero", "lowStrike"), false);
 });
 
@@ -62,7 +65,8 @@ test("the loader rejects a broken block", () => {
   assert.throws(broken((d) => { d.gauntShape.segments["bad name"] = ["spine_01", 0.5]; }));
   assert.throws(broken((d) => { d.rigCapabilities = {}; }));
   assert.throws(broken((d) => { d.rigCapabilities["original-rat"].lowStrike = "yes"; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].flies = true; }));
+  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].targetHeight = -1; }));
+  assert.throws(broken((d) => { d.rigCapabilities["original-rat"]["Bad name"] = true; }));
 });
 
 test("the four modules keep no constant tables; the baseline no longer lists them", () => {

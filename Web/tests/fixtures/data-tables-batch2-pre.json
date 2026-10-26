@@ -1,0 +1,1181 @@
+{
+ "PISTOL_TARGETING": {
+  "acquireDegrees": 12,
+  "retainDegrees": 18
+ },
+ "COMBAT_TARGETING": {
+  "meleeDegrees": 45
+ },
+ "MOBILE_AIM": {
+  "steeringRate": 10,
+  "headingRate": 24,
+  "gain": 0.4125,
+  "acquire": 0.10471975511965978,
+  "retain": 0.15707963267948966,
+  "near": 2,
+  "far": 6,
+  "deadzone": 0.13,
+  "pistolGain": 1,
+  "pistolRange": 18,
+  "acquireMargin": 0.6,
+  "retainMargin": 0.9
+ },
+ "FLAME_AIM": {
+  "gain": 1,
+  "acquire": 0.7853981633974483,
+  "retain": 1.2217304763960306,
+  "switchCone": 0.20943951023931956,
+  "switchAdvantage": 0.13962634015954636,
+  "steeringChange": 0.003490658503988659,
+  "closeExtension": 0.5,
+  "yawLimit": 1.0471975511965976,
+  "downPitch": 1.3089969389957472,
+  "closeEnterGap": 0.8,
+  "closeExitGap": 1,
+  "extensionRate": 24
+ },
+ "FINISHER_IMPACT_LIMITS": {
+  "bursts": 2,
+  "particles": 48,
+  "trails": 8,
+  "lifetime": 1.25
+ },
+ "WEAPON_CREDIT_DESCRIPTORS": {
+  "borough-marshals-pistol-v1": {
+   "id": "borough-marshals-pistol-v1",
+   "creditPolicy": "none"
+  },
+  "watchmans-pistol-v1": {
+   "id": "watchmans-pistol-v1",
+   "creditPolicy": "none"
+  },
+  "borough-butchers-rocket-launcher-v1": {
+   "id": "borough-butchers-rocket-launcher-v1",
+   "creditPolicy": "none"
+  },
+  "south-stalker-shotgun-v1": {
+   "id": "south-stalker-shotgun-v1",
+   "creditPolicy": "none"
+  },
+  "standard-grenade-v1": {
+   "id": "standard-grenade-v1",
+   "creditPolicy": "none"
+  },
+  "bridge-warden-rifle-v1": {
+   "id": "bridge-warden-rifle-v1",
+   "creditPolicy": "none"
+  },
+  "knife": {
+   "id": "knife",
+   "creditPolicy": "mastery"
+  },
+  "westminster-start-pistol-v1": {
+   "id": "westminster-start-pistol-v1",
+   "creditPolicy": "mastery"
+  },
+  "flamethrower-area8-v1": {
+   "id": "flamethrower-area8-v1",
+   "creditPolicy": "none"
+  }
+ },
+ "creditLookup": [
+  [
+   "knife",
+   {
+    "id": "knife",
+    "creditPolicy": "mastery"
+   }
+  ],
+  [
+   "nope",
+   null
+  ],
+  [
+   "flamethrower-area8-v1",
+   {
+    "id": "flamethrower-area8-v1",
+    "creditPolicy": "none"
+   }
+  ],
+  [
+   1,
+   null
+  ]
+ ],
+ "rat": [
+  {
+   "action": "stab",
+   "rig": "original-rat",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-rat",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-rat",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-dog",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-dog",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-dog",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-roach",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-roach",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-roach",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "giant-salamander",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "giant-salamander",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "giant-salamander",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-wolf",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-wolf",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-wolf",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-human",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-human",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "original-human",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "x",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "x",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "stab",
+   "rig": "x",
+   "clip": "Other",
+   "out": {
+    "moveId": "thrust",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-rat",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-rat",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-rat",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-dog",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-dog",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-dog",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-roach",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-roach",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-roach",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "giant-salamander",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "giant-salamander",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "giant-salamander",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-wolf",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-wolf",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-wolf",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-human",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-human",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "original-human",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "x",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "x",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "heavy",
+   "rig": "x",
+   "clip": "Other",
+   "out": {
+    "moveId": "heavy_overhead",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-rat",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-rat",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-rat",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-dog",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-dog",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-dog",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-roach",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-roach",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-roach",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "giant-salamander",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "giant-salamander",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "giant-salamander",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-wolf",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "RatLowSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-wolf",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "DogMidSlash",
+    "path": null,
+    "native": false,
+    "ratLow": true,
+    "ratRetimed": true,
+    "sourceContact": 0.37037037037037035,
+    "lowLastActive": 0.48148148148148145,
+    "lowActiveEnd": 0.48148148148148145
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-wolf",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-human",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-human",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "original-human",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "x",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "x",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "special",
+   "rig": "x",
+   "clip": "Other",
+   "out": {
+    "moveId": "skill_pommel",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-rat",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-rat",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-rat",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-dog",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-dog",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-dog",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-roach",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-roach",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-roach",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "giant-salamander",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "giant-salamander",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "giant-salamander",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-wolf",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-wolf",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-wolf",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-human",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-human",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "original-human",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "x",
+   "clip": "RatLowSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "x",
+   "clip": "DogMidSlash",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  },
+  {
+   "action": "slash",
+   "rig": "x",
+   "clip": "Other",
+   "out": {
+    "moveId": "light_right",
+    "clip": "Base",
+    "path": "p",
+    "native": true
+   }
+  }
+ ]
+}

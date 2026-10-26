@@ -14,11 +14,24 @@ import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
 import { createDropMarker } from "./engine/drop-marker.js";
 import { GAME_DATA } from "./engine/game-data.js";
+import { rigCapability } from "./rig-capabilities.js";
 // Web/src/data/visual.json `effects`: hex strings, read as numbers once.
 const hexNumber = (hex) => parseInt(hex, 16);
 const colors = Object.fromEntries(
   Object.entries(GAME_DATA.visual.effects.swingColours).map(([name, hex]) => [name, hexNumber(hex)]),
 );
+// Where an effect aims at a target of the given rig, from visual.json `effects.targetHeights`. `drone`, `scale` and `cue` are what a
+// row's drone / scaled / cue entries resolve to (drone and scale are functions, only called when the row needs them).
+const TARGET_HEIGHTS = GAME_DATA.visual.effects.targetHeights;
+function targetHeight(site, rig, { drone, scale, cue, fallback }) {
+  const rows = TARGET_HEIGHTS[site],
+    row = Object.hasOwn(rows, rig) ? rows[rig] : rows.default;
+  if ("fixed" in row) return row.fixed;
+  if (row.drone) return drone();
+  if (row.cue) return cue;
+  if ("scaled" in row) return row.scaled * scale();
+  return fallback;
+}
 export function createEffects(
   scene,
   world,
@@ -151,7 +164,7 @@ export function createEffects(
     getEmission: (g) => {
       const e = g.enemies.find(
         (e) =>
-          e.rig === "giant-salamander" &&
+          rigCapability(e.rig, "breathEmitter") &&
           e.hp > 0 &&
           e.bossWeapon?.phase === "active" &&
           g.time >= e.recoverUntil &&
@@ -525,18 +538,10 @@ export function createEffects(
         life: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
         total: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
         x: p.x,
-        y:
-          event.actor.rig === "original-wolf"
-            ? 1.625
-            : event.actor.rig === "low-hover-drone"
-              ? droneY(event.actor, time)
-              : (event.actor.rig === "original-rat"
-                  ? 0.18
-                  : event.actor.rig === "original-dog"
-                    ? 0.35
-                    : event.actor.rig === "original-roach"
-                      ? 0.08
-                      : 1.1) * (getView(event.actor)?.root.scale.y ?? size),
+        y: targetHeight("burst", event.actor.rig, {
+          drone: () => droneY(event.actor, time),
+          scale: () => getView(event.actor)?.root.scale.y ?? size,
+        }),
         z: -p.z,
         vx: Math.cos(a) * 1.8 + d.x,
         vy: 1.3 + (i % 3) * 0.7,
@@ -784,18 +789,10 @@ export function createEffects(
             confirmation = {
               recipeId: actor.finisher?.recipeId,
               position: { ...(event.position ?? actor.pos) },
-              height:
-                actor.rig === "original-wolf"
-                  ? 1.625
-                  : actor.rig === "low-hover-drone"
-                    ? droneY(actor, game.time)
-                    : (actor.rig === "original-rat"
-                        ? 0.18
-                        : actor.rig === "original-dog"
-                          ? 0.35
-                          : actor.rig === "original-roach"
-                            ? 0.08
-                            : 2) * (getView(actor)?.root.scale.y ?? actor.mobSize ?? 1),
+              height: targetHeight("confirm", actor.rig, {
+                drone: () => droneY(actor, game.time),
+                scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
+              }),
               killed,
               life: 0.2,
             };
@@ -911,14 +908,11 @@ export function createEffects(
           victim = [...game.enemies, ...(game.corpses ?? [])].find((e) => e.id === shot.targetId),
           b = world.toRender(
             shot.end,
-            victim?.rig === "original-wolf"
-              ? 1.625
-              : victim?.rig === "low-hover-drone"
-                ? droneY(victim, game.time)
-                : ["original-rat", "original-dog", "original-roach", "giant-salamander"].includes(victim?.rig)
-                  ? (victim.rig === "original-dog" ? 0.35 : victim.rig === "original-roach" ? 0.08 : 0.18) *
-                    (getView(victim)?.root.scale.y ?? 1)
-                  : a.y,
+            targetHeight("tracer", victim?.rig, {
+              drone: () => droneY(victim, game.time),
+              scale: () => getView(victim)?.root.scale.y ?? 1,
+              fallback: a.y,
+            }),
           ),
           t = nextTracer();
         if (!t) continue;
@@ -983,17 +977,11 @@ export function createEffects(
         const actor = target ? game.enemies.find((e) => e.id === cue.targetId) : null,
           height =
             actor && !cue.ground && !cue.heightLocked
-              ? ["giant-salamander", "original-wolf"].includes(actor.rig)
-                ? cue.height
-                : actor.rig === "low-hover-drone"
-                  ? droneY(actor, game.time)
-                  : (actor.rig === "original-rat"
-                      ? 0.18
-                      : actor.rig === "original-dog"
-                        ? 0.35
-                        : actor.rig === "original-roach"
-                          ? 0.08
-                          : 1.15) * (getView(actor)?.root.scale.y ?? actor.mobSize ?? 1)
+              ? targetHeight("reticle", actor.rig, {
+                  drone: () => droneY(actor, game.time),
+                  scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
+                  cue: cue.height,
+                })
               : cue.height;
         reticle.position.copy(world.toRender(cue.position, height));
         if (camera) {
