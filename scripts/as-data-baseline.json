@@ -97,7 +97,6 @@
     "engine/creature-sim.js": 2,
     "engine/drop-marker.js": 21,
     "engine/expedition-core.js": 7,
-    "engine/expedition-runtime.js": 20,
     "engine/finisher-arm.js": 1,
     "engine/finisher-data.js": 2,
     "engine/finisher-gore.js": 20,

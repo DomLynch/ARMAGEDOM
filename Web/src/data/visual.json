@@ -146,6 +146,11 @@
     "ringY": 0.045,
     "ringSegments": 48
   },
+  "expeditionHud": {
+    "atlas": { "cell": 100, "gutter": 3, "columns": 3, "rows": 3, "lanes": [100, 200] },
+    "caseScale": 1.35,
+    "guardLabelDistance": 10
+  },
   "routeArrow": {
     "peakOpacity": 0.6,
     "tailGap": 1
