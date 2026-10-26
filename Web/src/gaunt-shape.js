@@ -1,5 +1,6 @@
 import * as T from "three";
 import { GAME_DATA } from "./engine/game-data.js";
+import { recomputeNormals } from "./geometry-normals.js";
 
 // Garment nodes that get the gaunt shape, and per bind bone its [child bone, radial factor], live in
 // Web/src/data/creatures.json `gauntShape`.
@@ -73,7 +74,7 @@ export function createGauntShapeLibrary(sourceModel) {
         sum.applyMatrix4(unbind);
         output.setXYZ(vertex, sum.x, sum.y, sum.z);
       }
-      geometry.computeVertexNormals();
+      recomputeNormals(T, geometry);
       if (geometry.attributes.tangent && geometry.index && geometry.attributes.uv) geometry.computeTangents();
       geometry.computeBoundingBox();
       geometry.computeBoundingSphere();
