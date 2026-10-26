@@ -12,7 +12,9 @@
     "roachShell": "Worn rust-brown chitin",
     "donorNeck": "Recovered donor lower neck",
     "hair": "Scavenger hair",
-    "hairMaterial": "Private scavenger hair"
+    "hairMaterial": "Private scavenger hair",
+    "bodySkin": "Ash-grey affected skin",
+    "neckSkin": "Photo-matched exposed lower neck"
   },
   "roachCoat": {
     "taper": { "from": 0.9, "range": 0.1 },

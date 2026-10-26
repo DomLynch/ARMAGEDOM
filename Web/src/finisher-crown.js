@@ -244,7 +244,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices 
             triangles += g.attributes.position.count / CORNERS;
             capTriangles += g.attributes.position.count / CORNERS;
             const mesh = new T.Mesh(g, cut);
-            mesh.name = node.name + " crown cap";
+            mesh.name = node.name + " crown cap"; // text-ok: a scene-graph label for debugging, never shown to the player
             mesh.frustumCulled = false;
             half.add(mesh);
             caps.push(mesh);

@@ -15,6 +15,8 @@ const OLD = {
   donorNeck: "Recovered donor lower neck",
   hair: "Scavenger hair",
   hairMaterial: "Private scavenger hair",
+  bodySkin: "Ash-grey affected skin",
+  neckSkin: "Photo-matched exposed lower neck",
 };
 const clone = () => structuredClone(GAME_DATA.appearance);
 
