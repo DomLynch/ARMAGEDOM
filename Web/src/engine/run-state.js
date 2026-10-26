@@ -116,7 +116,9 @@ export function restoreRun(g, raw, legacyRaw) {
   const vest = saved.version === 1 && !("vest" in saved) ? createVestState() : saved.version >= 2 ? saved.vest : null;
   if (
     !isVestState(vest) ||
-    (vest.equipped && legacyIssuedCount(supplies) < 2 && !collectedGearSource(supplies, g.lootRules, vest.itemId)) // tuning-ok: the legacy ledger has two gear drops
+    (vest.equipped &&
+      legacyIssuedCount(supplies) < 2 && // tuning-ok: the legacy ledger has two gear drops
+      !collectedGearSource(supplies, g.lootRules, vest.itemId))
   )
     return null;
   const animalCycle = Object.hasOwn(saved, "animalCycle") ? saved.animalCycle : "A";
