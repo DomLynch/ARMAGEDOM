@@ -10,7 +10,7 @@ export function remoteCostProblems(zero, loaded, budget = GAME_DATA.renderBudget
   const perCalls = (loaded.drawCalls - zero.drawCalls) / loaded.remotes,
     perTriangles = (loaded.triangles - zero.triangles) / loaded.remotes;
   if (perCalls > budget.perRemote.maxDrawCalls)
-    problems.push(`each remote costs ${perCalls.toFixed(2)} draw calls, budget ${budget.perRemote.maxDrawCalls}`);
+    problems.push(`each remote costs ${perCalls.toFixed(2)} draw calls, budget ${budget.perRemote.maxDrawCalls}`); // tuning-ok: two decimals in a message
   if (perTriangles > budget.perRemote.maxTriangles)
     problems.push(`each remote costs ${Math.round(perTriangles)} triangles, budget ${budget.perRemote.maxTriangles}`);
   // The scene total is judged at the budget's remote count, projected from the measurement when it used fewer or more.

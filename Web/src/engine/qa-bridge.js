@@ -2,7 +2,8 @@
 // a loopback origin (localhost, 127.0.0.1, [::1], *.localhost) AND with ?qa=1 in the address, so it can never appear on playarmagedom.com
 // or any other real host. It changes nothing: getters return the live objects the page already holds, plus the page's own errors.
 const LOOPBACK = /^(localhost|127\.0\.0\.1|\[::1\]|[^.]+\.localhost)$/;
-const MAX_ERRORS = 50;
+const MAX_ERRORS = 50; // tuning-ok: local QA only, a cap on the errors kept so a loop cannot grow memory
+const MESSAGE_CHARS = 300; // tuning-ok: local QA only, a cap on the length of each kept message
 
 export function qaAllowed(location) {
   try {
@@ -22,7 +23,7 @@ export function installQaBridge({ location, target, view, consoleObject = global
   const errors = [];
   const keep = (type, detail) => {
     if (errors.length < MAX_ERRORS)
-      errors.push({ type, message: String(detail?.message ?? detail ?? "").slice(0, 300), at: Math.round(performance.now()) });
+      errors.push({ type, message: String(detail?.message ?? detail ?? "").slice(0, MESSAGE_CHARS), at: Math.round(performance.now()) });
   };
   const original = consoleObject.error?.bind(consoleObject);
   if (original)
