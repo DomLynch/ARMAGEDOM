@@ -1,0 +1,758 @@
+{
+ "figures": [
+  {
+   "name": "Player 1",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": 0,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 14800287,
+       "hsl": [
+        0.130555556,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 14800287,
+       "hsl": [
+        0.130555556,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  },
+  {
+   "name": "Player 2",
+   "position": [
+    1.5,
+    0,
+    1
+   ],
+   "rotation": 0.4,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 12575135,
+       "hsl": [
+        0.261111111,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 12575135,
+       "hsl": [
+        0.261111111,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  },
+  {
+   "name": "Player 5",
+   "position": [
+    3,
+    0,
+    2
+   ],
+   "rotation": 0.8,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 10462945,
+       "hsl": [
+        0.652777778,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 10462945,
+       "hsl": [
+        0.652777778,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  },
+  {
+   "name": "Player 13",
+   "position": [
+    4.5,
+    0,
+    3
+   ],
+   "rotation": 1.2,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 11444193,
+       "hsl": [
+        0.697222222,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 11444193,
+       "hsl": [
+        0.697222222,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  },
+  {
+   "name": "Player 47",
+   "position": [
+    6,
+    0,
+    4
+   ],
+   "rotation": 1.6,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 14800799,
+       "hsl": [
+        0.136111111,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 14800799,
+       "hsl": [
+        0.136111111,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  },
+  {
+   "name": "Player 200",
+   "position": [
+    7.5,
+    0,
+    5
+   ],
+   "rotation": 2,
+   "children": [
+    {
+     "type": "Group",
+     "name": "",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.3,
+        "height": 1,
+        "capSegments": 4,
+        "radialSegments": 8,
+        "heightSegments": 1
+       },
+       "y": 0.8,
+       "colour": 14798495,
+       "hsl": [
+        0.111111111,
+        0.45,
+        0.55
+       ]
+      },
+      {
+       "type": "Mesh",
+       "geometry": {
+        "radius": 0.2,
+        "widthSegments": 12,
+        "heightSegments": 8,
+        "phiStart": 0,
+        "phiLength": 6.283185307179586,
+        "thetaStart": 0,
+        "thetaLength": 3.141592653589793
+       },
+       "y": 1.8,
+       "colour": 14798495,
+       "hsl": [
+        0.111111111,
+        0.45,
+        0.55
+       ]
+      }
+     ]
+    },
+    {
+     "type": "Sprite",
+     "name": "Name tag",
+     "position": [
+      0,
+      2.05,
+      0
+     ],
+     "scale": [
+      1.6,
+      0.4,
+      1
+     ],
+     "parts": []
+    }
+   ]
+  }
+ ],
+ "canvas": [
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Guest 1",
+   128,
+   33
+  ],
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Hale",
+   128,
+   33
+  ],
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Guest 5",
+   128,
+   33
+  ],
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Hale",
+   128,
+   33
+  ],
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Guest 47",
+   128,
+   33
+  ],
+  [
+   "canvas",
+   256,
+   64
+  ],
+  [
+   "set",
+   "fillStyle",
+   "rgba(13,24,27,.72)"
+  ],
+  [
+   "fillRect",
+   0,
+   8,
+   256,
+   48
+  ],
+  [
+   "set",
+   "fillStyle",
+   "#f1d28c"
+  ],
+  [
+   "set",
+   "font",
+   "bold 30px sans-serif"
+  ],
+  [
+   "set",
+   "textAlign",
+   "center"
+  ],
+  [
+   "set",
+   "textBaseline",
+   "middle"
+  ],
+  [
+   "fillText",
+   "Hale",
+   128,
+   33
+  ]
+ ],
+ "labels": [
+  [
+   1,
+   "Guest 1"
+  ],
+  [
+   2,
+   "Hale"
+  ],
+  [
+   5,
+   "Guest 5"
+  ],
+  [
+   13,
+   "Hale"
+  ],
+  [
+   47,
+   "Guest 47"
+  ],
+  [
+   200,
+   "Hale"
+  ]
+ ]
+}

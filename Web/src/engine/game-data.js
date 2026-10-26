@@ -7,6 +7,7 @@ import bossRangedExtra from "../data/bossRangedExtra.json" with { type: "json" }
 import donorMotion from "../data/donorMotion.json" with { type: "json" };
 import finisher from "../data/finisherData.json" with { type: "json" };
 import audio from "../data/audio.json" with { type: "json" };
+import browserSession from "../data/browserSession.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
@@ -34,11 +35,14 @@ import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
+import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
+import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
+import { validateEffectsFeedback } from "./effects-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
@@ -62,15 +66,19 @@ import {
 export {
   validateBossEquipment,
   validateBossRanged,
+  validateBrowserSession,
   validateCombatRules,
   validateCommanderSession,
   validateCreatures,
   validateCreditPolicies,
+  validateDiagnostics,
   validateFamilies,
   validateKnife,
   validateLowMelee,
   validateMelee,
   validateMobileAim,
+  validateRenderBudget,
+  validateSaveClient,
   validateTargeting,
   validateVest,
   validateWeaponAudio,
@@ -108,13 +116,6 @@ export function validateCreatureDefinitions(d) {
   }
 }
 
-export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
-  count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
-  // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
-  count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
-}
-
 // The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
 // the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
 export function validateLocker(d) {
@@ -131,45 +132,6 @@ export function validateLocker(d) {
   for (const [key, cap] of Object.entries(d.resourceCaps))
     if (!Number.isFinite(cap) || cap <= 0 || cap > 100000 || (key !== "flame-fuel" && !Number.isSafeInteger(cap)))
       fail("locker", `resourceCaps.${key}`);
-}
-
-// A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
-// engine/render-budget.js compares a measurement to it). Dom's phone is the judge; these numbers stop the cost creeping meanwhile.
-export function validateRenderBudget(d) {
-  closed(d, ["schema_version", "provisional", "westminster", "perRemote"]);
-  if (typeof d.provisional !== "boolean") fail("renderBudget", "provisional must be true or false");
-  closed(d.westminster, ["remotes", "maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "westminster.remotes", d.westminster.remotes, 1, 64);
-  count("renderBudget", "westminster.maxDrawCalls", d.westminster.maxDrawCalls, 1, 10000);
-  count("renderBudget", "westminster.maxTriangles", d.westminster.maxTriangles, 1, 10000000);
-  closed(d.perRemote, ["maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "perRemote.maxDrawCalls", d.perRemote.maxDrawCalls, 0, 1000);
-  count("renderBudget", "perRemote.maxTriangles", d.perRemote.maxTriangles, 0, 1000000);
-}
-
-export function validateSaveClient(d) {
-  closed(d, [
-    "schema_version",
-    "minSaveIntervalMs",
-    "staleSeqRetries",
-    "characterName",
-    "bootSyncWaitMs",
-    "bucketBurst",
-    "bucketRefillMs",
-    "bucketReserve",
-  ]);
-  // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
-  // request costs one, a stale-seq retry too). A routine save never spends the last `bucketReserve` tokens: only a death save and the
-  // page-hide send may, so a long fight can never leave the death save refused. Keep these equal to the writer's numbers.
-  count("saveClient", "bucketBurst", d.bucketBurst, 1, 100);
-  count("saveClient", "bucketRefillMs", d.bucketRefillMs, 100, 600000);
-  count("saveClient", "bucketReserve", d.bucketReserve, 0, 50);
-  if (d.bucketReserve >= d.bucketBurst) fail("saveClient", "bucketReserve must be below bucketBurst");
-  count("saveClient", "bootSyncWaitMs", d.bootSyncWaitMs, 0, 15000); // how long Enter waits for the server record at most
-  count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
-  count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
-  if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))
-    fail("saveClient", "characterName");
 }
 
 export function validateWorld(d) {
@@ -254,6 +216,7 @@ export function validateVisual(d) {
     "bossEquipmentView",
     "routeGuidance",
     "expeditionHud",
+    "remotePlayers",
     "severBlood",
     "motion",
     "safehouseView",
@@ -346,7 +309,8 @@ export function validateVisual(d) {
     for (const p of c.partners[family])
       if (!trouserFamilies.has(p)) fail("visual", `clothing.partners.${family} names unknown trousers family ${p}`);
   }
-  closed(d.effects, ["swingColours", "lootColours", "targetHeights"]);
+  closed(d.effects, ["swingColours", "lootColours", "targetHeights", "feedback"]);
+  validateEffectsFeedback(d.effects.feedback);
   // effects.js aims its hit burst, kill confirmation, tracer end and target reticle at a height that depends on the target's rig. Per
   // site, a `default` row plus one row per rig: `fixed` metres, `drone` (the hovering drone's height), `cue` (the cue's own height) or
   // `scaled` metres times the rig's view scale; an empty row means "use the site's own fallback".
@@ -884,6 +848,7 @@ export function validateRemoteSurvivors(d) {
 const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
   audio: [audio, validateAudio],
+  browserSession: [browserSession, validateBrowserSession],
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   appearance: [appearance, validateAppearance],
