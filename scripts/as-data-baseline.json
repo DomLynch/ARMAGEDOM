@@ -107,7 +107,6 @@
     "engine/sever-blood-effect.js": 3,
     "engine/shotgun-pattern.js": 5,
     "engine/sticky-grenade-runtime.js": 4,
-    "engine/world-events.js": 10,
     "face-recipes.js": 7,
     "feral-body-shapes.js": 1,
     "finisher-impact-profile.js": 8,
