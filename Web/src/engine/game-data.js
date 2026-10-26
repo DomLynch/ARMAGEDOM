@@ -20,6 +20,7 @@ import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -35,9 +36,11 @@ import { count, fail, id, number } from "./game-data-checks.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
+import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -255,8 +258,10 @@ export function validateVisual(d) {
     "safehouseView",
     "wantedPoster",
     "combatImpact",
+    "flameEffect",
   ]);
   validateCombatImpact(d.combatImpact);
+  validateFlameEffect(d.flameEffect);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -473,7 +478,7 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation", "render"]);
   // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
   // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
   closed(d.variation, [
@@ -878,6 +883,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
+  railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],

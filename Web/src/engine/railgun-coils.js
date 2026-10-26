@@ -1,38 +1,41 @@
 import * as T from "three";
+import { GAME_DATA } from "./game-data.js";
 // Existing rigid Rifle root/hand/pose stays owner; two bounded decorative draws, no lights/colliders.
+// The ring, material, arc and glow numbers are Web/src/data/railgunCoils.json.
 export function createRailgunCoils(root) {
-  const group = new T.Group();
+  const look = GAME_DATA.railgunCoils,
+    group = new T.Group();
   group.name = "Thundercoil amber coils";
   root.add(group);
-  const geometry = new T.TorusGeometry(0.062, 0.012, 5, 16),
+  const geometry = new T.TorusGeometry(
+      look.ring.radius,
+      look.ring.tube,
+      look.ring.radialSegments,
+      look.ring.tubularSegments,
+    ),
     material = new T.MeshStandardMaterial({
-      color: 0x80542e,
-      metalness: 0.8,
-      roughness: 0.35,
-      emissive: 0xff9a28,
-      emissiveIntensity: 0.2,
+      color: look.material.color,
+      metalness: look.material.metalness,
+      roughness: look.material.roughness,
+      emissive: look.material.emissive,
+      emissiveIntensity: look.material.emissiveIdle,
     }),
-    rings = new T.InstancedMesh(geometry, material, 3),
+    rings = new T.InstancedMesh(geometry, material, look.ring.count),
     pose = new T.Object3D();
   rings.name = "Thundercoil three rings";
   rings.frustumCulled = false;
-  for (let i = 0; i < 3; i++) {
-    pose.position.set(0, 0.09, 0.37 + i * 0.085);
+  for (let i = 0; i < look.ring.count; i++) {
+    pose.position.set(0, look.ring.y, look.ring.z + i * look.ring.zStep);
     pose.updateMatrix();
     rings.setMatrixAt(i, pose.matrix);
   }
   group.add(rings);
-  const arcGeometry = new T.BufferGeometry().setFromPoints([
-      new T.Vector3(-0.04, 0.13, 0.35),
-      new T.Vector3(0.035, 0.16, 0.4),
-      new T.Vector3(-0.03, 0.14, 0.46),
-      new T.Vector3(0.04, 0.13, 0.52),
-      new T.Vector3(0, 0.09, 0.61),
-    ]),
-    arcMaterial = new T.LineBasicMaterial({ color: 0xffd584, transparent: true, opacity: 0, depthWrite: false }),
+  const arcGeometry = new T.BufferGeometry().setFromPoints(look.arc.points.map(([x, y, z]) => new T.Vector3(x, y, z))),
+    arcMaterial = new T.LineBasicMaterial({ color: look.arc.color, transparent: true, opacity: 0, depthWrite: false }),
     arc = new T.Line(arcGeometry, arcMaterial);
   arc.name = "Thundercoil finite charge arc";
   group.add(arc);
+  const charge = look.charge;
   let disposed = false;
   return {
     root: group,
@@ -40,9 +43,13 @@ export function createRailgunCoils(root) {
       if (disposed) return;
       group.visible = visible;
       const n = Math.max(0, Math.min(1, progress));
-      material.emissiveIntensity = charging ? 0.25 + n * 2 : 0.2;
+      material.emissiveIntensity = charging
+        ? charge.emissiveBase + n * charge.emissiveGain
+        : look.material.emissiveIdle;
       arc.visible = charging;
-      arcMaterial.opacity = charging ? 0.25 + 0.4 * n + 0.2 * Math.sin(time * 31) ** 2 : 0;
+      arcMaterial.opacity = charging
+        ? charge.opacityBase + charge.opacityGain * n + charge.flicker * Math.sin(time * charge.flickerRate) ** 2 // tuning-ok: squared sine
+        : 0;
     },
     dispose() {
       if (disposed) return;

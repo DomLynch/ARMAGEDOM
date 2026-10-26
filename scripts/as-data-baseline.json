@@ -72,7 +72,6 @@
   "numberLiterals": {
     "actors.js": 61,
     "animal-appearance.js": 7,
-    "atmosphere.js": 31,
     "auto-equip.js": 1,
     "bridge-steering.js": 5,
     "clothing-allocator.js": 3,
@@ -105,7 +104,6 @@
     "engine/flame-contact.js": 12,
     "engine/flame-core.js": 1,
     "engine/flame-data.js": 14,
-    "engine/flame-effect.js": 38,
     "engine/flame-fuel-state.js": 2,
     "engine/flame-presentation.js": 9,
     "engine/flame-view.js": 13,
@@ -130,7 +128,6 @@
     "engine/progression-runtime.js": 1,
     "engine/progression-state.js": 2,
     "engine/qa-bridge.js": 2,
-    "engine/railgun-coils.js": 37,
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 3,
     "engine/reaper.js": 3,
