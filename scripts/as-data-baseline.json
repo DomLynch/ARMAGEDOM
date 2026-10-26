@@ -105,7 +105,6 @@
     "engine/flame-contact.js": 12,
     "engine/flame-core.js": 1,
     "engine/flame-data.js": 14,
-    "engine/flame-effect.js": 38,
     "engine/flame-fuel-state.js": 2,
     "engine/flame-presentation.js": 9,
     "engine/flame-view.js": 13,
