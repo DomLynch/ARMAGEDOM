@@ -344,6 +344,7 @@ export function validateCreatures(d) {
     "moves",
     "playerAttacks",
     "playerHealth",
+    "defaultResponse",
     "salamanderBreath",
     "drone",
     "catalogue",
@@ -363,6 +364,11 @@ export function validateCreatures(d) {
   // Health comes back over this many seconds of active play, from empty to full.
   closed(d.playerHealth, ["regenerationSeconds"]);
   number("creatures", "playerHealth.regenerationSeconds", d.playerHealth.regenerationSeconds, 1);
+  // The hit and death reaction of a rig with no row of its own in rig-capabilities.json (rig-response.js).
+  closed(d.defaultResponse, ["hitClip", "deathClip", "deathTicks"]);
+  for (const f of ["hitClip", "deathClip"])
+    if (typeof d.defaultResponse[f] !== "string" || !d.defaultResponse[f]) fail("creatures", `defaultResponse.${f}`);
+  count("creatures", "defaultResponse.deathTicks", d.defaultResponse.deathTicks, 1, 600);
   if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
   for (const [name, row] of Object.entries(d.moves)) {
     id("creatures", `moves.${name}`, name.replaceAll("_", "-"));

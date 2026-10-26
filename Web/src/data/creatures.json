@@ -121,6 +121,7 @@
     }
   },
   "playerHealth": { "regenerationSeconds": 60 },
+  "defaultResponse": { "hitClip": "Hit", "deathClip": "Death", "deathTicks": 144 },
   "salamanderBreath": {
     "kind": "flame",
     "range": 4.86,
