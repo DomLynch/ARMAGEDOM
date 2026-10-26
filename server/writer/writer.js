@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { AUTH } from "../shared/supabase-verify.js";
 import { CLIENTLOG_LIMIT, CLIENTLOG_MAX_BODY, cleanClientLog, clientIp, ipLimiter } from "./clientlog.js";
 
 const MAX_BODY = 256 * 1024;
@@ -206,11 +207,14 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       }
       throw new HttpError(404, "route");
     } catch (error) {
+      // Supabase Auth could not answer (429, 5xx, timeout): that is not a bad token. 503 and a retry time, so the page waits instead of signing the player out.
+      if (error?.code === "AUTH_UNAVAILABLE") error = new HttpError(503, "auth-unavailable", { retryMs: AUTH.retryMs });
       const status = error instanceof HttpError ? error.status : STATUS[error?.code] ?? 500;
       const code = error instanceof HttpError ? error.code : error?.code ?? "error";
       refuse(code);
       if (status === 500) log(`writer error: ${error?.message}`);
-      send(res, status, { error: code, ...(error instanceof HttpError ? error.extra : {}) });
+      const retryMs = error instanceof HttpError ? error.extra.retryMs : undefined;
+      send(res, status, { error: code, ...(error instanceof HttpError ? error.extra : {}) }, retryMs ? { "Retry-After": String(Math.ceil(retryMs / 1000)) } : {});
     }
   });
   /** Deletes the spawn engages that can no longer be used (arma_prune_engages); resolves to the number deleted. main.js runs it on a timer. */

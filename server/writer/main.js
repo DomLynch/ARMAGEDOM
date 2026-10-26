@@ -7,6 +7,7 @@
 //   ARMA_SPAWNS         optional path to the spawn rows JSON (default server/data/spawns.json)
 import fs from "node:fs";
 import { poolConfig } from "./db-config.js";
+import { createVerifier } from "../shared/supabase-verify.js";
 import { createWriter, MAINTENANCE, spawnRowsFrom } from "./writer.js";
 
 if (process.env.ARMA_WRITER !== "1") {
@@ -23,14 +24,7 @@ const pool = new pg.Pool(poolConfig(need("DATABASE_URL"))); // pins Supabase's r
 const db = { query: async (sql, params) => (await pool.query(sql, params)).rows };
 const url = need("SUPABASE_URL"),
   anon = need("SUPABASE_ANON_KEY");
-const verify = async (token) => {
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: `Bearer ${token}`, apikey: anon } });
-    return res.ok ? ((await res.json()).id ?? null) : null;
-  } catch {
-    return null;
-  }
-};
+const verify = createVerifier({ url, anon }); // cached 60 s by token hash; throws AuthUnavailable when Supabase Auth cannot answer (the writer then says 503)
 const spawns = JSON.parse(fs.readFileSync(process.env.ARMA_SPAWNS ?? new URL("../data/spawns.json", import.meta.url), "utf8"));
 const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: need("ARMA_INTERNAL_KEY"), log: console.log });
 writer.server.listen(port, host, () => console.log(`writer listening on ${host}:${port}`));

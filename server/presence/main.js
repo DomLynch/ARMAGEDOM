@@ -12,6 +12,7 @@ import { loadAreaRows } from "./area-rules.js";
 import { weaponCaps } from "./caps.js";
 import { presenceLimits } from "./limits.js";
 import { firstName } from "./names.js";
+import { AUTH, createVerifier } from "../shared/supabase-verify.js";
 import { createPresence } from "./server.js";
 import { writerClient } from "./writer-client.js";
 
@@ -32,22 +33,15 @@ const limits = presenceLimits(rules, content);
 const writer = writerClient({ baseUrl: process.env.WRITER_URL ?? "http://127.0.0.1:8891", key: need("ARMA_INTERNAL_KEY") });
 const url = need("SUPABASE_URL"),
   anon = need("SUPABASE_ANON_KEY");
-const verify = async (token) => {
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: `Bearer ${token}`, apikey: anon } });
-    if (!res.ok) return null;
-    const user = await res.json();
-    return user?.id ? { id: user.id, name: firstName(user) } : null; // only the first name is kept; the rest of the profile is dropped here
-  } catch {
-    return null;
-  }
-};
+// Cached 60 s by token hash; only the id and the first name are kept, the rest of the profile is dropped. Throws AuthUnavailable when Supabase Auth cannot
+// answer, and the upgrade is then a 503 (retry), not a 401.
+const verify = createVerifier({ url, anon, pick: (user) => (user?.id ? { id: user.id, name: firstName(user) } : null) });
 
 // Only the game's own site may open a socket. PRESENCE_ORIGINS (comma list) replaces the default; PRESENCE_DEV=1 also allows http://localhost.
 const allowedOrigins = process.env.PRESENCE_ORIGINS ? process.env.PRESENCE_ORIGINS.split(",").map((s) => s.trim()) : ["https://playarmagedom.com"];
 // The world admits an account only when the database says so (kill switch, allow-list, open access): the writer answers arma_allowed through arma_world_status.
 const isAllowed = async (account) => (await writer.status(account)).allowed === true;
-const presence = createPresence({ rules, limits, verify, isAllowed,weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, allowedOrigins, devOrigins: process.env.PRESENCE_DEV === "1", log: console.log });
+const presence = createPresence({ rules, limits, verify, isAllowed, authRetryMs: AUTH.retryMs, weaponCaps: weaponCaps(content), sendHits: writer.sendHits, sendLocation: writer.sendLocation, allowedOrigins, devOrigins: process.env.PRESENCE_DEV === "1", log: console.log });
 presence.server.listen(port, host, () => console.log(`presence listening on ${host}:${port}, layout ${rules.version}, push ${limits.impulseCm} cm`));
 let ticking = false; // a slow writer must not stack ticks up
 const timer = setInterval(async () => {

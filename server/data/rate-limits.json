@@ -10,6 +10,14 @@
     "spawn_state": { "burst": 5, "refillMs": 2000 },
     "spawn_engage": { "burst": 8, "refillMs": 2000 }
   },
+  "auth": {
+    "_comment": "The token check shared by the writer and presence (server/shared/supabase-verify.js): a verified token is remembered cacheTtlMs (a sign-out reaches us that late), a refused one negativeTtlMs; at most maxEntries tokens are held; Auth gets requestTimeoutMs to answer; when it cannot, callers answer 503 with retryMs.",
+    "cacheTtlMs": 60000,
+    "negativeTtlMs": 5000,
+    "maxEntries": 5000,
+    "requestTimeoutMs": 4000,
+    "retryMs": 5000
+  },
   "maintenance": {
     "pruneEngagesEveryMs": 3600000
   }

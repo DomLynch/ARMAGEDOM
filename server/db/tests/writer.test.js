@@ -14,14 +14,14 @@ const spawns = { "wolf-1": { kind: "wolf", area: "east", maxHp: 40 } };
 // Tests that are not about the rate limit run with limits too high to matter; the limit tests pass their own.
 const UNLIMITED = Object.fromEntries(Object.keys(DEFAULT_LIMITS).map((op) => [op, { burst: 1e6, refillMs: 1 }]));
 
-async function start({ limits = UNLIMITED, now } = {}) {
+async function start({ limits = UNLIMITED, now, verify: verifyOverride } = {}) {
   const pg = await freshDb();
   await pg.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'"); // these tests save the v18 fixture; see cash.test.js
   await openFor(pg, ids.alice, ids.bob);
   await pg.exec(`delete from public.arma_weapon_rules; insert into public.arma_weapon_rules values ('knife', 10, 4); delete from public.arma_loot_rules; insert into public.arma_loot_rules values ('wolf-1', 0, 'wolf-pelt', 1);`);
   await pg.exec("set role arma_writer");
   const db = { query: async (sql, params) => (await pg.query(sql, params)).rows };
-  const verify = async (token) => (token.startsWith("user:") ? token.slice(5) : null);
+  const verify = verifyOverride ?? (async (token) => (token.startsWith("user:") ? token.slice(5) : null));
   const writer = createWriter({ db, verify, spawnRows: spawnRowsFrom(spawns), internalKey: KEY, limits, ...(now ? { now } : {}) });
   await new Promise((resolve) => writer.server.listen(0, "127.0.0.1", resolve));
   const base = `http://127.0.0.1:${writer.server.address().port}`;
@@ -360,6 +360,27 @@ test("every client op has a bucket in server/data/rate-limits.json, load_run is 
     clock += 10000;
     assert.equal((await t.post("/arma/active", {}, { as: ids.alice })).status, 200);
     assert.equal(await t.writer.pruneEngages(), 0, "the prune runs against the database and reports how many it deleted");
+  } finally {
+    await t.close();
+  }
+});
+
+test("auth: when Supabase Auth cannot answer the writer says 503 with a retry time (never 401), and a token Auth refuses is still a 401", async () => {
+  let unavailable = true;
+  const verify = async (token) => {
+    if (unavailable) throw Object.assign(new Error("auth unavailable: status 429"), { code: "AUTH_UNAVAILABLE" });
+    return token.startsWith("user:") ? token.slice(5) : null;
+  };
+  const t = await start({ verify });
+  try {
+    const down = await fetch(t.base + "/arma/active", { method: "POST", headers: { Authorization: `Bearer user:${ids.alice}` }, body: "{}" });
+    assert.deepEqual([down.status, down.headers.get("retry-after"), await down.json()], [503, "5", { error: "auth-unavailable", retryMs: 5000 }]);
+    const status = await fetch(t.base + "/arma/status", { headers: { Authorization: `Bearer user:${ids.alice}` } });
+    assert.equal(status.status, 503);
+    assert.equal((await fetch(t.base + "/arma/status")).status, 200, "the anonymous status needs no token and no Auth");
+    unavailable = false;
+    assert.equal((await t.post("/arma/active", {}, { as: ids.alice })).status, 200);
+    assert.equal((await fetch(t.base + "/arma/active", { method: "POST", headers: { Authorization: "Bearer forged-token-123" }, body: "{}" })).status, 401);
   } finally {
     await t.close();
   }

@@ -172,14 +172,17 @@ test("origin: only https://playarmagedom.com may open a socket; localhost only i
   }
 });
 
-test("auth: a verifier that never answers is cut off at the deadline; a verifier that throws is refused", async () => {
+test("auth: a verifier that never answers is cut off at the deadline with a 503 (retry), a verifier that says Auth is unavailable is a 503, and one that throws anything else is refused with a 401", async () => {
   const hung = await start({ verify: () => new Promise(() => {}), verifyTimeoutMs: 80 });
+  const unavailable = await start({ verify: async () => { throw Object.assign(new Error("auth unavailable: status 429"), { code: "AUTH_UNAVAILABLE" }); } });
   const broken = await start({ verify: async () => { throw new Error("auth down"); } });
   try {
-    assert.equal((await hung.connect(ALICE)).status, 401);
+    assert.equal((await hung.connect(ALICE)).status, 503);
+    assert.equal((await unavailable.connect(ALICE)).status, 503);
     assert.equal((await broken.connect(ALICE)).status, 401);
   } finally {
     await hung.stop();
+    await unavailable.stop();
     await broken.stop();
   }
 });
