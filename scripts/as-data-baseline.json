@@ -98,7 +98,6 @@
     "engine/expedition-core.js": 7,
     "engine/finisher-arm.js": 1,
     "engine/finisher-data.js": 2,
-    "engine/finisher-gore.js": 20,
     "engine/flame-contact.js": 12,
     "engine/flame-core.js": 1,
     "engine/flame-data.js": 14,
