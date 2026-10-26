@@ -60,7 +60,7 @@ function freePosition(s, world, center, radius, ignore = null) {
   const { maxRing, perRing, ringStep, gap } = M.spawnSearch;
   for (let ring = 0; ring <= maxRing; ring++)
     for (let i = 0; i < (ring ? perRing : 1); i++) {
-      const a = (i * 2 * Math.PI) / perRing,
+      const a = (i * 2 * Math.PI) / perRing, // tuning-ok: a full turn shared by the ring's slots
         p = { x: center.x + Math.cos(a) * ring * ringStep, z: center.z + Math.sin(a) * ring * ringStep };
       if (
         world.geometry.clear(p, radius) &&
@@ -104,13 +104,13 @@ export function createCommanderMatch(world) {
     waveAt: Infinity,
     navigation: createBridgeSteering(),
   };
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < M.startMachines; i++) {
     const p = freePosition(s, world, spawn, COMMANDER_RULES.machineRadius);
-    if (!p) throw Error("Three existing full-radius drones do not fit");
+    if (!p) throw Error("Starting full-radius drones do not fit");
     s.units.push(actor(s, "machine", p));
   }
-  for (let i = 0; i < 2; i++) {
-    const p = freePosition(s, world, { x: objective.x + 3 + i, z: objective.z + 2 }, M.biologicalRadius);
+  for (let i = 0; i < M.defenders; i++) {
+    const p = freePosition(s, world, { x: objective.x + M.defenderOffset.x + i, z: objective.z + M.defenderOffset.z }, M.biologicalRadius);
     if (!p) throw Error("Commander defenders do not fit");
     s.opponents.push(actor(s, "biological", p));
   }
@@ -162,7 +162,7 @@ export function orderCommander(s, world, request) {
       const { maxRing, perRing, ringStep, gap } = M.formationSearch;
       for (let ring = 0; ring <= maxRing && !chosen; ring++)
         for (let i = 0; i < (ring ? perRing : 1) && !chosen; i++) {
-          const a = (i * 2 * Math.PI) / perRing,
+          const a = (i * 2 * Math.PI) / perRing, // tuning-ok: a full turn shared by the ring's slots
             p = { x: request.point.x + Math.cos(a) * ring * ringStep, z: request.point.z + Math.sin(a) * ring * ringStep };
           if (
             world.geometry.clear(p, e.radius) &&
@@ -243,9 +243,10 @@ function moveActor(s, world, e, goal, dt) {
   if (n < EPS) return false;
   const travel = Math.min(n, e.moveSpeed * dt),
     axis = { x: dx / n, z: dz / n },
-    side = e.id % 2 ? 1 : -1;
-  for (const angle of [0, (side * Math.PI) / 4, (-side * Math.PI) / 4, (side * Math.PI) / 2, (-side * Math.PI) / 2]) {
-    const c = Math.cos(angle),
+    side = e.id % 2 ? 1 : -1; // tuning-ok: alternate the turning side by id parity
+  for (const turn of [0, side, -side, 2 * side, -2 * side]) { // tuning-ok: steer 0, then 1 and 2 eighth-turns to each side
+    const angle = (turn * Math.PI) / 4, // tuning-ok: an eighth of a turn (45 degrees)
+      c = Math.cos(angle),
       sn = Math.sin(angle),
       dir = { x: axis.x * c - axis.z * sn, z: axis.x * sn + axis.z * c },
       next = world.move(e.pos, { x: dir.x * travel, z: dir.z * travel }, e.radius);
@@ -419,8 +420,8 @@ export function stepCommander(s, world, dt = 1 / 60) {
     }
   } else if (s.phase === "defend") {
     s.objective.defend += dt;
-    if (s.waves < 2 && s.time + EPS >= s.waveAt) {
-      for (let i = 0; i < 2; i++) {
+    if (s.waves < M.waveCount && s.time + EPS >= s.waveAt) {
+      for (let i = 0; i < M.waveSize; i++) {
         const p = freePosition(s, world, s.wavePoint, M.biologicalRadius);
         if (p) s.opponents.push(actor(s, "biological", p));
       }

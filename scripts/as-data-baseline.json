@@ -88,7 +88,6 @@
     "engine/boss-ranged.js": 2,
     "engine/boss-weapon-runtime.js": 8,
     "engine/client-log.js": 2,
-    "engine/commander/match.js": 13,
     "engine/creature-catalogue.js": 2,
     "engine/creature-sim.js": 2,
     "engine/expedition-core.js": 7,
