@@ -26,7 +26,7 @@ function softTexture() {
       const at = (y * size + x) * 4, // tuning-ok: four bytes (RGBA) per pixel
         r = Math.hypot((x + 0.5 - half) / half, (y + 0.5 - half) / half); // tuning-ok: 0.5 = the pixel's centre
       pixels.fill(255, at, at + 3); // tuning-ok: white RGB, alpha is the fourth byte
-      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** X.texture.falloffPower * 255); // tuning-ok: alpha is channel 3
+      pixels[at + 3] = Math.round(Math.min(1, Math.max(0, 1 - r) / X.texture.edge) ** X.texture.falloffPower * 255); // tuning-ok: alpha is channel 3
     }
   const texture = new T.DataTexture(pixels, size, size, T.RGBAFormat);
   texture.needsUpdate = true;

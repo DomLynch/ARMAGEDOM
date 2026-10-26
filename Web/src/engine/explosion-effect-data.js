@@ -21,8 +21,9 @@ const opacity = (field, v) => {
 export function validateExplosionEffect(e) {
   closed(e, ["maxActive", "texture", "renderOrder", "groundLift", "goldenAngle", "flash", "fireball", "smoke", "sparks", "scorch"]);
   whole("maxActive", e.maxActive, 1, 8);
-  closed(e.texture, ["size", "falloffPower"]);
+  closed(e.texture, ["size", "edge", "falloffPower"]);
   whole("texture.size", e.texture.size, 8, 128);
+  if (!(e.texture.edge > 0 && e.texture.edge <= 1)) fail("texture.edge must be above 0 and at most 1");
   number("texture.falloffPower", e.texture.falloffPower, 0.1);
   if (!Number.isInteger(e.renderOrder)) fail("renderOrder must be an integer");
   number("groundLift", e.groundLift, 0);
