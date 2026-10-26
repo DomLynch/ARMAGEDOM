@@ -30,7 +30,9 @@ const same = (a, b) => {
 // Per-account token buckets on the client routes that cost a database round trip: `burst` requests at once, then one more every `refillMs`.
 // Numbers (docs/MULTIPLAYER-DATA-LAYER.md): saves 1 per 5 s, burst 6 (a fight's save triggers, then the death or pagehide flush, must not be refused); loads 1 per second, burst 3.
 // The numbers live in server/data/rate-limits.json.
-export const DEFAULT_LIMITS = JSON.parse(fs.readFileSync(new URL("../data/rate-limits.json", import.meta.url), "utf8")).clientOps;
+const RATE_LIMITS = JSON.parse(fs.readFileSync(new URL("../data/rate-limits.json", import.meta.url), "utf8"));
+export const DEFAULT_LIMITS = RATE_LIMITS.clientOps;
+export const MAINTENANCE = RATE_LIMITS.maintenance;
 
 /** spawnRows over a plain object of world rows; names like "constructor" or "__proto__" are unknown spawns, not prototype values. */
 export const spawnRowsFrom = (spawns) => (instance) => (Object.hasOwn(spawns, instance) ? spawns[instance] : null);
@@ -173,6 +175,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
           if (!statusMemo || t - statusMemo.at > STATUS_MEMO_MS) statusMemo = { at: t, body: await call("arma_world_status", [null]) };
           return send(res, 200, statusMemo.body, { "Cache-Control": `public, max-age=${STATUS_MAX_AGE_S}` });
         }
+        spend(account, "status");
         return send(res, 200, await call("arma_world_status", [account]), { "Cache-Control": "private, no-store" });
       }
       // The phone's error beacon: public, per-IP limited, journal only (clientlog.js). It never reads the Authorization header.
@@ -210,5 +213,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       send(res, status, { error: code, ...(error instanceof HttpError ? error.extra : {}) });
     }
   });
-  return { server, stats: () => ({ ...counts }) };
+  /** Deletes the spawn engages that can no longer be used (arma_prune_engages); resolves to the number deleted. main.js runs it on a timer. */
+  const pruneEngages = async () => Number(await call("arma_prune_engages", [])) || 0;
+  return { server, stats: () => ({ ...counts }), pruneEngages };
 }
