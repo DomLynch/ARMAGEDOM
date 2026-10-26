@@ -21,8 +21,40 @@ export function validateFinisherData(value) {
     "impactPalette",
     "preparation",
     "cosmetics",
+    "armSever",
     "gore",
   ]);
+  closed(d.armSever, [
+    "boneCount",
+    "lifetime",
+    "initialRadius",
+    "launchSpeed",
+    "launchLift",
+    "spinRate",
+    "maxStep",
+    "gravity",
+    "bounceKeep",
+    "groundFriction",
+    "spinDamping",
+    "spinMin",
+  ]);
+  const arm = d.armSever;
+  if (
+    !Number.isInteger(arm.boneCount) ||
+    !finite(arm.boneCount, 1, 256) ||
+    !finite(arm.lifetime, 0.1, 60) ||
+    !finite(arm.initialRadius, 0.001, 2) ||
+    !finite(arm.launchSpeed, 0, 20) ||
+    !finite(arm.launchLift, 0, 20) ||
+    !finite(arm.spinRate, 0, 50) ||
+    !finite(arm.maxStep, 0.001, 1) ||
+    !finite(arm.gravity, 0, 50) ||
+    !finite(arm.bounceKeep, 0, 1) ||
+    !finite(arm.groundFriction, 0, 1) ||
+    !finite(arm.spinDamping, 0, 1) ||
+    !finite(arm.spinMin, 0, 1)
+  )
+    fail();
   if (d.version !== 1 || !finite(d.chance, 0, 1) || !key(d.seed)) fail();
   closed(d.ordinary, ["id", "clip", "seconds", "cost", "parts"]);
   if (
