@@ -108,7 +108,7 @@ export function restoreRun(g, raw, legacyRaw) {
   if (
     saved.version < 3
       ? saved.supplies?.version !== 1 || !isSuppliesState(saved.supplies)
-      : saved.supplies?.version !== 2 || !extended || !isSuppliesState(saved.supplies, g.lootRules) // tuning-ok: the supplies ledger version a v3 run save carries
+      : saved.supplies?.version !== 2 || !extended || !isSuppliesState(saved.supplies, g.lootRules) // tuning-ok: supplies ledger version of a v3 save
   )
     return null;
   const supplies = saved.version < 3 && extended ? upgradeSupplies(saved.supplies, g.lootRules) : saved.supplies;
@@ -116,7 +116,7 @@ export function restoreRun(g, raw, legacyRaw) {
   const vest = saved.version === 1 && !("vest" in saved) ? createVestState() : saved.version >= 2 ? saved.vest : null;
   if (
     !isVestState(vest) ||
-    (vest.equipped && legacyIssuedCount(supplies) < 2 && !collectedGearSource(supplies, g.lootRules, vest.itemId)) // tuning-ok: the legacy ledger issues two gear drops, the pistol then the vest
+    (vest.equipped && legacyIssuedCount(supplies) < 2 && !collectedGearSource(supplies, g.lootRules, vest.itemId)) // tuning-ok: the legacy ledger has two gear drops
   )
     return null;
   const animalCycle = Object.hasOwn(saved, "animalCycle") ? saved.animalCycle : "A";
