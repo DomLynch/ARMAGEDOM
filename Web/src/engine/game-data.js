@@ -36,6 +36,7 @@ import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
 import { validateRouteGuidance } from "./route-guidance-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
+import { validateArcGun } from "./game-data-arc-gun.js";
 import { validateBossRangedData } from "./game-data-boss-ranged.js";
 import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
@@ -215,6 +216,7 @@ export function validateVisual(d) {
     "clothing",
     "effects",
     "dropMarker",
+    "arcGun",
     "routeArrow",
     "bossView",
     "pickupModel",
@@ -233,6 +235,7 @@ export function validateVisual(d) {
   ]);
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);
+  validateArcGun(d.arcGun);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
