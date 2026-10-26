@@ -1,5 +1,7 @@
 import { closed, freeze } from "./content-schema.js";
+import { GAME_DATA } from "./game-data.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
+const HAZARD_PLACEMENT = GAME_DATA.areaRuntime.bossHazard; // data/areaRuntime.json: clearance and entry gap for a boss hazard
 const fail = () => {
   throw TypeError("Invalid area boss catalogue");
 };
@@ -329,9 +331,9 @@ export function bossHazardPosition(game, actor) {
     if (
       p &&
       Math.hypot(p.x - actor.home.x, p.z - actor.home.z) <= actor.bossProfile.homeLeash &&
-      w.geometry.clear(p, h.radius + 0.4) &&
+      w.geometry.clear(p, h.radius + HAZARD_PLACEMENT.bodyClearance) &&
       !w.travelAt?.(p) &&
-      entries.every((e) => Math.hypot(p.x - e.x, p.z - e.z) > h.radius + 2)
+      entries.every((e) => Math.hypot(p.x - e.x, p.z - e.z) > h.radius + HAZARD_PLACEMENT.entryGap)
     )
       return { ...p };
   return null;
