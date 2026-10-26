@@ -1,5 +1,6 @@
 import { ratMeleePosePhase } from "./rat-melee-definition.js";
 import * as THREE from "three";
+import { DONOR_MOTION } from "./donor-motion-data.js";
 
 // Native hand transform and per-player clip overrides; never mutate the cache.
 // The caller supplies an independently SkeletonUtils-cloned character scene.
@@ -24,11 +25,12 @@ export function donorSwingPhase(age, timing, source) {
   if (!(total > 0) || !Number.isFinite(source) || source < 0 || source > 1) throw Error("Invalid donor swing timing");
   const contact = timing.windup / total,
     p = THREE.MathUtils.clamp(age / total, 0, 1);
+  const curve = DONOR_MOTION.swing;
   const keys = [
     [0, 0],
-    [contact * 0.7, source * 0.44],
+    [contact * curve.windupKeyFraction, source * curve.windupSourceFraction],
     [contact, source],
-    [contact + 0.16, source + (1 - source) * 0.56],
+    [contact + curve.followThrough, source + (1 - source) * curve.followThroughFraction],
     [1, 1],
   ];
   for (let i = 1; i < keys.length; i++)
@@ -106,7 +108,7 @@ export class DonorMotion {
     if (!selected) throw Error("Donor clip missing: " + name);
     for (const action of this.actions.values()) action.setEffectiveWeight(action === selected ? 1 : 0);
     this.guardUpper?.setEffectiveWeight(guardOverlay ? 1 : 0);
-    selected.time = THREE.MathUtils.clamp(phase, 0, 0.999999) * selected.getClip().duration;
+    selected.time = THREE.MathUtils.clamp(phase, 0, DONOR_MOTION.samplePhaseMax) * selected.getClip().duration;
     if (this.guardUpper) this.guardUpper.time = 0;
     this.mixer.update(0);
     this.model.updateWorldMatrix(true, true);
@@ -170,7 +172,11 @@ export class DonorMotion {
       const phase = entity.sawPhase?.phase;
       this.sample(
         this.description.clips.stab ?? this.description.clips.slash,
-        phase === "windup" ? 0.25 : phase === "recovery" ? 0.9 : 0.58,
+        phase === "windup"
+          ? DONOR_MOTION.saw.windup
+          : phase === "recovery"
+            ? DONOR_MOTION.saw.recovery
+            : DONOR_MOTION.saw.active,
       );
       return;
     }
@@ -188,14 +194,15 @@ export class DonorMotion {
     }
     if (noTick) return; // Keep the sampled pose between fixed simulation ticks.
     const distance = delta.length(),
-      speed = elapsed > 0 ? distance / elapsed : 0;
+      speed = elapsed > 0 ? distance / elapsed : 0,
+      move = DONOR_MOTION.locomotion;
     if (["rat", "dog", "roach", "salamander", "wolf"].includes(this.description.motion)) {
-      const name = speed > 0.05 ? this.description.clips.walk : this.description.clips.idle;
+      const name = speed > move.moveSpeed ? this.description.clips.walk : this.description.clips.idle;
       this.cycle = THREE.MathUtils.euclideanModulo(this.cycle + elapsed / this.actions.get(name).getClip().duration, 1);
       this.sample(name, this.cycle);
       return;
     }
-    if (speed > 0.05) {
+    if (speed > move.moveSpeed) {
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.root.quaternion),
         right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.root.quaternion),
         along = delta.dot(forward),
@@ -206,17 +213,17 @@ export class DonorMotion {
           ? across < 0
             ? (this.description.clips.strafeLeft ?? "StrafeLeft")
             : (this.description.clips.strafeRight ?? "StrafeRight")
-          : speed >= 4.2
+          : speed >= move.runSpeed
             ? run
             : this.description.clips.walk,
         name = this.actions.has(wanted) ? wanted : this.description.clips.walk;
       const stride = this.description.stride ?? 1,
-        rate = strafe ? 0.75 : name === run ? 3.5 : 1.7;
-      // Player sprint uses the native donor Run clock: 1x at 5.2m/s, independent
+        rate = strafe ? move.strafeRate : name === run ? move.runRate : move.walkRate;
+      // Player sprint uses the native donor Run clock: 1x at sprintSpeed (5.2 m/s), independent
       // of the approved visual enlargement. Other locomotion stays unchanged.
       const cycleDistance =
         name === run && entity.running
-          ? 5.2 * this.actions.get(name).getClip().duration
+          ? move.sprintSpeed * this.actions.get(name).getClip().duration
           : rate * stride * this.root.scale.x;
       this.cycle = THREE.MathUtils.euclideanModulo(
         this.cycle + (strafe ? distance : Math.sign(along) * distance) / cycleDistance,
