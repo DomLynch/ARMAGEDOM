@@ -24,133 +24,47 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
-import { count, fail, validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-checks.js";
+import * as extra from "./appearance-extra-validators.js";
+import { count, fail, id, number } from "./game-data-checks.js";
+import { validateCombatRules } from "./game-data-combat.js";
+import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
+import { validateCreatures } from "./game-data-creatures.js";
+import {
+  validateBossEquipment,
+  validateBossRanged,
+  validateCreditPolicies,
+  validateFamilies,
+  validateKnife,
+  validateLowMelee,
+  validateMelee,
+  validateMobileAim,
+  validateTargeting,
+  validateVest,
+  validateWeaponAudio,
+  validateWeapons,
+} from "./game-data-weapons.js";
 
-// The diagnostics, renderBudget and saveClient validators live in game-data-checks.js (this file's size limit); they are still exported here.
-export { validateDiagnostics, validateRenderBudget, validateSaveClient };
+// The combat, weapons and creatures validators live in game-data-*.js (this loader stays small); they are still exported from here.
+export {
+  validateBossEquipment,
+  validateBossRanged,
+  validateCombatRules,
+  validateCreatures,
+  validateCreditPolicies,
+  validateDiagnostics,
+  validateFamilies,
+  validateKnife,
+  validateLowMelee,
+  validateMelee,
+  validateMobileAim,
+  validateRenderBudget,
+  validateSaveClient,
+  validateTargeting,
+  validateVest,
+  validateWeaponAudio,
+  validateWeapons,
+};
 export const SUPPORTED_SCHEMA_VERSION = 1;
-
-// combatRules.json: the numbers combat.js used to carry inline (Dom's rule: no tuning values in code). `legacy` is the original
-// non-pilot goblin game: four enemy kinds (index = kind) and the shared swing, projectile, formation and loot numbers. Seconds, metres,
-// degrees; `moveSpeed` is metres per second.
-const legacyKind = ["hp", "radius", "damage", "swingRadius", "swingArc", "windupSeconds", "recoverSeconds", "readySeconds", "moveSpeed"];
-export function validateCombatRules(d) {
-  closed(d, [
-    "schema_version",
-    "hitFlashSeconds",
-    "player",
-    "startingPistol",
-    "bodyRadius",
-    "safehouseBodyPadding",
-    "aim",
-    "movement",
-    "awareness",
-    "spawning",
-    "enemyAI",
-    "reactions",
-    "legacy",
-  ]);
-  number("combatRules", "hitFlashSeconds", d.hitFlashSeconds, 0.01);
-  number("combatRules", "bodyRadius", d.bodyRadius, 0.01);
-  number("combatRules", "safehouseBodyPadding", d.safehouseBodyPadding, 0);
-  const flat = (name, fields) => {
-    closed(d[name], fields);
-    for (const f of fields) number("combatRules", `${name}.${f}`, d[name][f], 0);
-  };
-  flat("aim", ["targetConeDegrees", "mobSizeReachFactor"]);
-  if (d.aim.targetConeDegrees >= 90) fail("combatRules", "aim.targetConeDegrees must be below 90");
-  flat("movement", ["sidestepFraction", "patrolArrive", "patrolMove", "returnArrive", "homeLeash"]);
-  flat("awareness", ["ratContactDistance", "sightDistance"]);
-  flat("enemyAI", [
-    "goblinSpeedFactor",
-    "attackSpacing",
-    "knifeAimDot",
-    "animalBiteAimDot",
-    "animalBiteReach",
-    "animalContactReach",
-    "ratMoveSpeed",
-    "ratLowFootHeight",
-  ]);
-  for (const f of ["knifeAimDot", "animalBiteAimDot"])
-    if (d.enemyAI[f] >= 1) fail("combatRules", `enemyAI.${f} must be below 1`);
-  closed(d.player, ["radius", "damage", "spawn"]);
-  for (const f of ["radius", "damage"]) number("combatRules", `player.${f}`, d.player[f], 0.01);
-  closed(d.player.spawn, ["x", "z"]);
-  closed(d.startingPistol, ["x", "z"]);
-  for (const point of [d.player.spawn, d.startingPistol])
-    for (const f of ["x", "z"]) if (!Number.isFinite(point[f])) fail("combatRules", "spawn and pistol positions must be finite");
-  closed(d.spawning, ["distances", "laterals", "clearance"]);
-  number("combatRules", "spawning.clearance", d.spawning.clearance, 0);
-  for (const f of ["distances", "laterals"])
-    if (!Array.isArray(d.spawning[f]) || !d.spawning[f].length || !d.spawning[f].every(Number.isFinite))
-      fail("combatRules", `spawning.${f} must list finite numbers`);
-  closed(d.reactions, ["blockImpactTicks", "defaultStaggerSeconds", "swingAssistTicks", "droneDeath", "breathStartTicks"]);
-  for (const f of ["blockImpactTicks", "swingAssistTicks", "breathStartTicks"])
-    count("combatRules", `reactions.${f}`, d.reactions[f], 1, 600);
-  number("combatRules", "reactions.defaultStaggerSeconds", d.reactions.defaultStaggerSeconds, 0.01);
-  closed(d.reactions.droneDeath, ["clip", "ticks"]);
-  if (typeof d.reactions.droneDeath.clip !== "string" || !d.reactions.droneDeath.clip) fail("combatRules", "reactions.droneDeath.clip");
-  count("combatRules", "reactions.droneDeath.ticks", d.reactions.droneDeath.ticks, 1, 600);
-  const l = d.legacy;
-  closed(l.player, [
-    "bufferSeconds",
-    "guardRecoverSeconds",
-    "dodge",
-    "walkSpeed",
-    "guardMoveScale",
-    "accelerate",
-    "decelerate",
-    "turnRate",
-    "guard",
-  ]);
-  for (const f of ["bufferSeconds", "guardRecoverSeconds", "walkSpeed", "guardMoveScale", "accelerate", "decelerate", "turnRate"])
-    number("combatRules", `legacy.player.${f}`, l.player[f], 0.001);
-  closed(l.player.dodge, ["seconds", "invulnerableSeconds", "cooldownSeconds", "speed"]);
-  for (const [f, v] of Object.entries(l.player.dodge)) number("combatRules", `legacy.player.dodge.${f}`, v, 0.001);
-  closed(l.player.guard, ["arc", "parryWindowSeconds", "regenPerSecond", "blockedDamageFactor", "brokenSeconds", "parryStunSeconds"]);
-  for (const [f, v] of Object.entries(l.player.guard)) number("combatRules", `legacy.player.guard.${f}`, v, 0);
-  number("combatRules", "legacy.waveClearHeal", l.waveClearHeal, 0);
-  number("combatRules", "legacy.hitKnockback", l.hitKnockback, 0);
-  closed(l, [
-    "player",
-    "waveClearHeal",
-    "hitKnockback",
-    "kinds",
-    "wideSwing",
-    "alertDistance",
-    "rangedReach",
-    "reachSlack",
-    "aimDot",
-    "swingSeconds",
-    "boltSpeed",
-    "boltHitRadius",
-    "formation",
-    "loot",
-  ]);
-  if (!Array.isArray(l.kinds) || l.kinds.length !== 4) fail("combatRules", "legacy.kinds must list the four enemy kinds");
-  l.kinds.forEach((row, i) => {
-    closed(row, legacyKind);
-    for (const f of legacyKind) number("combatRules", `legacy.kinds[${i}].${f}`, row[f], f === "hp" || f.endsWith("Seconds") ? 0.01 : 0);
-  });
-  closed(l.wideSwing, ["radius", "arc"]);
-  number("combatRules", "legacy.wideSwing.radius", l.wideSwing.radius, 0.01);
-  number("combatRules", "legacy.wideSwing.arc", l.wideSwing.arc, 1);
-  for (const f of ["alertDistance", "rangedReach", "reachSlack", "swingSeconds", "boltSpeed", "boltHitRadius"])
-    number("combatRules", `legacy.${f}`, l[f], 0.001);
-  number("combatRules", "legacy.aimDot", l.aimDot, 0);
-  if (l.aimDot >= 1) fail("combatRules", "legacy.aimDot must be below 1");
-  closed(l.formation, ["columns", "xSpacing", "zSpacing"]);
-  count("combatRules", "legacy.formation.columns", l.formation.columns, 1, 20);
-  number("combatRules", "legacy.formation.xSpacing", l.formation.xSpacing, 0);
-  number("combatRules", "legacy.formation.zSpacing", l.formation.zSpacing, 0);
-  closed(l.loot, ["pickupRadius", "blade", "armour", "tonic"]);
-  number("combatRules", "legacy.loot.pickupRadius", l.loot.pickupRadius, 0.01);
-  for (const kind of ["blade", "armour", "tonic"]) {
-    closed(l.loot[kind], ["base", "step"]);
-    number("combatRules", `legacy.loot.${kind}.base`, l.loot[kind].base, 0);
-    number("combatRules", `legacy.loot.${kind}.step`, l.loot[kind].step, 0);
-  }
-}
 
 // creatureDefinitions.json: the creature foundations (one row per rig: clips, scale, stats, behaviour), the recipe -> foundation map and
 // the native animal roles. engine/creature-catalogue.js validates every row in depth when it builds the catalogue; the loader checks
@@ -198,526 +112,6 @@ export function validateLocker(d) {
   for (const [key, cap] of Object.entries(d.resourceCaps))
     if (!Number.isFinite(cap) || cap <= 0 || cap > 100000 || (key !== "flame-fuel" && !Number.isSafeInteger(cap)))
       fail("locker", `resourceCaps.${key}`);
-}
-
-// weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),
-// which runs on this data when that module loads; the loader checks the shape.
-export function validateWeapons(d) {
-  closed(d, [
-    "schema_version",
-    "autoEquipOnFirstPickup",
-    "autoPickupRetry",
-    "ranged",
-    "knife",
-    "melee",
-    "bossRanged",
-    "bossEquipment",
-    "vest",
-    "families",
-    "targeting",
-    "mobileAim",
-    "flameAim",
-    "lowMelee",
-    "creditPolicies",
-    "audio",
-  ]);
-  if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
-  // run-views.js createAutoPickup: a floor pickup whose claim did not take is tried again after `firstSeconds`, the wait doubling up to
-  // `maxSeconds` (game time), while the player stays in reach.
-  closed(d.autoPickupRetry, ["firstSeconds", "maxSeconds"]);
-  number("weapons", "autoPickupRetry.firstSeconds", d.autoPickupRetry.firstSeconds, 0.1);
-  number("weapons", "autoPickupRetry.maxSeconds", d.autoPickupRetry.maxSeconds, d.autoPickupRetry.firstSeconds);
-  if (d.autoPickupRetry.maxSeconds > 60) fail("weapons", "autoPickupRetry.maxSeconds must be at most 60");
-  if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
-  validateBossEquipment(d.bossEquipment, d.ranged);
-  validateKnife(d.knife);
-  validateMelee(d.melee);
-  validateBossRanged(d.bossRanged);
-  validateVest(d.vest);
-  validateFamilies(d.families);
-  validateTargeting(d.targeting);
-  validateMobileAim(d.mobileAim, d.flameAim);
-  validateLowMelee(d.lowMelee);
-  validateCreditPolicies(d.creditPolicies);
-  validateWeaponAudio(d.audio);
-}
-// The synthesised blast of the shotgun and the grenade (donor-audio.js): a sine sweep `from` -> `to` Hz over `seconds`, plus a noise
-// burst through a low-pass at `cutoff` Hz; gains are 0 to 1.
-export function validateWeaponAudio(a) {
-  closed(a, ["shotgun", "grenade"]);
-  for (const [weapon, cue] of Object.entries(a)) {
-    closed(cue, ["from", "to", "seconds", "gain", "noiseSeconds", "noiseGain", "cutoff"]);
-    for (const [f, v] of Object.entries(cue)) number("weapons", `audio.${weapon}.${f}`, v);
-    for (const f of ["seconds", "noiseSeconds", "cutoff", "from", "to"])
-      if (cue[f] <= 0) fail("weapons", `audio.${weapon}.${f} must be above 0`);
-    for (const f of ["gain", "noiseGain"]) if (cue[f] > 1) fail("weapons", `audio.${weapon}.${f} must not exceed 1`);
-  }
-}
-// The weapon family vocabulary (engine/weapon-catalog.js WEAPON_FAMILY_IDS). A family name is not a promise that the family is playable.
-export function validateFamilies(f) {
-  if (
-    !Array.isArray(f) ||
-    !f.length ||
-    new Set(f).size !== f.length ||
-    !f.every((s) => typeof s === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s))
-  )
-    fail("weapons", "families must be distinct lower-case names");
-}
-// Aim assist cones in degrees (pistol-targeting.js): the pistol acquires inside the first cone and keeps its target inside the wider
-// one; `meleeConeDegrees` is the default melee target cone. A cone must stay below 90.
-export function validateTargeting(t) {
-  closed(t, ["pistol", "meleeConeDegrees", "defaultHeight"]);
-  // The metres above the ground that shots and flame aim at a rig with no height of its own (creatures.json rigCapabilities).
-  number("weapons", "targeting.defaultHeight", t.defaultHeight);
-  closed(t.pistol, ["acquireDegrees", "retainDegrees"]);
-  for (const [f, v] of [...Object.entries(t.pistol), ["meleeConeDegrees", t.meleeConeDegrees]]) {
-    number("weapons", `targeting.${f}`, v);
-    if (v >= 90) fail("weapons", `targeting.${f} must be below 90`);
-  }
-  if (t.pistol.retainDegrees < t.pistol.acquireDegrees) fail("weapons", "targeting.pistol retain must not be below acquire");
-}
-// The touch aim assist (mobile-combat-aim.js) and the flame lock. Angles are degrees (the code converts to radians as `degrees * PI / 180`);
-// rates are per second, ranges and gaps metres, gain and margins unitless.
-export function validateMobileAim(m, f) {
-  const mobile = ["steeringRate", "headingRate", "gain", "near", "far", "deadzone", "pistolGain", "acquireMargin", "retainMargin"],
-    flame = ["gain", "closeExtension", "closeEnterGap", "closeExitGap", "extensionRate"],
-    angles = ["steeringChangeDegrees", "switchConeDegrees", "switchAdvantageDegrees", "yawLimitDegrees", "downPitchDegrees"];
-  closed(m, [...mobile, "acquireDegrees", "retainDegrees"]);
-  closed(f, [...flame, "acquireDegrees", "retainDegrees", ...angles]);
-  for (const k of [...mobile, "acquireDegrees", "retainDegrees"]) number("weapons", `mobileAim.${k}`, m[k]);
-  for (const k of [...flame, "acquireDegrees", "retainDegrees", ...angles]) number("weapons", `flameAim.${k}`, f[k]);
-  if (m.near >= m.far) fail("weapons", "mobileAim.near must be below far");
-  if (m.pistolGain > 1) fail("weapons", "mobileAim.pistolGain must not exceed 1");
-}
-// The rigs and clips that share the rat's retimed low melee pose (rat-melee-definition.js).
-export function validateLowMelee(l) {
-  closed(l, ["rigs", "clips"]);
-  for (const f of ["rigs", "clips"])
-    if (!Array.isArray(l[f]) || !l[f].length || !l[f].every((s) => typeof s === "string" && s) || new Set(l[f]).size !== l[f].length)
-      fail("weapons", `lowMelee.${f} must be a list of distinct non-empty strings`);
-}
-// The registered death-weapon attribution policies (engine/weapon-credit-policy.js): `mastery` credits proficiency, `none` does not.
-export function validateCreditPolicies(rows) {
-  if (!Array.isArray(rows) || !rows.length) fail("weapons", "creditPolicies must be a non-empty list");
-  const seen = new Set();
-  for (const row of rows) {
-    closed(row, ["id", "creditPolicy"]);
-    if (typeof row.id !== "string" || !row.id || seen.has(row.id)) fail("weapons", "creditPolicies ids must be distinct strings");
-    seen.add(row.id);
-    if (!["none", "mastery"].includes(row.creditPolicy)) fail("weapons", `creditPolicies.${row.id}.creditPolicy`);
-  }
-}
-// The boss-reward weapons (engine/boss-equipment-data.js builds the profile table from this). `order` is the save-field order of all six;
-// four are ranged catalogue rows named in `ranged`, the Bone Saw (surgicalKnife) and Ember Projector are listed here. Metres and seconds.
-export function validateBossEquipment(b, ranged) {
-  closed(b, ["order", "ranged", "boneSawRules", "surgicalKnife", "emberProjector"]);
-  const text = (field, v) => {
-    if (typeof v !== "string" || !v) fail("weapons", `bossEquipment.${field} must be a non-empty string`);
-  };
-  const names = [...Object.keys(b.ranged), "surgicalKnife", "emberProjector"];
-  if (!Array.isArray(b.order) || b.order.length !== names.length || !names.every((n) => b.order.includes(n)))
-    fail("weapons", "bossEquipment.order must list every reward field once");
-  for (const [field, itemId] of Object.entries(b.ranged))
-    if (!Object.hasOwn(ranged, itemId)) fail("weapons", `bossEquipment.ranged.${field} names an unknown weapon`);
-  closed(b.boneSawRules, [
-    "interval",
-    "damage",
-    "range",
-    "coneDegrees",
-    "moveScale",
-    "staminaPerSecond",
-    "staggerAfter",
-    "staggerSeconds",
-    "staggerRecovery",
-  ]);
-  for (const [f, v] of Object.entries(b.boneSawRules)) number("weapons", `bossEquipment.boneSawRules.${f}`, v);
-  for (const field of ["surgicalKnife", "emberProjector"]) {
-    const row = b[field],
-      saw = field === "surgicalKnife";
-    closed(row, [
-      "itemId",
-      "name",
-      "family",
-      "weaponKey",
-      "delivery",
-      "modelRef",
-      "finisherBinding",
-      saw ? "pickupRadius" : "rules",
-      "source",
-    ]);
-    for (const f of ["itemId", "name", "family", "weaponKey", "delivery", "finisherBinding"])
-      text(`${field}.${f}`, row[f]);
-    if (row.modelRef !== null) text(`${field}.modelRef`, row.modelRef);
-    if (saw) number("weapons", `bossEquipment.${field}.pickupRadius`, row.pickupRadius);
-    else for (const [f, v] of Object.entries(row.rules)) number("weapons", `bossEquipment.${field}.rules.${f}`, v);
-    closed(row.source, ["placementKey", "areaId", "receiptId"]);
-    for (const f of Object.keys(row.source)) text(`${field}.source.${f}`, row.source[f]);
-  }
-}
-// The Westminster worn vest: its item id and area (both saved identities), the kills that unlock the stash, the pickup radius in
-// metres and the share of a hit it absorbs.
-export function validateVest(v) {
-  closed(v, ["itemId", "areaId", "requiredKills", "pickupRadius", "reduction"]);
-  for (const f of ["itemId", "areaId"])
-    if (typeof v[f] !== "string" || !/^[a-z0-9-]{1,40}$/.test(v[f])) fail("weapons", `vest.${f}`);
-  count("weapons", "vest.requiredKills", v.requiredKills, 0, 100);
-  number("weapons", "vest.pickupRadius", v.pickupRadius);
-  number("weapons", "vest.reduction", v.reduction);
-  if (v.reduction >= 1) fail("weapons", "vest.reduction must be below 1");
-}
-// What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
-// The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.
-export function validateBossRanged(b) {
-  closed(b, ["boss-south-nightborn", "boss-butcher"]);
-  for (const [rig, row] of Object.entries(b)) {
-    closed(
-      row,
-      ["kind", "field", "modelRef", "warning", "recovery", "range", "damage"],
-      ["speed", "radius", "maxLife", "maxLive"],
-    );
-    for (const f of ["kind", "field", "modelRef"])
-      if (typeof row[f] !== "string" || !row[f]) fail("weapons", `bossRanged.${rig}.${f}`);
-    for (const f of ["warning", "recovery", "range", "damage", "speed", "radius", "maxLife", "maxLive"])
-      if (f in row) number("weapons", `bossRanged.${rig}.${f}`, row[f]);
-    if ((row.kind === "rocket") !== "speed" in row) fail("weapons", `bossRanged.${rig} rocket fields`);
-  }
-}
-const number = (file, field, v, min = 0) => {
-  if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);
-};
-// The donor knife: tuning rules, the five named moves, the stamina costs and the cooldowns. Moves are rows of named fields (ticks at 60 Hz).
-export function validateKnife(k) {
-  closed(k, ["rules", "moves", "staminaCosts", "cooldowns"]);
-  if (!k.rules || typeof k.rules !== "object") fail("weapons", "knife.rules");
-  for (const [name, v] of Object.entries(k.rules)) number("weapons", `knife.rules.${name}`, v);
-  const ids = Object.keys(k.moves ?? {});
-  if (ids.join() !== "light_right,light_left,thrust,heavy_overhead,skill_pommel") fail("weapons", "knife.moves ids");
-  const base = [
-    "clip",
-    "path",
-    "windupTicks",
-    "activeTicks",
-    "recoveryTicks",
-    "damage",
-    "staminaDamage",
-    "staggerTicks",
-    "chip",
-    "reach",
-    "stepIn",
-    "knockback",
-    "sourceContact",
-    "stamina",
-  ];
-  for (const id of ids) {
-    const row = k.moves[id];
-    closed(row, id === "skill_pommel" ? [...base, "cooldown"] : base);
-    if (typeof row.clip !== "string" || !(row.path === null || typeof row.path === "string"))
-      fail("weapons", `knife.moves.${id} clip/path`);
-    for (const f of base.slice(2)) number("weapons", `knife.moves.${id}.${f}`, row[f]);
-    for (const f of ["windupTicks", "activeTicks", "recoveryTicks", "staggerTicks"])
-      count("weapons", `knife.moves.${id}.${f}`, row[f], 0, 600);
-  }
-  closed(k.staminaCosts, ["slash", "stab", "heavy", "special", "dodge"]);
-  for (const [name, v] of Object.entries(k.staminaCosts)) number("weapons", `knife.staminaCosts.${name}`, v);
-  closed(k.cooldowns, ["heavy", "special", "dodgeTicks"]);
-  for (const [name, v] of Object.entries(k.cooldowns)) number("weapons", `knife.cooldowns.${name}`, v);
-}
-
-// The two knife variants. Each move row lists only the fields that differ from the knife move of the same id; the code derives the
-// rest (seconds, step-in, reach, contact paths) from the knife and the traced paths. Ticks are at 60 Hz.
-export function validateMelee(m) {
-  closed(m, ["boneSaw", "cleaver"]);
-  const moves = (variant, rows, fields) => {
-    closed(rows, ["light_right", "light_left", "thrust", "heavy_overhead"]);
-    for (const [id, row] of Object.entries(rows)) {
-      closed(row, fields);
-      for (const f of fields) number("weapons", `melee.${variant}.moves.${id}.${f}`, row[f]);
-    }
-  };
-  const pair = (variant, v) => {
-    if (!Array.isArray(v) || v.length !== 2) fail("weapons", `melee.${variant}.contact must be two numbers`);
-    v.forEach((n, i) => number("weapons", `melee.${variant}.contact[${i}]`, n));
-  };
-  const costs = (variant, c, fields) => {
-    closed(c, fields);
-    for (const f of fields) number("weapons", `melee.${variant}.costs.${f}`, c[f]);
-  };
-  const saw = m.boneSaw;
-  closed(saw, ["name", "modelVariantId", "contact", "moves", "costs"]);
-  if (typeof saw.name !== "string" || typeof saw.modelVariantId !== "string")
-    fail("weapons", "melee.boneSaw name/model");
-  pair("boneSaw", saw.contact);
-  moves("boneSaw", saw.moves, ["damage", "stamina"]);
-  costs("boneSaw", saw.costs, ["slash", "stab", "heavy"]);
-  const cleaver = m.cleaver;
-  closed(cleaver, ["contact", "targeting", "clipOverrides", "moves", "costs", "lowMoves"]);
-  pair("cleaver", cleaver.contact);
-  closed(cleaver.targeting, ["nearest", "coneDegrees"]);
-  if (typeof cleaver.targeting.nearest !== "boolean") fail("weapons", "melee.cleaver.targeting.nearest");
-  number("weapons", "melee.cleaver.targeting.coneDegrees", cleaver.targeting.coneDegrees);
-  for (const [from, to] of Object.entries(cleaver.clipOverrides ?? {}))
-    if (typeof to !== "string") fail("weapons", `melee.cleaver.clipOverrides.${from}`);
-  const ticks = ["windupTicks", "activeTicks", "recoveryTicks"];
-  moves("cleaver", cleaver.moves, ["damage", "stamina", ...ticks, "staggerTicks"]);
-  for (const row of Object.values(cleaver.moves))
-    for (const f of ticks) count("weapons", `melee.cleaver.moves.${f}`, row[f], 1, 600);
-  costs("cleaver", cleaver.costs, ["slash", "stab", "heavy", "special", "dodge"]);
-  for (const [rig, row] of Object.entries(cleaver.lowMoves ?? {})) {
-    closed(row, ["clip", "slashMoveId", "includeRadius", ...ticks]);
-    if (typeof row.clip !== "string" || typeof row.slashMoveId !== "string" || typeof row.includeRadius !== "boolean")
-      fail("weapons", `melee.cleaver.lowMoves.${rig}`);
-    for (const f of ticks) count("weapons", `melee.cleaver.lowMoves.${rig}.${f}`, row[f], 1, 600);
-  }
-}
-
-// creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
-// A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
-export function validateCreatures(d) {
-  closed(d, [
-    "schema_version",
-    "moves",
-    "playerAttacks",
-    "playerHealth",
-    "defaultResponse",
-    "salamanderBreath",
-    "drone",
-    "catalogue",
-    "behaviours",
-    "animalCycles",
-    "gauntHumanCycles",
-    "hollowTuning",
-    "creatureSim",
-    "feralBodyShapes",
-    "feralCoatProfiles",
-    "gauntShape",
-    "rigCapabilities",
-  ]);
-  // creatureSim.playerFields: the report fields engine/creature-sim.js copies onto a player entity each step.
-  closed(d.creatureSim, ["playerFields"]);
-  if (d.creatureSim.playerFields.join() !== "hp,dodgeUntil,guarding,parryUntil,stamina")
-    fail("creatures", "creatureSim.playerFields must be hp, dodgeUntil, guarding, parryUntil, stamina");
-  // The legacy (non-pilot) player attacks: the four actions, times in seconds, range in metres, arc in degrees.
-  closed(d.playerAttacks, ["slash", "stab", "heavy", "special"]);
-  for (const [name, row] of Object.entries(d.playerAttacks)) {
-    closed(row, ["windup", "recovery", "range", "arc", "multiplier", "stagger", "cooldown"], ["single"]);
-    for (const f of ["windup", "recovery", "range", "arc", "multiplier", "stagger", "cooldown"])
-      number("creatures", `playerAttacks.${name}.${f}`, row[f]);
-    if ("single" in row && typeof row.single !== "boolean") fail("creatures", `playerAttacks.${name}.single`);
-  }
-  // Health comes back over this many seconds of active play, from empty to full.
-  closed(d.playerHealth, ["regenerationSeconds"]);
-  number("creatures", "playerHealth.regenerationSeconds", d.playerHealth.regenerationSeconds, 1);
-  // The hit and death reaction of a rig with no row of its own in creatures.json rigCapabilities (rig-response.js).
-  closed(d.defaultResponse, ["hitClip", "deathClip", "deathTicks"]);
-  for (const f of ["hitClip", "deathClip"])
-    if (typeof d.defaultResponse[f] !== "string" || !d.defaultResponse[f]) fail("creatures", `defaultResponse.${f}`);
-  count("creatures", "defaultResponse.deathTicks", d.defaultResponse.deathTicks, 1, 600);
-  if (!d.moves || typeof d.moves !== "object" || Array.isArray(d.moves)) fail("creatures", "moves must be an object");
-  for (const [name, row] of Object.entries(d.moves)) {
-    id("creatures", `moves.${name}`, name.replaceAll("_", "-"));
-    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `moves.${name} must be an object`);
-    for (const [field, v] of Object.entries(row)) {
-      if (field === "extends") {
-        const refs = [v].flat();
-        if (!refs.length || !refs.every((r) => typeof r === "string" && r)) fail("creatures", `moves.${name}.extends`);
-      } else if (
-        !(v === null || ["number", "string", "boolean"].includes(typeof v)) ||
-        (typeof v === "number" && !Number.isFinite(v))
-      )
-        fail("creatures", `moves.${name}.${field} must be a finite number, string, boolean or null`);
-    }
-    for (const f of ["windupTicks", "activeTicks", "recoveryTicks"])
-      if (f in row) count("creatures", `moves.${name}.${f}`, row[f], 1, 600);
-  }
-  // Every parent must be a knife move or an earlier row (creature-moves.js resolves them in file order).
-  const earlier = new Set(),
-    knifeIds = ["light_right", "light_left", "thrust", "heavy_overhead", "skill_pommel"];
-  for (const [name, row] of Object.entries(d.moves)) {
-    for (const ref of [row.extends ?? []].flat())
-      if (!(earlier.has(ref) || (ref.startsWith("knife:") && knifeIds.includes(ref.slice(6)))))
-        fail("creatures", `moves.${name} extends unknown or later row "${ref}"`);
-    earlier.add(name);
-  }
-  const b = d.salamanderBreath;
-  closed(b, [
-    "kind",
-    "range",
-    "coneDegrees",
-    "windupTicks",
-    "activeTicks",
-    "intervalTicks",
-    "recoveryTicks",
-    "damage",
-    "minDistance",
-    "acquisitionRange",
-  ]);
-  if (b.kind !== "flame") fail("creatures", "salamanderBreath.kind");
-  for (const f of ["range", "coneDegrees", "damage", "minDistance", "acquisitionRange"])
-    number("creatures", `salamanderBreath.${f}`, b[f]);
-  for (const f of ["windupTicks", "activeTicks", "intervalTicks", "recoveryTicks"])
-    count("creatures", `salamanderBreath.${f}`, b[f], 1, 600);
-  // The hover drone (drone-mechanics.js): metres, seconds and hit points. weaponRules() reads its bolt damage for the server rows.
-  closed(d.drone, [
-    "hoverHeight",
-    "hp",
-    "radius",
-    "moveSpeed",
-    "wakeDistance",
-    "homeLeash",
-    "attackRange",
-    "warningSeconds",
-    "recoverySeconds",
-    "damage",
-    "boltSpeed",
-    "boltRange",
-  ]);
-  for (const [name, v] of Object.entries(d.drone)) number("creatures", `drone.${name}`, v);
-  // The creature catalogue (engine/creature-catalogue.js): per reviewed foundation, the controller, weapon, rig and clip actions it must
-  // carry, and the native contact reach in metres. The catalogue still checks each foundation row against these.
-  closed(d.catalogue, ["support", "reach"]);
-  for (const [name, row] of Object.entries(d.catalogue.support)) {
-    id("creatures", `catalogue.support.${name}`, name);
-    closed(row, ["controller", "weapon", "rig", "actions"]);
-    for (const f of ["controller", "weapon"])
-      if (typeof row[f] !== "string" || !row[f]) fail("creatures", `catalogue.support.${name}.${f}`);
-    if (row.rig !== null && (typeof row.rig !== "string" || !row.rig)) fail("creatures", `catalogue.support.${name}.rig`);
-    if (!Array.isArray(row.actions) || !row.actions.every((a) => typeof a === "string" && a))
-      fail("creatures", `catalogue.support.${name}.actions`);
-  }
-  for (const [name, v] of Object.entries(d.catalogue.reach)) {
-    id("creatures", `catalogue.reach.${name}`, name);
-    number("creatures", `catalogue.reach.${name}`, v);
-    if (!Object.hasOwn(d.catalogue.support, name)) fail("creatures", `catalogue.reach.${name} has no support row`);
-  }
-  validateBehaviours(d.behaviours);
-  validateEncounterTables(d);
-  validateRigTables(d);
-}
-
-// creatures.json `feralBodyShapes`, `feralCoatProfiles`, `gauntShape` and `rigCapabilities` (feral-body-shapes.js, feral-coat-profiles.js,
-// gaunt-shape.js, rig-capabilities.js). Recipe ids are unique; a rig capability is a closed set of boolean flags.
-function validateRigTables(d) {
-  const recipeId = (field, v) => {
-    if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `${field} must be a lowercase id`);
-  };
-  const rows = (table, fields) => {
-    if (!Array.isArray(d[table]) || !d[table].length) fail("creatures", `${table} must be a non-empty list`);
-    const seen = new Set();
-    d[table].forEach((row, i) => {
-      closed(row, fields);
-      recipeId(`${table}[${i}].id`, row.id);
-      if (seen.has(row.id)) fail("creatures", `${table} lists ${row.id} twice`);
-      seen.add(row.id);
-    });
-  };
-  rows("feralBodyShapes", ["id", "width"]);
-  for (const row of d.feralBodyShapes) number("creatures", `feralBodyShapes.${row.id}.width`, row.width, 0.1);
-  rows("feralCoatProfiles", ["id", "tint", "shapePending"]);
-  for (const row of d.feralCoatProfiles) {
-    if (!Array.isArray(row.tint) || row.tint.length !== 3) fail("creatures", `feralCoatProfiles.${row.id}.tint must be three channels`);
-    row.tint.forEach((c, i) => number("creatures", `feralCoatProfiles.${row.id}.tint[${i}]`, c));
-    if (typeof row.shapePending !== "boolean") fail("creatures", `feralCoatProfiles.${row.id}.shapePending`);
-  }
-  // Every profile that waits on a body shape must have one.
-  for (const row of d.feralCoatProfiles)
-    if (row.shapePending && !d.feralBodyShapes.some((s) => s.id === row.id))
-      fail("creatures", `feralCoatProfiles.${row.id} is shapePending but has no feralBodyShapes row`);
-  closed(d.gauntShape, ["targets", "segments"]);
-  if (!Array.isArray(d.gauntShape.targets) || !d.gauntShape.targets.length || !d.gauntShape.targets.every((n) => typeof n === "string" && n))
-    fail("creatures", "gauntShape.targets must be a list of node names");
-  const bone = /^[A-Za-z][A-Za-z0-9_]{0,40}$/;
-  for (const [name, row] of Object.entries(d.gauntShape.segments)) {
-    if (!bone.test(name)) fail("creatures", `gauntShape.segments.${name} is not a bone name`);
-    if (!Array.isArray(row) || row.length !== 2 || !bone.test(row[0])) fail("creatures", `gauntShape.segments.${name} must be [childBone, factor]`);
-    number("creatures", `gauntShape.segments.${name}[1]`, row[1], 0.1);
-    if (row[1] > 1) fail("creatures", `gauntShape.segments.${name}[1] above 1`);
-  }
-  if (!Object.keys(d.gauntShape.segments).length) fail("creatures", "gauntShape.segments is empty");
-  if (!Object.keys(d.rigCapabilities).length) fail("creatures", "rigCapabilities is empty");
-  for (const [rig, row] of Object.entries(d.rigCapabilities)) {
-    id("creatures", `rigCapabilities.${rig}`, rig);
-    if (!row || typeof row !== "object" || Array.isArray(row)) fail("creatures", `rigCapabilities.${rig} must be an object`);
-    // A capability is a flag (true or false), a name (a clip) or a measured number (0 or more), read with rigCapability / rigText / rigNumber.
-    for (const [name, value] of Object.entries(row)) {
-      if (!/^[a-z][A-Za-z]{0,30}$/.test(name)) fail("creatures", `rigCapabilities.${rig}.${name} is not a capability name`);
-      if (typeof value === "string") {
-        if (!value) fail("creatures", `rigCapabilities.${rig}.${name} must not be empty`);
-      } else if (typeof value !== "boolean") number("creatures", `rigCapabilities.${rig}.${name}`, value);
-    }
-  }
-}
-
-// creatures.json `animalCycles`, `gauntHumanCycles` and `hollowTuning` (animal-cycle.js, gaunt-human-bindings.js, hollow-encounter.js).
-// Cycle rows pair a roamer placement key with a creature recipe (animals) or an area with the placement key that gets the gaunt body.
-function validateEncounterTables(d) {
-  const word = (field, v, pattern) => {
-    if (typeof v !== "string" || !pattern.test(v)) fail("creatures", `${field} has an invalid name`);
-  };
-  for (const [table, keyPattern, valuePattern] of [
-    ["animalCycles", /^[a-z]+-roamer-\d+$/, /^[a-z0-9-]{1,40}$/],
-    ["gauntHumanCycles", /^[a-z][a-z0-9-]{0,40}$/, /^[a-z]+-roamer-\d+$/],
-  ]) {
-    closed(d[table], ["A", "B"]);
-    for (const cycle of ["A", "B"]) {
-      const rows = Object.entries(d[table][cycle]);
-      if (!rows.length) fail("creatures", `${table}.${cycle} is empty`);
-      for (const [key, value] of rows) {
-        word(`${table}.${cycle}`, key, keyPattern);
-        word(`${table}.${cycle}.${key}`, value, valuePattern);
-      }
-    }
-  }
-  if (Object.keys(d.animalCycles.A).join() !== Object.keys(d.animalCycles.B).join())
-    fail("creatures", "animalCycles A and B must list the same placement keys");
-  // The ranges createHollowEncounter enforces on the encounter built from these.
-  closed(d.hollowTuning, ["count", "health", "moveSpeed", "regen", "aggression", "recovery"]);
-  count("creatures", "hollowTuning.count", d.hollowTuning.count, 3, 5);
-  for (const [field, min, max] of [["health", 1, 120], ["moveSpeed", 0.1, 6], ["regen", 0.1, 2], ["aggression", 0.1, 5], ["recovery", 0, 5]]) {
-    const v = d.hollowTuning[field];
-    if (!Number.isFinite(v) || v < min || v > max) fail("creatures", `hollowTuning.${field} must be from ${min} to ${max}`);
-  }
-}
-
-// creatures.json `behaviours`: the per-resident tuning presets and wake/leash/retreat intents (creature-behaviour-presets.js and
-// creature-behaviour-intents.js resolve them), and which preset and intent each creature recipe uses. Intent rows carry every field.
-function validateBehaviours(b) {
-  closed(b, ["presets", "recipeBehaviours", "intents", "recipeIntents"]);
-  const name = (field, v) => {
-    if (typeof v !== "string" || !/^[a-z0-9-]{1,40}$/.test(v)) fail("creatures", `behaviours.${field} must be a lowercase name`);
-  };
-  for (const [preset, row] of Object.entries(b.presets)) {
-    name(`presets.${preset}`, preset);
-    closed(row, "attackPattern" in row ? ["speedFactor", "recoveryAdd", "attackPattern"] : ["speedFactor", "recoveryAdd"]);
-    number("creatures", `behaviours.presets.${preset}.speedFactor`, row.speedFactor, 0.1);
-    number("creatures", `behaviours.presets.${preset}.recoveryAdd`, row.recoveryAdd);
-    if ("attackPattern" in row && !(Array.isArray(row.attackPattern) && row.attackPattern.length && row.attackPattern.every((a) => typeof a === "string" && a)))
-      fail("creatures", `behaviours.presets.${preset}.attackPattern`);
-  }
-  const intentFields = [
-    "wakeDistance",
-    "homeLeash",
-    "holdUntilWake",
-    "retreatSeconds",
-    "companionDistance",
-    "isolationDistance",
-    "burstSeconds",
-    "pauseSeconds",
-  ];
-  for (const [intent, row] of Object.entries(b.intents)) {
-    name(`intents.${intent}`, intent);
-    closed(row, "pursuitScope" in row ? [...intentFields, "pursuitScope"] : intentFields);
-    for (const f of intentFields) {
-      if (f === "holdUntilWake") {
-        if (typeof row[f] !== "boolean") fail("creatures", `behaviours.intents.${intent}.${f} must be true or false`);
-      } else number("creatures", `behaviours.intents.${intent}.${f}`, row[f]);
-    }
-    if ("pursuitScope" in row && row.pursuitScope !== "area") fail("creatures", `behaviours.intents.${intent}.pursuitScope`);
-  }
-  for (const [table, rows] of [["recipeBehaviours", b.presets], ["recipeIntents", b.intents]])
-    for (const [recipe, ref] of Object.entries(b[table])) {
-      name(`${table}.${recipe}`, recipe);
-      if (typeof ref !== "string" || !Object.hasOwn(rows, ref)) fail("creatures", `behaviours.${table}.${recipe} names an unknown row`);
-    }
 }
 
 export function validateWorld(d) {
@@ -772,9 +166,6 @@ export function validateWorld(d) {
 
 // visual.json: how things look (survivor outfits, face ingredients, clothing swatches, effect colours). Colours are 6-digit hex strings
 // or channel factors; the code derives its recipes from these rows.
-const id = (file, field, v) => {
-  if (typeof v !== "string" || !/^[a-z0-9-]{1,24}$/.test(v)) fail(file, `${field} must be a lowercase id`);
-};
 const hex = (field, v) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("visual", `${field} must be 6 lowercase hex digits`);
 };
@@ -792,7 +183,7 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood"]);
+  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood", "motion"]);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
   closed(d.severBlood.jet, ["capacity", "duration", "length", "radius"]);
@@ -807,7 +198,7 @@ export function validateVisual(d) {
   number("visual", "severBlood.headDropletGravity", d.severBlood.headDropletGravity, 0.001);
   // The in-world ground arrow (engine/route-guidance.js) takes the drop marker's ringColour, so the two read as one family; its own
   // peakOpacity is the top of its pulse (the pulse floor is the share ARROW_MIN_OPACITY of it).
-  closed(d.routeArrow, ["peakOpacity"]);
+  closed(d.routeArrow, ["peakOpacity", "tailGap"]);
   const peak = d.routeArrow.peakOpacity;
   if (typeof peak !== "number" || !(peak > 0 && peak <= 1)) fail("visual", "routeArrow.peakOpacity must be above 0 and at most 1");
   list("survivorVariants", d.survivorVariants, 1, 64);
@@ -852,8 +243,9 @@ export function validateVisual(d) {
   unique("faces.hairs", f.hairs);
   unique("faces.weathering", f.weathering);
   const c = d.clothing;
-  closed(c, ["version", "tops", "trousers", "partners"]);
+  closed(c, ["version", "minTonalGap", "tops", "trousers", "partners"]);
   if (typeof c.version !== "string" || !/^[a-z0-9-]{1,40}$/.test(c.version)) fail("visual", "clothing.version");
+  extra.validateClothingGap(c, { fail });
   const families = (name) => {
     list(`clothing.${name}`, c[name], 1, 64);
     for (const [family, ...swatches] of c[name]) {
@@ -1086,7 +478,7 @@ export function validateAtmosphere(d) {
 // and the rat/dog and roach appearance rows (animal-appearance.js, roach-appearance.js). Tints are linear multipliers, width is a
 // body-width factor and patch the share of worn patches, as those modules apply them.
 export function validateAppearance(d) {
-  closed(d, ["schema_version", "faceMesh", "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
+  closed(d, ["schema_version", "faceMesh", ...extra.appearanceExtraKeys(), "hollowGarments", "animals", "roaches", "crookedHollow", "droneSupport"]);
   const between = (field, v, min, max) => {
     if (!Number.isFinite(v) || v < min || v > max) fail("appearance", `${field} must be a number from ${min} to ${max}`);
   };
@@ -1102,6 +494,7 @@ export function validateAppearance(d) {
   if (!Array.isArray(d.faceMesh.headNames) || d.faceMesh.headNames.length !== 3 || new Set(d.faceMesh.headNames).size !== 3)
     fail("appearance", "faceMesh.headNames must list 3 different mesh names");
   d.faceMesh.headNames.forEach((n, i) => named(`faceMesh.headNames[${i}]`, n));
+  extra.validateAppearanceExtras(d, { fail, between, triple });
   closed(d.hollowGarments, ["jacket", "trousers"]);
   named("hollowGarments.jacket", d.hollowGarments.jacket);
   named("hollowGarments.trousers", d.hollowGarments.trousers);
@@ -1124,7 +517,6 @@ export function validateAppearance(d) {
   rows("roaches", ["id", "name", "width", "shellTint", "patch"], "shellTint");
   // crooked-hollow.js: the bones its pose layer saves and restores. low-hover-drone.js: the watcher's presentation support row
   // (the hover height and radius stay in creatures.json drone; the body band is these offsets, scaled, around the hover height).
-  closed(d.crookedHollow, ["bones"]);
   const bones = d.crookedHollow.bones;
   if (!Array.isArray(bones) || !bones.length || bones.length > 64 || new Set(bones).size !== bones.length)
     fail("appearance", "crookedHollow.bones must list 1 to 64 different bone names");
@@ -1361,7 +753,7 @@ export function validateAudio(d) {
 // recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
 export function validateCommander(d) {
   const counts = ["unitCap", "reserve", "deployCost", "machineHP", "biologicalHP", "biologicalDamage", "beaconHP"];
-  closed(d, ["schema_version", "rules"]);
+  closed(d, ["schema_version", "rules", "view"]);
   closed(d.rules, [
     ...counts,
     "machineSpeed",

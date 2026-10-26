@@ -493,6 +493,33 @@
     "wound": {
       "maxZoneFraction": 0.8,
       "surfaceOffset": 0.003,
+      "mesh": {
+        "segments": 16,
+        "centerRelief": 0.008,
+        "backRelief": 0.008,
+        "ringColors": [
+          2360330,
+          6032411,
+          9054512,
+          4329494
+        ],
+        "ringRadius": [
+          0.32,
+          0.7,
+          1
+        ],
+        "ringRelief": [
+          0.025,
+          0.009,
+          0.003
+        ],
+        "wobbleA": 0.07,
+        "wobbleAFrequency": 2.3,
+        "wobbleB": 0.035,
+        "wobbleBFrequency": 4.7,
+        "minSurfaceRadius": 0.015,
+        "minSize": 0.005
+      },
       "styles": {
         "bullet": {
           "width": 0.24,

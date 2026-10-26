@@ -10,10 +10,11 @@ import { countConstantTables } from "../../scripts/as-data-gate.mjs";
 // `drone`. The literal below is what the constant held on origin/main (c7661f6).
 const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("the data file is pinned", () => {
+// The `rules` block is pinned here; the `view` block (battlefield presentation) is pinned by commander-view-values.test.js.
+test("the rules block of the data file is pinned", () => {
   assert.equal(
-    crypto.createHash("sha256").update(read("../src/data/commander.json")).digest("hex"),
-    "36c647b6beeb1cf21fac99569ece215cef9da5aa7754fd986efbcffce41fbd18",
+    crypto.createHash("sha256").update(JSON.stringify(JSON.parse(read("../src/data/commander.json")).rules)).digest("hex"),
+    "0505bd9b98790b225c3654af8f2393624a34c91b9ab1291af29b11068fe7849e",
   );
 });
 

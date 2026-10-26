@@ -10,10 +10,5 @@
     "id": "ember-fire",
     "when": { "flameEquipped": true },
     "text": "Hold FLAME to burn the enemy in front of you."
-  },
-  {
-    "id": "ember-matron",
-    "when": { "bossWithin": { "name": "Ember Matron", "meters": 14 } },
-    "text": "The Ember Matron has a flamethrower. Take it."
   }
 ]

@@ -1,8 +1,5 @@
-// Checks shared by the game-data loader (engine/game-data.js) and the validators of the small client-side data files that live here so the
-// loader stays under its size limit: diagnostics, renderBudget and saveClient. game-data.js re-exports the validators and still imports every
-// JSON file itself (the as-data gate allows no other importer). Same messages and bounds as before the move.
-import { closed } from "./content-schema.js";
-
+// Checks shared by the game-data loader (engine/game-data.js) and its validator modules (game-data-weapons.js, game-data-combat.js,
+// game-data-creatures.js): the loader keeps only the JSON imports, the registry and the freeze, so it stays well under the source size limit.
 export const fail = (file, why) => {
   throw TypeError(`Invalid game data ${file}: ${why}`);
 };
@@ -10,52 +7,9 @@ export const count = (file, field, value, min, max) => {
   if (!Number.isSafeInteger(value) || value < min || value > max)
     fail(file, `${field} must be an integer from ${min} to ${max}`);
 };
-
-export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
-  count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
-  // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
-  count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
-}
-
-// A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
-// engine/render-budget.js compares a measurement to it). Dom's phone is the judge; these numbers stop the cost creeping meanwhile.
-export function validateRenderBudget(d) {
-  closed(d, ["schema_version", "provisional", "westminster", "perRemote"]);
-  if (typeof d.provisional !== "boolean") fail("renderBudget", "provisional must be true or false");
-  closed(d.westminster, ["remotes", "maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "westminster.remotes", d.westminster.remotes, 1, 64);
-  count("renderBudget", "westminster.maxDrawCalls", d.westminster.maxDrawCalls, 1, 10000);
-  count("renderBudget", "westminster.maxTriangles", d.westminster.maxTriangles, 1, 10000000);
-  closed(d.perRemote, ["maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "perRemote.maxDrawCalls", d.perRemote.maxDrawCalls, 0, 1000);
-  count("renderBudget", "perRemote.maxTriangles", d.perRemote.maxTriangles, 0, 1000000);
-}
-
-export function validateSaveClient(d) {
-  closed(d, [
-    "schema_version",
-    "minSaveIntervalMs",
-    "staleSeqRetries",
-    "characterName",
-    "bootSyncWaitMs",
-    "bucketBurst",
-    "bucketRefillMs",
-    "bucketReserve",
-    "retryFloorMs",
-  ]);
-  // The shortest wait before a kept record is sent again after a refused or failed send, whatever the writer's Retry-After says.
-  count("saveClient", "retryFloorMs", d.retryFloorMs, 50, 5000);
-  // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
-  // request costs one, a stale-seq retry too). A routine save never spends the last `bucketReserve` tokens: only a death save and the
-  // page-hide send may, so a long fight can never leave the death save refused. Keep these equal to the writer's numbers.
-  count("saveClient", "bucketBurst", d.bucketBurst, 1, 100);
-  count("saveClient", "bucketRefillMs", d.bucketRefillMs, 100, 600000);
-  count("saveClient", "bucketReserve", d.bucketReserve, 0, 50);
-  if (d.bucketReserve >= d.bucketBurst) fail("saveClient", "bucketReserve must be below bucketBurst");
-  count("saveClient", "bootSyncWaitMs", d.bootSyncWaitMs, 0, 15000); // how long Enter waits for the server record at most
-  count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
-  count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
-  if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))
-    fail("saveClient", "characterName");
-}
+export const number = (file, field, v, min = 0) => {
+  if (!Number.isFinite(v) || v < min) fail(file, `${field} must be a finite number >= ${min}`);
+};
+export const id = (file, field, v) => {
+  if (typeof v !== "string" || !/^[a-z0-9-]{1,24}$/.test(v)) fail(file, `${field} must be a lowercase id`);
+};

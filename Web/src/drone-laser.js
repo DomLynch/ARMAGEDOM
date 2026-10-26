@@ -1,5 +1,8 @@
 import * as T from "three";
 import { DRONE_RULES } from "./drone-mechanics.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// The longest visible trail and the bolt width are creatures.json `droneLaser`.
+const LASER = GAME_DATA.creatures.droneLaser;
 // One local, depth-tested quad per existing live projectile. No damage, light,
 // textures, bloom, afterimage or new projectile trajectory/clock authority.
 const vertexShader = `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
@@ -76,7 +79,7 @@ export function createDroneLaserBolts({ scene, world, camera }) {
           scene.add(mesh);
         }
         const born = b.born ?? b.expires - DRONE_RULES.boltRange / DRONE_RULES.boltSpeed,
-          length = Math.min(0.6, Math.max(0, (time - born) * (b.speed ?? DRONE_RULES.boltSpeed)));
+          length = Math.min(LASER.trailMetres, Math.max(0, (time - born) * (b.speed ?? DRONE_RULES.boltSpeed)));
         mesh.visible = length > 1e-5;
         mesh.position.copy(world.toRender(b.pos, b.height ?? DRONE_RULES.hoverHeight));
         direction.set(b.dir.x, b.dir.y ?? 0, -b.dir.z).normalize();
@@ -87,7 +90,7 @@ export function createDroneLaserBolts({ scene, world, camera }) {
         normal.crossVectors(direction, up).normalize();
         basis.makeBasis(direction, up, normal);
         mesh.quaternion.setFromRotationMatrix(basis);
-        mesh.scale.set(length, 0.12, 1);
+        mesh.scale.set(length, LASER.width, 1);
         mesh.material.uniforms.lengthMetres.value = length;
       }
     },
@@ -99,7 +102,7 @@ export function createDroneLaserBolts({ scene, world, camera }) {
         privateMaterials: entries.size,
         newTextures: 0,
         trianglesPerBolt: 2,
-        maxTrailMetres: 0.6,
+        maxTrailMetres: LASER.trailMetres,
         disposed,
       };
     },

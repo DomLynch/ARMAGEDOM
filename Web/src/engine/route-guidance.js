@@ -23,8 +23,10 @@ export function capsuleSegmentClear(g, a, b) {
     if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, 0.4)) return false;
   return true;
 }
-// The arrow's tail starts this far out from the player's centre, clear of the character's footprint (radius 0.4).
-export const ARROW_TAIL_GAP = 0.7;
+// The arrow's tail starts this far out from the player's centre (visual.json routeArrow.tailGap, metres), clear of the character's
+// footprint (radius 0.4). Dom's phone run: at 0.7 it still touched the body, so it sits further out.
+export const ARROW_TAIL_GAP = GAME_DATA.visual.routeArrow.tailGap;
+if (!(ARROW_TAIL_GAP >= 0.5 && ARROW_TAIL_GAP <= 3)) throw TypeError("Invalid game data visual: routeArrow.tailGap must be 0.5 to 3 metres");
 export const TUTORIAL_AREA = "westminster";
 // The ground arrow fades slowly in and out so it is easier to notice: a 1.3 s cycle between 0.35 and 1 opacity.
 export const ARROW_PULSE_SECONDS = 1.3,

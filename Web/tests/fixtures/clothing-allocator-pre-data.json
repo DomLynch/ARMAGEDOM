@@ -1,0 +1,1982 @@
+{
+ "westminster/1": {
+  "westminster-roamer-1": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-faded-navy-02"
+  }
+ },
+ "westminster/6": {
+  "westminster-roamer-1": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "westminster-roamer-3": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "westminster-roamer-4": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "westminster-roamer-5": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-6": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  }
+ },
+ "westminster/9": {
+  "westminster-roamer-1": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "westminster-roamer-3": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "westminster-roamer-4": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "westminster-roamer-5": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-6": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "westminster-roamer-7": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "westminster-roamer-8": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "westminster-roamer-9": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-charcoal-01"
+  }
+ },
+ "westminster/14": {
+  "westminster-roamer-1": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "westminster-roamer-11": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "westminster-roamer-12": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "westminster-roamer-13": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-14": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "westminster-roamer-2": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "westminster-roamer-3": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "westminster-roamer-4": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "westminster-roamer-5": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "westminster-roamer-6": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-olive-01"
+  },
+  "westminster-roamer-7": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "westminster-roamer-8": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "westminster-roamer-9": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  }
+ },
+ "westminster/50": {
+  "westminster-roamer-1": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "westminster-roamer-11": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "westminster-roamer-12": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "westminster-roamer-13": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-14": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "westminster-roamer-15": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "westminster-roamer-16": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "westminster-roamer-17": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "westminster-roamer-18": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "westminster-roamer-19": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-olive-01"
+  },
+  "westminster-roamer-2": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "westminster-roamer-20": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "westminster-roamer-21": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "westminster-roamer-22": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "westminster-roamer-23": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-ash-01"
+  },
+  "westminster-roamer-24": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "westminster-roamer-25": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-26": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "westminster-roamer-27": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-khaki-03"
+  },
+  "westminster-roamer-28": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-khaki-01"
+  },
+  "westminster-roamer-29": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-khaki-04"
+  },
+  "westminster-roamer-3": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "westminster-roamer-30": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "westminster-roamer-31": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "westminster-roamer-32": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-khaki-04"
+  },
+  "westminster-roamer-33": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-sand-03"
+  },
+  "westminster-roamer-34": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "westminster-roamer-35": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-khaki-03"
+  },
+  "westminster-roamer-36": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "westminster-roamer-37": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "westminster-roamer-38": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "westminster-roamer-39": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "westminster-roamer-4": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "westminster-roamer-40": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-ash-02"
+  },
+  "westminster-roamer-41": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "westminster-roamer-42": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-43": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-rust-02"
+  },
+  "westminster-roamer-44": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-earth-01"
+  },
+  "westminster-roamer-45": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "westminster-roamer-46": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "westminster-roamer-47": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "westminster-roamer-48": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "westminster-roamer-49": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "westminster-roamer-5": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-sand-01"
+  },
+  "westminster-roamer-50": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "westminster-roamer-6": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "westminster-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "westminster-roamer-8": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "westminster-roamer-9": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-charcoal-01"
+  }
+ },
+ "east/1": {
+  "east-roamer-1": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-02"
+  }
+ },
+ "east/6": {
+  "east-roamer-1": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-02"
+  },
+  "east-roamer-2": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-3": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "east-roamer-4": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-5": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-6": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-faded-navy-02"
+  }
+ },
+ "east/9": {
+  "east-roamer-1": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-02"
+  },
+  "east-roamer-2": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-3": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "east-roamer-4": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-5": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-6": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "east-roamer-7": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "east-roamer-8": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-01"
+  },
+  "east-roamer-9": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-ash-03"
+  }
+ },
+ "east/14": {
+  "east-roamer-1": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-02"
+  },
+  "east-roamer-10": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-11": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "east-roamer-12": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-13": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-14": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "east-roamer-2": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "east-roamer-3": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-01"
+  },
+  "east-roamer-4": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-5": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-6": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-7": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "east-roamer-8": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "east-roamer-9": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-ash-04"
+  }
+ },
+ "east/50": {
+  "east-roamer-1": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-02"
+  },
+  "east-roamer-10": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-11": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "east-roamer-12": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-13": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-14": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "east-roamer-15": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "east-roamer-16": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-01"
+  },
+  "east-roamer-17": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-18": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-19": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-2": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "east-roamer-20": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "east-roamer-21": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "east-roamer-22": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-03"
+  },
+  "east-roamer-23": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "east-roamer-24": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-25": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-earth-01"
+  },
+  "east-roamer-26": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-olive-01"
+  },
+  "east-roamer-27": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-khaki-03"
+  },
+  "east-roamer-28": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-ash-02"
+  },
+  "east-roamer-29": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-khaki-02"
+  },
+  "east-roamer-3": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "east-roamer-30": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-earth-04"
+  },
+  "east-roamer-31": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "east-roamer-32": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "east-roamer-33": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "east-roamer-34": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-khaki-04"
+  },
+  "east-roamer-35": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "east-roamer-36": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "east-roamer-37": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "east-roamer-38": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "east-roamer-39": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-earth-03"
+  },
+  "east-roamer-4": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-khaki-04"
+  },
+  "east-roamer-40": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-ash-02"
+  },
+  "east-roamer-41": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "east-roamer-42": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-earth-03"
+  },
+  "east-roamer-43": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "east-roamer-44": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "east-roamer-45": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-khaki-02"
+  },
+  "east-roamer-46": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "east-roamer-47": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "east-roamer-48": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "east-roamer-49": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "east-roamer-5": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "east-roamer-50": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-earth-02"
+  },
+  "east-roamer-6": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "east-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "east-roamer-8": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-earth-01"
+  },
+  "east-roamer-9": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-blue-grey-02"
+  }
+ },
+ "south/1": {
+  "south-roamer-1": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-03"
+  }
+ },
+ "south/6": {
+  "south-roamer-1": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "south-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "south-roamer-3": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-4": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-5": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "south-roamer-6": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  }
+ },
+ "south/9": {
+  "south-roamer-1": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "south-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "south-roamer-3": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-4": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-5": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "south-roamer-6": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "south-roamer-7": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-04"
+  },
+  "south-roamer-8": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "south-roamer-9": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-04"
+  }
+ },
+ "south/14": {
+  "south-roamer-1": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "south-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "south-roamer-11": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-12": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-13": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "south-roamer-14": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "south-roamer-2": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-04"
+  },
+  "south-roamer-3": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "south-roamer-4": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-04"
+  },
+  "south-roamer-5": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "south-roamer-6": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "south-roamer-7": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-8": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-rust-04"
+  },
+  "south-roamer-9": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-earth-03"
+  }
+ },
+ "south/50": {
+  "south-roamer-1": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-oxblood-03"
+  },
+  "south-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "south-roamer-11": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-12": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-13": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "south-roamer-14": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "south-roamer-15": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-04"
+  },
+  "south-roamer-16": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "south-roamer-17": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-khaki-04"
+  },
+  "south-roamer-18": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "south-roamer-19": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "south-roamer-2": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-04"
+  },
+  "south-roamer-20": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-rust-04"
+  },
+  "south-roamer-21": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-earth-03"
+  },
+  "south-roamer-22": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-olive-03"
+  },
+  "south-roamer-23": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "south-roamer-24": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "south-roamer-25": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "south-roamer-26": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-tobacco-02"
+  },
+  "south-roamer-27": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "south-roamer-28": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "south-roamer-29": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-khaki-03"
+  },
+  "south-roamer-3": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "south-roamer-30": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-ash-02"
+  },
+  "south-roamer-31": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-32": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-earth-02"
+  },
+  "south-roamer-33": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-olive-04"
+  },
+  "south-roamer-34": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "south-roamer-35": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-earth-01"
+  },
+  "south-roamer-36": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-ash-02"
+  },
+  "south-roamer-37": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-khaki-04"
+  },
+  "south-roamer-38": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "south-roamer-39": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "south-roamer-4": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-ash-02"
+  },
+  "south-roamer-40": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-sand-03"
+  },
+  "south-roamer-41": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "south-roamer-42": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "south-roamer-43": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "south-roamer-44": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "south-roamer-45": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "south-roamer-46": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "south-roamer-47": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "south-roamer-48": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "south-roamer-49": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "south-roamer-5": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "south-roamer-50": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "south-roamer-6": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "south-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-olive-04"
+  },
+  "south-roamer-8": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-khaki-01"
+  },
+  "south-roamer-9": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-blue-grey-04"
+  }
+ },
+ "area7/1": {
+  "area7-roamer-1": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-01"
+  }
+ },
+ "area7/6": {
+  "area7-roamer-1": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "area7-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-3": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "area7-roamer-4": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-5": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "area7-roamer-6": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-charcoal-03"
+  }
+ },
+ "area7/9": {
+  "area7-roamer-1": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "area7-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-3": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "area7-roamer-4": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-5": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "area7-roamer-6": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-7": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-03"
+  },
+  "area7-roamer-8": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "area7-roamer-9": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  }
+ },
+ "area7/14": {
+  "area7-roamer-1": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "area7-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-11": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "area7-roamer-12": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-13": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "area7-roamer-14": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-2": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-03"
+  },
+  "area7-roamer-3": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "area7-roamer-4": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "area7-roamer-5": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-ash-01"
+  },
+  "area7-roamer-6": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-7": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "area7-roamer-8": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area7-roamer-9": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-charcoal-01"
+  }
+ },
+ "area7/50": {
+  "area7-roamer-1": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "area7-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-11": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "area7-roamer-12": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-13": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-ash-04"
+  },
+  "area7-roamer-14": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-15": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-sand-03"
+  },
+  "area7-roamer-16": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "area7-roamer-17": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "area7-roamer-18": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-ash-01"
+  },
+  "area7-roamer-19": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-02"
+  },
+  "area7-roamer-2": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "area7-roamer-20": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area7-roamer-21": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "area7-roamer-22": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "area7-roamer-23": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "area7-roamer-24": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-25": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area7-roamer-26": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-ash-03"
+  },
+  "area7-roamer-27": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area7-roamer-28": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area7-roamer-29": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-tobacco-01"
+  },
+  "area7-roamer-3": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-30": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "area7-roamer-31": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "area7-roamer-32": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "area7-roamer-33": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-34": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "area7-roamer-35": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area7-roamer-36": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "area7-roamer-37": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area7-roamer-38": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-oxblood-01"
+  },
+  "area7-roamer-39": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-ash-03"
+  },
+  "area7-roamer-4": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-ash-01"
+  },
+  "area7-roamer-40": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area7-roamer-41": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-olive-03"
+  },
+  "area7-roamer-42": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-tobacco-02"
+  },
+  "area7-roamer-43": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "area7-roamer-44": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-sand-03"
+  },
+  "area7-roamer-45": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "area7-roamer-46": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-oxblood-04"
+  },
+  "area7-roamer-47": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "area7-roamer-48": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "area7-roamer-49": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-5": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-50": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area7-roamer-6": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-olive-03"
+  },
+  "area7-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "area7-roamer-8": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "area7-roamer-9": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-blue-grey-03"
+  }
+ },
+ "area8/1": {
+  "area8-roamer-1": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-faded-navy-02"
+  }
+ },
+ "area8/6": {
+  "area8-roamer-1": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "area8-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "area8-roamer-3": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "area8-roamer-4": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area8-roamer-5": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area8-roamer-6": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-02"
+  }
+ },
+ "area8/9": {
+  "area8-roamer-1": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "area8-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "area8-roamer-3": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "area8-roamer-4": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area8-roamer-5": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area8-roamer-6": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "area8-roamer-7": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "area8-roamer-8": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-olive-01"
+  },
+  "area8-roamer-9": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-01"
+  }
+ },
+ "area8/14": {
+  "area8-roamer-1": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "area8-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "area8-roamer-11": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "area8-roamer-12": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area8-roamer-13": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area8-roamer-14": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "area8-roamer-2": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "area8-roamer-3": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-olive-01"
+  },
+  "area8-roamer-4": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-01"
+  },
+  "area8-roamer-5": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-ash-02"
+  },
+  "area8-roamer-6": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "area8-roamer-7": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-earth-04"
+  },
+  "area8-roamer-8": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "area8-roamer-9": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-khaki-03"
+  }
+ },
+ "area8/50": {
+  "area8-roamer-1": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-faded-navy-02"
+  },
+  "area8-roamer-10": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-ash-04"
+  },
+  "area8-roamer-11": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "area8-roamer-12": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area8-roamer-13": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area8-roamer-14": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-02"
+  },
+  "area8-roamer-15": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-sand-04"
+  },
+  "area8-roamer-16": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-olive-01"
+  },
+  "area8-roamer-17": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-01"
+  },
+  "area8-roamer-18": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-ash-02"
+  },
+  "area8-roamer-19": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "area8-roamer-2": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-earth-04"
+  },
+  "area8-roamer-20": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-blue-grey-04"
+  },
+  "area8-roamer-21": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-khaki-03"
+  },
+  "area8-roamer-22": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-ash-01"
+  },
+  "area8-roamer-23": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-ash-01"
+  },
+  "area8-roamer-24": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "area8-roamer-25": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "area8-roamer-26": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "area8-roamer-27": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "area8-roamer-28": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-dirty-ochre-01"
+  },
+  "area8-roamer-29": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-earth-03"
+  },
+  "area8-roamer-3": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area8-roamer-30": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-earth-03"
+  },
+  "area8-roamer-31": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-earth-01"
+  },
+  "area8-roamer-32": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-rust-01"
+  },
+  "area8-roamer-33": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "area8-roamer-34": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-olive-02"
+  },
+  "area8-roamer-35": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-ash-03"
+  },
+  "area8-roamer-36": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "area8-roamer-37": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "area8-roamer-38": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "area8-roamer-39": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area8-roamer-4": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "area8-roamer-40": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "area8-roamer-41": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-sand-04"
+  },
+  "area8-roamer-42": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "area8-roamer-43": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "area8-roamer-44": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-oxblood-04"
+  },
+  "area8-roamer-45": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "area8-roamer-46": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-oxblood-02"
+  },
+  "area8-roamer-47": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "area8-roamer-48": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "area8-roamer-49": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "area8-roamer-5": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-sand-04"
+  },
+  "area8-roamer-50": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-ash-01"
+  },
+  "area8-roamer-6": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "area8-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "area8-roamer-8": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-faded-navy-03"
+  },
+  "area8-roamer-9": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-olive-04"
+  }
+ },
+ "lambeth/1": {
+  "lambeth-roamer-1": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-earth-04"
+  }
+ },
+ "lambeth/6": {
+  "lambeth-roamer-1": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-2": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-3": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "lambeth-roamer-4": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-03"
+  },
+  "lambeth-roamer-5": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "lambeth-roamer-6": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-earth-04"
+  }
+ },
+ "lambeth/9": {
+  "lambeth-roamer-1": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-2": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-3": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "lambeth-roamer-4": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-03"
+  },
+  "lambeth-roamer-5": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "lambeth-roamer-6": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-7": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "lambeth-roamer-8": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-04"
+  },
+  "lambeth-roamer-9": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-dirty-ochre-01"
+  }
+ },
+ "lambeth/14": {
+  "lambeth-roamer-1": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-10": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-11": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "lambeth-roamer-12": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-03"
+  },
+  "lambeth-roamer-13": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "lambeth-roamer-14": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-2": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "lambeth-roamer-3": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-04"
+  },
+  "lambeth-roamer-4": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-dirty-ochre-01"
+  },
+  "lambeth-roamer-5": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "lambeth-roamer-6": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-earth-01"
+  },
+  "lambeth-roamer-7": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "lambeth-roamer-8": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-9": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-olive-03"
+  }
+ },
+ "lambeth/50": {
+  "lambeth-roamer-1": {
+   "topId": "top-oxblood-01",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-10": {
+   "topId": "top-sand-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-11": {
+   "topId": "top-khaki-02",
+   "trouserId": "trousers-blue-grey-01"
+  },
+  "lambeth-roamer-12": {
+   "topId": "top-oxblood-03",
+   "trouserId": "trousers-ash-03"
+  },
+  "lambeth-roamer-13": {
+   "topId": "top-sand-02",
+   "trouserId": "trousers-muted-plum-01"
+  },
+  "lambeth-roamer-14": {
+   "topId": "top-olive-02",
+   "trouserId": "trousers-earth-04"
+  },
+  "lambeth-roamer-15": {
+   "topId": "top-charcoal-01",
+   "trouserId": "trousers-tobacco-03"
+  },
+  "lambeth-roamer-16": {
+   "topId": "top-faded-navy-02",
+   "trouserId": "trousers-dirty-ochre-04"
+  },
+  "lambeth-roamer-17": {
+   "topId": "top-faded-navy-03",
+   "trouserId": "trousers-dirty-ochre-01"
+  },
+  "lambeth-roamer-18": {
+   "topId": "top-rust-04",
+   "trouserId": "trousers-faded-navy-04"
+  },
+  "lambeth-roamer-19": {
+   "topId": "top-muted-plum-02",
+   "trouserId": "trousers-earth-01"
+  },
+  "lambeth-roamer-2": {
+   "topId": "top-blue-grey-04",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "lambeth-roamer-20": {
+   "topId": "top-faded-navy-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-21": {
+   "topId": "top-rust-01",
+   "trouserId": "trousers-olive-03"
+  },
+  "lambeth-roamer-22": {
+   "topId": "top-rust-03",
+   "trouserId": "trousers-olive-04"
+  },
+  "lambeth-roamer-23": {
+   "topId": "top-olive-01",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-24": {
+   "topId": "top-dirty-ochre-04",
+   "trouserId": "trousers-olive-03"
+  },
+  "lambeth-roamer-25": {
+   "topId": "top-olive-04",
+   "trouserId": "trousers-earth-01"
+  },
+  "lambeth-roamer-26": {
+   "topId": "top-faded-navy-01",
+   "trouserId": "trousers-khaki-01"
+  },
+  "lambeth-roamer-27": {
+   "topId": "top-blue-grey-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "lambeth-roamer-28": {
+   "topId": "top-muted-plum-01",
+   "trouserId": "trousers-khaki-02"
+  },
+  "lambeth-roamer-29": {
+   "topId": "top-tobacco-02",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "lambeth-roamer-3": {
+   "topId": "top-blue-grey-02",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "lambeth-roamer-30": {
+   "topId": "top-blue-grey-01",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "lambeth-roamer-31": {
+   "topId": "top-sand-01",
+   "trouserId": "trousers-charcoal-03"
+  },
+  "lambeth-roamer-32": {
+   "topId": "top-dirty-ochre-03",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "lambeth-roamer-33": {
+   "topId": "top-sand-03",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "lambeth-roamer-34": {
+   "topId": "top-charcoal-04",
+   "trouserId": "trousers-ash-03"
+  },
+  "lambeth-roamer-35": {
+   "topId": "top-earth-03",
+   "trouserId": "trousers-charcoal-04"
+  },
+  "lambeth-roamer-36": {
+   "topId": "top-charcoal-03",
+   "trouserId": "trousers-khaki-04"
+  },
+  "lambeth-roamer-37": {
+   "topId": "top-ash-03",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-38": {
+   "topId": "top-rust-02",
+   "trouserId": "trousers-charcoal-01"
+  },
+  "lambeth-roamer-39": {
+   "topId": "top-oxblood-02",
+   "trouserId": "trousers-blue-grey-02"
+  },
+  "lambeth-roamer-4": {
+   "topId": "top-charcoal-02",
+   "trouserId": "trousers-khaki-04"
+  },
+  "lambeth-roamer-40": {
+   "topId": "top-tobacco-03",
+   "trouserId": "trousers-faded-navy-01"
+  },
+  "lambeth-roamer-41": {
+   "topId": "top-ash-04",
+   "trouserId": "trousers-tobacco-02"
+  },
+  "lambeth-roamer-42": {
+   "topId": "top-earth-01",
+   "trouserId": "trousers-khaki-04"
+  },
+  "lambeth-roamer-43": {
+   "topId": "top-olive-03",
+   "trouserId": "trousers-earth-01"
+  },
+  "lambeth-roamer-44": {
+   "topId": "top-ash-02",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "lambeth-roamer-45": {
+   "topId": "top-ash-01",
+   "trouserId": "trousers-tobacco-04"
+  },
+  "lambeth-roamer-46": {
+   "topId": "top-dirty-ochre-01",
+   "trouserId": "trousers-earth-02"
+  },
+  "lambeth-roamer-47": {
+   "topId": "top-khaki-03",
+   "trouserId": "trousers-blue-grey-03"
+  },
+  "lambeth-roamer-48": {
+   "topId": "top-khaki-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-49": {
+   "topId": "top-earth-02",
+   "trouserId": "trousers-ash-04"
+  },
+  "lambeth-roamer-5": {
+   "topId": "top-khaki-01",
+   "trouserId": "trousers-charcoal-02"
+  },
+  "lambeth-roamer-50": {
+   "topId": "top-oxblood-04",
+   "trouserId": "trousers-earth-03"
+  },
+  "lambeth-roamer-6": {
+   "topId": "top-dirty-ochre-02",
+   "trouserId": "trousers-earth-02"
+  },
+  "lambeth-roamer-7": {
+   "topId": "top-tobacco-04",
+   "trouserId": "trousers-olive-01"
+  },
+  "lambeth-roamer-8": {
+   "topId": "top-earth-04",
+   "trouserId": "trousers-ash-01"
+  },
+  "lambeth-roamer-9": {
+   "topId": "top-tobacco-01",
+   "trouserId": "trousers-olive-04"
+  }
+ }
+}
