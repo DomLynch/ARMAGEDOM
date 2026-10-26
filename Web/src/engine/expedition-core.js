@@ -6,6 +6,8 @@ import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { PISTOL_RULES } from "../pistol.js";
 export const EXPEDITION_SAVE_KEY = "armagedom:expedition-run:v5";
 export const AREA_BOSS_SAVE_KEY = "armagedom:area-boss-run:v6";
+const EXPEDITION_ERA = 5; // tuning-ok: save era version (the `:v5` of the key above)
+const AREA_BOSS_ERA = 6; // tuning-ok: save era version (the `:v6` of the key above)
 const envelope = [
   "version",
   "pistol",
@@ -148,11 +150,11 @@ export function createExpeditionComponent({
   applyBaseSaved,
   baseStorageAdapter = (storage) => storage,
   canDispatch = () => true,
-  saveVersion = 5,
+  saveVersion = EXPEDITION_ERA,
   previousPlacementIds = null,
 }) {
-  if (![5, 6].includes(saveVersion)) throw TypeError("Unsupported run successor");
-  const saveKey = saveVersion === 6 ? AREA_BOSS_SAVE_KEY : EXPEDITION_SAVE_KEY;
+  if (![EXPEDITION_ERA, AREA_BOSS_ERA].includes(saveVersion)) throw TypeError("Unsupported run successor");
+  const saveKey = saveVersion === AREA_BOSS_ERA ? AREA_BOSS_SAVE_KEY : EXPEDITION_SAVE_KEY;
   let readOrigin = null;
   const previousPlacements = previousPlacementIds === null ? null : new Set(previousPlacementIds);
   const model = expeditionModel(data, registry),
@@ -180,7 +182,7 @@ export function createExpeditionComponent({
       } catch {
         return null;
       }
-      if ((origin === null && saved?.version === saveVersion) || (origin === "expedition" && saved?.version === 5)) {
+      if ((origin === null && saved?.version === saveVersion) || (origin === "expedition" && saved?.version === EXPEDITION_ERA)) {
         if (!closedData(saved, envelope)) return null;
         if (
           origin === "expedition" &&
@@ -197,7 +199,8 @@ export function createExpeditionComponent({
         const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
         return restored ? { ...restored, expedition: extension } : null;
       }
-      if (origin !== "legacy" || (saved && ![2, 3, 4].includes(saved.version))) return null;
+      const legacyEra = saved && [2, 3, 4].includes(saved.version); // tuning-ok: the save eras before the expedition layer
+      if (origin !== "legacy" || (saved && !legacyEra)) return null;
       const restored = baseCodec.restoreRun(g, raw, legacyRaw);
       return restored ? { ...restored, expedition: model.freshState() } : null;
     },

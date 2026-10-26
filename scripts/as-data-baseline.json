@@ -90,7 +90,6 @@
     "engine/client-log.js": 2,
     "engine/creature-catalogue.js": 2,
     "engine/creature-sim.js": 2,
-    "engine/expedition-core.js": 7,
     "engine/finisher-arm.js": 1,
     "engine/finisher-data.js": 2,
     "engine/flame-contact.js": 12,
