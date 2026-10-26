@@ -308,6 +308,17 @@
       }
     }
   },
+  "input": {
+    "knobPadPx": 106,
+    "knobTravelShare": 0.34,
+    "stickRadiusPx": 46,
+    "runTilt": 1.4,
+    "aimStartPx": 12,
+    "doubleTapMs": 350,
+    "worldTapMaxMs": 350,
+    "worldTapSlopPx": 10
+  },
+  "touchTarget": { "paddingPx": 8 },
   "routeGuidance": {
     "clearance": 0.4,
     "sampleStep": 0.1,
