@@ -104,6 +104,9 @@ export function validateMobileAim(m, f) {
       "pistolGain",
       "acquireMargin",
       "retainMargin",
+      "maxStepSeconds",
+      "movingThreshold",
+      "minTargetDistance",
     ],
     flame = ["gain", "closeExtension", "closeEnterGap", "closeExitGap", "extensionRate"],
     angles = [
