@@ -331,7 +331,8 @@ export function createSaveClient({
     try {
       const result = await send(taken.raw, taken.run, { urgent: wasUrgent });
       if (!result.ok) {
-        if (!result.local) log(`[arma-save] not saved: ${result.reason}`); // our own bucket holding a save back is not a failure to report
+        // Our own bucket holding a save back is not a failure to report. The HTTP status and a death mark tell the beacon which send failed.
+        if (!result.local) log(`[arma-save] not saved: ${result.reason}${result.status ? ` (http ${result.status})` : ""}${wasUrgent ? " [death]" : ""}`);
         // Never drop the record: a rate limit or a network failure leaves it queued (a newer record, if one arrived, replaces it).
         if (result.reason === "network" || result.status === 429 || result.status >= 500) {
           if (latest === null) latest = taken;
@@ -410,6 +411,7 @@ export function createSaveClient({
           } else log("[arma-save] page-hide save refused: stale (the server's newer save stays)");
         } else {
           keep();
+          log(`[arma-save] page-hide save not saved: ${payload?.error ?? "refused"} (http ${response.status})`);
           if (payload?.retryMs) retryWait = payload.retryMs;
           if (response.status === 502 || response.status === 504) uncertain = true;
         }
@@ -417,6 +419,7 @@ export function createSaveClient({
       .catch(() => {
         keep();
         uncertain = true; // a network failure: this save may have landed
+        log("[arma-save] page-hide save not saved: network");
       })
       .finally(schedule);
     return true;
