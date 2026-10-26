@@ -1,4 +1,5 @@
 import { closedData } from "./progression-state.js";
+import { GAME_DATA } from "./game-data.js";
 import {
   createLayerCodec,
   createLayerStorageAdapter,
@@ -30,7 +31,7 @@ export const UNIQUE_REWARD_LAYER = Object.freeze({
     "expedition",
     "uniqueReward",
   ]),
-  pickupRadius: 1.3,
+  pickupRadius: GAME_DATA.uniqueReward.pickupRadius, // data/uniqueReward.json
   pickupEpsilon: 1e-8,
   finitePosition: true,
   messages: Object.freeze({
