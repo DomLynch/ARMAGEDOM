@@ -89,7 +89,6 @@
     "engine/boss-weapon-runtime.js": 8,
     "engine/client-log.js": 2,
     "engine/commander/match.js": 13,
-    "engine/commander/view.js": 15,
     "engine/creature-catalogue.js": 2,
     "engine/creature-sim.js": 2,
     "engine/drop-marker.js": 21,
