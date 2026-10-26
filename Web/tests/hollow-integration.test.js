@@ -21,7 +21,7 @@ const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
  for(const id of ['boss-butcher','boss-surgeon','boss-warden','hollow-scavenger','original-dog','original-rat','original-roach','vagrant'])assert(manifest.models[id],id);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
- const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
+ const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','').replace('-phone','');/* the 256 px phone knife copy; the source manifest names the original */assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
  assert.equal(manifest.models['hollow-scavenger'].contactRig,'hero');assert.equal(manifest.count,3);
 });
