@@ -17,6 +17,7 @@ import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
+import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
@@ -232,7 +233,19 @@ const list = (field, v, min, max) => {
   if (!Array.isArray(v) || v.length < min || v.length > max) fail("visual", `${field} must list ${min} to ${max} rows`);
 };
 export function validateVisual(d) {
-  closed(d, ["schema_version", "survivorVariants", "faces", "clothing", "effects", "dropMarker", "routeArrow", "severBlood", "motion", "flameEffect"]);
+  closed(d, [
+    "schema_version",
+    "survivorVariants",
+    "faces",
+    "clothing",
+    "effects",
+    "dropMarker",
+    "routeArrow",
+    "severBlood",
+    "motion",
+    "wantedPoster",
+    "flameEffect",
+  ]);
   validateFlameEffect(d.flameEffect);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
   closed(d.severBlood, ["jet", "pool", "headDropletLifetime", "headDropletGravity"]);
@@ -822,6 +835,14 @@ export function validateCommander(d) {
     else number("commander", `rules.${name}`, v, 0.001);
 }
 
+// remoteSurvivors.json: how the other players' figures are drawn and animated (engine/remote-survivors.js). Presentation only.
+export function validateRemoteSurvivors(d) {
+  closed(d, ["schema_version", "ringSegments", "ringOpacity", "markerHeight", "maxFrameSeconds", "walkBlendPerSecond"]);
+  count("remoteSurvivors", "ringSegments", d.ringSegments, 8, 128);
+  for (const [name, min, max] of [["ringOpacity", 0.05, 1], ["markerHeight", 0, 1], ["maxFrameSeconds", 0.01, 1], ["walkBlendPerSecond", 0.5, 60]])
+    if (!Number.isFinite(d[name]) || d[name] < min || d[name] > max) fail("remoteSurvivors", `${name} must be ${min} to ${max}`);
+}
+
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
   knifePaths: [knifePaths, validateKnifePaths],
@@ -840,6 +861,7 @@ const sources = () => ({
   diagnostics: [diagnostics, validateDiagnostics],
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
+  remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],
