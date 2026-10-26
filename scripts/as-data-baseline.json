@@ -120,7 +120,6 @@
     "engine/locker-core.js": 9,
     "engine/loop.js": 5,
     "engine/marked-hunters.js": 12,
-    "engine/marked-view.js": 1,
     "engine/marked.js": 1,
     "engine/motion-data.js": 1,
     "engine/movement-trace.js": 12,
@@ -144,7 +143,6 @@
     "engine/render-budget.js": 1,
     "engine/rifle-pose.js": 4,
     "engine/rifle-state.js": 1,
-    "engine/rifle-view.js": 5,
     "engine/rocket-runtime.js": 13,
     "engine/route-guidance.js": 22,
     "engine/run-core.js": 14,
@@ -194,7 +192,6 @@
     "supplies.js": 3,
     "supply-ledger-v2.js": 3,
     "travel.js": 1,
-    "unique-reward-view.js": 5,
     "wolf-native.js": 5,
     "world-geometry.js": 16,
     "world.js": 33

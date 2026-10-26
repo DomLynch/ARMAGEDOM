@@ -3,6 +3,8 @@ import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
 import { createDropMarker, createMarkerOnlyDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
+const RIFLE = WEAPON_VIEWS.rifle;
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),
@@ -50,7 +52,7 @@ export function createRifleView(s, dispatch) {
         failed = true;
         if (s.game === owner) {
           owner.message = "Rifle loading unavailable. Selection and ammunition kept; retry in Gear.";
-          owner.messageUntil = owner.time + 5;
+          owner.messageUntil = owner.time + RIFLE.loadFailedSeconds;
         }
         throw error;
       })
@@ -69,7 +71,7 @@ export function createRifleView(s, dispatch) {
           : command.equipped
             ? "RIFLE EQUIPPED"
             : "Returned to melee.";
-      g.messageUntil = g.time + 4;
+      g.messageUntil = g.time + RIFLE.messageSeconds;
       s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
@@ -112,7 +114,7 @@ export function createRifleView(s, dispatch) {
       materials = [],
       contours = [],
       meshes = [];
-    display.rotation.z = Math.PI / 2;
+    display.rotation.z = Math.PI / 2; // tuning-ok: quarter turn lays the rifle flat on the ground
     root.add(display);
     display.traverse((n) => {
       if (n.isMesh) {
@@ -129,11 +131,11 @@ export function createRifleView(s, dispatch) {
     root.updateWorldMatrix(true, true);
     let box = new T.Box3().setFromObject(root),
       size = box.getSize(new T.Vector3());
-    display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+    display.scale.setScalar(Math.min(1, RIFLE.pickup.fitSize / Math.hypot(size.x, size.z)));
     root.updateWorldMatrix(true, true);
     box = new T.Box3().setFromObject(root);
     const center = box.getCenter(new T.Vector3());
-    display.position.set(-center.x, 0.025 - box.min.y, -center.z);
+    display.position.set(-center.x, RIFLE.pickup.lift - box.min.y, -center.z);
     const marker = createDropMarker(s.game?.world?.rifleData?.name ?? "Rifle");
     root.add(marker.group);
     s.scene.add(root);
