@@ -28,11 +28,10 @@ export const releaseOf = (pathname) =>
     .slice(0, 80); // tuning-ok: the longest release path kept in a client log line
 
 // A random id for this page load only: it ties one visit's rows together and is not tied to the account, the token or the device.
-export function newSessionId(random = globalThis.crypto) {
-  const bytes = new Uint8Array(6);
-  if (random?.getRandomValues) random.getRandomValues(bytes);
-  else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+// The length is data (world.json clientLog.sessionIdChars). Without crypto the id is random digits instead of hex.
+export function newSessionId(random = globalThis.crypto, chars = GAME_DATA.world.clientLog.sessionIdChars) {
+  const raw = random?.randomUUID?.() ?? String(Math.random()).replace("0.", "");
+  return raw.replace(/-/g, "").slice(0, chars);
 }
 
 export function createClientLog({

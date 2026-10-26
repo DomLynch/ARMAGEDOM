@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { createClientLog, newSessionId } from "../src/engine/client-log.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
 
 const make = (options = {}) => {
   const sent = [],
@@ -48,10 +49,12 @@ test("every report of one page load carries the same id, a new page load a diffe
   assert.equal(fixed.sent[0].body.session, "abc123abc123");
 });
 
-test("newSessionId is random hex and falls back without crypto", () => {
-  assert.match(newSessionId(), /^[0-9a-f]{12}$/);
-  assert.match(newSessionId(null), /^[0-9a-f]{12}$/);
+test("newSessionId is random hex of the data length and falls back to digits without crypto", () => {
+  const chars = GAME_DATA.world.clientLog.sessionIdChars;
+  assert.match(newSessionId(), new RegExp(`^[0-9a-f]{${chars}}$`));
+  assert.match(newSessionId(null), new RegExp(`^[0-9]{${chars}}$`));
   assert.notEqual(newSessionId(), newSessionId());
+  assert.equal(newSessionId(undefined, 8).length, 8);
 });
 
 test("the beacon is created at boot, before the world gate runs any network step, not inside startWorld", () => {

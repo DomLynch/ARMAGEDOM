@@ -201,7 +201,8 @@ export function validateWorld(d) {
   if (typeof d.auth.anonKey !== "string" || !/^sb_publishable_[A-Za-z0-9_-]{16,64}$/.test(d.auth.anonKey))
     fail("world", "auth.anonKey");
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
-  closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes"]);
+  closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes", "sessionIdChars"]);
+  count("world", "clientLog.sessionIdChars", d.clientLog.sessionIdChars, 8, 24); // the writer keeps at most 24 characters of the session id
   if (
     !Array.isArray(d.clientLog.kinds) ||
     d.clientLog.kinds.length < 1 ||

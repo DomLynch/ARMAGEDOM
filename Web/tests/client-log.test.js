@@ -19,7 +19,7 @@ function make(options = {}) {
 }
 
 test('tuning is data: one batch per 10 s, at most 10 rows', () => {
-  assert.deepEqual(GAME_DATA.world.clientLog, {path: '/arma/api/clientlog', kinds: ['error', 'boot', 'presence', 'sync'], minIntervalMs: 10000, maxEvents: 10, maxDistinct: 40, messageChars: 200, maxBodyBytes: 3800});
+  assert.deepEqual(GAME_DATA.world.clientLog, {path: '/arma/api/clientlog', kinds: ['error', 'boot', 'presence', 'sync'], minIntervalMs: 10000, maxEvents: 10, maxDistinct: 40, messageChars: 200, maxBodyBytes: 3800, sessionIdChars: 12});
   assert(GAME_DATA.world.clientLog.maxBodyBytes < 4096, 'under the writer\'s 4096-byte limit');
 });
 
