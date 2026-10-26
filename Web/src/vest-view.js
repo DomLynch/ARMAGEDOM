@@ -87,7 +87,7 @@ export function createVestView(model) {
     }
     if (!selected)
       throw Error(
-        "Vest fitting ray missed original torso at " + origin.toArray() + " direction " + direction.toArray(),
+        "Vest fitting ray missed original torso at " + origin.toArray() + " direction " + direction.toArray(), // text-ok: thrown error text
       );
     T.Triangle.getBarycoord(point, ...selected.points, bary);
     const weights = new Map();
@@ -153,7 +153,7 @@ export function createVestView(model) {
     side: T.DoubleSide,
   });
   const mesh = new T.SkinnedMesh(geometry, material);
-  mesh.name = "Worn cloth vest";
+  mesh.name = "Worn cloth vest"; // text-ok: three.js mesh name, never shown to the player
   mesh.frustumCulled = false;
   mesh.position.copy(donor.position);
   mesh.quaternion.copy(donor.quaternion);

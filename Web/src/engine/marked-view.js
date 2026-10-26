@@ -2,6 +2,8 @@ import { safehouseInteraction } from "./safehouse.js";
 import { markedShopEligible, effectiveBounty } from "./marked.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { WEAPON_VIEWS } from "./weapon-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const TEXT = GAME_DATA.safehouseText.marked;
 const money = (n) => "$" + n.toLocaleString("en-US");
 // Ephemeral presentation of the existing committed award ledger and total.
 // Initial restores, menu transactions and area changes establish a baseline.
@@ -96,8 +98,8 @@ export function createMarkedView(s, dispatch) {
       lastError = result.ok
         ? ""
         : result.code === "storage-unavailable"
-          ? "Saving unavailable. Cash and supplies were kept."
-          : "This purchase is unavailable. Bank cash and check supply capacity.";
+          ? TEXT.saveUnavailable
+          : TEXT.purchaseUnavailable;
       update();
       s.updateExpedition?.();
     };
@@ -119,7 +121,7 @@ export function createMarkedView(s, dispatch) {
   function build() {
     built = true;
     const title = document.createElement("h4");
-    title.textContent = "Cash & supplies";
+    title.textContent = TEXT.title;
     summary = document.createElement("p");
     summary.id = "marked-bank-summary";
     status = document.createElement("p");
@@ -128,15 +130,14 @@ export function createMarkedView(s, dispatch) {
     bank = document.createElement("button");
     bank.id = "marked-deposit";
     bank.type = "button";
-    bank.textContent = "Bank carried cash";
+    bank.textContent = TEXT.bank;
     listen(bank, { type: "bank" });
     host.append(title, summary, bank);
     const hint = document.createElement("p");
     hint.className = "marked-hint";
-    hint.textContent =
-      "Banking does not clear your bounty. Death loses carried cash and clears the hunt; banked cash and earned gear stay.";
+    hint.textContent = TEXT.hint;
     host.append(hint);
-    for (const [id, name] of Object.entries({ pistol: "Pistol reserve", rifle: "Rifle reserve", dressing: "Heal" })) {
+    for (const [id, name] of Object.entries(TEXT.shopNames)) {
       const button = document.createElement("button");
       button.id = "marked-buy-" + id;
       button.type = "button";
@@ -161,19 +162,20 @@ export function createMarkedView(s, dispatch) {
     if (hud.textContent !== text) hud.textContent = text;
     hud.dataset.marked = String(c.bounty !== false && effectiveBounty(g) >= c.hunterBounty);
     summary.textContent =
-      `Carried ${money(current.carried)} · Bank ${money(current.bank)}` +
-      (c.bounty === false ? "" : ` · Bounty ${money(current.bounty)}`);
+      fillText(TEXT.summary, { carried: money(current.carried), bank: money(current.bank) }) +
+      (c.bounty === false ? "" : fillText(TEXT.bountySuffix, { bounty: money(current.bounty) }));
     bank.disabled = !allowed() || !current.carried;
     for (const [id, { button, name }] of buttons) {
       const row = c.shop[id];
-      button.textContent = `${name} +${row.amount}${id === "dressing" ? " HP" : " rounds"} · ${money(row.price)}`;
+      button.textContent = fillText(TEXT.shopButton, {
+        name,
+        amount: row.amount,
+        unit: id === "dressing" ? TEXT.healUnit : TEXT.roundsUnit,
+        price: money(row.price),
+      });
       button.disabled = !allowed() || !markedShopEligible(g, id);
     }
-    status.textContent =
-      lastError ||
-      (!allowed()
-        ? "Banking and purchases are available inside a protected safehouse."
-        : "Purchases use banked cash and save immediately.");
+    status.textContent = lastError || (!allowed() ? TEXT.statusUnavailable : TEXT.statusReady);
   }
   const updateAll = () => {
     headTotal.update();

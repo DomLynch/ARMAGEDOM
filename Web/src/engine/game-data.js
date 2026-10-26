@@ -19,6 +19,7 @@ import runNotices from "../data/runNotices.json" with { type: "json" };
 import webText from "../data/webText.json" with { type: "json" };
 import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
+import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -56,6 +57,7 @@ import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
+import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
@@ -993,6 +995,7 @@ const sources = () => ({
   webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],
+  safehouseText: [safehouseText, validateSafehouseText],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
@@ -1040,3 +1043,10 @@ export function buildGameData(files = sources()) {
 }
 
 export const GAME_DATA = buildGameData();
+// The safehouse weapon and supply names follow the locker's own id lists (locker.json weaponIds and resourceCaps).
+checkSafehouseNameIds(GAME_DATA.safehouseText.safehouse.weaponNames, GAME_DATA.locker.weaponIds, "safehouse.weaponNames");
+checkSafehouseNameIds(
+  GAME_DATA.safehouseText.safehouse.resourceNames,
+  Object.keys(GAME_DATA.locker.resourceCaps),
+  "safehouse.resourceNames",
+);
