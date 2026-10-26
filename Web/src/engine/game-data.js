@@ -151,11 +151,17 @@ export function validateCreatureDefinitions(d) {
 // The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
 // the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
 export function validateLocker(d) {
-  closed(d, ["schema_version", "weaponIds", "resourceCaps"]);
-  // The saved weapon list: its order is the save shape (locker-core.js names the slots by index), so ids are never reordered or dropped.
-  if (!Array.isArray(d.weaponIds) || d.weaponIds.length !== 10 || new Set(d.weaponIds).size !== d.weaponIds.length)
-    fail("locker", "weaponIds must be 10 unique ids");
-  for (const id of d.weaponIds) if (typeof id !== "string" || !/^[a-z0-9-]+-v\d+$/.test(id)) fail("locker", `weaponIds ${id}`);
+  closed(d, ["schema_version", "savedEraWeaponIds", "weaponIds", "resourceCaps"]);
+  // The saved weapon list is append-only: its order is the save shape (locker-core.js names the slots by index). savedEraWeaponIds is
+  // the list as saves were first written (tests/data-locker-weapon-ids.test.js pins it to the save-era fixture); weaponIds must start
+  // with exactly those ids in that order, so a reorder or removal fails at load and only new ids at the end pass.
+  for (const [name, list] of [["savedEraWeaponIds", d.savedEraWeaponIds], ["weaponIds", d.weaponIds]]) {
+    if (!Array.isArray(list) || new Set(list).size !== list.length) fail("locker", `${name} must be a list of unique ids`);
+    for (const id of list) if (typeof id !== "string" || !/^[a-z0-9-]+-v\d+$/.test(id)) fail("locker", `${name} ${id}`);
+  }
+  if (d.savedEraWeaponIds.length < 10) fail("locker", "savedEraWeaponIds lost an id");
+  if (d.savedEraWeaponIds.some((id, i) => d.weaponIds[i] !== id))
+    fail("locker", "weaponIds must start with savedEraWeaponIds in order (append-only)");
   closed(d.resourceCaps, [
     "railgun-reserve",
     "pistol-reserve",
