@@ -490,6 +490,15 @@
       "settleBlend": 0.3
     }
   ],
+  "grounding": {
+    "samples": 120,
+    "maxVertices": 150000,
+    "sliceMs": 4,
+    "indexYieldMask": 63,
+    "readYieldMask": 7,
+    "phaseMax": 0.999999,
+    "floorTolerance": 0.004
+  },
   "armSever": {
     "boneCount": 65,
     "lifetime": 6,

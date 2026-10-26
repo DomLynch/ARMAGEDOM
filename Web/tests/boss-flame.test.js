@@ -14,7 +14,7 @@ function setup(distance=2.5){
 }
 function warning(s){for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert.equal(s.e.bossWeapon?.phase,'warning');return s.e.bossWeapon.startTick;}
 test('actual Witch alone opts into validated flame capability and expanded wake; Surgeon retains its separate saw capability',()=>{
- const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,6);assert.equal(c.bossData.profiles.witch.homeLeash,8);
+ const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,10);assert.equal(c.bossData.profiles.witch.homeLeash,18);
  assert.equal(c.bossData.profiles.witch.weapon.modelRef,BOSS_EQUIPMENT_PROFILES.emberProjector.modelRef);for(const[id,p]of Object.entries(c.bossData.profiles))if(id==='surgeon')assert.equal(p.weapon.kind,'saw');else if(id!=='witch')assert.equal(p.weapon,undefined);
  for(const mutate of[w=>w.kind='invented',w=>w.modelRef='foreign-model',w=>w.damage=5,w=>w.windupTicks=1,w=>w.activeTicks=25,w=>w.intervalTicks=1,w=>w.recoveryTicks=1,w=>w.windupTicks=5,w=>w.recoveryTicks=31,w=>w.range=4.861,w=>w.coneDegrees=180]){const b=raw();mutate(b.bosses.profiles.witch.weapon);assert.throws(()=>validateAreaMetadata(b,publicAreaRegistry));}
 });
