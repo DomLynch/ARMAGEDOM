@@ -3,7 +3,8 @@ import { createPickupModel } from "./pickup-model-view.js";
 import { WEAPON_VIEWS } from "./weapon-view-data.js";
 const FLASH = WEAPON_VIEWS.rocket.blast,
   hex = (c) => `#${c}`;
-export function createRocketView(s) {
+// `explosions` is the shared explosion effect (engine/explosion-effect.js) the blast also sets off; its owner updates and clears it.
+export function createRocketView(s, explosions = null) {
   const projectiles = new Map(),
     blasts = new Map(),
     forward = new T.Vector3(0, 0, 1),
@@ -95,6 +96,7 @@ export function createRocketView(s) {
             core.position.y = FLASH.coreHeight;
             root.add(ring, core);
             root.position.copy(s.world.toRender(blast.position, FLASH.groundLift));
+            explosions?.spawn(root.position, blast.radius ?? FLASH.fallbackRadius, blast.time);
             s.scene.add(root);
             blasts.set(blast.id, { root, start: blast.time, npc: blast.id.startsWith("boss-rocket:") });
           }

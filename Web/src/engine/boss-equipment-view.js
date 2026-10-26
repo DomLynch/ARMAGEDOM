@@ -1,6 +1,7 @@
 import { ownsEmberReward } from "./boss-equipment-data.js";
 import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
+import { createExplosionEffects } from "./explosion-effect.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
 import { BOSS_EQUIPMENT_VIEW as V } from "./boss-equipment-view-data.js";
@@ -9,7 +10,8 @@ import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
-  const rockets = createRocketView(s),
+  const explosions = createExplosionEffects(s),
+    rockets = createRocketView(s, explosions),
     cards = new Map(),
     equipHandlers = new Map(),
     drops = new Map(),
@@ -133,6 +135,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   }
   function clearWorld() {
     rockets.clear();
+    explosions.clear();
     for (const view of drops.values()) view.dispose();
     drops.clear();
     for (const row of projectiles.values()) {
@@ -161,6 +164,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         if (g.events.some((event) => event.type === "grenade-blast" && event.id === id)) {
           row.warning.material.color.set(`#${B.colour}`);
           blasts.set(id, { mesh: row.warning, start: g.time });
+          explosions.spawn(row.warning.position, R.outer, g.time);
         } else {
           row.warning.geometry.dispose();
           row.warning.material.dispose();
@@ -303,6 +307,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     }
     updateProjectiles(g);
     rockets.update(g);
+    explosions.update(g.time);
   }
   function interaction() {
     const g = s.game;
@@ -346,6 +351,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     dispose() {
       disposed = true;
       clearWorld();
+      explosions.dispose();
       for (const remove of listeners) remove();
       cards.clear();
       equipHandlers.clear();

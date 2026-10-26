@@ -468,5 +468,54 @@
     "planeDistance": 99,
     "renderOrder": -85,
     "maxStepSeconds": 0.1
+  },
+  "explosion": {
+    "maxActive": 3,
+    "texture": { "size": 64, "falloffPower": 1.4 },
+    "renderOrder": 3,
+    "groundLift": 0.03,
+    "goldenAngle": 2.399963229728653,
+    "flash": { "seconds": 0.14, "diameterRatio": 1.1, "colour": "fff4d0", "lift": 0.3 },
+    "fireball": {
+      "lobes": 4,
+      "seconds": 0.65,
+      "startDiameterRatio": 0.25,
+      "peakDiameterRatio": 1.15,
+      "lobeShrink": 0.85,
+      "spreadRatio": 0.3,
+      "lift": 0.22,
+      "liftStep": 0.1,
+      "colourStart": "ffe08a",
+      "colourEnd": "ff5a14",
+      "opacity": 0.95,
+      "easePower": 2.5,
+      "fadePower": 1.3
+    },
+    "smoke": {
+      "count": 5,
+      "seconds": 1.5,
+      "delay": 0.12,
+      "fadeInSeconds": 0.2,
+      "startDiameterRatio": 0.4,
+      "endDiameterRatio": 1.1,
+      "spreadRatio": 0.4,
+      "riseSpeed": 1.1,
+      "colour": "3b3530",
+      "opacity": 0.6
+    },
+    "sparks": {
+      "count": 10,
+      "seconds": 0.6,
+      "speedRatio": 2.6,
+      "speedStep": 0.6,
+      "gravity": 4.5,
+      "sizeRatio": 0.07,
+      "liftRatio": 0.15,
+      "elevationMin": 0.3,
+      "elevationMax": 1.2,
+      "elevationStride": 0.618,
+      "colour": "ffc46b"
+    },
+    "scorch": { "seconds": 3, "fadeStart": 0.4, "diameterRatio": 1.3, "opacity": 0.6, "colour": "120e0b" }
   }
 }
