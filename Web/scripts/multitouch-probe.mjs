@@ -564,21 +564,44 @@ async function padHeldTap(label, selector, passed) {
     });
   }
 }
-// I4: the weapon-tile arrows (#weapon-tiles-prev / #weapon-tiles-next), shown once more than two weapons are carried
+// J: walking onto a pickup with the pad held and tilted: the auto-claim must not drop the stick (the player keeps walking on).
+// Runs first because it claims the staged Ember drop; I4 below reuses the third weapon it leaves behind (a drop can be claimed once).
 {
   await settle();
-  const drop = await page.evaluate(() => {
+  const staged = await page.evaluate(() => {
     const g = __qa.game, e = g.bossEquipment?.emberProjector;
     if (!e) return null;
-    const at = { x: g.player.pos.x + 7, z: g.player.pos.z };
+    const at = { x: g.player.pos.x + 1.9, z: g.player.pos.z };
     e.status = "pending";
     e.dropPosition = at;
     return at;
   });
-  if (!drop) note("I4 weapon-tile arrows", false, "no Ember Projector state to stage a third weapon with");
+  if (!staged) note("J walk onto an Ember drop with the pad held", false, "no Ember Projector state to stage");
   else {
-    await moveTo(drop.x - 0.4, drop.z);
-    await sleep(1800); // walking onto it claims and equips it (auto-pickup)
+    await finger.down(1, PAD_START);
+    await finger.move(1, PAD_FULL);
+    await sleep(350);
+    const knobs = [];
+    // Short walk only: a long one runs the player into an area exit (a travel reloads the page).
+    for (let i = 0; i < 5; i++) {
+      await sleep(250);
+      knobs.push((await read()).knob.x);
+    }
+    const owned = await page.evaluate(() => __qa.game.bossEquipment.emberProjector.status);
+    const r0 = await read();
+    await sleep(600);
+    const r1 = await read();
+    note("J pad held and tilted, walking onto an Ember drop: claimed, and the stick keeps steering", owned === "owned" && r1.knob.x > 30 && dist2(r0.pos, r1.pos) > 0.2, `status=${owned}, knob px over time=${knobs.map((k) => k.toFixed(0)).join(",")}, walked ${dist2(r0.pos, r1.pos).toFixed(2)} m after the claim`);
+    await finger.up(1);
+    await assertClean("J pad + auto-claim");
+  }
+}
+// I4: the weapon-tile arrows (#weapon-tiles-prev / #weapon-tiles-next), shown once more than two weapons are carried
+{
+  await settle();
+  const drop = await page.evaluate(() => (__qa.game.bossEquipment?.emberProjector?.status === "owned" ? true : null));
+  if (!drop) note("I4 weapon-tile arrows", false, "no third weapon (the Ember Projector was not claimed in J)");
+  else {
     await moveTo(HOME.x, HOME.z);
     await sleep(800);
     const info = await page.evaluate(() => ({ pages: document.getElementById("weapon-tiles")?.dataset.pages, next: !document.getElementById("weapon-tiles-next")?.hidden, tiles: document.querySelectorAll("#weapon-tiles-track button").length }));

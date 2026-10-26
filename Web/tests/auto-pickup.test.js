@@ -199,6 +199,34 @@ test("a boss drop (the Ember Projector) is claimed on walking in exactly like an
   }
 });
 
+test("a claim keeps the held move pad: the input is cleared with keepMovement (the walk-on must not drop the thumb)", () => {
+  const previous = globalThis.document;
+  globalThis.document = { getElementById: () => ({}) };
+  const clears = [];
+  const g = {
+    time: 1,
+    events: [],
+    player: { hp: 150, pos: { x: 0, z: 0 }, hurtUntil: 0, dodgeUntil: 0, ready: 0 },
+    world: { areaId: "westminster", bossEquipmentData: { emberProjector: profiles.emberProjector }, lineClear: () => true },
+    bossEquipment: { emberProjector: { status: "pending", dropPosition: { x: 1, z: 0 } } },
+  };
+  const s = { game: g, loaded: true, paused: false, actors: { equipmentReady: () => true }, input: { clear: (options) => clears.push(options) } };
+  const view = createBossEquipmentView(s, () => ({ ok: true, events: [] }));
+  try {
+    view.interaction()[0].run();
+    assert.deepEqual(clears, [{ keepMovement: true }]);
+  } finally {
+    view.dispose();
+    globalThis.document = previous;
+  }
+});
+
+test("every weapon claim and equip clears with keepMovement, never a bare input.clear()", async () => {
+  const fs = await import("node:fs");
+  for (const file of ["engine/boss-equipment-view.js", "engine/rifle-view.js", "unique-reward-view.js", "engine/flame-view.js", "engine/run-views.js"])
+    assert.doesNotMatch(fs.readFileSync(new URL(`../src/${file}`, import.meta.url), "utf8"), /input\??\.clear\(\)/, file);
+});
+
 test("every pickup producer marks its candidate, and no Collect button or Tap COLLECT notice is left in the source", async () => {
   const fs = await import("node:fs");
   const read = (f) => fs.readFileSync(new URL(`../src/${f}`, import.meta.url), "utf8");
