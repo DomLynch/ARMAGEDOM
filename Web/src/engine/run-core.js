@@ -33,6 +33,9 @@ import * as codec from "./run-state.js";
 import { collectSupply, hasExtendedLoot, collectGearSupply, GEAR_ITEMS } from "../supplies.js";
 import { collectVest, VEST_RULES, grantVest } from "../vest.js";
 import { collectPistol, equipPistol, grantPistol } from "../pistol.js";
+import { GAME_DATA } from "./game-data.js";
+
+const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
 
 // One session writer; render/input code supplies live-run access and fresh construction.
 export function createRunPersistence({ getRun, setRun, createFreshRun, storage }) {
@@ -119,7 +122,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
         getRun,
         data: g.world.expeditionData,
         registry: g.world.registry,
-        saveVersion: g.world.bossData ? 6 : 5,
+        saveVersion: g.world.bossData ? 6 : 5, // tuning-ok: the run save format versions with and without boss data
         previousPlacementIds: g.world.bossData
           ? Object.values(options.placements)
               .flat()
@@ -344,7 +347,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       try {
         const raw = args[1] == null ? null : JSON.parse(args[1]);
         if (
-          raw?.version <= 7 &&
+          raw?.version <= 7 && // tuning-ok: the last save version written before the death-weapon credit policy
           (raw.progression?.awards ?? []).some((row) => deathWeaponDescriptor(row.weaponId)?.creditPolicy === "none")
         )
           return null;
@@ -463,7 +466,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
   }
   function unavailable(g) {
     g.message = "Run saving unavailable. Supplies kept.";
-    g.messageUntil = g.time + 5;
+    g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
   }
   function dispatchPistol(g, command, canAct) {
     if (
@@ -489,7 +492,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       const result = core.dispatch(command);
       if (!result.ok && result.code === "storage-unavailable") {
         g.message = "Saving unavailable. Contract and equipment kept.";
-        g.messageUntil = g.time + 5;
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -504,7 +507,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       if (result.ok && g.world.uniqueRewardData) syncMeleeEquipment(g);
       if (!result.ok && result.code === "storage-unavailable") {
         g.message = "Saving unavailable. Equipment kept.";
-        g.messageUntil = g.time + 5;
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -582,7 +585,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
           clock.reloadingUntil = 0;
       } else if (result.code === "storage-unavailable") {
         g.message = "Saving unavailable. Rifle and ammunition kept.";
-        g.messageUntil = g.time + 5;
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -703,7 +706,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
           g.bossEquipment?.emberProjector?.status === "pending"
         ) {
           g.message = g.world.bossEquipmentData.emberProjector.name + " dropped.";
-          g.messageUntil = g.time + 8;
+          g.messageUntil = g.time + NOTICES.bossDropSeconds;
         }
       }
     return result.ok;
@@ -717,10 +720,10 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
         g.player.hp = 0;
         g.finished = true;
         g.message = "Saved run could not be read. Open the menu and choose Reset game to start fresh.";
-        g.messageUntil = 5;
+        g.messageUntil = NOTICES.resetPromptSeconds;
       } else {
         g.message = "Run saving unavailable. Supplies kept.";
-        g.messageUntil = 5;
+        g.messageUntil = NOTICES.storageUnavailableSeconds;
       }
     }
     persistRun(g);
@@ -762,7 +765,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
                   : event.kind === "rounds"
                     ? `Scavenged ${event.amount} spare rounds.`
                     : `Dressing restored ${Math.ceil(event.amount)} health.`;
-            g.messageUntil = g.time + 3;
+            g.messageUntil = g.time + NOTICES.supplyPickupSeconds;
           }
         } else if (result.code === "storage-unavailable") {
           unavailable(g);
@@ -784,13 +787,13 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
             const notice = drop.id + reason;
             if (g.supplyNotice === notice && g.time < g.supplyNoticeUntil) continue;
             g.supplyNotice = notice;
-            g.supplyNoticeUntil = g.time + 4;
+            g.supplyNoticeUntil = g.time + NOTICES.supplyNoticeRepeatSeconds;
             g.message = {
               "pistol-required": "Collect the pistol first. Rounds kept.",
               "reserve-full": "Spare rounds full. Supply kept.",
               "health-full": "Health full. Dressing kept.",
             }[reason];
-            g.messageUntil = g.time + 2;
+            g.messageUntil = g.time + NOTICES.supplyRefusalSeconds;
           }
         }
       }
@@ -807,7 +810,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
     }
     for (const event of result.events) g.events.push({ ...event, actor: g.player });
     g.message = "Worn vest equipped · 10% protection from unblocked hits.";
-    g.messageUntil = g.time + 4;
+    g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
   }
   return {
     dispatchMarked,

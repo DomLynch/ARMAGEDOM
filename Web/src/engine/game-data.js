@@ -15,6 +15,7 @@ import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
+import runNotices from "../data/runNotices.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
 import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import guestAuth from "../data/guestAuth.json" with { type: "json" };
@@ -43,6 +44,7 @@ import { validateBrowserSession } from "./game-data-browser-session.js";
 import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
+import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
@@ -75,6 +77,7 @@ export {
   validateBrowserSession,
   validateCombatRules,
   validateCommanderSession,
+  validateRunNotices,
   validateCreatures,
   validateCreditPolicies,
   validateDiagnostics,
@@ -881,6 +884,7 @@ const sources = () => ({
   browserSession: [browserSession, validateBrowserSession],
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
+  runNotices: [runNotices, validateRunNotices],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
