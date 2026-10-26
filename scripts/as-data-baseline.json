@@ -76,7 +76,6 @@
     "donor/knife.js": 2,
     "drone-mechanics.js": 1,
     "engine/boss-equipment-core.js": 1,
-    "engine/commander/match.js": 1,
     "engine/contracts.js": 1,
     "engine/creature-catalogue.js": 1,
     "engine/flame-fuel-state.js": 1,
