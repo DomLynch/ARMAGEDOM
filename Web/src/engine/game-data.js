@@ -24,15 +24,11 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
+import { count, fail, validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-checks.js";
 
+// The diagnostics, renderBudget and saveClient validators live in game-data-checks.js (this file's size limit); they are still exported here.
+export { validateDiagnostics, validateRenderBudget, validateSaveClient };
 export const SUPPORTED_SCHEMA_VERSION = 1;
-const fail = (file, why) => {
-  throw TypeError(`Invalid game data ${file}: ${why}`);
-};
-const count = (file, field, value, min, max) => {
-  if (!Number.isSafeInteger(value) || value < min || value > max)
-    fail(file, `${field} must be an integer from ${min} to ${max}`);
-};
 
 // combatRules.json: the numbers combat.js used to carry inline (Dom's rule: no tuning values in code). `legacy` is the original
 // non-pilot goblin game: four enemy kinds (index = kind) and the shared swing, projectile, formation and loot numbers. Seconds, metres,
@@ -186,13 +182,6 @@ export function validateCreatureDefinitions(d) {
   }
 }
 
-export function validateDiagnostics(d) {
-  closed(d, ["schema_version", "statsFramesPerLine", "loadStallMs"]);
-  count("diagnostics", "statsFramesPerLine", d.statsFramesPerLine, 1, 100000);
-  // Enter shows "Retry loading" when no model has finished loading for this long (a stalled connection), instead of waiting forever.
-  count("diagnostics", "loadStallMs", d.loadStallMs, 5000, 600000);
-}
-
 // The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
 // the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
 export function validateLocker(d) {
@@ -209,48 +198,6 @@ export function validateLocker(d) {
   for (const [key, cap] of Object.entries(d.resourceCaps))
     if (!Number.isFinite(cap) || cap <= 0 || cap > 100000 || (key !== "flame-fuel" && !Number.isSafeInteger(cap)))
       fail("locker", `resourceCaps.${key}`);
-}
-
-// A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
-// engine/render-budget.js compares a measurement to it). Dom's phone is the judge; these numbers stop the cost creeping meanwhile.
-export function validateRenderBudget(d) {
-  closed(d, ["schema_version", "provisional", "westminster", "perRemote"]);
-  if (typeof d.provisional !== "boolean") fail("renderBudget", "provisional must be true or false");
-  closed(d.westminster, ["remotes", "maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "westminster.remotes", d.westminster.remotes, 1, 64);
-  count("renderBudget", "westminster.maxDrawCalls", d.westminster.maxDrawCalls, 1, 10000);
-  count("renderBudget", "westminster.maxTriangles", d.westminster.maxTriangles, 1, 10000000);
-  closed(d.perRemote, ["maxDrawCalls", "maxTriangles"]);
-  count("renderBudget", "perRemote.maxDrawCalls", d.perRemote.maxDrawCalls, 0, 1000);
-  count("renderBudget", "perRemote.maxTriangles", d.perRemote.maxTriangles, 0, 1000000);
-}
-
-export function validateSaveClient(d) {
-  closed(d, [
-    "schema_version",
-    "minSaveIntervalMs",
-    "staleSeqRetries",
-    "characterName",
-    "bootSyncWaitMs",
-    "bucketBurst",
-    "bucketRefillMs",
-    "bucketReserve",
-    "retryFloorMs",
-  ]);
-  // The shortest wait before a kept record is sent again after a refused or failed send, whatever the writer's Retry-After says.
-  count("saveClient", "retryFloorMs", d.retryFloorMs, 50, 5000);
-  // The client's copy of the writer's per-account save bucket (server/writer DEFAULT_LIMITS save_run: burst, one token per refill; every
-  // request costs one, a stale-seq retry too). A routine save never spends the last `bucketReserve` tokens: only a death save and the
-  // page-hide send may, so a long fight can never leave the death save refused. Keep these equal to the writer's numbers.
-  count("saveClient", "bucketBurst", d.bucketBurst, 1, 100);
-  count("saveClient", "bucketRefillMs", d.bucketRefillMs, 100, 600000);
-  count("saveClient", "bucketReserve", d.bucketReserve, 0, 50);
-  if (d.bucketReserve >= d.bucketBurst) fail("saveClient", "bucketReserve must be below bucketBurst");
-  count("saveClient", "bootSyncWaitMs", d.bootSyncWaitMs, 0, 15000); // how long Enter waits for the server record at most
-  count("saveClient", "minSaveIntervalMs", d.minSaveIntervalMs, 1000, 600000); // the writer's bucket refills one save per 5 s
-  count("saveClient", "staleSeqRetries", d.staleSeqRetries, 0, 5);
-  if (typeof d.characterName !== "string" || !/^[\w -]{1,24}$/.test(d.characterName))
-    fail("saveClient", "characterName");
 }
 
 // weapons.json holds the ranged catalogue. Its per-row rules are enforced by validateRangedWeaponCatalog (engine/weapon-catalog.js),

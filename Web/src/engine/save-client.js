@@ -260,7 +260,8 @@ export function createSaveClient({
       }
       if (reply.error) {
         if (reply.status === 429) seq--; // tuning-ok: HTTP status code (refused before it was counted: the same sequence number goes out again)
-        if (reply.status === 502 || reply.status === 504) uncertain = true; // tuning-ok: HTTP status codes (the writer may have committed before the proxy gave up)
+        // The writer may have committed before the proxy gave up.
+        if (reply.status === 502 || reply.status === 504) uncertain = true; // tuning-ok: HTTP status codes
         return { ok: false, reason: reply.error, retryMs: reply.retryMs, status: reply.status };
       }
       if (overtaken && ["stale", "stale-seq", "seq-conflict"].includes(reply.refused)) return { ok: false, reason: "superseded" };
