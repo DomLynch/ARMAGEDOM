@@ -43,7 +43,7 @@ export function prepareArmSever({
     }),
     boneMap = new Map(native.skeleton.bones.map((b, i) => [b, bones[i]])),
     materials = [];
-  container.name = "Detached closed left arm";
+  container.name = "Detached closed left arm"; // text-ok: scene-graph object name
   container.add(assembly);
   assembly.add(part);
   assembly.matrixAutoUpdate = false;

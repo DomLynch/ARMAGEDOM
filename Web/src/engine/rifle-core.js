@@ -1,4 +1,5 @@
 import { RIFLE_PROFILE } from "./weapon-catalog.js";
+import { GAME_DATA } from "./game-data.js";
 import {
   createLayerCodec,
   createLayerStorageAdapter,
@@ -20,11 +21,7 @@ export const RIFLE_LAYER = Object.freeze({
   baseVersion: 8,
   pickupEpsilon: 1e-8,
   finitePosition: true,
-  messages: Object.freeze({
-    envelope: "Invalid rifle envelope",
-    base: "Rifle requires existing v8",
-    snapshot: "Invalid rifle snapshot",
-  }),
+  messages: GAME_DATA.combatText.layerMessages.rifle, // data/combatText.json
 });
 const fail = layerFailure;
 const same = (a, b) =>
