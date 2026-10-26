@@ -16,6 +16,7 @@ import creatureDefinitions from "../data/creatureDefinitions.json" with { type: 
 import commander from "../data/commander.json" with { type: "json" };
 import commanderSession from "../data/commanderSession.json" with { type: "json" };
 import runNotices from "../data/runNotices.json" with { type: "json" };
+import webText from "../data/webText.json" with { type: "json" };
 import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
@@ -53,6 +54,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
@@ -94,6 +96,7 @@ export {
   validateCombatRules,
   validateCommanderSession,
   validateRunNotices,
+  validateWebText,
   validateSessionText,
   validateMarkedHunterSpawn,
   validateReaperMotion,
@@ -150,7 +153,11 @@ export function validateCreatureDefinitions(d) {
 // The locker's per-resource carry/stash caps (engine/locker-state.js). The resource list is the saved locker shape and stays in code;
 // the loader checks the keys and the numbers. flame-fuel is the one fractional resource, the rest are whole counts.
 export function validateLocker(d) {
-  closed(d, ["schema_version", "resourceCaps"]);
+  closed(d, ["schema_version", "weaponIds", "resourceCaps"]);
+  // The saved weapon list: its order is the save shape (locker-core.js names the slots by index), so ids are never reordered or dropped.
+  if (!Array.isArray(d.weaponIds) || d.weaponIds.length !== 10 || new Set(d.weaponIds).size !== d.weaponIds.length)
+    fail("locker", "weaponIds must be 10 unique ids");
+  for (const id of d.weaponIds) if (typeof id !== "string" || !/^[a-z0-9-]+-v\d+$/.test(id)) fail("locker", `weaponIds ${id}`);
   closed(d.resourceCaps, [
     "railgun-reserve",
     "pistol-reserve",
@@ -979,6 +986,7 @@ const sources = () => ({
   commander: [commander, validateCommander],
   commanderSession: [commanderSession, validateCommanderSession],
   runNotices: [runNotices, validateRunNotices],
+  webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],
   safehouseText: [safehouseText, validateSafehouseText],
@@ -1029,7 +1037,8 @@ export function buildGameData(files = sources()) {
 }
 
 export const GAME_DATA = buildGameData();
-// Supply names follow the locker's own resource list (locker.json); weapon names are checked in engine/locker-state.js.
+// The safehouse weapon and supply names follow the locker's own id lists (locker.json weaponIds and resourceCaps).
+checkSafehouseNameIds(GAME_DATA.safehouseText.safehouse.weaponNames, GAME_DATA.locker.weaponIds, "safehouse.weaponNames");
 checkSafehouseNameIds(
   GAME_DATA.safehouseText.safehouse.resourceNames,
   Object.keys(GAME_DATA.locker.resourceCaps),

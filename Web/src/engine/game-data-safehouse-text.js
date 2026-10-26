@@ -43,8 +43,8 @@ export function validateSafehouseText(d) {
   section("marked", d.marked, marked, ["shopNames"]);
 }
 
-// Cross-reference: a name table must name exactly the ids its owner lists (locker.json resourceCaps for supplies, the locker's
-// weapon ids for weapons), so a new locker id needs only its data row plus its name here.
+// Cross-reference: a name table must name exactly the ids its owner lists (locker.json resourceCaps for supplies, locker.json
+// weaponIds for weapons), so a new locker id needs only its data row plus its name here.
 export function checkSafehouseNameIds(table, ids, field) {
   const keys = Object.keys(table);
   if (keys.length !== ids.length || ids.some((id) => !Object.hasOwn(table, id)))
