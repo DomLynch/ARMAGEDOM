@@ -1,4 +1,8 @@
 import { WEAPON_AUDIO } from "./engine/weapon-catalog.js";
+import { GAME_DATA } from "./engine/game-data.js";
+
+// data/audio.json: voice engine, loop levels and the synthesized cue rows.
+const A = GAME_DATA.audio;
 // Use the actually presented sever outcome; replace its generic impact rather than doubling it.
 export function presentationAudioEvents(events, severs) {
   if (!severs.length) return events;
@@ -11,15 +15,18 @@ export function donorCues(events) {
     air = [];
   for (const event of events) {
     const heavy = event.audioWeight === "heavy" || event.moveId === "heavy_overhead" || event.action === "heavy";
-    if (event.type === "sever-presented") impacts.push({ name: "hit_heavy", gain: 0.5 });
+    if (event.type === "sever-presented") impacts.push({ name: "hit_heavy", gain: A.cueGains.sever });
     else if (event.type === "hit" && !event.blocked && event.amount !== 0)
-      impacts.push({ name: heavy ? "hit_heavy" : "hit_flesh", gain: 0.3 });
+      impacts.push({ name: heavy ? "hit_heavy" : "hit_flesh", gain: A.cueGains.hit });
     else if (event.type === "parry") impacts.push({ name: "parry", gain: 1 });
     else if (event.type === "block") impacts.push({ name: "block", gain: 1 });
     else if (event.type === "guard-break") impacts.push({ name: "guard_break", gain: 1 });
     else if (event.type === "attack" || event.type === "enemy-attack")
-      air.push({ name: heavy ? "whoosh_heavy" : "whoosh_light", gain: heavy ? 0.18 : 0.12 });
-    else if (event.type === "dodge") air.push({ name: "roll", gain: 0.12 });
+      air.push({
+        name: heavy ? "whoosh_heavy" : "whoosh_light",
+        gain: heavy ? A.cueGains.whooshHeavy : A.cueGains.whooshLight,
+      });
+    else if (event.type === "dodge") air.push({ name: "roll", gain: A.cueGains.roll });
   }
   return [...impacts, ...air];
 }
@@ -49,6 +56,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
   let sawMotor = null,
     railgunHum = null;
   const sawActors = new Set();
+  const voicesFull = () => active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= A.engine.voiceCapacity;
   function stopSaw() {
     if (!sawMotor) return;
     try {
@@ -63,8 +71,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     const source = context.createOscillator(),
       gain = context.createGain();
     source.type = "sawtooth";
-    source.frequency.value = 185;
-    gain.gain.value = effectiveMode() === "off" ? 0.015 : 0.035;
+    source.frequency.value = A.saw.frequency;
+    gain.gain.value = effectiveMode() === "off" ? A.saw.gainOff : A.saw.gain;
     source.connect(gain);
     gain.connect(context.destination);
     source.start();
@@ -80,19 +88,13 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     railgunHum = null;
   }
   function startRailgunHum(seconds) {
-    if (
-      railgunHum ||
-      !enabled ||
-      context?.state !== "running" ||
-      active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= 16
-    )
-      return;
+    if (railgunHum || !enabled || context?.state !== "running" || voicesFull()) return;
     const source = context.createOscillator(),
       gain = context.createGain();
     source.type = "sine";
-    source.frequency.setValueAtTime(90, context.currentTime);
-    source.frequency.linearRampToValueAtTime(360, context.currentTime + seconds);
-    gain.gain.value = 0.025;
+    source.frequency.setValueAtTime(A.railgunHum.fromHz, context.currentTime);
+    source.frequency.linearRampToValueAtTime(A.railgunHum.toHz, context.currentTime + seconds);
+    gain.gain.value = A.railgunHum.gain;
     source.connect(gain);
     gain.connect(context.destination);
     source.start();
@@ -122,21 +124,24 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         ? "high"
         : "low";
   function emit(source, duration, volume, filter = null, offset = null) {
-    if (active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= 16) {
+    if (voicesFull()) {
       source.disconnect();
       filter?.disconnect();
       return;
     }
     if (!output) {
       output = context.createGain();
-      output.gain.value = 0.65;
+      output.gain.value = A.engine.outputGain;
       output.connect(context.destination);
     }
     const gain = context.createGain(),
       at = context.currentTime;
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(volume * (effectiveMode() === "low" ? 0.4 : 1), at + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+    gain.gain.setValueAtTime(A.engine.floorGain, at);
+    gain.gain.exponentialRampToValueAtTime(
+      volume * (effectiveMode() === "low" ? A.engine.lowModeFactor : 1),
+      at + A.engine.attackSeconds,
+    );
+    gain.gain.exponentialRampToValueAtTime(A.engine.floorGain, at + duration);
     source.connect(filter ?? gain);
     if (filter) filter.connect(gain);
     gain.connect(output);
@@ -160,21 +165,28 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     source.onended = voice.cleanup;
     if (offset === null) {
       source.start(at);
-      source.stop(at + duration + 0.01);
+      source.stop(at + duration + A.engine.stopPadSeconds);
     } else source.start(at, offset, duration);
   }
   function tone(from, to, duration, gain, type = "triangle") {
-    if (active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= 16) return;
+    if (voicesFull()) return;
     const source = context.createOscillator();
     source.type = type;
     source.frequency.setValueAtTime(from, context.currentTime);
     source.frequency.exponentialRampToValueAtTime(to, context.currentTime + duration);
     emit(source, duration, gain);
   }
+  // One data row ({ from, to, seconds, gain, type? }), with the gain or length replaced where a mode asks for it.
+  const toneRow = (row, gain = row.gain, seconds = row.seconds) => tone(row.from, row.to, seconds, gain, row.type);
+  const noiseRow = (row) => noise(row.seconds, row.gain, row.cutoff);
   function noise(duration, gain, frequency) {
-    if (active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= 16) return;
+    if (voicesFull()) return;
     if (!noiseBuffer) {
-      noiseBuffer = context.createBuffer(1, Math.ceil(context.sampleRate * 0.16), context.sampleRate);
+      noiseBuffer = context.createBuffer(
+        1,
+        Math.ceil(context.sampleRate * A.engine.noiseBufferSeconds),
+        context.sampleRate,
+      );
       const data = noiseBuffer.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
     }
@@ -219,7 +231,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         context: context?.state ?? "locked",
         enabled,
         activeVoices: active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0),
-        voiceCapacity: 16,
+        voiceCapacity: A.engine.voiceCapacity,
         mode: effectiveMode(),
         played,
         shotEvents,
@@ -292,11 +304,12 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         function hitCue(lethal, countHit = true) {
           if (countHit) hitEvents++;
           if (lethal) killEvents++;
-          if (off) tone(lethal ? 1450 : 1000, lethal ? 550 : 800, lethal ? 0.09 : 0.035, 0.062, "sine");
+          if (off) toneRow(lethal ? A.hit.off.lethal : A.hit.off.normal);
           else {
-            tone(lethal ? 160 : 280, lethal ? 55 : 130, lethal ? 0.14 : 0.065, 0.16);
-            noise(lethal ? 0.085 : 0.03, 0.1, 1700);
-            if (lethal) tone(1000, 1500, 0.09, 0.065, "sine");
+            const row = lethal ? A.hit.lethal : A.hit.normal;
+            toneRow(row.tone);
+            noiseRow(row.noise);
+            if (lethal) toneRow(row.ring);
           }
         }
         for (const event of events) {
@@ -305,9 +318,9 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
           else if (event.type === "railgun-shot") {
             stopRailgunHum();
             shotEvents++;
-            tone(1100, 65, 0.18, 0.16, "sawtooth");
-            tone(660, 110, 0.2, 0.08);
-            noise(0.06, 0.12, 1800);
+            toneRow(A.railgunShot.crack);
+            toneRow(A.railgunShot.thump);
+            noiseRow(A.railgunShot.noise);
           } else if (event.type === "saw-start") {
             sawActors.add(event.actor.id);
             startSaw();
@@ -321,22 +334,28 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
           } else if (event.type === "shot" || event.type === "reaper-shot" || event.type === "boss-shotgun-shot") {
             shotEvents++;
             const cue = WEAPON_AUDIO[event.weapon];
+            const fallback = A.shot.fallback;
             tone(
-              off ? 240 : (cue?.from ?? 220),
-              off ? 55 : (cue?.to ?? 48),
-              off ? 0.08 : (cue?.seconds ?? 0.11),
-              off ? 0.085 : (cue?.gain ?? 0.22),
+              off ? A.shot.off.from : (cue?.from ?? fallback.from),
+              off ? A.shot.off.to : (cue?.to ?? fallback.to),
+              off ? A.shot.off.seconds : (cue?.seconds ?? fallback.seconds),
+              off ? A.shot.off.gain : (cue?.gain ?? fallback.gain),
             );
-            if (!off) noise(cue?.noiseSeconds ?? 0.065, cue?.noiseGain ?? 0.15, cue?.cutoff ?? 900);
+            if (!off)
+              noise(
+                cue?.noiseSeconds ?? fallback.noiseSeconds,
+                cue?.noiseGain ?? fallback.noiseGain,
+                cue?.cutoff ?? fallback.cutoff,
+              );
           } else if (event.type === "rocket-launch" || event.type === "boss-rocket-launch") {
             shotEvents++;
-            tone(160, 55, 0.12, 0.22);
-            if (!off) noise(0.09, 0.18, 850);
+            toneRow(A.rocketLaunch.tone);
+            if (!off) noiseRow(A.rocketLaunch.noise);
           } else if (event.type === "grenade-blast" || event.type === "boss-rocket-blast") {
             const cue = WEAPON_AUDIO.grenade;
-            tone(cue.from, cue.to, off ? 0.1 : cue.seconds, off ? 0.06 : cue.gain);
+            tone(cue.from, cue.to, off ? A.grenadeOff.seconds : cue.seconds, off ? A.grenadeOff.gain : cue.gain);
             if (!off) noise(cue.noiseSeconds, cue.noiseGain, cue.cutoff);
-          } else if (event.type === "pickup") tone(660, 880, 0.16, 0.025, "sine");
+          } else if (event.type === "pickup") toneRow(A.pickup);
           else if (
             event.type === "hit" &&
             !event.blocked &&
@@ -359,7 +378,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
           // Rotate existing takes without repeating the preceding take; no new sound/pitch layers.
           const index = ((lastVariants.get(cue.name) ?? -1) + 1) % variants.length;
           lastVariants.set(cue.name, index);
-          if (active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= 16) continue;
+          if (voicesFull()) continue;
           const [offset, duration] = variants[index],
             source = context.createBufferSource();
           source.buffer = buffer;

@@ -5,6 +5,8 @@
 import { readFileSync } from "node:fs";
 import { basename, relative } from "node:path";
 
+export { countNumberLiterals, numberLiteralProblems, isNumberExempt } from "./number-literal-gate.mjs";
+
 export const AS_DATA_OWNER = "rig-capabilities.js";
 export const DATA_FOLDER = "Web/public/world/";
 export const GAME_DATA_LOADER = "engine/game-data.js";

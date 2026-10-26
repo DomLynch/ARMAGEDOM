@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { indexOfToken } from "./helpers/source-slice.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
 import { relieveGeometryBudget, protectedAreas, limitParkedAreas } from "../src/engine/parked-view-budget.js";
 
 // Runs the preparation section of engine/areas.js (cut out by token, like preparation-priority.test.js) with a
@@ -115,6 +116,7 @@ function setup({ gateOpen = true, range = 30, parked = [] } = {}) {
   };
   s.stageAhead.limits.warmGroupObjects = 4;
   const context = vm.createContext({
+    TRAVEL: GAME_DATA.areaRuntime.travel,
     s,
     testState: state,
     console: { warn() {}, info() {}, error() {} },

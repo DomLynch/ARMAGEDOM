@@ -8,5 +8,30 @@
     "recheckMs": 250,
     "fightQuietMs": 1000
   },
-  "parkedAreas": { "maxAreas": 2, "maxBytes": 31457280 }
+  "parkedAreas": { "maxAreas": 2, "maxBytes": 31457280 },
+  "view": {
+    "textureBudgetMiB": 48,
+    "textureBudgetMinMiB": 16,
+    "cameraNear": 0.1,
+    "cameraFar": 300,
+    "portraitActorPixels": 63,
+    "landscapeZoomBoost": 1.1,
+    "portraitZoomBoost": 1.05,
+    "portraitLift": 0.02,
+    "landscapeLift": 0.1,
+    "maxFollowSeconds": 0.1,
+    "exitHintMeters": 6
+  },
+  "travel": {
+    "messageDelayMs": 300,
+    "failureMessageSeconds": 5,
+    "preparation": {
+      "deadlineMs": 16,
+      "idleTimeoutMs": 16,
+      "urgentSliceMs": 12,
+      "ambientSliceMs": 4,
+      "idleEnoughMs": 4,
+      "holdMs": 250
+    }
+  }
 }

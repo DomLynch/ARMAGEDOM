@@ -3,9 +3,11 @@
 // The sim needs these synchronously at module load, so they are bundled, not fetched. To add a file: put it in Web/src/data/, give it a
 // `schema_version`, write its validator below, and list it in sources(). Per-area content stays in Web/public/world/.
 import appearance from "../data/appearance.json" with { type: "json" };
+import audio from "../data/audio.json" with { type: "json" };
 import areaRuntime from "../data/areaRuntime.json" with { type: "json" };
 import areas from "../data/areas.json" with { type: "json" };
 import atmosphere from "../data/atmosphere.json" with { type: "json" };
+import combatRules from "../data/combatRules.json" with { type: "json" };
 import creatureDefinitions from "../data/creatureDefinitions.json" with { type: "json" };
 import commander from "../data/commander.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -30,6 +32,51 @@ const count = (file, field, value, min, max) => {
   if (!Number.isSafeInteger(value) || value < min || value > max)
     fail(file, `${field} must be an integer from ${min} to ${max}`);
 };
+
+// combatRules.json: the numbers combat.js used to carry inline (Dom's rule: no tuning values in code). `legacy` is the original
+// non-pilot goblin game: four enemy kinds (index = kind) and the shared swing, projectile, formation and loot numbers. Seconds, metres,
+// degrees; `moveSpeed` is metres per second.
+const legacyKind = ["hp", "radius", "damage", "swingRadius", "swingArc", "windupSeconds", "recoverSeconds", "readySeconds", "moveSpeed"];
+export function validateCombatRules(d) {
+  closed(d, ["schema_version", "legacy"]);
+  const l = d.legacy;
+  closed(l, [
+    "kinds",
+    "wideSwing",
+    "alertDistance",
+    "rangedReach",
+    "reachSlack",
+    "aimDot",
+    "swingSeconds",
+    "boltSpeed",
+    "boltHitRadius",
+    "formation",
+    "loot",
+  ]);
+  if (!Array.isArray(l.kinds) || l.kinds.length !== 4) fail("combatRules", "legacy.kinds must list the four enemy kinds");
+  l.kinds.forEach((row, i) => {
+    closed(row, legacyKind);
+    for (const f of legacyKind) number("combatRules", `legacy.kinds[${i}].${f}`, row[f], f === "hp" || f.endsWith("Seconds") ? 0.01 : 0);
+  });
+  closed(l.wideSwing, ["radius", "arc"]);
+  number("combatRules", "legacy.wideSwing.radius", l.wideSwing.radius, 0.01);
+  number("combatRules", "legacy.wideSwing.arc", l.wideSwing.arc, 1);
+  for (const f of ["alertDistance", "rangedReach", "reachSlack", "swingSeconds", "boltSpeed", "boltHitRadius"])
+    number("combatRules", `legacy.${f}`, l[f], 0.001);
+  number("combatRules", "legacy.aimDot", l.aimDot, 0);
+  if (l.aimDot >= 1) fail("combatRules", "legacy.aimDot must be below 1");
+  closed(l.formation, ["columns", "xSpacing", "zSpacing"]);
+  count("combatRules", "legacy.formation.columns", l.formation.columns, 1, 20);
+  number("combatRules", "legacy.formation.xSpacing", l.formation.xSpacing, 0);
+  number("combatRules", "legacy.formation.zSpacing", l.formation.zSpacing, 0);
+  closed(l.loot, ["pickupRadius", "blade", "armour", "tonic"]);
+  number("combatRules", "legacy.loot.pickupRadius", l.loot.pickupRadius, 0.01);
+  for (const kind of ["blade", "armour", "tonic"]) {
+    closed(l.loot[kind], ["base", "step"]);
+    number("combatRules", `legacy.loot.${kind}.base`, l.loot[kind].base, 0);
+    number("combatRules", `legacy.loot.${kind}.step`, l.loot[kind].step, 0);
+  }
+}
 
 // creatureDefinitions.json: the creature foundations (one row per rig: clips, scale, stats, behaviour), the recipe -> foundation map and
 // the native animal roles. engine/creature-catalogue.js validates every row in depth when it builds the catalogue; the loader checks
@@ -131,6 +178,7 @@ export function validateWeapons(d) {
   closed(d, [
     "schema_version",
     "autoEquipOnFirstPickup",
+    "autoPickupRetry",
     "ranged",
     "knife",
     "melee",
@@ -146,6 +194,12 @@ export function validateWeapons(d) {
     "audio",
   ]);
   if (typeof d.autoEquipOnFirstPickup !== "boolean") fail("weapons", "autoEquipOnFirstPickup must be true or false");
+  // run-views.js createAutoPickup: a floor pickup whose claim did not take is tried again after `firstSeconds`, the wait doubling up to
+  // `maxSeconds` (game time), while the player stays in reach.
+  closed(d.autoPickupRetry, ["firstSeconds", "maxSeconds"]);
+  number("weapons", "autoPickupRetry.firstSeconds", d.autoPickupRetry.firstSeconds, 0.1);
+  number("weapons", "autoPickupRetry.maxSeconds", d.autoPickupRetry.maxSeconds, d.autoPickupRetry.firstSeconds);
+  if (d.autoPickupRetry.maxSeconds > 60) fail("weapons", "autoPickupRetry.maxSeconds must be at most 60");
   if (!d.ranged || typeof d.ranged !== "object" || Array.isArray(d.ranged)) fail("weapons", "ranged must be an object");
   validateBossEquipment(d.bossEquipment, d.ranged);
   validateKnife(d.knife);
@@ -919,7 +973,33 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
+  // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
+  closed(d.variation, [
+    "size",
+    "rise",
+    "noiseOffsetSpan",
+    "defaultSmokeColor",
+    "tint",
+    "fireHeight",
+    "opacity",
+    "smokePeriod",
+    "smokeSpeed",
+    "wind",
+  ]);
+  for (const name of ["size", "rise", "tint", "fireHeight", "opacity", "smokeSpeed"]) {
+    closed(d.variation[name], ["min", "span"]);
+    fraction(`variation.${name}.min`, d.variation[name].min, 0.1, 2);
+    fraction(`variation.${name}.span`, d.variation[name].span, 0, 1);
+  }
+  fraction("variation.noiseOffsetSpan", d.variation.noiseOffsetSpan, 0.001, 1000);
+  fraction("variation.smokePeriod", d.variation.smokePeriod, 0.1, 1000);
+  if (!Array.isArray(d.variation.defaultSmokeColor) || d.variation.defaultSmokeColor.length !== 3)
+    fail("atmosphere", "variation.defaultSmokeColor");
+  d.variation.defaultSmokeColor.forEach((c, i) => fraction(`variation.defaultSmokeColor[${i}]`, c));
+  closed(d.variation.wind, ["east", "other", "span"]);
+  for (const f of ["east", "other", "span"]) fraction(`variation.wind.${f}`, d.variation.wind[f], 0, 4);
   const presets = Object.keys(d.presets);
   if (!presets.length) fail("atmosphere", "presets");
   for (const [name, p] of Object.entries(d.presets)) {
@@ -1080,7 +1160,35 @@ export function validateSupplies(d) {
 // areaRuntime.json: the light intensities an area gets when it names no preset (engine/area-lighting.js), the travel prefetch pacing
 // (engine/area-prefetch.js) and the parked-area budget (engine/areas.js). Milliseconds, bytes and light intensities, nothing else.
 export function validateAreaRuntime(d) {
-  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas"]);
+  closed(d, ["schema_version", "defaultLighting", "prefetch", "parkedAreas", "travel", "view"]);
+  // view: how world.js frames and budgets an area. MiB of backdrop textures, camera clip planes in metres, the portrait actor size in CSS
+  // pixels, zoom boosts as factors, screen lifts as fractions of the painting, the follow step cap in seconds and the exit hint range in metres.
+  closed(d.view, [
+    "textureBudgetMiB",
+    "textureBudgetMinMiB",
+    "cameraNear",
+    "cameraFar",
+    "portraitActorPixels",
+    "landscapeZoomBoost",
+    "portraitZoomBoost",
+    "portraitLift",
+    "landscapeLift",
+    "maxFollowSeconds",
+    "exitHintMeters",
+  ]);
+  count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
+  count("areaRuntime", "view.textureBudgetMinMiB", d.view.textureBudgetMinMiB, 1, d.view.textureBudgetMiB);
+  number("areaRuntime", "view.cameraNear", d.view.cameraNear, 0.001);
+  if (!(d.view.cameraFar > d.view.cameraNear && d.view.cameraFar <= 10000)) fail("areaRuntime", "view.cameraFar must be above cameraNear, at most 10000");
+  for (const f of ["portraitActorPixels", "landscapeZoomBoost", "portraitZoomBoost", "maxFollowSeconds", "exitHintMeters"])
+    number("areaRuntime", `view.${f}`, d.view[f], 0.001);
+  for (const f of ["portraitLift", "landscapeLift"]) number("areaRuntime", `view.${f}`, d.view[f], 0);
+  // travel: the "Traveling to ..." message delay, how long a failure message shows, and the area preparation slices (engine/areas.js).
+  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "preparation"]);
+  count("areaRuntime", "travel.messageDelayMs", d.travel.messageDelayMs, 0, 10000);
+  count("areaRuntime", "travel.failureMessageSeconds", d.travel.failureMessageSeconds, 1, 60);
+  closed(d.travel.preparation, ["deadlineMs", "idleTimeoutMs", "urgentSliceMs", "ambientSliceMs", "idleEnoughMs", "holdMs"]);
+  for (const [name, v] of Object.entries(d.travel.preparation)) count("areaRuntime", `travel.preparation.${name}`, v, 1, 5000);
   closed(d.defaultLighting, ["fillIntensity", "keyIntensity"]);
   for (const [name, v] of Object.entries(d.defaultLighting))
     if (!Number.isFinite(v) || v < 0 || v > 4) fail("areaRuntime", `defaultLighting.${name} must be 0 to 4`);
@@ -1110,6 +1218,91 @@ export function validateUniqueReward(d) {
   }
 }
 
+// audio.json: the synthesized combat cues and the voice engine of donor-audio.js. Frequencies in Hz, times in seconds, gains 0 to 1.
+// A tone row is { from, to, seconds, gain, type? } (type defaults to triangle in donor-audio.js); a noise row is { seconds, gain, cutoff }.
+export function validateAudio(d) {
+  const gain = (field, v) => {
+    if (!Number.isFinite(v) || v <= 0 || v > 1) fail("audio", `${field} must be above 0 and at most 1`);
+  };
+  const tone = (field, row, extra = []) => {
+    closed(row, ["from", "to", "seconds", "gain", ...extra], ["type"]);
+    number("audio", `${field}.from`, row.from, 1);
+    number("audio", `${field}.to`, row.to, 1);
+    number("audio", `${field}.seconds`, row.seconds, 0.001);
+    gain(`${field}.gain`, row.gain);
+    if ("type" in row && !["sine", "triangle", "sawtooth"].includes(row.type)) fail("audio", `${field}.type`);
+  };
+  const noise = (field, row) => {
+    closed(row, ["seconds", "gain", "cutoff"]);
+    number("audio", `${field}.seconds`, row.seconds, 0.001);
+    gain(`${field}.gain`, row.gain);
+    number("audio", `${field}.cutoff`, row.cutoff, 1);
+  };
+  closed(d, [
+    "schema_version",
+    "engine",
+    "saw",
+    "railgunHum",
+    "cueGains",
+    "hit",
+    "railgunShot",
+    "shot",
+    "rocketLaunch",
+    "grenadeOff",
+    "pickup",
+  ]);
+  closed(d.engine, [
+    "voiceCapacity",
+    "outputGain",
+    "floorGain",
+    "attackSeconds",
+    "stopPadSeconds",
+    "lowModeFactor",
+    "noiseBufferSeconds",
+  ]);
+  count("audio", "engine.voiceCapacity", d.engine.voiceCapacity, 1, 64);
+  for (const f of ["outputGain", "floorGain", "lowModeFactor"]) gain(`engine.${f}`, d.engine[f]);
+  for (const f of ["attackSeconds", "stopPadSeconds", "noiseBufferSeconds"]) number("audio", `engine.${f}`, d.engine[f], 0.0001);
+  closed(d.saw, ["frequency", "gain", "gainOff"]);
+  number("audio", "saw.frequency", d.saw.frequency, 1);
+  gain("saw.gain", d.saw.gain);
+  gain("saw.gainOff", d.saw.gainOff);
+  closed(d.railgunHum, ["gain", "fromHz", "toHz"]);
+  gain("railgunHum.gain", d.railgunHum.gain);
+  number("audio", "railgunHum.fromHz", d.railgunHum.fromHz, 1);
+  number("audio", "railgunHum.toHz", d.railgunHum.toHz, 1);
+  closed(d.cueGains, ["sever", "hit", "whooshHeavy", "whooshLight", "roll"]);
+  for (const [name, v] of Object.entries(d.cueGains)) gain(`cueGains.${name}`, v);
+  closed(d.hit, ["off", "lethal", "normal"]);
+  closed(d.hit.off, ["lethal", "normal"]);
+  tone("hit.off.lethal", d.hit.off.lethal);
+  tone("hit.off.normal", d.hit.off.normal);
+  closed(d.hit.lethal, ["tone", "noise", "ring"]);
+  tone("hit.lethal.tone", d.hit.lethal.tone);
+  noise("hit.lethal.noise", d.hit.lethal.noise);
+  tone("hit.lethal.ring", d.hit.lethal.ring);
+  closed(d.hit.normal, ["tone", "noise"]);
+  tone("hit.normal.tone", d.hit.normal.tone);
+  noise("hit.normal.noise", d.hit.normal.noise);
+  closed(d.railgunShot, ["crack", "thump", "noise"]);
+  tone("railgunShot.crack", d.railgunShot.crack);
+  tone("railgunShot.thump", d.railgunShot.thump);
+  noise("railgunShot.noise", d.railgunShot.noise);
+  closed(d.shot, ["fallback", "off"]);
+  tone("shot.fallback", d.shot.fallback, ["noiseSeconds", "noiseGain", "cutoff"]);
+  number("audio", "shot.fallback.noiseSeconds", d.shot.fallback.noiseSeconds, 0.001);
+  gain("shot.fallback.noiseGain", d.shot.fallback.noiseGain);
+  number("audio", "shot.fallback.cutoff", d.shot.fallback.cutoff, 1);
+  tone("shot.off", d.shot.off);
+  closed(d.rocketLaunch, ["tone", "noise"]);
+  tone("rocketLaunch.tone", d.rocketLaunch.tone);
+  noise("rocketLaunch.noise", d.rocketLaunch.noise);
+  closed(d.grenadeOff, ["seconds", "gain"]);
+  number("audio", "grenadeOff.seconds", d.grenadeOff.seconds, 0.001);
+  gain("grenadeOff.gain", d.grenadeOff.gain);
+  tone("pickup", d.pickup);
+}
+
 // commander.json: the Commander mode match rules (engine/commander/match.js COMMANDER_RULES) that are not borrowed from the drone rules.
 // Counts are whole numbers, times in seconds, distances in metres. The drone-derived values (machine radius, damage, windup,
 // recovery, bolt speed) stay computed from creatures.json `drone` in match.js.
@@ -1136,11 +1329,13 @@ export function validateCommander(d) {
 
 // name -> [raw json, validator]. A function, not a table, so the loader itself adds nothing to the constant-table baseline.
 const sources = () => ({
+  audio: [audio, validateAudio],
   commander: [commander, validateCommander],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
   areas: [areas, validateAreas],
+  combatRules: [combatRules, validateCombatRules],
   creatures: [creatures, validateCreatures],
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],
