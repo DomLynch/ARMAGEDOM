@@ -1,13 +1,14 @@
 import { Vector3 } from "three";
+import { BOSS_LABEL } from "./boss-label-data.js";
 // Name-only label placement; coordinates are CSS pixels from the live head bone.
 export function positionBossLabel(bounds, label, viewport) {
-  const margin = 8,
-    gap = 8,
+  const margin = BOSS_LABEL.marginPx,
+    gap = BOSS_LABEL.gapPx,
     clamp = (n, a, b) => Math.max(a, Math.min(b, n)),
     maxLeft = Math.max(margin, viewport.width - label.width - margin),
     maxTop = Math.max(margin, viewport.height - label.height - margin);
-  const center = (bounds.left + bounds.right) / 2,
-    left = clamp(center - label.width / 2, margin, maxLeft),
+  const center = (bounds.left + bounds.right) / 2, // tuning-ok: the middle of the silhouette
+    left = clamp(center - label.width / 2, margin, maxLeft), // tuning-ok: the label is centred on it
     above = bounds.top - gap - label.height;
   if (above >= margin) return { left, top: Math.min(above, maxTop) };
   // At the top edge, move beside the silhouette instead of clamping onto it.
@@ -35,8 +36,8 @@ export function createHeadLabelPositioner() {
     if (!head) return null;
     head.getWorldPosition(point).project(camera);
     if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) return null;
-    const x = ((point.x + 1) * viewport.width) / 2,
-      y = ((1 - point.y) * viewport.height) / 2,
+    const x = ((point.x + 1) * viewport.width) / 2, // tuning-ok: normalised device coordinates run -1 to 1, two units across
+      y = ((1 - point.y) * viewport.height) / 2, // tuning-ok: the same, with y pointing down
       margin = label.height;
     return positionBossLabel(
       { left: x - margin, right: x + margin, top: y - margin, bottom: y + margin },

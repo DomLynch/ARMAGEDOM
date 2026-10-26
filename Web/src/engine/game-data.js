@@ -46,6 +46,7 @@ import { validateDiagnostics, validateRenderBudget, validateSaveClient } from ".
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
+import { validateHud } from "./hud-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateEffectsFeedback } from "./effects-data.js";
@@ -228,6 +229,7 @@ export function validateVisual(d) {
     "pickupModel",
     "bossEquipmentView",
     "routeGuidance",
+    "exitArrows",
     "expeditionHud",
     "remotePlayers",
     "tapFallback",
@@ -242,7 +244,11 @@ export function validateVisual(d) {
     "combatImpact",
     "flameEffect",
     "explosion",
+    "weaponTiles",
+    "bossLabel",
+    "hud",
   ]);
+  validateHud(d.hud);
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);
   validateArcGun(d.arcGun);
