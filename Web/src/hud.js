@@ -10,6 +10,12 @@ import { GAME_DATA } from "./engine/game-data.js";
 import { webText } from "./engine/web-text.js";
 // Button cooldown fallbacks, the pistol prompt reach and the default grenade range: data/visual.json `hud`.
 const HUD = GAME_DATA.visual.hud;
+// The grenade lines quote the real fuse (weapons.json) and throw ranges (combatRules.json bossWeapon), written "3, 5 or 8".
+const GRENADE_FUSE = GAME_DATA.weapons.ranged["standard-grenade-v1"].payload.fuseSeconds;
+const THROW_RANGES = GAME_DATA.combatRules.bossWeapon.grenadeThrowRanges.reduce(
+  (list, n, i, all) => list + (i === 0 ? "" : i === all.length - 1 ? " or " : ", ") + n,
+  "",
+);
 const percentBonus = (multiplier) => Math.round((multiplier - 1) * 1000) / 10; // tuning-ok: a damage multiplier as a percent, to one decimal
 // Lines the HUD never shows (Dom's text pass, 24 Oct): the hunter warnings, whichever system still sets them.
 const HIDDEN_MESSAGE = /^(HUNTER INBOUND|A hunter is after you|Hunter in \d)/;
@@ -537,7 +543,11 @@ export function createHUD({
           }
           el("ammo").hidden = false;
           el("ammo").textContent = grenade
-            ? webText("hud.ammo.grenade", { mode: g.grenadeMode === "sticky" ? "STICKY" : "STANDARD", magazine: state.magazine })
+            ? webText("hud.ammo.grenade", {
+                mode: g.grenadeMode === "sticky" ? "STICKY" : "STANDARD",
+                magazine: state.magazine,
+                fuse: GRENADE_FUSE,
+              })
             : webText("hud.ammo.standard", {
                 name: rocket ? "ROCKET" : "SHOTGUN",
                 magazine: state.magazine,
@@ -572,7 +582,7 @@ export function createHUD({
           el("stab").setAttribute(
             "aria-label",
             grenade
-              ? webText("hud.grenadeRange")
+              ? webText("hud.grenadeRange", { ranges: THROW_RANGES })
               : webText(rocket ? "hud.reload.rocket" : "hud.reload.shotgun"),
           );
         }

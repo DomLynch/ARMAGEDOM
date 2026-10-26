@@ -762,7 +762,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
               event.kind === "westminster-start-pistol-v1"
                 ? webText("runCore.pickup.pistol")
                 : event.kind === "westminster-worn-vest-v1"
-                  ? webText("runCore.pickup.vest")
+                  ? webText("runCore.pickup.vest", { percent: Math.round(VEST_RULES.reduction * 100) })
                   : event.kind === "rounds"
                     ? webText("runCore.pickup.rounds", { amount: event.amount })
                     : webText("runCore.pickup.dressing", { amount: Math.ceil(event.amount) });
@@ -806,7 +806,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       return;
     }
     for (const event of result.events) g.events.push({ ...event, actor: g.player });
-    g.message = webText("runCore.vestEquipped");
+    g.message = webText("runCore.vestEquipped", { percent: Math.round(VEST_RULES.reduction * 100) });
     g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
   }
   return {

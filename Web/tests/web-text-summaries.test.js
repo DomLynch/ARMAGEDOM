@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { webText } from "../src/engine/web-text.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
+
+const RANGED = GAME_DATA.weapons.ranged,
+  GRENADE = RANGED["standard-grenade-v1"],
+  ROCKET = RANGED["borough-butchers-rocket-launcher-v1"],
+  SHOTGUN = RANGED["south-stalker-shotgun-v1"];
 
 // The strings run-views.js, remote-players-view.js and effects.js built in code before they moved to data/webText.json.
 const LINES = [
@@ -22,13 +28,38 @@ const LINES = [
     { name: "Thundercoil Arc Gun", damage: 40, jumps: 3, range: 30, seconds: 1.5, magazine: 2, capacity: 3, reserve: 9 },
     "Thundercoil Arc Gun · 40 arc damage · jumps 3x · 30m · 1.5s charge · 2/3 loaded · 9 reserve",
   ],
-  ["summary.grenade", { name: "Grenade", magazine: 4 }, "Grenade · 4 charges · 1s fuse · 3m radius"],
+  // The weapon stats in these three lines are filled from data/weapons.json; the expected text is the old literal, so a data change
+  // that no longer matches today's text shows up here.
+  [
+    "summary.grenade",
+    { name: "Grenade", magazine: 4, fuse: GRENADE.payload.fuseSeconds, radius: GRENADE.payload.radius },
+    "Grenade · 4 charges · 1s fuse · 3m radius",
+  ],
   [
     "summary.rocket",
-    { name: "Rocket Launcher", magazine: 1, reserve: 3 },
+    {
+      name: "Rocket Launcher",
+      magazine: 1,
+      reserve: 3,
+      damage: ROCKET.payload.maxDamage,
+      radius: ROCKET.payload.radius,
+      capacity: ROCKET.rules.capacity,
+      reload: ROCKET.rules.reload,
+    },
     "Rocket Launcher · 80 blast damage · 3m radius · 1/1 loaded · 3 reserve · 3.2s reload",
   ],
-  ["summary.shotgun", { name: "Stalker Shotgun", magazine: 2, reserve: 8 }, "Stalker Shotgun · 8 × 8 pellets · 2/2 loaded · 8 reserve"],
+  [
+    "summary.shotgun",
+    {
+      name: "Stalker Shotgun",
+      magazine: 2,
+      reserve: 8,
+      pellets: SHOTGUN.payload.pelletCount,
+      pelletDamage: SHOTGUN.payload.pelletDamage,
+      capacity: SHOTGUN.rules.capacity,
+    },
+    "Stalker Shotgun · 8 × 8 pellets · 2/2 loaded · 8 reserve",
+  ],
   ["summary.rifle", { name: "Bridge Rifle", damage: 30, magazine: 5, capacity: 8, reserve: 16 }, "Bridge Rifle · 30 damage · 5/8 loaded · 16 reserve"],
   ["summary.pistol", { name: "Starting Pistol", damage: 9.5, magazine: 6, capacity: 6, reserve: 12 }, "Starting Pistol · 9.5 damage · 6/6 loaded · 12 reserve"],
   ["summary.pistolDefaultName", {}, "Starting Pistol"],

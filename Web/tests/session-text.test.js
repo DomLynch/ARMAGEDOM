@@ -37,7 +37,7 @@ const OLD = [
   ["run.pistolRequired", {}, "Collect the pistol first. Rounds kept."],
   ["run.reserveFull", {}, "Spare rounds full. Supply kept."],
   ["run.healthFull", {}, "Health full. Dressing kept."],
-  ["run.vestEquipped", {}, "Worn vest equipped · 10% protection from unblocked hits."],
+  ["run.vestEquipped", { percent: Math.round(GAME_DATA.weapons.vest.reduction * 100) }, "Worn vest equipped · 10% protection from unblocked hits."],
   ["expedition.actionAccept", {}, "Accept contract"],
   ["expedition.actionRecover", {}, "Recover supply case"],
   ["expedition.actionClaim", {}, "Complete contract & claim reward"],
@@ -149,7 +149,7 @@ test("the helper refuses a missing key, a missing value and a prototype name, an
   assert.throws(() => sessionText("constructor.name"), /No session text/);
   assert.throws(() => sessionText("run.supplyRounds"), /needs \{amount\}/);
   assert.equal(sessionText("mode.startFailed", { mode: "Human", error: "{mode} {x}" }), "Could not start Human: {mode} {x}");
-  assert.equal(sessionText("run.vestEquipped", { unused: 1 }), "Worn vest equipped · 10% protection from unblocked hits.");
+  assert.equal(sessionText("run.vestEquipped", { percent: 10, unused: 1 }), "Worn vest equipped · 10% protection from unblocked hits.");
 });
 
 test("each call in the source files names a key that exists, and each key is used by some call", () => {

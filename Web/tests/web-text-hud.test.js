@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { webText } from "../src/engine/web-text.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
 
 // The strings hud.js built in code before they moved to data/webText.json: the on-screen text must not change.
 const HUD = [
@@ -33,7 +34,11 @@ const HUD = [
     "STARTING PISTOL · 6 / 6 · 12 RESERVE · RELOADING",
   ],
   ["hud.ammo.standard", { name: "RIFLE", magazine: 5, capacity: 8, reserve: 20, reloading: "" }, "RIFLE · 5/8 · 20 RESERVE"],
-  ["hud.ammo.grenade", { mode: "STICKY", magazine: 4 }, "STICKY GRENADES · 4 LEFT · 1s FUSE"],
+  [
+    "hud.ammo.grenade",
+    { mode: "STICKY", magazine: 4, fuse: GAME_DATA.weapons.ranged["standard-grenade-v1"].payload.fuseSeconds },
+    "STICKY GRENADES · 4 LEFT · 1s FUSE",
+  ],
   ["hud.ammo.ember", { percent: 80 }, "EMBER · FUEL 80%"],
   ["hud.left", { count: 3 }, "3 left"],
   [
@@ -45,7 +50,7 @@ const HUD = [
   ["hud.fire.grenade", { magazine: 4 }, "Throw one grenade; 4 left"],
   ["hud.fire.boss", { kind: "rocket", magazine: 2 }, "Fire rocket once; 2 loaded"],
   ["hud.grenadeMode", { mode: "Sticky" }, "Switch grenade mode; Sticky selected"],
-  ["hud.grenadeRange", {}, "Cycle touch throw range: 3, 5 or 8 metres"],
+  ["hud.grenadeRange", { ranges: "3, 5 or 8" }, "Cycle touch throw range: 3, 5 or 8 metres"],
   [
     "hud.arcCharge",
     { seconds: 1.5 },
