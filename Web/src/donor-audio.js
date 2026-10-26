@@ -3,6 +3,7 @@ import { GAME_DATA } from "./engine/game-data.js";
 
 // data/audio.json: voice engine, loop levels and the synthesized cue rows.
 const A = GAME_DATA.audio;
+const bipolar = (unit) => unit * 2 - 1; // tuning-ok: maps 0..1 onto -1..1 (white noise samples)
 // Use the actually presented sever outcome; replace its generic impact rather than doubling it.
 export function presentationAudioEvents(events, severs) {
   if (!severs.length) return events;
@@ -188,7 +189,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         context.sampleRate,
       );
       const data = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      for (let i = 0; i < data.length; i++) data[i] = bipolar(Math.random());
     }
     const source = context.createBufferSource(),
       filter = context.createBiquadFilter();

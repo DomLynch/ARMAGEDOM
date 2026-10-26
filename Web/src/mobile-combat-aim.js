@@ -41,15 +41,15 @@ export const FLAME_AIM = flameView();
 const arc = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const vector = (angle) => ({ x: Math.sin(angle), z: Math.cos(angle) });
-export function followMobileAngle(current, target, dt, rate = 24) {
+export function followMobileAngle(current, target, dt, rate = MOBILE_AIM.headingRate) {
   return current + arc(target - current) * (1 - Math.exp(-dt * rate));
 }
 export function mobileStickVector(x, y, radius) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(radius) || radius <= 0)
     throw RangeError("Invalid stick");
   const length = Math.hypot(x, y);
-  if (length <= radius * 0.13) return { x: 0, y: 0 };
-  const strength = Math.min(1, (length / radius - 0.13) / 0.87);
+  if (length <= radius * MOBILE_AIM.deadzone) return { x: 0, y: 0 };
+  const strength = Math.min(1, (length / radius - MOBILE_AIM.deadzone) / (1 - MOBILE_AIM.deadzone));
   return { x: (x / length) * strength, y: (y / length) * strength };
 }
 export function createMobileAimState(heading = 0) {
@@ -87,7 +87,7 @@ export function stepMobileAim(
     !Number.isFinite(state.rawHeading) ||
     !Number.isFinite(dt) ||
     dt < 0 ||
-    dt > 0.1 ||
+    dt > mobileAim.maxStepSeconds ||
     !point(move)
   )
     throw RangeError("Invalid aim step");
@@ -95,13 +95,13 @@ export function stepMobileAim(
     pointer = Number.isFinite(pointerHeading),
     active = mobile && moveHeld && !pointer && !cancel && alive;
   const assistEligible = (mobile || flame) && !pointer && !cancel && alive && assistEnabled;
-  const moving = Math.hypot(move.x, move.z) > 0.01,
+  const moving = Math.hypot(move.x, move.z) > mobileAim.movingThreshold,
     strength = Math.min(1, Math.hypot(move.x, move.z));
   let steering = active
     ? moving
       ? state.steering === null
         ? Math.atan2(move.x, move.z)
-        : followMobileAngle(state.steering, Math.atan2(move.x, move.z), dt, 10)
+        : followMobileAngle(state.steering, Math.atan2(move.x, move.z), dt, MOBILE_AIM.steeringRate)
       : state.steering
     : null;
   const movement =
@@ -144,7 +144,7 @@ export function stepMobileAim(
         continue;
       const distance = Math.hypot(t.pos.x - position.x, t.pos.z - position.z);
       if (
-        distance < (pistol && Number.isFinite(rangedRange) ? 1e-8 : 0.01) ||
+        distance < (pistol && Number.isFinite(rangedRange) ? 1e-8 : mobileAim.minTargetDistance) ||
         (!(flame && typeof flameEligible === "function") &&
           (pistol && Number.isFinite(rangedRange) ? distance > range + 1e-8 : distance >= range - 1e-8)) ||
         !lineClear(position, t.pos)
@@ -172,8 +172,8 @@ export function stepMobileAim(
       cohort.push({
         id: t.id,
         distance,
-        acquire: Math.min(Math.PI / 2 - 1e-8, acquire + body),
-        retain: Math.min(Math.PI / 2 - 1e-8, retain + body),
+        acquire: Math.min(Math.PI / 2 - 1e-8, acquire + body), // tuning-ok: a cone stays just under a quarter turn
+        retain: Math.min(Math.PI / 2 - 1e-8, retain + body), // tuning-ok: the same for the retain cone
         bearing: Math.atan2(t.pos.x - position.x, t.pos.z - position.z),
       });
     }
@@ -239,7 +239,7 @@ export function stepMobileAim(
       ? state.heading
       : flame && !mobile && !retained && Number.isFinite(manualHeading)
         ? raw
-        : followMobileAngle(state.heading, raw + correction, dt, 24);
+        : followMobileAngle(state.heading, raw + correction, dt, MOBILE_AIM.headingRate);
   return {
     state: {
       rawHeading: raw,

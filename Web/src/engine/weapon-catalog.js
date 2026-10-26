@@ -73,7 +73,8 @@ export function validateRangedWeaponCatalog(input) {
       railgun &&
       (row.family !== "rifles" ||
         row.fireMode !== "press" ||
-        !closed(row.charge, ["seconds", "maxSeconds"]) ||
+        !closed(row.charge, ["seconds", "maxSeconds", "statusSeconds"]) ||
+        !(Number.isFinite(row.charge.statusSeconds) && row.charge.statusSeconds > 0) ||
         !Number.isFinite(row.charge.seconds) ||
         row.charge.seconds < 0.3 ||
         row.charge.seconds > 2 ||
