@@ -175,3 +175,30 @@ export function numberLiteralProblems(paths, baseline = {}, sourceRoot = "", { s
   }
   return problems;
 }
+
+// Ratchet on the `// tuning-ok:` marks themselves: every mark carries a reason, and the number of marked lines may only go down
+// (baseline `tuningOkCount`).
+const TUNING_MARK = /\/\/\s*tuning-ok:(.*)$/;
+export function tuningMarkProblems(paths, baseline = {}, sourceRoot = "", { shrinkTolerance = NUMBER_SHRINK_TOLERANCE } = {}) {
+  const problems = [];
+  let marks = 0;
+  for (const path of paths) {
+    const shown = sourceRoot ? relative(sourceRoot, path).split("\\").join("/") : path;
+    readFileSync(path, "utf8")
+      .split("\n")
+      .forEach((text, i) => {
+        const mark = TUNING_MARK.exec(text);
+        if (!mark) return;
+        marks++;
+        if (!mark[1].trim()) problems.push(`${shown}:${i + 1}: "// tuning-ok:" needs a reason after the colon.`);
+      });
+  }
+  const allowed = baseline.tuningOkCount ?? 0;
+  if (marks > allowed)
+    problems.push(
+      `${marks} "// tuning-ok:" marks, limit ${allowed}. Put the number in a data file instead of adding a mark.`,
+    );
+  else if (marks < allowed && !shrinkTolerance)
+    problems.push(`${marks} "// tuning-ok:" marks, baseline says ${allowed}. Lower tuningOkCount in scripts/as-data-baseline.json to ${marks}.`);
+  return problems;
+}

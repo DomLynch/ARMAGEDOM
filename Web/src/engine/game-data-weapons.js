@@ -13,6 +13,7 @@ export function validateWeapons(d) {
     "knife",
     "melee",
     "bossRanged",
+    "bossFlame",
     "bossEquipment",
     "vest",
     "families",
@@ -36,6 +37,7 @@ export function validateWeapons(d) {
   validateKnife(d.knife);
   validateMelee(d.melee);
   validateBossRanged(d.bossRanged);
+  validateBossFlame(d.bossFlame);
   validateVest(d.vest);
   validateFamilies(d.families);
   validateRocket(d.rocket);
@@ -236,6 +238,11 @@ export function validateVest(v) {
 }
 // What each ranged boss fires (NPC-only; the player's weapons and ammunition stay separate). Times are seconds, range is metres.
 // The rocket also has a flight speed, blast radius, flight time and a live-rocket cap.
+// weapons.json `bossFlame`: engine/boss-flame.js tries this many evenly spaced directions when a flame boss backs away.
+export function validateBossFlame(b) {
+  closed(b, ["retreatDirections"]);
+  count("weapons", "bossFlame.retreatDirections", b.retreatDirections, 1, 64);
+}
 export function validateBossRanged(b) {
   closed(b, ["boss-south-nightborn", "boss-butcher"]);
   for (const [rig, row] of Object.entries(b)) {
