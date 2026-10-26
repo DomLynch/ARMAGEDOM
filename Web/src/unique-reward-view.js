@@ -255,6 +255,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
     return {
       id: g.world.uniqueRewardData.itemId,
       label: "Collect Pitborn Cleaver",
+      pickup: true,
       position: g.uniqueReward.dropPosition,
       run() {
         interact();

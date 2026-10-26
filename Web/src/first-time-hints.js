@@ -4,57 +4,24 @@ import table from "./first-time-hints.json" with { type: "json" };
 
 export const HINT_STORAGE_KEY = "armagedom.firstTimeHints.v1";
 export const HINT_SECONDS = 5;
-const PISTOL_REACH = 1.3;
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const alive = (e) => e.hp > 0;
-// The Ember Matron's drop is the Ember Projector boss-equipment pickup: pending, in its source area, on the ground.
-const flameDropWithin = (g, meters) => {
-  const data = g.world?.bossEquipmentData?.emberProjector,
-    state = g.bossEquipment?.emberProjector;
-  return (
-    state?.status === "pending" &&
-    g.world.areaId === data.source.areaId &&
-    distance(g.player.pos, state.dropPosition) <= meters
-  );
-};
 
 // One check per `when` key; each answers "is this lesson relevant right now?".
 const checks = {
   enemyWithin: (meters, { g }) =>
     g.enemies.some((e) => alive(e) && !e.bossProfile && distance(e.pos, g.player.pos) <= meters),
   tookHit: (_, { tookHit }) => tookHit,
-  pistolPickup: (_, { g }) => {
-    const pistol = g.pistol;
-    return (
-      !!pistol &&
-      !pistol.collected &&
-      (g.world?.areaId ?? "westminster") === pistol.pickupAreaId &&
-      distance(g.player.pos, pistol.pickupPos) <= PISTOL_REACH
-    );
-  },
   flameEquipped: (_, { g }) => !!g.flame?.equipped,
-  // The Ember Matron's drop is on the ground within reach.
-  flameDropPickup: (_, { g }) => flameDropWithin(g, PISTOL_REACH),
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
 };
 
 // Optional `stays` on a row (same shape as `when`): while it holds the hint stays up with no 5 s countdown, and it
-// ends the moment it stops holding. Rows without it run for HINT_SECONDS.
-const stays = {
-  // The starting pistol is still on the ground and within `meters` of the player.
-  pistolUncollectedWithin: (meters, { g }) => {
-    const pistol = g.pistol;
-    return (
-      !!pistol &&
-      !pistol.collected &&
-      (g.world?.areaId ?? "westminster") === pistol.pickupAreaId &&
-      distance(g.player.pos, pistol.pickupPos) <= meters
-    );
-  },
-  flameDropUncollectedWithin: (meters, { g }) => flameDropWithin(g, meters),
-};
+// ends the moment it stops holding. Rows without it run for HINT_SECONDS. No row uses one now (the pickup hints went when
+// pickups became automatic), so the table is empty until a lesson needs it again.
+const stays = {};
 
 export function validateHintTable(rows) {
   const ids = new Set();
