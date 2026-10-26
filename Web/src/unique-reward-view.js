@@ -112,7 +112,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
           ? collectedMessage("Pitborn Cleaver")
           : MELEE_VARIANTS[command.itemId].name + " equipped.";
       g.messageUntil = g.time + 4;
-      if (command.type === "equip") s.input.clear();
+      if (command.type === "equip") s.input.clear({ keepMovement: true });
     }
     update();
     return result;

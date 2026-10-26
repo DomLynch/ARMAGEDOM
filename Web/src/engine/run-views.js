@@ -167,7 +167,7 @@ export function createRunViews(s) {
     const candidates = [safehouseView, flameView, expeditionView, uniqueView, rifleView, bossEquipmentView].flatMap(
       (view) => view.interaction?.() ?? [],
     );
-    const pistol = startingPistolCandidate(g, () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear()));
+    const pistol = startingPistolCandidate(g, () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear({ keepMovement: true })));
     if (pistol) candidates.push(pistol);
     return candidates;
   }
