@@ -524,26 +524,8 @@ export function validateMelee(m) {
 // creatures.json: the creature bite and low-strike move rows (resolved by creature-moves.js) and the salamander's flame breath.
 // A row lists only what it changes from its `extends` parents; the values are plain numbers, strings, booleans or null.
 export function validateCreatures(d) {
-  closed(d, [
-    "schema_version",
-    "moves",
-    "playerAttacks",
-    "playerHealth",
-    "defaultResponse",
-    "salamanderBreath",
-    "drone",
-    "catalogue",
-    "behaviours",
-    "animalCycles",
-    "gauntHumanCycles",
-    "hollowTuning",
-    "creatureSim",
-    "mobSize",
-    "feralBodyShapes",
-    "feralCoatProfiles",
-    "gauntShape",
-    "rigCapabilities",
-  ]);
+  closed(d, extra.creatureKeys());
+  extra.validateCreatureExtras(d, { fail, number });
   // creatureSim.playerFields: the report fields engine/creature-sim.js copies onto a player entity each step.
   closed(d.creatureSim, ["playerFields"]);
   if (d.creatureSim.playerFields.join() !== "hp,dodgeUntil,guarding,parryUntil,stamina")
