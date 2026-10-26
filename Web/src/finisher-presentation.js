@@ -15,6 +15,7 @@ import { prepareVictimGroundingSteps } from "./finisher-grounding.js";
 
 // The three head mesh names live in Web/src/data/appearance.json `faceMesh.headNames`, shared with face-appearance.js.
 const { headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
+const HAIR_NAME = GAME_DATA.appearance.meshNames.hair;
 export function validateHeadParts(parts = HEAD_NAMES) {
   if (
     !Array.isArray(parts) ||
@@ -77,7 +78,7 @@ function directionOf(direction) {
 // buffers and materials; selected face geometry/maps/skeletons remain borrowed.
 function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
   const nodes = headParts.map((name) => model.getObjectByName(name));
-  const hair = model.getObjectByName("Scavenger hair");
+  const hair = model.getObjectByName(HAIR_NAME);
   if (hair?.visible) nodes.push(hair);
   if (
     nodes.some((n) => !n?.isSkinnedMesh || !n.visible) ||
@@ -91,7 +92,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
     group = new T.Group(),
     geometries = [],
     materials = [];
-  group.name = "Prepared detached Hollow head";
+  group.name = "Prepared detached Hollow head"; // text-ok: a scene-graph label for debugging, never shown to the player
   const clean = () => {
     geometries.forEach((g) => g.dispose());
     materials.forEach((m) => m.dispose());

@@ -182,7 +182,7 @@ export function createLowHoverDroneLibrary({ appearance = "watcher" } = {}) {
       if (disposed || !scene?.isScene || ![position.x, position.z, heading, groundY].every(Number.isFinite))
         throw Error("Valid drone scene/render-space coordinates required");
       const root = new T.Group();
-      root.name = commander ? "ARM Commander compact quadcopter" : "ARM low-hover watcher drone";
+      root.name = commander ? "ARM Commander compact quadcopter" : "ARM low-hover watcher drone"; // text-ok: debug scene label, never shown
       root.scale.setScalar(visualScale);
       const privateFrame = frameMat.clone(),
         privateBlade = bladeMat.clone();
