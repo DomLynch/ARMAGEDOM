@@ -17,10 +17,10 @@ const RING_INNER = 0.62,
 
 // FNV-1a over the id's text: every client maps the same id to the same variant.
 export function survivorVariantIndex(id, count = SURVIVOR_VARIANTS.length) {
-  let h = 0x811c9dc5;
+  let h = 0x811c9dc5; // tuning-ok: FNV-1a offset basis (a hash constant, not tuning)
   for (const ch of String(id)) {
     h ^= ch.codePointAt(0);
-    h = Math.imul(h, 0x01000193) >>> 0;
+    h = Math.imul(h, 0x01000193) >>> 0; // tuning-ok: FNV-1a prime (a hash constant, not tuning)
   }
   return h % count;
 }
@@ -29,12 +29,17 @@ const now = () => (globalThis.performance?.now ? globalThis.performance.now() : 
 
 // `animations`: the clips to play. Omit it to use the source's own; pass the player model's clips when the source is the reduced
 // remote mesh, which ships no clips and shares the player's skeleton.
-export function createSurvivorKit({ source, animations: clipSource = null, characterScale = 1.265 }) {
+export function createSurvivorKit({
+  source,
+  animations: clipSource = null,
+  characterScale = GAME_DATA.areaRuntime.view.defaultCharacterScale,
+}) {
   if (!source?.gltf?.scene || !source.equipment || !source.description?.clips) throw Error("Survivor source not ready");
   const { description } = source,
     clips = description.clips,
     scale = characterScale * (description.scale ?? 1);
-  const ringGeometry = new THREE.RingGeometry(RING_INNER, RING_OUTER, 40);
+  const look = GAME_DATA.remoteSurvivors; // data/remoteSurvivors.json
+  const ringGeometry = new THREE.RingGeometry(RING_INNER, RING_OUTER, look.ringSegments);
   ringGeometry.rotateX(-Math.PI / 2);
   const variantParts = new Map(), // variant index -> { materials: Map(original -> tinted), ring }
     owned = [],
@@ -63,7 +68,7 @@ export function createSurvivorKit({ source, animations: clipSource = null, chara
     const ring = new THREE.MeshBasicMaterial({
       color: accent,
       transparent: true,
-      opacity: 0.85,
+      opacity: look.ringOpacity,
       depthWrite: false,
       toneMapped: false,
     });
@@ -94,7 +99,7 @@ export function createSurvivorKit({ source, animations: clipSource = null, chara
         marker = new THREE.Mesh(ringGeometry, ring);
       body.scale.setScalar(scale);
       body.add(model);
-      marker.position.y = 0.03;
+      marker.position.y = look.markerHeight;
       marker.renderOrder = 1;
       marker.name = "Friendly ring";
       root.name = `Survivor ${id}`;
@@ -121,9 +126,9 @@ export function createSurvivorKit({ source, animations: clipSource = null, chara
         update({ moving = false } = {}) {
           if (gone) return;
           const t = now(),
-            dt = Math.min(0.1, Math.max(0, t - last));
+            dt = Math.min(look.maxFrameSeconds, Math.max(0, t - last));
           last = t;
-          weight = THREE.MathUtils.clamp(weight + (moving ? 1 : -1) * dt * 6, 0, 1);
+          weight = THREE.MathUtils.clamp(weight + (moving ? 1 : -1) * dt * look.walkBlendPerSecond, 0, 1);
           idle.setEffectiveWeight(1 - weight);
           walk.setEffectiveWeight(weight);
           mixer.update(dt);

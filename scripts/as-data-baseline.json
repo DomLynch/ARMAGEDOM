@@ -109,7 +109,6 @@
     "engine/railgun-core.js": 4,
     "engine/railgun.js": 2,
     "engine/reaper.js": 3,
-    "engine/remote-survivors.js": 8,
     "engine/rifle-state.js": 1,
     "engine/rocket-runtime.js": 12,
     "engine/route-guidance.js": 60,
