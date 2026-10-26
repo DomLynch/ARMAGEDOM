@@ -1,9 +1,10 @@
 import { reaperSelected, reaperLegalTarget } from "./reaper.js";
+import { GAME_DATA } from "./game-data.js";
 import { Vector3, Raycaster, Box3, Matrix4 } from "three";
 import { posedActorBounds } from "./grenade-surface.js";
 import { selectedRangedProfile, rangedTargets, combatTargetHeight } from "../pistol-targeting.js";
 import { safehouseWeaponBlocked, safehouseTouches } from "./safehouse.js";
-const padding = 8,
+const padding = GAME_DATA.visual.touchTarget.paddingPx,
   EPS = 1e-8,
   visibilityQueries = new WeakMap();
 export function touchGun(g) {
@@ -22,8 +23,8 @@ export function pickTouchTarget(g, views, camera, canvas, tap) {
   if (!touchGun(g) || !tap || ![tap.x, tap.y].every(Number.isFinite)) return null;
   const rect = canvas.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return null;
-  const x = ((tap.x - rect.left) / rect.width) * 2 - 1,
-    y = 1 - ((tap.y - rect.top) / rect.height) * 2;
+  const x = ((tap.x - rect.left) / rect.width) * 2 - 1, // tuning-ok: pixels to device coordinates, which run -1 to 1
+    y = 1 - ((tap.y - rect.top) / rect.height) * 2; // tuning-ok: the same, with y pointing up
   if (Math.abs(x) > 1 || Math.abs(y) > 1) return null;
   const ray = new Raycaster();
   ray.setFromCamera({ x, y }, camera);
@@ -47,8 +48,8 @@ export function pickTouchTarget(g, views, camera, canvas, tap) {
             valid = false;
             break;
           }
-          const sx = rect.left + ((point.x + 1) * rect.width) / 2,
-            sy = rect.top + ((1 - point.y) * rect.height) / 2;
+          const sx = rect.left + ((point.x + 1) * rect.width) / 2, // tuning-ok: device coordinates back to pixels, two units across
+            sy = rect.top + ((1 - point.y) * rect.height) / 2; // tuning-ok: the same, with y pointing down
           left = Math.min(left, sx);
           right = Math.max(right, sx);
           top = Math.min(top, sy);
@@ -123,9 +124,9 @@ export function touchTargetVisible(g, views, camera) {
     bottom = -Infinity,
     near = Infinity,
     far = -Infinity;
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 8; i++) { // tuning-ok: a box has eight corners
     point
-      .set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z)
+      .set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z) // tuning-ok: bits 0, 1 and 2 pick max or min per axis
       .project(camera);
     left = Math.min(left, point.x);
     right = Math.max(right, point.x);
