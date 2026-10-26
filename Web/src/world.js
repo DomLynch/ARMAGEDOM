@@ -1,5 +1,6 @@
 import { safehouseCrosses } from "./engine/safehouse.js";
 import { createRouteGuidance } from "./engine/route-guidance.js";
+import { createExitArrows } from "./engine/exit-arrows.js";
 import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
@@ -154,6 +155,7 @@ export class LondonWorld {
     });
     this.depthMaterial = depth;
     this.routeGuidance = createRouteGuidance(this);
+    this.exitArrows = createExitArrows(this);
     scene.add(this.group);
     this.update(this.spawn, 0, VIEW.artSize[0], VIEW.artSize[1], true);
   }
@@ -438,6 +440,8 @@ export class LondonWorld {
           flameData: this.flameData,
         });
         next.areaId = areaId;
+        next.exitArrows.dispose(); // built in the constructor for the initial area; rebuilt for the area this stage really is
+        next.exitArrows = createExitArrows(next);
         cache.stages.set(areaId, next);
         cache.usage.set(areaId, cache.nextUse++);
         return next;
@@ -576,6 +580,7 @@ export class LondonWorld {
     if (this.disposed) return;
     this.disposed = true;
     this.routeGuidance?.dispose();
+    this.exitArrows?.dispose();
     this.group.removeFromParent();
     this.group.traverse((object) => object.geometry?.dispose());
     this.backdrop.material.dispose();

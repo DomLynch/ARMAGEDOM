@@ -308,6 +308,16 @@
       }
     }
   },
+  "exitArrows": {
+    "opacity": 0.5,
+    "widthScale": 1,
+    "lengthScale": 1,
+    "edgeBand": 0.06,
+    "roadInset": 2.5,
+    "bottomEdgeInset": 5,
+    "searchMetres": 8,
+    "directionSteps": 16
+  },
   "routeGuidance": {
     "clearance": 0.4,
     "sampleStep": 0.1,
