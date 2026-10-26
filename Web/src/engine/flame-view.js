@@ -240,7 +240,7 @@ export function createFlameView(s, persistence) {
     paint(
       button,
       lockerStored(g, "flamethrower-area8-v1")
-        ? TEXT.buttonStored
+        ? GAME_DATA.weaponViewText.shared.storedInSafehouse
         : load
           ? TEXT.buttonLoading
           : equipped

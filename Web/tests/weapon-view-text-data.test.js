@@ -2,8 +2,98 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { GAME_DATA, fillText } from "../src/engine/game-data.js";
 import { validateWeaponViewText } from "../src/engine/game-data-weapon-view-text.js";
+import { BOSS_EQUIPMENT_PROFILES as P } from "../src/engine/boss-equipment-data.js";
+import { RANGED_WEAPON_CATALOG } from "../src/engine/weapon-catalog.js";
 
 const text = () => structuredClone(GAME_DATA.weaponViewText);
+
+test("the four stored buttons share one key", () => {
+  assert.equal(GAME_DATA.weaponViewText.shared.storedInSafehouse, "Stored in safehouse");
+});
+
+// The boss-equipment stats lines are filled from the weapons' real data rows, exactly as stats() in boss-equipment-view.js does;
+// each must equal the line that used to be written out in code.
+test("boss equipment stats lines built from weapon data equal the old hard-coded lines", () => {
+  const t = GAME_DATA.weaponViewText.bossEquipment,
+    magazine = 1,
+    reserve = 4;
+  const shotgun = P.shotgun;
+  assert.equal(
+    fillText(t.shotgunStats, {
+      pellets: shotgun.payload.pelletCount,
+      pelletDamage: shotgun.payload.pelletDamage,
+      range: shotgun.payload.range,
+      magazine,
+      capacity: shotgun.rules.capacity,
+      reserve,
+    }),
+    `8 pellets × 8 damage · 6m · ${magazine}/2 loaded · ${reserve} reserve`,
+  );
+  const rocket = P.rocketLauncher;
+  assert.equal(
+    fillText(t.launcherStats, {
+      damage: rocket.payload.maxDamage,
+      radius: rocket.payload.radius,
+      magazine,
+      capacity: rocket.rules.capacity,
+      reserve,
+      range: rocket.payload.maxRange,
+      speed: rocket.payload.speed,
+      reload: rocket.rules.reload,
+    }),
+    `80 blast damage · 3m radius · ${magazine}/1 loaded · ${reserve} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`,
+  );
+  const grenade = P.grenade;
+  assert.equal(
+    fillText(t.grenadeStats, {
+      magazine,
+      range: grenade.payload.maxRange,
+      fuse: grenade.payload.fuseSeconds,
+      radius: grenade.payload.radius,
+      throwRanges: GAME_DATA.combatRules.bossWeapon.grenadeThrowRanges.join(t.throwRangeSeparator),
+    }),
+    `${magazine} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`,
+  );
+  assert.equal(
+    fillText(t.pistolStats, {
+      magazine,
+      capacity: RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules.capacity,
+      reserve,
+    }),
+    `35 damage · 1.8s reload · shared pistol ammunition (${magazine}/6, ${reserve} reserve)`,
+  );
+  const ember = P.emberProjector,
+    fuelUnits = 437;
+  assert.equal(
+    fillText(t.flameStats, {
+      damage: ember.rules.damage,
+      interval: ember.rules.interval,
+      range: ember.rules.range,
+      fuel: Math.ceil((fuelUnits / ember.rules.fuelCapacity) * 100),
+    }),
+    `10 damage per 0.2s · 3m · ${Math.ceil((fuelUnits / 1000) * 100)}% shared fuel`,
+  );
+  const saw = P.surgicalKnife;
+  assert.equal(
+    fillText(t.sawStats, { damage: saw.rules.damage, interval: saw.rules.interval }),
+    "Hold CUT · close saw contact · 5 damage / 0.2s · slowed while cutting · sustained contact staggers",
+  );
+  const arc = P.commanderPistol;
+  assert.equal(
+    fillText(t.railgunStats, {
+      damage: arc.rules.damage,
+      jumps: arc.arc.jumps,
+      range: arc.rules.range,
+      charge: arc.charge.seconds,
+      cadence: arc.rules.cadence,
+      magazine,
+      capacity: arc.rules.capacity,
+      reserve,
+      reload: arc.rules.reload,
+    }),
+    `45 arc damage, jumps 3x and stuns · 4.5m · 0.3s charge · 0.8s recovery · ${magazine}/4 loaded · ${reserve} reserve · 1.8s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.`,
+  );
+});
 
 test("unique reward (cleaver) text reads string-equal to the text that was in code", () => {
   const t = GAME_DATA.weaponViewText.uniqueReward;
@@ -57,7 +147,6 @@ test("flamethrower text reads string-equal to the text that was in code", () => 
     fillText(t.stateOwned, { status: t.statusStored, benefit, fuel: 100, seconds: "12.0" }),
     "Stored · 10 damage per 0.2s contact · 3m range · fuel 100% (12.0s left). Spent fuel stays spent after Retry.",
   );
-  assert.equal(t.buttonStored, "Stored in safehouse");
   assert.equal(t.buttonLoading, "Loading flamethrower…");
   assert.equal(t.buttonLower, "Return to normal weapon");
   assert.equal(t.buttonRetry, "Retry loading & equip flamethrower");
@@ -90,7 +179,6 @@ test("boss equipment text reads string-equal to the text that was in code", () =
   );
   assert.equal(fillText(t.stateLocked, { boss: "Witch" }), "Defeat Witch to earn this weapon.");
   assert.equal(fillText(t.stateLocked, { boss: undefined }), "Defeat " + undefined + " to earn this weapon.");
-  assert.equal(t.buttonStored, "Stored in safehouse");
   assert.equal(t.buttonLoading, "Loading weapon…");
   assert.equal(t.buttonRetry, "Retry weapon loading");
   assert.equal(t.buttonLower, "Return to normal weapon");
@@ -110,7 +198,6 @@ test("rifle text reads string-equal to the text that was in code", () => {
   assert.equal(t.statePending, "Bridge Warden dropped a Rifle. Approach it and collect it.");
   assert.equal(t.stateLegacyDead, "Bridge Warden was already defeated. A new defeat after Retry can drop the Rifle.");
   assert.equal(t.stateLocked, "Defeat Bridge Warden to earn the Rifle.");
-  assert.equal(t.buttonStored, "Stored in safehouse");
   assert.equal(t.buttonLoading, "Preparing rifle…");
   assert.equal(t.buttonRetry, "Retry rifle loading");
   assert.equal(t.buttonLower, "Return to melee");
@@ -124,7 +211,6 @@ test("reaper drone text reads string-equal to the text that was in code", () => 
     "12 damage · 16m · 1.2s firing interval. Autonomous companion; prefers your selected target. Uses its own powered bolts; pistol ammunition is kept.",
   );
   assert.equal(t.stateLocked, "Complete Stolen Supplies to earn this companion.");
-  assert.equal(t.buttonStored, "Stored in safehouse");
   assert.equal(t.buttonRecall, "Recall Reaper Drone");
   assert.equal(t.buttonDeploy, "Deploy Reaper Drone");
 });
@@ -133,6 +219,9 @@ test("the validator rejects a missing key, wrong placeholders, empty text and un
   validateWeaponViewText(text());
   const bad = [
     (d) => delete d.rifle.buttonEquip,
+    (d) => delete d.shared.storedInSafehouse,
+    (d) => (d.rifle.buttonStored = "Stored in safehouse"),
+    (d) => (d.bossEquipment.shotgunStats = "8 pellets × {pelletDamage} damage · {range}m · {magazine}/{capacity} loaded · {reserve} reserve"),
     (d) => delete d.uniqueReward.actions.locked,
     (d) => delete d.reaper,
     (d) => (d.rifle.stateOwned = "{name} · {damage} damage"),

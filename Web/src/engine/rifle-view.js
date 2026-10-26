@@ -174,7 +174,7 @@ export function createRifleView(s, dispatch) {
     button.hidden = !owned && !(state?.status === "pending" && failed);
     button.disabled = lockerStored(g, data.itemId) || !safe(g) || !!pending;
     button.textContent = lockerStored(g, data.itemId)
-      ? TEXT.buttonStored
+      ? GAME_DATA.weaponViewText.shared.storedInSafehouse
       : pending
         ? TEXT.buttonLoading
         : failed

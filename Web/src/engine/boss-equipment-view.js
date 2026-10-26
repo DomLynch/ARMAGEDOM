@@ -8,7 +8,10 @@ import { BOSS_EQUIPMENT_VIEW as V } from "./boss-equipment-view-data.js";
 import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 import { GAME_DATA, fillText } from "./game-data.js";
+import { RANGED_WEAPON_CATALOG } from "./weapon-catalog.js";
 const TEXT = GAME_DATA.weaponViewText.bossEquipment;
+// The starting pistol, whose magazine the pistols-family stats line shares.
+const PISTOL_ITEM_ID = "westminster-start-pistol-v1";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
@@ -120,7 +123,10 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     });
     return { label, button };
   }
+  // Every number comes from the weapon's own row in weapons.json (rules, payload) or combatRules.json.
   function stats(data, state, g) {
+    const magazine = state?.magazine ?? 0,
+      reserve = state?.reserve ?? 0;
     if (data.weaponKey === "railgun")
       return fillText(TEXT.railgunStats, {
         damage: data.rules.damage,
@@ -128,22 +134,53 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         range: data.rules.range,
         charge: data.charge.seconds,
         cadence: data.rules.cadence,
-        magazine: state?.magazine ?? 0,
+        magazine,
         capacity: data.rules.capacity,
-        reserve: state?.reserve ?? 0,
+        reserve,
         reload: data.rules.reload,
       });
     if (data.family === "shotguns")
-      return `8 pellets × 8 damage · 6m · ${state?.magazine ?? 0}/2 loaded · ${state?.reserve ?? 0} reserve`;
+      return fillText(TEXT.shotgunStats, {
+        pellets: data.payload.pelletCount,
+        pelletDamage: data.payload.pelletDamage,
+        range: data.payload.range,
+        magazine,
+        capacity: data.rules.capacity,
+        reserve,
+      });
     if (data.family === "launchers")
-      return `80 blast damage · 3m radius · ${state?.magazine ?? 0}/1 loaded · ${state?.reserve ?? 0} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`;
+      return fillText(TEXT.launcherStats, {
+        damage: data.payload.maxDamage,
+        radius: data.payload.radius,
+        magazine,
+        capacity: data.rules.capacity,
+        reserve,
+        range: data.payload.maxRange,
+        speed: data.payload.speed,
+        reload: data.rules.reload,
+      });
     if (data.family === "grenades")
-      return `${state?.magazine ?? 0} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`;
+      return fillText(TEXT.grenadeStats, {
+        magazine,
+        range: data.payload.maxRange,
+        fuse: data.payload.fuseSeconds,
+        radius: data.payload.radius,
+        throwRanges: GAME_DATA.combatRules.bossWeapon.grenadeThrowRanges.join(TEXT.throwRangeSeparator),
+      });
     if (data.family === "blades")
       return fillText(TEXT.sawStats, { damage: data.rules.damage, interval: data.rules.interval });
     if (data.family === "pistols")
-      return `35 damage · 1.8s reload · shared pistol ammunition (${g.pistol.magazine}/6, ${g.pistol.reserve} reserve)`;
-    return `10 damage per 0.2s · 3m · ${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% shared fuel`;
+      return fillText(TEXT.pistolStats, {
+        magazine: g.pistol.magazine,
+        capacity: RANGED_WEAPON_CATALOG[PISTOL_ITEM_ID].rules.capacity,
+        reserve: g.pistol.reserve,
+      });
+    return fillText(TEXT.flameStats, {
+      damage: data.rules.damage,
+      interval: data.rules.interval,
+      range: data.rules.range,
+      fuel: Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / data.rules.fuelCapacity) * 100),
+    });
   }
   function clearWorld() {
     rockets.clear();
@@ -280,7 +317,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         loads.has(field) ||
         (legacyAccess && !!document.getElementById("flame-equip")?.disabled);
       card.button.textContent = lockerStored(g, profile.itemId)
-        ? TEXT.buttonStored
+        ? GAME_DATA.weaponViewText.shared.storedInSafehouse
         : loads.has(field)
           ? TEXT.buttonLoading
           : failed.has(field)

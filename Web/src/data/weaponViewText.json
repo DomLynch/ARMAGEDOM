@@ -1,5 +1,8 @@
 {
   "schema_version": 1,
+  "shared": {
+    "storedInSafehouse": "Stored in safehouse"
+  },
   "uniqueReward": {
     "equipped": "{name} equipped.",
     "cleaverLoadFailed": "Cleaver loading unavailable. Pending drop kept; retry in Gear.",
@@ -36,7 +39,6 @@
     "stateOwned": "{status} · {benefit} · fuel {fuel}% ({seconds}s left). Spent fuel stays spent after Retry.",
     "statusEquipped": "Equipped",
     "statusStored": "Stored",
-    "buttonStored": "Stored in safehouse",
     "buttonLoading": "Loading flamethrower…",
     "buttonLower": "Return to normal weapon",
     "buttonRetry": "Retry loading & equip flamethrower",
@@ -50,12 +52,17 @@
     "returned": "Returned to your normal weapon.",
     "railgunStats": "{damage} arc damage, jumps {jumps}x and stuns · {range}m · {charge}s charge · {cadence}s recovery · {magazine}/{capacity} loaded · {reserve} reserve · {reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.",
     "sawStats": "Hold CUT · close saw contact · {damage} damage / {interval}s · slowed while cutting · sustained contact staggers",
+    "shotgunStats": "{pellets} pellets × {pelletDamage} damage · {range}m · {magazine}/{capacity} loaded · {reserve} reserve",
+    "launcherStats": "{damage} blast damage · {radius}m radius · {magazine}/{capacity} loaded · {reserve} reserve · {range}m straight flight · {speed}m/s · {reload}s reload. No homing.",
+    "grenadeStats": "{magazine} charges · {range}m max throw · {fuse}s fuse · {radius}m blast. Mouse picks landing; touch Range cycles {throwRanges}m. Mode / F switches Standard and Sticky; same charges and fuse.",
+    "pistolStats": "35 damage · 1.8s reload · shared pistol ammunition ({magazine}/{capacity}, {reserve} reserve)",
+    "flameStats": "{damage} damage per {interval}s · {range}m · {fuel}% shared fuel",
+    "throwRangeSeparator": "/",
     "legacyPending": " · Witch drop awaiting collection.",
     "legacyUnclaimed": " · Witch reward unclaimed.",
     "statePending": "Dropped by {boss}. Approach and collect it.",
     "stateLegacyDead": "{boss} was already defeated. A new defeat after Retry can earn this reward.",
     "stateLocked": "Defeat {boss} to earn this weapon.",
-    "buttonStored": "Stored in safehouse",
     "buttonLoading": "Loading weapon…",
     "buttonRetry": "Retry weapon loading",
     "buttonLower": "Return to normal weapon",
@@ -70,7 +77,6 @@
     "statePending": "Bridge Warden dropped a Rifle. Approach it and collect it.",
     "stateLegacyDead": "Bridge Warden was already defeated. A new defeat after Retry can drop the Rifle.",
     "stateLocked": "Defeat Bridge Warden to earn the Rifle.",
-    "buttonStored": "Stored in safehouse",
     "buttonLoading": "Preparing rifle…",
     "buttonRetry": "Retry rifle loading",
     "buttonLower": "Return to melee",
@@ -79,7 +85,6 @@
   "reaper": {
     "stateOwned": "{damage} damage · {range}m · {cadence}s firing interval. Autonomous companion; prefers your selected target. Uses its own powered bolts; pistol ammunition is kept.",
     "stateLocked": "Complete Stolen Supplies to earn this companion.",
-    "buttonStored": "Stored in safehouse",
     "buttonRecall": "Recall Reaper Drone",
     "buttonDeploy": "Deploy Reaper Drone"
   }

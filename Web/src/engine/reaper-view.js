@@ -51,7 +51,7 @@ export function createReaperView(s, dispatch) {
     button.hidden = !ownsReaper(g);
     button.disabled = !safe() || (g.locker?.weapons ?? []).includes(d.itemId);
     button.textContent = (g.locker?.weapons ?? []).includes(d.itemId)
-      ? TEXT.buttonStored
+      ? GAME_DATA.weaponViewText.shared.storedInSafehouse
       : reaperSelected(g)
         ? TEXT.buttonRecall
         : TEXT.buttonDeploy;
