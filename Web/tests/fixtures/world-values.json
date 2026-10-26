@@ -1,0 +1,223 @@
+{
+ "bytes": [
+  6293408,
+  8391210.666666666,
+  0
+ ],
+ "westminster": {
+  "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
+  "meshes": "13d37b7e1bbc156df28c62cea7b2a20c130e42cca58829fd70dc116179979338",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.34186055942878224
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.3365,
+   true,
+   1.265
+  ]
+ },
+ "east": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "f5190ac524dfe56a8cc275ad250baca9faa680a8b6ff76987ca5754a1a284015",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "south": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "4a89654e65244c2d5e4f974b1abc2f662b03823e2ab6bdc583940f320af29b27",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "east-bridge": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "3ca70107764e0f0fe2a25d375c44f403ed7f665c9596c720ba8e642bc618d5ee",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "elephant-and-castle": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "66e726df3c58016a21911eb9d824aa7f5796efeda7751c2651a6dacc6206aace",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "lambeth": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "9e3586df7a5759c6a8e0fca29af51ad644f59452d47dfe0a666c518e80bb1814",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "area7": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "d1720e155e5d4cce19734309b68ed2b64cb6a93cc7d31297cdb862b8afb2182e",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "area8": {
+  "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
+  "meshes": "d42194791e9cefd9f1fa1eb5cb318cf5e15639d67b0112cc0537b8e4f0f2ef44",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.30767450348590397
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.485,
+   true,
+   1.265
+  ]
+ },
+ "central-hub": {
+  "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
+  "meshes": "6018d4e5090426e7b56bac34ae7eb77371159fbdefb718b4eb7da9bbf5405587",
+  "first": [
+   "spawn",
+   {
+    "x": 0,
+    "z": -6
+   },
+   {
+    "x": 0.5,
+    "y": 0.34186055942878224
+   },
+   {
+    "x": 0,
+    "y": 0
+   }
+  ],
+  "layout": [
+   1.3365,
+   true,
+   1.265
+  ]
+ }
+}

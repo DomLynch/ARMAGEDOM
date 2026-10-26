@@ -681,7 +681,23 @@ export function validateAreaRuntime(d) {
     "maxFollowSeconds",
     "exitHintMeters",
     "defaultCharacterScale",
+    "artSize",
+    "londonEntry",
+    "entryClearance",
+    "followReference",
+    "referenceHeight",
+    "maxZoom",
   ]);
+  // artSize: the painted backdrop's pixel size (its aspect crops the view); londonEntry: the start spawn in metres; entryClearance: the
+  // body radius an entry or spawn must clear; followReference: the painting point whose projected height the player-size zoom keeps.
+  if (!Array.isArray(d.view.artSize) || d.view.artSize.length !== 2) fail("areaRuntime", "view.artSize must hold width and height");
+  d.view.artSize.forEach((n, i) => count("areaRuntime", `view.artSize[${i}]`, n, 1, 100000));
+  closed(d.view.londonEntry, ["x", "z"]);
+  closed(d.view.followReference, ["x", "y"]);
+  for (const f of ["x", "z"]) number("areaRuntime", `view.londonEntry.${f}`, d.view.londonEntry[f], -1000);
+  for (const f of ["x", "y"]) number("areaRuntime", `view.followReference.${f}`, d.view.followReference[f], 0);
+  for (const f of ["entryClearance", "referenceHeight"]) number("areaRuntime", `view.${f}`, d.view[f], 0.001);
+  number("areaRuntime", "view.maxZoom", d.view.maxZoom, 1);
   // defaultCharacterScale: the hero scale for a layout that names none (presence-session.js draws the other players with it).
   number("areaRuntime", "view.defaultCharacterScale", d.view.defaultCharacterScale, 0.1);
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
