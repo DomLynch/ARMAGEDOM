@@ -21,5 +21,17 @@
     "landscapeLift": 0.1,
     "maxFollowSeconds": 0.1,
     "exitHintMeters": 6
+  },
+  "travel": {
+    "messageDelayMs": 300,
+    "failureMessageSeconds": 5,
+    "preparation": {
+      "deadlineMs": 16,
+      "idleTimeoutMs": 16,
+      "urgentSliceMs": 12,
+      "ambientSliceMs": 4,
+      "idleEnoughMs": 4,
+      "holdMs": 250
+    }
   }
 }
