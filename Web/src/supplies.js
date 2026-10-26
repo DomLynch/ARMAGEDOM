@@ -8,8 +8,9 @@ const copy = (p) => ({ x: p.x, z: p.z });
 const dropId = (key) => `area1-supply-v1:${key}`;
 
 // Validate this bounded three-drop DTO; never repair/reset a broken saved ledger.
+const EXTENDED_VERSION = 2; // tuning-ok: the extended supplies save format version
 export function isSuppliesState(s, rules) {
-  if (s?.version === 2) return isExtendedSupplies(s, rules);
+  if (s?.version === EXTENDED_VERSION) return isExtendedSupplies(s, rules);
   if (
     s?.version !== 1 ||
     !Array.isArray(s.issued) ||
@@ -56,7 +57,7 @@ export function createSuppliesState(rules) {
 
 // Call on a resolved dead resident, not on an attack/selected target/area clear.
 export function issueSupply(state, { areaId, placementKey, position, hp, rules, cycle } = {}) {
-  if (state?.version === 2) return issueExtendedSupply(state, { areaId, placementKey, position, hp, rules, cycle });
+  if (state?.version === EXTENDED_VERSION) return issueExtendedSupply(state, { areaId, placementKey, position, hp, rules, cycle });
   if (
     !isSuppliesState(state) ||
     areaId !== "westminster" ||
@@ -150,7 +151,7 @@ export function collectSupply(state, { dropId, areaId, position, resources, line
 export const GEAR_ITEMS = GAME_DATA.supplies.gearItems; // data/supplies.json: start pistol, then worn vest
 // The immutable issued outcome identifies the source; no reroll or second ledger.
 export function collectedGearSource(state, rules, itemId) {
-  if (state?.version !== 2 || !isExtendedSupplies(state, rules)) return false;
+  if (state?.version !== EXTENDED_VERSION || !isExtendedSupplies(state, rules)) return false;
   return state.rolls.some(
     (r) =>
       rules[r.placementKey].outcomes[r.outcomeIndex].itemId === itemId &&

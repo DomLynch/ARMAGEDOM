@@ -9,7 +9,7 @@ import {safehouseTouches} from '../src/engine/safehouse.js';
 import {publicAreaRegistry as registry} from '../src/area-registry.js';
 
 // Dom, 25 Oct: the hunters come back, always on, GTA-style; no bounty needed; the contract stays off and the bounty line stays hidden.
-// First arrival about 75 s into the area, then 105 s after the previous hunter dies or leaves. These rows run the SHIPPED data on the
+// First arrival about 60 s into the run (the clock is per run: travel does not restart it), then 90 s after the previous hunter dies or leaves. These rows run the SHIPPED data on the
 // real run (mechanics rows with the old bounty-gated timings are in marked-hunters.test.js).
 const c = shipped.markedData;
 const spawn = p => ({id: 999, hp: 80, markedHunter: true, pos: {...p}, radius: 0.4, hostile: true});
@@ -33,28 +33,29 @@ const arrive = (g, from) => {
   return null;
 };
 
-test('shipped data: hunters on, no bounty gate, bounty off, 75 s first arrival and 105 s re-arrival', () => {
+test('shipped data: hunters on, no bounty gate, bounty off, 60 s first arrival and 90 s re-arrival', () => {
   assert.equal(c.hunters, true);
   assert.equal(c.bounty, false);
   assert.equal(c.hunterBounty, 0);
-  assert.equal(c.arrivalDelay, 75);
-  assert.equal(c.respawnDelay, 105);
+  assert.equal(c.arrivalDelay, 60);
+  assert.equal(c.respawnDelay, 90);
+  assert.equal(c.hostileBudget, undefined, 'the area resident count no longer gates hunters');
   assert.equal(shipped.expedition.contract.enabled, false);
 });
 
-test('a hunter comes with no money and no bounty: nothing before 75 s, the warning at 75 s, the hunter 2 s later', () => {
+test('a hunter comes with no money and no bounty: nothing before 60 s, the warning at 60 s, the hunter 2 s later', () => {
   const g = run().g;
-  for (const t of [0, 10, 40, 74.5]) {
+  for (const t of [0, 10, 40, 59.5]) {
     g.time = t;
     stepMarkedHunters(g, spawn);
     assert.equal(g.markedHunt.warning, null, 'no warning at ' + t);
     assert.equal(g.enemies.length, 0);
   }
-  g.time = 75;
+  g.time = 60;
   stepMarkedHunters(g, spawn);
-  assert(g.markedHunt.warning, 'warning at 75 s');
+  assert(g.markedHunt.warning, 'warning at 60 s');
   assert(g.events.some(e => e.type === 'marked-hunter-warning'));
-  g.time = 77;
+  g.time = 62;
   stepMarkedHunters(g, spawn);
   assert.equal(g.enemies.filter(e => e.markedHunter).length, 1, 'the hunter arrives');
   assert.equal(effectiveBounty(g), 0, 'bounty stays off');
@@ -62,10 +63,10 @@ test('a hunter comes with no money and no bounty: nothing before 75 s, the warni
 
 test('through the real game step the shipped data builds a real Hollow hunter that pursues the whole area, with no money and no bounty', () => {
   const g = run().g;
-  g.time = 75;
+  g.time = 60;
   stepMarkedHunters(g, spawn);
-  assert(g.markedHunt.warning, 'warning at 75 s');
-  g.time = 77;
+  assert(g.markedHunt.warning, 'warning at 60 s');
+  g.time = 62;
   stepGame(g, {}, 1 / 60);
   const hunter = g.enemies.find(e => e.markedHunter);
   assert(hunter, 'the game factory builds the hunter');
@@ -76,10 +77,10 @@ test('through the real game step the shipped data builds a real Hollow hunter th
   assert.equal(g.marked.bounty, 0);
 });
 
-test('after the hunter dies the next one comes 105 s later (not before), one at a time', () => {
+test('after the hunter dies the next one comes 90 s later (not before), one at a time', () => {
   const g = run().g;
   const first = arrive(g, 0);
-  assert(first >= 75 && first <= 78);
+  assert(first >= 60 && first <= 63);
   const hunter = g.enemies.find(e => e.markedHunter);
   g.time = first + 20;
   stepMarkedHunters(g, spawn);
@@ -89,14 +90,14 @@ test('after the hunter dies the next one comes 105 s later (not before), one at 
   g.time = died;
   stepMarkedHunters(g, spawn);
   g.enemies = g.enemies.filter(e => e.hp > 0);
-  for (const t of [died + 30, died + 100, died + 104.5]) {
+  for (const t of [died + 30, died + 80, died + 89.5]) {
     g.time = t;
     stepMarkedHunters(g, spawn);
     assert.equal(g.markedHunt.warning, null, 'no warning at death + ' + (t - died));
   }
-  g.time = died + 105;
+  g.time = died + 90;
   stepMarkedHunters(g, spawn);
-  assert(g.markedHunt.warning, 'warning 105 s after the death');
+  assert(g.markedHunt.warning, 'warning 90 s after the death');
 });
 
 test('leaving the area with a hunter alive counts as the hunter leaving: the next one waits the re-arrival delay', () => {
@@ -110,6 +111,61 @@ test('leaving the area with a hunter alive counts as the hunter leaving: the nex
   assert(g.markedHunt.nextSpawnAt >= left + c.respawnDelay);
   const next = arrive(g, left + 1);
   assert(next === null || next >= left + c.respawnDelay, 'no hunter before the re-arrival delay');
+});
+
+const resident = n => ({id: 500 + n, hp: 55, kind: 0, pos: {x: 30 + n, z: 30}, radius: 0.4, hostile: true});
+
+test('six hostile residents do not block the hunter (Westminster starts with six)', () => {
+  const g = run().g;
+  g.enemies = [0, 1, 2, 3, 4, 5].map(resident);
+  const at = arrive(g, 0);
+  assert(at >= 60 && at <= 63, 'the hunter still arrives with the first-arrival wait: ' + at);
+  assert.equal(g.enemies.filter(e => e.markedHunter).length, 1);
+  assert.equal(g.enemies.length, 7);
+});
+
+test('the clock is per run: crossing areas does not restart the first-arrival wait', () => {
+  const g = run().g;
+  for (const [t, areaId] of [[10, 'east-bridge'], [25, 'central-hub'], [40, 'westminster'], [55, 'east-bridge']]) {
+    g.time = t;
+    clearMarkedHunters(g, {areaId}); // what stepMarkedHunters does when the world's area differs
+    assert.equal(g.markedHunt.arrivedAt, 0, 'arrival clock kept after travelling at ' + t);
+  }
+  g.time = 59.5;
+  stepMarkedHunters(g, spawn);
+  assert.equal(g.markedHunt.warning, null);
+  g.time = 60;
+  stepMarkedHunters(g, spawn);
+  assert(g.markedHunt.warning, 'warning at 60 s of the run although the area changed at 55 s');
+});
+
+test('five-minute run across three areas: first hunter ~60 s in, the next ~90 s after the last one dies or leaves', () => {
+  const g = run().g,
+    arrivals = [],
+    journey = [[50, 'east-bridge'], [130, 'central-hub'], [215, 'westminster']],
+    log = [];
+  let hunter = null;
+  for (let t = 0; t <= 300; t += 0.5) {
+    g.time = t;
+    const move = journey.find(([at]) => at === t);
+    if (move) {
+      clearMarkedHunters(g, {areaId: move[1]});
+      log.push(['travel', move[1], t]);
+    }
+    stepMarkedHunters(g, spawn);
+    const now = g.enemies.find(e => e.markedHunter && e.hp > 0) ?? null;
+    if (now && now !== hunter) arrivals.push(t);
+    hunter = now;
+    if (hunter && t - arrivals[arrivals.length - 1] >= 20) hunter.hp = 0; // the player kills it 20 s after it arrives
+    g.enemies = g.enemies.filter(e => e.hp > 0);
+  }
+  assert.equal(arrivals.length, 3, 'hunter arrival times: ' + arrivals);
+  assert(arrivals[0] >= 60 && arrivals[0] <= 63, 'first hunter about 60 s in, whatever the travel: ' + arrivals);
+  // The first one dies at ~82 s (20 s after arriving); the area change at 130 s comes with no hunter alive, the second hunter arrives
+  // about respawnDelay after the death, the third about respawnDelay after the second died.
+  assert(arrivals[1] - (arrivals[0] + 20) >= c.respawnDelay && arrivals[1] - (arrivals[0] + 20) <= c.respawnDelay + 3, String(arrivals));
+  assert(arrivals[2] - (arrivals[1] + 20) >= c.respawnDelay, String(arrivals));
+  console.log('hunter arrivals (s):', arrivals.join(', '), '| travel:', journey.map(j => j.join('@')).join(' '));
 });
 
 test('safehouses still suppress warning and spawn', () => {
