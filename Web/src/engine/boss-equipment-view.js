@@ -7,6 +7,8 @@ import { createPickupModel } from "./pickup-model-view.js";
 import { BOSS_EQUIPMENT_VIEW as V } from "./boss-equipment-view-data.js";
 import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const TEXT = GAME_DATA.weaponViewText.bossEquipment;
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
@@ -44,7 +46,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         .catch((error) => {
           failed.add(field);
           if (s.game === owner) {
-            owner.message = "Weapon loading unavailable. Your reward is kept; retry in Gear.";
+            owner.message = TEXT.loadFailed;
             owner.messageUntil = owner.time + V.loadFailureSeconds;
           }
           throw error;
@@ -63,8 +65,8 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         command.type === "claimPickup"
           ? collectedMessage(g.world.bossEquipmentData[field].name)
           : command.equipped
-            ? g.world.bossEquipmentData[field].name + " equipped."
-            : "Returned to your normal weapon.";
+            ? fillText(TEXT.equipped, { name: g.world.bossEquipmentData[field].name })
+            : TEXT.returned;
       g.messageUntil = g.time + V.claimMessageSeconds;
       s.input.clear({ keepMovement: true });
     }
@@ -120,7 +122,17 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   }
   function stats(data, state, g) {
     if (data.weaponKey === "railgun")
-      return `${data.rules.damage} arc damage, jumps ${data.arc.jumps}x and stuns · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.`;
+      return fillText(TEXT.railgunStats, {
+        damage: data.rules.damage,
+        jumps: data.arc.jumps,
+        range: data.rules.range,
+        charge: data.charge.seconds,
+        cadence: data.rules.cadence,
+        magazine: state?.magazine ?? 0,
+        capacity: data.rules.capacity,
+        reserve: state?.reserve ?? 0,
+        reload: data.rules.reload,
+      });
     if (data.family === "shotguns")
       return `8 pellets × 8 damage · 6m · ${state?.magazine ?? 0}/2 loaded · ${state?.reserve ?? 0} reserve`;
     if (data.family === "launchers")
@@ -128,7 +140,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     if (data.family === "grenades")
       return `${state?.magazine ?? 0} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`;
     if (data.family === "blades")
-      return `Hold CUT · close saw contact · ${data.rules.damage} damage / ${data.rules.interval}s · slowed while cutting · sustained contact staggers`;
+      return fillText(TEXT.sawStats, { damage: data.rules.damage, interval: data.rules.interval });
     if (data.family === "pistols")
       return `35 damage · 1.8s reload · shared pistol ammunition (${g.pistol.magazine}/6, ${g.pistol.reserve} reserve)`;
     return `10 damage per 0.2s · 3m · ${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% shared fuel`;
@@ -253,14 +265,14 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         owned = state?.status === "owned" || legacyAccess;
       card.label.textContent = legacyAccess
         ? stats(profile, state, g) +
-          (state?.status === "pending" ? " · Witch drop awaiting collection." : " · Witch reward unclaimed.")
+          (state?.status === "pending" ? TEXT.legacyPending : TEXT.legacyUnclaimed)
         : state?.status === "owned"
           ? stats(profile, state, g)
           : state?.status === "pending"
-            ? "Dropped by " + boss + ". Approach and collect it."
+            ? fillText(TEXT.statePending, { boss })
             : state?.status === "legacy-dead"
-              ? boss + " was already defeated. A new defeat after Retry can earn this reward."
-              : "Defeat " + boss + " to earn this weapon.";
+              ? fillText(TEXT.stateLegacyDead, { boss })
+              : fillText(TEXT.stateLocked, { boss });
       card.button.hidden = !owned && !(state?.status === "pending" && failed.has(field));
       card.button.disabled =
         lockerStored(g, profile.itemId) ||
@@ -268,14 +280,14 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         loads.has(field) ||
         (legacyAccess && !!document.getElementById("flame-equip")?.disabled);
       card.button.textContent = lockerStored(g, profile.itemId)
-        ? "Stored in safehouse"
+        ? TEXT.buttonStored
         : loads.has(field)
-          ? "Loading weapon…"
+          ? TEXT.buttonLoading
           : failed.has(field)
-            ? "Retry weapon loading"
+            ? TEXT.buttonRetry
             : (field === "emberProjector" ? g.flame?.equipped : state?.selected)
-              ? "Return to normal weapon"
-              : "Equip " + profile.name;
+              ? TEXT.buttonLower
+              : fillText(TEXT.buttonEquip, { name: profile.name });
       if (state?.status !== "pending" || g.world.areaId !== profile.source.areaId) {
         drops.get(field)?.dispose();
         drops.delete(field);

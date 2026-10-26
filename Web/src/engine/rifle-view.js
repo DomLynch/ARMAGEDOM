@@ -4,7 +4,9 @@ import { addPickupGlow } from "../pickup-glow.js";
 import { createDropMarker, createMarkerOnlyDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 import { WEAPON_VIEWS } from "./weapon-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
 const RIFLE = WEAPON_VIEWS.rifle;
+const TEXT = GAME_DATA.weaponViewText.rifle;
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),
@@ -51,7 +53,7 @@ export function createRifleView(s, dispatch) {
       .catch((error) => {
         failed = true;
         if (s.game === owner) {
-          owner.message = "Rifle loading unavailable. Selection and ammunition kept; retry in Gear.";
+          owner.message = TEXT.loadFailed;
           owner.messageUntil = owner.time + RIFLE.loadFailedSeconds;
         }
         throw error;
@@ -67,10 +69,10 @@ export function createRifleView(s, dispatch) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? collectedMessage("Bridge Rifle")
+          ? collectedMessage(TEXT.name)
           : command.equipped
-            ? "RIFLE EQUIPPED"
-            : "Returned to melee.";
+            ? TEXT.equipped
+            : TEXT.returned;
       g.messageUntil = g.time + RIFLE.messageSeconds;
       s.input.clear({ keepMovement: true });
     }
@@ -103,7 +105,7 @@ export function createRifleView(s, dispatch) {
         equip,
         active: () => !!g.rifle?.selected,
         itemId: g.world.rifleData.itemId,
-        name: "Bridge Rifle",
+        name: TEXT.name,
       });
   };
   button.addEventListener("click", equip);
@@ -157,23 +159,29 @@ export function createRifleView(s, dispatch) {
     if ((state?.status === "pending" || state?.selected) && !ready && !pending && !failed) prepare().catch(() => {});
     const owned = state?.status === "owned";
     label.textContent = owned
-      ? `${data.name} · ${data.rules.damage} damage · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve. Spent ammunition stays spent on Retry.`
+      ? fillText(TEXT.stateOwned, {
+          name: data.name,
+          damage: data.rules.damage,
+          magazine: state.magazine,
+          capacity: data.rules.capacity,
+          reserve: state.reserve,
+        })
       : state?.status === "pending"
-        ? "Bridge Warden dropped a Rifle. Approach it and collect it."
+        ? TEXT.statePending
         : state?.status === "legacy-dead"
-          ? "Bridge Warden was already defeated. A new defeat after Retry can drop the Rifle."
-          : "Defeat Bridge Warden to earn the Rifle.";
+          ? TEXT.stateLegacyDead
+          : TEXT.stateLocked;
     button.hidden = !owned && !(state?.status === "pending" && failed);
     button.disabled = lockerStored(g, data.itemId) || !safe(g) || !!pending;
     button.textContent = lockerStored(g, data.itemId)
-      ? "Stored in safehouse"
+      ? TEXT.buttonStored
       : pending
-        ? "Preparing rifle…"
+        ? TEXT.buttonLoading
         : failed
-          ? "Retry rifle loading"
+          ? TEXT.buttonRetry
           : state?.selected && !g.flame?.equipped
-            ? "Return to melee"
-            : "Equip rifle";
+            ? TEXT.buttonLower
+            : TEXT.buttonEquip;
     if (state?.status !== "pending" || g.world.areaId !== data.source.areaId) {
       clear();
       return;

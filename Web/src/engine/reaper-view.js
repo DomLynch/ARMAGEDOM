@@ -1,4 +1,6 @@
 import { ownsReaper, reaperSelected, stopReaper } from "./reaper.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const TEXT = GAME_DATA.weaponViewText.reaper;
 export function createReaperView(s, dispatch) {
   const parent = document.getElementById("menu-gear");
   if (!parent) return { update() {}, equip() {}, dispose() {} };
@@ -44,15 +46,15 @@ export function createReaperView(s, dispatch) {
     if (!d) return;
     title.textContent = d.name;
     stats.textContent = ownsReaper(g)
-      ? `${d.rules.damage} damage · ${d.rules.range}m · ${d.rules.cadence}s firing interval. Autonomous companion; prefers your selected target. Uses its own powered bolts; pistol ammunition is kept.`
-      : "Complete Stolen Supplies to earn this companion.";
+      ? fillText(TEXT.stateOwned, { damage: d.rules.damage, range: d.rules.range, cadence: d.rules.cadence })
+      : TEXT.stateLocked;
     button.hidden = !ownsReaper(g);
     button.disabled = !safe() || (g.locker?.weapons ?? []).includes(d.itemId);
     button.textContent = (g.locker?.weapons ?? []).includes(d.itemId)
-      ? "Stored in safehouse"
+      ? TEXT.buttonStored
       : reaperSelected(g)
-        ? "Recall Reaper Drone"
-        : "Deploy Reaper Drone";
+        ? TEXT.buttonRecall
+        : TEXT.buttonDeploy;
     button.setAttribute("aria-pressed", String(reaperSelected(g)));
   }
   return {

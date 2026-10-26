@@ -4,9 +4,11 @@ import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
 import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
-import { GAME_DATA } from "./engine/game-data.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
 // Checked by engine/weapon-view-data.js, which the engine weapon views load.
 const REWARD = GAME_DATA.visual.weaponViews.uniqueReward;
+const TEXT = GAME_DATA.weaponViewText.uniqueReward;
+const CLEAVER = GAME_DATA.combatText.rewardNames.cleaver;
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
 };
@@ -16,7 +18,7 @@ export function createMeleePickupView(source, data) {
     display = new T.Group(),
     contours = [],
     meshes = [];
-  root.name = "Unique reward · " + data.itemId;
+  root.name = "Unique reward · " + data.itemId; // text-ok: three.js group name for scene lookup, never shown
   root.userData = { itemId: data.itemId, placementKey: data.placementKey };
   display.add(clone.root);
   root.add(display);
@@ -112,8 +114,8 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? collectedMessage("Pitborn Cleaver")
-          : MELEE_VARIANTS[command.itemId].name + " equipped.";
+          ? collectedMessage(CLEAVER)
+          : fillText(TEXT.equipped, { name: MELEE_VARIANTS[command.itemId].name });
       g.messageUntil = g.time + REWARD.messageSeconds;
       if (command.type === "equip") s.input.clear({ keepMovement: true });
     }
@@ -139,9 +141,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
             execute({ type: "equip", itemId: id, equipped: true });
         } catch {
           if (s.game === owner) {
-            owner.message = loadOnly
-              ? "Cleaver loading unavailable. Pending drop kept; retry in Gear."
-              : "Weapon loading unavailable. Selection kept; tap Equip to retry.";
+            owner.message = loadOnly ? TEXT.cleaverLoadFailed : TEXT.weaponLoadFailed;
             owner.messageUntil = owner.time + REWARD.loadFailedSeconds;
           }
         }
@@ -177,12 +177,12 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
         equip: (options) => equipHandlers.get(itemId)?.(options),
         active: () => g.uniqueReward?.selectedMeleeVariant === itemId,
         itemId,
-        name: "Pitborn Cleaver",
+        name: CLEAVER,
       });
     return claimed;
   }
   function createDrop(data, ready) {
-    const name = MELEE_VARIANTS[data.itemId]?.name ?? "Weapon",
+    const name = MELEE_VARIANTS[data.itemId]?.name ?? TEXT.fallbackName,
       view = ready
         ? Object.assign(markers.markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
         : markers.createMarkerOnlyDrop(name);
@@ -209,13 +209,16 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
       el("melee-state"),
       state.status === "pending"
         ? retry
-          ? "Pitborn Cleaver loading failed. Retry loading below, then collect it in East."
-          : "Hale dropped the Pitborn Cleaver. Collect it in East."
+          ? TEXT.stateRetry
+          : TEXT.statePending
         : state.status === "legacy-dead"
-          ? "Hale was already defeated in this run. A new kill after Retry can earn his cleaver."
+          ? TEXT.stateLegacyDead
           : owned
-            ? `${selected.name} ${g.flame?.equipped || g.player.weapon !== "knife" ? "stored for melee" : "equipped"}. Earned weapon retained across Retry.`
-            : "Defeat Hale in East to earn his unique cleaver. Supply-case progress is separate.",
+            ? fillText(TEXT.stateOwned, {
+                name: selected.name,
+                status: g.flame?.equipped || g.player.weapon !== "knife" ? TEXT.storedForMelee : TEXT.ownedEquipped,
+              })
+            : TEXT.stateLocked,
     );
     for (const [id, button] of buttons) {
       const profile = MELEE_VARIANTS[id],
@@ -227,8 +230,23 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
       paint(
         button,
         lockerStored(g, id)
-          ? `Stored · ${profile.name}`
-          : `${loads.has(id) ? "Loading" : canLoad ? (retry ? "Retry loading" : "Load weapon") : equipped ? "Equipped" : canOwn ? "Equip" : "Locked"} · ${profile.name}`,
+          ? fillText(TEXT.buttonStored, { name: profile.name })
+          : fillText(TEXT.button, {
+              action: TEXT.actions[
+                loads.has(id)
+                  ? "loading"
+                  : canLoad
+                    ? retry
+                      ? "retryLoading"
+                      : "loadWeapon"
+                    : equipped
+                      ? "equipped"
+                      : canOwn
+                        ? "equip"
+                        : "locked"
+              ],
+              name: profile.name,
+            }),
       );
     }
     if (el("melee-comparison"))
@@ -237,7 +255,13 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
         Object.values(MELEE_VARIANTS)
           .map(
             (profile) =>
-              `${profile.name}: Slash ${+effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1)} / Heavy ${+effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1)} damage · stamina ${profile.costs.slash}/${profile.costs.heavy}`,
+              fillText(TEXT.comparison, {
+                name: profile.name,
+                slash: +effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1),
+                heavy: +effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1),
+                slashCost: profile.costs.slash,
+                heavyCost: profile.costs.heavy,
+              }),
           )
           .join(" / "),
       );
@@ -258,7 +282,7 @@ export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
     if (!g || !eligible(g)) return null;
     return {
       id: g.world.uniqueRewardData.itemId,
-      label: "Collect Pitborn Cleaver",
+      label: TEXT.collectLabel,
       pickup: true,
       position: g.uniqueReward.dropPosition,
       run() {
