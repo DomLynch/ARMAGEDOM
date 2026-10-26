@@ -18,14 +18,10 @@ test("the data files are pinned", () => {
     sha(read("../src/data/supplies.json")),
     "69156017db3ebe45588d34fbae08aad8e293bf897c3f58f5e47d100408639002",
   );
-  assert.equal(
-    sha(read("../src/data/visual.json")),
-    "6febd838c069f805f01918801539cff7a9e5f8ad1d6b8afa2873d310eca833db",
-  );
-  assert.equal(
-    sha(read("../src/data/creatures.json")),
-    "00b717e7a9ffd918832880eda1be4034f64a1d037d107c1330cc8b88fb028350",
-  );
+  // visual.json and creatures.json are shared with other batches: pin only the sections this batch added.
+  const section = (file, key) => sha(JSON.stringify(JSON.parse(read(`../src/data/${file}.json`))[key]));
+  assert.equal(section("visual", "severBlood"), "9e3738401e2b8c6bd241c98f511745b15f12709c04be4751e1f5cbc6c623bd9e");
+  assert.equal(section("creatures", "creatureSim"), "5c7dfde360f8a631551b7ff82a13554a9eb88e5f29df4eb6e79f01c2de4a9e11");
 });
 
 test("every moved value equals the constant it replaced", () => {
