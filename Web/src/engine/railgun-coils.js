@@ -5,7 +5,7 @@ import { GAME_DATA } from "./game-data.js";
 export function createRailgunCoils(root) {
   const look = GAME_DATA.railgunCoils,
     group = new T.Group();
-  group.name = "Thundercoil amber coils";
+  group.name = "Thundercoil amber coils"; // text-ok: scene-graph object name
   root.add(group);
   const geometry = new T.TorusGeometry(
       look.ring.radius,
@@ -22,7 +22,7 @@ export function createRailgunCoils(root) {
     }),
     rings = new T.InstancedMesh(geometry, material, look.ring.count),
     pose = new T.Object3D();
-  rings.name = "Thundercoil three rings";
+  rings.name = "Thundercoil three rings"; // text-ok: scene-graph object name
   rings.frustumCulled = false;
   for (let i = 0; i < look.ring.count; i++) {
     pose.position.set(0, look.ring.y, look.ring.z + i * look.ring.zStep);
@@ -33,7 +33,7 @@ export function createRailgunCoils(root) {
   const arcGeometry = new T.BufferGeometry().setFromPoints(look.arc.points.map(([x, y, z]) => new T.Vector3(x, y, z))),
     arcMaterial = new T.LineBasicMaterial({ color: look.arc.color, transparent: true, opacity: 0, depthWrite: false }),
     arc = new T.Line(arcGeometry, arcMaterial);
-  arc.name = "Thundercoil finite charge arc";
+  arc.name = "Thundercoil finite charge arc"; // text-ok: scene-graph object name
   group.add(arc);
   const charge = look.charge;
   let disposed = false;
