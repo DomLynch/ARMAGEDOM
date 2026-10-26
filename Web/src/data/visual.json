@@ -225,6 +225,17 @@
       }
     }
   },
+  "safehouseView": {
+    "cue": { "period": 3.5, "reducedOpacity": 0.75, "pulseExponent": 8, "floor": { "selected": 0.82, "near": 0.7, "idle": 0.4 } },
+    "patchRenderOrder": -99,
+    "contour": { "colour": "ddba70", "linewidth": 2, "opacity": 0.4, "renderOrder": -98 },
+    "amountDigits": 2,
+    "silhouettes": {
+      "locker": [[0.09, 0.05], [0.91, 0], [1, 0.86], [0.77, 1], [0, 0.88]],
+      "comms": [[0, 0.31], [0.76, 0], [1, 0.23], [0.96, 0.84], [0.25, 1], [0.02, 0.82]],
+      "map": [[0, 0.13], [0.91, 0], [1, 0.84], [0.08, 1]]
+    }
+  },
   "wantedPoster": {
     "canvas": { "width": 384, "height": 768 },
     "titleX": 192,

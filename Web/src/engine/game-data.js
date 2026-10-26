@@ -245,6 +245,7 @@ export function validateVisual(d) {
     "routeGuidance",
     "severBlood",
     "motion",
+    "safehouseView",
     "wantedPoster",
   ]);
   // Sever blood presentation (engine/sever-blood-data.js): pool sizes are counts, times in seconds, lengths in metres.
