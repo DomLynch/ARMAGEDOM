@@ -927,7 +927,33 @@ const atmosphereRow = (field, row, allowSmokeColor = true) => {
   }
 };
 export function validateAtmosphere(d) {
-  closed(d, ["schema_version", "presets", "areas", "budgets", "bends"]);
+  closed(d, ["schema_version", "presets", "areas", "budgets", "bends", "variation"]);
+  // variation: the per-anchor jitter of atmosphere-areas.js. Each { min, span } row is drawn as min + random * span from the anchor's seed,
+  // in the order the rows are read there; smokePeriod is the seconds one smoke cycle lasts; wind is the sway for the East and other areas.
+  closed(d.variation, [
+    "size",
+    "rise",
+    "noiseOffsetSpan",
+    "defaultSmokeColor",
+    "tint",
+    "fireHeight",
+    "opacity",
+    "smokePeriod",
+    "smokeSpeed",
+    "wind",
+  ]);
+  for (const name of ["size", "rise", "tint", "fireHeight", "opacity", "smokeSpeed"]) {
+    closed(d.variation[name], ["min", "span"]);
+    fraction(`variation.${name}.min`, d.variation[name].min, 0.1, 2);
+    fraction(`variation.${name}.span`, d.variation[name].span, 0, 1);
+  }
+  fraction("variation.noiseOffsetSpan", d.variation.noiseOffsetSpan, 0.001, 1000);
+  fraction("variation.smokePeriod", d.variation.smokePeriod, 0.1, 1000);
+  if (!Array.isArray(d.variation.defaultSmokeColor) || d.variation.defaultSmokeColor.length !== 3)
+    fail("atmosphere", "variation.defaultSmokeColor");
+  d.variation.defaultSmokeColor.forEach((c, i) => fraction(`variation.defaultSmokeColor[${i}]`, c));
+  closed(d.variation.wind, ["east", "other", "span"]);
+  for (const f of ["east", "other", "span"]) fraction(`variation.wind.${f}`, d.variation.wind[f], 0, 4);
   const presets = Object.keys(d.presets);
   if (!presets.length) fail("atmosphere", "presets");
   for (const [name, p] of Object.entries(d.presets)) {
