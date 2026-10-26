@@ -15,6 +15,14 @@ import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
 export const PARKED_AREA_LIMIT = GAME_DATA.areaRuntime.parkedAreas; // data/areaRuntime.json: 2 areas, 30 MiB
 const TRAVEL = GAME_DATA.areaRuntime.travel; // data/areaRuntime.json: message delay and failure message length, preparation slices
 export const TRAVEL_MESSAGE_DELAY_MS = TRAVEL.messageDelayMs;
+// A locked exit says why ("Kill the Ember Matron") for 4 s, unless the yellow route line already says exactly that: the line
+// would only be replaced by the same words.
+export function showExitLock(s, gate) {
+  const routeLine = s.world?.exitHint?.(s.game.player.pos) ?? "";
+  if (routeLine.toLowerCase().includes(gate.message.toLowerCase())) return;
+  s.game.message = gate.message;
+  s.game.messageUntil = s.game.time + 4;
+}
 // The "Traveling to <AREA>…" message appears only if the travel is still going after the delay, so an instant hop never flashes it.
 // Returns cancel(): called when the travel ends (either way), it stops a pending message and makes a late timer do nothing.
 export function showTravelMessageAfterDelay(s, game, areaId, delayMs = TRAVEL_MESSAGE_DELAY_MS, setTimer = setTimeout) {
@@ -72,8 +80,7 @@ export function createAreaLifecycle(s) {
     if (s.resetting) return false;
     const gate = bossExitGate(s.game, request.areaId);
     if (gate && !gate.allowed) {
-      s.game.message = gate.message;
-      s.game.messageUntil = s.game.time + 4;
+      showExitLock(s, gate);
       return false;
     }
     if (needsUniqueDeathCommit(s.game) && s.persistRun?.(s.game) !== true) return false;
@@ -556,8 +563,7 @@ export function createAreaLifecycle(s) {
     if (request && !travelLatch && s.game.player.hp > 0 && !s.game.finished && !s.paused && !s.contextLost) {
       const gate = bossExitGate(s.game, request.areaId);
       if (gate && !gate.allowed) {
-        s.game.message = gate.message;
-        s.game.messageUntil = s.game.time + 4;
+        showExitLock(s, gate);
         return false;
       }
       travelLatch = true;

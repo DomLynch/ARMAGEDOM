@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "swing": {
+    "windupKeyFraction": 0.7,
+    "windupSourceFraction": 0.44,
+    "followThrough": 0.16,
+    "followThroughFraction": 0.56
+  },
+  "samplePhaseMax": 0.999999,
+  "saw": {
+    "windup": 0.25,
+    "active": 0.58,
+    "recovery": 0.9
+  },
+  "locomotion": {
+    "moveSpeed": 0.05,
+    "runSpeed": 4.2,
+    "walkRate": 1.7,
+    "runRate": 3.5,
+    "strafeRate": 0.75,
+    "sprintSpeed": 5.2
+  }
+}

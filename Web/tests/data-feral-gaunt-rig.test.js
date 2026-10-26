@@ -17,14 +17,21 @@ test("every table equals the old in-code table exactly (values and key order) an
   for (const [rows, expected, name] of [
     [FERAL_BODY_SHAPES, old.feralBodyShapes, "feralBodyShapes"],
     [FERAL_COAT_PROFILES, old.feralCoatProfiles, "feralCoatProfiles"],
-    [RIG_CAPABILITIES, old.rigCapabilities, "rigCapabilities"],
   ]) {
     assert.deepEqual(rows, expected, name);
     assert.equal(GAME_DATA.creatures[name], rows);
     assert(Object.isFrozen(rows), `${name} frozen`);
   }
+  // The rig rows keep growing as lanes move more rig behaviour into them: every field the fixture knew keeps its value.
+  assert(Object.isFrozen(RIG_CAPABILITIES));
   assert.deepEqual(Object.keys(RIG_CAPABILITIES), Object.keys(old.rigCapabilities));
-  assert(FERAL_BODY_SHAPES.every(Object.isFrozen) && FERAL_COAT_PROFILES.every((r) => Object.isFrozen(r) && Object.isFrozen(r.tint)));
+  for (const [rig, row] of Object.entries(old.rigCapabilities))
+    for (const [field, value] of Object.entries(row))
+      assert.deepEqual(RIG_CAPABILITIES[rig][field], value, `${rig}.${field}`);
+  assert(
+    FERAL_BODY_SHAPES.every(Object.isFrozen) &&
+      FERAL_COAT_PROFILES.every((r) => Object.isFrozen(r) && Object.isFrozen(r.tint)),
+  );
   const { targets, segments } = GAME_DATA.creatures.gauntShape;
   assert.deepEqual(targets, old.gauntTargets);
   assert.deepEqual(segments, old.gauntShape);
@@ -34,7 +41,14 @@ test("every table equals the old in-code table exactly (values and key order) an
 
 test("rigCapability answers as before", () => {
   for (const [rig, row] of Object.entries(old.rigCapabilities)) {
-    for (const flag of ["lowStrike", "tutorialHunt", "breathEmitter", "hoverTarget", "fixedPointerScale", "strictAlive"])
+    for (const flag of [
+      "lowStrike",
+      "tutorialHunt",
+      "breathEmitter",
+      "hoverTarget",
+      "fixedPointerScale",
+      "strictAlive",
+    ])
       assert.equal(rigCapability(rig, flag), row[flag] === true, `${rig} ${flag}`);
     for (const name of ["targetHeight", "targetHeightReach", "hitTicks", "deathTicks"])
       assert.equal(rigNumber(rig, name), row[name], `${rig} ${name}`);
@@ -51,25 +65,104 @@ test("the loader rejects a broken block", () => {
   };
   assert.doesNotThrow(broken(() => {}));
   for (const key of ["feralBodyShapes", "feralCoatProfiles", "gauntShape", "rigCapabilities"])
-    assert.throws(broken((d) => { delete d[key]; }), key);
-  assert.throws(broken((d) => { d.feralBodyShapes = []; }));
-  assert.throws(broken((d) => { d.feralBodyShapes.push({ ...d.feralBodyShapes[0] }); }), "duplicate id");
-  assert.throws(broken((d) => { d.feralBodyShapes[0].width = "0.6"; }));
-  assert.throws(broken((d) => { d.feralBodyShapes[0].extra = 1; }));
-  assert.throws(broken((d) => { d.feralCoatProfiles[0].tint = [1, 1]; }));
-  assert.throws(broken((d) => { d.feralCoatProfiles[0].tint[2] = -1; }));
-  assert.throws(broken((d) => { d.feralCoatProfiles[0].shapePending = 1; }));
-  assert.throws(broken((d) => { d.feralBodyShapes = d.feralBodyShapes.slice(1); }), "shapePending without a body shape");
-  assert.throws(broken((d) => { d.gauntShape.targets = []; }));
-  assert.throws(broken((d) => { d.gauntShape.segments = {}; }));
-  assert.throws(broken((d) => { d.gauntShape.segments.pelvis = ["spine_01"]; }));
-  assert.throws(broken((d) => { d.gauntShape.segments.pelvis = ["spine_01", 1.2]; }));
-  assert.throws(broken((d) => { d.gauntShape.segments["bad name"] = ["spine_01", 0.5]; }));
-  assert.throws(broken((d) => { d.rigCapabilities = {}; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].lowStrike = ""; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].hitTicks = null; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"].targetHeight = -1; }));
-  assert.throws(broken((d) => { d.rigCapabilities["original-rat"]["Bad name"] = true; }));
+    assert.throws(
+      broken((d) => {
+        delete d[key];
+      }),
+      key,
+    );
+  assert.throws(
+    broken((d) => {
+      d.feralBodyShapes = [];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralBodyShapes.push({ ...d.feralBodyShapes[0] });
+    }),
+    "duplicate id",
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralBodyShapes[0].width = "0.6";
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralBodyShapes[0].extra = 1;
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralCoatProfiles[0].tint = [1, 1];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralCoatProfiles[0].tint[2] = -1;
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralCoatProfiles[0].shapePending = 1;
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.feralBodyShapes = d.feralBodyShapes.slice(1);
+    }),
+    "shapePending without a body shape",
+  );
+  assert.throws(
+    broken((d) => {
+      d.gauntShape.targets = [];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.gauntShape.segments = {};
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.gauntShape.segments.pelvis = ["spine_01"];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.gauntShape.segments.pelvis = ["spine_01", 1.2];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.gauntShape.segments["bad name"] = ["spine_01", 0.5];
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.rigCapabilities = {};
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.rigCapabilities["original-rat"].lowStrike = "";
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.rigCapabilities["original-rat"].hitTicks = null;
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.rigCapabilities["original-rat"].targetHeight = -1;
+    }),
+  );
+  assert.throws(
+    broken((d) => {
+      d.rigCapabilities["original-rat"]["Bad name"] = true;
+    }),
+  );
 });
 
 test("the four modules keep no constant tables; the baseline no longer lists them", () => {

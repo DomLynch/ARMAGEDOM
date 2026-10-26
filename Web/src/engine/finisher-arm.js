@@ -1,7 +1,16 @@
 import * as T from "three";
-// Geometry/materials are prepared once. Lethal events copy only 65 bone TRS,
+import { FINISHER_DATA } from "./finisher-data.js";
+// Geometry/materials are prepared once. Lethal events copy only the character's bone TRS (armSever.boneCount),
 // never vertices, buffers, textures or a second complete character.
-export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, lifetime = 6 }) {
+export function prepareArmSever({
+  model,
+  asset,
+  scene,
+  groundY = 0,
+  isBlocked,
+  lifetime = FINISHER_DATA.armSever.lifetime,
+}) {
+  const toss = FINISHER_DATA.armSever;
   const original = model.getObjectByName("Hollow_body_and_worn_trousers"),
     bodySource = asset?.scene.getObjectByName("Prepared_left_arm_body"),
     partSource = asset?.scene.getObjectByName("Prepared_detached_left_arm");
@@ -13,7 +22,7 @@ export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, l
     !native ||
     !bodySource ||
     !partSource ||
-    native.skeleton.bones.length !== 65 ||
+    native.skeleton.bones.length !== toss.boneCount ||
     !scene?.isScene ||
     typeof isBlocked !== "function"
   )
@@ -51,7 +60,7 @@ export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, l
     rotation = new T.Quaternion(),
     bounds = new T.Box3(),
     center = new T.Vector3();
-  let radius = 0.1;
+  let radius = toss.initialRadius;
   try {
     for (const bone of native.skeleton.bones) {
       const own = boneMap.get(bone),
@@ -122,8 +131,8 @@ export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, l
       body.visible = true;
       original.visible = false;
       scene.add(container);
-      velocity.set(direction.x * 1.35, 1.5, -direction.z * 1.35);
-      spin.set(-direction.z, 0, -direction.x).normalize().multiplyScalar(5);
+      velocity.set(direction.x * toss.launchSpeed, toss.launchLift, -direction.z * toss.launchSpeed);
+      spin.set(-direction.z, 0, -direction.x).normalize().multiplyScalar(toss.spinRate);
       active = true;
       return true;
     },
@@ -133,11 +142,11 @@ export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, l
         stop();
         return;
       }
-      const elapsed = Math.min(0.1, Math.max(0, Number.isFinite(dt) ? dt : 0)),
+      const elapsed = Math.min(toss.maxStep, Math.max(0, Number.isFinite(dt) ? dt : 0)),
         steps = Math.ceil(elapsed * 60),
         step = steps ? elapsed / steps : 0;
       for (let i = 0; i < steps; i++) {
-        velocity.y -= 9.8 * step;
+        velocity.y -= toss.gravity * step;
         const from = { x: container.position.x, z: -container.position.z },
           next = { x: from.x + velocity.x * step, z: from.z - velocity.z * step };
         if (!isBlocked(next, radius, from)) {
@@ -147,13 +156,13 @@ export function prepareArmSever({ model, asset, scene, groundY = 0, isBlocked, l
         container.position.y += velocity.y * step;
         if (container.position.y < groundY + radius) {
           container.position.y = groundY + radius;
-          velocity.y = velocity.y < -1 ? -velocity.y * 0.2 : 0;
-          velocity.x *= 0.65;
-          velocity.z *= 0.65;
-          spin.multiplyScalar(0.8);
+          velocity.y = velocity.y < -1 ? -velocity.y * toss.bounceKeep : 0;
+          velocity.x *= toss.groundFriction;
+          velocity.z *= toss.groundFriction;
+          spin.multiplyScalar(toss.spinDamping);
         }
         const rate = spin.length();
-        if (rate > 0.02) {
+        if (rate > toss.spinMin) {
           axis.copy(spin).multiplyScalar(1 / rate);
           rotation.setFromAxisAngle(axis, rate * step);
           container.quaternion.premultiply(rotation);

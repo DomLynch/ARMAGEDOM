@@ -642,7 +642,6 @@ export function createBrowserSession(options = {}) {
       if (document.hidden) stopReaper(game, "hidden");
     }
   });
-  listen(document.getElementById("resume"), "click", () => audio.unlock().catch(() => {}));
   listen(document.getElementById("close-menu"), "click", () => audio.unlock().catch(() => {}));
   diagnostics = createMovementTrace(context, {
     enabled: new URLSearchParams(location.search).get("movementTrace") === "1",

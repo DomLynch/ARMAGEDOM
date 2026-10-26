@@ -2,6 +2,8 @@ import { GAME_DATA } from "./engine/game-data.js";
 // Original ground insect shell recipes; Combat supplies rhythm and role.
 // The six rows (id, name, width, shellTint, patch) live in Web/src/data/appearance.json `roaches` (read through game-data.js).
 export const ROACH_APPEARANCES = GAME_DATA.appearance.roaches;
+// The shell taper band and the wear noise (appearance.json `roachCoat`): wear is a smooth noise of the vertex position.
+const COAT = GAME_DATA.appearance.roachCoat;
 const SHELL = new Set(["abdomen", "thorax"]);
 export function createRoachAppearanceLibrary(T) {
   const caches = new WeakMap(),
@@ -38,13 +40,14 @@ export function createRoachAppearanceLibrary(T) {
             let shell = 0;
             for (let k = 0; k < 4; k++)
               if (SHELL.has(m.skeleton.bones[ix.getComponent(i, k)]?.name)) shell += w.getComponent(i, k);
-            const mask = Math.max(0, Math.min(1, (shell - 0.9) / 0.1)),
+            const mask = Math.max(0, Math.min(1, (shell - COAT.taper.from) / COAT.taper.range)),
               x = p.getX(i),
               y = p.getY(i),
               z = p.getZ(i);
             p.setX(i, x * (1 + (r.width - 1) * mask));
-            const field = Math.sin(z * 63 + Math.cos(x * 45) * 1.6) + Math.sin(y * 99 + z * 24),
-              wear = 1 - r.patch * Math.max(0, Math.min(1, (field - 0.25) / 1.4)) * mask;
+            const f = COAT.field,
+              field = Math.sin(z * f.z + Math.cos(x * f.cosX) * f.wobble) + Math.sin(y * f.y + z * f.z2),
+              wear = 1 - r.patch * Math.max(0, Math.min(1, (field - COAT.wear.from) / COAT.wear.range)) * mask;
             for (let k = 0; k < 3; k++)
               c[i * 3 + k] = (original ? original.getComponent(i, k) : 1) * (1 + (r.shellTint[k] - 1) * mask) * wear;
           }

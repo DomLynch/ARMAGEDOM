@@ -3,7 +3,7 @@ import {fixture} from './helpers/rifle-fixture.js';
 import {validateAreaMetadata} from '../src/engine/area-content.js';
 import {stageProgressionDeath} from '../src/engine/progression-runtime.js';import {issueSupply} from '../src/supplies.js';
 import {createBossEquipmentView} from '../src/engine/boss-equipment-view.js';
-const raw=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),registry=fixture().world.registry,data=validateAreaMetadata(raw,registry),extraWorld={bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData,markedData:data.markedData},key='armagedom:marked-run:v18',notice='Ember Projector dropped. Approach to collect.';
+const raw=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),registry=fixture().world.registry,data=validateAreaMetadata(raw,registry),extraWorld={bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData,markedData:data.markedData},key='armagedom:marked-run:v18',notice='Ember Projector dropped.';
 function fresh(records=new Map(),areaId='westminster'){const f=fixture({records,areaId,extraWorld});f.restore();return f;}
 // Reuse the existing reward test's genuine Core/death-intent path. This is a
 // controlled component fixture, not a claim of earning another browser kill.
