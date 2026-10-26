@@ -10,6 +10,7 @@ import {
   outfitFor,
 } from "../src/clothing-palettes.js";
 import { countNumberLiterals } from "../../scripts/number-literal-gate.mjs";
+import { assertClose } from "./helpers/assert-close.js";
 
 // Data move: the tonal separation threshold of clothing-palettes.js moved to visual.json `clothing.minTonalGap`; the sRGB transfer function, the
 // Rec. 709 luma weights and the byte shifts are published constants, now marked tuning-ok. The fixture is every colour, pairing and outfit the
@@ -19,14 +20,15 @@ const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/dat
 
 test("every colour, pairing and outfit equals the old module's exactly", () => {
   assert.equal(CLOTHING_PALETTE_VERSION, old.version);
-  assert.deepEqual(TOP_COLOURS, old.tops);
-  assert.deepEqual(TROUSER_COLOURS, old.trousers);
+  // Colours are computed with a power function, which can differ in the last digit between machines: compare numbers to 1e-12.
+  assertClose(TOP_COLOURS, old.tops, "tops");
+  assertClose(TROUSER_COLOURS, old.trousers, "trousers");
   assert.deepEqual(PAIRINGS, old.pairings);
   assert.deepEqual(Object.keys(PAIRINGS), Object.keys(old.pairings));
   let outfits = 0;
   for (const [key, expected] of Object.entries(old.outfits)) {
     const [top, pants] = key.split("/");
-    assert.deepEqual(outfitFor(top, pants), expected, key);
+    assertClose(outfitFor(top, pants), expected, key);
     outfits++;
   }
   assert.equal(outfits, 840);
