@@ -19,6 +19,7 @@ import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import visual from "../data/visual.json" with { type: "json" };
@@ -37,6 +38,7 @@ import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
+import { validateRailgunCoils } from "./game-data-railgun-coils.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -244,9 +246,13 @@ export function validateVisual(d) {
     "effects",
     "dropMarker",
     "routeArrow",
+    "bossView",
+    "pickupModel",
+    "bossEquipmentView",
     "routeGuidance",
     "severBlood",
     "motion",
+    "safehouseView",
     "wantedPoster",
     "combatImpact",
     "flameEffect",
@@ -873,6 +879,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   renderBudget: [renderBudget, validateRenderBudget],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
+  railgunCoils: [railgunCoils, validateRailgunCoils],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],

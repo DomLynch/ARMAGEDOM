@@ -3,6 +3,7 @@ import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { BOSS_EQUIPMENT_VIEW as V } from "./boss-equipment-view-data.js";
 import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
@@ -42,7 +43,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           failed.add(field);
           if (s.game === owner) {
             owner.message = "Weapon loading unavailable. Your reward is kept; retry in Gear.";
-            owner.messageUntil = owner.time + 4;
+            owner.messageUntil = owner.time + V.loadFailureSeconds;
           }
           throw error;
         })
@@ -62,7 +63,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           : command.equipped
             ? g.world.bossEquipmentData[field].name + " equipped."
             : "Returned to your normal weapon.";
-      g.messageUntil = g.time + 3;
+      g.messageUntil = g.time + V.claimMessageSeconds;
       s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
@@ -149,13 +150,16 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     blasts.clear();
   }
   function updateProjectiles(g) {
+    const G = V.grenade,
+      R = G.ring,
+      B = G.blast;
     const active = (g.activeGrenades ?? []).filter((row) => row.intent.areaId === g.world.areaId),
       ids = new Set(active.map((row) => row.intent.id));
     for (const [id, row] of projectiles)
       if (!ids.has(id)) {
         row.view.dispose();
         if (g.events.some((event) => event.type === "grenade-blast" && event.id === id)) {
-          row.warning.material.color.setHex(0xffe5a0);
+          row.warning.material.color.set(`#${B.colour}`);
           blasts.set(id, { mesh: row.warning, start: g.time });
         } else {
           row.warning.geometry.dispose();
@@ -166,15 +170,15 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       }
     for (const [id, row] of blasts) {
       const age = g.time - row.start;
-      if (age > 0.35) {
+      if (age > B.seconds) {
         row.mesh.removeFromParent();
         row.mesh.geometry.dispose();
         row.mesh.material.dispose();
         blasts.delete(id);
         continue;
       }
-      row.mesh.scale.setScalar(0.2 + (age / 0.35) * 0.8);
-      row.mesh.material.opacity = 0.8 * (1 - age / 0.35);
+      row.mesh.scale.setScalar(B.startScale + (age / B.seconds) * B.growth);
+      row.mesh.material.opacity = B.opacity * (1 - age / B.seconds);
     }
     for (const row of active) {
       let item = projectiles.get(row.intent.id);
@@ -183,33 +187,33 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         if (!source) continue;
         const view = createPickupModel(source.gltf, { rootName: "Grenade", ground: false }),
           warning = new T.Mesh(
-            new T.RingGeometry(2.92, 3, 40),
+            new T.RingGeometry(R.inner, R.outer, R.segments),
             new T.MeshBasicMaterial({
-              color: 0xffbc58,
+              color: `#${R.colour}`,
               transparent: true,
-              opacity: 0.45,
+              opacity: R.opacity,
               depthWrite: false,
               side: T.DoubleSide,
             }),
           );
-        warning.rotation.x = -Math.PI / 2;
+        warning.rotation.x = -Math.PI / 2; // tuning-ok: lays the ring flat on the ground
         s.scene.add(view.root, warning);
-        const start = s.actors.equipmentOrigin?.("grenade") ?? s.world.toRender(row.origin, 1.15);
+        const start = s.actors.equipmentOrigin?.("grenade") ?? s.world.toRender(row.origin, G.startHeight);
         item = { view, warning, start: start.clone() };
         projectiles.set(row.intent.id, item);
       }
       const born = row.intent.detonateAt - 1,
-        t = Math.max(0, Math.min(1, (g.time - born) / 0.35)),
-        end = s.world.toRender(row.intent.position, 0.05);
+        t = Math.max(0, Math.min(1, (g.time - born) / G.flightSeconds)),
+        end = s.world.toRender(row.intent.position, G.landHeight);
       if (row.mode === "sticky" && row.surfacePosition)
         item.view.root.position.set(row.surfacePosition.x, row.surfacePosition.y, row.surfacePosition.z);
       else {
         item.view.root.position.lerpVectors(item.start, end, t);
-        item.view.root.position.y += Math.sin(Math.PI * t) * 1.2;
+        item.view.root.position.y += Math.sin(Math.PI * t) * G.arcHeight;
       }
-      item.view.root.rotation.z = t < 1 ? t * Math.PI * 3 : 0;
-      item.warning.position.copy(s.world.toRender(row.intent.position, 0.018));
-      item.warning.material.opacity = 0.25 + 0.35 * Math.abs(Math.sin((g.time - born) * Math.PI * 6));
+      item.view.root.rotation.z = t < 1 ? t * Math.PI * G.spinPi : 0;
+      item.warning.position.copy(s.world.toRender(row.intent.position, R.height));
+      item.warning.material.opacity = R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
     }
   }
   function update() {

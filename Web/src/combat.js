@@ -109,9 +109,9 @@ const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
 // Numerical dead zones, not tuning: below these a direction, a stick push or a segment length counts as nothing.
-const NEGLIGIBLE_DISTANCE = 0.001,
-  INPUT_DEADZONE = 0.01,
-  MIN_SEGMENT = 0.0001;
+const NEGLIGIBLE_DISTANCE = 0.001, // tuning-ok: numerical dead zone for a direction
+  INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
+  MIN_SEGMENT = 0.0001; // tuning-ok: numerical dead zone for a segment length
 export function normal(v, fallback = { x: 0, z: 1 }) {
   const n = mag(v);
   return n > NEGLIGIBLE_DISTANCE ? { x: v.x / n, z: v.z / n } : { ...fallback };
@@ -127,7 +127,10 @@ const rotate = (v, angle) => ({
 let serial = 0;
 // The original goblin game's numbers (hp, reach, timings per enemy kind, formation, loot) are data/combatRules.json `legacy`.
 const RULES = GAME_DATA.combatRules,
-  LEGACY = RULES.legacy;
+  LEGACY = RULES.legacy,
+  WAVES = LEGACY.waves,
+  WARLORD = WAVES.warlordKind,
+  RANGED = WAVES.rangedKind;
 const legacyKind = (kind) => LEGACY.kinds[kind] ?? LEGACY.kinds[0];
 export function enemy(kind, pos) {
   const hp = LEGACY.kinds[kind]?.hp;
@@ -157,7 +160,7 @@ export function createGame(world, options = {}) {
     time: 0,
     wave: 0,
     kills: 0,
-    nextWave: 2,
+    nextWave: WAVES.firstWaveSeconds,
     started: false,
     finished: false,
     won: false,
@@ -166,7 +169,7 @@ export function createGame(world, options = {}) {
     bolts: [],
     loot: [],
     message: "Move to enter combat. Survive three waves.",
-    messageUntil: 4,
+    messageUntil: WAVES.messageSeconds,
     player: {
       id: 0,
       kind: -1,
@@ -205,7 +208,7 @@ export function createGame(world, options = {}) {
     Object.assign(g.player, {
       rig: "hero",
       weapon: "knife",
-      combatScale: world.layout?.characterScale ?? 1.265,
+      combatScale: world.layout?.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale,
       bodyScale: 1,
       hp: R.health,
       maxHP: R.health,
@@ -260,7 +263,7 @@ export function createGame(world, options = {}) {
 }
 function notify(g, text) {
   g.message = text;
-  g.messageUntil = g.time + 4;
+  g.messageUntil = g.time + WAVES.messageSeconds;
 }
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
@@ -690,7 +693,7 @@ export function receiveHit(g, hit) {
     if (t < p.parryUntil && hit.parry && p.guard >= amount) {
       p.guard -= amount;
       p.parryUntil = 0;
-      if (hit.attacker && hit.attacker.kind !== 3) {
+      if (hit.attacker && hit.attacker.kind !== WARLORD) {
         hit.attacker.swing = null;
         hit.attacker.ready =
           hit.attacker.recoverUntil =
@@ -701,7 +704,7 @@ export function receiveHit(g, hit) {
       event(g, "parry", { actor: p });
       return false;
     }
-    const cost = amount * 3;
+    const cost = amount * LEGACY.player.guard.blockCostFactor;
     if (p.guard >= cost) {
       p.guard -= cost;
       amount *= LEGACY.player.guard.blockedDamageFactor;
@@ -837,16 +840,22 @@ function kill(g, e, meta = {}) {
     }
     return;
   }
-  if (e.kind === 3) {
+  if (e.kind === WARLORD) {
     g.finished = true;
     g.won = true;
     return;
   }
-  if (g.kills % 2 === 0)
-    g.loot.push({ id: ++serial, pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
+  const drops = LEGACY.loot;
+  if (g.kills % drops.every === 0)
+    g.loot.push({
+      id: ++serial,
+      pos: { ...e.pos },
+      kind: (g.kills / drops.every - 1) % drops.kinds,
+      tier: Math.min(drops.maxTier, g.wave - 1),
+    });
   if (!g.enemies.length) {
     g.player.hp = Math.min(g.player.maxHP, g.player.hp + LEGACY.waveClearHeal);
-    g.nextWave = g.time + 4;
+    g.nextWave = g.time + WAVES.clearDelaySeconds;
     notify(g, `WAVE CLEARED · +${LEGACY.waveClearHeal} HP`);
   }
 }
@@ -869,7 +878,7 @@ function strike(g, s) {
     e.flashUntil = g.time + RULES.hitFlashSeconds;
     event(g, "hit", { actor: e, amount: p.damage * def.multiplier });
     if (e.hp <= 0) kill(g, e);
-    else if (e.kind !== 3) {
+    else if (e.kind !== WARLORD) {
       e.staggerUntil = g.time + def.stagger;
       moveBody(g, e, { x: delta.x * LEGACY.hitKnockback, z: delta.z * LEGACY.hitKnockback });
     }
@@ -900,21 +909,22 @@ export function spawnWave(g) {
     return;
   }
   g.wave++;
-  const count = g.wave === 3 ? 1 : 4 + g.wave;
+  const finalWave = g.wave === WAVES.finalWave,
+    count = finalWave ? 1 : WAVES.baseCount + g.wave;
   g.enemies = Array.from({ length: count }, (_, i) =>
-    enemy(g.wave === 3 ? 3 : i % 3, {
-      x: count === 1 ? 0 : ((i % LEGACY.formation.columns) - 2) * LEGACY.formation.xSpacing,
+    enemy(finalWave ? WARLORD : i % WAVES.kindCycle, {
+      x: count === 1 ? 0 : ((i % LEGACY.formation.columns) - LEGACY.formation.centerColumn) * LEGACY.formation.xSpacing,
       z: -1 + Math.floor(i / LEGACY.formation.columns) * LEGACY.formation.zSpacing,
     }),
   );
-  notify(g, g.wave === 3 ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/3`);
+  notify(g, finalWave ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/${WAVES.finalWave}`);
   event(g, "wave");
 }
-const wideSwing = (e) => e.kind === 3 && e.pattern === 1;
+const wideSwing = (e) => e.kind === WARLORD && e.pattern === WAVES.widePattern;
 const radius = (e) => (wideSwing(e) ? LEGACY.wideSwing.radius : legacyKind(e.kind).swingRadius);
 const arc = (e) => (wideSwing(e) ? LEGACY.wideSwing.arc : legacyKind(e.kind).swingArc);
 function bolt(g, pos, dir, amount) {
-  g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
+  g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + WAVES.boltLifeSeconds });
 }
 function enemyTick(g, e, dt, services = {}) {
   if (e.hp > 0 && safehouseProtected(g)) {
@@ -954,13 +964,13 @@ function enemyTick(g, e, dt, services = {}) {
     if (t + EPS >= e.swing.hitAt) {
       const s = e.swing;
       e.swing = null;
-      const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
+      const ranged = e.kind === RANGED || (e.kind === WARLORD && e.pattern === WAVES.rangedPattern),
         amount = row.damage;
       if (ranged) {
         bolt(g, s.pos, s.dir, amount);
-        if (e.kind === 3) {
-          bolt(g, s.pos, rotate(s.dir, Math.PI / 10), amount);
-          bolt(g, s.pos, rotate(s.dir, -Math.PI / 10), amount);
+        if (e.kind === WARLORD) {
+          bolt(g, s.pos, rotate(s.dir, Math.PI / WAVES.boltSpreadPiDivisor), amount);
+          bolt(g, s.pos, rotate(s.dir, -Math.PI / WAVES.boltSpreadPiDivisor), amount);
         }
       } else {
         const delta = sub(g.player.pos, s.pos);
@@ -969,22 +979,23 @@ function enemyTick(g, e, dt, services = {}) {
           inside(s.dir, delta, arc(e)) &&
           g.world.lineClear(s.pos, g.player.pos)
         )
-          receiveHit(g, { amount, origin: s.pos, attacker: e, block: e.kind !== 3, parry: e.kind === 0 });
+          receiveHit(g, { amount, origin: s.pos, attacker: e, block: e.kind !== WARLORD, parry: e.kind === 0 });
       }
       e.recoverUntil = Math.max(e.recoverUntil, t + row.recoverSeconds);
       e.ready = Math.max(e.ready, t + row.readySeconds);
-      if (e.kind === 3) e.pattern = (e.pattern + 1) % 3;
+      if (e.kind === WARLORD) e.pattern = (e.pattern + 1) % WAVES.patternCount;
     }
     return;
   }
   if (t < e.recoverUntil || t < e.staggerUntil) return;
-  const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
+  const ranged = e.kind === RANGED || (e.kind === WARLORD && e.pattern === WAVES.rangedPattern),
     reach = ranged ? LEGACY.rangedReach : radius(e) - LEGACY.reachSlack;
   if (distance > reach || !g.world.lineClear(e.pos, g.player.pos)) {
     enemyMove(g, e, dir, row.moveSpeed, dt);
     return;
   }
-  if (e.kind === 2 && distance < 4 && t < e.ready) enemyMove(g, e, { x: -dir.x, z: -dir.z }, 2, dt, true);
+  if (e.kind === RANGED && distance < WAVES.retreatDistance && t < e.ready)
+    enemyMove(g, e, { x: -dir.x, z: -dir.z }, WAVES.retreatSpeed, dt, true);
   else e.facing = turn(e.facing, dir, 360 * dt);
   if (t + EPS >= e.ready && dot(e.facing, dir) > LEGACY.aimDot) {
     const delay = row.windupSeconds;
@@ -1349,7 +1360,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     stepFlame(g, dt, services, (target, amount, hit) => flameHit(g, target, amount, hit));
     if (mag(sub(p.pos, g.world.spawn ?? RULES.player.spawn)) >= 1) g.started = true;
     if (g.encounterActive !== false && g.started && !g.enemies.length && t + EPS >= g.nextWave) {
-      if (g.wave >= 3) {
+      if (g.wave >= WAVES.finalWave) {
         g.finished = true;
         g.won = true;
       } else spawnWave(g);
@@ -1464,11 +1475,11 @@ function hollowSpawn(g) {
         if (
           !circleClear ||
           !g.world.lineClear(p.pos, position) ||
-          dot(delta, direction) < 2 ||
-          mag(delta) < Math.max(2, p.radius + radius + RULES.spawning.clearance)
+          dot(delta, direction) < RULES.spawning.minForward ||
+          mag(delta) < Math.max(RULES.spawning.minDistance, p.radius + radius + RULES.spawning.clearance)
         )
           continue;
-        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + RULES.spawning.clearance)) continue;
+        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + RULES.spawning.clearance)) continue; // tuning-ok: radius to diameter
         positions.push(position);
         if (positions.length === profile.count) break;
       }
@@ -1582,7 +1593,7 @@ export function initializeAreaResidents(g) {
     .filter(
       (p) =>
         !dead.has(p.key) &&
-        (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) ||
+        (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
           !g.supplies?.issued.includes(p.key)) &&
         (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key)),
     )
@@ -1763,16 +1774,7 @@ function knifeSpawnPosition(g) {
     player = g.player;
   // Each projection uses the actual world collision radius. Never assume that a
   // requested offset survives sliding: it may collapse back to the start point.
-  const offsets = [
-    { x: 0, z: 4 },
-    { x: 4, z: 0 },
-    { x: -4, z: 0 },
-    { x: 0, z: -4 },
-    { x: 3, z: 3 },
-    { x: -3, z: 3 },
-    { x: 3, z: -3 },
-    { x: -3, z: -3 },
-  ];
+  const offsets = RULES.spawning.knifeOffsets.map(([x, z]) => ({ x, z }));
   for (const offset of offsets) {
     const position = g.world.move(player.pos, offset, radius);
     const circleClear =
