@@ -1,0 +1,65 @@
+{
+ "westminster": {
+  "meshes": "257d9547314caf3b5729af82085c00fd6b8f5c75671e3013af4b365864e52d0b",
+  "meshNames": [
+   [
+    "Atmosphere smoke",
+    -80,
+    66
+   ],
+   [
+    "Atmosphere flame",
+    -80,
+    18
+   ],
+   [
+    "Atmosphere ember",
+    -80,
+    36
+   ]
+  ],
+  "stats": "cc8a5dcf9ce75e6224167d2ab72ea359678ee2b087199472720846b8549c9505"
+ },
+ "east": {
+  "meshes": "0af83c9996d4ccc2272e361e812748f9fb85ba21dfd02df10e8cf605d176b924",
+  "meshNames": [
+   [
+    "Atmosphere smoke",
+    -80,
+    54
+   ],
+   [
+    "Atmosphere flame",
+    -80,
+    24
+   ],
+   [
+    "Atmosphere ember",
+    -80,
+    30
+   ]
+  ],
+  "stats": "96aa13bc9d49f07854fd90b3b92250a970119fcbcfd8ac71b81d3076ed59fcf9"
+ },
+ "south": {
+  "meshes": "70b18c253c86a9773e18aa1b350df816d2cda383f74572d9c3602c289999dda8",
+  "meshNames": [
+   [
+    "Atmosphere smoke",
+    -80,
+    72
+   ],
+   [
+    "Atmosphere flame",
+    -80,
+    24
+   ],
+   [
+    "Atmosphere ember",
+    -80,
+    30
+   ]
+  ],
+  "stats": "471761bbd4080f95f8ba38ccfed077a0eb1e4048c88f872e688f74bf3f430f5b"
+ }
+}
