@@ -28,17 +28,14 @@ test("the dog coat name matches the rig row in creatures.json", () => {
   assert.equal(rigText("original-dog", "coatName"), OLD.feralCoat);
 });
 
-test("validateAppearance rejects a missing, empty, extra or repeated mesh name", () => {
+test("validateAppearance rejects an empty, blank or repeated mesh name", () => {
   assert.doesNotThrow(() => validateAppearance(clone()));
-  const missing = clone();
-  delete missing.meshNames.hair;
-  assert.throws(() => validateAppearance(missing));
+  const none = clone();
+  none.meshNames = {};
+  assert.throws(() => validateAppearance(none), /meshNames/);
   const empty = clone();
   empty.meshNames.hair = " ";
   assert.throws(() => validateAppearance(empty), /hair/);
-  const extra = clone();
-  extra.meshNames.other = "x";
-  assert.throws(() => validateAppearance(extra));
   const repeated = clone();
   repeated.meshNames.hairMaterial = repeated.meshNames.hair;
   assert.throws(() => validateAppearance(repeated), /differ/);

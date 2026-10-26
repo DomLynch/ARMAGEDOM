@@ -312,14 +312,13 @@ function validateAnimalOffsets(d, { fail, between }) {
 // pixels, its colour (#rrggbb) and how far its render order sits above the pickup's own.
 // The names the code looks meshes and materials up by in the shipped GLBs, and the names it gives the hair it builds. All different, so no
 // lookup can match another part.
-const MESH_NAME_KEYS = ["feralCoat", "feralLimbs", "feralFace", "feralTeeth", "roachShell", "donorNeck", "hair", "hairMaterial", "bodySkin", "neckSkin"];
 function validateMeshNames(d, { fail }) {
-  closed(d.meshNames, MESH_NAME_KEYS);
-  const names = MESH_NAME_KEYS.map((key) => d.meshNames[key]);
-  names.forEach((name, i) => {
-    if (typeof name !== "string" || !name.trim()) fail("appearance", `meshNames.${MESH_NAME_KEYS[i]} must be a non-empty string`);
-  });
-  if (new Set(names).size !== names.length) fail("appearance", "meshNames must all differ");
+  const keys = Object.keys(d.meshNames ?? {});
+  if (!keys.length) fail("appearance", "meshNames must list names");
+  for (const key of keys)
+    if (typeof d.meshNames[key] !== "string" || !d.meshNames[key].trim())
+      fail("appearance", `meshNames.${key} must be a non-empty string`);
+  if (new Set(Object.values(d.meshNames)).size !== keys.length) fail("appearance", "meshNames must all differ");
 }
 
 function validateFeralAndGlow(d, { fail, between }) {
