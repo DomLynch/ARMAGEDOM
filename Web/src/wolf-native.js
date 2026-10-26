@@ -5,6 +5,10 @@ import { rigResponse } from "./rig-response.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
 // The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
 const WOLF = rigOfSpecies("wolf");
+// The share of a vertex's skin weight that must sit on the torso bones to bind a face to the body is appearance.json `wolfNative.bodyWeightMin`.
+const BODY_WEIGHT_MIN = GAME_DATA.appearance.wolfNative.bodyWeightMin;
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+const CORNERS = 3; // tuning-ok: a triangle has three corners
 export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
 // The reaction clips and ticks are the wolf's rigCapabilities row.
 export function wolfResponse(alive, start) {
@@ -31,12 +35,12 @@ export function wolfBodyReceiverBindings(model) {
     vertices = new Set();
   for (let i = 0; i < skin.count; i++) {
     let sum = 0;
-    for (let j = 0; j < 4; j++) if (body.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
-    if (sum >= 0.5) vertices.add(i);
+    for (let j = 0; j < INFLUENCES; j++) if (body.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
+    if (sum >= BODY_WEIGHT_MIN) vertices.add(i);
   }
   const faceBindings = [];
-  for (let face = 0; face < indices.count / 3; face++) {
-    const row = [0, 1, 2].map((k) => indices.getX(face * 3 + k));
+  for (let face = 0; face < indices.count / CORNERS; face++) {
+    const row = Array.from({ length: CORNERS }, (_, k) => indices.getX(face * CORNERS + k));
     if (row.some((i) => vertices.has(i))) faceBindings.push({ face, vertices: row });
   }
   return [{ runtimeName: "Skin", faceBindings }];
