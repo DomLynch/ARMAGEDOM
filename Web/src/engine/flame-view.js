@@ -102,7 +102,7 @@ export function createFlameView(s, persistence) {
       );
       if (!result.ok) return;
     } else stopFlame(g, { unequip: true });
-    s.input?.clear();
+    s.input?.clear({ keepMovement: true });
     s.effects?.clearFlameFeedback?.();
     repaint();
   }
@@ -166,7 +166,7 @@ export function createFlameView(s, persistence) {
     }
     if (!persistence.persistRun(g)) return;
     if (setFlameEquipped(g, true)) {
-      s.input?.clear();
+      s.input?.clear({ keepMovement: true });
       g.message = "Ember Projector ready · hold Flame to fire.";
       g.messageUntil = g.time + 4;
       repaint();

@@ -63,7 +63,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
             ? g.world.bossEquipmentData[field].name + " equipped."
             : "Returned to your normal weapon.";
       g.messageUntil = g.time + 3;
-      s.input.clear();
+      s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
     return result;
