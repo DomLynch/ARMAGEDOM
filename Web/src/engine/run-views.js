@@ -78,22 +78,27 @@ export function startingPistolCandidate(g, run) {
     ? { id: START_PISTOL_ID, label: START_PISTOL_LABEL, pickup: true, position: p.pickupPos, run }
     : null;
 }
-// Walking into the reach of a pickup claims it, once. `step(position, candidates)` runs the nearest candidate marked `pickup: true`
-// that has not been started yet and remembers its id until the candidate leaves the list (claimed, or out of reach), so a claim
-// still in flight (an async auto-equip) or one the game refused is not repeated every frame. Each pickup's own radius, line of sight,
-// loaded and safe-to-act checks decide whether it is a candidate at all.
+// Walking into the reach of a pickup claims it. `step(position, candidates, time)` runs the nearest candidate marked `pickup: true`
+// that is due and remembers it until the candidate leaves the list (claimed, or out of reach), so a claim still in flight (an async
+// auto-equip) is not repeated every frame. A pickup still listed after its back-off (the claim was refused for a reason that can
+// pass, such as full save storage) is tried again while the player stays in reach: after 1 s, then 2 s, then every 4 s. Each pickup's
+// own radius, line of sight, loaded and safe-to-act checks decide whether it is a candidate at all. `time` is game time (seconds).
+export const AUTO_PICKUP_RETRY_SECONDS = Object.freeze({ first: 1, max: 4 });
 export function createAutoPickup() {
-  const started = new Set();
-  return function step(position, candidates) {
+  const started = new Map();
+  return function step(position, candidates, time = 0) {
     const pickups = candidates.filter((c) => c?.pickup === true);
     const live = new Set(pickups.map((c) => c.id));
-    for (const id of started) if (!live.has(id)) started.delete(id);
+    for (const id of started.keys()) if (!live.has(id)) started.delete(id);
     const next = nearestInteraction(
       position,
-      pickups.filter((c) => !started.has(c.id)),
+      pickups.filter((c) => !started.has(c.id) || time >= started.get(c.id).retryAt),
     );
     if (!next) return false;
-    started.add(next.id);
+    const wait = started.has(next.id)
+      ? Math.min(started.get(next.id).wait * 2, AUTO_PICKUP_RETRY_SECONDS.max)
+      : AUTO_PICKUP_RETRY_SECONDS.first;
+    started.set(next.id, { retryAt: time + wait, wait });
     next.run();
     return true;
   };
@@ -184,7 +189,7 @@ export function createRunViews(s) {
     const field = document.getElementById("pistol-interact"),
       candidates = interactionCandidates(),
       position = s.game?.player.pos;
-    if (position) autoPickup(position, candidates);
+    if (position) autoPickup(position, candidates, s.game.time);
     const target = position ? nearestInteraction(position, candidates.filter((c) => !c.pickup)) : null;
     if (!field) return;
     field.hidden = !target;
