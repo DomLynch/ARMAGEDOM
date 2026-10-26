@@ -38,6 +38,23 @@ function firstArgument(source, open) {
   return source.slice(open);
 }
 
+// The index of the first `?` outside any string or bracket in an argument, or -1 (a ternary's test ends there).
+function topLevelQuestion(arg) {
+  let depth = 0,
+    quote = null;
+  for (let i = 0; i < arg.length; i++) {
+    const c = arg[i];
+    if (quote) {
+      if (c === "\\") i++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'" || c === "`") quote = c;
+    else if ("([{".includes(c)) depth++;
+    else if (")]}".includes(c)) depth--;
+    else if (c === "?" && depth === 0 && arg[i + 1] !== "." && arg[i + 1] !== "?") return i;
+  }
+  return -1;
+}
+
 // Every webText( call in the source: { file, literals: [id], prefixes: [string], unresolved: boolean }.
 export function readCalls(files, root = SRC) {
   const calls = [];
@@ -49,7 +66,9 @@ export function readCalls(files, root = SRC) {
       const lineStart = source.lastIndexOf("\n", match.index) + 1,
         line = source.slice(lineStart, source.indexOf("\n", match.index));
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue; // a comment that mentions the call
-      const arg = firstArgument(source, match.index + match[0].length),
+      // In `cond ? "a" : "b"` only the branches are ids; a literal in the condition (`kind === "knife" ? …`) is not.
+      const whole = firstArgument(source, match.index + match[0].length),
+        arg = topLevelQuestion(whole) >= 0 ? whole.slice(topLevelQuestion(whole) + 1) : whole,
         literals = [],
         prefixes = [];
       for (const lit of arg.matchAll(/"([^"\n]*)"|'([^'\n]*)'|`([^`\n]*)`/g)) {
@@ -113,7 +132,7 @@ test("the call reader sees literals, ternaries and template prefixes, and skips 
       [
         '// webText("in.comment") is only mentioned here',
         'const a = webText("one.id", { x: f(1, 2) });',
-        'const b = webText(flag ? "two.yes" : "two.no");',
+        'const b = webText(kind === "knife" ? "two.yes" : "two.no");',
         "const c = webText(`three.${reason}`);",
         "const d = webText(someId);",
       ].join("\n"),
