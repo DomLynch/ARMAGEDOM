@@ -14,7 +14,8 @@ export const resourceOwner = {
   "grenade-charges": weaponIdsAllowed[5],
   "flame-fuel": weaponIdsAllowed[2],
 };
-const resources = Object.keys(resourceOwner);// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
+const resources = Object.keys(resourceOwner);
+// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
 // tests/data-locker.test.js checks the client copy against them.
 const lockerRules = (caps) =>
   Object.freeze(
