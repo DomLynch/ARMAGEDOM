@@ -2,6 +2,7 @@ import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from
 import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
+import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
@@ -22,6 +23,7 @@ import {
   prepareSafehouseStep,
 } from "./engine/safehouse.js";
 import { stepRockets } from "./engine/rocket-runtime.js";
+import { stepTrapCrates } from "./engine/trap-crate.js";
 import { bossEquipmentIntent, selectedBossRanged, stepBossGrenades } from "./engine/boss-weapon-runtime.js";
 import { bossEquipmentClock } from "./engine/boss-equipment-data.js";
 import { rifleActionState } from "./engine/rifle-runtime.js";
@@ -34,6 +36,7 @@ import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
+import { recordResidentKill, reviveDue } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
@@ -74,7 +77,7 @@ import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
 const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
-// The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
+// Legacy (non-pilot) attacks: data/creatures.json `playerAttacks`.
 export const attacks = GAME_DATA.creatures.playerAttacks;
 // The rig ids of the kinds addressed by name below (creatures.json rigCapabilities species).
 const DRONE_RIG = rigOfSpecies("drone"),
@@ -110,7 +113,7 @@ const SALAMANDER_ATTACK = CREATURE_MOVES.salamander_attack;
 const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
-// Numerical dead zones, not tuning: below these a direction, a stick push or a segment length counts as nothing.
+// Numerical dead zones, not tuning: below these a direction, push or length counts as nothing.
 const NEGLIGIBLE_DISTANCE = 0.001, // tuning-ok: numerical dead zone for a direction
   INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
   MIN_SEGMENT = 0.0001; // tuning-ok: numerical dead zone for a segment length
@@ -127,7 +130,7 @@ const rotate = (v, angle) => ({
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
 let serial = 0;
-// The original goblin game's numbers (hp, reach, timings per enemy kind, formation, loot) are data/combatRules.json `legacy`.
+// The original goblin game's numbers: data/combatRules.json `legacy`.
 const RULES = GAME_DATA.combatRules,
   LEGACY = RULES.legacy,
   WAVES = LEGACY.waves,
@@ -270,6 +273,7 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
+export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursedDamage(g, damage), c);
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
@@ -364,7 +368,7 @@ function rifleIntent(g, intent, dispatch) {
       if (result?.ok) {
         shotDirection = shot.direction;
         event(g, "shot", { ...shot, damage: rules.damage, kind: "bullet", weapon: "rifle", actor: p });
-        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, rules.damage);
+        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, cursedDamage(g, rules.damage));
       }
     }
   }
@@ -733,7 +737,7 @@ export function receiveHit(g, hit) {
 }
 function flameHit(g, target, damage, { source }) {
   if (safehouseWeaponBlocked(g) || safehouseBlocksSegment(g, source.position, target.pos)) return;
-  const amount = Math.min(target.hp, damage);
+  const amount = Math.min(target.hp, cursedDamage(g, damage));
   if (!(amount > 0)) return;
   target.hp = Math.max(0, target.hp - amount);
   target.flashUntil = g.time + RULES.hitFlashSeconds;
@@ -816,6 +820,7 @@ function kill(g, e, meta = {}) {
     }).state;
   g.enemies = g.enemies.filter((x) => x !== e);
   g.kills++;
+  recordResidentKill(g, e);
   event(g, "death", { actor: e, ...meta });
   if (g.pilot) {
     g.corpses.push(e);
@@ -1202,7 +1207,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
-    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
+    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
@@ -1231,8 +1236,9 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   const p = g.player,
     t = g.time;
   stepAirdrop(g, dt);
-  stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
-  stepRockets(g, (...args) => rangedHit(g, ...args), services);
+  stepBossGrenades(g, (...args) => cursedHit(g, ...args), services);
+  stepRockets(g, (...args) => cursedHit(g, ...args), services);
+  stepTrapCrates(g, receiveHit, services);
   intent = mobileControl(g, intent, dt, services);
   intent = applyTouchTarget(g, intent, services);
   if (g.rifleAction && (intent.cancel || g.flame?.equipped)) g.rifleAction.reloadingUntil = 0;
@@ -1241,7 +1247,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     : g.flame?.equipped
       ? flameIntent(g, intent)
       : selectedBossRanged(g)
-        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => rangedHit(g, ...args), services)
+        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => cursedHit(g, ...args), services)
         : g.rifle?.selected
           ? rifleIntent(g, intent, services.dispatchRifle)
           : pistolIntent(g, intent, services.dispatchPistol, services.dispatchMarshalPistol);
@@ -1366,6 +1372,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
+    stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
+    if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
@@ -1376,7 +1384,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
         emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
-        hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
+        hit: (shot, amount) => cursedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
       collect(g);
@@ -1576,11 +1584,9 @@ function declaredResident(g, placement, mobSize) {
   actor.hp = actor.maxHP = health;
   return applyBossProfile(actor, placement, g.world.bossData);
 }
-export function initializeAreaResidents(g) {
-  if (!g.areaResidents || g.areaInitialized) return;
-  const area = g.world.areaId ?? "westminster";
-  // Legacy opening groups remain atomic; resident-only starts initialize directly.
-  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
+// `revived` holds placements whose respawn time has passed: they come back although the permanent ledgers say dead.
+// `onlyRevived` builds just those (re-entering an area that was already set up); drones are never revived.
+function buildResidents(g, area, revived, onlyRevived) {
   const dead = new Set(g.progressionModel?.deadPlacements(g.progression, area) ?? []);
   const policy = g.world.populationData,
     canonical = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [];
@@ -1592,10 +1598,12 @@ export function initializeAreaResidents(g) {
   const residents = placements
     .filter(
       (p) =>
-        !dead.has(p.key) &&
-        (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
-          !g.supplies?.issued.includes(p.key)) &&
-        (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key)),
+        revived.has(p.key) ||
+        (!onlyRevived &&
+          !dead.has(p.key) &&
+          (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
+            !g.supplies?.issued.includes(p.key)) &&
+          (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key))),
     )
     .map((placement) =>
       Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
@@ -1673,7 +1681,7 @@ export function initializeAreaResidents(g) {
     const recipe = gauntHumanRecipe(g.animalCycle, area, e);
     if (recipe) e.humanBodyRecipe = recipe;
   }
-  if (g.drone)
+  if (g.drone && !onlyRevived)
     for (const placement of AREA_DRONE_SPAWNS[area] ?? [])
       if (
         populationAllowsDrone(policy, area, placement.key) &&
@@ -1690,7 +1698,14 @@ export function initializeAreaResidents(g) {
             returning: false,
           }),
         );
-  g.enemies.push(...residents);
+  return residents;
+}
+export function initializeAreaResidents(g) {
+  if (!g.areaResidents || g.areaInitialized) return;
+  const area = g.world.areaId ?? "westminster";
+  // Legacy opening groups remain atomic; resident-only starts initialize directly.
+  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
+  g.enemies.push(...buildResidents(g, area, new Set(), false));
   g.areaInitialized = true;
   g.encounterActive = g.enemies.length > 0;
   g.encounterCleared = !g.enemies.length;
@@ -1700,6 +1715,7 @@ export function initializeAreaResidents(g) {
     g.nextEnemyAttackAt = g.time;
   }
 }
+export const reviveAreaResidents = (g) => reviveDue(g, buildResidents, AREA_MOB_SPAWNS);
 function alertResident(g, e) {
   if (!e.alerted && e.animalRole) e.wokeAt = g.time;
   e.alerted = true;

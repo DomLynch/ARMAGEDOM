@@ -66,7 +66,7 @@ function snapshot() {
       }
     const meshes = [];
     world.group.traverse((o) => {
-      if (o.geometry?.attributes?.position && !o.name.startsWith("Exit ring")) // the exit rings are covered by exit-rings.test.js
+      if (o.geometry?.attributes?.position && !o.name.startsWith("Exit ring") && !o.userData.pickupType && !o.parent?.userData.pickupType) // exit rings: exit-rings.test.js; ground pickups and their contours: world-pickups.test.js
         meshes.push([o.name, o.renderOrder, Array.from(o.geometry.attributes.position.array, round), Array.from(o.geometry.attributes.uv?.array ?? [], round), Array.from(o.geometry.index?.array ?? [])]);
     });
     out[area] = { log: hash(log), meshes: hash(meshes), first: log[0], layout: [layout.zoom, layout.followPlayerSize, layout.characterScale] };

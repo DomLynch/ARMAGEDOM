@@ -1,5 +1,6 @@
 import { createWantedProjection } from "./wanted-projection.js";
 import { createMarkedView } from "./marked-view.js";
+import { createTrapCrateView } from "./trap-crate-view.js";
 import { createReaperView } from "./reaper-view.js";
 import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
 import { nextCarriedWeapon } from "./weapon-cycle.js";
@@ -13,6 +14,7 @@ import { selectedMeleeVariant } from "../melee-equipment.js";
 import { webText } from "./web-text.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { createFlameView } from "./flame-view.js";
+import { createCursedRelicView } from "./cursed-relic-view.js";
 import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
@@ -171,7 +173,9 @@ export function createRunViews(s) {
   });
   const safehouseView = createSafehouseView(s, persistence.dispatchLocker);
   const markedView = createMarkedView(s, persistence.dispatchMarked),
-    wantedProjection = createWantedProjection(s);
+    wantedProjection = createWantedProjection(s),
+    relicView = createCursedRelicView(s),
+    trapCrateView = createTrapCrateView(s);
   // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
   // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
   function interactionCandidates() {
@@ -423,6 +427,8 @@ export function createRunViews(s) {
       bossEquipmentView.update();
       safehouseView.update();
       markedView.update();
+      relicView.update();
+      trapCrateView.update();
       wantedProjection.update();
       updateInteraction();
       weaponTiles.update();
@@ -441,7 +447,9 @@ export function createRunViews(s) {
     cancelPistol,
     dispose() {
       wantedProjection.dispose();
+      relicView.dispose();
       markedView.dispose();
+      trapCrateView.dispose();
       weaponTiles.dispose();
       reaperView.dispose();
       safehouseView.dispose();

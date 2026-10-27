@@ -1,9 +1,14 @@
 import { closedData } from "./progression-state.js";
-import { freshMarked, validMarked, copyMarked, markedShopEligible } from "./marked.js";
+import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
 export const MARKED_SAVE_KEY = "armagedom:marked-run:v18";
-const same = (a, b) => a.version === b.version && a.carried === b.carried && a.bank === b.bank && a.bounty === b.bounty;
+const same = (a, b) =>
+  a.version === b.version &&
+  a.carried === b.carried &&
+  a.bank === b.bank &&
+  a.bounty === b.bounty &&
+  cleanGolden(a.golden).join() === cleanGolden(b.golden).join();
 const fail = (code) => ({ ok: false, code, events: [] });
 // One passive envelope over Hub17. Existing progression owns kill credit and
 // existing inventory codecs own ammo/HP; all sides commit through Core once.

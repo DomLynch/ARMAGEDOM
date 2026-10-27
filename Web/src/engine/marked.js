@@ -103,7 +103,9 @@ export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
 export function validMarked(s, max = MAX_MONEY_CEILING) {
   try {
-    closed(s, ["version", "carried", "bank", "bounty"]);
+    // `golden` is optional and written by a later release (golden weapons). Whatever it holds never makes the save corrupt (a corrupt
+    // Marked block makes Retry/Reset erase the run): copyMarked below keeps only well-formed, de-duplicated weapon keys.
+    closed(s, ["version", "carried", "bank", "bounty"], ["golden"]);
     return (
       s.version === 1 &&
       ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max)
@@ -112,9 +114,14 @@ export function validMarked(s, max = MAX_MONEY_CEILING) {
     return false;
   }
 }
+// The golden weapon keys worth keeping: lowercase id strings, each once, in order. Junk, wrong types and duplicates are dropped.
+export const cleanGolden = (x) =>
+  Array.isArray(x) ? [...new Set(x.filter((k) => typeof k === "string" && /^[a-z][a-z0-9-]*$/.test(k)))] : [];
 export function copyMarked(s) {
   if (!validMarked(s)) throw TypeError("Invalid Marked state");
-  return { ...s };
+  const { golden, ...rest } = s,
+    kept = cleanGolden(golden);
+  return kept.length ? { ...rest, golden: kept } : rest;
 }
 export function markedShopEligible(g, id) {
   const row = g.world?.markedData?.shop[id];

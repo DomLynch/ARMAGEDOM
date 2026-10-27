@@ -124,6 +124,7 @@ export function createBrowserLoop(s) {
           flameSource: s.flameSource,
           bossFlameSource: s.bossFlameSource,
           flameAimEligible: s.flameAimEligible,
+          pointOnScreen: s.pointOnScreen,
         });
         s.diagnostics?.afterStep();
         if (weaponBefore !== s.game.player.weapon || flameBefore !== !!s.game.flame?.equipped) {
@@ -133,6 +134,7 @@ export function createBrowserLoop(s) {
         }
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
+        s.world.worldPickups?.collect(s.game, s.world.camera);
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);
@@ -154,6 +156,7 @@ export function createBrowserLoop(s) {
     }
     s.world.update(s.game.player.pos, s.paused ? 0 : dt, innerWidth, innerHeight);
     s.world.exitRings?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
+    s.world.worldPickups?.sync(s.game);
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
