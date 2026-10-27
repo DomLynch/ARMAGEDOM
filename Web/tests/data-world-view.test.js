@@ -14,7 +14,7 @@ const rawText = fs.readFileSync(new URL("../src/data/areaRuntime.json", import.m
 
 // `defaultCharacterScale` (tests/data-default-character-scale.test.js) and the art size, entry, clearance, follow reference, reference
 // height and zoom cap (tests/world-values.test.js) were added to the section later: these two tests cover the camera rows.
-const LATER = ["defaultCharacterScale", "artSize", "londonEntry", "entryClearance", "followReference", "referenceHeight", "maxZoom"];
+const LATER = ["defaultCharacterScale", "artSize", "londonEntry", "entryClearance", "followReference", "referenceHeight", "maxZoom", "defaultPortraitScale"];
 const without = (view) => Object.fromEntries(Object.entries(view).filter(([k]) => !LATER.includes(k)));
 const cameraRows = without(JSON.parse(rawText).view);
 

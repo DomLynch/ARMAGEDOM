@@ -99,6 +99,8 @@ export function validateAreaGeometry(
   flameData = null,
   safehouseData = null,
 ) {
+  if (layout.portraitScale !== undefined && !(Number.isFinite(layout.portraitScale) && layout.portraitScale > 0))
+    throw Error("Layout portraitScale must be a finite number above 0");
   const g = createGeometry(layout),
     area = registry.get(areaId);
   validateSafehouseGeometry(safehouseData, areaId, g, residents?.[areaId] ?? []);

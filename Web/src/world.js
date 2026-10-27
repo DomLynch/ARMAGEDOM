@@ -518,7 +518,9 @@ export class LondonWorld {
     if (portrait) {
       // A scaled 2m reference stays ~portraitActorPixels CSS pixels; zoom>=1 keeps the finite painting covering the screen.
       const actorHeight = Math.abs(geometry.point(playerPosition, VIEW.referenceHeight * layout.characterScale).y - p.y);
-      zoom = clamp(VIEW.portraitActorPixels / (actorHeight * Math.max(1, height)), 1, VIEW.maxZoom);
+      // A layout may name a `portraitScale` factor on that size (smaller = the scene and the player drawn smaller); absent = the default.
+      const actorPixels = VIEW.portraitActorPixels * (layout.portraitScale ?? VIEW.defaultPortraitScale);
+      zoom = clamp(actorPixels / (actorHeight * Math.max(1, height)), 1, VIEW.maxZoom);
     }
     if (!portrait) zoom *= VIEW.landscapeZoomBoost;
     else zoom *= VIEW.portraitZoomBoost;

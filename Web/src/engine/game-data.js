@@ -752,6 +752,7 @@ export function validateAreaRuntime(d) {
     "followReference",
     "referenceHeight",
     "maxZoom",
+    "defaultPortraitScale",
   ]);
   // artSize: the painted backdrop's pixel size (its aspect crops the view); londonEntry: the start spawn in metres; entryClearance: the
   // body radius an entry or spawn must clear; followReference: the painting point whose projected height the player-size zoom keeps.
@@ -764,6 +765,8 @@ export function validateAreaRuntime(d) {
   for (const f of ["x", "y"]) number("areaRuntime", `view.followReference.${f}`, d.view.followReference[f], 0);
   for (const f of ["entryClearance", "referenceHeight"]) number("areaRuntime", `view.${f}`, d.view[f], 0.001);
   number("areaRuntime", "view.maxZoom", d.view.maxZoom, 1);
+  // defaultPortraitScale: the portrait actor size factor of a layout that names no `portraitScale` (1 = portraitActorPixels as is).
+  number("areaRuntime", "view.defaultPortraitScale", d.view.defaultPortraitScale, 0.001);
   // defaultCharacterScale: the hero scale for a layout that names none (presence-session.js draws the other players with it).
   number("areaRuntime", "view.defaultCharacterScale", d.view.defaultCharacterScale, 0.1);
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "zoom": 1.188,
+  "portraitScale": 0.8,
   "characterScale": 1.265,
   "followSeconds": 0.45,
   "fillIntensity": 0.55,
