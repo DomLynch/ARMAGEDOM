@@ -297,20 +297,23 @@ export function createSafehouseView(s, dispatch) {
     const g = s.game,
       w = s.world,
       data = safehouseSite(w);
+    // The opening tutorial's arrow targets belong to Westminster, which has no safehouse: they are set before the safehouse gate.
+    if (g && w) {
+      const pending = shelterTutorialPending(g, tutorialRuns.get(g));
+      tutorialRuns.set(g, pending);
+      w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
+      const pistol = g.pistol;
+      w.routeGuidance?.setPistolTarget?.(
+        pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
+      );
+      w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
+    }
     if (!g || !w || !data) {
       if (target) target.hidden = true;
       return;
     }
     ensureTarget();
     const inArea = w.areaId === data.areaId;
-    const pending = shelterTutorialPending(g, tutorialRuns.get(g));
-    tutorialRuns.set(g, pending);
-    w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
-    const pistol = g.pistol;
-    w.routeGuidance?.setPistolTarget?.(
-      pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
-    );
-    w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
     if (data.patch && !texture && !loading && !failed && inArea) {
       loading = true;
       new w.THREE.TextureLoader().load(
