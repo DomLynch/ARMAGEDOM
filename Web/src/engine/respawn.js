@@ -6,6 +6,7 @@ import { rigText } from "../rig-capabilities.js";
 // respawned hostile pays no second score, cash or loot and can never be a second loot instance. The kill times below are
 // a separate advisory record; losing or ignoring it just leaves a kill permanent (the safe direction).
 export const RESPAWN_SAVE_KEY = "armagedom:respawn:v1";
+const RECORD_VERSION = "v1";
 const recordFields = ["version", "clock", "kills"];
 const keyPattern = /^[a-z0-9._:-]{1,96}$/;
 
@@ -61,9 +62,6 @@ export function expiredKeys(g, area, areaKeys) {
   }
   return out;
 }
-export function markRespawnDirty(g) {
-  if (g.respawn) g.respawn.dirty = true;
-}
 // Every hostile whose respawn time has passed is alive again at its placement (old corpse removed), whether or not the player
 // is in the area, but only while the placement is off-screen and far enough from the player; otherwise it waits. Nothing is
 // added to the permanent ledgers, so no second reward, score or loot instance exists. `build(g, area, keys, true)` makes the actors.
@@ -98,7 +96,7 @@ function validateRespawnRecord(record) {
     !Array.isArray(record) &&
     Object.keys(record).length === recordFields.length &&
     recordFields.every((field) => Object.hasOwn(record, field)) &&
-    record.version === 1 && // tuning-ok: respawn record format version
+    record.version === RECORD_VERSION &&
     Number.isFinite(record.clock) &&
     record.clock >= 0 &&
     !!record.kills &&
@@ -110,9 +108,9 @@ function validateRespawnRecord(record) {
   );
 }
 export function encodeRespawn(g) {
-  return JSON.stringify({ version: 1, clock: respawnClock(g), kills: g.respawn?.kills ?? {} }); // tuning-ok: record version
+  return JSON.stringify({ version: RECORD_VERSION, clock: respawnClock(g), kills: g.respawn?.kills ?? {} });
 }
-export const emptyRespawnRecord = () => JSON.stringify({ version: 1, clock: 0, kills: {} }); // tuning-ok: record version
+export const emptyRespawnRecord = () => JSON.stringify({ version: RECORD_VERSION, clock: 0, kills: {} });
 // Adopt a stored record into a loaded run. Anything unreadable is ignored: kills then simply stay permanent.
 export function applyRespawnRecord(g, raw) {
   let record;

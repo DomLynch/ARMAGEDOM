@@ -261,7 +261,7 @@ test("kill times survive save and load: a cold start respawns after the delay, n
   f.p.restoreSavedRun(f.g);
   clearOrdinary(f);
   const stored = JSON.parse(records.get(RESPAWN_SAVE_KEY));
-  assert.equal(stored.version, 1);
+  assert.equal(stored.version, "v1");
   assert.deepEqual(Object.keys(stored.kills).sort(), ORDINARY);
   const early = fixture({ records: new Map(records) });
   early.p.restoreSavedRun(early.g);
@@ -311,12 +311,12 @@ test("old saves without a respawn record load as before and keep their kills per
     undefined,
     "not json",
     "null",
-    JSON.stringify({ version: 2, clock: 5, kills: {} }),
-    JSON.stringify({ version: 1, clock: 5, kills: {}, extra: 1 }),
-    JSON.stringify({ version: 1, clock: -1, kills: {} }),
-    JSON.stringify({ version: 1, clock: 5, kills: { "area8-resident-1": 9 } }),
-    JSON.stringify({ version: 1, clock: 5, kills: { "Bad Key": 1 } }),
-    JSON.stringify({ version: 1, clock: 5, kills: [] }),
+    JSON.stringify({ version: "v2", clock: 5, kills: {} }),
+    JSON.stringify({ version: "v1", clock: 5, kills: {}, extra: 1 }),
+    JSON.stringify({ version: "v1", clock: -1, kills: {} }),
+    JSON.stringify({ version: "v1", clock: 5, kills: { "area8-resident-1": 9 } }),
+    JSON.stringify({ version: "v1", clock: 5, kills: { "Bad Key": 1 } }),
+    JSON.stringify({ version: "v1", clock: 5, kills: [] }),
   ];
   for (const respawnRecord of bad) {
     const copy = new Map(records);
@@ -332,7 +332,7 @@ test("old saves without a respawn record load as before and keep their kills per
     assert.deepEqual(keysOf(cold.g), ["boss-veteran-v1"], "permanent without a usable record: " + respawnRecord);
   }
   const g = { time: 3 };
-  assert.equal(applyRespawnRecord(g, JSON.stringify({ version: 1, clock: 50, kills: { "area8-resident-1": 10 } })), true);
+  assert.equal(applyRespawnRecord(g, JSON.stringify({ version: "v1", clock: 50, kills: { "area8-resident-1": 10 } })), true);
   assert.deepEqual(g.respawn, { base: 47, kills: { "area8-resident-1": 10 }, dirty: false });
 });
 
@@ -343,5 +343,5 @@ test("retry clears the stored record and a failing storage cannot break the run"
   clearOrdinary(f);
   assert.ok(records.has(RESPAWN_SAVE_KEY));
   assert.ok(f.p.retry());
-  assert.deepEqual(JSON.parse(records.get(RESPAWN_SAVE_KEY)), { version: 1, clock: 0, kills: {} });
+  assert.deepEqual(JSON.parse(records.get(RESPAWN_SAVE_KEY)), { version: "v1", clock: 0, kills: {} });
 });

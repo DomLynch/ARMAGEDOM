@@ -707,7 +707,9 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
   }
   function clearRespawn() {
     try {
-      selectedStorage?.setItem(RESPAWN_SAVE_KEY, emptyRespawnRecord());
+      // Only when a record exists, so a run that never killed anything writes nothing extra.
+      if (selectedStorage?.getItem(RESPAWN_SAVE_KEY) != null)
+        selectedStorage.setItem(RESPAWN_SAVE_KEY, emptyRespawnRecord());
     } catch {
       /* Advisory only. */
     }
