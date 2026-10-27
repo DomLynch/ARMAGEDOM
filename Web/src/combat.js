@@ -34,7 +34,7 @@ import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
-import { expiredKeys, recordResidentKill } from "./engine/respawn.js";
+import { expiredKeys, recordResidentKill, spawnAllowed } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
@@ -1366,6 +1366,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
+    if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
@@ -1693,14 +1694,12 @@ function buildResidents(g, area, revived, onlyRevived) {
         );
   return residents;
 }
-// `revive` is true only when the player is entering the area (travel), never for the area they already stand in.
-export function initializeAreaResidents(g, { revive = false } = {}) {
+export function initializeAreaResidents(g) {
   if (!g.areaResidents || g.areaInitialized) return;
   const area = g.world.areaId ?? "westminster";
   // Legacy opening groups remain atomic; resident-only starts initialize directly.
   if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
-  const revived = revive ? expiredKeys(g, area, areaPlacementKeys(g, area)) : new Set();
-  g.enemies.push(...buildResidents(g, area, revived, false));
+  g.enemies.push(...buildResidents(g, area, new Set(), false));
   g.areaInitialized = true;
   g.encounterActive = g.enemies.length > 0;
   g.encounterCleared = !g.enemies.length;
@@ -1710,13 +1709,17 @@ export function initializeAreaResidents(g, { revive = false } = {}) {
     g.nextEnemyAttackAt = g.time;
   }
 }
-// Re-entering an area that is already set up: every hostile whose respawn time has passed is alive again at its placement,
-// its old corpse removed. Nothing is added to the permanent ledgers, so no second reward, score or loot instance exists.
+// Every hostile whose respawn time has passed is alive again at its placement (old corpse removed), whether or not the player
+// is in the area, but only while the placement is off-screen and far enough from the player; otherwise it waits. Nothing is
+// added to the permanent ledgers, so no second reward, score or loot instance exists.
 export function reviveAreaResidents(g) {
-  if (!g.areaResidents || !g.areaInitialized) return 0;
+  if (!g.areaResidents || !g.areaInitialized || g.finished || g.player.hp <= 0) return 0;
   const area = g.world.areaId ?? "westminster",
+    rows = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [],
     alive = new Set(g.enemies.map((e) => e.placementKey)),
-    due = [...expiredKeys(g, area, areaPlacementKeys(g, area))].filter((key) => !alive.has(key)),
+    due = [...expiredKeys(g, area, areaPlacementKeys(g, area))].filter(
+      (key) => !alive.has(key) && spawnAllowed(g, rows.find((row) => row.key === key).pos),
+    ),
     revived = new Set(due);
   if (!revived.size) return 0;
   const residents = buildResidents(g, area, revived, true);

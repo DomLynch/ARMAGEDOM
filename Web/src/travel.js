@@ -71,8 +71,8 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
       if (e.animalRole) e.completedAttack = null;
     }
     for (const bolt of game.bolts) if (Number.isFinite(bolt.expires)) bolt.expires += elapsed;
-    reviveAreaResidents(game);
-  } else initializeAreaResidents(game, { revive: true });
+  } else initializeAreaResidents(game);
+  reviveAreaResidents(game);
   markRespawnDirty(game);
   const p = game.player;
   p.pos = { ...position };

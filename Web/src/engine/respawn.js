@@ -39,8 +39,14 @@ export function recordResidentKill(g, e) {
   g.respawn.kills[e.placementKey] = respawnClock(g);
   g.respawn.dirty = true;
 }
-// Placement keys of `areaKeys` whose recorded kill is old enough. Never the area the player is standing in: callers use
-// this only when entering an area.
+// A placement may only spawn off-screen and away from the player: never within minPlayerDistance, and closer than
+// offscreenDistance only when a wall blocks the line of sight. Otherwise the hostile waits for the player to move.
+export function spawnAllowed(g, pos) {
+  const policy = respawnPolicy(g),
+    distance = Math.hypot(pos.x - g.player.pos.x, pos.z - g.player.pos.z);
+  return distance >= policy.minPlayerDistance && (distance >= policy.offscreenDistance || !g.world.lineClear(g.player.pos, pos));
+}
+// Placement keys of `areaKeys` whose recorded kill is old enough.
 export function expiredKeys(g, area, areaKeys) {
   const policy = respawnPolicy(g),
     out = new Set();

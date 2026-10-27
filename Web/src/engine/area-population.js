@@ -12,8 +12,10 @@ const isDrone = (foundationRef) => rigText(foundationRef, "brain") === "drone";
 // (the Westminster tutorial) never respawn. Bosses, the unique-reward holder and drones are kept permanent in code.
 function validateRespawn(respawn, registry) {
   if (respawn === undefined) return;
-  closed(respawn, ["seconds", "excludedAreas"]);
-  const { seconds, excludedAreas } = respawn;
+  closed(respawn, ["seconds", "minPlayerDistance", "offscreenDistance", "excludedAreas"]);
+  const { seconds, minPlayerDistance, offscreenDistance, excludedAreas } = respawn;
+  if (![minPlayerDistance, offscreenDistance].every(Number.isFinite) || minPlayerDistance < 1 || offscreenDistance < minPlayerDistance)
+    fail();
   if (!Number.isFinite(seconds) || seconds < 30 || seconds > 86400) fail();
   if (!Array.isArray(excludedAreas) || new Set(excludedAreas).size !== excludedAreas.length) fail();
   if (excludedAreas.some((id) => !registry.ids.includes(id))) fail();

@@ -6919,7 +6919,9 @@
     "version": 1,
     "maxHostilesPerArea": 6,
     "respawn": {
-      "seconds": 300,
+      "seconds": 180,
+      "minPlayerDistance": 10,
+      "offscreenDistance": 25,
       "excludedAreas": ["westminster"]
     },
     "areas": {
