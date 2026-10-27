@@ -4,19 +4,20 @@
 import { closed } from "./content-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
 
-export const WORLD_PICKUP_TYPES = ["medkit", "ammoBox", "cashStash"];
-const SHAPES = ["box", "cylinder"];
 const vec = (field, v, min) => {
   if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => Number.isFinite(n) && n >= min))
     fail("worldPickups", `${field} must be three numbers`);
 };
 
 export function validateWorldPickups(d) {
+  const WORLD_PICKUP_TYPES = ["medkit", "ammoBox", "cashStash"];
   closed(d, [
     "schema_version",
     "respawnSeconds",
     "pickupRadius",
     "offscreenMargin",
+    "spotHeight",
+    "cylinderSegments",
     "noticeSeconds",
     "refusalRepeatSeconds",
     "items",
@@ -27,6 +28,8 @@ export function validateWorldPickups(d) {
   number("worldPickups", "respawnSeconds", d.respawnSeconds, 1);
   number("worldPickups", "pickupRadius", d.pickupRadius, 0.2);
   number("worldPickups", "offscreenMargin", d.offscreenMargin, 0);
+  number("worldPickups", "spotHeight", d.spotHeight, 0);
+  count("worldPickups", "cylinderSegments", d.cylinderSegments, 3, 64);
   number("worldPickups", "noticeSeconds", d.noticeSeconds, 0.5);
   number("worldPickups", "refusalRepeatSeconds", d.refusalRepeatSeconds, 0.5);
   closed(d.items, WORLD_PICKUP_TYPES);
@@ -47,7 +50,7 @@ export function validateWorldPickups(d) {
     if (!Array.isArray(parts) || parts.length < 1 || parts.length > 8) fail("worldPickups", `models.${type} must list 1 to 8 parts`);
     for (const p of parts) {
       closed(p, ["shape", "size", "pos", "color"]);
-      if (!SHAPES.includes(p.shape)) fail("worldPickups", `models.${type} shape`);
+      if (!["box", "cylinder"].includes(p.shape)) fail("worldPickups", `models.${type} shape`);
       vec(`models.${type}.size`, p.size, 0.001);
       vec(`models.${type}.pos`, p.pos, -10);
       if (typeof p.color !== "string" || !/^[0-9a-f]{6}$/.test(p.color)) fail("worldPickups", `models.${type} color`);

@@ -201,7 +201,7 @@ test("view: one instanced mesh per kind, taken pickups vanish and come back, dis
   assert.equal(meshes.reduce((n, m) => n + m.count, 0), placementsFor("east").length);
   const g = run(spot("medkit"));
   view.sync(g);
-  const medkitMesh = meshes.find((m) => m.name.endsWith("medkit")),
+  const medkitMesh = meshes.find((m) => m.userData.pickupType === "medkit"),
     scaleOf = () => {
       const e = medkitMesh.instanceMatrix.array;
       return Math.hypot(e[0], e[1], e[2]);

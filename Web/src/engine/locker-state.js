@@ -4,7 +4,8 @@ import { GAME_DATA } from "./game-data.js";
 // The ten saved weapon ids, in saved order, come from data/locker.json (weaponIds).
 export const LOCKER_WEAPON_IDS = Object.freeze([...GAME_DATA.locker.weaponIds]);
 const weaponIdsAllowed = LOCKER_WEAPON_IDS;
-const resourceOwner = {
+// Which saved weapon owns each carried resource (ground ammo only tops up weapons the player actually owns).
+export const resourceOwner = {
   "railgun-reserve": weaponIdsAllowed[9],
   "pistol-reserve": weaponIdsAllowed[0],
   "rifle-reserve": weaponIdsAllowed[1],
@@ -13,10 +14,7 @@ const resourceOwner = {
   "grenade-charges": weaponIdsAllowed[5],
   "flame-fuel": weaponIdsAllowed[2],
 };
-const resources = Object.keys(resourceOwner);
-// Which saved weapon owns each carried resource: ground ammo only tops up weapons the player actually owns.
-export const LOCKER_RESOURCE_OWNER = Object.freeze({ ...resourceOwner });
-// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
+const resources = Object.keys(resourceOwner);// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
 // tests/data-locker.test.js checks the client copy against them.
 const lockerRules = (caps) =>
   Object.freeze(

@@ -1,6 +1,5 @@
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addPickupGlow } from "../pickup-glow.js";
-import { WORLD_PICKUP_TYPES } from "./game-data-world-pickups.js";
 import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
@@ -8,13 +7,14 @@ function modelGeometry(THREE, parts) {
   const pieces = parts.map((part) => {
     const g =
       part.shape === "cylinder"
-        ? new THREE.CylinderGeometry(part.size[0], part.size[0], part.size[1], 12) // tuning-ok: a round tin needs a dozen sides
+        ? new THREE.CylinderGeometry(part.size[0], part.size[0], part.size[1], WORLD_PICKUPS.cylinderSegments)
         : new THREE.BoxGeometry(...part.size);
     g.translate(...part.pos);
     const colour = new THREE.Color(`#${part.color}`),
-      colours = new Float32Array(g.attributes.position.count * 3); // tuning-ok: r, g, b per vertex
-    for (let i = 0; i < colours.length; i += 3) colour.toArray(colours, i); // tuning-ok: r, g, b per vertex
-    g.setAttribute("color", new THREE.BufferAttribute(colours, 3)); // tuning-ok: r, g, b per vertex
+      stride = colour.toArray().length,
+      colours = new Float32Array(g.attributes.position.count * stride);
+    for (let i = 0; i < colours.length; i += stride) colour.toArray(colours, i);
+    g.setAttribute("color", new THREE.BufferAttribute(colours, stride));
     return g;
   });
   const merged = mergeGeometries(pieces);
@@ -29,14 +29,13 @@ export function createWorldPickups(world) {
     scratch = new THREE.Vector3(),
     margin = 1 + WORLD_PICKUPS.offscreenMargin,
     dummy = new THREE.Object3D();
-  group.name = "World pickups"; // text-ok: internal mesh name
-  for (const type of WORLD_PICKUP_TYPES) {
+  for (const type of Object.keys(WORLD_PICKUPS.models)) {
     const rows = list.filter((p) => p.type === type);
     if (!rows.length) continue;
     const geometry = modelGeometry(THREE, WORLD_PICKUPS.models[type]),
       material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }),
       mesh = new THREE.InstancedMesh(geometry, material, rows.length);
-    mesh.name = `World pickup ${type}`; // text-ok: internal mesh name
+    mesh.userData.pickupType = type;
     mesh.frustumCulled = false;
     group.add(mesh);
     parts.push({ rows, mesh, shown: rows.map(() => null), glow: addPickupGlow(mesh), geometry, material });
@@ -45,7 +44,7 @@ export function createWorldPickups(world) {
   // The spot is "in view" while it projects inside the screen (plus the data's margin): a taken pickup waits for it to leave.
   // The camera is passed in each time: this stage's own camera is only a copy once the area has been entered.
   const inView = (place, camera) => {
-    scratch.set(place.x, 0.2, -place.z).project(camera); // tuning-ok: a pickup's height above the ground, for the screen test
+    scratch.set(place.x, WORLD_PICKUPS.spotHeight, -place.z).project(camera);
     return Math.abs(scratch.x) <= margin && Math.abs(scratch.y) <= margin && scratch.z >= -1 && scratch.z <= 1;
   };
   function show(part, i, visible) {

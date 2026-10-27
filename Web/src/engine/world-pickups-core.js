@@ -1,6 +1,6 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { lockerInventory } from "./locker-core.js";
-import { LOCKER_RESOURCE_OWNER, LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { resourceOwner, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 // Ground pickups hidden in every area but the hub (data/worldPickups.json): a medkit, an ammo box and a cash stash. This module is the
 // rules only: who may take one, what it gives, the toast, and when a taken one comes back. Nothing here is drawn or saved.
 // The taken-pickup timers live on the run (`g.worldPickups`) in active game time, so leaving an area and coming back does not reset
@@ -8,24 +8,31 @@ import { LOCKER_RESOURCE_OWNER, LOCKER_RESOURCE_RULES } from "./locker-state.js"
 export const WORLD_PICKUPS = GAME_DATA.worldPickups;
 export const placementsFor = (areaId) => WORLD_PICKUPS.placements[areaId] ?? [];
 // Where each carried resource sits on the run (the same fields lockerInventory reads), so a refill writes exactly what the locker reads.
-const AMMO_FIELDS = {
-  "pistol-reserve": (g) => [g.pistol, "reserve"],
-  "rifle-reserve": (g) => [g.rifle, "reserve"],
-  "flame-fuel": (g) => [g.flameFuel, "fuelUnits"],
-  "shotgun-reserve": (g) => [g.bossEquipment?.shotgun, "reserve"],
-  "rocket-reserve": (g) => [g.bossEquipment?.rocketLauncher, "reserve"],
-  "grenade-charges": (g) => [g.bossEquipment?.grenade, "magazine"],
-  "railgun-reserve": (g) => [g.bossEquipment?.commanderPistol, "reserve"],
-};
-function hash(text) {
-  let h = 2166136261; // tuning-ok: FNV-1a offset basis, a hash constant
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619); // tuning-ok: FNV-1a prime
-  return h >>> 0;
+function ammoHolder(g, resource) {
+  const boss = g.bossEquipment;
+  switch (resource) {
+    case "pistol-reserve":
+      return [g.pistol, "reserve"];
+    case "rifle-reserve":
+      return [g.rifle, "reserve"];
+    case "flame-fuel":
+      return [g.flameFuel, "fuelUnits"];
+    case "shotgun-reserve":
+      return [boss?.shotgun, "reserve"];
+    case "rocket-reserve":
+      return [boss?.rocketLauncher, "reserve"];
+    case "grenade-charges":
+      return [boss?.grenade, "magazine"];
+    default:
+      return [boss?.commanderPistol, "reserve"]; // railgun-reserve: the arc gun
+  }
 }
-// Cash for the nth time this stash is taken: a whole number of `step`s between `min` and `max`, fixed by the stash's id.
+// Cash for a stash: a whole number of `step`s between `min` and `max`. It depends on which stash it is (its place in the placement
+// list) and how many times it has been taken, so neighbours differ and a returning stash is not always the same sum.
 export function stashCash(id, taken = 0, rules = WORLD_PICKUPS.items.cashStash) {
-  const steps = (rules.max - rules.min) / rules.step + 1;
-  return rules.min + rules.step * (hash(`${id}:${taken}`) % steps);
+  const steps = (rules.max - rules.min) / rules.step + 1,
+    ordinal = Object.values(WORLD_PICKUPS.placements).flat().findIndex((p) => p.id === id);
+  return rules.min + rules.step * ((Math.max(0, ordinal) + taken) % steps);
 }
 export function worldPickupState(g) {
   return (g.worldPickups ??= { until: {}, taken: {}, notice: null, noticeUntil: 0 });
@@ -34,9 +41,9 @@ export function worldPickupState(g) {
 function refill(g) {
   const owned = lockerInventory(g).weapons;
   let added = 0;
-  for (const [resource, owner] of Object.entries(LOCKER_RESOURCE_OWNER)) {
+  for (const [resource, owner] of Object.entries(resourceOwner)) {
     if (!owned[owner]?.owned) continue;
-    const [holder, field] = AMMO_FIELDS[resource](g);
+    const [holder, field] = ammoHolder(g, resource);
     if (!holder || !Number.isFinite(holder[field])) continue;
     const cap = LOCKER_RESOURCE_RULES[resource].carryCap;
     if (holder[field] >= cap) continue;
