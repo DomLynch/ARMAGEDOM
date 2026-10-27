@@ -17,14 +17,13 @@ scene.background = new THREE.Color(0x20242a);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 2.2);
 sun.position.set(2, 4, 3);
-scene.add(sun, new THREE.Mesh(new THREE.PlaneGeometry(20, 20).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x343a42 })));
+scene.add(sun, new THREE.Mesh(new THREE.PlaneGeometry(20, 20).rotateX(-Math.PI / 2).translate(0, -0.3, 0) /* below y=0: the mesh sinks a few cm past the capsules and a floor at 0 slices the shins */, new THREE.MeshStandardMaterial({ color: 0x343a42 })));
 camera.position.set(0, 3.4, 8.6); // wide enough for a 1.8 m corpse lying across a 375 px portrait frame
 camera.lookAt(0, 0.5, 0);
 
 const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync("/assets/hunters/hunter-pitborn-106.glb"),
   root = new THREE.Group(),
   model = clone(gltf.scene);
-model.traverse((o) => { if (o.name.startsWith("cap_")) o.visible = false; }); // starterHidden in manifest-hollow.json
 root.add(model);
 root.scale.setScalar(SCALE);
 scene.add(root);
@@ -52,7 +51,12 @@ const advance = (dt) => {
   }
   renderer.render(scene, camera);
 };
-const state = () => ({ t, physics: view.physicsDeath ? (view.physicsDeath.failed ? "failed" : "ragdoll") : "baked", flag: physicsDeathEnabled() });
+const probe = () => Object.fromEntries(["LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase", "RightLeg", "RightFoot", "LeftHand"].map((n) => {
+  const b = model.getObjectByName(`mixamorig${n}`) ?? model.getObjectByName(`mixamorig:${n}`), p = b.getWorldPosition(new THREE.Vector3());
+  return [n, [p.x, p.y, p.z, b.scale.x, b.quaternion.length()].map((x) => +x.toFixed(3))];
+}));
+window.probe = probe;
+const state = () => ({ t,physics: view.physicsDeath ? (view.physicsDeath.failed ? "failed" : "ragdoll") : "baked", flag: physicsDeathEnabled() });
 const runRaf = (ms) => new Promise((resolve) => {
   const frames = []; let last = performance.now(); const end = last + ms;
   const tick = (now) => { frames.push(now - last); last = now; advance(1 / 60); now < end ? requestAnimationFrame(tick) : resolve(frames.slice(2)); };

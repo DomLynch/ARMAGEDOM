@@ -4,7 +4,9 @@ import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import ROW from "./data/physics/minotaur-106.measure.json";
 import RIGMAP from "./data/physics/mixamo-106.json";
-import CFG from "./data/physicsDeath.json";
+import { GAME_DATA } from "./engine/game-data.js";
+
+const CFG = GAME_DATA.physicsDeath;
 
 let world = null;
 export async function loadWorld() {
@@ -12,7 +14,8 @@ export async function loadWorld() {
 }
 
 const boneOf = (scene, joint) => scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(RIGMAP.joints[joint]));
-const boneMap = (scene) => Object.fromEntries(Object.entries(CFG.parts).map(([part, joint]) => [part, boneOf(scene, joint)]));
+const boneMap = (scene) =>
+  Object.fromEntries(Object.entries(CFG.parts).map(([part, joint]) => [part, boneOf(scene, joint)]));
 
 // Hand the hunter's last animated pose (the bones, as the previous frame left them) to a ragdoll. `view.root` is the actor group,
 // `view.model` the clone, `bindScene` the untouched loaded glTF scene (the bind pose the body row was measured in). Synchronous.

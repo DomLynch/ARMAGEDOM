@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "flagParam": "physics",
   "flagValue": "1",
   "rigRef": "marked-hunter",

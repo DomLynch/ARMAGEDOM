@@ -42,7 +42,8 @@ for (const [name, query] of [["baked", ""], ["ragdoll", "?physics=1"]]) {
     while (t < target - 1e-9) { await page.evaluate((dt) => window.stand.advance(dt), 1 / 60); t += 1 / 60; }
     await page.screenshot({ path: `${OUT}/${name}-${age.toFixed(1)}s.png` });
   }
-  console.log(name, JSON.stringify(await page.evaluate(() => window.stand.state())), logs.filter((l) => /error|PAGEERROR/i.test(l)).slice(0, 3).join(" | "));
+  if (process.env.PROBE) console.log(name, "bones [x,y,z,scale,|q|]", JSON.stringify(await page.evaluate(() => window.probe())));
+  console.log(name, JSON.stringify(await page.evaluate(() => window.stand.state())),logs.filter((l) => /error|PAGEERROR/i.test(l)).slice(0, 3).join(" | "));
 }
 for (const [label, block] of [["chunk loaded", false], ["chunk BLOCKED", true]]) {
   const { page } = await open("?physics=1", block),

@@ -70,7 +70,8 @@ import { validateCombatText } from "./game-data-combat-text.js";
 import { validateWeaponViewText } from "./game-data-weapon-view-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateAirdrop } from "./game-data-airdrop.js";
-import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
+import { validateMarkedHunterSpawn, validatePhysicsDeath, validateReaperMotion } from "./game-data-hunters.js";
+import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -1024,6 +1025,7 @@ const sources = () => ({
   safehouseText: [safehouseText, validateSafehouseText],
   airdrop: [airdrop, validateAirdrop],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
+  physicsDeath: [physicsDeath, validatePhysicsDeath],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],

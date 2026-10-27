@@ -1,6 +1,8 @@
 // Pilot: ragdoll DEATH for the marked hunter, behind ?physics=1 (default OFF). The baked Death clip is the fallback for every failure:
 // flag off, chunk not loaded yet, missing bone, a throw. Nothing here waits: a hunter that dies before the chunk is ready plays the clip.
-import CFG from "./data/physicsDeath.json";
+import { GAME_DATA } from "./engine/game-data.js";
+
+const CFG = GAME_DATA.physicsDeath;
 
 let impl = null,
   loading = null,
