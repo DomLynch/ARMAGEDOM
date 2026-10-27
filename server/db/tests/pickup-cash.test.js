@@ -38,6 +38,16 @@ test("each source has its own window, and the airdrop is one more source", async
   assert.equal(await earned(alice), 510);
 });
 
+test("the airdrop interval: refused inside its 60 s window, pays again once it has passed", async () => {
+  const { alice, claim, earned, age } = await setup();
+  assert.equal((await claim(ids.alice, alice, "airdrop", 150)).credited, 150);
+  await age(alice, "airdrop", 59);
+  assert.equal((await claim(ids.alice, alice, "airdrop", 150)).refused, "too-soon");
+  await age(alice, "airdrop", 2);
+  assert.equal((await claim(ids.alice, alice, "airdrop", 150)).credited, 150);
+  assert.equal(await earned(alice), 300);
+});
+
 test("the client's amount is only a claim: clamped to the rule, never negative, and an unknown source is refused", async () => {
   const { alice, claim, earned } = await setup();
   assert.equal((await claim(ids.alice, alice, "stash:east-3", 99999)).credited, 180, "over the rule pays the rule");
