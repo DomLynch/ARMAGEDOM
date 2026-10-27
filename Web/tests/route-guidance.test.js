@@ -28,8 +28,17 @@ test('an actual gate retains its exit cue instead of a contradictory boundary cu
 });
 test('barrier footprint remains outside collision,uses at most two meshes,and releases stage-owned resources once',()=>{
  const{world,scene}=setup('lambeth',{x:.5283,y:.1897}),cue=world.routeGuidance,positions=cue.barrier.geometry.attributes.position;for(let i=0;i<positions.count;i++)assert.equal(world.geometry.clear({x:positions.getX(i),z:-positions.getZ(i)},0),false);
- assert.equal(cue.group.children.length,1);assert.equal(cue.barrier.material.vertexColors,true);let releases=0;for(const mesh of cue.group.children){mesh.geometry.addEventListener('dispose',()=>releases++);mesh.material.addEventListener('dispose',()=>releases++);}const actor=new THREE.Group();scene.add(actor);world.dispose();world.dispose();assert.equal(releases,2);assert.deepEqual(scene.children,[actor]);
+ assert.equal(cue.group.children.length,2);assert.equal(cue.barrier.material.vertexColors,true);let releases=0;for(const mesh of cue.group.children){mesh.geometry.addEventListener('dispose',()=>releases++);mesh.material.addEventListener('dispose',()=>releases++);}const actor=new THREE.Group();scene.add(actor);world.dispose();world.dispose();assert.equal(releases,4);assert.deepEqual(scene.children,[actor]);
 });
-test('there is no ground arrow in any area; outside Westminster the only text is the EXIT label',()=>{
- for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);world.update(p,0,393,695,true);assert.equal(world.routeGuidance.arrow,undefined,row.area);assert.equal(world.group.getObjectByName('Safe route direction'),undefined,row.area);const hint=world.exitHint(p);assert(hint===''||hint.startsWith('EXIT →'),`${row.area}: ${hint}`);world.dispose();}
+test('the tutorial ground arrow is hidden in every area but Westminster; outside Westminster the only text is the EXIT label',()=>{
+ for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);world.update(p,0,393,695,true);const arrow=world.routeGuidance.arrow;assert.equal(arrow.name,'safe-route-direction',row.area);if(row.area!=='westminster')assert.equal(arrow.visible,false,row.area);const hint=world.exitHint(p);if(row.area!=='westminster')assert(hint===''||hint.startsWith('EXIT →'),`${row.area}: ${hint}`);world.dispose();}
+});
+test('in Westminster the arrow points at the current tutorial step (pistol, then salamander, then matron) and is gone when none is left',()=>{
+ const{world}=setup('westminster',{x:.5,y:.8075297613}),cue=world.routeGuidance,p=world.geometry.ground({x:.5,y:.8075297613});
+ const at=(target)=>{const dx=target.x-p.x,dz=target.z-p.z;return Math.atan2(dx,-dz)};
+ cue.setTutorial(true);cue.setPistolTarget({x:p.x+4,z:p.z});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'pistol step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x+4,z:p.z}))<1e-9);
+ cue.setTutorial(false);cue.setPistolTarget(null);cue.setHuntTarget({pos:{x:p.x,z:p.z+5},label:'Kill the giant salamander'});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'salamander step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x,z:p.z+5}))<1e-9);
+ cue.setHuntTarget({pos:{x:p.x-5,z:p.z},label:'Kill the Ember Matron'});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'matron step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x-5,z:p.z}))<1e-9);
+ cue.setHuntTarget(null);world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,false,'nothing left after the matron');
+ world.dispose();
 });

@@ -345,6 +345,18 @@
     "arrivalRadius": 4,
     "pistolArrived": 0.3,
     "huntArrived": 1.5,
+    "arrow": {
+      "height": 0.04,
+      "tailGap": 1,
+      "peakOpacity": 0.6,
+      "minOpacity": 0.35,
+      "pulseSeconds": 1.3,
+      "triangles": [
+        [[-0.13, 0, 0], [0.13, 0, 0], [0.13, 0, 1.05]],
+        [[-0.13, 0, 0], [0.13, 0, 1.05], [-0.13, 0, 1.05]],
+        [[-0.32, 0, 0.97], [0.32, 0, 0.97], [0, 0, 1.43]]
+      ]
+    },
     "text": {
       "killSalamander": "KILL THE SALAMANDER",
       "killMatron": "KILL THE EMBER MATRON",

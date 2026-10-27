@@ -24,6 +24,12 @@ export function capsuleSegmentClear(g, a, b) {
   return true;
 }
 export const TUTORIAL_AREA = "westminster";
+// The arrow fades slowly in and out so it is easier to notice: cos squared is a smooth cycle between minOpacity and peakOpacity.
+export const arrowOpacity = (seconds) => {
+  const { minOpacity, peakOpacity, pulseSeconds } = tune().arrow;
+  const wave = Math.cos((Math.PI * seconds) / pulseSeconds);
+  return minOpacity + (peakOpacity - minOpacity) * wave * wave;
+};
 // After the shelter the tutorial sends the player after Westminster's two named kills, one at a time: the roaming
 // giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
 // Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
@@ -210,6 +216,27 @@ export function createRouteGuidance(world) {
     barrier.name = "Road closed rail outside authored boundary"; // text-ok: internal mesh name
     group.add(barrier);
   }
+  // The tutorial's ground arrow (Westminster only): it points at the current step's target (the shelter, then the salamander, then the
+  // matron) and is hidden once resolve() has nothing left to show. Its shape, gap and pulse are visual.json routeGuidance.arrow.
+  const arrowShape = tune().arrow,
+    arrowGeometry = new THREE.BufferGeometry();
+  arrowGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(arrowShape.triangles.flat(Infinity), arrowShape.triangles[0][0].length),
+  );
+  const arrow = new THREE.Mesh(
+    arrowGeometry,
+    new THREE.MeshBasicMaterial({
+      color: new THREE.Color(`#${GAME_DATA.visual.dropMarker.ringColour}`),
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      toneMapped: false,
+      transparent: true,
+    }),
+  );
+  arrow.name = "safe-route-direction";
+  arrow.visible = false;
+  group.add(arrow);
   // Mark the actual threshold of an exit (a gold ring and a sign); the marker never expands its trigger. The Central Safehouse side
   // entrance has always had one; any other exit row can ask for one with `sign: [line, line]`.
   const markers = [];
@@ -326,6 +353,16 @@ export function createRouteGuidance(world) {
   }
   function update(position, activeWorld = world) {
     for (const { marker, at } of markers) marker.visible = distance(position, at) < markerShape.showDistance;
+    const cue = activeWorld.travelAt(position) ? null : resolve(position);
+    arrow.visible = !!cue && activeWorld.areaId === TUTORIAL_AREA; // the tutorial ends in Westminster: no route arrows elsewhere
+    if (!arrow.visible) return;
+    const dx = cue.target.x - position.x,
+      dz = cue.target.z - position.z,
+      length = Math.hypot(dx, dz),
+      p = g.move(position, { x: (dx / length) * arrowShape.tailGap, z: (dz / length) * arrowShape.tailGap }, tune().clearance);
+    arrow.position.copy(world.toRender(p, arrowShape.height));
+    arrow.rotation.y = Math.atan2(dx, -dz);
+    arrow.material.opacity = arrowOpacity((globalThis.performance?.now?.() ?? 0) / 1000);
   }
   function hint(position, activeWorld = world) {
     const cue = resolve(position);
@@ -359,6 +396,7 @@ export function createRouteGuidance(world) {
     rows,
     group,
     barrier,
+    arrow,
     update,
     hint,
     resolve,
