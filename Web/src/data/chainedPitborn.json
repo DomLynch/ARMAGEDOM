@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "previewParam": "preview",
+  "previewValue": "chained-pitborn",
+  "areaId": "westminster",
+  "model": "marked-hunter",
+  "at": { "x": 0.098, "y": 0.566 },
+  "facesToward": { "x": 0.5, "y": 0.8075 },
+  "scaleMultiplier": 1.15,
+  "hidePreviewSafehouse": true,
+  "motion": {
+    "clips": [
+      { "clip": "Attack", "loop": "pingpong", "timeScale": 0.55, "weight": 1 },
+      { "clip": "Guard", "loop": "pingpong", "timeScale": 0.9, "weight": 0.35 }
+    ],
+    "pullSeconds": 2.6,
+    "leanMetres": 0.18,
+    "shakeMetres": 0.025,
+    "shakeHz": 19,
+    "headTurnDegrees": 14,
+    "headTurnSeconds": 6.5,
+    "headBone": "mixamorig:Head"
+  },
+  "chains": {
+    "links": 9,
+    "linkLength": 0.13,
+    "linkRadius": 0.045,
+    "linkTube": 0.016,
+    "color": "3b3a3c",
+    "roughness": 0.55,
+    "metalness": 0.9,
+    "sagMetres": 0.35,
+    "anchorRadius": 0.07,
+    "anchorColor": "26252a",
+    "rows": [
+      { "bone": "mixamorig:LeftHand", "anchor": { "x": 0.06, "y": 0.535 }, "height": 1.5 },
+      { "bone": "mixamorig:RightHand", "anchor": { "x": 0.135, "y": 0.54 }, "height": 1.3 },
+      { "bone": "mixamorig:Neck", "anchor": { "x": 0.1, "y": 0.52 }, "height": 2.1 }
+    ]
+  },
+  "dust": {
+    "count": 36,
+    "size": 0.12,
+    "dustColor": "9a8f80",
+    "sparkColor": "ffb347",
+    "opacity": 0.7,
+    "lifeSeconds": 0.9,
+    "riseMetres": 0.5,
+    "spreadMetres": 0.45,
+    "burstAt": 0.9,
+    "sparkShare": 0.3
+  }
+}

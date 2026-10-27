@@ -699,6 +699,11 @@ export function createActors(
             : !!library.models.get("vagrant")?.equipment)
       );
     },
+    // A deferred model by manifest name, loaded on demand (presentation props such as the chained Pitborn).
+    async modelAsset(name) {
+      await library.ensureModels([name]);
+      return library.models.get(name);
+    },
     equipmentAsset(field) {
       const data = world.bossEquipmentData?.[field];
       if (!data) return null;
