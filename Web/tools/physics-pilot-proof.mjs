@@ -23,7 +23,7 @@ console.log("WASM (separate asset)", JSON.stringify(readdirSync(`${out}/assets`)
 // What is inside the lazy chunk: bytes per input, to show three-cuts and friends are not pulled in.
 const { build } = await import("esbuild");
 const meta = await build({
-  entryPoints: ["src/physics-death-impl.js"], bundle: true, write: false, minify: true, metafile: true, format: "esm", platform: "browser",
+  entryPoints: ["src/engine/physics-death-impl.js"], bundle: true, write: false, minify: true, metafile: true, format: "esm", platform: "browser",
   external: ["three", "node:*"], loader: { ".wasm": "dataurl" }, logLevel: "silent",
   alias: process.env.PHYSICS_WASM === "inline" ? {} : { "jolt-physics/wasm-compat": "./src/jolt-wasm-separate.js" },
   plugins: [{ name: "wasm-url", setup: (b) => b.onResolve({ filter: /\?url$/ }, (a) => ({ path: a.path.replace(/\?url$/, ""), external: true })) }],

@@ -2,7 +2,7 @@
 import * as THREE from "three";
 import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
-import { GAME_DATA } from "./engine/game-data.js";
+import { GAME_DATA } from "./game-data.js";
 
 const CFG = GAME_DATA.physicsDeath,
   ROW = () => structuredClone(GAME_DATA.physicsBody.row); // GAME_DATA is frozen; the package gets its own copy
