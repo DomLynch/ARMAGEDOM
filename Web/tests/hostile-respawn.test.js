@@ -116,7 +116,7 @@ test("shipped data: 180 s, 10 m and 25 m guards, tutorial excluded; bad values f
     { seconds: 180, excludedAreas: [] },
     { ...good, extra: 1 },
   ])
-    assert.throws(() => validatePopulationData({ ...content.population, respawn }, registry, residents, null), /population/);
+    assert.throws(() => validatePopulationData({ ...content.population, respawn }, registry, residents, null), /Invalid/);
   const { respawn, ...older } = content.population;
   assert.equal(validatePopulationData(older, registry, residents, null).respawn, undefined);
 });
@@ -157,9 +157,10 @@ test("a spawn waits while the player is within 10 m of the placement and never a
 });
 
 test("a wall between player and placement allows a spawn beyond 10 m, but never within it", () => {
-  let wall = true;
+  let wall = false;
   const f = fixture({ lineClear: () => !wall });
   clearOrdinary(f);
+  wall = true;
   const spot = placement(f, "area8-resident-1");
   f.g.time += 400;
   standAt(f.g, spot, 5);
@@ -168,7 +169,6 @@ test("a wall between player and placement allows a spawn beyond 10 m, but never 
   standAt(f.g, spot, 15);
   ticks(f.g);
   assert.ok(keysOf(f.g).includes("area8-resident-1"), "15 m behind a wall is off-screen");
-  wall = false;
 });
 
 test("a respawned hostile pays no second reward, award or loot instance and its next kill restarts the delay", () => {
