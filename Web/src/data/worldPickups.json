@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "respawnSeconds": 180,
+  "pickupRadius": 1,
+  "offscreenMargin": 0.15,
+  "noticeSeconds": 3,
+  "refusalRepeatSeconds": 6,
+  "items": {
+    "medkit": { "healFraction": 0.5 },
+    "ammoBox": {},
+    "cashStash": { "min": 60, "max": 180, "step": 20 }
+  },
+  "text": {
+    "medkit": "Medkit +{amount} HP",
+    "ammoBox": "Ammo refilled",
+    "cashStash": "+${amount}",
+    "medkitFull": "Health is full",
+    "ammoBoxFull": "Ammo is full",
+    "cashStashFull": "Cannot carry more cash"
+  },
+  "models": {
+    "medkit": [
+      { "shape": "box", "size": [0.5, 0.22, 0.36], "pos": [0, 0.11, 0], "color": "ece8e0" },
+      { "shape": "box", "size": [0.3, 0.02, 0.08], "pos": [0, 0.23, 0], "color": "c4262b" },
+      { "shape": "box", "size": [0.08, 0.02, 0.3], "pos": [0, 0.23, 0], "color": "c4262b" }
+    ],
+    "ammoBox": [
+      { "shape": "box", "size": [0.5, 0.26, 0.34], "pos": [0, 0.13, 0], "color": "5e6a3a" },
+      { "shape": "box", "size": [0.52, 0.04, 0.36], "pos": [0, 0.28, 0], "color": "474f2c" },
+      { "shape": "box", "size": [0.06, 0.27, 0.35], "pos": [0.12, 0.135, 0], "color": "8a8f5a" },
+      { "shape": "box", "size": [0.06, 0.27, 0.35], "pos": [-0.12, 0.135, 0], "color": "8a8f5a" }
+    ],
+    "cashStash": [
+      { "shape": "box", "size": [0.4, 0.1, 0.22], "pos": [0, 0.05, 0], "color": "5f8a52" },
+      { "shape": "box", "size": [0.36, 0.1, 0.2], "pos": [0.03, 0.15, 0.02], "color": "6f9a60" },
+      { "shape": "box", "size": [0.07, 0.205, 0.225], "pos": [0, 0.1, 0], "color": "d9cfa8" }
+    ]
+  },
+  "placements": {}
+}
