@@ -25,7 +25,7 @@ CMD="$*"   # passed through the environment, so quotes in it need no escaping he
 
 INNER='set -euo pipefail; git clone -q "$HF_JOB_REPO" /w && cd /w && git checkout -q "$HF_JOB_SHA" && echo "hf-job: at $(git rev-parse --short HEAD)" && (cd Web && npm ci --no-audit --no-fund >/dev/null) && echo "hf-job: running: $HF_JOB_CMD" && bash -c "$HF_JOB_CMD"'
 
-ARGS=(jobs run --detach --timeout "$TIMEOUT" --flavor "$FLAVOR" --label lane=armagedom --label "sha=$SHA"
+ARGS=(jobs run --detach --timeout "$TIMEOUT" --flavor "$FLAVOR" --label lane=armagedom
   -e "HF_JOB_REPO=$REPO" -e "HF_JOB_SHA=$SHA" -e "HF_JOB_CMD=$CMD" node:22 bash -c "$INNER")
 
 if [ "${HF_JOB_DRY:-}" = "1" ]; then printf 'hf'; printf ' %q' "${ARGS[@]}"; printf '\n'; exit 0; fi
