@@ -1,49 +1,45 @@
-# Marked hunter wears the Pitborn (27 Oct 2026, Art lane)
+# Marked hunter wears the Pitborn: Art lane review and consolidation (27 Oct 2026)
 
-Dom's word via Lead: the hunter's model becomes the Pitborn (Mixamo minotaur on the 106-joint rig, the body Frankendom v3 fights). A model swap on the existing hunter role: not a new enemy, not a new area. Draft PR, not merged, ships only after Dom's stills and phone test.
+Base: PR #383 (`art/pitborn-hunter`, Lead's agent: the Pitborn drawn from V3's cut GLB, data rows). This lane added two commits on it. The earlier standalone PR #382 (`art/hunter-pitborn`) is closed with a pointer. Draft, not merged; ships only after Dom's stills and phone test.
 
-## What changed (data plus two one-line, default-preserving code reads)
+## What this lane added on top of #383
 
-- `Web/public/assets/hunters/hunter-pitborn.glb` replaces `hunter-goblin-l8.glb` (kept in git history for rollback).
-- `manifest-hollow.json` `marked-hunter` row: new url, `rig: "pitborn"`, `scale` 1, `stride` 1.0273, plus two new bone-name rows, `upperBone` and `headBone` (`mixamorig:*`). The clip roles (idle Armed, walk ArmedWalk, run Run, slash Attack, return, stab Riposte, heavy, guard, dodge Roll, hit, death, parry, block BlockImpact, deflected) are unchanged: the Pitborn's clip names are the hunter's.
-- `donor-motion.js` reads the upper-body bone from `description.upperBone` (default `spine_01`); `engine/boss-label.js` reads the head bone from `description.headBone` (default `head`). Without the second, the HUNTER label disappeared above the Pitborn (found in the in-game still). Every other model is unaffected.
-- `Web/tests/marked-hunter-appearance.test.js`: re-pinned (rig name, and the L8 helmet/Face node asserts became Pitborn skeleton and cleaver-socket asserts).
-- Not touched: the hunter's mechanics (hp, speed, radius, reach, damage, spawn and "always on" rules). The hunter is an appearance-only layer over the hollow actor (`actors.js`: "the hunter keeps its existing mechanical rig and rules"), and no humanoid hit surface is bone-bound, so reach and hit surface do not move.
+1. **Commit `b8b79fe6`, additions only:** the manifest rows `upperBone` (`mixamorig:Spine`) and `headBone` (`mixamorig:Head`), and the two one-line reads that use them (`donor-motion.js` for the guard overlay's upper-body bone, `engine/boss-label.js` for the HUNTER label). Both default to the old names, so no other model changes. Without `headBone` the HUNTER label disappears above a 106-rig body (seen in game).
+2. **Commit `47cf51d4`, droppable on its own:** the plain web body with the cleaver baked into the hand replaces the cut GLB (same file name, same `scale` 0.95 and `stride` 0.964 from #383). Reasons, all measured:
 
-## How the GLB is built (`build-hunter.mjs`, gltf-transform, CPU, VPS)
-
-Start: OpenTrident `minotaur-106-v3-web.glb` (sha 214eaa44...). Keep the skeleton, bind pose and skin untouched; keep the 16 clips the hunter plays (drop Idle, Walk, Jog, Draw, Kick, ArmedRun and the eight finisher/death variants, which the hunter never plays); drop the empty `Layer_*` gear nodes; bake the Pitborn cleaver (`weapons/pitborn-cleaver-phone.glb`) under `fk_socket_hand_r`, which carries the 65-rig WeaponDrawn grip frame, as a node named `WeaponDrawn`; meshopt. No cut pieces, no `piece_*`/`cap_*` nodes, no physics, no special clips: the plain web body, so nothing pink flashes.
-
-## Numbers against the current hunter
-
-| | now (goblin L8) | Pitborn |
+| | cut GLB (#383 as opened) | web body + cleaver |
 |---|---|---|
-| GLB bytes | 2,861,704 | 1,211,976 (-58%) |
-| triangles | 70,542 | 48,257 (44,278 body + cleaver) |
-| skin joints | 65 (7 skins) | 106 (1 skin) |
-| clips | 25 | 16 |
-| height in the Armed pose (model units) | 1.254 | 1.542 |
-| CPU, mixer + skeleton, 24 instances running Run (Mac, headless Chrome, no GPU draw) | 0.66-0.72 ms/frame | 0.37-0.38 ms/frame (about -45%) |
+| bytes | 2,407,576 | 1,211,976 |
+| meshes | 24 (8 `piece_*` plus 16 `cap_*`, caps hidden by `starterHidden`) | 4 |
+| weapon | none (hands empty in every clip) | Pitborn cleaver on `fk_socket_hand_r` as `WeaponDrawn` |
+| seams | faint cut lines at thighs and waist in the viewer stills | none |
 
-- **Clip timing:** all 16 clip durations are identical to the goblin's (Run 0.667, Armed 1.667, Attack 1.0, Hit 0.333, Death 2.4, Roll 1.467, ...), so every time the code ties to a clip (`posePhase`, death duration, response ticks) is unchanged.
-- **Size in the world:** at scale 1 the Pitborn is 23% taller than the goblin hunter and still shorter than the player (vagrant 1.885 raw); the game applies the same `characterScale` (1.265) to both. Its physical footprint in the sim is the hunter entity's radius, unchanged. If Dom wants more menace, `scale` is one manifest number (1.15 would match the vagrant's height). Roofs and doorways per area were not checked.
-- **Weapon mount:** the cleaver rides the right hand through `fk_socket_hand_r`; visible in the in-game and viewer stills. The hunter's strikes are timed from the data windows and the clip, not from blade geometry, so no blade-contact bake is needed for it (the blade-path bakes in `knifePaths.json` belong to the hero and goblin enemy rigs).
-- **Stride:** 1.0273 is the Pitborn's clips' retarget height factor (V3's hips factor) times the hero's stride of 1. Not checked for foot slide in motion.
+   Built by `build-hunter.mjs` (gltf-transform, CPU) from OpenTrident `minotaur-106-v3-web.glb` (the body V3's cut GLB is made from): skeleton, bind pose and the 16 hunter clips untouched; `Layer_*` gear nodes dropped; no cut pieces, physics or special clips. The cut GLB stays in history at `a12f6504` and in `provenance.cutGlbAlternative`. The appearance test is re-pinned (no cut pieces, cleaver in the socket).
 
-## Checks
+## Answers to the known gaps listed on #383
 
-- VPS, branch `b3b51137`: 448 tests across marked, hunter, donor, boss, label, actor, hollow, budget, manifest and area-boss files, 448 pass, 0 fail (includes the re-pinned appearance test, the deferred-load tests and the always-on tests).
-- In-game stills at 375 px, 3x, Westminster, same fake clock and seed: `stills/game-before-goblin-hunter-crop.png`, `stills/game-after-pitborn-hunter-crop.png`, `stills/game-after-pitborn-hunter-full.png`. Model-viewer: `stills/model-armed-old-vs-pitborn.png`, `stills/model-attack-old-vs-pitborn.png` (old left, Pitborn right).
-- The in-game stills use a scratch driver (`hunter-still.mjs`) that flags the nearest enemy as a marked hunter and holds it still; not game code.
+| gap | status |
+|---|---|
+| no weapon mounted (`equipDonorPlayer` hard-codes `hand_r`) | **fixed in the asset**: the cleaver is baked under `fk_socket_hand_r`, so `equipDonorPlayer` is not needed for the hunter (that path only runs when the manifest row has an `equipment` entry, which this row does not) |
+| donor-motion looks for `spine_01` (guard overlay) | **fixed**: `upperBone` row |
+| no `rigCapabilities` row | **left as is, on purpose**: it stays inert while `entity.rig` is `hollow-scavenger` (the hunter keeps its mechanical rig); nothing reads a row for `pitborn-106` |
+| nothing rendered or phone-tested | **rendered**: in-game and viewer stills below; **phone-tested: no**, that is Dom's gate |
+| HUNTER label gone above the model (found by this lane) | **fixed**: `headBone` row |
+
+## Stills (375 px, 3x), `stills/`
+
+Viewer, goblin hunter left, Pitborn right at `scale` 0.95, same clip and time: `viewer-cut-*` (#383 as opened, caps hidden) and `viewer-web-*` (this lane's body): idle (Armed), run, attack, death. In game, Westminster, the hunter held still 3.6 m up-right of the player: `game-before-goblin-hunter-crop`, `game-after-*`.
+
+Findings on the checklist: no pink or flesh patches at shoulders, belt or neck with the caps hidden (cut GLB) and none on the web body; empty right hand on the cut GLB in every clip, cleaver in hand on the web body; faint seam lines on the cut GLB only; the Pitborn is taller than the goblin (1.54 m against 1.25 m in the Armed pose, then x0.95); foot slide and head height against roofs are **not measured**.
+
+## Numbers against the current goblin hunter (70,542 triangles, 2,861,704 bytes)
+
+Web body: 48,257 triangles, 1,211,976 bytes, 106 joints in one skin, 16 clips with durations identical to the goblin's (so everything the code ties to a clip is unchanged), mixer plus skeleton CPU for 24 instances running Run 0.37 ms per frame against 0.66-0.72 (Mac, headless, no GPU draw; not a phone).
 
 ## Not verified
 
-- Physical phone: look, frame pacing, load of the deferred model. No Dom phone test yet.
-- A live hunter attacking, being hit, dying and guarding in game (clips and timing are identical by measurement, but I did not run a fight).
-- Stride and foot slide while it chases; the appearance against other areas' lighting.
-- Full `verify_web` gate and CI: only the test subset above ran.
-- The hunter now reads as a bare minotaur (V3's body has no armour, Dom's own rule). A colour or tint pass is a data choice, not done.
+Physical phone (look, pacing, deferred load), a live fight (attack, hit, guard, death), foot slide at stride 0.964, head height against roofs, other areas' lighting; the full `verify_web` gate was run by #383's author on its own head, not on these two commits (the subset below was).
 
 ## Rollback
 
-Revert this PR: the old GLB, row and tests come back together.
+Drop `47cf51d4` to return to the cut GLB; revert the PR to return to the goblin hunter.
