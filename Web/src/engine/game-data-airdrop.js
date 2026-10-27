@@ -57,7 +57,6 @@ export function validateAirdrop(d) {
       "groundLift",
       "flareHeight",
       "flareRadius",
-      "flareCoreRadius",
       "flareRiseSeconds",
       "flareSway",
       "flareGlowRadius",
@@ -69,11 +68,12 @@ export function validateAirdrop(d) {
       "dropHeight",
       "pulseSeconds",
     ];
-  closed(d.view, [...colours, ...shares, ...sizes, "flarePuffs", "segments"]);
+  closed(d.view, [...colours, ...shares, ...sizes, "flarePuffs", "segments", "texturePx"]);
   for (const f of colours) hex(`view.${f}`, d.view[f]);
   for (const f of shares) share(`view.${f}`, d.view[f]);
   count("airdrop", "view.flarePuffs", d.view.flarePuffs, 1, 64);
   count("airdrop", "view.segments", d.view.segments, 3, 64);
+  count("airdrop", "view.texturePx", d.view.texturePx, 8, 512);
   for (const f of sizes)
     number("airdrop", `view.${f}`, d.view[f], 0.01);
 }
