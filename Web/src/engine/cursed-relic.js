@@ -87,6 +87,8 @@ export function relicAvailable(g) {
   const s = cursedState(g);
   return !s.active && !s.taken[g.world.areaId] && !!relicPosition(g);
 }
+// Weapons that pass through effectiveWeaponDamage (pistol, knife, bone saw) are doubled there; combat.js cursedHit doubles the callers
+// that pass raw damage (shotgun, grenade, rocket, railgun, reaper), so no weapon is doubled twice.
 // The one damage hook. combat.js calls it where the player's damage lands (ranged, flame, melee), so the existing hit code is the pipeline.
 export function cursedDamage(g, amount) {
   return g.cursed?.active ? amount * g.world.cursedRelicData.damageMultiplier : amount;

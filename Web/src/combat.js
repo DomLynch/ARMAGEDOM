@@ -272,10 +272,7 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
-// For the weapons whose callers pass raw damage (shotgun, grenade, rocket, railgun, reaper). The pistol and saw already carry the
-// relic multiplier through effectiveWeaponDamage, so they call rangedHit directly and are not doubled twice.
-export const cursedHit = (g, shot, weapon, itemId, damage, attackClass) =>
-  rangedHit(g, shot, weapon, itemId, cursedDamage(g, damage), attackClass);
+export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursedDamage(g, damage), c);
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
@@ -1209,10 +1206,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
-    if (g.player.hp <= 0) {
-      clearMarkedHunters(g, { death: true });
-      clearCursed(g, "death");
-    }
+    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
@@ -1396,10 +1390,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.finished) {
     clearBossRanged(g);
-    if (g.player.hp <= 0) {
-      clearMarkedHunters(g, { death: true });
-      clearCursed(g, "death");
-    }
+    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
