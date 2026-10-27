@@ -151,7 +151,7 @@
   ],
   "roaches": [
     { "id": "roach-sewer", "name": "Sewer Roach", "width": 1, "shellTint": [1, 1, 1], "patch": 0 },
-    { "id": "roach-ash", "name": "Ash Roach", "width": 1, "shellTint": [2.4, 6, 24], "patch": 0.15 },
+    { "id": "roach-ash", "name": "Ash Roach", "width": 1, "shellTint": [1.6, 1.15, 0.85], "patch": 0.15 },
     { "id": "roach-rust-shell", "name": "Rust-shell Roach", "width": 1, "shellTint": [1.3, 0.76, 0.56], "patch": 0.22 },
     { "id": "roach-heavy-shell", "name": "Heavy-shell Roach", "width": 1.5, "shellTint": [0.76, 0.8, 0.88], "patch": 0.1 },
     { "id": "roach-skitter", "name": "Skitter Roach", "width": 0.68, "shellTint": [1.08, 0.92, 0.76], "patch": 0.15 },

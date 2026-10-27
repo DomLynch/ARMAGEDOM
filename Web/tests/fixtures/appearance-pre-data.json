@@ -176,9 +176,9 @@
       "name": "Ash Roach",
       "width": 1,
       "shellTint": [
-        2.4,
-        6,
-        24
+        1.6,
+        1.15,
+        0.85
       ],
       "patch": 0.15
     },
