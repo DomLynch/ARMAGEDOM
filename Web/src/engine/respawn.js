@@ -44,7 +44,10 @@ export function recordResidentKill(g, e) {
 export function spawnAllowed(g, pos) {
   const policy = respawnPolicy(g),
     distance = Math.hypot(pos.x - g.player.pos.x, pos.z - g.player.pos.z);
-  return distance >= policy.minPlayerDistance && (distance >= policy.offscreenDistance || !g.world.lineClear(g.player.pos, pos));
+  return (
+    distance >= policy.minPlayerDistance &&
+    (distance >= policy.offscreenDistance || !g.world.lineClear(g.player.pos, pos))
+  );
 }
 // Placement keys of `areaKeys` whose recorded kill is old enough.
 export function expiredKeys(g, area, areaKeys) {
@@ -69,9 +72,13 @@ export function reviveDue(g, build, defaultRows) {
   const area = g.world.areaId ?? "westminster",
     rows = g.residentPlacements?.[area] ?? defaultRows[area] ?? [],
     alive = new Set(g.enemies.map((e) => e.placementKey)),
-    due = [...expiredKeys(g, area, rows.map((row) => row.key))].filter(
-      (key) => !alive.has(key) && spawnAllowed(g, rows.find((row) => row.key === key).pos),
-    );
+    due = [
+      ...expiredKeys(
+        g,
+        area,
+        rows.map((row) => row.key),
+      ),
+    ].filter((key) => !alive.has(key) && spawnAllowed(g, rows.find((row) => row.key === key).pos));
   if (!due.length) return 0;
   const residents = build(g, area, new Set(due), true);
   const back = new Set(residents.map((e) => e.placementKey));
