@@ -103,18 +103,28 @@ export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
 export function validMarked(s, max = MAX_MONEY_CEILING) {
   try {
-    closed(s, ["version", "carried", "bank", "bounty"]);
+    // `golden` is optional and written by a later release (golden weapons). This reader only has to survive it: a save that holds
+    // it loads and keeps it, and what is inside is not judged, so a newer release can rename or add entries without this one
+    // calling the whole save corrupt (a corrupt Marked block makes Retry/Reset erase the run).
+    closed(s, ["version", "carried", "bank", "bounty"], ["golden"]);
     return (
       s.version === 1 &&
-      ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max)
+      ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max) &&
+      (s.golden === undefined || goldenShape(s.golden))
     );
   } catch {
     return false;
   }
 }
+// Only the outer shape and a size bound: a list or a plain object of at most this many entries; entries are never inspected.
+const GOLDEN_MAX_ENTRIES = 64; // tuning-ok: a size bound on an opaque block this release does not interpret
+const goldenShape = (x) =>
+  Array.isArray(x)
+    ? x.length <= GOLDEN_MAX_ENTRIES
+    : !!x && Object.getPrototypeOf(x) === Object.prototype && Object.keys(x).length <= GOLDEN_MAX_ENTRIES;
 export function copyMarked(s) {
   if (!validMarked(s)) throw TypeError("Invalid Marked state");
-  return { ...s };
+  return s.golden === undefined ? { ...s } : { ...s, golden: structuredClone(s.golden) };
 }
 export function markedShopEligible(g, id) {
   const row = g.world?.markedData?.shop[id];
