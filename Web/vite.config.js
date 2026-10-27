@@ -1,7 +1,8 @@
 import { fileURLToPath } from "node:url";
 
-// The physics pilot's Jolt: PHYSICS_WASM=inline keeps the package's default (wasm embedded as base64 in the chunk), for the size comparison.
-const separate = process.env.PHYSICS_WASM !== "inline";
+// The physics pilot's Jolt: the default keeps the package's wasm embedded as base64 in its lazy chunk, which the packaging gate accepts
+// (verify-assets takes only hashed js/css as generated output). PHYSICS_WASM=separate serves the .wasm as its own asset, for the size comparison.
+const separate = process.env.PHYSICS_WASM === "separate";
 export default {
   optimizeDeps: { exclude: ["@frankendom/physics"] }, // dev server only (the QA stand): no pre-bundling of the package's JSON imports
   resolve: {
