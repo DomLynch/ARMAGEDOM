@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "0855856a7ee0705fcf36dc78e80995c24ea856289d8e0e5928eb239c11a5af94"); // re-pinned: area8, elephant-and-castle and east-bridge layouts changed (alpha blockers), after Westminster south exit zone yMin 0.96
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "efbc8e2637179514c44af5ed415761ca2b039ecba171d413ebcbc3f1069e3123"); // re-pinned: area8, elephant-and-castle and east-bridge layouts changed (alpha blockers), after Westminster south exit zone yMin 0.96; the same three layouts lost their painted-out depth masks and their phone backdrops were painted
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -30,7 +30,8 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, entry, ...rest }) => rest) }));
   assert.deepEqual(withoutConditions(areaDefinitions), withoutConditions(old.areas));
   // The alpha-blocker layouts (area8, elephant-and-castle, east-bridge) also changed identity; their rows are checked against the files on disk below.
-  const moved = ["layout.area8", "layout.elephant-and-castle", "layout.east-bridge"];
+  // Their phone backdrops were painted over too (the blocked objects are gone from the picture), so those rows moved as well.
+  const moved = ["layout.area8", "layout.elephant-and-castle", "layout.east-bridge", "backdrop.area8", "backdrop.elephant-and-castle", "backdrop.east-bridge"];
   assert.deepEqual(areaAssets, {
     ...old.assets,
     "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 },
