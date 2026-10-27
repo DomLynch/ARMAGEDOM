@@ -9,8 +9,8 @@
       "area": "westminster",
       "path": "westminster/layout.json",
       "source": "Game/Assets/StreamingAssets/London/Travel/west/layout.json",
-      "bytes": 10453,
-      "sha256": "31c0ba5c25154f1554e296679bcd51a419ec99e8b2f8f904d39b350d823c994b"
+      "bytes": 10593,
+      "sha256": "4ad4083f213318137c484315145de8c113fd48e79f33501f784ccb64dad17c6f"
     },
     {
       "area": "westminster",
@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 204970,
-      "sha256": "34d5bde0bffa1d484ec6ff4c9c995826ace01000d557bc6c3299284338c608dc"
+      "bytes": 197965,
+      "sha256": "d64ce10f75bb08ecc258f1ea309936efd9fe28dc1b75ff214300b4369fb482dd"
     },
     {
       "area": "area7",
