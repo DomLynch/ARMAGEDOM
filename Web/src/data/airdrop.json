@@ -35,6 +35,15 @@
     "arriveRadius": 2.5
   },
   "loot": {
+    "reservePaths": {
+      "railgun-reserve": ["bossEquipment", "commanderPistol", "reserve"],
+      "pistol-reserve": ["pistol", "reserve"],
+      "rifle-reserve": ["rifle", "reserve"],
+      "shotgun-reserve": ["bossEquipment", "shotgun", "reserve"],
+      "rocket-reserve": ["bossEquipment", "rocketLauncher", "reserve"],
+      "grenade-charges": ["bossEquipment", "grenade", "magazine"],
+      "flame-fuel": ["flameFuel", "fuelUnits"]
+    },
     "bundle": [
       { "id": "ammo-refill" },
       { "id": "medkit", "fraction": 1 },

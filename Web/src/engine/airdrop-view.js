@@ -44,7 +44,7 @@ export function createAirdropView(scene, toRender) {
   canopy.position.y = style.crateSize + style.canopyHeight; // the canopy rides above the crate on its cords
   crate.add(body, trim, canopy);
   flare.add(core, ...puffs);
-  root.name = "airdrop"; // text-ok: scene-graph name
+  root.name = "airdrop";
   root.add(shadow, crate, flare, glow);
   root.visible = false;
   scene.add(root);

@@ -3,7 +3,6 @@
 import { closed } from "./content-schema.js";
 import { fail, number, count } from "./game-data-checks.js";
 
-const OUTCOMES = ["ammo-refill", "medkit", "cash", "golden-weapon", "none"];
 const hex = (field, v) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("airdrop", `${field} must be a 6-digit hex colour`);
 };
@@ -12,6 +11,7 @@ const share = (field, v) => {
 };
 
 export function validateAirdrop(d) {
+  const OUTCOMES = ["ammo-refill", "medkit", "cash", "golden-weapon", "none"];
   closed(d, ["schema_version", "enabled", "excludedAreas", "schedule", "plane", "landing", "crate", "convergence", "loot", "view"]);
   if (typeof d.enabled !== "boolean") fail("airdrop", "enabled must be a boolean");
   if (!Array.isArray(d.excludedAreas) || d.excludedAreas.some((a) => typeof a !== "string" || !a)) fail("airdrop", "excludedAreas must list area ids");
@@ -34,7 +34,9 @@ export function validateAirdrop(d) {
   closed(d.convergence, ["enabled", "engageRadius", "arriveRadius"]);
   if (typeof d.convergence.enabled !== "boolean") fail("airdrop", "convergence.enabled must be a boolean");
   for (const f of ["engageRadius", "arriveRadius"]) number("airdrop", `convergence.${f}`, d.convergence[f], 0);
-  closed(d.loot, ["bundle", "bonus"]);
+  closed(d.loot, ["reservePaths", "bundle", "bonus"]);
+  for (const path of Object.values(d.loot.reservePaths ?? {}))
+    if (!Array.isArray(path) || path.length < 2 || path.some((key) => typeof key !== "string" || !key)) fail("airdrop", "loot.reservePaths needs key paths");
   if (!Array.isArray(d.loot.bundle) || !Array.isArray(d.loot.bonus) || d.loot.bonus.length < 1) fail("airdrop", "loot needs a bundle and a bonus table");
   for (const row of d.loot.bundle) {
     closed(row, ["id"], ["amount", "fraction"]);

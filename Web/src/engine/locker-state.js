@@ -15,7 +15,7 @@ const resourceOwner = {
 };
 const resources = Object.keys(resourceOwner);
 // Which weapon id owns each carried resource (airdrop-effects.js refills only the resources of weapons the player holds).
-export const LOCKER_RESOURCE_OWNER = Object.freeze({ ...resourceOwner });
+export const lockerResourceOwner = (resource) => resourceOwner[resource];
 // Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
 // tests/data-locker.test.js checks the client copy against them.
 const lockerRules = (caps) =>
