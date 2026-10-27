@@ -5,6 +5,7 @@ import {publicAreaRegistry as registry} from '../src/area-registry.js';
 import {createGeometry} from '../src/world-geometry.js';
 import {validateAreaGeometry} from '../src/engine/area-content.js';
 import {validateCursedRelicData, stepCursedRelic, cursedDamage, cursedHudText, relicHunters, relicPosition, cursedState} from '../src/engine/cursed-relic.js';
+import {cursedHit, rangedHit} from '../src/combat.js';
 import {effectiveWeaponDamage} from '../src/engine/progression-runtime.js';
 import {stepMarkedHunters, clearMarkedHunters} from '../src/engine/marked-hunters.js';
 import {safehouseTouches} from '../src/engine/safehouse.js';
@@ -128,6 +129,29 @@ test('the Westminster tutorial is untouched: no relic, no state, no damage chang
   stepCursedRelic(g, spawn);
   assert.equal(cursedDamage(g, 10), 10);
   assert.equal(relicPosition(g), null);
+});
+
+function dealt(g, call) {
+  const target = {id: 777, hp: 1000, maxHP: 1000, pos: {x: 5, z: 5}, radius: .4, hostile: true};
+  g.enemies = [target];
+  call({targetId: 777, direction: {x: 1, z: 0}});
+  return 1000 - target.hp;
+}
+for (const weapon of ['shotgun', 'grenade', 'rocket', 'railgun', 'reaper']) {
+  test(`the relic doubles ${weapon} damage exactly once`, () => {
+    const g = relic().g;
+    const plain = dealt(g, shot => cursedHit(g, shot, weapon, weapon, 10, 'bullet'));
+    grab(g);
+    assert.equal(dealt(g, shot => cursedHit(g, shot, weapon, weapon, 10, 'bullet')), plain * 2);
+  });
+}
+test('pistol and bone saw are 2x with the relic, not 4x', () => {
+  const g = relic().g;
+  const pistol = dealt(g, shot => rangedHit(g, shot, 'pistol', 'westminster-start-pistol-v1', effectiveWeaponDamage(g, 'westminster-start-pistol-v1', 10)));
+  const saw = dealt(g, shot => rangedHit(g, shot, 'knife', 'knife', effectiveWeaponDamage(g, 'knife', 10), 'saw'));
+  grab(g);
+  assert.equal(dealt(g, shot => rangedHit(g, shot, 'pistol', 'westminster-start-pistol-v1', effectiveWeaponDamage(g, 'westminster-start-pistol-v1', 10))), pistol * 2);
+  assert.equal(dealt(g, shot => rangedHit(g, shot, 'knife', 'knife', effectiveWeaponDamage(g, 'knife', 10), 'saw')), saw * 2);
 });
 
 test('hunters off does not strip relic hunters', () => {

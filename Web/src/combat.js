@@ -270,6 +270,10 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
+// For the weapons whose callers pass raw damage (shotgun, grenade, rocket, railgun, reaper). The pistol and saw already carry the
+// relic multiplier through effectiveWeaponDamage, so they call rangedHit directly and are not doubled twice.
+export const cursedHit = (g, shot, weapon, itemId, damage, attackClass) =>
+  rangedHit(g, shot, weapon, itemId, cursedDamage(g, damage), attackClass);
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
@@ -1233,8 +1237,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) g.tick++;
   const p = g.player,
     t = g.time;
-  stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
-  stepRockets(g, (...args) => rangedHit(g, ...args), services);
+  stepBossGrenades(g, (...args) => cursedHit(g, ...args), services);
+  stepRockets(g, (...args) => cursedHit(g, ...args), services);
   intent = mobileControl(g, intent, dt, services);
   intent = applyTouchTarget(g, intent, services);
   if (g.rifleAction && (intent.cancel || g.flame?.equipped)) g.rifleAction.reloadingUntil = 0;
@@ -1243,7 +1247,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     : g.flame?.equipped
       ? flameIntent(g, intent)
       : selectedBossRanged(g)
-        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => rangedHit(g, ...args), services)
+        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => cursedHit(g, ...args), services)
         : g.rifle?.selected
           ? rifleIntent(g, intent, services.dispatchRifle)
           : pistolIntent(g, intent, services.dispatchPistol, services.dispatchMarshalPistol);
@@ -1379,7 +1383,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
         emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
-        hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
+        hit: (shot, amount) => cursedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
       collect(g);
