@@ -625,55 +625,5 @@
     "east-roamer-6",
     "south-roamer-4",
     "south-roamer-7"
-  ],
-  "reservedPlacements": {
-    "east-bridge": [
-      "east-bridge-resident-3",
-      "east-bridge-resident-4",
-      "east-bridge-resident-5",
-      "east-bridge-resident-6",
-      "east-bridge-resident-7",
-      "east-bridge-resident-8",
-      "east-bridge-resident-9"
-    ],
-    "elephant-and-castle": [
-      "elephant-and-castle-resident-3",
-      "elephant-and-castle-resident-4",
-      "elephant-and-castle-resident-5",
-      "elephant-and-castle-resident-6",
-      "elephant-and-castle-resident-7",
-      "elephant-and-castle-resident-8",
-      "elephant-and-castle-resident-9"
-    ],
-    "lambeth": [
-      "lambeth-resident-3",
-      "lambeth-resident-4",
-      "lambeth-resident-5",
-      "lambeth-resident-6",
-      "lambeth-resident-7",
-      "lambeth-resident-8",
-      "lambeth-resident-9"
-    ],
-    "area7": [
-      "area7-resident-1",
-      "area7-resident-2",
-      "area7-resident-3",
-      "area7-resident-4",
-      "area7-resident-5",
-      "area7-resident-6",
-      "area7-resident-7",
-      "area7-resident-8"
-    ],
-    "area8": [
-      "area8-resident-5",
-      "area8-resident-6",
-      "area8-resident-7",
-      "area8-resident-8",
-      "area8-resident-9",
-      "area8-resident-10"
-    ],
-    "westminster": ["westminster-roamer-7", "westminster-roamer-8"],
-    "east": ["east-roamer-10", "east-roamer-11", "east-roamer-12"],
-    "south": ["south-roamer-10", "south-roamer-11", "south-roamer-12"]
-  }
+  ]
 }
