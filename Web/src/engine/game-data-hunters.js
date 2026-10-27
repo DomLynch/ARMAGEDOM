@@ -62,7 +62,7 @@ export function validatePhysicsBody(d) {
 
 export function validateChainedPitborn(d) {
   closed(d, ["schema_version", "enabled", "offParam", "offValue", "areaId", "model", "at", "facesToward",
-    "scaleMultiplier", "emissive", "motion", "chains", "dust"]);
+    "scaleMultiplier", "emissive", "rim", "horns", "flicker", "motion", "chains", "dust"]);
   if (typeof d.enabled !== "boolean") fail("chainedPitborn", "enabled must be true or false");
   for (const name of ["at", "facesToward"])
     if (!(d[name].x >= 0 && d[name].x <= 1 && d[name].y >= 0 && d[name].y <= 1)) fail("chainedPitborn", name + " must be art 0 to 1");
