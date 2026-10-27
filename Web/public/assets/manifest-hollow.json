@@ -1196,12 +1196,40 @@
       }
     },
     "marked-hunter": {
-      "url": "hunters/hunter-goblin-l8.glb",
-      "rig": "goblin",
+      "url": "hunters/hunter-pitborn-106.glb",
+      "rig": "pitborn-106",
       "motion": "donor-knife",
-      "scale": 1,
+      "scale": 0.95,
       "forwardCorrection": 0,
-      "stride": 0.7014,
+      "stride": 0.964,
+      "starterHidden": [
+        "cap_neck_torso",
+        "cap_shoulder_left_arm",
+        "cap_shoulder_left_torso",
+        "cap_shoulder_right_arm",
+        "cap_shoulder_right_torso",
+        "cap_hip_left_leg",
+        "cap_hip_left_root",
+        "cap_hip_right_leg",
+        "cap_hip_right_root",
+        "cap_waist_torso",
+        "cap_waist_root",
+        "cap_neck_head_left",
+        "cap_neck_head_right",
+        "cap_split_head_left",
+        "cap_split_head_right",
+        "cap_belly_opening"
+      ],
+      "measure": {
+        "source": "Frankendom v3 physics/bodies/minotaur-106.measure.json (bind pose); mesh bounds from the GLB position accessors",
+        "heightMetres": 1.7225,
+        "meshTopMetres": 1.77,
+        "hipsMetres": 0.9562,
+        "shoulderWidthMetres": 0.4238,
+        "armSpanHalfMetres": 0.923,
+        "hipsHeightFactor": 1.02732,
+        "note": "stride is an estimate (hips height over the donor hero's, 0.96 to 1.01 depending on how the hero pelvis is read), foot slide not yet checked; scale 0.95 puts the mesh top at the old goblin hunter's 1.69 m"
+      },
       "clips": {
         "idle": "Armed",
         "walk": "ArmedWalk",
@@ -1220,13 +1248,23 @@
       },
       "deferred": true,
       "provenance": {
-        "donorRevision": "3f7dd2616095d5c391e62aba6221a9dd62582712",
-        "baseSHA256": "07b0c267fcf5b1b105cf8fb2aeb9c88ce6d717b47d191a8ad51603ece53610f7",
-        "lookSHA256": "bc698394609f9e2d37282489b2fcf89e0c75515267ca56ded31f070c7bb3f70f",
-        "assembly": "Native Goblin base+L8; original base clips/own look inverse binds; appearance only"
+        "source": "Frankendom v3 src/assets/minotaur-106.glb (Mixamo ch25 Minotaur, 106 joints, cut GLB); byte-identical copy",
+        "sourceRepository": "https://github.com/DomLynch/frankendom-v3",
+        "sourceRevision": "721fbdc9ab5bf32abdfb2f9ada53defce601811e",
+        "sourceSHA256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "Pilot: Pitborn body for the marked hunter, appearance only. Skeleton, bind pose, piece_ and cap_ nodes untouched; cap_ nodes hidden at attach (starterHidden). Replaces hunters/hunter-goblin-l8.glb, kept in the tree as the rollback",
+        "previous": {
+          "url": "hunters/hunter-goblin-l8.glb",
+          "rig": "goblin",
+          "scale": 1,
+          "stride": 0.7014,
+          "bytes": 2861704,
+          "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
+        }
       },
-      "bytes": 2861704,
-      "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
+      "bytes": 2407576,
+      "sha256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
@@ -1437,9 +1475,9 @@
       "sha256": "a2c6c7c5ca34cb914ebb358db4ccfb8cf4d4b97efcced0204a3cadb7da3bf49c"
     },
     "marked-hunter": {
-      "file": "hunters/hunter-goblin-l8.glb",
-      "bytes": 2861704,
-      "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
+      "file": "hunters/hunter-pitborn-106.glb",
+      "bytes": 2407576,
+      "sha256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6"
     },
     "giant-salamander/giant-salamander.glb": {
       "file": "giant-salamander/giant-salamander.glb",
