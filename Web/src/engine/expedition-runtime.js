@@ -10,6 +10,7 @@ import { areaDisplayName as areaName } from "../area-registry.js";
 import { EXPEDITION_HUD } from "./expedition-hud-data.js";
 import { sessionText as text } from "./session-text.js";
 import { PISTOL_RULES } from "../pistol.js";
+import { GAME_DATA, fillText } from "./game-data.js";
 export function selectedAtlasRoute(registry, from, to) {
   const route = [];
   if (!to || from === to) return route;
@@ -134,6 +135,12 @@ export function createExpeditionView(s, dispatch) {
     const result = dispatch(g, command, allowed());
     if (result.ok) {
       g.events.push(...result.events);
+      // Switching to a pistol says so, like the knife tile does ("Pistol equipped."), for a few seconds.
+      const name = command.type === "selectVariant" ? catalogue?.variants?.[command.variantId]?.name : null;
+      if (name) {
+        g.message = fillText(GAME_DATA.combatText.gear.equipped, { name });
+        g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
+      }
     }
     update();
     return result;
