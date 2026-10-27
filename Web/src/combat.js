@@ -2,6 +2,7 @@ import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from
 import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
+import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
@@ -363,7 +364,7 @@ function rifleIntent(g, intent, dispatch) {
       if (result?.ok) {
         shotDirection = shot.direction;
         event(g, "shot", { ...shot, damage: rules.damage, kind: "bullet", weapon: "rifle", actor: p });
-        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, rules.damage);
+        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, cursedDamage(g, rules.damage));
       }
     }
   }
@@ -732,7 +733,7 @@ export function receiveHit(g, hit) {
 }
 function flameHit(g, target, damage, { source }) {
   if (safehouseWeaponBlocked(g) || safehouseBlocksSegment(g, source.position, target.pos)) return;
-  const amount = Math.min(target.hp, damage);
+  const amount = Math.min(target.hp, cursedDamage(g, damage));
   if (!(amount > 0)) return;
   target.hp = Math.max(0, target.hp - amount);
   target.flashUntil = g.time + RULES.hitFlashSeconds;
@@ -1201,7 +1202,10 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
-    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
+    if (g.player.hp <= 0) {
+      clearMarkedHunters(g, { death: true });
+      clearCursed(g, "death");
+    }
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
@@ -1364,6 +1368,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
+    stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
@@ -1382,7 +1387,10 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.finished) {
     clearBossRanged(g);
-    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
+    if (g.player.hp <= 0) {
+      clearMarkedHunters(g, { death: true });
+      clearCursed(g, "death");
+    }
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");

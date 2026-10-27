@@ -54,6 +54,7 @@ export class LondonWorld {
     safehouseData = null,
     reaperData = null,
     markedData = null,
+    cursedRelicData = null,
   }) {
     if (!Number.isFinite(viewZoomMultiplier) || viewZoomMultiplier < 1)
       throw Error("View zoom multiplier must be finite and at least 1");
@@ -64,6 +65,7 @@ export class LondonWorld {
     )
       throw Error("Invalid texture budget");
     this.markedData = markedData;
+    this.cursedRelicData = cursedRelicData;
     this.reaperData = reaperData;
     this.safehouseData = safehouseData;
     this.bossEquipmentData = bossEquipmentData;
@@ -402,6 +404,7 @@ export class LondonWorld {
         this.populationData,
         this.flameData,
         this.safehouseData,
+        this.cursedRelicData,
       );
       const texture = await new this.THREE.TextureLoader().loadAsync(
         new URL(this.registry.asset(row.backdropRef).path, this.baseUrl).href,
@@ -436,6 +439,7 @@ export class LondonWorld {
           safehouseData: this.safehouseData,
           reaperData: this.reaperData,
           markedData: this.markedData,
+          cursedRelicData: this.cursedRelicData,
           rifleData: this.rifleData,
           flameData: this.flameData,
         });
@@ -636,6 +640,7 @@ export async function createWorld({
     content?.populationData,
     content?.flameData,
     content?.safehouseData,
+    content?.cursedRelicData,
   );
   const geometry = createGeometry(layout);
   if (!geometry.clear(initialSpawn(geometry, registry), VIEW.entryClearance)) throw Error("London starting spawn is blocked");
@@ -670,6 +675,7 @@ export async function createWorld({
       safehouseData: content?.safehouseData,
       reaperData: content?.reaperData,
       markedData: content?.markedData,
+      cursedRelicData: content?.cursedRelicData,
       rifleData: content?.rifleData,
       flameData: content?.flameData,
     });
