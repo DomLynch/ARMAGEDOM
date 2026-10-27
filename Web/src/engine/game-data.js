@@ -71,7 +71,15 @@ import { validateCombatText } from "./game-data-combat-text.js";
 import { validateWeaponViewText } from "./game-data-weapon-view-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateAirdrop } from "./game-data-airdrop.js";
-import { validateMarkedHunterSpawn, validateReaperMotion, validateChainedPitborn } from "./game-data-hunters.js";
+import {
+  validateChainedPitborn,
+  validateMarkedHunterSpawn,
+  validatePhysicsBody,
+  validatePhysicsDeath,
+  validateReaperMotion,
+} from "./game-data-hunters.js";
+import physicsBody from "../data/physicsBody.json" with { type: "json" };
+import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -170,8 +178,12 @@ export function validateLocker(d) {
   // The saved weapon list is append-only: its order is the save shape (locker-core.js names the slots by index). savedEraWeaponIds is
   // the list as saves were first written (tests/data-locker-weapon-ids.test.js pins it to the save-era fixture); weaponIds must start
   // with exactly those ids in that order, so a reorder or removal fails at load and only new ids at the end pass.
-  for (const [name, list] of [["savedEraWeaponIds", d.savedEraWeaponIds], ["weaponIds", d.weaponIds]]) {
-    if (!Array.isArray(list) || new Set(list).size !== list.length) fail("locker", `${name} must be a list of unique ids`);
+  for (const [name, list] of [
+    ["savedEraWeaponIds", d.savedEraWeaponIds],
+    ["weaponIds", d.weaponIds],
+  ]) {
+    if (!Array.isArray(list) || new Set(list).size !== list.length)
+      fail("locker", `${name} must be a list of unique ids`);
     for (const id of list) if (typeof id !== "string" || !/^[a-z0-9-]+-v\d+$/.test(id)) fail("locker", `${name} ${id}`);
   }
   if (d.savedEraWeaponIds.length < 10) fail("locker", "savedEraWeaponIds lost an id");
@@ -212,7 +224,16 @@ export function validateWorld(d) {
   if (typeof d.auth.anonKey !== "string" || !/^sb_publishable_[A-Za-z0-9_-]{16,64}$/.test(d.auth.anonKey))
     fail("world", "auth.anonKey");
   // The error beacon (engine/client-log.js): one batch at most every minIntervalMs, at most maxEvents rows in it.
-  closed(d.clientLog, ["path", "kinds", "minIntervalMs", "maxEvents", "maxDistinct", "messageChars", "maxBodyBytes", "sessionIdChars"]);
+  closed(d.clientLog, [
+    "path",
+    "kinds",
+    "minIntervalMs",
+    "maxEvents",
+    "maxDistinct",
+    "messageChars",
+    "maxBodyBytes",
+    "sessionIdChars",
+  ]);
   count("world", "clientLog.sessionIdChars", d.clientLog.sessionIdChars, 8, 24); // the writer keeps at most 24 characters of the session id
   if (
     !Array.isArray(d.clientLog.kinds) ||
@@ -530,7 +551,8 @@ const fraction = (field, v, min = 0, max = 1) => {
 };
 const ATMOSPHERE_ROW_MAX = 16; // tuning-ok: validator ceiling for an atmosphere row's numbers
 const atmosphereRow = (field, row, allowSmokeColor = true) => {
-  for (const key of atmosphereNumbers()) if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, ATMOSPHERE_ROW_MAX);
+  for (const key of atmosphereNumbers())
+    if (Object.hasOwn(row, key)) fraction(`${field}.${key}`, row[key], 0, ATMOSPHERE_ROW_MAX);
   if (Object.hasOwn(row, "smokeColor")) {
     if (!allowSmokeColor || !Array.isArray(row.smokeColor) || row.smokeColor.length !== 3)
       fail("atmosphere", `${field}.smokeColor`);
@@ -803,8 +825,16 @@ export function validateAreaRuntime(d) {
     number("areaRuntime", `view.${f}`, d.view[f], 0.001);
   for (const f of ["portraitLift", "landscapeLift"]) number("areaRuntime", `view.${f}`, d.view[f], 0);
   // travel: the "Traveling to ..." message delay, how long a failure message shows, and the area preparation slices (engine/areas.js).
-  closed(d.travel, ["messageDelayMs", "failureMessageSeconds", "lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay", "preparation"]);
-  for (const f of ["lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay"]) count("areaRuntime", `travel.${f}`, d.travel[f], 1, 60);
+  closed(d.travel, [
+    "messageDelayMs",
+    "failureMessageSeconds",
+    "lockMessageSeconds",
+    "travelMessageSeconds",
+    "firstWaveDelay",
+    "preparation",
+  ]);
+  for (const f of ["lockMessageSeconds", "travelMessageSeconds", "firstWaveDelay"])
+    count("areaRuntime", `travel.${f}`, d.travel[f], 1, 60);
   count("areaRuntime", "travel.messageDelayMs", d.travel.messageDelayMs, 0, 10000);
   count("areaRuntime", "travel.failureMessageSeconds", d.travel.failureMessageSeconds, 1, 60);
   closed(d.travel.preparation, [
@@ -1026,6 +1056,8 @@ const sources = () => ({
   airdrop: [airdrop, validateAirdrop],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
+  physicsDeath: [physicsDeath, validatePhysicsDeath],
+  physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
@@ -1076,7 +1108,11 @@ export function buildGameData(files = sources()) {
 
 export const GAME_DATA = buildGameData();
 // The safehouse weapon and supply names follow the locker's own id lists (locker.json weaponIds and resourceCaps).
-checkSafehouseNameIds(GAME_DATA.safehouseText.safehouse.weaponNames, GAME_DATA.locker.weaponIds, "safehouse.weaponNames");
+checkSafehouseNameIds(
+  GAME_DATA.safehouseText.safehouse.weaponNames,
+  GAME_DATA.locker.weaponIds,
+  "safehouse.weaponNames",
+);
 checkSafehouseNameIds(
   GAME_DATA.safehouseText.safehouse.resourceNames,
   Object.keys(GAME_DATA.locker.resourceCaps),

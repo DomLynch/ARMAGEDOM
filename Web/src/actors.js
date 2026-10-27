@@ -4,6 +4,7 @@ import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
+import { physicsDeathStep } from "./physics-death.js";
 import {
   traceGrenadeSurface,
   traceRailgunSurface,
@@ -1513,7 +1514,7 @@ export function createActors(
         animateBoneSaw(view.knife, game.time, !!entity.saw?.active);
         if (contactOnly && rigCapability(entity.rig, "nativeSkeleton"))
           view.motion.sampleContacts(entity, game.time, deathPose);
-        else
+        else if (!physicsDeathStep(view, entity, library, dt))
           view.motion.update(
             entity,
             game.time,
