@@ -2,13 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import * as T from "three";
+import { legacySafehouse } from "./helpers/legacy-safehouse.js";
 import { safehouseCueOpacity, createSafehouseView } from "../src/engine/safehouse-view.js";
 
 // Differential test: the safehouse view's cue pulse, painted patch, contour lines (registered and fallback silhouettes), line style
 // and locker amount text are exactly what the inline numbers produced. The expected digest was recorded from the code before the
 // numbers moved to visual.json `safehouseView` (UPDATE_SAFEHOUSE_VIEW_DIGEST=1 rewrites it; only for an intended presentation change).
 const digestPath = new URL("./fixtures/safehouse-view-values.json", import.meta.url);
-const area = JSON.parse(fs.readFileSync(new URL("../public/world/area-content.json", import.meta.url))).safehouse;
+const area = legacySafehouse;
 const round = (n) => Math.round(n * 1e9) / 1e9;
 const roundAll = (a) => Array.from(a, round);
 
