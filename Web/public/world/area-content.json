@@ -166,17 +166,17 @@
         "foundationRef": "hollow-scavenger",
         "recipeRef": "human-street-scavenger",
         "pos": {
-          "x": -14,
-          "z": 18
+          "x": -2,
+          "z": 8
         },
         "patrol": [
           {
-            "x": -14,
-            "z": 18
+            "x": -2,
+            "z": 8
           },
           {
-            "x": -14,
-            "z": 19
+            "x": -2,
+            "z": 9
           }
         ]
       },

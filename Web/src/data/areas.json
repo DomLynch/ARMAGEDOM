@@ -530,14 +530,14 @@
     "layout.area8": {
       "kind": "layout",
       "path": "world/area8/layout.json",
-      "sha256": "774545250ab099318b0a33684907df6e46f87eb7d2f6a3242192dbb41fe03a4e",
-      "bytes": 10628
+      "sha256": "f3b3e9cfd9c93245b365512a40b56c37779848bc526557456c1fe3b378e0802e",
+      "bytes": 10678
     },
     "backdrop.area8": {
       "kind": "backdrop",
       "path": "world/area8/backdrop-phone.webp",
-      "sha256": "def0275febf500b133f5b25fc293c5ae6cc6ac32d28d9cffd7d36f4da503749f",
-      "bytes": 555662
+      "sha256": "51bbc501560cf56f8e31fccf9612fbb5a3d362645c6f67594f841cac9b05ffdc",
+      "bytes": 542196
     },
     "layout.central-hub": {
       "kind": "layout",
