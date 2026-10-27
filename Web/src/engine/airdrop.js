@@ -131,7 +131,8 @@ export function airdropPull(g, e, dt, move) {
   const a = g.airdrop,
     pull = GAME_DATA.airdrop.convergence;
   if (!pull.enabled || !a || !e.bossProfile || e.hp <= 0 || (a.phase !== "falling" && a.phase !== "landed")) return false;
-  if (distance(e.pos, g.player.pos) <= pull.engageRadius) return false;
+  // A boss already chasing the player keeps at it inside engageRadius; an idle one answers the crate unless the player is close enough to wake it.
+  if (distance(e.pos, g.player.pos) <= (e.alerted ? pull.engageRadius : e.bossProfile.wakeDistance)) return false;
   e.alerted = false;
   e.returning = false;
   const gap = distance(e.pos, a.crate);

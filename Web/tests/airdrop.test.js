@@ -152,7 +152,7 @@ test("a new area starts a fresh clock and drops the old crate", () => {
 
 test("bosses walk to a falling or landed crate unless they are already fighting the player", () => {
   const g = game();
-  const boss = { id: "b", bossProfile: {}, hp: 10, pos: { x: 60, z: 0 }, moveSpeed: 2, alerted: true, returning: true };
+  const boss = { id: "b", bossProfile: { wakeDistance: 8 }, hp: 10, pos: { x: 60, z: 0 }, moveSpeed: 2, alerted: true, returning: true };
   const calls = [];
   const move = (_g, e, dir, speed, dt) => calls.push({ dir, speed, dt, alerted: e.alerted });
   assert.equal(airdropPull(g, boss, STEP, move), false, "no airdrop yet");
@@ -164,7 +164,11 @@ test("bosses walk to a falling or landed crate unless they are already fighting 
   assert.equal(airdropPull(g, { ...boss, bossProfile: undefined }, STEP, move), false, "ordinary enemies ignore it");
   assert.equal(airdropPull(g, { ...boss, hp: 0 }, STEP, move), false);
   g.player.pos = { x: 55, z: 0 };
-  assert.equal(airdropPull(g, boss, STEP, move), false, "a boss near the player keeps fighting");
+  assert.equal(airdropPull(g, boss, STEP, move), false, "a boss close enough to wake keeps to the player");
+  g.player.pos = { x: 60 - DATA.convergence.engageRadius + 1, z: 0 };
+  assert.equal(airdropPull(g, { ...boss, alerted: true }, STEP, move), false, "a boss chasing the player keeps chasing");
+  g.player.pos = { x: 60 - DATA.convergence.engageRadius - 1, z: 0 };
+  assert.equal(airdropPull(g, { ...boss, alerted: true }, STEP, move), true, "unless the player has got well away");
   g.player.pos = { x: 0, z: 0 };
   boss.pos = { x: 20 + DATA.convergence.arriveRadius - 0.1, z: 0 };
   const before = calls.length;
