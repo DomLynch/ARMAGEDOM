@@ -145,6 +145,10 @@ export function resolveGuidance(rows, g, position) {
   }
   return selected;
 }
+// The exits this module marks with its own ring: the Central Safehouse side entrance and any row that asks for a `sign`. The exit rings
+// (exit-rings.js) skip these so an exit never carries two rings.
+export const SAFEHOUSE_ENTRANCE = "central-hub";
+export const markedTargets = (rows) => new Set(rows.filter((row) => row.sign || row.to === SAFEHOUSE_ENTRANCE).map((row) => row.to));
 export function createRouteGuidance(world) {
   const rows = validateGuidance(world.layout, world.geometry),
     tutorial = validateTutorialPath(world.layout, world.geometry);
@@ -257,7 +261,7 @@ export function createRouteGuidance(world) {
     group.add(marker);
     markers.push({ marker, at });
   }
-  const entrance = rows.find((row) => row.to === "central-hub");
+  const entrance = rows.find((row) => row.to === SAFEHOUSE_ENTRANCE);
   if (entrance) addMarker(entrance, "Central Safehouse side entrance", tune().text.entranceSign); // text-ok: internal mesh name
   for (const row of rows.filter((r) => r.sign && r !== entrance))
     addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign); // text-ok: internal mesh name
