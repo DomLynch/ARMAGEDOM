@@ -14,6 +14,8 @@ const resourceOwner = {
   "flame-fuel": weaponIdsAllowed[2],
 };
 const resources = Object.keys(resourceOwner);
+// Which saved weapon owns each carried resource: ground ammo only tops up weapons the player actually owns.
+export const LOCKER_RESOURCE_OWNER = Object.freeze({ ...resourceOwner });
 // Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
 // tests/data-locker.test.js checks the client copy against them.
 const lockerRules = (caps) =>
