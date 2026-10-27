@@ -35,6 +35,7 @@ import { collectVest, VEST_RULES, grantVest } from "../vest.js";
 import { collectPistol, equipPistol, grantPistol } from "../pistol.js";
 import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
+import { RESPAWN_SAVE_KEY, applyRespawnRecord, emptyRespawnRecord, encodeRespawn } from "./respawn.js";
 
 const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
 
@@ -694,6 +695,25 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       bossEquipmentScope = null;
     }
   }
+  // The hostile kill times live in their own small advisory record, never in the run envelope the server validates.
+  function flushRespawn(g) {
+    if (!g.respawn?.dirty || !selectedStorage) return;
+    g.respawn.dirty = false;
+    try {
+      selectedStorage.setItem(RESPAWN_SAVE_KEY, encodeRespawn(g));
+    } catch {
+      /* Advisory only: a failed write leaves those kills permanent. */
+    }
+  }
+  function clearRespawn() {
+    try {
+      // Only when a record exists, so a run that never killed anything writes nothing extra.
+      if (selectedStorage?.getItem(RESPAWN_SAVE_KEY) != null)
+        selectedStorage.setItem(RESPAWN_SAVE_KEY, emptyRespawnRecord());
+    } catch {
+      /* Advisory only. */
+    }
+  }
   function persistRun(g) {
     if (g !== getRun() || g.runSaveInvalid) return false;
     const result = core.dispatch({ type: "save" });
@@ -710,10 +730,18 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
           g.messageUntil = g.time + NOTICES.bossDropSeconds;
         }
       }
+    if (result.ok) flushRespawn(g);
     return result.ok;
   }
   function restoreSavedRun(g) {
     const result = core.dispatch({ type: "restore" });
+    if (result.ok && selectedStorage) {
+      try {
+        applyRespawnRecord(g, selectedStorage.getItem(RESPAWN_SAVE_KEY));
+      } catch {
+        /* Advisory only. */
+      }
+    }
     if (!result.ok) {
       g.runSaveInvalid = true;
       if (result.code === "invalid-save") {
@@ -730,10 +758,13 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
     persistRun(g);
   }
   function resetRun() {
-    return core.dispatch({ type: "reset" });
+    const result = core.dispatch({ type: "reset" });
+    if (result.ok) clearRespawn();
+    return result;
   }
   function retry() {
     const result = core.dispatch({ type: "retry" });
+    if (result.ok) clearRespawn();
     if (result.ok && getRun().world.uniqueRewardData) syncMeleeEquipment(getRun());
     return result.ok;
   }
