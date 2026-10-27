@@ -11,6 +11,7 @@ import * as THREE from "three";
 import { preparePrivateAreaContent, namespacedRunStorage } from "./private-area-content.js";
 import { createWorld } from "../world.js";
 import { loadActors, createActors } from "../actors.js";
+import { preloadPhysicsDeath } from "./physics-death.js";
 import { createGame, resetMobileControls } from "../combat.js";
 import { attachInput } from "../input.js";
 import { createHUD } from "../hud.js";
@@ -701,7 +702,7 @@ export function createBrowserSession(options = {}) {
     return (startup ??= Promise.allSettled([
       createWorld({ THREE, scene, camera, baseUrl, viewZoomMultiplier, content: privateContent }),
       loadActors(baseUrl, () => (lastLoadProgress = performance.now()), actorManifest),
-    ]));
+    ]).then((settled) => (preloadPhysicsDeath(), settled)));
   }
   listen(canvas, "webglcontextlost", (event) => {
     event.preventDefault();

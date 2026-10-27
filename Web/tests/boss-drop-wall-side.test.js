@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { fixture } from "./helpers/rifle-fixture.js";
+import { withLegacySafehouse } from "./helpers/legacy-safehouse.js";
 import { validateAreaMetadata } from "../src/engine/area-content.js";
 import { stageProgressionDeath } from "../src/engine/progression-runtime.js";
 import { issueSupply } from "../src/supplies.js";
@@ -21,7 +22,7 @@ import { createGeometry, segmentsIntersect } from "../src/world-geometry.js";
 // Every case is killed through the real path (progression death, supply, corpse, persistRun) on the real geometry,
 // LondonWorld.travelAt and LondonWorld.lineClear.
 const read = (p) => JSON.parse(fs.readFileSync(new URL("../public/" + p, import.meta.url)));
-const content = read("world/area-content.json");
+const content = withLegacySafehouse(read("world/area-content.json"));
 const registry = fixture().world.registry;
 const data = validateAreaMetadata(content, registry);
 const EXTRA_WORLD = {

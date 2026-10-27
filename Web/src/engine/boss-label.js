@@ -28,8 +28,10 @@ export function createHeadLabelPositioner() {
     if (!view) return null;
     let head = heads.get(view);
     if (!head) {
+      // A 106-joint body names it mixamorigHead: its manifest row says so (`headBone`); three strips the colon on load.
+      const wanted = (view.description?.headBone ?? "head").replace(":", "").toLowerCase();
       view.model.traverse((o) => {
-        if (o.isBone && o.name.toLowerCase() === "head") head = o;
+        if (o.isBone && o.name.toLowerCase() === wanted) head = o;
       });
       if (head) heads.set(view, head);
     }

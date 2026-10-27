@@ -625,6 +625,14 @@
   ],
   "followPlayerSize": true,
   "guidance": [],
+  "setPieceSlot": {
+    "id": "westminster-steps-set-piece",
+    "contents": null,
+    "at": {
+      "x": 0.096,
+      "y": 0.57
+    }
+  },
   "tutorialPath": [
     {
       "x": 0.5,

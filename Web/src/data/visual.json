@@ -353,6 +353,7 @@
     "arrivalRadius": 4,
     "pistolArrived": 0.3,
     "huntArrived": 1.5,
+    "tutorialArrived": 1.5,
     "arrow": {
       "height": 0.04,
       "tailGap": 1,
@@ -370,7 +371,7 @@
       "killMatron": "KILL THE EMBER MATRON",
       "walkToProjector": "WALK TO THE EMBER PROJECTOR",
       "pistol": "PISTOL",
-      "shelter": "WESTMINSTER SHELTER",
+      "ahead": "AHEAD",
       "exit": "EXIT → {area}",
       "roadClosed": "ROAD CLOSED · ",
       "cue": "{closed}{direction} {name} · {metres}m",

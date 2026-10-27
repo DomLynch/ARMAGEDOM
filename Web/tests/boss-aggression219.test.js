@@ -14,6 +14,7 @@ test('219 changes only six boss movement/acquisition/timing fields and uniformly
  // 27 Oct population-spread: about 10 hostiles per area. Every original resident row must remain unchanged, in order, as a prefix of the new rows; the population policy keeps every original active placement and creature slot (it only grows the active list and the cap).
  for(const[area,rows]of Object.entries(expected.residents))assert.deepEqual(other.residents[area].slice(0,rows.length),rows,area);
  for(const[area,policy]of Object.entries(expected.population.areas)){const now=other.population.areas[area];assert.deepEqual(now.activePlacementIds.slice(0,policy.activePlacementIds.length),policy.activePlacementIds,area);assert.deepEqual(now.creatureSlot,policy.creatureSlot,area);assert.equal(now.allowDroneFallback,policy.allowDroneFallback,area);}
+ delete other.safehouse;delete expected.safehouse; // 27 Oct: the Westminster safehouse was removed (Dom's ruling); the Central Hub site is now the only one
  delete other.residents;delete expected.residents;delete other.population;delete expected.population;
  assert.deepEqual(other,expected);
  assert.deepEqual(bosses.placements,base.bosses.placements);{const {wakeDistance,homeLeash,...witch}=bosses.profiles.witch,{wakeDistance:w0,homeLeash:h0,...witch0}=base.bosses.profiles.witch;assert.deepEqual(witch,witch0);assert.equal(wakeDistance,10);assert.equal(homeLeash,18);} // 26 Oct: witch wake/leash follow the other bosses; every other witch field is the 218 baseline
