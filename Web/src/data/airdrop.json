@@ -17,7 +17,7 @@
   "landing": {
     "minDistance": 18,
     "maxDistance": 45,
-    "attempts": 48,
+    "attempts": 150,
     "bodyRadius": 0.5,
     "exitClearance": 3,
     "exitSamples": 8
