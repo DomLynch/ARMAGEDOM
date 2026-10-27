@@ -29,6 +29,7 @@ import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import guestAuth from "../data/guestAuth.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
+import goldenWeapons from "../data/goldenWeapons.json" with { type: "json" };
 import presenceClient from "../data/presenceClient.json" with { type: "json" };
 import progressionBase from "../data/progressionBase.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
@@ -58,6 +59,7 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateGoldenWeapons } from "./game-data-golden.js";
 import { validateWorldPickups } from "./game-data-world-pickups.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
@@ -1022,6 +1024,7 @@ const sources = () => ({
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],
   locker: [locker, validateLocker],
+  goldenWeapons: [goldenWeapons, validateGoldenWeapons],
   renderBudget: [renderBudget, validateRenderBudget],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],

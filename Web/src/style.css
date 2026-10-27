@@ -601,6 +601,9 @@ summary {
 #weapon-tiles-track button::before{content:"";display:block;width:40px;height:24px;margin:0 auto 3px;background-color:#96968b;-webkit-mask:var(--weapon-icon) center/contain no-repeat;mask:var(--weapon-icon) center/contain no-repeat;pointer-events:none;}
 #weapon-tiles-track button[aria-pressed="true"]{border-color:#e1bb65;color:#e1bb65;}
 #weapon-tiles-track button[aria-pressed="true"]::before{background-color:#e1bb65;}
+#weapon-tiles-track button[data-golden]{position:relative;border-color:#ffd24a;box-shadow:0 0 0 1px #8a5a00 inset,0 0 7px rgba(255,200,60,.65);}
+#weapon-tiles-track button[data-golden]::before{background-color:#ffd24a;}
+#weapon-tiles-track button[data-golden]::after{content:attr(data-golden);position:absolute;top:1px;right:3px;color:#ffd24a;font-size:10px;line-height:10px;text-shadow:0 0 3px #000;pointer-events:none;}
 #weapon-tiles-track button:disabled{opacity:.45;}
 #weapon-tiles-track span{display:block;font-size:8px;font-weight:600;letter-spacing:.09em;line-height:10px;}
 #weapon-tiles-track small{font-size:8px;line-height:9px;display:block;margin:0;letter-spacing:.02em;}

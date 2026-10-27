@@ -1,6 +1,7 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
+import { grantBossGolden } from "./golden-weapons.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
@@ -133,6 +134,7 @@ export function createBrowserLoop(s) {
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
         s.world.worldPickups?.collect(s.game, s.world.camera);
+        grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);
