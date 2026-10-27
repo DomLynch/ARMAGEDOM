@@ -1,0 +1,18 @@
+{
+  "flagParam": "physics",
+  "flagValue": "1",
+  "rigRef": "marked-hunter",
+  "seed": 731,
+  "stepHz": 60,
+  "maxStepsPerFrame": 4,
+  "settleSeconds": 5,
+  "removeSeconds": 8,
+  "preloadIdleMs": 2500,
+  "parts": {
+    "hips": "Hips", "spine": "Spine", "spine1": "Spine1", "spine2": "Spine2", "neck": "Neck", "head": "Head",
+    "armLeft": "LeftArm", "armRight": "RightArm", "forearmLeft": "LeftForeArm", "forearmRight": "RightForeArm",
+    "handLeft": "LeftHand", "handRight": "RightHand", "thighLeft": "LeftUpLeg", "thighRight": "RightUpLeg",
+    "shinLeft": "LeftLeg", "shinRight": "RightLeg", "footLeft": "LeftFoot", "footRight": "RightFoot",
+    "toeLeft": "LeftToeBase", "toeRight": "RightToeBase"
+  }
+}

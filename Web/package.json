@@ -14,6 +14,7 @@
     "format:check": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
+    "@frankendom/physics": "file:vendor/frankendom-physics-7bfed1e.tgz",
     "three": "0.182.0"
   },
   "devDependencies": {
