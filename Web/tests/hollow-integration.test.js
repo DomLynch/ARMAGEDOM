@@ -52,7 +52,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  actors.update(game,0);
  for(const entity of game.enemies){const view=actors.views.get(entity.id),palette=hollowPaletteFor(entity,world.areaId);assert.equal(view.palette,palette);for(const {material} of view.materials){if(material.name===HOLLOW_GARMENTS.jacket)assert.deepEqual(material.color.toArray(),palette.jacket);if(material.name===HOLLOW_GARMENTS.trousers)assert.deepEqual(material.color.toArray(),palette.trousers);}}
  assert.equal(actors.views.get(0).palette,null);assert.equal(actors.views.get(0).appearance,null);
- const faceMap=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});assert.equal(new Set(faceMap.values()).size,24);
+ const faceMap=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});assert.equal(new Set(faceMap.values()).size,32)/*population-spread: 32 registered ground keys*/;
  for(const e of game.enemies)assert.equal(actors.views.get(e.id).appearance.id,faceMap.get(e.placementKey));
  const dead=game.enemies.shift(),outfit=actors.views.get(dead.id).palette,faceId=actors.views.get(dead.id).appearance.id;dead.hp=0;game.corpses.push(dead);actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);
  actors.reset();actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);

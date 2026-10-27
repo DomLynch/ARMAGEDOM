@@ -5,10 +5,11 @@ import { AREA_MOB_SPAWNS, hollowLocomotionFor } from "../src/area-mob-spawns.js"
 import { AREA_DRONE_SPAWNS } from "../src/area-drone-spawns.js";
 import { GAME_DATA, buildGameData, validateSpawns } from "../src/engine/game-data.js";
 
+// population-spread (27 Oct): 2 Westminster roamers and the new east/south roamers were added on purpose, so the digest was re-pinned and server/data/spawns.json regenerated (writer redeploy, no migration).
 // The rows moved from code to data/spawns.json unchanged. This digest was taken from the old constants (AREA_MOB_SPAWNS,
 // AREA_DRONE_SPAWNS and the crookedResidents set) before they were deleted; a different digest is a different world, so it is a
 // decision (and the writer's server/data/spawns.json must be regenerated), never a side effect of editing the data.
-const DIGEST = "2af6b7a100db22b679970d387fd774e5024ceca27bb4d9ac1c4f18f7784bdb88";
+const DIGEST = "5585b49ace2581fc79b1818c70ad23e72ab94920c0d1c6bc968f2342d9c5f187";
 const digest = (mob, drones, crooked) =>
   createHash("sha256")
     .update(JSON.stringify({ mob, drones, crooked }))
@@ -19,7 +20,7 @@ test("the spawn rows are byte-for-byte what the code constants were", () => {
   assert.deepEqual(Object.keys(AREA_MOB_SPAWNS), ["westminster", "east", "south"]);
   assert.deepEqual(
     Object.values(AREA_MOB_SPAWNS).map((rows) => rows.length),
-    [6, 9, 9],
+    [8, 12, 12],
   );
   assert.deepEqual(
     Object.values(AREA_DRONE_SPAWNS).map((rows) => rows.length),
