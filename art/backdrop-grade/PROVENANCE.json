@@ -1,0 +1,14 @@
+{
+  "purpose": "Colour-graded phone backdrops for six areas, same size (1672x941), lossy WebP. Pixels change only by colour grade.",
+  "ownerApproval": {"date": "2026-10-27", "decision": "use all", "review": "https://claude.ai/artifact/EuX21BQRiFSzudXBiyypN3"},
+  "source": "area8, elephant-and-castle, east-bridge: the art/backdrop-paint-out (#357) versions. area7, central-hub, lambeth: the main versions.",
+  "method": "art/backdrop-grade/grade.py with params.json (per-area strength; central-hub 0.6, others 1.0); statistics in stats.md.",
+  "files": {
+    "area8": {"sha256": "def0275febf500b133f5b25fc293c5ae6cc6ac32d28d9cffd7d36f4da503749f", "bytes": 555662, "sourceSha256": "13dbc919cbd71b3b48523d9dbbef81c31eee52c19835a31659a7c16be2e3058c", "sourceBytes": 550132},
+    "area7": {"sha256": "a9ff5928994e47e2c9656a2c74bcb109661a32d17f28c12dea8338b077e00f50", "bytes": 571818, "sourceSha256": "42b2617cd534aac412e71d35856d0a032e9dfed341650f9b3a66c127166abab4", "sourceBytes": 550482},
+    "east-bridge": {"sha256": "df3cf2e68447e09464b5c533f7f81a7e5325ad21a3453c7cce72f30a8070a574", "bytes": 503266, "sourceSha256": "92af2ae9d574b7d112eaa980e353c84843b14f132a501069590b8ef5afe40669", "sourceBytes": 488870},
+    "central-hub": {"sha256": "579ee1d23d147dc27a1794588a13336e4b2bd6eebbf8a5e6f2a78c1e48b0ffc0", "bytes": 511722, "sourceSha256": "1e850db9f62f481f5188fec001d8771e87a9e23777d0048d46253de9f93bdda9", "sourceBytes": 509606},
+    "lambeth": {"sha256": "351fda667aa0b6f11c500d547d53c05e4c48f97beee5ee66e2f3efbb77bf437f", "bytes": 541058, "sourceSha256": "4965cc0ecccf9db107f10dcb9f1e2093af284b9dcd2b1a62c7d770b86a010db3", "sourceBytes": 519312},
+    "elephant-and-castle": {"sha256": "40b502c1628db48e969da6388dd053a7c391365feac15135655e9e59ac80de7a", "bytes": 515708, "sourceSha256": "690ffc8fbb776fe3b4c88f4f04d2ad0d4af83a24023ccc4316e3eda97f25e353", "sourceBytes": 513572}
+  }
+}
