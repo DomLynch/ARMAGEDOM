@@ -158,7 +158,8 @@ function killAt(boss, pos) {
 // Re-measured with the grid links (24 exits): the new exit zones change which ring spots count as legal ground, so westminster has 8
 // gap points and south 6; the leash test below checks both like the rest.
 // world/south-clears: South's road opened north and past the statue plinth, so its wall gaps went 6 -> 0 (an improvement); no row is needed.
-const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 8 } };
+// world/area8-barrier: the painted concrete barrier and the lane cut behind it add thin walls in area8: 207 gap points, all far from the boss.
+const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 8 }, area8: { count: 207 } };
 
 const DERIVED = Object.fromEntries(BOSSES.map((b) => [b.areaId, deriveCases(b)]));
 const KINDS = ["stage2", "stage3", "plain"];

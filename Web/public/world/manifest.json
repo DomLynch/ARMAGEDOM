@@ -92,8 +92,8 @@
     {
       "area": "shared",
       "path": "area-content.json",
-      "bytes": 188009,
-      "sha256": "3036bcdc9279cbd39169087e17f1dfe7496962263ed6199221af70c20bd3cf9a"
+      "bytes": 188003,
+      "sha256": "2c77b9817f64e6692624cded1969e0692d0d8e0c16bd9901f52cd38920840ab9"
     },
     {
       "area": "area7",
@@ -113,15 +113,15 @@
       "area": "area8",
       "path": "area8/layout.json",
       "source": "Owner original / image-authored street geometry",
-      "sha256": "774545250ab099318b0a33684907df6e46f87eb7d2f6a3242192dbb41fe03a4e",
-      "bytes": 10628
+      "sha256": "f3b3e9cfd9c93245b365512a40b56c37779848bc526557456c1fe3b378e0802e",
+      "bytes": 10678
     },
     {
       "area": "area8",
       "path": "area8/backdrop-phone.webp",
-      "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept)",
-      "sha256": "def0275febf500b133f5b25fc293c5ae6cc6ac32d28d9cffd7d36f4da503749f",
-      "bytes": 555662
+      "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept); a red-and-white concrete barrier painted across the up-left lane (world/area8-barrier)",
+      "sha256": "51bbc501560cf56f8e31fccf9612fbb5a3d362645c6f67594f841cac9b05ffdc",
+      "bytes": 542196
     },
     {
       "area": "westminster",
