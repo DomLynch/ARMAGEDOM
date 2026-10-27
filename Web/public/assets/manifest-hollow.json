@@ -1204,24 +1204,6 @@
       "stride": 0.964,
       "upperBone": "mixamorig:Spine",
       "headBone": "mixamorig:Head",
-      "starterHidden": [
-        "cap_neck_torso",
-        "cap_shoulder_left_arm",
-        "cap_shoulder_left_torso",
-        "cap_shoulder_right_arm",
-        "cap_shoulder_right_torso",
-        "cap_hip_left_leg",
-        "cap_hip_left_root",
-        "cap_hip_right_leg",
-        "cap_hip_right_root",
-        "cap_waist_torso",
-        "cap_waist_root",
-        "cap_neck_head_left",
-        "cap_neck_head_right",
-        "cap_split_head_left",
-        "cap_split_head_right",
-        "cap_belly_opening"
-      ],
       "measure": {
         "source": "Frankendom v3 physics/bodies/minotaur-106.measure.json (bind pose); mesh bounds from the GLB position accessors",
         "heightMetres": 1.7225,
@@ -1250,12 +1232,18 @@
       },
       "deferred": true,
       "provenance": {
-        "source": "Frankendom v3 src/assets/minotaur-106.glb (Mixamo ch25 Minotaur, 106 joints, cut GLB); byte-identical copy",
-        "sourceRepository": "https://github.com/DomLynch/frankendom-v3",
-        "sourceRevision": "721fbdc9ab5bf32abdfb2f9ada53defce601811e",
-        "sourceSHA256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6",
+        "source": "OpenTrident minotaur-106-v3-web.glb (the plain Mixamo ch25 Minotaur body on the 106 rig, one mesh, no cut pieces), the same body Frankendom v3 src/assets/minotaur-106.glb is cut from",
+        "sourceSHA256": "214eaa44a033e34e5d4e5d2a183668be9eead408585fddd09b40215b4c5759e0",
+        "cutGlbAlternative": {
+          "sourceRepository": "https://github.com/DomLynch/frankendom-v3",
+          "sourceRevision": "721fbdc9ab5bf32abdfb2f9ada53defce601811e",
+          "sha256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6",
+          "bytes": 2407576,
+          "note": "the first version of this pilot (commit a12f6504): 8 piece_ meshes + 16 cap_ nodes (starterHidden), no weapon"
+        },
+        "weaponSHA256": "507b9b4fe26a7f90d0f477390d0d9247279355a7584e3ca57a00b66178f1a07a",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
-        "assembly": "Pilot: Pitborn body for the marked hunter, appearance only. Skeleton, bind pose, piece_ and cap_ nodes untouched; cap_ nodes hidden at attach (starterHidden). Replaces hunters/hunter-goblin-l8.glb, kept in the tree as the rollback",
+        "assembly": "art/hunter-pitborn/build-hunter.mjs: 16 clips kept, Layer_* nodes dropped, weapons/pitborn-cleaver-phone.glb baked under fk_socket_hand_r as WeaponDrawn; skeleton, bind pose and clips untouched; appearance only. Replaces hunters/hunter-goblin-l8.glb, kept in the tree as the rollback",
         "previous": {
           "url": "hunters/hunter-goblin-l8.glb",
           "rig": "goblin",
@@ -1265,8 +1253,8 @@
           "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
         }
       },
-      "bytes": 2407576,
-      "sha256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6"
+      "bytes": 1211976,
+      "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
@@ -1478,8 +1466,8 @@
     },
     "marked-hunter": {
       "file": "hunters/hunter-pitborn-106.glb",
-      "bytes": 2407576,
-      "sha256": "ba000ad174175fc6f3782ab7cabc28c2ecc7c9f267054011b1b6e6c0423e5ed6"
+      "bytes": 1211976,
+      "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
     },
     "giant-salamander/giant-salamander.glb": {
       "file": "giant-salamander/giant-salamander.glb",
