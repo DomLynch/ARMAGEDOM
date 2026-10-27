@@ -5,6 +5,7 @@
   "offscreenMargin": 0.15,
   "spotHeight": 0.2,
   "cylinderSegments": 12,
+  "displayScale": 1.7,
   "roughness": 0.8,
   "metalness": 0.1,
   "noticeSeconds": 3,

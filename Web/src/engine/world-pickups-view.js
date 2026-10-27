@@ -52,7 +52,7 @@ export function createWorldPickups(world) {
     part.shown[i] = visible;
     const row = part.rows[i];
     dummy.position.set(row.x, 0, -row.z);
-    dummy.scale.setScalar(visible ? 1 : 0);
+    dummy.scale.setScalar(visible ? WORLD_PICKUPS.displayScale : 0);
     dummy.updateMatrix();
     part.mesh.setMatrixAt(i, dummy.matrix);
     part.mesh.instanceMatrix.needsUpdate = true;

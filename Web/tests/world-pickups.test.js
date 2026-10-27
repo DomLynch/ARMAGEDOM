@@ -204,7 +204,7 @@ test("view: one instanced mesh per kind, taken pickups vanish and come back, dis
   const medkitMesh = meshes.find((m) => m.userData.pickupType === "medkit"),
     scaleOf = () => {
       const e = medkitMesh.instanceMatrix.array;
-      return Math.hypot(e[0], e[1], e[2]);
+      return Math.hypot(e[0], e[1], e[2]) / WORLD_PICKUPS.displayScale;
     };
   assert.ok(scaleOf() > 0.9, "shown");
   view.collect(g, world.camera);

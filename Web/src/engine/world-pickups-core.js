@@ -38,7 +38,7 @@ export function worldPickupState(g) {
   return (g.worldPickups ??= { until: {}, taken: {}, notice: null, noticeUntil: 0 });
 }
 // Tops every owned weapon's reserve up to its carry cap. Returns how much was added (0 when everything was already full).
-function refill(g) {
+export function refillAmmo(g) {
   const owned = lockerInventory(g).weapons;
   let added = 0;
   for (const [resource, owner] of Object.entries(resourceOwner)) {
@@ -52,17 +52,20 @@ function refill(g) {
   }
   return added;
 }
+// Heals a fraction of max HP, never past max. Returns the HP granted (shared with the trap crate's loot).
+export function healPlayer(player, fraction) {
+  const hp = Math.max(0, Math.min(player.maxHP - player.hp, player.maxHP * fraction));
+  player.hp += hp;
+  return hp;
+}
 // What taking this pickup does to the run: { ok, amount } on success, { ok: false, reason } when it would be wasted.
 export function applyPickup(g, placement, state) {
   const items = WORLD_PICKUPS.items;
   if (placement.type === "medkit") {
-    const p = g.player,
-      amount = Math.min(p.maxHP - p.hp, Math.ceil(p.maxHP * items.medkit.healFraction));
-    if (!(amount > 0)) return { ok: false, reason: "medkitFull" };
-    p.hp += amount;
-    return { ok: true, amount };
+    const amount = Math.ceil(healPlayer(g.player, items.medkit.healFraction));
+    return amount > 0 ? { ok: true, amount } : { ok: false, reason: "medkitFull" };
   }
-  if (placement.type === "ammoBox") return refill(g) > 0 ? { ok: true, amount: 0 } : { ok: false, reason: "ammoBoxFull" };
+  if (placement.type === "ammoBox") return refillAmmo(g) > 0 ? { ok: true, amount: 0 } : { ok: false, reason: "ammoBoxFull" };
   const money = g.marked,
     max = g.world?.markedData?.maxMoney;
   if (!money || !Number.isFinite(max) || money.carried + money.bank >= max) return { ok: false, reason: "cashStashFull" };
