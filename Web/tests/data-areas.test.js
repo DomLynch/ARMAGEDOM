@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "48687abbd24715b50e63795485223022d106a8e44ce0354f54759ebb3bb9c787"); // re-pinned: Westminster south exit zone yMin 0.97 to 0.96 (deeper trigger strip)
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "0855856a7ee0705fcf36dc78e80995c24ea856289d8e0e5928eb239c11a5af94"); // re-pinned: area8, elephant-and-castle and east-bridge layouts changed (alpha blockers), after Westminster south exit zone yMin 0.96
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -29,7 +29,13 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   // with them (both checked in the next test), is unchanged.
   const withoutConditions = (areas) => areas.map((a) => ({ ...a, exits: a.exits.map(({ condition, entry, ...rest }) => rest) }));
   assert.deepEqual(withoutConditions(areaDefinitions), withoutConditions(old.areas));
-  assert.deepEqual(areaAssets, { ...old.assets, "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 } });
+  // The alpha-blocker layouts (area8, elephant-and-castle, east-bridge) also changed identity; their rows are checked against the files on disk below.
+  const moved = ["layout.area8", "layout.elephant-and-castle", "layout.east-bridge"];
+  assert.deepEqual(areaAssets, {
+    ...old.assets,
+    "layout.east": { ...stale, bytes: 11463, sha256: areaAssets["layout.east"].sha256 },
+    ...Object.fromEntries(moved.map((ref) => [ref, { ...old.assets[ref], bytes: areaAssets[ref].bytes, sha256: areaAssets[ref].sha256 }])),
+  });
   assert(areaAssets["layout.east"].sha256.startsWith("db1e8b46"));
   assert.deepEqual(areaDefinitions.map((a) => a.id), old.areas.map((a) => a.id));
   assert.deepEqual(Object.keys(areaAssets), Object.keys(old.assets));
