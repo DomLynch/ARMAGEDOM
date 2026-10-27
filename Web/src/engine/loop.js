@@ -122,6 +122,7 @@ export function createBrowserLoop(s) {
           flameSource: s.flameSource,
           bossFlameSource: s.bossFlameSource,
           flameAimEligible: s.flameAimEligible,
+          pointOnScreen: s.pointOnScreen,
         });
         s.diagnostics?.afterStep();
         if (weaponBefore !== s.game.player.weapon || flameBefore !== !!s.game.flame?.equipped) {

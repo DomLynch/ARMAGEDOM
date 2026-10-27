@@ -352,7 +352,9 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
             shotEvents++;
             toneRow(A.rocketLaunch.tone);
             if (!off) noiseRow(A.rocketLaunch.noise);
-          } else if (event.type === "grenade-blast" || event.type === "boss-rocket-blast") {
+          } else if (event.type === "trap-crate-open") toneRow(GAME_DATA.trapCrates.audio.open);
+          else if (event.type === "trap-crate-beep") toneRow(GAME_DATA.trapCrates.audio.beep);
+          else if (event.type === "grenade-blast" || event.type === "boss-rocket-blast" || event.type === "trap-crate-blast") {
             const cue = WEAPON_AUDIO.grenade;
             tone(cue.from, cue.to, off ? A.grenadeOff.seconds : cue.seconds, off ? A.grenadeOff.gain : cue.gain);
             if (!off) noise(cue.noiseSeconds, cue.noiseGain, cue.cutoff);
