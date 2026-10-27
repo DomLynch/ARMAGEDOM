@@ -35,8 +35,9 @@ test("every exit of every area gets one ring, except the exit route-guidance alr
     total += exits.rings.length;
     if (exits.rings.length) {
       exits.sync((to) => to !== exits.rings[0].to);
-      assert.equal(exits.rings[0].mesh.visible, false, `${id}: closed exit still shows`);
-      assert.ok(exits.rings.slice(1).every((r) => r.mesh.visible));
+      assert.ok(exits.rings.every((r) => r.mesh.visible), `${id}: a ring is hidden`);
+      assert.equal(exits.rings[0].mesh.material.opacity, EXIT_RINGS.lockedOpacity, `${id}: closed exit not dimmed`);
+      assert.ok(exits.rings.slice(1).every((r) => r.mesh.material.opacity === EXIT_RINGS.opacity));
     }
     exits.dispose();
   }

@@ -59,10 +59,11 @@ test("data: 3 to 5 pickups in every area except the hub, all three kinds, 33 or 
   for (const id of areas) {
     const list = placementsFor(id);
     assert.ok(list.length >= 3 && list.length <= 5, `${id}: ${list.length}`);
-    for (const t of ["medkit", "ammoBox", "cashStash"]) assert.ok(list.some((p) => p.type === t), `${id} lacks ${t}`);
+    // Westminster (the first zone, nothing fought yet) carries no medkit: Dom's ruling, the old one stood on unreachable bridge steps.
+    for (const t of id === "westminster" ? ["ammoBox", "cashStash"] : ["medkit", "ammoBox", "cashStash"]) assert.ok(list.some((p) => p.type === t), `${id} lacks ${t}`);
     total += list.length;
   }
-  assert.ok(total >= 33);
+  assert.ok(total >= 32);
   assert.equal(GAME_DATA.worldPickups, WORLD_PICKUPS);
 });
 
