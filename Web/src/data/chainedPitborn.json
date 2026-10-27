@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "enabled": false,
+  "enabled": true,
   "previewParam": "preview",
   "previewValue": "chained-pitborn",
   "areaId": "westminster",
