@@ -70,7 +70,10 @@ export class DonorMotion {
     }
     // Only spine descendants hold guard while native locomotion drives the legs.
     const upper = new Set();
-    model.getObjectByName("spine_01")?.traverse((node) => upper.add(node.name));
+    // The bone that starts the upper body is a manifest row (`upperBone`), because a 106-joint body names it mixamorig:Spine.
+    model
+      .getObjectByName(THREE.PropertyBinding.sanitizeNodeName(description.upperBone ?? "spine_01"))
+      ?.traverse((node) => upper.add(node.name));
     for (const name of new Set([
       description.clips.walk,
       description.clips.run,

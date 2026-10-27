@@ -1,0 +1,21 @@
+<!doctype html>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+// Posed bounding box of a GLB at one clip time (metres in model units, before any manifest scale).
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+const q = new URLSearchParams(location.search);
+const g = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(q.get("glb"));
+const clip = g.animations.find((a) => a.name === (q.get("clip") ?? "Armed"));
+const m = new THREE.AnimationMixer(g.scene);
+m.clipAction(clip).play();
+m.setTime(0);
+g.scene.updateMatrixWorld(true);
+g.scene.traverse((o) => { if (o.isSkinnedMesh) o.skeleton.update(); });
+const box = new THREE.Box3().setFromObject(g.scene, true);
+const s = box.getSize(new THREE.Vector3());
+let tris = 0, meshes = 0;
+g.scene.traverse((o) => { if (o.isMesh) { meshes++; tris += (o.geometry.index?.count ?? o.geometry.attributes.position.count) / 3; } });
+window.__result = { glb: q.get("glb"), clip: clip.name, height: +s.y.toFixed(3), width: +s.x.toFixed(3), depth: +s.z.toFixed(3), minY: +box.min.y.toFixed(3), meshes, tris, clips: g.animations.length };
+</script>
