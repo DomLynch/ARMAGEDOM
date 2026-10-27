@@ -66,12 +66,17 @@ export function applyPickup(g, placement, state) {
     return amount > 0 ? { ok: true, amount } : { ok: false, reason: "medkitFull" };
   }
   if (placement.type === "ammoBox") return refillAmmo(g) > 0 ? { ok: true, amount: 0 } : { ok: false, reason: "ammoBoxFull" };
+  const amount = grantCash(g, stashCash(placement.id, state.taken[placement.id] ?? 0));
+  return amount > 0 ? { ok: true, amount } : { ok: false, reason: "cashStashFull" };
+}
+// Adds carried cash, capped so carried + bank never passes the game's maximum. Returns the amount added (shared with the airdrop).
+export function grantCash(g, wanted) {
   const money = g.marked,
     max = g.world?.markedData?.maxMoney;
-  if (!money || !Number.isFinite(max) || money.carried + money.bank >= max) return { ok: false, reason: "cashStashFull" };
-  const amount = Math.min(stashCash(placement.id, state.taken[placement.id] ?? 0), max - money.carried - money.bank);
+  if (!money || !Number.isFinite(max) || money.carried + money.bank >= max) return 0;
+  const amount = Math.min(wanted, max - money.carried - money.bank);
   money.carried += amount;
-  return { ok: true, amount };
+  return amount;
 }
 const say = (g, text, seconds) => {
   g.message = text;

@@ -1,17 +1,20 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
+import { grantBossGolden } from "./golden-weapons.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
+import { createAirdropView } from "./airdrop-view.js";
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints();
   let last = 0,
     accumulator = 0,
-    submitted = null;
+    submitted = null,
+    airdropView = null;
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,
@@ -133,6 +136,7 @@ export function createBrowserLoop(s) {
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
         s.world.worldPickups?.collect(s.game, s.world.camera);
+        grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);
@@ -158,6 +162,9 @@ export function createBrowserLoop(s) {
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
+    // Built when the first plane is called, so the tutorial and the hub never pay for it.
+    if (s.game.airdrop?.startAt !== undefined) airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
+    airdropView?.update(s.game);
     s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,

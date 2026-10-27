@@ -40,6 +40,7 @@ import { recordResidentKill, reviveDue } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
+import { stepAirdrop, airdropPull } from "./engine/airdrop.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
@@ -76,7 +77,7 @@ import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
 const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
-// The legacy (non-pilot) attacks are rows of Web/src/data/creatures.json `playerAttacks` (read through game-data.js).
+// Legacy (non-pilot) attacks: data/creatures.json `playerAttacks`.
 export const attacks = GAME_DATA.creatures.playerAttacks;
 // The rig ids of the kinds addressed by name below (creatures.json rigCapabilities species).
 const DRONE_RIG = rigOfSpecies("drone"),
@@ -112,7 +113,7 @@ const SALAMANDER_ATTACK = CREATURE_MOVES.salamander_attack;
 const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
-// Numerical dead zones, not tuning: below these a direction, a stick push or a segment length counts as nothing.
+// Numerical dead zones, not tuning: below these a direction, push or length counts as nothing.
 const NEGLIGIBLE_DISTANCE = 0.001, // tuning-ok: numerical dead zone for a direction
   INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
   MIN_SEGMENT = 0.0001; // tuning-ok: numerical dead zone for a segment length
@@ -129,7 +130,7 @@ const rotate = (v, angle) => ({
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
 let serial = 0;
-// The original goblin game's numbers (hp, reach, timings per enemy kind, formation, loot) are data/combatRules.json `legacy`.
+// The original goblin game's numbers: data/combatRules.json `legacy`.
 const RULES = GAME_DATA.combatRules,
   LEGACY = RULES.legacy,
   WAVES = LEGACY.waves,
@@ -1234,6 +1235,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) g.tick++;
   const p = g.player,
     t = g.time;
+  stepAirdrop(g, dt);
   stepBossGrenades(g, (...args) => cursedHit(g, ...args), services);
   stepRockets(g, (...args) => cursedHit(g, ...args), services);
   stepTrapCrates(g, receiveHit, services);
@@ -1720,6 +1722,7 @@ function alertResident(g, e) {
   e.returning = false;
 }
 function residentPatrol(g, e, dt) {
+  if (airdropPull(g, e, dt, enemyMove)) return true;
   const playerHome = mag(sub(g.player.pos, e.home));
   if (e.residentIntent?.companionDistance === 0) {
     const home = territoryHomeStep(e.residentIntent, {

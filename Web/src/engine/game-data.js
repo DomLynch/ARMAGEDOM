@@ -22,6 +22,7 @@ import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
 import weaponViewText from "../data/weaponViewText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
+import airdrop from "../data/airdrop.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -29,6 +30,7 @@ import diagnostics from "../data/diagnostics.json" with { type: "json" };
 import guestAuth from "../data/guestAuth.json" with { type: "json" };
 import knifePaths from "../data/knifePaths.json" with { type: "json" };
 import locker from "../data/locker.json" with { type: "json" };
+import goldenWeapons from "../data/goldenWeapons.json" with { type: "json" };
 import presenceClient from "../data/presenceClient.json" with { type: "json" };
 import progressionBase from "../data/progressionBase.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
@@ -60,12 +62,14 @@ import { validateCombatRules } from "./game-data-combat.js";
 import { validateDiagnostics, validateRenderBudget, validateSaveClient } from "./game-data-client.js";
 import { validateCommanderSession } from "./game-data-commander-session.js";
 import { validateRunNotices } from "./game-data-run-notices.js";
+import { validateGoldenWeapons } from "./game-data-golden.js";
 import { validateWorldPickups } from "./game-data-world-pickups.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
 import { validateWeaponViewText } from "./game-data-weapon-view-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
+import { validateAirdrop } from "./game-data-airdrop.js";
 import { validateMarkedHunterSpawn, validateReaperMotion } from "./game-data-hunters.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
@@ -1010,6 +1014,7 @@ const sources = () => ({
   combatText: [combatText, validateCombatText],
   weaponViewText: [weaponViewText, validateWeaponViewText],
   safehouseText: [safehouseText, validateSafehouseText],
+  airdrop: [airdrop, validateAirdrop],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
@@ -1024,6 +1029,7 @@ const sources = () => ({
   creatureDefinitions: [creatureDefinitions, validateCreatureDefinitions],
   diagnostics: [diagnostics, validateDiagnostics],
   locker: [locker, validateLocker],
+  goldenWeapons: [goldenWeapons, validateGoldenWeapons],
   renderBudget: [renderBudget, validateRenderBudget],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],

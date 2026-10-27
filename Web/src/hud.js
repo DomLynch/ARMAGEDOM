@@ -378,7 +378,7 @@ export function createHUD({
             ? hint
             : g.time < g.messageUntil
               ? hudMessage(g.message)
-              : hint || g.world?.exitHint?.(p.pos) || "";
+              : hint || g.airdrop?.hud || g.world?.exitHint?.(p.pos) || "";
         // A first-time hint is a gold pop-up in the route arrow's colour; game messages keep the plain style.
         const gold = !!hint && message === hint;
         if (message !== lastMessage || gold !== lastGold) {

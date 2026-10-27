@@ -6,6 +6,7 @@ import { MELEE_VARIANTS } from "../melee-equipment.js";
 import { WEAPON_TILES as TILES } from "./weapon-tiles-data.js";
 import { GAME_DATA } from "./game-data.js";
 import { fillText } from "./game-data-combat-text.js";
+import { isGoldenItem, goldenTileMarks } from "./golden-weapons.js";
 const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.json
 const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
 // A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
@@ -291,6 +292,12 @@ export function createWeaponTiles(s, select) {
         "aria-label",
         fillText(GEAR_TEXT.tileLabel, { name: row.name, ammo: row.ammo }) + (row.active ? GEAR_TEXT.equippedSuffix : GEAR_TEXT.tapToEquip),
       );
+      // A golden gun's tile gets a gold frame and a star (style.css [data-golden]); the words are data/goldenWeapons.json.
+      if (isGoldenItem(g, row.id)) {
+        const marks = goldenTileMarks();
+        b.dataset.golden = marks.marker;
+        b.setAttribute("aria-label", `${b.getAttribute("aria-label")} (${marks.label})`);
+      } else delete b.dataset.golden;
       const ammo = b.querySelector("small");
       ammo.hidden = row.ammo === GEAR_TEXT.ammoMelee;
       ammo.textContent = ammo.hidden ? "" : row.ammo.replace(GEAR_TEXT.fuelSuffix, "%");

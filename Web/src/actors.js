@@ -69,6 +69,7 @@ import { createFinisherPresentationSteps, finisherVictimPoseAge, validateHeadPar
 import { createVestView } from "./vest-view.js";
 import * as THREE from "three";
 import { GAME_DATA } from "./engine/game-data.js";
+import { syncGoldenSkins } from "./engine/golden-weapons.js";
 // The damage flash, blob shadow, marked tint, drone clocks, contact bands and hit, flame and fire/reload timings are appearance.json `actorView`.
 const LOOK = GAME_DATA.appearance.actorView;
 const damageCrimson = new THREE.Color(LOOK.damageColor);
@@ -634,6 +635,7 @@ export function createActors(
       view.entity.finisherPartsUntil = 0;
     }
     view.pistolSlide.dispose();
+    for (const skin of view.goldSkins?.values() ?? []) skin.dispose();
     view.appearance?.dispose();
     view.humanBody?.dispose();
     view.bodyShape?.dispose();
@@ -1750,6 +1752,7 @@ export function createActors(
               );
             }
           }
+          syncGoldenSkins(view, game);
           const rocket = world.bossEquipmentData?.rocketLauncher,
             rocketSource = library.models.get(rocket?.modelRef),
             rocketHolding = !!game.bossEquipment?.rocketLauncher?.selected,

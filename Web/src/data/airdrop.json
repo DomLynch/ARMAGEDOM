@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "excludedAreas": ["westminster", "central-hub"],
+  "schedule": {
+    "intervalSeconds": 240,
+    "firstDelayMin": 60,
+    "firstDelayMax": 90,
+    "retrySeconds": 10,
+    "toastSeconds": 6
+  },
+  "plane": {
+    "seconds": 8,
+    "halfSpan": 70,
+    "dropFraction": 0.5
+  },
+  "landing": {
+    "minDistance": 18,
+    "maxDistance": 45,
+    "attempts": 150,
+    "bodyRadius": 0.5,
+    "exitClearance": 3,
+    "exitSamples": 8
+  },
+  "crate": {
+    "fallSeconds": 2,
+    "lifetimeSeconds": 150,
+    "openRadius": 1.5,
+    "holdSeconds": 2.5,
+    "holdDecayPerSecond": 2
+  },
+  "convergence": {
+    "enabled": true,
+    "engageRadius": 12,
+    "leashPadding": 12,
+    "arriveRadius": 2.5
+  },
+  "loot": {
+    "bundle": [
+      { "id": "ammo-refill" },
+      { "id": "medkit", "fraction": 1 },
+      { "id": "cash", "amount": 150 }
+    ],
+    "bonus": [
+      { "id": "golden-weapon", "weight": 1 },
+      { "id": "none", "weight": 19 }
+    ]
+  },
+  "view": {
+    "shadowColour": "000000",
+    "shadowOpacity": 0.6,
+    "shadowLength": 6,
+    "shadowWidth": 5.5,
+    "shadowBodyShare": 0.18,
+    "shadowWingChord": 0.22,
+    "groundLift": 0.05,
+    "flareColour": "ff2a14",
+    "flareHeight": 16,
+    "flareRadius": 0.24,
+    "flareGrow": 1.2,
+    "flarePuffs": 36,
+    "flareRiseSeconds": 7,
+    "flareSway": 0.15,
+    "flareOpacity": 0.8,
+    "flareTopOpacity": 0.2,
+    "flareGlowRadius": 1.2,
+    "flareGlowOpacity": 0.9,
+    "texturePx": 64,
+    "swayRate": 2.1,
+    "crateSize": 0.9,
+    "crateLift": 0.45,
+    "crateColour": "5d6b3a",
+    "crateTrimColour": "c9b458",
+    "crateTrimShare": 0.18,
+    "canopyColour": "d8d2c0",
+    "canopyRadius": 1.1,
+    "canopyHeight": 1.6,
+    "segments": 8,
+    "dropHeight": 18,
+    "pulseSeconds": 1.2
+  }
+}
