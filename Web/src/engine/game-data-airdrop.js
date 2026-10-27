@@ -31,9 +31,9 @@ export function validateAirdrop(d) {
   closed(d.crate, ["fallSeconds", "lifetimeSeconds", "openRadius", "holdSeconds", "holdDecayPerSecond"]);
   for (const f of ["fallSeconds", "lifetimeSeconds", "openRadius", "holdSeconds"]) number("airdrop", `crate.${f}`, d.crate[f], 0.1);
   number("airdrop", "crate.holdDecayPerSecond", d.crate.holdDecayPerSecond, 0);
-  closed(d.convergence, ["enabled", "engageRadius", "arriveRadius"]);
+  closed(d.convergence, ["enabled", "engageRadius", "leashPadding", "arriveRadius"]);
   if (typeof d.convergence.enabled !== "boolean") fail("airdrop", "convergence.enabled must be a boolean");
-  for (const f of ["engageRadius", "arriveRadius"]) number("airdrop", `convergence.${f}`, d.convergence[f], 0);
+  for (const f of ["engageRadius", "leashPadding", "arriveRadius"]) number("airdrop", `convergence.${f}`, d.convergence[f], 0);
   closed(d.loot, ["reservePaths", "bundle", "bonus"]);
   for (const path of Object.values(d.loot.reservePaths ?? {}))
     if (!Array.isArray(path) || path.length < 2 || path.some((key) => typeof key !== "string" || !key)) fail("airdrop", "loot.reservePaths needs key paths");

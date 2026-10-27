@@ -32,6 +32,7 @@
   "convergence": {
     "enabled": true,
     "engageRadius": 12,
+    "leashPadding": 12,
     "arriveRadius": 2.5
   },
   "loot": {

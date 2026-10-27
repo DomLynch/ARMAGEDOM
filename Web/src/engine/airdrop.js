@@ -136,7 +136,14 @@ export function stepAirdrop(g, dt) {
 export function airdropPull(g, e, dt, move) {
   const a = g.airdrop,
     pull = GAME_DATA.airdrop.convergence;
-  if (!pull.enabled || !a || !e.bossProfile || e.hp <= 0 || (a.phase !== "falling" && a.phase !== "landed")) return false;
+  if (!pull.enabled || !a || !e.bossProfile || e.hp <= 0 || (a.phase !== "falling" && a.phase !== "landed")) {
+    if (e.stockIntent) [e.residentIntent, e.stockIntent] = [e.stockIntent, undefined]; // the crate is gone: the boss's own leash is back
+    return false;
+  }
+  // A boss only wakes for a player within its home leash; the crate may lie beyond it, so stretch the leash to cover the crate.
+  if (!e.stockIntent) e.stockIntent = e.residentIntent;
+  const reach = distance(e.home ?? e.pos, a.crate) + pull.leashPadding;
+  if (e.residentIntent && e.residentIntent.homeLeash < reach) e.residentIntent = Object.freeze({ ...e.stockIntent, homeLeash: reach });
   // A boss already chasing the player keeps at it inside engageRadius; an idle one answers the crate unless the player is close enough to wake it.
   if (distance(e.pos, g.player.pos) <= (e.alerted ? pull.engageRadius : e.bossProfile.wakeDistance)) return false;
   e.alerted = false;

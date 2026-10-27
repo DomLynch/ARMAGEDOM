@@ -185,6 +185,22 @@ test("bosses walk to a falling or landed crate unless they are already fighting 
   assert.equal(calls.length, before, "a boss at the crate waits there");
 });
 
+test("a boss's home leash stretches to cover the crate while it lies there, and comes back after", () => {
+  const g = game(),
+    intent = Object.freeze({ homeLeash: 18, wakeDistance: 8 }),
+    boss = { bossProfile: { wakeDistance: 8 }, hp: 10, home: { x: 0, z: 0 }, pos: { x: 0, z: 0 }, moveSpeed: 1, residentIntent: intent };
+  until(g, "falling");
+  g.airdrop.crate = { x: 40, z: 0 };
+  g.player.pos = { x: 100, z: 0 };
+  airdropPull(g, boss, STEP, () => {});
+  assert.equal(boss.residentIntent.homeLeash, 40 + DATA.convergence.leashPadding);
+  assert.equal(boss.residentIntent.wakeDistance, 8);
+  assert.equal(intent.homeLeash, 18, "the boss's own row is untouched");
+  g.airdrop.phase = "idle";
+  assert.equal(airdropPull(g, boss, STEP, () => {}), false);
+  assert.equal(boss.residentIntent, intent);
+});
+
 test("the effect adapters heal and pay as the bundle names them", () => {
   const g = game();
   assert.equal(medkit(g, { fraction: 0.25 }), true);
