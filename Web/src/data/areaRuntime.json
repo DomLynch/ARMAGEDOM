@@ -27,7 +27,8 @@
     "entryClearance": 0.4,
     "followReference": { "x": 0.52, "y": 0.78 },
     "referenceHeight": 2,
-    "maxZoom": 4
+    "maxZoom": 4,
+    "defaultPortraitScale": 1
   },
   "travel": {
     "messageDelayMs": 300,

@@ -9,7 +9,10 @@ import json, os, sys
 import cv2
 import numpy as np
 from PIL import Image
-from simple_lama_inpainting import SimpleLama
+try:
+    from simple_lama_inpainting import SimpleLama
+except ImportError:  # no torch on this machine: finish the seams with OpenCV's Navier-Stokes inpainting instead
+    SimpleLama = None
 
 root = "/Users/domininclynch/Developer/armagedom/.claude/worktrees/arma-chars-f7f72b"
 area, mask_file, sources_file, out = sys.argv[1:5]
@@ -19,7 +22,8 @@ h, w = img.shape[:2]
 mask = np.zeros((h, w), np.uint8)
 for poly in json.load(open(mask_file)):
     cv2.fillPoly(mask, [np.array(poly, np.int32)], 255)
-mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (17, 17)))
+DIL = int(os.environ.get("QUILT_DILATE", 17))  # a thin object (a lamp pole) needs a tighter dilation than a wreck
+mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (DIL, DIL)))
 rects = json.load(open(sources_file))  # clean road rectangles, full-image pixels
 clean = np.zeros((h, w), np.uint8)
 for x0, y0, x1, y1 in rects:
@@ -28,12 +32,18 @@ for x0, y0, x1, y1 in rects:
 PAINT_MAX = 0.004
 hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 paint = ((hsv[..., 2] > 150) & (hsv[..., 1] < 90)).astype(np.uint8)
+if os.environ.get("QUILT_PAINT_OPEN"):  # wet cobbles are speckled with tiny highlights: keep only bright blobs wider than N px (markings)
+    n = int(os.environ["QUILT_PAINT_OPEN"])
+    paint = cv2.morphologyEx(paint, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (n, n)))
 if os.environ.get("QUILT_EXCLUDE_YELLOW"):  # south: the yellow road lines are saturated, so the test above misses them; they and the orange sparks are never copied
     yellow = ((hsv[..., 0] >= 8) & (hsv[..., 0] <= 32) & (hsv[..., 1] > 90) & (hsv[..., 2] > 80)).astype(np.uint8)
     yellow = cv2.morphologyEx(yellow, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))  # lines are runs of pixels, not specks
     paint |= cv2.dilate(yellow, np.ones((11, 11), np.uint8))  # the faint ends of a line sit beside its bright pixels
-P, STEP, BAND, TOPK, REUSE = 72, 52, 95, 8, 28
+P, STEP, BAND, TOPK, REUSE = int(os.environ.get("QUILT_P", 72)), int(os.environ.get("QUILT_STEP", 52)), 95, 8, 28
 rng = np.random.default_rng(7)
+TEXTURE_W = float(os.environ.get("QUILT_TEXTURE", 0))  # weight of the texture-match term (0 = the original colour-only match)
+luma = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY).astype(np.float32)
+local_std = np.sqrt(np.maximum(cv2.boxFilter(luma * luma, -1, (P, P)) - cv2.boxFilter(luma, -1, (P, P)) ** 2, 0))
 paint_share = cv2.boxFilter(paint.astype(np.float32), -1, (P, P))  # share of marking pixels in the patch around each centre
 valid = (cv2.erode(clean, np.ones((P, P), np.uint8)) > 0) & (paint_share < PAINT_MAX)  # inside the clean rectangles, almost no marking
 print("candidate centres", int(valid.sum()), "paint share of road rects", float(paint[clean > 0].mean()))
@@ -70,6 +80,12 @@ for py in range(by0, by1, STEP):
             for i, (cx, cy) in enumerate(cands):
                 d = ((img[cy:cy + P, cx:cx + P].astype(np.float32) - tmpl) ** 2).sum(-1) * tm
                 err[i] = d.sum() / wsum
+            if TEXTURE_W:  # prefer sources with the same amount of cobble texture as the real ground around the hole (not the flattest match)
+                wx0, wy0, wx1, wy1 = max(0, x0 - 24), max(0, y0 - 24), min(w, x0 + P + 24), min(h, y0 + P + 24)
+                ring = (mask[wy0:wy1, wx0:wx1] == 0) & (luma[wy0:wy1, wx0:wx1] > 0)
+                target = float(luma[wy0:wy1, wx0:wx1][ring].std())
+                cs = np.array([local_std[cy + P // 2, cx + P // 2] for cx, cy in cands], np.float32)
+                err = err + TEXTURE_W * (cs - target) ** 2
             k = int(rng.choice(np.argsort(err)[:TOPK]))
         else:
             k = int(rng.integers(len(cands)))
@@ -99,16 +115,20 @@ left = (mask > 0) & ~known
 print("patches", placed, "unreached px", int(left.sum()))
 # LaMa for the seams only: pixels no patch reached plus a thin band along the outer edge of the mask.
 edge = cv2.dilate(mask, np.ones((13, 13), np.uint8)) - cv2.erode(mask, np.ones((13, 13), np.uint8))
-seam = ((edge > 0) | left).astype(np.uint8) * 255
+seam = (((edge > 0) if SimpleLama is not None else False) | left).astype(np.uint8) * 255  # without LaMa the edge band is left to the Poisson blend
 for bx0_, by0_, bx1_, by1_ in json.load(open(sources_file.replace("src-", "seams-"))):  # visible patch-row seams found by eye
     seam[by0_:by1_, bx0_:bx1_] = 255
-ys, xs = np.where(seam > 0)
-sx0, sx1, sy0, sy1 = max(0, xs.min() - 64), min(w, xs.max() + 64), max(0, ys.min() - 64), min(h, ys.max() + 64)
-filled = np.asarray(SimpleLama()(Image.fromarray(canvas[sy0:sy1, sx0:sx1]), Image.fromarray(seam[sy0:sy1, sx0:sx1])))
 fixed = canvas.copy()
-region = seam[sy0:sy1, sx0:sx1] > 0
-fixed[sy0:sy1, sx0:sx1][region] = filled[:sy1 - sy0, :sx1 - sx0][region]
+if seam.any():
+    ys, xs = np.where(seam > 0)
+    sx0, sx1, sy0, sy1 = max(0, xs.min() - 64), min(w, xs.max() + 64), max(0, ys.min() - 64), min(h, ys.max() + 64)
+    if SimpleLama is not None:
+        filled = np.asarray(SimpleLama()(Image.fromarray(canvas[sy0:sy1, sx0:sx1]), Image.fromarray(seam[sy0:sy1, sx0:sx1])))
+    else:
+        filled = cv2.inpaint(np.ascontiguousarray(canvas[sy0:sy1, sx0:sx1]), np.ascontiguousarray(seam[sy0:sy1, sx0:sx1]), 5, cv2.INPAINT_NS)
+    region = seam[sy0:sy1, sx0:sx1] > 0
+    fixed[sy0:sy1, sx0:sx1][region] = filled[:sy1 - sy0, :sx1 - sx0][region]
 soft = cv2.GaussianBlur(cv2.dilate(mask, np.ones((5, 5), np.uint8)), (0, 0), 3).astype(np.float32)[..., None] / 255
 result = np.clip(img * (1 - soft) + fixed * soft + 0.5, 0, 255).astype(np.uint8)
-Image.fromarray(result).save(out, "WEBP", quality=88, method=6)
+Image.fromarray(result).save(out, "WEBP", quality=int(os.environ.get("QUILT_QUALITY", 88)), method=6)
 print(area, "done")
