@@ -157,8 +157,9 @@ export function createBrowserLoop(s) {
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
-    airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
-    airdropView.update(s.game);
+    // Built when the first plane is called, so the tutorial and the hub never pay for it.
+    if (s.game.airdrop?.startAt !== undefined) airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
+    airdropView?.update(s.game);
     s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,
