@@ -18,6 +18,8 @@ export function validateWorldPickups(d) {
     "offscreenMargin",
     "spotHeight",
     "cylinderSegments",
+    "roughness",
+    "metalness",
     "noticeSeconds",
     "refusalRepeatSeconds",
     "items",
@@ -29,6 +31,8 @@ export function validateWorldPickups(d) {
   number("worldPickups", "pickupRadius", d.pickupRadius, 0.2);
   number("worldPickups", "offscreenMargin", d.offscreenMargin, 0);
   number("worldPickups", "spotHeight", d.spotHeight, 0);
+  number("worldPickups", "roughness", d.roughness, 0);
+  number("worldPickups", "metalness", d.metalness, 0);
   count("worldPickups", "cylinderSegments", d.cylinderSegments, 3, 64);
   number("worldPickups", "noticeSeconds", d.noticeSeconds, 0.5);
   number("worldPickups", "refusalRepeatSeconds", d.refusalRepeatSeconds, 0.5);

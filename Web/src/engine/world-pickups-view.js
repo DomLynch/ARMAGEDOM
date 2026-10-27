@@ -33,7 +33,7 @@ export function createWorldPickups(world) {
     const rows = list.filter((p) => p.type === type);
     if (!rows.length) continue;
     const geometry = modelGeometry(THREE, WORLD_PICKUPS.models[type]),
-      material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }),
+      material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: WORLD_PICKUPS.roughness, metalness: WORLD_PICKUPS.metalness }),
       mesh = new THREE.InstancedMesh(geometry, material, rows.length);
     mesh.userData.pickupType = type;
     mesh.frustumCulled = false;
