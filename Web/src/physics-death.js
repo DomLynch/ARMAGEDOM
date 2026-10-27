@@ -5,8 +5,11 @@ import CFG from "./data/physicsDeath.json";
 let impl = null,
   loading = null,
   broken = false;
-export const physicsDeathEnabled = (search = globalThis.location?.search ?? "") =>
-  new URLSearchParams(search).get(CFG.flagParam) === CFG.flagValue;
+let flag = null; // read once: the off path allocates nothing per frame
+export const physicsDeathEnabled = (search) =>
+  search === undefined
+    ? (flag ??= new URLSearchParams(globalThis.location?.search ?? "").get(CFG.flagParam) === CFG.flagValue)
+    : new URLSearchParams(search).get(CFG.flagParam) === CFG.flagValue;
 const load = () =>
   (loading ??= import("./physics-death-impl.js")
     .then(async (m) => {
@@ -22,7 +25,7 @@ export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   else setTimeout(go, CFG.preloadIdleMs);
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
-export function physicsDeathStep(view, entity, library, dt, enabled = physicsDeathEnabled()) {
+export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed) return false;
