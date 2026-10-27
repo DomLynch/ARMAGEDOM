@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "fd624e7228685ebdd560a294526f96f0536d4c304fe760f483b1ec5c80612273"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "b5322e98fb084e12972ba4cbbf22c4dd638d6a49813b8263a90fac842ca0984e"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down; the area8, elephant-and-castle and east-bridge layouts lost their painted-out depth masks and their phone backdrops were painted
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
@@ -29,8 +29,12 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   const withoutExits = (areas) => areas.map(({ exits, ...rest }) => rest);
   assert.deepEqual(withoutExits(areaDefinitions), withoutExits(old.areas));
   // The layout files whose guidance rows went with the retired exits have new bytes and hashes; the next two tests check them on disk.
+  // The phone backdrops of area8, elephant-and-castle and east-bridge were painted over (the blocked objects are gone from the picture), so those three rows moved too.
+  const painted = ["backdrop.area8", "backdrop.elephant-and-castle", "backdrop.east-bridge"];
   const withoutLayoutIdentity = (assets) =>
-    Object.fromEntries(Object.entries(assets).map(([ref, row]) => [ref, ref.startsWith("layout.") ? { ...row, bytes: 0, sha256: "" } : row]));
+    Object.fromEntries(
+      Object.entries(assets).map(([ref, row]) => [ref, ref.startsWith("layout.") || painted.includes(ref) ? { ...row, bytes: 0, sha256: "" } : row]),
+    );
   assert.deepEqual(withoutLayoutIdentity(areaAssets), withoutLayoutIdentity(old.assets));
   assert.deepEqual(areaDefinitions.map((a) => a.id), old.areas.map((a) => a.id));
   assert.deepEqual(Object.keys(areaAssets), Object.keys(old.assets));

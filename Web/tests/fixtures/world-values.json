@@ -78,7 +78,7 @@
  },
  "east-bridge": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "3ca70107764e0f0fe2a25d375c44f403ed7f665c9596c720ba8e642bc618d5ee",
+  "meshes": "4fa72762b1b88b06d51c25583b68c176f0431ff0580276c220b22f038f2a2487",
   "first": [
    "spawn",
    {
@@ -102,7 +102,7 @@
  },
  "elephant-and-castle": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "66e726df3c58016a21911eb9d824aa7f5796efeda7751c2651a6dacc6206aace",
+  "meshes": "33523f8271a4baff23d9bdb26e5bda24a0c8d40a10bfce24fefb2a7af0faef09",
   "first": [
    "spawn",
    {
@@ -174,7 +174,7 @@
  },
  "area8": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "d42194791e9cefd9f1fa1eb5cb318cf5e15639d67b0112cc0537b8e4f0f2ef44",
+  "meshes": "a4677e15550c2d52fac6a1b69d3b56bfc4a0c0e61fb42ed7b006f4514b660102",
   "first": [
    "spawn",
    {
