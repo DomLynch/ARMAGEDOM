@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { preparePrivateAreaContent, namespacedRunStorage } from "./private-area-content.js";
 import { createWorld } from "../world.js";
 import { loadActors, createActors } from "../actors.js";
-import { preloadPhysicsDeath } from "../physics-death.js";
+import { preloadPhysicsDeath } from "./physics-death.js";
 import { createGame, resetMobileControls } from "../combat.js";
 import { attachInput } from "../input.js";
 import { createHUD } from "../hud.js";

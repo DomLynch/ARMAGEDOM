@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { physicsDeathStep, preloadPhysicsDeath, physicsDeathEnabled } from "../src/physics-death.js";
+import { physicsDeathStep, preloadPhysicsDeath, physicsDeathEnabled } from "../src/engine/physics-death.js";
 
 const SCALE = 1.265 * 0.95, DEATH_TICKS = 144, ALIVE_SECONDS = 0.5; // CONTRACT.md characterScale x manifest scale; creatures.json deathTicks
 const canvas = document.getElementById("c"),
