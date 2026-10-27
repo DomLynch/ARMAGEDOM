@@ -153,7 +153,7 @@ test("a golden roll that pays the cash fallback says so, not that a golden weapo
   g.player.pos = { ...g.airdrop.crate };
   run(g, DATA.crate.holdSeconds + 1);
   assert.equal(g.marked.carried, 150 + GAME_DATA.goldenWeapons.fallbackCash);
-  assert.match(g.message, /No gun to gild, so \$250 more cash instead\./);
+  assert.match(g.message, /found\. Bonus \$250 cash\.$/);
   assert.doesNotMatch(g.message, /golden weapon was inside/);
   registerAirdropOutcome("golden-weapon", () => false);
 });
