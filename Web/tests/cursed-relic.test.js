@@ -22,7 +22,14 @@ function relic(areaId = 'east') {
   return f;
 }
 const grab = g => { g.player.pos = {...relicPosition(g)}; stepCursedRelic(g, spawn); };
-const advance = (g, seconds) => { for (let i = 0; i < seconds * 2; i++) { g.time += .5; stepCursedRelic(g, spawn); } };
+// The fake hunters do not walk, so move each one off the entrance after it arrives (real ones chase the player).
+const advance = (g, seconds) => {
+  for (let i = 0; i < seconds * 2; i++) {
+    g.time += .5;
+    stepCursedRelic(g, spawn);
+    g.enemies.forEach((e, n) => { if (e.relicHunter && e.pos.x < 5000) e.pos = {x: 5000 + n * 50, z: 5000}; });
+  }
+};
 
 test('shipped relic data validates: 2x damage, one hunter every 10 s, cap 8, Westminster has no relic', () => {
   assert.equal(data.damageMultiplier, 2);

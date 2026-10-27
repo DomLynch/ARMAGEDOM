@@ -7,11 +7,14 @@ import { fillText } from "./game-data.js";
 // leaving the area (hunters only) ends it. The state lives on the run object and is never saved, so a reload clears it exactly as a
 // safehouse reset does.
 const COLOR = /^#[0-9a-f]{6}$/i;
-const VISUAL_KEYS = [
+const visualKeys = [
   "color",
   "emissive",
   "halo",
   "size",
+  "stretch",
+  "roughness",
+  "metalness",
   "hoverHeight",
   "bobAmount",
   "bobSeconds",
@@ -19,8 +22,14 @@ const VISUAL_KEYS = [
   "emissiveIntensity",
   "haloRadius",
   "haloOpacity",
+  "haloLift",
+  "haloCanvasRadiusPx",
+  "haloCoreAlpha",
+  "haloMidAlpha",
+  "haloMidStop",
+  "auraShare",
 ];
-const TEXT_KEYS = ["pickup", "hud", "reset", "lost"];
+const textKeys = ["pickup", "hud", "reset", "lost"];
 const positive = (n) => Number.isFinite(n) && n > 0;
 export function validateCursedRelicData(input, registry) {
   if (input === undefined) return null;
@@ -37,12 +46,12 @@ export function validateCursedRelicData(input, registry) {
     "visual",
     "text",
   ]);
-  closed(input.visual, VISUAL_KEYS);
-  closed(input.text, TEXT_KEYS);
+  closed(input.visual, visualKeys);
+  closed(input.text, textKeys);
   for (const k of ["color", "emissive", "halo"]) if (!COLOR.test(input.visual[k])) throw TypeError("Invalid relic colour");
-  for (const k of VISUAL_KEYS.filter((k) => !COLOR.test(String(input.visual[k]))))
+  for (const k of visualKeys.filter((k) => !COLOR.test(String(input.visual[k]))))
     if (!positive(input.visual[k])) throw TypeError("Invalid relic visual");
-  for (const k of TEXT_KEYS) if (typeof input.text[k] !== "string" || !input.text[k].trim()) throw TypeError("Invalid relic text");
+  for (const k of textKeys) if (typeof input.text[k] !== "string" || !input.text[k].trim()) throw TypeError("Invalid relic text");
   for (const k of ["damageMultiplier", "hunterIntervalSeconds", "pickupRadius", "retrySeconds", "messageSeconds"])
     if (!positive(input[k])) throw TypeError("Invalid relic rule");
   for (const k of ["huntersPerInterval", "maxHunters"])
