@@ -122,6 +122,7 @@
     "airdrop.hudOpening": "OPENING AIRDROP · {percent}%",
     "airdrop.opened": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found.",
     "airdrop.openedGolden": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found. A golden weapon was inside.",
+    "airdrop.openedCashFallback": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found. No gun to gild, so ${extra} more cash instead.",
     "airdrop.lost": "The airdrop is gone."
   }
 }
