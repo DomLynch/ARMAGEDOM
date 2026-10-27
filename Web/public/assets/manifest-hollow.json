@@ -1203,6 +1203,7 @@
       "forwardCorrection": 0,
       "stride": 1.0273,
       "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
       "clips": {
         "idle": "Armed",
         "walk": "ArmedWalk",
