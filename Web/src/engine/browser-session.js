@@ -320,6 +320,14 @@ export function createBrowserSession(options = {}) {
     flameAimEligible(g, target) {
       return actors?.flameAimEligible(g, target) ?? false;
     },
+    // Whether a ground position is inside the camera view plus `margin` (fraction of the view); trap crates respawn only off screen.
+    pointOnScreen(position, margin = 0) {
+      if (!world) return false;
+      camera.updateMatrixWorld();
+      const v = world.toRender(position).project(camera),
+        limit = 1 + margin;
+      return Math.abs(v.x) <= limit && Math.abs(v.y) <= limit && v.z < 1;
+    },
     collectNearbySupplies(g, intent) {
       resources.collectNearbySupplies(g, intent);
     },
