@@ -1,6 +1,7 @@
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addPickupGlow } from "../pickup-glow.js";
-import { WORLD_PICKUPS, WORLD_PICKUP_TYPES, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
+import { WORLD_PICKUP_TYPES } from "./game-data-world-pickups.js";
+import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
 function modelGeometry(THREE, parts) {
