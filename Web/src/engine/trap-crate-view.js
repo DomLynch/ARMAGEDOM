@@ -11,7 +11,8 @@ const DATA = GAME_DATA.trapCrates,
 const hex = (v) => new T.Color(`#${v}`);
 function partMesh(part) {
   const [w, h, d] = part.size,
-    geometry = part.shape === "cylinder" ? new T.CylinderGeometry(w / 2, w / 2, h, 12) : new T.BoxGeometry(w, h, d), // tuning-ok: round crate parts use twelve sides
+    sides = 12, // tuning-ok: round crate parts use twelve sides
+    geometry = part.shape === "cylinder" ? new T.CylinderGeometry(w / 2, w / 2, h, sides) : new T.BoxGeometry(w, h, d),
     material = new T.MeshStandardMaterial({
       color: hex(part.color),
       roughness: 0.85,
