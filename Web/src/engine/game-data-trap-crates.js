@@ -50,11 +50,14 @@ export function validateTrapCrates(d) {
   if (d.blast.profile !== "standard-grenade-v1") fail("trapCrates", "blast.profile must be standard-grenade-v1");
   number("trapCrates", "blast.playerDamageScale", d.blast.playerDamageScale, 0);
   closed(d.loot, ["healFraction", "refillReserve"]);
-  if (!(d.loot.healFraction > 0 && d.loot.healFraction <= 1)) fail("trapCrates", "healFraction must be above 0 and at most 1");
+  if (!(d.loot.healFraction > 0 && d.loot.healFraction <= 1))
+    fail("trapCrates", "healFraction must be above 0 and at most 1");
   if (typeof d.loot.refillReserve !== "boolean") fail("trapCrates", "refillReserve must be true or false");
   closed(d.text, ["opened", "openedNoLoot"]);
-  for (const [k, v] of Object.entries(d.text)) if (typeof v !== "string" || !v.length || v.length > 60) fail("trapCrates", `text.${k}`);
-  if (!d.text.opened.includes("{hp}") || !d.text.opened.includes("{rounds}")) fail("trapCrates", "text.opened needs {hp} and {rounds}");
+  for (const [k, v] of Object.entries(d.text))
+    if (typeof v !== "string" || !v.length || v.length > 60) fail("trapCrates", `text.${k}`);
+  if (!d.text.opened.includes("{hp}") || !d.text.opened.includes("{rounds}"))
+    fail("trapCrates", "text.opened needs {hp} and {rounds}");
   closed(d.cue, [
     "ringColour",
     "ringOpacityFrom",
@@ -69,11 +72,13 @@ export function validateTrapCrates(d) {
   hex("cue.flashColour", d.cue.flashColour);
   for (const f of ["ringOpacityFrom", "ringOpacityTo"])
     if (!(d.cue[f] > 0 && d.cue[f] <= 1)) fail("trapCrates", `cue.${f} must be above 0 and at most 1`);
-  if (!Number.isInteger(d.cue.ringSegments) || d.cue.ringSegments < 8 || d.cue.ringSegments > 128) fail("trapCrates", "cue.ringSegments");
+  if (!Number.isInteger(d.cue.ringSegments) || d.cue.ringSegments < 8 || d.cue.ringSegments > 128)
+    fail("trapCrates", "cue.ringSegments");
   number("trapCrates", "cue.flashHzFrom", d.cue.flashHzFrom, 0.5);
   number("trapCrates", "cue.flashHzTo", d.cue.flashHzTo, d.cue.flashHzFrom);
   number("trapCrates", "cue.blastSeconds", d.cue.blastSeconds, 0.05);
-  if (!Array.isArray(d.model) || d.model.length < 1 || d.model.length > 8) fail("trapCrates", "model must list 1 to 8 parts");
+  if (!Array.isArray(d.model) || d.model.length < 1 || d.model.length > 8)
+    fail("trapCrates", "model must list 1 to 8 parts");
   for (const p of d.model) {
     closed(p, ["shape", "size", "pos", "color"]);
     if (!SHAPES.includes(p.shape)) fail("trapCrates", "model shape");
@@ -81,16 +86,19 @@ export function validateTrapCrates(d) {
     triple("model.pos", p.pos, -10);
     hex("model.color", p.color);
   }
-  if (!d.placements || typeof d.placements !== "object" || Array.isArray(d.placements)) fail("trapCrates", "placements");
+  if (!d.placements || typeof d.placements !== "object" || Array.isArray(d.placements))
+    fail("trapCrates", "placements");
   const seen = new Set();
   for (const [area, list] of Object.entries(d.placements)) {
     if (!/^[a-z0-9-]{1,32}$/.test(area)) fail("trapCrates", `placements area ${area}`);
     if (area === "central-hub") fail("trapCrates", "the central-hub safehouse has no trap crates");
     if (area === "westminster") fail("trapCrates", "the Westminster tutorial area has no trap crates");
-    if (!Array.isArray(list) || list.length < 1 || list.length > 2) fail("trapCrates", `placements.${area} must list 1 or 2`);
+    if (!Array.isArray(list) || list.length < 1 || list.length > 2)
+      fail("trapCrates", `placements.${area} must list 1 or 2`);
     for (const row of list) {
       closed(row, ["id", "x", "z"]);
-      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,40}$/.test(row.id) || seen.has(row.id)) fail("trapCrates", `placement id ${row.id}`);
+      if (typeof row.id !== "string" || !/^[a-z0-9-]{1,40}$/.test(row.id) || seen.has(row.id))
+        fail("trapCrates", `placement id ${row.id}`);
       seen.add(row.id);
       if (!Number.isFinite(row.x) || !Number.isFinite(row.z)) fail("trapCrates", `placement ${row.id} position`);
     }

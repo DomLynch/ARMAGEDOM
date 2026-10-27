@@ -34,7 +34,8 @@ function open(g, crate, state, areaId) {
   state.openedAt = g.time;
   state.fuseEnd = g.time + DATA.fuseSeconds;
   state.nextBeep = g.time;
-  g.message = loot.hp || loot.rounds ? fillText(DATA.text.opened, { hp: loot.hp, rounds: loot.rounds }) : DATA.text.openedNoLoot;
+  g.message =
+    loot.hp || loot.rounds ? fillText(DATA.text.opened, { hp: loot.hp, rounds: loot.rounds }) : DATA.text.openedNoLoot;
   g.messageUntil = g.time + DATA.fuseSeconds + 1;
   g.events.push({ type: "trap-crate-open", id: crate.id, position: { x: crate.x, z: crate.z }, ...loot });
 }
@@ -48,7 +49,15 @@ function explode(g, crate, state, areaId, hitPlayer) {
   const hits = radialBlastHits(
     position,
     areaId,
-    [{ victimId: PLAYER_VICTIM, areaId, position: { x: p.pos.x, z: p.pos.z }, hp: p.hp, eligible: g.world.lineClear(position, p.pos) }],
+    [
+      {
+        victimId: PLAYER_VICTIM,
+        areaId,
+        position: { x: p.pos.x, z: p.pos.z },
+        hp: p.hp,
+        eligible: g.world.lineClear(position, p.pos),
+      },
+    ],
     BLAST,
   );
   for (const hit of hits) hitPlayer(g, { amount: hit.damage * DATA.blast.playerDamageScale, origin: position });
@@ -60,7 +69,8 @@ export function stepTrapCrates(g, hitPlayer, services = {}) {
     states = (g.trapCrates ??= {});
   for (const [id, state] of Object.entries(states))
     // Leaving the area defuses a lit fuse: the crate is spent and respawns on the usual timer.
-    if (state.phase === "fusing" && state.areaId !== areaId) Object.assign(states[id], { phase: "spent", respawnAt: g.time + DATA.respawnSeconds });
+    if (state.phase === "fusing" && state.areaId !== areaId)
+      Object.assign(states[id], { phase: "spent", respawnAt: g.time + DATA.respawnSeconds });
   if (g.finished) return;
   const p = g.player;
   for (const crate of trapCrateList(areaId)) {
@@ -78,6 +88,7 @@ export function stepTrapCrates(g, hitPlayer, services = {}) {
         g.events.push({ type: "trap-crate-beep", id: crate.id, position: { x: crate.x, z: crate.z } });
         state.nextBeep = g.time + nextBeepDelay(g.time - state.openedAt);
       }
-    } else if (g.time >= state.respawnAt && !services.pointOnScreen?.({ x: crate.x, z: crate.z }, DATA.offscreenMargin)) state.phase = "armed";
+    } else if (g.time >= state.respawnAt && !services.pointOnScreen?.({ x: crate.x, z: crate.z }, DATA.offscreenMargin))
+      state.phase = "armed";
   }
 }

@@ -105,7 +105,7 @@ test("fuse: beeps speed up, then one blast hits a player who stays, once", () =>
   for (let i = 0; i < 200; i++) {
     step();
     beeps.push(...g.events.filter((e) => e.type === "trap-crate-beep").map(() => g.time));
-    for (const e of g.events) if (e.type === "trap-crate-blast") (blast = { ...e, at: g.time }), blasts++;
+    for (const e of g.events) if (e.type === "trap-crate-blast") ((blast = { ...e, at: g.time }), blasts++);
   }
   assert.equal(blasts, 1);
   assert(Math.abs(blast.at - start - DATA.fuseSeconds) <= TICK + 1e-9, "blast lands at the fuse time");
@@ -115,7 +115,10 @@ test("fuse: beeps speed up, then one blast hits a player who stays, once", () =>
   assert(gaps[gaps.length - 1] < gaps[0], "beeps accelerate");
   assert(nextBeepDelay(0) > nextBeepDelay(DATA.fuseSeconds));
   assert(g.player.hp < g.player.maxHP, "player at the crate takes the blast");
-  assert(Math.abs(g.player.maxHP - g.player.hp - BLAST.maxDamage * DATA.blast.playerDamageScale) < 1e-6, "full centre damage");
+  assert(
+    Math.abs(g.player.maxHP - g.player.hp - BLAST.maxDamage * DATA.blast.playerDamageScale) < 1e-6,
+    "full centre damage",
+  );
   assert.equal(g.trapCrates[CRATE.id].phase, "spent");
 });
 
@@ -196,7 +199,8 @@ test("respawn: spent crates re-arm after 180 s, only once off screen; leaving th
   assert.equal(state.phase, "spent");
   assert(state.respawnAt > g.time);
   g.world.areaId = AREA;
-  for (let i = 0; i < 200; i++) (g.time += TICK), stepTrapCrates(g, () => assert.fail("defused"), services), events.push(...g.events);
+  for (let i = 0; i < 200; i++)
+    ((g.time += TICK), stepTrapCrates(g, () => assert.fail("defused"), services), events.push(...g.events));
   assert.equal(g.trapCrates[CRATE.id].phase, "spent");
 });
 

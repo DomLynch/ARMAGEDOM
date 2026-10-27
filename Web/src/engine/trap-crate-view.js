@@ -12,7 +12,12 @@ const hex = (v) => new T.Color(`#${v}`);
 function partMesh(part) {
   const [w, h, d] = part.size,
     geometry = part.shape === "cylinder" ? new T.CylinderGeometry(w / 2, w / 2, h, 12) : new T.BoxGeometry(w, h, d), // tuning-ok: round crate parts use twelve sides
-    material = new T.MeshStandardMaterial({ color: hex(part.color), roughness: 0.85, emissive: hex(CUE.flashColour), emissiveIntensity: 0 }); // tuning-ok: matte wood and paint
+    material = new T.MeshStandardMaterial({
+      color: hex(part.color),
+      roughness: 0.85,
+      emissive: hex(CUE.flashColour),
+      emissiveIntensity: 0,
+    }); // tuning-ok: matte wood and paint
   const mesh = new T.Mesh(geometry, material);
   mesh.position.set(...part.pos);
   return mesh;
@@ -31,7 +36,13 @@ export function createTrapCrateView(s) {
     }
     const ring = new T.Mesh(
       new T.RingGeometry(RADIUS * 0.94, RADIUS, CUE.ringSegments), // tuning-ok: the ring hugs the blast radius edge
-      new T.MeshBasicMaterial({ color: hex(CUE.ringColour), transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide }),
+      new T.MeshBasicMaterial({
+        color: hex(CUE.ringColour),
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: T.DoubleSide,
+      }),
     );
     ring.rotation.x = -Math.PI / 2; // tuning-ok: lays the ring flat on the ground
     ring.position.y = 0.03; // tuning-ok: lifts the ring off the ground to stop z-fighting
@@ -68,7 +79,8 @@ export function createTrapCrateView(s) {
       if (areaId !== s.world.areaId) {
         clear();
         areaId = s.world.areaId;
-        for (const crate of trapCrateList(areaId)) rows.set(crate.id, { crate, ...build(crate), blastSeen: g.trapCrates?.[crate.id]?.blastAt ?? 0 });
+        for (const crate of trapCrateList(areaId))
+          rows.set(crate.id, { crate, ...build(crate), blastSeen: g.trapCrates?.[crate.id]?.blastAt ?? 0 });
       }
       for (const [id, row] of rows) {
         const state = g.trapCrates?.[id],
