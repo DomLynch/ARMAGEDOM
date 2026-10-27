@@ -28,6 +28,10 @@ for x0, y0, x1, y1 in rects:
 PAINT_MAX = 0.004
 hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 paint = ((hsv[..., 2] > 150) & (hsv[..., 1] < 90)).astype(np.uint8)
+if os.environ.get("QUILT_EXCLUDE_YELLOW"):  # south: the yellow road lines are saturated, so the test above misses them; they and the orange sparks are never copied
+    yellow = ((hsv[..., 0] >= 8) & (hsv[..., 0] <= 32) & (hsv[..., 1] > 90) & (hsv[..., 2] > 80)).astype(np.uint8)
+    yellow = cv2.morphologyEx(yellow, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))  # lines are runs of pixels, not specks
+    paint |= cv2.dilate(yellow, np.ones((11, 11), np.uint8))  # the faint ends of a line sit beside its bright pixels
 P, STEP, BAND, TOPK, REUSE = 72, 52, 95, 8, 28
 rng = np.random.default_rng(7)
 paint_share = cv2.boxFilter(paint.astype(np.float32), -1, (P, P))  # share of marking pixels in the patch around each centre
