@@ -1434,7 +1434,10 @@ export function createActors(
         // Living enemies off screen are refreshed at a reduced rate (data/offscreenActors.json); the rest are always drawn.
         if (!contactOnly && dt > 0 && entity.kind >= 0 && entity.hp > 0 && !entity.bossProfile) {
           if (offscreen.skip(entity, view, dt)) continue;
-        } else if (!view.root.visible) view.root.visible = true;
+        } else if (!view.root.visible) {
+          view.root.visible = true;
+          if (view.shadow) view.shadow.visible = true;
+        }
         view.root.scale.setScalar(
           (world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
             (view.description.scale ?? 1) *

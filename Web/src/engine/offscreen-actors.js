@@ -48,11 +48,16 @@ export function createOffscreenThrottle(THREE, rules) {
         sphere.radius = rules.marginMetres + entity.radius;
         onScreen = frustum.intersectsSphere(sphere);
       }
+      // The ground shadow is its own scene object: it is shown and hidden with the body, or a far enemy leaves a lone blob behind.
+      const show = (visible) => {
+        view.root.visible = visible;
+        if (view.shadow) view.shadow.visible = visible;
+      };
       if (onScreen) {
-        view.root.visible = true;
+        show(true);
         return false;
       }
-      view.root.visible = false;
+      show(false);
       if ((frame + entity.id) % rules.everyNthFrame === 0) return false;
       view.missedDt = (view.missedDt ?? 0) + dt;
       return true;

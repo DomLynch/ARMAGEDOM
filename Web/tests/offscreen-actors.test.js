@@ -14,7 +14,7 @@ const rig = () => {
   return camera;
 };
 const enemy = (id, x, z) => ({ id, pos: { x, z }, radius: 0.4 });
-const view = () => ({ root: { visible: true } });
+const view = () => ({ root: { visible: true }, shadow: { visible: true } });
 
 test("the data validates and bad rows are refused", () => {
   validateOffscreenActors(rules);
@@ -54,6 +54,7 @@ test("off-screen hostiles are hidden and updated once every N frames with the ti
       carried += t.takePending(v) + 1 / 60;
     }
     assert.equal(v.root.visible, false);
+    assert.equal(v.shadow.visible, false, "the shadow hides with the body");
   }
   carried += t.takePending(v);
   assert.equal(updates, 5);
