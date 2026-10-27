@@ -3,6 +3,7 @@
   "outcomeId": "golden-weapon",
   "noticeSeconds": 5,
   "fallbackCash": 250,
+  "bossChance": 0.1,
   "weapons": {
     "pistol": {
       "itemId": "westminster-start-pistol-v1",
