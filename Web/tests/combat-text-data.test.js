@@ -8,7 +8,7 @@ const text = () => structuredClone(GAME_DATA.combatText);
 test("exit gate prompts read string-equal to the text that was in code", () => {
   const t = GAME_DATA.combatText.exitGate;
   assert.equal(fillText(t.needsKill, { name: "Witch" }), "Kill the Witch");
-  assert.equal(fillText(t.needsVisit, { destination: "Central Hub" }), "Visit Central Hub first");
+  assert.equal(fillText(t.needsVisit, { destination: "Central Hub" }), "Locked: reach Central Hub first");
   assert.equal(t.saveUnavailable, "Saving unavailable. Exit locked.");
 });
 
@@ -75,7 +75,7 @@ test("the validator rejects empty text, wrong placeholders and unknown keys", ()
   const bad = [
     (d) => (d.exitGate.needsKill = ""),
     (d) => (d.exitGate.needsKill = "Kill the boss"),
-    (d) => (d.exitGate.needsVisit = "Visit {place} first"),
+    (d) => (d.exitGate.needsVisit = "Locked: reach {place} first"),
     (d) => (d.exitGate.saveUnavailable = "Locked {name}"),
     (d) => (d.layerMessages.rifle.base = 7),
     (d) => (d.layerMessages.extra = {}),

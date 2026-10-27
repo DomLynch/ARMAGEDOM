@@ -319,10 +319,18 @@
     "segments": 32,
     "colour": "dfba59",
     "opacity": 1,
+    "lockedColour": "dfba59",
+    "lockedOpacity": 0.7,
     "height": 0.045,
     "anchor": { "x": 0.5, "y": 0.5 },
     "flatRotation": -1.5707963267948966,
-    "offsets": {}
+    "offsets": {
+      "central-hub>westminster": { "x": 1.9, "z": 0 },
+      "central-hub>east": { "x": -1.9, "z": 0 },
+      "central-hub>area7": { "x": 0, "z": -22 },
+      "central-hub>south": { "x": 0, "z": 1.9 }
+    },
+    "scales": { "central-hub>area7": 2 }
   },
   "input": {
     "knobPadPx": 106,

@@ -65,6 +65,10 @@ export function createExitRings(world) {
       transparent: true,
       opacity: EXIT_RINGS.opacity,
     });
+  // A locked exit keeps its ring, dimmed, so every way out of an area stays visible; the lock message says what opens it.
+  const lockedMaterial = material.clone();
+  lockedMaterial.color.set(`#${EXIT_RINGS.lockedColour}`);
+  lockedMaterial.opacity = EXIT_RINGS.lockedOpacity;
   group.name = "Exit rings"; // text-ok: internal mesh name
   for (const link of links) {
     if (signed.has(link.to)) continue;
@@ -76,6 +80,7 @@ export function createExitRings(world) {
     mesh.name = `Exit ring to ${link.to}`; // text-ok: internal mesh name
     mesh.position.copy(world.toRender(at, EXIT_RINGS.height));
     mesh.rotation.x = EXIT_RINGS.flatRotation;
+    mesh.scale.setScalar(EXIT_RINGS.scales[`${world.areaId}>${link.to}`] ?? 1); // far, compressed picture areas need a bigger ring
     group.add(mesh);
     rings.push({ to: link.to, mesh, link, at });
   }
@@ -84,9 +89,9 @@ export function createExitRings(world) {
   return {
     group,
     rings,
-    // Show a ring only while its exit is open: `isOpen(to)` is the game's own gate.
+    // Every ring stays visible; a locked exit (`isOpen(to)` is the game's own gate) shows the dimmed locked look.
     sync(isOpen) {
-      for (const r of rings) r.mesh.visible = isOpen(r.to) !== false;
+      for (const r of rings) r.mesh.material = isOpen(r.to) !== false ? material : lockedMaterial;
     },
     dispose() {
       if (disposed) return;
@@ -94,6 +99,7 @@ export function createExitRings(world) {
       group.removeFromParent();
       geometry.dispose();
       material.dispose();
+      lockedMaterial.dispose();
     },
   };
 }
