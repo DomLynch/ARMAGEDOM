@@ -1,7 +1,6 @@
 import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-import { GAME_DATA } from "./game-data.js";
 // The values live only in area-content.json `marked`. This is the hard ceiling on any money field (a limit, not a default).
 export const MAX_MONEY_CEILING = 1e9; // tuning-ok: a hard validation ceiling on any money field, a limit and not a default
 export function validateMarkedData(input, registry = publicAreaRegistry) {
@@ -104,25 +103,25 @@ export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
 export function validMarked(s, max = MAX_MONEY_CEILING) {
   try {
-    // `golden` is optional: a save written before golden weapons has no such field and loads unchanged.
+    // `golden` is optional and written by a later release (golden weapons). Whatever it holds never makes the save corrupt (a corrupt
+    // Marked block makes Retry/Reset erase the run): copyMarked below keeps only well-formed, de-duplicated weapon keys.
     closed(s, ["version", "carried", "bank", "bounty"], ["golden"]);
     return (
       s.version === 1 &&
-      ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max) &&
-      (s.golden === undefined || validGolden(s.golden))
+      ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max)
     );
   } catch {
     return false;
   }
 }
-// The weapon keys (goldenWeapons.json) whose gold skin is unlocked: a list of known keys, each once.
-const validGolden = (list) =>
-  Array.isArray(list) &&
-  new Set(list).size === list.length &&
-  list.every((key) => Object.hasOwn(GAME_DATA.goldenWeapons.weapons, key));
+// The golden weapon keys worth keeping: lowercase id strings, each once, in order. Junk, wrong types and duplicates are dropped.
+export const cleanGolden = (x) =>
+  Array.isArray(x) ? [...new Set(x.filter((k) => typeof k === "string" && /^[a-z][a-z0-9-]*$/.test(k)))] : [];
 export function copyMarked(s) {
   if (!validMarked(s)) throw TypeError("Invalid Marked state");
-  return s.golden === undefined ? { ...s } : { ...s, golden: [...s.golden] };
+  const { golden, ...rest } = s,
+    kept = cleanGolden(golden);
+  return kept.length ? { ...rest, golden: kept } : rest;
 }
 export function markedShopEligible(g, id) {
   const row = g.world?.markedData?.shop[id];

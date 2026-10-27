@@ -71,7 +71,8 @@ test("the golden list persists through the Marked save validator and copy; old s
   assert.deepEqual(loaded, g.marked);
   assert(validMarked({ version: 1, carried: 0, bank: 0, bounty: 0 }));
   assert.deepEqual(copyMarked(freshMarked()), freshMarked());
-  for (const bad of [["pistol", "pistol"], ["laser"], "pistol", [1]]) assert(!validMarked({ ...freshMarked(), golden: bad }), JSON.stringify(bad));
+  // The reader tolerates junk (marked-golden-reader.test.js): duplicates and malformed keys are dropped, never written back.
+  assert.deepEqual(copyMarked({ ...freshMarked(), golden: ["pistol", "pistol", 1] }).golden, ["pistol"]);
   assert(!validMarked({ ...freshMarked(), extra: 1 }));
 });
 
