@@ -73,6 +73,12 @@ export function rollBossGolden(g, bossKey) {
   if (goldenRoll(g, "boss:" + bossKey) >= GOLD.bossChance) return null;
   return grantGoldenWeapon(g, goldenRoll(g, "pick:" + bossKey));
 }
+/** After each step: every boss defeated in that step's events gets its roll. Returns how many guns were granted. */
+export function grantBossGolden(g) {
+  let granted = 0;
+  for (const e of g.events ?? []) if (e.type === "boss-defeated" && rollBossGolden(g, e.placementKey)) granted++;
+  return granted;
+}
 /** The loot outcome for an id this module owns (null for any other): fn(g, row) returns true when it granted something. The airdrop registers this one. */
 export const lootOutcome = (id) =>
   id === GOLDEN_WEAPON_OUTCOME ? (g, row) => !!grantGoldenWeapon(g, goldenRoll(g, row?.key ?? "loot")) : null;

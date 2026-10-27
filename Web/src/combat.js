@@ -1,6 +1,5 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
-import { rollBossGolden } from "./engine/golden-weapons.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
@@ -841,7 +840,6 @@ function kill(g, e, meta = {}) {
           (g.supplies?.pending.some((row) => row.placementKey === e.placementKey) ? HUD_TEXT.suppliesAwait : ""),
       );
       event(g, "boss-defeated", { actor: e, placementKey: e.placementKey, name: e.bossName });
-      rollBossGolden(g, e.placementKey); // small data chance (goldenWeapons.json bossChance) of a golden gun
     }
     return;
   }

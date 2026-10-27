@@ -11,6 +11,7 @@ import {
   isGoldenItem,
   goldenRoll,
   rollBossGolden,
+  grantBossGolden,
   goldMaterial,
   createGoldSkin,
 } from "../src/engine/golden-weapons.js";
@@ -99,6 +100,21 @@ test("the boss roll is repeatable, honours the data chance and grants through th
     } else assert.equal(probe.marked.golden, undefined);
   }
   assert(Math.abs(hits / trials - chance) < 0.03, `rate ${hits / trials} vs ${chance}`);
+});
+
+test("the per-step hook rolls once per boss-defeated event and ignores other events", () => {
+  let found = 0;
+  for (let n = 0; n < 200 && !found; n++) {
+    const g = run();
+    g.kills = n;
+    g.events = [{ type: "death" }, { type: "boss-defeated", placementKey: "boss-a" }];
+    found = grantBossGolden(g);
+    assert.equal(g.marked.golden?.length ?? 0, found);
+  }
+  assert.equal(found, 1, "some run state rolls gold");
+  const quiet = run();
+  quiet.events = [{ type: "death" }];
+  assert.equal(grantBossGolden(quiet), 0);
 });
 
 test("the gold material is a copy: the plain material is untouched and the skin swaps both ways", () => {
