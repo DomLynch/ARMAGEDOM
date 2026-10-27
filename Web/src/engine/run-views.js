@@ -15,6 +15,7 @@ import { webText } from "./web-text.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { createFlameView } from "./flame-view.js";
 import { createCursedRelicView } from "./cursed-relic-view.js";
+import { createChainedPitbornView } from "./chained-pitborn-view.js";
 import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
@@ -175,7 +176,8 @@ export function createRunViews(s) {
   const markedView = createMarkedView(s, persistence.dispatchMarked),
     wantedProjection = createWantedProjection(s),
     relicView = createCursedRelicView(s),
-    trapCrateView = createTrapCrateView(s);
+    trapCrateView = createTrapCrateView(s),
+    chainedPitbornView = createChainedPitbornView(s);
   // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
   // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
   function interactionCandidates() {
@@ -429,6 +431,7 @@ export function createRunViews(s) {
       markedView.update();
       relicView.update();
       trapCrateView.update();
+      chainedPitbornView.update();
       wantedProjection.update();
       updateInteraction();
       weaponTiles.update();
@@ -450,6 +453,7 @@ export function createRunViews(s) {
       relicView.dispose();
       markedView.dispose();
       trapCrateView.dispose();
+      chainedPitbornView.dispose();
       weaponTiles.dispose();
       reaperView.dispose();
       safehouseView.dispose();
