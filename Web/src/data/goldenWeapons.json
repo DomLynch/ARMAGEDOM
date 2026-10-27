@@ -4,6 +4,7 @@
   "noticeSeconds": 5,
   "fallbackCash": 250,
   "bossChance": 0.1,
+  "roll": { "seed": 2166136261, "prime": 16777619, "modulus": 4294967296, "ticksPerSecond": 10 },
   "weapons": {
     "pistol": {
       "itemId": "westminster-start-pistol-v1",

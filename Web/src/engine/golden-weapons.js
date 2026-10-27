@@ -62,10 +62,11 @@ export const goldenTileMarks = () => ({ marker: GOLD.text.marker, label: GOLD.te
 
 /** A repeatable roll in [0, 1) from a label and the run's own counters, so the same run state always rolls the same number. */
 export function goldenRoll(g, label) {
-  let h = 2166136261; // tuning-ok: FNV-1a offset basis, a hash constant and not a game value
-  const text = `${label}|${g.kills ?? 0}|${Math.floor((g.time ?? 0) * 10)}`; // tuning-ok: a tenth-of-a-second clock tick
-  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; // tuning-ok: FNV-1a prime
-  return h / 4294967296; // tuning-ok: 2^32, maps the 32-bit hash into [0, 1)
+  const { seed, prime, modulus, ticksPerSecond } = GOLD.roll,
+    text = `${label}|${g.kills ?? 0}|${Math.floor((g.time ?? 0) * ticksPerSecond)}`;
+  let h = seed;
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), prime) >>> 0;
+  return h / modulus;
 }
 /** Boss loot: a small chance, from data, that a defeated boss leaves a golden gun. Returns the plan or null. */
 export function rollBossGolden(g, bossKey) {

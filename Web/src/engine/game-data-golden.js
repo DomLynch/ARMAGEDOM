@@ -6,12 +6,15 @@ const hex = /^#[0-9a-f]{6}$/;
 const path = (list) => Array.isArray(list) && list.length > 0 && list.every((p) => typeof p === "string" && /^[A-Za-z]+$/.test(p));
 
 export function validateGoldenWeapons(d) {
-  closed(d, ["schema_version", "outcomeId", "noticeSeconds", "fallbackCash", "bossChance", "weapons", "material", "text"]);
+  closed(d, ["schema_version", "outcomeId", "noticeSeconds", "fallbackCash", "bossChance", "roll", "weapons", "material", "text"]);
   if (!/^[a-z][a-z0-9-]*$/.test(d.outcomeId)) fail("goldenWeapons", "outcomeId must be a lowercase id");
   if (!Number.isFinite(d.noticeSeconds) || d.noticeSeconds < 0.5 || d.noticeSeconds > 30)
     fail("goldenWeapons", "noticeSeconds must be 0.5 to 30");
   if (!Number.isSafeInteger(d.fallbackCash) || d.fallbackCash < 0) fail("goldenWeapons", "fallbackCash must be a whole number");
   if (!(d.bossChance >= 0 && d.bossChance <= 1)) fail("goldenWeapons", "bossChance must be 0 to 1");
+  // The repeatable roll is an FNV-1a hash of the run counters: whole numbers, and a modulus of 2^32 to land in [0, 1).
+  closed(d.roll, ["seed", "prime", "modulus", "ticksPerSecond"]);
+  if (!Object.values(d.roll).every((v) => Number.isSafeInteger(v) && v > 0)) fail("goldenWeapons", "roll values must be whole numbers");
   const keys = Object.keys(d.weapons);
   if (!keys.length || keys.some((k) => !/^[a-z]+$/.test(k) || k.length > 24)) fail("goldenWeapons", "weapons need short lowercase keys");
   for (const w of Object.values(d.weapons)) {
