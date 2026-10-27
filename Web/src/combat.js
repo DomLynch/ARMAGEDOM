@@ -34,7 +34,7 @@ import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
-import { expiredKeys, recordResidentKill, spawnAllowed } from "./engine/respawn.js";
+import { recordResidentKill, reviveDue } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
@@ -1577,7 +1577,6 @@ function declaredResident(g, placement, mobSize) {
   actor.hp = actor.maxHP = health;
   return applyBossProfile(actor, placement, g.world.bossData);
 }
-const areaPlacementKeys = (g, area) => (g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? []).map((row) => row.key);
 // `revived` holds placements whose respawn time has passed: they come back although the permanent ledgers say dead.
 // `onlyRevived` builds just those (re-entering an area that was already set up); drones are never revived.
 function buildResidents(g, area, revived, onlyRevived) {
@@ -1709,29 +1708,7 @@ export function initializeAreaResidents(g) {
     g.nextEnemyAttackAt = g.time;
   }
 }
-// Every hostile whose respawn time has passed is alive again at its placement (old corpse removed), whether or not the player
-// is in the area, but only while the placement is off-screen and far enough from the player; otherwise it waits. Nothing is
-// added to the permanent ledgers, so no second reward, score or loot instance exists.
-export function reviveAreaResidents(g) {
-  if (!g.areaResidents || !g.areaInitialized || g.finished || g.player.hp <= 0) return 0;
-  const area = g.world.areaId ?? "westminster",
-    rows = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [],
-    alive = new Set(g.enemies.map((e) => e.placementKey)),
-    due = [...expiredKeys(g, area, areaPlacementKeys(g, area))].filter(
-      (key) => !alive.has(key) && spawnAllowed(g, rows.find((row) => row.key === key).pos),
-    ),
-    revived = new Set(due);
-  if (!revived.size) return 0;
-  const residents = buildResidents(g, area, revived, true);
-  const back = new Set(residents.map((e) => e.placementKey));
-  if (g.corpses) g.corpses = g.corpses.filter((c) => !back.has(c.placementKey));
-  g.enemies.push(...residents);
-  if (residents.length) {
-    g.encounterActive = true;
-    g.encounterCleared = false;
-  }
-  return residents.length;
-}
+export const reviveAreaResidents = (g) => reviveDue(g, buildResidents, AREA_MOB_SPAWNS);
 function alertResident(g, e) {
   if (!e.alerted && e.animalRole) e.wokeAt = g.time;
   e.alerted = true;

@@ -247,7 +247,8 @@ test("travelling away and back also respawns what is due, and delays what would 
   const back = keysOf(f.g).filter((k) => ORDINARY.includes(k));
   for (const key of ORDINARY) {
     const d = Math.hypot(placement(f, key).x - f.g.player.pos.x, placement(f, key).z - f.g.player.pos.z);
-    assert.equal(back.includes(key), d >= 10, key + " at " + d);
+    // lineClear is open in this fixture, so anything inside 25 m would be in plain view and must wait.
+    assert.equal(back.includes(key), d >= 25, key + " at " + d);
   }
   far(f.g);
   ticks(f.g);

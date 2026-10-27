@@ -61,6 +61,28 @@ export function expiredKeys(g, area, areaKeys) {
 export function markRespawnDirty(g) {
   if (g.respawn) g.respawn.dirty = true;
 }
+// Every hostile whose respawn time has passed is alive again at its placement (old corpse removed), whether or not the player
+// is in the area, but only while the placement is off-screen and far enough from the player; otherwise it waits. Nothing is
+// added to the permanent ledgers, so no second reward, score or loot instance exists. `build(g, area, keys, true)` makes the actors.
+export function reviveDue(g, build, defaultRows) {
+  if (!g.areaResidents || !g.areaInitialized || g.finished || g.player.hp <= 0) return 0;
+  const area = g.world.areaId ?? "westminster",
+    rows = g.residentPlacements?.[area] ?? defaultRows[area] ?? [],
+    alive = new Set(g.enemies.map((e) => e.placementKey)),
+    due = [...expiredKeys(g, area, rows.map((row) => row.key))].filter(
+      (key) => !alive.has(key) && spawnAllowed(g, rows.find((row) => row.key === key).pos),
+    );
+  if (!due.length) return 0;
+  const residents = build(g, area, new Set(due), true);
+  const back = new Set(residents.map((e) => e.placementKey));
+  if (g.corpses) g.corpses = g.corpses.filter((c) => !back.has(c.placementKey));
+  g.enemies.push(...residents);
+  if (residents.length) {
+    g.encounterActive = true;
+    g.encounterCleared = false;
+  }
+  return residents.length;
+}
 
 function validateRespawnRecord(record) {
   return (
