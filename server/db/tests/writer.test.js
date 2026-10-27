@@ -101,6 +101,20 @@ test("requests for one account run one at a time: two racing saves cannot both w
   }
 });
 
+test("a record with golden weapons (marked.golden) passes the record check with no migration", async () => {
+  const t = await start();
+  try {
+    const { character } = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body;
+    const record = structuredClone(v18);
+    record.marked.golden = ["pistol", "rifle", "shotgun"];
+    const saved = (await t.post("/arma/save_run", { character, era: 18, record, revision: 0, seq: 1 }, { as: ids.alice })).body;
+    assert.equal(saved.refused, undefined);
+    assert.equal(saved.revision, 1);
+  } finally {
+    await t.close();
+  }
+});
+
 test("a retry with the same seq is answered again and writes nothing; seq conflicts and stale seqs are refused", async () => {
   const t = await start();
   try {
