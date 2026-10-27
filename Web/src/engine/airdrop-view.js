@@ -105,7 +105,7 @@ export function createAirdropView(scene, toRender) {
         const rise = (g.time / style.flareRiseSeconds + i / puffs.length) % 1,
           wobble = Math.sin(g.time * style.swayRate + i) * style.flareSway * rise;
         puff.position.set(wobble, rise * style.flareHeight, 0);
-        puff.scale.setScalar(size * (1 - rise));
+        puff.scale.setScalar(size * (1 - rise * style.flareTaper));
       });
     },
     dispose() {

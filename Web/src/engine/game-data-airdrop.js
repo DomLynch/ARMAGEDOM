@@ -50,7 +50,7 @@ export function validateAirdrop(d) {
     number("airdrop", "loot.bonus.weight", row.weight, 0);
   }
   const colours = ["shadowColour", "flareColour", "crateColour", "crateTrimColour", "canopyColour"],
-    shares = ["shadowOpacity", "flareOpacity", "shadowBodyShare", "shadowWingChord", "crateTrimShare"],
+    shares = ["shadowOpacity", "flareOpacity", "flareTaper", "shadowBodyShare", "shadowWingChord", "crateTrimShare"],
     sizes = [
       "shadowLength",
       "shadowWidth",
