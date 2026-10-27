@@ -7833,7 +7833,7 @@
     "messageSeconds": 5,
     "placements": {
       "east": { "x": 0.756, "y": 0.295 },
-      "south": { "x": 0.268, "y": 0.125 },
+      "south": { "x": 0.272, "y": 0.125 },
       "east-bridge": { "x": 0.937, "y": 0.227 },
       "elephant-and-castle": { "x": 0.939, "y": 0.281 },
       "lambeth": { "x": 0.738, "y": 0.927 },

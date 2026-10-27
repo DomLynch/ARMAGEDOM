@@ -125,11 +125,13 @@ export function stepCursedRelic(g, spawn) {
   }
   const at = relicAvailable(g) && relicPosition(g);
   if (at && !safehouseTouches(g, g.player.pos, g.player.radius) && Math.hypot(at.x - g.player.pos.x, at.z - g.player.pos.z) <= c.pickupRadius) {
-    Object.assign(s, { active: true, areaId: g.world.areaId, huntArea: g.world.areaId, nextAt: g.time + c.hunterIntervalSeconds, warning: null });
+    Object.assign(s, { active: true, areaId: g.world.areaId, huntArea: g.world.areaId, nextAt: nextWarningAt(g, c), warning: null });
     notify(g, c.text.pickup, c.messageSeconds);
     g.events.push({ type: "cursed-relic-taken", position: { ...at } });
   }
 }
+// Hunters ARRIVE every hunterIntervalSeconds: the next warning starts early enough that the warning lead time is inside the interval.
+const nextWarningAt = (g, c) => g.time + Math.max(0, c.hunterIntervalSeconds - g.world.markedData.warningSeconds);
 function stepRelicHunters(g, c, s, spawn) {
   const marked = g.world.markedData;
   if (!marked || g.time < s.nextAt || g.time < s.nextAttemptAt) return;
@@ -157,5 +159,5 @@ function stepRelicHunters(g, c, s, spawn) {
     g.enemies.push(actor);
     g.events.push({ type: "marked-hunter-arrived", actor, position: { ...p } });
   }
-  s.nextAt = g.time + c.hunterIntervalSeconds;
+  s.nextAt = nextWarningAt(g, c);
 }
