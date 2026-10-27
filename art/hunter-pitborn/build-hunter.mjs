@@ -38,7 +38,7 @@ for (const s of root.listScenes()) if (!s.listChildren().length) s.dispose();
 // x +-0.11, y -0.035 to 0.201, z -0.096 to 0.156, measured with headbox.html). Ivory base fading to a dark tip by vertex colour.
 const head = root.listNodes().find((n) => n.getName() === "mixamorig:Head");
 if (!head) throw Error("no mixamorig:Head");
-const HORN = Number(process.env.HORN ?? 1);
+const HORN = Number(process.env.HORN ?? 1.45); // 1.0 read as a small white blob from the game camera (steep, 100 px tall hunter)
 const pos = [], nrm = [], col = [], idx = [];
 const RING = 10, STEPS = 18;
 const bez = (a, b, c, t) => a.map((_, i) => (1 - t) * (1 - t) * a[i] + 2 * (1 - t) * t * b[i] + t * t * c[i]);
@@ -46,7 +46,9 @@ const dbez = (a, b, c, t) => a.map((_, i) => 2 * (1 - t) * (b[i] - a[i]) + 2 * t
 const norm = (v) => { const l = Math.hypot(...v) || 1; return v.map((x) => x / l); };
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 for (const s of [1, -1]) {
-  const P0 = [s * 0.075, 0.12, 0.01], P1 = [s * 0.25, 0.14, 0.05], P2 = [s * 0.27, 0.37, 0.17];
+  const P0 = [s * 0.075, 0.12, 0.01];
+  const grow = (p) => p.map((v, i) => P0[i] + (v - P0[i]) * HORN); // HORN scales the length and sweep, not the skull anchor
+  const P1 = grow([s * 0.25, 0.14, 0.0]), P2 = grow([s * 0.27, 0.37, 0.07]); // little forward sweep: more than this reads as a unicorn from the side
   const base = pos.length / 3;
   for (let i = 0; i <= STEPS; i++) {
     const t = i / STEPS, c = bez(P0, P1, P2, t), tan = norm(dbez(P0, P1, P2, t));
@@ -56,7 +58,8 @@ for (const s of [1, -1]) {
     const shade = Math.pow(t, 1.1); // 0 at the base, 1 at the tip
     for (let k = 0; k < RING; k++) {
       const a = (k / RING) * Math.PI * 2, d = [Math.cos(a) * u[0] + Math.sin(a) * w[0], Math.cos(a) * u[1] + Math.sin(a) * w[1], Math.cos(a) * u[2] + Math.sin(a) * w[2]];
-      pos.push(c[0] + d[0] * r * HORN, c[1] + d[1] * r * HORN, c[2] + d[2] * r * HORN);
+      const rr = r * Math.pow(HORN, 0.8);
+      pos.push(c[0] + d[0] * rr, c[1] + d[1] * rr, c[2] + d[2] * rr);
       nrm.push(...d);
       col.push(0.9 - 0.62 * shade, 0.84 - 0.64 * shade, 0.7 - 0.55 * shade, 1);
     }

@@ -1199,7 +1199,7 @@
       "url": "hunters/hunter-pitborn-106.glb",
       "rig": "pitborn-106",
       "motion": "donor-knife",
-      "scale": 0.95,
+      "scale": 1.1,
       "forwardCorrection": 0,
       "stride": 0.964,
       "upperBone": "mixamorig:Spine",
@@ -1253,8 +1253,8 @@
           "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
         }
       },
-      "bytes": 1218988,
-      "sha256": "acd587154488a92ce55d55531cd6101fa5324f5636767a8807d2952d86967824"
+      "bytes": 1218984,
+      "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
@@ -1466,8 +1466,8 @@
     },
     "marked-hunter": {
       "file": "hunters/hunter-pitborn-106.glb",
-      "bytes": 1218988,
-      "sha256": "acd587154488a92ce55d55531cd6101fa5324f5636767a8807d2952d86967824"
+      "bytes": 1218984,
+      "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
     },
     "giant-salamander/giant-salamander.glb": {
       "file": "giant-salamander/giant-salamander.glb",
