@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "respawnSeconds": 180,
+  "pickupRadius": 1,
+  "offscreenMargin": 0.15,
+  "spotHeight": 0.2,
+  "cylinderSegments": 12,
+  "displayScale": 1.7,
+  "roughness": 0.8,
+  "metalness": 0.1,
+  "noticeSeconds": 3,
+  "refusalRepeatSeconds": 6,
+  "items": {
+    "medkit": {
+      "healFraction": 0.5
+    },
+    "ammoBox": {},
+    "cashStash": {
+      "min": 60,
+      "max": 180,
+      "step": 20
+    }
+  },
+  "text": {
+    "medkit": "Medkit +{amount} HP",
+    "ammoBox": "Ammo refilled",
+    "cashStash": "+${amount}",
+    "medkitFull": "Health is full",
+    "ammoBoxFull": "Ammo is full",
+    "cashStashFull": "Cannot carry more cash"
+  },
+  "models": {
+    "medkit": [
+      {
+        "shape": "box",
+        "size": [
+          0.5,
+          0.22,
+          0.36
+        ],
+        "pos": [
+          0,
+          0.11,
+          0
+        ],
+        "color": "ece8e0"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.3,
+          0.02,
+          0.08
+        ],
+        "pos": [
+          0,
+          0.23,
+          0
+        ],
+        "color": "c4262b"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.08,
+          0.02,
+          0.3
+        ],
+        "pos": [
+          0,
+          0.23,
+          0
+        ],
+        "color": "c4262b"
+      }
+    ],
+    "ammoBox": [
+      {
+        "shape": "box",
+        "size": [
+          0.5,
+          0.26,
+          0.34
+        ],
+        "pos": [
+          0,
+          0.13,
+          0
+        ],
+        "color": "5e6a3a"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.52,
+          0.04,
+          0.36
+        ],
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "474f2c"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.06,
+          0.27,
+          0.35
+        ],
+        "pos": [
+          0.12,
+          0.135,
+          0
+        ],
+        "color": "8a8f5a"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.06,
+          0.27,
+          0.35
+        ],
+        "pos": [
+          -0.12,
+          0.135,
+          0
+        ],
+        "color": "8a8f5a"
+      }
+    ],
+    "cashStash": [
+      {
+        "shape": "box",
+        "size": [
+          0.4,
+          0.1,
+          0.22
+        ],
+        "pos": [
+          0,
+          0.05,
+          0
+        ],
+        "color": "5f8a52"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.36,
+          0.1,
+          0.2
+        ],
+        "pos": [
+          0.03,
+          0.15,
+          0.02
+        ],
+        "color": "6f9a60"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.07,
+          0.205,
+          0.225
+        ],
+        "pos": [
+          0,
+          0.1,
+          0
+        ],
+        "color": "d9cfa8"
+      }
+    ]
+  },
+  "placements": {
+    "westminster": [
+      { "id": "westminster-1", "type": "medkit", "x": -17.04, "z": 2.85 },
+      { "id": "westminster-2", "type": "ammoBox", "x": -25.04, "z": 11.6 },
+      { "id": "westminster-3", "type": "cashStash", "x": 16.46, "z": -6.4 },
+      { "id": "westminster-4", "type": "ammoBox", "x": -22.54, "z": 6.1 }
+    ],
+    "east": [
+      { "id": "east-1", "type": "medkit", "x": 1.37, "z": 17.82 },
+      { "id": "east-2", "type": "ammoBox", "x": 16.12, "z": 10.32 },
+      { "id": "east-3", "type": "cashStash", "x": 29.87, "z": 21.07 },
+      { "id": "east-4", "type": "ammoBox", "x": -7.88, "z": 15.82 }
+    ],
+    "south": [
+      { "id": "south-1", "type": "medkit", "x": 12.55, "z": 25.6 },
+      { "id": "south-2", "type": "ammoBox", "x": 7.3, "z": 29.1 },
+      { "id": "south-3", "type": "cashStash", "x": 9.8, "z": 10.35 },
+      { "id": "south-4", "type": "ammoBox", "x": -5.95, "z": 5.1 },
+      { "id": "south-5", "type": "medkit", "x": 3.05, "z": 33.35 }
+    ],
+    "east-bridge": [
+      { "id": "east-bridge-1", "type": "medkit", "x": -1.37, "z": 5.85 },
+      { "id": "east-bridge-2", "type": "ammoBox", "x": 16.63, "z": 9.6 },
+      { "id": "east-bridge-3", "type": "cashStash", "x": 9.63, "z": 11.85 },
+      { "id": "east-bridge-4", "type": "ammoBox", "x": 23.63, "z": 14.1 }
+    ],
+    "elephant-and-castle": [
+      { "id": "elephant-and-castle-1", "type": "medkit", "x": 13.97, "z": -7.72 },
+      { "id": "elephant-and-castle-2", "type": "ammoBox", "x": 16.72, "z": -0.72 },
+      { "id": "elephant-and-castle-3", "type": "cashStash", "x": 28.22, "z": 15.53 },
+      { "id": "elephant-and-castle-4", "type": "ammoBox", "x": 7.47, "z": -2.47 }
+    ],
+    "lambeth": [
+      { "id": "lambeth-1", "type": "medkit", "x": 9.56, "z": 18.1 },
+      { "id": "lambeth-2", "type": "ammoBox", "x": -11.94, "z": 5.35 },
+      { "id": "lambeth-3", "type": "cashStash", "x": -14.19, "z": 14.35 },
+      { "id": "lambeth-4", "type": "ammoBox", "x": 5.81, "z": -6.4 },
+      { "id": "lambeth-5", "type": "medkit", "x": -2.44, "z": 3.35 }
+    ],
+    "area7": [
+      { "id": "area7-1", "type": "medkit", "x": -11.18, "z": 3.08 },
+      { "id": "area7-2", "type": "ammoBox", "x": -10.18, "z": 16.83 },
+      { "id": "area7-3", "type": "cashStash", "x": 15.07, "z": -2.42 },
+      { "id": "area7-4", "type": "ammoBox", "x": -4.68, "z": 14.08 }
+    ],
+    "area8": [
+      { "id": "area8-1", "type": "medkit", "x": 11.43, "z": -7.79 },
+      { "id": "area8-2", "type": "ammoBox", "x": -5.57, "z": 10.21 },
+      { "id": "area8-3", "type": "cashStash", "x": 12.68, "z": -1.04 },
+      { "id": "area8-4", "type": "ammoBox", "x": -21.07, "z": 5.21 }
+    ]
+  }
+}

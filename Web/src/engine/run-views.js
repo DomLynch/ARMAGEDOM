@@ -1,5 +1,6 @@
 import { createWantedProjection } from "./wanted-projection.js";
 import { createMarkedView } from "./marked-view.js";
+import { createTrapCrateView } from "./trap-crate-view.js";
 import { createReaperView } from "./reaper-view.js";
 import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
 import { nextCarriedWeapon } from "./weapon-cycle.js";
@@ -173,7 +174,8 @@ export function createRunViews(s) {
   const safehouseView = createSafehouseView(s, persistence.dispatchLocker);
   const markedView = createMarkedView(s, persistence.dispatchMarked),
     wantedProjection = createWantedProjection(s),
-    relicView = createCursedRelicView(s);
+    relicView = createCursedRelicView(s),
+    trapCrateView = createTrapCrateView(s);
   // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
   // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
   function interactionCandidates() {
@@ -426,6 +428,7 @@ export function createRunViews(s) {
       safehouseView.update();
       markedView.update();
       relicView.update();
+      trapCrateView.update();
       wantedProjection.update();
       updateInteraction();
       weaponTiles.update();
@@ -446,6 +449,7 @@ export function createRunViews(s) {
       wantedProjection.dispose();
       relicView.dispose();
       markedView.dispose();
+      trapCrateView.dispose();
       weaponTiles.dispose();
       reaperView.dispose();
       safehouseView.dispose();
