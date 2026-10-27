@@ -98,10 +98,9 @@ export function createChainedPitbornView(s) {
         at = isSpark ? p.fixed[(i + k) % p.fixed.length] : feet,
         c = isSpark ? spark : dust;
       p.born[i] = time;
-      // tuning-ok: xyz stride and decorrelating offsets
-      const jx = (p.seed[(i + 7) % P.count] - 0.5) * P.spreadMetres,
-        jz = (p.seed[(i + 13) % P.count] - 0.5) * P.spreadMetres;
-      p.pos.set([at.x + jx, at.y, at.z + jz], i * 3);
+      const jx = (p.seed[(i + 7) % P.count] - 0.5) * P.spreadMetres, // tuning-ok: decorrelating offset and centring
+        jz = (p.seed[(i + 13) % P.count] - 0.5) * P.spreadMetres; // tuning-ok: decorrelating offset and centring
+      p.pos.set([at.x + jx, at.y, at.z + jz], i * 3); // tuning-ok: xyz stride
       p.col.set([c.r, c.g, c.b], i * 3); // tuning-ok: rgb stride
     }
   }
