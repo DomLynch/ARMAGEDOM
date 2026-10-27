@@ -39,12 +39,12 @@ test("every exit of every area gets one ring, except the exit route-guidance alr
     }
     exits.dispose();
   }
-  assert.equal(total, 27);
+  assert.equal(total, 23);
 });
 
 test("a tenth area, a moved exit and a data offset need no code: the ring follows the registry condition and visual.json", () => {
   const base = fakeWorld("south"),
-    link = manifest.links.find((l) => l.from === "south" && l.to === "westminster"),
+    link = manifest.links.find((l) => l.from === "south" && l.to === "central-hub"),
     ringFor = (areaId, condition) => {
       const world = { ...base, areaId, group: new THREE.Group(), registry: { links: () => [{ ...link, from: areaId, to: "area-ten-neighbour", condition }] } };
       return createExitRings(world).rings;

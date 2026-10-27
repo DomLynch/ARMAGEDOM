@@ -31,8 +31,8 @@ test('hub gates reject unvisited, absent authoritative boss reward, missing boss
  g.runSaveInvalid=false;for(const status of ['pending','owned','legacy-dead']){g.bossEquipment.emberProjector={status};for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,true,id);}
  // Existing receipt aliases are validated by the sole Core codec, not invented here.
  g.expedition.visitedIds=[];{const message=bossExitGate(g,'east').message;assert.ok(message.length>0&&message.length<=32);assert.match(message,/east/i,'the locked exit still names the area to visit');}
- for(const id of ['westminster','south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
- g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'east').allowed,false,'original gate remains');
+ for(const id of ['south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
+ g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'central-hub').allowed,false,'the Westminster gate stays closed until the Matron is down');
 });
 
 test('registry rejects forged visit predicates and manifest omission of a real gate',()=>{
