@@ -12,11 +12,13 @@ Private emergency references live outside this repo at
 Historical Git commits/receipts are provenance only; never restore engine tooling
 or publish archived builds without new explicit owner instruction.
 
-Lead owns canonical integration/package/contract. Combat owns mechanics;
-Characters owns portable rigs/weapons/asset provenance; World owns registered
-layout/collision/occlusion/audio; WebUI owns HUD/input; Deploy owns exact immutable
-hosting/rollback; Backend owns isolated optional auth/private prototype saves;
-Strategy owns scope; Auditor independently reviews milestones on demand.
+Four lanes (27 Oct 2026, one session per deployable surface, parallel Sonnet 5.5
+agents inside each): Lead owns canonical integration/package/contract, gameplay
+(mechanics, HUD/input) and is the single merger. Server & Deploy owns exact immutable
+hosting/rollback, the rollback floor, nginx, migrations, auth and private prototype
+saves. Art owns portable rigs/weapons/asset provenance and registered
+layout/collision/occlusion/audio. Auditor independently reviews each PR and release.
+Strategy owns scope.
 Use confirmed isolated lanes, bounded file/commit handoffs, no wholesale private
 baseline merge. Preserve dirty authoring, donor originals, rigs and portable art.
 Frankendom is read-only; do not touch its production users/database/keys.
