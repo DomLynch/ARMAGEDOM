@@ -19,7 +19,10 @@
     "flashColour": "ff3b1f",
     "flashHzFrom": 3,
     "flashHzTo": 12,
-    "blastSeconds": 0.4
+    "ringInnerRatio": 0.94,
+    "ringLift": 0.03,
+    "cylinderSides": 12,
+    "roughness": 0.85
   },
   "audio": {
     "open": { "from": 330, "to": 220, "seconds": 0.18, "gain": 0.05, "type": "sawtooth" },

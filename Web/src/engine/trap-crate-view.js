@@ -8,17 +8,20 @@ import { trapCrateList } from "./trap-crate.js";
 const DATA = GAME_DATA.trapCrates,
   CUE = DATA.cue,
   RADIUS = GAME_DATA.weapons.ranged[DATA.blast.profile].payload.radius;
-const hex = (v) => new T.Color(`#${v}`);
+const hex = (v) => new T.Color(`#${v}`),
+  FACING = new T.Vector3(0, 0, 1), // a flat ring is drawn facing +Z
+  UP = new T.Vector3(0, 1, 0);
 function partMesh(part) {
+  // A cylinder part's size is [radius, height, unused]; a box part's is [width, height, depth].
   const [w, h, d] = part.size,
-    sides = 12, // tuning-ok: round crate parts use twelve sides
-    geometry = part.shape === "cylinder" ? new T.CylinderGeometry(w / 2, w / 2, h, sides) : new T.BoxGeometry(w, h, d),
+    geometry =
+      part.shape === "cylinder" ? new T.CylinderGeometry(w, w, h, CUE.cylinderSides) : new T.BoxGeometry(w, h, d),
     material = new T.MeshStandardMaterial({
       color: hex(part.color),
-      roughness: 0.85,
+      roughness: CUE.roughness,
       emissive: hex(CUE.flashColour),
       emissiveIntensity: 0,
-    }); // tuning-ok: matte wood and paint
+    });
   const mesh = new T.Mesh(geometry, material);
   mesh.position.set(...part.pos);
   return mesh;
@@ -36,7 +39,7 @@ export function createTrapCrateView(s) {
       root.add(mesh);
     }
     const ring = new T.Mesh(
-      new T.RingGeometry(RADIUS * 0.94, RADIUS, CUE.ringSegments), // tuning-ok: the ring hugs the blast radius edge
+      new T.RingGeometry(RADIUS * CUE.ringInnerRatio, RADIUS, CUE.ringSegments),
       new T.MeshBasicMaterial({
         color: hex(CUE.ringColour),
         transparent: true,
@@ -45,8 +48,8 @@ export function createTrapCrateView(s) {
         side: T.DoubleSide,
       }),
     );
-    ring.rotation.x = -Math.PI / 2; // tuning-ok: lays the ring flat on the ground
-    ring.position.y = 0.03; // tuning-ok: lifts the ring off the ground to stop z-fighting
+    ring.quaternion.setFromUnitVectors(FACING, UP); // lays the ring flat on the ground
+    ring.position.y = CUE.ringLift;
     ring.visible = false;
     const at = s.world.toRender({ x: crate.x, z: crate.z });
     root.position.copy(at);
@@ -91,7 +94,7 @@ export function createTrapCrateView(s) {
         if (phase === "fusing") {
           const burned = Math.min(1, (g.time - state.openedAt) / DATA.fuseSeconds),
             hz = CUE.flashHzFrom + (CUE.flashHzTo - CUE.flashHzFrom) * burned,
-            beat = 0.5 + 0.5 * Math.sin(g.time * hz * Math.PI * 2); // tuning-ok: sine pulse at hz cycles a second
+            beat = Math.abs(Math.sin(Math.PI * hz * g.time)); // hz pulses a second, 0 to 1
           flash(row, beat);
           row.ring.material.opacity = CUE.ringOpacityFrom + (CUE.ringOpacityTo - CUE.ringOpacityFrom) * beat;
         } else flash(row, 0);

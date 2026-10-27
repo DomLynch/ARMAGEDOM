@@ -5,7 +5,6 @@
 import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
 
-const SHAPES = ["box", "cylinder"];
 const hex = (field, v) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("trapCrates", `${field} must be a six digit hex colour`);
 };
@@ -66,8 +65,16 @@ export function validateTrapCrates(d) {
     "flashColour",
     "flashHzFrom",
     "flashHzTo",
-    "blastSeconds",
+    "ringInnerRatio",
+    "ringLift",
+    "cylinderSides",
+    "roughness",
   ]);
+  for (const f of ["ringInnerRatio", "roughness"])
+    if (!(d.cue[f] > 0 && d.cue[f] < 1.0001)) fail("trapCrates", `cue.${f} must be above 0 and at most 1`);
+  number("trapCrates", "cue.ringLift", d.cue.ringLift, 0);
+  if (!Number.isInteger(d.cue.cylinderSides) || d.cue.cylinderSides < 3 || d.cue.cylinderSides > 64)
+    fail("trapCrates", "cue.cylinderSides");
   hex("cue.ringColour", d.cue.ringColour);
   hex("cue.flashColour", d.cue.flashColour);
   for (const f of ["ringOpacityFrom", "ringOpacityTo"])
@@ -76,12 +83,11 @@ export function validateTrapCrates(d) {
     fail("trapCrates", "cue.ringSegments");
   number("trapCrates", "cue.flashHzFrom", d.cue.flashHzFrom, 0.5);
   number("trapCrates", "cue.flashHzTo", d.cue.flashHzTo, d.cue.flashHzFrom);
-  number("trapCrates", "cue.blastSeconds", d.cue.blastSeconds, 0.05);
   if (!Array.isArray(d.model) || d.model.length < 1 || d.model.length > 8)
     fail("trapCrates", "model must list 1 to 8 parts");
   for (const p of d.model) {
     closed(p, ["shape", "size", "pos", "color"]);
-    if (!SHAPES.includes(p.shape)) fail("trapCrates", "model shape");
+    if (!["box", "cylinder"].includes(p.shape)) fail("trapCrates", "model shape");
     triple("model.size", p.size, 0.001);
     triple("model.pos", p.pos, -10);
     hex("model.color", p.color);
