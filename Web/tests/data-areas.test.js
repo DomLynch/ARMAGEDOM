@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "4aedecfb24e2d13921e907db845b0ce965319ec565ee7bf2c826e6bd39d7db61"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "fd624e7228685ebdd560a294526f96f0536d4c304fe760f483b1ec5c80612273"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {

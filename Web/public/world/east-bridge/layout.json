@@ -99,35 +99,6 @@
   ],
   "blockers": [
     {
-      "name": "Near bridge wreck ground base",
-      "points": [
-        {
-          "x": 0.19,
-          "y": 0.795
-        },
-        {
-          "x": 0.25,
-          "y": 0.775
-        },
-        {
-          "x": 0.34,
-          "y": 0.805
-        },
-        {
-          "x": 0.4,
-          "y": 0.865
-        },
-        {
-          "x": 0.35,
-          "y": 0.904
-        },
-        {
-          "x": 0.23,
-          "y": 0.875
-        }
-      ]
-    },
-    {
       "name": "Right bus and wreck ground bases",
       "points": [
         {

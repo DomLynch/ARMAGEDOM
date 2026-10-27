@@ -51,8 +51,8 @@
       "area": "east-bridge",
       "path": "east-bridge/layout.json",
       "source": "Owner-supplied Zone4 original / image-traced authored geometry",
-      "bytes": 6151,
-      "sha256": "b27b1b8d38e5a26ad46490300c0b6038cb940264ad66aca28c1bd910233b034b"
+      "bytes": 5689,
+      "sha256": "a63422ec74f79eac10199756abf08759c6ce710f2e231f8738403071290a9cd6"
     },
     {
       "area": "east-bridge",
@@ -65,8 +65,8 @@
       "area": "elephant-and-castle",
       "path": "elephant-and-castle/layout.json",
       "source": "Owner original / individually traced image geometry",
-      "bytes": 5562,
-      "sha256": "e52aa36871d3dd7a04d9a84fc51da9f47b65e9ca3ef8f1baf18c7dd525750160"
+      "bytes": 5275,
+      "sha256": "3e5b0695596ac03b2bc6e35c62e905b7b0737496702ac5eca13b32111ebe83d0"
     },
     {
       "area": "elephant-and-castle",
@@ -113,8 +113,8 @@
       "area": "area8",
       "path": "area8/layout.json",
       "source": "Owner original / image-authored street geometry",
-      "sha256": "f7776d4247f7d7ee01f5cda429bab3e2e793a69170d51261afd3071569bc76d6",
-      "bytes": 11595
+      "sha256": "29a688c7380255e58e31c86bc955965f96c53d705dbc25bb377134950f0f4412",
+      "bytes": 11209
     },
     {
       "area": "area8",

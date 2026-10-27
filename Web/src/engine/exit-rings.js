@@ -1,5 +1,6 @@
 import { GAME_DATA } from "./game-data.js";
 import { EXIT_RINGS } from "./exit-rings-data.js";
+import { markedTargets } from "./route-guidance.js";
 // The small gold ring route-guidance first drew at the East Bridge exit, now at every exit of every area. Which exits and where come from
 // the registry links (their condition rectangles in data/areas.json); how the ring looks from data/visual.json `exitRings`. It marks the
 // exit's own trigger, not the road behind it. Presentation only: it never changes a trigger or a travel link.
@@ -51,8 +52,8 @@ export function ringSpot(g, target, radius) {
 export function createExitRings(world) {
   const { THREE, geometry: g } = world,
     links = world.registry?.links?.(world.areaId) ?? [],
-    // An exit that route-guidance already marks with a ring and sign keeps that one.
-    signed = new Set((world.layout?.guidance ?? []).filter((row) => row.sign).map((row) => row.to)),
+    // An exit that route-guidance already marks with a ring (a sign, or the Central Safehouse side entrance) keeps that one.
+    signed = markedTargets(world.layout?.guidance ?? []),
     group = new THREE.Group(),
     rings = [],
     geometry = new THREE.RingGeometry(EXIT_RINGS.inner, EXIT_RINGS.outer, EXIT_RINGS.segments),
