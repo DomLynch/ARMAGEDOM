@@ -114,7 +114,6 @@ for bv in j["bufferViews"][1:]:
     e = bv["extensions"]["EXT_meshopt_compression"]
     e["byteOffset"] += delta
 j["buffers"][0]["byteLength"] = len(new_bin)
-j["materials"][0]["name"] = "Wet scarred chitin"
 j["materials"][0]["pbrMetallicRoughness"]["roughnessFactor"] = 0.42
 js = json.dumps(j, separators=(",", ":")).encode()
 js += b" " * ((-len(js)) % 4)
