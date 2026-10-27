@@ -239,6 +239,24 @@ test("rate limit: a per-account token bucket on save_run and load_run, refilled 
   }
 });
 
+test("claim_pickup: needs a character, credits a stash once, refuses a repeat, rejects a bad amount, and has a production bucket", async () => {
+  assert.deepEqual(DEFAULT_LIMITS.claim_pickup, { burst: 4, refillMs: 5000 });
+  const t = await start();
+  try {
+    const claim = (body) => t.post("/arma/claim_pickup", body, { as: ids.alice });
+    const early = await claim({ source: "airdrop", amount: 150 });
+    assert.deepEqual([early.status, early.body.error], [403, "no-character"]);
+    await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice });
+    const first = await claim({ source: "stash:east-3", amount: 120 });
+    assert.deepEqual([first.status, first.body.credited, first.body.earned], [200, 120, 120]);
+    assert.equal((await claim({ source: "stash:east-3", amount: 120 })).body.refused, "too-soon");
+    assert.equal((await claim({ source: "airdrop", amount: "lots" })).status, 400);
+    assert.equal((await claim({ amount: 5 })).body.refused, "unknown-source");
+  } finally {
+    await t.close();
+  }
+});
+
 test("rate limit, production numbers: save_run takes a burst of 6, refuses the 7th with retryMs 5000, and one token returns every 5 s", async () => {
   assert.deepEqual(DEFAULT_LIMITS.save_run, { burst: 6, refillMs: 5000 });
   let clock = 1_000_000;
@@ -359,7 +377,7 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
 });
 
 test("every client op has a bucket in server/data/rate-limits.json, load_run is one per 10 s, and the token-bearing status read is limited while the anonymous one is not", async () => {
-  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "create_character", "load_run", "save_run", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "claim_pickup", "create_character", "load_run", "save_run", "set_active", "spawn_engage", "spawn_state", "status"]);
   assert.deepEqual(DEFAULT_LIMITS.load_run, { burst: 3, refillMs: 10000 });
   let clock = 1_000_000;
   const t = await start({ limits: { status: { burst: 2, refillMs: 5000 }, active: { burst: 1, refillMs: 10000 } }, now: () => clock });

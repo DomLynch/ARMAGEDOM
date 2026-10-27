@@ -89,6 +89,15 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
         throw new HttpError(400, "bad-request");
       return call("arma_save_run", [account, String(character ?? ""), era, JSON.stringify(record), revision, seq]);
     },
+    // Cash from a world stash or the airdrop, credited once per source per real-time window (arma_claim_pickup); the amount is clamped to the rule.
+    async claim_pickup({ account, body }) {
+      const source = String(body.source ?? ""),
+        amount = Number(body.amount);
+      if (!Number.isFinite(amount)) throw new HttpError(400, "bad-request");
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_claim_pickup", [account, active, source, amount]);
+    },
     async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];
       return call("arma_spawn_state", [account, instances]);

@@ -13,6 +13,18 @@ const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.js
 const layoutOf = (id) => JSON.parse(fs.readFileSync(new URL(`../public/world/${id}/layout.json`, import.meta.url), "utf8"));
 const areas = Object.keys(WORLD_PICKUPS.placements);
 const caps = LOCKER_RESOURCE_RULES;
+test("taking a cash stash notes one claim for the server; a medkit notes none", () => {
+  const spot = Object.values(WORLD_PICKUPS.placements).flat().find((p) => p.type === "cashStash"),
+    kit = Object.values(WORLD_PICKUPS.placements).flat().find((p) => p.type === "medkit");
+  const area = Object.keys(WORLD_PICKUPS.placements).find((id) => WORLD_PICKUPS.placements[id].includes(spot)),
+    kitArea = Object.keys(WORLD_PICKUPS.placements).find((id) => WORLD_PICKUPS.placements[id].includes(kit));
+  const g = run({ x: spot.x, z: spot.z });
+  stepWorldPickups(g, area, NEVER, null);
+  assert.deepEqual(g.cashClaims, [{ source: `stash:${spot.id}`, amount: stashCash(spot.id) }]);
+  const h = run({ x: kit.x, z: kit.z });
+  stepWorldPickups(h, kitArea, NEVER, null);
+  assert.equal(h.cashClaims, undefined);
+});
 const NEVER = () => false;
 const ALWAYS = () => true;
 // A run holding every weapon with empty reserves, hurt, carrying nothing.

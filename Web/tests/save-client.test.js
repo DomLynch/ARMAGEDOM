@@ -93,6 +93,18 @@ test("the first save creates the character once (remembered), learns revision 0,
   assert.deepEqual(t.w.calls.slice(4).map((c) => [c.op, c.body.seq, c.body.revision]), [["save_run", 2, 1]]);
 });
 
+test("a stash or airdrop claim reaches the writer before the save that carries its cash, and a refused claim is only logged", async () => {
+  const t = make({ claim_pickup: (body, n) => (n === 0 ? { credited: body.amount, earned: body.amount } : { refused: "too-soon", retryS: 90 }) });
+  t.client.claimPickup("stash:east-3", 120);
+  t.client.queue(record());
+  await t.run();
+  assert.deepEqual(t.w.calls.map((c) => c.op), ["active", "create_character", "claim_pickup", "load_run", "save_run"]);
+  assert.deepEqual(t.w.calls.find((c) => c.op === "claim_pickup").body, { source: "stash:east-3", amount: 120 });
+  assert.equal(t.lines.length, 0, "a credited claim logs nothing");
+  await t.client.claimPickup("stash:east-3", 120);
+  assert.match(t.lines.at(-1), /pickup cash not credited: stash:east-3 too-soon/);
+});
+
 test("saves are coalesced: at most one request per interval, and only the newest record is sent", async () => {
   const t = make();
   t.client.queue(record({ hp: 1 }));

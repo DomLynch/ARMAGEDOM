@@ -1,6 +1,7 @@
 import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { applyAirdropOutcome } from "./airdrop-effects.js";
+import { claimCash } from "./world-pickups-core.js";
 
 // The supply airdrop (data/airdrop.json): every few minutes in a combat area a plane passes and drops a crate with a red flare somewhere
 // the player can walk to. Bosses of the area walk to the crate, and holding still beside it opens it for a loot bundle and a small chance of
@@ -84,6 +85,7 @@ function open(g) {
     break;
   }
   const extra = (g.marked?.carried ?? 0) - carried;
+  claimCash(g, "airdrop", cash + Math.max(0, extra)); // the bundle's cash plus the golden weapon's cash fallback: one airdrop, one claim
   if (golden) return webText("airdrop.openedGolden", { cash });
   return extra > 0 ? webText("airdrop.openedCashFallback", { cash, extra }) : webText("airdrop.opened", { cash });
 }
