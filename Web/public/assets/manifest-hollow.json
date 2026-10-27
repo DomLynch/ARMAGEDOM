@@ -390,8 +390,8 @@
           }
         ]
       },
-      "bytes": 369440,
-      "sha256": "d38016af88ca81ff821e72bb7217f3cd2bb93d98a1dde6abd5780402b8f98922"
+      "bytes": 254696,
+      "sha256": "56e0b3d57e309dd93c118dab8c34a1cae988b613546a5b685557812634ce0732"
     },
     "boss-surgeon": {
       "motion": "donor-knife",
