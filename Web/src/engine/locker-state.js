@@ -4,7 +4,8 @@ import { GAME_DATA } from "./game-data.js";
 // The ten saved weapon ids, in saved order, come from data/locker.json (weaponIds).
 export const LOCKER_WEAPON_IDS = Object.freeze([...GAME_DATA.locker.weaponIds]);
 const weaponIdsAllowed = LOCKER_WEAPON_IDS;
-const resourceOwner = {
+// Which saved weapon owns each carried resource (ground ammo only tops up weapons the player actually owns).
+export const resourceOwner = {
   "railgun-reserve": weaponIdsAllowed[9],
   "pistol-reserve": weaponIdsAllowed[0],
   "rifle-reserve": weaponIdsAllowed[1],

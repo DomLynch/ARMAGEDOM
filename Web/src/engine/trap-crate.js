@@ -1,4 +1,5 @@
 import { GAME_DATA, fillText } from "./game-data.js";
+import { healPlayer, refillAmmo } from "./world-pickups-core.js";
 import { radialBlastHits } from "./radial-blast.js";
 // Booby-trapped crates (data/trapCrates.json). Walking into reach opens one: better loot than a normal pickup, then a grenade-style
 // fuse runs with a beep cue, then the blast hits the player through the normal hit path, so a dodge roll's invulnerable window
@@ -9,15 +10,10 @@ const BLAST = GAME_DATA.weapons.ranged[DATA.blast.profile].payload;
 const PLAYER_VICTIM = "player";
 export const TRAP_CRATE_TEXT = DATA.text;
 export const trapCrateList = (areaId) => DATA.placements[areaId] ?? [];
-// The loot adapter. Each effect returns what it granted. world/area-pickups owns the shared medkit and ammo effects; once it
-// merges, these two functions call its effect functions instead (same inputs, same return) and nothing else here changes.
+// The loot adapter: the heal and ammo effects are the world pickups' own (engine/world-pickups-core.js), so there is one effect path.
 export function grantTrapCrateLoot(g, loot = DATA.loot) {
-  const p = g.player,
-    hp = Math.max(0, Math.min(p.maxHP - p.hp, p.maxHP * loot.healFraction));
-  p.hp += hp;
-  const cap = GAME_DATA.supplies.rules.reserveCap;
-  const rounds = loot.refillReserve && g.pistol?.collected ? Math.max(0, cap - g.pistol.reserve) : 0;
-  if (rounds) g.pistol.reserve += rounds;
+  const hp = healPlayer(g.player, loot.healFraction),
+    rounds = loot.refillReserve ? refillAmmo(g) : 0;
   return { hp: Math.ceil(hp), rounds };
 }
 const ready = (g) => {
