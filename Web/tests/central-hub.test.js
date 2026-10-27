@@ -48,14 +48,14 @@ test('all actual new mouth paths fit full player capsules, target arrivals are l
  assert.deepEqual(Object.keys(data.expedition.atlas).sort(),registry.ids.slice().sort());assert.deepEqual(data.expedition.atlas['central-hub'],{column:1,row:1});
 });
 
-test('actual loader discovers ninth area lazily and reuses old Westminster safety data across entry and return',async t=>{
+test('actual loader discovers ninth area lazily and keeps the one Central Hub safety site across entry and return',async t=>{
  const old=globalThis.fetch,requests=[];globalThis.fetch=async url=>{const p=new URL(url).pathname.slice(1);requests.push(p);return{ok:true,json:async()=>read('../public/'+p)};};t.after(()=>globalThis.fetch=old);
  class Loader{async loadAsync(){return new T.Texture({width:1672,height:941});}}
  const w=await createWorld({THREE:{...T,TextureLoader:Loader},scene:new T.Scene(),camera:new T.PerspectiveCamera(),baseUrl:'https://fixture.invalid/'});t.after(()=>w.dispose());
- assert.equal(w.areaId,'westminster');assert.equal(safehouseSite(w).areaId,'westminster');assert(!requests.includes('world/central-hub/layout.json'));
- await w.prepareArea('central-hub');const site=w.safehouseData.additionalSites[0];assert(site.wholeArea);assert(Object.isFrozen(site));
+ assert.equal(w.areaId,'westminster');assert.equal(safehouseSite(w),null,'Westminster has no safehouse');assert(!requests.includes('world/central-hub/layout.json'));
+ await w.prepareArea('central-hub');const site=w.safehouseData;assert.equal(site.areaId,'central-hub');assert(site.wholeArea);assert(Object.isFrozen(site));
  await w.loadArea('central-hub',{x:.075,y:.45});assert.equal(safehouseSite(w),site);assert.equal(w.areaId,'central-hub');assert.equal(w.residentPlacements['central-hub'].length,0);
- await w.loadArea('westminster',{x:.38,y:.92});assert.equal(safehouseSite(w).areaId,'westminster');
+ await w.loadArea('westminster',{x:.38,y:.92});assert.equal(safehouseSite(w),null);
 });
 
 test('hub has zero hostiles and existing safety blocks hits, weapons, delayed projectiles and companion payment while allowing walking',()=>{

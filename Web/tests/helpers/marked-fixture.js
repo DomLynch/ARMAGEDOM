@@ -6,7 +6,9 @@ import {createGeometry} from '../../src/world-geometry.js';
 import {stageProgressionDeath} from '../../src/engine/progression-runtime.js';
 import {issueSupply} from '../../src/supplies.js';
 export const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
-export const shipped=validateAreaMetadata(read('../../public/world/area-content.json'),registry);
+import {withLegacySafehouse} from './legacy-safehouse.js';
+// The Marked mechanics rows keep a polygon safehouse in Westminster (the recorded legacy copy): the shipped Westminster has none.
+export const shipped=validateAreaMetadata(withLegacySafehouse(read('../../public/world/area-content.json')),registry);
 // The shipped data has the bounty off and hunters always on with a 75 s first arrival (Dom, 25 Oct). The Marked mechanics rows keep
 // covering the bounty-gated tier they were written for: bounty on, a 300 bounty needed, a 6 s arrival and the shortest re-arrival.
 // tests/hunters-always-on.test.js covers the shipped data itself.

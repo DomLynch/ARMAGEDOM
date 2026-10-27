@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {withLegacySafehouse} from './helpers/legacy-safehouse.js';
 import {pathToFileURL} from 'node:url';
 
 // The override is only for the portable Lead handoff. After adoption the default
@@ -10,7 +11,7 @@ const root=process.env.SAFEHOUSE_WEB_ROOT
   :new URL('../',import.meta.url);
 const rules=await import(process.env.SAFEHOUSE_RULES_MODULE_URL??new URL('src/engine/safehouse.js',root));
 const {createGeometry}=await import(new URL('src/world-geometry.js',root));
-const content=JSON.parse(fs.readFileSync(new URL('public/world/area-content.json',root)));
+const content=withLegacySafehouse(JSON.parse(fs.readFileSync(new URL('public/world/area-content.json',root))));
 const layout=JSON.parse(fs.readFileSync(new URL('public/world/westminster/layout.json',root)));
 const geometry=createGeometry(layout);
 const data=rules.validateSafehouseData(content.safehouse,{has:id=>['westminster','central-hub'].includes(id)});

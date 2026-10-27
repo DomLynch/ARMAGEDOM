@@ -3,7 +3,8 @@ import{fixture}from'./helpers/rifle-fixture.js';import{stepGame}from'../src/comb
 import{validateAreaMetadata}from'../src/engine/area-content.js';import{publicAreaRegistry}from'../src/area-registry.js';
 import{BOSS_EQUIPMENT_PROFILES}from'../src/engine/boss-equipment-data.js';
 import{combatTargetHeight}from'../src/pistol-targeting.js';
-const raw=()=>JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url)));
+import{withLegacySafehouse}from'./helpers/legacy-safehouse.js';
+const raw=()=>withLegacySafehouse(JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))));
 function setup(distance=2.5){
  const f=fixture({areaId:'westminster',extraWorld:{safehouseData:raw().safehouse}}),g=f.g,e=g.enemies.find(e=>e.placementKey==='boss-witch-v1');g.enemies=[e];
  // Controlled source-level positioning only; native acceptance uses ordinary input.
