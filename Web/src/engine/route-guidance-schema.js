@@ -17,8 +17,8 @@ const ensureNumbers = (field, v, length) => {
 };
 // The words of the route cue, the exit label and the safehouse entrance sign. {placeholders} are checked here, at load.
 function validateGuidanceText(t) {
-  closed(t, ["killSalamander", "killMatron", "walkToProjector", "pistol", "shelter", "exit", "roadClosed", "cue", "compass", "entranceSign"]);
-  for (const f of ["killSalamander", "killMatron", "walkToProjector", "pistol", "shelter", "roadClosed"]) checkTemplate(`text.${f}`, t[f], [], fail);
+  closed(t, ["killSalamander", "killMatron", "walkToProjector", "pistol", "ahead", "exit", "roadClosed", "cue", "compass", "entranceSign"]);
+  for (const f of ["killSalamander", "killMatron", "walkToProjector", "pistol", "ahead", "roadClosed"]) checkTemplate(`text.${f}`, t[f], [], fail);
   checkTemplate("text.exit", t.exit, ["area"], fail, ["area"]);
   checkTemplate("text.cue", t.cue, ["closed", "direction", "name", "metres"], fail, ["direction", "name", "metres"]);
   if (!Array.isArray(t.compass) || t.compass.length !== 8) fail("text.compass must hold eight direction marks, east first, counter-clockwise");
@@ -40,6 +40,7 @@ export function validateRouteGuidance(r) {
     "arrivalRadius",
     "pistolArrived",
     "huntArrived",
+    "tutorialArrived",
     "text",
     "arrow",
     "rail",
@@ -47,7 +48,7 @@ export function validateRouteGuidance(r) {
   ]);
   validateGuidanceText(r.text);
   for (const f of ["clearance", "sampleStep", "boundaryReach", "exitReach", "boundaryStartReach"]) number(f, r[f], 0.001);
-  for (const f of ["waypointMin", "arrivalRadius", "pistolArrived", "huntArrived"]) number(f, r[f], 0.001);
+  for (const f of ["waypointMin", "arrivalRadius", "pistolArrived", "huntArrived", "tutorialArrived"]) number(f, r[f], 0.001);
   // The tutorial's ground arrow (Westminster only): it starts tailGap metres out from the player's centre, clear of the footprint, and
   // fades between minOpacity and peakOpacity every pulseSeconds.
   closed(r.arrow, ["height", "tailGap", "peakOpacity", "minOpacity", "pulseSeconds", "triangles"]);
