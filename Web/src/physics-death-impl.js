@@ -23,7 +23,7 @@ export function startDeath(view, bindScene, entity) {
   const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bindScene), root: bindScene } });
   rig.drive();
   rd.snapToTarget();
-  rd.kill({ part: "spine2" });
+  rd.kill({ part: "spine2", impulse: CFG.killImpulse }); // kill() needs an impulse vector (sim frame: -z is back from the hunter)
   return { physics: world, rd, rig, age: 0, acc: 0, frozen: false };
 }
 

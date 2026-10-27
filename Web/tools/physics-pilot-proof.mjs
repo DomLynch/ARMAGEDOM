@@ -29,7 +29,7 @@ for (const n of [1, 5, 10]) {
     rds = Array.from({ length: n }, (_, i) => world.createRagdoll(ROW, { position: [i * 1.5, 0, 0], id: `h${i}` }));
   for (const rd of rds) {
     rd.setRoot([0, 1, 0], [0, 0, 0, 1]);
-    rd.kill({ part: "spine2" });
+    rd.kill({ part: "spine2", impulse: [0, 0, -30] });
   }
   const times = [];
   for (let t = 0; t < 300; t++) {
