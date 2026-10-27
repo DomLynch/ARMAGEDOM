@@ -49,7 +49,7 @@ def scars(img, n, col, alpha, maxlen):
 
 def shell():
     t = fbm(BW, H)
-    img = lerp((34, 22, 17), (108, 74, 44), t)
+    img = lerp((28, 19, 15), (84, 60, 40), t)
     purple = np.clip((fbm(BW, H) - 0.66) * 5, 0, 1)
     img = img * (1 - purple[..., None] * 0.6) + np.array((116, 50, 46), np.float32) * purple[..., None] * 0.6
     olive = np.clip((fbm(BW, H) - 0.72) * 6, 0, 1)
@@ -61,7 +61,7 @@ def shell():
     img = scars(img, 40, (16, 11, 9), 0.7, 26)
     streak = fbm(BW, H, ((2, 1.0), (4, 0.5)))
     wet = np.clip((streak - 0.62) * 5, 0, 1)
-    img = img * (1 - wet[..., None] * 0.35) + np.array((196, 160, 112), np.float32) * wet[..., None] * 0.35
+    img = img * (1 - wet[..., None] * 0.2) + np.array((170, 142, 104), np.float32) * wet[..., None] * 0.2
     return img
 
 
@@ -69,14 +69,14 @@ def spines():
     img = np.zeros((H, BW, 3), np.float32)
     ring = (np.sin(np.arange(H) / 7.5) > 0.1).astype(np.float32)[:, None] * np.ones((1, BW), np.float32)
     ring = ring * (0.75 + 0.25 * fbm(BW, H))
-    img = lerp((26, 15, 12), (176, 98, 38), ring)
+    img = lerp((22, 13, 10), (132, 84, 38), ring)
     img = grit(img, 8)
     return scars(img, 25, (210, 160, 90), 0.5, 18)
 
 
 def legs():
     t = fbm(BW, H)
-    img = lerp((52, 28, 21), (124, 72, 44), t)
+    img = lerp((40, 24, 18), (92, 58, 38), t)
     seg = (np.sin(np.arange(H) / 18.0) > 0.55).astype(np.float32)[:, None] * np.ones((1, BW), np.float32)
     img = img * (1 - seg[..., None] * 0.4) + np.array((178, 128, 76), np.float32) * seg[..., None] * 0.4
     img = grit(img, 8)

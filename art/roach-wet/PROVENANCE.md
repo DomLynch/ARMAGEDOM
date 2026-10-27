@@ -7,8 +7,8 @@ Look-only change to `Web/public/assets/roach/original-roach.glb`:
   shell/head, abdomen lines + antennae + mandibles (ringed dark/amber), legs (segmented, scarred), eyes (glossy black).
 - Material renamed "Wet scarred chitin", `roughnessFactor` 0.76 to 0.42 for the wet sheen.
 - Mesh, skin, 27 joints, six clips and UVs are byte-identical: only bufferView 0 (the image) changed and the meshopt offsets shifted by the size difference.
-- Size 369,440 to 254,696 bytes (atlas 164,782 to 50,030 bytes). Poly count and texture dimensions unchanged.
-- Source GLB sha256 `d38016af...8922`; new `56e0b3d5...0732` (pinned in `manifest-hollow.json`).
+- Size 369,440 to 254,832 bytes (atlas 164,782 to 50,166 bytes). Poly count and texture dimensions unchanged.
+- Source GLB sha256 `d38016af...8922`; new `0f0871a1...5711` (pinned in `manifest-hollow.json`).
 
 Run: `python3 paint.py out.glb` next to `original-roach.glb` (VPS, `/srv/dev-jobs/art-roach`). No GPU, no paid service.
 Not done: added spike geometry (needs a meshopt re-encode of the mesh); the spikes come from the existing mesh plus texture.
