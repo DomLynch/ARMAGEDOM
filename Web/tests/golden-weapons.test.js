@@ -4,7 +4,7 @@ import { GAME_DATA } from "../src/engine/game-data.js";
 import { freshMarked, validMarked, copyMarked } from "../src/engine/marked.js";
 import {
   GOLDEN_WEAPON_OUTCOME,
-  LOOT_OUTCOMES,
+  lootOutcome,
   planGoldenWeapon,
   grantGoldenWeapon,
   isGolden,
@@ -31,7 +31,7 @@ const run = (owned = ["pistol", "rifle"]) => ({
 test("the loot outcome golden-weapon is registered and grants an owned gun that is not gold yet", () => {
   assert.equal(GOLDEN_WEAPON_OUTCOME, "golden-weapon");
   const g = run();
-  assert.equal(LOOT_OUTCOMES[GOLDEN_WEAPON_OUTCOME](g, { id: "golden-weapon" }), true);
+  assert.equal(lootOutcome(GOLDEN_WEAPON_OUTCOME)(g,{ id: "golden-weapon" }), true);
   assert.equal(g.marked.golden.length, 1);
   assert(["pistol", "rifle"].includes(g.marked.golden[0]));
   assert(g.message.startsWith("Golden "));
