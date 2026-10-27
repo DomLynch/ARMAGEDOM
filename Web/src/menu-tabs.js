@@ -1,6 +1,6 @@
 // View navigation only. Session/HUD retain dialog and pause ownership.
 export function createMenuTabs(el, { canSelect = () => true } = {}) {
-  const ids = ["locker", "gear", "journal", "map"],
+  const ids = ["locker", "gear", "map"],
     pages = [...ids, "settings"],
     listeners = [];
   let current = "gear";
