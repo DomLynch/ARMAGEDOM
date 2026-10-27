@@ -57,7 +57,7 @@ test("a tenth area, a moved exit and a data offset need no code: the ring follow
   assert.equal(first[0].to, "area-ten-neighbour");
   assert.ok(Math.hypot(first[0].at.x - moved[0].at.x, first[0].at.z - moved[0].at.z) > 0.5, "moving the exit moves the ring");
   // The look and any per-exit offset live in data/visual.json only (the game's data is frozen, so a test cannot edit it).
-  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "segments"]);
+  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "scales", "segments"]);
   const ring = createExitRings({ ...base, group: new THREE.Group(), registry: { links: () => [link] } }).rings[0];
   assert.equal(ring.mesh.material.color.getHexString(), EXIT_RINGS.colour);
   assert.equal(ring.mesh.material.opacity, EXIT_RINGS.opacity);

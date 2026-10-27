@@ -80,6 +80,7 @@ export function createExitRings(world) {
     mesh.name = `Exit ring to ${link.to}`; // text-ok: internal mesh name
     mesh.position.copy(world.toRender(at, EXIT_RINGS.height));
     mesh.rotation.x = EXIT_RINGS.flatRotation;
+    mesh.scale.setScalar(EXIT_RINGS.scales[`${world.areaId}>${link.to}`] ?? 1); // far, compressed picture areas need a bigger ring
     group.add(mesh);
     rings.push({ to: link.to, mesh, link, at });
   }

@@ -8,7 +8,7 @@ const fail = (why) => {
 };
 const positive = (v) => Number.isFinite(v) && v > 0;
 export function validateExitRings(r) {
-  closed(r, ["inner", "outer", "segments", "colour", "opacity", "lockedColour", "lockedOpacity", "height", "anchor", "flatRotation", "offsets"]);
+  closed(r, ["inner", "outer", "segments", "colour", "opacity", "lockedColour", "lockedOpacity", "height", "anchor", "flatRotation", "offsets", "scales"]);
   if (!positive(r.inner) || !positive(r.outer) || r.inner >= r.outer) fail("inner must be above 0 and below outer (metres)");
   if (!Number.isSafeInteger(r.segments) || r.segments < 3 || r.segments > 128) fail("segments must be a whole number from 3 to 128");
   if (typeof r.colour !== "string" || !/^[0-9a-f]{6}$/i.test(r.colour)) fail("colour must be six hex digits");
@@ -24,6 +24,11 @@ export function validateExitRings(r) {
     if (!/^[a-z0-9-]+>[a-z0-9-]+$/.test(key)) fail(`offsets key ${key} must be "<from>><to>"`);
     closed(o, ["x", "z"]);
     if (!Number.isFinite(o.x) || !Number.isFinite(o.z)) fail(`offsets.${key} must be numbers`);
+  }
+  if (!r.scales || typeof r.scales !== "object" || Array.isArray(r.scales)) fail("scales must be an object");
+  for (const [key, s] of Object.entries(r.scales)) {
+    if (!/^[a-z0-9-]+>[a-z0-9-]+$/.test(key)) fail(`scales key ${key} must be "<from>><to>"`);
+    if (!positive(s)) fail(`scales.${key} must be above 0`);
   }
 }
 validateExitRings(GAME_DATA.visual.exitRings);
