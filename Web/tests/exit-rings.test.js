@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { createGeometry } from "../src/world-geometry.js";
 import { createExitRings } from "../src/engine/exit-rings.js";
 import { EXIT_RINGS } from "../src/engine/exit-rings-data.js";
+import { markedTargets } from "../src/engine/route-guidance.js";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url), "utf8"));
 const areas = [...new Set(manifest.links.map((l) => l.from))];
@@ -21,8 +22,8 @@ const fakeWorld = (areaId) => {
     toRender: (p, y = 0) => new THREE.Vector3(p.x, y, -p.z),
   };
 };
-// East Bridge keeps the ring and sign route-guidance already draws there.
-const signed = (id) => new Set((layoutOf(id).guidance ?? []).filter((r) => r.sign).map((r) => r.to));
+// East Bridge keeps the ring and sign route-guidance already draws there, and so does every Central Safehouse side entrance.
+const signed = (id) => markedTargets(layoutOf(id).guidance ?? []);
 
 test("every exit of every area gets one ring, except the exit route-guidance already signs; shown only while its exit is open", () => {
   let total = 0;
@@ -39,7 +40,7 @@ test("every exit of every area gets one ring, except the exit route-guidance alr
     }
     exits.dispose();
   }
-  assert.equal(total, 27);
+  assert.equal(total, 24); // 28 exits minus the East Bridge sign and the three side entrances (east, south, area7)
 });
 
 test("a tenth area, a moved exit and a data offset need no code: the ring follows the registry condition and visual.json", () => {
