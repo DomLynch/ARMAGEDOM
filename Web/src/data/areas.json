@@ -451,14 +451,14 @@
     "layout.south": {
       "kind": "layout",
       "path": "world/south/layout.json",
-      "sha256": "348fd06fc7716c3c76f4a60bd923f217eef3336be69fcd239611afc10066a2bf",
-      "bytes": 8231
+      "sha256": "43c17df9063ac560b347212c610829cabb114562d53c03874cc85964553d5885",
+      "bytes": 8619
     },
     "backdrop.south": {
       "kind": "backdrop",
       "path": "world/south/backdrop-phone.webp",
-      "sha256": "b330324057e8f6330686b3e02404a8dac7dfd79022a0266e3712fad2450ced89",
-      "bytes": 426692
+      "sha256": "f58ff4bbb15e41bb7feb1878439462290ac98038d9e252b2cf6833f3e59c215e",
+      "bytes": 446406
     },
     "layout.east": {
       "kind": "layout",

@@ -35,6 +35,10 @@ paint = ((hsv[..., 2] > 150) & (hsv[..., 1] < 90)).astype(np.uint8)
 if os.environ.get("QUILT_PAINT_OPEN"):  # wet cobbles are speckled with tiny highlights: keep only bright blobs wider than N px (markings)
     n = int(os.environ["QUILT_PAINT_OPEN"])
     paint = cv2.morphologyEx(paint, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (n, n)))
+if os.environ.get("QUILT_EXCLUDE_YELLOW"):  # south: the yellow road lines are saturated, so the test above misses them; they and the orange sparks are never copied
+    yellow = ((hsv[..., 0] >= 8) & (hsv[..., 0] <= 32) & (hsv[..., 1] > 90) & (hsv[..., 2] > 80)).astype(np.uint8)
+    yellow = cv2.morphologyEx(yellow, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))  # lines are runs of pixels, not specks
+    paint |= cv2.dilate(yellow, np.ones((11, 11), np.uint8))  # the faint ends of a line sit beside its bright pixels
 P, STEP, BAND, TOPK, REUSE = int(os.environ.get("QUILT_P", 72)), int(os.environ.get("QUILT_STEP", 52)), 95, 8, 28
 rng = np.random.default_rng(7)
 TEXTURE_W = float(os.environ.get("QUILT_TEXTURE", 0))  # weight of the texture-match term (0 = the original colour-only match)

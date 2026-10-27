@@ -10,7 +10,7 @@ from simple_lama_inpainting import SimpleLama
 
 root = "/Users/domininclynch/Developer/armagedom/.claude/worktrees/arma-chars-f7f72b"
 area, mask_file, out = sys.argv[1:4]
-src = Image.open(f"{root}/Web/public/world/{area}/backdrop-phone.webp").convert("RGB")
+src = Image.open(sys.argv[4] if len(sys.argv) > 4 else f"{root}/Web/public/world/{area}/backdrop-phone.webp").convert("RGB")  # optional 4th argument: the source picture
 w, h = src.size
 mask = np.zeros((h, w), np.uint8)
 for poly in json.load(open(mask_file)):

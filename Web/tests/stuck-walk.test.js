@@ -7,9 +7,10 @@ import { AREA_MOB_SPAWNS } from "../src/area-mob-spawns.js";
 // flood-filled with the real geometry.move, so a "connected" cell is one the player can actually step to.
 const results = registry.ids.map(walkArea);
 
-// South has two disconnected islands of free ground (4 m2 and a single cell). Nothing enters them: no entry, link
+// South has one disconnected island of free ground (4 m2, the sliver under the northern wreck; the single-cell island that
+// used to sit beside it was absorbed when the road opened north, world/south-clears). Nothing enters it: no entry, link
 // arrival or resident spawn lands there. Pinned so a layout edit that opens or moves one is a deliberate change.
-const KNOWN_POCKETS = { south: [1, 405] };
+const KNOWN_POCKETS = { south: [405] };
 
 for (const r of results) {
   test(`${r.areaId}: one walkable region, no dead spots, every exit zone reachable`, () => {

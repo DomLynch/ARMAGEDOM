@@ -157,7 +157,8 @@ function killAt(boss, pos) {
 //               (no layout edge between them); 39.2 m from the Witch's spawn.
 // Re-measured with the grid links (24 exits): the new exit zones change which ring spots count as legal ground, so westminster has 8
 // gap points and south 6; the leash test below checks both like the rest.
-const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 8 }, south: { count: 6 } };
+// world/south-clears: South's road opened north and past the statue plinth, so its wall gaps went 6 -> 0 (an improvement); no row is needed.
+const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 8 } };
 
 const DERIVED = Object.fromEntries(BOSSES.map((b) => [b.areaId, deriveCases(b)]));
 const KINDS = ["stage2", "stage3", "plain"];
