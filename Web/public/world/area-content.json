@@ -6918,6 +6918,10 @@
   "population": {
     "version": 1,
     "maxHostilesPerArea": 6,
+    "respawn": {
+      "seconds": 300,
+      "excludedAreas": ["westminster"]
+    },
     "areas": {
       "westminster": {
         "activePlacementIds": [

@@ -34,6 +34,7 @@ import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
+import { expiredKeys, recordResidentKill } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
@@ -815,6 +816,7 @@ function kill(g, e, meta = {}) {
     }).state;
   g.enemies = g.enemies.filter((x) => x !== e);
   g.kills++;
+  recordResidentKill(g, e);
   event(g, "death", { actor: e, ...meta });
   if (g.pilot) {
     g.corpses.push(e);
@@ -1574,11 +1576,10 @@ function declaredResident(g, placement, mobSize) {
   actor.hp = actor.maxHP = health;
   return applyBossProfile(actor, placement, g.world.bossData);
 }
-export function initializeAreaResidents(g) {
-  if (!g.areaResidents || g.areaInitialized) return;
-  const area = g.world.areaId ?? "westminster";
-  // Legacy opening groups remain atomic; resident-only starts initialize directly.
-  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
+const areaPlacementKeys = (g, area) => (g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? []).map((row) => row.key);
+// `revived` holds placements whose respawn time has passed: they come back although the permanent ledgers say dead.
+// `onlyRevived` builds just those (re-entering an area that was already set up); drones are never revived.
+function buildResidents(g, area, revived, onlyRevived) {
   const dead = new Set(g.progressionModel?.deadPlacements(g.progression, area) ?? []);
   const policy = g.world.populationData,
     canonical = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [];
@@ -1590,10 +1591,12 @@ export function initializeAreaResidents(g) {
   const residents = placements
     .filter(
       (p) =>
-        !dead.has(p.key) &&
-        (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
-          !g.supplies?.issued.includes(p.key)) &&
-        (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key)),
+        revived.has(p.key) ||
+        (!onlyRevived &&
+          !dead.has(p.key) &&
+          (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
+            !g.supplies?.issued.includes(p.key)) &&
+          (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key))),
     )
     .map((placement) =>
       Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
@@ -1671,7 +1674,7 @@ export function initializeAreaResidents(g) {
     const recipe = gauntHumanRecipe(g.animalCycle, area, e);
     if (recipe) e.humanBodyRecipe = recipe;
   }
-  if (g.drone)
+  if (g.drone && !onlyRevived)
     for (const placement of AREA_DRONE_SPAWNS[area] ?? [])
       if (
         populationAllowsDrone(policy, area, placement.key) &&
@@ -1688,7 +1691,16 @@ export function initializeAreaResidents(g) {
             returning: false,
           }),
         );
-  g.enemies.push(...residents);
+  return residents;
+}
+// `revive` is true only when the player is entering the area (travel), never for the area they already stand in.
+export function initializeAreaResidents(g, { revive = false } = {}) {
+  if (!g.areaResidents || g.areaInitialized) return;
+  const area = g.world.areaId ?? "westminster";
+  // Legacy opening groups remain atomic; resident-only starts initialize directly.
+  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
+  const revived = revive ? expiredKeys(g, area, areaPlacementKeys(g, area)) : new Set();
+  g.enemies.push(...buildResidents(g, area, revived, false));
   g.areaInitialized = true;
   g.encounterActive = g.enemies.length > 0;
   g.encounterCleared = !g.enemies.length;
@@ -1697,6 +1709,25 @@ export function initializeAreaResidents(g) {
     g.nextWave = Infinity;
     g.nextEnemyAttackAt = g.time;
   }
+}
+// Re-entering an area that is already set up: every hostile whose respawn time has passed is alive again at its placement,
+// its old corpse removed. Nothing is added to the permanent ledgers, so no second reward, score or loot instance exists.
+export function reviveAreaResidents(g) {
+  if (!g.areaResidents || !g.areaInitialized) return 0;
+  const area = g.world.areaId ?? "westminster",
+    alive = new Set(g.enemies.map((e) => e.placementKey)),
+    due = [...expiredKeys(g, area, areaPlacementKeys(g, area))].filter((key) => !alive.has(key)),
+    revived = new Set(due);
+  if (!revived.size) return 0;
+  const residents = buildResidents(g, area, revived, true);
+  const back = new Set(residents.map((e) => e.placementKey));
+  if (g.corpses) g.corpses = g.corpses.filter((c) => !back.has(c.placementKey));
+  g.enemies.push(...residents);
+  if (residents.length) {
+    g.encounterActive = true;
+    g.encounterCleared = false;
+  }
+  return residents.length;
 }
 function alertResident(g, e) {
   if (!e.alerted && e.animalRole) e.wokeAt = g.time;

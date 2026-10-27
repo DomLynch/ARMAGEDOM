@@ -2,7 +2,8 @@ import { clearBossRanged } from "./engine/boss-ranged.js";
 import { clearMarkedHunters } from "./engine/marked-hunters.js";
 import { resetBossPursuit } from "./engine/area-bosses.js";
 import { stopBossFlame } from "./engine/boss-flame.js";
-import { initializeAreaResidents } from "./combat.js";
+import { initializeAreaResidents, reviveAreaResidents } from "./combat.js";
+import { markRespawnDirty } from "./engine/respawn.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // Thin orchestration for the existing three-area pilot. World owns atomic loading.
 export async function travelTo(game, request, { isCurrent = () => true } = {}) {
@@ -70,7 +71,9 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
       if (e.animalRole) e.completedAttack = null;
     }
     for (const bolt of game.bolts) if (Number.isFinite(bolt.expires)) bolt.expires += elapsed;
-  } else initializeAreaResidents(game);
+    reviveAreaResidents(game);
+  } else initializeAreaResidents(game, { revive: true });
+  markRespawnDirty(game);
   const p = game.player;
   p.pos = { ...position };
   p.velocity = { x: 0, z: 0 };
