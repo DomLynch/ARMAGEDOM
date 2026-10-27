@@ -353,7 +353,7 @@ export function createSafehouseView(s, dispatch) {
     if (!allowed() || s.paused || !safehouseInteraction(s.game)) return false;
     lastError = "";
     renderPanel(true);
-    const pages = ["locker", "gear", "journal", "map"],
+    const pages = ["locker", "gear", "map"],
       page = lastHubPage ? (pages.includes(s.hud.menuPage) ? s.hud.menuPage : lastHubPage) : "locker";
     if (s.hud.showMenuPage(page) !== false) lastHubPage = page;
     return true;
