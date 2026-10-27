@@ -2,6 +2,7 @@ import { closed, freeze } from "./content-schema.js";
 import { GAME_DATA } from "./game-data.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
 import { fillText } from "./game-data-combat-text.js";
+import { areaDisplayName } from "../area-registry.js";
 const EXIT_TEXT = GAME_DATA.combatText.exitGate; // data/combatText.json: the exit-gate prompts
 const HAZARD_PLACEMENT =GAME_DATA.areaRuntime.bossHazard; // data/areaRuntime.json: clearance and entry gap for a boss hazard
 const fail = () => {
@@ -302,8 +303,7 @@ export function bossExitGate(game, target = null) {
       !key ||
       (field !== undefined && ["pending", "owned", "legacy-dead"].includes(game.bossEquipment?.[field]?.status)),
     visited = !link.requiresVisited || game.expedition?.visitedIds?.includes(link.to) === true;
-  const allowed = !game.runSaveInvalid && defeated && visited,
-    destination = link.to.replaceAll("-", " ");
+  const allowed = !game.runSaveInvalid && defeated && visited;
   return {
     allowed,
     key,
@@ -312,7 +312,7 @@ export function bossExitGate(game, target = null) {
       : !defeated
         ? fillText(EXIT_TEXT.needsKill, { name })
         : !visited
-          ? fillText(EXIT_TEXT.needsVisit, { destination: destination.replace(/\b\w/g, (c) => c.toUpperCase()) })
+          ? fillText(EXIT_TEXT.needsVisit, { destination: areaDisplayName(link.to) })
           : EXIT_TEXT.saveUnavailable,
   };
 }

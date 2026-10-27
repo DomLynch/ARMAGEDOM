@@ -179,7 +179,6 @@
   },
   "placements": {
     "westminster": [
-      { "id": "westminster-1", "type": "medkit", "x": -17.04, "z": 2.85 },
       { "id": "westminster-2", "type": "ammoBox", "x": -8.86, "z": -2.54 },
       { "id": "westminster-3", "type": "cashStash", "x": 16.46, "z": -6.4 },
       { "id": "westminster-4", "type": "ammoBox", "x": -11.17, "z": -2.19 }
