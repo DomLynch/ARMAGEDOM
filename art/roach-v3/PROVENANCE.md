@@ -11,4 +11,5 @@ Pipeline, all CPU (VPS, no GPU, no paid service): `run3.sh` runs `atlas3.py` (Pi
 - Clip timing: Blender re-export trims each clip by under one frame at 24 fps (bite 0.600 to 0.583 s, idle 1.600 to 1.583 s).
 - Source GLB sha256 `d38016af...8922`; new `1d1a8eb4...bb8c` (pinned in `manifest-hollow.json`).
 
-Known limits: the area8 roach uses recipe `roach-ash` (shellTint 2.4, 6, 24), which tints the new brown albedo bright blue in game. Not changed here (the tint is pinned by the appearance fixtures); a warm tint such as 1.6, 1.15, 0.85 gives the brown in `stills/game-v3t-*.png`.
+Tint: the area8 roach uses recipe `roach-ash`, whose old shellTint (2.4, 6, 24) turned the new brown albedo bright blue in game. Lead decided (27 Oct): the row is now 1.6, 1.15, 0.85 (appearance.json), re-pinned in `appearance-pre-data.json` and `roach-appearance-pre-data.json` (roach-ash entry only). Result: `stills/game-v3-warm-crop.png`.
+Size flag: the GLB grows 156 KB (369 to 525 KB).
