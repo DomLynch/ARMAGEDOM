@@ -598,8 +598,8 @@
     "backdrop.area8": {
       "kind": "backdrop",
       "path": "world/area8/backdrop-phone.webp",
-      "sha256": "1753601123158649608cde60872cab997a61651184b78d07b2f251d1a9faff3b",
-      "bytes": 544282
+      "sha256": "13dbc919cbd71b3b48523d9dbbef81c31eee52c19835a31659a7c16be2e3058c",
+      "bytes": 550132
     },
     "layout.central-hub": {
       "kind": "layout",

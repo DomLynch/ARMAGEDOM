@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "efbc8e2637179514c44af5ed415761ca2b039ecba171d413ebcbc3f1069e3123"); // re-pinned: area8, elephant-and-castle and east-bridge layouts changed (alpha blockers), after Westminster south exit zone yMin 0.96; the same three layouts lost their painted-out depth masks and their phone backdrops were painted
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "14edeb33d40615042a4e671fb6ef141815d9ce01baebea0908b0b8e8e25c4063"); // re-pinned: area8, elephant-and-castle and east-bridge layouts changed (alpha blockers), after Westminster south exit zone yMin 0.96; the same three layouts lost their painted-out depth masks and their phone backdrops were painted
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
