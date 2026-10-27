@@ -1,0 +1,46 @@
+<!doctype html><meta name="viewport" content="width=device-width">
+<style>html,body{margin:0;background:#1a1512}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+const q = new URLSearchParams(location.search);
+const view = q.get("view") ?? "q34";
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(innerWidth, innerHeight);
+r.setPixelRatio(devicePixelRatio);
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a2220);
+scene.fog = new THREE.Fog(0x2a2220, 4, 12);
+scene.add(new THREE.HemisphereLight(0xffd9a8, 0x2a2018, 1.1));
+const sun = new THREE.DirectionalLight(0xffc890, 2.4);
+sun.position.set(-2, 3, 2.5);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x8899aa, 0.9);
+rim.position.set(2, 1.5, -3);
+scene.add(rim);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x1c1816, roughness: 0.35, metalness: 0.1 }));
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 50);
+const g = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(q.get("glb"));
+const roach = g.scene;
+roach.scale.setScalar(3);
+scene.add(roach);
+const mixer = new THREE.AnimationMixer(roach);
+const idle = g.animations.find((a) => a.name === "roach_idle");
+mixer.clipAction(idle).play();
+mixer.update(0.4);
+const box = new THREE.Box3().setFromObject(roach);
+const c = box.getCenter(new THREE.Vector3());
+const views = { q34: [1.9, 1.5, 2.2], front: [0, 1.0, 3.2], top: [0.01, 4.6, 0.3] };
+const p = views[view];
+cam.position.set(c.x + p[0], c.y + p[1], c.z + p[2]);
+cam.lookAt(c);
+r.render(scene, cam);
+window.__ready = true;
+</script>
