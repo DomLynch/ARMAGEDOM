@@ -13,31 +13,46 @@
       },
       "exits": [
         {
-          "id": "exit.westminster.south",
-          "target": "south",
-          "condition": {
-            "yMin": 0.96,
-            "xMin": 0.49,
-            "xMax": 0.75
-          },
-          "entry": {
-            "x": 0.55,
-            "y": 0.29
-          }
-        },
-        {
-          "id": "exit.westminster.east",
-          "target": "east",
-          "requiresDefeat": "boss-witch-v1",
+          "id": "exit.westminster.central-hub",
+          "target": "central-hub",
           "condition": {
             "xMin": 0.955,
             "yMin": 0.28,
             "yMax": 0.4
           },
           "entry": {
-            "x": 0.1,
-            "y": 0.72
-          }
+            "x": 0.075,
+            "y": 0.432
+          },
+          "requiresDefeat": "boss-witch-v1"
+        },
+        {
+          "id": "exit.westminster.area8",
+          "target": "area8",
+          "condition": {
+            "yMax": 0.36,
+            "xMin": 0.25,
+            "xMax": 0.4
+          },
+          "entry": {
+            "x": 0.206,
+            "y": 0.876
+          },
+          "requiresDefeat": "boss-witch-v1"
+        },
+        {
+          "id": "exit.westminster.lambeth",
+          "target": "lambeth",
+          "condition": {
+            "yMin": 0.96,
+            "xMin": 0.49,
+            "xMax": 0.75
+          },
+          "entry": {
+            "x": 0.192,
+            "y": 0.052
+          },
+          "requiresDefeat": "boss-witch-v1"
         }
       ]
     },
@@ -53,16 +68,16 @@
       },
       "exits": [
         {
-          "id": "exit.east.westminster",
-          "target": "westminster",
+          "id": "exit.east.central-hub",
+          "target": "central-hub",
           "condition": {
-            "xMax": 0.04,
-            "yMin": 0.68,
-            "yMax": 0.81
+            "xMax": 0.045,
+            "yMin": 0.6,
+            "yMax": 0.69
           },
           "entry": {
-            "x": 0.9,
-            "y": 0.4
+            "x": 0.92,
+            "y": 0.432
           }
         },
         {
@@ -71,54 +86,23 @@
           "condition": {
             "xMin": 0.82,
             "xMax": 0.885,
-            "yMin": 0.245,
             "yMax": 0.285
           },
           "entry": {
-            "x": 0.07,
-            "y": 0.835
+            "x": 0.076,
+            "y": 0.823
           }
         },
         {
-          "id": "exit.east.area7",
-          "target": "area7",
+          "id": "exit.east.elephant-and-castle",
+          "target": "elephant-and-castle",
           "condition": {
-            "xMin": 0.43,
-            "xMax": 0.47,
-            "yMin": 0.525,
-            "yMax": 0.565
+            "yMin": 0.775,
+            "xMax": 0.13
           },
           "entry": {
-            "x": 0.39656639,
-            "y": 0.36885905
-          }
-        },
-        {
-          "id": "exit.east.south",
-          "target": "south",
-          "condition": {
-            "xMin": 0.72,
-            "xMax": 0.78,
-            "yMin": 0.358,
-            "yMax": 0.389
-          },
-          "entry": {
-            "x": 0.62,
-            "y": 0.33
-          }
-        },
-        {
-          "id": "exit.east.central-hub",
-          "target": "central-hub",
-          "condition": {
-            "xMin": 0.765,
-            "xMax": 0.805,
-            "yMin": 0.4,
-            "yMax": 0.44
-          },
-          "entry": {
-            "x": 0.925,
-            "y": 0.45
+            "x": 0.96,
+            "y": 0.23
           }
         }
       ]
@@ -135,58 +119,42 @@
       },
       "exits": [
         {
-          "id": "exit.south.westminster",
-          "target": "westminster",
-          "condition": {
-            "yMax": 0.235,
-            "xMin": 0.49,
-            "xMax": 0.58
-          },
-          "entry": {
-            "x": 0.6,
-            "y": 0.92
-          }
-        },
-        {
-          "id": "exit.south.area7",
-          "target": "area7",
-          "condition": {
-            "xMin": 0.65,
-            "xMax": 0.7,
-            "yMin": 0.895,
-            "yMax": 0.935
-          },
-          "entry": {
-            "x": 0.11317835,
-            "y": 0.87363397
-          }
-        },
-        {
-          "id": "exit.south.east",
-          "target": "east",
-          "condition": {
-            "xMin": 0.615,
-            "xMax": 0.655,
-            "yMin": 0.265,
-            "yMax": 0.305
-          },
-          "entry": {
-            "x": 0.7,
-            "y": 0.35
-          }
-        },
-        {
           "id": "exit.south.central-hub",
           "target": "central-hub",
           "condition": {
-            "xMin": 0.191,
-            "xMax": 0.231,
-            "yMin": 0.674,
-            "yMax": 0.714
+            "yMax": 0.08,
+            "xMin": 0.28,
+            "xMax": 0.38
           },
           "entry": {
-            "x": 0.495,
-            "y": 0.91
+            "x": 0.5,
+            "y": 0.887
+          }
+        },
+        {
+          "id": "exit.south.lambeth",
+          "target": "lambeth",
+          "condition": {
+            "xMax": 0.22,
+            "yMin": 0.67,
+            "yMax": 0.77
+          },
+          "entry": {
+            "x": 0.891,
+            "y": 0.896
+          }
+        },
+        {
+          "id": "exit.south.elephant-and-castle",
+          "target": "elephant-and-castle",
+          "condition": {
+            "xMin": 0.86,
+            "yMin": 0.62,
+            "yMax": 0.79
+          },
+          "entry": {
+            "x": 0.092,
+            "y": 0.847
           }
         }
       ]
@@ -203,43 +171,28 @@
       },
       "exits": [
         {
+          "id": "exit.east-bridge.area7",
+          "target": "area7",
+          "condition": {
+            "xMax": 0.04,
+            "yMin": 0.755,
+            "yMax": 0.815
+          },
+          "entry": {
+            "x": 0.805,
+            "y": 0.333
+          }
+        },
+        {
           "id": "exit.east-bridge.east",
           "target": "east",
           "condition": {
-            "xMax": 0.045,
-            "yMin": 0.8,
-            "yMax": 0.865
+            "yMin": 0.885,
+            "xMax": 0.11
           },
           "entry": {
-            "x": 0.85,
-            "y": 0.31
-          }
-        },
-        {
-          "id": "exit.east-bridge.elephant-and-castle",
-          "target": "elephant-and-castle",
-          "condition": {
-            "xMin": 0.955,
-            "yMin": 0.2,
-            "yMax": 0.26
-          },
-          "entry": {
-            "x": 0.07,
-            "y": 0.855
-          }
-        },
-        {
-          "id": "exit.east-bridge.area8",
-          "target": "area8",
-          "condition": {
-            "xMin": 0.41,
-            "xMax": 0.45,
-            "yMin": 0.67,
-            "yMax": 0.71
-          },
-          "entry": {
-            "x": 0.47620754,
-            "y": 0.47701332
+            "x": 0.797,
+            "y": 0.246
           }
         }
       ]
@@ -256,29 +209,28 @@
       },
       "exits": [
         {
-          "id": "exit.elephant-and-castle.east-bridge",
-          "target": "east-bridge",
+          "id": "exit.elephant-and-castle.south",
+          "target": "south",
           "condition": {
             "xMax": 0.045,
             "yMin": 0.825,
             "yMax": 0.885
           },
           "entry": {
-            "x": 0.925,
-            "y": 0.255
+            "x": 0.7,
+            "y": 0.788
           }
         },
         {
-          "id": "exit.elephant-and-castle.lambeth",
-          "target": "lambeth",
+          "id": "exit.elephant-and-castle.east",
+          "target": "east",
           "condition": {
-            "xMin": 0.95,
-            "yMin": 0.225,
-            "yMax": 0.29
+            "yMax": 0.21,
+            "xMin": 0.9
           },
           "entry": {
-            "x": 0.29,
-            "y": 0.11
+            "x": 0.088,
+            "y": 0.725
           }
         }
       ]
@@ -295,30 +247,29 @@
       },
       "exits": [
         {
-          "id": "exit.lambeth.elephant-and-castle",
-          "target": "elephant-and-castle",
+          "id": "exit.lambeth.westminster",
+          "target": "westminster",
           "condition": {
             "xMin": 0.21,
             "xMax": 0.31,
             "yMax": 0.085
           },
           "entry": {
-            "x": 0.91,
-            "y": 0.28
+            "x": 0.611,
+            "y": 0.892
           }
         },
         {
-          "id": "exit.lambeth.area8",
-          "target": "area8",
+          "id": "exit.lambeth.south",
+          "target": "south",
           "condition": {
-            "xMin": 0.45,
-            "xMax": 0.49,
-            "yMin": 0.515,
-            "yMax": 0.555
+            "xMin": 0.94,
+            "yMin": 0.88,
+            "yMax": 0.97
           },
           "entry": {
-            "x": 0.89769144,
-            "y": 0.3626163
+            "x": 0.261,
+            "y": 0.699
           }
         }
       ]
@@ -335,56 +286,42 @@
       },
       "exits": [
         {
-          "id": "exit.area7.south",
-          "target": "south",
+          "id": "exit.area7.area8",
+          "target": "area8",
           "condition": {
             "xMax": 0.05,
             "yMin": 0.885,
             "yMax": 0.965
           },
           "entry": {
-            "x": 0.66,
-            "y": 0.86
+            "x": 0.869,
+            "y": 0.326
           }
         },
         {
-          "id": "exit.area7.east",
-          "target": "east",
-          "condition": {
-            "yMax": 0.355,
-            "xMin": 0.355,
-            "xMax": 0.4
-          },
-          "entry": {
-            "x": 0.39123766447530295,
-            "y": 0.5572215573812039
-          }
-        },
-        {
-          "id": "exit.area7.area8",
-          "target": "area8",
+          "id": "exit.area7.east-bridge",
+          "target": "east-bridge",
           "condition": {
             "xMin": 0.83,
             "yMin": 0.325,
             "yMax": 0.365
           },
           "entry": {
-            "x": 0.2092118,
-            "y": 0.88603067
+            "x": 0.084,
+            "y": 0.767
           }
         },
         {
           "id": "exit.area7.central-hub",
           "target": "central-hub",
           "condition": {
-            "xMin": 0.26,
-            "xMax": 0.3,
-            "yMin": 0.515,
-            "yMax": 0.555
+            "yMin": 0.915,
+            "xMin": 0.72,
+            "xMax": 0.83
           },
           "entry": {
-            "x": 0.5,
-            "y": 0.09
+            "x": 0.499,
+            "y": 0.057
           }
         }
       ]
@@ -404,39 +341,26 @@
           "id": "exit.area8.area7",
           "target": "area7",
           "condition": {
-            "xMax": 0.15,
-            "yMin": 0.925,
-            "yMax": 0.975
-          },
-          "entry": {
-            "x": 0.81419492,
-            "y": 0.35554196
-          }
-        },
-        {
-          "id": "exit.area8.east-bridge",
-          "target": "east-bridge",
-          "condition": {
-            "yMax": 0.445,
-            "xMin": 0.42,
-            "xMax": 0.46
-          },
-          "entry": {
-            "x": 0.36307082936808827,
-            "y": 0.7169575826156313
-          }
-        },
-        {
-          "id": "exit.area8.lambeth",
-          "target": "lambeth",
-          "condition": {
             "xMin": 0.9,
             "yMin": 0.32,
             "yMax": 0.365
           },
           "entry": {
-            "x": 0.44759346428158825,
-            "y": 0.4820956795537503
+            "x": 0.1,
+            "y": 0.894
+          }
+        },
+        {
+          "id": "exit.area8.westminster",
+          "target": "westminster",
+          "condition": {
+            "yMin": 0.94,
+            "xMin": 0.14,
+            "xMax": 0.25
+          },
+          "entry": {
+            "x": 0.276,
+            "y": 0.383
           }
         }
       ]
@@ -453,18 +377,17 @@
       },
       "exits": [
         {
-          "id": "exit.central-hub.south",
-          "target": "south",
+          "id": "exit.central-hub.westminster",
+          "target": "westminster",
           "condition": {
-            "yMin": 0.955,
-            "xMin": 0.47,
-            "xMax": 0.525
+            "xMax": 0.045,
+            "yMin": 0.42,
+            "yMax": 0.49
           },
           "entry": {
-            "x": 0.265,
-            "y": 0.665
-          },
-          "requiresVisited": true
+            "x": 0.927,
+            "y": 0.365
+          }
         },
         {
           "id": "exit.central-hub.east",
@@ -475,8 +398,8 @@
             "yMax": 0.49
           },
           "entry": {
-            "x": 0.815,
-            "y": 0.335
+            "x": 0.084,
+            "y": 0.623
           },
           "requiresDefeat": "boss-witch-v1",
           "requiresVisited": true
@@ -490,8 +413,22 @@
             "xMax": 0.52
           },
           "entry": {
-            "x": 0.375,
-            "y": 0.415
+            "x": 0.82,
+            "y": 0.85
+          },
+          "requiresVisited": true
+        },
+        {
+          "id": "exit.central-hub.south",
+          "target": "south",
+          "condition": {
+            "yMin": 0.955,
+            "xMin": 0.47,
+            "xMax": 0.525
+          },
+          "entry": {
+            "x": 0.322,
+            "y": 0.093
           },
           "requiresVisited": true
         }
@@ -514,8 +451,8 @@
     "layout.south": {
       "kind": "layout",
       "path": "world/south/layout.json",
-      "sha256": "e62b317c1cb0741166c47699317d56202ba511f83a718a7070ce45bf71086819",
-      "bytes": 8399
+      "sha256": "348fd06fc7716c3c76f4a60bd923f217eef3336be69fcd239611afc10066a2bf",
+      "bytes": 8231
     },
     "backdrop.south": {
       "kind": "backdrop",
@@ -526,8 +463,8 @@
     "layout.east": {
       "kind": "layout",
       "path": "world/east/layout.json",
-      "sha256": "db1e8b464168a30375a07112d0a08c33be1fecd8ba6dbcaa6c6d3a75a4ec7a9d",
-      "bytes": 11463
+      "sha256": "4facdaf40e033749d023061c67f277edb69e65ed432d3e1fc83d0e52e50a7c8f",
+      "bytes": 11552
     },
     "backdrop.east": {
       "kind": "backdrop",
@@ -568,8 +505,8 @@
     "layout.lambeth": {
       "kind": "layout",
       "path": "world/lambeth/layout.json",
-      "sha256": "d02ebce661de34e76fbf0f98a4352fa7f7988a1d853ee0c06eac36aeb620ac00",
-      "bytes": 8246
+      "sha256": "da8ff7c14b916a27e801c5b830b4e0542c3c2d9eec44fffac79fa26c7472db11",
+      "bytes": 6698
     },
     "backdrop.lambeth": {
       "kind": "backdrop",
@@ -580,8 +517,8 @@
     "layout.area7": {
       "kind": "layout",
       "path": "world/area7/layout.json",
-      "sha256": "06750bbd1be118ec5ecd0f0b4930dea63a2494319e6498c5acf3b792e180852c",
-      "bytes": 10911
+      "sha256": "f1240eaf98e15b383da272bfde7cc25e6b05a0b6c2937cf2624bcc3a7fd63556",
+      "bytes": 10681
     },
     "backdrop.area7": {
       "kind": "backdrop",

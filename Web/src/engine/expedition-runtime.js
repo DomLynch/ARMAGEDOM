@@ -81,10 +81,10 @@ export function journalPresentation(g, data, allowed = true) {
 export const hudObjectiveLine = (g, progression) => (huntTarget(g) ? "" : (progression?.objective ?? ""));
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: "" };
-  const gate = bossExitGate(g, "east");
+  const gate = bossExitGate(g, "central-hub");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
-    : { target: "east", objective: text("expedition.reachEast") };
+    : { target: "central-hub", objective: text("expedition.reachEast") };
 }
 // The stolen supply case is a prop in East only while the contract is on.
 export const supplyCaseShown = (data, areaId, status) =>

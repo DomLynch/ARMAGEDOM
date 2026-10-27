@@ -48,7 +48,7 @@ const OLD = [
   ["expedition.journalRecoveredReady", {}, "At the Westminster stash · claim your reward."],
   ["expedition.journalRecovered", {}, "Case recovered · return to the Westminster stash."],
   ["expedition.journalClaimed", {}, "Reward claimed once · choose your earned weapon in Gear."],
-  ["expedition.reachEast", {}, "Reach East."],
+  ["expedition.reachEast", {}, "Reach Central Safehouse."],
   ["expedition.descriptionCompanion", { summary: "S.", name: "Watchman" }, `${"S."} Reward: ${"Watchman"}, an autonomous companion alongside your held weapon.`],
   [
     "expedition.descriptionWeapon",

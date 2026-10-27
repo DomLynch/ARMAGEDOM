@@ -27,7 +27,7 @@ test("from the area entry the character can walk to every exit zone and every ar
     for (const c of r.chokes) assert.ok(c.width >= minCorridorWidth, `${id} ${c.cell}: ${c.width.toFixed(2)} m wide`);
   }
   assert.equal(ids.length, 9);
-  assert.equal(exits, 28);
+  assert.equal(exits, 24);
 });
 
 test("the audit notices a wall across the road and a character that is too wide for a corridor", () => {
@@ -42,12 +42,12 @@ test("the audit notices a wall across the road and a character that is too wide 
     ],
   });
   const walled = auditArea(registry, "westminster", { layout });
-  assert.equal(walled.exits.find((e) => e.to === "east").reachable, false, "the wall cuts the entry off from the east exit");
-  assert.equal(walled.exits.find((e) => e.to === "south").reachable, true);
+  assert.equal(walled.exits.find((e) => e.to === "central-hub").reachable, false, "the wall cuts the entry off from the central-hub exit");
+  assert.equal(walled.exits.find((e) => e.to === "lambeth").reachable, true);
   const plain = auditArea(registry, "westminster"),
-    south = plain.exits.find((e) => e.to === "south");
+    south = plain.exits.find((e) => e.to === "lambeth");
   const wide = auditArea(registry, "westminster", { radius: south.widestRoute / 2 + 0.1 });
-  assert.equal(wide.exits.find((e) => e.to === "south").reachable, false, "a character wider than the tightest point cannot pass");
+  assert.equal(wide.exits.find((e) => e.to === "lambeth").reachable, false, "a character wider than the tightest point cannot pass");
 });
 
 test("grid labels follow the A1-F4 map grid", () => {

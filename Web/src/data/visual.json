@@ -322,7 +322,7 @@
     "height": 0.045,
     "anchor": { "x": 0.5, "y": 0.5 },
     "flatRotation": -1.5707963267948966,
-    "offsets": { "area8>lambeth": { "x": -2.5, "z": 0 } }
+    "offsets": {}
   },
   "input": {
     "knobPadPx": 106,

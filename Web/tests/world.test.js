@@ -53,13 +53,13 @@ test('disposing an area removes owned meshes and releases texture without removi
   world.texture.addEventListener('dispose',()=>released++);world.dispose();
   assert.equal(released,1);assert.deepEqual(scene.children,[actor]);
 });
-test('area requests preserve the four existing route thresholds and destination entries',()=>{
+test('area requests preserve the four grid route thresholds and destination entries',()=>{
   const {world}=setup();assert.equal(typeof world.travelAt,'function','travel detector missing');
   for(const [area,point,destination,entry] of [
-    ['westminster',{x:.966,y:.335},'east',{x:.10,y:.72}],
-    ['westminster',{x:.60,y:.985},'south',{x:.55,y:.29}],
-    ['east',{x:.03,y:.74},'westminster',{x:.90,y:.40}],
-    ['south',{x:.54,y:.22},'westminster',{x:.60,y:.92}]
+    ['westminster',{x:.966,y:.335},'central-hub',{x:0.075,y:0.432}],
+    ['westminster',{x:.60,y:.985},'lambeth',{x:0.192,y:0.052}],
+    ['central-hub',{x:.03,y:.45},'westminster',{x:0.927,y:0.365}],
+    ['south',{x:.33,y:.05},'central-hub',{x:0.5,y:0.887}]
   ]) {world.areaId=area;assert.deepEqual(world.travelAt(world.geometry.ground(point)),{areaId:destination,entryPoint:entry});}
   world.areaId='westminster';assert.equal(world.travelAt(world.spawn),null);assert.equal(world.actorScale,1.265);world.dispose();
 });

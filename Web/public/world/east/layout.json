@@ -730,12 +730,16 @@
       "to": "central-hub",
       "path": [
         {
-          "x": 0.785,
-          "y": 0.37
+          "x": 0.119,
+          "y": 0.676
         },
         {
-          "x": 0.785,
-          "y": 0.415
+          "x": 0.089,
+          "y": 0.633
+        },
+        {
+          "x": 0.035,
+          "y": 0.612
         }
       ]
     },
@@ -743,7 +747,10 @@
       "id": "east-bridge-entry",
       "kind": "exit",
       "to": "east-bridge",
-      "sign": ["EAST BRIDGE", "EXIT"],
+      "sign": [
+        "EAST BRIDGE",
+        "EXIT"
+      ],
       "path": [
         {
           "x": 0.72,

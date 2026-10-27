@@ -9,5 +9,5 @@ test('current connected set instantiates declared existing mixed residents throu
 test('each authored effect uses only shared presets and a bounded active-area allocation',()=>{
  assert.equal(Object.keys(content.residents).length,8);assert.equal(new Set(Object.values(content.residents).flat().map(r=>r.key)).size,34);
  for(const area of ['east-bridge','elephant-and-castle','lambeth']){assert.equal(content.atmosphere[area].anchors.length,4);assert.deepEqual(content.atmosphere[area].budget,{quads:28,drawCalls:3,textureBytes:0});}
- assert.equal(registry.ids.length,9);assert.deepEqual(registry.links('lambeth').map(l=>l.to).sort(),['area8','elephant-and-castle']);assert.equal(registry.links('lambeth').some(l=>l.to==='south'),false);
+ assert.equal(registry.ids.length,9);assert.deepEqual(registry.links('lambeth').map(l=>l.to).sort(),['south','westminster']);assert.equal(registry.links('lambeth').some(l=>l.to==='area8'),false);
 });

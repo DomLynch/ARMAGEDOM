@@ -27,9 +27,9 @@ for (const r of results) {
   });
 }
 
-test("all 28 links: arrival is clear, in the walkable region, and outside the destination's own exit zones", () => {
+test("all 24 links: arrival is clear, in the walkable region, and outside the destination's own exit zones", () => {
   const rows = arrivals(results);
-  assert.equal(rows.length, 28);
+  assert.equal(rows.length, 24);
   for (const row of rows) {
     assert.equal(row.clear, true, `${row.link} arrives on free ground in the main region`);
     assert.equal(row.bounce, null, `${row.link} does not bounce straight back out`);
