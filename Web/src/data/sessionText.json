@@ -37,7 +37,7 @@
     "journalRecoveredReady": "At the Westminster stash · claim your reward.",
     "journalRecovered": "Case recovered · return to the Westminster stash.",
     "journalClaimed": "Reward claimed once · choose your earned weapon in Gear.",
-    "reachEast": "Reach East.",
+    "reachEast": "Reach Central Safehouse.",
     "descriptionCompanion": "{summary} Reward: {name}, an autonomous companion alongside your held weapon.",
     "descriptionWeapon": "{summary} Reward: {name}, {damage} base damage (+{percent}%; starting pistol {baseDamage}); reload {reload}s (starting pistol {baseReload}s).",
     "rewardCompanion": "Reward: {name} · autonomous companion",

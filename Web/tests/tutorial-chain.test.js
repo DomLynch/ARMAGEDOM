@@ -50,7 +50,7 @@ test("the standing Ember Matron objective is hidden while either hunt step shows
       world: {
         areaId: "westminster",
         safehouseData: {},
-        registry: { links: () => [{ to: "east", requiresDefeat: "witch-key" }] },
+        registry: { links: () => [{ to: "central-hub", requiresDefeat: "witch-key" }] },
         bossData: { placements: [{ key: "witch-key", profileRef: "witch" }], profiles: { witch: { name: "Ember Matron" } } },
         bossEquipmentData: { emberProjector: { source: { placementKey: "witch-key" } } },
       },

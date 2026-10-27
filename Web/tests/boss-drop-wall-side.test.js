@@ -155,7 +155,9 @@ function killAt(boss, pos) {
 //               22.3 m from the Surgeon's spawn.
 //  westminster:  4 points; first corpse (-22.02, 3.05) -> drop (-20.52, 3.05), separated by the safehouse boundary
 //               (no layout edge between them); 39.2 m from the Witch's spawn.
-const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 4 } };
+// Re-measured with the grid links (24 exits): the new exit zones change which ring spots count as legal ground, so westminster has 8
+// gap points and south 6; the leash test below checks both like the rest.
+const KNOWN_WALL_GAPS = { lambeth: { count: 48 }, westminster: { count: 8 }, south: { count: 6 } };
 
 const DERIVED = Object.fromEntries(BOSSES.map((b) => [b.areaId, deriveCases(b)]));
 const KINDS = ["stage2", "stage3", "plain"];

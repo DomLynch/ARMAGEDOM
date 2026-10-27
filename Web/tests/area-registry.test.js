@@ -23,11 +23,11 @@ function clearance(registry){
 test('registered public metadata matches the existing manifest adjacency and file references',()=>{
  const registry=createAreaRegistry({manifest});assert.deepEqual(registry.ids,['westminster','east','south','east-bridge','elephant-and-castle','lambeth','area7','area8','central-hub']);assert.equal(registry.initialArea,manifest.initialArea);
  for(const id of registry.ids){assert.deepEqual(registry.reachable(id).slice().sort(),registry.ids.slice().sort());assert.deepEqual(registry.links(id).map(({id,...link})=>link),manifest.links.filter(link=>link.from===id));assert.deepEqual(registry.get(id).entry,manifest.entries[id]);}
- assert.equal(clearance(registry).length,28);assert.equal(publicAreaRegistry.has(fixture.area.id),false);
+ assert.equal(clearance(registry).length,24);assert.equal(publicAreaRegistry.has(fixture.area.id),false);
 });
 test('private fourth fixture extends the same registry through data only and reuses existing references',()=>{
  assert.deepEqual(fixture.area.spawns,[]);assert.deepEqual(fixture.area.atmosphere.anchors,[]);
- const registry=createAreaRegistry(privateContent());assert.equal(registry.ids.length,10);assert.equal(registry.get(fixture.area.id).layoutRef,registry.get('westminster').layoutRef);assert.equal(registry.get(fixture.area.id).backdropRef,registry.get('westminster').backdropRef);assert.equal(clearance(registry).length,30);assert.equal(registry.reachable('westminster').length,10);assert.equal(publicAreaRegistry.ids.length,9);
+ const registry=createAreaRegistry(privateContent());assert.equal(registry.ids.length,10);assert.equal(registry.get(fixture.area.id).layoutRef,registry.get('westminster').layoutRef);assert.equal(registry.get(fixture.area.id).backdropRef,registry.get('westminster').backdropRef);assert.equal(clearance(registry).length,26);assert.equal(registry.reachable('westminster').length,10);assert.equal(publicAreaRegistry.ids.length,9);
 });
 test('registry owns immutable copies without mutating content or manifest',()=>{
  const areas=structuredClone(areaDefinitions),copy=structuredClone(areas),registry=createAreaRegistry({areas,manifest});assert.deepEqual(areas,copy);areas[0].entry.x=0;

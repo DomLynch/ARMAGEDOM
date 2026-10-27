@@ -46,8 +46,14 @@ function snapshot() {
         world = new LondonWorld({ THREE, scene, camera, layout, texture: new THREE.Texture(), manifest });
       world.areaId = area;
       const g = world.geometry,
-        cue = world.routeGuidance,
-        entry = { rows: cue.rows.length };
+        cue = world.routeGuidance;
+      if (!cue) {
+        // Lambeth lost its road-boundary rails with the exits they led to; an area with no guidance rows has no cue object at all.
+        out[area] = { rows: 0 };
+        world.dispose();
+        continue;
+      }
+      const entry = { rows: cue.rows.length };
       if (cue.barrier) {
         const attrs = cue.barrier.geometry.attributes;
         entry.barrier = digest([arr(attrs.position.array), arr(attrs.color.array), Array.from(cue.barrier.geometry.index.array)]);

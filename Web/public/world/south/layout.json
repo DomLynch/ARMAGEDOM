@@ -550,32 +550,21 @@
   "followPlayerSize": true,
   "guidance": [
     {
-      "id": "east-approach",
-      "kind": "exit",
-      "to": "east",
-      "path": [
-        {
-          "x": 0.65,
-          "y": 0.32
-        },
-        {
-          "x": 0.635,
-          "y": 0.285
-        }
-      ]
-    },
-    {
       "id": "south-hub-entry",
       "kind": "exit",
       "to": "central-hub",
       "path": [
         {
-          "x": 0.25,
-          "y": 0.69
+          "x": 0.298,
+          "y": 0.117
         },
         {
-          "x": 0.211,
-          "y": 0.694
+          "x": 0.306,
+          "y": 0.097
+        },
+        {
+          "x": 0.316,
+          "y": 0.07
         }
       ]
     }
