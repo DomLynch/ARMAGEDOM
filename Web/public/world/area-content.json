@@ -7844,7 +7844,7 @@
       "color": "#2a0d16",
       "emissive": "#ff2a1a",
       "halo": "#ff3b2a",
-      "size": 0.34,
+      "size": 0.55,
       "stretch": 1.5,
       "roughness": 0.35,
       "metalness": 0.2,
@@ -7854,13 +7854,13 @@
       "haloMidAlpha": 0.3,
       "haloMidStop": 0.62,
       "auraShare": 0.6,
-      "hoverHeight": 0.85,
+      "hoverHeight": 1.1,
       "bobAmount": 0.08,
       "bobSeconds": 2.4,
       "spinSeconds": 6,
       "emissiveIntensity": 1.4,
-      "haloRadius": 0.9,
-      "haloOpacity": 0.45
+      "haloRadius": 1.5,
+      "haloOpacity": 0.6
     },
     "text": {
       "pickup": "The cursed relic. Double damage, but hunters keep coming. Reach a safehouse to break the curse.",
