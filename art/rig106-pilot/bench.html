@@ -1,0 +1,40 @@
+<!doctype html>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import * as SU from "three/addons/utils/SkeletonUtils.js";
+const q = new URLSearchParams(location.search);
+const N = +(q.get("n") ?? 24), FRAMES = +(q.get("frames") ?? 600), clipName = q.get("clip") ?? "Run";
+const g = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(q.get("glb"));
+const scene = new THREE.Scene();
+const mixers = [], skinned = [];
+const clip = g.animations.find((a) => a.name === clipName);
+for (let i = 0; i < N; i++) {
+  const o = SU.clone(g.scene);
+  o.position.set((i % 6) * 1.2, 0, Math.floor(i / 6) * 1.2);
+  scene.add(o);
+  const m = new THREE.AnimationMixer(o);
+  const a = m.clipAction(clip); a.time = (i * 0.037) % clip.duration; a.play();
+  mixers.push(m);
+  o.traverse((n) => { if (n.isSkinnedMesh) skinned.push(n); });
+}
+let bones = 0; const seen = new Set();
+for (const s of skinned) if (!seen.has(s.skeleton)) { seen.add(s.skeleton); bones += s.skeleton.bones.length; }
+const run = (frames) => {
+  const t0 = performance.now();
+  for (let f = 0; f < frames; f++) {
+    for (const m of mixers) m.update(1 / 60);
+    scene.updateMatrixWorld(true);
+    for (const s of seen) s.update();
+  }
+  return (performance.now() - t0) / frames;
+};
+run(120); // warm up the JIT
+const ms = [run(FRAMES), run(FRAMES), run(FRAMES)].sort((a, b) => a - b)[1];
+let tracks = clip.tracks.length;
+let tris = 0;
+scene.traverse((n) => { if (n.isMesh) tris += n.geometry.index.count / 3; });
+window.__result = { glb: q.get("glb"), clip: clip.name, instances: N, tracksPerClip: tracks, bonesTotal: bones, tris, msPerFrame: +ms.toFixed(3) };
+</script>

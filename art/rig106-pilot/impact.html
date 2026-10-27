@@ -1,0 +1,31 @@
+<!doctype html>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+// Where in the clip does the weapon hand move fastest (the strike)? Reported as a share of the clip length,
+// to compare with GAME_DATA.visual.motion.posePhase.windupShare, which maps the game's wind-up window onto the clip.
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+const q = new URLSearchParams(location.search);
+const g = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(q.get("glb"));
+const clip = g.animations.find((a) => a.name === (q.get("clip") ?? "Attack"));
+const hand = q.get("bone");
+let bone = null;
+g.scene.traverse((o) => { if (o.isBone && o.name === THREE.PropertyBinding.sanitizeNodeName(hand)) bone = o; });
+const m = new THREE.AnimationMixer(g.scene);
+m.clipAction(clip).play();
+const steps = 240, pts = [];
+for (let i = 0; i <= steps; i++) {
+  m.setTime((i / steps) * clip.duration * 0.999); // stay inside the loop so the wrap is not read as a jump
+  g.scene.updateMatrixWorld(true);
+  pts.push(bone.getWorldPosition(new THREE.Vector3()));
+}
+let best = 0, bi = 0;
+const speeds = [];
+for (let i = 1; i <= steps; i++) {
+  const s = pts[i].distanceTo(pts[i - 1]) / (clip.duration / steps);
+  speeds.push(s);
+  if (s > best) { best = s; bi = i; }
+}
+window.__result = { glb: q.get("glb"), clip: clip.name, duration: +clip.duration.toFixed(3), peakShare: +(bi / steps).toFixed(3), peakSpeed: +best.toFixed(2), tracks: clip.tracks.length };
+</script>
