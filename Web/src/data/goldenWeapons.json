@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "outcomeId": "golden-weapon",
+  "noticeSeconds": 5,
+  "fallbackCash": 250,
+  "weapons": {
+    "pistol": {
+      "itemId": "westminster-start-pistol-v1",
+      "name": "Pistol",
+      "owned": { "path": ["pistol", "collected"], "equals": true },
+      "mount": ["pistolMount"]
+    },
+    "rifle": {
+      "itemId": "bridge-warden-rifle-v1",
+      "name": "Rifle",
+      "owned": { "path": ["rifle", "status"], "equals": "owned" },
+      "mount": ["riflePose", "mount"]
+    },
+    "shotgun": {
+      "itemId": "south-stalker-shotgun-v1",
+      "name": "Shotgun",
+      "owned": { "path": ["bossEquipment", "shotgun", "status"], "equals": "owned" },
+      "mount": ["shotgunPose", "mount"]
+    }
+  },
+  "material": {
+    "color": "#d8a62a",
+    "metalness": 0.85,
+    "roughness": 0.3,
+    "emissive": "#6b4300",
+    "emissiveIntensity": 0.4,
+    "shimmerAmplitude": 0.12,
+    "shimmerSpeed": 2.2
+  },
+  "text": {
+    "unlocked": "Golden {name} unlocked!",
+    "cashFallback": "Every gun you own is already gold. +{amount} cash.",
+    "marker": "★",
+    "goldTileLabel": "golden"
+  }
+}
