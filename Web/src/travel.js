@@ -72,8 +72,6 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
     }
     for (const bolt of game.bolts) if (Number.isFinite(bolt.expires)) bolt.expires += elapsed;
   } else initializeAreaResidents(game);
-  reviveAreaResidents(game);
-  markRespawnDirty(game);
   const p = game.player;
   p.pos = { ...position };
   p.velocity = { x: 0, z: 0 };
@@ -83,6 +81,9 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   p.dodgeUntil = p.invulnerableUntil = game.time;
   p.response = null;
   p.ready = Math.min(p.ready, game.time);
+  // After the player is placed, so nobody respawns within the guard distance of the arrival point.
+  reviveAreaResidents(game);
+  markRespawnDirty(game);
   return { ...position };
 }
 
