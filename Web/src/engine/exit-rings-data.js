@@ -8,11 +8,13 @@ const fail = (why) => {
 };
 const positive = (v) => Number.isFinite(v) && v > 0;
 export function validateExitRings(r) {
-  closed(r, ["inner", "outer", "segments", "colour", "opacity", "height", "anchor", "flatRotation", "offsets"]);
+  closed(r, ["inner", "outer", "segments", "colour", "opacity", "lockedColour", "lockedOpacity", "height", "anchor", "flatRotation", "offsets"]);
   if (!positive(r.inner) || !positive(r.outer) || r.inner >= r.outer) fail("inner must be above 0 and below outer (metres)");
   if (!Number.isSafeInteger(r.segments) || r.segments < 3 || r.segments > 128) fail("segments must be a whole number from 3 to 128");
   if (typeof r.colour !== "string" || !/^[0-9a-f]{6}$/i.test(r.colour)) fail("colour must be six hex digits");
   if (!(r.opacity > 0 && r.opacity <= 1)) fail("opacity must be above 0 and at most 1");
+  if (typeof r.lockedColour !== "string" || !/^[0-9a-f]{6}$/i.test(r.lockedColour)) fail("lockedColour must be six hex digits");
+  if (!(r.lockedOpacity > 0 && r.lockedOpacity <= 1)) fail("lockedOpacity must be above 0 and at most 1");
   if (!Number.isFinite(r.height) || r.height < 0) fail("height must be 0 or more metres");
   if (!r.anchor || !(r.anchor.x >= 0 && r.anchor.x <= 1 && r.anchor.y >= 0 && r.anchor.y <= 1))
     fail("anchor must be {x, y} shares from 0 to 1 of the exit zone");

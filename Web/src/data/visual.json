@@ -319,6 +319,8 @@
     "segments": 32,
     "colour": "dfba59",
     "opacity": 1,
+    "lockedColour": "dfba59",
+    "lockedOpacity": 0.35,
     "height": 0.045,
     "anchor": { "x": 0.5, "y": 0.5 },
     "flatRotation": -1.5707963267948966,
