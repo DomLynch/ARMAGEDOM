@@ -38,6 +38,139 @@
             "z": 9.801094496404062
           }
         ]
+      },
+      {
+        "key": "east-bridge-resident-3",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 22.375,
+          "z": 15.104
+        },
+        "patrol": [
+          {
+            "x": 22.375,
+            "z": 15.104
+          },
+          {
+            "x": 24.375,
+            "z": 15.104
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-4",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 33.875,
+          "z": 23.104
+        },
+        "patrol": [
+          {
+            "x": 33.875,
+            "z": 23.104
+          },
+          {
+            "x": 35.375,
+            "z": 23.104
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-5",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 5.875,
+          "z": 0.604
+        },
+        "patrol": [
+          {
+            "x": 5.875,
+            "z": 0.604
+          },
+          {
+            "x": 7.875,
+            "z": 0.604
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-6",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 26.875,
+          "z": 21.104
+        },
+        "patrol": [
+          {
+            "x": 26.875,
+            "z": 21.104
+          },
+          {
+            "x": 28.875,
+            "z": 21.104
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-7",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 15.375,
+          "z": 13.604
+        },
+        "patrol": [
+          {
+            "x": 15.375,
+            "z": 13.604
+          },
+          {
+            "x": 17.375,
+            "z": 13.604
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-8",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -9.125,
+          "z": -5.396
+        },
+        "patrol": [
+          {
+            "x": -9.125,
+            "z": -5.396
+          },
+          {
+            "x": -8.125,
+            "z": -5.396
+          }
+        ]
+      },
+      {
+        "key": "east-bridge-resident-9",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 38.375,
+          "z": 29.604
+        },
+        "patrol": [
+          {
+            "x": 38.375,
+            "z": 29.604
+          },
+          {
+            "x": 38.375,
+            "z": 28.604
+          }
+        ]
       }
     ],
     "elephant-and-castle": [
@@ -76,6 +209,139 @@
           {
             "x": 12.080612272602512,
             "z": 11.999394451038292
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-3",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 24.724,
+          "z": 14.779
+        },
+        "patrol": [
+          {
+            "x": 24.724,
+            "z": 14.779
+          },
+          {
+            "x": 26.724,
+            "z": 14.779
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-4",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 27.224,
+          "z": 22.779
+        },
+        "patrol": [
+          {
+            "x": 27.224,
+            "z": 22.779
+          },
+          {
+            "x": 29.224,
+            "z": 22.779
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-5",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -8.276,
+          "z": -4.221
+        },
+        "patrol": [
+          {
+            "x": -8.276,
+            "z": -4.221
+          },
+          {
+            "x": -6.276,
+            "z": -4.221
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-6",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 16.724,
+          "z": 17.779
+        },
+        "patrol": [
+          {
+            "x": 16.724,
+            "z": 17.779
+          },
+          {
+            "x": 18.724,
+            "z": 17.779
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-7",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 14.224,
+          "z": -6.221
+        },
+        "patrol": [
+          {
+            "x": 14.224,
+            "z": -6.221
+          },
+          {
+            "x": 16.224,
+            "z": -6.221
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-8",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 19.224,
+          "z": 11.779
+        },
+        "patrol": [
+          {
+            "x": 19.224,
+            "z": 11.779
+          },
+          {
+            "x": 21.224,
+            "z": 11.779
+          }
+        ]
+      },
+      {
+        "key": "elephant-and-castle-resident-9",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 14.724,
+          "z": 2.779
+        },
+        "patrol": [
+          {
+            "x": 14.724,
+            "z": 2.779
+          },
+          {
+            "x": 16.224,
+            "z": 2.779
           }
         ]
       }
@@ -118,6 +384,139 @@
             "z": -2.151772662396983
           }
         ]
+      },
+      {
+        "key": "lambeth-resident-3",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -15.69,
+          "z": 22.604
+        },
+        "patrol": [
+          {
+            "x": -15.69,
+            "z": 22.604
+          },
+          {
+            "x": -13.69,
+            "z": 22.604
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-4",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 2.31,
+          "z": 27.104
+        },
+        "patrol": [
+          {
+            "x": 2.31,
+            "z": 27.104
+          },
+          {
+            "x": 4.31,
+            "z": 27.104
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-5",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -25.69,
+          "z": 32.604
+        },
+        "patrol": [
+          {
+            "x": -25.69,
+            "z": 32.604
+          },
+          {
+            "x": -23.69,
+            "z": 32.604
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-6",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 11.31,
+          "z": 12.604
+        },
+        "patrol": [
+          {
+            "x": 11.31,
+            "z": 12.604
+          },
+          {
+            "x": 11.31,
+            "z": 13.604
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-7",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -40.69,
+          "z": 59.104
+        },
+        "patrol": [
+          {
+            "x": -40.69,
+            "z": 59.104
+          },
+          {
+            "x": -38.69,
+            "z": 59.104
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-8",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -9.19,
+          "z": 35.104
+        },
+        "patrol": [
+          {
+            "x": -9.19,
+            "z": 35.104
+          },
+          {
+            "x": -7.19,
+            "z": 35.104
+          }
+        ]
+      },
+      {
+        "key": "lambeth-resident-9",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -1.69,
+          "z": 5.104
+        },
+        "patrol": [
+          {
+            "x": -1.69,
+            "z": 5.104
+          },
+          {
+            "x": 0.31,
+            "z": 5.104
+          }
+        ]
       }
     ],
     "area7": [
@@ -156,6 +555,158 @@
           {
             "x": -6.824428937637714,
             "z": -1.458220522989972
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-1",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -7.927,
+          "z": 12.326
+        },
+        "patrol": [
+          {
+            "x": -7.927,
+            "z": 12.326
+          },
+          {
+            "x": -5.927,
+            "z": 12.326
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-2",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 12.073,
+          "z": 12.826
+        },
+        "patrol": [
+          {
+            "x": 12.073,
+            "z": 12.826
+          },
+          {
+            "x": 14.073,
+            "z": 12.826
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-3",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -2.427,
+          "z": 7.826
+        },
+        "patrol": [
+          {
+            "x": -2.427,
+            "z": 7.826
+          },
+          {
+            "x": -0.427,
+            "z": 7.826
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-4",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -11.927,
+          "z": 5.326
+        },
+        "patrol": [
+          {
+            "x": -11.927,
+            "z": 5.326
+          },
+          {
+            "x": -11.927,
+            "z": 7.326
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-5",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 8.073,
+          "z": 8.826
+        },
+        "patrol": [
+          {
+            "x": 8.073,
+            "z": 8.826
+          },
+          {
+            "x": 8.073,
+            "z": 10.826
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-6",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -8.427,
+          "z": 16.826
+        },
+        "patrol": [
+          {
+            "x": -8.427,
+            "z": 16.826
+          },
+          {
+            "x": -6.427,
+            "z": 16.826
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-7",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -7.927,
+          "z": 7.826
+        },
+        "patrol": [
+          {
+            "x": -7.927,
+            "z": 7.826
+          },
+          {
+            "x": -5.927,
+            "z": 7.826
+          }
+        ]
+      },
+      {
+        "key": "area7-resident-8",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -7.427,
+          "z": -6.174
+        },
+        "patrol": [
+          {
+            "x": -7.427,
+            "z": -6.174
+          },
+          {
+            "x": -7.427,
+            "z": -4.174
           }
         ]
       }
@@ -234,6 +785,120 @@
           {
             "x": 5.5,
             "z": 1
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-5",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": 19.683,
+          "z": 10.215
+        },
+        "patrol": [
+          {
+            "x": 19.683,
+            "z": 10.215
+          },
+          {
+            "x": 21.183,
+            "z": 10.215
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-6",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-gaunt-skulker",
+        "pos": {
+          "x": -18.817,
+          "z": -4.285
+        },
+        "patrol": [
+          {
+            "x": -18.817,
+            "z": -4.285
+          },
+          {
+            "x": -16.817,
+            "z": -4.285
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-7",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -20.317,
+          "z": 3.215
+        },
+        "patrol": [
+          {
+            "x": -20.317,
+            "z": 3.215
+          },
+          {
+            "x": -18.317,
+            "z": 3.215
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-8",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-gaunt-skulker",
+        "pos": {
+          "x": 1.183,
+          "z": 3.715
+        },
+        "patrol": [
+          {
+            "x": 1.183,
+            "z": 3.715
+          },
+          {
+            "x": 3.183,
+            "z": 3.715
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-9",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-street-scavenger",
+        "pos": {
+          "x": -13.817,
+          "z": 0.215
+        },
+        "patrol": [
+          {
+            "x": -13.817,
+            "z": 0.215
+          },
+          {
+            "x": -12.317,
+            "z": 0.215
+          }
+        ]
+      },
+      {
+        "key": "area8-resident-10",
+        "foundationRef": "hollow-scavenger",
+        "recipeRef": "human-gaunt-skulker",
+        "pos": {
+          "x": -24.817,
+          "z": 4.215
+        },
+        "patrol": [
+          {
+            "x": -24.817,
+            "z": 4.215
+          },
+          {
+            "x": -22.817,
+            "z": 4.215
           }
         ]
       }
@@ -6917,16 +7582,19 @@
   },
   "population": {
     "version": 1,
-    "maxHostilesPerArea": 6,
+    "maxHostilesPerArea": 10,
     "areas": {
       "westminster": {
+        "maxHostiles": 8,
         "activePlacementIds": [
           "westminster-roamer-1",
           "westminster-roamer-2",
           "westminster-roamer-3",
           "westminster-roamer-4",
           "boss-witch-v1",
-          "westminster-roamer-6"
+          "westminster-roamer-6",
+          "westminster-roamer-7",
+          "westminster-roamer-8"
         ],
         "creatureSlot": {
           "placementKey": "westminster-roamer-2",
@@ -6950,7 +7618,11 @@
           "east-roamer-3",
           "east-roamer-4",
           "east-roamer-6",
-          "east-roamer-8"
+          "east-roamer-8",
+          "east-roamer-10",
+          "east-roamer-11",
+          "east-roamer-5",
+          "east-roamer-12"
         ],
         "creatureSlot": {
           "placementKey": "east-roamer-4",
@@ -6974,7 +7646,11 @@
           "boss-nightborn-v1",
           "south-roamer-6",
           "south-roamer-9",
-          "south-drone-1"
+          "south-drone-1",
+          "south-roamer-10",
+          "south-roamer-11",
+          "south-roamer-2",
+          "south-roamer-12"
         ],
         "creatureSlot": {
           "placementKey": "south-drone-1",
@@ -6995,7 +7671,14 @@
         "activePlacementIds": [
           "east-bridge-resident-1",
           "east-bridge-resident-2",
-          "boss-warden-v1"
+          "boss-warden-v1",
+          "east-bridge-resident-3",
+          "east-bridge-resident-4",
+          "east-bridge-resident-5",
+          "east-bridge-resident-6",
+          "east-bridge-resident-7",
+          "east-bridge-resident-8",
+          "east-bridge-resident-9"
         ],
         "creatureSlot": {
           "placementKey": "east-bridge-resident-2",
@@ -7016,7 +7699,14 @@
         "activePlacementIds": [
           "elephant-and-castle-resident-1",
           "elephant-and-castle-resident-2",
-          "boss-butcher-v1"
+          "boss-butcher-v1",
+          "elephant-and-castle-resident-3",
+          "elephant-and-castle-resident-4",
+          "elephant-and-castle-resident-5",
+          "elephant-and-castle-resident-6",
+          "elephant-and-castle-resident-7",
+          "elephant-and-castle-resident-8",
+          "elephant-and-castle-resident-9"
         ],
         "creatureSlot": {
           "placementKey": "elephant-and-castle-resident-2",
@@ -7037,7 +7727,14 @@
         "activePlacementIds": [
           "lambeth-resident-1",
           "lambeth-resident-2",
-          "boss-surgeon-v1"
+          "boss-surgeon-v1",
+          "lambeth-resident-3",
+          "lambeth-resident-4",
+          "lambeth-resident-5",
+          "lambeth-resident-6",
+          "lambeth-resident-7",
+          "lambeth-resident-8",
+          "lambeth-resident-9"
         ],
         "creatureSlot": {
           "placementKey": "lambeth-resident-2",
@@ -7057,7 +7754,15 @@
       "area7": {
         "activePlacementIds": [
           "boss-knight-v1",
-          "area7-station-rat-v1"
+          "area7-station-rat-v1",
+          "area7-resident-1",
+          "area7-resident-2",
+          "area7-resident-3",
+          "area7-resident-4",
+          "area7-resident-5",
+          "area7-resident-6",
+          "area7-resident-7",
+          "area7-resident-8"
         ],
         "creatureSlot": {
           "placementKey": "area7-station-rat-v1",
@@ -7079,7 +7784,13 @@
           "area8-resident-1",
           "boss-veteran-v1",
           "area8-resident-3",
-          "area8-resident-4"
+          "area8-resident-4",
+          "area8-resident-5",
+          "area8-resident-6",
+          "area8-resident-7",
+          "area8-resident-8",
+          "area8-resident-9",
+          "area8-resident-10"
         ],
         "creatureSlot": {
           "placementKey": "area8-resident-4",

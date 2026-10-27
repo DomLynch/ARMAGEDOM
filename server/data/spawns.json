@@ -1,4 +1,44 @@
 {
+  "area7:area7-resident-1": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-2": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-3": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-4": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-5": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-6": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-7": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
+  "area7:area7-resident-8": {
+    "kind": "hollow-scavenger",
+    "area": "area7",
+    "maxHp": 40
+  },
   "area7:area7-station-rat-v1": {
     "kind": "original-rat",
     "area": "area7",
@@ -14,6 +54,11 @@
     "area": "area8",
     "maxHp": 40
   },
+  "area8:area8-resident-10": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
   "area8:area8-resident-3": {
     "kind": "hollow-scavenger",
     "area": "area8",
@@ -23,6 +68,31 @@
     "kind": "original-roach",
     "area": "area8",
     "maxHp": 20
+  },
+  "area8:area8-resident-5": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-6": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-7": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-8": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
+  },
+  "area8:area8-resident-9": {
+    "kind": "hollow-scavenger",
+    "area": "area8",
+    "maxHp": 40
   },
   "area8:boss-veteran-v1": {
     "kind": "boss-area8-veteran",
@@ -44,7 +114,57 @@
     "area": "east-bridge",
     "maxHp": 20
   },
+  "east-bridge:east-bridge-resident-3": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-4": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-5": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-6": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-7": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-8": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
+  "east-bridge:east-bridge-resident-9": {
+    "kind": "hollow-scavenger",
+    "area": "east-bridge",
+    "maxHp": 40
+  },
   "east:east-roamer-1": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-10": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-11": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
+  },
+  "east:east-roamer-12": {
     "kind": "hollow-scavenger",
     "area": "east",
     "maxHp": 40
@@ -63,6 +183,11 @@
     "kind": "original-dog",
     "area": "east",
     "maxHp": 30
+  },
+  "east:east-roamer-5": {
+    "kind": "hollow-scavenger",
+    "area": "east",
+    "maxHp": 40
   },
   "east:east-roamer-6": {
     "kind": "hollow-scavenger",
@@ -89,6 +214,41 @@
     "area": "elephant-and-castle",
     "maxHp": 30
   },
+  "elephant-and-castle:elephant-and-castle-resident-3": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-4": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-5": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-6": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-7": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-8": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
+  "elephant-and-castle:elephant-and-castle-resident-9": {
+    "kind": "hollow-scavenger",
+    "area": "elephant-and-castle",
+    "maxHp": 40
+  },
   "lambeth:boss-surgeon-v1": {
     "kind": "boss-surgeon",
     "area": "lambeth",
@@ -104,6 +264,41 @@
     "area": "lambeth",
     "maxHp": 20
   },
+  "lambeth:lambeth-resident-3": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-4": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-5": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-6": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-7": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-8": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
+  "lambeth:lambeth-resident-9": {
+    "kind": "hollow-scavenger",
+    "area": "lambeth",
+    "maxHp": 40
+  },
   "south:boss-nightborn-v1": {
     "kind": "boss-south-nightborn",
     "area": "south",
@@ -115,6 +310,26 @@
     "maxHp": 20
   },
   "south:south-roamer-1": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-10": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-11": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-12": {
+    "kind": "hollow-scavenger",
+    "area": "south",
+    "maxHp": 40
+  },
+  "south:south-roamer-2": {
     "kind": "hollow-scavenger",
     "area": "south",
     "maxHp": 40
@@ -160,6 +375,16 @@
     "maxHp": 40
   },
   "westminster:westminster-roamer-6": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  },
+  "westminster:westminster-roamer-7": {
+    "kind": "hollow-scavenger",
+    "area": "westminster",
+    "maxHp": 40
+  },
+  "westminster:westminster-roamer-8": {
     "kind": "hollow-scavenger",
     "area": "westminster",
     "maxHp": 40
