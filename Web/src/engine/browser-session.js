@@ -354,9 +354,11 @@ export function createBrowserSession(options = {}) {
   const worldConfig = presenceConfig({ search: location.search, location });
   if (worldConfig && !privateContent) {
     baseRunStorage = runStorage;
-    runStorage = observeStorage(runStorage, isRunKey, (raw) =>
-      saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) }),
-    );
+    runStorage = observeStorage(runStorage, isRunKey, (raw) => {
+      // Stash and airdrop cash noted since the last write goes to the server first, so the save below finds it credited.
+      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount);
+      saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) });
+    });
   }
   resources = createRunViews(context);
   areas = createAreaLifecycle(context);

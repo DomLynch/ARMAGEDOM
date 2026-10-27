@@ -226,6 +226,21 @@ export function createSaveClient({
       write(syncedKey(account), JSON.stringify({ character, revision: value }));
   }
 
+  // Cash from a world stash or the airdrop is credited by the server once per source per window (arma_claim_pickup), so a reload cannot farm it.
+  // A refused or failed claim is only logged: the cash the page already holds is clamped by the next save, never given back.
+  const claims = new Set();
+  function claimPickup(source, amount) {
+    const run = (async () => {
+      if (halted || stopped || !(await ensureCharacter())) return;
+      const reply = await call("claim_pickup", { source, amount });
+      if (reply.error || reply.refused) log(`pickup cash not credited: ${source} ${reply.error ?? reply.refused}`);
+    })()
+      .catch(() => {})
+      .finally(() => claims.delete(run));
+    claims.add(run);
+    return run;
+  }
+
   async function send(raw, run, { urgent = false } = {}) {
     let record;
     try {
@@ -234,6 +249,7 @@ export function createSaveClient({
       return { ok: false, reason: "bad-record" };
     }
     const generation = hideGen;
+    await Promise.all(claims); // a stash or airdrop claim in flight lands BEFORE the save that carries its cash (the writer keeps arrival order)
     await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
     if (!(await sync()) || !character) return { ok: false, reason: "offline" };
     const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
@@ -440,6 +456,7 @@ export function createSaveClient({
     },
     flush,
     flushOnHide,
+    claimPickup,
     // A status read says the world is open again: carry on with the newest queued record.
     resume() {
       if (!halted) return;

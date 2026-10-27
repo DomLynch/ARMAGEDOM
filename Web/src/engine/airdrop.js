@@ -1,6 +1,7 @@
 import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { applyAirdropOutcome } from "./airdrop-effects.js";
+import { claimCash } from "./world-pickups-core.js";
 
 // The supply airdrop (data/airdrop.json): every few minutes in a combat area a plane passes and drops a crate with a red flare somewhere
 // the player can walk to. Bosses of the area walk to the crate, and holding still beside it opens it for a loot bundle and a small chance of
@@ -74,6 +75,7 @@ function open(g) {
     const result = applyAirdropOutcome(g, row);
     if (row.id === "cash") cash = result || 0;
   }
+  claimCash(g, "airdrop", cash);
   let roll = chance(g) * loot.bonus.reduce((sum, row) => sum + row.weight, 0),
     golden = false;
   for (const row of loot.bonus) {

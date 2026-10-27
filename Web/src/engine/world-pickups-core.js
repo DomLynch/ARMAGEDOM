@@ -78,6 +78,10 @@ export function grantCash(g, wanted) {
   money.carried += amount;
   return amount;
 }
+// Notes cash from a stash or the airdrop for the server to credit once (the online session drains `g.cashClaims`; offline nothing reads it).
+export function claimCash(g, source, amount) {
+  if (amount > 0) (g.cashClaims ??= []).push({ source, amount });
+}
 const say = (g, text, seconds) => {
   g.message = text;
   g.messageUntil = g.time + seconds;
@@ -107,6 +111,7 @@ export function stepWorldPickups(g, areaId, inView, camera) {
     }
     state.until[place.id] = g.time + WORLD_PICKUPS.respawnSeconds;
     state.taken[place.id] = (state.taken[place.id] ?? 0) + 1;
+    if (place.type === "cashStash") claimCash(g, `stash:${place.id}`, result.amount);
     say(g, fillText(WORLD_PICKUPS.text[place.type], { amount: result.amount }), WORLD_PICKUPS.noticeSeconds);
   }
 }
