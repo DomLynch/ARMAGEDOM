@@ -113,12 +113,11 @@ export function validateAreaGeometry(
   const tutorial = validateTutorialPath(layout, g);
   if (tutorial) {
     if (areaId !== "westminster") throw Error("Tutorial must belong to Westminster");
-    if (safehouseData) {
-      const anchor = safehouseData.props.find((p) => p.id === "comms")?.standing,
-        end = layout.tutorialPath.at(-1);
-      if (safehouseData.areaId !== areaId || !anchor || Math.hypot(anchor.x - end.x, anchor.y - end.y) > 1e-8)
-        throw Error("Tutorial must reach original Westminster shelter");
-    }
+    // The tutorial ends on the Westminster steps, where the named set-piece slot sits (empty until its contents are authored).
+    const slot = layout.setPieceSlot?.at,
+      end = layout.tutorialPath.at(-1);
+    if (!slot || Math.hypot(slot.x - end.x, slot.y - end.y) > 1e-8)
+      throw Error("Tutorial must reach the Westminster set-piece slot");
   }
   if (expedition) {
     for (const anchor of [expedition.contract.giver, expedition.contract.case])

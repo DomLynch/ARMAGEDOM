@@ -384,7 +384,7 @@ export function createRouteGuidance(world) {
           : cue.row.kind === "hunt"
             ? cue.row.label
             : cue.row.kind === "tutorial"
-              ? text.shelter
+              ? text.ahead
               : areaDisplayName(cue.row.to).toUpperCase();
     if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < markerShape.exitHintRemaining)
       return fillText(text.exit, { area: name });

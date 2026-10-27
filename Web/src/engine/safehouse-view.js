@@ -6,7 +6,6 @@ import {
   safehouseInteraction,
   safehouseAnchor,
   safehouseSite,
-  safehouseProtected,
 } from "./safehouse.js";
 import { lockerInventory, lockerStored } from "./locker-core.js";
 import { huntTarget } from "./route-guidance.js";
@@ -31,11 +30,18 @@ export function safehouseCueOpacity(
 }
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
 // Existing weapon owners skip the opening tutorial only on first observation.
-// Once a fresh run starts it, ordinary pickup cannot complete the shelter goal.
+// Once a fresh run starts it, ordinary pickup cannot complete the tutorial; only reaching the Westminster steps (the layout's
+// setPieceSlot, the end of its tutorialPath) does, within visual.json routeGuidance.tutorialArrived metres.
 export function shelterTutorialPending(g, pending) {
   if (pending === undefined)
     pending = !g.pistol?.collected && !g.expedition?.visitedIds?.some((id) => id !== "westminster");
-  return !!pending && !(g.world.areaId === "westminster" && safehouseProtected(g));
+  const slot = g.world.layout?.setPieceSlot?.at,
+    at = slot && g.world.geometry?.ground(slot),
+    arrived =
+      g.world.areaId === "westminster" &&
+      !!at &&
+      Math.hypot(g.player.pos.x - at.x, g.player.pos.z - at.z) <= GAME_DATA.visual.routeGuidance.tutorialArrived;
+  return !!pending && !arrived;
 }
 export function createSafehouseView(s, dispatch) {
   let owner = null,
@@ -291,20 +297,23 @@ export function createSafehouseView(s, dispatch) {
     const g = s.game,
       w = s.world,
       data = safehouseSite(w);
+    // The opening tutorial's arrow targets belong to Westminster, which has no safehouse: they are set before the safehouse gate.
+    if (g && w) {
+      const pending = shelterTutorialPending(g, tutorialRuns.get(g));
+      tutorialRuns.set(g, pending);
+      w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
+      const pistol = g.pistol;
+      w.routeGuidance?.setPistolTarget?.(
+        pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
+      );
+      w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
+    }
     if (!g || !w || !data) {
       if (target) target.hidden = true;
       return;
     }
     ensureTarget();
     const inArea = w.areaId === data.areaId;
-    const pending = shelterTutorialPending(g, tutorialRuns.get(g));
-    tutorialRuns.set(g, pending);
-    w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
-    const pistol = g.pistol;
-    w.routeGuidance?.setPistolTarget?.(
-      pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
-    );
-    w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
     if (data.patch && !texture && !loading && !failed && inArea) {
       loading = true;
       new w.THREE.TextureLoader().load(

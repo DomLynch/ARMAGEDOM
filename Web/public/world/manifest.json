@@ -124,13 +124,6 @@
       "bytes": 542196
     },
     {
-      "area": "westminster",
-      "path": "westminster/safehouse-patch.png",
-      "source": "Approved Westminster safehouse art pilot 2026-10-18; bounded patch only",
-      "bytes": 37208,
-      "sha256": "d7833c70a6b7b3f3ddeeb4e85f55dbf1b18fe4dcfa42f02e01e5a257d6282049"
-    },
-    {
       "area": "central-hub",
       "path": "central-hub/layout.json",
       "source": "Image-authored walkable courtyard, four mouths and foreground occlusion",
