@@ -23,7 +23,8 @@ const options = {
   animalVariants: true,
   encounter: { id: "hollow-scavengers", character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 } },
 };
-const ORDINARY = ["area8-resident-1", "area8-resident-3", "area8-resident-4"];
+// population-spread: Area 8 now holds nine ordinary residents (plus the boss); every one of them respawns.
+const ORDINARY = ["area8-resident-1", "area8-resident-10", "area8-resident-3", "area8-resident-4", "area8-resident-5", "area8-resident-6", "area8-resident-7", "area8-resident-8", "area8-resident-9"];
 const ALL = [...ORDINARY, "boss-veteran-v1"];
 
 function fixture({ area = "area8", records = new Map(), content = rawContent(), lineClear = () => true } = {}) {

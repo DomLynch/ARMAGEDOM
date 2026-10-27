@@ -11,6 +11,10 @@ const data=read('../public/world/area-content.json'),base=read('./fixtures/boss-
 test('219 changes only six boss movement/acquisition/timing fields and uniformly resampled native paths',()=>{
  const {bosses,...other}=structuredClone(data);delete other.expedition.contract.enabled;delete other.cursedRelic;delete other.marked.hunters;delete other.marked.bounty;delete other.population.respawn; // 27 Oct: hostile respawn policy (population.respawn) // the 24 Oct contract/hunter/bounty switches
  const expected=structuredClone(base.protected);for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate); 26 Oct: 60 s first arrival, 90 s re-arrival, no resident cap
+ // 27 Oct population-spread: about 10 hostiles per area. Every original resident row must remain unchanged, in order, as a prefix of the new rows; the population policy keeps every original active placement and creature slot (it only grows the active list and the cap).
+ for(const[area,rows]of Object.entries(expected.residents))assert.deepEqual(other.residents[area].slice(0,rows.length),rows,area);
+ for(const[area,policy]of Object.entries(expected.population.areas)){const now=other.population.areas[area];assert.deepEqual(now.activePlacementIds.slice(0,policy.activePlacementIds.length),policy.activePlacementIds,area);assert.deepEqual(now.creatureSlot,policy.creatureSlot,area);assert.equal(now.allowDroneFallback,policy.allowDroneFallback,area);}
+ delete other.residents;delete expected.residents;delete other.population;delete expected.population;
  assert.deepEqual(other,expected);
  assert.deepEqual(bosses.placements,base.bosses.placements);{const {wakeDistance,homeLeash,...witch}=bosses.profiles.witch,{wakeDistance:w0,homeLeash:h0,...witch0}=base.bosses.profiles.witch;assert.deepEqual(witch,witch0);assert.equal(wakeDistance,10);assert.equal(homeLeash,18);} // 26 Oct: witch wake/leash follow the other bosses; every other witch field is the 218 baseline
  assert.deepEqual(bosses.paths['boss-witch-attack'],base.bosses.paths['boss-witch-attack']);

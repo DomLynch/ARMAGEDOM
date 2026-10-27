@@ -25,21 +25,30 @@ function validateRespawn(respawn, registry) {
 export function validatePopulationData(input, registry, residents, uniqueRewardData = null) {
   if (input === undefined) return null;
   closed(input, ["version", "maxHostilesPerArea", "areas"], ["respawn"]);
-  if (input.version !== 1 || input.maxHostilesPerArea !== 6) fail();
+  // maxHostilesPerArea is the ceiling; an area may lower its own cap with `maxHostiles` (Westminster keeps its tuned tutorial roster).
+  if (
+    input.version !== 1 ||
+    !Number.isInteger(input.maxHostilesPerArea) ||
+    input.maxHostilesPerArea < 1 ||
+    input.maxHostilesPerArea > 10
+  )
+    fail();
   validateRespawn(input.respawn, registry);
   const populated = registry.ids.filter(
     (id) => (residents[id] ?? AREA_MOB_SPAWNS[id] ?? []).length || (AREA_DRONE_SPAWNS[id] ?? []).length,
   );
   closed(input.areas, populated);
   for (const [id, policy] of Object.entries(input.areas)) {
-    closed(policy, ["activePlacementIds", "creatureSlot", "allowDroneFallback"]);
+    closed(policy, ["activePlacementIds", "creatureSlot", "allowDroneFallback"], ["maxHostiles"]);
+    const cap = policy.maxHostiles ?? input.maxHostilesPerArea;
+    if (!Number.isInteger(cap) || cap < 1 || cap > input.maxHostilesPerArea) fail();
     const rows = residents[id] ?? AREA_MOB_SPAWNS[id] ?? [],
       drones = AREA_DRONE_SPAWNS[id] ?? [],
       active = policy.activePlacementIds;
     if (
       !Array.isArray(active) ||
       active.length < 1 ||
-      active.length > input.maxHostilesPerArea ||
+      active.length > cap ||
       new Set(active).size !== active.length ||
       active.some((key) => typeof key !== "string" || ![...rows, ...drones].some((row) => row.key === key))
     )

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "marginMetres": 4,
+  "farDistance": 30,
+  "everyNthFrame": 4,
+  "fullRateRadius": 9
+}

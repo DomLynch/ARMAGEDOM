@@ -64,6 +64,7 @@ import lowClip from "./rat-data/low-slash.json" with { type: "json" };
 import lowBlade from "./rat-data/blade-path.json" with { type: "json" };
 import { attachPistolSlide } from "./pistol-slide.js";
 import { createHitReaction } from "./combat-impact.js";
+import { createOffscreenThrottle } from "./engine/offscreen-actors.js";
 import { createFinisherPresentationSteps, finisherVictimPoseAge, validateHeadParts } from "./finisher-presentation.js";
 import { createVestView } from "./vest-view.js";
 import * as THREE from "three";
@@ -283,6 +284,7 @@ export function createActors(
   const bodyShapes = createFeralBodyShapeLibrary(),
     roachLooks = createRoachAppearanceLibrary(THREE),
     droneKits = createLowHoverDroneLibrary({ appearance: droneAppearance }),
+    offscreen = createOffscreenThrottle(THREE, GAME_DATA.offscreenActors),
     faceKits = new Map(),
     dogKits = new Map(),
     animalLooks = createAnimalAppearanceLibrary(THREE),
@@ -1365,6 +1367,7 @@ export function createActors(
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
+      offscreen.begin(world.camera, game.player.pos);
       for (const entity of entities) {
         if (
           contactOnly &&
@@ -1427,6 +1430,13 @@ export function createActors(
             view.gore?.update(entity);
           }
           continue;
+        }
+        // Living enemies off screen are refreshed at a reduced rate (data/offscreenActors.json); the rest are always drawn.
+        if (!contactOnly && dt > 0 && entity.kind >= 0 && entity.hp > 0 && !entity.bossProfile) {
+          if (offscreen.skip(entity, view, dt)) continue;
+        } else if (!view.root.visible) {
+          view.root.visible = true;
+          if (view.shadow) view.shadow.visible = true;
         }
         view.root.scale.setScalar(
           (world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
@@ -1502,7 +1512,7 @@ export function createActors(
           view.motion.update(
             entity,
             game.time,
-            game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
+            (game.finished && view.description.motion !== "donor-knife" ? 0 : dt) + offscreen.takePending(view),
             deathPose,
           );
         const reaction = view.hitReaction.update(

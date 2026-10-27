@@ -61,8 +61,8 @@
    "version": 1,
    "status": "pending",
    "dropPosition": {
-    "x": -16.57128010796478,
-    "z": 2.17941
+    "x": -16.64188821908931,
+    "z": 2.1718788426625393
    },
    "rewardReceipt": null,
    "selectedMeleeVariant": "knife"
@@ -71,7 +71,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "saveSha": "a5109bfbf4e0876b8b59caeb3946c629da8e44874017b6c157c10cc914fcfafd",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ],
@@ -88,8 +88,8 @@
    "version": 1,
    "status": "pending",
    "dropPosition": {
-    "x": -16.57128010796478,
-    "z": 2.17941
+    "x": -16.64188821908931,
+    "z": 2.1718788426625393
    },
    "rewardReceipt": null,
    "selectedMeleeVariant": "knife"
@@ -98,7 +98,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "saveSha": "a5109bfbf4e0876b8b59caeb3946c629da8e44874017b6c157c10cc914fcfafd",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -114,8 +114,8 @@
    "version": 1,
    "status": "pending",
    "dropPosition": {
-    "x": -16.57128010796478,
-    "z": 2.17941
+    "x": -16.64188821908931,
+    "z": 2.1718788426625393
    },
    "rewardReceipt": null,
    "selectedMeleeVariant": "knife"
@@ -124,7 +124,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "saveSha": "a5109bfbf4e0876b8b59caeb3946c629da8e44874017b6c157c10cc914fcfafd",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -140,8 +140,8 @@
    "version": 1,
    "status": "pending",
    "dropPosition": {
-    "x": -16.57128010796478,
-    "z": 2.17941
+    "x": -16.64188821908931,
+    "z": 2.1718788426625393
    },
    "rewardReceipt": null,
    "selectedMeleeVariant": "knife"
@@ -150,7 +150,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "saveSha": "a5109bfbf4e0876b8b59caeb3946c629da8e44874017b6c157c10cc914fcfafd",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -166,8 +166,8 @@
    "version": 1,
    "status": "pending",
    "dropPosition": {
-    "x": -16.57128010796478,
-    "z": 2.17941
+    "x": -16.64188821908931,
+    "z": 2.1718788426625393
    },
    "rewardReceipt": null,
    "selectedMeleeVariant": "knife"
@@ -176,7 +176,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "e409b173ef75a5f7a05e09ef49b2d2e7c24fe625fe6e967ef47511490bfa4d6c",
+  "saveSha": "a5109bfbf4e0876b8b59caeb3946c629da8e44874017b6c157c10cc914fcfafd",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -204,7 +204,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -227,7 +227,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -250,7 +250,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -273,7 +273,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -296,7 +296,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -319,7 +319,7 @@
   "pistolEquipped": true,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "d01521ac40e0776dccf60fd478bc870497f4181e1be0c61540353b4439d16a96",
+  "saveSha": "1306847b4345b62d8ec7894f9df19662cdb94de96157d3eefefea7d649e67611",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -347,7 +347,7 @@
   "pistolEquipped": false,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "saveSha": "a1a6c989666a37d8639182f383246d88bc544cd8c902e16704fbd814c3cac73b",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -370,7 +370,7 @@
   "pistolEquipped": false,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "saveSha": "a1a6c989666a37d8639182f383246d88bc544cd8c902e16704fbd814c3cac73b",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -398,7 +398,7 @@
   "pistolEquipped": false,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "99a83f71de385be88fa735983e0f6bba5d82762121a4dbd2f736d4851920182f",
+  "saveSha": "6964b60a14b5ee97658d43f860a72b4f73a0473ad1c01355d10f828a32b60a51",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -426,7 +426,7 @@
   "pistolEquipped": false,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "saveSha": "a1a6c989666a37d8639182f383246d88bc544cd8c902e16704fbd814c3cac73b",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ]
@@ -444,7 +444,7 @@
   "pistolEquipped": false,
   "area": "east",
   "dropEvents": 1,
-  "saveSha": "7d98d9584e023ebcd60599be54f3dcc6abc7f0c0d64a8c36e2ca303ce6286579",
+  "saveSha": "a1a6c989666a37d8639182f383246d88bc544cd8c902e16704fbd814c3cac73b",
   "keys": [
    "armagedom:unique-reward-run:v7"
   ],
