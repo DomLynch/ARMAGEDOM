@@ -1,6 +1,7 @@
 import { safehouseCrosses } from "./engine/safehouse.js";
 import { createRouteGuidance } from "./engine/route-guidance.js";
 import { createExitRings } from "./engine/exit-rings.js";
+import { createWorldPickups } from "./engine/world-pickups-view.js";
 import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
@@ -54,6 +55,7 @@ export class LondonWorld {
     safehouseData = null,
     reaperData = null,
     markedData = null,
+    cursedRelicData = null,
   }) {
     if (!Number.isFinite(viewZoomMultiplier) || viewZoomMultiplier < 1)
       throw Error("View zoom multiplier must be finite and at least 1");
@@ -64,6 +66,7 @@ export class LondonWorld {
     )
       throw Error("Invalid texture budget");
     this.markedData = markedData;
+    this.cursedRelicData = cursedRelicData;
     this.reaperData = reaperData;
     this.safehouseData = safehouseData;
     this.bossEquipmentData = bossEquipmentData;
@@ -156,6 +159,7 @@ export class LondonWorld {
     this.depthMaterial = depth;
     this.routeGuidance = createRouteGuidance(this);
     this.exitRings = createExitRings(this);
+    this.worldPickups = createWorldPickups(this);
     scene.add(this.group);
     this.update(this.spawn, 0, VIEW.artSize[0], VIEW.artSize[1], true);
   }
@@ -402,6 +406,7 @@ export class LondonWorld {
         this.populationData,
         this.flameData,
         this.safehouseData,
+        this.cursedRelicData,
       );
       const texture = await new this.THREE.TextureLoader().loadAsync(
         new URL(this.registry.asset(row.backdropRef).path, this.baseUrl).href,
@@ -436,12 +441,15 @@ export class LondonWorld {
           safehouseData: this.safehouseData,
           reaperData: this.reaperData,
           markedData: this.markedData,
+          cursedRelicData: this.cursedRelicData,
           rifleData: this.rifleData,
           flameData: this.flameData,
         });
         next.areaId = areaId;
         next.exitRings.dispose(); // built in the constructor for the initial area; rebuilt for the area this stage really is
         next.exitRings = createExitRings(next);
+        next.worldPickups.dispose();
+        next.worldPickups = createWorldPickups(next);
         cache.stages.set(areaId, next);
         cache.usage.set(areaId, cache.nextUse++);
         return next;
@@ -583,6 +591,7 @@ export class LondonWorld {
     this.disposed = true;
     this.routeGuidance?.dispose();
     this.exitRings?.dispose();
+    this.worldPickups?.dispose();
     this.group.removeFromParent();
     this.group.traverse((object) => object.geometry?.dispose());
     this.backdrop.material.dispose();
@@ -636,6 +645,7 @@ export async function createWorld({
     content?.populationData,
     content?.flameData,
     content?.safehouseData,
+    content?.cursedRelicData,
   );
   const geometry = createGeometry(layout);
   if (!geometry.clear(initialSpawn(geometry, registry), VIEW.entryClearance)) throw Error("London starting spawn is blocked");
@@ -670,6 +680,7 @@ export async function createWorld({
       safehouseData: content?.safehouseData,
       reaperData: content?.reaperData,
       markedData: content?.markedData,
+      cursedRelicData: content?.cursedRelicData,
       rifleData: content?.rifleData,
       flameData: content?.flameData,
     });
