@@ -12,6 +12,8 @@
   --safe-r: max(14px, env(safe-area-inset-right));
   --safe-t: max(12px, env(safe-area-inset-top));
   --safe-b: max(18px, env(safe-area-inset-bottom));
+  /* Clear space between the bottom of the top-left HUD block (health, stamina, area line) and the first yellow line, hint or toast. */
+  --hud-status-gap: 22px;
 }
 /* Every game/HUD leaf inherits the zoom lock; real scrollers override below. */
 * {
@@ -77,6 +79,7 @@ summary:focus-visible {
   pointer-events: none;
 }
 #vitals {
+  margin-bottom: var(--hud-status-gap);
   width: clamp(170px, 25vw, 240px);
   text-shadow: 0 1px 3px #000;
   font-size: 11px;
@@ -660,10 +663,7 @@ summary {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* Dom's phone run: the route line crowded the area line above it, so it sits a little lower with clear space between. */
-#notice:not(.hint) {
-  margin-top: 8px;
-}
+/* Dom's phone run: the route line and toasts crowded the HUD above them; the clear space is #vitals' margin-bottom (--hud-status-gap). */
 #notice:empty,
 #expedition-objective:empty,
 #marked-status:empty {

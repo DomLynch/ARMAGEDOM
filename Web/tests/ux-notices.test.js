@@ -39,3 +39,12 @@ test("a boxed first-time hint waits while the route line shows, and is not used 
   assert.match(hints.current(g, true), /^$/, "still waiting, nothing consumed");
   assert.match(hints.current(g, false), /SLASH or STAB/, "it shows once the route line is gone");
 });
+
+test("the yellow route line and toasts sit a clear gap (>= 20px) below the HUD block, set by one CSS variable", async () => {
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
+  const gap = /--hud-status-gap:\s*(\d+)px/.exec(css);
+  assert.ok(gap && Number(gap[1]) >= 20, "the gap is a CSS variable of at least 20px");
+  assert.match(/#vitals\s*\{([^}]*)\}/.exec(css)[1], /margin-bottom:\s*var\(--hud-status-gap\)/);
+  assert.doesNotMatch(css, /#notice:not\(\.hint\)\s*\{\s*margin-top/, "no second, smaller offset on the notice");
+});

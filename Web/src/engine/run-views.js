@@ -27,7 +27,8 @@ import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
-import { GAME_DATA } from "./game-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 // The weapon summary lines quote these rows of data/weapons.json, so the text cannot drift from what the weapon does.
 const GRENADE = GAME_DATA.weapons.ranged["standard-grenade-v1"],
   ROCKET = GAME_DATA.weapons.ranged["borough-butchers-rocket-launcher-v1"],
@@ -41,7 +42,12 @@ export function claimStartingPistol(g, dispatch, clearInput) {
   const result = dispatch(g, { type: "claimPickup", pickupId: "westminster-start-pistol-v1" }, true);
   if (result.ok) {
     g.events.push(...result.events);
-    clearInput(); // no message: the pistol tile already shows the loaded and spare rounds
+    // Picking the pistol up equips it: say so ("Starting Pistol equipped."), without repeating the rounds the pistol tile shows.
+    g.message = fillText(GAME_DATA.combatText.gear.equipped, {
+      name: g.world.expeditionData?.variants?.[PISTOL_ITEM_ID]?.name ?? webText("summary.pistolDefaultName"),
+    });
+    g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
+    clearInput();
   }
   return true;
 }
