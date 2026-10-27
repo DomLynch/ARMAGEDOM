@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "22530cca5f7f9e0964b7ecd61c2f62e51beeb8c4dc78b65be26cf3ec803b5ce9"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down; the area8, elephant-and-castle and east-bridge layouts lost their painted-out depth masks and their phone backdrops were painted; six phone backdrops colour-graded to the Westminster/East/South look (art/backdrop-grade); lambeth: camera zoomed out, lamp-post pocket made walkable, backdrop sharpened and the lamp painted out
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "a7308113fe500f345a8188c336aea7de393660ad6cb5f6b987c8f67d510f1c36"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down; the area8, elephant-and-castle and east-bridge layouts lost their painted-out depth masks and their phone backdrops were painted; six phone backdrops colour-graded to the Westminster/East/South look (art/backdrop-grade); lambeth: layout zoom lowered 20%, lamp-post pocket made walkable, backdrop sharpened and the lamp painted out
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {

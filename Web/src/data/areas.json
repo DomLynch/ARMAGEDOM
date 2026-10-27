@@ -505,8 +505,8 @@
     "layout.lambeth": {
       "kind": "layout",
       "path": "world/lambeth/layout.json",
-      "sha256": "30238482e0675e8cbe2676916c493b111f8c98300c556673d2fe21b2606cab4f",
-      "bytes": 6897
+      "sha256": "3ffe4c7dd094b9b0316a540230dada23a1baf83eb89cb50e15a51c248bb0b7f3",
+      "bytes": 6891
     },
     "backdrop.lambeth": {
       "kind": "backdrop",
