@@ -41,6 +41,8 @@ import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
 import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
+import trapCrates from "../data/trapCrates.json" with { type: "json" };
+import { validateTrapCrates } from "./game-data-trap-crates.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -1034,6 +1036,7 @@ const sources = () => ({
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],
   worldEvents: [worldEvents, validateWorldEvents],
+  trapCrates: [trapCrates, validateTrapCrates],
 });
 
 /**

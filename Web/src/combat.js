@@ -22,6 +22,7 @@ import {
   prepareSafehouseStep,
 } from "./engine/safehouse.js";
 import { stepRockets } from "./engine/rocket-runtime.js";
+import { stepTrapCrates } from "./engine/trap-crate.js";
 import { bossEquipmentIntent, selectedBossRanged, stepBossGrenades } from "./engine/boss-weapon-runtime.js";
 import { bossEquipmentClock } from "./engine/boss-equipment-data.js";
 import { rifleActionState } from "./engine/rifle-runtime.js";
@@ -1231,6 +1232,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     t = g.time;
   stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
   stepRockets(g, (...args) => rangedHit(g, ...args), services);
+  stepTrapCrates(g, receiveHit, services);
   intent = mobileControl(g, intent, dt, services);
   intent = applyTouchTarget(g, intent, services);
   if (g.rifleAction && (intent.cancel || g.flame?.equipped)) g.rifleAction.reloadingUntil = 0;
