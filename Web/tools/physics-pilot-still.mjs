@@ -14,7 +14,11 @@ try { ({ chromium } = await import("playwright-core")); } catch {
 }
 const server = await createServer({ server: { port: PORT, host: "127.0.0.1", strictPort: true } });
 await server.listen();
-const browser = await chromium.launch({ headless: true, args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.CHROME || undefined,
+  args: process.env.REAL_GPU ? ["--ignore-gpu-blocklist", "--enable-gpu"] : ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+});
 const open = async (query, block = false) => {
   const page = await (await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 })).newPage(),
     logs = [];
@@ -22,7 +26,10 @@ const open = async (query, block = false) => {
   page.on("pageerror", (e) => logs.push(`PAGEERROR ${e.message}`));
   if (block) await page.route("**/physics-death-impl*", (r) => r.abort());
   await page.goto(`http://127.0.0.1:${PORT}/tools/physics-pilot-stand.html${query}`);
-  await page.waitForFunction(() => window.stand?.ready, null, { timeout: 120000 });
+  await page.waitForFunction(() => window.stand?.ready, null, { timeout: 40000 }).catch((e) => {
+    console.log(logs.join("\n"));
+    throw e;
+  });
   await page.waitForTimeout(query.includes("physics=1") ? 8000 : 500); // the idle preload of the lazy chunk
   return { page, logs };
 };

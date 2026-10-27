@@ -2,6 +2,7 @@
 // ?physics=1 turns the ragdoll on, exactly as in the game. window.stand drives it deterministically for stills and measures frames.
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { physicsDeathStep, preloadPhysicsDeath, physicsDeathEnabled } from "../src/physics-death.js";
 
@@ -17,10 +18,10 @@ scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 2.2);
 sun.position.set(2, 4, 3);
 scene.add(sun, new THREE.Mesh(new THREE.PlaneGeometry(20, 20).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x343a42 })));
-camera.position.set(0, 2.1, 5.2);
-camera.lookAt(0, 0.7, 0);
+camera.position.set(0, 3.4, 8.6); // wide enough for a 1.8 m corpse lying across a 375 px portrait frame
+camera.lookAt(0, 0.5, 0);
 
-const gltf = await new GLTFLoader().loadAsync("/assets/hunters/hunter-pitborn-106.glb"),
+const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync("/assets/hunters/hunter-pitborn-106.glb"),
   root = new THREE.Group(),
   model = clone(gltf.scene);
 model.traverse((o) => { if (o.name.startsWith("cap_")) o.visible = false; }); // starterHidden in manifest-hollow.json

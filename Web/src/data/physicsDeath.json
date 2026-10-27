@@ -8,7 +8,7 @@
   "settleSeconds": 5,
   "removeSeconds": 8,
   "preloadIdleMs": 2500,
-  "killImpulse": [0, 0, -30],
+  "killImpulse": [0, 0, -4],
   "parts": {
     "hips": "Hips", "spine": "Spine", "spine1": "Spine1", "spine2": "Spine2", "neck": "Neck", "head": "Head",
     "armLeft": "LeftArm", "armRight": "RightArm", "forearmLeft": "LeftForeArm", "forearmRight": "RightForeArm",

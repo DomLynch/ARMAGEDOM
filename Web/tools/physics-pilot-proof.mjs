@@ -24,7 +24,7 @@ console.log("WASM (separate asset)", JSON.stringify(readdirSync(`${out}/assets`)
 const { build } = await import("esbuild");
 const meta = await build({
   entryPoints: ["src/physics-death-impl.js"], bundle: true, write: false, minify: true, metafile: true, format: "esm", platform: "browser",
-  external: ["three"], loader: { ".wasm": "dataurl" }, logLevel: "silent",
+  external: ["three", "node:*"], loader: { ".wasm": "dataurl" }, logLevel: "silent",
   alias: process.env.PHYSICS_WASM === "inline" ? {} : { "jolt-physics/wasm-compat": "./src/jolt-wasm-separate.js" },
   plugins: [{ name: "wasm-url", setup: (b) => b.onResolve({ filter: /\?url$/ }, (a) => ({ path: a.path.replace(/\?url$/, ""), external: true })) }],
 });
