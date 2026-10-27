@@ -11,6 +11,8 @@ export function progressionOptions(g) {
         (world.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? []).map((row) => ({ key: row.key })),
       ]),
     );
+  for (const [area, list] of Object.entries(GAME_DATA.spawns.reservedPlacements ?? {}))
+    for (const key of list) if (placements[area] && !placements[area].some((row) => row.key === key)) placements[area].push({ key });
   for (const [key, area] of Object.entries(DRONE_KEYS))
     if (placements[area] && !placements[area].some((row) => row.key === key)) placements[area].push({ key });
   return {
