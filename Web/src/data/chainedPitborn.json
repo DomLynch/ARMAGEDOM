@@ -8,8 +8,25 @@
   "at": { "x": 0.132, "y": 0.574 },
   "facesToward": { "x": 0.5, "y": 0.8075 },
   "scaleMultiplier": 2.7,
-  "emissive": { "color": "5a2410", "intensity": 0.14 },
+  "emissive": { "color": "8a3a10", "intensity": 0.07 },
+  "rim": { "color": "ff8a3c", "power": 3, "strength": 0.2 },
+  "horns": {
+    "sides": [-1, 1],
+    "radius": 0.14,
+    "length": 0.85,
+    "segments": 10,
+    "spread": 0.2,
+    "up": 0.3,
+    "forward": 0,
+    "tiltForwardDegrees": 20,
+    "tiltOutDegrees": 38,
+    "color": "d9cdb0",
+    "emissive": "2a2418",
+    "roughness": 0.6
+  },
+  "flicker": { "amount": 0.7, "hz": 6.5, "ratio": 2.3, "norm": 2 },
   "hidePreviewSafehouse": true,
+  "hidePreviewPickups": true,
   "motion": {
     "clips": [
       { "clip": "Attack", "loop": "pingpong", "timeScale": 0.8, "weight": 1 },
@@ -23,12 +40,13 @@
     "shakeHz": 19,
     "headTurnDegrees": 14,
     "headTurnSeconds": 6.5,
-    "headBone": "mixamorig:Head"
+    "headBone": "mixamorig:Head",
+    "footBones": ["mixamorig:LeftToe_End", "mixamorig:RightToe_End"]
   },
   "chains": {
     "links": 14,
     "linkSegments": [6, 10],
-    "anchorSegments": [8, 6],
+    "anchorSegments": [8, 16],
     "linkPhase": 0.5,
     "linkStretch": 1.7,
     "linkLength": 0.28,
@@ -37,8 +55,11 @@
     "color": "6a6a72",
     "roughness": 0.55,
     "metalness": 0.9,
-    "sagMetres": 0.35,
-    "anchorRadius": 0.18,
+    "sagMetres": 0.8,
+    "anchorRadius": 0.22,
+    "anchorTube": 0.05,
+    "plateSize": 0.6,
+    "plateThickness": 0.08,
     "anchorColor": "26252a",
     "rows": [
       { "bone": "mixamorig:LeftHand", "anchor": { "x": 0.07, "y": 0.575 }, "height": 0.4 },

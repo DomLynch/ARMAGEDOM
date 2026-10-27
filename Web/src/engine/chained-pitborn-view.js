@@ -9,6 +9,7 @@ const D = GAME_DATA.chainedPitborn,
   M = D.motion,
   C = D.chains,
   P = D.dust,
+  F = D.flicker,
   TURN = T.MathUtils.DEG2RAD * 360, // one full turn in radians
   QUARTER = T.MathUtils.DEG2RAD * 90,
   VEC = new T.Vector3().toArray().length, // floats per position or colour
@@ -34,7 +35,7 @@ export function createChainedPitbornView(s) {
     last = null,
     lastPulse = 0;
   const show = (p, on) => {
-    p.root.visible = p.link.visible = p.plate.visible = p.points.visible = on;
+    p.root.visible = p.link.visible = p.plate.visible = p.backplate.visible = p.points.visible = on;
   };
   function build(w, source) {
     const root = new T.Group(),
@@ -43,15 +44,32 @@ export function createChainedPitbornView(s) {
       ground = w.geometry.ground(D.at),
       toward = w.geometry.ground(D.facesToward),
       scale = (w.layout.characterScale ?? 1) * (source.description.scale ?? 1) * D.scaleMultiplier;
+    const skin = [],
+      rim = { color: { value: hex(D.rim.color) }, power: { value: D.rim.power }, strength: { value: D.rim.strength } };
     model.traverse((o) => {
       if (hidden.has(o.name)) o.visible = false;
       if (!o.isMesh) return;
       o.frustumCulled = false;
-      // Own copies: the warm emissive keeps the dark body readable against the street, and the shared source stays untouched.
+      // Own copies (the shared source stays untouched): a dim firelight emissive that flickers, and a fresnel rim so the horned
+      // silhouette and the shoulders read against the dark street.
       o.material = o.material.clone();
       o.material.emissive?.set(hex(D.emissive.color));
-      o.material.emissiveIntensity = D.emissive.intensity;
+      o.material.onBeforeCompile = (shader) => {
+        Object.assign(shader.uniforms, { rimColor: rim.color, rimPower: rim.power, rimStrength: rim.strength });
+        shader.fragmentShader = shader.fragmentShader
+          .replace("#include <common>", "#include <common>\nuniform vec3 rimColor;\nuniform float rimPower;\nuniform float rimStrength;")
+          .replace(
+            "#include <opaque_fragment>",
+            [
+              "float facing = saturate(dot(normalize(vNormal), normalize(vViewPosition)));",
+              "outgoingLight += rimColor * rimStrength * pow(1.0 - facing, rimPower);",
+              "#include <opaque_fragment>",
+            ].join("\n"),
+          );
+      };
+      skin.push(o.material);
     });
+    const foot = D.motion.footBones.map((name) => model.getObjectByName(T.PropertyBinding.sanitizeNodeName(name))).filter(Boolean);
     root.add(model);
     root.scale.setScalar(scale);
     root.position.copy(w.toRender(ground));
@@ -68,19 +86,43 @@ export function createChainedPitbornView(s) {
       bones = C.rows.map((row) => model.getObjectByName(sanitize(row.bone))),
       head = model.getObjectByName(sanitize(M.headBone)),
       fixed = C.rows.map((row) => w.toRender(w.geometry.ground(row.anchor), row.height));
+    // The GLB's head has no horns: two bone-coloured cones ride the head bone so the silhouette reads as a bull-man.
+    const H = D.horns,
+      horn = new T.Mesh(
+        new T.ConeGeometry(H.radius, H.length, H.segments).translate(0, H.length / 2, 0),
+        new T.MeshStandardMaterial({ color: hex(H.color), emissive: hex(H.emissive), roughness: H.roughness }),
+      );
+    root.updateMatrixWorld(true);
+    const unit = head ? 1 / head.getWorldScale(tmp.v).x : 0;
+    for (const side of H.sides) {
+      const m = horn.clone();
+      m.scale.setScalar(unit);
+      m.position.set(side * H.spread, H.up, H.forward).multiplyScalar(unit);
+      m.rotation.set(H.tiltForwardDegrees * T.MathUtils.DEG2RAD, 0, -side * H.tiltOutDegrees * T.MathUtils.DEG2RAD);
+      head?.add(m);
+    }
     const metal = { roughness: C.roughness, metalness: C.metalness },
       link = new T.InstancedMesh(
         new T.TorusGeometry(C.linkRadius, C.linkTube, ...C.linkSegments),
         new T.MeshStandardMaterial({ color: hex(C.color), ...metal }),
         C.rows.length * C.links,
       ),
+      // An iron ring bolted through a square backplate, one pair per chain: the chain's end passes through the ring.
       plate = new T.InstancedMesh(
-        new T.SphereGeometry(C.anchorRadius, ...C.anchorSegments),
+        new T.TorusGeometry(C.anchorRadius, C.anchorTube, ...C.anchorSegments),
+        new T.MeshStandardMaterial({ color: hex(C.anchorColor), ...metal }),
+        C.rows.length,
+      ),
+      backplate = new T.InstancedMesh(
+        new T.BoxGeometry(C.plateSize, C.plateSize, C.plateThickness),
         new T.MeshStandardMaterial({ color: hex(C.anchorColor), ...metal }),
         C.rows.length,
       );
-    link.frustumCulled = false;
-    fixed.forEach((at, i) => plate.setMatrixAt(i, tmp.m.makeTranslation(at.x, at.y, at.z)));
+    link.frustumCulled = plate.frustumCulled = backplate.frustumCulled = false;
+    fixed.forEach((at, i) => {
+      plate.setMatrixAt(i, tmp.m.makeTranslation(at.x, at.y, at.z + C.plateThickness));
+      backplate.setMatrixAt(i, tmp.m.makeTranslation(at.x, at.y, at.z));
+    });
     const geometry = new T.BufferGeometry(),
       pos = new Float32Array(P.count * VEC),
       col = new Float32Array(P.count * VEC),
@@ -100,8 +142,11 @@ export function createChainedPitbornView(s) {
       }),
     );
     points.frustumCulled = false;
-    s.scene.add(root, link, plate, points);
-    return { root, model, mixer, bones, head, fixed, link, plate, points, geometry, pos, col, born, seed, home, base: root.rotation.y, next: 0 };
+    s.scene.add(root, link, plate, backplate, points);
+    return {
+      ...{ root, model, mixer, bones, head, fixed, link, plate, backplate, points, skin, foot, horn },
+      ...{ geometry, pos, col, born, seed, home, base: root.rotation.y, next: 0 },
+    };
   }
   function burst(p, time, feet) {
     const dust = hex(P.dustColor),
@@ -136,6 +181,15 @@ export function createChainedPitbornView(s) {
     p.root.rotation.y = p.base;
     if (p.head) p.head.rotation.y += T.MathUtils.degToRad(M.headTurnDegrees) * Math.sin((t / M.headTurnSeconds) * TURN);
     p.root.updateMatrixWorld(true);
+    // Feet stay on the stone: the lowest sole of the lunge is brought back to the step height.
+    let low = Infinity;
+    for (const f of p.foot) low = Math.min(low, f.getWorldPosition(tmp.v).y);
+    if (low < Infinity) {
+      p.root.position.y += p.home.y - low;
+      p.root.updateMatrixWorld(true);
+    }
+    const flicker = 1 + F.amount * (Math.sin(t * F.hz * TURN) + Math.sin(t * F.hz * F.ratio * TURN)) / F.norm;
+    for (const m of p.skin) m.emissiveIntensity = D.emissive.intensity * flicker;
     const slack = 1 - pull,
       point = (x, out) =>
         out.lerpVectors(tmp.a, tmp.b, x).addScaledVector(DOWN, C.sagMetres * slack * Math.sin(Math.PI * x));
@@ -169,11 +223,13 @@ export function createChainedPitbornView(s) {
   }
   function drop() {
     if (!parts) return;
-    for (const o of [parts.root, parts.link, parts.plate, parts.points]) o.removeFromParent();
-    for (const o of [parts.link, parts.plate, parts.points]) {
+    for (const o of [parts.root, parts.link, parts.plate, parts.backplate, parts.points]) o.removeFromParent();
+    for (const o of [parts.link, parts.plate, parts.backplate, parts.points]) {
       o.geometry.dispose();
       o.material.dispose();
     }
+    parts.horn.geometry.dispose();
+    parts.horn.material.dispose();
     parts.mixer.stopAllAction();
     parts.model.traverse((o) => o.isMesh && o.material.dispose());
     parts = null;

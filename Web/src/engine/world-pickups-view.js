@@ -1,5 +1,7 @@
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { GAME_DATA } from "./game-data.js";
+import { chainedPitbornOn } from "./chained-pitborn-view.js";
 import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
@@ -68,7 +70,10 @@ export function createWorldPickups(world) {
     // Once a frame: draw each pickup that is not taken.
     sync(g) {
       const until = worldPickupState(g).until;
-      for (const part of parts) for (let i = 0; i < part.rows.length; i++) show(part, i, until[part.rows[i].id] === undefined);
+      // The chained Pitborn look preview clears the street of pickup icons so the set-piece reads alone.
+      const hidden = chainedPitbornOn() && !GAME_DATA.chainedPitborn.enabled && GAME_DATA.chainedPitborn.hidePreviewPickups;
+      for (const part of parts)
+        for (let i = 0; i < part.rows.length; i++) show(part, i, !hidden && until[part.rows[i].id] === undefined);
     },
     dispose() {
       if (disposed) return;
