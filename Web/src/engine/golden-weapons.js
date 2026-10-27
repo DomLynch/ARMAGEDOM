@@ -79,9 +79,12 @@ export function grantBossGolden(g) {
   for (const e of g.events ?? []) if (e.type === "boss-defeated" && rollBossGolden(g, e.placementKey)) granted++;
   return granted;
 }
-/** The loot outcome for an id this module owns (null for any other): fn(g, row) returns true when it granted something. The airdrop registers this one. */
+/**
+ * The loot outcome for an id this module owns (null for any other): fn(g, row) returns true when it granted a gun
+ * (the cash fallback returns false). The airdrop registers this one.
+ */
 export const lootOutcome = (id) =>
-  id === GOLDEN_WEAPON_OUTCOME ? (g, row) => !!grantGoldenWeapon(g, goldenRoll(g, row?.key ?? "loot")) : null;
+  id === GOLDEN_WEAPON_OUTCOME ? (g, row) => grantGoldenWeapon(g, goldenRoll(g, row?.key ?? "loot")).kind === "golden" : null;
 
 /** The gold look as a three.js material: a copy of the weapon's own material with the data's colour, metalness, roughness, emissive. */
 export function goldMaterial(source, look = GOLD.material) {

@@ -74,6 +74,7 @@ function open(g) {
     const result = applyAirdropOutcome(g, row);
     if (row.id === "cash") cash = result || 0;
   }
+  const carried = g.marked?.carried ?? 0;
   let roll = chance(g) * loot.bonus.reduce((sum, row) => sum + row.weight, 0),
     golden = false;
   for (const row of loot.bonus) {
@@ -82,7 +83,9 @@ function open(g) {
     golden = row.id !== "none" && !!applyAirdropOutcome(g, row);
     break;
   }
-  return webText(golden ? "airdrop.openedGolden" : "airdrop.opened", { cash });
+  const extra = (g.marked?.carried ?? 0) - carried;
+  if (golden) return webText("airdrop.openedGolden", { cash });
+  return extra > 0 ? webText("airdrop.openedCashFallback", { cash, extra }) : webText("airdrop.opened", { cash });
 }
 
 function hudLine(g, a) {

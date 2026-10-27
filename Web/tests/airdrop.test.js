@@ -5,6 +5,7 @@ import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateAirdrop } from "../src/engine/game-data-airdrop.js";
 import { stepAirdrop, airdropPull, pickLanding } from "../src/engine/airdrop.js";
 import { registerAirdropOutcome, applyAirdropOutcome } from "../src/engine/airdrop-effects.js";
+import { lootOutcome } from "../src/engine/golden-weapons.js";
 
 const DATA = GAME_DATA.airdrop,
   raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/airdrop.json", import.meta.url)))),
@@ -137,6 +138,23 @@ test("a registered golden-weapon outcome is applied when the bonus roll lands on
   run(g, DATA.crate.holdSeconds + 1);
   assert.deepEqual(granted, ["golden-weapon"]);
   assert.match(g.message, /golden weapon was inside/);
+  registerAirdropOutcome("golden-weapon", () => false);
+});
+
+test("a golden roll that pays the cash fallback says so, not that a golden weapon was inside", () => {
+  registerAirdropOutcome("golden-weapon", lootOutcome("golden-weapon"));
+  const g = game();
+  g.random = (() => {
+    let n = 0;
+    return () => (n++ < 20 ? 0.4 : 0);
+  })();
+  until(g, "landed");
+  g.random = () => 0;
+  g.player.pos = { ...g.airdrop.crate };
+  run(g, DATA.crate.holdSeconds + 1);
+  assert.equal(g.marked.carried, 150 + GAME_DATA.goldenWeapons.fallbackCash);
+  assert.match(g.message, /found\. Bonus \$250 cash\.$/);
+  assert.doesNotMatch(g.message, /golden weapon was inside/);
   registerAirdropOutcome("golden-weapon", () => false);
 });
 
