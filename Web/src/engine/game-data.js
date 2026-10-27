@@ -454,7 +454,7 @@ export function validateVisual(d) {
 // and which of those residents walk with the crooked gait. The rest of the area-content rules (geometry, creature identity, health
 // range, a boss or unique-reward row naming a placement) are checked where the rows are used (engine/area-content.js).
 export function validateSpawns(d) {
-  closed(d, ["schema_version", "maxResidentHealth", "mob", "drones", "crookedResidents"]);
+  closed(d, ["schema_version", "maxResidentHealth", "mob", "drones", "crookedResidents"], ["reservedPlacements"]);
   // maxResidentHealth: the most health a placement's `encounter` row may give a resident (area-mob-spawns.js residentEncounterHealth).
   count("spawns", "maxResidentHealth", d.maxResidentHealth, 1, 10000);
   const keys = new Set(),
@@ -484,6 +484,14 @@ export function validateSpawns(d) {
     fail("spawns", "crookedResidents");
   const mobKeys = new Set(Object.values(d.mob).flatMap((list) => list.map((row) => row.key)));
   if (d.crookedResidents.some((key) => !mobKeys.has(key))) fail("spawns", "crookedResidents must name a mob row");
+  // reservedPlacements: keys a later release will spawn. They are registered with the save reader now (progression registry) and
+  // spawn nothing, so a rollback to this release still reads saves that already name them. A key moves to its real row on that release.
+  for (const [area, list] of Object.entries(d.reservedPlacements ?? {})) {
+    if (!/^[a-z][a-z0-9-]*$/.test(area) || !Array.isArray(list) || new Set(list).size !== list.length)
+      fail("spawns", `reservedPlacements.${area}`);
+    if (list.some((key) => typeof key !== "string" || !/^[a-z][a-z0-9-]*$/.test(key) || keys.has(key)))
+      fail("spawns", `reservedPlacements.${area} key`);
+  }
 }
 
 // worldEvents.json: how the world-event journal reads the legacy run (engine/world-events.js). The legacy event types that become
