@@ -16,7 +16,7 @@ const raw = () => structuredClone(JSON.parse(rawText));
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url)));
 
 test("the data file is pinned", () => {
-  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "4a8adf35b8a140efae82728d73f3c29b974b8a050dc123dd402bb370223b9d26"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down; the area8, elephant-and-castle and east-bridge layouts lost their painted-out depth masks and their phone backdrops were painted; six phone backdrops colour-graded to the Westminster/East/South look (art/backdrop-grade)
+  assert.equal(crypto.createHash("sha256").update(rawText).digest("hex"), "3b0872e9442b300e01dc1060c991b682db6eec76685b5825d6153ba34b36ae8a"); // re-pinned: exits follow the 3x3 map grid (24 links, grid-links.test.js); Westminster exits all need the Matron down; the area8, elephant-and-castle and east-bridge layouts lost their painted-out depth masks and their phone backdrops were painted; six phone backdrops colour-graded to the Westminster/East/South look (art/backdrop-grade); south: the road opens north through the barrel/wreck gap and past the statue plinth, the bus footprint is shorter at its right end, and the sandbag pile, crate and barrel beside the plinth are painted out (art/backdrop-paint-out, world/south-clears)
 });
 
 test("areaDefinitions and areaAssets equal the old in-code export (values and key order) except the one stale identity row, and are frozen", () => {
