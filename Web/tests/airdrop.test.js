@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateAirdrop } from "../src/engine/game-data-airdrop.js";
 import { stepAirdrop, airdropPull, pickLanding } from "../src/engine/airdrop.js";
-import { registerAirdropOutcome, medkit, cash } from "../src/engine/airdrop-effects.js";
+import { registerAirdropOutcome, applyAirdropOutcome } from "../src/engine/airdrop-effects.js";
 
 const DATA = GAME_DATA.airdrop,
   raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/airdrop.json", import.meta.url)))),
@@ -203,8 +203,8 @@ test("a boss's home leash stretches to cover the crate while it lies there, and 
 
 test("the effect adapters heal and pay as the bundle names them", () => {
   const g = game();
-  assert.equal(medkit(g, { fraction: 0.25 }), true);
+  assert.equal(applyAirdropOutcome(g, { id: "medkit", fraction: 0.25 }), true);
   assert.equal(g.player.hp, 75);
-  assert.equal(cash(g, { amount: 40 }), 40);
+  assert.equal(applyAirdropOutcome(g, { id: "cash", amount: 40 }), 40);
   assert.equal(g.marked.carried, 40);
 });

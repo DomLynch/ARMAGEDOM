@@ -34,9 +34,7 @@ export function validateAirdrop(d) {
   closed(d.convergence, ["enabled", "engageRadius", "leashPadding", "arriveRadius"]);
   if (typeof d.convergence.enabled !== "boolean") fail("airdrop", "convergence.enabled must be a boolean");
   for (const f of ["engageRadius", "leashPadding", "arriveRadius"]) number("airdrop", `convergence.${f}`, d.convergence[f], 0);
-  closed(d.loot, ["reservePaths", "bundle", "bonus"]);
-  for (const path of Object.values(d.loot.reservePaths ?? {}))
-    if (!Array.isArray(path) || path.length < 2 || path.some((key) => typeof key !== "string" || !key)) fail("airdrop", "loot.reservePaths needs key paths");
+  closed(d.loot, ["bundle", "bonus"]);
   if (!Array.isArray(d.loot.bundle) || !Array.isArray(d.loot.bonus) || d.loot.bonus.length < 1) fail("airdrop", "loot needs a bundle and a bonus table");
   for (const row of d.loot.bundle) {
     closed(row, ["id"], ["amount", "fraction"]);
@@ -50,13 +48,14 @@ export function validateAirdrop(d) {
     number("airdrop", "loot.bonus.weight", row.weight, 0);
   }
   const colours = ["shadowColour", "flareColour", "crateColour", "crateTrimColour", "canopyColour"],
-    shares = ["shadowOpacity", "flareOpacity", "flareTaper", "shadowBodyShare", "shadowWingChord", "crateTrimShare"],
+    shares = ["shadowOpacity", "flareOpacity", "flareTopOpacity", "flareGlowOpacity", "shadowBodyShare", "shadowWingChord", "crateTrimShare"],
     sizes = [
       "shadowLength",
       "shadowWidth",
       "groundLift",
       "flareHeight",
       "flareRadius",
+      "flareGrow",
       "flareRiseSeconds",
       "flareSway",
       "flareGlowRadius",

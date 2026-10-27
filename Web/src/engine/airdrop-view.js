@@ -35,7 +35,7 @@ export function createAirdropView(scene, toRender) {
       basic(colour, { transparent: true, opacity, depthWrite: false, side: T.DoubleSide, ...extra }),
     dot = softDot(style.texturePx),
     shadowMaterial = ghost(style.shadowColour, style.shadowOpacity),
-    glowMaterial = ghost(style.flareColour, style.flareOpacity, { map: dot }),
+    glowMaterial = ghost(style.flareColour, style.flareGlowOpacity, { map: dot }),
     puffMaterial = new T.SpriteMaterial({
       color: `#${style.flareColour}`,
       map: dot,
@@ -60,8 +60,9 @@ export function createAirdropView(scene, toRender) {
     canopy = new T.Mesh(canopyCone, basic(style.canopyColour)),
     flare = new T.Group(),
     glow = new T.Mesh(glowPlane, glowMaterial),
-    puffs = Array.from({ length: style.flarePuffs }, () => new T.Sprite(puffMaterial)),
-    materials = [shadowMaterial, glowMaterial, puffMaterial, body.material, trim.material, canopy.material];
+    // One material per puff: each fades on its own as it rises.
+    puffs = Array.from({ length: style.flarePuffs }, () => new T.Sprite(puffMaterial.clone())),
+    materials = [shadowMaterial, glowMaterial, puffMaterial, body.material, trim.material, canopy.material, ...puffs.map((p) => p.material)];
   shadow.add(new T.Mesh(bodyShape, shadowMaterial), new T.Mesh(wingShape, shadowMaterial));
   canopy.position.y = style.crateSize + style.canopyHeight; // the canopy rides above the crate on its cords
   crate.add(body, trim, canopy);
@@ -100,12 +101,13 @@ export function createAirdropView(scene, toRender) {
       flare.position.x += sway;
       place(glow, a.crate, style.groundLift);
       const beat = Math.cos((g.time * Math.PI) / style.pulseSeconds);
-      glowMaterial.opacity = style.flareOpacity * beat * beat;
+      glowMaterial.opacity = style.flareGlowOpacity * beat * beat;
       puffs.forEach((puff, i) => {
         const rise = (g.time / style.flareRiseSeconds + i / puffs.length) % 1,
           wobble = Math.sin(g.time * style.swayRate + i) * style.flareSway * rise;
         puff.position.set(wobble, rise * style.flareHeight, 0);
-        puff.scale.setScalar(size * (1 - rise * style.flareTaper));
+        puff.scale.setScalar(size * (1 + rise * style.flareGrow));
+        puff.material.opacity = style.flareOpacity + (style.flareTopOpacity - style.flareOpacity) * rise;
       });
     },
     dispose() {
