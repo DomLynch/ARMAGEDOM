@@ -19,6 +19,19 @@ const size = (file) => {
   };
 };
 const js = readdirSync(`${out}/assets`).filter((f) => f.endsWith(".js"));
+console.log("WASM (separate asset)", JSON.stringify(readdirSync(`${out}/assets`).filter((f) => f.endsWith(".wasm")).map(size)));
+// What is inside the lazy chunk: bytes per input, to show three-cuts and friends are not pulled in.
+const { build } = await import("esbuild");
+const meta = await build({
+  entryPoints: ["src/physics-death-impl.js"], bundle: true, write: false, minify: true, metafile: true, format: "esm", platform: "browser",
+  external: ["three"], loader: { ".wasm": "dataurl" }, logLevel: "silent",
+  alias: process.env.PHYSICS_WASM === "inline" ? {} : { "jolt-physics/wasm-compat": "./src/jolt-wasm-separate.js" },
+  plugins: [{ name: "wasm-url", setup: (b) => b.onResolve({ filter: /\?url$/ }, (a) => ({ path: a.path.replace(/\?url$/, ""), external: true })) }],
+});
+const inputs = Object.entries(Object.values(meta.metafile.outputs)[0].inputs).sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput);
+console.log("LAZY CHUNK INPUTS (bytes in output)");
+for (const [k, v] of inputs.slice(0, 12)) console.log(`  ${v.bytesInOutput}\t${k}`);
+console.log("three-cuts in chunk:", inputs.some(([k]) => /three-cuts/.test(k)), "| three in chunk (should be external-shared):", inputs.some(([k]) => /node_modules\/three\//.test(k)));
 const physics = js.filter((f) => /jolt|physics/i.test(readFileSync(`${out}/assets/${f}`, "utf8").slice(0, 200000)) || /WebAssembly/.test(readFileSync(`${out}/assets/${f}`, "utf8").slice(0, 2e6)));
 console.log("CHUNKS (JS, largest first)");
 for (const f of js.sort((a, b) => readFileSync(`${out}/assets/${b}`).length - readFileSync(`${out}/assets/${a}`).length).slice(0, 5)) console.log(JSON.stringify(size(f)), physics.includes(f) ? "PHYSICS" : "");
