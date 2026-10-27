@@ -144,8 +144,10 @@ export function airdropPull(g, e, dt, move) {
   if (!e.stockIntent) e.stockIntent = e.residentIntent;
   const reach = distance(e.home ?? e.pos, a.crate) + pull.leashPadding;
   if (e.residentIntent && e.residentIntent.homeLeash < reach) e.residentIntent = Object.freeze({ ...e.stockIntent, homeLeash: reach });
-  // A boss already chasing the player keeps at it inside engageRadius; an idle one answers the crate unless the player is close enough to wake it.
-  if (distance(e.pos, g.player.pos) <= (e.alerted ? pull.engageRadius : e.bossProfile.wakeDistance)) return false;
+  // A boss already chasing the player keeps at it inside engageRadius; an idle one answers the crate unless it can see the player
+  // from close enough to wake (the same test the boss uses to wake, so it never stalls beside a wall it cannot wake through).
+  const apart = distance(e.pos, g.player.pos);
+  if (e.alerted ? apart <= pull.engageRadius : apart <= e.bossProfile.wakeDistance && g.world.lineClear(e.pos, g.player.pos)) return false;
   e.alerted = false;
   e.returning = false;
   const gap = distance(e.pos, a.crate);
