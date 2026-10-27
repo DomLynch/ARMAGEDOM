@@ -125,8 +125,8 @@
   ]
  },
  "lambeth": {
-  "log": "4555f3b7e1552976c915af20929acf261e6b96e6bde8ef212bd8bee18ae11c68",
-  "meshes": "645baf357c5882be117d221d8bd3f620cb73f5db85a8ca5780fe2c1d742a8127",
+  "log": "ce70ec64182f7dab7345121eff94401bf186b6858dfab7ed2261e0c8ebc89e3a",
+  "meshes": "e2e585651305c9ef823c13d9b463719c800bb45717c674c348f4fbdd921c2677",
   "first": [
    "spawn",
    {
@@ -135,7 +135,7 @@
    },
    {
     "x": 0.5,
-    "y": 0.3878176347366772
+    "y": 0.38459312935738
    },
    {
     "x": 0,
