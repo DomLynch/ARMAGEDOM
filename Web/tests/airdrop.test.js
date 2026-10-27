@@ -49,6 +49,11 @@ test("the airdrop data validates and the validator refuses broken rows", () => {
   }
 });
 
+test("the golden-weapon outcome is wired to golden-weapons.js out of the box", () => {
+  const result = applyAirdropOutcome(game(), { id: "golden-weapon" });
+  assert.equal(typeof result, "boolean");
+});
+
 test("no airdrop in the tutorial or the hub, and none without an area", () => {
   for (const areaId of ["westminster", "central-hub", null]) {
     const g = game({ areaId });
