@@ -573,8 +573,8 @@
     "backdrop.lambeth": {
       "kind": "backdrop",
       "path": "world/lambeth/backdrop-phone.webp",
-      "sha256": "351fda667aa0b6f11c500d547d53c05e4c48f97beee5ee66e2f3efbb77bf437f",
-      "bytes": 541058
+      "sha256": "cccea985e8a566b9892d3b5e6c362aa86f21c2bdd721c5028dcec244cf853756",
+      "bytes": 556624
     },
     "layout.area7": {
       "kind": "layout",

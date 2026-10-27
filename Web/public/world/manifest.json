@@ -79,15 +79,15 @@
       "area": "lambeth",
       "path": "lambeth/layout.json",
       "source": "Owner original / individually traced image geometry",
-      "bytes": 6698,
-      "sha256": "da8ff7c14b916a27e801c5b830b4e0542c3c2d9eec44fffac79fa26c7472db11"
+      "bytes": 6897,
+      "sha256": "30238482e0675e8cbe2676916c493b111f8c98300c556673d2fe21b2606cab4f"
     },
     {
       "area": "lambeth",
       "path": "lambeth/backdrop-phone.webp",
       "source": "Owner original / individually traced image geometry; phone copy: backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
-      "bytes": 541058,
-      "sha256": "351fda667aa0b6f11c500d547d53c05e4c48f97beee5ee66e2f3efbb77bf437f"
+      "bytes": 556624,
+      "sha256": "cccea985e8a566b9892d3b5e6c362aa86f21c2bdd721c5028dcec244cf853756"
     },
     {
       "area": "shared",
