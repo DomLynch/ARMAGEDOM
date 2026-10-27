@@ -37,6 +37,7 @@ import { populationPlacements, populationAllowsDrone } from "./engine/area-popul
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
+import { stepAirdrop, airdropPull } from "./engine/airdrop.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
@@ -1229,6 +1230,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) g.tick++;
   const p = g.player,
     t = g.time;
+  stepAirdrop(g, dt);
   stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
   stepRockets(g, (...args) => rangedHit(g, ...args), services);
   intent = mobileControl(g, intent, dt, services);
@@ -1704,6 +1706,7 @@ function alertResident(g, e) {
   e.returning = false;
 }
 function residentPatrol(g, e, dt) {
+  if (airdropPull(g, e, dt, enemyMove)) return true;
   const playerHome = mag(sub(g.player.pos, e.home));
   if (e.residentIntent?.companionDistance === 0) {
     const home = territoryHomeStep(e.residentIntent, {

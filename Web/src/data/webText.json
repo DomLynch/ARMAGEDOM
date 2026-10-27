@@ -115,6 +115,13 @@
     "hud.boneSawCut": "Hold to cut with the Bone Saw; movement slows while cutting",
     "hud.ashClaimsYou": "THE ASH CLAIMS YOU",
     "hud.deathHint": "Watch their wind-up. Dodge, then strike.",
-    "hud.safehouseLowered": "SAFEHOUSE · WEAPONS LOWERED"
+    "hud.safehouseLowered": "SAFEHOUSE · WEAPONS LOWERED",
+    "airdrop.incoming": "Supply plane overhead. Airdrop incoming.",
+    "airdrop.hud": "AIRDROP · {distance}m",
+    "airdrop.hudFalling": "AIRDROP INCOMING",
+    "airdrop.hudOpening": "OPENING AIRDROP · {percent}%",
+    "airdrop.opened": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found.",
+    "airdrop.openedGolden": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found. A golden weapon was inside.",
+    "airdrop.lost": "The airdrop is gone."
   }
 }

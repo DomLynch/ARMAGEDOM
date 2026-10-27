@@ -7,11 +7,13 @@ import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
+import { createAirdropView } from "./airdrop-view.js";
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints();
   let last = 0,
     accumulator = 0,
-    submitted = null;
+    submitted = null,
+    airdropView = null;
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,
@@ -155,6 +157,8 @@ export function createBrowserLoop(s) {
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
+    airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
+    airdropView.update(s.game);
     s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,

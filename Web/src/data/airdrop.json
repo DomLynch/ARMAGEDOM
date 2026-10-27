@@ -1,11 +1,13 @@
 {
   "schema_version": 1,
   "enabled": true,
+  "excludedAreas": ["westminster", "central-hub"],
   "schedule": {
     "intervalSeconds": 240,
     "firstDelayMin": 60,
     "firstDelayMax": 90,
-    "retrySeconds": 10
+    "retrySeconds": 10,
+    "toastSeconds": 6
   },
   "plane": {
     "seconds": 8,
@@ -18,10 +20,7 @@
     "attempts": 48,
     "bodyRadius": 0.5,
     "exitClearance": 3,
-    "exitSamples": 8,
-    "arrivalClearance": 8,
-    "bossPocketPadding": 4,
-    "safehouseRadius": 2
+    "exitSamples": 8
   },
   "crate": {
     "fallSeconds": 2,
@@ -32,9 +31,7 @@
   },
   "convergence": {
     "enabled": true,
-    "bossLeashBonus": 80,
-    "hostileRadius": 30,
-    "maxHostiles": 6,
+    "engageRadius": 12,
     "arriveRadius": 2.5
   },
   "loot": {
@@ -48,34 +45,33 @@
       { "id": "none", "weight": 19 }
     ]
   },
-  "text": {
-    "incoming": "Supply plane overhead. Airdrop incoming.",
-    "hud": "AIRDROP · {distance}m",
-    "hudFalling": "AIRDROP INCOMING",
-    "hudOpening": "OPENING AIRDROP · {percent}%",
-    "opened": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found.",
-    "openedGolden": "A golden weapon was inside.",
-    "lost": "The airdrop is gone."
-  },
   "view": {
     "shadowColour": "000000",
     "shadowOpacity": 0.35,
     "shadowLength": 7,
     "shadowWidth": 6,
+    "shadowBodyShare": 0.18,
+    "shadowWingChord": 0.22,
+    "groundLift": 0.05,
     "flareColour": "ff2a14",
     "flareHeight": 16,
     "flareRadius": 0.9,
+    "flareCoreRadius": 0.35,
     "flarePuffs": 9,
     "flareRiseSeconds": 5,
     "flareSway": 0.6,
     "flareOpacity": 0.55,
     "flareGlowRadius": 2.2,
+    "swayRate": 2.1,
     "crateSize": 0.9,
+    "crateLift": 0.45,
     "crateColour": "5d6b3a",
     "crateTrimColour": "c9b458",
+    "crateTrimShare": 0.18,
     "canopyColour": "d8d2c0",
     "canopyRadius": 1.1,
     "canopyHeight": 1.6,
+    "segments": 8,
     "dropHeight": 18,
     "pulseSeconds": 1.2
   }
