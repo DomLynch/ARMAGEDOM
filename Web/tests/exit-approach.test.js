@@ -6,7 +6,7 @@ import {createAreaRegistry} from '../src/area-registry.js';
 import {LondonWorld} from '../src/world.js';
 const base=new URL('../public/world/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',base))),registry=createAreaRegistry({manifest});
 const world=id=>Object.assign(Object.create(LondonWorld.prototype),{areaId:id,registry,geometry:createGeometry(JSON.parse(fs.readFileSync(new URL(id+'/layout.json',base))))});
-for(const [from,to,a,b] of [['east','east-bridge',{x:.8575,y:.28},{x:.8575,y:.25}],['east-bridge','east',{x:.045,y:.862},{x:.027,y:.888}],['elephant-and-castle','east',{x:.958,y:.225},{x:.968,y:.209}],['elephant-and-castle','south',{x:.074,y:.824},{x:.04,y:.832}]])test(`${from}: ordinary registered-road approach reaches ${to} without precision lane`,()=>{
+for(const [from,to,a,b] of [['east','east-bridge',{x:.8575,y:.28},{x:.8575,y:.25}],['east-bridge','east',{x:.745,y:.85},{x:.745,y:.95}],['elephant-and-castle','east',{x:.958,y:.225},{x:.968,y:.209}],['elephant-and-castle','south',{x:.074,y:.824},{x:.04,y:.832}]])test(`${from}: ordinary registered-road approach reaches ${to} without precision lane`,()=>{
  const w=world(from),g=w.geometry,start=g.ground(a),end=g.ground(b);assert(g.clear(start,.4));assert(g.clear(end,.4));let p=start,hit=false;
  for(let i=0;i<200;i++){const dx=end.x-p.x,dz=end.z-p.z,n=Math.hypot(dx,dz);if(n<.025)break;p=g.move(p,{x:dx/n*.04,z:dz/n*.04},.4);assert(g.clear(p,.4));if(w.travelAt(p)?.areaId===to)hit=true;}
  assert(hit,'Full-radius outer road misses exit');assert(w.exitHint(start).includes(to.replaceAll('-',' ').toUpperCase()));

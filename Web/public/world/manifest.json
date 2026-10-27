@@ -51,15 +51,15 @@
       "area": "east-bridge",
       "path": "east-bridge/layout.json",
       "source": "Owner-supplied Zone4 original / image-traced authored geometry",
-      "bytes": 5106,
-      "sha256": "52de727dedadfcd9ea255bce7f1878dea86eb2e9f139d03bd377acf0a836ce4b"
+      "bytes": 4427,
+      "sha256": "ab6024d0b5cac3de8bbe0116c527b6f135a3b8b040a72db5669db6ea5b89fb57"
     },
     {
       "area": "east-bridge",
       "path": "east-bridge/backdrop-phone.webp",
       "source": "Owner-supplied Zone4 original / image-traced authored geometry; phone copy: backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
-      "bytes": 503266,
-      "sha256": "df3cf2e68447e09464b5c533f7f81a7e5325ad21a3453c7cce72f30a8070a574"
+      "bytes": 509572,
+      "sha256": "2666e7f8935a94055973b7b934483657d72120ae7c490f59a28d743b078a7a54"
     },
     {
       "area": "elephant-and-castle",
@@ -265,8 +265,8 @@
         "yMax": 0.285
       },
       "entry": {
-        "x": 0.076,
-        "y": 0.823
+        "x": 0.745,
+        "y": 0.84
       }
     },
     {
@@ -337,8 +337,9 @@
       "from": "east-bridge",
       "to": "east",
       "condition": {
-        "yMin": 0.885,
-        "xMax": 0.11
+        "xMin": 0.71,
+        "xMax": 0.79,
+        "yMin": 0.9
       },
       "entry": {
         "x": 0.797,

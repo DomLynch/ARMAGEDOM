@@ -29,7 +29,7 @@ clean = np.zeros((h, w), np.uint8)
 for x0, y0, x1, y1 in rects:
     clean[y0:y1, x0:x1] = 1
 # Road markings are low-saturation bright paint; objects and rubble are bright or very dark clutter. Neither may be copied.
-PAINT_MAX = 0.004
+PAINT_MAX = float(os.environ.get("QUILT_PAINT_MAX", 0.004))  # share of marking pixels a source patch may hold; speckled wet cobbles near rubble need more
 hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 paint = ((hsv[..., 2] > 150) & (hsv[..., 1] < 90)).astype(np.uint8)
 if os.environ.get("QUILT_PAINT_OPEN"):  # wet cobbles are speckled with tiny highlights: keep only bright blobs wider than N px (markings)

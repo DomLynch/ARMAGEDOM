@@ -89,8 +89,8 @@
             "yMax": 0.285
           },
           "entry": {
-            "x": 0.076,
-            "y": 0.823
+            "x": 0.745,
+            "y": 0.84
           }
         },
         {
@@ -187,8 +187,9 @@
           "id": "exit.east-bridge.east",
           "target": "east",
           "condition": {
-            "yMin": 0.885,
-            "xMax": 0.11
+            "xMin": 0.71,
+            "xMax": 0.79,
+            "yMin": 0.9
           },
           "entry": {
             "x": 0.797,
@@ -481,14 +482,14 @@
     "layout.east-bridge": {
       "kind": "layout",
       "path": "world/east-bridge/layout.json",
-      "sha256": "52de727dedadfcd9ea255bce7f1878dea86eb2e9f139d03bd377acf0a836ce4b",
-      "bytes": 5106
+      "sha256": "ab6024d0b5cac3de8bbe0116c527b6f135a3b8b040a72db5669db6ea5b89fb57",
+      "bytes": 4427
     },
     "backdrop.east-bridge": {
       "kind": "backdrop",
       "path": "world/east-bridge/backdrop-phone.webp",
-      "sha256": "df3cf2e68447e09464b5c533f7f81a7e5325ad21a3453c7cce72f30a8070a574",
-      "bytes": 503266
+      "sha256": "2666e7f8935a94055973b7b934483657d72120ae7c490f59a28d743b078a7a54",
+      "bytes": 509572
     },
     "layout.elephant-and-castle": {
       "kind": "layout",
