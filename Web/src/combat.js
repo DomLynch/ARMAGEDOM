@@ -2,6 +2,7 @@ import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from
 import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
+import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
@@ -271,6 +272,7 @@ function notify(g, text) {
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
+export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursedDamage(g, damage), c);
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
@@ -365,7 +367,7 @@ function rifleIntent(g, intent, dispatch) {
       if (result?.ok) {
         shotDirection = shot.direction;
         event(g, "shot", { ...shot, damage: rules.damage, kind: "bullet", weapon: "rifle", actor: p });
-        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, rules.damage);
+        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, cursedDamage(g, rules.damage));
       }
     }
   }
@@ -734,7 +736,7 @@ export function receiveHit(g, hit) {
 }
 function flameHit(g, target, damage, { source }) {
   if (safehouseWeaponBlocked(g) || safehouseBlocksSegment(g, source.position, target.pos)) return;
-  const amount = Math.min(target.hp, damage);
+  const amount = Math.min(target.hp, cursedDamage(g, damage));
   if (!(amount > 0)) return;
   target.hp = Math.max(0, target.hp - amount);
   target.flashUntil = g.time + RULES.hitFlashSeconds;
@@ -1204,7 +1206,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
-    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
+    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
     stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
@@ -1232,8 +1234,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) g.tick++;
   const p = g.player,
     t = g.time;
-  stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
-  stepRockets(g, (...args) => rangedHit(g, ...args), services);
+  stepBossGrenades(g, (...args) => cursedHit(g, ...args), services);
+  stepRockets(g, (...args) => cursedHit(g, ...args), services);
   stepTrapCrates(g, receiveHit, services);
   intent = mobileControl(g, intent, dt, services);
   intent = applyTouchTarget(g, intent, services);
@@ -1243,7 +1245,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     : g.flame?.equipped
       ? flameIntent(g, intent)
       : selectedBossRanged(g)
-        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => rangedHit(g, ...args), services)
+        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => cursedHit(g, ...args), services)
         : g.rifle?.selected
           ? rifleIntent(g, intent, services.dispatchRifle)
           : pistolIntent(g, intent, services.dispatchPistol, services.dispatchMarshalPistol);
@@ -1368,6 +1370,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
+    stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
     if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
@@ -1379,7 +1382,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
         emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
-        hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
+        hit: (shot, amount) => cursedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
       collect(g);

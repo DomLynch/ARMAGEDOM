@@ -7827,5 +7827,52 @@
         "flicker": 0.018
       }
     }
+  },
+  "cursedRelic": {
+    "version": 1,
+    "damageMultiplier": 2,
+    "hunterIntervalSeconds": 10,
+    "huntersPerInterval": 1,
+    "maxHunters": 8,
+    "pickupRadius": 1.1,
+    "retrySeconds": 1,
+    "messageSeconds": 5,
+    "placements": {
+      "east": { "x": 0.756, "y": 0.295 },
+      "south": { "x": 0.272, "y": 0.125 },
+      "east-bridge": { "x": 0.937, "y": 0.227 },
+      "elephant-and-castle": { "x": 0.939, "y": 0.281 },
+      "lambeth": { "x": 0.738, "y": 0.927 },
+      "area7": { "x": 0.73, "y": 0.368 },
+      "area8": { "x": 0.87, "y": 0.409 }
+    },
+    "visual": {
+      "color": "#2a0d16",
+      "emissive": "#ff2a1a",
+      "halo": "#ff3b2a",
+      "size": 0.55,
+      "stretch": 1.5,
+      "roughness": 0.35,
+      "metalness": 0.2,
+      "haloLift": 0.03,
+      "haloCanvasRadiusPx": 32,
+      "haloCoreAlpha": 0.9,
+      "haloMidAlpha": 0.3,
+      "haloMidStop": 0.62,
+      "auraShare": 0.6,
+      "hoverHeight": 1.1,
+      "bobAmount": 0.08,
+      "bobSeconds": 2.4,
+      "spinSeconds": 6,
+      "emissiveIntensity": 1.4,
+      "haloRadius": 1.5,
+      "haloOpacity": 0.6
+    },
+    "text": {
+      "pickup": "The cursed relic. Double damage, but hunters keep coming. Reach a safehouse to break the curse.",
+      "hud": "CURSED x{mult} damage - {hunters} hunters",
+      "reset": "The curse lifts. The hunters are gone.",
+      "lost": "The curse dies with you."
+    }
   }
 }

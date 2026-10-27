@@ -1,4 +1,5 @@
 import { validateMarkedData } from "./marked.js";
+import { validateCursedRelicData, validateCursedRelicGeometry } from "./cursed-relic.js";
 import { validateReaperData } from "./reaper.js";
 import { validateSafehouseData, validateSafehouseGeometry } from "./safehouse.js";
 import { validateBossEquipmentData } from "./boss-equipment-data.js";
@@ -98,6 +99,7 @@ export function validateAreaGeometry(
   populationData = null,
   flameData = null,
   safehouseData = null,
+  cursedRelicData = null,
 ) {
   if (layout.portraitScale !== undefined && !(Number.isFinite(layout.portraitScale) && layout.portraitScale > 0))
     throw Error("Layout portraitScale must be a finite number above 0");
@@ -106,6 +108,7 @@ export function validateAreaGeometry(
   validateSafehouseGeometry(safehouseData, areaId, g, residents?.[areaId] ?? []);
   validateBossGeometry(bossData, areaId, g, registry);
   validateFlameGeometry(flameData, registry, areaId, g);
+  validateCursedRelicGeometry(cursedRelicData, areaId, g);
   validateGuidance(layout, g, registry.links(areaId));
   const tutorial = validateTutorialPath(layout, g);
   if (tutorial) {
@@ -252,6 +255,7 @@ export function validateAreaContent(content, registry, layouts) {
       "safehouse",
       "reaper",
       "marked",
+      "cursedRelic",
     ],
   );
   const original = validateResidentPlacements(content.residents, registry, layouts),
@@ -268,6 +272,7 @@ export function validateAreaContent(content, registry, layouts) {
     );
   return Object.freeze({
     markedData: validateMarkedData(content.marked, registry),
+    cursedRelicData: validateCursedRelicData(content.cursedRelic, registry),
     reaperData: validateReaperData(content.reaper, content.expedition),
     safehouseData: validateSafehouseData(content.safehouse, registry),
     bossEquipmentData: validateBossEquipmentData(content.bossEquipment, registry, residents),
@@ -306,6 +311,7 @@ export function validateAreaMetadata(content, registry) {
       "safehouse",
       "reaper",
       "marked",
+      "cursedRelic",
     ],
   );
   const original = validateResidentPlacements(content.residents, registry, {}, { geometryValidation: false }),
@@ -314,6 +320,7 @@ export function validateAreaMetadata(content, registry) {
     uniqueRewardData = validateUniqueRewardData(content.uniqueReward, registry, residents);
   return Object.freeze({
     markedData: validateMarkedData(content.marked, registry),
+    cursedRelicData: validateCursedRelicData(content.cursedRelic, registry),
     reaperData: validateReaperData(content.reaper, content.expedition),
     safehouseData: validateSafehouseData(content.safehouse, registry),
     bossEquipmentData: validateBossEquipmentData(content.bossEquipment, registry, residents),

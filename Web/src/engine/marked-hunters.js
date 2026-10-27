@@ -3,11 +3,13 @@ import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false } = {}) {
+// Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
+// the area, death or a safehouse removes them (keepRelic lets the "hunters off" switch leave them alone).
+export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false, keepRelic = false } = {}) {
   if (!g.world.markedData) return;
-  const hadHunter = g.enemies.some((e) => e.markedHunter && e.hp > 0);
-  g.enemies = g.enemies.filter((e) => !e.markedHunter);
-  if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter);
+  const hadHunter = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
+  g.enemies = g.enemies.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
+  if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
   const old = g.markedHunt,
     c = g.world.markedData;
   g.markedHunt = {
@@ -87,7 +89,7 @@ export function stepMarkedHunters(g, spawn) {
   const c = g.world.markedData;
   if (!c) return;
   if (c.hunters === false) {
-    if (g.enemies.some((e) => e.markedHunter)) clearMarkedHunters(g);
+    if (g.enemies.some((e) => e.markedHunter && !e.relicHunter)) clearMarkedHunters(g, { keepRelic: true });
     return;
   }
   if (g.player.hp <= 0) {
@@ -97,7 +99,7 @@ export function stepMarkedHunters(g, spawn) {
   if (!g.markedHunt || g.markedHunt.areaId !== g.world.areaId) clearMarkedHunters(g);
   const s = g.markedHunt;
   // A hunter that has died is gone: the next one comes after the re-arrival delay.
-  const present = g.enemies.some((e) => e.markedHunter && e.hp > 0);
+  const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
   if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);
   s.hadHunter = present;
   if (
@@ -112,7 +114,7 @@ export function stepMarkedHunters(g, spawn) {
     return;
   }
   // The residents of an area never block a hunter: only another living hunter does (maxHunters).
-  const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter);
+  const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter && !e.relicHunter);
   if (hunters.length >= c.maxHunters) {
     s.warning = null;
     return;
@@ -133,7 +135,7 @@ export function stepMarkedHunters(g, spawn) {
   s.warning = null;
   s.nextAttemptAt = g.time + 1;
   if (!markedEntry(g, { position: p })) return;
-  g.corpses = (g.corpses ?? []).filter((e) => !e.markedHunter);
+  g.corpses = (g.corpses ?? []).filter((e) => !e.markedHunter || e.relicHunter);
   const actor = spawn(p, c);
   g.enemies.push(actor);
   s.nextSpawnAt = g.time + c.spawnCooldown;
