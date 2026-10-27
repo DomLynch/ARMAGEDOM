@@ -75,7 +75,7 @@ function open(g) {
     const result = applyAirdropOutcome(g, row);
     if (row.id === "cash") cash = result || 0;
   }
-  claimCash(g, "airdrop", cash);
+  const carried = g.marked?.carried ?? 0;
   let roll = chance(g) * loot.bonus.reduce((sum, row) => sum + row.weight, 0),
     golden = false;
   for (const row of loot.bonus) {
@@ -84,7 +84,10 @@ function open(g) {
     golden = row.id !== "none" && !!applyAirdropOutcome(g, row);
     break;
   }
-  return webText(golden ? "airdrop.openedGolden" : "airdrop.opened", { cash });
+  const extra = (g.marked?.carried ?? 0) - carried;
+  claimCash(g, "airdrop", cash + Math.max(0, extra)); // the bundle's cash plus the golden weapon's cash fallback: one airdrop, one claim
+  if (golden) return webText("airdrop.openedGolden", { cash });
+  return extra > 0 ? webText("airdrop.openedCashFallback", { cash, extra }) : webText("airdrop.opened", { cash });
 }
 
 function hudLine(g, a) {

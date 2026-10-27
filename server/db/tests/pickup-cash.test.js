@@ -83,6 +83,7 @@ test("the seeded rules match the game's own data: every cash stash placement, th
   const stashes = Object.values(pickups.placements).flat().filter((p) => p.type === "cashStash");
   assert.equal(Object.values(rows).filter((r) => r.kind === "stash").length, stashes.length, "one row per stash placement");
   for (const p of stashes) assert.deepEqual([rows["stash:" + p.id]?.cash, rows["stash:" + p.id]?.window_s], [pickups.items.cashStash.max, pickups.respawnSeconds], p.id);
-  assert.equal(rows.airdrop.cash, airdrop.loot.bundle.find((r) => r.id === "cash").amount);
+  const golden = read("goldenWeapons.json");
+  assert.equal(rows.airdrop.cash, airdrop.loot.bundle.find((r) => r.id === "cash").amount + golden.fallbackCash, "bundle cash plus the golden weapon's cash fallback");
   assert.equal(rows.airdrop.window_s, airdrop.schedule.firstDelayMin);
 });

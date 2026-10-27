@@ -21,7 +21,7 @@ alter table public.arma_pickup_rules enable row level security;
 alter table public.arma_pickup_claims enable row level security;
 revoke all on public.arma_pickup_rules, public.arma_pickup_claims from public, anon, authenticated;
 
--- Seeded from Web/src/data/worldPickups.json (cashStash max 180, respawnSeconds 180) and Web/src/data/airdrop.json (loot.bundle cash 150,
+-- Seeded from Web/src/data/worldPickups.json (cashStash max 180, respawnSeconds 180) and Web/src/data/airdrop.json (loot.bundle cash 150 plus goldenWeapons.json fallbackCash 250 when the golden weapon pays cash instead,
 -- schedule.firstDelayMin 60: the shortest legitimate gap between two airdrops, one per area visit). Web/tests/arma-pickup-rules-seed.test.js fails when they drift.
 insert into public.arma_pickup_rules (source, kind, cash, window_s) values
   ('stash:westminster-3', 'stash', 180, 180),
@@ -32,7 +32,7 @@ insert into public.arma_pickup_rules (source, kind, cash, window_s) values
   ('stash:lambeth-3', 'stash', 180, 180),
   ('stash:area7-3', 'stash', 180, 180),
   ('stash:area8-3', 'stash', 180, 180),
-  ('airdrop', 'airdrop', 150, 60);
+  ('airdrop', 'airdrop', 400, 60);
 
 -- Answers {credited, earned} or {refused: 'unknown-source' | 'too-soon', retryS}. Rows are locked by the claim's own primary key, so two racing
 -- claims for one source credit once.
