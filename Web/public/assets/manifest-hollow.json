@@ -1305,8 +1305,8 @@
         "flee": "Flee"
       },
       "deferred": true,
-      "bytes": 695240,
-      "sha256": "1863c05c2c4b8e981f6e8df21bbf8675408ba8a1c53dcf14011d524adb7f613c",
+      "bytes": 703604,
+      "sha256": "16e0ed917e080afe971315c1c14c58e68b8e11cdb385924ba726420cc8036030",
       "name": "Wolf",
       "contact": {
         "canines": [
