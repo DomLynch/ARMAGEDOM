@@ -21,10 +21,6 @@
       "reason": "frozen donor motion captures (clip and blade-path tables), not tuning"
     },
     {
-      "pattern": "^data/physics/[^/]+\\.json$",
-      "reason": "frozen body measurement row (the bind-pose joints and lengths of the Pitborn rig) and its rig map, from the physics package's data/; measurements, not tuning (physics pilot, needs Strategy approval)"
-    },
-    {
       "pattern": "^(roach|dog|rat)-data/[^/]+\\.json$",
       "reason": "frozen per-animal motion captures (clips, blade paths, foot bindings), not tuning"
     }

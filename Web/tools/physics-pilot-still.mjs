@@ -3,14 +3,16 @@
 //   baked-*.png (no flag), ragdoll-*.png (?physics=1), plus the longest-frame figures with the chunk loaded and with the chunk URL blocked.
 import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { createServer } from "vite";
 
 const PORT = 38794, OUT = process.env.STILLS ?? "/tmp/stills", AGES = [0, 0.3, 0.6, 1.0, 1.6, 3.0];
 mkdirSync(OUT, { recursive: true });
+const require = createRequire(import.meta.url);
 let chromium;
-try { ({ chromium } = await import("playwright-core")); } catch {
+try { ({ chromium } = require("playwright-core")); } catch {
   execFileSync("npm", ["i", "--no-save", "--no-audit", "--no-fund", "playwright-core@1.62.1"], { stdio: "inherit" });
-  ({ chromium } = await import("playwright-core"));
+  ({ chromium } = require("playwright-core"));
 }
 const server = await createServer({ server: { port: PORT, host: "127.0.0.1", strictPort: true } });
 await server.listen();

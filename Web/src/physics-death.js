@@ -16,6 +16,7 @@ const load = () =>
   (loading ??= import("./physics-death-impl.js")
     .then(async (m) => {
       await m.loadWorld();
+      m.warm();
       impl = m;
     })
     .catch(() => void (broken = true)));

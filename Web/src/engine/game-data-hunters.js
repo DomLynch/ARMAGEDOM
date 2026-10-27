@@ -32,14 +32,32 @@ export function validatePhysicsDeath(d) {
     "settleSeconds",
     "removeSeconds",
     "preloadIdleMs",
+    "poolSize",
+    "rewarmMs",
     "killImpulse",
     "parts",
   ]);
-  for (const name of ["stepHz", "maxStepsPerFrame", "settleSeconds", "removeSeconds", "preloadIdleMs"])
+  for (const name of [
+    "stepHz",
+    "maxStepsPerFrame",
+    "settleSeconds",
+    "removeSeconds",
+    "preloadIdleMs",
+    "poolSize",
+    "rewarmMs",
+  ])
     number("physicsDeath", name, d[name], 1);
   if (d.killImpulse?.length !== 3 || !d.killImpulse.every(Number.isFinite))
     fail("physicsDeath", "killImpulse must be three numbers");
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");
+}
+
+// physicsBody.json: the body measure row the ragdoll is built from, and the node-name prefix of the rig.
+export function validatePhysicsBody(d) {
+  closed(d, ["schema_version", "note", "nodePrefix", "row"]);
+  if (typeof d.nodePrefix !== "string") fail("physicsBody", "nodePrefix must be a string");
+  if (Object.keys(d.row?.joints ?? {}).length !== 20) fail("physicsBody", "row.joints must hold the 20 role joints");
+  number("physicsBody", "height_m", d.row.height_m, 0.1);
 }
 
 export function validateReaperMotion(d) {

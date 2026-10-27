@@ -4,15 +4,17 @@
 // and measures the same through the death. Prints one JSON line. A Chromium is needed (CHROME=<exe>; playwright-core is installed when missing).
 import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { createServer } from "vite";
 
 const arg = (n, d) => (process.argv.includes(`--${n}`) ? process.argv[process.argv.indexOf(`--${n}`) + 1] : d),
   PHYSICS = arg("physics", "0") === "1", HOSTILES = Number(arg("hostiles", 10)), SHOTS = arg("shots", "/tmp/game"), PORT = 38794;
 mkdirSync(SHOTS, { recursive: true });
+const require = createRequire(import.meta.url);
 let chromium;
-try { ({ chromium } = await import("playwright-core")); } catch {
+try { ({ chromium } = require("playwright-core")); } catch {
   execFileSync("npm", ["i", "--no-save", "--no-audit", "--no-fund", "playwright-core@1.62.1"], { stdio: "inherit" });
-  ({ chromium } = await import("playwright-core"));
+  ({ chromium } = require("playwright-core"));
 }
 const server = await createServer({ server: { port: PORT, host: "127.0.0.1", strictPort: true } });
 await server.listen();

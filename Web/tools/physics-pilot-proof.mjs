@@ -36,7 +36,7 @@ const physics = js.filter((f) => /jolt|physics/i.test(readFileSync(`${out}/asset
 console.log("CHUNKS (JS, largest first)");
 for (const f of js.sort((a, b) => readFileSync(`${out}/assets/${b}`).length - readFileSync(`${out}/assets/${a}`).length).slice(0, 5)) console.log(JSON.stringify(size(f)), physics.includes(f) ? "PHYSICS" : "");
 
-const ROW = JSON.parse(readFileSync("src/data/physics/minotaur-106.measure.json", "utf8"));
+const ROW = JSON.parse(readFileSync("src/data/physicsBody.json", "utf8")).row;
 for (const n of [1, 5, 10]) {
   const world = await createPhysics({ seed: 731 }),
     rds = Array.from({ length: n }, (_, i) => world.createRagdoll(ROW, { position: [i * 1.5, 0, 0], id: `h${i}` }));
