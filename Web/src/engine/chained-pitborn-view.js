@@ -75,7 +75,7 @@ export function createChainedPitbornView(s) {
     const geometry = new T.BufferGeometry(),
       pos = new Float32Array(P.count * 3), // tuning-ok: xyz
       col = new Float32Array(P.count * 3), // tuning-ok: rgb
-      born = new Float32Array(P.count).fill(-1e9),
+      born = new Float32Array(P.count).fill(-1e9), // tuning-ok: born long ago, so the pool starts empty
       seed = Float32Array.from({ length: P.count }, (_, i) => Math.sin(i * 12.9898) * 0.5 + 0.5); // tuning-ok: fixed pseudo-random spread
     geometry.setAttribute("position", new T.BufferAttribute(pos, 3)); // tuning-ok: xyz
     geometry.setAttribute("color", new T.BufferAttribute(col, 3)); // tuning-ok: rgb
