@@ -2,7 +2,7 @@ import { clearBossRanged } from "./engine/boss-ranged.js";
 import { clearMarkedHunters } from "./engine/marked-hunters.js";
 import { resetBossPursuit } from "./engine/area-bosses.js";
 import { stopBossFlame } from "./engine/boss-flame.js";
-import { initializeAreaResidents } from "./combat.js";
+import { initializeAreaResidents, reviveAreaResidents } from "./combat.js";
 import { GAME_DATA } from "./engine/game-data.js";
 // Thin orchestration for the existing three-area pilot. World owns atomic loading.
 export async function travelTo(game, request, { isCurrent = () => true } = {}) {
@@ -80,6 +80,8 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   p.dodgeUntil = p.invulnerableUntil = game.time;
   p.response = null;
   p.ready = Math.min(p.ready, game.time);
+  // After the player is placed, so nobody respawns within the guard distance of the arrival point.
+  reviveAreaResidents(game);
   return { ...position };
 }
 

@@ -8,11 +8,23 @@ const fail = () => {
 };
 // A population slot may hold the rat, dog, roach, drone or salamander (populationSlot in rig-capabilities.json), not the wolf.
 const isDrone = (foundationRef) => rigText(foundationRef, "brain") === "drone";
+// Optional: absent means no hostile respawn. `seconds` is the play time a killed ordinary hostile stays down; excluded areas
+// (the Westminster tutorial) never respawn. Bosses, the unique-reward holder and drones are kept permanent in code.
+function validateRespawn(respawn, registry) {
+  if (respawn === undefined) return;
+  closed(respawn, ["seconds", "minPlayerDistance", "offscreenDistance", "excludedAreas"]);
+  const { seconds, minPlayerDistance, offscreenDistance, excludedAreas } = respawn;
+  if (![minPlayerDistance, offscreenDistance].every(Number.isFinite) || minPlayerDistance < 1 || offscreenDistance < minPlayerDistance)
+    fail();
+  if (!Number.isFinite(seconds) || seconds < 30 || seconds > 86400) fail();
+  if (!Array.isArray(excludedAreas) || new Set(excludedAreas).size !== excludedAreas.length) fail();
+  if (excludedAreas.some((id) => !registry.ids.includes(id))) fail();
+}
 // Keep the complete source identity/loot registry. Only fresh combat residents
 // consume this policy, so removed placements in old death/award ledgers stay valid.
 export function validatePopulationData(input, registry, residents, uniqueRewardData = null) {
   if (input === undefined) return null;
-  closed(input, ["version", "maxHostilesPerArea", "areas"]);
+  closed(input, ["version", "maxHostilesPerArea", "areas"], ["respawn"]);
   // maxHostilesPerArea is the ceiling; an area may lower its own cap with `maxHostiles` (Westminster keeps its tuned tutorial roster).
   if (
     input.version !== 1 ||
@@ -21,6 +33,7 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
     input.maxHostilesPerArea > 10
   )
     fail();
+  validateRespawn(input.respawn, registry);
   const populated = registry.ids.filter(
     (id) => (residents[id] ?? AREA_MOB_SPAWNS[id] ?? []).length || (AREA_DRONE_SPAWNS[id] ?? []).length,
   );
