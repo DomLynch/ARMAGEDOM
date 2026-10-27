@@ -487,8 +487,8 @@
     "backdrop.east-bridge": {
       "kind": "backdrop",
       "path": "world/east-bridge/backdrop-phone.webp",
-      "sha256": "92af2ae9d574b7d112eaa980e353c84843b14f132a501069590b8ef5afe40669",
-      "bytes": 488870
+      "sha256": "df3cf2e68447e09464b5c533f7f81a7e5325ad21a3453c7cce72f30a8070a574",
+      "bytes": 503266
     },
     "layout.elephant-and-castle": {
       "kind": "layout",
@@ -499,8 +499,8 @@
     "backdrop.elephant-and-castle": {
       "kind": "backdrop",
       "path": "world/elephant-and-castle/backdrop-phone.webp",
-      "sha256": "690ffc8fbb776fe3b4c88f4f04d2ad0d4af83a24023ccc4316e3eda97f25e353",
-      "bytes": 513572
+      "sha256": "40b502c1628db48e969da6388dd053a7c391365feac15135655e9e59ac80de7a",
+      "bytes": 515708
     },
     "layout.lambeth": {
       "kind": "layout",
@@ -511,8 +511,8 @@
     "backdrop.lambeth": {
       "kind": "backdrop",
       "path": "world/lambeth/backdrop-phone.webp",
-      "sha256": "4965cc0ecccf9db107f10dcb9f1e2093af284b9dcd2b1a62c7d770b86a010db3",
-      "bytes": 519312
+      "sha256": "351fda667aa0b6f11c500d547d53c05e4c48f97beee5ee66e2f3efbb77bf437f",
+      "bytes": 541058
     },
     "layout.area7": {
       "kind": "layout",
@@ -523,8 +523,8 @@
     "backdrop.area7": {
       "kind": "backdrop",
       "path": "world/area7/backdrop-phone.webp",
-      "sha256": "42b2617cd534aac412e71d35856d0a032e9dfed341650f9b3a66c127166abab4",
-      "bytes": 550482
+      "sha256": "a9ff5928994e47e2c9656a2c74bcb109661a32d17f28c12dea8338b077e00f50",
+      "bytes": 571818
     },
     "layout.area8": {
       "kind": "layout",
@@ -535,8 +535,8 @@
     "backdrop.area8": {
       "kind": "backdrop",
       "path": "world/area8/backdrop-phone.webp",
-      "sha256": "13dbc919cbd71b3b48523d9dbbef81c31eee52c19835a31659a7c16be2e3058c",
-      "bytes": 550132
+      "sha256": "def0275febf500b133f5b25fc293c5ae6cc6ac32d28d9cffd7d36f4da503749f",
+      "bytes": 555662
     },
     "layout.central-hub": {
       "kind": "layout",
@@ -547,8 +547,8 @@
     "backdrop.central-hub": {
       "kind": "backdrop",
       "path": "world/central-hub/backdrop-phone.webp",
-      "sha256": "1e850db9f62f481f5188fec001d8771e87a9e23777d0048d46253de9f93bdda9",
-      "bytes": 509606
+      "sha256": "579ee1d23d147dc27a1794588a13336e4b2bd6eebbf8a5e6f2a78c1e48b0ffc0",
+      "bytes": 511722
     }
   }
 }

@@ -1,0 +1,31 @@
+{
+ "params": {
+  "hue_lo": 12.0,
+  "hue_hi": 48.0,
+  "hue_feather": 10.0,
+  "chroma_cut": 0.55,
+  "chroma_cut_mid": 0.25,
+  "lum_knee": 42.0,
+  "lum_ratio": 0.45,
+  "glow_sigma": 14.0,
+  "glow_cut": 0.35,
+  "ab_mean": 0.6,
+  "ab_std": 0.6,
+  "l_match": 0.5
+ },
+ "area_strength": {
+  "area8": 1.0,
+  "area7": 1.0,
+  "east-bridge": 1.0,
+  "central-hub": 0.6,
+  "lambeth": 1.0,
+  "elephant-and-castle": 1.0
+ },
+ "reference_pool": {
+  "a_m": 5.64532470703125,
+  "a_s": 4.651556968688965,
+  "b_m": 6.451045989990234,
+  "b_s": 6.681045055389404
+ },
+ "webp": "method 6, quality chosen per image to match source byte size"
+}

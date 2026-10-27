@@ -573,8 +573,8 @@
     "backdrop.lambeth": {
       "kind": "backdrop",
       "path": "world/lambeth/backdrop-phone.webp",
-      "sha256": "4965cc0ecccf9db107f10dcb9f1e2093af284b9dcd2b1a62c7d770b86a010db3",
-      "bytes": 519312
+      "sha256": "351fda667aa0b6f11c500d547d53c05e4c48f97beee5ee66e2f3efbb77bf437f",
+      "bytes": 541058
     },
     "layout.area7": {
       "kind": "layout",
@@ -585,8 +585,8 @@
     "backdrop.area7": {
       "kind": "backdrop",
       "path": "world/area7/backdrop-phone.webp",
-      "sha256": "42b2617cd534aac412e71d35856d0a032e9dfed341650f9b3a66c127166abab4",
-      "bytes": 550482
+      "sha256": "a9ff5928994e47e2c9656a2c74bcb109661a32d17f28c12dea8338b077e00f50",
+      "bytes": 571818
     },
     "layout.area8": {
       "kind": "layout",
@@ -609,8 +609,8 @@
     "backdrop.central-hub": {
       "kind": "backdrop",
       "path": "world/central-hub/backdrop-phone.webp",
-      "sha256": "1e850db9f62f481f5188fec001d8771e87a9e23777d0048d46253de9f93bdda9",
-      "bytes": 509606
+      "sha256": "579ee1d23d147dc27a1794588a13336e4b2bd6eebbf8a5e6f2a78c1e48b0ffc0",
+      "bytes": 511722
     }
   }
 }
