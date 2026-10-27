@@ -12,9 +12,7 @@ import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 import { SAFEHOUSE_VIEW } from "./safehouse-view-data.js";
 import { GAME_DATA, fillText } from "./game-data.js";
-import { chainedPitbornOn } from "./chained-pitborn-view.js";
-const PITBORN = GAME_DATA.chainedPitborn,
-  CUE = SAFEHOUSE_VIEW.cue,
+const CUE = SAFEHOUSE_VIEW.cue,
   CONTOUR = SAFEHOUSE_VIEW.contour,
   TEXT = GAME_DATA.safehouseText.safehouse;
 // A short wall-clock presentation pulse; gameplay and storage clocks are untouched.
@@ -338,9 +336,7 @@ export function createSafehouseView(s, dispatch) {
       );
     }
     if (inArea && data.patch && texture && owner !== w.group) build(w, data);
-    // The chained Pitborn preview stands on the shelter steps: its look page hides the shelter overlay (never in shipped data).
-    const hiddenForPreview = PITBORN.hidePreviewSafehouse && chainedPitbornOn() && !PITBORN.enabled;
-    for (const mesh of meshes) mesh.visible = inArea && !!data.patch && !hiddenForPreview;
+    for (const mesh of meshes) mesh.visible = inArea && !!data.patch;
     const anchor = safehouseAnchor(g),
       near = !!anchor && Math.hypot(g.player.pos.x - anchor.x, g.player.pos.z - anchor.z) <= data.nearbyRadius,
       active = safehouseInteraction(g),

@@ -2,8 +2,8 @@ import * as T from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { GAME_DATA } from "./game-data.js";
 // The chained Pitborn set-piece (data/chainedPitborn.json): the Pitborn shackled on the Westminster steps, thrashing against three
-// chains. Presentation only: no entity, no AI, no collision and no hit surface, so combat never sees it. It draws only when the data row
-// is enabled or the page carries ?preview=chained-pitborn. Chain links are one InstancedMesh, dust and sparks one pooled Points set;
+// chains. Presentation only: no entity, no AI, no collision and no hit surface, so combat never sees it. It draws when the data row
+// is enabled, unless the page carries ?chainedpitborn=0 (the off switch). Chain links are one InstancedMesh, dust and sparks one pooled Points set;
 // every temporary is allocated once, nothing is built per frame. Every number is in the data row.
 const D = GAME_DATA.chainedPitborn,
   M = D.motion,
@@ -16,7 +16,7 @@ const D = GAME_DATA.chainedPitborn,
   DOWN = new T.Vector3(0, -1, 0),
   hex = (v) => new T.Color(`#${v}`);
 export const chainedPitbornOn = (search = globalThis.location?.search ?? "") =>
-  D.enabled || new URLSearchParams(search).get(D.previewParam) === D.previewValue;
+  D.enabled && new URLSearchParams(search).get(D.offParam) !== D.offValue;
 export function createChainedPitbornView(s) {
   const tmp = {
     a: new T.Vector3(),
