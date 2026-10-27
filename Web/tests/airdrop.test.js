@@ -95,6 +95,15 @@ test("a landing spot is never on or beside an exit, and no spot means a retry", 
   assert(blocked.airdrop.nextAt <= blocked.time + DATA.schedule.retrySeconds);
 });
 
+test("the crate lands where a living boss can walk to it in a straight line, when such a spot exists", () => {
+  const g = game();
+  g.enemies = [{ bossProfile: {}, hp: 5, pos: { x: 500, z: 0 } }, { bossProfile: {}, hp: 0, pos: { x: -500, z: 0 } }];
+  g.world.lineClear = (a, b) => a.x !== 500 || b.x > 0;
+  for (let i = 0; i < 20; i++) assert(pickLanding(g).x > 0);
+  g.world.lineClear = (a) => a.x !== 500;
+  assert(pickLanding(g), "with no such spot the player's own reachable spot is used");
+});
+
 test("holding beside the landed crate opens it: bundle applied once, bonus golden-weapon is a no-op until registered", () => {
   const g = game();
   until(g, "landed");

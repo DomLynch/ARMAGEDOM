@@ -27,6 +27,8 @@ export function pickLanding(g) {
     from = g.player.pos,
     onExit = (p) => !!world.travelAt?.(p);
   if (!world.geometry?.clear) return null;
+  const bosses = (g.enemies ?? []).filter((e) => e.bossProfile && e.hp > 0);
+  let fallback = null;
   for (let tries = 0; tries < landing.attempts; tries++) {
     const angle = chance(g) * TURN,
       reach = between(g, landing.minDistance, landing.maxDistance),
@@ -37,9 +39,13 @@ export function pickLanding(g) {
       const turn = (i / landing.exitSamples) * TURN;
       nearExit = onExit({ x: spot.x + Math.cos(turn) * landing.exitClearance, z: spot.z + Math.sin(turn) * landing.exitClearance });
     }
-    if (!nearExit) return spot;
+    if (nearExit) continue;
+    // Bosses walk straight to the crate, so a spot every living boss can see is better than one a wall hides; take the first
+    // such spot, or else the first spot the player alone can reach.
+    if (bosses.every((boss) => world.lineClear(boss.pos, spot))) return spot;
+    fallback ??= spot;
   }
-  return null;
+  return fallback;
 }
 
 function launch(g, a, spot) {
