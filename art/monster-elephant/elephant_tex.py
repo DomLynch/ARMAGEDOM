@@ -115,10 +115,11 @@ base = base * (0.78 + 0.5 * mott)[..., None]
 # creases: ridged noise darkens a network of folds; rings on legs and trunk
 ridge = 1 - np.abs(2 * fbm(16, 5) - 1)
 fold = smooth(0.78, 0.97, ridge)
-rings = np.sin(h * 190 + 3 * fbm(8, 9)) * 0.5 + 0.5
-ringline = smooth(0.82, 1.0, 1 - rings)
+rings = np.sin(h * 300 + 3 * fbm(8, 9)) * 0.5 + 0.5
+fine = np.sin(h * 640 + 5 * fbm(14, 10)) * 0.5 + 0.5  # fine skin creases between the main rings
+ringline = np.clip(smooth(0.7, 1.0, 1 - rings) + 0.45 * smooth(0.75, 1.0, 1 - fine), 0, 1)
 limb = is_("leg", "trunk")
-dark = 1 - 0.26 * fold - 0.3 * ringline * limb
+dark = 1 - 0.26 * fold - 0.42 * ringline * limb
 base = base * dark[..., None]
 # pale ash dust on the top surfaces; soot on the belly and the legs' lower halves
 up = np.clip(Nn[..., 1], 0, 1)
@@ -160,8 +161,8 @@ for i, (a, b, wd) in enumerate(SLASHES):
     raw = np.maximum(raw, smooth(wd * 0.45 * jag, wd * 0.1, dd) * (vnoise(lat, h, fwd, 25, 40 + i) > 0.45))
 scar *= ~is_("tusk", "eye", "nail", "spur")
 raw *= ~is_("tusk", "eye", "nail", "spur")
-base = mix(base, col(0.66, 0.5, 0.46), scar * 0.9)
-base = mix(base, col(0.34, 0.14, 0.12), raw)  # old open wounds: dull dried red-brown, nothing glows (28 Oct, realistic look)
+base = mix(base, col(0.6, 0.55, 0.49), scar * 0.9)  # healed scars: pale grey-tan, no pink
+base = mix(base, col(0.24, 0.2, 0.17), raw)  # old wounds: dark grey-brown, no red, nothing glows
 # burns: charred blotches
 burn = smooth(0.74, 0.8, fbm(5, 50)) * smooth(0.45, 0.6, h) * (1 - limb)
 base = mix(base, col(0.08, 0.07, 0.065), burn * 0.85)
@@ -171,8 +172,8 @@ base = mix(base, col(0.08, 0.07, 0.065), burn * 0.85)
 ear = is_("ear")
 front = np.clip(Nn[..., 2], -1, 1)
 veins = smooth(0.8, 0.95, 1 - np.abs(2 * vnoise(lat, h, fwd, 38, 61) - 1))
-einner = mix(base, col(0.52, 0.4, 0.38), np.full((S, S), 0.5, np.float32))
-einner = mix(einner, col(0.3, 0.1, 0.1), veins * 0.7)
+einner = mix(base, col(0.47, 0.42, 0.37), np.full((S, S), 0.5, np.float32))  # muted grey-brown
+einner = mix(einner, col(0.27, 0.23, 0.2), veins * 0.5)
 rim = smooth(0.12, 0.0, 0.0 + np.abs(vnoise(lat, h, fwd, 60, 62) - 0.5))  # ragged darker patches along the torn edge
 base = np.where(ear[..., None], np.where((front > 0)[..., None], einner, base * 0.92), base)
 base = np.where(ear[..., None], mix(base, col(0.2, 0.16, 0.14), rim * 0.5), base)
@@ -190,14 +191,14 @@ base = np.where(spur[..., None], sc, base)
 # lumps: raw, mottled red growths that glow like embers
 lump = is_("lump")
 lm = 0.5 + 0.5 * vnoise(lat, h, fwd, 80, 73)
-lc = mix(np.zeros((S, S, 3), np.float32) + col(0.36, 0.25, 0.23), col(0.5, 0.34, 0.3), lm)  # scar-tissue growths, no glow
+lc = mix(np.zeros((S, S, 3), np.float32) + col(0.32, 0.28, 0.25), col(0.45, 0.4, 0.35), lm)  # scar-tissue growths: grey-brown, no glow
 base = np.where(lump[..., None], lc, base)
 # eyes, lips, feet, nails, tail
 eye = is_("eye")
 base = np.where(eye[..., None], col(0.05, 0.04, 0.035), base)  # ordinary small dark eyes
-base = np.where(is_("jaw")[..., None], col(0.26, 0.09, 0.09) * (0.8 + 0.4 * mott)[..., None], base)
-base = np.where(is_("foot")[..., None], base * 0.7, base)
-base = np.where(is_("nail")[..., None], col(0.62, 0.56, 0.45) * (0.8 + 0.3 * mott)[..., None], base)
+base = np.where(is_("jaw")[..., None], col(0.22, 0.16, 0.14) * (0.8 + 0.4 * mott)[..., None], base)
+base = np.where(is_("foot")[..., None], base * 0.5, base)  # darker, dirty feet
+base = np.where(is_("nail")[..., None], col(0.5, 0.46, 0.38) * (0.8 + 0.3 * mott)[..., None], base)
 base = np.where(is_("tail")[..., None], base * 0.8, base)
 base = np.where(is_("tuft")[..., None], col(0.13, 0.115, 0.1) * (0.7 + 0.6 * mott)[..., None], base)
 # a touch of ambient shading: the underside and the crevice between legs read darker

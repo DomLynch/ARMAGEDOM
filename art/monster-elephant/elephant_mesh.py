@@ -196,10 +196,9 @@ def body_shape(p):
 
 # ---------------------------------------------------------------- body, head, jaw
 ellipsoid((0, 0.03, BODY_Z), (BODY_RX, 0.325, BODY_RZ), "body", seg=28, rings=16, wobble=0.05, wf=22, shape=body_shape)
-ellipsoid((0, -0.385, 0.45), (0.108, 0.12, 0.128), "head", seg=22, rings=12, wobble=0.04, wf=26)
-for sx in (+1, -1):  # twin domes of the forehead
-    ellipsoid((sx * 0.04, -0.375, 0.56), (0.058, 0.062, 0.046), "head", seg=12, rings=7, wobble=0.05, wf=30)
-    ellipsoid((sx * 0.09, -0.415, 0.425), (0.04, 0.058, 0.066), "head", seg=10, rings=6, wobble=0.04, wf=30)  # cheeks
+# one smooth forehead dome (no separate lumps), slightly taller and fuller at the cheeks
+ellipsoid((0, -0.385, 0.462), (0.112, 0.125, 0.145), "head", seg=26, rings=14, wobble=0.015, wf=26)
+for sx in (+1, -1):
     ellipsoid((sx * 0.094, -0.44, 0.475), (0.009, 0.009, 0.009), "eye", seg=8, rings=5)
 ellipsoid((0, -0.455, 0.358), (0.06, 0.055, 0.028), "jaw", seg=14, rings=8, wobble=0.05, wf=30)  # lower lip
 
@@ -212,7 +211,7 @@ for side, sx in (("L", +1), ("R", -1)):
         mid = top.lerp(bottom, 0.5)
         mid.x += sx * 0.004
         path = [top, top.lerp(bottom, 0.25), mid, top.lerp(bottom, 0.75), bottom]
-        tube(path, [rt, rt * 0.88, (rt + rb) / 2 * 0.95, rb * 1.02, rb * 1.1], "leg", seg=12, rings_per=2, ridge=0.07, wk=40)
+        tube(path, [rt, rt * 0.88, (rt + rb) / 2 * 0.95, rb * 1.02, rb * 1.1], "leg", seg=14, rings_per=4, ridge=0.1, wk=55, wrinkle=0.045)
         # round pad
         ellipsoid((bottom.x, bottom.y - (0.012 if kind == "front" else 0.0), 0.017), (rb * 1.2, rb * 1.3, 0.02), "foot", seg=14, rings=6)
         for k in range(3):  # toe nails

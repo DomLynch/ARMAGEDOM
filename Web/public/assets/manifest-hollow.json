@@ -1551,14 +1551,14 @@
         "flee": "Flee"
       },
       "deferred": true,
-      "bytes": 307504,
-      "sha256": "e1400fa1857687d1f4e7d920887a89d469686e34fec81a60540048586ad9aa50",
+      "bytes": 316692,
+      "sha256": "7451aecde8f94644a37ab6549ddbf314bc8352c602537689c4e5a77952d304f5",
       "name": "Ashen Elephant",
       "contact": {
         "canines": [
           {
             "mesh": "wolf",
-            "vertex": 4106
+            "vertex": 4468
           }
         ],
         "calfBand": [1.4, 1.85],
