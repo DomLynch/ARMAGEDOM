@@ -514,7 +514,8 @@ export class LondonWorld {
     const hit = this.ray.ray.intersectPlane(this.plane, this.hit);
     return hit ? { x: hit.x, z: -hit.z } : null;
   }
-  update(playerPosition, dt, width, height, immediate = false) {
+  // `deathView` (engine/death-presentation.js, boss/marked-hunter death): { zoomMul, focus: {x,z}, share } or null; null = unchanged view.
+  update(playerPosition, dt, width, height, immediate = false, deathView = null) {
     this.width = width;
     this.height = height;
     const { layout, geometry, camera } = this;
@@ -536,14 +537,22 @@ export class LondonWorld {
     }
     if (!portrait) zoom *= VIEW.landscapeZoomBoost;
     else zoom *= VIEW.portraitZoomBoost;
-    zoom *= this.viewZoomMultiplier;
+    zoom *= this.viewZoomMultiplier * (deathView?.zoomMul ?? 1);
+    // The follow target slides from the player toward the dying body by `share`; the size reference above stays on the player.
+    const k = deathView?.focus ? deathView.share : 0,
+      f = k
+        ? geometry.point({
+            x: playerPosition.x + (deathView.focus.x - playerPosition.x) * k,
+            z: playerPosition.z + (deathView.focus.z - playerPosition.z) * k,
+          })
+        : p;
     const zx = zoom * Math.max(1, ASPECT / aspect),
       zy = zoom * Math.max(1, aspect / ASPECT);
     const ex = 0.5 / zx, // tuning-ok: half the visible painting width
       ey = 0.5 / zy, // tuning-ok: half the visible painting height
       target = {
-        x: clamp(p.x, ex, 1 - ex),
-        y: clamp(1 - p.y + (portrait ? VIEW.portraitLift / zy : VIEW.landscapeLift), ey, 1 - ey),
+        x: clamp(f.x, ex, 1 - ex),
+        y: clamp(1 - f.y + (portrait ? VIEW.portraitLift / zy : VIEW.landscapeLift), ey, 1 - ey),
       };
     if (immediate) {
       this.center = target;

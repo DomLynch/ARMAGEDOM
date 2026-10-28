@@ -61,6 +61,47 @@ export function validatePhysicsDeath(d) {
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");
 }
 
+// deathPresentation.json (death-presentation.js): boss / marked-hunter slow-mo + camera push-in, ?deathcam=0 off.
+export function validateDeathPresentation(d) {
+  closed(d, [
+    "schema_version",
+    "note",
+    "flagParam",
+    "offValue",
+    "defaultOn",
+    "eligibleFlags",
+    "timeScale",
+    "slowSeconds",
+    "easeBackSeconds",
+    "pushInSeconds",
+    "zoomPushPct",
+    "focusShare",
+    "retriggerCooldownSeconds",
+    "maxTotalSlowSeconds",
+    "dtSpikeSeconds",
+    "idle",
+  ]);
+  const f = "deathPresentation";
+  closed(d.idle, ["timeScale", "zoomMul", "weight", "active"]);
+  if (d.idle.timeScale !== 1 || d.idle.zoomMul !== 1 || d.idle.weight !== 0 || d.idle.active !== false)
+    fail(f, "idle must be timeScale 1, zoomMul 1, weight 0, active false");
+  for (const name of ["retriggerCooldownSeconds", "maxTotalSlowSeconds", "dtSpikeSeconds"]) number(f, name, d[name], 0.01);
+  if (d.maxTotalSlowSeconds < d.slowSeconds + d.easeBackSeconds)
+    fail(f, "maxTotalSlowSeconds must cover one full slowSeconds + easeBackSeconds window");
+  if (d.retriggerCooldownSeconds < d.slowSeconds + d.easeBackSeconds)
+    fail(f, "retriggerCooldownSeconds must be at least slowSeconds + easeBackSeconds");
+  if (typeof d.note !== "string" || !d.note) fail(f, "note must say the values are placeholders");
+  if (typeof d.flagParam !== "string" || typeof d.offValue !== "string") fail(f, "flagParam and offValue must be strings");
+  if (typeof d.defaultOn !== "boolean") fail(f, "defaultOn must be true or false");
+  if (!Array.isArray(d.eligibleFlags) || !d.eligibleFlags.length || !d.eligibleFlags.every((x) => typeof x === "string" && x))
+    fail(f, "eligibleFlags must name at least one entity field");
+  for (const name of ["slowSeconds", "easeBackSeconds", "pushInSeconds"]) number(f, name, d[name], 0.01);
+  if (!(d.timeScale > 0 && d.timeScale <= 1)) fail(f, "timeScale must be above 0 and at most 1");
+  if (!(d.zoomPushPct >= 0 && d.zoomPushPct <= 50)) fail(f, "zoomPushPct must be 0 to 50");
+  if (!(d.focusShare >= 0 && d.focusShare <= 1)) fail(f, "focusShare must be 0 to 1");
+  if (d.slowSeconds + d.easeBackSeconds > 3) fail(f, "slowSeconds + easeBackSeconds must be at most 3");
+}
+
 // physicsBody.json: the body measure row the ragdoll is built from, and the node-name prefix of the rig.
 export function validatePhysicsBody(d) {
   closed(d, ["schema_version", "note", "nodePrefix", "row"]);

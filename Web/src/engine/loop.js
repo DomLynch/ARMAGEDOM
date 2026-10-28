@@ -1,6 +1,7 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
+import { createDeathPresentation } from "./death-presentation.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -16,6 +17,14 @@ export function createBrowserLoop(s) {
     accumulator = 0,
     submitted = null,
     airdropView = null;
+  const deathCam = createDeathPresentation();
+  let seenGame = null,
+    seenArea = null;
+  // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
+  if (globalThis.document && s.listen)
+    s.listen(globalThis.document, "visibilitychange", () => {
+      if (globalThis.document.hidden) deathCam.reset();
+    });
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,
@@ -85,11 +94,18 @@ export function createBrowserLoop(s) {
     return value;
   }
   function frame(ms, providedElapsed) {
-    const elapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0),
-      dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
+    const realElapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0);
     last = ms;
     if (!s.world || !s.game || s.contextLost) return;
-    const audioEvents = [];
+    // Real reset hooks: travel, player death, a new game object or area id (area change / run reset).
+    if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
+    seenGame = s.game;
+    seenArea = s.world.areaId;
+    const audioEvents = [],
+      // Boss / marked-hunter death slow-mo: scale the frame's seconds ONCE, here, so simulation, ragdoll and effects share one clock.
+      cam = s.traveling || s.paused ? deathCam.tick(0) : deathCam.tick(realElapsed),
+      elapsed = realElapsed * cam.timeScale,
+      dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
     // Travel holds this frame and simulation. Re-rendering the unchanged rigs
     // consumes the idle budget needed to finish the destination's preparation.
     if (s.traveling) {
@@ -145,6 +161,7 @@ export function createBrowserLoop(s) {
         s.worldJournal?.ingest(s.game, s.game.events);
         s.effects.events(s.game);
         s.actors?.events(s.game);
+        deathCam.observe(s.game.events);
         audioEvents.push(...s.game.events);
         s.emit(s.game.events);
         hints.observe(s.game);
@@ -159,7 +176,14 @@ export function createBrowserLoop(s) {
         }
       }
     }
-    s.world.update(s.game.player.pos, s.paused ? 0 : dt, innerWidth, innerHeight);
+    s.world.update(
+      s.game.player.pos,
+      s.paused ? 0 : Math.min(GAME_DATA.browserSession.maxStepSeconds, realElapsed), // camera follow runs on real time
+      innerWidth,
+      innerHeight,
+      false,
+      cam.active ? cam : null,
+    );
     s.world.exitRings?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
     s.world.worldPickups?.sync(s.game);
     s.world.killDrops?.sync(s.game);
@@ -192,10 +216,12 @@ export function createBrowserLoop(s) {
     else s.renderer.render(s.scene, s.camera);
   }
   return {
+    deathCam,
     frame,
     intent,
     combatVisibleIds,
     reset() {
+      deathCam.reset();
       last = 0;
       accumulator = 0;
       submitted = null;
