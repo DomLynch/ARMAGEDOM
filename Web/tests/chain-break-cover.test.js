@@ -13,7 +13,7 @@ function armed() {
   const f = make();
   collectPistol(f);
   const g = f.g;
-  g.world.layout ??= JSON.parse(fs.readFileSync(new URL("../public/world/westminster/layout.json", import.meta.url))); // the real World keeps its layout; the fixture's stand-in does not
+  g.world.layout = JSON.parse(fs.readFileSync(new URL("../public/world/westminster/layout.json", import.meta.url))); // the real World keeps its layout; the fixture's stand-in does not
   g.enemies = [];
   g.events = [];
   g.time = 10;
