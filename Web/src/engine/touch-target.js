@@ -2,7 +2,7 @@ import { reaperSelected, reaperLegalTarget } from "./reaper.js";
 import { GAME_DATA } from "./game-data.js";
 import { Vector3, Raycaster, Box3, Matrix4 } from "three";
 import { posedActorBounds } from "./grenade-surface.js";
-import { selectedRangedProfile, rangedTargets, combatTargetHeight } from "../pistol-targeting.js";
+import { selectedRangedProfile, rangedTargets, combatTargetHeight, chainedSight, withChained } from "../pistol-targeting.js";
 import { safehouseWeaponBlocked, safehouseTouches } from "./safehouse.js";
 const padding = GAME_DATA.visual.touchTarget.paddingPx,
   EPS = 1e-8,
@@ -70,7 +70,7 @@ export function pickTouchTarget(g, views, camera, canvas, tap) {
       continue;
     const hit = ray.ray.intersectBox(bounds, point),
       distance = hit ? ray.ray.origin.distanceTo(hit) : ray.ray.origin.distanceTo(bounds.getCenter(point));
-    if (distance >= cover - EPS || !g.world.lineClear(g.player.pos, enemy.pos)) continue;
+    if (distance >= cover - EPS || !chainedSight(g)(g.player.pos, enemy.pos)) continue;
     const exact = tap.x >= left && tap.x <= right && tap.y >= top && tap.y <= bottom,
       edge = Math.hypot(Math.max(left - tap.x, 0, tap.x - right), Math.max(top - tap.y, 0, tap.y - bottom));
     const local = bounds.clone().applyMatrix4(new Matrix4().copy(views.get(enemy.id).root.matrixWorld).invert());
@@ -140,7 +140,7 @@ export function touchTargetVisible(g, views, camera) {
 export function selectedTouchTarget(g) {
   const selected = g.touchTarget;
   return selected && g.world && selected.areaId === g.world.areaId
-    ? ((g.enemies ?? []).find(
+    ? (withChained(g, g.enemies ?? []).find(
         (e) =>
           e.id === selected.id &&
           (e.placementKey ?? String(e.id)) === selected.key &&
@@ -167,7 +167,7 @@ export function touchTargetReady(g, target, { flameAimEligible, allowReload = fa
     g.time < (p.ready ?? 0) ||
     g.time < (p.hurtUntil ?? 0) ||
     g.time < (p.dodgeUntil ?? 0) ||
-    !g.world.lineClear(p.pos, target.pos)
+    !chainedSight(g)(p.pos, target.pos)
   )
     return false;
   if (gun === "reaper") return reaperLegalTarget(g, target, g.reaper?.actor.pos ?? p.pos);

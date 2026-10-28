@@ -42,7 +42,8 @@ function nearRay(r, at) {
     sz = r.end.z - r.origin.z,
     length = sx * sx + sz * sz,
     t = length ? Math.max(0, Math.min(1, ((at.x - r.origin.x) * sx + (at.z - r.origin.z) * sz) / length)) : 0;
-  return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres;
+  // An aimed bullet stops at the body's edge, exactly hitRadiusMetres out: edgeToleranceMetres keeps float noise from calling that a miss.
+  return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres + T.edgeToleranceMetres;
 }
 function edgeGap(p, a, b) {
   const sx = b.x - a.x,
@@ -123,7 +124,22 @@ function struck(g, at) {
 export function chainedPitbornTarget(g) {
   const w = g.world;
   if (!w?.geometry?.ground || w.areaId !== D.areaId || !chainBreakOn() || (g.chainBreak?.state ?? "chained") !== "chained") return null;
-  return { id: T.aimTargetId, pos: w.geometry.ground(D.at), hp: 1, radius: B.hitRadiusMetres, hostile: true, visible: true, areaId: D.areaId };
+  return {
+    ...{ id: T.aimTargetId, placementKey: T.aimTargetId, pos: w.geometry.ground(D.at), hp: 1, radius: B.hitRadiusMetres },
+    ...{ hostile: true, visible: true, areaId: D.areaId, chainedStandIn: true },
+  };
+}
+// Every path that picks a body to aim at (pistol, rifle and boss-weapon aim, touch tap, mouse point, flame, melee) asks for its bodies
+// through `withChained` and its sight line through `chainedSight`, so the shackled Pitborn is aimable wherever an enemy is, from one stand-in.
+export const withChained = (g, list) => {
+  const stand = chainedPitbornTarget(g);
+  return stand ? [...list, stand] : list;
+};
+// The stand-in stands inside the lion statue's collision: sight to its own spot is allowed when the statue is all that is in the way.
+export function chainedSight(g) {
+  const stand = chainedPitbornTarget(g);
+  return (a, b) =>
+    g.world.lineClear(a, b) || (!!stand && b.x === stand.pos.x && b.z === stand.pos.z && sightPastStatue(g.world, stand.pos, a));
 }
 // `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).
 export function stepChainBreak(g, spawn, open) {

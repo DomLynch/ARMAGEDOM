@@ -1,4 +1,4 @@
-import { combatTargetHeight, rangedTargets, resolveRangedAim } from "../pistol-targeting.js";
+import { combatTargetHeight, rangedTargets, resolveRangedAim, withChained } from "../pistol-targeting.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
 import { safehouseWeaponBlocked, safehouseBlocksSegment, safehouseTouches } from "./safehouse.js";
 import { RAILGUN_ITEM_ID } from "./railgun-core.js";
@@ -74,7 +74,7 @@ export function railgunIntent(g, intent, dispatch, applyHit, services = {}) {
   }
   const selected =
     g.touchTarget?.areaId === g.world.areaId
-      ? g.enemies.find(
+      ? withChained(g, g.enemies).find(
           (e) =>
             e.id === g.touchTarget.id &&
             (e.placementKey ?? String(e.id)) === g.touchTarget.key &&

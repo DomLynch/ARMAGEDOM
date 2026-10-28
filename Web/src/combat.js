@@ -72,6 +72,7 @@ import { createSuppliesState, issueSupply } from "./supplies.js";
 import { createVestState, damageAfterVest } from "./vest.js";
 import { AREA_MOB_SPAWNS, residentEncounterHealth } from "./area-mob-spawns.js";
 import { selectCombatTarget, resolvePistolShot, resolveRangedAim, selectedRangedProfile } from "./pistol-targeting.js";
+import { meleeCandidates, chainedSight, bodies } from "./pistol-targeting.js";
 import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
@@ -555,8 +556,8 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       aim: direction,
       coneDegrees: p.meleeTargeting?.coneDegrees,
       position: p.pos,
-      targets: g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)),
-      lineClear: (a, b) => g.world.lineClear(a, b),
+      targets: meleeCandidates(g, visibleIds),
+      lineClear: chainedSight(g),
       range: normalReach,
       rangeOffset: (target) =>
         p.meleeLowMoves?.[target.rig]
@@ -623,8 +624,8 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
             nearest,
             position: p.pos,
             aim: p.facing,
-            targets: g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)),
-            lineClear: (a, b) => g.world.lineClear(a, b),
+            targets: meleeCandidates(g, visibleIds),
+            lineClear: chainedSight(g),
             range,
             rangeOffset: (target) =>
               target.mobSize
@@ -1121,7 +1122,7 @@ function mobileControl(g, intent, dt, services) {
     dt,
     move: intent.move ?? { x: 0, z: 0 },
     position: p.pos,
-    targets: g.enemies.map((e) => ({
+    targets: bodies(g).map((e) => ({
       id: e.placementKey,
       pos: e.pos,
       hp: e.hp,
@@ -1131,7 +1132,7 @@ function mobileControl(g, intent, dt, services) {
       radius: e.radius,
     })),
     areaId,
-    lineClear: (a, b) => g.world.lineClear(a, b),
+    lineClear: chainedSight(g),
     mobile: !!intent.mobile,
     moveHeld: !!intent.moveHeld,
     alive: p.hp > 0,
@@ -1148,7 +1149,7 @@ function mobileControl(g, intent, dt, services) {
       ? (key) =>
           services.flameAimEligible(
             g,
-            g.enemies.find((e) => e.placementKey === key),
+            bodies(g).find((e) => e.placementKey === key),
           )
       : undefined,
   });
@@ -1403,7 +1404,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.healthRegen && !g.finished) stepPlayerHealth(g.player, dt);
   if (g.mobileAim) {
     if (g.finished) resetMobileControls(g);
-    else if (!g.enemies.some((e) => e.placementKey === g.mobileAim.targetId && e.hp > 0))
+    else if (!bodies(g).some((e) => e.placementKey === g.mobileAim.targetId && e.hp > 0))
       g.mobileAim = { ...g.mobileAim, targetId: null, bearing: null };
   }
 }

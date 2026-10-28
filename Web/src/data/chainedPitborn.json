@@ -32,6 +32,7 @@
     "cones": ["flame-contact"],
     "blastPaddingMetres": 0.9,
     "coverEdgeMetres": 0.2,
+    "edgeToleranceMetres": 0.01,
     "coverBlocker": "Lion pedestal",
     "sightSteps": 200,
     "aimTargetId": "chained-pitborn"

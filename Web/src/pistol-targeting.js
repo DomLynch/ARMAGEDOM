@@ -1,6 +1,9 @@
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { GAME_DATA } from "./engine/game-data.js";
-import { chainedPitbornTarget, sightPastStatue } from "./engine/chain-break.js";
+import { chainedSight, withChained } from "./engine/chain-break.js";
+export { chainedSight, withChained };
+// Every enemy plus the shackled Pitborn's stand-in while it is chained.
+export const bodies = (g) => withChained(g, g.enemies ?? []);
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
 import { rigCapability, rigNumber } from "./rig-capabilities.js";
 
@@ -139,16 +142,23 @@ export function selectedRangedProfile(g) {
     };
   return null;
 }
+// Bodies a gun can aim at: the visible hostile enemies, plus the shackled Pitborn's stand-in while it is chained (it is always listed,
+// the view cull knows only real enemies).
 export function rangedTargets(g, visibleIds) {
-  return (g.enemies ?? []).filter(
-    (t) =>
-      t.hp > 0 &&
-      t.hostile !== false &&
-      t.visible !== false &&
-      (!visibleIds || visibleIds.includes(t.id)) &&
-      (t.areaId == null || t.areaId === g.world.areaId),
+  return withChained(
+    g,
+    (g.enemies ?? []).filter(
+      (t) =>
+        t.hp > 0 &&
+        t.hostile !== false &&
+        t.visible !== false &&
+        (!visibleIds || visibleIds.includes(t.id)) &&
+        (t.areaId == null || t.areaId === g.world.areaId),
+    ),
   );
 }
+// Bodies a melee swing can turn toward: every enemy in view, plus the shackled Pitborn's stand-in.
+export const meleeCandidates = (g, visibleIds) => withChained(g, g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)));
 export function resolveRangedAim(
   g,
   aim,
@@ -161,7 +171,7 @@ export function resolveRangedAim(
   if (!profile || length < EPS || !Number.isFinite(length)) return null;
   const direction = { x: aim.x / length, z: aim.z / length },
     targets = rangedTargets(g, visibleIds),
-    lineClear = g.world.lineClear.bind(g.world),
+    lineClear = chainedSight(g),
     projectile = ["grenade", "rocketLauncher"].includes(profile.field),
     rules = profile.rules;
   const explicitTarget =
@@ -178,27 +188,26 @@ export function resolveRangedAim(
     }
     assist = false;
   }
-  // Single bullets only: shotgun pellets and projectiles cannot free it, so they are not steered at it.
-  const shackled = assist && ["pistol", "rifle"].includes(profile.field) ? chainedPitbornTarget(g) : null;
+  // `targets` already holds the shackled Pitborn's stand-in (rangedTargets) and `lineClear` lets sight reach it past its statue.
   const trace = assist
-    ? resolvePistolShot({
-        position: p,
-        aim: direction,
-        // The shackled Pitborn is an aim-assist target. It stands in the statue's collision, so sight to its own spot is allowed when the
-        // statue is all that is in the way; any other wall still blocks it.
-        targets: shackled ? [...targets, shackled] : targets,
-        visibleIds: shackled && visibleIds ? [...visibleIds, shackled.id] : visibleIds,
-        lineClear: shackled
-          ? (a, b) =>
-              lineClear(a, b) ||
-              (Math.hypot(b.x - shackled.pos.x, b.z - shackled.pos.z) < SAME_SPOT && sightPastStatue(g.world, shackled.pos, a))
-          : lineClear,
-        areaId: g.world.areaId,
-        rules,
-      })
+    ? resolvePistolShot({ position: p, aim: direction, targets, lineClear, areaId: g.world.areaId, rules })
     : tracePistol(p, direction, targets, lineClear, rules);
   if (!trace) return null;
-  let target = targets.find((t) => t.id === trace.targetId) ?? null,
+  // The statue stops a bullet short of the shackled Pitborn without hitting its stand-in body; a line that passes within its radius still
+  // counts as aimed at it (the cue and the lock). The shot itself snaps the chains through chain-break.js, not through this target.
+  const through = (t) => {
+    const dx = t.pos.x - p.x,
+      dz = t.pos.z - p.z,
+      line = trace.direction;
+    return (
+      !!t.chainedStandIn &&
+      lineClear(p, t.pos) &&
+      Math.hypot(dx, dz) <= rules.range &&
+      dx * line.x + dz * line.z > 0 &&
+      Math.abs(dx * line.z - dz * line.x) <= t.radius
+    );
+  };
+  let target = targets.find((t) => t.id === trace.targetId) ?? (trace.targetId == null ? targets.find(through) : null) ?? null,
     position = target ? { ...target.pos } : { ...trace.end },
     height = target ? combatTargetHeight(target, g.time) : SHOT.missHeight;
   if (projectile) {
@@ -342,7 +351,7 @@ export function rangedPointerPoint(g, views, x, y, { visibleIds } = {}) {
     targets = rangedTargets(g, visibleIds).filter(
       (t) =>
         Math.hypot(t.pos.x - g.player.pos.x, t.pos.z - g.player.pos.z) <= profile.rules.range + EPS &&
-        g.world.lineClear(g.player.pos, t.pos),
+        chainedSight(g)(g.player.pos, t.pos),
     ),
     projectionTargets = targets.map((t) => {
       const scale = views.get(t.id)?.root?.scale?.y;

@@ -35,7 +35,9 @@ export function createChainedPitbornView(s) {
     last = null,
     snapped = false,
     lastPulse = 0;
-  const show = (p, on) => {
+  // Touch tap and mouse aim read the posed body of the shackled Pitborn through this (engine/loop.js `bodyViews`).
+  s.chainedPitbornParts = () => parts;
+  const show =(p, on) => {
     p.root.visible = p.link.visible = p.plate.visible = p.backplate.visible = p.points.visible = on;
   };
   function build(w, source) {

@@ -1,5 +1,5 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
-import { combatTargetHeight, rangedTargets, selectCombatTarget } from "../pistol-targeting.js";
+import { combatTargetHeight, rangedTargets, selectCombatTarget, chainedSight, withChained } from "../pistol-targeting.js";
 import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { flameTouches } from "./flame-contact.js";
 import * as T from "three";
@@ -206,7 +206,7 @@ export function flameAimEligible(basis, g, target) {
     target,
     time: g.time,
     profile: g.world.flameData.contact,
-    lineClear: (a, b) => g.world.lineClear(a, b),
+    lineClear: chainedSight(g),
     playerPosition: g.player.pos,
   });
 }
@@ -265,14 +265,14 @@ export function flameAimPose(model, mount, g) {
     !locked &&
     g.mobileAim?.targetId == null &&
     assisted &&
-    g.enemies.find(
+    withChained(g, g.enemies).find(
       (e) =>
         e.id ===
         selectCombatTarget({
           position: g.player.pos,
           aim: g.player.facing,
           targets: rangedTargets(g),
-          lineClear: (a, b) => g.world.lineClear(a, b),
+          lineClear: chainedSight(g),
           range: selectedFlameProfile(g).contact.range,
           rangeOffset: (t) => t.radius,
           coneDegrees: selectedFlameProfile(g).contact.coneDegrees / 2, // tuning-ok: the cone's half angle either side of the aim
