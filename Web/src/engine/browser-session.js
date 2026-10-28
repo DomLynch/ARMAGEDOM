@@ -20,6 +20,7 @@ import { createHollowEncounter } from "../hollow-encounter.js";
 import { createAtmosphere } from "../atmosphere.js";
 import { nextAnimalCycle } from "../animal-cycle.js";
 import { createBrowserLoop } from "./loop.js";
+import { QUALITY } from "./quality-tier.js";
 import { createAreaLifecycle } from "./areas.js";
 import { createRunViews } from "./run-views.js";
 import { createJournal } from "./world-events.js";
@@ -680,7 +681,12 @@ export function createBrowserSession(options = {}) {
   if (touchPreview) document.body.classList.add("touch");
   function resize() {
     if (renderer) {
-      renderer.setPixelRatio(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio));
+      QUALITY.probe({
+        cores: navigator.hardwareConcurrency,
+        memoryGb: navigator.deviceMemory,
+        textureSize: renderer.capabilities?.maxTextureSize,
+      });
+      renderer.setPixelRatio(QUALITY.cap(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio), "pixelRatio"));
       renderer.setSize(innerWidth, innerHeight, false);
       world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight, true);
       atmosphere?.update(0, { paused: true });
@@ -693,6 +699,7 @@ export function createBrowserSession(options = {}) {
     if (renderer && world && !contextLost) renderer.render(scene, camera);
   }
   listen(window, "resize", resize);
+  QUALITY.onChange(resize); // the frame-time sample can lower the tier once, after the first seconds
   listen(window, "blur", () => {
     focusLost = true;
     if (loaded && !paused) hud.toggleMenu();

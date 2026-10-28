@@ -5,6 +5,7 @@ import { admit, buildChainRow, chainRigOptions, createPhysics, loadChainBody } f
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
+import { QUALITY } from "./quality-tier.js";
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 import { impulseRow } from "./physics-death-impulse.js";
 import { liveBodies, rigOf } from "./physics-rigs.js";
@@ -91,11 +92,11 @@ const pools = new Map(),
 export const parkedCount = () => [...pools.values()].reduce((sum, pool) => sum + pool.length, 0);
 function warmOne(spec) {
   const pool = poolOf(spec);
-  if (pool.length < CFG.poolSize && parkedCount() < CFG.maxParked)
+  if (pool.length < QUALITY.cap(CFG.poolSize, "ragdolls") && parkedCount() < CFG.maxParked)
     pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked", parked: true })); // created asleep: 0 ms per step until acquired
 }
 const fill = (spec) => {
-  for (let i = 0; world && i < CFG.poolSize; i++) warmOne(spec);
+  for (let i = 0; world && i < QUALITY.cap(CFG.poolSize, "ragdolls"); i++) warmOne(spec);
 };
 export function warm() {
   const [first, ...rest] = liveBodies();
@@ -231,14 +232,15 @@ const evictable = (rank) =>
 
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const budget = GAME_DATA.physicsBudget,
+    rows = QUALITY.ragdollRows(budget.rows),
     rank = rankOf(entity),
     marked = rank >= budget.ranks.marked;
-  if (admit(active.length, budget.rows) === "baked") {
+  if (admit(active.length, rows) === "baked") {
     // Full: a higher-ranked death takes the place of the oldest lower-ranked corpse (its body is freed, the pose stays where it lies); else it is baked.
     const oldest = evictable(rank);
     if (!oldest) return null;
     releaseDeath(oldest);
-    if (admit(active.length, budget.rows) === "baked") return null;
+    if (admit(active.length, rows) === "baked") return null;
   }
   // A body that hovers (the drone) spawns at its hover height: the capsule's centre above its own radius, where the model hangs.
   const hover = spec.frame ? chainOf(spec).row.roles[0] : null,
