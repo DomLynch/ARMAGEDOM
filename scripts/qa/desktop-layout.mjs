@@ -41,8 +41,9 @@ const check = (ok, text) => {
   if (!ok) problems.push(text);
 };
 
+let suffix = "";
 async function enter(page) {
-  await page.goto(baseURL, { waitUntil: "load" });
+  await page.goto(baseURL + suffix, { waitUntil: "load" });
   await page.waitForSelector("#enter:not([disabled])", { timeout: 120000 });
   await page.click("#enter");
   await page.waitForFunction(() => !document.getElementById("hud").hidden, null, { timeout: 180000 });
@@ -125,6 +126,24 @@ const browser = await chromium.launch({
 try {
   if (only !== "touch") for (const size of DESKTOP) await run(browser, "desktop", size, false);
   if (only !== "desktop") await run(browser, "touch", PHONE, true);
+  if (!only) {
+    // A mouse window where touch was detected (body.touch, here from ?touch=1) shows the thumb controls and none of the desktop pieces.
+    suffix = "?touch=1";
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
+    await enter(page);
+    const seen = await page.evaluate(() => ({
+      touch: document.body.classList.contains("touch"),
+      move: !!document.querySelector("#move")?.getClientRects().length,
+      cluster: !!document.querySelector("#action-cluster")?.getClientRects().length,
+      hints: !!document.querySelector("#key-hints")?.getClientRects().length,
+    }));
+    console.log("touch-detected 1280x720", JSON.stringify(seen));
+    check(seen.touch && seen.move && seen.cluster, "touch detected: the thumb controls must show");
+    check(!seen.hints, "touch detected: the key hints must hide");
+    await page.screenshot({ path: join(outDir, "touch-detected-1280x720.png") });
+    await context.close();
+  }
 } finally {
   await browser.close();
 }
