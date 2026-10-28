@@ -603,7 +603,7 @@
     "renderOrder": -85,
     "maxStepSeconds": 0.1
   },
-  "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 2, "pageWidthPx": 110 },
+  "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 3, "pageWidthPx": 168 },
   "bossLabel": { "marginPx": 8, "gapPx": 8 },
   "hud": { "heavyFallbackSeconds": 1.6, "dodgeFallbackSeconds": 1.05, "pistolInteractRadius": 1.3, "grenadeDefaultRange": 5, "equipMessageSeconds": 3 },
   "flamePresentation": {
