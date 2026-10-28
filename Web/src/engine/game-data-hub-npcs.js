@@ -3,7 +3,6 @@ import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
 
 const REF = /^[a-z][a-z0-9-]*$/;
-const ROLES = ["vendor", "medic", "quest-giver"];
 
 export function validateHubNpcs(d) {
   closed(d, ["schema_version", "note", "enabled", "offParam", "offValue", "area", "npcs"]);
@@ -18,7 +17,7 @@ export function validateHubNpcs(d) {
       if (typeof n[name] !== "string" || !n[name]) fail("hubNpcs", `${n.id}: ${name} must be a nonempty string`);
     if (!REF.test(n.ref) || seen.has(n.id) || seen.has(n.ref)) fail("hubNpcs", `${n.id}: id and ref must be unique lowercase ids`);
     seen.add(n.id).add(n.ref);
-    if (!ROLES.includes(n.role)) fail("hubNpcs", `${n.id}: role must be one of ${ROLES.join(", ")}`);
+    if (!REF.test(n.role)) fail("hubNpcs", `${n.id}: role must be a lowercase id`);
     closed(n.at, ["x", "y"]);
     for (const axis of ["x", "y"]) {
       number("hubNpcs", `${n.id}.at.${axis}`, n.at[axis]);

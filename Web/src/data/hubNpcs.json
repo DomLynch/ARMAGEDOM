@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "note": "Named Central Hub NPCs, presentation only: three crowd-body GLBs on the 106-joint rig with one retargeted Mixamo idle each (deferred rows in assets/manifest-hollow.json). engine/hub-npcs.js draws them in `area` while the player is there and removes them on leaving. They are not entities: no health, collision, targeting, trade, healing, quest or save state, so no cash, inventory or save record is touched. Placement is painting fractions (x right, y down, like the layout and exits) projected on the ground; facingDegrees turns the body about the vertical (0 faces the camera); phaseSeconds offsets the idle so they do not move together. enabled false or ?nonpcs=1 removes them.",
   "enabled": true,
   "offParam": "nonpcs",
