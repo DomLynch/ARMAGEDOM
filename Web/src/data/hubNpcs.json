@@ -1,5 +1,5 @@
 {
-  "schema_version": 4,
+  "schema_version": 1,
   "note": "Named Central Hub NPCs, presentation only: three OpenTrident MakeHuman V2 bodies on the 106-joint Mixamo rig with their 12 clips replaced by ONE retargeted Mixamo idle each (art/hub-npcs/build.mjs), registered in assets/manifest-hollow.json as deferred rows (a row's ref is its manifest model id). engine/hub-npcs.js draws them in `area` while the player is there and removes them on leaving. They are not entities: no health, collision, targeting, trade, healing, quest or save state, so no cash, inventory or save record is touched. Placement is painting fractions (x right, y down, like the layout and exits) projected on the ground; facingDegrees turns the body about the vertical (0 faces the camera); phaseSeconds offsets each idle so they do not move together; idleRate scales the idle clock (1 is the clip's own speed). The code drives the idle itself because DonorMotion holds a standing human at phase 0. scaleFallback is the scale used when a manifest row or the caller gives none. enabled false or ?nonpcs=1 removes them. bodySha256 is the sha256 of OpenTrident's delivered body (art/hub-npcs/assets.json); the shipped file differs only by its clip.",
   "enabled": true,
   "offParam": "nonpcs",
@@ -18,7 +18,7 @@
       "bodySha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb",
       "mixamoClip": "107900901-breathing-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.36, "y": 0.45 },
+      "at": { "x": 0.43, "y": 0.39 },
       "facingDegrees": 15,
       "phaseSeconds": 0,
       "look": "heavy-set, grey short hair, olive field jacket with flap pockets over a red pinstripe shirt, jeans, brown boots; stands upright, arms loose, slow breathing"
@@ -33,7 +33,7 @@
       "bodySha256": "0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79",
       "mixamoClip": "118910901-standing-w-briefcase-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.64, "y": 0.45 },
+      "at": { "x": 0.57, "y": 0.39 },
       "facingDegrees": -15,
       "phaseSeconds": 2.5,
       "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes; stands upright holding a bag or clipboard low in one hand (the prop is not modelled)"
@@ -48,7 +48,7 @@
       "bodySha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e",
       "mixamoClip": "119170901-talking-on-phone",
       "idleClip": "Idle",
-      "at": { "x": 0.5, "y": 0.36 },
+      "at": { "x": 0.5, "y": 0.33 },
       "facingDegrees": 0,
       "phaseSeconds": 5,
       "look": "thin, short black hair, heather-grey collared shirt (not a hoodie), dark jeans; one hand raised to the ear as if listening on a radio, other hand on the hip (no handset modelled)"

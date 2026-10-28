@@ -5,15 +5,18 @@ import { fail, number } from "./game-data-checks.js";
 const REF = /^[a-z][a-z0-9-]*$/;
 
 export function validateHubNpcs(d) {
-  closed(d, ["schema_version", "note", "enabled", "offParam", "offValue", "area", "npcs"]);
+  closed(d, ["schema_version", "note", "enabled", "offParam", "offValue", "area", "idleRate", "scaleFallback", "npcs"]);
+  number("hubNpcs", "idleRate", d.idleRate);
+  number("hubNpcs", "scaleFallback", d.scaleFallback);
+  if (!(d.idleRate > 0) || !(d.scaleFallback > 0)) fail("hubNpcs", "idleRate and scaleFallback must be above 0");
   if (typeof d.enabled !== "boolean") fail("hubNpcs", "enabled must be true or false");
   for (const name of ["offParam", "offValue", "area"])
     if (typeof d[name] !== "string" || !d[name]) fail("hubNpcs", `${name} must be a nonempty string`);
   if (!Array.isArray(d.npcs) || d.npcs.length === 0) fail("hubNpcs", "npcs must be a nonempty list");
   const seen = new Set();
   for (const n of d.npcs) {
-    closed(n, ["id", "name", "role", "title", "ref", "body", "mixamoClip", "idleClip", "at", "facingDegrees", "phaseSeconds", "look"]);
-    for (const name of ["id", "name", "title", "ref", "body", "mixamoClip", "idleClip", "look"])
+    closed(n, ["id", "name", "role", "title", "ref", "body", "bodySha256", "mixamoClip", "idleClip", "at", "facingDegrees", "phaseSeconds", "look"]);
+    for (const name of ["id", "name", "title", "ref", "body", "bodySha256", "mixamoClip", "idleClip", "look"])
       if (typeof n[name] !== "string" || !n[name]) fail("hubNpcs", `${n.id}: ${name} must be a nonempty string`);
     if (!REF.test(n.ref) || seen.has(n.id) || seen.has(n.ref)) fail("hubNpcs", `${n.id}: id and ref must be unique lowercase ids`);
     seen.add(n.id).add(n.ref);

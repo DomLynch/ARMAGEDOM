@@ -51,3 +51,27 @@ test("a model that has not arrived leaves the NPCs out and asks once; the off sw
   assert.equal(hubNpcsOn(`?${DATA.offParam}=${DATA.offValue}`), false);
   assert.equal(hubNpcsOn(""), true);
 });
+
+test("the idle clock advances: each NPC's pose differs between two clock times, and the NPCs are offset from each other", () => {
+  const npcs = createHubNpcs({ library: { models, ensureModels: () => Promise.resolve() } });
+  const hub = makeWorld(DATA.area);
+  const snapshot = () =>
+    npcs.views.map(({ motion }) => {
+      const spine = motion.model.getObjectByName(THREE.PropertyBinding.sanitizeNodeName("mixamorig:Spine2"));
+      const hand = motion.model.getObjectByName(THREE.PropertyBinding.sanitizeNodeName("mixamorig:RightHand"));
+      return [motion.currentPhase, ...spine.matrixWorld.elements, ...hand.matrixWorld.elements];
+    });
+  npcs.sync(hub, 0.1); // builds at clock 0
+  const first = snapshot();
+  npcs.sync(hub, 1.7);
+  const later = snapshot();
+  assert.equal(npcs.clock, 1.7);
+  assert.equal(first.length, DATA.npcs.length);
+  first.forEach((pose, i) => {
+    assert.notEqual(later[i][0], pose[0], `${DATA.npcs[i].ref} idle phase advances`);
+    const moved = pose.slice(1).reduce((sum, v, k) => sum + Math.abs(v - later[i][k + 1]), 0);
+    assert(moved > 0.001, `${DATA.npcs[i].ref} pose changes between clock times (${moved})`);
+  });
+  assert.equal(new Set(first.map((p) => p[0].toFixed(4))).size, DATA.npcs.length, "idle phases are offset per NPC");
+  for (const view of npcs.views) assert.equal(view.motion.currentClip, models.get(view.ref).description.clips.idle);
+});
