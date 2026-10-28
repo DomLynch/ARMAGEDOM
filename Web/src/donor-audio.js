@@ -284,7 +284,6 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         ready: !!buffer,
         context: context?.state ?? "locked",
         enabled,
-        burnLoopActive: !!burnLoop,
         activeVoices: active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) + (burnLoop ? 1 : 0),
         voiceCapacity: A.engine.voiceCapacity,
         mode: effectiveMode(),

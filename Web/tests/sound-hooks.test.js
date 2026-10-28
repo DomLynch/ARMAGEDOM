@@ -138,24 +138,23 @@ test('hook cues sound through the donor audio, and not when muted, paused or loc
   f.audio.playHooks(cues());
   f.audio.setBurning(2, D.burn);
   assert.equal(f.started(), before, 'muted: nothing starts');
-  assert.equal(f.audio.state.burnLoopActive, false);
+  assert.equal(f.audio.state.activeVoices, 0);
 });
 
 test('the burn crackle loops while something burns, counts one voice, and stops with the fire, the mute and the mode', async t => {
   const f = await fixture(t);
   f.audio.setBurning(1, D.burn);
-  assert.equal(f.audio.state.burnLoopActive, true);
-  const voices = f.audio.state.activeVoices;
+  assert.equal(f.audio.state.activeVoices, 1);
   f.audio.setBurning(3, D.burn);
-  assert.equal(f.audio.state.activeVoices, voices, 'still one loop');
+  assert.equal(f.audio.state.activeVoices, 1, 'still one loop');
   f.audio.setBurning(0, D.burn);
-  assert.equal(f.audio.state.burnLoopActive, false);
+  assert.equal(f.audio.state.activeVoices, 0);
   f.audio.setBurning(1, D.burn);
   f.audio.setEnabled(false);
-  assert.equal(f.audio.state.burnLoopActive, false, 'mute stops it');
+  assert.equal(f.audio.state.activeVoices, 0, 'mute stops it');
   f.audio.setEnabled(true);
   f.audio.setMode('off');
   f.audio.setBurning(2, D.burn);
   f.audio.playHooks(cues());
-  assert.equal(f.audio.state.burnLoopActive, false, 'off mode makes no hook sound');
+  assert.equal(f.audio.state.activeVoices, 0, 'off mode makes no hook sound');
 });
