@@ -251,7 +251,7 @@ function scene({ player, area = DATA.area } = {}) {
 function mount({ blocked = false, search = "", market = createMockMarket({ cash: 500 }) } = {}) {
   const doc = makeDoc(),
     state = { blocked };
-  const shop = createShop({ doc, market: () => market, isGuest: () => false, localCash: () => 500, onCash() {}, blocked: () => state.blocked, search });
+  const shop = createShop({ doc, market: () => market, isGuest: () => false, localCash: () => 500, onCash() {}, blocked: () => state.blocked, search, enabled: true });
   const spots = doc.body.children[0].children;
   return { shop, doc, state, spots, panel: () => doc.body.children[1] };
 }
@@ -311,7 +311,7 @@ test("the panel draws the Buy rows and a Market closed state for a guest", async
   await wait();
   assert.equal(root.byClass("shop-note")[0].textContent, "Bought 1 x Ammo Pack.");
   const closedDoc = makeDoc(),
-    closed = createShop({ doc: closedDoc, market: () => null, isGuest: () => true, localCash: () => null, onCash() {}, blocked: () => false });
+    closed = createShop({ doc: closedDoc, market: () => null, isGuest: () => true, localCash: () => null, onCash() {}, blocked: () => false, enabled: true });
   closed.open("scrapper");
   assert.equal(closed.controller.view().stateText, DATA.text.closedGuest);
   assert.equal(closedDoc.body.children[1].byClass("shop-title")[0].textContent, DATA.text.closedTitle);

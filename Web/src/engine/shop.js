@@ -33,9 +33,10 @@ export function createShop({
   onCash,
   blocked,
   search,
+  enabled = DATA.enabled, // a test passes true: the data ships false until the market server is live
   listen = (target, type, handler) => target.addEventListener(type, handler),
 }) {
-  const controller = createShopController({ api: market, isGuest, localCash, onCash, onChange: (v) => view.render(v) }),
+  const controller = createShopController({ api: market, isGuest, localCash, onCash, enabled, onChange: (v) => view.render(v) }),
     view = createShopView({ doc, controller }),
     layer = doc.createElement("div"),
     spots = new Map(),
@@ -72,7 +73,7 @@ export function createShop({
     controller,
     // Every frame, after the world has moved: s is the loop's context (world, game, camera, canvas).
     update(s) {
-      const live = shopsOn(search) && hubNpcsOn(search) && s.world?.areaId === DATA.area && !blocked();
+      const live = shopsOn(search, enabled) && hubNpcsOn(search) && s.world?.areaId === DATA.area && !blocked();
       if (!live) {
         if (controller.isOpen) controller.close();
         for (const spot of spots.values()) spot.hidden = true;
