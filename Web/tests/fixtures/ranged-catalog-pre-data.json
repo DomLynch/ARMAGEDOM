@@ -152,23 +152,23 @@
   },
   "borough-marshals-pistol-v1": {
     "itemId": "borough-marshals-pistol-v1",
-    "name": "Thundercoil Arc Gun",
+    "name": "Light Machine Gun",
     "family": "rifles",
     "weaponKey": "railgun",
     "damageType": "bullet",
     "delivery": "ray",
     "guidance": "none",
-    "fireMode": "press",
+    "fireMode": "held",
     "attachment": "hand_r",
     "modelRef": "player-rifle",
     "finisherBinding": "pistol",
     "rules": {
-      "capacity": 4,
-      "reserve": 8,
-      "damage": 45,
-      "range": 4.5,
-      "cadence": 0.8,
-      "reload": 1.8,
+      "capacity": 40,
+      "reserve": 120,
+      "damage": 5,
+      "range": 14,
+      "cadence": 0.11,
+      "reload": 3,
       "pickupRadius": 1.3
     },
     "source": {
@@ -176,17 +176,13 @@
       "areaId": "area8",
       "receiptId": "boss-veteran-v1:borough-marshals-pistol-v1"
     },
-    "charge": {
-      "seconds": 0.3,
-      "maxSeconds": 3.5,
-      "statusSeconds": 0.8
-    },
-    "arc": {
-      "jumps": 3,
-      "hopRange": 4.5,
-      "hopDamageFactor": 0.75,
-      "stunSeconds": 0.6,
-      "bossStunSeconds": 0.2
+    "automatic": {
+      "spreadDegrees": 4,
+      "spreadStride": 0.6180339887,
+      "staggerSeconds": 0.05,
+      "bossStaggerSeconds": 0,
+      "tracerColour": "ffd27a",
+      "tracerSeconds": 0.07
     }
   }
 }

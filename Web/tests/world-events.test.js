@@ -562,7 +562,7 @@ test("3 weaponRules: one row per hit weaponId, from the real tables", (t) => {
     byId = Object.fromEntries(rules.map((r) => [r.weaponId, r]));
   assert.deepEqual(rules.map((r) => r.weaponId).sort(), [...WEAPON_IDS].sort());
   assert.equal(byId.pistol.maxDamagePerHit, 25);
-  assert.equal(byId.railgun.maxDamagePerHit, 45);
+  assert.equal(byId.railgun.maxDamagePerHit, 5);
   assert(byId.pistol.maxHitsPerS > 0.8 && byId.pistol.reachM === 18);
   assert.equal(byId["bone-saw"].maxHitsPerS, 5);
   // Every weaponId in a recorded hit is a key of the table, and the hit respects the table's damage cap.

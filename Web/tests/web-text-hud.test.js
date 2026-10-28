@@ -52,9 +52,9 @@ const HUD = [
   ["hud.grenadeMode", { mode: "Sticky" }, "Switch grenade mode; Sticky selected"],
   ["hud.grenadeRange", { ranges: "3, 5 or 8" }, "Cycle touch throw range: 3, 5 or 8 metres"],
   [
-    "hud.arcCharge",
-    { seconds: 1.5 },
-    "Hold to charge Thundercoil Arc Gun for 1.5 seconds; release when ready; early release cancels",
+    "hud.fire.lmg",
+    { magazine: 20, reserve: 90 },
+    "Hold to fire Light Machine Gun; 20 loaded and 90 reserve",
   ],
   ["hud.flameFire", { percent: 90 }, "Hold to fire flamethrower; fuel 90 percent"],
   ["hud.boneSawCut", {}, "Hold to cut with the Bone Saw; movement slows while cutting"],
