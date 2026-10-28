@@ -1,6 +1,7 @@
 // Pilot: ragdoll DEATH for the marked hunter, behind ?physics=1 (default OFF). The baked Death clip is the fallback for every failure:
 // flag off, chunk not loaded yet, missing bone, a throw. Nothing here waits: a hunter that dies before the chunk is ready plays the clip.
 import { GAME_DATA } from "./game-data.js";
+import { cutsEnabled } from "./finisher-cuts.js";
 
 const CFG = GAME_DATA.physicsDeath;
 
@@ -36,10 +37,23 @@ export function releasePhysicsDeath(view) {
   const s = view.physicsDeath;
   if (!s) return;
   view.physicsDeath = undefined;
-  if (!s.failed) impl?.releaseDeath(s);
+  if (s.failed) return;
+  impl?.disposeCuts(s); // the cut body and its pieces leave the scene with the actor
+  impl?.releaseDeath(s);
+}
+// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
+// preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
+let cutsRequested = false;
+function prefetchCuts() {
+  if (cutsRequested || !impl || !cutsEnabled()) return;
+  cutsRequested = true;
+  impl.loadCutAssets().catch(() => {
+    /* No cut GLB: every death stays the plain ragdoll. */
+  });
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
+  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts();
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed) return false;

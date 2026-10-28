@@ -1,10 +1,16 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
+import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
+import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 
 const CFG = GAME_DATA.physicsDeath,
+  CUTS = GAME_DATA.pitbornCuts,
   ROW = () => structuredClone(GAME_DATA.physicsBody.row); // GAME_DATA is frozen; the package gets its own copy
 
 let world = null;
@@ -47,26 +53,149 @@ export function killVector(root, entity) {
   return [local.x * k.horizontal, k.up, local.z * k.horizontal];
 }
 
+// The Pitborn's cut GLB and manifest (data/pitbornCuts.json assets): fetched once, on demand, only when a marked hunter is alive. Until it is
+// here (or if it never loads, or ?cuts=0) every death is the plain ragdoll: nothing below runs and nothing waits.
+let cutAssets = null,
+  cutLoading = null;
+export function loadCutAssets(baseUrl = globalThis.document?.baseURI ?? globalThis.location?.href) {
+  return (cutLoading ??= (async () => {
+    const A = CUTS.assets,
+      [gltf, manifest] = await Promise.all([
+        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(new URL(A.glb, baseUrl).href),
+        fetch(new URL(A.manifest, baseUrl)).then((r) => {
+          if (!r.ok) throw new Error(`cut manifest HTTP ${r.status}`);
+          return r.json();
+        }),
+      ]);
+    return (cutAssets = { scene: gltf.scene, manifest, units: manifestUnits(manifest) });
+  })());
+}
+export const cutsReady = () => cutAssets !== null;
+
+const capRows = () => ({
+  flesh: { color: `#${CUTS.capTint.flesh}` },
+  inner: { color: `#${CUTS.capTint.inner}` },
+  blood: { tint: `#${CUTS.capTint.blood}`, amount: CUTS.capTint.amount },
+});
+
+// Swap the hunter's body for the cut GLB at the moment of death: a clone of the cut scene takes the model's place and pose, the weapon moves to its
+// hand socket, and the cut GLB's skeleton (the same 106 joints) is what the ragdoll drives. `undoSkin` puts everything back.
+function cutSkin(view) {
+  const model = clone(cutAssets.scene);
+  model.position.copy(view.model.position);
+  model.quaternion.copy(view.model.quaternion);
+  model.scale.copy(view.model.scale);
+  view.model.parent.add(model);
+  view.model.traverse((o) => {
+    const t = o.isBone ? model.getObjectByName(o.name) : null;
+    if (t) {
+      t.position.copy(o.position);
+      t.quaternion.copy(o.quaternion);
+      t.scale.copy(o.scale);
+    }
+  });
+  const from = view.model.getObjectByName(CUTS.weaponSocket),
+    to = model.getObjectByName(CUTS.weaponSocket),
+    moved = [];
+  if (from && to) for (const c of [...from.children]) if (!c.isBone) (to.add(c), moved.push(c));
+  view.model.visible = false;
+  return { model, bind: cutAssets.scene, hidden: view.model, from, moved };
+}
+function undoSkin(skin) {
+  if (!skin) return;
+  for (const c of skin.moved) skin.from.add(c);
+  skin.model.removeFromParent();
+  skin.hidden.visible = true;
+}
+
+// One severable unit leaves the body: the package detaches it (rd.cut), pushed along the killing blow. A unit the ragdoll refuses is skipped, never fatal.
+function cutUnit(s, unit) {
+  try {
+    const row = s.plan.row,
+      d = s.push,
+      len = Math.hypot(...d) || 1,
+      cut = s.rd?.cut(unit, { impulse: d.map((v) => (v / len) * row.pieceImpulse) });
+    if (cut && !cut.visual_only) {
+      s.pieces++;
+      pieces++;
+    }
+  } catch {
+    /* the plain body stays whole for this unit */
+  }
+}
+let pieces = 0; // detached pieces simulating across every corpse (data: maxPieceBodies); visual-only cuts cost no body
+function beginCuts(s, plan, skin, push) {
+  const cutRig = createCutRig(THREE, s.rd, skin.model, cutAssets.manifest, { rows: capRows() });
+  Object.assign(s, { plan, skin, push, cutRig, pieces: 0, late: createLateCuts() });
+  for (const step of plan.steps) {
+    if (step.atS > 0) s.late.add(step.unit, step.atS);
+    else if (pieces < CUTS.maxPieceBodies) cutUnit(s, step.unit);
+  }
+  s.cutRig.update();
+}
+// A corpse's cut visuals leave the scene with its actor (despawn, travel); the timed release of the BODY keeps them (the corpse stays where it lies).
+export function disposeCuts(s) {
+  if (!s.skin) return;
+  s.skin.model.removeFromParent();
+  s.skin = null;
+}
+
 export function startDeath(view, bindScene, entity) {
-  const rd = pool.pop() ?? world.createRagdoll(ROW(), { position: [0, 0, 0], id: String(entity.id) }),
-    bones = boneMap(view.model);
+  const rd = pool.pop() ?? world.createRagdoll(ROW(), { position: [0, 0, 0], id: String(entity.id) });
   setTimeout(warmOne, CFG.rewarmMs);
-  if (Object.values(bones).some((b) => !b)) throw new Error("the hunter lacks a bone of the mixamo-106 map");
-  const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bindScene), root: bindScene } });
-  rig.drive();
-  rd.snapToTarget();
-  rd.kill({ part: CFG.killImpulse.part, impulse: killVector(view.root, entity) });
+  const build = (body, bind) => {
+    const bones = boneMap(body);
+    if (Object.values(bones).some((b) => !b)) throw new Error("the hunter lacks a bone of the mixamo-106 map");
+    const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bind), root: bind } });
+    rig.drive();
+    rd.snapToTarget();
+    return rig;
+  };
+  let skin = null,
+    plan = null,
+    rig = null;
+  if (cutAssets && cutsEnabled()) {
+    try {
+      plan = planCut(entity.deathImpact, entity.id, (u) => cutAssets.units.has(u));
+      if (plan) {
+        skin = cutSkin(view);
+        rig = build(skin.model, skin.bind);
+      }
+    } catch {
+      undoSkin(skin); // any failure on the cut path: the plain ragdoll on the hunter's own body
+      skin = plan = rig = null;
+    }
+  }
+  rig ??= build(view.model, bindScene);
+  const k = killVector(view.root, entity),
+    push = plan ? k.map((v) => v * plan.row.push) : k;
+  rd.kill({ part: CFG.killImpulse.part, impulse: push });
   stats.created++;
   stats.lastAt = performance.now();
-  return registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+  const s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+  if (plan) {
+    try {
+      beginCuts(s, plan, skin, push);
+    } catch {
+      s.cutRig = s.late = null; // the ragdoll still falls on the cut body, whole
+    }
+  }
+  return s;
+}
+
+// A corpse's body (and any pieces cut from it) leaves the world; the bones keep the last applied pose.
+function freeBody(s) {
+  s.rd?.destroy();
+  s.rd = null;
+  pieces -= s.pieces ?? 0;
+  s.pieces = 0;
 }
 
 // Track a corpse; past `maxActive` the oldest live one is frozen where it lies.
 export function registerDeath(s) {
   for (let live = active.filter((a) => !a.frozen); live.length >= CFG.maxActive; live.shift()) {
-    live[0].frozen = true; // the bones keep the last applied pose; the body leaves the world so it stops costing steps
-    live[0].rd?.destroy();
-    live[0].rd = null;
+    live[0].frozen = true; // the body leaves the world so it stops costing steps
+    freeBody(live[0]);
   }
   active.push(s);
   stats.active = active.length;
@@ -77,8 +206,7 @@ export const activeCount = () => active.length;
 // Free a corpse's body and its active entry (settled, removed from the scene, or the actor despawned). Safe to call twice.
 export function releaseDeath(s) {
   s.frozen = true;
-  s.rd?.destroy();
-  s.rd = null;
+  freeBody(s);
   const i = active.indexOf(s);
   if (i >= 0) {
     active.splice(i, 1);
@@ -104,6 +232,8 @@ export function stepDeath(s, dt) {
       worldClock += STEP();
     }
     s.rig.applyPose();
+    if (s.late) for (const unit of s.late.tick(dt)) if (pieces < CUTS.maxPieceBodies) cutUnit(s, unit);
+    s.cutRig?.update();
     if (s.age >= CFG.settleSeconds || !s.rd.awake) s.frozen = true;
   }
   if (s.frozen && s.age >= CFG.removeSeconds) releaseDeath(s);
