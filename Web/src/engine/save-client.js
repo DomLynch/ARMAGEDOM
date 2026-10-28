@@ -248,7 +248,13 @@ export function createSaveClient({
     if (halted || stopped || !(await ensureCharacter())) return item.resolve();
     claimWait();
     claimTokens = Math.max(0, claimTokens - 1);
-    const reply = await call("claim_pickup", { source: item.source, amount: item.amount });
+    // A kill claim also names its enemy kind and a per-kill id (docs/MARKET-CONTRACT.md): the server rolls rare loot from the kind, and a retry
+    // keeps the same killId so nothing is credited or rolled twice.
+    const reply = await call("claim_pickup", {
+      source: item.source,
+      amount: item.amount,
+      ...(item.killId ? { enemy: item.enemy, killId: item.killId } : {}),
+    });
     // The writer's own 429 (and a proxy's) carries retryMs; the kill-tier rate refusal is a normal reply with retryS.
     const writerLimited = reply.retryMs !== undefined;
     if ((writerLimited || reply.refused === "rate-limit") && item.tries < tuning.claimRetries) {
@@ -299,9 +305,10 @@ export function createSaveClient({
     claimPump = claimPump.then(drainClaims);
     return claimPump;
   }
-  // `at` ({x, z}, optional): where the body fell, handed back to onLoot so the glint shows there.
-  function claimPickup(source, amount, at) {
-    const done = new Promise((resolve) => claimQueue.push({ source, amount, at, tries: 0, resolve }));
+  // `extra` (optional, a kill's claim): `at` {x, z} where the body fell (handed to onLoot for the glint), `enemy` its kind, `killId` its unique id.
+  function claimPickup(source, amount, extra) {
+    const { at, enemy, killId } = extra ?? {};
+    const done = new Promise((resolve) => claimQueue.push({ source, amount, at, enemy, killId, tries: 0, resolve }));
     pumpClaims();
     return done;
   }

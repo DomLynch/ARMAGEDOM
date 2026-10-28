@@ -1,7 +1,8 @@
-// The ONE place the client talks to the server about inventory. Contract (docs/MARKET-CONTRACT.md, server agent; coded against this until it lands):
-//   inventory_get()  -> [{item_id, qty}]                     the account's items
-//   item_defs()      -> [{id, name, kind, rarity, base_price, sell_price}]   the items table (assumed op name: loot.json `ops.items`)
-//   the kill-credit reply (claim_pickup, kill:* sources) gains `loot: [{item_id, qty}]`; the client never rolls or asserts loot.
+// The ONE place the client talks to the server about inventory. Contract: docs/MARKET-CONTRACT.md (branch server/market), body `{}` for both:
+//   inventory_get -> {inventory: [{item_id, qty}], cash, bank, ceiling}   the active character's items (the shop reads cash and ceiling too)
+//   item_defs     -> {items: [{id, name, kind, rarity 1-5, base_price, sell_price}]}   names and prices for the card
+//   claim_pickup (kill:* sources) is sent with `enemy` and `killId`; its reply carries `loot: [{item_id, qty}]` (usually empty). The server
+//   rolls loot from the enemy kind; the client never names an item.
 // `send(op, body)` is the save client's request function (it adds the token); it answers a parsed reply or {error}. Every method answers a plain
 // object and never throws: offline or refused is {ok: false}, so the screen shows its friendly note instead of crashing.
 import { GAME_DATA } from "./game-data.js";
@@ -30,7 +31,7 @@ export function normalizeDefs(rows, rules) {
     const def = {};
     if (typeof row.name === "string" && row.name.trim()) def.name = row.name.trim();
     if (rules.kinds.includes(row.kind)) def.kind = row.kind;
-    if (Object.hasOwn(rules.rarities, row.rarity)) def.rarity = row.rarity;
+    if (Number.isInteger(row.rarity) && rules.rarityOrder[row.rarity - 1]) def.rarity = rules.rarityOrder[row.rarity - 1]; // server: 1 to 5
     if (price(row.base_price) !== null) def.basePrice = price(row.base_price);
     if (price(row.sell_price) !== null) def.sellPrice = price(row.sell_price);
     map.set(id, def);
@@ -45,7 +46,7 @@ export function createInventoryApi({ send, rules }) {
     async get() {
       if (typeof send !== "function") return { ok: false, items: [], reason: "offline" };
       const reply = await send(data.ops.inventory, {});
-      const rows = Array.isArray(reply) ? reply : reply && reply.items;
+      const rows = reply && reply.inventory;
       if (!Array.isArray(rows)) return { ok: false, items: [], reason: reply && reply.error ? reply.error : "offline" };
       return { ok: true, items: normalizeRows(rows) };
     },
@@ -54,7 +55,7 @@ export function createInventoryApi({ send, rules }) {
       if (defs) return defs;
       if (typeof send !== "function") return new Map();
       const reply = await send(data.ops.items, {});
-      const rows = Array.isArray(reply) ? reply : reply && reply.items;
+      const rows = reply && reply.items;
       if (!Array.isArray(rows)) return new Map();
       defs = normalizeDefs(rows, data);
       return defs;

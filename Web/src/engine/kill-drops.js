@@ -18,6 +18,8 @@ export function rollKillCash(g, tier, key, rules = KILL_DROPS) {
   for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), prime) >>> 0;
   return min + Math.floor((h / modulus) * (max - min + 1));
 }
+// One id per kill (8-64 of A-Za-z0-9_-), kept on the drop so every retry of its claim sends the same one. Random, so a reload never repeats it.
+const killIdFor = (g, serial) => globalThis.crypto?.randomUUID?.() ?? `kill-${g.world.areaId}-${g.kills ?? 0}-${serial}`;
 export function killDropState(g) {
   return (g.killDrops ??= { list: [], serial: 0, notice: 0 });
 }
@@ -37,6 +39,8 @@ export function leaveKillDrops(g, rules = KILL_DROPS) {
       x: e.pos.x,
       z: e.pos.z,
       amount: rollKillCash(g, tier, e.placementKey ?? e.id ?? "", rules),
+      enemy: e.rig ?? "", // the creature kind the server keys rare loot on (docs/MARKET-CONTRACT.md)
+      killId: killIdFor(g, state.serial),
       until: g.time + rules.despawnSeconds,
     });
     left++;
@@ -65,7 +69,7 @@ export function stepKillDrops(g, rules = KILL_DROPS) {
       }
       return true;
     }
-    claimCash(g, rules.tiers[d.tier].source, amount, { x: d.x, z: d.z });
+    claimCash(g, rules.tiers[d.tier].source, amount, { at: { x: d.x, z: d.z }, enemy: d.enemy, killId: d.killId });
     g.message = fillText(rules.text.picked, { amount });
     g.messageUntil = g.time + rules.noticeSeconds;
     return false;

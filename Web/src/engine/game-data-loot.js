@@ -20,6 +20,7 @@ export function validateLoot(d) {
     "kinds",
     "glint",
     "rarities",
+    "rarityOrder",
     "defaultRarity",
     "defaultKind",
     "items",
@@ -39,6 +40,7 @@ export function validateLoot(d) {
   count("loot", "glint.segments", d.glint.segments, 8, 128);
   hex("glint.colour", d.glint.colour);
   for (const [k, v] of Object.entries(d.rarities)) hex(`rarities.${k}`, v);
+  if (!Array.isArray(d.rarityOrder) || d.rarityOrder.some((k) => !Object.hasOwn(d.rarities, k))) fail("loot", "rarityOrder must list rarities");
   if (!Object.hasOwn(d.rarities, d.defaultRarity)) fail("loot", "defaultRarity must be a rarity");
   if (!d.kinds.includes(d.defaultKind)) fail("loot", "defaultKind must be a kind");
   for (const [itemId, row] of Object.entries(d.items)) {

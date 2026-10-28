@@ -366,7 +366,7 @@ export function createBrowserSession(options = {}) {
     baseRunStorage = runStorage;
     runStorage = observeStorage(runStorage, isRunKey, (raw) => {
       // Stash and airdrop cash noted since the last write goes to the server first, so the save below finds it credited.
-      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount, claim.at);
+      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount, claim);
       saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) });
     });
   }

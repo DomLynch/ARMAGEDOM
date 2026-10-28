@@ -94,7 +94,7 @@ test("a kill credit that returns loot shows the toast, a glint at the body and t
     fetchImpl,
     onLoot: (rows, at) => store.receive(g, lootFromReply({ loot: rows }), at),
   });
-  await client.claimPickup("kill:boss", 30, { x: 7, z: 9 });
+  await client.claimPickup("kill:boss", 30, { at: { x: 7, z: 9 }, enemy: "boss-warden", killId: "kill-boss-00000001" });
   assert.equal(g.message, "Hunter CPU x1");
   assert.equal(g.messageUntil, g.time + LOOT.toastSeconds);
   assert.deepEqual(
@@ -131,7 +131,7 @@ test("the inventory strip shows four slots with quantity, a card on tap, and the
   const doc = fakeDoc(),
     mock = createMockInventoryApi({
       items: ["hunter-cpu", "roach-mandibles", "salamander-gland", "military-battery", "robot-parts"].map((item_id, i) => ({ item_id, qty: i + 1 })),
-      defs: [{ id: "hunter-cpu", name: "Hunter CPU Mk2", kind: "part", rarity: "epic", base_price: 90, sell_price: 45 }],
+      defs: [{ id: "hunter-cpu", name: "Hunter CPU Mk2", kind: "part", rarity: 4, base_price: 90, sell_price: 45 }],
     }),
     session = createLootSession({ search: "", doc, request: async () => ({}), getGame: () => run() });
   assert.equal(session.on, true);
@@ -215,12 +215,53 @@ test("the live session asks inventory_get with the contract's op names", async (
       doc,
       request: async (op) => {
         asked.push(op);
-        return op === LOOT.ops.inventory ? [{ item_id: "drone-chip", qty: 2 }] : [{ id: "drone-chip", name: "Drone Chip", sell_price: 12 }];
+        return op === LOOT.ops.inventory
+          ? { inventory: [{ item_id: "drone-chip", qty: 2 }], cash: 10, bank: 0, ceiling: null }
+          : { items: [{ id: "drone-chip", name: "Drone Chip", kind: "part", rarity: 5, base_price: null, sell_price: 140 }] };
       },
       getGame: () => run(),
     });
   assert.equal(await session.refresh(), "ok");
   assert.deepEqual(asked, ["inventory_get", "item_defs"]);
   assert.match(slots(doc)[0].text(), /Drone Chip/);
+  slots(doc)[0].onclick();
+  assert.match(doc.nodes.get("items-card").text(), /Sells for \$140/);
+  assert.match(doc.nodes.get("items-card").text(), /part · legendary/);
   session.dispose();
+});
+
+test("a kill claim sends enemy and killId, keeps the same killId on a rate-limit retry, and shows the loot from the reply", async () => {
+  const bodies = [];
+  let claims = 0;
+  const fetchImpl = async (url, init) => {
+    const op = url.split("/").pop();
+    if (op === "claim_pickup") bodies.push(JSON.parse(init.body));
+    const body =
+      op === "active"
+        ? { character: "c1" }
+        : op === "claim_pickup"
+          ? ++claims === 1
+            ? { refused: "rate-limit", retryS: 0 }
+            : { credited: 12, earned: 12, loot: [{ item_id: "salamander-gland", qty: 1 }] }
+          : {};
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => body };
+  };
+  const g = run(),
+    store = createLootStore({ api: createMockInventoryApi() });
+  await store.refresh();
+  const client = createSaveClient({
+    baseUrl: "/arma/api",
+    getToken: async () => jwt("acct"),
+    storage: null,
+    fetchImpl,
+    setTimer: (fn) => setTimeout(fn, 0),
+    tuning: { ...GAME_DATA.saveClient, claimRefillMs: 1, retryFloorMs: 1 },
+    onLoot: (rows, at) => store.receive(g, lootFromReply({ loot: rows }), at),
+  });
+  await client.claimPickup("kill:creature", 12, { at: { x: 3, z: 4 }, enemy: "giant-salamander", killId: "kill-abc-12345678" });
+  assert.equal(bodies.length, 2);
+  for (const body of bodies) assert.deepEqual(body, { source: "kill:creature", amount: 12, enemy: "giant-salamander", killId: "kill-abc-12345678" });
+  assert.equal(g.message, "Salamander Gland x1");
+  await client.claimPickup("stash:east-3", 120);
+  assert.deepEqual(bodies.at(-1), { source: "stash:east-3", amount: 120 });
 });
