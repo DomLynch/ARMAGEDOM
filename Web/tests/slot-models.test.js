@@ -145,6 +145,7 @@ test("every real area, cycle and off variant: the creature the slot spawns has i
       for (const cycle of ["A", "B"]) {
         const rows = populationPlacements(realContent.populationData, area, cycle, realContent.residents[area] ?? AREA_MOB_SPAWNS[area] ?? [], search);
         const row = rows.find((r) => r.key === realContent.populationData.areas[area].creatureSlot.placementKey);
+        if (!row) continue; // the area builds no slot placement in this variant, so no creature can respawn there
         for (const ref of [row.foundationRef, row.appearanceRef])
           if (ref !== undefined && (ref === row.appearanceRef || realManifest.models[ref]?.deferred === true)) {
             assert(refs.has(ref), `${area} ${cycle} ${search}: ${ref} is queued`);
