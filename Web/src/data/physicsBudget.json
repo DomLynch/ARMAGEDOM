@@ -1,4 +1,5 @@
 {
   "schema_version": 1,
-  "rows": { "max_simultaneous_ragdolls": 3 }
+  "rows": { "max_simultaneous_ragdolls": 3 },
+  "reserve_for_marked": ["markedHunter", "bossProfile"]
 }

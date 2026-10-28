@@ -2,6 +2,7 @@
 // flag off, chunk not loaded yet, missing bone, a throw. Nothing here waits: a hunter that dies before the chunk is ready plays the clip.
 import { GAME_DATA } from "./game-data.js";
 import { cutsEnabled } from "./finisher-cuts.js";
+import { rigOf } from "./physics-rigs.js";
 
 const CFG = GAME_DATA.physicsDeath;
 
@@ -97,8 +98,7 @@ export function prefetchCutsOnIdle(library, enabled = physicsDeathEnabled()) {
   else setTimeout(go, CFG.cutPrefetch.idleMs);
 }
 // Which models ragdoll is data (physicsRigs.json `models`, `live`). The record handed to the impl: the model, its bone map and its body row.
-const RIGS = GAME_DATA.physicsRigs,
-  names = new WeakMap(), // manifest description -> model name, found once per description
+const names = new WeakMap(), // manifest description -> model name, found once per description
   baked = new WeakSet(); // views whose model has no live row: looked up once, then the clip plays every frame
 function modelOf(view, entity, library) {
   if (entity.markedHunter) return CFG.rigRef;
@@ -106,17 +106,6 @@ function modelOf(view, entity, library) {
   if (!d || !library?.models) return null;
   if (!names.has(d)) names.set(d, [...library.models].find(([, m]) => m.description === d)?.[0] ?? null);
   return names.get(d);
-}
-function liveRow(model) {
-  const m = RIGS.models[model];
-  if (!m?.live) return null;
-  const family = RIGS.rigs[m.rig];
-  return {
-    model,
-    nodePrefix: family.nodePrefix,
-    parts: family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
-    body: m.body === "physicsBody" ? GAME_DATA.physicsBody.row : RIGS.bodies[m.body],
-  };
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
@@ -130,7 +119,7 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
   try {
     if (!s) {
       const model = modelOf(view, entity, library),
-        rig = model && liveRow(model);
+        rig = model && rigOf(model);
       if (!rig) {
         baked.add(view); // no live row for this model: the clip, and no ragdoll is ever taken from the pool
         return false;
