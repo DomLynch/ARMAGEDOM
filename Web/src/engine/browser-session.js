@@ -33,6 +33,8 @@ import { GAME_DATA } from "./game-data.js";
 import { respawnArea } from "./corpse-run.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
+import { createMarketApi } from "./market-api.js";
+import { createShop } from "./shop.js";
 import { installQaBridge } from "./qa-bridge.js";
 import { createClientLog, releaseOf } from "./client-log.js";
 import { mountAccountControl } from "./account-control.js";
@@ -114,6 +116,8 @@ export function createBrowserSession(options = {}) {
     resources,
     presence = null,
     saveClient = null,
+    auth = null,
+    marketApi = null,
     survivorLibrary = null,
     account = null,
     diagnostics = null;
@@ -128,6 +132,21 @@ export function createBrowserSession(options = {}) {
   scene.add(hemi, sun);
   const rim = new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, lights.rimDecay);
   scene.add(rim);
+  // The hub NPC shops: a guest or a closed/unreachable world shows the closed state; the adapter exists once the world has started.
+  const shop = createShop({
+    doc: document,
+    market: () => marketApi,
+    isGuest: () => auth?.isGuest !== false,
+    localCash: () => game?.marked?.carried ?? null,
+    // The server settled a trade: move carried cash by its signed delta, never below zero or above the area's money cap.
+    onCash: (delta) => {
+      const money = game?.marked;
+      if (money) money.carried = Math.min(game.world?.markedData?.maxMoney ?? Infinity, Math.max(0, money.carried + delta));
+    },
+    blocked: () => paused || traveling || !!document.getElementById("menu")?.open,
+    search: location.search,
+    listen,
+  });
   function pause(value) {
     if (travelRecoveryFailed || resetting) value = true;
     paused = value;
@@ -151,6 +170,7 @@ export function createBrowserSession(options = {}) {
     if (renderer && loaded) renderer.setAnimationLoop(value ? null : loop.frame);
   }
   const context = {
+    shop,
     // World-event journal of this session's run. Written by the loop and the dispatchers; nothing reads it yet.
     worldJournal: createJournal(),
     failTravelRecovery() {
@@ -407,7 +427,7 @@ export function createBrowserSession(options = {}) {
     if (worldStarted || disposed) return;
     worldStarted = true;
     // Guest-first: Play signs in as an anonymous Supabase user on its own; Google can be linked later from the menu.
-    const auth = createGuestAuth({
+    auth = createGuestAuth({
       ...WORLD_AUTH,
       storage: runStorage,
       onError: (error) => beacon?.report("boot", `auth-${error?.status ?? "network"}`, error),
@@ -420,6 +440,7 @@ export function createBrowserSession(options = {}) {
       if (!token) beacon.report("boot", "no-token");
       return token;
     };
+    marketApi = createMarketApi({ baseUrl: `${location.origin}/arma/api`, getToken });
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({
       baseUrl: `${location.origin}/arma/api`,
@@ -972,6 +993,7 @@ export function createBrowserSession(options = {}) {
       presence?.dispose();
       saveClient?.stop();
       account?.dispose();
+      shop.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
       effects?.dispose();

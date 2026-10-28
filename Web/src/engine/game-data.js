@@ -35,6 +35,8 @@ import crowdBodies from "../data/crowdBodies.json" with { type: "json" };
 import { validateCrowdBodies } from "./game-data-crowd.js";
 import hubNpcs from "../data/hubNpcs.json" with { type: "json" };
 import { validateHubNpcs } from "./game-data-hub-npcs.js";
+import shops from "../data/shops.json" with { type: "json" };
+import { validateShops } from "./game-data-shops.js";
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -1112,6 +1114,7 @@ const sources = () => ({
   ratKing: [ratKing, validateRatKing],
   crowdBodies: [crowdBodies, validateCrowdBodies],
   hubNpcs: [hubNpcs, validateHubNpcs],
+  shops: [shops, validateShops],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
   physicsRigs: [physicsRigs, validatePhysicsRigs],
   physicsBudget: [physicsBudget, validatePhysicsBudget], // the cap admit() reads; a test pins it to the package's own row

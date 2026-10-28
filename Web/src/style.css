@@ -869,6 +869,187 @@ summary {
   }
 }
 
+/* Hub NPC shops (engine/shop.js). The tap target is an invisible button over the NPC; the panel is a dark amber sheet. */
+.shop-hotspot {
+  position: fixed;
+  z-index: 8;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: manipulation;
+}
+.shop-hotspot[hidden],
+.shop-panel[hidden] {
+  display: none;
+}
+.shop-tag {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  padding: 5px 9px;
+  border: 1px solid #ff9a50;
+  border-radius: 6px;
+  background: #17130eeb;
+  color: #ffd2a3;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.shop-panel {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(480px, 100vw);
+  max-height: 100dvh;
+  margin: 0 auto;
+  padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);
+  background: #120e0af2;
+  border-left: 1px solid #ff9a5066;
+  border-right: 1px solid #ff9a5066;
+  color: #eee9df;
+}
+.shop-panel button {
+  touch-action: manipulation;
+  min-height: 48px;
+  border: 1px solid #ff9a5099;
+  border-radius: 8px;
+  background: #2a1d12;
+  color: #ffd2a3;
+}
+.shop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ff9a5066;
+}
+.shop-heading {
+  flex: 1;
+  min-width: 0;
+}
+.shop-title {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #ffb877;
+}
+.shop-cash {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--gold);
+}
+.shop-close {
+  width: 48px;
+  font-size: 24px;
+}
+.shop-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 10px 0;
+}
+.shop-tab[aria-selected="true"] {
+  border-color: #ff9a50;
+  background: #4a2f18;
+  color: #fff1de;
+}
+.shop-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.shop-state {
+  margin: 20px 4px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #d8cdbd;
+}
+.shop-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #ff9a5033;
+}
+.shop-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.shop-name {
+  flex: 1 1 auto;
+  font-size: 15px;
+}
+.shop-price {
+  color: var(--gold);
+  font-size: 14px;
+}
+.shop-owned {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: #b8a893;
+}
+.shop-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.shop-step {
+  width: 48px;
+  font-size: 20px;
+}
+.shop-qty {
+  min-width: 30px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+.shop-confirm {
+  flex: 1;
+  font-weight: 700;
+  border-color: #ff9a50;
+  background: #5a3718;
+}
+.shop-retry {
+  width: 100%;
+}
+.shop-note {
+  min-height: 20px;
+  margin: 8px 2px 4px;
+  font-size: 13px;
+  color: #d8cdbd;
+}
+.shop-note.error {
+  color: #ff9d8a;
+}
+.shop-note.ok {
+  color: #a9d49a;
+}
+.shop-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #ff9a5066;
+}
+.shop-slot {
+  padding: 8px 4px;
+  min-height: 34px;
+  border: 1px solid #ff9a5055;
+  border-radius: 6px;
+  background: #1c140d;
+  font-size: 11px;
+  text-align: center;
+  color: #d8cdbd;
+}
+
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */

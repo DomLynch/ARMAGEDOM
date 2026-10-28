@@ -252,6 +252,7 @@ export function createBrowserLoop(s) {
       hint = s.paused || s.traveling ? "" : hints.current(s.game, routeActive);
     s.hud.update(s.game, hint, hints.overMessage);
     s.updateExpedition?.();
+    s.shop?.update(s);
     s.updateRunHud?.(); // after the HUD: the run's results card stands in front of the death card
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
