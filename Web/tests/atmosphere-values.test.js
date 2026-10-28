@@ -57,6 +57,8 @@ function snapshot() {
   return out;
 }
 
+// Re-recorded 28 Oct 2026 (art/south-clear-crates-hedgehog): only the south digest moved, because the fire anchor of the barrel painted out of the
+// South backdrop (south-near-drum) was removed. Intentional.
 test("atmosphere particles and clock are value-identical to the pre-data code", () => {
   const got = snapshot();
   if (process.env.UPDATE_ATMOSPHERE_DIGEST) fs.writeFileSync(digestPath, `${JSON.stringify(got, null, 1)}\n`);
