@@ -157,7 +157,8 @@
       "low-hover-drone": { "controller": "drone-selector", "weapon": "bolt", "rig": null, "actions": [] },
       "original-wolf": { "controller": "wolf-native-bite", "weapon": "teeth", "rig": "original-wolf", "actions": ["attack"] },
       "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] },
-      "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] }
+      "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] },
+      "giant-eel": { "controller": "eel-native-bite", "weapon": "teeth", "rig": "giant-eel", "actions": ["attack"] }
     },
     "reach": {
       "original-wolf": 2.375,
@@ -165,7 +166,8 @@
       "original-dog": 1.635623468495986,
       "original-roach": 1.6063268331546576,
       "giant-salamander": 3.1078573708270647,
-      "original-crow": 1.4004105398402
+      "original-crow": 1.4004105398402,
+      "giant-eel": 1.2
     }
   },
   "behaviours": {
@@ -196,7 +198,8 @@
       "roach-ash": "baseline",
       "roach-rust-shell": "baseline",
       "roach-heavy-shell": "cautious",
-      "crow-carrion": "brisk"
+      "crow-carrion": "brisk",
+      "eel-river-ambusher": "baseline"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -242,7 +245,8 @@
       "roach-skitter": "skitter",
       "roach-nest-guard": "territorial",
       "crow-carrion": "short-burst",
-      "crow-ragged": "baseline"
+      "crow-ragged": "baseline",
+      "eel-river-ambusher": "ambush"
     }
   },
   "animalCycles": {
@@ -431,6 +435,25 @@
       "optionalMonster": true,
       "enabled": true,
       "offParam": "nocrow"
+    },
+    "giant-eel": {
+      "lowStrike": true,
+      "animal": true,
+      "nativeSkeleton": true,
+      "species": "eel",
+      "populationSlot": true,
+      "brain": "dog",
+      "biteMove": "salamander",
+      "calfFaceReceiver": true,
+      "targetHeight": 0.2,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74,
+      "optionalMonster": true,
+      "enabled": true,
+      "offParam": "noeel"
     }
   }
 }

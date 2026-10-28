@@ -320,6 +320,47 @@
       "equipmentRef": null,
       "provenanceRef": "art/crow/PROVENANCE.md",
       "runtimeIdentity": "original-crow"
+    },
+    {
+      "id": "giant-eel",
+      "rig": "giant-eel",
+      "contactRig": null,
+      "assetRef": "model.giant-eel",
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "attack": "Bite",
+        "slash": "Bite",
+        "hit": "Hurt",
+        "death": "Death",
+        "flee": "Flee"
+      },
+      "scale": {
+        "model": 1.4,
+        "character": 1.265,
+        "visual": 1.3225,
+        "mobSizeMode": "fixed-one",
+        "bodyScale": 1,
+        "appliedBy": "actor-root-wrapper"
+      },
+      "stats": {
+        "health": 90,
+        "radius": 0.5,
+        "moveSpeed": 2,
+        "recoveryDelay": 0,
+        "weapon": "teeth"
+      },
+      "behaviour": {
+        "controllerRef": "eel-native-bite",
+        "parameterPreset": "baseline",
+        "intentPolicyRef": "existing-resident-intent-policy"
+      },
+      "clipSourceRefs": [],
+      "preparationRefs": [],
+      "equipmentRef": null,
+      "provenanceRef": "art/eel/PROVENANCE.md",
+      "runtimeIdentity": "giant-eel"
     }
   ],
   "recipeFoundations": {
@@ -347,7 +388,8 @@
     "salamander-ember-guard": "giant-salamander",
     "wolf-east-guard": "original-wolf",
     "crow-carrion": "original-crow",
-    "crow-ragged": "original-crow"
+    "crow-ragged": "original-crow",
+    "eel-river-ambusher": "giant-eel"
   },
   "nativeRoles": [
     {

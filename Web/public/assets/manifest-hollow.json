@@ -1489,6 +1489,49 @@
         "path": "public/world/wolf.glb",
         "ownSkinAndClips": true
       }
+    },
+    "giant-eel": {
+      "url": "giant-eel/giant-eel.glb",
+      "rig": "giant-eel",
+      "motion": "salamander",
+      "scale": 1.4,
+      "forwardCorrection": 0,
+      "groundOffset": 0.008,
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "attack": "Bite",
+        "slash": "Bite",
+        "hit": "Hurt",
+        "death": "Death",
+        "flee": "Flee"
+      },
+      "deferred": true,
+      "bytes": 350688,
+      "sha256": "8c4ef1904d9ee378a658d4e0b2089ae5744c90bb9c8e6a0305d75c3bc0c94fc1",
+      "name": "Giant Eel",
+      "contact": {
+        "canines": [
+          { "mesh": "world-raw", "vertex": 1962 },
+          { "mesh": "world-raw", "vertex": 1980 },
+          { "mesh": "world-raw", "vertex": 1935 }
+        ],
+        "calfBand": [0.59, 0.64],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 2891,
+            "vertices": [1245, 1224, 1789]
+          }
+        ]
+      },
+      "provenance": {
+        "path": "art/eel/PROVENANCE.md",
+        "rigSource": "giant-salamander/giant-salamander.glb",
+        "rigSourceSha256": "d2355f72e809e3dce63bc7187f96cc2cdd218cb878b3f2bf5b2e38988617f800",
+        "ownSkinAndClips": true
+      }
     }
   },
   "files": {

@@ -6,13 +6,15 @@
     "original-roach": ["roach-native-bite", "teeth", "original-roach", ["attack"]],
     "low-hover-drone": ["drone-selector", "bolt", null, []],
     "original-wolf": ["wolf-native-bite", "teeth", "original-wolf", ["attack"]],
-    "giant-salamander": ["salamander-native-bite", "teeth", "giant-salamander", ["attack"]]
+    "giant-salamander": ["salamander-native-bite", "teeth", "giant-salamander", ["attack"]],
+    "giant-eel": ["eel-native-bite", "teeth", "giant-eel", ["attack"]]
   },
   "reach": {
     "original-wolf": 2.375,
     "original-rat": 1.050307904880233,
     "original-dog": 1.635623468495986,
     "original-roach": 1.6063268331546576,
-    "giant-salamander": 3.1078573708270647
+    "giant-salamander": 3.1078573708270647,
+    "giant-eel": 1.2
   }
 }
