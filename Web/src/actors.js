@@ -5,6 +5,7 @@ import { createRailgunCoils } from "./engine/railgun-coils.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
+import { deathImpactOf } from "./engine/physics-death-impulse.js";
 import {
   traceGrenadeSurface,
   traceRailgunSurface,
@@ -1286,7 +1287,7 @@ export function createActors(
           if (v) {
             v.hitReactionFresh = true;
             v.impactFlashLife = LOOK.hitFlashSeconds;
-            if (e.actor.hp <= 0) e.actor.deathImpact = { x: e.impactDirection?.x ?? 0, z: e.impactDirection?.z ?? 0 }; // the killing blow aims the ragdoll fall
+            if (e.actor.hp <= 0) e.actor.deathImpact = deathImpactOf(e); // the killing blow (direction, weapon, zone) shoves the ragdoll
             if (!e.blocked)
               v.hitReaction.hit({
                 x: e.impactDirection?.x ?? 0,

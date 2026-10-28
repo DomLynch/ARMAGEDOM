@@ -15,6 +15,28 @@
   "rewarmMs": 3000,
   "maxActive": 2,
   "killImpulse": { "horizontal": 260, "up": 40, "part": "spine2" },
+  "bulletImpulse": {
+    "flagParam": "bulletimpulse",
+    "offValue": "0",
+    "onValue": "1",
+    "defaultOn": true,
+    "byWeapon": {
+      "pistol": { "horizontal": 300, "up": 70 },
+      "rifle": { "horizontal": 400, "up": 90 },
+      "railgun": { "horizontal": 520, "up": 100 },
+      "shotgun": { "horizontal": 640, "up": 180 },
+      "grenade": { "horizontal": 820, "up": 380 },
+      "rocket": { "horizontal": 980, "up": 440 },
+      "knife": { "horizontal": 70, "up": 15 },
+      "flamethrower": { "horizontal": 90, "up": 30 }
+    },
+    "byAttackClass": {
+      "blast": { "horizontal": 850, "up": 400 },
+      "saw": { "horizontal": 30, "up": 10 },
+      "fire": { "horizontal": 90, "up": 30 }
+    },
+    "zoneParts": { "head": "head", "torso": "spine2", "legs": "hips" }
+  },
   "parts": {
     "hips": "Hips", "spine": "Spine", "spine1": "Spine1", "spine2": "Spine2", "neck": "Neck", "head": "Head",
     "armLeft": "LeftArm", "armRight": "RightArm", "forearmLeft": "LeftForeArm", "forearmRight": "RightForeArm",
