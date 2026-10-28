@@ -54,5 +54,7 @@
     "startHeightShare": 0.55
   },
   "texture": { "size": 32, "falloffPower": 1.5, "peakAlpha": 230, "alphaTest": 0.01, "renderOrder": 2 },
-  "floorClearance": 0.02
+  "floorClearance": 0.02,
+  "floorHeightShare": 0.5,
+  "seedStep": 0.618
 }

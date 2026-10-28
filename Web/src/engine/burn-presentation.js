@@ -5,12 +5,12 @@
 // so it is recomputed from the base values each frame and nothing needs restoring here; state is released when the actor leaves.
 import { GAME_DATA } from "./game-data.js";
 import { isFlameRecipe } from "./finisher-data.js";
+import { falloffTexture } from "./falloff-texture.js";
 import { combatTargetHeight } from "../pistol-targeting.js";
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const hexNumber = (hex) => Number(`0x${hex}`);
-const TAU = Math.PI * 2; // tuning-ok: a full turn in radians
-const GOLDEN = 0.6180339887498949; // tuning-ok: golden-ratio conjugate, spreads per-actor seeds evenly
+const TAU = (360 * Math.PI) / 180; // a full turn in radians
 
 export const burnEnabled = (row = GAME_DATA.burnPresentation, search = globalThis.location?.search ?? "") =>
   new URLSearchParams(search).get(row.flagParam) === row.offValue ? false : row.defaultOn;
@@ -80,18 +80,7 @@ export function createBurnPresentation({
 }) {
   if (!enabled) return noop;
   const X = row.texture,
-    size = X.size,
-    half = size / 2, // tuning-ok: the texture centre is half its size
-    pixels = new Uint8Array(size * size * 4); // tuning-ok: four bytes (RGBA) per pixel
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) {
-      const at = (y * size + x) * 4, // tuning-ok: four bytes (RGBA) per pixel
-        r = Math.hypot((x + 0.5 - half) / half, (y + 0.5 - half) / half); // tuning-ok: 0.5 = the pixel's centre
-      pixels[at] = pixels[at + 1] = pixels[at + 2] = 255; // tuning-ok: RGBA channel offsets, white
-      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** X.falloffPower * X.peakAlpha); // tuning-ok: alpha is channel 3
-    }
-  const texture = new T.DataTexture(pixels, size, size, T.RGBAFormat);
-  texture.needsUpdate = true;
+    texture = falloffTexture(T, X);
   const geometry = new T.PlaneGeometry(1, 1),
     material = (extra) =>
       new T.MeshBasicMaterial({
@@ -119,8 +108,6 @@ export function createBurnPresentation({
     states = new Map(),
     seen = new Set(),
     active = [];
-  flameMesh.name = "Burn pooled flame licks"; // text-ok: scene-graph object name
-  smokeMesh.name = "Burn pooled smoke"; // text-ok: scene-graph object name
   for (const m of [flameMesh, smokeMesh]) {
     m.renderOrder = X.renderOrder;
     m.frustumCulled = false;
@@ -154,7 +141,7 @@ export function createBurnPresentation({
     flames = smokes = shown = 0;
   }
   function put(mesh, i, x, y, z, width, aspect) {
-    const rise = width * aspect * 0.5; // tuning-ok: half the billboard height keeps its lower edge off the floor
+    const rise = width * aspect * row.floorHeightShare; // keeps the billboard's lower edge off the floor
     pose.position.set(x, Math.max(y, row.floorClearance + rise), z);
     pose.quaternion.copy(world.camera.quaternion);
     pose.scale.set(width, width * aspect, width);
@@ -164,7 +151,8 @@ export function createBurnPresentation({
   function tint(view, s, time) {
     const T0 = row.tint,
       flash = (view?.impactFlashLife ?? 0) > 0,
-      flicker = 1 - (T0.flickerDepth * (1 - Math.sin(time * T0.flickerHz + s.seed * TAU))) / 2; // tuning-ok: map sine -1..1 to 0..1
+      wave = Math.sin(time * T0.flickerHz + s.seed * TAU),
+      flicker = 1 - T0.flickerDepth * wave * wave;
     for (const m of view?.flashMaterials ?? []) {
       const mat = m.material;
       if (m.color && !flash) mat.color.copy(m.color).lerp(soot, s.char * T0.blend);
@@ -200,7 +188,7 @@ export function createBurnPresentation({
         for (let i = 0; i < nFlame; i++) {
           const phase = light ? (i + 1) / (nFlame + 1) : (time * F.cyclesPerSecond + i / nFlame + s.seed) % 1,
             angle = (i / nFlame + s.seed) * TAU,
-            width = F.width * scale * s.heat * Math.sin(Math.PI * phase); // tuning-ok: half-sine fade in and out of one lick
+            width = F.width * scale * s.heat * Math.sin(Math.PI * phase);
           flameMesh.setColorAt(
             flames,
             colour.setHex(palette[Math.min(palette.length - 1, Math.floor(phase * palette.length))]),
@@ -223,7 +211,7 @@ export function createBurnPresentation({
               (S.startWidth + (S.endWidth - S.startWidth) * phase) *
               scale *
               s.smoke *
-              Math.sqrt(Math.sin(Math.PI * phase)); // tuning-ok: soft fade at both ends
+              Math.sqrt(Math.sin(Math.PI * phase));
           put(
             smokeMesh,
             smokes++,
@@ -262,7 +250,7 @@ export function createBurnPresentation({
         if (dead && isFlameRecipe(e.finisher?.recipeId)) continue; // flame-effect.js and applyFlameCorpseChar already dress these
         if (!s) {
           if (!startsBurn(row, e, time) || (dead && getView(e)?.restoredCorpse)) continue;
-          s = newBurnState((seeds++ * GOLDEN) % 1);
+          s = newBurnState((seeds++ * row.seedStep) % 1);
           states.set(e, s);
         }
         seen.add(e);

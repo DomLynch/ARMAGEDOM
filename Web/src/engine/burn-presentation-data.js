@@ -25,7 +25,11 @@ export function validateBurnPresentation(d) {
     "smoke",
     "texture",
     "floorClearance",
+    "floorHeightShare",
+    "seedStep",
   ]);
+  share("floorHeightShare", d.floorHeightShare);
+  share("seedStep", d.seedStep);
   if (typeof d.note !== "string" || !d.note) fail(FILE, "note must say what the row does");
   if (typeof d.flagParam !== "string" || !d.flagParam || typeof d.offValue !== "string" || !d.offValue)
     fail(FILE, "flagParam and offValue must be non-empty strings");

@@ -1,5 +1,6 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
 import { FLAME_VISUAL_DATA as DATA } from "./flame-data.js";
+import { falloffTexture } from "./falloff-texture.js";
 import { combatTargetHeight } from "../pistol-targeting.js";
 import { GAME_DATA } from "./game-data.js";
 // Falloff texture, puff spread and cosmetic burn placement: data/visual.json `flameEffect`.
@@ -17,18 +18,7 @@ export function createFlameEffect({
   cosmeticBurn = true,
   reducedMotion = () => false,
 }) {
-  const size = DATA.textureSize,
-    pixels = new Uint8Array(size * size * 4), // tuning-ok: four bytes (RGBA) per pixel
-    half = size / 2; // tuning-ok: the texture centre is half its size
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) {
-      const at = (y * size + x) * 4, // tuning-ok: four bytes (RGBA) per pixel
-        r = Math.hypot((x + 0.5 - half) / half, (y + 0.5 - half) / half); // tuning-ok: 0.5 = the pixel's centre
-      pixels[at] = pixels[at + 1] = pixels[at + 2] = 255; // tuning-ok: RGBA channel offsets, white
-      pixels[at + 3] = Math.round(Math.max(0, 1 - r) ** FX.texture.falloffPower * FX.texture.peakAlpha); // tuning-ok: alpha is channel 3
-    }
-  const texture = new T.DataTexture(pixels, size, size, T.RGBAFormat);
-  texture.needsUpdate = true;
+  const texture = falloffTexture(T, { size: DATA.textureSize, ...FX.texture });
   const geometry = new T.PlaneGeometry(1, 1),
     material = new T.MeshBasicMaterial({
       map: texture,
