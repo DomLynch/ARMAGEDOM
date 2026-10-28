@@ -141,6 +141,19 @@
     "corpse.hud": "BODY BAG · {distance}m · {seconds}s",
     "corpse.retrieved": "Body bag recovered. ${cash} back in your pocket.",
     "corpse.partial": "Body bag part recovered. ${cash} back in your pocket, the rest stays in the bag.",
-    "corpse.lost": "Scavengers took your body bag."
+    "corpse.lost": "Scavengers took your body bag.",
+    "share.heading": "Share this moment",
+    "share.brand": "ARMAGEDOM · playarmagedom.com",
+    "share.pick": "Pick this moment: {moment}",
+    "share.making": "Preparing your clip… Copy link works now.",
+    "share.ready": "Ready to share. Stays on your device.",
+    "share.stillOnly": "A picture of this moment is ready to share. Stays on your device.",
+    "share.button.clip": "Share clip",
+    "share.button.image": "Share picture",
+    "share.button.link": "Copy link",
+    "share.shared": "Shared.",
+    "share.saved": "Saved to your device.",
+    "share.copied": "Link copied.",
+    "share.failed": "Could not share. Try again."
   }
 }

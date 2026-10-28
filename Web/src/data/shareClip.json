@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "note": "Viral death cam, client only: nothing is uploaded or stored, the clip stays on the device. A rolling in-memory ring of small frames (copied from the game canvas a few times a second, not a video encoder running all the time) keeps the last buffer.seconds; when a shareable moment fires its frames are frozen and, only when the player taps the SHARE card, replayed through canvas.captureStream + MediaRecorder (the Frankendom 1 recipe: MP4 where the browser records it, WebM elsewhere) into one file. A browser that cannot record falls back to a branded PNG still. The link is the game homepage and nothing else (no player data). COPY RATE: tiers.<name>.fps is how many times a second the canvas is copied into the ring (one drawImage of about 0.6-0.8 ms in software GL, unmeasured on a phone); fps 0 (low) turns the ring off (a still is still offered), and no copy is made in offAreas (the hub). ?noshare=1 turns the whole feature off. Sizes and rates are PROVISIONAL until measured on a phone at 375 wide.",
+  "flagParam": "noshare",
+  "offValue": "1",
+  "defaultOn": true,
+  "shareUrl": "https://playarmagedom.com/",
+  "buffer": { "seconds": 10, "width": 180, "height": 320, "gapSeconds": 0.25 },
+  "tiers": { "full": { "fps": 8 }, "mid": { "fps": 5 }, "low": { "fps": 0 } },
+  "offAreas": ["central-hub"],
+  "still": { "width": 540, "height": 960 },
+  "encode": {
+    "types": ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"],
+    "bitsPerSecond": 1200000,
+    "timesliceMs": 1000,
+    "holdSeconds": 1,
+    "minFrames": 2
+  },
+  "card": { "statusSeconds": 2, "revokeSeconds": 60 },
+  "files": {
+    "prefix": "armagedom-",
+    "extensions": { "video/mp4": "mp4", "video/webm": "webm", "image/png": "png" },
+    "image": "image/png"
+  },
+  "brand": {
+    "barPct": 9,
+    "background": "rgba(8, 12, 14, 0.82)",
+    "accent": "#ff9a50",
+    "text": "#ff9a50",
+    "font": "700 {px}px system-ui, -apple-system, sans-serif",
+    "fontPct": 4,
+    "maxWidthPct": 92,
+    "rulePx": 2
+  },
+  "moments": [
+    {
+      "id": "death",
+      "label": "The end",
+      "text": "I just went down in ARMAGEDOM. Think you can last longer? {url}",
+      "trigger": "playerDeath",
+      "priority": 1,
+      "tailSeconds": 1.5,
+      "cooldownSeconds": 0
+    },
+    {
+      "id": "bossKill",
+      "label": "Boss down",
+      "text": "I just took down a boss in ARMAGEDOM. {url}",
+      "trigger": "flaggedDeath",
+      "flags": ["bossProfile"],
+      "priority": 4,
+      "tailSeconds": 1.5,
+      "cooldownSeconds": 20
+    },
+    {
+      "id": "bigBlast",
+      "label": "Big blast",
+      "text": "Look at that blast in ARMAGEDOM. {url}",
+      "trigger": "blast",
+      "events": ["grenade-blast", "trap-crate-blast", "boss-rocket-blast"],
+      "minRadius": 3,
+      "priority": 3,
+      "tailSeconds": 1,
+      "cooldownSeconds": 12
+    },
+    {
+      "id": "closeEscape",
+      "label": "Close escape",
+      "text": "That was close. ARMAGEDOM. {url}",
+      "trigger": "closeCall",
+      "hpFraction": 0.2,
+      "surviveSeconds": 4,
+      "priority": 2,
+      "tailSeconds": 0.5,
+      "cooldownSeconds": 30
+    }
+  ]
+}
