@@ -27,6 +27,7 @@ import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
+import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
@@ -165,6 +166,10 @@ export function createBrowserSession(options = {}) {
     // The loaded model library: the other players' reduced mesh is requested from it. Null until the run has loaded.
     get survivorLibrary() {
       return survivorLibrary;
+    },
+    // The creature slot's deferred models for an area entry (slot-models.js); undefined when nothing has to load.
+    ensureSlotModels(areaId) {
+      return ensureSlotModels(survivorLibrary, world, areaId);
     },
     get storage() {
       return runStorage;
@@ -820,6 +825,8 @@ export function createBrowserSession(options = {}) {
         visualScale: actorVisualScale,
       });
       await actors.ensureAreaModels(game);
+      const slotModels = ensureSlotModels(library, world, world.areaId); // a slot creature dead at restore still respawns
+      if (slotModels) await slotModels;
       if (contextLost || disposed) return;
       pendingLibrary = null;
       survivorLibrary = library; // the other players' reduced mesh loads from it on demand
