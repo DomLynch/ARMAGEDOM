@@ -413,37 +413,37 @@
     "boss-surgeon": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-westminster-witch": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-south-nightborn": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-warden": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-area8-veteran": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-area7-knight": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-butcher": {
       "rig": "v1-65",
       "body": "butcher-65",
-      "live": false
+      "live": true
     }
   }
 }
