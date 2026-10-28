@@ -6,7 +6,7 @@ import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "vite";
 
-const PORT = 38795, OUT = process.env.STILLS ?? "/tmp/stills", AGES = [0, 0.4, 0.8, 1.6, 3.5];
+const PORT = Number(process.env.PORT ?? 38795), OUT = process.env.STILLS ?? "/tmp/stills", AGES = [0, 0.4, 0.8, 1.6, 3.5];
 const RUNS = (process.env.RUNS ?? "decapitation:pistol,dismember:shotgun,splitCrown:rifle,opened:grenade,hamstringCut:knife,runThrough:knife,off:shotgun").split(",");
 mkdirSync(OUT, { recursive: true });
 const require = createRequire(import.meta.url);
