@@ -1,6 +1,7 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { lockerInventory } from "./locker-core.js";
 import { activeDay, variedCrates } from "./spawn-variation.js";
+import { dailyEffects, dailyStash } from "./daily-london.js";
 import { resourceOwner, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 // Ground pickups hidden in every area but the hub (data/worldPickups.json): a medkit, an ammo box and a cash stash. This module is the
 // rules only: who may take one, what it gives, the toast, and when a taken one comes back. Nothing here is drawn or saved.
@@ -62,12 +63,13 @@ export function healPlayer(player, fraction) {
 // What taking this pickup does to the run: { ok, amount } on success, { ok: false, reason } when it would be wasted.
 export function applyPickup(g, placement, state) {
   const items = WORLD_PICKUPS.items;
+  const daily = dailyEffects(g.world?.areaId);
   if (placement.type === "medkit") {
-    const amount = Math.ceil(healPlayer(g.player, items.medkit.healFraction));
+    const amount = Math.ceil(healPlayer(g.player, Math.min(1, items.medkit.healFraction * daily.medkit)));
     return amount > 0 ? { ok: true, amount } : { ok: false, reason: "medkitFull" };
   }
   if (placement.type === "ammoBox") return refillAmmo(g) > 0 ? { ok: true, amount: 0 } : { ok: false, reason: "ammoBoxFull" };
-  const amount = grantCash(g, stashCash(placement.id, state.taken[placement.id] ?? 0));
+  const amount = grantCash(g, stashCash(placement.id, state.taken[placement.id] ?? 0, dailyStash(items.cashStash, daily)));
   return amount > 0 ? { ok: true, amount } : { ok: false, reason: "cashStashFull" };
 }
 // Adds carried cash, capped so carried + bank never passes the game's maximum. Returns the amount added (shared with the airdrop).

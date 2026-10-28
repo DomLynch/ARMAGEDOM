@@ -62,7 +62,8 @@ import {
 } from "./creature-behaviour-intents.js";
 import { animalPlacement } from "./animal-cycle.js";
 import { AREA_DRONE_SPAWNS } from "./area-drone-spawns.js";
-import { DRONE_KEYS, DRONE_RULES, createDroneState, droneIntent, recordDroneDeath } from "./drone-mechanics.js";
+import { DRONE_KEYS, DRONE_RULES, createDroneState, droneIntent, droneLow, recordDroneDeath } from "./drone-mechanics.js";
+import { dailySight } from "./engine/daily-london.js";
 import { createBridgeSteering } from "./bridge-steering.js";
 import { createMobileAimState, stepMobileAim } from "./mobile-combat-aim.js";
 import { selectFinisher } from "./finisher-selection.js";
@@ -72,9 +73,9 @@ import { applyStarVariant, starDamage } from "./engine/star-variants.js";
 import { createSuppliesState, issueSupply } from "./supplies.js";
 import { createVestState, damageAfterVest } from "./vest.js";
 import { AREA_MOB_SPAWNS, residentEncounterHealth } from "./area-mob-spawns.js";
-import { selectCombatTarget, resolvePistolShot, resolveRangedAim, selectedRangedProfile } from "./pistol-targeting.js";
+import { selectCombatTarget, resolveRangedAim, selectedRangedProfile } from "./pistol-targeting.js";
 import { meleeCandidates, chainedSight, bodies } from "./pistol-targeting.js";
-import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
+import { createPistolState, stepPistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
 const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
@@ -93,16 +94,6 @@ const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
 const RAT_LOW = CREATURE_MOVES.rat_low;
 export const RAT_BITE = CREATURE_MOVES.rat_bite;
 const RAT_BITE_LOW = CREATURE_MOVES.rat_bite_low;
-const droneLow = (def) => ({
-  ...RAT_LOW,
-  clip: "DogMidSlash",
-  moveId: "drone_low",
-  damage: def.damage,
-  stamina: def.stamina,
-  staminaDamage: def.staminaDamage,
-  stagger: def.stagger,
-  cooldown: def.cooldown,
-});
 const ROACH_LOW = CREATURE_MOVES.roach_low;
 export const ROACH_BITE = CREATURE_MOVES.roach_bite;
 const ROACH_BITE_SCALED = CREATURE_MOVES.roach_bite_scaled;
@@ -585,7 +576,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       const drone = rigText(rig, "brain") === "drone",
         lowSwing = rigText(rig, "lowSwing"),
         low = drone
-          ? droneLow(def)
+          ? droneLow(def, RAT_LOW)
           : rigCapability(rig, "nativeSkeleton")
             ? DOG_MID
             : lowSwing === "dog"
@@ -1741,7 +1732,8 @@ function residentPatrol(g, e, dt) {
       g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === DOG_RIG),
       { areaId: g.world.areaId, lineClear: (a, b) => g.world.lineClear(a, b) },
     );
-  const playerDistance = mag(sub(g.player.pos, e.pos)),
+  // The day's sight effect (data/dailyLondon.json) shortens or lengthens how far this hostile notices the player.
+  const playerDistance = mag(sub(g.player.pos, e.pos)) / dailySight(g.world.areaId),
     lineClear = g.world.lineClear(e.pos, g.player.pos);
   const wake =
     !safehouseProtected(g) &&

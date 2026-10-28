@@ -1,4 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
+import { dailyEffects, dailyLight } from "./daily-london.js";
 // Intensities only: keep existing light types, colours, fog and exposure. The default is data/areaRuntime.json defaultLighting.
 export const DEFAULT_LIGHTING = GAME_DATA.areaRuntime.defaultLighting;
 export function validateAreaLighting(input, registry) {
@@ -33,7 +34,8 @@ export function validateAreaLighting(input, registry) {
   return Object.freeze(result);
 }
 export function applyAreaLighting(scene, world, areaId = world.areaId) {
-  const preset = world.areaLighting?.[areaId] ?? DEFAULT_LIGHTING;
+  // Each call starts from the area's own preset, so the day's modifier (data/dailyLondon.json) never stacks and an area without one is plain.
+  const preset = dailyLight(world.areaLighting?.[areaId] ?? DEFAULT_LIGHTING, dailyEffects(areaId));
   for (const light of scene.children) {
     if (light.isHemisphereLight) light.intensity = preset.fillIntensity;
     else if (light.isDirectionalLight) light.intensity = preset.keyIntensity;

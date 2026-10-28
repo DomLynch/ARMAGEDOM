@@ -10,6 +10,17 @@ export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(tim
 export const DRONE_KEYS = Object.freeze(
   Object.fromEntries(Object.entries(AREA_DRONE_SPAWNS).flatMap(([area, rows]) => rows.map((row) => [row.key, area]))),
 );
+// The drone's low strike: the rat's low move with the drone's own damage, stamina, stagger and cooldown.
+export const droneLow = (def, base) => ({
+  ...base,
+  clip: "DogMidSlash",
+  moveId: "drone_low",
+  damage: def.damage,
+  stamina: def.stamina,
+  staminaDamage: def.staminaDamage,
+  stagger: def.stagger,
+  cooldown: def.cooldown,
+});
 const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const live = (a) => a && Number.isFinite(a.hp) && a.hp > 0 && point(a.pos);
 const copy = (p) => ({ x: p.x, z: p.z });
