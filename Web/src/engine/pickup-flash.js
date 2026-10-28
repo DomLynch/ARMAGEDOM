@@ -7,7 +7,7 @@ import { GAME_DATA } from "./game-data.js";
 // tap) would be wiped unseen; the loop therefore observes g.events both just before and just after each step.
 // The overlay is #pickup-flash (pointer-events none), so it never touches input or the six touch actions.
 export function createPickupFlash(
-  node = globalThis.document?.getElementById("pickup-flash"),
+  node = globalThis.document?.getElementById?.("pickup-flash"),
   data = GAME_DATA.visual.pickupFlash,
 ) {
   const kinds = new Set(data.events),
