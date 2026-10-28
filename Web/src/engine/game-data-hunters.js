@@ -19,6 +19,13 @@ export function validateMarkedHunterSpawn(d) {
     fail("markedHunterSpawn", "gateDefaultCoordinate must be 0 to 1");
 }
 
+export function validatePhysicsBudget(d) {
+  closed(d, ["schema_version", "rows"]);
+  closed(d.rows, ["max_simultaneous_ragdolls"]);
+  if (!Number.isInteger(d.rows.max_simultaneous_ragdolls) || d.rows.max_simultaneous_ragdolls < 1)
+    fail("physicsBudget", "max_simultaneous_ragdolls must be an integer >= 1");
+}
+
 // physicsDeath.json (physics-death.js, the ?physics=1 pilot): flag, step rate, settle and removal seconds, kill impulse, part -> joint map.
 export function validatePhysicsDeath(d) {
   closed(d, [
