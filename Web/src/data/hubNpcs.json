@@ -18,8 +18,8 @@
       "bodySha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb",
       "mixamoClip": "107900901-breathing-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.43, "y": 0.39 },
-      "facingDegrees": 15,
+      "at": { "x": 0.31, "y": 0.335 },
+      "facingDegrees": 20,
       "phaseSeconds": 0,
       "look": "heavy-set, grey short hair, olive field jacket with flap pockets over a red pinstripe shirt, jeans, brown boots; stands upright, arms loose, slow breathing"
     },
@@ -33,8 +33,8 @@
       "bodySha256": "0346a6df828bd62a15b07a080463bdbee34465361bda462268deff72d1cc6f9b",
       "mixamoClip": "118910901-standing-w-briefcase-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.57, "y": 0.39 },
-      "facingDegrees": -15,
+      "at": { "x": 0.25, "y": 0.485 },
+      "facingDegrees": 40,
       "phaseSeconds": 2.5,
       "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes; stands upright holding a bag or clipboard low in one hand (the prop is not modelled)"
     },
@@ -48,8 +48,8 @@
       "bodySha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e",
       "mixamoClip": "119170901-talking-on-phone",
       "idleClip": "Idle",
-      "at": { "x": 0.5, "y": 0.33 },
-      "facingDegrees": 0,
+      "at": { "x": 0.69, "y": 0.335 },
+      "facingDegrees": -20,
       "phaseSeconds": 5,
       "look": "thin, short black hair, heather-grey collared shirt (not a hoodie), dark jeans; one hand raised to the ear as if listening on a radio, other hand on the hip (no handset modelled)"
     }
