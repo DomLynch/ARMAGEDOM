@@ -40,6 +40,13 @@ test("Boss down needs a boss seen alive in that area first, so a late spawn neve
   assert.match(progressionObjective(g).objective, /^Boss down/);
   g.world = { areaId: "east-bridge", bossData: { placements: [{ areaId: "east-bridge" }] } };
   assert.equal(progressionObjective(g).objective, "Kill the Bridge Warden.");
+  g.enemies = [{ hp: 9, bossProfile: {} }];
+  assert.equal(progressionObjective(g).objective, "Kill the Bridge Warden.");
+  g.enemies = [];
+  assert.match(progressionObjective(g).objective, /^Boss down/);
+  g.world = world;
+  assert.match(progressionObjective(g).objective, /^Boss down/, "a cleared area keeps Boss down on revisit");
+  assert.deepEqual([...g.bossSeenAliveIn].sort(), ["east-bridge", "south"]);
 });
 
 test("the hunter warnings never reach the HUD; other messages pass through", () => {
