@@ -42,32 +42,48 @@ export function startDeath(view, bindScene, entity) {
   rig.drive();
   rd.snapToTarget();
   rd.kill({ part: "spine2", impulse: CFG.killImpulse }); // kill() needs an impulse vector (sim frame: -z is back from the hunter)
-  const s = { physics: world, rd, rig, age: 0, acc: 0, frozen: false };
+  return registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+}
+
+// Track a corpse; past `maxActive` the oldest live one is frozen where it lies.
+export function registerDeath(s) {
   for (let live = active.filter((a) => !a.frozen); live.length >= CFG.maxActive; live.shift()) {
     live[0].frozen = true; // the bones keep the last applied pose; the body leaves the world so it stops costing steps
-    live[0].rd.destroy();
+    live[0].rd?.destroy();
     live[0].rd = null;
   }
   active.push(s);
   return s;
 }
+export const activeCount = () => active.length;
 
-// One render frame: fixed-rate steps, bones follow the capsules; frozen after settleSeconds (or asleep), body freed after removeSeconds.
+// Free a corpse's body and its active entry (settled, removed from the scene, or the actor despawned). Safe to call twice.
+export function releaseDeath(s) {
+  s.frozen = true;
+  s.rd?.destroy();
+  s.rd = null;
+  const i = active.indexOf(s);
+  if (i >= 0) active.splice(i, 1);
+}
+
+// The world is shared and `world.step` advances EVERY ragdoll in it, so it must advance once per rendered frame however many corpses
+// there are. `worldClock` is the simulated time of the world; each corpse keeps its own clock (started at worldClock) and steps the world
+// only while its clock is ahead of it, so N corpses calling once per frame make one step set, not N.
+let worldClock = 0;
+const STEP = () => 1 / CFG.stepHz;
+
+// One render frame: bones follow the capsules; frozen after settleSeconds (or asleep), body freed after removeSeconds.
 export function stepDeath(s, dt) {
   s.age += dt;
   if (!s.frozen) {
-    s.acc = Math.min(s.acc + dt, CFG.maxStepsPerFrame / CFG.stepHz);
-    while (s.acc >= 1 / CFG.stepHz) {
-      s.physics.step(1 / CFG.stepHz);
-      s.acc -= 1 / CFG.stepHz;
+    s.clock ??= worldClock;
+    s.clock = Math.min(s.clock + dt, worldClock + CFG.maxStepsPerFrame * STEP());
+    while (worldClock + STEP() <= s.clock) {
+      s.physics.step(STEP());
+      worldClock += STEP();
     }
     s.rig.applyPose();
     if (s.age >= CFG.settleSeconds || !s.rd.awake) s.frozen = true;
   }
-  if (s.frozen && s.age >= CFG.removeSeconds) {
-    s.rd?.destroy();
-    s.rd = null;
-    const i = active.indexOf(s);
-    if (i >= 0) active.splice(i, 1);
-  }
+  if (s.frozen && s.age >= CFG.removeSeconds) releaseDeath(s);
 }

@@ -30,6 +30,13 @@ export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.preloadIdleMs });
   else setTimeout(go, CFG.preloadIdleMs);
 }
+// Call when an actor view is removed (despawn, travel): frees its ragdoll body and active entry at once instead of leaking it.
+export function releasePhysicsDeath(view) {
+  const s = view.physicsDeath;
+  if (!s) return;
+  view.physicsDeath = undefined;
+  if (!s.failed) impl?.releaseDeath(s);
+}
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
