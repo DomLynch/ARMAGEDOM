@@ -41,8 +41,8 @@ dorsal = (1 - np.cos(2 * np.pi * U)) / 2  # 0 at the belly centre, 1 on the spin
 
 belly = np.array([0.80, 0.66, 0.42])
 flank = np.array([0.22, 0.15, 0.075])
-back = np.array([0.040, 0.030, 0.022])
-back_hi = np.array([0.095, 0.065, 0.040])
+back = np.array([0.065, 0.050, 0.036])
+back_hi = np.array([0.130, 0.095, 0.060])
 
 n_big = tile_noise(H, W, 26, 1)
 n_mid = tile_noise(H, W, 9, 2)
@@ -64,7 +64,7 @@ col *= (1.0 - 0.25 * smooth(S, 0.75, 1.0))[..., None]
 
 # a pale lateral stripe along each flank so the long body separates from dark paving
 stripe = np.exp(-((dorsal - 0.40) / 0.07) ** 2) * (0.75 + 0.25 * n_mid)
-col = mix(col, np.broadcast_to(np.array([0.70, 0.52, 0.28]), (H, W, 3)).copy(), np.clip(stripe, 0, 1) * 0.35)
+col = mix(col, np.broadcast_to(np.array([0.70, 0.52, 0.28]), (H, W, 3)).copy(), np.clip(stripe, 0, 1) * 0.55)
 # head: a pale jaw line along the mouth, a pale lower jaw, so the head reads at phone size
 head_zone = smooth(0.24 - S, 0.0, 0.06)
 lip = np.exp(-((dorsal - 0.5) / 0.045) ** 2)
@@ -136,7 +136,7 @@ def cell(u0, u1, v0, v1):
 
 
 img = col.copy()
-gloss = np.where(in_body, 0.14 + 0.30 * (1 - dorsal), 0.5).astype(np.float32)  # wet: low roughness on the back, a little higher on the belly
+gloss = np.where(in_body, 0.07 + 0.22 * (1 - dorsal), 0.5).astype(np.float32)  # wet: low roughness on the back, a little higher on the belly
 gloss += (n_fine - 0.5) * 0.14
 gloss = np.where(in_body, gloss + scar_mask * 0.3, gloss)
 height = (n_fine - 0.5) * 0.5 + (n_mid - 0.5) * 0.3
