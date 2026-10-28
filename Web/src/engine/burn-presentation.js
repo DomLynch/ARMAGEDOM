@@ -80,25 +80,8 @@ export function createBurnPresentation({
 }) {
   if (!enabled) return noop;
   const X = row.texture,
-    texture = falloffTexture(T, X);
-  const geometry = new T.PlaneGeometry(1, 1),
-    material = (extra) =>
-      new T.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        depthTest: true,
-        depthWrite: false,
-        toneMapped: false,
-        side: T.DoubleSide,
-        alphaTest: X.alphaTest,
-        ...extra,
-      }),
-    flameMaterial = material({ blending: T.AdditiveBlending, forceSinglePass: true }),
-    smokeMaterial = material({ opacity: row.smoke.opacity }),
     flameCap = row.maxActors * row.flame.puffs,
     smokeCap = row.maxActors * row.smoke.puffs,
-    flameMesh = new T.InstancedMesh(geometry, flameMaterial, flameCap),
-    smokeMesh = new T.InstancedMesh(geometry, smokeMaterial, smokeCap),
     pose = new T.Object3D(),
     colour = new T.Color(),
     soot = new T.Color(hexNumber(row.tint.sootColour)),
@@ -108,16 +91,9 @@ export function createBurnPresentation({
     states = new Map(),
     seen = new Set(),
     active = [];
-  for (const m of [flameMesh, smokeMesh]) {
-    m.renderOrder = X.renderOrder;
-    m.frustumCulled = false;
-    m.instanceMatrix.setUsage(T.DynamicDrawUsage);
-    m.visible = false;
-    scene.add(m);
-  }
-  for (let i = 0; i < flameCap; i++) flameMesh.setColorAt(i, colour.setHex(palette[0]));
-  for (let i = 0; i < smokeCap; i++) smokeMesh.setColorAt(i, colour.setHex(smokeColour));
-  let disposed = false,
+  // The pooled draws are built when the first actor burns, so a scene that never sees fire carries no extra objects.
+  let pool = null,
+    disposed = false,
     owner = null,
     area = world.areaId,
     lastTime = null,
@@ -125,6 +101,35 @@ export function createBurnPresentation({
     flames = 0,
     smokes = 0,
     shown = 0;
+  function build() {
+    const texture = falloffTexture(T, X),
+      geometry = new T.PlaneGeometry(1, 1),
+      material = (extra) =>
+        new T.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          depthTest: true,
+          depthWrite: false,
+          toneMapped: false,
+          side: T.DoubleSide,
+          alphaTest: X.alphaTest,
+          ...extra,
+        }),
+      flameMaterial = material({ blending: T.AdditiveBlending, forceSinglePass: true }),
+      smokeMaterial = material({ opacity: row.smoke.opacity }),
+      flameMesh = new T.InstancedMesh(geometry, flameMaterial, flameCap),
+      smokeMesh = new T.InstancedMesh(geometry, smokeMaterial, smokeCap);
+    for (const m of [flameMesh, smokeMesh]) {
+      m.renderOrder = X.renderOrder;
+      m.frustumCulled = false;
+      m.instanceMatrix.setUsage(T.DynamicDrawUsage);
+      m.visible = false;
+      scene.add(m);
+    }
+    for (let i = 0; i < flameCap; i++) flameMesh.setColorAt(i, colour.setHex(palette[0]));
+    for (let i = 0; i < smokeCap; i++) smokeMesh.setColorAt(i, colour.setHex(smokeColour));
+    pool = { texture, geometry, flameMaterial, smokeMaterial, flameMesh, smokeMesh };
+  }
   const hide = (mesh, from) => {
     pose.scale.setScalar(0);
     pose.updateMatrix();
@@ -134,11 +139,12 @@ export function createBurnPresentation({
     states.clear();
     seen.clear();
     active.length = 0;
-    hide(flameMesh, 0);
-    hide(smokeMesh, 0);
-    flameMesh.visible = smokeMesh.visible = false;
-    flameMesh.instanceMatrix.needsUpdate = smokeMesh.instanceMatrix.needsUpdate = true;
     flames = smokes = shown = 0;
+    if (!pool) return;
+    hide(pool.flameMesh, 0);
+    hide(pool.smokeMesh, 0);
+    pool.flameMesh.visible = pool.smokeMesh.visible = false;
+    pool.flameMesh.instanceMatrix.needsUpdate = pool.smokeMesh.instanceMatrix.needsUpdate = true;
   }
   function put(mesh, i, x, y, z, width, aspect) {
     const rise = width * aspect * row.floorHeightShare; // keeps the billboard's lower edge off the floor
@@ -172,6 +178,9 @@ export function createBurnPresentation({
       S = row.smoke,
       nFlame = light ? F.reducedPuffs : F.puffs,
       nSmoke = light ? S.reducedPuffs : S.puffs;
+    if (!pool && !active.length) return;
+    if (!pool) build();
+    const { flameMesh, smokeMesh } = pool;
     active.sort((a, b) => a.d - b.d);
     flames = smokes = 0;
     shown = Math.min(active.length, row.maxActors);
@@ -276,20 +285,22 @@ export function createBurnPresentation({
       smokePuffs: smokes,
       flameCapacity: flameCap,
       smokeCapacity: smokeCap,
-      drawCalls: Number(flameMesh.visible) + Number(smokeMesh.visible),
+      drawCalls: pool ? Number(pool.flameMesh.visible) + Number(pool.smokeMesh.visible) : 0,
     }),
     dispose() {
       if (disposed) return;
       clear();
       disposed = true;
-      for (const m of [flameMesh, smokeMesh]) {
+      if (!pool) return;
+      for (const m of [pool.flameMesh, pool.smokeMesh]) {
         m.removeFromParent();
         m.dispose();
       }
-      geometry.dispose();
-      flameMaterial.dispose();
-      smokeMaterial.dispose();
-      texture.dispose();
+      pool.geometry.dispose();
+      pool.flameMaterial.dispose();
+      pool.smokeMaterial.dispose();
+      pool.texture.dispose();
+      pool = null;
     },
   };
 }

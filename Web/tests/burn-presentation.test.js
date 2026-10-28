@@ -127,9 +127,11 @@ test("a burning living target gets soot and ember tint and pooled puffs; a cold 
   const snap = f.burn.snapshot();
   assert.equal(snap.tracked, 1);
   assert.ok(snap.smokePuffs > 0);
-  f.g.time += 3;
-  f.burn.update(f.g);
+  hot.flameBurnUntil = 0;
+  run(f, row.living.afterburnSeconds / 2);
   assert.ok(f.burn.snapshot().flamePuffs > 0, "afterburn licks continue after the flame leaves");
+  run(f, row.living.afterburnSeconds * 2);
+  assert.equal(f.burn.snapshot().flamePuffs, 0, "and end with the afterburn window");
 });
 
 test("the pool is bounded by maxActors and capacity, with at most two draw calls", () => {
@@ -205,12 +207,24 @@ test("?burn=0 builds nothing, touches nothing and leaves the scene empty", () =>
   assert.equal(f.burn.snapshot().enabled, false);
 });
 
+test("the pooled draws are built only when something first burns", () => {
+  const f = fixture(),
+    e = f.enemy(1, 0);
+  f.g.enemies = [e];
+  run(f, 1);
+  assert.equal(f.scene.children.length, 0, "no fire, no scene objects");
+  e.flameBurnUntil = f.g.time + 0.35;
+  f.burn.update(f.g);
+  assert.equal(f.scene.children.length, 2);
+});
+
 test("an area change or reset clears every look; dispose frees the pooled draws once", () => {
   const f = fixture(),
     e = f.enemy(1, 0);
   f.g.enemies = [e];
   run(f, 1, () => (e.flameBurnUntil = f.g.time + 0.35));
   assert.equal(f.burn.snapshot().tracked, 1);
+  e.flameBurnUntil = 0;
   f.world.areaId = "area9";
   f.burn.update(f.g);
   assert.equal(f.burn.snapshot().tracked, 0);
