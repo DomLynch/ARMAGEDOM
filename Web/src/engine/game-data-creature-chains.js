@@ -38,7 +38,7 @@ export function validateCreatureChainRows(d) {
   if (!ids.length) fail(FILE, "rows must not be empty");
   for (const id of ids) {
     const row = d.rows[id];
-    closed(row, ROW_FIELDS, ["missingBones"]);
+    closed(row, ROW_FIELDS, ["missingBones", "nodeBones"]);
     if (row.live !== false) fail(FILE, `${id}: live must be false until the wiring lands`);
     if (!KINDS.includes(row.kind) || !FITS.includes(row.fit)) fail(FILE, `${id}: kind or fit is not a known value`);
     if (typeof row.fitNote !== "string" || !row.fitNote) fail(FILE, `${id}: fitNote must say how well the skeleton fits`);
@@ -49,7 +49,9 @@ export function validateCreatureChainRows(d) {
     if (!Array.isArray(row.rigNodeScale) || row.rigNodeScale.length !== 3) fail(FILE, `${id}: rigNodeScale must be 3 numbers`);
     const bones = new Set(row.bones);
     if (bones.size !== row.bones.length || row.jointCount !== row.bones.length) fail(FILE, `${id}: bones must be unique, jointCount their count`);
-    for (const [part, bone] of Object.entries(row.boneMap)) if (!bones.has(bone)) fail(FILE, `${id}: boneMap ${part} names ${bone}, not in bones`);
+    // nodeBones: named nodes that are not skin joints (a Mixamo Spine1 the mesh is not weighted to) but still drive a part
+    const driven = new Set([...bones, ...(row.nodeBones ?? [])]);
+    for (const [part, bone] of Object.entries(row.boneMap)) if (!driven.has(bone)) fail(FILE, `${id}: boneMap ${part} names ${bone}, not a listed bone`);
     if (row.kind === "none" ? row.glb !== null || row.bones.length : typeof row.glb !== "string") fail(FILE, `${id}: glb and bones do not match kind`);
     if (row.kind === "chain" && !row.segments.length) fail(FILE, `${id}: a chain row needs segments`);
     if (row.kind !== "chain" && row.segments.length) fail(FILE, `${id}: only a chain row has segments`);

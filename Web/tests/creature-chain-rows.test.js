@@ -57,6 +57,7 @@ test("every bone, boneMap target and segment bone exists in the real GLB skeleto
     for (const [part, bone] of Object.entries(row.boneMap)) assert.ok(nodes.has(bone), `${id}: ${part} -> ${bone}`);
     for (const s of row.segments) for (const bone of [s.bone, s.tip]) assert.ok(nodes.has(bone), `${id}: ${s.id} ${bone}`);
     for (const bone of row.missingBones ?? []) assert.ok(!nodes.has(bone), `${id}: ${bone} is really missing`);
+    for (const bone of row.nodeBones ?? []) assert.ok(nodes.has(bone) && !joints.has(bone), `${id}: ${bone} is a node, not a skin joint`);
   }
 });
 

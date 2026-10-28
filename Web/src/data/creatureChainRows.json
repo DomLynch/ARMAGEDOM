@@ -330,6 +330,7 @@
       "simRoot": {"scale":1,"modelChildScale":0.92},
       "jointCount": 19,
       "missingBones": ["mixamorig:LeftToeBase","mixamorig:RightToeBase"],
+      "nodeBones": ["mixamorig:Spine1"],
       "bones": ["mixamorig:Hips","mixamorig:Spine","mixamorig:Spine2","mixamorig:LeftShoulder","mixamorig:LeftArm","mixamorig:LeftForeArm","mixamorig:LeftHand","mixamorig:RightShoulder","mixamorig:RightArm","mixamorig:RightForeArm","mixamorig:RightHand","mixamorig:Neck","mixamorig:Head","mixamorig:LeftUpLeg","mixamorig:LeftLeg","mixamorig:LeftFoot","mixamorig:RightUpLeg","mixamorig:RightLeg","mixamorig:RightFoot"],
       "boneMap": {"hips":"mixamorig:Hips","spine":"mixamorig:Spine","spine1":"mixamorig:Spine1","spine2":"mixamorig:Spine2","neck":"mixamorig:Neck","head":"mixamorig:Head","armLeft":"mixamorig:LeftArm","armRight":"mixamorig:RightArm","forearmLeft":"mixamorig:LeftForeArm","forearmRight":"mixamorig:RightForeArm","handLeft":"mixamorig:LeftHand","handRight":"mixamorig:RightHand","thighLeft":"mixamorig:LeftUpLeg","thighRight":"mixamorig:RightUpLeg","shinLeft":"mixamorig:LeftLeg","shinRight":"mixamorig:RightLeg","footLeft":"mixamorig:LeftFoot","footRight":"mixamorig:RightFoot"},
       "segments": [
