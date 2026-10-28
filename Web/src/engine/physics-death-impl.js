@@ -36,21 +36,21 @@ const boneMap = (scene, spec) =>
 const pools = new Map(),
   active = [],
   poolOf = (spec) => pools.get(spec.key) ?? pools.set(spec.key, []).get(spec.key);
+// Parked ragdolls are awake capsules that the shared world updates on every step, so the TOTAL across every row is bounded (`maxParked`, data): the
+// first live bodies in physicsRigs.json order fill it, and a body past it (the MakeHuman crowd bodies) builds its ragdoll on its first death instead.
+export const parkedCount = () => [...pools.values()].reduce((sum, pool) => sum + pool.length, 0);
 function warmOne(spec) {
   const pool = poolOf(spec);
-  if (pool.length < CFG.poolSize) pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked" }));
+  if (pool.length < CFG.poolSize && parkedCount() < CFG.maxParked)
+    pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked" }));
 }
+const fill = (spec) => {
+  for (let i = 0; world && i < CFG.poolSize; i++) warmOne(spec);
+};
 export function warm() {
   const [first, ...rest] = liveBodies();
-  while (poolOf(first).length < CFG.poolSize) warmOne(first);
-  rest.forEach((spec, i) =>
-    setTimeout(
-      () => {
-        while (world && poolOf(spec).length < CFG.poolSize) warmOne(spec);
-      },
-      CFG.rewarmMs * (i + 1),
-    ),
-  );
+  fill(first);
+  rest.forEach((spec, i) => setTimeout(() => fill(spec), CFG.rewarmMs * (i + 1)));
   world.step(1 / CFG.stepHz); // first step compiles the paths the death frame would otherwise pay for
 }
 

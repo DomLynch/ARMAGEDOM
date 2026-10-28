@@ -40,7 +40,7 @@ test("body rows hold the 20 joints and a standing height, UNSCALED (the actor ro
     assert.equal(Object.keys(row.joints).length, 20);
     assert.ok(row.height_m > 1 && row.height_m < 3, `${m.body} height ${row.height_m}`);
     assert.equal(row.scale_baked, 1, `${name} uses a body measured at x1: a scaled row is scaled twice by the root`);
-    assert.ok(row.source.endsWith(", x1"), `${name} row source says x1`);
+    assert.match(row.source, /, x1\b/, `${name} row source says x1`);
   }
 });
 
@@ -62,8 +62,9 @@ test("a body row's hip height above the toes equals the GLB's own bind pose at x
     if (m.body === "physicsBody") continue;
     const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
       nodes = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes,
-      p = RIGS.rigs[m.rig].parts,
-      hips = up(nodes, p.hips) - up(nodes, p.toeLeft);
+      family = RIGS.rigs[m.rig],
+      p = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
+      hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + p.toeLeft);
     assert.ok(Math.abs(hips - RIGS.bodies[m.body].joints.Hips[1]) < 0.01, `${name} hips ${hips} vs row ${RIGS.bodies[m.body].joints.Hips[1]}`);
   }
 });
