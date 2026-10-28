@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "note": "The hub NPC shops (engine/shop.js). A shop is a ROW: shopId (the server's shop id), npcId (a hubNpcs.json npc id; the shop opens when that NPC is tapped), title (the panel heading), stallLabel (the tag over the NPC) and radius (how close the player must be, in ground units; Marsh and Okafor stand about 8.5 apart). More stalls are more rows. Stock, names and prices come from the server (market_stock), cash and counts from its replies; this file holds only the rows, the layout of the tap target and the words. api.rpcPath plus calls.* name the Supabase rpc functions (docs/MARKET-CONTRACT.md); an answer that is not ok maps its error code through text.errors, anything unknown through text.errors.refused. inventorySlots is the length of the carried strip. hotspot sizes the invisible tap target over the NPC: heightUnits is how tall the body is in ground units, widthRatio the width as a share of the projected height, minPx the smallest side. enabled false or ?noshop=1 removes every shop. A guest (anonymous) account and an unreachable market both show the closed state.",
+  "note": "The hub NPC shops (engine/shop.js). A shop is a ROW: shopId (this stall), serverShop (the server's shop id: v1 has one global shop, hub-trader, so each stall lists the itemIds it shows from it), npcId (a hubNpcs.json npc id; the shop opens when that NPC is tapped), title (the panel heading), stallLabel (the tag over the NPC) and radius (how close the player must be, in ground units; Marsh and Okafor stand about 8.5 apart). More stalls are more rows. Stock, names and prices come from the server (market_stock), counts from its replies, cash from the run (a trade's signed delta is applied to carried cash); this file holds only the rows, the layout of the tap target and the words. api.calls.* name the writer routes POST /arma/api/<op> (docs/MARKET-CONTRACT.md); an answer that is not ok maps its error code through text.errors, anything unknown through text.errors.refused. inventorySlots is the length of the carried strip. hotspot sizes the invisible tap target over the NPC: heightUnits is how tall the body is in ground units, widthRatio the width as a share of the projected height, minPx the smallest side. enabled false or ?noshop=1 removes every shop. A guest (anonymous) account and an unreachable market both show the closed state.",
   "enabled": true,
   "offParam": "noshop",
   "offValue": "1",
@@ -11,17 +11,33 @@
   "inventorySlots": 4,
   "maxOrder": 99,
   "api": {
-    "rpcPath": "/rest/v1/rpc/",
     "timeoutMs": 8000,
-    "authStatuses": [401, 403],
+    "authStatuses": [401],
+    "signedOutErrors": ["signin", "token"],
     "serverErrorFrom": 500,
     "calls": { "inventory": "inventory_get", "stock": "market_stock", "buy": "buy_item", "sell": "sell_item" }
   },
   "closeKey": "Escape",
   "hotspot": { "heightUnits": 2.6, "widthRatio": 0.55, "minPx": 56, "half": 0.5 },
   "shops": [
-    { "shopId": "scrapper", "npcId": "quartermaster-marsh", "title": "Marsh's Scrapper", "stallLabel": "Scrapper", "radius": 5.5 },
-    { "shopId": "medic", "npcId": "medic-okafor", "title": "Dr. Okafor's Supplies", "stallLabel": "Medic", "radius": 5.5 }
+    {
+      "shopId": "scrapper",
+      "serverShop": "hub-trader",
+      "itemIds": ["ammo-pack", "hunter-cpu", "roach-mandibles", "salamander-gland", "military-battery", "robot-parts", "drone-chip"],
+      "npcId": "quartermaster-marsh",
+      "title": "Marsh's Scrapper",
+      "stallLabel": "Scrapper",
+      "radius": 5.5
+    },
+    {
+      "shopId": "medic",
+      "serverShop": "hub-trader",
+      "itemIds": ["medkit-pack", "vest-patch"],
+      "npcId": "medic-okafor",
+      "title": "Dr. Okafor's Supplies",
+      "stallLabel": "Medic",
+      "radius": 5.5
+    }
   ],
   "textVars": {
     "tagLine": ["stall"],
@@ -65,11 +81,18 @@
     "soldDone": "Sold {qty} x {name}.",
     "replayed": "That order already went through. You were not charged twice.",
     "errors": {
-      "insufficient_cash": "Not enough cash for that.",
-      "insufficient_qty": "You are not carrying that many.",
-      "insufficient_inventory": "You are not carrying that many.",
-      "inventory_full": "Your carry slots are full.",
-      "unknown_item": "The stall does not trade that item.",
+      "insufficient-cash": "Not enough cash for that.",
+      "ceiling": "You cannot hold that much cash after this trade.",
+      "insufficient-qty": "You are not carrying that many.",
+      "not-for-sale": "The stall does not sell that.",
+      "not-bought": "The stall does not buy that.",
+      "inventory-full": "You cannot carry any more of that.",
+      "bad-request": "That order was not valid.",
+      "request-conflict": "That order clashed with an earlier one. Try again.",
+      "rate-limited": "Too many orders at once. Wait a moment and try again.",
+      "no-character": "Start a run first, then come back to trade.",
+      "O0007": "The market is closed for now.",
+      "token": "Sign in with Google to trade.",
       "signin": "Sign in with Google to trade.",
       "offline": "Cannot reach the market. Your order is kept: tap again to retry.",
       "refused": "The market refused that order."

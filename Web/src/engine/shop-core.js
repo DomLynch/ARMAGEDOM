@@ -10,10 +10,19 @@ export const say = (key, vars = {}) => fillText(DATA.text[key], vars);
 export const shopsOn = (search = globalThis.location?.search ?? "") =>
   DATA.enabled && new URLSearchParams(search).get(DATA.offParam) !== DATA.offValue;
 export const shopRow = (shopId) => DATA.shops.find((row) => row.shopId === shopId) ?? null;
+const signedOut = (code) => DATA.api.signedOutErrors.includes(code);
 const errorText = (code) => (Object.hasOwn(DATA.text.errors, code) ? DATA.text.errors[code] : DATA.text.errors.refused);
 
-// api: () => adapter | null (null = the market cannot be reached at all); isGuest: () => bool; localCash: () => number | null.
-export function createShopController({ api, isGuest, localCash, newId = () => globalThis.crypto.randomUUID(), onChange = () => {} }) {
+// api: () => adapter | null (null = the market cannot be reached at all); isGuest: () => bool; localCash: () => number | null;
+// onCash(delta): the run's carried cash moves by the trade's signed delta (the server settles the price, the phone applies the change).
+export function createShopController({
+  api,
+  isGuest,
+  localCash,
+  onCash = () => {},
+  newId = () => globalThis.crypto.randomUUID(),
+  onChange = () => {},
+}) {
   const names = new Map(), // item id -> display name, remembered from every stall
     held = new Map(), // item id -> carried count
     wanted = new Map(); // item id -> chosen quantity
@@ -22,7 +31,6 @@ export function createShopController({ api, isGuest, localCash, newId = () => gl
     phase = "closed",
     closedKey = "closedOffline",
     rows = [],
-    knownCash = null,
     busy = false,
     message = null,
     pending = null, // { key, id } of an order that got no verdict
@@ -31,7 +39,7 @@ export function createShopController({ api, isGuest, localCash, newId = () => gl
   const carried = (itemId) => held.get(itemId) ?? 0;
   const qtyOf = (itemId) => wanted.get(itemId) ?? 1;
   const priceOf = (row) => (tab === DATA.buyTabId ? row.buyPrice : row.sellPrice);
-  const cash = () => knownCash ?? localCash();
+  const cash = localCash;
   const shut = (key) => {
     phase = "closed";
     closedKey = key;
@@ -79,12 +87,12 @@ export function createShopController({ api, isGuest, localCash, newId = () => gl
     else {
       phase = "loading";
       emit();
-      const [stock, inventory] = await Promise.all([market.stock(shop.shopId), market.inventory()]);
+      const [stock, inventory] = await Promise.all([market.stock(shop.serverShop), market.inventory()]);
       if (mine !== ticket) return;
-      if (stock.error === "signin" || inventory.error === "signin") shut("closedGuest");
+      if (signedOut(stock.error) || signedOut(inventory.error)) shut("closedGuest");
       else if (!stock.ok || !inventory.ok) phase = "offline";
       else {
-        rows = stock.rows;
+        rows = stock.rows.filter((row) => shop.itemIds.includes(row.itemId));
         for (const row of rows) names.set(row.itemId, row.name);
         take(inventory.items);
         phase = "ready";
@@ -103,8 +111,8 @@ export function createShopController({ api, isGuest, localCash, newId = () => gl
       emit();
     };
     if (!market) return fail("offline");
-    if (side === DATA.sellTabId && qty > carried(itemId)) return fail("insufficient_qty");
-    if (side === DATA.buyTabId && cash() !== null && qty * priceOf(row) > cash()) return fail("insufficient_cash");
+    if (side === DATA.sellTabId && qty > carried(itemId)) return fail("insufficient-qty");
+    if (side === DATA.buyTabId && cash() !== null && qty * priceOf(row) > cash()) return fail("insufficient-cash");
     const key = [side, shop.shopId, itemId, qty].join(DATA.keySeparator),
       id = pending?.key === key ? pending.id : newId(),
       mine = ticket;
@@ -112,17 +120,19 @@ export function createShopController({ api, isGuest, localCash, newId = () => gl
     busy = true;
     message = null;
     emit();
-    const reply = await market[side](shop.shopId, itemId, qty, id);
-    if (reply.ok && Number.isFinite(reply.cash)) knownCash = reply.cash;
+    const reply = await market[side](shop.serverShop, itemId, qty, id);
+    if (reply.ok) onCash(reply.delta); // applied even if the panel was closed meanwhile: the server has already settled it
+    // A replayed answer carries the first call's inventory snapshot, so the present one is read.
+    const fresh = reply.ok && reply.replayed ? await market.inventory() : null;
     if (mine !== ticket) return;
     busy = false;
     if (reply.offline) return fail("offline"); // no verdict: the id is kept for the retry
     pending = null;
     if (!reply.ok) {
-      if (reply.error === "signin") shut("closedGuest");
+      if (signedOut(reply.error)) shut("closedGuest");
       return fail(reply.error);
     }
-    take(reply.items);
+    take(fresh?.ok ? fresh.items : reply.items);
     wanted.delete(itemId);
     message = { kind: "ok", text: reply.replayed ? say("replayed") : say(side === DATA.buyTabId ? "boughtDone" : "soldDone", { qty, name: row.name }) };
     emit();

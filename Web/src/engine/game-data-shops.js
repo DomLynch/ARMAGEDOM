@@ -10,8 +10,8 @@ export function validateShops(d) {
   for (const name of NAMES) if (typeof d[name] !== "string" || !d[name]) fail("shops", `${name} must be a nonempty string`);
   count("shops", "inventorySlots", d.inventorySlots, 1, 12);
   count("shops", "maxOrder", d.maxOrder, 1, 999);
-  closed(d.api, ["rpcPath", "timeoutMs", "authStatuses", "serverErrorFrom", "calls"]);
-  if (typeof d.api.rpcPath !== "string" || !d.api.rpcPath.startsWith("/")) fail("shops", "api.rpcPath must start with /");
+  closed(d.api, ["timeoutMs", "authStatuses", "signedOutErrors", "serverErrorFrom", "calls"]);
+  if (!Array.isArray(d.api.signedOutErrors) || !d.api.signedOutErrors.every((x) => typeof x === "string")) fail("shops", "api.signedOutErrors must be codes");
   number("shops", "api.timeoutMs", d.api.timeoutMs, 1);
   number("shops", "api.serverErrorFrom", d.api.serverErrorFrom, 1);
   if (!Array.isArray(d.api.authStatuses) || !d.api.authStatuses.every(Number.isInteger)) fail("shops", "api.authStatuses must be integers");
@@ -23,8 +23,11 @@ export function validateShops(d) {
   if (!Array.isArray(d.shops) || !d.shops.length) fail("shops", "shops must be a nonempty list");
   const seen = new Set();
   for (const row of d.shops) {
-    closed(row, ["shopId", "npcId", "title", "stallLabel", "radius"]);
+    closed(row, ["shopId", "serverShop", "itemIds", "npcId", "title", "stallLabel", "radius"]);
     id("shops", "shopId", row.shopId);
+    id("shops", "serverShop", row.serverShop);
+    if (!Array.isArray(row.itemIds) || !row.itemIds.length || !row.itemIds.every((x) => typeof x === "string" && x))
+      fail("shops", `${row.shopId}: itemIds must be a nonempty list of item ids`);
     if (seen.has(row.shopId)) fail("shops", `${row.shopId}: duplicate shopId`);
     seen.add(row.shopId);
     for (const name of ["npcId", "title", "stallLabel"])

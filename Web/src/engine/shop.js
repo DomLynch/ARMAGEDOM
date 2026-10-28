@@ -1,7 +1,7 @@
 // Hub NPC shops (data/shops.json rows): the tap target over each shopkeeper, the proximity gate, and the panel. Tap-to-open: while the
 // player stands inside a shop row's radius in the hub, an invisible button covers that NPC (with a small stall tag above it); tapping or
 // clicking it opens the panel. Walking out of the radius, leaving the hub, opening the field menu or the off switch closes it again.
-// Presentation only: the market's answers never touch the run, the save or the cash the game keeps.
+// The only thing a trade writes into the run is the signed cash delta of the server's answer (see onCash in browser-session.js).
 import { GAME_DATA } from "./game-data.js";
 import { hubNpcsOn } from "./hub-npcs.js";
 import { createShopController, say, shopsOn } from "./shop-core.js";
@@ -23,17 +23,19 @@ export function bodyBox(world, camera, bounds, ground) {
   return { left: foot.x - width * half, top: foot.y - height, width, height, visible: foot.z < 1 && head.z < 1 };
 }
 
-// market: () => adapter | null; isGuest: () => bool; localCash: () => number | null; blocked: () => bool (paused, travelling, menu open).
+// market: () => adapter | null; isGuest: () => bool; localCash: () => number | null; onCash(delta): move the run's carried cash;
+// blocked: () => bool (paused, travelling, menu open).
 export function createShop({
   doc = globalThis.document,
   market,
   isGuest,
   localCash,
+  onCash,
   blocked,
   search,
   listen = (target, type, handler) => target.addEventListener(type, handler),
 }) {
-  const controller = createShopController({ api: market, isGuest, localCash, onChange: (v) => view.render(v) }),
+  const controller = createShopController({ api: market, isGuest, localCash, onCash, onChange: (v) => view.render(v) }),
     view = createShopView({ doc, controller }),
     layer = doc.createElement("div"),
     spots = new Map(),

@@ -162,6 +162,11 @@ export function createBrowserSession(options = {}) {
     market: () => marketApi,
     isGuest: () => auth?.isGuest !== false,
     localCash: () => game?.marked?.carried ?? null,
+    // The server settled a trade: move carried cash by its signed delta, never below zero or above the area's money cap.
+    onCash: (delta) => {
+      const money = game?.marked;
+      if (money) money.carried = Math.min(game.world?.markedData?.maxMoney ?? Infinity, Math.max(0, money.carried + delta));
+    },
     blocked: () => paused || traveling || !!document.getElementById("menu")?.open,
     search: location.search,
     listen,
@@ -438,7 +443,7 @@ export function createBrowserSession(options = {}) {
       if (!token) beacon.report("boot", "no-token");
       return token;
     };
-    marketApi = createMarketApi({ ...WORLD_AUTH, getToken });
+    marketApi = createMarketApi({ baseUrl: `${location.origin}/arma/api`, getToken });
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({
       baseUrl: `${location.origin}/arma/api`,

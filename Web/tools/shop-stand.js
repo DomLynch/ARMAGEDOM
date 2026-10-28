@@ -10,12 +10,18 @@ let current = null;
 
 async function show(name) {
   current?.view.root.remove();
-  const market = createMockMarket({ cash: 140, items: { scrap: 3, tape: 5, "medkit-pack": 1 }, errors: name === "offline" ? { stock: "offline" } : {} });
+  const wallet = { cash: 140 },
+    market = createMockMarket({
+      cash: 140,
+      items: { "ammo-pack": 3, "hunter-cpu": 3, "roach-mandibles": 5, "medkit-pack": 1 },
+      errors: name === "offline" ? { stock: "offline" } : {},
+    });
   const view = {};
   const controller = createShopController({
     api: () => market,
     isGuest: () => name === "closed",
-    localCash: () => 140,
+    localCash: () => wallet.cash,
+    onCash: (delta) => (wallet.cash += delta),
     onChange: (v) => view.value.render(v),
   });
   view.value = createShopView({ doc: document, controller });
@@ -25,12 +31,12 @@ async function show(name) {
   await wait();
   if (name === "sell") controller.setTab("sell");
   if (name === "error") {
-    controller.step("scrap", 40);
-    await controller.confirm("scrap");
+    controller.step("ammo-pack", 2);
+    await controller.confirm("ammo-pack");
   }
   if (name === "sell") {
-    controller.step("scrap", 1);
-    await controller.confirm("scrap");
+    controller.step("hunter-cpu", 1);
+    await controller.confirm("hunter-cpu");
   }
   await wait();
 }
