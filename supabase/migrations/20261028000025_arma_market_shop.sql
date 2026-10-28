@@ -71,12 +71,24 @@ begin
   ), '[]'::jsonb);
 end $$;
 
+-- What the server holds for the character: {cash, bank, ceiling} (the stored run's carried and bank, which the market keeps in step; ceiling null when cash is not enforced).
+create function public.arma_wallet(p_account uuid, p_character text) returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare r public.arma_runs;
+begin
+  if not public.arma_allowed(p_account) or not public.arma_owns(p_character, p_account) then raise exception 'arma is not open for this character' using errcode = 'O0007'; end if;
+  select * into r from public.arma_runs where character = p_character;
+  return jsonb_build_object('cash', coalesce((r.record #>> '{marked,carried}')::numeric, 0)::bigint, 'bank', coalesce((r.record #>> '{marked,bank}')::numeric, 0)::bigint, 'ceiling', public.arma_cash_ceiling(p_character));
+end $$;
+revoke all on function public.arma_wallet(uuid, text) from public, anon, authenticated;
+grant execute on function public.arma_wallet(uuid, text) to arma_writer;
+
 -- Shared by buy and sell. p_sign: -1 buy (debit), +1 sell (credit). Returns the answer; stores it for replay when it succeeded.
 create function public.arma_market_trade(p_account uuid, p_character text, p_op text, p_shop text, p_item text, p_qty int, p_request text) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare s public.arma_shop_stock; prev public.arma_market_requests; h text; price int; total int; have int; purse numeric; run public.arma_runs;
         carried numeric; bank numeric; ceil_after numeric; answer jsonb; day int := extract(dow from now() at time zone 'utc')::int;
 begin
   if not public.arma_allowed(p_account) or not public.arma_owns(p_character, p_account) then raise exception 'arma is not open for this character' using errcode = 'O0007'; end if;
+  if coalesce((select is_anonymous from auth.users where id = p_account), false) then return jsonb_build_object('ok', false, 'error', 'guest'); end if; -- guests (anonymous sessions) play but do not trade
   if p_request is null or p_request !~ '^[A-Za-z0-9_-]{8,64}$' or p_qty is null or p_qty < 1 or p_qty > 99 or p_shop is null or p_item is null then
     return jsonb_build_object('ok', false, 'error', 'bad-request');
   end if;

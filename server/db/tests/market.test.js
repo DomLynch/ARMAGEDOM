@@ -32,8 +32,22 @@ test("the seeded catalogue: six rare parts, three shop consumables, no item sell
   assert.deepEqual(items.filter((i) => i.kind === "part").map((i) => i.id), ["drone-chip", "hunter-cpu", "military-battery", "roach-mandibles", "robot-parts", "salamander-gland"]);
   assert.deepEqual(items.filter((i) => i.kind === "consumable").map((i) => i.id), ["ammo-pack", "medkit-pack", "vest-patch"]);
   assert.ok(items.every((i) => i.sell_price <= i.base_price));
-  const loot = await call(db, "select distinct source from public.arma_loot_table");
-  assert.ok(loot.every((r) => r.source !== "kill:trash"), "elites and bosses only");
+  const enemies = (await call(db, "select distinct enemy from public.arma_loot_table")).map((r) => r.enemy);
+  assert.ok(enemies.every((e) => !["original-rat", "hollow-scavenger", "original-dog"].includes(e)), "rare creatures and bosses only");
+});
+
+test("guests (anonymous sessions) can hold loot but cannot trade; the wallet and the catalogue answer", async () => {
+  const { db, alice, buy, sell, earn, inv } = await setup();
+  await earn(alice, 500);
+  assert.equal((await buy(ids.alice, alice, "ammo-pack", 1, "gst-aaaa-0001")).ok, true);
+  await db.exec(`update auth.users set is_anonymous = true where id = '${ids.alice}'`);
+  assert.deepEqual(await buy(ids.alice, alice, "ammo-pack", 1, "gst-aaaa-0002"), { ok: false, error: "guest" });
+  assert.deepEqual(await sell(ids.alice, alice, "ammo-pack", 1, "gst-aaaa-0003"), { ok: false, error: "guest" });
+  assert.deepEqual(await inv(ids.alice, alice), [{ item_id: "ammo-pack", qty: 1 }]);
+  const defs = (await call(db, "select public.arma_item_defs($1) as r", [ids.alice]))[0].r;
+  assert.equal(defs.length, 9);
+  const wallet = (await call(db, "select public.arma_wallet($1, $2) as r", [ids.alice, alice]))[0].r;
+  assert.deepEqual(wallet, { cash: 0, bank: 0, ceiling: 440 });
 });
 
 test("loot is rolled by the server on a credited kill and returned with the cash; the client names no item", async () => {
@@ -44,7 +58,7 @@ test("loot is rolled by the server on a credited kill and returned with the cash
   assert.deepEqual(r.loot, [{ item_id: "hunter-cpu", qty: 1 }]);
   assert.deepEqual(await inv(ids.alice, alice), [{ item_id: "hunter-cpu", qty: 1 }]);
   assert.deepEqual((await kill(ids.alice, alice, "kill:trash", 5, null)).loot, [], "no enemy, no roll");
-  assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "boss-warden")).loot, [], "enemy and tier must match a table row");
+  assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "original-dog")).loot, [], "an enemy with no table row drops nothing");
   // the zero-chance world: nothing drops
   await db.exec("update public.arma_loot_table set chance = 0.000001");
   let drops = 0;

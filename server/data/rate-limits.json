@@ -11,6 +11,7 @@
     "spawn_engage": { "burst": 8, "refillMs": 2000 },
     "claim_pickup": { "burst": 4, "refillMs": 5000 },
     "inventory_get": { "burst": 5, "refillMs": 5000 },
+    "item_defs": { "burst": 3, "refillMs": 10000 },
     "market_stock": { "burst": 5, "refillMs": 5000 },
     "buy_item": { "burst": 6, "refillMs": 1000 },
     "sell_item": { "burst": 6, "refillMs": 1000 }

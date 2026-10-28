@@ -105,7 +105,11 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     async inventory_get({ account }) {
       const active = await call("arma_active", [account]);
       if (!active) throw new HttpError(403, "no-character");
-      return { inventory: await call("arma_inventory_get", [account, active]) };
+      // The wallet rides along so the shop opens with the server's cash: { inventory, cash, bank, ceiling }.
+      return { inventory: await call("arma_inventory_get", [account, active]), ...(await call("arma_wallet", [account, active])) };
+    },
+    async item_defs({ account }) {
+      return { items: await call("arma_item_defs", [account]) };
     },
     async market_stock({ account, body }) {
       return { stock: await call("arma_market_stock", [account, String(body.shop_id ?? "")]) };

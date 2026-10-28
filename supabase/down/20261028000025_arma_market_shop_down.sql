@@ -4,6 +4,7 @@ drop function if exists public.arma_buy_item(uuid, text, text, text, int, text);
 drop function if exists public.arma_sell_item(uuid, text, text, text, int, text);
 drop function if exists public.arma_market_trade(uuid, text, text, text, text, int, text);
 drop function if exists public.arma_market_stock(uuid, text);
+drop function if exists public.arma_wallet(uuid, text);
 drop table if exists public.arma_shop_stock;
 drop function if exists public.arma_shop_no_loop();
 create or replace function public.arma_cash_ceiling(p_character text) returns numeric language plpgsql stable security definer set search_path = '' as $$

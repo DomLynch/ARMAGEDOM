@@ -4,7 +4,8 @@ begin;
 drop function if exists public.arma_prune_market_requests();
 drop function if exists public.arma_inventory_get(uuid, text);
 drop function public.arma_claim_pickup(uuid, text, text, numeric, text, text);
-drop function if exists public.arma_roll_loot(text, text, text);
+drop function if exists public.arma_roll_loot(text, text);
+drop function if exists public.arma_item_defs(uuid);
 create function public.arma_claim_pickup(p_account uuid, p_character text, p_source text, p_amount numeric) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare r public.arma_pickup_rules; k public.arma_kill_tiers; c public.arma_pickup_claims; pay int; total int; used int; oldest timestamptz;
 begin
