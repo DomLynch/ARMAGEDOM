@@ -276,6 +276,7 @@ test("gear: a withheld pistol cannot fire after Retry on any path; touching the 
     const g = f.g,
       reserve = g.pistol.reserve + g.pistol.magazine;
     assert.equal(g.corpseBag.gearId, id);
+    g.player.pos = { x: g.corpseBag.at.x + 3 * RULES.retrieve.radius, z: g.corpseBag.at.z }; // Westminster respawns where the player fell
     for (let i = 0; i < 3; i++) {
       g.events.length = 0;
       fireOnce(f, intent);
@@ -300,6 +301,7 @@ test("gear: a stale equipped flag cannot fire a withheld pistol either; never du
   die(f);
   assert(f.p.retry());
   let g = f.g;
+  g.player.pos = { x: g.corpseBag.at.x + 3 * RULES.retrieve.radius, z: g.corpseBag.at.z };
   g.pistol.equipped = true; // whatever restored the flag, the step puts it away before combat reads it
   g.events.length = 0;
   fireOnce(f, FIRE_PATHS["held fire"]);
@@ -308,7 +310,7 @@ test("gear: a stale equipped flag cannot fire a withheld pistol either; never du
   die(f); // a second death with the bag out: still one bag, still one pistol
   assert(f.p.retry());
   g = f.g;
-  assert.equal(g.corpseBag.gearId, id);
+  assert(g.corpseBag.gearId === id, "the second death keeps the one bag with the one pistol");
   assert.equal(g.pistol.collected, true, "the pistol was never removed from the run");
   assert.equal(g.locker?.weapons?.length ?? 0, 0, "and never copied into the Storage");
   const cold = make({ records: f.records });
