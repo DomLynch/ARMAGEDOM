@@ -29,10 +29,13 @@ function snapshot() {
         new Proxy(
           {},
           {
+            // A gradient is an object with addColorStop (the pickup ground rings draw one); every other call just logs.
             get:
               (_, k) =>
-              (...a) =>
-                calls.push([String(k), ...a]),
+              (...a) => {
+                calls.push([String(k), ...a]);
+                return k === "createRadialGradient" ? { addColorStop: (...s) => calls.push(["addColorStop", ...s]) } : calls.length;
+              },
             set: (_, k, v) => (calls.push(["set", String(k), v]), true),
           },
         ),
@@ -140,6 +143,8 @@ function snapshot() {
   return out;
 }
 
+// Re-pinned 28 Oct 2026 (pickup readability, #399): every area now builds ground rings and name labels under its pickups (new meshes
+// and canvas draws), so the `meshes` and `canvas` digests changed. Intentional; the guidance geometry, colours, reach and hints did not.
 test("route guidance geometry, colours, reach and hints are value-identical to the pre-data code", () => {
   const got = snapshot();
   if (process.env.UPDATE_ROUTE_GUIDANCE_DIGEST) fs.writeFileSync(digestPath, JSON.stringify(got, null, 1) + "\n");

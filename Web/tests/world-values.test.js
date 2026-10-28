@@ -75,6 +75,8 @@ function snapshot() {
   return out;
 }
 
+// Re-pinned 28 Oct 2026 (pickup readability, #399): the area's pickups now carry ground rings and name labels (extra meshes), so each
+// area's `meshes` digest changed. Intentional; the camera log, layout and first frame are unchanged.
 test("world camera crop, backdrop quads and spawn are value-identical to the pre-data code", () => {
   const got = snapshot();
   if (process.env.UPDATE_WORLD_DIGEST) fs.writeFileSync(digestPath, `${JSON.stringify(got, null, 1)}\n`);
