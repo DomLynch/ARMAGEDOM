@@ -69,7 +69,7 @@ export function heatStarHunter(g, actor, rules = HEAT, stars = STAR_VARIANTS) {
   const tier = heatTier(g, rules);
   if (!tier || !tier.stars.length || !starsEnabled(stars) || stars.excludedAreas.includes(g.world.areaId)) return actor;
   g.heat.rolls += 1;
-  const roll = seeded(rules.seed + g.heat.rolls * rules.groupSize)();
+  const roll = seeded(rules.seed + g.heat.rolls * rules.rng.stride, rules.rng)();
   let edge = 0;
   for (const s of tier.stars) {
     edge += s.chance;

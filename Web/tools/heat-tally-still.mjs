@@ -1,7 +1,7 @@
-// Heat tally design-option stills (dev tool, never shipped): node tools/heat-tally-still.mjs [--out DIR]
-// Real game at 375x812@2x and 1280x720@1 (headless, --mute-audio; REAL_GPU=1 for the Mac GPU, CHROME=<exe>), Westminster start. For each
-// style A/B/C it sets window.__heatPreview ({ style, count, lastAlpha }; local ?qa=1 only) at counts 1, 3, 5, 7 and 7 with the newest mark
-// fading, takes the full frame and a crop round the player, then builds X.png, X-desktop.png and compare.png (375 wide) from the crops.
+// Heat tally stills (dev tool, never shipped): node tools/heat-tally-still.mjs [--out DIR]
+// Real game at 375x812@2x and 1280x720@1 (headless, --mute-audio; REAL_GPU=1 for the Mac GPU, CHROME=<exe>), Westminster start. It sets the
+// game's own heat (g.heat, local ?qa=1 only) at counts 1, 3, 5, 7 and 7 with the newest mark fading, takes the full frame and a crop round
+// the player, then builds B.png, B-desktop.png and compare.png (375 wide) from the crops.
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "vite";
@@ -9,7 +9,8 @@ import { createServer } from "vite";
 const arg = (n, d) => (process.argv.includes(`--${n}`) ? process.argv[process.argv.indexOf(`--${n}`) + 1] : d),
   OUT = arg("out", "/tmp/heat-options"),
   PORT = 38796,
-  STYLES = ["A", "B", "C"],
+  DECAY = JSON.parse(readFileSync(new URL("../src/data/heat.json", import.meta.url))).decay,
+  STYLES = ["B"],
   STEPS = [
     { id: "1", count: 1, lastAlpha: 1, label: "1" },
     { id: "3", count: 3, lastAlpha: 1, label: "3" },
@@ -53,7 +54,13 @@ for (const vp of VIEWPORTS) {
   for (const style of STYLES) {
     shots[vp.id][style] = {};
     for (const step of STEPS) {
-      await page.evaluate((p) => (window.__heatPreview = p), { style, count: step.count, lastAlpha: step.lastAlpha });
+      await page.evaluate(
+        (p) => {
+          const g = window.__qa.game;
+          g.heat = { count: p.count, lastKillAt: g.time - p.age, seen: g.kills ?? 0, rolls: 0 };
+        },
+        { count: step.count, age: step.lastAlpha < 1 ? DECAY.secondsPerMark - DECAY.fadeSeconds / 2 : 0 },
+      );
       await page.waitForTimeout(500);
       const at = await page.evaluate(() => {
         const w = window.__qa.world, g = window.__qa.game;

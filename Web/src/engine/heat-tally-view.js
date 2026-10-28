@@ -43,9 +43,8 @@ export function drawTally(ctx, count, lastAlpha) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   for (let g = 0; g < groups; g++) {
     ctx.save();
-    ctx.translate(g * w.canvasPxPerGroup + w.canvasPxPerGroup / 2, w.canvasHeightPx / 2); // tuning-ok: the cell centre
-    // tuning-ok: a prime so neighbouring marks differ
-    const slots = groupSlots(look, size, Math.min(size, count - g * size), (i) => seeded(HEAT.seed + (g * size + i) * 101));
+    ctx.translate((g + look.centre) * w.canvasPxPerGroup, w.canvasHeightPx * look.centre); // the middle of this group's cell
+    const slots = groupSlots(look, size, Math.min(size, count - g * size), (i) => seeded(HEAT.seed + (g * size + i) * HEAT.rng.stride));
     for (const slot of slots) {
       const alpha = g * size + slot.index === count - 1 ? lastAlpha : 1;
       for (const spec of slot.gouges) {
@@ -76,7 +75,7 @@ export function createHeatTallyView(scene) {
       const w = HEAT.world,
         groups = Math.min(w.maxGroups, Math.ceil(shown.count / HEAT.groupSize)),
         count = Math.min(shown.count, groups * HEAT.groupSize),
-        next = `${count}:${shown.lastAlpha.toFixed(2)}`; // tuning-ok: two decimals are enough to repaint a fade
+        next = `${count}:${Math.round(shown.lastAlpha * 100)}`; // whole percent steps are enough to repaint a fade
       if (next !== key) {
         dispose();
         const canvas = globalThis.document.createElement("canvas");
