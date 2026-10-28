@@ -15,8 +15,13 @@ export function validateDiagnostics(d) {
 // A provisional ceiling for what the other players may cost the renderer (measured with scripts/remote-cost.mjs on a real GPU;
 // engine/render-budget.js compares a measurement to it). Dom's phone is the judge; these numbers stop the cost creeping meanwhile.
 export function validateRenderBudget(d) {
-  closed(d, ["schema_version", "provisional", "westminster", "perRemote"]);
+  closed(d, ["schema_version", "provisional", "westminster", "perRemote", "hostileScene"]);
   if (typeof d.provisional !== "boolean") fail("renderBudget", "provisional must be true or false");
+  // hostileScene: the phone-trace scene (an area's ten residents plus ten hostiles at 375x812), judged at the p95 frame.
+  closed(d.hostileScene, ["hostiles", "maxDrawCalls", "maxTriangles"]);
+  count("renderBudget", "hostileScene.hostiles", d.hostileScene.hostiles, 1, 64);
+  count("renderBudget", "hostileScene.maxDrawCalls", d.hostileScene.maxDrawCalls, 1, 10000);
+  count("renderBudget", "hostileScene.maxTriangles", d.hostileScene.maxTriangles, 1, 10000000);
   closed(d.westminster, ["remotes", "maxDrawCalls", "maxTriangles"]);
   count("renderBudget", "westminster.remotes", d.westminster.remotes, 1, 64);
   count("renderBudget", "westminster.maxDrawCalls", d.westminster.maxDrawCalls, 1, 10000);
