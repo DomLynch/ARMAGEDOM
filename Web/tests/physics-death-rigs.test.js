@@ -39,7 +39,10 @@ test("body rows hold the 20 joints and a standing height; the baked scale matche
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
     assert.ok(row.height_m > 1 && row.height_m < 3, `${m.body} height ${row.height_m}`);
-    assert.equal(row.scale_baked, manifest[name].scale, `${name} uses a body baked at its manifest scale`);
+    // An unscaled row (no scale_baked, like the hunter's physicsBody and the MakeHuman bodies) leaves the manifest scale to the actor root,
+    // whose local frame is the sim frame (three-rig.mjs).
+    if (row.scale_baked !== undefined)
+      assert.equal(row.scale_baked, manifest[name].scale, `${name} uses a body baked at its manifest scale`);
   }
 });
 

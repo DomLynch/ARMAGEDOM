@@ -46,6 +46,7 @@ export function validatePhysicsDeath(d) {
     "preloadIdleMs",
     "cutPrefetch",
     "poolSize",
+    "maxParked",
     "rewarmMs",
     "maxActive",
     "killImpulse",
@@ -59,6 +60,7 @@ export function validatePhysicsDeath(d) {
     "removeSeconds",
     "preloadIdleMs",
     "poolSize",
+    "maxParked",
     "rewarmMs",
     "maxActive",
   ])

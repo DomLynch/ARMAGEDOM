@@ -65,6 +65,8 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,m.intensity,'legacy corpse flash is not a confirmed hit');game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
  // Controlled actual-view area cohorts: full roster IDs survive teardown/recreation;
  // this checks the renderer seam, not native gate traversal.
+ // This cohort is the scavenger faces and palettes: the crowd bodies (data/crowdBodies.json) are switched off here, and tested in crowd-bodies.test.js.
+ const priorLocation=globalThis.location;globalThis.location={search:'?nocrowd=1'};t.after(()=>{if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;});
  for(const [area,rows] of Object.entries(AREA_MOB_SPAWNS)){
   actors.reset();world.areaId=area;game.corpses=[];
   game.enemies=rows.map((row,i)=>({...cohort[i%cohort.length],id:300+i,placementKey:row.key,pos:{...row.pos},hp:100,flashUntil:0}));
