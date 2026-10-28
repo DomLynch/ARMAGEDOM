@@ -54,8 +54,10 @@ export function validatePhysicsDeath(d) {
   if (typeof d.defaultOn !== "boolean") fail("physicsDeath", "defaultOn must be true or false");
   if (typeof d.offValue !== "string" || d.offValue === d.flagValue)
     fail("physicsDeath", "offValue must be a string that differs from flagValue");
-  if (d.killImpulse?.length !== 3 || !d.killImpulse.every(Number.isFinite))
-    fail("physicsDeath", "killImpulse must be three numbers");
+  closed(d.killImpulse, ["horizontal", "up", "part"]);
+  number("physicsDeath", "killImpulse.horizontal", d.killImpulse.horizontal, 0);
+  number("physicsDeath", "killImpulse.up", d.killImpulse.up, 0);
+  if (!Object.hasOwn(d.parts, d.killImpulse.part)) fail("physicsDeath", "killImpulse.part must be one of parts");
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");
 }
 

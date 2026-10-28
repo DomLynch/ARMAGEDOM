@@ -1,7 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GAME_DATA } from "../src/engine/game-data.js";
-import { activeCount, registerDeath, releaseDeath, stepDeath } from "../src/engine/physics-death-impl.js";
+import {
+  activeCount,
+  killVector,
+  markChunkLoaded,
+  registerDeath,
+  releaseDeath,
+  stepDeath,
+} from "../src/engine/physics-death-impl.js";
+import * as THREE from "three";
 import { releasePhysicsDeath } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
@@ -95,4 +103,40 @@ test("past maxActive the oldest live corpse is frozen and its body freed", () =>
   assert.equal(made[0].frozen, true);
   assert.equal(made[0].rd, null);
   for (const s of made) releaseDeath(s);
+});
+
+test("__physicsDeathStats counts creations, releases and the active corpses, silently", () => {
+  const stats = globalThis.__physicsDeathStats;
+  assert.deepEqual(Object.keys(stats).sort(), ["active", "chunkLoaded", "created", "lastAt", "released"]);
+  const logged = [];
+  const log = console.log;
+  console.log = (...a) => logged.push(a);
+  try {
+    const before = { ...stats };
+    markChunkLoaded();
+    assert.equal(stats.chunkLoaded, true);
+    const s = registerDeath(corpse(fakeWorld()));
+    assert.equal(stats.active, before.active + 1);
+    releaseDeath(s);
+    releaseDeath(s); // twice counts once
+    assert.equal(stats.released, before.released + 1);
+    assert.equal(stats.active, before.active);
+  } finally {
+    console.log = log;
+  }
+  assert.equal(logged.length, 0);
+});
+
+test("the kill impulse is aimed along the killing blow, else back from where the hunter faces, with the data's up part", () => {
+  const k = CFG.killImpulse;
+  const root = new THREE.Group(); // no yaw: render frame = sim frame
+  const along = killVector(root, { deathImpact: { x: 0, z: 3 } });
+  assert.deepEqual(along.map((v) => +v.toFixed(6)), [0, k.up, k.horizontal]);
+  const back = killVector(root, { facing: { x: 1, z: 0 } });
+  assert.deepEqual(back.map((v) => +v.toFixed(6)), [-k.horizontal, k.up, 0]);
+  root.rotation.y = Math.PI / 2; // actor turned a quarter: a +z blow is along the actor's local -x or +x, same length
+  const turned = killVector(root, { deathImpact: { x: 0, z: 1 } });
+  assert.ok(Math.abs(Math.hypot(turned[0], turned[2]) - k.horizontal) < 1e-6);
+  assert.ok(Math.abs(turned[2]) < 1e-6 && Math.abs(Math.abs(turned[0]) - k.horizontal) < 1e-6);
+  assert.deepEqual(killVector(root, { deathImpact: { x: 0, z: 1 } }), turned); // deterministic
 });

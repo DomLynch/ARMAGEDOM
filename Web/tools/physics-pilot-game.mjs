@@ -77,7 +77,8 @@ if (CROWD > 1) // the rest of the crowd dies spread over BURST_MS (the first alr
     rest.forEach((h, i) => setTimeout(() => rangedHit(g, { targetId: h.id, direction: { x: 0, z: -1 } }, "pistol", "pistol", 1e9), (i / rest.length) * ms));
   }, [BURST_MS]);
 const out = [];
-for (const [label, wait] of [["0.3s", 300], ["1.2s", 900], ["3.0s", 1800]]) {
+const LAST = Number(arg("last", 0)); // --last <ms>: one more shot this long after the 3.0 s one (the settled body)
+for (const [label, wait] of [["0.3s", 300], ["0.6s", 300], ["1.2s", 600], ["3.0s", 1800], ...(LAST ? [["settled", LAST]] : [])]) {
   await page.waitForTimeout(wait);
   await page.screenshot({ path: `${SHOTS}/death-${PHYSICS ? "physics" : "baked"}-${label}.png` });
   out.push(label);
@@ -87,7 +88,8 @@ const corpse = await q(() => {
   const g = window.__qa.game, h = (g.corpses ?? []).find((e) => e.markedHunter) ?? g.enemies.find((e) => e.markedHunter);
   return h ? { hp: h.hp, pos: h.pos } : null;
 });
-console.log(JSON.stringify({ physics: PHYSICS, crowd: CROWD, burstMs: BURST_MS, hunterSeen, info, idleJsMsPerFrame: idle, kill, deathWindowJsMsPerFrame: deathStat, worst3Frames: death.sort((a, b) => b - a).slice(0, 3).map((x) => +x.toFixed(1)), corpse, shots: out, fetched: [...new Set(fetched)],
+const deathStats = await q(() => ({ ...globalThis.__physicsDeathStats }));
+console.log(JSON.stringify({ deathStats, physics: PHYSICS, crowd: CROWD, burstMs: BURST_MS, hunterSeen, info, idleJsMsPerFrame: idle, kill, deathWindowJsMsPerFrame: deathStat, worst3Frames: death.sort((a, b) => b - a).slice(0, 3).map((x) => +x.toFixed(1)), corpse, shots: out, fetched: [...new Set(fetched)],
   errors: logs.filter((l) => /PAGEERROR|error/i.test(l)).slice(0, 6) }, null, 1));
 await browser.close();
 await server.close();

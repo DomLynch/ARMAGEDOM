@@ -33,6 +33,20 @@ export function warm() {
   world.step(1 / CFG.stepHz); // first step compiles the paths the death frame would otherwise pay for
 }
 
+// Silent always-on diagnostic: read it from the console or a harness (`__physicsDeathStats`); nothing is ever logged.
+const stats = (globalThis.__physicsDeathStats ??= { created: 0, released: 0, active: 0, lastAt: 0, chunkLoaded: false });
+export const markChunkLoaded = () => (stats.chunkLoaded = true);
+
+// The impulse in the sim frame (= the actor root's local frame): `horizontal` along the killing blow (the hit's impactDirection, else
+// away from where the hunter faces, i.e. back from the player it was walking at) plus `up`. Pure arithmetic: same hit, same fall.
+export function killVector(root, entity) {
+  const k = CFG.killImpulse,
+    d = entity.deathImpact ?? (entity.facing ? { x: -entity.facing.x, z: -entity.facing.z } : { x: 0, z: -1 }),
+    len = Math.hypot(d.x, d.z) || 1,
+    local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.quaternion.clone().invert());
+  return [local.x * k.horizontal, k.up, local.z * k.horizontal];
+}
+
 export function startDeath(view, bindScene, entity) {
   const rd = pool.pop() ?? world.createRagdoll(ROW(), { position: [0, 0, 0], id: String(entity.id) }),
     bones = boneMap(view.model);
@@ -41,7 +55,9 @@ export function startDeath(view, bindScene, entity) {
   const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bindScene), root: bindScene } });
   rig.drive();
   rd.snapToTarget();
-  rd.kill({ part: "spine2", impulse: CFG.killImpulse }); // kill() needs an impulse vector (sim frame: -z is back from the hunter)
+  rd.kill({ part: CFG.killImpulse.part, impulse: killVector(view.root, entity) });
+  stats.created++;
+  stats.lastAt = performance.now();
   return registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
 }
 
@@ -53,6 +69,7 @@ export function registerDeath(s) {
     live[0].rd = null;
   }
   active.push(s);
+  stats.active = active.length;
   return s;
 }
 export const activeCount = () => active.length;
@@ -63,7 +80,11 @@ export function releaseDeath(s) {
   s.rd?.destroy();
   s.rd = null;
   const i = active.indexOf(s);
-  if (i >= 0) active.splice(i, 1);
+  if (i >= 0) {
+    active.splice(i, 1);
+    stats.released++;
+    stats.active = active.length;
+  }
 }
 
 // The world is shared and `world.step` advances EVERY ragdoll in it, so it must advance once per rendered frame however many corpses
