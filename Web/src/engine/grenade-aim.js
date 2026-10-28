@@ -45,11 +45,14 @@ function landable(g, point) {
 // Where the blast should go for this body: its position plus its walk over the fuse, backed off until the spot is open ground in range.
 export function grenadeLanding(g, target) {
   const track = g.grenadeTracks?.[target.id],
-    speed = track ? Math.hypot(track.vx, track.vz) : 0,
+    // A body with no track (the chained Pitborn's stand-in is not an enemy) is a stationary target.
+    vx = track ? track.vx : 0,
+    vz = track ? track.vz : 0,
+    speed = Math.hypot(vx, vz),
     travel = speed >= AIM.minSpeed ? Math.min(AIM.maxLead, speed * payload().fuseSeconds * AIM.leadScale) : 0;
   for (let i = 0; i <= AIM.backoffSteps; i++) {
     const f = travel > 0 ? 1 - i / AIM.backoffSteps : 0,
-      lead = { x: target.pos.x + (track.vx ?? 0) / (speed || 1) * travel * f, z: target.pos.z + (track.vz ?? 0) / (speed || 1) * travel * f },
+      lead = { x: target.pos.x + (vx / (speed || 1)) * travel * f, z: target.pos.z + (vz / (speed || 1)) * travel * f },
       out = dist(g.player.pos, lead) / (payload().maxRange - AIM.rangeMargin),
       // A lead past the weapon's reach slides back along the line to the player, so the blast still covers the walking body.
       point = out > 1 ? { x: g.player.pos.x + (lead.x - g.player.pos.x) / out, z: g.player.pos.z + (lead.z - g.player.pos.z) / out } : lead;

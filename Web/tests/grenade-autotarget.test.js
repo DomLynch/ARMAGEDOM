@@ -5,6 +5,11 @@ import { stepGame } from "../src/combat.js";
 import { bossWeaponCue } from "../src/engine/boss-weapon-runtime.js";
 import { applyTouchTarget, touchGun } from "../src/engine/touch-target.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
+import fs from "node:fs";
+import { make, collectPistol } from "./helpers/marked-fixture.js";
+import { sightPastStatue } from "../src/engine/chain-break.js";
+import { grenadeAim } from "../src/engine/grenade-aim.js";
+import { resolveRangedAim } from "../src/pistol-targeting.js";
 
 // Dom, 28 Oct: grenades did not hit. They landed on the 5 m fallback unless the aim already lay on a body, and never led a walking one.
 // Standard and sticky now lock the nearest valid hostile like the guns do, and land where it will be when the fuse runs out.
@@ -99,6 +104,40 @@ test("touch tap on a body selects it for the grenade and throws at it", () => {
   stepGame(r.g, { mobile: true, touchTargetSelection: sel }, 1 / 60, services(r.f));
   assert(r.g.events.some((e) => e.type === "grenade-throw"));
   assert.equal(applyTouchTarget(r.g, { mobile: true }).aimTargetId, r.target.id);
+});
+
+test("the chained Pitborn stand-in (no track, not an enemy) is locked and landed on with a grenade, never a crash", () => {
+  const f = make();
+  collectPistol(f);
+  const g = f.g,
+    w = g.world,
+    id = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId,
+    at = w.geometry.ground(GAME_DATA.chainedPitborn.at);
+  w.safehouseData = null;
+  w.layout = JSON.parse(fs.readFileSync(new URL("../public/world/westminster/layout.json", import.meta.url)));
+  g.enemies = [];
+  g.events = [];
+  g.time = 10;
+  g.pistol.equipped = false;
+  let from = null;
+  for (let d = 3; d <= 7 && !from; d++)
+    for (let k = 0; k < 48 && !from; k++) {
+      const a = (k / 48) * Math.PI * 2,
+        o = { x: at.x + Math.cos(a) * d, z: at.z + Math.sin(a) * d };
+      if (w.geometry.clear(o, 0.4) && sightPastStatue(w, at, o)) from = o;
+    }
+  assert(from, "a spot with sight of the stand-in within reach");
+  g.player.pos = from;
+  g.bossEquipment.grenade = { ...g.bossEquipment.grenade, status: "owned", magazine: 3, reserve: 0, selected: true };
+  g.bossEquipmentAssetReady = { ...g.bossEquipmentAssetReady, grenade: true };
+  g.player.weapon = "grenade";
+  assert.doesNotThrow(() => stepGame(g, {}, 1 / 60, {}));
+  const cue = bossWeaponCue(g);
+  assert.equal(cue.targetId, id);
+  assert.deepEqual(g.grenadeAim, at);
+  const aimed = grenadeAim(g, resolveRangedAim(g, { x: 1, z: 0 }, {}), {});
+  assert.equal(aimed.target.id, id);
+  assert(Math.hypot(aimed.landing.x - at.x, aimed.landing.z - at.z) < 1e-9, "lands on the stand-in");
 });
 
 test("sticky grenades take the same lead and lock", () => {
