@@ -5,17 +5,37 @@ import { createDropMarker } from "./drop-marker.js";
 import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
+// A part may carry `rot` (radians: tilt about z, then x, then a turn about the vertical) and `wear` (how much its colour is scuffed:
+// its faces are cut into a grid and each vertex is darkened by a hash of where it sits; the numbers are data/worldPickups.json `finish`).
+const FINISH = WORLD_PICKUPS.finish;
+const scuff = (x, y, z) => {
+  const [a, b, c] = FINISH.hashSeed,
+    t = Math.sin((Math.round(x * FINISH.hashScale) * a + Math.round(y * FINISH.hashScale) * b + Math.round(z * FINISH.hashScale) * c)) * FINISH.hashMultiplier;
+  return t - Math.floor(t);
+};
+const cells = (length, wear) => (wear ? Math.min(FINISH.maxCells, Math.max(1, Math.ceil(length / FINISH.gridMetres))) : 1);
 export function modelGeometry(THREE, parts, segments = WORLD_PICKUPS.cylinderSegments) {
   const pieces = parts.map((part) => {
-    const g =
-      part.shape === "cylinder"
-        ? new THREE.CylinderGeometry(part.size[0], part.size[0], part.size[1], segments)
-        : new THREE.BoxGeometry(...part.size);
+    const [sx, sy, sz] = part.size,
+      g =
+        part.shape === "cylinder"
+          ? new THREE.CylinderGeometry(sx, sx, sy, segments, cells(sy, part.wear))
+          : new THREE.BoxGeometry(sx, sy, sz, cells(sx, part.wear), cells(sy, part.wear), cells(sz, part.wear));
+    if (part.rot) {
+      g.rotateZ(part.rot[2]);
+      g.rotateX(part.rot[0]);
+      g.rotateY(part.rot[1]);
+    }
     g.translate(...part.pos);
     const colour = new THREE.Color(`#${part.color}`),
       stride = colour.toArray().length,
-      colours = new Float32Array(g.attributes.position.count * stride);
-    for (let i = 0; i < colours.length; i += stride) colour.toArray(colours, i);
+      colours = new Float32Array(g.attributes.position.count * stride),
+      at = g.attributes.position,
+      shade = new THREE.Color();
+    for (let v = 0; v < at.count; v++) {
+      shade.copy(colour).multiplyScalar(part.wear ? 1 - part.wear * FINISH.contrast * scuff(at.getX(v), at.getY(v), at.getZ(v)) : 1);
+      shade.toArray(colours, v * stride);
+    }
     g.setAttribute("color", new THREE.BufferAttribute(colours, stride));
     return g;
   });
@@ -34,13 +54,15 @@ export function createWorldPickups(world) {
   for (const type of Object.keys(WORLD_PICKUPS.models)) {
     const rows = list.filter((p) => p.type === type);
     if (!rows.length) continue;
-    const geometry = modelGeometry(THREE, WORLD_PICKUPS.models[type]),
+    const look = WORLD_PICKUPS.look[type],
+      scale = WORLD_PICKUPS.lookScale[look] ?? 1,
+      geometry = modelGeometry(THREE, WORLD_PICKUPS.looks[type]?.[look] ?? WORLD_PICKUPS.models[type]).scale(scale, scale, scale),
       material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: WORLD_PICKUPS.roughness, metalness: WORLD_PICKUPS.metalness }),
       mesh = new THREE.InstancedMesh(geometry, material, rows.length);
     mesh.userData.pickupType = type;
     mesh.frustumCulled = false;
     group.add(mesh);
-    parts.push({ rows, mesh, shown: rows.map(() => null), glow: addPickupGlow(mesh), geometry, material });
+    parts.push({ rows, mesh, shown: rows.map(() => null), glow: WORLD_PICKUPS.contour[type] ? addPickupGlow(mesh) : null, geometry, material });
   }
   // A coloured ground ring and glow under every pickup, and its name once the player is within `labelDistance`. Each pickup has its own root
   // (the marker pulses its parent), apart from the instanced models.
@@ -95,7 +117,7 @@ export function createWorldPickups(world) {
       group.removeFromParent();
       for (const { marker } of markers) marker.dispose();
       for (const part of parts) {
-        part.glow.dispose();
+        part.glow?.dispose();
         part.geometry.dispose();
         part.material.dispose();
         part.mesh.dispose();

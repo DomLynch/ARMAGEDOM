@@ -7,7 +7,8 @@ import { LondonWorld, backdropTextureBytes } from "../src/world.js";
 
 // Differential test: the camera crop (zoom, follow, damping), the backdrop quad geometry, the starting spawn and the texture byte count
 // are exactly what the inline numbers in world.js produced. The expected digests were recorded from the code before the numbers moved
-// to areaRuntime.json (UPDATE_WORLD_DIGEST=1 rewrites them; only for an intended change).
+// to areaRuntime.json (UPDATE_WORLD_DIGEST=1 rewrites them; only for an intended change). Re-pinned for the worn ammo crate and medkit
+// (worldPickups.json looks, finish and contour): the pickup meshes changed on purpose, the camera, quads and spawn did not.
 const read = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url), "utf8")),
   manifest = read("../public/world/manifest.json"),
   digestPath = new URL("./fixtures/world-values.json", import.meta.url);

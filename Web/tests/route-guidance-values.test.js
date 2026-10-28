@@ -8,7 +8,8 @@ import { resolveGuidance, capsuleSegmentClear } from "../src/engine/route-guidan
 
 // Differential test: the numbers route-guidance.js reads from data produce exactly the geometry, colours, reach distances and hint
 // text the inline literals did. The expected digest was recorded from the code before the move
-// (UPDATE_ROUTE_GUIDANCE_DIGEST=1 rewrites it; do that only for an intended presentation change).
+// (UPDATE_ROUTE_GUIDANCE_DIGEST=1 rewrites it; do that only for an intended presentation change). Re-pinned for the worn ammo crate and
+// medkit (worldPickups.json looks, finish and contour): only the pickup meshes moved, on purpose.
 const read = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url)));
 const manifest = read("../public/world/manifest.json"),
   fixture = read("./fixtures/phone-guidance-positions.json"),

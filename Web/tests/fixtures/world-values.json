@@ -6,7 +6,7 @@
  ],
  "westminster": {
   "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
-  "meshes": "f392864227f1245e3c7c2c94ab043c930da8ed66aa2e81d50b3cdf361b291e03",
+  "meshes": "4e711fac638267082fbf394e0167d635bcd962c0a27067aa27bf951a1d002b7d",
   "first": [
    "spawn",
    {
@@ -30,7 +30,7 @@
  },
  "east": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "8b268f3373907e3dceb75c242b7ea8740f72e993647d3763de1ba83b254b8d01",
+  "meshes": "9d4f125e9e6a49cb2241676161044d805ca7c2bfc601c77acd5ae65bd45fbbf5",
   "first": [
    "spawn",
    {
@@ -54,7 +54,7 @@
  },
  "south": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "093ada070489d725122eb8c27b64569f1a97d81e6e523206e3454122a70e4cf9",
+  "meshes": "0b83fd6c4e7b62018da4f99778c5e2615aef76742657e4f9cc86362616216c81",
   "first": [
    "spawn",
    {
@@ -78,7 +78,7 @@
  },
  "east-bridge": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "f00568981e17b9d689f79a1c7b0f00433b428254b18faa3b5cc0de8e372a2e4b",
+  "meshes": "b238b06274b6e2bf2fe79984994b792a481e01bd66bf61a31aca6be048973dcf",
   "first": [
    "spawn",
    {
@@ -102,7 +102,7 @@
  },
  "elephant-and-castle": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "290a8ba13546cbf37eefca05f6e858d2e3e457de4d8dfc016213488741a4259d",
+  "meshes": "1b9a69586be0a4a7f3db9bc659f89100e6b97659577e8d36244c8f0b181b16af",
   "first": [
    "spawn",
    {
@@ -126,7 +126,7 @@
  },
  "lambeth": {
   "log": "8812daf8f8fc551ae35f264534a143dcac7cedac11146e58988f1738f7f2e62a",
-  "meshes": "b57aaac55147587d686742c64b6f5665d1e6b7892f328d38461dc0b15b30ed21",
+  "meshes": "fde31827634d9cceef7fd79f55130fe2b1d824278e2f77a2fd111dec5512c3b2",
   "first": [
    "spawn",
    {
@@ -150,7 +150,7 @@
  },
  "area7": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "491d0dc0930bb3a02775c34aac64bca76374d06f801d50ada14482849fd17ca6",
+  "meshes": "988838b3b6cc05e441a147ddc69e9acbefd6f99d89a3e551e16485124854db16",
   "first": [
    "spawn",
    {
@@ -174,7 +174,7 @@
  },
  "area8": {
   "log": "22edad4d439d1fdb1ed1a47b8dda2c9d9b606f43f897868f306efa6c687971e8",
-  "meshes": "cd24efa7244fdcd1c9cb1d982d6d4cf782c6a3adf8504ac20c4be4e3ed805d74",
+  "meshes": "1b80cc0083ce1e4a7f218c1d7b959a8be8424bef60ac95d4dc1907ed88dd0593",
   "first": [
    "spawn",
    {
@@ -198,7 +198,7 @@
  },
  "central-hub": {
   "log": "3d47be80b8254034b8ed10c6142be0b53786b567b4b5872b5ee5b3a3c0eb0b01",
-  "meshes": "6047b443b0c1c5f975df396d88d50ce5953619c8a0e1dd457fb875caebfa82fe",
+  "meshes": "a70b039d4b4d771a363865a532b608a1100d0d0e0a9ae07964f2b3260d73eaaf",
   "first": [
    "spawn",
    {
