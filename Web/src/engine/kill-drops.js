@@ -5,7 +5,10 @@ import { grantCash, claimCash } from "./world-pickups-core.js";
 // the run (`g.killDrops`) and are gone when the area changes. Off until `enabled` is true (the server must accept the `kill:*` sources).
 // Each function takes the rules as its last argument so a test can pass an enabled copy of the frozen data.
 export const KILL_DROPS = GAME_DATA.killDrops;
-export const killDropsOn = (rules = KILL_DROPS) => rules.enabled === true;
+// The off switch for the treasure-pile look (data/killDrops.json `classicSwitch`, e.g. ?classiccoins=1): the plain coins come back, here and on the
+// world cash pickups. Read once, the page does not change it.
+export const CLASSIC_COINS = new URLSearchParams(globalThis.location?.search ?? "").get(KILL_DROPS.classicSwitch.param) === KILL_DROPS.classicSwitch.value;
+export const killDropsOn =(rules = KILL_DROPS) => rules.enabled === true;
 export const tierOf = (e, rules = KILL_DROPS) => (e.bossProfile ? "boss" : (rules.rigTiers[e.rig] ?? rules.defaultTier));
 // A repeatable whole number in [min, max] from the kill's own labels and the run's counters, so one run state always rolls the same sum.
 export function rollKillCash(g, tier, key, rules = KILL_DROPS) {

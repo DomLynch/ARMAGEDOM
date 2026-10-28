@@ -1,6 +1,6 @@
 import { addPickupGlow } from "../pickup-glow.js";
 import { modelGeometry } from "./world-pickups-view.js";
-import { KILL_DROPS, killDropsOn } from "./kill-drops.js";
+import { CLASSIC_COINS, KILL_DROPS, killDropsOn } from "./kill-drops.js";
 import { createDropFxKit } from "./kill-drops-fx.js";
 // The coins lying where enemies fell (data/killDrops.json): one small mesh per drop, built from the chosen look's tier models and removed when
 // the drop is taken or expires. `look` names a row of `looks` (models, material, motion and the light around each tier) or "classic" for the
@@ -10,10 +10,11 @@ export function createKillDropsView(world) {
     group = new THREE.Group(),
     geometries = new Map(),
     rows = new Map(),
-    look = KILL_DROPS.looks[KILL_DROPS.look] ?? null,
+    look = CLASSIC_COINS ? null : (KILL_DROPS.looks[KILL_DROPS.look] ?? null),
     models = look?.models ?? KILL_DROPS.models,
     scale = look?.scale ?? KILL_DROPS.displayScale,
-    TAU = Math.PI * 2;
+    TAU = (360 * Math.PI) / 180, // a full turn in radians
+    HALF = 1 / (1 + 1); // maps a sine wave from -1..1 onto 0..1
   let material = null,
     kit = null,
     disposed = false;
@@ -70,7 +71,7 @@ export function createKillDropsView(world) {
         row.fx?.update(t);
         if (!mo) continue;
         row.mesh.rotation.y = t * mo.spin * TAU + id;
-        row.mesh.position.y = mo.lift + mo.bob * (0.5 + 0.5 * Math.sin(t * mo.bobHz * TAU + id));
+        row.mesh.position.y = mo.lift + mo.bob * (HALF + HALF * Math.sin(t * mo.bobHz * TAU + id));
       }
     },
     dispose() {

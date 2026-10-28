@@ -51,7 +51,7 @@ const page = await (await browser.newContext({ viewport: { width: W, height: H }
 page.on("console", (m) => logs.push(`${m.type()}: ${m.text()}`));
 page.on("pageerror", (e) => logs.push(`PAGEERROR ${e.message}`));
 await page.route("**/arma/api/**", (r) => r.fulfill({ status: 503, json: { error: "harness" } }));
-await page.goto(`http://127.0.0.1:${PORT}/?qa=1`);
+await page.goto(`http://127.0.0.1:${PORT}/?qa=1${arg("query", "")}`); // --query "&classiccoins=1" proves the off switch
 await page.click("#enter");
 try {
   await page.waitForFunction(() => window.__qa?.state().loaded && window.__qa.game?.enemies, null, { timeout: Number(arg("wait", 90000)) });
@@ -64,9 +64,10 @@ try {
 }
 await page.waitForTimeout(3000);
 const info = await page.evaluate(
-  async ([tiers, spread, forward, dim]) => {
-    const g = window.__qa.game,
-      p = g.player.pos;
+  async ([tiers, spread, forward, dim, at]) => {
+    const g = window.__qa.game;
+    if (at) g.player.pos = { x: at[0], z: at[1] }; // --at x,z: stand there (the world cash stash is 4 m ahead of 16.46,-10.4 on Westminster)
+    const p = g.player.pos;
     g.enemies = g.enemies.filter((e) => Math.hypot(e.pos.x - p.x, e.pos.z - p.z) > 40);
     const state = (g.killDrops ??= { list: [], serial: 0, notice: 0 });
     tiers.forEach((tier, i) => {
@@ -85,7 +86,7 @@ const info = await page.evaluate(
     if (dim !== 1) for (const l of scene?.children ?? []) if (l.isHemisphereLight || l.isDirectionalLight) l.intensity *= dim;
     return { area: g.world.areaId, at: { x: p.x, z: p.z }, drops: state.list.length };
   },
-  [TIERS, SPREAD, FORWARD, DIM],
+  [TIERS.filter(Boolean), SPREAD, FORWARD, DIM, arg("at", "") ? arg("at", "").split(",").map(Number) : null],
 );
 if (process.argv.includes("--probe"))
   console.log(

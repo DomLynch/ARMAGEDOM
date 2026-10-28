@@ -3,6 +3,7 @@
 // runs it. Placements are checked against the real road geometry in tests/world-pickups.test.js.
 import { closed } from "./content-schema.js";
 import { count, fail, id, number } from "./game-data-checks.js";
+import { checkFxRow } from "./game-data-kill-drops.js";
 
 const vec = (field, v, min) => {
   if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => Number.isFinite(n) && n >= min))
@@ -32,8 +33,15 @@ export function validateWorldPickups(d) {
     "lookScale",
     "look",
     "looks",
+    "fx",
+    "coinKinds",
     "placements",
   ]);
+  // The kinds drawn as coins: they wear the treasure-pile light and go back to their plain `models` when ?classiccoins is on.
+  if (!Array.isArray(d.coinKinds) || !d.coinKinds.every((k) => WORLD_PICKUP_TYPES.includes(k))) fail("worldPickups", "coinKinds");
+  // The light around a kind's pickups (same rows as killDrops.json looks.<name>.fx.<tier>: pool, beam, glint, burst, motion).
+  closed(d.fx, [], WORLD_PICKUP_TYPES);
+  for (const [type, row] of Object.entries(d.fx)) checkFxRow(`worldPickups.fx.${type}`, row);
   number("worldPickups", "respawnSeconds", d.respawnSeconds, 1);
   number("worldPickups", "pickupRadius", d.pickupRadius, 0.2);
   number("worldPickups", "offscreenMargin", d.offscreenMargin, 0);
