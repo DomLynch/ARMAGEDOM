@@ -22,6 +22,7 @@ export function createShopController({
   onCash = () => {},
   newId = () => globalThis.crypto.randomUUID(),
   onChange = () => {},
+  enabled = DATA.enabled, // a test passes true: the data ships false until the market server is live
 }) {
   const names = new Map(), // item id -> display name, remembered from every stall
     held = new Map(), // item id -> carried count
@@ -148,7 +149,7 @@ export function createShopController({
     },
     open(shopId) {
       const row = shopRow(shopId);
-      if (!row || !DATA.enabled) return false;
+      if (!row || !enabled) return false;
       shop = row;
       tab = DATA.buyTabId;
       rows = [];

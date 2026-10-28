@@ -47,6 +47,7 @@ function setup({ guest = false, cash = 500, items = { "hunter-cpu": 3, "ammo-pac
     isGuest: () => guest,
     localCash: () => wallet.cash,
     onCash: (delta) => (wallet.cash += delta),
+    enabled: true,
     newId: (() => {
       let n = 0;
       return () => `req-${++n}`;
@@ -204,7 +205,7 @@ test("an anonymous account that reaches a trade gets the writer's guest refusal:
 test("with no local run the server's stored balance from inventory_get is shown and follows each trade", async () => {
   const market = createMockMarket({ cash: 300 }),
     views = [];
-  const controller = createShopController({ api: () => market, isGuest: () => false, localCash: () => null, onChange: (v) => views.push(v) });
+  const controller = createShopController({ api: () => market, isGuest: () => false, localCash: () => null, enabled: true, onChange: (v) => views.push(v) });
   controller.open("scrapper");
   await wait();
   assert.equal(views.at(-1).cashText, "Cash 300");
