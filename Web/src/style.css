@@ -693,7 +693,7 @@ summary {
   pointer-events: none;
   opacity: 0;
   z-index: 40;
-  background: radial-gradient(ellipse at center, transparent 55%, var(--pickup-flash-colour, #e1bb65) 130%);
+  background: radial-gradient(ellipse at center, transparent 30%, var(--pickup-flash-colour, #e1bb65) 90%);
 }
 #pickup-flash.on {
   animation: pickup-flash var(--pickup-flash-seconds, 0.7s) ease-out;

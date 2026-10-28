@@ -8,6 +8,8 @@ import {GAME_DATA} from '../src/engine/game-data.js';
 
 // Dom, 28 Oct 2026 (live 308): picking up a weapon, ammo or another pickup gives a small gold flash at the screen edge, and a weapon
 // that auto-equips says "Switched to <weapon>.". Rule and numbers are visual.json `pickupFlash`; text is combatText gear.equipped.
+// stepGame resets g.events at the start of every step, so a pickup that lands between steps (async auto-equip, a tapped claim) is wiped
+// unless it is looked at first: that is how auto-equip's event never reached any presentation consumer.
 const flush = () => new Promise(resolve => setTimeout(resolve, 10));
 const node = () => {
   const classes = new Set(), vars = new Map();
@@ -37,6 +39,15 @@ test('pickup events start one flash, non-pickups start none, and a flash in prog
   assert.equal(flash.observe([], 5000), false);
 });
 
+test('events pushed onto an array already looked at (a pickup between steps) are seen, and only once', () => {
+  const flash = createPickupFlash(node(), GAME_DATA.visual.pickupFlash);
+  const events = [{type: 'hit'}];
+  assert.equal(flash.observe(events, 0), false);
+  events.push({type: 'auto-equip', itemId: 'x'});
+  assert.equal(flash.observe(events, 10), true);
+  assert.equal(flash.observe(events, 5000), false, 'the same event is not a second pickup');
+});
+
 test('collecting the Rifle (server-style world pickup, auto-equip) says Switched to and flashes exactly once', async () => {
   const f = fixture();
   f.restore();
@@ -55,14 +66,15 @@ test('collecting the Rifle (server-style world pickup, auto-equip) says Switched
     const n = node();
     const flash = createPickupFlash(n, GAME_DATA.visual.pickupFlash);
     // Frames before the pickup: nothing happens.
-    assert.equal(flash.observe(g.events.slice(), 0), false);
+    assert.equal(flash.observe(g.events, 0), false);
     view.interaction().run();
     await flush();
     assert.equal(g.message, 'Switched to Bridge Rifle.');
+    assert(g.events.some(e => e.type === 'auto-equip'), 'the async auto-equip lands in g.events between steps');
     let fired = 0;
-    // The loop hands each step's events to the flash; the same events across two steps is still one pickup.
-    fired += flash.observe(g.events.slice(), 1000) ? 1 : 0;
-    fired += flash.observe(g.events.slice(), 1016) ? 1 : 0;
+    // The loop looks at g.events just before and just after each step; the same pickup seen twice is still one flash.
+    fired += flash.observe(g.events, 1000) ? 1 : 0;
+    fired += flash.observe(g.events, 1016) ? 1 : 0;
     assert.equal(fired, 1);
     view.dispose();
   } finally {
