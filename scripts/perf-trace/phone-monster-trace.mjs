@@ -131,7 +131,13 @@ const withMonsters = steps.at(-1);
 // The simulation is stepped (session.step) to the arrival, because a software-rendered page runs at a frame or two a second.
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
 await q(() => { const g = window.__qa.game; g.marked ??= { version: 1, carried: 0, bank: 0, bounty: 0 }; }); // no Marked state = no hunter (huntBlocked)
-const hunterSeen = await page.waitForFunction(() => window.__qa.game.enemies.some((e) => e.markedHunter && e.hp > 0), null, { timeout: 240000 }).then(() => true, () => false);
+// (markedHunt is created by the first hunter step in this area, so the arrival clock is moved back on every poll, not once)
+const hunterSeen = await page.waitForFunction(() => {
+  const g = window.__qa.game, s = g.markedHunt;
+  if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; }
+  return g.enemies.some((e) => e.markedHunter && e.hp > 0);
+}, null, { timeout: 240000, polling: 500 }).then(() => true, () => false);
+note("hunter wait", await q(() => { const g = window.__qa.game; return { seen: g.enemies.some((e) => e.markedHunter), enemies: g.enemies.length, qa: g.enemies.filter((e) => String(e.placementKey).startsWith("qa-")).length, markedHunt: !!g.markedHunt, areaId: g.markedHunt?.areaId, area: window.__qa.world.areaId, finished: g.finished, time: g.time }; }));
 await page.waitForTimeout(8000); // the hunter's own model streams in
 const hunters = await q(() => {
   const g = window.__qa.game, h = g.enemies.find((e) => e.markedHunter && e.hp > 0);
