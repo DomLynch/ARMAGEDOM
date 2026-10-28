@@ -8,11 +8,12 @@ import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
-import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
+import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint, withChained } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { createAirdropView } from "./airdrop-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
+const STAND_IN = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId;
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints(),
     pickupFlash = createPickupFlash(),
@@ -38,13 +39,17 @@ export function createBrowserLoop(s) {
       z: v.x * s.world.cameraRight.z - v.y * s.world.cameraForward.z,
     };
   }
+  // The actors' views plus the shackled Pitborn's own posed body, which is a prop and not an actor (chain-break.js stand-in).
+  const bodyViews = () => ({
+    get: (id) => (id === STAND_IN ? s.chainedPitbornParts?.() : s.actors.views.get(id)),
+  });
   function combatVisibleIds() {
-    return s.game.enemies
+    return withChained(s.game, s.game.enemies)
       .filter((e) => {
         const v = s.world.toRender(e.pos, 1).project(s.world.camera);
         return (
           (Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z >= -1 && v.z <= 1) ||
-          (s.game.touchTarget?.id === e.id && s.actors?.views && touchTargetVisible(s.game, s.actors.views, s.camera))
+          (s.game.touchTarget?.id === e.id && s.actors?.views && touchTargetVisible(s.game, bodyViews(), s.camera))
         );
       })
       .map((e) => e.id);
@@ -67,7 +72,7 @@ export function createBrowserLoop(s) {
               : null,
       };
     if ((raw.mobile || s.game.player.weapon === "railgun") && raw.worldTap) {
-      const selected = pickTouchTarget(s.game, s.actors.views, s.camera, s.canvas, raw.worldTap);
+      const selected = pickTouchTarget(s.game, bodyViews(), s.camera, s.canvas, raw.worldTap);
       if (selected) {
         value.touchTargetSelection = selected;
         if (!value.combatVisibleIds.includes(selected.id)) value.combatVisibleIds.push(selected.id);
@@ -78,13 +83,13 @@ export function createBrowserLoop(s) {
         x = ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1, // tuning-ok: pixels to NDC
         y = 1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2, // tuning-ok: pixels to NDC
         point = s.game.flame?.equipped
-          ? flamePointerPoint(s.world, s.actors.views, s.game.enemies, x, y, {
+          ? flamePointerPoint(s.world, bodyViews(), withChained(s.game, s.game.enemies), x, y, {
               assist: s.game.mobileAssistEnabled !== false,
               time: s.game.time,
               visibleIds: value.combatVisibleIds,
             })
           : selectedRangedProfile(s.game)
-            ? rangedPointerPoint(s.game, s.actors.views, x, y, { visibleIds: value.combatVisibleIds })
+            ? rangedPointerPoint(s.game, bodyViews(), x, y, { visibleIds: value.combatVisibleIds })
             : s.world.screenToGround(x, y);
       if (point) {
         value.aimPoint = { x: point.x, z: point.z };

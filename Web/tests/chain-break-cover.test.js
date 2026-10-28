@@ -110,7 +110,7 @@ test("a bullet stopped by a wall, crate or enemy 3 to 5 m short of the Pitborn d
   }
 });
 
-test("a hunter in the cone keeps the aim when the Pitborn is behind a wall; the shotgun is never pulled toward it", () => {
+test("a hunter in the cone keeps the aim when the Pitborn is behind a wall; the shotgun is steered at it like every gun", () => {
   const { g, at } = armed();
   const toward = (a) => ({ x: Math.cos(a), z: Math.sin(a) });
   const hunterFrom = (o) =>
@@ -124,7 +124,7 @@ test("a hunter in the cone keeps the aim when the Pitborn is behind a wall; the 
   g.player.pos = from;
   g.enemies = [{ id: 77, hp: 80, pos: hunterAt, radius: 0.4, hostile: true, visible: true }];
   assert.equal(resolveRangedAim(g, toward(base)).targetId, 77, "walled Pitborn does not steal the shot");
-  // Shotgun: aimed a little off the (statue-covered) Pitborn, the direction stays as held.
+  // Shotgun: aimed a little off the (statue-covered) Pitborn, it is steered at it (Dom, 28 Oct: targetable on every weapon).
   const open = covered(g, at);
   g.enemies = [];
   g.player.pos = open;
@@ -133,7 +133,8 @@ test("a hunter in the cone keeps the aim when the Pitborn is behind a wall; the 
   const held = toward(Math.atan2(at.z - open.z, at.x - open.x) + 0.1),
     aim = resolveRangedAim(g, held);
   assert.equal(aim.profile.field, "shotgun");
-  assert(Math.abs(aim.trace.direction.x - held.x) < 1e-9 && Math.abs(aim.trace.direction.z - held.z) < 1e-9, "not steered at the Pitborn");
+  assert.equal(aim.targetId, GAME_DATA.chainedPitborn.chainedTargets.aimTargetId, "locked on the Pitborn");
+  assert(aim.trace.direction.x * held.x + aim.trace.direction.z * held.z < 1 - 1e-9, "turned toward it");
 });
 
 test("once it is loose it is no longer a stand-in target", () => {
