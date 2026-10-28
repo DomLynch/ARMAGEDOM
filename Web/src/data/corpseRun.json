@@ -4,6 +4,12 @@
   "drop": { "cashShare": 1, "minCash": 1 },
   "retrieve": { "radius": 1.8 },
   "bag": { "scavengerSeconds": 240, "mergeOnSecondDeath": true, "noticeSeconds": 6, "stealableBy": "none" },
+  "gear": {
+    "enabled": true,
+    "neverDrop": ["knife", "hale-pitborn-cleaver-v1", "watchmans-pistol-v1"],
+    "fallbackMelee": "knife",
+    "onScavenge": "release"
+  },
   "respawn": { "enabled": true, "safehouseAreaId": "central-hub", "homeAreas": ["westminster"] },
   "convergence": { "enabled": true, "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
   "view": {

@@ -50,7 +50,7 @@ export function validateRangedWeaponCatalog(input) {
       railgun = row.weaponKey === "railgun";
     if (
       !key(id) ||
-      !closed(row, railgun ? [...fields, "charge", "arc"] : payloadFamily ? [...fields, "payload"] : fields) ||
+      !closed(row, railgun ? [...fields, "automatic"] : payloadFamily ? [...fields, "payload"] : fields) ||
       row.itemId !== id ||
       typeof row.name !== "string" ||
       !row.name ||
@@ -72,33 +72,32 @@ export function validateRangedWeaponCatalog(input) {
     if (
       railgun &&
       (row.family !== "rifles" ||
-        row.fireMode !== "press" ||
-        !closed(row.charge, ["seconds", "maxSeconds", "statusSeconds"]) ||
-        !(Number.isFinite(row.charge.statusSeconds) && row.charge.statusSeconds > 0) ||
-        !Number.isFinite(row.charge.seconds) ||
-        row.charge.seconds < 0.3 ||
-        row.charge.seconds > 2 ||
-        !Number.isFinite(row.charge.maxSeconds) ||
-        row.charge.maxSeconds < row.charge.seconds ||
-        row.charge.maxSeconds > 6 ||
-        // arc: the lightning chain. The first target is within rules.range; each jump goes to the nearest other living enemy
-        // within hopRange of the last one that has a clear line, up to `jumps` times, at hopDamageFactor of the last damage.
-        !closed(row.arc, ["jumps", "hopRange", "hopDamageFactor", "stunSeconds", "bossStunSeconds"]) ||
-        !Number.isSafeInteger(row.arc.jumps) ||
-        row.arc.jumps < 0 ||
-        row.arc.jumps > 6 ||
-        !Number.isFinite(row.arc.hopRange) ||
-        row.arc.hopRange < 0.5 ||
-        row.arc.hopRange > 12 ||
-        !Number.isFinite(row.arc.hopDamageFactor) ||
-        row.arc.hopDamageFactor <= 0 ||
-        row.arc.hopDamageFactor > 1 ||
-        !Number.isFinite(row.arc.stunSeconds) ||
-        row.arc.stunSeconds < 0 ||
-        row.arc.stunSeconds > 3 ||
-        !Number.isFinite(row.arc.bossStunSeconds) ||
-        row.arc.bossStunSeconds < 0 ||
-        row.arc.bossStunSeconds > row.arc.stunSeconds)
+        row.fireMode !== "held" ||
+        // automatic: the light machine gun's held fire. Spread is a cone in degrees, stagger is a brief flinch in seconds.
+        !closed(row.automatic, [
+          "spreadDegrees",
+          "spreadStride",
+          "staggerSeconds",
+          "bossStaggerSeconds",
+          "tracerColour",
+          "tracerSeconds",
+        ]) ||
+        !Number.isFinite(row.automatic.spreadDegrees) ||
+        row.automatic.spreadDegrees < 0 ||
+        row.automatic.spreadDegrees > 20 ||
+        !Number.isFinite(row.automatic.spreadStride) ||
+        row.automatic.spreadStride <= 0 ||
+        row.automatic.spreadStride >= 1 ||
+        !Number.isFinite(row.automatic.staggerSeconds) ||
+        row.automatic.staggerSeconds < 0 ||
+        row.automatic.staggerSeconds >= row.rules.cadence ||
+        !Number.isFinite(row.automatic.bossStaggerSeconds) ||
+        row.automatic.bossStaggerSeconds < 0 ||
+        row.automatic.bossStaggerSeconds > row.automatic.staggerSeconds ||
+        !/^[0-9a-f]{6}$/.test(row.automatic.tracerColour) ||
+        !Number.isFinite(row.automatic.tracerSeconds) ||
+        row.automatic.tracerSeconds <= 0 ||
+        row.automatic.tracerSeconds > 1)
     )
       fail();
     weapons.add(row.weaponKey);

@@ -47,7 +47,7 @@
     "loadFailed": "Weapon loading unavailable. Your reward is kept; retry in Gear.",
     "equipped": "{name} equipped.",
     "returned": "Returned to your normal weapon.",
-    "railgunStats": "{damage} arc damage, jumps {jumps}x and stuns · {range}m · {charge}s charge · {cadence}s recovery · {magazine}/{capacity} loaded · {reserve} reserve · {reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.",
+    "railgunStats": "{damage} damage per bullet · {range}m · {cadence}s between bullets · {spread}° spread · {magazine}/{capacity} loaded · {reserve} reserve · {reload}s reload. Hold FIRE and it keeps shooting; it auto-aims like the pistol. Cover blocks bullets; pistol ammunition is kept.",
     "sawStats": "Hold CUT · close saw contact · {damage} damage / {interval}s · slowed while cutting · sustained contact staggers",
     "shotgunStats": "{pellets} pellets × {pelletDamage} damage · {range}m · {magazine}/{capacity} loaded · {reserve} reserve",
     "launcherStats": "{damage} blast damage · {radius}m radius · {magazine}/{capacity} loaded · {reserve} reserve · {range}m straight flight · {speed}m/s · {reload}s reload. No homing.",

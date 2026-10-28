@@ -3,6 +3,8 @@ import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
 import { QUALITY } from "./quality-tier.js";
 import { createDeathPresentation } from "./death-presentation.js";
+import { createShareClip } from "./share-clip.js";
+import { createShareCard } from "./share-card.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -27,7 +29,10 @@ export function createBrowserLoop(s) {
     submitted = null,
     airdropView = null,
     corpseView = null;
-  const deathCam = createDeathPresentation();
+  const deathCam = createDeathPresentation(),
+    // Viral death cam (shareClip.json, ?noshare=1 off): a small rolling frame ring, and the SHARE card on the death screen.
+    shareClip = createShareClip(),
+    shareCard = createShareCard({ share: shareClip });
   let seenGame = null,
     seenArea = null;
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
@@ -36,6 +41,7 @@ export function createBrowserLoop(s) {
       if (globalThis.document.hidden) {
         deathCam.reset();
         haptics.cancel();
+        shareClip.gap();
       }
     });
   function toDomain(v) {
@@ -117,6 +123,8 @@ export function createBrowserLoop(s) {
     if (!s.world || !s.game || s.contextLost) return;
     // Real reset hooks: travel, player death, a new game object or area id (area change / run reset).
     if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
+    shareCard.sync(s.game.finished && s.game.player.hp <= 0);
+    if (s.game !== seenGame || s.world.areaId !== seenArea) shareClip.reset();
     seenGame = s.game;
     seenArea = s.world.areaId;
     const audioEvents = [],
@@ -186,6 +194,7 @@ export function createBrowserLoop(s) {
         s.effects.events(s.game);
         s.actors?.events(s.game);
         deathCam.observe(s.game.events);
+        shareClip.observe(s.game.events, s.game);
         audioEvents.push(...s.game.events);
         pickupFlash.observe(s.game.events);
         haptics.observe(s.game.events, s.game);
@@ -244,9 +253,11 @@ export function createBrowserLoop(s) {
     s.shop?.update(s);
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
+    if (!s.paused) shareClip.capture(s.canvas, realElapsed, s.world.areaId); // right after the render: the drawing buffer is valid only in this task
   }
   return {
     deathCam,
+    shareClip,
     frame,
     intent,
     combatVisibleIds,

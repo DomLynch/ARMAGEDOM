@@ -38,7 +38,7 @@ test("locker weapon and supply names keep the old order and wording", () => {
       "The Bone Saw",
       "Rocket Launcher",
       "Reaper Drone",
-      "Thundercoil Arc Gun",
+      "Light Machine Gun",
     ],
   );
   assert.deepEqual(Object.keys(LOCKER_RESOURCE_RULES).map((id) => [id, t.resourceNames[id]]), [

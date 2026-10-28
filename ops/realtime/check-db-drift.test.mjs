@@ -42,7 +42,10 @@ const lines = (report) => report.differences.map((d) => `${d.section} ${d.key}`)
 test("an untouched database reports zero drift, and the report says what it checked", async () => {
   const report = await drift();
   assert.deepEqual(report.differences, []);
-  assert.match(report.text, /^zero drift \(23 migrations, \d+ seeded rows, 24 functions, 24 tables, 12 policies\)$/);
+  assert.equal(
+    report.text.replace(/\d+ seeded rows/, "N seeded rows"),
+    `zero drift (${files.length} migrations, N seeded rows, 36 functions, 29 tables, 15 policies)`,
+  );
 });
 
 test("the reader role Deploy connects as: read-only, seeded tables and the registry only, no writes, no functions, no memberships", async () => {
@@ -181,7 +184,7 @@ test("a changed seeded row is reported with the hosted value and the repo value"
   assert.equal(report.differences.length, 2);
   assert(report.differences.every((d) => d.section === "row:arma_weapon_rules"));
   assert.match(report.text, /row:arma_weapon_rules: only on hosted: .*railgun.*"max_damage_per_hit": 99/);
-  assert.match(report.text, /row:arma_weapon_rules: only in repo: .*railgun.*"max_damage_per_hit": 45/);
+  assert.match(report.text, /row:arma_weapon_rules: only in repo: .*railgun.*"max_damage_per_hit": 5\b/);
   const removed = await drift(async (db) => { await db.exec(`delete from public.arma_payout_rules where ctid in (select ctid from public.arma_payout_rules limit 1)`); });
   assert.equal(removed.differences.length, 1);
   assert.equal(removed.differences[0].hosted, undefined);

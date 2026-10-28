@@ -18,8 +18,8 @@ async function setup() {
 
 test("each tier pays amounts inside its range, and every kill is a separate credit (no per-source window)", async () => {
   const { alice, claim, earned } = await setup();
-  assert.deepEqual(await claim(ids.alice, alice, "kill:trash", 7), { credited: 7, earned: 7 });
-  assert.deepEqual(await claim(ids.alice, alice, "kill:trash", 7), { credited: 7, earned: 14 }, "a second rat right away pays too");
+  assert.deepEqual(await claim(ids.alice, alice, "kill:trash", 7), { credited: 7, earned: 7, loot: [] });
+  assert.deepEqual(await claim(ids.alice, alice, "kill:trash", 7), { credited: 7, earned: 14, loot: [] }, "a second rat right away pays too");
   assert.equal((await claim(ids.alice, alice, "kill:creature", 15)).credited, 15);
   assert.equal((await claim(ids.alice, alice, "kill:boss", 40)).credited, 40);
   assert.equal(await earned(alice), 69);

@@ -58,7 +58,7 @@ test("HUD and gear text read string-equal to the text that was in code", () => {
   assert.equal(fillText(gear.tileLabel, { name: "Rifle", ammo: "5/8 · 16" }), "Rifle · 5/8 · 16");
   assert.equal(GAME_DATA.combatText.markedHunter.label, "HUNTER");
   assert.equal(gear.iconCaptions["surgeons-knife-v1"], "BONE SAW");
-  assert.equal(gear.iconCaptions["borough-marshals-pistol-v1"], "ARC GUN");
+  assert.equal(gear.iconCaptions["borough-marshals-pistol-v1"], "LMG");
 });
 
 test("hunter, flame boss and reward text read string-equal to the text that was in code", () => {

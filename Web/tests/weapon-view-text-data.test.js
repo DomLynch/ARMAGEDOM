@@ -81,16 +81,15 @@ test("boss equipment stats lines built from weapon data equal the old hard-coded
   assert.equal(
     fillText(t.railgunStats, {
       damage: arc.rules.damage,
-      jumps: arc.arc.jumps,
       range: arc.rules.range,
-      charge: arc.charge.seconds,
+      spread: arc.automatic.spreadDegrees,
       cadence: arc.rules.cadence,
       magazine,
       capacity: arc.rules.capacity,
       reserve,
       reload: arc.rules.reload,
     }),
-    `45 arc damage, jumps 3x and stuns · 4.5m · 0.3s charge · 0.8s recovery · ${magazine}/4 loaded · ${reserve} reserve · 1.8s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.`,
+    `5 damage per bullet · 14m · 0.11s between bullets · 4° spread · ${magazine}/40 loaded · ${reserve} reserve · 3s reload. Hold FIRE and it keeps shooting; it auto-aims like the pistol. Cover blocks bullets; pistol ammunition is kept.`,
   );
 });
 
@@ -158,13 +157,13 @@ test("flamethrower text reads string-equal to the text that was in code", () => 
 test("boss equipment text reads string-equal to the text that was in code", () => {
   const t = GAME_DATA.weaponViewText.bossEquipment;
   assert.equal(t.loadFailed, "Weapon loading unavailable. Your reward is kept; retry in Gear.");
-  assert.equal(fillText(t.equipped, { name: "Thundercoil Arc Gun" }), "Thundercoil Arc Gun equipped.");
+  assert.equal(fillText(t.equipped, { name: "Light Machine Gun" }), "Light Machine Gun equipped.");
   assert.equal(t.returned, "Returned to your normal weapon.");
   assert.equal(
     fillText(t.railgunStats, {
-      damage: 60, jumps: 3, range: 18, charge: 0.8, cadence: 1.5, magazine: 2, capacity: 4, reserve: 6, reload: 2.4,
+      damage: 60, range: 18, spread: 3, cadence: 1.5, magazine: 2, capacity: 4, reserve: 6, reload: 2.4,
     }),
-    "60 arc damage, jumps 3x and stuns · 18m · 0.8s charge · 1.5s recovery · 2/4 loaded · 6 reserve · 2.4s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the bolt; pistol ammunition is kept.",
+    "60 damage per bullet · 18m · 1.5s between bullets · 3° spread · 2/4 loaded · 6 reserve · 2.4s reload. Hold FIRE and it keeps shooting; it auto-aims like the pistol. Cover blocks bullets; pistol ammunition is kept.",
   );
   assert.equal(
     fillText(t.sawStats, { damage: 7, interval: 0.25 }),

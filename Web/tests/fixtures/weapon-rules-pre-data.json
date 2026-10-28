@@ -63,9 +63,9 @@
   },
   {
    "weaponId": "railgun",
-   "maxDamagePerHit": 45,
-   "maxHitsPerS": 1.25,
-   "reachM": 18
+   "maxDamagePerHit": 5,
+   "maxHitsPerS": 9.090909090909092,
+   "reachM": 14
   },
   {
    "weaponId": "flamethrower",
