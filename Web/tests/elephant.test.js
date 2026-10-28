@@ -60,13 +60,14 @@ test("guard: no roach_attack, dog_attack or unnamed _attack move row may exist (
   for (const name of ["roach_attack", "dog_attack", "undefined_attack", "_attack"]) assert.equal(CREATURE_MOVES[name], undefined, name);
 });
 
-test("?noelephant=1: the server spawn row says elephant / 150 hp, the client slot is a dog / roach, so the engage mismatches and is refused (O0002), never misjudged", () => {
+test("?noelephant=1: the server spawn row says elephant / 150 hp, the client slot is a dog / roach, so the client and server rows disagree (the engage never settles: no kill, no payout)", () => {
   const row = JSON.parse(fs.readFileSync(new URL("../../server/data/spawns.json", import.meta.url), "utf8"))["elephant-and-castle:elephant-and-castle-resident-2"];
   assert.deepEqual([row.kind, row.maxHp], ["original-elephant", 150]);
   const off = place("A", "?noelephant=1");
   assert.equal(off.foundationRef, "original-dog");
   const hp = creatureHealth(off.foundationRef);
-  // arma_spawn_engage (supabase/migrations/20261024000002_arma_world.sql) raises O0002 when s.kind <> p_kind or s.max_hp <> p_max_hp.
+  // The writer engages with the server's own spawns.json row (elephant / 150), so there is no O0002 here: the engage just never settles
+  // against the dog the client drew (no kill, no payout is credited). This test only pins that the two rows differ.
   assert.notEqual(off.foundationRef, row.kind);
   assert.notEqual(hp, row.maxHp);
 });
