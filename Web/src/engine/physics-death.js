@@ -44,16 +44,16 @@ export function releasePhysicsDeath(view) {
 // The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
 // preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
 let cutsRequested = false;
-function prefetchCuts() {
-  if (cutsRequested || !impl || !cutsEnabled()) return;
+function prefetchCuts(library) {
+  if (cutsRequested || !impl || !cutsEnabled() || !library?.ensureModels) return;
   cutsRequested = true;
-  impl.loadCutAssets().catch(() => {
+  impl.loadCutAssets(library).catch(() => {
     /* No cut GLB: every death stays the plain ragdoll. */
   });
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
-  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts();
+  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts(library);
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed) return false;

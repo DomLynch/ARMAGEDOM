@@ -4,11 +4,7 @@
   "offValue": "0",
   "defaultOn": true,
   "rigRef": "marked-hunter",
-  "weaponSocket": "fk_socket_hand_r",
-  "assets": {
-    "glb": "assets/hunters/hunter-pitborn-106.cut.glb",
-    "manifest": "assets/hunters/hunter-pitborn-106.cut.manifest.json"
-  },
+  "cutModel": "marked-hunter-cut",
   "seed": 4101,
   "chance": 0.9,
   "pityAfter": 2,

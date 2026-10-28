@@ -1,12 +1,11 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
+import CUT_MANIFEST from "../data/pitbornCutManifest.json" with { type: "json" };
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 
 const CFG = GAME_DATA.physicsDeath,
@@ -53,22 +52,16 @@ export function killVector(root, entity) {
   return [local.x * k.horizontal, k.up, local.z * k.horizontal];
 }
 
-// The Pitborn's cut GLB and manifest (data/pitbornCuts.json assets): fetched once, on demand, only when a marked hunter is alive. Until it is
-// here (or if it never loads, or ?cuts=0) every death is the plain ragdoll: nothing below runs and nothing waits.
+// The Pitborn's cut GLB (a deferred model of the actor library, about 2 MB gzip) and its cut manifest (data/pitbornCutManifest.json): fetched once,
+// on demand, only after a marked hunter is wounded. Until it is here (or if it never loads, or ?cuts=0) every death is the plain ragdoll:
+// nothing below runs and nothing waits.
 let cutAssets = null,
   cutLoading = null;
-export function loadCutAssets(baseUrl = globalThis.document?.baseURI ?? globalThis.location?.href) {
-  return (cutLoading ??= (async () => {
-    const A = CUTS.assets,
-      [gltf, manifest] = await Promise.all([
-        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(new URL(A.glb, baseUrl).href),
-        fetch(new URL(A.manifest, baseUrl)).then((r) => {
-          if (!r.ok) throw new Error(`cut manifest HTTP ${r.status}`);
-          return r.json();
-        }),
-      ]);
-    return (cutAssets = { scene: gltf.scene, manifest, units: manifestUnits(manifest) });
-  })());
+export function loadCutAssets(library) {
+  return (cutLoading ??= Promise.resolve(library.ensureModels([CUTS.cutModel])).then(() => {
+    const scene = library.models.get(CUTS.cutModel).gltf.scene;
+    return (cutAssets = { scene, manifest: CUT_MANIFEST, units: manifestUnits(CUT_MANIFEST) });
+  }));
 }
 export const cutsReady = () => cutAssets !== null;
 
@@ -78,8 +71,9 @@ const capRows = () => ({
   blood: { tint: `#${CUTS.capTint.blood}`, amount: CUTS.capTint.amount },
 });
 
-// Swap the hunter's body for the cut GLB at the moment of death: a clone of the cut scene takes the model's place and pose, the weapon moves to its
-// hand socket, and the cut GLB's skeleton (the same 106 joints) is what the ragdoll drives. `undoSkin` puts everything back.
+// Swap the hunter's body for the cut GLB at the moment of death: a clone of the cut scene takes the model's place and pose (the cleaver is part of
+// the cut GLB, under the hand bone, so it travels with the arm piece), and the cut GLB's skeleton (the same 106 joints) is what the ragdoll
+// drives. `undoSkin` puts everything back.
 function cutSkin(view) {
   const model = clone(cutAssets.scene);
   model.position.copy(view.model.position);
@@ -94,16 +88,11 @@ function cutSkin(view) {
       t.scale.copy(o.scale);
     }
   });
-  const from = view.model.getObjectByName(CUTS.weaponSocket),
-    to = model.getObjectByName(CUTS.weaponSocket),
-    moved = [];
-  if (from && to) for (const c of [...from.children]) if (!c.isBone) (to.add(c), moved.push(c));
   view.model.visible = false;
-  return { model, bind: cutAssets.scene, hidden: view.model, from, moved };
+  return { model, bind: cutAssets.scene, hidden: view.model };
 }
 function undoSkin(skin) {
   if (!skin) return;
-  for (const c of skin.moved) skin.from.add(c);
   skin.model.removeFromParent();
   skin.hidden.visible = true;
 }

@@ -1391,6 +1391,17 @@
       "bytes": 1211976,
       "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
     },
+    "marked-hunter-cut": {
+      "url": "hunters/hunter-pitborn-106.cut.glb",
+      "bytes": 3482116,
+      "sha256": "b677d29d085cdc27b8b54d87f6814b210d11099a045cfef456ae22946ab82377",
+      "deferred": true,
+      "rig": "static-prop",
+      "provenance": {
+        "source": "physics tools/cut-units.mjs on hunters/hunter-pitborn-106.glb (physics #62): 7 pieces and 12 caps on the same 106-joint skeleton, cleaver included; loaded only when a finisher cut is about to play",
+        "sourceSHA256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
+      }
+    },
     "vagrant-106": {
       "url": "appearances/vagrant-106.glb",
       "rig": "vagrant-106",

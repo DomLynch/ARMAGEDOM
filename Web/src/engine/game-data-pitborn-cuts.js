@@ -17,8 +17,7 @@ export function validatePitbornCuts(d) {
     "offValue",
     "defaultOn",
     "rigRef",
-    "weaponSocket",
-    "assets",
+    "cutModel",
     "seed",
     "chance",
     "pityAfter",
@@ -30,10 +29,8 @@ export function validatePitbornCuts(d) {
     "bindings",
   ]);
   if (typeof d.defaultOn !== "boolean" || typeof d.noRepeat !== "boolean") fail(FILE, "defaultOn and noRepeat must be true or false");
-  for (const k of ["flagParam", "offValue", "rigRef", "weaponSocket"])
+  for (const k of ["flagParam", "offValue", "rigRef", "cutModel"])
     if (typeof d[k] !== "string" || !d[k]) fail(FILE, `${k} must be a non-empty string`);
-  closed(d.assets, ["glb", "manifest"]);
-  for (const k of ["glb", "manifest"]) if (typeof d.assets[k] !== "string" || d.assets[k].startsWith("/")) fail(FILE, `assets.${k} must be a relative path`);
   count(FILE, "seed", d.seed, 1, 2 ** 31);
   number(FILE, "chance", d.chance, 0);
   if (d.chance > 1) fail(FILE, "chance must be 0 to 1");
