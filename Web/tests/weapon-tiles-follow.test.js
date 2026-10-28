@@ -23,8 +23,9 @@ function make() {
   return f;
 }
 class Element extends EventTarget {
-  constructor() {
+  constructor(tag = "") {
     super();
+    this.tagName = tag.toUpperCase();
     this.children = [];
     this.dataset = {};
     this.attributes = new Map();
@@ -43,7 +44,10 @@ class Element extends EventTarget {
     this.attributes.set(k, String(v));
   }
   querySelectorAll(s) {
-    return this.children.flatMap((n) => [...(s === "[data-weapon-id]" && n.dataset.weaponId ? [n] : []), ...n.querySelectorAll(s)]);
+    return this.children.flatMap((n) => [
+      ...((s === "[data-weapon-id]" && n.dataset.weaponId) || s === n.tagName.toLowerCase() ? [n] : []),
+      ...n.querySelectorAll(s),
+    ]);
   }
   querySelector(s) {
     return this.querySelectorAll(s)[0];
@@ -57,7 +61,7 @@ function view(f) {
   const old = globalThis.document,
     nodes = new Map(),
     el = (id) => (nodes.has(id) ? nodes.get(id) : nodes.set(id, new Element()).get(id));
-  globalThis.document = { getElementById: el, createElement: () => new Element() };
+  globalThis.document = { getElementById: el, createElement: (tag) => new Element(tag) };
   const v = createWeaponTiles({ get game() { return f.g; }, loaded: true, paused: false }, () => {});
   return {
     v,
