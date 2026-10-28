@@ -7,6 +7,12 @@
   "seed": 20261028,
   "rng": { "multiplier": 1664525, "increment": 1013904223, "modulus": 4294967296, "stride": 101 },
   "decay": { "secondsPerMark": 90, "fadeSeconds": 6, "minAlpha": 0.3 },
+  "tierMessageSeconds": 4,
+  "valuables": {
+    "cash": [{ "sourcePrefix": "stash:", "perHeat": 100 }],
+    "claims": [{ "source": "airdrop", "heat": 2 }],
+    "events": [{ "type": "boss-defeated", "heat": 3 }]
+  },
   "pressure": {
     "minSeconds": 15,
     "tiers": [

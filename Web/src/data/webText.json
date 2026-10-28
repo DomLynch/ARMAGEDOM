@@ -139,6 +139,7 @@
     "airdrop.lost": "The airdrop is gone.",
     "raid.armed": "The hunters are moving.",
     "raid.arrived": "The raid is here. Hold the line.",
-    "raid.over": "The raid has passed."
+    "raid.over": "The raid has passed.",
+    "heat.tierUp": "The hunters are closing in."
   }
 }

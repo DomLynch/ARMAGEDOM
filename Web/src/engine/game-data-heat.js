@@ -45,6 +45,23 @@ function validateLook(s) {
   checkNumbers("look.strike", s.strike);
 }
 
+// What raises heat besides a kill: cash by source prefix (+1 per perHeat cash), a flat amount per claim source, a flat amount per event.
+function validateValuables(v) {
+  closed(v, ["cash", "claims", "events"]);
+  for (const [list, key, extra] of [
+    [v.cash, "sourcePrefix", "perHeat"],
+    [v.claims, "source", "heat"],
+    [v.events, "type", "heat"],
+  ]) {
+    if (!Array.isArray(list)) fail("heat", "valuables rows must be lists");
+    for (const row of list) {
+      closed(row, [key, extra]);
+      if (typeof row[key] !== "string" || !row[key]) fail("heat", `valuables.${key} must be a name`);
+      count("heat", `valuables.${extra}`, row[extra], 1, 1000);
+    }
+  }
+}
+
 function validateTiers(rows) {
   if (!Array.isArray(rows) || !rows.length) fail("heat", "pressure.tiers needs at least one tier");
   let last = 0;
@@ -65,7 +82,23 @@ function validateTiers(rows) {
 }
 
 export function validateHeat(d) {
-  closed(d, ["schema_version", "enabled", "offSwitch", "groupSize", "maxHeat", "seed", "rng", "decay", "pressure", "world", "look"]);
+  closed(d, [
+    "schema_version",
+    "enabled",
+    "offSwitch",
+    "groupSize",
+    "maxHeat",
+    "seed",
+    "rng",
+    "decay",
+    "tierMessageSeconds",
+    "valuables",
+    "pressure",
+    "world",
+    "look",
+  ]);
+  number("heat", "tierMessageSeconds", d.tierMessageSeconds, 0.1);
+  validateValuables(d.valuables);
   if (typeof d.enabled !== "boolean") fail("heat", "enabled must be a boolean");
   closed(d.offSwitch, ["param", "value"]);
   for (const k of ["param", "value"]) if (typeof d.offSwitch[k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d.offSwitch[k])) fail("heat", `offSwitch.${k}`);
