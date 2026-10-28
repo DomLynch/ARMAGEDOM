@@ -61,11 +61,14 @@ export async function bossSettle(model, { seconds = CFG.settleSeconds, afterSeco
       root.updateMatrixWorld(true);
       i.stepDeath(s, dt);
     };
-  for (let t = 0; t < seconds + dt; t += dt) frame();
-  const settled = lowestVertex(root);
-  // the corpse lies on after the body is freed (settleSeconds, then removeSeconds): the seat has to stay
-  for (let t = 0; t < afterSeconds; t += dt) frame();
-  const later = afterSeconds ? lowestVertex(root) : settled;
-  i.releaseDeath(s);
-  return { rest, settled, later, scale, root };
+  try {
+    for (let t = 0; t < seconds + dt; t += dt) frame();
+    const settled = lowestVertex(root);
+    // the corpse lies on after the body is freed (settleSeconds, then removeSeconds): the seat has to stay
+    for (let t = 0; t < afterSeconds; t += dt) frame();
+    const later = afterSeconds ? lowestVertex(root) : settled;
+    return { rest, settled, later, scale, root };
+  } finally {
+    i.releaseDeath(s); // a failed assertion in one test must not leave a corpse that eats the cap of the next
+  }
 }
