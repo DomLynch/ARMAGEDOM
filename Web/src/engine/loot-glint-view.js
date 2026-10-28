@@ -24,14 +24,14 @@ export function createLootGlintView(world, rules) {
         if (rows.has(glint) || g.time >= glint.until) continue;
         geometry ??= new THREE.RingGeometry(1 - data.width, 1, data.segments);
         const material = new THREE.MeshBasicMaterial({
-          color: parseInt(data.colour, 16), // tuning-ok: hex digits
+          color: new THREE.Color(`#${data.colour}`),
           transparent: true,
           depthTest: false,
           depthWrite: false,
           side: THREE.DoubleSide,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.rotation.x = -Math.PI / 2; // tuning-ok: lies flat on the ground
+        mesh.rotation.x = data.tilt; // lies flat on the ground
         mesh.position.set(glint.x, data.lift, -glint.z);
         mesh.renderOrder = 1;
         group.add(mesh);

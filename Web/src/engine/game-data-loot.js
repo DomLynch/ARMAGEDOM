@@ -14,6 +14,7 @@ export function validateLoot(d) {
     "enabled",
     "offSwitch",
     "ops",
+    "badgeChars",
     "slots",
     "toastSeconds",
     "kinds",
@@ -31,8 +32,10 @@ export function validateLoot(d) {
   count("loot", "slots", d.slots, 1, 12);
   number("loot", "toastSeconds", d.toastSeconds, 0.5);
   if (!Array.isArray(d.kinds) || !d.kinds.length) fail("loot", "kinds must be a list");
-  closed(d.glint, ["seconds", "radiusFrom", "radiusTo", "width", "lift", "segments", "colour", "opacity"]);
+  closed(d.glint, ["seconds", "radiusFrom", "radiusTo", "width", "lift", "segments", "tilt", "colour", "opacity"]);
   for (const k of ["seconds", "radiusFrom", "radiusTo", "width", "lift", "opacity"]) number("loot", `glint.${k}`, d.glint[k], 0);
+  number("loot", "glint.tilt", d.glint.tilt, -Infinity);
+  count("loot", "badgeChars", d.badgeChars, 1, 4);
   count("loot", "glint.segments", d.glint.segments, 8, 128);
   hex("glint.colour", d.glint.colour);
   for (const [k, v] of Object.entries(d.rarities)) hex(`rarities.${k}`, v);

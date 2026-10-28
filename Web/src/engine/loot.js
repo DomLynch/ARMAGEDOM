@@ -31,7 +31,7 @@ export function createLootStore({ api, rules }) {
     return {
       id: itemId,
       name,
-      badge: local.badge ?? name.slice(0, 2).toUpperCase(),
+      badge: local.badge ?? name.slice(0, data.badgeChars).toUpperCase(),
       colour: local.colour ?? data.rarities[rarity],
       rarity,
       rarityColour: data.rarities[rarity],
