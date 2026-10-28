@@ -6,10 +6,11 @@
   "offValue": "1",
   "seed": "crowd-bodies-v1",
   "defaultRef": "hollow-scavenger",
+  "buckets": 4096,
   "maxBodiesPerArea": 4,
   "excludedAreas": ["westminster"],
   "pool": [
-    { "ref": "hollow-scavenger", "weight": 4, "active": true },
+    { "ref": "hollow-scavenger", "weight": 2, "active": true },
     { "ref": "mh-man-02", "weight": 1, "active": true },
     { "ref": "mh-man-01", "weight": 1, "active": true },
     { "ref": "mh-woman-01", "weight": 1, "active": true },

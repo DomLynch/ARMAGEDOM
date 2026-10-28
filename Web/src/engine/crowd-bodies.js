@@ -2,25 +2,16 @@
 // Appearance only: a crowd body changes how a plain resident human looks, never its rig, stats, rules or save record. The choice is a
 // pure function of the area id and the resident's placement key, so a resident has the same body in every session and every rebuild.
 import { GAME_DATA } from "./game-data.js";
+import { hash as faceHash } from "../face-allocator.js";
 
 const POOL = GAME_DATA.crowdBodies;
 const CROWD = new Set(POOL.pool.map((row) => row.ref).filter((ref) => ref !== POOL.defaultRef));
 const CROOKED = new Set(GAME_DATA.spawns.crookedResidents);
 const HOLLOW_RIG = "hollow-scavenger";
 
-function hash(text) {
-  let h = 2166136261; // tuning-ok: FNV-1a 32-bit offset basis
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619); // tuning-ok: FNV-1a 32-bit prime
-  // The murmur3 finaliser: keys that differ only in a trailing digit would otherwise share their high bits.
-  h ^= h >>> 16; // tuning-ok: murmur3 finaliser shift
-  h = Math.imul(h, 0x85ebca6b); // tuning-ok: murmur3 finaliser multiplier
-  h ^= h >>> 13; // tuning-ok: murmur3 finaliser shift
-  h = Math.imul(h, 0xc2b2ae35); // tuning-ok: murmur3 finaliser multiplier
-  h ^= h >>> 16; // tuning-ok: murmur3 finaliser shift
-  return h >>> 0;
-}
-// A number strictly between 0 and 1 for a text.
-const unit = (text) => (hash(text) + 1) / (2 ** 32 + 1); // tuning-ok: 32-bit hash range
+// A number strictly between 0 and 1 for a text. The face allocator's FNV-1a hash, read through its low bits (`buckets`): keys that differ
+// only in a trailing digit share their high bits, so the high bits would put every placed resident in the same slice of the weights.
+const unit = (text) => ((faceHash(text) % POOL.buckets) + 1) / (POOL.buckets + 1);
 
 // The crowd is on unless the data switches it off or the URL carries the off switch (improvements ship default-on).
 export function crowdOn(search = globalThis.location?.search ?? "") {

@@ -2,7 +2,7 @@
 // Characters owns the ordered appearance recipes and their actual ingredients.
 const text = (value) => typeof value === "string" && value.trim().length > 0;
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-function hash(value) {
+export function hash(value) {
   let h = 2166136261; // tuning-ok: FNV-1a 32-bit offset basis
   for (let i = 0; i < value.length; i++) h = Math.imul(h ^ value.charCodeAt(i), 16777619); // tuning-ok: FNV-1a 32-bit prime
   return h >>> 0;
