@@ -1,6 +1,7 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { healPlayer, refillAmmo } from "./world-pickups-core.js";
 import { radialBlastHits } from "./radial-blast.js";
+import { activeDay, variedCrates } from "./spawn-variation.js";
 // Booby-trapped crates (data/trapCrates.json). Walking into reach opens one: better loot than a normal pickup, then a grenade-style
 // fuse runs with a beep cue, then the blast hits the player through the normal hit path, so a dodge roll's invulnerable window
 // avoids it. A spent crate comes back after the respawn time, once it is off screen. Per-run state is `g.trapCrates`, keyed by
@@ -9,7 +10,7 @@ const DATA = GAME_DATA.trapCrates;
 const BLAST = GAME_DATA.weapons.ranged[DATA.blast.profile].payload;
 const PLAYER_VICTIM = "player";
 export const TRAP_CRATE_TEXT = DATA.text;
-export const trapCrateList = (areaId) => DATA.placements[areaId] ?? [];
+export const trapCrateList = (areaId) => variedCrates(areaId, activeDay()).traps;
 // The loot adapter: the heal and ammo effects are the world pickups' own (engine/world-pickups-core.js), so there is one effect path.
 export function grantTrapCrateLoot(g, loot = DATA.loot) {
   const hp = healPlayer(g.player, loot.healFraction),

@@ -4,6 +4,7 @@ import { AREA_MOB_SPAWNS, appearanceRefOn } from "../area-mob-spawns.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
 import { rigCapability, rigText } from "../rig-capabilities.js";
 import { GAME_DATA } from "./game-data.js";
+import { activeDay, variedHostiles } from "./spawn-variation.js";
 const fail = () => {
   throw Error("Invalid registered area population");
 };
@@ -98,8 +99,10 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
 const monsterOff = (rig, search) =>
   rigCapability(rig, "optionalMonster") &&
   (!rigCapability(rig, "enabled") || new URLSearchParams(search).get(rigText(rig, "offParam")) === "1");
-export function populationPlacements(policy, areaId, cycle, canonical, search = globalThis.location?.search ?? "") {
+export function populationPlacements(policy, areaId, cycle, rows, search = globalThis.location?.search ?? "") {
   const area = policy?.areas[areaId];
+  // The daily re-roll swaps which hand-placed point each plain resident stands on (data/spawnVariation.json); keys and kinds stay.
+  const canonical = variedHostiles(rows, areaId, cycle ?? "A", activeDay());
   if (!area) return canonical;
   const active = new Set(area.activePlacementIds),
     slot = area.creatureSlot,
