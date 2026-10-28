@@ -8,6 +8,8 @@ import { groupSlots, seeded } from "../src/engine/heat-tally-strokes.js";
 import { stepMarkedHunters, clearMarkedHunters } from "../src/engine/marked-hunters.js";
 import { make, shipped } from "./helpers/marked-fixture.js";
 import { LondonWorld } from "../src/world.js";
+import { Vector3 } from "three";
+import { createHeatTallyView } from "../src/engine/heat-tally-view.js";
 
 const HEAT = GAME_DATA.heat,
   CAP = GAME_DATA.postBossRaid.maxSimultaneous,
@@ -214,4 +216,81 @@ test("heat is session-only: a persisted run carries no heat", () => {
   assert.ok(f.p.persistRun(g));
   assert.ok(f.writes.length > 0);
   for (const w of f.writes) assert.ok(!/"heat"\s*:/.test(w.raw), "no heat key in the saved run");
+});
+
+test("the heat count is capped by the data row: kills past it add nothing, and the tally and tier lookup clamp to it", () => {
+  assert.ok(HEAT.maxHeat >= HEAT.pressure.tiers.at(-1).minHeat);
+  assert.ok(HEAT.maxHeat <= HEAT.world.maxGroups * HEAT.groupSize, "the tally has room for every mark");
+  const g = fake();
+  stepHeat(g);
+  g.kills = HEAT.maxHeat + 20;
+  g.time = 1;
+  stepHeat(g);
+  assert.equal(g.heat.count, HEAT.maxHeat);
+  assert.equal(heatShown(g).count, HEAT.maxHeat);
+  g.heat.count = HEAT.maxHeat + 50; // even a state past the cap reads as the cap
+  assert.equal(heatShown(g).count, HEAT.maxHeat);
+  assert.equal(heatTier(g), HEAT.pressure.tiers.at(-1));
+  const bad = raw();
+  bad.maxHeat = bad.pressure.tiers.at(-1).minHeat - 1;
+  assert.throws(() => validateHeat(bad));
+});
+
+// A stub page: counts the canvases the tally view asks for, with a 2D context that accepts every drawing call.
+function withStubPage(run) {
+  const real = globalThis.document;
+  let canvases = 0;
+  globalThis.document = {
+    createElement() {
+      canvases++;
+      const canvas = { width: 0, height: 0 };
+      canvas.getContext = () => new Proxy({ canvas }, { get: (t, k) => (k in t ? t[k] : () => {}), set: () => true });
+      return canvas;
+    },
+  };
+  try {
+    return run(() => canvases);
+  } finally {
+    globalThis.document = real;
+  }
+}
+
+test("a fade builds no new texture: only a change of count does, and the newest mark's opacity does the dimming", () => {
+  withStubPage((canvases) => {
+    const added = [],
+      scene = { add: (s) => added.push(s), remove() {} },
+      view = createHeatTallyView(scene),
+      at = new Vector3(1, 2, 3);
+    view.update({ count: 7, lastAlpha: 1 }, at);
+    const built = canvases();
+    assert.equal(built, 2, "one texture for the settled marks, one for the newest");
+    const alphas = [];
+    for (let i = 0; i <= 70; i++) {
+      const lastAlpha = 1 - (i / 70) * (1 - HEAT.decay.minAlpha);
+      view.update({ count: 7, lastAlpha }, at);
+      alphas.push(added.at(-1).material.opacity);
+    }
+    assert.equal(canvases(), built, "70 fade steps built nothing");
+    assert.ok(alphas[0] > alphas.at(-1) && alphas.at(-1) >= HEAT.decay.minAlpha - 1e-9, "the newest mark dims");
+    assert.equal(added.at(-2).material.opacity, 1, "the settled marks stay solid");
+    view.update({ count: 8, lastAlpha: 1 }, at);
+    assert.equal(canvases(), built + 2, "a new kill repaints once");
+    view.update(null, at);
+    view.dispose();
+  });
+});
+
+test("the off-switch answer is worked out once per page and tiers are walked without sorting", () => {
+  const tiers = HEAT.pressure.tiers;
+  assert.deepEqual(tiers.map((t) => t.minHeat), [...tiers.map((t) => t.minHeat)].sort((a, b) => a - b));
+  const calls = [];
+  const real = globalThis.location;
+  globalThis.location = { get search() { calls.push(1); return ""; } };
+  try {
+    const rules = { ...HEAT };
+    for (let i = 0; i < 50; i++) assert.equal(heatEnabled(rules), true);
+    assert.equal(calls.length, 1, "the address is read once");
+  } finally {
+    globalThis.location = real;
+  }
 });

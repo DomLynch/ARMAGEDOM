@@ -8,9 +8,14 @@ import { seeded } from "./heat-tally-strokes.js";
 const HEAT = GAME_DATA.heat;
 
 // Off switch: the URL parameter named in the data (offSwitch.param) set to offSwitch.value turns heat off. `search` is for tests.
+// The page's own address never changes, so its answer is worked out once per rules row.
+const pageOff = new WeakMap();
 export function heatEnabled(rules = HEAT, search = undefined) {
-  const query = search ?? globalThis.location?.search ?? "";
-  return rules.enabled && new URLSearchParams(query).get(rules.offSwitch.param) !== rules.offSwitch.value;
+  if (!rules.enabled) return false;
+  const parse = (query) => new URLSearchParams(query).get(rules.offSwitch.param) === rules.offSwitch.value;
+  if (search !== undefined) return !parse(search);
+  if (!pageOff.has(rules)) pageOff.set(rules, parse(globalThis.location?.search ?? ""));
+  return !pageOff.get(rules);
 }
 
 // Each simulation step (from stepMarkedHunters): take new kills, drop one mark per decay period.
@@ -23,7 +28,7 @@ export function stepHeat(g, rules = HEAT, search = undefined) {
     h = (g.heat ??= { count: 0, lastKillAt: g.time, seen: kills, rolls: 0 }); // kills before this session never count
   if (kills < h.seen) h.seen = kills; // a fresh run restarts the kill count
   if (kills > h.seen) {
-    h.count += kills - h.seen;
+    h.count = Math.min(rules.maxHeat, h.count + kills - h.seen); // heat never builds past the data's cap
     h.seen = kills;
     h.lastKillAt = g.time;
   }
@@ -43,10 +48,13 @@ export function resetHeat(g) {
   g.heat.lastKillAt = g.time;
 }
 
-// The highest tier row whose minHeat the current heat has reached, or null below the first.
+// The highest tier row whose minHeat the current heat has reached, or null below the first. The rows are validated ascending, so the walk
+// runs from the top and nothing is copied or sorted.
 export function heatTier(g, rules = HEAT) {
-  const n = g.heat?.count ?? 0;
-  return [...rules.pressure.tiers].reverse().find((t) => t.minHeat <= n) ?? null;
+  const n = Math.min(rules.maxHeat, g.heat?.count ?? 0),
+    tiers = rules.pressure.tiers;
+  for (let i = tiers.length - 1; i >= 0; i--) if (tiers[i].minHeat <= n) return tiers[i];
+  return null;
 }
 
 // A hunt wait scaled by the tier, never below pressure.minSeconds (and never above the base wait).
@@ -86,6 +94,6 @@ export function heatShown(g, rules = HEAT) {
   const { secondsPerMark, fadeSeconds, minAlpha } = rules.decay,
     fadeStart = secondsPerMark - fadeSeconds,
     phase = g.time - h.lastKillAt;
-  if (!fadeSeconds || phase <= fadeStart) return { count: h.count, lastAlpha: 1 };
-  return { count: h.count, lastAlpha: 1 - Math.min(1, (phase - fadeStart) / fadeSeconds) * (1 - minAlpha) };
+  if (!fadeSeconds || phase <= fadeStart) return { count: Math.min(rules.maxHeat, h.count), lastAlpha: 1 };
+  return { count: Math.min(rules.maxHeat, h.count), lastAlpha: 1 - Math.min(1, (phase - fadeStart) / fadeSeconds) * (1 - minAlpha) };
 }

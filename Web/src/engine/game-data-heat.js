@@ -65,7 +65,7 @@ function validateTiers(rows) {
 }
 
 export function validateHeat(d) {
-  closed(d, ["schema_version", "enabled", "offSwitch", "groupSize", "seed", "rng", "decay", "pressure", "world", "look"]);
+  closed(d, ["schema_version", "enabled", "offSwitch", "groupSize", "maxHeat", "seed", "rng", "decay", "pressure", "world", "look"]);
   if (typeof d.enabled !== "boolean") fail("heat", "enabled must be a boolean");
   closed(d.offSwitch, ["param", "value"]);
   for (const k of ["param", "value"]) if (typeof d.offSwitch[k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d.offSwitch[k])) fail("heat", `offSwitch.${k}`);
@@ -86,4 +86,6 @@ export function validateHeat(d) {
   count("heat", "world.maxGroups", d.world.maxGroups, 1, 12);
   count("heat", "world.renderOrder", d.world.renderOrder, 0, 1000);
   validateLook(d.look);
+  const top = d.pressure.tiers[d.pressure.tiers.length - 1].minHeat;
+  count("heat", "maxHeat", d.maxHeat, top, d.world.maxGroups * d.groupSize); // reaches the top tier and fits the tally's groups
 }

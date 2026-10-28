@@ -34,8 +34,9 @@ function drawGouge(ctx, outline, core, alpha) {
   ctx.restore();
 }
 
-// Paint `count` slots in groups; the newest slot takes `lastAlpha`.
-export function drawTally(ctx, count, lastAlpha) {
+// Paint the tally on its canvas. part "rest" draws every slot but the newest; part "newest" draws only the newest, so the fade needs no
+// repaint: the newest slot sits in its own sprite whose material opacity does the dimming.
+export function drawTally(ctx, count, part) {
   const w = HEAT.world,
     size = HEAT.groupSize,
     look = HEAT.look,
@@ -46,52 +47,59 @@ export function drawTally(ctx, count, lastAlpha) {
     ctx.translate((g + look.centre) * w.canvasPxPerGroup, w.canvasHeightPx * look.centre); // the middle of this group's cell
     const slots = groupSlots(look, size, Math.min(size, count - g * size), (i) => seeded(HEAT.seed + (g * size + i) * HEAT.rng.stride));
     for (const slot of slots) {
-      const alpha = g * size + slot.index === count - 1 ? lastAlpha : 1;
+      if ((g * size + slot.index === count - 1) !== (part === "newest")) continue;
       for (const spec of slot.gouges) {
         const core = { ...spec, widthPx: spec.widthPx * look.mark.coreShare, edgeJitterPx: spec.edgeJitterPx * look.mark.coreShare };
-        drawGouge(ctx, gougeOutline(slot.rand, spec), gougeOutline(seeded(HEAT.seed + slot.index), core), alpha);
+        drawGouge(ctx, gougeOutline(slot.rand, spec), gougeOutline(seeded(HEAT.seed + slot.index), core), 1);
       }
     }
     ctx.restore();
   }
 }
 
+function makeSprite(scene, count, groups, part) {
+  const w = HEAT.world,
+    canvas = globalThis.document.createElement("canvas");
+  canvas.width = groups * w.canvasPxPerGroup;
+  canvas.height = w.canvasHeightPx;
+  drawTally(canvas.getContext("2d"), count, part);
+  const map = new T.CanvasTexture(canvas);
+  map.colorSpace = T.SRGBColorSpace;
+  const sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
+  sprite.renderOrder = w.renderOrder;
+  const perPx = w.widthMetresPerGroup / w.canvasPxPerGroup;
+  sprite.scale.set(canvas.width * perPx, canvas.height * perPx, 1);
+  scene.add(sprite);
+  return sprite;
+}
+
+// Two textures per count (the settled marks, and the newest mark); a fade only changes the newest sprite's opacity, never builds a texture.
 export function createHeatTallyView(scene) {
   if (typeof globalThis.document?.createElement !== "function") return null;
   let key = null,
-    sprite = null;
+    sprites = [];
   const dispose = () => {
-    if (!sprite) return;
-    scene.remove(sprite);
-    sprite.material.map.dispose();
-    sprite.material.dispose();
-    sprite = null;
+    for (const sprite of sprites) {
+      scene.remove(sprite);
+      sprite.material.map.dispose();
+      sprite.material.dispose();
+    }
+    sprites = [];
     key = null;
   };
   return {
     // shown: { count, lastAlpha } or null; position: the render-space point above the player's head.
     update(shown, position) {
       if (!shown || !shown.count) return dispose();
-      const w = HEAT.world,
-        groups = Math.min(w.maxGroups, Math.ceil(shown.count / HEAT.groupSize)),
-        count = Math.min(shown.count, groups * HEAT.groupSize),
-        next = `${count}:${Math.round(shown.lastAlpha * 100)}`; // whole percent steps are enough to repaint a fade
-      if (next !== key) {
+      const groups = Math.min(HEAT.world.maxGroups, Math.ceil(shown.count / HEAT.groupSize)),
+        count = Math.min(shown.count, groups * HEAT.groupSize);
+      if (count !== key) {
         dispose();
-        const canvas = globalThis.document.createElement("canvas");
-        canvas.width = groups * w.canvasPxPerGroup;
-        canvas.height = w.canvasHeightPx;
-        drawTally(canvas.getContext("2d"), count, shown.lastAlpha);
-        const map = new T.CanvasTexture(canvas);
-        map.colorSpace = T.SRGBColorSpace;
-        sprite = new T.Sprite(new T.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
-        sprite.renderOrder = w.renderOrder;
-        const perPx = w.widthMetresPerGroup / w.canvasPxPerGroup;
-        sprite.scale.set(canvas.width * perPx, canvas.height * perPx, 1);
-        scene.add(sprite);
-        key = next;
+        sprites = [makeSprite(scene, count, groups, "rest"), makeSprite(scene, count, groups, "newest")];
+        key = count;
       }
-      sprite.position.copy(position);
+      sprites[1].material.opacity = shown.lastAlpha;
+      for (const sprite of sprites) sprite.position.copy(position);
     },
     dispose,
   };
