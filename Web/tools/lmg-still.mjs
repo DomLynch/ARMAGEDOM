@@ -41,22 +41,28 @@ const setup = await page.evaluate(() => {
   Object.assign(g.pistol, { collected: true, equipped: false, magazine: 6, reserve: 12 });
   p.weapon = "railgun";
   p.facing = { x: 0, z: 1 };
-  const bodies = [[0.4, 6], [-0.9, 7.5], [0.2, 9]].map(([dx, dz], i) => ({
-    ...structuredClone(g.enemies[0]), id: 9100 + i, placementKey: `lmg-still-${i}`, hp: 900, maxHp: 900,
-    pos: { x: p.pos.x + dx, z: p.pos.z + dz }, visible: true, hostile: true,
-  }));
-  g.enemies = [...g.enemies.filter((e) => Math.hypot(e.pos.x - p.pos.x, e.pos.z - p.pos.z) > 25), ...bodies];
-  return { magazine: data.rules.capacity };
+  // The real hostile bodies already in the scene are stood in the line of fire (a clone has no view): high hp, held in place, locked.
+  const real = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false).slice(0, 3);
+  real.forEach((e, i) => {
+    e.pos = { x: p.pos.x + [0.3, -0.8, 0.1][i], z: p.pos.z + [5, 6.5, 8][i] };
+    Object.assign(e, { hp: 900, maxHp: 900, recoverUntil: g.time + 60, swing: null });
+  });
+  g.enemies = g.enemies.filter((e) => real.includes(e) || Math.hypot(e.pos.x - p.pos.x, e.pos.z - p.pos.z) > 25);
+  g.touchTarget = { id: real[0].id, key: real[0].placementKey ?? String(real[0].id), areaId: g.world.areaId };
+  window.__lmgIds = real.map((e) => e.id);
+  return { magazine: data.rules.capacity, bodies: real.length };
 });
 if (setup.error) throw Error(setup.error);
 await page.waitForTimeout(3000); // the rifle model streams in
 await page.mouse.move(Number(arg("mx", 187)), Number(arg("my", 300)));
+await page.screenshot({ path: `${OUT}/${TAG}-idle-zoom.png`, clip: { x: 100, y: 420, width: 175, height: 260 } });
 await page.mouse.down();
 await page.waitForTimeout(700);
 await page.screenshot({ path: `${OUT}/${TAG}.png` });
+await page.screenshot({ path: `${OUT}/${TAG}-zoom.png`, clip: { x: 100, y: 420, width: 175, height: 260 } });
 const spent = await page.evaluate(() => {
   const g = window.__qa.game, s = g.bossEquipment.commanderPistol;
-  const hp = g.enemies.filter((e) => e.id >= 9100).map((e) => e.hp);
+  const hp = g.enemies.filter((e) => window.__lmgIds.includes(e.id)).map((e) => e.hp);
   const why = { weapon: g.player.weapon, selected: s.selected, status: s.status, area: g.world.areaId, lowered: g.weaponsLowered };
   return { magazine: s.magazine, reserve: s.reserve, ready: g.bossEquipmentAssetReady?.commanderPistol, hp, why };
 });

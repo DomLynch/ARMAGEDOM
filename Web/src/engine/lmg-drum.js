@@ -21,12 +21,10 @@ export function createLmgDrum(root) {
     }),
     drum = new T.Mesh(drumGeometry, drumMaterial),
     band = new T.Mesh(bandGeometry, bandMaterial);
-  // The cylinder's axis is Y; the drum sits side-on, so its axis runs across the gun (X).
-  drum.rotation.z = Math.PI / 2; // tuning-ok: a quarter turn lays the cylinder on its side
-  band.rotation.z = drum.rotation.z;
-  band.position.x = look.band.offset;
+  // A top-mounted pan: the cylinder's axis stays vertical, so the isometric camera looks down on the whole disc.
+  band.position.y = look.band.offset;
   group.add(drum, band);
-  group.position.set(0, look.drum.y, look.drum.z);
+  group.position.set(look.drum.x, look.drum.y, look.drum.z);
   let disposed = false;
   return {
     root: group,
