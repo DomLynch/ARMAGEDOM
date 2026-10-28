@@ -119,9 +119,9 @@
     {
       "area": "area8",
       "path": "area8/backdrop-phone.webp",
-      "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept); a red-and-white concrete barrier painted across the up-left lane (world/area8-barrier)",
-      "sha256": "51bbc501560cf56f8e31fccf9612fbb5a3d362645c6f67594f841cac9b05ffdc",
-      "bytes": 542196
+      "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept); a red-and-white concrete barrier painted across the up-left lane (world/area8-barrier); the czech-hedgehog and sandbag pile on the arrival road painted out (art/area8-clear-road, original kept there)",
+      "sha256": "b431d868d6e0d06bb9dbf6dd0110f50c1d7b7d407ea2306ba3f6ce5ac2999ef2",
+      "bytes": 545776
     },
     {
       "area": "central-hub",
