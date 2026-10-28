@@ -146,7 +146,8 @@ export function validateChainedPitborn(d) {
       fail("chainedPitborn", "chainedTargets." + name + " must be a list of event types");
   number("chainedPitborn", "chainedTargets.blastPaddingMetres", d.chainedTargets.blastPaddingMetres, 0.01);
   number("chainedPitborn", "chainedTargets.coverEdgeMetres", d.chainedTargets.coverEdgeMetres, 0.01);
-  if (typeof d.chainedTargets.coverBlocker !== "string" || !d.chainedTargets.coverBlocker) fail("chainedPitborn", "chainedTargets.coverBlocker must be a blocker name");
+  if (typeof d.chainedTargets.coverBlocker !== "string" || !d.chainedTargets.coverBlocker)
+    fail("chainedPitborn", "chainedTargets.coverBlocker must be a blocker name");
   number("chainedPitborn", "chainedTargets.sightSteps", d.chainedTargets.sightSteps, 1);
   if (typeof d.chainedTargets.aimTargetId !== "string" || !d.chainedTargets.aimTargetId) fail("chainedPitborn", "chainedTargets.aimTargetId must be text");
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
