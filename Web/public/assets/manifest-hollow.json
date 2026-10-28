@@ -1045,6 +1045,42 @@
         "intakeSHA256": "f9e5a5dade8a4c69af776f4c8862d38a377f844fb27c151b42309acc50cf65b4"
       }
     },
+    "cash-coin": {
+      "url": "cash/cash-coin.glb",
+      "bytes": 14816,
+      "sha256": "c6522504e6b4d47c77ea8113e83c6b6a3de125eca09c24205d7815c812eb8081",
+      "deferred": true,
+      "rig": "static-prop",
+      "tier": "single",
+      "triangles": 120,
+      "units": "metres",
+      "bounds": {"min": [-0.127, -0.018, -0.129], "max": [0.127, 0.045, 0.126]},
+      "provenance": {"source": "art/coins/build-coins.py (procedural, vertex colours, no textures)"}
+    },
+    "cash-pile": {
+      "url": "cash/cash-pile.glb",
+      "bytes": 81828,
+      "sha256": "f17079b65ffa9bead6b72e1cb44fa9b365379c2203cb022363356a847f23bd3f",
+      "deferred": true,
+      "rig": "static-prop",
+      "tier": "pile",
+      "triangles": 708,
+      "units": "metres",
+      "bounds": {"min": [-0.329, 0.0, -0.349], "max": [0.4, 0.112, 0.409]},
+      "provenance": {"source": "art/coins/build-coins.py (procedural, vertex colours, no textures)"}
+    },
+    "cash-stack": {
+      "url": "cash/cash-stack.glb",
+      "bytes": 137908,
+      "sha256": "194de916eead705bd3f75a9f33cc1a4cdb35d501dddc0f4c364f495df31f5f2d",
+      "deferred": true,
+      "rig": "static-prop",
+      "tier": "boss-stack",
+      "triangles": 1200,
+      "units": "metres",
+      "bounds": {"min": [-0.406, 0.0, -0.44], "max": [0.445, 0.448, 0.25]},
+      "provenance": {"source": "art/coins/build-coins.py (procedural, vertex colours, no textures)"}
+    },
     "player-grenade": {
       "url": "weapons/grenade.glb",
       "bytes": 8400,
