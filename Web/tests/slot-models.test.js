@@ -4,6 +4,25 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { createActors } from "../src/actors.js";
 import { ensureSlotModels, slotModelRefs } from "../src/engine/slot-models.js";
+import { createAreaRegistry } from "../src/area-registry.js";
+import { validateAreaMetadata } from "../src/engine/area-content.js";
+import { populationPlacements } from "../src/engine/area-population.js";
+import { AREA_MOB_SPAWNS } from "../src/area-mob-spawns.js";
+import { GAME_DATA } from "../src/engine/game-data.js";
+
+const readPublic = (p) => JSON.parse(readFileSync(new URL("../public/" + p, import.meta.url), "utf8"));
+const realContent = validateAreaMetadata(
+  readPublic("world/area-content.json"),
+  createAreaRegistry({ manifest: readPublic("world/manifest.json") }),
+);
+const realManifest = readPublic("assets/manifest-hollow.json");
+const realRigs = JSON.parse(readFileSync(new URL("../src/data/creatures.json", import.meta.url), "utf8")).rigCapabilities;
+// Every way the page can switch a monster off (?noelephant=1, ?noratking=1, ...) alone, plus all of them together.
+const offParams = [
+  ...Object.values(realRigs).flatMap((row) => (row.offParam ? [`${row.offParam}=1`] : [])),
+  `${GAME_DATA.ratKing.offParam}=${GAME_DATA.ratKing.offValue}`,
+];
+const searches = ["", ...offParams.map((p) => `?${p}`), `?${offParams.join("&")}`];
 
 // A slot creature that is dead when the run is restored (or the area is entered again) is in neither enemies nor corpses, so the
 // ordinary model preparation never loads its deferred foundation; its respawn then throws inside the frame loop.
@@ -116,4 +135,40 @@ test("restore and area entry prepare the slot models right after the ordinary pr
   }
   assert.match(session, /import \{ ensureSlotModels \} from "\.\/slot-models\.js";/);
   assert.match(session, /ensureSlotModels\(areaId\) \{\s+return ensureSlotModels\(survivorLibrary, world, areaId\);/);
+});
+
+test("every real area, cycle and off variant: the creature the slot spawns has its deferred foundation and appearance in the refs", () => {
+  const seen = new Set();
+  for (const area of Object.keys(realContent.populationData.areas)) {
+    const refs = new Set(slotModelRefs({ ...realContent, residentPlacements: realContent.residents }, area, realManifest));
+    for (const search of searches)
+      for (const cycle of ["A", "B"]) {
+        const rows = populationPlacements(realContent.populationData, area, cycle, AREA_MOB_SPAWNS[area] ?? realContent.residents[area], search);
+        const row = rows.find((r) => r.key === realContent.populationData.areas[area].creatureSlot.placementKey);
+        for (const ref of [row.foundationRef, row.appearanceRef])
+          if (ref !== undefined && (ref === row.appearanceRef || realManifest.models[ref]?.deferred === true)) {
+            assert(refs.has(ref), `${area} ${cycle} ${search}: ${ref} is queued`);
+            seen.add(ref);
+          }
+      }
+  }
+  for (const ref of ["rat-king", "original-elephant", "original-dog", "original-roach"])
+    assert(seen.has(ref), `${ref} is exercised by a real area variant`);
+});
+
+test("the fresh path queues the same slot refs for every real area, so restore and fresh entry cannot drift", async (t) => {
+  const { calls, actors, world } = setup(t);
+  Object.assign(world, { populationData: realContent.populationData, residentPlacements: realContent.residents });
+  actors.dispose();
+  const library = { manifest: realManifest, models: new Map(), ensureModels: async () => {}, dispose() {} };
+  const real = createActors(new THREE.Scene(), world, library);
+  t.after(() => real.dispose());
+  let queued;
+  library.ensureModels = async (refs) => (queued = refs);
+  for (const area of Object.keys(realContent.populationData.areas)) {
+    queued = [];
+    await real.ensureAreaModels({ enemies: [] }, area, { fresh: true });
+    for (const ref of slotModelRefs(world, area, realManifest)) assert(queued.includes(ref), `${area}: fresh path queues ${ref}`);
+  }
+  assert.deepEqual(calls, []);
 });

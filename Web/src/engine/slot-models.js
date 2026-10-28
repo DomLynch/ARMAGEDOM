@@ -1,16 +1,20 @@
 // Deferred model files an area's creature slot needs when its creature respawns. A slot creature that is dead when the run is
 // restored or the area is entered is not in the record's enemies or corpses, so the actors' ordinary model preparation never asks
-// for its foundation; its respawn then builds an actor whose model is not loaded and throws inside the frame loop. This mirrors
-// the slot and resident refs of actors.ensureAreaModels(record, area, { fresh: true }) (Web/tests/slot-models.test.js pins
-// the two together) without the placed bosses, which never respawn and stay deferred while dead.
+// for its foundation; its respawn then builds an actor whose model is not loaded and throws inside the frame loop. The fresh path
+// of actors.ensureAreaModels uses this same list (one source), without the placed bosses, which never respawn and stay deferred
+// while dead.
+import { slotAppearanceRefs } from "../area-mob-spawns.js";
 export function slotModelRefs(world, areaId, manifest) {
+  const policyArea = world.populationData?.areas[areaId];
   return [
-    ...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles ?? {})
-      .map((spec) => spec.foundationRef)
-      .filter((ref) => manifest.models[ref]?.deferred === true),
+    // Each cycle's creature and the creature its `off` fallback puts in the slot when its monster is switched off (?noelephant).
+    ...Object.values(policyArea?.creatureSlot.cycles ?? {})
+      .flatMap((spec) => [spec.foundationRef, spec.off?.foundationRef])
+      .filter((ref) => ref !== undefined && manifest.models[ref]?.deferred === true),
     ...(world.residentPlacements?.[areaId] ?? [])
       .filter((row) => row.appearanceRef !== undefined)
       .map((row) => row.appearanceRef),
+    ...slotAppearanceRefs(policyArea), // the Rat King's dressing, when switched on
   ];
 }
 // A promise only when something deferred has to load, so callers (`if (slot) await slot`) add no turn when it does not.
