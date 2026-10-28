@@ -4,11 +4,11 @@ const D = GAME_DATA.chainedPitborn,
   SPAWN = GAME_DATA.markedHunterSpawn,
   TURN = Math.PI + Math.PI, // one full turn in radians
   OFF = new URLSearchParams(globalThis.location?.search ?? "").get(D.offParam) === D.offValue; // read once, the page does not change it
-// The chained Pitborn breaks loose (data/chainedPitborn.json `breakLoose`). Walking up to the shackled Pitborn on the Westminster steps
-// snaps its chains; after snapSeconds it is a real marked hunter spawned at the nearest clear spot to where it stood, with the ordinary
-// hunter fight. It is held to the ordinary hunter gates and first-arrival wait (`allowed`, from stepMarkedHunters), so a new character
-// or a freshly dead one is not hunted before arrivalDelay. The state lives on the run object and is never saved: death puts the Pitborn
-// back in its chains, and once it is dead the prop stays gone for the run. ?chainedpitborn=0 (the view's off switch) also turns this off.
+// The chained Pitborn breaks loose (data/chainedPitborn.json `breakLoose`). It stays shackled on the Westminster steps until the player
+// shoots or strikes it (never by walking up): the chains snap, and after snapSeconds it is a real marked hunter spawned at the nearest clear
+// spot to where it stood, with the ordinary hunter fight. A finished run, an invalid run save or a safehouse block it like any hunter; the
+// arrival wait and the bounty gate do not, so a new player who shoots it gets the fight. The state lives on the run object and is never
+// saved: death puts the Pitborn back in its chains, and once it is dead the prop stays gone for the run. ?chainedpitborn=0 turns this off.
 export const chainBreakOn = () => D.enabled && B.enabled && !OFF;
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 export function chainBreakState(g) {
@@ -30,19 +30,41 @@ function clearSpot(geometry, at) {
     }
   return null;
 }
-export function stepChainBreak(g, spawn, allowed) {
+// The chained Pitborn takes no damage; a shot or a swing aimed at it this tick is what snaps the chains. A pistol or rifle shot counts when its
+// path passes within hitRadiusMetres of it (the shot does not stop there: it is not an enemy yet), a swing when it is within meleeReachMetres
+// and inside the melee targeting cone.
+function struck(g, at) {
+  const p = g.player,
+    cone = Math.cos((GAME_DATA.weapons.targeting.meleeConeDegrees * Math.PI) / 180);
+  return g.events.some((e) => {
+    if (e.type === "attack" && e.actor === p) {
+      const dx = at.x - p.pos.x,
+        dz = at.z - p.pos.z,
+        d = Math.hypot(dx, dz);
+      return d <= B.meleeReachMetres && d > 0 && (dx * p.facing.x + dz * p.facing.z) / d >= cone;
+    }
+    if (e.type !== "shot" || !e.origin || !e.end || (e.actor && e.actor !== p) || gap(e.origin, p.pos) > B.hitOriginMetres) return false;
+    const sx = e.end.x - e.origin.x,
+      sz = e.end.z - e.origin.z,
+      length = sx * sx + sz * sz,
+      t = length ? Math.max(0, Math.min(1, ((at.x - e.origin.x) * sx + (at.z - e.origin.z) * sz) / length)) : 0;
+    return gap({ x: e.origin.x + sx * t, z: e.origin.z + sz * t }, at) <= B.hitRadiusMetres;
+  });
+}
+// `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).
+export function stepChainBreak(g, spawn, open) {
   const w = g.world,
     marked = w?.markedData;
   if (!marked || !w.geometry || w.areaId !== D.areaId || !chainBreakOn()) return;
   const s = chainBreakState(g);
   if (s.state === "done") return;
-  if (!allowed) {
+  const at = w.geometry.ground(D.at);
+  if (!open) {
     if (s.state === "snapping") s.state = "chained";
     if (s.state === "chained") return;
   }
-  const at = w.geometry.ground(D.at);
   if (s.state === "chained") {
-    if (gap(g.player.pos, at) > B.triggerMetres) return;
+    if (!struck(g, at)) return;
     Object.assign(s, { state: "snapping", at: g.time });
     notify(g, B.text.snap);
     g.events.push({ type: "chained-pitborn-snap", position: { ...at } });
