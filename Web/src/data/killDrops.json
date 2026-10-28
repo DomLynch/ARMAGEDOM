@@ -1,58 +1,2404 @@
 {
-  "schema_version": 1,
-  "enabled": false,
-  "pickupRadius": 1,
-  "despawnSeconds": 45,
-  "maxDrops": 10,
-  "noticeSeconds": 2,
-  "refusalRepeatSeconds": 6,
-  "displayScale": 1.7,
-  "cylinderSegments": 12,
-  "roughness": 0.45,
-  "metalness": 0.55,
-  "roll": { "seed": 2166136261, "prime": 16777619, "modulus": 4294967296 },
-  "defaultTier": "trash",
-  "rigTiers": {
-    "original-rat": "trash",
-    "original-roach": "trash",
-    "original-dog": "creature",
-    "original-wolf": "creature",
-    "giant-salamander": "creature"
+ "schema_version": 1,
+ "enabled": false,
+ "pickupRadius": 1,
+ "despawnSeconds": 45,
+ "maxDrops": 10,
+ "noticeSeconds": 2,
+ "refusalRepeatSeconds": 6,
+ "displayScale": 1.7,
+ "cylinderSegments": 12,
+ "roughness": 0.45,
+ "metalness": 0.55,
+ "roll": {
+  "seed": 2166136261,
+  "prime": 16777619,
+  "modulus": 4294967296
+ },
+ "defaultTier": "trash",
+ "rigTiers": {
+  "original-rat": "trash",
+  "original-roach": "trash",
+  "original-dog": "creature",
+  "original-wolf": "creature",
+  "giant-salamander": "creature"
+ },
+ "tiers": {
+  "trash": {
+   "min": 1,
+   "max": 10,
+   "source": "kill:trash",
+   "model": "coinSingle"
   },
-  "tiers": {
-    "trash": { "min": 1, "max": 10, "source": "kill:trash", "model": "coinSingle" },
-    "creature": { "min": 11, "max": 20, "source": "kill:creature", "model": "coinPile" },
-    "boss": { "min": 21, "max": 40, "source": "kill:boss", "model": "coinStack" }
+  "creature": {
+   "min": 11,
+   "max": 20,
+   "source": "kill:creature",
+   "model": "coinPile"
   },
-  "text": {
-    "picked": "+${amount}",
-    "full": "Cannot carry more cash"
-  },
-  "models": {
+  "boss": {
+   "min": 21,
+   "max": 40,
+   "source": "kill:boss",
+   "model": "coinStack"
+  }
+ },
+ "text": {
+  "picked": "+${amount}",
+  "full": "Cannot carry more cash"
+ },
+ "models": {
+  "coinSingle": [
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     0,
+     0.0175,
+     0
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.105,
+     0.037
+    ],
+    "pos": [
+     0,
+     0.0185,
+     0
+    ],
+    "color": "e0aa1e"
+   }
+  ],
+  "coinPile": [
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     -0.07,
+     0.0175,
+     0.02
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     -0.07,
+     0.0525,
+     0.02
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     -0.07,
+     0.0875,
+     0.02
+    ],
+    "color": "e0aa1e"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     0.1,
+     0.0175,
+     -0.04
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     0.1,
+     0.0525,
+     -0.04
+    ],
+    "color": "e0aa1e"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.14,
+     0.035
+    ],
+    "pos": [
+     0.02,
+     0.0175,
+     0.17
+    ],
+    "color": "e0aa1e"
+   }
+  ],
+  "coinStack": [
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.02,
+     0
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.06,
+     0
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.1,
+     0
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.14,
+     0
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.18,
+     0
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0,
+     0.22,
+     0
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0.2,
+     0.02,
+     0.05
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     0.2,
+     0.06,
+     0.05
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     -0.19,
+     0.02,
+     0.1
+    ],
+    "color": "b8860b"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.15,
+     0.04
+    ],
+    "pos": [
+     -0.19,
+     0.06,
+     0.1
+    ],
+    "color": "c8921a"
+   },
+   {
+    "shape": "cylinder",
+    "size": [
+     0.12,
+     0.042
+    ],
+    "pos": [
+     0,
+     0.241,
+     0
+    ],
+    "color": "e0aa1e"
+   }
+  ]
+ },
+ "look": "classic",
+ "looks": {
+  "A": {
+   "scale": 1,
+   "material": {
+    "roughness": 0.3,
+    "metalness": 0.35,
+    "emissive": "6a4a08",
+    "emissiveIntensity": 1
+   },
+   "models": {
     "coinSingle": [
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [0, 0.0175, 0], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.105, 0.037], "pos": [0, 0.0185, 0], "color": "e0aa1e" }
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.006,
+       0.027,
+       0.086
+      ],
+      "color": "f6c632",
+      "rot": [
+       1.284,
+       2.781,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.079,
+       0.004,
+       0.025
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.022,
+       0.004,
+       0.008
+      ],
+      "color": "d99a14"
+     }
     ],
     "coinPile": [
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [-0.07, 0.0175, 0.02], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [-0.07, 0.0525, 0.02], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [-0.07, 0.0875, 0.02], "color": "e0aa1e" },
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [0.1, 0.0175, -0.04], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [0.1, 0.0525, -0.04], "color": "e0aa1e" },
-      { "shape": "cylinder", "size": [0.14, 0.035], "pos": [0.02, 0.0175, 0.17], "color": "e0aa1e" }
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.144,
+       0.027,
+       -0.025
+      ],
+      "color": "f6c632",
+      "rot": [
+       1.236,
+       1.644,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.139,
+       0.027,
+       -0.108
+      ],
+      "color": "e0a81c",
+      "rot": [
+       1.334,
+       1.254,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.182,
+       0.004,
+       0.03
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.06,
+       0.004,
+       0.007
+      ],
+      "color": "ffe27a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.06,
+       0.004,
+       -0.103
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.069,
+       0.004,
+       -0.008
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.063,
+       0.011,
+       0.018
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.127,
+       0.007,
+       -0.122
+      ],
+      "color": "f6c632"
+     }
     ],
     "coinStack": [
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.02, 0], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.06, 0], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.1, 0], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.14, 0], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.18, 0], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0, 0.22, 0], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0.2, 0.02, 0.05], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [0.2, 0.06, 0.05], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [-0.19, 0.02, 0.1], "color": "b8860b" },
-      { "shape": "cylinder", "size": [0.15, 0.04], "pos": [-0.19, 0.06, 0.1], "color": "c8921a" },
-      { "shape": "cylinder", "size": [0.12, 0.042], "pos": [0, 0.241, 0], "color": "e0aa1e" }
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.303,
+       0.027,
+       -0.237
+      ],
+      "color": "f6c632",
+      "rot": [
+       1.18,
+       1.772,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.135,
+       0.027,
+       0.179
+      ],
+      "color": "e0a81c",
+      "rot": [
+       1.254,
+       2.135,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.058,
+       0.027,
+       0.148
+      ],
+      "color": "ffe27a",
+      "rot": [
+       1.362,
+       1.877,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.29,
+       0.027,
+       0.275
+      ],
+      "color": "d99a14",
+      "rot": [
+       1.245,
+       0.534,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.009,
+       0.027,
+       0.384
+      ],
+      "color": "f6c632",
+      "rot": [
+       1.276,
+       1.478,
+       0.25
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.12,
+       0.004,
+       0.235
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.333,
+       0.004,
+       0.004
+      ],
+      "color": "d99a14"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.181,
+       0.004,
+       0.233
+      ],
+      "color": "ffe27a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.181,
+       0.004,
+       -0.164
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.235,
+       0.004,
+       -0.278
+      ],
+      "color": "ffe27a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.352,
+       0.004,
+       0.04
+      ],
+      "color": "d99a14"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.17,
+       0.004,
+       0.336
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.067,
+       0.004,
+       0.384
+      ],
+      "color": "ffe27a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.023,
+       0.004,
+       0.088
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.16,
+       0.004,
+       -0.31
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.347,
+       0.004,
+       -0.02
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.114,
+       0.007,
+       0.208
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.124,
+       0.004,
+       -0.131
+      ],
+      "color": "ffe27a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.082,
+       0.004,
+       -0.252
+      ],
+      "color": "e0a81c"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.23,
+       0.004,
+       -0.035
+      ],
+      "color": "f6c632"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       -0.206,
+       0.004,
+       0.179
+      ],
+      "color": "d99a14"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.034,
+       0.007
+      ],
+      "pos": [
+       0.227,
+       0.004,
+       -0.269
+      ],
+      "color": "f6c632"
+     }
     ]
+   },
+   "fx": {
+    "trash": {
+     "pool": {
+      "radius": 0.85,
+      "colour": "ffc850",
+      "opacity": 1,
+      "pulse": 0.25,
+      "hz": 0.7
+     },
+     "glint": {
+      "count": 3,
+      "radius": 0.12,
+      "height": 0.1,
+      "size": 0.5,
+      "colour": "fff2b0",
+      "hz": 0.8,
+      "sharpness": 6
+     }
+    },
+    "creature": {
+     "pool": {
+      "radius": 1.15,
+      "colour": "ffc850",
+      "opacity": 1,
+      "pulse": 0.25,
+      "hz": 0.7
+     },
+     "glint": {
+      "count": 5,
+      "radius": 0.24,
+      "height": 0.1,
+      "size": 0.55,
+      "colour": "fff2b0",
+      "hz": 0.8,
+      "sharpness": 6
+     }
+    },
+    "boss": {
+     "pool": {
+      "radius": 1.6,
+      "colour": "ffc850",
+      "opacity": 1,
+      "pulse": 0.25,
+      "hz": 0.7
+     },
+     "glint": {
+      "count": 9,
+      "radius": 0.42,
+      "height": 0.12,
+      "size": 0.65,
+      "colour": "fff2b0",
+      "hz": 0.8,
+      "sharpness": 6
+     }
+    }
+   }
+  },
+  "B": {
+   "scale": 1,
+   "material": {
+    "roughness": 0.38,
+    "metalness": 0.45,
+    "emissive": "3a2a05",
+    "emissiveIntensity": 1
+   },
+   "motion": {
+    "spin": 0.12,
+    "bob": 0,
+    "bobHz": 0.5,
+    "lift": 0
+   },
+   "models": {
+    "coinSingle": [
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0,
+       0.028,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.35,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0,
+       0.058,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.35,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0,
+       0.062,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.35,
+       0
+      ]
+     }
+    ],
+    "coinPile": [
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       -0.11,
+       0.028,
+       0.05
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.1,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       -0.11,
+       0.058,
+       0.05
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.1,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       -0.11,
+       0.062,
+       0.05
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.1,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0.11,
+       0.028,
+       0.05
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       -0.08,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0.11,
+       0.058,
+       0.05
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       -0.08,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0.11,
+       0.062,
+       0.05
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       -0.08,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0,
+       0.088,
+       0.05
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0,
+       0.119,
+       0.05
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0,
+       0.122,
+       0.05
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.045,
+       0.085
+      ],
+      "pos": [
+       0,
+       0.023,
+       -0.14
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.2,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.035,
+       0.047,
+       0.088
+      ],
+      "pos": [
+       0,
+       0.024,
+       -0.14
+      ],
+      "color": "7a5a10",
+      "rot": [
+       0,
+       0.2,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.004,
+       0.085
+      ],
+      "pos": [
+       0,
+       0.047,
+       -0.14
+      ],
+      "color": "fbf3d4",
+      "rot": [
+       0,
+       0.2,
+       0
+      ]
+     }
+    ],
+    "coinStack": [
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       -0.2,
+       0.028,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       -0.2,
+       0.058,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       -0.2,
+       0.062,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0,
+       0.028,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0,
+       0.058,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0,
+       0.062,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0.2,
+       0.028,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       -0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0.2,
+       0.058,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       -0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0.2,
+       0.062,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       -0.05,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       -0.1,
+       0.088,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       -0.1,
+       0.119,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       -0.1,
+       0.122,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0.1,
+       0.088,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       -0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0.1,
+       0.119,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       -0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0.1,
+       0.122,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       -0.02,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.2,
+       0.055,
+       0.095
+      ],
+      "pos": [
+       0,
+       0.149,
+       0
+      ],
+      "color": "a37c16",
+      "rot": [
+       0,
+       0.04,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.006,
+       0.07
+      ],
+      "pos": [
+       0,
+       0.179,
+       0
+      ],
+      "color": "dcb347",
+      "rot": [
+       0,
+       0.04,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.05,
+       0.003,
+       0.025
+      ],
+      "pos": [
+       0,
+       0.183,
+       0
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.04,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.045,
+       0.085
+      ],
+      "pos": [
+       -0.15,
+       0.023,
+       -0.17
+      ],
+      "color": "efe5c2",
+      "rot": [
+       0,
+       0.3,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.035,
+       0.047,
+       0.088
+      ],
+      "pos": [
+       -0.15,
+       0.024,
+       -0.17
+      ],
+      "color": "7a5a10",
+      "rot": [
+       0,
+       0.3,
+       0
+      ]
+     },
+     {
+      "shape": "box",
+      "size": [
+       0.17,
+       0.004,
+       0.085
+      ],
+      "pos": [
+       -0.15,
+       0.047,
+       -0.17
+      ],
+      "color": "fbf3d4",
+      "rot": [
+       0,
+       0.3,
+       0
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.11,
+       0.17
+      ],
+      "pos": [
+       0.28,
+       0.085,
+       -0.2
+      ],
+      "color": "b9a678"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.07,
+       0.07
+      ],
+      "pos": [
+       0.28,
+       0.19,
+       -0.2
+      ],
+      "color": "c9b98a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.05,
+       0.02
+      ],
+      "pos": [
+       0.28,
+       0.215,
+       -0.2
+      ],
+      "color": "7a5a10"
+     }
+    ]
+   },
+   "fx": {
+    "trash": {
+     "pool": {
+      "radius": 0.7,
+      "colour": "ffd890",
+      "opacity": 0.85,
+      "pulse": 0.2,
+      "hz": 0.5
+     },
+     "beam": {
+      "radius": 0.11,
+      "taper": 0.55,
+      "height": 2,
+      "colour": "ffe8a0",
+      "opacity": 0.3
+     },
+     "glint": {
+      "count": 1,
+      "radius": 0.05,
+      "height": 0.12,
+      "size": 0.3,
+      "colour": "fffbe0",
+      "hz": 0.6,
+      "sharpness": 8
+     }
+    },
+    "creature": {
+     "pool": {
+      "radius": 1,
+      "colour": "ffd890",
+      "opacity": 0.9,
+      "pulse": 0.2,
+      "hz": 0.5
+     },
+     "beam": {
+      "radius": 0.16,
+      "taper": 0.55,
+      "height": 2.6,
+      "colour": "ffe8a0",
+      "opacity": 0.32
+     },
+     "glint": {
+      "count": 2,
+      "radius": 0.15,
+      "height": 0.14,
+      "size": 0.34,
+      "colour": "fffbe0",
+      "hz": 0.6,
+      "sharpness": 8
+     }
+    },
+    "boss": {
+     "pool": {
+      "radius": 1.4,
+      "colour": "ffd890",
+      "opacity": 0.95,
+      "pulse": 0.2,
+      "hz": 0.5
+     },
+     "beam": {
+      "radius": 0.24,
+      "taper": 0.55,
+      "height": 3.4,
+      "colour": "ffe8a0",
+      "opacity": 0.34
+     },
+     "glint": {
+      "count": 3,
+      "radius": 0.3,
+      "height": 0.2,
+      "size": 0.4,
+      "colour": "fffbe0",
+      "hz": 0.6,
+      "sharpness": 8
+     }
+    }
+   }
+  },
+  "C": {
+   "scale": 1,
+   "material": {
+    "roughness": 0.32,
+    "metalness": 0.3,
+    "emissive": "5a2610",
+    "emissiveIntensity": 1
+   },
+   "motion": {
+    "spin": 0.1,
+    "bob": 0.05,
+    "bobHz": 0.6,
+    "lift": 0.07
+   },
+   "models": {
+    "coinSingle": [
+     {
+      "shape": "cylinder",
+      "size": [
+       0.12,
+       0.026
+      ],
+      "pos": [
+       0.002,
+       0.013,
+       0.001
+      ],
+      "color": "d9742a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.085,
+       0.026
+      ],
+      "pos": [
+       -0.004,
+       0.036,
+       0.002
+      ],
+      "color": "e89a30"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.05,
+       0.026
+      ],
+      "pos": [
+       0.003,
+       0.06,
+       0.001
+      ],
+      "color": "f2bd48"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.05,
+       0.008
+      ],
+      "pos": [
+       0.01,
+       0.1,
+       0
+      ],
+      "color": "fff1c0",
+      "rot": [
+       1,
+       0.6,
+       0.3
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.097,
+       0.03,
+       0.111
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.199,
+       1.307,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.191,
+       0.03,
+       0.01
+      ],
+      "color": "f2bd48",
+      "rot": [
+       0.979,
+       0.846,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.059,
+       0.03,
+       -0.176
+      ],
+      "color": "ffd978",
+      "rot": [
+       1.294,
+       2.857,
+       0.2
+      ]
+     }
+    ],
+    "coinPile": [
+     {
+      "shape": "cylinder",
+      "size": [
+       0.2,
+       0.026
+      ],
+      "pos": [
+       -0.005,
+       0.013,
+       0.004
+      ],
+      "color": "d9742a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.15,
+       0.026
+      ],
+      "pos": [
+       -0.003,
+       0.036,
+       0.005
+      ],
+      "color": "e89a30"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.1,
+       0.026
+      ],
+      "pos": [
+       -0.003,
+       0.06,
+       0.004
+      ],
+      "color": "f2bd48"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.055,
+       0.026
+      ],
+      "pos": [
+       0.003,
+       0.083,
+       0.001
+      ],
+      "color": "ffd978"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.05,
+       0.008
+      ],
+      "pos": [
+       0.01,
+       0.124,
+       0
+      ],
+      "color": "fff1c0",
+      "rot": [
+       1,
+       0.6,
+       0.3
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.22,
+       0.03,
+       0.138
+      ],
+      "color": "e89a30",
+      "rot": [
+       0.974,
+       0.081,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.072,
+       0.03,
+       0.229
+      ],
+      "color": "f2bd48",
+      "rot": [
+       1.206,
+       0.263,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.26,
+       0.03,
+       0.07
+      ],
+      "color": "ffd978",
+      "rot": [
+       1.297,
+       0.567,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.103,
+       0.03,
+       -0.25
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.063,
+       1.615,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.103,
+       0.03,
+       -0.265
+      ],
+      "color": "f2bd48",
+      "rot": [
+       0.994,
+       1.326,
+       0.2
+      ]
+     }
+    ],
+    "coinStack": [
+     {
+      "shape": "cylinder",
+      "size": [
+       0.34,
+       0.026
+      ],
+      "pos": [
+       -0.003,
+       0.013,
+       0.002
+      ],
+      "color": "d9742a"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.28,
+       0.026
+      ],
+      "pos": [
+       0.002,
+       0.036,
+       -0.001
+      ],
+      "color": "e89a30"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.22,
+       0.026
+      ],
+      "pos": [
+       -0.004,
+       0.06,
+       0.004
+      ],
+      "color": "f2bd48"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.16,
+       0.026
+      ],
+      "pos": [
+       -0.004,
+       0.083,
+       0.001
+      ],
+      "color": "ffd978"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.1,
+       0.026
+      ],
+      "pos": [
+       -0.003,
+       0.107,
+       0.003
+      ],
+      "color": "ffe9a0"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.055,
+       0.026
+      ],
+      "pos": [
+       -0.001,
+       0.13,
+       0.001
+      ],
+      "color": "fff1c0"
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.05,
+       0.008
+      ],
+      "pos": [
+       0.01,
+       0.17,
+       0
+      ],
+      "color": "fff1c0",
+      "rot": [
+       1,
+       0.6,
+       0.3
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.367,
+       0.03,
+       0.183
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.037,
+       2.046,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.224,
+       0.03,
+       0.302
+      ],
+      "color": "f2bd48",
+      "rot": [
+       1.215,
+       1.686,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.134,
+       0.03,
+       0.455
+      ],
+      "color": "ffd978",
+      "rot": [
+       1.113,
+       0.865,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.248,
+       0.03,
+       0.434
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.217,
+       0.084,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.422,
+       0.03,
+       0.132
+      ],
+      "color": "f2bd48",
+      "rot": [
+       0.924,
+       1.573,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.264,
+       0.03,
+       -0.34
+      ],
+      "color": "ffd978",
+      "rot": [
+       1.268,
+       0.023,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.019,
+       0.03,
+       -0.406
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.072,
+       2.809,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       -0.026,
+       0.03,
+       -0.391
+      ],
+      "color": "f2bd48",
+      "rot": [
+       1.278,
+       0.412,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.228,
+       0.03,
+       -0.302
+      ],
+      "color": "ffd978",
+      "rot": [
+       1.117,
+       0.54,
+       0.2
+      ]
+     },
+     {
+      "shape": "cylinder",
+      "size": [
+       0.04,
+       0.008
+      ],
+      "pos": [
+       0.495,
+       0.03,
+       0.026
+      ],
+      "color": "e89a30",
+      "rot": [
+       1.075,
+       0.177,
+       0.2
+      ]
+     }
+    ]
+   },
+   "fx": {
+    "trash": {
+     "pool": {
+      "radius": 0.65,
+      "colour": "ff9a50",
+      "opacity": 0.6,
+      "pulse": 0.3,
+      "hz": 0.9,
+      "ringAt": 0.78
+     },
+     "beam": {
+      "radius": 0.07,
+      "taper": 0.3,
+      "height": 3.2,
+      "colour": "ffb060",
+      "opacity": 0.24
+     },
+     "glint": {
+      "count": 3,
+      "radius": 0.14,
+      "height": 0.2,
+      "size": 0.3,
+      "colour": "ffe9a0",
+      "hz": 0.9,
+      "sharpness": 8
+     },
+     "burst": {
+      "count": 6,
+      "period": 1.6,
+      "spread": 0.3,
+      "rise": 0.55,
+      "base": 0.15,
+      "size": 0.2,
+      "colour": "ffc070"
+     }
+    },
+    "creature": {
+     "pool": {
+      "radius": 0.95,
+      "colour": "ff9a50",
+      "opacity": 0.65,
+      "pulse": 0.3,
+      "hz": 0.9,
+      "ringAt": 0.78
+     },
+     "beam": {
+      "radius": 0.09,
+      "taper": 0.3,
+      "height": 4,
+      "colour": "ffb060",
+      "opacity": 0.26
+     },
+     "glint": {
+      "count": 5,
+      "radius": 0.24,
+      "height": 0.24,
+      "size": 0.34,
+      "colour": "ffe9a0",
+      "hz": 0.9,
+      "sharpness": 8
+     },
+     "burst": {
+      "count": 10,
+      "period": 1.6,
+      "spread": 0.5,
+      "rise": 0.75,
+      "base": 0.2,
+      "size": 0.24,
+      "colour": "ffc070"
+     }
+    },
+    "boss": {
+     "pool": {
+      "radius": 1.35,
+      "colour": "ff9a50",
+      "opacity": 0.7,
+      "pulse": 0.3,
+      "hz": 0.9,
+      "ringAt": 0.78
+     },
+     "beam": {
+      "radius": 0.13,
+      "taper": 0.3,
+      "height": 5,
+      "colour": "ffb060",
+      "opacity": 0.28
+     },
+     "glint": {
+      "count": 8,
+      "radius": 0.4,
+      "height": 0.3,
+      "size": 0.4,
+      "colour": "ffe9a0",
+      "hz": 0.9,
+      "sharpness": 8
+     },
+     "burst": {
+      "count": 16,
+      "period": 1.6,
+      "spread": 0.75,
+      "rise": 0.95,
+      "base": 0.25,
+      "size": 0.3,
+      "colour": "ffc070"
+     }
+    }
+   }
   }
+ },
+ "fxStyle": {
+  "textureSize": 64,
+  "poolStops": [
+   [
+    0,
+    1
+   ],
+   [
+    0.35,
+    0.6
+   ],
+   [
+    0.7,
+    0.2
+   ],
+   [
+    1,
+    0
+   ]
+  ],
+  "ringAlpha": 0.55,
+  "ringWidth": 2,
+  "starCore": 0.28,
+  "starArm": 0.95,
+  "starWidth": 2,
+  "beamStops": [
+   [
+    0,
+    1
+   ],
+   [
+    0.15,
+    0.7
+   ],
+   [
+    0.6,
+    0.25
+   ],
+   [
+    1,
+    0
+   ]
+  ],
+  "beamSegments": 16,
+  "floorLift": 0.012,
+  "renderOrder": 12,
+  "heightLow": 0.4,
+  "minScale": 0.0001,
+  "seedStep": 97,
+  "hashA": 12.9898,
+  "hashB": 78.233,
+  "hashC": 43758.5453,
+  "burstArc": 1
+ }
 }
