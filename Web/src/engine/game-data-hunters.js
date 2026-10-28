@@ -123,6 +123,30 @@ export function validatePhysicsBody(d) {
   number("physicsBody", "height_m", d.row.height_m, 0.1);
 }
 
+// physicsRigs.json (physics-death.js): which manifest models ragdoll on death, their rig family (bone map) and body row. `live: false` keeps the
+// baked death. The body "physicsBody" is the single row in physicsBody.json (the marked hunter's); every other body is listed under `bodies`.
+export function validatePhysicsRigs(d) {
+  closed(d, ["schema_version", "note", "rigs", "bodies", "models"]);
+  for (const [name, rig] of Object.entries(d.rigs)) {
+    closed(rig, ["nodePrefix", "parts"]);
+    if (typeof rig.nodePrefix !== "string") fail("physicsRigs", `${name}.nodePrefix must be a string`);
+    if (typeof rig.parts === "object" && Object.keys(rig.parts).length !== 20)
+      fail("physicsRigs", `${name}.parts must name the 20 ragdoll parts`);
+    else if (typeof rig.parts !== "object" && rig.parts !== "physicsDeath.parts")
+      fail("physicsRigs", `${name}.parts must be a part map or "physicsDeath.parts"`);
+  }
+  for (const [name, row] of Object.entries(d.bodies)) {
+    if (Object.keys(row.joints ?? {}).length !== 20) fail("physicsRigs", `${name}.joints must hold the 20 role joints`);
+    number("physicsRigs", `${name}.height_m`, row.height_m, 0.1);
+  }
+  for (const [name, m] of Object.entries(d.models)) {
+    closed(m, ["rig", "body", "live"]);
+    if (!Object.hasOwn(d.rigs, m.rig)) fail("physicsRigs", `${name}.rig must be one of rigs`);
+    if (m.body !== "physicsBody" && !Object.hasOwn(d.bodies, m.body)) fail("physicsRigs", `${name}.body must be physicsBody or one of bodies`);
+    if (typeof m.live !== "boolean") fail("physicsRigs", `${name}.live must be true or false`);
+  }
+}
+
 export function validateChainedPitborn(d) {
   closed(d, ["schema_version", "enabled", "offParam", "offValue", "areaId", "model", "at", "facesToward",
     "scaleMultiplier", "breakLoose", "chainedTargets", "emissive", "rim", "flicker", "motion", "chains", "dust"]);
