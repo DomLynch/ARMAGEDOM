@@ -13,6 +13,9 @@
     "triggerMetres": 4.5,
     "snapSeconds": 1.4,
     "retrySeconds": 1,
+    "clearSearchMetres": 3,
+    "clearStepMetres": 0.25,
+    "clearDirections": 16,
     "messageSeconds": 4,
     "text": {
       "snap": "The chains SNAP.",

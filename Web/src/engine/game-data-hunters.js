@@ -67,9 +67,9 @@ export function validateChainedPitborn(d) {
   for (const name of ["at", "facesToward"])
     if (!(d[name].x >= 0 && d[name].x <= 1 && d[name].y >= 0 && d[name].y <= 1)) fail("chainedPitborn", name + " must be art 0 to 1");
   number("chainedPitborn", "scaleMultiplier", d.scaleMultiplier, 0.1);
-  closed(d.breakLoose, ["enabled", "triggerMetres", "snapSeconds", "retrySeconds", "messageSeconds", "text"]);
+  closed(d.breakLoose, ["enabled", "triggerMetres", "snapSeconds", "retrySeconds", "clearSearchMetres", "clearStepMetres", "clearDirections", "messageSeconds", "text"]);
   if (typeof d.breakLoose.enabled !== "boolean") fail("chainedPitborn", "breakLoose.enabled must be true or false");
-  for (const name of ["triggerMetres", "snapSeconds", "retrySeconds", "messageSeconds"])
+  for (const name of ["triggerMetres", "snapSeconds", "retrySeconds", "clearSearchMetres", "clearStepMetres", "clearDirections", "messageSeconds"])
     number("chainedPitborn", "breakLoose." + name, d.breakLoose[name], 0.01);
   closed(d.breakLoose.text, ["snap", "loose"]);
   for (const name of ["snap", "loose"])
