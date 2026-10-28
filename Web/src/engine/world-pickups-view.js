@@ -1,5 +1,7 @@
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { GAME_DATA } from "./game-data.js";
+import { createDropMarker } from "./drop-marker.js";
 import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
@@ -40,6 +42,18 @@ export function createWorldPickups(world) {
     group.add(mesh);
     parts.push({ rows, mesh, shown: rows.map(() => null), glow: addPickupGlow(mesh), geometry, material });
   }
+  // A coloured ground ring and glow under every pickup, and its name once the player is within `labelDistance`. Each pickup has its own root
+  // (the marker pulses its parent), apart from the instanced models.
+  const MARKERS = WORLD_PICKUPS.markers,
+    markers = list.map((row) => {
+      const root = new THREE.Group(),
+        look = MARKERS[row.type],
+        marker = createDropMarker(look.label, { ...GAME_DATA.visual.dropMarker, ...MARKERS.style, ringColour: look.ringColour, labelColour: look.labelColour });
+      root.position.set(row.x, 0, -row.z);
+      root.add(marker.group);
+      group.add(root);
+      return { row, root, marker };
+    });
   world.group.add(group);
   // The spot is "in view" while it projects inside the screen (plus the data's margin): a taken pickup waits for it to leave.
   // The camera is passed in each time: this stage's own camera is only a copy once the area has been entered.
@@ -69,11 +83,17 @@ export function createWorldPickups(world) {
     sync(g) {
       const until = worldPickupState(g).until;
       for (const part of parts) for (let i = 0; i < part.rows.length; i++) show(part, i, until[part.rows[i].id] === undefined);
+      const at = g.player.pos;
+      for (const { row, root, marker } of markers) {
+        root.visible = until[row.id] === undefined;
+        if (marker.sprite) marker.sprite.visible = Math.hypot(row.x - at.x, row.z - at.z) <= MARKERS.labelDistance;
+      }
     },
     dispose() {
       if (disposed) return;
       disposed = true;
       group.removeFromParent();
+      for (const { marker } of markers) marker.dispose();
       for (const part of parts) {
         part.glow.dispose();
         part.geometry.dispose();
