@@ -180,7 +180,8 @@
         "original-rat": { "scaled": 0.18 },
         "original-dog": { "scaled": 0.35 },
         "original-roach": { "scaled": 0.08 },
-        "original-crow": { "scaled": 0.18 }
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 }
       },
       "confirm": {
         "default": { "scaled": 2 },
@@ -190,7 +191,8 @@
         "original-rat": { "scaled": 0.18 },
         "original-dog": { "scaled": 0.35 },
         "original-roach": { "scaled": 0.08 },
-        "original-crow": { "scaled": 0.18 }
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 }
       },
       "tracer": {
         "default": {},
@@ -201,7 +203,8 @@
         "original-dog": { "scaled": 0.35 },
         "original-roach": { "scaled": 0.08 },
         "giant-salamander": { "scaled": 0.18 },
-        "original-crow": { "scaled": 0.18 }
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 }
       },
       "reticle": {
         "default": { "scaled": 1.15 },
@@ -212,7 +215,8 @@
         "original-rat": { "scaled": 0.18 },
         "original-dog": { "scaled": 0.35 },
         "original-roach": { "scaled": 0.08 },
-        "original-crow": { "scaled": 0.18 }
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 }
       }
     }
   },

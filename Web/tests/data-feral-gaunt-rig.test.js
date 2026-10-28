@@ -50,6 +50,26 @@ old.rigCapabilities["giant-eel"] = {
   enabled: true,
   offParam: "noeel",
 };
+// 28 Oct: the spider rig row is appended (art/monster-spider).
+old.rigCapabilities["original-spider"] = {
+  lowStrike: true,
+  animal: true,
+  species: "spider",
+  optionalMonster: true,
+  enabled: true,
+  offParam: "nospider",
+  populationSlot: true,
+  brain: "dog",
+  lowSwing: "roach",
+  biteMove: "roach",
+  calfContact: true,
+  targetHeight: 0.1,
+  targetHeightReach: 0.26,
+  hitClip: "roach_hit",
+  deathClip: "roach_death",
+  hitTicks: 18,
+  deathTicks: 48,
+};
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {

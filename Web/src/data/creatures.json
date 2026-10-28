@@ -172,7 +172,8 @@
       "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] },
       "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] },
       "giant-eel": { "controller": "eel-native-bite", "weapon": "teeth", "rig": "giant-eel", "actions": ["attack"] },
-      "original-elephant": { "controller": "elephant-native-bite", "weapon": "teeth", "rig": "original-elephant", "actions": ["attack"] }
+      "original-elephant": { "controller": "elephant-native-bite", "weapon": "teeth", "rig": "original-elephant", "actions": ["attack"] },
+      "original-spider": { "controller": "roach-native-bite", "weapon": "teeth", "rig": "original-spider", "actions": ["attack"] }
     },
     "reach": {
       "original-wolf": 2.375,
@@ -182,7 +183,8 @@
       "giant-salamander": 3.1078573708270647,
       "original-crow": 1.4004105398402,
       "giant-eel": 0.8,
-      "original-elephant": 4.95
+      "original-elephant": 4.95,
+      "original-spider": 1.6063268331546576
     }
   },
   "behaviours": {
@@ -215,7 +217,8 @@
       "roach-heavy-shell": "cautious",
       "crow-carrion": "brisk",
       "eel-river-ambusher": "baseline",
-      "elephant-ashen-bull": "baseline"
+      "elephant-ashen-bull": "baseline",
+      "spider-crypt": "baseline"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -263,7 +266,8 @@
       "crow-carrion": "short-burst",
       "crow-ragged": "baseline",
       "eel-river-ambusher": "ambush",
-      "elephant-ashen-bull": "baseline"
+      "elephant-ashen-bull": "baseline",
+      "spider-crypt": "ambush"
     }
   },
   "animalCycles": {
@@ -493,6 +497,25 @@
       "optionalMonster": true,
       "enabled": true,
       "offParam": "noelephant"
+    },
+    "original-spider": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "spider",
+      "optionalMonster": true,
+      "enabled": true,
+      "offParam": "nospider",
+      "populationSlot": true,
+      "brain": "dog",
+      "lowSwing": "roach",
+      "biteMove": "roach",
+      "calfContact": true,
+      "targetHeight": 0.1,
+      "targetHeightReach": 0.26,
+      "hitClip": "roach_hit",
+      "deathClip": "roach_death",
+      "hitTicks": 18,
+      "deathTicks": 48
     }
   }
 }

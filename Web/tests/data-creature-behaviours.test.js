@@ -22,6 +22,9 @@ old.recipeIntents["eel-river-ambusher"] = "ambush";
 // 28 Oct: the elephant recipe rows are appended (art/monster-elephant).
 old.recipeBehaviours["elephant-ashen-bull"] = "baseline";
 old.recipeIntents["elephant-ashen-bull"] = "baseline";
+// 28 Oct: the spider's recipe rows are appended (art/monster-spider).
+old.recipeBehaviours["spider-crypt"] = "baseline";
+old.recipeIntents["spider-crypt"] = "ambush";
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {
   for (const [table, rows, expected] of [
     ["presets", CREATURE_BEHAVIOURS, old.presets],

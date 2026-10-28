@@ -457,6 +457,15 @@
     "recoveryTicks": 28,
     "range": 1.2
    },
+   "original-spider": {
+    "clip": "RatLowSlash",
+    "slashMoveId": "roach_low",
+    "includeRadius": true,
+    "windupTicks": 20,
+    "activeTicks": 6,
+    "recoveryTicks": 28,
+    "range": 1.2
+   },
    "original-dog": {
     "clip": "DogMidSlash",
     "slashMoveId": "dog_low",

@@ -9,7 +9,7 @@ import { countRigLiterals } from "../../scripts/as-data-gate.mjs";
 // visual.json effects.targetHeights; the fire-breath glow asks the breathEmitter capability.
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/visual.json", import.meta.url))));
 const heights = GAME_DATA.visual.effects.targetHeights;
-const low = { "original-rat": { scaled: 0.18 }, "original-dog": { scaled: 0.35 }, "original-roach": { scaled: 0.08 }, "original-crow": { scaled: 0.18 } }; // 28 Oct: the crow stands as tall as the rat
+const low = { "original-rat": { scaled: 0.18 }, "original-dog": { scaled: 0.35 }, "original-roach": { scaled: 0.08 }, "original-crow": { scaled: 0.18 }, "original-spider": { scaled: 0.1 } }; // 28 Oct: the crow stands as tall as the rat
 
 test("the height rows equal the old in-code numbers, site by site", () => {
   assert.deepEqual(heights.burst, { default: { scaled: 1.1 }, "original-wolf": { fixed: 1.625 }, "original-elephant": { fixed: 2.7 }, "low-hover-drone": { drone: true }, ...low });

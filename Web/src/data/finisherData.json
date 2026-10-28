@@ -942,6 +942,20 @@
         "radius": 0.1
       },
       {
+        "id": "original-spider",
+        "material": "chitin",
+        "bodyBones": [
+          "thorax",
+          "abdomen",
+          "body"
+        ],
+        "headBones": [
+          "head"
+        ],
+        "radius": 0.11,
+        "upperRegion": "body"
+      },
+      {
         "id": "low-hover-drone",
         "material": "machine",
         "bodyBones": [],

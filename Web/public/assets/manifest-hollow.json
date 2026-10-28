@@ -438,6 +438,60 @@
         ]
       }
     },
+    "original-spider": {
+      "url": "spider/spider.glb",
+      "deferred": true,
+      "rig": "original-spider",
+      "motion": "roach",
+      "scale": 3,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "roach_idle",
+        "walk": "roach_walk",
+        "run": "roach_run",
+        "hit": "roach_hit",
+        "death": "roach_death",
+        "attack": "roach_bite_scaled"
+      },
+      "contact": {
+        "canines": [
+          {
+            "mesh": "ARM_Giant_Spider",
+            "vertex": 1674
+          },
+          {
+            "mesh": "ARM_Giant_Spider",
+            "vertex": 1777
+          }
+        ],
+        "calfBand": [
+          0.15649900393918476,
+          0.1616338707922544
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "WrapBoots",
+            "face": 236,
+            "vertices": [
+              14,
+              12,
+              100
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 9824,
+            "vertices": [
+              5446,
+              5409,
+              5460
+            ]
+          }
+        ]
+      },
+      "bytes": 292740,
+      "sha256": "da3358f6c420bc570fb8e852c1d2adbc6f36076ff64ef31c8453151f5d2b9355"
+    },
     "boss-surgeon": {
       "motion": "donor-knife",
       "scale": 1,
