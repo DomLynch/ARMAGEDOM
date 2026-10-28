@@ -39,14 +39,15 @@ test("body rows hold the 20 joints and a standing height; the baked scale matche
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
     assert.ok(row.height_m > 1 && row.height_m < 3, `${m.body} height ${row.height_m}`);
-    assert.equal(row.scale_baked, manifest[name].scale, `${name} uses a body baked at its manifest scale`);
+    // The actor root already carries the manifest scale (characterScale x description.scale x ...), so a row is in model units, never scaled.
+    assert.equal(row.scale_baked, 1, `${name} uses an unscaled body`);
   }
 });
 
 test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
   for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
-  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 6); // every humanoid boss but the butcher (its row is re-measured unscaled next)
+  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
   for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
 });
 
