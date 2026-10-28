@@ -35,6 +35,8 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     // A ceiling from the tier row: the smaller of the data's own value and the tier's.
     cap: (value, field) => Math.min(value, current[field]),
     onChange: (fn) => listeners.add(fn),
+    // True once the device probe and the frame sample have both landed (or the tier is forced or off): row() is then final.
+    settled: () => (probed || !rules.enabled || !!forced) && sampled,
     // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
     report: () =>
       Object.freeze({

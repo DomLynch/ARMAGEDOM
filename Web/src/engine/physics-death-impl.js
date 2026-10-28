@@ -231,9 +231,9 @@ const evictable = (rank) =>
     return !best || r < br || (r === br && a.frozen && !best.frozen) ? a : best;
   }, null);
 
-// The dying caps of this device's quality tier, fixed at the first death: { humanoid, boss }. Humanoid is the total of simultaneous bodies; boss is
+// The dying caps of this device's quality tier (the low row until the probe resolves, then only ever lower): { humanoid, boss }. Humanoid is the total of simultaneous bodies; boss is
 // how many of those may be marked hunters or bosses (rank `marked`), so a bigger crowd cap never lets more bosses simulate at once.
-export const tierCaps = createTierCaps(GAME_DATA.physicsBudget.tiers, QUALITY);
+export const tierCaps = createTierCaps(GAME_DATA.physicsBudget.tiers, GAME_DATA.physicsBudget.pendingTier, QUALITY);
 const bossCount = () => active.filter((a) => a.rank === GAME_DATA.physicsBudget.ranks.marked).length;
 
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {

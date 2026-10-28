@@ -12,11 +12,16 @@ import {
   tierCaps,
 } from "../src/engine/physics-death-impl.js";
 import { createTierCaps } from "../src/engine/physics-cap.js";
+import { QUALITY } from "../src/engine/quality-tier.js";
 import * as THREE from "three";
 import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
 const budgetRows = GAME_DATA.physicsBudget.rows;
+
+// A strong device: probe and frame sample land at import, before any cap is read, so this file runs under the full tier (6 dying, 3 bosses).
+QUALITY.probe({ cores: 8, memoryGb: 8, textureSize: 16384 });
+for (let i = 1; i <= GAME_DATA.qualityTier.probe.warmupFrames + GAME_DATA.qualityTier.probe.sampleFrames + 2; i++) QUALITY.frame(i * 16);
 
 test("the ragdoll cap row equals the package's own budget row", () => {
   const pkg = JSON.parse(readFileSync(new URL("../node_modules/@frankendom/physics/data/budget-rows.json", import.meta.url), "utf8"));
@@ -382,14 +387,31 @@ test("the low tier row is the package's cap, and no tier lets more bosses than i
   assert.deepEqual(tiers.mid, { humanoid: 4, boss: 3 });
 });
 
-test("the tier row is read once: a later tier change does not move the cap", () => {
-  const { tiers } = GAME_DATA.physicsBudget;
-  let name = "mid";
-  const caps = createTierCaps(tiers, { row: () => ({ name }) });
-  assert.deepEqual(caps(), tiers.mid);
-  name = "low";
-  assert.deepEqual(caps(), tiers.mid, "still the first read");
-  for (const tier of ["full", "mid", "low"]) assert.deepEqual(createTierCaps(tiers, { row: () => ({ name: tier }) })(), tiers[tier]);
+test("the cap is the pending (low) row until the probe resolves, then the tier's row, and only ever goes down", () => {
+  const { tiers, pendingTier } = GAME_DATA.physicsBudget;
+  const q = { tier: "full", done: false, settled: () => q.done, row: () => ({ name: q.tier }) };
+  const caps = createTierCaps(tiers, pendingTier, q);
+  assert.deepEqual(caps(), tiers.low, "a death before the probe resolves uses 3");
+  q.done = true;
+  assert.deepEqual(caps(), tiers.low, "never up: the minimum of every row in force (low was in force)");
+  const fresh = { tier: "full", done: false, settled: () => fresh.done, row: () => ({ name: fresh.tier }) };
+  const fromStart = createTierCaps(tiers, pendingTier, fresh);
+  fresh.done = true;
+  assert.deepEqual(fromStart(), tiers.full, "resolved to full before any death: 6");
+  fresh.tier = "low";
+  assert.deepEqual(fromStart(), tiers.low, "stepped down full -> low: 3");
+  fresh.tier = "full";
+  assert.deepEqual(fromStart(), tiers.low, "and never rises again");
+  for (const tier of ["full", "mid", "low"]) {
+    const s = { settled: () => true, row: () => ({ name: tier }) };
+    assert.deepEqual(createTierCaps(tiers, pendingTier, s)(), tiers[tier]);
+  }
+});
+
+test("the real quality tier is settled once its probe and frame sample have landed", () => {
+  assert.equal(QUALITY.settled(), true);
+  assert.equal(QUALITY.row().name, "full");
+  assert.equal(tierCaps().humanoid, GAME_DATA.physicsBudget.tiers.full.humanoid);
 });
 
 test("bosses stay at their cap while the crowd cap is higher, and a crowd death is not blocked by bosses", async () => {

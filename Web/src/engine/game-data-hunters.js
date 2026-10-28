@@ -41,7 +41,7 @@ export function validatePhysicsBudget(d) {
   // reserve_for_marked: entity flags whose death may release the oldest unflagged corpse when the cap is full (a hunter or boss is never baked for a crowd).
   // ranks: who may take whose place when the cap is full (a death evicts the lowest-ranked, then oldest, corpse of a LOWER rank; the local
   // player, highest, is never evicted). local_player_id: the entity id of the local player.
-  closed(d, ["schema_version", "note", "note2", "note3", "rows", "tiers", "reserve_for_marked", "ranks", "local_player_id"]);
+  closed(d, ["schema_version", "note", "note2", "note3", "rows", "pendingTier", "tiers", "reserve_for_marked", "ranks", "local_player_id"]);
   closed(d.ranks, ["crowd", "remote", "marked", "player"]);
   const { crowd, remote, marked, player } = d.ranks;
   if (![crowd, remote, marked, player].every(Number.isInteger) || !(crowd < remote && remote < marked && marked < player))
@@ -54,6 +54,7 @@ export function validatePhysicsBudget(d) {
     fail("physicsBudget", "max_simultaneous_ragdolls must be an integer >= 1");
   // tiers: the dying cap per device quality tier name; humanoid = bodies at once, boss <= humanoid = how many of them may be marked hunters or bosses.
   if (!d.tiers || typeof d.tiers !== "object" || !Object.keys(d.tiers).length) fail("physicsBudget", "tiers must name at least one quality tier");
+  if (!d.tiers[d.pendingTier]) fail("physicsBudget", "pendingTier must name a row of tiers");
   for (const [name, t] of Object.entries(d.tiers)) {
     closed(t, ["humanoid", "boss"]);
     if (![t.humanoid, t.boss].every((n) => Number.isInteger(n) && n >= 1) || t.boss > t.humanoid)
