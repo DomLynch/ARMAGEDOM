@@ -10,5 +10,8 @@
   "easeBackSeconds": 0.3,
   "pushInSeconds": 0.2,
   "zoomPushPct": 18,
-  "focusShare": 0.5
+  "focusShare": 0.5,
+  "retriggerCooldownSeconds": 6,
+  "maxTotalSlowSeconds": 1.5,
+  "dtSpikeSeconds": 0.5
 }

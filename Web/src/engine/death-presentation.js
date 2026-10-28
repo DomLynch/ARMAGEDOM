@@ -30,26 +30,43 @@ export function presentationAt(row, age) {
 }
 // Runtime: observe(events) on each simulation step, tick(realSeconds) once per frame. `focus` is the body's ground point.
 export function createDeathPresentation(row = GAME_DATA.deathPresentation, enabled = deathcamEnabled(row)) {
+  // `since` = real seconds since the last effect started (Infinity = none yet). A death inside the cooldown never restarts the effect,
+  // and the active seconds of one window are capped by maxTotalSlowSeconds, so chained deaths cannot hold the game in slow-mo.
   let age = -1,
+    focus = null,
+    since = Infinity;
+  const reset = () => {
+    age = -1;
     focus = null;
+    since = Infinity;
+  };
   return {
     observe(events) {
-      if (!enabled) return;
+      if (!enabled || age >= 0 || since < row.retriggerCooldownSeconds) return;
       for (const e of events)
         if (e.type === "death" && eligible(row, e.actor)) {
           age = 0;
+          since = 0;
           focus = { x: e.actor.pos.x, z: e.actor.pos.z };
+          return;
         }
     },
     tick(realSeconds) {
+      if (realSeconds > row.dtSpikeSeconds) reset(); // a stall / tab return: never replay the slow window afterwards
+      const dt = Math.max(0, realSeconds);
+      if (since !== Infinity) since += dt;
       if (age < 0) return IDLE;
-      age += Math.max(0, realSeconds);
-      const p = presentationAt(row, age);
-      if (!p.active) age = -1;
-      return p.active ? { ...p, focus, share: row.focusShare * p.weight } : IDLE;
+      age += dt;
+      const p = presentationAt(row, Math.min(age, row.maxTotalSlowSeconds));
+      if (!p.active || age >= row.maxTotalSlowSeconds) {
+        age = -1;
+        focus = null;
+        return IDLE;
+      }
+      return { ...p, focus, share: row.focusShare * p.weight };
     },
-    reset() {
-      age = -1;
-    },
+    // Effect to idle, scale exactly 1, camera focus cleared; also forgets the cooldown (player death, travel, hidden, session reset).
+    reset,
+    active: () => age >= 0,
   };
 }

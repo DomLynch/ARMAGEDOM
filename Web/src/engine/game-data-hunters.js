@@ -74,8 +74,16 @@ export function validateDeathPresentation(d) {
     "pushInSeconds",
     "zoomPushPct",
     "focusShare",
+    "retriggerCooldownSeconds",
+    "maxTotalSlowSeconds",
+    "dtSpikeSeconds",
   ]);
   const f = "deathPresentation";
+  for (const name of ["retriggerCooldownSeconds", "maxTotalSlowSeconds", "dtSpikeSeconds"]) number(f, name, d[name], 0.01);
+  if (d.maxTotalSlowSeconds < d.slowSeconds + d.easeBackSeconds)
+    fail(f, "maxTotalSlowSeconds must cover one full slowSeconds + easeBackSeconds window");
+  if (d.retriggerCooldownSeconds < d.slowSeconds + d.easeBackSeconds)
+    fail(f, "retriggerCooldownSeconds must be at least slowSeconds + easeBackSeconds");
   if (typeof d.note !== "string" || !d.note) fail(f, "note must say the values are placeholders");
   if (typeof d.flagParam !== "string" || typeof d.offValue !== "string") fail(f, "flagParam and offValue must be strings");
   if (typeof d.defaultOn !== "boolean") fail(f, "defaultOn must be true or false");

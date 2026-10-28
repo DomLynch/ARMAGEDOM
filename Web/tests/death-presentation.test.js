@@ -82,9 +82,57 @@ test("easing is monotone and returns exactly to 1", () => {
 test("runtime goes idle after the window in real seconds", () => {
   const p = createDeathPresentation(row, true);
   p.observe(death(boss));
-  assert.equal(p.tick(row.slowSeconds - 0.01).timeScale, row.timeScale);
-  assert.equal(p.tick(row.easeBackSeconds + 0.1).active, false);
+  assert.equal(p.tick(0.45).timeScale, row.timeScale);
+  assert.equal(p.tick(0.4).timeScale, row.timeScale);
+  assert.equal(p.tick(0.2).active, true);
+  assert.equal(p.tick(0.2).active, false);
   assert.equal(p.tick(1).timeScale, 1);
+});
+
+test("chained deaths inside the cooldown never restart the effect; after it they may", () => {
+  const p = createDeathPresentation(row, true);
+  let slow = 0;
+  const run = (seconds, again) => {
+    for (let t = 0; t < seconds; t += 1 / 60) {
+      if (again) p.observe(death(boss));
+      const s = p.tick(1 / 60);
+      if (s.active) slow += 1 / 60;
+    }
+  };
+  p.observe(death(boss));
+  run(row.retriggerCooldownSeconds - 0.2, true); // a death every frame during the burst
+  assert.ok(slow <= row.maxTotalSlowSeconds, `slow ${slow}`);
+  assert.ok(slow <= row.slowSeconds + row.easeBackSeconds + 0.05);
+  assert.equal(p.active(), false);
+  run(0.5, false);
+  p.observe(death(hunter));
+  assert.equal(p.tick(0.01).active, true);
+});
+
+test("maxTotalSlowSeconds hard-caps one window", () => {
+  const capped = { ...row, slowSeconds: 2, easeBackSeconds: 0.5, maxTotalSlowSeconds: 1, retriggerCooldownSeconds: 6 };
+  const p = createDeathPresentation(capped, true);
+  p.observe(death(boss));
+  let t = 0;
+  while (p.tick(0.05).active && t < 100) t += 0.05;
+  assert.ok(t <= 1.05);
+  assert.equal(p.tick(0.05).timeScale, 1);
+});
+
+test("reset clears effect, scale and focus; a dt spike resets too", () => {
+  const p = createDeathPresentation(row, true);
+  p.observe(death(boss));
+  assert.equal(p.tick(0.1).active, true);
+  p.reset();
+  const s = p.tick(0.1);
+  assert.equal(s.timeScale, 1);
+  assert.equal(s.focus, undefined);
+  p.observe(death(boss));
+  p.tick(0.1);
+  const spike = p.tick(row.dtSpikeSeconds + 0.1);
+  assert.equal(spike.timeScale, 1);
+  assert.equal(spike.zoomMul, 1);
+  assert.equal(p.active(), false);
 });
 
 test("off switch ?deathcam=0 disables, default is on", () => {

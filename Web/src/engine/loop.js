@@ -18,6 +18,11 @@ export function createBrowserLoop(s) {
     submitted = null,
     airdropView = null;
   const deathCam = createDeathPresentation();
+  let seenGame = null,
+    seenArea = null;
+  globalThis.document?.addEventListener?.("visibilitychange", () => {
+    if (globalThis.document.hidden) deathCam.reset();
+  });
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,
@@ -90,6 +95,10 @@ export function createBrowserLoop(s) {
     const realElapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0);
     last = ms;
     if (!s.world || !s.game || s.contextLost) return;
+    // Real reset hooks: travel, player death, a new game object or area id (area change / run reset).
+    if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
+    seenGame = s.game;
+    seenArea = s.world.areaId;
     const audioEvents = [],
       // Boss / marked-hunter death slow-mo: scale the frame's seconds ONCE, here, so simulation, ragdoll and effects share one clock.
       cam = s.traveling || s.paused ? deathCam.tick(0) : deathCam.tick(realElapsed),
@@ -205,6 +214,7 @@ export function createBrowserLoop(s) {
     else s.renderer.render(s.scene, s.camera);
   }
   return {
+    deathCam,
     frame,
     intent,
     combatVisibleIds,
