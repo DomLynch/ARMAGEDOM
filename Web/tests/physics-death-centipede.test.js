@@ -53,10 +53,7 @@ test("the centipede's leg banks move when it dies and the follower bones copy th
     if (process.env.CENTIPEDE_TRACE) console.log(`bank ${part}: ${((angle * 180) / Math.PI).toFixed(2)} deg from bind, followers ${followers.join(",")}`);
     followers.forEach((name, k) => {
       const f = find(model)(name);
-      assert.ok(
-        f.quaternion.angleTo(q) < 1e-6,
-        `${name} copies ${part}: ${f.quaternion.toArray()} vs ${q.toArray()} (${f.quaternion.angleTo(q)} rad)`,
-      );
+      assert.deepEqual(f.quaternion.toArray(), q.toArray(), `${name} copies ${part}`); // the same numbers (acos-based angleTo is blind below ~1e-3)
       assert.ok(r.options.follow[part][k] === f, `${name} is the follower object`);
     });
   }
