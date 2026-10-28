@@ -69,7 +69,7 @@ export function validatePhysicsBody(d) {
 
 export function validateChainedPitborn(d) {
   closed(d, ["schema_version", "enabled", "offParam", "offValue", "areaId", "model", "at", "facesToward",
-    "scaleMultiplier", "breakLoose", "emissive", "rim", "horns", "flicker", "motion", "chains", "dust"]);
+    "scaleMultiplier", "breakLoose", "chainedTargets", "emissive", "rim", "horns", "flicker", "motion", "chains", "dust"]);
   if (typeof d.enabled !== "boolean") fail("chainedPitborn", "enabled must be true or false");
   for (const name of ["at", "facesToward"])
     if (!(d[name].x >= 0 && d[name].x <= 1 && d[name].y >= 0 && d[name].y <= 1)) fail("chainedPitborn", name + " must be art 0 to 1");
@@ -82,6 +82,11 @@ export function validateChainedPitborn(d) {
   closed(d.breakLoose.text, ["snap", "loose"]);
   for (const name of ["snap", "loose"])
     if (typeof d.breakLoose.text[name] !== "string" || !d.breakLoose.text[name]) fail("chainedPitborn", "breakLoose.text." + name + " must be text");
+  closed(d.chainedTargets, ["rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres"]);
+  for (const name of ["rays", "rays3d", "melee", "blasts", "cones"])
+    if (!Array.isArray(d.chainedTargets[name]) || d.chainedTargets[name].some((t) => typeof t !== "string" || !t))
+      fail("chainedPitborn", "chainedTargets." + name + " must be a list of event types");
+  number("chainedPitborn", "chainedTargets.blastPaddingMetres", d.chainedTargets.blastPaddingMetres, 0.01);
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
 }
 

@@ -24,6 +24,14 @@
       "loose": "The Pitborn bellows. It has your scent. Fight it, or reach a safehouse."
     }
   },
+  "chainedTargets": {
+    "rays": ["shot"],
+    "rays3d": ["railgun-shot"],
+    "melee": ["attack", "saw-start"],
+    "blasts": ["grenade-blast", "trap-crate-blast", "boss-rocket-blast"],
+    "cones": ["flame-contact"],
+    "blastPaddingMetres": 0.9
+  },
   "emissive": { "color": "5a2610", "intensity": 0.02 },
   "rim": { "color": "ff9a50", "power": 4, "strength": 0.06 },
   "horns": {
