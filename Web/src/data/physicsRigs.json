@@ -405,6 +405,16 @@
       "body": "scavenger-65",
       "live": true
     },
+    "vagrant": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": true
+    },
+    "remote-survivor": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": true
+    },
     "hale-pitborn": {
       "rig": "v1-65",
       "body": "scavenger-65",

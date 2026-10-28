@@ -1,5 +1,7 @@
 {
   "schema_version": 1,
   "rows": { "max_simultaneous_ragdolls": 3 },
-  "reserve_for_marked": ["markedHunter", "bossProfile"]
+  "reserve_for_marked": ["markedHunter", "bossProfile"],
+  "ranks": { "crowd": 0, "remote": 1, "marked": 2, "player": 3 },
+  "local_player_id": 0
 }

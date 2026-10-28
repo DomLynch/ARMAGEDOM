@@ -102,20 +102,29 @@ const names = new WeakMap(), // manifest description -> model name, found once p
   baked = new WeakSet(); // views whose model has no live row: looked up once, then the clip plays every frame
 function modelOf(view, entity, library) {
   if (entity.markedHunter) return CFG.rigRef;
+  if (entity.remotePlayer) return CFG.remote.modelRef; // another player seen through presence (the reduced survivor mesh)
   const d = view.description;
   if (!d || !library?.models) return null;
   if (!names.has(d)) names.set(d, [...library.models].find(([, m]) => m.description === d)?.[0] ?? null);
   return names.get(d);
 }
+// Already dead when first drawn: a corpse restored from a save or a parked area, or a reloaded dead local player (no death response was recorded
+// this session). It lies on its baked last frame and never falls again.
+const arrivedDead = (view, entity) =>
+  !!view.restoredCorpse ||
+  (entity.id === GAME_DATA.physicsBudget.local_player_id && entity.kind < 0 && !entity.response);
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
   if (enabled && entity.markedHunter && entity.hp > 0 && !cutsRequested) {
     if (entity.hp < entity.maxHP) prefetchCuts(library);
     else if (!cutsScheduled && hunterNear(entity)) prefetchCutsOnIdle(library, true);
   }
+  // Revived (the player's retry keeps no old corpse; a body that lives again): give the ragdoll back at once, the clip owns the bones again.
+  if (entity.hp > 0 && view.physicsDeath) releasePhysicsDeath(view);
   if (!enabled || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
-  if (s?.failed || (!s && baked.has(view))) return false;
+  // A corpse restored from a save or a parked area was dead before it was drawn: it lies on its baked last frame and never falls again.
+  if (s?.failed || (!s && (baked.has(view) || arrivedDead(view, entity)))) return false;
   try {
     if (!s) {
       const model = modelOf(view, entity, library),
