@@ -87,7 +87,7 @@ import {
 } from "./game-data-hunters.js";
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
-import physicsBudgetRows from "@frankendom/physics/data/budget-rows.json" with { type: "json" };
+import physicsBudget from "../data/physicsBudget.json" with { type: "json" };
 import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
 import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
@@ -1074,11 +1074,7 @@ const sources = () => ({
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
-  // The package's cap on simultaneous ragdolls (the row admit() reads), taken from the package so the number lives in one place.
-  physicsBudget: [
-    { schema_version: 1, rows: { max_simultaneous_ragdolls: physicsBudgetRows.max_simultaneous_ragdolls } },
-    validatePhysicsBudget,
-  ],
+  physicsBudget: [physicsBudget, validatePhysicsBudget], // the cap admit() reads; a test pins it to the package's own row
   pitbornCuts: [pitbornCuts, validatePitbornCuts],
   pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],

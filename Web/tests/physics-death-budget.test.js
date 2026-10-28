@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import {
   activeCount,
@@ -14,6 +15,11 @@ import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../s
 
 const CFG = GAME_DATA.physicsDeath;
 const budgetRows = GAME_DATA.physicsBudget.rows;
+
+test("the ragdoll cap row equals the package's own budget row", () => {
+  const pkg = JSON.parse(readFileSync(new URL("../node_modules/@frankendom/physics/data/budget-rows.json", import.meta.url), "utf8"));
+  assert.equal(budgetRows.max_simultaneous_ragdolls, pkg.max_simultaneous_ragdolls);
+});
 const DT = 1 / CFG.stepHz;
 
 // A stand-in for the shared physics world: it counts steps, like the real one that advances every ragdoll per step.
