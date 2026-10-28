@@ -64,6 +64,26 @@ function validateStages(d) {
   if (d.stages.at(-1).objectiveFrom !== "finale") fail("apocalypseRun", "the last stage is the finale");
 }
 
+function validateExtraction(x) {
+  closed(x, ["note", "enabled", "offSwitch", "holdSeconds", "holdRadius", "holdDecayPerSecond", "heatScale", "pull", "bonus"]);
+  if (typeof x.enabled !== "boolean") fail("apocalypseRun", "extraction.enabled must be a boolean");
+  checkSwitch("extraction.offSwitch", x.offSwitch);
+  for (const f of ["holdSeconds", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  number("apocalypseRun", "extraction.holdDecayPerSecond", x.holdDecayPerSecond, 0);
+  closed(x.pull, ["engageRadius", "leashPadding", "arriveRadius"]);
+  for (const f of ["engageRadius", "leashPadding", "arriveRadius"]) number("apocalypseRun", `extraction.pull.${f}`, x.pull[f], 0);
+  closed(x.bonus, ["base", "curve"]);
+  number("apocalypseRun", "extraction.bonus.base", x.bonus.base, 0);
+  if (!Array.isArray(x.bonus.curve) || !x.bonus.curve.length) fail("apocalypseRun", "extraction.bonus.curve needs rows");
+  x.bonus.curve.forEach((row, i) => {
+    closed(row, ["minHeatPeak", "scale"]);
+    number("apocalypseRun", "extraction.bonus.curve.minHeatPeak", row.minHeatPeak, 0);
+    number("apocalypseRun", "extraction.bonus.curve.scale", row.scale, 0);
+    if (i === 0 ? row.minHeatPeak !== 0 : row.minHeatPeak <= x.bonus.curve[i - 1].minHeatPeak)
+      fail("apocalypseRun", "extraction.bonus.curve starts at heat peak 0 and rises");
+  });
+}
+
 export function validateApocalypseRun(d) {
   closed(d, [
     "schema_version",
@@ -80,6 +100,7 @@ export function validateApocalypseRun(d) {
     "variants",
     "boss",
     "escape",
+    "extraction",
     "outcomes",
     "text",
   ]);
@@ -105,6 +126,7 @@ export function validateApocalypseRun(d) {
   checkText("boss.arrived", d.boss.arrived);
   closed(d.escape, ["arrived"]);
   checkText("escape.arrived", d.escape.arrived);
+  validateExtraction(d.extraction);
   closed(d.outcomes, ["escaped", "boss", "died", "timeout"]);
   for (const [k, v] of Object.entries(d.outcomes)) checkText(`outcomes.${k}`, v);
   closed(d.text, ["timer", "hazard", "startButton", "startHint", "resultsTitle", "rowOutcome", "rowKills", "rowTime", "rowHeat", "continue"]);

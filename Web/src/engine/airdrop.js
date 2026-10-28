@@ -4,6 +4,7 @@ import { applyAirdropOutcome } from "./airdrop-effects.js";
 import { claimCash } from "./world-pickups-core.js";
 import { converge } from "./converge.js";
 import { corpseTarget, stepCorpseRun } from "./corpse-run.js";
+import { extractionTarget } from "./apocalypse-run.js";
 
 // The supply airdrop (data/airdrop.json): every few minutes in a combat area a plane passes and drops a crate with a red flare somewhere
 // the player can walk to. Bosses of the area walk to the crate, and holding still beside it opens it for a loot bundle and a small chance of
@@ -146,5 +147,5 @@ export function airdropPull(g, e, dt, move) {
   const a = g.airdrop,
     pull = GAME_DATA.airdrop.convergence,
     live = pull.enabled && !!a && (a.phase === "falling" || a.phase === "landed");
-  return converge(g, e, dt, move, live ? { at: a.crate, pull } : corpseTarget(g));
+  return converge(g, e, dt, move, extractionTarget(g) ?? (live ? { at: a.crate, pull } : corpseTarget(g)));
 }
