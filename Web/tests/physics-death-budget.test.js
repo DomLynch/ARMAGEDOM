@@ -10,12 +10,7 @@ import {
   stepDeath,
 } from "../src/engine/physics-death-impl.js";
 import * as THREE from "three";
-import {
-  physicsDeathLoaded,
-  physicsDeathStep,
-  preloadPhysicsDeath,
-  releasePhysicsDeath,
-} from "../src/engine/physics-death.js";
+import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
 const DT = 1 / CFG.stepHz;
@@ -160,10 +155,7 @@ const cutCorpse = () => {
   };
   return s;
 };
-const loadChunk = async () => {
-  preloadPhysicsDeath(true);
-  await physicsDeathLoaded();
-};
+const loadChunk = async () => usePhysicsDeathImpl(await import("../src/engine/physics-death-impl.js"));
 
 test("parking an area frees a corpse's body and slot but keeps its cut visuals; removing it later disposes them", async () => {
   await loadChunk();

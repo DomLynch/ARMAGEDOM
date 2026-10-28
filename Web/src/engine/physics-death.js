@@ -25,7 +25,7 @@ const load = () =>
       m.markChunkLoaded();
     })
     .catch(() => void (broken = true)));
-export const physicsDeathLoaded = () => loading; // the chunk's load promise (null until preloaded): tests and tools await it
+export const usePhysicsDeathImpl = (module) => (impl = module); // tests hand in the chunk without loading the Jolt WASM world
 // Call once after first paint: fetches the chunk on idle, only when the flag is on.
 export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   if (!enabled) return;
