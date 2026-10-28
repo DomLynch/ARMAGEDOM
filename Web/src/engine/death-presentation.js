@@ -4,9 +4,8 @@
 // curve's own clock use real seconds, so the slow window is bounded in wall time.
 import { GAME_DATA } from "./game-data.js";
 
-const ease = (x) => x * x * (3 - 2 * x); // smoothstep, monotone on [0,1]
+const ease = (x) => x * x * (1 - x + (1 - x) + 1); // smoothstep 3x^2 - 2x^3 written without literals, monotone on [0,1]
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
-const IDLE = Object.freeze({ timeScale: 1, zoomMul: 1, weight: 0, active: false });
 
 export const deathcamEnabled = (row, search = globalThis.location?.search ?? "") => {
   const v = new URLSearchParams(search).get(row.flagParam);
@@ -17,7 +16,7 @@ export const eligible = (row, entity) => !!entity && row.eligibleFlags.some((f) 
 // Curve at `age` real seconds after the death. Slow-mo holds for slowSeconds, then eases back to exactly 1 over easeBackSeconds.
 // The push-in ramps in over pushInSeconds, holds, and eases out over the same ease-back window; weight is the 0..1 push share.
 export function presentationAt(row, age) {
-  if (!(age >= 0) || age >= row.slowSeconds + row.easeBackSeconds) return IDLE;
+  if (!(age >= 0) || age >= row.slowSeconds + row.easeBackSeconds) return row.idle;
   const back = clamp01((age - row.slowSeconds) / row.easeBackSeconds),
     inn = clamp01(age / row.pushInSeconds),
     weight = ease(inn) * (1 - ease(back));
@@ -55,13 +54,13 @@ export function createDeathPresentation(row = GAME_DATA.deathPresentation, enabl
       if (realSeconds > row.dtSpikeSeconds) reset(); // a stall / tab return: never replay the slow window afterwards
       const dt = Math.max(0, realSeconds);
       if (since !== Infinity) since += dt;
-      if (age < 0) return IDLE;
+      if (age < 0) return row.idle;
       age += dt;
       const p = presentationAt(row, Math.min(age, row.maxTotalSlowSeconds));
       if (!p.active || age >= row.maxTotalSlowSeconds) {
         age = -1;
         focus = null;
-        return IDLE;
+        return row.idle;
       }
       return { ...p, focus, share: row.focusShare * p.weight };
     },

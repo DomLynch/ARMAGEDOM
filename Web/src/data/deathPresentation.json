@@ -13,5 +13,6 @@
   "focusShare": 0.5,
   "retriggerCooldownSeconds": 6,
   "maxTotalSlowSeconds": 1.5,
-  "dtSpikeSeconds": 0.5
+  "dtSpikeSeconds": 0.5,
+  "idle": { "timeScale": 1, "zoomMul": 1, "weight": 0, "active": false }
 }

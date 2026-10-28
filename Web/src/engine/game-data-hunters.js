@@ -77,8 +77,12 @@ export function validateDeathPresentation(d) {
     "retriggerCooldownSeconds",
     "maxTotalSlowSeconds",
     "dtSpikeSeconds",
+    "idle",
   ]);
   const f = "deathPresentation";
+  closed(d.idle, ["timeScale", "zoomMul", "weight", "active"]);
+  if (d.idle.timeScale !== 1 || d.idle.zoomMul !== 1 || d.idle.weight !== 0 || d.idle.active !== false)
+    fail(f, "idle must be timeScale 1, zoomMul 1, weight 0, active false");
   for (const name of ["retriggerCooldownSeconds", "maxTotalSlowSeconds", "dtSpikeSeconds"]) number(f, name, d[name], 0.01);
   if (d.maxTotalSlowSeconds < d.slowSeconds + d.easeBackSeconds)
     fail(f, "maxTotalSlowSeconds must cover one full slowSeconds + easeBackSeconds window");
