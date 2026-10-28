@@ -16,6 +16,9 @@ const capabilities = ["home", "lineOfSight", "completedAttack", "collisionMove",
 old.recipeBehaviours["crow-carrion"] = "brisk";
 old.recipeIntents["crow-carrion"] = "short-burst";
 old.recipeIntents["crow-ragged"] = "baseline";
+// 28 Oct: the giant eel's recipe rows are appended (art/monster-eel).
+old.recipeBehaviours["eel-river-ambusher"] = "baseline";
+old.recipeIntents["eel-river-ambusher"] = "ambush";
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {
   for (const [table, rows, expected] of [
     ["presets", CREATURE_BEHAVIOURS, old.presets],

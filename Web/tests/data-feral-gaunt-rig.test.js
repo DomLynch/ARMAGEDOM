@@ -30,6 +30,26 @@ old.rigCapabilities["original-crow"] = {
   enabled: true,
   offParam: "nocrow",
 };
+// 28 Oct: the giant eel rig row is appended (art/monster-eel).
+old.rigCapabilities["giant-eel"] = {
+  lowStrike: true,
+  animal: true,
+  nativeSkeleton: true,
+  species: "eel",
+  populationSlot: true,
+  brain: "dog",
+  biteMove: "salamander",
+  calfFaceReceiver: true,
+  targetHeight: 0.15,
+  strictAlive: true,
+  hitClip: "Hurt",
+  deathClip: "Death",
+  hitTicks: 32,
+  deathTicks: 74,
+  optionalMonster: true,
+  enabled: true,
+  offParam: "noeel",
+};
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {

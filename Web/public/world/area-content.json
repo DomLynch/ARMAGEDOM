@@ -7638,8 +7638,8 @@
               "recipeRef": "dog-street-mongrel"
             },
             "B": {
-              "foundationRef": "original-roach",
-              "recipeRef": "roach-ash"
+              "foundationRef": "giant-eel",
+              "recipeRef": "eel-river-ambusher"
             }
           }
         },

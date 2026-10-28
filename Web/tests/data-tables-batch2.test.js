@@ -73,6 +73,7 @@ test("the low melee rigs and clips behave as before for every rig, clip and acti
     "giant-salamander",
     "original-wolf",
     "original-crow",
+    "giant-eel",
   ]);
   assert.deepEqual(GAME_DATA.weapons.lowMelee.clips, ["RatLowSlash", "DogMidSlash"]);
   for (const row of old.rat) {

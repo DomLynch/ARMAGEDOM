@@ -570,7 +570,7 @@
     "extensionRate": 24
   },
   "lowMelee": {
-    "rigs": ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf", "original-crow"],
+    "rigs": ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf", "original-crow", "giant-eel"],
     "clips": ["RatLowSlash", "DogMidSlash"]
   },
   "creditPolicies": [

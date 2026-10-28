@@ -11,12 +11,12 @@ test("each species resolves to the rig id combat.js used to write out", () => {
   assert.equal(rigOfSpecies("dog"), "original-dog");
   assert.equal(rigOfSpecies("salamander"), "giant-salamander");
   assert.equal(rigOfSpecies("wolf"), "original-wolf");
+  assert.equal(rigOfSpecies("eel"), "giant-eel");
 });
 
 test("every rig has a distinct species and an unknown species is an error", () => {
   const species = Object.keys(RIG_CAPABILITIES).map((rig) => rigText(rig, "species"));
-  assert.equal(species.length, 7); // 28 Oct: the crow is the seventh rig
-  assert.equal(new Set(species).size, 7);
+  assert.equal(new Set(species).size, species.length); // one species per rig (a new monster adds a row, not a literal count)
   assert(species.every((s) => typeof s === "string" && s));
   assert.throws(() => rigOfSpecies("human"), /No rig has species human/);
 });
