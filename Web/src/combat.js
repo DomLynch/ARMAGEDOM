@@ -108,8 +108,6 @@ const DOG_LOW = CREATURE_MOVES.dog_low;
 const DOG_MID = CREATURE_MOVES.dog_mid;
 export const DOG_BITE = CREATURE_MOVES.dog_bite;
 const DOG_BITE_SCALED = CREATURE_MOVES.dog_bite_scaled;
-const WOLF_ATTACK = CREATURE_MOVES.wolf_attack;
-const SALAMANDER_ATTACK = CREATURE_MOVES.salamander_attack;
 const EPS = 1e-8,
   mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
@@ -2313,17 +2311,15 @@ function dogEnemy(g, e, dt) {
       g,
       e,
       "bite",
-      rigText(e.rig, "biteMove") === "wolf"
-        ? WOLF_ATTACK
-        : rigText(e.rig, "biteMove") === "salamander"
-          ? SALAMANDER_ATTACK
-          : rigText(e.rig, "biteMove") === "roach"
-            ? e.contactGoalReach
-              ? ROACH_BITE_SCALED
-              : ROACH_BITE
-            : e.contactGoalReach
-              ? DOG_BITE_SCALED
-              : DOG_BITE,
+      // A rig's biteMove names its attack row (wolf_attack, salamander_attack, elephant_attack in creatures.json moves).
+      CREATURE_MOVES[`${rigText(e.rig, "biteMove")}_attack`] ??
+        (rigText(e.rig, "biteMove") === "roach"
+          ? e.contactGoalReach
+            ? ROACH_BITE_SCALED
+            : ROACH_BITE
+          : e.contactGoalReach
+            ? DOG_BITE_SCALED
+            : DOG_BITE),
     );
     e.swing.calfGoal = { ...calf };
     if (e.animalRole) e.completedAttack = null;

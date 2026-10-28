@@ -79,7 +79,20 @@
       "weapon": "teeth"
     },
     "wolf_attack": { "extends": ["rat_bite", "wolf_bite"] },
-    "salamander_attack": { "extends": ["rat_bite", "salamander_bite"] }
+    "salamander_attack": { "extends": ["rat_bite", "salamander_bite"] },
+    "elephant_bite": {
+      "moveId": "elephant_bite",
+      "clip": "Bite",
+      "foundationRef": "original-elephant",
+      "windupTicks": 20,
+      "activeTicks": 12,
+      "recoveryTicks": 24,
+      "damage": 16,
+      "staminaDamage": 16,
+      "range": 5.2,
+      "weapon": "teeth"
+    },
+    "elephant_attack": { "extends": ["rat_bite", "elephant_bite"] }
   },
   "playerAttacks": {
     "slash": {
@@ -158,7 +171,8 @@
       "original-wolf": { "controller": "wolf-native-bite", "weapon": "teeth", "rig": "original-wolf", "actions": ["attack"] },
       "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] },
       "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] },
-      "giant-eel": { "controller": "eel-native-bite", "weapon": "teeth", "rig": "giant-eel", "actions": ["attack"] }
+      "giant-eel": { "controller": "eel-native-bite", "weapon": "teeth", "rig": "giant-eel", "actions": ["attack"] },
+      "original-elephant": { "controller": "elephant-native-bite", "weapon": "teeth", "rig": "original-elephant", "actions": ["attack"] }
     },
     "reach": {
       "original-wolf": 2.375,
@@ -167,7 +181,8 @@
       "original-roach": 1.6063268331546576,
       "giant-salamander": 3.1078573708270647,
       "original-crow": 1.4004105398402,
-      "giant-eel": 0.8
+      "giant-eel": 0.8,
+      "original-elephant": 4.95
     }
   },
   "behaviours": {
@@ -199,7 +214,8 @@
       "roach-rust-shell": "baseline",
       "roach-heavy-shell": "cautious",
       "crow-carrion": "brisk",
-      "eel-river-ambusher": "baseline"
+      "eel-river-ambusher": "baseline",
+      "elephant-ashen-bull": "baseline"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -246,7 +262,8 @@
       "roach-nest-guard": "territorial",
       "crow-carrion": "short-burst",
       "crow-ragged": "baseline",
-      "eel-river-ambusher": "ambush"
+      "eel-river-ambusher": "ambush",
+      "elephant-ashen-bull": "baseline"
     }
   },
   "animalCycles": {
@@ -454,6 +471,28 @@
       "optionalMonster": true,
       "enabled": true,
       "offParam": "noeel"
+    },
+    "original-elephant": {
+      "lowStrike": true,
+      "animal": true,
+      "nativeSkeleton": true,
+      "species": "elephant",
+      "populationSlot": true,
+      "brain": "dog",
+      "biteMove": "elephant",
+      "mouthAim": true,
+      "mouthOffset": 0,
+      "bodyReceiver": true,
+      "targetHeight": 2.7,
+      "fixedPointerScale": true,
+      "strictAlive": true,
+      "hitClip": "Hurt",
+      "deathClip": "Death",
+      "hitTicks": 32,
+      "deathTicks": 74,
+      "optionalMonster": true,
+      "enabled": true,
+      "offParam": "noelephant"
     }
   }
 }

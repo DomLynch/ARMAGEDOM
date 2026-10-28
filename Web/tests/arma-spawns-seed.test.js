@@ -26,7 +26,6 @@ test("both species cycles place the same instances; the creatures that differ ar
     "area8:area8-resident-4",
     "east-bridge:east-bridge-resident-2",
     "east:east-roamer-4",
-    "elephant-and-castle:elephant-and-castle-resident-2",
     "lambeth:lambeth-resident-2",
   ]);
 });

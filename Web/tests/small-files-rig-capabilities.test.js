@@ -13,7 +13,7 @@ test("each row picks the same rigs as the literal it replaced", () => {
   assert.equal(rigText("original-rat", "coatName"), "Ash and soot worn fur");
   assert.equal(rigText("original-dog", "coatName"), "Weathered brindle coat");
   only(["original-rat", "original-dog", "original-crow"], (r) => rigText(r, "coatName") !== undefined);
-  only(["giant-salamander", "original-wolf", "giant-eel"], (r) => rigCapability(r, "nativeSkeleton"));
+  only(["giant-salamander", "original-wolf", "giant-eel", "original-elephant"], (r) => rigCapability(r, "nativeSkeleton"));
   only(["low-hover-drone"], (r) => rigText(r, "species") === "drone");
   only(["original-roach"], (r) => rigText(r, "species") === "roach");
   only(["giant-salamander"], (r) => rigText(r, "species") === "salamander");

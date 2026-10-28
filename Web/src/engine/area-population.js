@@ -59,8 +59,8 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
     closed(slot, ["placementKey", "cycles"]);
     closed(slot.cycles, ["A", "B"]);
     if (!active.includes(slot.placementKey) || protectedRows.some((row) => row.key === slot.placementKey)) fail();
-    for (const spec of Object.values(slot.cycles)) {
-      closed(spec, ["foundationRef", "recipeRef"]);
+    const checkSpec = (spec, optional) => {
+      closed(spec, ["foundationRef", "recipeRef"], optional);
       if (!rigCapability(spec.foundationRef, "populationSlot")) fail();
       if (isDrone(spec.foundationRef)) {
         if (spec.recipeRef !== null || !drones.some((row) => row.key === slot.placementKey)) fail();
@@ -69,6 +69,11 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
         creatureCatalogue.forRecipe(spec.recipeRef).runtimeIdentity !== spec.foundationRef
       )
         fail();
+    };
+    for (const spec of Object.values(slot.cycles)) {
+      checkSpec(spec, ["off"]);
+      // `off`: the creature the slot holds when its monster is switched off (default: the cycle A creature, see populationPlacements).
+      if (spec.off) checkSpec(spec.off, []);
     }
     const drone = isDrone(slot.cycles.A.foundationRef);
     if (
@@ -92,7 +97,7 @@ export function populationPlacements(policy, areaId, cycle, canonical, search = 
   const active = new Set(area.activePlacementIds),
     slot = area.creatureSlot,
     chosen = slot.cycles[cycle ?? "A"],
-    spec = chosen && monsterOff(chosen.foundationRef, search) ? slot.cycles.A : chosen;
+    spec = chosen && monsterOff(chosen.foundationRef, search) ? (chosen.off ?? slot.cycles.A) : chosen;
   if (!spec) fail();
   return canonical
     .filter((row) => active.has(row.key))

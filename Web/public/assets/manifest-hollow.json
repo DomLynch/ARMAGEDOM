@@ -1532,6 +1532,50 @@
         "rigSourceSha256": "d2355f72e809e3dce63bc7187f96cc2cdd218cb878b3f2bf5b2e38988617f800",
         "ownSkinAndClips": true
       }
+    },
+    "original-elephant": {
+      "url": "elephant/elephant.glb",
+      "rig": "original-elephant",
+      "motion": "wolf",
+      "scale": 5,
+      "forwardCorrection": 0,
+      "groundOffset": 0.004301165230572224,
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "attack": "Bite",
+        "slash": "Bite",
+        "hit": "Hurt",
+        "death": "Death",
+        "flee": "Flee"
+      },
+      "deferred": true,
+      "bytes": 316692,
+      "sha256": "7451aecde8f94644a37ab6549ddbf314bc8352c602537689c4e5a77952d304f5",
+      "name": "Ashen Elephant",
+      "contact": {
+        "canines": [
+          {
+            "mesh": "wolf",
+            "vertex": 4468
+          }
+        ],
+        "calfBand": [1.4, 1.85],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 10962,
+            "vertices": [6300, 6392, 311]
+          }
+        ]
+      },
+      "provenance": {
+        "path": "art/monster-elephant/PROVENANCE.md",
+        "rigSource": "wolf/wolf.glb",
+        "rigSourceSha256": "16e0ed917e080afe971315c1c14c58e68b8e11cdb385924ba726420cc8036030",
+        "ownSkinAndClips": true
+      }
     }
   },
   "files": {
