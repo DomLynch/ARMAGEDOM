@@ -65,13 +65,51 @@ jobs:
       # The hosted drift check: a changed row, function, grant, RLS flag, policy or registry sha must be reported (pglite, no network).
       - run: node --test ops/realtime/check-db-drift.test.mjs
 
+  # The PRODUCTION build, loaded in headless Chromium (release 311 passed every source test, then the built game did not boot:
+  # the build's lowering of a default parameter emitted out-of-scope code). Fails on ARMAGEDOM_BOOT_FAILED, any page error or
+  # console.error at boot, and on the Westminster new-game start not reaching loaded. Tier-a: CI/tools only.
+  boot:
+    name: built-game boot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: npm run build
+        working-directory: Web
+      # Same playwright version scripts/qa pins; --no-save keeps it out of Web's lockfile and dependencies.
+      - run: npm install --no-save --no-audit --no-fund playwright@1.63.0
+        working-directory: Web
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-1.63.0-chromium-${{ runner.os }}
+      - run: npx playwright install --with-deps chromium
+        working-directory: Web
+      - run: node scripts/boot-check.mjs
+        working-directory: Web
+        timeout-minutes: 3
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-game-boot-failure
+          path: Web/boot-check-out/
+          if-no-files-found: ignore
+
   web-gate:
     name: web-gate
     if: always()
-    needs: [web, server]
+    needs: [web, server, boot]
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "web: ${{ needs.web.result }}  server: ${{ needs.server.result }}"
+          echo "web: ${{ needs.web.result }}  server: ${{ needs.server.result }}  boot: ${{ needs.boot.result }}"
           test "${{ needs.web.result }}" = success
           test "${{ needs.server.result }}" = success
+          test "${{ needs.boot.result }}" = success

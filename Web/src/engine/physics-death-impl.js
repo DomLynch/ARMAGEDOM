@@ -42,7 +42,7 @@ export const parkedCount = () => [...pools.values()].reduce((sum, pool) => sum +
 function warmOne(spec) {
   const pool = poolOf(spec);
   if (pool.length < CFG.poolSize && parkedCount() < CFG.maxParked)
-    pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked" }));
+    pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked", parked: true })); // created asleep: 0 ms per step until acquired
 }
 const fill = (spec) => {
   for (let i = 0; world && i < CFG.poolSize; i++) warmOne(spec);
@@ -161,8 +161,14 @@ export function rankOf(entity) {
   return entity.remotePlayer ? r.remote : r.crowd;
 }
 // The corpse a death of `rank` may take the place of: the lowest rank below it, the oldest of those; null = none (the newcomer is baked).
+// Among the lowest rank, a settled (frozen) body goes before one that is still falling; then the oldest.
 const evictable = (rank) =>
-  active.reduce((best, a) => ((a.rank ?? 0) < rank && (!best || (a.rank ?? 0) < (best.rank ?? 0)) ? a : best), null);
+  active.reduce((best, a) => {
+    const r = a.rank ?? 0,
+      br = best?.rank ?? 0;
+    if (r >= rank) return best;
+    return !best || r < br || (r === br && a.frozen && !best.frozen) ? a : best;
+  }, null);
 
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const budget = GAME_DATA.physicsBudget,
@@ -175,7 +181,11 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     releaseDeath(oldest);
     if (admit(active.length, budget.rows) === "baked") return null;
   }
-  const rd = poolOf(spec).pop() ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  const pooled = poolOf(spec).pop(),
+    rd = pooled ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  // Wake the parked body at its spawn pose BEFORE anything else touches it: setRoot, kill, snapToTarget and the rest are no-ops on a parked body. A false
+  // return means it was not parked (already awake), which is fine to use as it is.
+  pooled?.acquire();
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
     const bones = boneMap(body, spec);
