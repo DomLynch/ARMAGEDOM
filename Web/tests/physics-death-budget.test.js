@@ -352,6 +352,25 @@ test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and
   }
 });
 
+test("a reserved death releases an already-frozen crowd corpse before one that is still falling", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const held = [];
+  try {
+    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    held[1].frozen = true; // the second-oldest has settled; the oldest is still moving
+    const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
+      s = impl.startDeath(view, skeleton(), { id: 61, markedHunter: true, hp: 0, maxHP: 10 });
+    assert.ok(s);
+    assert.equal(held[1].rd, null);
+    assert.ok(held[0].rd);
+    held.push(s);
+  } finally {
+    for (const s of held) releaseDeath(s);
+  }
+});
+
 test("maxActive equals the simultaneous-ragdoll cap, so the oldest corpse is never frozen mid-fall by the cap", () => {
   assert.equal(CFG.maxActive, budgetRows.max_simultaneous_ragdolls);
 });
