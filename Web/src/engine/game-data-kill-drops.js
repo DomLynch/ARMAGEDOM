@@ -4,9 +4,8 @@
 import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
-const TIERS = ["trash", "creature", "boss"];
-
 export function validateKillDrops(d) {
+  const TIERS = ["trash", "creature", "boss"];
   closed(d, [
     "schema_version",
     "enabled",
