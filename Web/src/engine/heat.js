@@ -1,6 +1,7 @@
 import { GAME_DATA } from "./game-data.js";
 import { applyStarRow, starsEnabled, STAR_VARIANTS } from "./star-variants.js";
 import { seeded } from "./heat-tally-strokes.js";
+import { webText } from "./web-text.js";
 
 // HEAT (data/heat.json): +1 for every kill, a mark lost after each decay.secondsPerMark without one, back to zero on the player's death.
 // It scales the existing marked hunt (marked-hunters.js) by tier: shorter waits, one more hunter at once, and star hunters at the top tier.
@@ -28,9 +29,9 @@ export function stepHeat(g, rules = HEAT, search = undefined) {
     h = (g.heat ??= { count: 0, lastKillAt: g.time, seen: kills, rolls: 0 }); // kills before this session never count
   if (kills < h.seen) h.seen = kills; // a fresh run restarts the kill count
   if (kills > h.seen) {
-    h.count = Math.min(rules.maxHeat, h.count + kills - h.seen); // heat never builds past the data's cap
+    const gained = kills - h.seen;
     h.seen = kills;
-    h.lastKillAt = g.time;
+    addHeat(g, gained, rules, search);
   }
   const { secondsPerMark } = rules.decay;
   while (h.count > 0 && g.time - h.lastKillAt >= secondsPerMark) {
@@ -40,9 +41,49 @@ export function stepHeat(g, rules = HEAT, search = undefined) {
   if (h.count === 0) h.lastKillAt = g.time;
 }
 
+// Heat goes up by `amount` (a kill, or a valuable from the valuables rows), never past maxHeat, and restarts the cooldown. Reaching a new
+// tier says so on the HUD line (webText heat.tierUp).
+export function addHeat(g, amount, rules = HEAT, search = undefined) {
+  if (!g.heat || !(amount > 0) || !heatEnabled(rules, search)) return;
+  const before = heatTier(g, rules);
+  g.heat.count = Math.min(rules.maxHeat, g.heat.count + amount);
+  g.heat.lastKillAt = g.time;
+  const after = heatTier(g, rules);
+  if (after && after !== before) {
+    g.message = webText("heat.tierUp");
+    g.messageUntil = g.time + rules.tierMessageSeconds;
+  }
+}
+
+// Cash or a crate claimed (world-pickups-core.js claimCash, the one place every cash pickup passes): cash rows give +1 per perHeat cash
+// collected from matching sources (the remainder carries over), claim rows give a flat amount for one source.
+export function heatFromClaim(g, source, amount, rules = HEAT) {
+  if (!g.heat || !(amount > 0)) return;
+  for (const row of rules.valuables.cash)
+    if (source.startsWith(row.sourcePrefix)) {
+      const bank = (g.heat.cashBank ?? 0) + amount,
+        gained = Math.floor(bank / row.perHeat);
+      g.heat.cashBank = bank - gained * row.perHeat;
+      addHeat(g, gained, rules);
+    }
+  for (const row of rules.valuables.claims) if (row.source === source) addHeat(g, row.heat, rules);
+}
+
+// Game events that are valuables (a boss kill), each read once however often the step is read again (the loop calls this after each step).
+export function heatFromEvents(g, rules = HEAT) {
+  if (!g.heat) return;
+  const seen = (g.heatSeen ??= new WeakSet());
+  for (const e of g.events ?? []) {
+    if (seen.has(e)) continue;
+    seen.add(e);
+    for (const row of rules.valuables.events) if (row.type === e.type) addHeat(g, row.heat, rules);
+  }
+}
+
 // The player died: heat is gone.
 export function resetHeat(g) {
   if (!g.heat) return;
+  g.heat.cashBank = 0;
   g.heat.count = 0;
   g.heat.seen = g.kills ?? 0;
   g.heat.lastKillAt = g.time;

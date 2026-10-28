@@ -1,4 +1,5 @@
 import { GAME_DATA, fillText } from "./game-data.js";
+import { heatFromClaim } from "./heat.js";
 import { lockerInventory } from "./locker-core.js";
 import { activeDay, variedCrates } from "./spawn-variation.js";
 import { resourceOwner, LOCKER_RESOURCE_RULES } from "./locker-state.js";
@@ -82,6 +83,7 @@ export function grantCash(g, wanted) {
 // Notes cash from a stash or the airdrop for the server to credit once (the online session drains `g.cashClaims`; offline nothing reads it).
 export function claimCash(g, source, amount) {
   if (amount > 0) (g.cashClaims ??= []).push({ source, amount });
+  heatFromClaim(g, source, amount); // a stash or a crate also raises heat (heat.json valuables)
 }
 const say = (g, text, seconds) => {
   g.message = text;
