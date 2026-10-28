@@ -5,6 +5,7 @@
   "offValue": "0",
   "defaultOn": true,
   "rigRef": "marked-hunter",
+  "remote": { "modelRef": "remote-survivor", "deathField": "dead", "fallbackClip": "Death" },
   "seed": 731,
   "stepHz": 60,
   "maxStepsPerFrame": 4,
