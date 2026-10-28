@@ -950,6 +950,9 @@ test("a 429 on a claim waits its retryMs and sends the same claim again", async 
   assert.ok(t.timers[0].ms >= 3000);
   t.clock.ms += 3000;
   await fire(t);
+  assert.equal(claimCalls(t).length, 1, "a 429 means the bucket is empty: it still has to refill a token");
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
   await done;
   assert.deepEqual(claimCalls(t).map((c) => c.body), [{ source: "kill:creature", amount: 15 }, { source: "kill:creature", amount: 15 }]);
   assert.equal(t.lines.length, 0);
