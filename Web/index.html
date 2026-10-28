@@ -90,8 +90,10 @@
       <p id="ammo" hidden aria-live="polite"></p>
       <p id="notice" role="status"></p>
       <p id="expedition-objective" hidden></p>
+      <p id="run-hud" hidden role="status"></p>
       <p id="marked-status" hidden role="status"></p>
       </div>
+      <div id="run-banner" hidden role="status"><strong id="run-banner-title"></strong><span id="run-banner-line"></span></div>
       <button id="menu-button" aria-label="Open game menu">☰</button>
       <!-- Desktop only (body.desktop-ui, not body.touch): the key hints, filled from data/inputKeys.json by hud.js. -->
       <div id="key-hints" aria-hidden="true"></div>
@@ -155,6 +157,7 @@
         <button id="menu-tab-map" type="button" role="tab" aria-controls="menu-map" aria-selected="false" tabindex="-1">Map</button>
       </nav>
       <div id="menu-content">
+        <section id="run-panel" hidden aria-label="Apocalypse run"><p id="run-start-hint"></p><button id="run-start" type="button"></button></section>
         <section id="expedition-panel" hidden aria-label="Gear, journal and discovery atlas">
           <section id="menu-gear" role="tabpanel" aria-labelledby="menu-tab-gear">
             <details id="equipment-panel" open><summary>Equipment</summary>
@@ -222,6 +225,9 @@
         
         <button id="again">Try again</button>
       </div>
+    </section>
+    <section id="run-results" class="overlay" hidden>
+      <div class="card"><h2 id="run-results-title"></h2><div id="run-results-rows"></div><button id="run-continue" type="button"></button></div>
     </section>
     <script type="module" src="/src/main.js"></script>
   <button id="rifle-pickup" type="button" hidden style="position:fixed;z-index:8;transform:translate(-50%,-100%);padding:.4rem .6rem;background:#392a16;color:#f6d281;border:1px solid #c6a75d;border-radius:.4rem">PICK UP RIFLE</button>

@@ -11,6 +11,7 @@ import { EXPEDITION_HUD } from "./expedition-hud-data.js";
 import { sessionText as text } from "./session-text.js";
 import { PISTOL_RULES } from "../pistol.js";
 import { GAME_DATA, fillText } from "./game-data.js";
+import { runObjective } from "./apocalypse-run.js";
 export function selectedAtlasRoute(registry, from, to) {
   const route = [];
   if (!to || from === to) return route;
@@ -93,6 +94,8 @@ function areaObjectiveLine(g) {
   return hasBoss && g.enemies && !bossAlive && g.bossSeenAliveIn.has(id) ? text("expedition.bossDown") : text(`areaObjective.${id}`);
 }
 export function progressionObjective(g) {
+  const run = runObjective(g); // a run in progress replaces the area's own line with the stage's
+  if (run) return { target: null, objective: run };
   if (g.world.areaId !== "westminster") return { target: null, objective: areaObjectiveLine(g) };
   const gate = bossExitGate(g, "central-hub");
   return gate && !gate.allowed

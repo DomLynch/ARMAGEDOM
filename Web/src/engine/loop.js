@@ -13,6 +13,7 @@ import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint, withChain
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { armPostBossRaid } from "./post-boss-raid.js";
 import { heatFromEvents } from "./heat.js";
+import { stepApocalypseRun } from "./apocalypse-run.js";
 import { createAirdropView } from "./airdrop-view.js";
 import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
@@ -180,6 +181,7 @@ export function createBrowserLoop(s) {
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
         armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
         heatFromEvents(s.game); // a defeated boss also raises heat (heat.json valuables)
+        stepApocalypseRun(s.game); // the opt-in run: stage clock, raids and end conditions (apocalypseRun.json)
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);
@@ -241,6 +243,7 @@ export function createBrowserLoop(s) {
       hint = s.paused || s.traveling ? "" : hints.current(s.game, routeActive);
     s.hud.update(s.game, hint, hints.overMessage);
     s.updateExpedition?.();
+    s.updateRunHud?.(); // after the HUD: the run's results card stands in front of the death card
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
   }

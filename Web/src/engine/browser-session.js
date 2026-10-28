@@ -349,6 +349,9 @@ export function createBrowserSession(options = {}) {
     updateHeatTally() {
       resources.updateHeatTally();
     },
+    updateRunHud() {
+      resources.updateRunHud();
+    },
     updateVestBag() {
       resources.updateVestBag();
     },
