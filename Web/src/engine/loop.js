@@ -20,9 +20,11 @@ export function createBrowserLoop(s) {
   const deathCam = createDeathPresentation();
   let seenGame = null,
     seenArea = null;
-  globalThis.document?.addEventListener?.("visibilitychange", () => {
-    if (globalThis.document.hidden) deathCam.reset();
-  });
+  // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
+  if (globalThis.document && s.listen)
+    s.listen(globalThis.document, "visibilitychange", () => {
+      if (globalThis.document.hidden) deathCam.reset();
+    });
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,

@@ -348,6 +348,7 @@ export function createBrowserSession(options = {}) {
       resources.cancelPistol(g);
     },
     emit,
+    listen, // the session's DOM-owner registry: dispose() releases whatever the loop registers through it
   };
   // The online world is ON by default but starts only after the server's status read says it is open (worldGate below); ?world=0 turns
   // it off for this page load. The storage is wrapped BEFORE the run views capture it: it only passes writes through, and queues the

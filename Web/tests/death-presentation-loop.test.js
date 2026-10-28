@@ -9,7 +9,7 @@ const boss = { bossProfile: {}, pos: { x: 5, z: 6 } };
 const death = [{ type: "death", actor: boss }];
 
 // Drives the real frame() with a fake clock and a recording world.update.
-function rig() {
+function rig(listen) {
   const camera = new THREE.PerspectiveCamera(),
     calls = [];
   const world = {
@@ -46,6 +46,7 @@ function rig() {
     updateSupplies() {},
     updateVestBag() {},
     emit() {},
+    listen,
   };
   return { s, calls, loop: createBrowserLoop(s), world, game };
 }
@@ -108,9 +109,9 @@ test("real frame resets: travel, player death, area change, new game, dt spike, 
     assert.equal(spiked.loop.deathCam.active(), false, "dt spike");
     const listeners = [];
     const before = globalThis.document;
-    globalThis.document = { hidden: false, addEventListener: (type, fn) => listeners.push([type, fn]) };
+    globalThis.document = { hidden: false };
     try {
-      const r = rig();
+      const r = rig((target, type, fn) => listeners.push([type, fn]));
       arm(r);
       globalThis.document.hidden = true;
       for (const [type, fn] of listeners) if (type === "visibilitychange") fn();
@@ -146,4 +147,34 @@ test("loop.js calls the resets from every hook (source check)", () => {
   );
   assert.match(src, /visibilitychange[\s\S]{0,120}deathCam\.reset\(\)/);
   assert.match(src, /reset\(\) \{\s*deathCam\.reset\(\)/);
+});
+
+test("the tab-hidden listener goes through the session owner registry: released by dispose, never bound directly", () => {
+  const before = globalThis.document,
+    bindings = new Map(),
+    released = [];
+  globalThis.document = {
+    hidden: false,
+    addEventListener: () => assert.fail("loop must not bind the document itself"),
+  };
+  try {
+    const listen = (target, type, fn) => {
+      bindings.set(fn, type);
+      released.push(() => bindings.delete(fn));
+    };
+    withScreen(() => {
+      rig(listen);
+      assert.equal(bindings.size, 1);
+      rig(listen); // a recreated loop registers its own once; the old one is released with its owner
+      assert.equal(bindings.size, 2);
+    });
+    for (const release of released) release(); // what session.dispose() does for every listen() entry
+    assert.equal(bindings.size, 0);
+    assert.ok(rig().loop); // no registry (unit harness): no binding at all
+  } finally {
+    if (before === undefined) delete globalThis.document;
+    else globalThis.document = before;
+  }
+  const session = readFileSync(new URL("../src/engine/browser-session.js", import.meta.url), "utf8");
+  assert.match(session, /\n    listen, \/\/ the session's DOM-owner registry/);
 });
