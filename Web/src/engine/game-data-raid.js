@@ -18,7 +18,6 @@ export function validatePostBossRaid(d) {
     "maxSimultaneous",
     "retrySeconds",
     "messageSeconds",
-    "text",
   ]);
   if (typeof d.enabled !== "boolean") fail("postBossRaid", "enabled must be a boolean");
   closed(d.trigger, ["event", "ignoreAreas"]);
@@ -31,7 +30,4 @@ export function validatePostBossRaid(d) {
   number("postBossRaid", "durationSeconds", d.durationSeconds, d.delaySeconds);
   count("postBossRaid", "hunterCount", d.hunterCount, 1, 64);
   count("postBossRaid", "maxSimultaneous", d.maxSimultaneous, 1, d.hunterCount);
-  closed(d.text, ["armed", "arrived", "over"]);
-  for (const k of ["armed", "arrived", "over"])
-    if (typeof d.text[k] !== "string" || !d.text[k]) fail("postBossRaid", `text.${k} must be a text id`);
 }

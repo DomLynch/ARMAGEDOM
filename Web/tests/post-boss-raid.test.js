@@ -31,7 +31,7 @@ test("the raid row validates, refuses broken rows, and keeps the tutorial and th
     (d) => { d.targetZones.push(d.trigger.ignoreAreas[0]); },
     (d) => { d.durationSeconds = 1; },
     (d) => { d.extra = 1; },
-    (d) => { d.text.over = ""; },
+    (d) => { d.messageSeconds = 0; },
   ]) {
     const d = raw();
     mutate(d);
@@ -40,7 +40,6 @@ test("the raid row validates, refuses broken rows, and keeps the tutorial and th
   for (const id of ROW.targetZones) assert.ok(publicAreaRegistry.has(id), id);
   assert.ok(!ROW.targetZones.includes("westminster"));
   assert.ok(ROW.maxSimultaneous <= ROW.hunterCount);
-  for (const id of Object.values(ROW.text)) assert.equal(typeof GAME_DATA.webText.texts[id], "string", id);
 });
 
 test("trigger: a boss kill arms the raid with the data message; other events and ignored areas do not", () => {
@@ -55,7 +54,7 @@ test("trigger: a boss kill arms the raid with the data message; other events and
   kill(g);
   armPostBossRaid(g);
   assert.equal(g.raid.startAt, ROW.delaySeconds);
-  assert.equal(g.message, GAME_DATA.webText.texts[ROW.text.armed]);
+  assert.equal(g.message, GAME_DATA.webText.texts["raid.armed"]);
   step(g);
   assert.equal(raiders(g).length, 0, "nobody comes before the delay");
 });

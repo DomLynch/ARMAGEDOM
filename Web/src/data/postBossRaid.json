@@ -8,6 +8,5 @@
   "hunterCount": 4,
   "maxSimultaneous": 2,
   "retrySeconds": 2,
-  "messageSeconds": 5,
-  "text": { "armed": "raid.armed", "arrived": "raid.arrived", "over": "raid.over" }
+  "messageSeconds": 5
 }

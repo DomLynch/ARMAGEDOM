@@ -5,8 +5,8 @@ import { webText } from "./web-text.js";
 // (the hub or a road), marked hunters arrive through the Marked hunt's own entry and spawn, a few at a time (maxSimultaneous), until
 // hunterCount have come or the window closes. They chase the player like any hunter (area pursuit, as the airdrop pulls bosses), wear the
 // same LOD and ragdoll budget, and travel, death or a safehouse clears them. State lives on `g.raid`; nothing is saved.
-const notify = (g, id) => {
-  g.message = webText(GAME_DATA.postBossRaid.text[id]);
+const notify = (g, text) => {
+  g.message = text;
   g.messageUntil = g.time + GAME_DATA.postBossRaid.messageSeconds;
 };
 const alive = (g) => g.enemies.filter((e) => e.raidHunter && e.hp > 0).length;
@@ -22,7 +22,7 @@ export function armPostBossRaid(g) {
     if (g.raid || row.trigger.ignoreAreas.includes(g.world.areaId)) continue;
     const startAt = g.time + row.delaySeconds;
     g.raid = { startAt, endAt: g.time + row.durationSeconds, spawned: 0, live: 0, nextAt: startAt, areaId: g.world.areaId };
-    notify(g, "armed");
+    notify(g, webText("raid.armed"));
   }
 }
 
@@ -33,7 +33,7 @@ export function stepPostBossRaid(g, spawn, entry, open) {
     s = g.raid;
   if (!s) return;
   if (!row.enabled || g.player.hp <= 0 || g.time >= s.endAt) {
-    if (row.enabled && g.player.hp > 0 && s.spawned > 0) notify(g, "over");
+    if (row.enabled && g.player.hp > 0 && s.spawned > 0) notify(g, webText("raid.over"));
     g.raid = null;
     return;
   }
@@ -45,7 +45,7 @@ export function stepPostBossRaid(g, spawn, entry, open) {
   }
   s.live = here;
   if (s.spawned >= row.hunterCount && here === 0) {
-    notify(g, "over");
+    notify(g, webText("raid.over"));
     g.raid = null;
     return;
   }
@@ -60,7 +60,7 @@ export function stepPostBossRaid(g, spawn, entry, open) {
     g.enemies.push(actor);
     g.events.push({ type: "marked-hunter-arrived", actor, position: { ...at } });
   }
-  if (s.spawned === 0) notify(g, "arrived");
+  if (s.spawned === 0) notify(g, webText("raid.arrived"));
   s.spawned += room;
   s.live = here + room;
 }
