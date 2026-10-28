@@ -2,6 +2,20 @@
 // Web/src/data/renderBudget.json. Pure: it returns the list of problems, empty when the cost is within budget.
 import { GAME_DATA } from "./game-data.js";
 
+/** The phone-trace scene (scripts/perf-trace/phone-monster-trace.mjs) at its p95 frame: { hostiles, drawCalls, triangles }. */
+export function hostileSceneProblems(measured, budget = GAME_DATA.renderBudget.hostileScene) {
+  if (!measured || measured.hostiles !== budget.hostiles)
+    return [`needs a measurement with ${budget.hostiles} hostiles`];
+  const problems = [];
+  if (!(measured.drawCalls > 0) || !(measured.triangles > 0)) return ["the measurement has no draw calls or triangles"];
+  // Test diagnostics for the trace script and unit tests, not shown to players (text-ok).
+  if (measured.drawCalls > budget.maxDrawCalls)
+    problems.push(`${measured.drawCalls} draw calls, budget ${budget.maxDrawCalls}`); // text-ok
+  if (measured.triangles > budget.maxTriangles)
+    problems.push(`${measured.triangles} triangles, budget ${budget.maxTriangles}`); // text-ok
+  return problems;
+}
+
 /** zero / loaded: { drawCalls, triangles, remotes } as the ?stats=1 line reports them. */
 export function remoteCostProblems(zero, loaded, budget = GAME_DATA.renderBudget) {
   const problems = [];
