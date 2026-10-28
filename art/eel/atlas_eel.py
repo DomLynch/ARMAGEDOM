@@ -64,12 +64,12 @@ col *= (1.0 - 0.25 * smooth(S, 0.75, 1.0))[..., None]
 
 # a pale lateral stripe along each flank so the long body separates from dark paving
 stripe = np.exp(-((dorsal - 0.40) / 0.07) ** 2) * (0.75 + 0.25 * n_mid)
-col = mix(col, np.broadcast_to(np.array([0.70, 0.52, 0.28]), (H, W, 3)).copy(), np.clip(stripe, 0, 1) * 0.85)
+col = mix(col, np.broadcast_to(np.array([0.70, 0.52, 0.28]), (H, W, 3)).copy(), np.clip(stripe, 0, 1) * 0.35)
 # head: a pale jaw line along the mouth, a pale lower jaw, so the head reads at phone size
 head_zone = smooth(0.24 - S, 0.0, 0.06)
 lip = np.exp(-((dorsal - 0.5) / 0.045) ** 2)
-col = mix(col, np.broadcast_to(np.array([0.92, 0.80, 0.52]), (H, W, 3)).copy(), np.clip(lip * head_zone, 0, 1))
-col = mix(col, np.broadcast_to(np.array([0.70, 0.55, 0.34]), (H, W, 3)).copy(), (dorsal < 0.46) * head_zone * 0.8)
+col = mix(col, np.broadcast_to(np.array([0.92, 0.80, 0.52]), (H, W, 3)).copy(), np.clip(lip * head_zone, 0, 1) * 0.5)
+col = mix(col, np.broadcast_to(np.array([0.60, 0.50, 0.36]), (H, W, 3)).copy(), (dorsal < 0.46) * head_zone * 0.5)
 # lateral line: a row of pale pores along each flank
 line = np.abs(dorsal - 0.5)
 pores = (line < 0.012) & (np.sin(S * 520) > 0.2)
@@ -170,10 +170,10 @@ ey, ex = np.mgrid[0:eh, 0:ew].astype(np.float32)
 ex = (ex / ew - 0.5) * 2
 ey = (ey / eh - 0.5) * 2
 r = np.hypot(ex, ey)
-eye = np.broadcast_to(np.array([1.0, 0.85, 0.25]), (eh, ew, 3)).copy()  # bright pale amber
-eye = mix(eye, np.broadcast_to(np.array([0.35, 0.16, 0.03]), (eh, ew, 3)).copy(), smooth(r, 0.5, 1.0))
-slit = (np.abs(ex) < 0.12 * (1 - np.abs(ey) * 0.6)) & (np.abs(ey) < 0.62)
-eye[slit] = (0.01, 0.01, 0.01)
+# realistic eel eye (2030 realism ruling): small, dark brown, round black pupil, no glow
+eye = np.broadcast_to(np.array([0.07, 0.045, 0.03]), (eh, ew, 3)).copy()
+eye = mix(eye, np.broadcast_to(np.array([0.02, 0.015, 0.012]), (eh, ew, 3)).copy(), smooth(r, 0.45, 1.0))
+eye[r < 0.38] = (0.005, 0.005, 0.005)
 img[y0:y1, x0:x1] = eye
 gloss[y0:y1, x0:x1] = 0.06
 height[y0:y1, x0:x1] = 0

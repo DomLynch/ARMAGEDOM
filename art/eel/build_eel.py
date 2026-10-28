@@ -296,7 +296,7 @@ for side in (-1, 1):
     y0 = -0.438
     rx, rz, zc = prof(y0)
     c = Vector((side * (rx * 0.82), y0, zc + rz * 0.36))
-    R = 0.019
+    R = 0.013  # small realistic eye
     res = bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=7, radius=R)
     w = weights(y0, bone="head")
     for v in res["verts"]:

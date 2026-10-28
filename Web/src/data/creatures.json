@@ -167,7 +167,7 @@
       "original-roach": 1.6063268331546576,
       "giant-salamander": 3.1078573708270647,
       "original-crow": 1.4004105398402,
-      "giant-eel": 1.2
+      "giant-eel": 0.8
     }
   },
   "behaviours": {
@@ -445,7 +445,7 @@
       "brain": "dog",
       "biteMove": "salamander",
       "calfFaceReceiver": true,
-      "targetHeight": 0.2,
+      "targetHeight": 0.15,
       "strictAlive": true,
       "hitClip": "Hurt",
       "deathClip": "Death",

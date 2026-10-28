@@ -88,7 +88,7 @@ const stage = (spec) => page.evaluate((s) => {
   window.__eelId = e.id;
   return { player: { ...p.pos }, eel: { ...e.pos }, hp: e.hp, scale: e.mobSize };
 }, spec);
-const AT = { idle: { x: 2.6, z: 3.2, fx: -1, fz: 0 }, bite: { x: 1.9, z: 1.2, fx: -1, fz: -0.3, alerted: true } };
+const AT = { idle: { x: 2.6, z: 3.2, fx: -1, fz: 0 }, bite: { x: 1.1, z: 0.7, fx: -1, fz: -0.3, alerted: true } };
 const staged = await stage(AT.idle);
 console.log(label, "staged", JSON.stringify(staged));
 const shot = async (name) => {

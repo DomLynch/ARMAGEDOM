@@ -1494,7 +1494,7 @@
       "url": "giant-eel/giant-eel.glb",
       "rig": "giant-eel",
       "motion": "salamander",
-      "scale": 1.4,
+      "scale": 0.9,
       "forwardCorrection": 0,
       "groundOffset": 0.008,
       "clips": {
@@ -1508,8 +1508,8 @@
         "flee": "Flee"
       },
       "deferred": true,
-      "bytes": 350688,
-      "sha256": "8c4ef1904d9ee378a658d4e0b2089ae5744c90bb9c8e6a0305d75c3bc0c94fc1",
+      "bytes": 350584,
+      "sha256": "c0b42849499aad8595e245991686dd25f105e5f7f85fa84df19527af076b7249",
       "name": "Giant Eel",
       "contact": {
         "canines": [

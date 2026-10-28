@@ -11,6 +11,9 @@ const old = JSON.parse(fs.readFileSync(new URL("./fixtures/creature-catalogue-pr
 // 28 Oct: the crow rows are appended (art/monster-crow).
 old.support["original-crow"] = ["rat-native-bite", "teeth", "original-crow", ["attack", "attackLow"]];
 old.reach["original-crow"] = 1.4004105398402;
+// 28 Oct: the giant eel rows are appended (art/monster-eel).
+old.support["giant-eel"] = ["eel-native-bite", "teeth", "giant-eel", ["attack"]];
+old.reach["giant-eel"] = 0.8;
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("the data rows equal the old in-code tables exactly (values and key order) and are frozen", () => {

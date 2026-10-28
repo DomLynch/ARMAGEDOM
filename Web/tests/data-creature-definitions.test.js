@@ -26,6 +26,23 @@ old.definitions.push({
 });
 old.recipeFoundations["crow-carrion"] = "original-crow";
 old.recipeFoundations["crow-ragged"] = "original-crow";
+// 28 Oct: the giant eel foundation and its recipe are appended rows (art/monster-eel).
+old.definitions.push({
+  id: "giant-eel",
+  rig: "giant-eel",
+  contactRig: null,
+  assetRef: "model.giant-eel",
+  clips: { idle: "Idle", walk: "Walk", run: "Run", attack: "Bite", slash: "Bite", hit: "Hurt", death: "Death", flee: "Flee" },
+  scale: { model: 0.9, character: 1.265, visual: 1.3225, mobSizeMode: "fixed-one", bodyScale: 1, appliedBy: "actor-root-wrapper" },
+  stats: { health: 90, radius: 0.35, moveSpeed: 2, recoveryDelay: 0, weapon: "teeth" },
+  behaviour: { controllerRef: "eel-native-bite", parameterPreset: "baseline", intentPolicyRef: "existing-resident-intent-policy" },
+  clipSourceRefs: [],
+  preparationRefs: [],
+  equipmentRef: null,
+  provenanceRef: "art/eel/PROVENANCE.md",
+  runtimeIdentity: "giant-eel",
+});
+old.recipeFoundations["eel-river-ambusher"] = "giant-eel";
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 
