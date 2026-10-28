@@ -221,7 +221,8 @@
       "eel-river-ambusher": "baseline",
       "elephant-ashen-bull": "baseline",
       "spider-crypt": "baseline",
-      "centipede-lurker": "brisk"
+      "centipede-lurker": "brisk",
+      "rat-king": "cautious"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -271,7 +272,8 @@
       "eel-river-ambusher": "ambush",
       "elephant-ashen-bull": "baseline",
       "spider-crypt": "ambush",
-      "centipede-lurker": "ambush"
+      "centipede-lurker": "ambush",
+      "rat-king": "territorial"
     }
   },
   "animalCycles": {

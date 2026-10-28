@@ -133,6 +133,13 @@ export function validateChainedPitborn(d) {
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
 }
 
+export function validateRatKing(d) {
+  closed(d, ["schema_version", "note", "enabled", "offParam", "offValue", "appearanceRef"]);
+  if (typeof d.enabled !== "boolean") fail("ratKing", "enabled must be true or false");
+  for (const name of ["offParam", "offValue", "appearanceRef"])
+    if (typeof d[name] !== "string" || !/^[a-z0-9-]+$/.test(d[name])) fail("ratKing", `${name} must be a plain word`);
+}
+
 export function validateReaperMotion(d) {
   closed(d, ["schema_version", "maxStepSeconds", "orbitRate"]);
   if (!(d.maxStepSeconds > 0 && d.maxStepSeconds <= 1))

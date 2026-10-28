@@ -84,7 +84,7 @@ import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { shareIdenticalTextures } from "./actor-texture-share.js";
-import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
+import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
@@ -868,6 +868,7 @@ export function createActors(
           ...(world.residentPlacements?.[areaId] ?? [])
             .filter((row) => row.appearanceRef !== undefined)
             .map((row) => row.appearanceRef),
+          ...slotAppearanceRefs(world.populationData?.areas[areaId]),
         );
         refs.push(
           ...(world.bossData?.placements ?? [])
@@ -917,6 +918,7 @@ export function createActors(
           .flatMap((row) => [row.appearanceRef, row.foundationRef])
           .filter((ref) => ref !== undefined),
         ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
+        ...slotAppearanceRefs(world.populationData?.areas[areaId]),
         ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
         ...(world.bossData?.placements ?? [])
           .filter((row) => row.areaId === areaId)
