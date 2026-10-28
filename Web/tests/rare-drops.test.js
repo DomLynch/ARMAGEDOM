@@ -264,4 +264,7 @@ test("a kill claim sends enemy and killId, keeps the same killId on a rate-limit
   assert.equal(g.message, "Salamander Gland x1");
   await client.claimPickup("stash:east-3", 120);
   assert.deepEqual(bodies.at(-1), { source: "stash:east-3", amount: 120 });
+  // a rig-less kill: the server refuses an empty enemy (bad-enemy) and would drop the cash claim, so the key is left out
+  await client.claimPickup("kill:trash", 5, { at: { x: 1, z: 1 }, enemy: "", killId: "kill-abc-87654321" });
+  assert.deepEqual(bodies.at(-1), { source: "kill:trash", amount: 5, killId: "kill-abc-87654321" });
 });

@@ -253,7 +253,7 @@ export function createSaveClient({
     const reply = await call("claim_pickup", {
       source: item.source,
       amount: item.amount,
-      ...(item.killId ? { enemy: item.enemy, killId: item.killId } : {}),
+      ...(item.killId ? { ...(item.enemy ? { enemy: item.enemy } : {}), killId: item.killId } : {}), // an empty enemy is refused (bad-enemy): leave it out
     });
     // The writer's own 429 (and a proxy's) carries retryMs; the kill-tier rate refusal is a normal reply with retryS.
     const writerLimited = reply.retryMs !== undefined;
