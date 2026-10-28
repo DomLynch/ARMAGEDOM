@@ -18,6 +18,8 @@ import commanderSession from "../data/commanderSession.json" with { type: "json"
 import runNotices from "../data/runNotices.json" with { type: "json" };
 import worldPickups from "../data/worldPickups.json" with { type: "json" };
 import killDrops from "../data/killDrops.json" with { type: "json" };
+import starVariants from "../data/starVariants.json" with { type: "json" };
+import { validateStarVariants } from "./game-data-star-variants.js";
 import webText from "../data/webText.json" with { type: "json" };
 import sessionText from "../data/sessionText.json" with { type: "json" };
 import combatText from "../data/combatText.json" with { type: "json" };
@@ -1081,6 +1083,7 @@ const sources = () => ({
   runNotices: [runNotices, validateRunNotices],
   worldPickups: [worldPickups, validateWorldPickups],
   killDrops: [killDrops, validateKillDrops],
+  starVariants: [starVariants, validateStarVariants],
   webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],
