@@ -20,7 +20,7 @@ const server = http.createServer((req, res) => {
   });
 }).listen(0);
 const port = server.address().port;
-const browser = await chromium.launch({ headless: true, args: ["--mute-audio", "--use-gl=angle", "--use-angle=swiftshader", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader"] });
+const browser = await chromium.launch({ headless: true, args: ["--mute-audio", ...(process.env.SOFTWARE ? ["--use-gl=angle", "--use-angle=swiftshader", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader"] : ["--use-angle=metal", "--ignore-gpu-blocklist", "--enable-gpu"])] });
 const context = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 const page = await context.newPage();
 page.on("pageerror", (e) => console.log("pageerror", e.message));
@@ -54,12 +54,12 @@ const frames = async (n) => { for (let i = 0; i < n; i++) { await page.clock.run
 await frames(120);
 await page.screenshot({ path: path.join(outDir, `${label}-arrival.png`) });
 // A few metres up the road toward the old pile: move the player, let the camera follow, shoot again.
-for (const [name, nx, ny] of [["near", 0.27, 0.82], ["beside", 0.33, 0.78]]) {
-  await page.evaluate(([x, y]) => {
+for (const [name, dx, dz] of [["near", 2.5, -1.5], ["beside", 5, -3]]) {
+  await page.evaluate(([dx, dz, base]) => {
     const g = window.__qa.game, w = window.__qa.world;
-    g.player.pos = { ...w.geometry.point({ x, y }) };
+    g.player.pos = { x: base.x + dx, z: base.z + dz };
     w.update(g.player.pos, 0, innerWidth, innerHeight, true);
-  }, [nx, ny]);
+  }, [dx, dz, arrival.pos]);
   await frames(90);
   await page.screenshot({ path: path.join(outDir, `${label}-${name}.png`) });
   console.log(label, name, JSON.stringify(await page.evaluate(() => window.__qa.state())));
