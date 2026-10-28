@@ -763,7 +763,6 @@ function flameHit(g, target, damage, { source }) {
   }
 }
 function kill(g, e, meta = {}) {
-  if (meta.impactDirection) e.deathImpact = { x: meta.impactDirection.x ?? 0, z: meta.impactDirection.z ?? 0 }; // the ragdoll falls along the killing blow
   stopBoneSaw(g, e, "death");
   if (!g.enemies.includes(e)) return;
   stopBossFlame(g, e, "death");
