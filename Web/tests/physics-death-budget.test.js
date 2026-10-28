@@ -323,13 +323,13 @@ test("past the simultaneous-ragdoll budget row the next death takes the baked cl
   };
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
       pooled = created;
     // a crowd death (no reserve flag) past the cap: baked, no body built, nothing released
     assert.equal(impl.startDeath(view, skeleton(), { id: 50, hp: 0, maxHP: 10 }), null);
     assert.equal(created, pooled);
-    assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+    assert.equal(activeCount(), tierCaps().humanoid);
     for (const s of held) assert.equal(s.rd.destroyed, 0);
   } finally {
     world.createRagdoll = create;
@@ -343,7 +343,7 @@ test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and
   await impl.loadWorld();
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     for (const flag of GAME_DATA.physicsBudget.reserve_for_marked) {
       const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
         entity = { id: 60, [flag]: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
@@ -351,7 +351,7 @@ test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and
         s = impl.startDeath(view, skeleton(), entity);
       assert.ok(s, `${flag} death got a ragdoll`);
       assert.equal(oldest.rd, null); // the oldest crowd corpse's body was freed
-      assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+      assert.equal(activeCount(), tierCaps().humanoid);
       held.push(s);
     }
   } finally {
@@ -365,7 +365,7 @@ test("a reserved death releases an already-frozen crowd corpse before one that i
   await impl.loadWorld();
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     held[1].frozen = true; // the second-oldest has settled; the oldest is still moving
     const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
       s = impl.startDeath(view, skeleton(), { id: 61, markedHunter: true, hp: 0, maxHP: 10 });
