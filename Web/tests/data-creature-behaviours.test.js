@@ -28,6 +28,9 @@ old.recipeIntents["spider-crypt"] = "ambush";
 // 28 Oct: the centipede's recipe rows are appended (art/monster-centipede).
 old.recipeBehaviours["centipede-lurker"] = "brisk";
 old.recipeIntents["centipede-lurker"] = "ambush";
+// 28 Oct: the Rat King recipe rows (art/monster-rat-king).
+old.recipeBehaviours["rat-king"] = "cautious";
+old.recipeIntents["rat-king"] = "territorial";
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {
   for (const [table, rows, expected] of [
     ["presets", CREATURE_BEHAVIOURS, old.presets],

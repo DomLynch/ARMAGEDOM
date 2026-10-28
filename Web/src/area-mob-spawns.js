@@ -41,3 +41,8 @@ export function residentEncounterHealth(placement, fallback) {
     throw Error("Invalid resident encounter health");
   return row.health;
 }
+// A placement's appearanceRef model may carry a data switch (ratKing.json): off by a URL parameter, the placement is the plain creature again.
+export function appearanceRefOn(ref, search = globalThis.location?.search ?? "") {
+  const row = GAME_DATA.ratKing;
+  return ref !== row.appearanceRef || (row.enabled && new URLSearchParams(search).get(row.offParam) !== row.offValue);
+}

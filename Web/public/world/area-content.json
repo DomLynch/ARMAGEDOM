@@ -7783,7 +7783,12 @@
           "cycles": {
             "A": {
               "foundationRef": "original-rat",
-              "recipeRef": "rat-soot"
+              "recipeRef": "rat-king",
+              "appearanceRef": "rat-king",
+              "off": {
+                "foundationRef": "original-rat",
+                "recipeRef": "rat-soot"
+              }
             },
             "B": {
               "foundationRef": "original-spider",

@@ -1,8 +1,9 @@
 import { closed, freeze } from "./content-schema.js";
 import { creatureCatalogue } from "./creature-catalogue.js";
-import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
+import { AREA_MOB_SPAWNS, appearanceRefOn } from "../area-mob-spawns.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
 import { rigCapability, rigText } from "../rig-capabilities.js";
+import { GAME_DATA } from "./game-data.js";
 const fail = () => {
   throw Error("Invalid registered area population");
 };
@@ -61,6 +62,12 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
     if (!active.includes(slot.placementKey) || protectedRows.some((row) => row.key === slot.placementKey)) fail();
     const checkSpec = (spec, optional) => {
       closed(spec, ["foundationRef", "recipeRef"], optional);
+      // An appearance model must be a rig-matching animal recipe row in appearance.json (the Rat King's `rat-king`).
+      if (
+        spec.appearanceRef !== undefined &&
+        !GAME_DATA.appearance.animals.some((row) => row.id === spec.appearanceRef && row.foundation === spec.foundationRef)
+      )
+        fail();
       if (!rigCapability(spec.foundationRef, "populationSlot")) fail();
       if (isDrone(spec.foundationRef)) {
         if (spec.recipeRef !== null || !drones.some((row) => row.key === slot.placementKey)) fail();
@@ -71,7 +78,7 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
         fail();
     };
     for (const spec of Object.values(slot.cycles)) {
-      checkSpec(spec, ["off"]);
+      checkSpec(spec, ["off", "appearanceRef"]);
       // `off`: the creature the slot holds when its monster is switched off (default: the cycle A creature, see populationPlacements).
       if (spec.off) checkSpec(spec.off, []);
     }
@@ -97,13 +104,22 @@ export function populationPlacements(policy, areaId, cycle, canonical, search = 
   const active = new Set(area.activePlacementIds),
     slot = area.creatureSlot,
     chosen = slot.cycles[cycle ?? "A"],
-    spec = chosen && monsterOff(chosen.foundationRef, search) ? (chosen.off ?? slot.cycles.A) : chosen;
+    // A spec dressed in an appearance model (the Rat King) is also off when that model is switched off (ratKing.json).
+    off = chosen && (monsterOff(chosen.foundationRef, search) || (chosen.appearanceRef !== undefined && !appearanceRefOn(chosen.appearanceRef, search))),
+    spec = off ? (chosen.off ?? slot.cycles.A) : chosen;
   if (!spec) fail();
   return canonical
     .filter((row) => active.has(row.key))
     .map((row) => {
-      if (row.key === slot.placementKey)
-        return { ...row, foundationRef: spec.foundationRef, recipeRef: spec.recipeRef };
+      if (row.key === slot.placementKey) {
+        const { appearanceRef } = spec;
+        return {
+          ...row,
+          foundationRef: spec.foundationRef,
+          recipeRef: spec.recipeRef,
+          ...(appearanceRef !== undefined ? { appearanceRef } : {}),
+        };
+      }
       if (
         areaId === "east" &&
         row.key === "east-roamer-8" &&
