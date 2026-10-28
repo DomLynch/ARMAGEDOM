@@ -16,6 +16,8 @@ test("the retry floor is data and still 250 ms; every older key is unchanged", (
   assert.deepEqual(rest, {
     schema_version: 1, minSaveIntervalMs: 5000, staleSeqRetries: 2, characterName: "Survivor", bootSyncWaitMs: 3000,
     bucketBurst: 6, bucketRefillMs: 5000, bucketReserve: 2,
+    // The claim_pickup bucket and retry rule for cash claims (writer: server/data/rate-limits.json clientOps.claim_pickup).
+    claimBurst: 4, claimRefillMs: 5000, claimRetries: 6, claimSecondMs: 1000,
   });
 });
 
