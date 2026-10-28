@@ -41,7 +41,9 @@ export function validateSaveClient(d) {
     "claimBurst",
     "claimRefillMs",
     "claimRetries",
+    "claimSecondMs",
   ]);
+  count("saveClient", "claimSecondMs", d.claimSecondMs, 1000, 1000); // the writer's retryS is in seconds; this is the unit conversion
   // The writer's claim_pickup bucket (server/data/rate-limits.json): the client spaces its cash claims to it and retries a refused one
   // (a 429, or a kill-tier rate-limit) up to `claimRetries` times, so a crowd of kills is credited in full instead of dropped.
   count("saveClient", "claimBurst", d.claimBurst, 1, 100);

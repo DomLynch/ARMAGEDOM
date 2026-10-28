@@ -248,11 +248,12 @@ export function createSaveClient({
     claimWait();
     claimTokens = Math.max(0, claimTokens - 1);
     const reply = await call("claim_pickup", { source: item.source, amount: item.amount });
-    const rateLimited = reply.status === 429 || reply.refused === "rate-limit"; // tuning-ok: HTTP status code
-    if (rateLimited && item.tries < tuning.claimRetries) {
+    // The writer's own 429 (and a proxy's) carries retryMs; the kill-tier rate refusal is a normal reply with retryS.
+    const writerLimited = reply.retryMs !== undefined;
+    if ((writerLimited || reply.refused === "rate-limit") && item.tries < tuning.claimRetries) {
       item.tries++;
-      if (reply.status === 429) claimTokens = 0; // tuning-ok: HTTP status code
-      const ms = reply.retryMs ?? (Number.isFinite(reply.retryS) ? reply.retryS * 1000 : tuning.claimRefillMs); // tuning-ok: seconds to ms
+      if (writerLimited) claimTokens = 0;
+      const ms = reply.retryMs ?? (Number.isFinite(reply.retryS) ? reply.retryS * tuning.claimSecondMs : tuning.claimRefillMs);
       claimBlockedUntil = now() + Math.max(tuning.retryFloorMs, ms);
       claimQueue.unshift(item);
       return;
