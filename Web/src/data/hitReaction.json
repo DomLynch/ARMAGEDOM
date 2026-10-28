@@ -7,6 +7,8 @@
   "eligibleFlags": ["markedHunter", "bossProfile"],
   "maxActive": 3,
   "retriggerSeconds": 0.1,
+  "minDirectionLength": 0.000001,
+  "fallbackDirection": { "x": 0, "z": -1 },
   "bendRadians": 0.32,
   "twistRadians": 0.26,
   "damage": { "ref": 40, "min": 0.6, "max": 1.6 },

@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateHitReaction } from "../src/engine/hit-reaction-data.js";
 import {
   activeBodyReactions,
+  blowDirection,
   bodyReactionEnd,
   bodyReactionStart,
   bodyReactionStep,
@@ -193,4 +195,129 @@ test("a blow from the front and from behind lean the spine opposite ways", () =>
   const a = lean({ x: 0, z: 1 }),
     b = lean({ x: 0, z: -1 });
   assert.ok(a * b < 0, `opposite signs: ${a} vs ${b}`);
+});
+
+// ---- review fixes: parked areas, fail-soft, non-finite directions, drift, paused frames, contacts-only passes ----
+const allFinite = (bones) =>
+  Object.values(bones).every((b) => [b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w].every(Number.isFinite));
+const clipPose = (bones) => {
+  let i = 0;
+  for (const b of Object.values(bones)) b.quaternion.setFromEuler(new THREE.Euler(0.01 * ++i, 0.02, 0.03)); // a non-identity pose from the "clip"
+};
+
+test("parkArea ends the reaction (frees the cap slot) and puts the bones back; actors.js calls it", () => {
+  const { root, model, bones } = rig();
+  const view = { root, model };
+  clipPose(bones);
+  const before = bones.Spine2.quaternion.clone();
+  bodyReactionStart(view, shot(boss, "shotgun"));
+  bodyReactionStep(view, boss, row.classes.shotgun.easeInSeconds + row.classes.shotgun.holdSeconds / 2);
+  assert.ok(bones.Spine2.quaternion.angleTo(before) > 1e-3, "mid-reaction");
+  bodyReactionEnd(view); // what parkArea does for each parked view
+  assert.equal(activeBodyReactions(), 0);
+  assert.ok(bones.Spine2.quaternion.angleTo(before) < 1e-6, "clip pose restored");
+  const src = readFileSync(new URL("../src/actors.js", import.meta.url), "utf8");
+  const park = src.slice(src.indexOf("parkArea(areaId)"), src.indexOf("*prepareAreaSteps"));
+  assert.match(park, /bodyHitEnd\(view\)/, "parkArea releases the reaction");
+  assert.ok(Buffer.byteLength(src) <= 80 * 1024, "actors.js stays under the source size limit");
+});
+
+test("fail soft: a throw in step or start ends the reaction, restores the bones and never reaches the caller", () => {
+  const { root, model, bones } = rig();
+  const view = { root, model };
+  clipPose(bones);
+  const before = bones.Spine2.quaternion.clone();
+  bodyReactionStart(view, shot(boss, "rifle"));
+  bones.Spine2.parent.updateWorldMatrix = () => {
+    throw new Error("boom");
+  };
+  assert.doesNotThrow(() => bodyReactionStep(view, boss, row.classes.rifle.easeInSeconds));
+  assert.equal(view.bodyReaction, undefined);
+  assert.equal(activeBodyReactions(), 0);
+  assert.ok(allFinite(bones));
+  assert.ok(bones.Spine2.quaternion.angleTo(before) < 1e-6, "back on the clip pose");
+  const r2 = rig();
+  const v2 = { root: r2.root, model: r2.model };
+  v2.root.getWorldQuaternion = () => {
+    throw new Error("boom");
+  };
+  assert.doesNotThrow(() => bodyReactionStart(v2, shot(boss, "rifle")));
+  assert.equal(v2.bodyReaction, undefined);
+  assert.equal(activeBodyReactions(), 0);
+  assert.doesNotThrow(() => bodyReactionEnd(undefined));
+  assert.doesNotThrow(() => bodyReactionStep({}, boss, 1 / 60));
+});
+
+test("NaN, infinite, zero and missing directions fall back to the frontal blow and never reach the bones", () => {
+  for (const d of [undefined, null, {}, { x: NaN, z: NaN }, { x: 0, z: 0 }, { x: Infinity, z: 0 }, { x: 1e-12, z: 0 }, { x: "a", z: 1 }])
+    assert.deepEqual(blowDirection(row, d), row.fallbackDirection);
+  assert.deepEqual(blowDirection(row, { x: 3, z: 4 }), { x: 0.6, z: 0.8 });
+  for (const d of [{ x: NaN, z: NaN }, { x: 0, z: 0 }, { x: Infinity, z: -Infinity }, undefined]) {
+    const { root, model, bones } = rig();
+    const view = { root, model };
+    bodyReactionStart(view, shot(boss, "rocket", { impactDirection: d }));
+    assert.ok(view.bodyReaction, "a bad direction still reacts, with the fallback");
+    for (let t = 0; t < 40; t++) {
+      clipPose(bones);
+      bodyReactionStep(view, boss, 1 / 60);
+      assert.ok(allFinite(bones), "finite bones");
+    }
+    bodyReactionEnd(view);
+  }
+  const { root, model } = rig();
+  const view = { root, model };
+  bodyReactionStart(view, shot(boss, "rifle", { amount: NaN }));
+  assert.equal(view.bodyReaction, undefined);
+  bodyReactionStart(view, shot(boss, "rifle"));
+  bodyReactionStep(view, boss, NaN);
+  bodyReactionStep(view, boss, -1);
+  assert.ok(view.bodyReaction, "a non-finite or negative dt is ignored, not fatal");
+  bodyReactionEnd(view);
+});
+
+// Frame t of a reaction on rig A (the clip rewrites every bone every frame) must equal the same frame on rig B (the clip never rewrites).
+test("no drift: bones the clip does not rewrite get the same pose as bones it rewrites, and paused frames do not stack", () => {
+  const run = (rewrite, dts) => {
+    const { root, model, bones } = rig();
+    const view = { root, model };
+    clipPose(bones);
+    bodyReactionStart(view, shot(boss, "shotgun"));
+    const out = [];
+    for (const dt of dts) {
+      if (rewrite) clipPose(bones);
+      bodyReactionStep(view, boss, dt);
+      out.push(Object.values(bones).map((b) => b.quaternion.clone()));
+    }
+    return { out, view };
+  };
+  const dts = Array.from({ length: 20 }, () => 1 / 60);
+  const a = run(true, dts),
+    b = run(false, dts);
+  a.out.forEach((frame, i) => frame.forEach((q, k) => assert.ok(q.angleTo(b.out[i][k]) < 1e-6, `frame ${i} bone ${k}`)));
+  // paused: dt 0 for many frames in a row (DonorMotion skips resampling when there is no tick): the pose must not move
+  const paused = run(false, [1 / 60, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  paused.out.slice(1).forEach((frame, i) => frame.forEach((q, k) => assert.ok(q.angleTo(paused.out[0][k]) < 1e-6, `paused frame ${i} bone ${k}`)));
+  bodyReactionEnd(paused.view);
+  bodyReactionEnd(a.view);
+  bodyReactionEnd(b.view);
+  assert.equal(activeBodyReactions(), 0);
+});
+
+test("a contacts-only pass shows the clip bones, does not age the reaction, and the next rendered pass lays it on again", () => {
+  const { root, model, bones } = rig();
+  const view = { root, model };
+  clipPose(bones);
+  const clip = Object.values(bones).map((b) => b.quaternion.clone());
+  bodyReactionStart(view, shot(boss, "shotgun"));
+  const peak = row.classes.shotgun.easeInSeconds + row.classes.shotgun.holdSeconds / 2;
+  bodyReactionStep(view, boss, peak);
+  const reacted = bones.Spine2.quaternion.clone();
+  assert.ok(reacted.angleTo(clip[3]) > 1e-3);
+  const age = view.bodyReaction.age;
+  bodyReactionStep(view, boss, 1 / 60, true); // contactOnly
+  Object.values(bones).forEach((b, k) => assert.ok(b.quaternion.angleTo(clip[k]) < 1e-6, `contact pass reads the clip pose, bone ${k}`));
+  assert.equal(view.bodyReaction.age, age, "age frozen in a contacts pass");
+  bodyReactionStep(view, boss, 0); // the rendered pass, same instant
+  assert.ok(bones.Spine2.quaternion.angleTo(reacted) < 1e-6, "the reaction is back, same pose");
+  bodyReactionEnd(view);
 });

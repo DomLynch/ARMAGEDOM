@@ -10,7 +10,7 @@ export function validateHitReaction(d) {
     ZONES = ["head", "torso", "arms", "legs"];
   closed(d, [
     "schema_version", "note", "flagParam", "offValue", "defaultOn", "eligibleFlags", "maxActive", "retriggerSeconds",
-    "bendRadians", "twistRadians", "damage", "hash", "weaponClass", "classes", "zones", "order",
+    "minDirectionLength", "fallbackDirection", "bendRadians", "twistRadians", "damage", "hash", "weaponClass", "classes", "zones", "order",
   ]);
   if (typeof d.note !== "string" || !d.note) fail(F, "note must say the values are placeholders");
   if (typeof d.flagParam !== "string" || typeof d.offValue !== "string") fail(F, "flagParam and offValue must be strings");
@@ -18,6 +18,10 @@ export function validateHitReaction(d) {
   if (!Array.isArray(d.eligibleFlags) || !d.eligibleFlags.length || !d.eligibleFlags.every((x) => typeof x === "string" && x))
     fail(F, "eligibleFlags must name at least one entity field");
   for (const name of ["maxActive", "retriggerSeconds", "bendRadians", "twistRadians"]) number(F, name, d[name], 0.01);
+  number(F, "minDirectionLength", d.minDirectionLength, 0);
+  closed(d.fallbackDirection, ["x", "z"]);
+  if (!(Number.isFinite(d.fallbackDirection.x) && Number.isFinite(d.fallbackDirection.z) && Math.hypot(d.fallbackDirection.x, d.fallbackDirection.z) > 0))
+    fail(F, "fallbackDirection must be a finite, non-zero direction");
   closed(d.damage, ["ref", "min", "max"]);
   number(F, "damage.ref", d.damage.ref, 0.01);
   if (!(d.damage.min > 0 && d.damage.min <= d.damage.max)) fail(F, "damage.min must be above 0 and at most damage.max");
