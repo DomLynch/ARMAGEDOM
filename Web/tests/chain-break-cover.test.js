@@ -25,7 +25,7 @@ function spot(g, at, statue, accept = () => true) {
     for (let k = 0; k < 48; k++) {
       const a = (k / 48) * Math.PI * 2,
         o = { x: at.x + Math.cos(a) * d, z: at.z + Math.sin(a) * d };
-      if (w.lineClear(o, o) && !w.lineClear(o, at) && sightPastStatue(w.geometry, at, o) === statue && accept(o)) return o;
+      if (w.lineClear(o, o) && !w.lineClear(o, at) && sightPastStatue(w, at, o) === statue && accept(o)) return o;
     }
   throw Error("no spot");
 }
@@ -40,6 +40,31 @@ function fire(g, at, from, offDegrees) {
   stepChainBreak(g, spawn, true);
   return { state: chainBreakState(g).state, shot };
 }
+
+test("the cover statue is named in data, is a blocker of the Westminster layout, and the Pitborn's own spot is open ground (sandbags gone)", () => {
+  const { g, at } = armed();
+  const name = GAME_DATA.chainedPitborn.chainedTargets.coverBlocker;
+  assert.equal(name, "Lion pedestal");
+  assert(g.world.layout.blockers.some((b) => b.name === name), "the layout has that blocker");
+  assert(!g.world.layout.blockers.some((b) => /sandbag/i.test(b.name)), "no sandbag blocker beside the statue");
+  assert(g.world.geometry.clear(at, 0.4), "the Pitborn's spot is open ground");
+});
+
+test("start-area pistol shots: every sampled point whose line is stopped by the statue frees the Pitborn, and there are such points", () => {
+  const { g, at } = armed();
+  const w = g.world;
+  let shots = 0;
+  for (const d of [3, 4, 5, 6, 8, 10])
+    for (let k = 0; k < 48; k++) {
+      const a = (k / 48) * Math.PI * 2,
+        o = { x: at.x + Math.cos(a) * d, z: at.z + Math.sin(a) * d };
+      if (!w.lineClear(o, o) || w.lineClear(o, at) || !sightPastStatue(w, at, o)) continue;
+      g.chainBreak = undefined;
+      assert.equal(fire(g, at, o, 0).state, "snapping", "freed from " + JSON.stringify(o));
+      shots++;
+    }
+  assert(shots > 10, "statue-covered firing points exist: " + shots);
+});
 
 test("a pistol shot aimed at the Pitborn behind the statue frees it", () => {
   const { g, at } = armed();
