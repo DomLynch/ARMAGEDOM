@@ -7718,12 +7718,20 @@
           "placementKey": "elephant-and-castle-resident-2",
           "cycles": {
             "A": {
-              "foundationRef": "original-dog",
-              "recipeRef": "dog-street-mongrel"
+              "foundationRef": "original-elephant",
+              "recipeRef": "elephant-ashen-bull",
+              "off": {
+                "foundationRef": "original-dog",
+                "recipeRef": "dog-street-mongrel"
+              }
             },
             "B": {
-              "foundationRef": "original-roach",
-              "recipeRef": "roach-ash"
+              "foundationRef": "original-elephant",
+              "recipeRef": "elephant-ashen-bull",
+              "off": {
+                "foundationRef": "original-roach",
+                "recipeRef": "roach-ash"
+              }
             }
           }
         },

@@ -43,6 +43,24 @@ old.definitions.push({
   runtimeIdentity: "giant-eel",
 });
 old.recipeFoundations["eel-river-ambusher"] = "giant-eel";
+// 28 Oct: the elephant foundation, its recipe and its native role are appended rows (art/monster-elephant).
+old.definitions.push({
+  id: "original-elephant",
+  rig: "original-elephant",
+  contactRig: null,
+  assetRef: "model.original-elephant",
+  clips: { idle: "Idle", walk: "Walk", run: "Run", attack: "Bite", slash: "Bite", hit: "Hurt", death: "Death", flee: "Flee" },
+  scale: { model: 5, character: 1.265, visual: 1.3225, mobSizeMode: "fixed-one", bodyScale: 1, appliedBy: "actor-root-wrapper" },
+  stats: { health: 150, radius: 1.3, moveSpeed: 2.2, recoveryDelay: 0, weapon: "teeth" },
+  behaviour: { controllerRef: "elephant-native-bite", parameterPreset: "baseline", intentPolicyRef: "existing-resident-intent-policy" },
+  clipSourceRefs: [],
+  preparationRefs: [],
+  equipmentRef: null,
+  provenanceRef: "art/monster-elephant/PROVENANCE.md",
+  runtimeIdentity: "original-elephant",
+});
+old.recipeFoundations["elephant-ashen-bull"] = "original-elephant";
+old.nativeRoles.push({ area: "elephant-and-castle", placement: "elephant-and-castle-resident-2", recipe: "elephant-ashen-bull", foundation: "original-elephant", cycles: ["A", "B"], preset: "baseline" });
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 

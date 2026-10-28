@@ -15,7 +15,7 @@ const byName = {
   RAT_LOW: 'rat_low', RAT_BITE: 'rat_bite', RAT_BITE_LOW: 'rat_bite_low', ROACH_LOW: 'roach_low', ROACH_BITE: 'roach_bite',
   ROACH_BITE_SCALED: 'roach_bite_scaled', DOG_LOW: 'dog_low', DOG_MID: 'dog_mid', DOG_BITE: 'dog_bite',
   DOG_BITE_SCALED: 'dog_bite_scaled', WOLF_BITE: 'wolf_bite', SALAMANDER_BITE: 'salamander_bite', WOLF_ATTACK: 'wolf_attack',
-  SALAMANDER_ATTACK: 'salamander_attack',
+  SALAMANDER_ATTACK: 'salamander_attack', ELEPHANT_BITE: 'elephant_bite', ELEPHANT_ATTACK: 'elephant_attack',
 };
 
 test('every creature move row equals the old in-code table exactly and is frozen', () => {

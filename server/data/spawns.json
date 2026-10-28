@@ -210,9 +210,9 @@
     "maxHp": 40
   },
   "elephant-and-castle:elephant-and-castle-resident-2": {
-    "kind": "original-dog",
+    "kind": "original-elephant",
     "area": "elephant-and-castle",
-    "maxHp": 30
+    "maxHp": 150
   },
   "elephant-and-castle:elephant-and-castle-resident-3": {
     "kind": "hollow-scavenger",
