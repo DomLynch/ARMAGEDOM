@@ -5,7 +5,7 @@ import { TILE_FLASH_SECONDS } from "../src/engine/weapon-tiles.js";
 
 // The numbers that were inline in engine/weapon-tiles.js before they moved to visual.json `weaponTiles`.
 test("the weapon tile strip keeps its pre-data numbers", () => {
-  assert.deepEqual(WEAPON_TILES, { pistolCapacity: 6, tapSlopPx: 10, flashSeconds: 5, emptyMessageSeconds: 4, pageSize: 2, pageWidthPx: 110 });
+  assert.deepEqual(WEAPON_TILES, { pistolCapacity: 6, tapSlopPx: 10, flashSeconds: 5, emptyMessageSeconds: 4, pageSize: 3, pageWidthPx: 168 });
   assert.equal(TILE_FLASH_SECONDS, 5);
 });
 

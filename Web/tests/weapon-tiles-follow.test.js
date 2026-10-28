@@ -82,6 +82,14 @@ const selectOnly = (g, kind) => {
   g.pistol.equipped = kind === "pistol";
 };
 
+test("the page width in style.css is the data page width (tiles 52px, gap 6px), and a page fits a 375px phone beside the arrow", () => {
+  const css = fs.readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
+  assert.equal(WEAPON_TILES.pageWidthPx, PAGE * 52 + (PAGE - 1) * 6);
+  assert(css.includes(`#weapon-tiles-track{display:flex;flex:0 0 ${STEP}px;width:${STEP}px;`));
+  assert(css.includes(`.weapon-page{display:flex;flex:0 0 ${STEP}px;width:${STEP}px;`));
+  assert(STEP + 44 <= 375 - 12 - 120, "strip plus the next arrow leaves room beside the joystick and actions at 375 wide");
+});
+
 test("activeTilePage is the page of the first non-companion active tile", () => {
   const rows = (n, at) => Array.from({ length: n }, (_, i) => ({ id: "w" + i, active: i === at }));
   assert.equal(activeTilePage(rows(5, 0)), 0);

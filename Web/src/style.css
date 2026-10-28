@@ -595,7 +595,7 @@ summary {
 /* Approved C silhouette tiles. Input and existing top-HUD ammo remain owners. */
 #weapon-tiles{position:absolute;left:var(--safe-l);bottom:calc(var(--safe-b) + 158px);display:flex;align-items:center;width:max-content;pointer-events:auto;color:#dedbd0;}
 #weapon-tiles-current,#weapon-tiles-position{display:none;}
-#weapon-tiles-track{display:flex;flex:0 0 110px;width:110px;gap:0;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x mandatory;}
+#weapon-tiles-track{display:flex;flex:0 0 168px;width:168px;gap:0;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x mandatory;}
 #weapon-tiles-track::-webkit-scrollbar{display:none;}
 #weapon-tiles-track button{flex:0 0 52px;min-width:52px;width:52px;height:52px;min-height:52px;padding:4px 3px 2px;border:1px solid #85877f;border-radius:7px;background:rgba(17,23,23,.78);color:#d7d5ca;touch-action:pan-x;white-space:nowrap;font-size:9px;line-height:1;}
 #weapon-tiles-track button::before{content:"";display:block;width:40px;height:24px;margin:0 auto 3px;background-color:#96968b;-webkit-mask:var(--weapon-icon) center/contain no-repeat;mask:var(--weapon-icon) center/contain no-repeat;pointer-events:none;}
@@ -609,7 +609,7 @@ summary {
 #weapon-tiles-track small{font-size:8px;line-height:9px;display:block;margin:0;letter-spacing:.02em;}
 @media(orientation:portrait){#weapon-tiles{bottom:calc(var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)));}}
 
-#weapon-tiles-track .weapon-page{display:flex;flex:0 0 110px;width:110px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
+#weapon-tiles-track .weapon-page{display:flex;flex:0 0 168px;width:168px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
 #weapon-tiles .weapon-browse{flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#e1bb65;font-size:22px;line-height:44px;text-align:center;touch-action:none;}
 #weapon-tiles-prev{position:absolute;left:0;bottom:100%;}
 #weapon-tiles.flash #weapon-tiles-track button{animation:tile-flash .8s ease-in-out infinite alternate;}
