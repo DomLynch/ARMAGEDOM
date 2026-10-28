@@ -24,9 +24,9 @@ const LINES = [
     "Ember Projector · 80% fuel · 6 damage per 0.25s contact",
   ],
   [
-    "summary.arcGun",
-    { name: "Thundercoil Arc Gun", damage: 40, jumps: 3, range: 30, seconds: 1.5, magazine: 2, capacity: 3, reserve: 9 },
-    "Thundercoil Arc Gun · 40 arc damage · jumps 3x · 30m · 1.5s charge · 2/3 loaded · 9 reserve",
+    "summary.lmg",
+    { name: "Light Machine Gun", damage: 5, range: 14, magazine: 2, capacity: 3, reserve: 9 },
+    "Light Machine Gun · 5 damage per bullet · 14m · hold to fire · 2/3 loaded · 9 reserve",
   ],
   // The weapon stats in these three lines are filled from data/weapons.json; the expected text is the old literal, so a data change
   // that no longer matches today's text shows up here.
