@@ -140,12 +140,12 @@ export function validateChainedPitborn(d) {
   closed(d.breakLoose.text, ["snap", "loose"]);
   for (const name of ["snap", "loose"])
     if (typeof d.breakLoose.text[name] !== "string" || !d.breakLoose.text[name]) fail("chainedPitborn", "breakLoose.text." + name + " must be text");
-  closed(d.chainedTargets, ["rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres", "coverMetres", "aimTargetId"]);
+  closed(d.chainedTargets, ["rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres", "coverEdgeMetres", "aimTargetId"]);
   for (const name of ["rays", "rays3d", "melee", "blasts", "cones"])
     if (!Array.isArray(d.chainedTargets[name]) || d.chainedTargets[name].some((t) => typeof t !== "string" || !t))
       fail("chainedPitborn", "chainedTargets." + name + " must be a list of event types");
   number("chainedPitborn", "chainedTargets.blastPaddingMetres", d.chainedTargets.blastPaddingMetres, 0.01);
-  number("chainedPitborn", "chainedTargets.coverMetres", d.chainedTargets.coverMetres, 0.01);
+  number("chainedPitborn", "chainedTargets.coverEdgeMetres", d.chainedTargets.coverEdgeMetres, 0.01);
   if (typeof d.chainedTargets.aimTargetId !== "string" || !d.chainedTargets.aimTargetId) fail("chainedPitborn", "chainedTargets.aimTargetId must be text");
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
 }

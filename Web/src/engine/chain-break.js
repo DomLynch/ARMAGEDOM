@@ -44,17 +44,44 @@ function nearRay(r, at) {
     t = length ? Math.max(0, Math.min(1, ((at.x - r.origin.x) * sx + (at.z - r.origin.z) * sz) / length)) : 0;
   return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres;
 }
-// The Pitborn stands inside the lion statue's collision, which stops a bullet short of it. While its own spot is blocked scenery, a shot
-// stopped within coverMetres of it (its own cover, not a wall elsewhere) still counts when the line it was fired along passes within
-// hitRadiusMetres of the Pitborn.
-function behindCover(r, e, at, geometry) {
+function edgeGap(p, a, b) {
+  const sx = b.x - a.x,
+    sz = b.z - a.z,
+    length = sx * sx + sz * sz,
+    t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * sx + (p.z - a.z) * sz) / length)) : 0;
+  return gap(p, { x: a.x + sx * t, z: a.z + sz * t });
+}
+const polygonGap = (p, poly) => Math.min(...poly.map((a, i) => edgeGap(p, a, poly[(i + 1) % poly.length])));
+// The Pitborn stands inside the lion statue's collision (the blocker polygon nearest its spot), which stops a bullet short of it. While its
+// own spot is blocked scenery, a bullet whose stop point is on that polygon's edge (within coverEdgeMetres) still counts when the line it
+// was fired along passes within hitRadiusMetres of the Pitborn. A bullet stopped by any other wall, crate or enemy does not.
+const onStatue = (geometry, at, p) => {
   if (geometry.clear(at, SPAWN.bodyRadius)) return false;
+  const statue = geometry.blockers?.reduce((best, poly) => (!best || polygonGap(at, poly) < polygonGap(at, best) ? poly : best), null);
+  return !!statue && polygonGap(p, statue) <= T.coverEdgeMetres;
+};
+// Sight from a to the Pitborn's spot, where the only thing in the way is the statue it stands in: walk the line to the first blocked point
+// and ask whether that point is the statue's edge. Any other wall on the way keeps the sight blocked.
+export function sightPastStatue(geometry, at, a) {
+  if (!geometry.lineClear(a, a)) return false;
+  let low = 0,
+    high = 1;
+  const point = (t) => ({ x: a.x + (at.x - a.x) * t, z: a.z + (at.z - a.z) * t });
+  for (let i = 0; i < 20; i++) { // tuning-ok: twenty halvings pin the first blocked point to a millionth of the line
+    const middle = (low + high) / 2; // tuning-ok: bisection takes the midpoint
+    if (geometry.lineClear(a, point(middle))) low = middle;
+    else high = middle;
+  }
+  return onStatue(geometry, at, point(low));
+}
+function behindCover(r, e, at, geometry) {
+  if (!onStatue(geometry, at, r.end)) return false;
   const dir = r.direction ?? e.direction ?? { x: r.end.x - r.origin.x, z: r.end.z - r.origin.z },
     len = Math.hypot(dir.x, dir.z),
     dx = at.x - r.origin.x,
     dz = at.z - r.origin.z,
     along = len ? (dx * dir.x + dz * dir.z) / len : 0;
-  return along > 0 && gap(r.end, at) <= T.coverMetres && Math.abs(dx * dir.z - dz * dir.x) / len <= B.hitRadiusMetres;
+  return along > 0 && Math.abs(dx * dir.z - dz * dir.x) / len <= B.hitRadiusMetres;
 }
 function inCone(e, at) {
   const dx = at.x - e.origin.x,

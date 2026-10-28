@@ -1,6 +1,6 @@
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { GAME_DATA } from "./engine/game-data.js";
-import { chainedPitbornTarget } from "./engine/chain-break.js";
+import { chainedPitbornTarget, sightPastStatue } from "./engine/chain-break.js";
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
 import { rigCapability, rigNumber } from "./rig-capabilities.js";
 
@@ -178,16 +178,20 @@ export function resolveRangedAim(
     }
     assist = false;
   }
-  const shackled = assist && !projectile ? chainedPitbornTarget(g) : null;
+  // Single bullets only: shotgun pellets and projectiles cannot free it, so they are not steered at it.
+  const shackled = assist && ["pistol", "rifle"].includes(profile.field) ? chainedPitbornTarget(g) : null;
   const trace = assist
     ? resolvePistolShot({
         position: p,
         aim: direction,
-        // The shackled Pitborn is an aim-assist target. It stands in the statue's collision, so sight to its own spot is allowed.
+        // The shackled Pitborn is an aim-assist target. It stands in the statue's collision, so sight to its own spot is allowed when the
+        // statue is all that is in the way; any other wall still blocks it.
         targets: shackled ? [...targets, shackled] : targets,
         visibleIds: shackled && visibleIds ? [...visibleIds, shackled.id] : visibleIds,
         lineClear: shackled
-          ? (a, b) => (Math.hypot(b.x - shackled.pos.x, b.z - shackled.pos.z) < SAME_SPOT ? true : lineClear(a, b))
+          ? (a, b) =>
+              lineClear(a, b) ||
+              (Math.hypot(b.x - shackled.pos.x, b.z - shackled.pos.z) < SAME_SPOT && sightPastStatue(g.world.geometry, shackled.pos, a))
           : lineClear,
         areaId: g.world.areaId,
         rules,

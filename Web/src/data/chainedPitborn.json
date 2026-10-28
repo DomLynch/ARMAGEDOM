@@ -31,7 +31,7 @@
     "blasts": ["grenade-blast", "trap-crate-blast", "boss-rocket-blast"],
     "cones": ["flame-contact"],
     "blastPaddingMetres": 0.9,
-    "coverMetres": 6,
+    "coverEdgeMetres": 0.2,
     "aimTargetId": "chained-pitborn"
   },
   "emissive": { "color": "5a2610", "intensity": 0.02 },
