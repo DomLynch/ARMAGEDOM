@@ -191,7 +191,7 @@ export function resolveRangedAim(
         lineClear: shackled
           ? (a, b) =>
               lineClear(a, b) ||
-              (Math.hypot(b.x - shackled.pos.x, b.z - shackled.pos.z) < SAME_SPOT && sightPastStatue(g.world.geometry, shackled.pos, a))
+              (Math.hypot(b.x - shackled.pos.x, b.z - shackled.pos.z) < SAME_SPOT && sightPastStatue(g.world, shackled.pos, a))
           : lineClear,
         areaId: g.world.areaId,
         rules,
