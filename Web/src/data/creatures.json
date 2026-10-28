@@ -173,7 +173,8 @@
       "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] },
       "giant-eel": { "controller": "eel-native-bite", "weapon": "teeth", "rig": "giant-eel", "actions": ["attack"] },
       "original-elephant": { "controller": "elephant-native-bite", "weapon": "teeth", "rig": "original-elephant", "actions": ["attack"] },
-      "original-spider": { "controller": "roach-native-bite", "weapon": "teeth", "rig": "original-spider", "actions": ["attack"] }
+      "original-spider": { "controller": "roach-native-bite", "weapon": "teeth", "rig": "original-spider", "actions": ["attack"] },
+      "giant-centipede": { "controller": "centipede-native-bite", "weapon": "teeth", "rig": "giant-centipede", "actions": ["attack"] }
     },
     "reach": {
       "original-wolf": 2.375,
@@ -184,7 +185,8 @@
       "original-crow": 1.4004105398402,
       "giant-eel": 0.8,
       "original-elephant": 4.95,
-      "original-spider": 1.6063268331546576
+      "original-spider": 1.6063268331546576,
+      "giant-centipede": 1.9
     }
   },
   "behaviours": {
@@ -218,7 +220,8 @@
       "crow-carrion": "brisk",
       "eel-river-ambusher": "baseline",
       "elephant-ashen-bull": "baseline",
-      "spider-crypt": "baseline"
+      "spider-crypt": "baseline",
+      "centipede-lurker": "brisk"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -267,7 +270,8 @@
       "crow-ragged": "baseline",
       "eel-river-ambusher": "ambush",
       "elephant-ashen-bull": "baseline",
-      "spider-crypt": "ambush"
+      "spider-crypt": "ambush",
+      "centipede-lurker": "ambush"
     }
   },
   "animalCycles": {
@@ -516,6 +520,25 @@
       "deathClip": "roach_death",
       "hitTicks": 18,
       "deathTicks": 48
+    },
+    "giant-centipede": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "centipede",
+      "populationSlot": true,
+      "brain": "dog",
+      "lowSwing": "roach",
+      "biteMove": "roach",
+      "calfContact": true,
+      "targetHeight": 0.08,
+      "targetHeightReach": 0.24,
+      "hitClip": "roach_hit",
+      "deathClip": "roach_death",
+      "hitTicks": 18,
+      "deathTicks": 48,
+      "optionalMonster": true,
+      "enabled": true,
+      "offParam": "nocentipede"
     }
   }
 }

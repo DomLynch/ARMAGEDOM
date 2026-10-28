@@ -70,6 +70,26 @@ old.rigCapabilities["original-spider"] = {
   hitTicks: 18,
   deathTicks: 48,
 };
+// 28 Oct: the centipede rig row is appended (art/monster-centipede).
+old.rigCapabilities["giant-centipede"] = {
+  lowStrike: true,
+  animal: true,
+  species: "centipede",
+  populationSlot: true,
+  brain: "dog",
+  lowSwing: "roach",
+  biteMove: "roach",
+  calfContact: true,
+  targetHeight: 0.08,
+  targetHeightReach: 0.24,
+  hitClip: "roach_hit",
+  deathClip: "roach_death",
+  hitTicks: 18,
+  deathTicks: 48,
+  optionalMonster: true,
+  enabled: true,
+  offParam: "nocentipede",
+};
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {
