@@ -55,7 +55,8 @@ export function validateShareClip(d) {
   if (!Array.isArray(d.moments) || !d.moments.some((m) => m.trigger === "playerDeath")) fail(f, "moments must include the player death");
   const seen = new Set();
   for (const m of d.moments) {
-    closed(m, ["id", "label", "text", "trigger", "priority", "tailSeconds", "cooldownSeconds"], ["flags", "events", "minRadius", "hpFraction", "surviveSeconds"]);
+    const required = ["id", "label", "text", "trigger", "priority", "tailSeconds", "cooldownSeconds"];
+    closed(m, required, ["flags", "events", "minRadius", "hpFraction", "surviveSeconds"]);
     if (!/^[A-Za-z]+$/.test(m.id) || seen.has(m.id)) fail(f, `moment id ${m.id} must be unique letters`);
     seen.add(m.id);
     if (!text(m.label) || !text(m.text) || !m.text.includes("{url}")) fail(f, `${m.id}: label and a share text with {url} are needed`);

@@ -75,7 +75,8 @@ const frames = (page, seconds) =>
           if (now - start < s * 1000) return requestAnimationFrame(tick);
           gaps.sort((a, b) => a - b);
           const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-          resolve({ n: gaps.length, medianMs: +gaps[gaps.length >> 1].toFixed(2), p95Ms: +gaps[Math.floor(gaps.length * 0.95)].toFixed(2), fps: +(1000 / mean).toFixed(1) });
+          const at = (q) => +gaps[Math.floor(gaps.length * q)].toFixed(2);
+          resolve({ n: gaps.length, medianMs: at(0.5), p95Ms: at(0.95), fps: +(1000 / mean).toFixed(1) });
         };
         requestAnimationFrame(tick);
       }),
@@ -135,7 +136,9 @@ async function cardRun(query, options, name) {
     label: await page.textContent("#share-send-label"),
     status: await page.textContent("#share-status"),
     thumbs: await page.$$eval(".share-pick", (list) => list.map((b) => b.dataset.id)),
-    mediaRecorder: await page.evaluate(() => typeof MediaRecorder !== "undefined" && ["video/mp4", "video/webm"].map((t) => [t, MediaRecorder.isTypeSupported(t)])),
+    mediaRecorder: await page.evaluate(
+      () => typeof MediaRecorder !== "undefined" && ["video/mp4", "video/webm"].map((t) => [t, MediaRecorder.isTypeSupported(t)]),
+    ),
   };
   await still(page, `${name}-ready`);
   await page.evaluate(() => {
