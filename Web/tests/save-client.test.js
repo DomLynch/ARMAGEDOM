@@ -941,6 +941,37 @@ test("six cash claims against the writer's burst of four are all credited, space
   assert.deepEqual(claimCalls(t).map((c) => c.body.amount), [1, 2, 3, 4, 5, 6]);
   assert.equal(t.lines.length, 0, "nothing was refused");
 });
+test("a routine save issued mid-queue goes out only after all six claims are credited", async () => {
+  const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
+  [1, 2, 3, 4, 5, 6].forEach((n) => t.client.claimPickup("kill:trash", n));
+  await settle();
+  t.client.queue(record());
+  assert.equal(t.timers.length, 2, "a claim timer and the save timer");
+  t.timers.splice(1, 1)[0].fn(); // the save starts now, with claims 5 and 6 still waiting
+  await settle();
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 0, "the save waits for the queue");
+  assert.equal(claimCalls(t).length, 4);
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 0, "five of six is still not all");
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  await settle();
+  const ops = t.w.calls.map((c) => c.op),
+    save = ops.indexOf("save_run");
+  assert.ok(save > 0);
+  assert.equal(ops.slice(0, save).filter((op) => op === "claim_pickup").length, 6, "all six claims came first");
+});
+test("an urgent (death) save is not held for the claim bucket", async () => {
+  const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
+  [1, 2, 3, 4, 5, 6].forEach((n) => t.client.claimPickup("kill:trash", n));
+  await settle();
+  t.client.queue(record({ dead: true }), undefined, { urgent: true });
+  t.timers.splice(1, 1)[0].fn();
+  await settle();
+  assert.equal(claimCalls(t).length, 4, "claims 5 and 6 are still waiting for the bucket");
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 1, "the death save went anyway");
+});
 test("a 429 on a claim waits its retryMs and sends the same claim again", async () => {
   const t = make({ claim_pickup: (body, n) => (n === 0 ? { status: 429, error: "rate-limited", retryMs: 3000 } : { credited: body.amount, earned: body.amount }) });
   const done = t.client.claimPickup("kill:creature", 15);

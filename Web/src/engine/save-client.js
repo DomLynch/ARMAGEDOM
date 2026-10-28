@@ -261,11 +261,16 @@ export function createSaveClient({
     if (reply.error || reply.refused) log(`pickup cash not credited: ${item.source} ${reply.error ?? reply.refused}`);
     item.resolve();
   }
+  // A routine save waits here until every queued claim is credited or given up, so it never carries cash its claim has not reached.
+  const claimWaiters = [];
+  const releaseClaimWaiters = () => {
+    if (!claimQueue.length) for (const resolve of claimWaiters.splice(0)) resolve();
+  };
   async function drainClaims() {
     while (claimQueue.length) {
       if (halted || stopped) {
         for (const item of claimQueue.splice(0)) item.resolve();
-        return;
+        break;
       }
       const wait = claimWait();
       if (wait > 0) {
@@ -278,6 +283,7 @@ export function createSaveClient({
       }
       await sendClaim(claimQueue.shift()).catch(() => {});
     }
+    releaseClaimWaiters();
   }
   // One drain at a time; `claimPump` settles when the queue is empty or waiting for the bucket, so a save only waits for claims that can go now.
   function pumpClaims() {
@@ -298,7 +304,10 @@ export function createSaveClient({
       return { ok: false, reason: "bad-record" };
     }
     const generation = hideGen;
-    await claimPump; // a cash claim that can go now lands BEFORE the save that carries its cash (the writer keeps arrival order)
+    // Cash claims land BEFORE the save that carries their cash (the writer keeps arrival order). A death save must not be held for a
+    // bucket that takes seconds to refill, so it waits only for the claims that can go now; a routine save waits for the whole queue.
+    await claimPump;
+    if (!urgent) while (claimQueue.length) await new Promise((resolve) => claimWaiters.push(resolve));
     await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
     if (!(await sync()) || !character) return { ok: false, reason: "offline" };
     const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
@@ -546,6 +555,7 @@ export function createSaveClient({
       if (claimTimer !== null) clearTimer(claimTimer);
       claimTimer = null;
       for (const item of claimQueue.splice(0)) item.resolve();
+      releaseClaimWaiters();
     },
     get state() {
       return { character, revision, seq, uncertain };
