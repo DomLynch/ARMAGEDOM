@@ -58,7 +58,7 @@ test('area requests preserve the four grid route thresholds and destination entr
   for(const [area,point,destination,entry] of [
     ['westminster',{x:.966,y:.335},'central-hub',{x:0.075,y:0.432}],
     ['westminster',{x:.60,y:.985},'lambeth',{x:0.192,y:0.052}],
-    ['central-hub',{x:.03,y:.45},'westminster',{x:0.927,y:0.365}],
+    ['central-hub',{x:.03,y:.45},'westminster',{x:0.911,y:0.401}], // re-pinned 28 Oct: six-entry clearance move (arrival-clearance.test.js), was 0.927, 0.365
     ['south',{x:.33,y:.05},'central-hub',{x:0.5,y:0.887}]
   ]) {world.areaId=area;assert.deepEqual(world.travelAt(world.geometry.ground(point)),{areaId:destination,entryPoint:entry});}
   world.areaId='westminster';assert.equal(world.travelAt(world.spawn),null);assert.equal(world.actorScale,1.265);world.dispose();
