@@ -14,7 +14,7 @@
     "format:check": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
-    "@frankendom/physics": "https://codeload.github.com/DomLynch/physics/tar.gz/d6c829fdf4b553aaefbd590a8179633cedb46ad6",
+    "@frankendom/physics": "https://codeload.github.com/DomLynch/physics/tar.gz/a5bd7b448000a42ed66bb0430c6bcb92bde7c558",
     "three": "0.182.0"
   },
   "devDependencies": {

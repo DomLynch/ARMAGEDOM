@@ -3036,6 +3036,13 @@
       },
       "live": true
     },
+    "original-roach": {
+      "chain": "roach",
+      "partAlias": {
+        "spine2": "thorax"
+      },
+      "live": true
+    },
     "giant-centipede": {
       "chain": "centipede",
       "partAlias": {

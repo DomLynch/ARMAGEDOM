@@ -93,6 +93,7 @@ test("the hunter, the crowd humans, the bosses and the chain creatures are live"
     "original-rat",
     "low-hover-drone",
     "original-spider",
+    "original-roach",
     "giant-centipede",
     "vagrant-106",
   ])
