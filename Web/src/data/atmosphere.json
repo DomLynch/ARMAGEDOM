@@ -245,24 +245,6 @@
         "fireHeight": 0.03
       },
       {
-        "id": "south-near-drum",
-        "preset": "fire-with-smoke",
-        "x": 0.389,
-        "y": 0.73,
-        "foot": {
-          "x": 0.4,
-          "y": 0.79
-        },
-        "depth": null,
-        "seed": 302,
-        "scale": 1,
-        "intensity": 1,
-        "fireWidth": 0.008,
-        "fireHeight": 0.032,
-        "width": 0.016,
-        "rise": 0.05
-      },
-      {
         "id": "south-bus-smoulder",
         "preset": "light-smoulder",
         "x": 0.778,

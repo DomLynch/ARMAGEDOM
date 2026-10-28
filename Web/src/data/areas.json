@@ -448,14 +448,14 @@
     "layout.south": {
       "kind": "layout",
       "path": "world/south/layout.json",
-      "sha256": "43c17df9063ac560b347212c610829cabb114562d53c03874cc85964553d5885",
-      "bytes": 8619
+      "sha256": "820ebadb710c3448de0ed26f95d728e25f0b566d6f5df5ad098fd3c01c9bccd2",
+      "bytes": 7654
     },
     "backdrop.south": {
       "kind": "backdrop",
       "path": "world/south/backdrop-phone.webp",
-      "sha256": "a83e27eba53ea0df7b619b99f34d550e7926bf3c20b28aef551ac39c5ac21966",
-      "bytes": 458994
+      "sha256": "ebad2f43c2f633483a64b08d39d32128684725a3c734fead450b3d4ca9e4b061",
+      "bytes": 474344
     },
     "layout.east": {
       "kind": "layout",
