@@ -73,7 +73,7 @@ test('Ember Projector collected while the legacy flamethrower is equipped raises
     assert.equal(g.bossEquipment.emberProjector.status, 'owned');
     assert.equal(g.bossEquipment.emberProjector.selected, true, 'the Ember Projector is the active weapon');
     assert.equal(g.flame.equipped, true, 'a flamethrower is still in hand (the Ember Projector); the player is not left unarmed');
-    assert.equal(g.message, 'Ember Projector equipped.');
+    assert.equal(g.message, 'Switched to Ember Projector.');
     assert.deepEqual(g.events.filter(e => e.type === 'auto-equip').map(e => e.itemId), [profiles.emberProjector.itemId]);
     // The selection is in the durable record.
     const cold = fixture({areaId: profiles.emberProjector.source.areaId, extraWorld: {bossEquipmentData: profiles}, records: ctx.f.records});

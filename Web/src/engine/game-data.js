@@ -98,6 +98,7 @@ import { validateFlameEffect } from "./flame-effect-data.js";
 import burnPresentation from "../data/burnPresentation.json" with { type: "json" };
 import { validateBurnPresentation } from "./burn-presentation-data.js";
 import { validateHud } from "./hud-data.js";
+import { validatePickupFlash } from "./pickup-flash-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
 import { validateEffectsFeedback } from "./effects-data.js";
@@ -334,10 +335,12 @@ export function validateVisual(d) {
     "explosion",
     "weaponTiles",
     "bossLabel",
+    "pickupFlash",
     "hud",
     "flamePresentation",
   ]);
   validateHud(d.hud);
+  validatePickupFlash(d.pickupFlash);
   validateCombatImpact(d.combatImpact);
   validateFlameEffect(d.flameEffect);
   validateArcGun(d.arcGun);

@@ -11,8 +11,10 @@ import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { createAirdropView } from "./airdrop-view.js";
+import { createPickupFlash } from "./pickup-flash.js";
 export function createBrowserLoop(s) {
-  const hints = createFirstTimeHints();
+  const hints = createFirstTimeHints(),
+    pickupFlash = createPickupFlash();
   let last = 0,
     accumulator = 0,
     submitted = null,
@@ -163,6 +165,7 @@ export function createBrowserLoop(s) {
         s.actors?.events(s.game);
         deathCam.observe(s.game.events);
         audioEvents.push(...s.game.events);
+        pickupFlash.observe(s.game.events);
         s.emit(s.game.events);
         hints.observe(s.game);
         accumulator -= 1 / 60;

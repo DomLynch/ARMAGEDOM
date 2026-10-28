@@ -45,7 +45,7 @@
     "defaultRifleName": "Rifle",
     "collected": "{name} collected.",
     "collectedEquipInGear": "{name} collected. Equip it in Gear.",
-    "equipped": "{name} equipped.",
+    "equipped": "Switched to {name}.",
     "startPistolLabel": "Collect Starting Pistol",
     "iconCaptions": {
       "knife": "KNIFE",
