@@ -10,6 +10,7 @@ import { createGame, enemy } from "../src/combat.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { AREA_MOB_SPAWNS } from "../src/area-mob-spawns.js";
 import { slotModelRefs, ensureSlotModels } from "../src/engine/slot-models.js";
+import { createActorLod } from "../src/engine/actor-lod.js";
 import {
   actorModelRef,
   crowdAreaRefs,
@@ -295,8 +296,23 @@ test("a crowd resident is built from its body, keeps its rig and stats, and fall
   assert.equal(fallback.views.get(resident.id).root.name, "hollow-scavenger", "no swap while it fights");
   resident.alerted = false;
   fallback.update(g, 0);
-  assert.equal(fallback.views.get(resident.id).root.name, ref, "swapped once calm");
-  assert.equal(fallback.views.get(resident.id).entity, resident, "same entity, nothing else changed");
+  assert.equal(fallback.views.get(resident.id).root.name, "hollow-scavenger", "no swap while the player can see it: nothing pops on screen");
+  fallback.views.get(resident.id).root.visible = false; // what the offscreen throttle does to a view outside the frustum plus margin
+  fallback.update(g, 0);
+  const swapped = fallback.views.get(resident.id);
+  assert.equal(swapped.root.name, ref, "swapped once calm and off screen");
+  assert.equal(swapped.entity, resident, "same entity, nothing else changed");
+  // The distance LOD (engine/actor-lod.js) reads the entity's rig, so it thins the swapped-in body like any scavenger.
+  const lod = createActorLod(GAME_DATA.offscreenActors.lod);
+  let triangles = 0;
+  swapped.model.traverse((m) => m.isMesh && m.visible && (triangles += m.geometry.index.count / 3));
+  lod.update(swapped, GAME_DATA.offscreenActors.lod.levels.at(-1).distance + 5);
+  assert.equal(swapped.lodLevel, GAME_DATA.offscreenActors.lod.levels.length, "the far level applies");
+  let thinned = 0;
+  swapped.model.traverse((m) => m.isMesh && m.visible && (thinned += m.geometry.index.count / 3));
+  assert(thinned < triangles, `LOD thins the crowd body: ${triangles} -> ${thinned} triangles`);
+  lod.update(swapped, 0);
+  assert.equal(swapped.lodLevel, 0, "and gives full detail back when near");
   fallback.dispose();
 });
 

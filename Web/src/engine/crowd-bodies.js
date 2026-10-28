@@ -99,12 +99,15 @@ export function crowdAreaRefs(world, areaId, fallbackRows = AREA_MOB_SPAWNS[area
     ),
   ];
 }
-// A living plain human built before its pool model had arrived (so it stands in as the scavenger) and calm now: true when its view should be
-// rebuilt with the model that has loaded since. Never while it fights (alert, swinging or reacting), so nothing pops mid-fight.
+// A living plain human built before its pool model had arrived (so it stands in as the scavenger), calm and OFF SCREEN now: true when its view
+// should be rebuilt with the model that has loaded since. Never while it fights (alert, swinging or reacting) and never while the player can see it
+// (the offscreen throttle, data/offscreenActors.json marginMetres, hides a view that is outside the camera frustum plus margin), so nothing
+// pops on screen: a resident the player is looking at keeps its look until it re-enters or respawns, when the cached body is used.
 export function staleLook(entity, view, library, areaId) {
   if (entity.markedHunter)
     return entity.hp > 0 && view?.root.name !== actorModelRef(entity, library.manifest, library.models, areaId);
-  if (!view || entity.hp <= 0 || entity.alerted || entity.swing || entity.response) return false;
+  if (!view || view.root.visible !== false || entity.hp <= 0 || entity.alerted || entity.swing || entity.response)
+    return false;
   return (
     crowdLookRef(entity, areaId) !== null &&
     view.root.name !== actorModelRef(entity, library.manifest, library.models, areaId)
