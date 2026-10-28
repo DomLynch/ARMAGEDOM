@@ -1,5 +1,6 @@
 import { BOSS_RANGED_RULES } from "./engine/boss-ranged.js";
 import { slotModelRefs } from "./engine/slot-models.js";
+import { actorModelRef, areaActorModelRefs, crowdAreaRefs, crowdBodyRef, visualRigOf } from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
@@ -100,26 +101,6 @@ const residentFaces = allocateFaceRecipes(
   { version: FACE_APPEARANCE_VERSION, recipes: FACE_RECIPES },
 );
 const names = ["revenant", "orc", "warlock", "warlord"];
-function actorModelRef(entity, manifest, loaded) {
-  // Appearance only: the hunter keeps its existing mechanical rig and rules.
-  // The hunter model is deferred; until it has loaded the tinted scavenger stands in.
-  if (entity.markedHunter && manifest.models?.["marked-hunter"] && (!loaded || loaded.has("marked-hunter")))
-    return "marked-hunter";
-  if (entity.appearanceRef !== undefined) {
-    const ref = entity.appearanceRef;
-    if (
-      entity.kind < 0 ||
-      typeof ref !== "string" ||
-      !/^[a-z][a-z0-9-]*$/.test(ref) ||
-      !manifest.models ||
-      !Object.hasOwn(manifest.models, ref) ||
-      manifest.models[ref].rig !== entity.rig
-    )
-      throw Error("Invalid actor appearance reference");
-    return ref;
-  }
-  return entity.kind < 0 ? "vagrant" : manifest.pilot === "donor-knife" ? entity.rig : names[entity.kind];
-}
 export function restoreActorFlash(view) {
   for (const m of view.flashMaterials) {
     if (m.color) m.material.color.copy(m.color);
@@ -332,7 +313,7 @@ export function createActors(
     restoreCorpses = false,
     { stageWorld = world, renderScene = scene, store = views } = {},
   ) {
-    if (entity.markedHunter) finishers = false;
+    if (entity.markedHunter || crowdBodyRef(entity, stageWorld.areaId)) finishers = false;
     if (rigCapability(entity.rig, "hoverTarget")) {
       const drone = droneKits.spawn({
         scene: renderScene,
@@ -376,10 +357,10 @@ export function createActors(
       store.set(entity.id, view);
       return view;
     }
-    const name = actorModelRef(entity, library.manifest, library.models),
+    const name = actorModelRef(entity, library.manifest, library.models, stageWorld.areaId),
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
-    const visualRig = entity.markedHunter && name === "marked-hunter" ? source.description.rig : entity.rig,
+    const visualRig = visualRigOf(entity, name, source.description),
       garments = source.description.clothingMaterials ?? (visualRig === "hollow-scavenger" ? HOLLOW_GARMENTS : null);
     const palette = entity.kind >= 0 && garments ? hollowPaletteFor(entity, stageWorld.areaId) : null;
     const root = new THREE.Group(),
@@ -857,11 +838,7 @@ export function createActors(
     ensureAreaModels(record, areaId = world.areaId, { fresh = false } = {}) {
       const flame = world.flameData,
         reward = world.uniqueRewardData,
-        refs = [...(record.enemies ?? []), ...(record.corpses ?? [])]
-          .filter(
-            (e) => e.bossProfile || e.appearanceRef !== undefined || library.manifest.models[e.rig]?.deferred === true,
-          )
-          .map((e) => actorModelRef(e, library.manifest));
+        refs = areaActorModelRefs([...(record.enemies ?? []), ...(record.corpses ?? [])], library.manifest, areaId);
       if (fresh) {
         refs.push(...slotModelRefs(world, areaId, library.manifest));
         refs.push(
@@ -913,6 +890,7 @@ export function createActors(
           .filter((ref) => ref !== undefined),
         ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
         ...slotAppearanceRefs(world.populationData?.areas[areaId]),
+        ...crowdAreaRefs(world, areaId, AREA_MOB_SPAWNS[areaId]),
         ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
         ...(world.bossData?.placements ?? [])
           .filter((row) => row.areaId === areaId)

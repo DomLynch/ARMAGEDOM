@@ -26,6 +26,8 @@ import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import airdrop from "../data/airdrop.json" with { type: "json" };
 import chainedPitborn from "../data/chainedPitborn.json" with { type: "json" };
 import ratKing from "../data/ratKing.json" with { type: "json" };
+import crowdBodies from "../data/crowdBodies.json" with { type: "json" };
+import { validateCrowdBodies } from "./game-data-crowd.js";
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -1071,6 +1073,7 @@ const sources = () => ({
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],
+  crowdBodies: [crowdBodies, validateCrowdBodies],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
   pitbornCuts: [pitbornCuts, validatePitbornCuts],
   pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
