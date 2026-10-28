@@ -38,6 +38,7 @@ export function validatePhysicsDeath(d) {
     "rewarmMs",
     "maxActive",
     "killImpulse",
+    "bulletImpulse",
     "parts",
   ]);
   for (const name of [
@@ -59,6 +60,20 @@ export function validatePhysicsDeath(d) {
   number("physicsDeath", "killImpulse.up", d.killImpulse.up, 0);
   if (!Object.hasOwn(d.parts, d.killImpulse.part)) fail("physicsDeath", "killImpulse.part must be one of parts");
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");
+  const b = d.bulletImpulse;
+  closed(b, ["flagParam", "offValue", "onValue", "defaultOn", "byWeapon", "byAttackClass", "zoneParts"]);
+  if (typeof b.defaultOn !== "boolean") fail("physicsDeath", "bulletImpulse.defaultOn must be true or false");
+  for (const key of ["flagParam", "offValue", "onValue"])
+    if (typeof b[key] !== "string" || !b[key]) fail("physicsDeath", `bulletImpulse.${key} must be a non-empty string`);
+  if (b.offValue === b.onValue) fail("physicsDeath", "bulletImpulse offValue must differ from onValue");
+  for (const table of ["byWeapon", "byAttackClass"])
+    for (const [name, row] of Object.entries(b[table])) {
+      closed(row, ["horizontal", "up"]);
+      number("physicsDeath", `bulletImpulse.${table}.${name}.horizontal`, row.horizontal, 0);
+      number("physicsDeath", `bulletImpulse.${table}.${name}.up`, row.up, 0);
+    }
+  for (const [zone, part] of Object.entries(b.zoneParts))
+    if (!Object.hasOwn(d.parts, part)) fail("physicsDeath", `bulletImpulse.zoneParts.${zone} must be one of parts`);
 }
 
 // deathPresentation.json (death-presentation.js): boss / marked-hunter slow-mo + camera push-in, ?deathcam=0 off.
