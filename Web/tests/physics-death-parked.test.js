@@ -62,5 +62,23 @@ test("the pool is created parked, a death acquires one, and the refill is parked
   mock.timers.tick(CFG.rewarmMs);
   assert.equal(made.length, pooled + 1, "the refill built one more");
   assert.equal(made.at(-1).opts.parked, true, "and parked it");
-  impl.releaseDeath(s);
+  impl.releaseDeath(s); // the pool is full again (the refill): this body is destroyed, not parked
+  assert.ok(s.rd === null, "the corpse let go of its body");
+});
+
+test("a finished corpse's body returns to its pool asleep and the next death reuses it", async (t) => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  await impl.loadWorld();
+  const view = () => ({ root: new THREE.Group(), model: skeleton(), physicsDeath: undefined }),
+    hunter = (id) => ({ id, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1 } });
+  mock.timers.enable({ apis: ["setTimeout"] });
+  t.after(() => mock.timers.reset());
+  const first = impl.startDeath(view(), skeleton(), hunter(21)),
+    body = first.rd;
+  impl.releaseDeath(first); // a free slot in the pool and no cut: park
+  assert.equal(first.rd, null);
+  assert.equal(body.parked, true, "the used body is asleep again");
+  const second = impl.startDeath(view(), skeleton(), hunter(22));
+  assert.equal(second.rd, body, "the parked body was reused (LIFO pool), nothing new was built");
+  impl.releaseDeath(second);
 });

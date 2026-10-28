@@ -258,7 +258,7 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     rd.kill({ part: spec.partAlias?.[part] ?? part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank });
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank, spec });
     if (plan) {
       try {
         beginCuts(s, plan, skin, push);
@@ -277,9 +277,20 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
 }
 
 // A corpse's body (and any pieces cut from it) leaves the world; the bones keep the last applied pose.
+// A body with no joint cut goes back to its pool asleep (`park()`: reset, 500 m below the floor, 0 ms per step) instead of being destroyed and rebuilt; a cut
+// body (park returns false), a full pool or a missing spec is destroyed.
 function freeBody(s) {
-  s.rd?.destroy();
+  const rd = s.rd,
+    pool = s.spec && poolOf(s.spec);
   s.rd = null;
+  let parked = false;
+  try {
+    parked = !!rd && !!pool && pool.length < CFG.poolSize && parkedCount() < CFG.maxParked && rd.park?.() === true;
+  } catch {
+    parked = false;
+  }
+  if (parked) pool.push(rd);
+  else rd?.destroy();
   pieces -= s.pieces ?? 0;
   s.pieces = 0;
 }
