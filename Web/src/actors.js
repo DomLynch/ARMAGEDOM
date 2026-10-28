@@ -1,6 +1,13 @@
 import { BOSS_RANGED_RULES } from "./engine/boss-ranged.js";
 import { slotModelRefs } from "./engine/slot-models.js";
-import { actorModelRef, areaRequiredRefs, crowdAreaRefs, crowdBodyRef, visualRigOf } from "./engine/crowd-bodies.js";
+import {
+  actorModelRef,
+  areaRequiredRefs,
+  crowdAreaRefs,
+  crowdBodyRef,
+  staleLook,
+  visualRigOf,
+} from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
@@ -1361,13 +1368,8 @@ export function createActors(
             : !rigCapability(entity.rig, "lowStrike"))
         )
           continue;
-        // A live hunter built from the stand-in is rebuilt once its own model has loaded (appearance only).
-        if (
-          entity.markedHunter &&
-          entity.hp > 0 &&
-          views.get(entity.id)?.root.name !== actorModelRef(entity, library.manifest, library.models)
-        )
-          remove(entity.id);
+        // A live hunter, or a calm crowd resident, built from the stand-in is rebuilt once its own model has loaded (appearance only).
+        if (staleLook(entity, views.get(entity.id), library, world.areaId)) remove(entity.id);
         const view = views.get(entity.id) ?? make(entity, game.finishers, restoreCorpses);
         view.bossGunPose?.restore();
         if (entity.kind < 0) {

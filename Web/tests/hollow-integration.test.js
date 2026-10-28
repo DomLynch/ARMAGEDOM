@@ -47,6 +47,8 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  let disposed=0;const own=views.flatMap(v=>v.materials.map(m=>m.material));for(const material of own)material.addEventListener('dispose',()=>disposed++);actors.reset();assert.equal(disposed,own.length);actors.update(game,0);
  for(let i=0;i<views.length;i++){const recreated=actors.views.get(game.enemies[i].id);assert.notEqual(recreated.model,views[i].model);for(const m of recreated.materials){const expected=paletteColors[i].find(p=>p.name===m.material.name);if(expected)assert.deepEqual(m.material.color.toArray(),expected.rgb);}}
  // Controlled material integration: registered keys survive serial-ID changes and real corpse views.
+ // The rest of this test is the scavenger faces and palettes of the registered areas: the crowd bodies (data/crowdBodies.json) are switched off here, and tested in crowd-bodies.test.js.
+ const priorLocation=globalThis.location;globalThis.location={search:'?nocrowd=1'};t.after(()=>{if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;});
  world.areaId='westminster';actors.reset();
  for(let i=0;i<game.enemies.length;i++){game.enemies[i].placementKey=`westminster-roamer-${i+1}`;game.enemies[i].id+=100;}
  actors.update(game,0);
@@ -65,8 +67,6 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  const flashed=actors.views.get(dead.id);dead.flashUntil=game.time+.12;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.equal(m.material.emissiveIntensity,m.intensity,'legacy corpse flash is not a confirmed hit');game.time+=.13;actors.update(game,0);for(const m of flashed.flashMaterials)if(m.material.emissive)assert.deepEqual(m.material.emissive.toArray(),m.emissive.toArray());
  // Controlled actual-view area cohorts: full roster IDs survive teardown/recreation;
  // this checks the renderer seam, not native gate traversal.
- // This cohort is the scavenger faces and palettes: the crowd bodies (data/crowdBodies.json) are switched off here, and tested in crowd-bodies.test.js.
- const priorLocation=globalThis.location;globalThis.location={search:'?nocrowd=1'};t.after(()=>{if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;});
  for(const [area,rows] of Object.entries(AREA_MOB_SPAWNS)){
   actors.reset();world.areaId=area;game.corpses=[];
   game.enemies=rows.map((row,i)=>({...cohort[i%cohort.length],id:300+i,placementKey:row.key,pos:{...row.pos},hp:100,flashUntil:0}));
