@@ -6,7 +6,7 @@ const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 test('guidance preserves accepted road geometry including the202 stair pocket; gates match registry',()=>{
  for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area);delete l.guidance;assert.equal(hash(l),fixture.baselineLayouts[area]);}
  assert.equal(manifest.links.length,24);
- assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'central-hub',requiresDefeat:'boss-witch-v1'},{from:'westminster',to:'area8',requiresDefeat:'boss-witch-v1'},{from:'westminster',to:'lambeth',requiresDefeat:'boss-witch-v1'},{from:'central-hub',to:'east',requiresDefeat:'boss-witch-v1'}]);
+ assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'central-hub',requiresDefeat:'boss-witch-v1'},{from:'westminster',to:'area8',requiresDefeat:'boss-witch-v1'},{from:'westminster',to:'lambeth',requiresDefeat:'boss-witch-v1'}]);
 });
 test('authored rows have capsule-clear paths ending inside an existing destination trigger',()=>{
  let count=0;for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area),g=createGeometry(l),rows=validateGuidance(l,g,manifest.links.filter(r=>r.from===area));count+=rows.length;for(const row of rows){assert(row.path.every(p=>g.clear(p,.4)));assert(row.path.slice(1).every((p,i)=>capsuleSegmentClear(g,row.path[i],p)));}}

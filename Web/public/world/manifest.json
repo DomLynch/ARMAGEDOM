@@ -479,9 +479,7 @@
       "entry": {
         "x": 0.084,
         "y": 0.623
-      },
-      "requiresDefeat": "boss-witch-v1",
-      "requiresVisited": true
+      }
     },
     {
       "from": "central-hub",
@@ -494,8 +492,7 @@
       "entry": {
         "x": 0.82,
         "y": 0.85
-      },
-      "requiresVisited": true
+      }
     },
     {
       "from": "central-hub",
@@ -508,8 +505,7 @@
       "entry": {
         "x": 0.322,
         "y": 0.093
-      },
-      "requiresVisited": true
+      }
     }
   ],
   "backdrops": {
