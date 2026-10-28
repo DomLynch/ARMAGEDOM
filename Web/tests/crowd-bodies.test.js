@@ -39,7 +39,13 @@ test("only the bodies checked clean are shipped: every crowd file is a registere
   assert.deepEqual(files, bodies.map((row) => `${row.ref}.glb`).sort(), "no GLB outside the pool");
   for (const gone of ["man-02", "woman-02", "gen-v2-0001", "gen-v2-0009", "gen-v2-0002", "gen-v2-0015", "gen-v2-0043", "brute-01"])
     assert.equal(manifest.models[`mh-${gone}`], undefined, `${gone} is not shipped`);
-  assert.equal(bodies.length, 19);
+  // The second PR: 18 more from OpenTrident's crowd batches b1 to b3, registered but deferred and not in the default active set. The other 12 of the 30 are dropped.
+  for (const gone of ["b1-03", "b1-04", "b1-05", "b1-08", "b1-09", "b2-02", "b2-08", "b3-02", "b3-06", "b3-07", "b3-08", "b3-09"])
+    assert.equal(manifest.models[`mh-crowd-${gone}`], undefined, `${gone} is not shipped`);
+  const batch = bodies.filter((row) => row.ref.startsWith("mh-crowd-"));
+  assert.equal(batch.length, 18);
+  assert(batch.every((row) => !row.active), "the crowd-batch bodies are registered, not in the default active set");
+  assert.equal(bodies.length, 37);
 });
 
 test("every area's plain humans draw MakeHuman bodies from the pool, and at least half of them keep an existing look", () => {
@@ -317,8 +323,8 @@ test("a crowd resident is built from its body, keeps its rig and stats, and fall
 });
 
 // Mixamo clips play upright on these bodies: the Hips rotation track is in the 106 rig's own frame, exactly as the Pitborn hunter's.
-test("every active body stays upright through its locomotion, fight and hit clips and goes down in Death", async () => {
-  for (const { ref } of activeBodies) {
+test("every registered body, active or deferred, stays upright through Idle, Walk, Run, its fight and hit clips and goes down in Death", async () => {
+  for (const { ref } of bodies) {
     const row = manifest.models[ref];
     const gltf = await loadGeometry(read(row.url));
     const clips = new Set(gltf.animations.map((clip) => clip.name));
