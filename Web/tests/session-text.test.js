@@ -174,7 +174,8 @@ test("each call in the source files names a key that exists, and each key is use
     for (const m of src.matchAll(/\bmark\([^,]+,\s*"([A-Za-z]+)"\)/g)) used.add(`expedition.${m[1]}`);
   }
   for (const key of used) assert(all.has(key), `${key} is used but not in the data`);
-  for (const key of all) assert(used.has(key), `${key} is in the data but no source file uses it`);
+  // areaObjective rows are looked up by area id at run time, so no source file names them.
+  for (const key of all) assert(used.has(key) || key.startsWith("areaObjective."),`${key} is in the data but no source file uses it`);
 });
 
 test("the placeholders in each string are exactly the values its call site passes", () => {
