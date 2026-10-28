@@ -62,11 +62,18 @@ export function validatePhysicsBody(d) {
 
 export function validateChainedPitborn(d) {
   closed(d, ["schema_version", "enabled", "offParam", "offValue", "areaId", "model", "at", "facesToward",
-    "scaleMultiplier", "emissive", "rim", "horns", "flicker", "motion", "chains", "dust"]);
+    "scaleMultiplier", "breakLoose", "emissive", "rim", "horns", "flicker", "motion", "chains", "dust"]);
   if (typeof d.enabled !== "boolean") fail("chainedPitborn", "enabled must be true or false");
   for (const name of ["at", "facesToward"])
     if (!(d[name].x >= 0 && d[name].x <= 1 && d[name].y >= 0 && d[name].y <= 1)) fail("chainedPitborn", name + " must be art 0 to 1");
   number("chainedPitborn", "scaleMultiplier", d.scaleMultiplier, 0.1);
+  const numbers = ["triggerMetres", "snapSeconds", "retrySeconds", "clearSearchMetres", "clearStepMetres", "clearDirections", "messageSeconds"];
+  closed(d.breakLoose, ["enabled", ...numbers, "text"]);
+  if (typeof d.breakLoose.enabled !== "boolean") fail("chainedPitborn", "breakLoose.enabled must be true or false");
+  for (const name of numbers) number("chainedPitborn", "breakLoose." + name, d.breakLoose[name], 0.01);
+  closed(d.breakLoose.text, ["snap", "loose"]);
+  for (const name of ["snap", "loose"])
+    if (typeof d.breakLoose.text[name] !== "string" || !d.breakLoose.text[name]) fail("chainedPitborn", "breakLoose.text." + name + " must be text");
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
 }
 
