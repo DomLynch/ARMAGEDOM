@@ -84,7 +84,7 @@ test("the crow GLB is the rat rig: same joints and clip durations, rat mesh layo
   assert(tris < 8000, `triangles ${tris}`);
   assert.deepEqual(
     crow.json.materials.map((m) => m.name),
-    ["Glossy black carrion feathers", "Scaled ash-grey legs and feet", "Pale glowing eyes", "Dark horn beak"],
+    ["Glossy black carrion feathers", "Scaled ash-grey legs and feet", "Dark glossy eyes", "Dark horn beak"],
   );
   assert.equal(rigText("original-crow", "coatName"), crow.json.materials[0].name);
   const sizes = crow.json.images.map((i) => i.mimeType);
