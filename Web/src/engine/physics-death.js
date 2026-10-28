@@ -8,10 +8,13 @@ let impl = null,
   loading = null,
   broken = false;
 let flag = null; // read once: the off path allocates nothing per frame
+// Default comes from the row (defaultOn); ?physics=0 (offValue) is the OFF switch, ?physics=1 (flagValue) forces ON.
+const fromSearch = (search) => {
+  const v = new URLSearchParams(search).get(CFG.flagParam);
+  return v === CFG.offValue ? false : v === CFG.flagValue ? true : CFG.defaultOn;
+};
 export const physicsDeathEnabled = (search) =>
-  search === undefined
-    ? (flag ??= new URLSearchParams(globalThis.location?.search ?? "").get(CFG.flagParam) === CFG.flagValue)
-    : new URLSearchParams(search).get(CFG.flagParam) === CFG.flagValue;
+  search === undefined ? (flag ??= fromSearch(globalThis.location?.search ?? "")) : fromSearch(search);
 const load = () =>
   (loading ??= import("./physics-death-impl.js")
     .then(async (m) => {

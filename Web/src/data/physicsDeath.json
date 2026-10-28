@@ -2,6 +2,8 @@
   "schema_version": 1,
   "flagParam": "physics",
   "flagValue": "1",
+  "offValue": "0",
+  "defaultOn": true,
   "rigRef": "marked-hunter",
   "seed": 731,
   "stepHz": 60,

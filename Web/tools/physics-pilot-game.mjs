@@ -35,7 +35,7 @@ await page.addInitScript(() => { // JS time per rAF callback: the game's own fra
   window.__jsMs = [];
   window.requestAnimationFrame = (cb) => raf((t) => { const a = performance.now(); try { cb(t); } finally { window.__jsMs.push(performance.now() - a); } });
 });
-await page.goto(`http://127.0.0.1:${PORT}/?qa=1${PHYSICS ? "&physics=1" : ""}`);
+await page.goto(`http://127.0.0.1:${PORT}/?qa=1&physics=${PHYSICS ? "1" : "0"}`);
 await page.click("#enter");
 await page.waitForFunction(() => window.__qa?.state().loaded && window.__qa.game?.enemies, null, { timeout: 180000 });
 const q = (fn, ...a) => page.evaluate(fn, ...a);
