@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "note": "PLACEHOLDER values: tune on a phone at 375 wide. Applies to boss and marked-hunter deaths only, never trash mobs. Seconds are real (wall clock) seconds, so the player is never slowed for longer than slowSeconds + easeBackSeconds.",
+  "flagParam": "deathcam",
+  "offValue": "0",
+  "defaultOn": true,
+  "eligibleFlags": ["markedHunter", "bossProfile"],
+  "timeScale": 0.35,
+  "slowSeconds": 0.9,
+  "easeBackSeconds": 0.3,
+  "pushInSeconds": 0.2,
+  "zoomPushPct": 18,
+  "focusShare": 0.5
+}

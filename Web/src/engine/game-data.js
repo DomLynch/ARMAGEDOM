@@ -78,10 +78,12 @@ import {
   validateMarkedHunterSpawn,
   validatePhysicsBody,
   validatePhysicsDeath,
+  validateDeathPresentation,
   validateReaperMotion,
 } from "./game-data-hunters.js";
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
+import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -1060,6 +1062,7 @@ const sources = () => ({
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
+  deathPresentation: [deathPresentation, validateDeathPresentation],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
