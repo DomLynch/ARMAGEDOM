@@ -275,127 +275,127 @@
     },
     "butcher-65": {
       "id": "butcher-65",
-      "source": "boss-butcher.glb bind pose via v1-65.json, x0.75",
-      "height_m": 1.7168,
-      "neck_len": 0.082,
-      "torso_len": 0.4451,
-      "shoulder_w": 0.3893,
-      "upper_arm_len": 0.2306,
-      "forearm_len": 0.2237,
-      "thigh_len": 0.4243,
-      "shin_len": 0.4539,
-      "foot_len": 0.1574,
-      "chest_w": 0.3967,
-      "waist_w": 0.3659,
-      "hip_w": 0.3601,
-      "chest_d": 0.3094,
-      "scale_baked": 0.75,
+      "source": "boss-butcher.glb bind pose via v1-65.json, x1",
+      "height_m": 2.2891,
+      "neck_len": 0.1093,
+      "torso_len": 0.5935,
+      "shoulder_w": 0.5191,
+      "upper_arm_len": 0.3075,
+      "forearm_len": 0.2983,
+      "thigh_len": 0.5657,
+      "shin_len": 0.6052,
+      "foot_len": 0.2099,
+      "chest_w": 0.5289,
+      "waist_w": 0.4879,
+      "hip_w": 0.4801,
+      "chest_d": 0.4125,
+      "scale_baked": 1,
       "joints": {
         "Hips": [
           0,
-          0.924,
-          -0.0425
+          1.232,
+          -0.0567
         ],
         "Spine": [
           0,
-          1.0456,
-          -0.0068
+          1.3941,
+          -0.0091
         ],
         "Spine1": [
           0,
-          1.1503,
-          0.0038
+          1.5337,
+          0.0051
         ],
         "Spine2": [
           0,
-          1.282,
-          0.0068
+          1.7093,
+          0.0091
         ],
         "Neck": [
           0,
-          1.4894,
-          -0.0409
+          1.9858,
+          -0.0546
         ],
         "Head": [
           0,
-          1.5678,
-          -0.0173
+          2.0904,
+          -0.023
         ],
         "LeftArm": [
-          0.1946,
-          1.425,
-          -0.0647
+          0.2595,
+          1.9,
+          -0.0863
         ],
         "LeftForeArm": [
-          0.425,
-          1.425,
-          -0.0722
+          0.5667,
+          1.9,
+          -0.0963
         ],
         "LeftHand": [
-          0.6485,
-          1.425,
-          -0.0647
+          0.8647,
+          1.9,
+          -0.0863
         ],
         "RightArm": [
-          -0.1946,
-          1.425,
-          -0.0647
+          -0.2595,
+          1.9,
+          -0.0863
         ],
         "RightForeArm": [
-          -0.425,
-          1.425,
-          -0.0722
+          -0.5667,
+          1.9,
+          -0.0963
         ],
         "RightHand": [
-          -0.6485,
-          1.425,
-          -0.0647
+          -0.8647,
+          1.9,
+          -0.0863
         ],
         "LeftUpLeg": [
-          0.1049,
-          0.9459,
-          -0.0356
+          0.1399,
+          1.2612,
+          -0.0475
         ],
         "LeftLeg": [
-          0.1049,
-          0.5216,
-          -0.0357
+          0.1399,
+          0.6955,
+          -0.0476
         ],
         "LeftFoot": [
-          0.1049,
-          0.0706,
-          -0.0865
+          0.1399,
+          0.0941,
+          -0.1154
         ],
         "LeftToeBase": [
-          0.1049,
-          0,
-          0.0542
+          0.1399,
+          0.0,
+          0.0722
         ],
         "RightUpLeg": [
-          -0.1049,
-          0.9459,
-          -0.0356
+          -0.1399,
+          1.2612,
+          -0.0475
         ],
         "RightLeg": [
-          -0.1049,
-          0.5216,
-          -0.0357
+          -0.1399,
+          0.6955,
+          -0.0476
         ],
         "RightFoot": [
-          -0.1049,
-          0.0706,
-          -0.0865
+          -0.1399,
+          0.0941,
+          -0.1154
         ],
         "RightToeBase": [
-          -0.1049,
-          0,
-          0.0542
+          -0.1399,
+          0.0,
+          0.0722
         ]
       }
     },
     "mh-female-01": {
       "id": "mh-female-01",
-      "source": "mh-female-01.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-female-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.4937,
       "neck_len": 0.0644,
       "torso_len": 0.3639,
@@ -511,11 +511,12 @@
           0,
           0.1532
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0005": {
       "id": "mh-gen-v2-0005",
-      "source": "mh-gen-v2-0005.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0005.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.6179,
       "neck_len": 0.0628,
       "torso_len": 0.385,
@@ -631,11 +632,12 @@
           0,
           0.1499
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0011": {
       "id": "mh-gen-v2-0011",
-      "source": "mh-gen-v2-0011.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0011.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.5807,
       "neck_len": 0.0386,
       "torso_len": 0.4372,
@@ -751,11 +753,12 @@
           0,
           0.1478
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0012": {
       "id": "mh-gen-v2-0012",
-      "source": "mh-gen-v2-0012.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0012.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.7313,
       "neck_len": 0.0707,
       "torso_len": 0.4115,
@@ -871,11 +874,12 @@
           0,
           0.1613
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0014": {
       "id": "mh-gen-v2-0014",
-      "source": "mh-gen-v2-0014.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0014.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.6344,
       "neck_len": 0.0437,
       "torso_len": 0.4466,
@@ -991,11 +995,12 @@
           0,
           0.1618
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0017": {
       "id": "mh-gen-v2-0017",
-      "source": "mh-gen-v2-0017.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0017.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.7705,
       "neck_len": 0.0442,
       "torso_len": 0.4791,
@@ -1111,11 +1116,12 @@
           0,
           0.1668
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0020": {
       "id": "mh-gen-v2-0020",
-      "source": "mh-gen-v2-0020.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0020.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.4562,
       "neck_len": 0.0419,
       "torso_len": 0.4029,
@@ -1231,11 +1237,12 @@
           0,
           0.1438
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0021": {
       "id": "mh-gen-v2-0021",
-      "source": "mh-gen-v2-0021.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0021.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.389,
       "neck_len": 0.0561,
       "torso_len": 0.3408,
@@ -1351,11 +1358,12 @@
           0,
           0.1426
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0030": {
       "id": "mh-gen-v2-0030",
-      "source": "mh-gen-v2-0030.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0030.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.4106,
       "neck_len": 0.058,
       "torso_len": 0.3552,
@@ -1471,11 +1479,12 @@
           0,
           0.1433
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0036": {
       "id": "mh-gen-v2-0036",
-      "source": "mh-gen-v2-0036.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0036.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.5402,
       "neck_len": 0.039,
       "torso_len": 0.4295,
@@ -1591,11 +1600,12 @@
           0,
           0.147
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0037": {
       "id": "mh-gen-v2-0037",
-      "source": "mh-gen-v2-0037.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0037.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.7749,
       "neck_len": 0.0564,
       "torso_len": 0.4617,
@@ -1711,11 +1721,12 @@
           0,
           0.1724
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0041": {
       "id": "mh-gen-v2-0041",
-      "source": "mh-gen-v2-0041.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0041.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.7572,
       "neck_len": 0.0453,
       "torso_len": 0.4721,
@@ -1831,11 +1842,12 @@
           0,
           0.1589
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0044": {
       "id": "mh-gen-v2-0044",
-      "source": "mh-gen-v2-0044.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0044.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.9122,
       "neck_len": 0.0782,
       "torso_len": 0.4468,
@@ -1951,11 +1963,12 @@
           0,
           0.1714
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0046": {
       "id": "mh-gen-v2-0046",
-      "source": "mh-gen-v2-0046.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0046.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.675,
       "neck_len": 0.0427,
       "torso_len": 0.4562,
@@ -2071,11 +2084,12 @@
           0,
           0.1535
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-gen-v2-0048": {
       "id": "mh-gen-v2-0048",
-      "source": "mh-gen-v2-0048.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-gen-v2-0048.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.3313,
       "neck_len": 0.037,
       "torso_len": 0.3902,
@@ -2191,11 +2205,12 @@
           0,
           0.1319
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-male-01": {
       "id": "mh-male-01",
-      "source": "mh-male-01.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-male-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.5744,
       "neck_len": 0.0424,
       "torso_len": 0.4289,
@@ -2311,11 +2326,12 @@
           0,
           0.1581
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-man-01": {
       "id": "mh-man-01",
-      "source": "mh-man-01.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-man-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.5695,
       "neck_len": 0.042,
       "torso_len": 0.424,
@@ -2431,11 +2447,12 @@
           0,
           0.1489
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-man-03": {
       "id": "mh-man-03",
-      "source": "mh-man-03.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-man-03.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.4702,
       "neck_len": 0.0408,
       "torso_len": 0.4022,
@@ -2551,11 +2568,12 @@
           0,
           0.1496
         ]
-      }
+      },
+      "scale_baked": 1
     },
     "mh-woman-01": {
       "id": "mh-woman-01",
-      "source": "mh-woman-01.glb bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)",
+      "source": "mh-woman-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
       "height_m": 1.44,
       "neck_len": 0.0626,
       "torso_len": 0.3506,
@@ -2671,7 +2689,8 @@
           0,
           0.1421
         ]
-      }
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -2703,37 +2722,37 @@
     "boss-surgeon": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-westminster-witch": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-south-nightborn": {
       "rig": "v1-65",
       "body": "scavenger-65",
-      "live": false
+      "live": true
     },
     "boss-warden": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-area8-veteran": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-area7-knight": {
       "rig": "v1-65",
       "body": "warden-65",
-      "live": false
+      "live": true
     },
     "boss-butcher": {
       "rig": "v1-65",
       "body": "butcher-65",
-      "live": false
+      "live": true
     },
     "mh-female-01": {
       "rig": "mixamo-106",

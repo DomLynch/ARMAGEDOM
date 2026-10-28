@@ -33,22 +33,46 @@ test("every bone a row maps exists in the model's GLB (no ragdoll can die on a m
   }
 });
 
-test("body rows hold the 20 joints and a standing height; the baked scale matches the manifest scale", () => {
+test("body rows hold the 20 joints and a standing height, UNSCALED (the actor root already applies the manifest scale)", () => {
   for (const [name, m] of Object.entries(RIGS.models)) {
     if (m.body === "physicsBody") continue;
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
     assert.ok(row.height_m > 1 && row.height_m < 3, `${m.body} height ${row.height_m}`);
-    // An unscaled row (no scale_baked, like the hunter's physicsBody and the MakeHuman bodies) leaves the manifest scale to the actor root,
-    // whose local frame is the sim frame (three-rig.mjs).
-    if (row.scale_baked !== undefined)
-      assert.equal(row.scale_baked, manifest[name].scale, `${name} uses a body baked at its manifest scale`);
+    assert.equal(row.scale_baked, 1, `${name} uses a body measured at x1: a scaled row is scaled twice by the root`);
+    assert.match(row.source, /, x1\b/, `${name} row source says x1`);
+  }
+});
+
+test("a body row's hip height above the toes equals the GLB's own bind pose at x1, not at the manifest scale", () => {
+  const mul = (a, b) => Array.from({ length: 16 }, (_, k) => [0, 1, 2, 3].reduce((s, j) => s + a[j * 4 + (k % 4)] * b[(k >> 2) * 4 + j], 0)),
+    local = (n) => {
+      const [x, y, z, w] = n.rotation ?? [0, 0, 0, 1], [sx, sy, sz] = n.scale ?? [1, 1, 1], [tx, ty, tz] = n.translation ?? [0, 0, 0];
+      return [(1 - 2 * (y * y + z * z)) * sx, 2 * (x * y + z * w) * sx, 2 * (x * z - y * w) * sx, 0, 2 * (x * y - z * w) * sy,
+        (1 - 2 * (x * x + z * z)) * sy, 2 * (y * z + x * w) * sy, 0, 2 * (x * z + y * w) * sz, 2 * (y * z - x * w) * sz,
+        (1 - 2 * (x * x + y * y)) * sz, 0, tx, ty, tz, 1];
+    },
+    up = (nodes, name) => { // bind-pose world height of a named node: the node matrices multiplied up the parent chain
+      const parent = new Map(nodes.flatMap((n, i) => (n.children ?? []).map((c) => [c, i])));
+      let i = nodes.findIndex((n) => n.name === name), m = local(nodes[i]);
+      for (i = parent.get(i); i !== undefined; i = parent.get(i)) m = mul(local(nodes[i]), m);
+      return m[13];
+    };
+  for (const [name, m] of Object.entries(RIGS.models)) {
+    if (m.body === "physicsBody") continue;
+    const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
+      nodes = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes,
+      family = RIGS.rigs[m.rig],
+      p = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
+      hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + p.toeLeft);
+    assert.ok(Math.abs(hips - RIGS.bodies[m.body].joints.Hips[1]) < 0.01, `${name} hips ${hips} vs row ${RIGS.bodies[m.body].joints.Hips[1]}`);
   }
 });
 
 test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
   for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
+  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
   for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
 });
 

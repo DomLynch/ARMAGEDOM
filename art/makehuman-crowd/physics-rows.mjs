@@ -21,7 +21,8 @@ for (const file of readdirSync(web + "public/assets/crowd").filter((n) => n.ends
   rigs.bodies[id] = {
     ...row,
     id,
-    source: `${file} bind pose via mixamo-106.json, unscaled (the actor root carries the manifest scale)`,
+    source: `${file} bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)`,
+    scale_baked: 1,
   };
   rigs.models[id] = { rig: "mixamo-106", body: id, live: pool.find((p) => p.ref === id)?.active === true };
 }

@@ -1,4 +1,5 @@
 node_modules/
 dist/
+boot-check-out/
 # Runtime GLBs are tracked in their asset subdirectories; packaging selects the closure.
 /public/assets/manifest.json
