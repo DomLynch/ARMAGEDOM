@@ -2709,6 +2709,11 @@
       "body": "scavenger-65",
       "live": true
     },
+    "vagrant-cleaver": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": true
+    },
     "remote-survivor": {
       "rig": "v1-65",
       "body": "scavenger-65",
@@ -2757,12 +2762,12 @@
     "mh-female-01": {
       "rig": "mixamo-106",
       "body": "mh-female-01",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0005": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0005",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0011": {
       "rig": "mixamo-106",
@@ -2772,12 +2777,12 @@
     "mh-gen-v2-0012": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0012",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0014": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0014",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0017": {
       "rig": "mixamo-106",
@@ -2787,7 +2792,7 @@
     "mh-gen-v2-0020": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0020",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0021": {
       "rig": "mixamo-106",
@@ -2802,27 +2807,27 @@
     "mh-gen-v2-0036": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0036",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0037": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0037",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0041": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0041",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0044": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0044",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0046": {
       "rig": "mixamo-106",
       "body": "mh-gen-v2-0046",
-      "live": false
+      "live": true
     },
     "mh-gen-v2-0048": {
       "rig": "mixamo-106",
@@ -2832,7 +2837,7 @@
     "mh-male-01": {
       "rig": "mixamo-106",
       "body": "mh-male-01",
-      "live": false
+      "live": true
     },
     "mh-man-01": {
       "rig": "mixamo-106",
