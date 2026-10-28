@@ -9,7 +9,21 @@ const hex = (field, v) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("loot", `${field} must be six hex digits`);
 };
 export function validateLoot(d) {
-  closed(d, ["schema_version", "enabled", "offSwitch", "ops", "slots", "toastSeconds", "kinds", "glint", "rarities", "defaultRarity", "defaultKind", "items", "text"]);
+  closed(d, [
+    "schema_version",
+    "enabled",
+    "offSwitch",
+    "ops",
+    "slots",
+    "toastSeconds",
+    "kinds",
+    "glint",
+    "rarities",
+    "defaultRarity",
+    "defaultKind",
+    "items",
+    "text",
+  ]);
   if (typeof d.enabled !== "boolean") fail("loot", "enabled must be true or false");
   if (!/^[a-z]{3,16}$/.test(d.offSwitch)) fail("loot", "offSwitch must be a short lowercase word");
   closed(d.ops, ["inventory", "items"]);
