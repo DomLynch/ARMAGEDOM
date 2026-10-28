@@ -14,6 +14,13 @@ test("the seed has exactly the player weapons, with positive caps", async () => 
   assert.ok(knife.damage > 20, "the knife's cap includes the mastery ceiling, not just its base damage");
 });
 
+test("the railgun row is the light machine gun's: 5 damage a bullet, about 9 bullets a second (migration 24)", async () => {
+  const db = await freshDb();
+  const [row] = await call(db, "select max_damage_per_hit::float8 as damage, max_hits_per_s::float8 as rate from public.arma_weapon_rules where weapon = 'railgun'");
+  assert.equal(row.damage, 5);
+  assert.ok(Math.abs(row.rate - 9.090909090909092) < 1e-9);
+});
+
 test("a creature's attack is not a weapon a player can claim; a player weapon with no engage is a token error instead", async () => {
   const db = await freshDb();
   await openFor(db, ids.alice);
