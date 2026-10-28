@@ -12,7 +12,7 @@ const direction = (value) => {
 const FNV_OFFSET = 2166136261; // tuning-ok: the 32-bit FNV-1a offset basis
 const FNV_PRIME = 16777619; // tuning-ok: the 32-bit FNV-1a prime
 const UINT32_RANGE = 4294967296; // tuning-ok: 2 to the 32, turns the hash into a draw in [0, 1)
-function draw(context, ordinal, seed, purpose) {
+export function draw(context, ordinal, seed, purpose) {
   let h = FNV_OFFSET;
   const key = JSON.stringify([seed, context.areaId ?? null, context.victimKey ?? context.victimId, ordinal, purpose]);
   for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), FNV_PRIME) >>> 0;

@@ -68,6 +68,7 @@ import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateGoldenWeapons } from "./game-data-golden.js";
 import { validateWorldPickups } from "./game-data-world-pickups.js";
 import { validateKillDrops } from "./game-data-kill-drops.js";
+import { validatePitbornCutManifest, validatePitbornCuts } from "./game-data-pitborn-cuts.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
@@ -85,6 +86,8 @@ import {
 } from "./game-data-hunters.js";
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
+import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
+import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
 import hitReaction from "../data/hitReaction.json" with { type: "json" };
 import { validateHitReaction } from "./hit-reaction-data.js";
@@ -1067,6 +1070,8 @@ const sources = () => ({
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
+  pitbornCuts: [pitbornCuts, validatePitbornCuts],
+  pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],
   hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],

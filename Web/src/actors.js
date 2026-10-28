@@ -307,7 +307,8 @@ export function createActors(
   const reducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   const parkedViews = new Map(),
     groundingCache = new WeakMap(),
-    goreOwners = new Set();
+    goreOwners = new Set(),
+    storeOf = (a) => parkedViews.get(a) ?? parkedViews.set(a, new Map()).get(a);
   // Residents whose finisher geometry is still to be prepared after arrival (see engine/finisher-prep-pump.js).
   const deferredViews = new Set(),
     finisherPump = createFinisherPrepPump({
@@ -933,10 +934,10 @@ export function createActors(
       return library.modelUrls?.(refs) ?? [];
     },
     parkArea(areaId) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       for (const [id, view] of [...views])
         if (id !== 0) {
+          releasePhysicsDeath(view, true);
           view.impactFlashLife = 0;
           view.hitReactionFresh = false;
           restoreActorFlash(view);
@@ -951,8 +952,7 @@ export function createActors(
         }
     },
     *prepareAreaSteps(areaId, record, stageWorld, finishers) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       const added = [];
       let completed = false;
       try {

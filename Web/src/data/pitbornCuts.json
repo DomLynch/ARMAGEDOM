@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "flagParam": "cuts",
+  "offValue": "0",
+  "defaultOn": true,
+  "rigRef": "marked-hunter",
+  "cutModel": "marked-hunter-cut",
+  "seed": 4101,
+  "chance": 0.9,
+  "pityAfter": 2,
+  "noRepeat": true,
+  "maxPieceBodies": 6,
+  "capTint": { "flesh": "6f1d1d", "inner": "2a0b0b", "blood": "5a0a0a", "amount": 0.35 },
+  "units": ["head", "arm_left", "arm_right", "leg_left", "leg_right", "torso_waist", "head_split", "belly_open"],
+  "visualUnits": ["head_split", "belly_open"],
+  "finishers": {
+    "splitCrown": { "unit": "head", "also": ["head_split"], "alsoAtS": 0, "atS": 0, "push": 1, "pieceImpulse": 60 },
+    "decapitation": { "unit": "head", "also": [], "alsoAtS": 0, "atS": 0, "push": 1, "pieceImpulse": 70 },
+    "runThrough": { "unit": "belly_open", "also": [], "fallback": null, "alsoAtS": 0, "atS": 0, "push": 0.25, "pieceImpulse": 0 },
+    "opened": { "unit": "belly_open", "also": [], "fallback": "torso_waist", "alsoAtS": 0, "atS": 0, "push": 1, "pieceImpulse": 40 },
+    "dismember": {
+      "unit": "arm_right",
+      "also": ["arm_left", "leg_right"],
+      "alsoAtS": 0.35,
+      "atS": 0,
+      "push": 1,
+      "pieceImpulse": 55
+    },
+    "hamstringCut": { "unit": "leg_right", "also": ["leg_left"], "alsoAtS": 0.3, "atS": 0, "push": 0.6, "pieceImpulse": 35 }
+  },
+  "bindings": [
+    {
+      "weapons": ["pistol"],
+      "pool": [
+        { "id": "decapitation", "weight": 3 },
+        { "id": "splitCrown", "weight": 1 },
+        { "id": "dismember", "weight": 1 }
+      ]
+    },
+    {
+      "weapons": ["rifle", "railgun"],
+      "pool": [
+        { "id": "decapitation", "weight": 3 },
+        { "id": "splitCrown", "weight": 2 },
+        { "id": "opened", "weight": 1 }
+      ]
+    },
+    {
+      "weapons": ["shotgun"],
+      "pool": [
+        { "id": "decapitation", "weight": 2 },
+        { "id": "dismember", "weight": 3 },
+        { "id": "opened", "weight": 1 }
+      ]
+    },
+    {
+      "weapons": ["grenade", "rocket"],
+      "pool": [
+        { "id": "dismember", "weight": 3 },
+        { "id": "opened", "weight": 2 },
+        { "id": "hamstringCut", "weight": 1 }
+      ]
+    },
+    {
+      "weapons": ["knife"],
+      "pool": [
+        { "id": "dismember", "weight": 2 },
+        { "id": "splitCrown", "weight": 1 },
+        { "id": "decapitation", "weight": 1 },
+        { "id": "runThrough", "weight": 1 },
+        { "id": "hamstringCut", "weight": 1 }
+      ]
+    }
+  ]
+}
