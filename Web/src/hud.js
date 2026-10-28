@@ -7,6 +7,7 @@ import { pilotBonuses, DEFAULT_ATTRIBUTES } from "./engine/progression-rules.js"
 import { PISTOL_RULES } from "./pistol.js";
 import { keySuffix } from "./engine/key-hint.js";
 import { keyHintLine } from "./engine/input-keymap.js";
+import { applyDesktopLayout, fillKeyHints } from "./engine/desktop-layout.js";
 import { GAME_DATA } from "./engine/game-data.js";
 import { webText } from "./engine/web-text.js";
 // Button cooldown fallbacks, the pistol prompt reach and the default grenade range: data/visual.json `hud`.
@@ -171,6 +172,7 @@ export function createHUD({
     document.body.classList.toggle("menu-open", menu.open);
   }
   function resize() {
+    applyDesktopLayout();
     pause();
   }
   function toggleMenu() {
@@ -278,6 +280,7 @@ export function createHUD({
       // The Controls card's desktop line comes from the key map (data/inputKeys.json), so a rebind shows here.
       const controls = el("controls-desktop");
       if (controls) controls.textContent = keyHintLine();
+      fillKeyHints(el("key-hints"));
       resize();
     },
     loading(text) {

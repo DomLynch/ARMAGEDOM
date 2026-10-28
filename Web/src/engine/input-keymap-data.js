@@ -17,7 +17,10 @@ const fail = (why) => {
 const known = (a) => [HELD_ACTION, PRESS_ACTION, WEAPON_SLOT, WEAPON_STEP, OTHER_ACTION].some((pattern) => pattern.test(a));
 
 export function validateInputKeys(d) {
-  closed(d, ["schema_version", "keys", "mouseButtons", "mouse", "wheelStepMs", "partJoin", "keyNames", "mouseNames", "hints"]);
+  closed(d, ["schema_version", "keys", "mouseButtons", "mouse", "layout", "wheelStepMs", "partJoin", "keyNames", "mouseNames", "hints"]);
+  closed(d.layout, ["minWidthPx", "baseHeightPx", "minScale", "maxScale"]);
+  for (const [field, value] of Object.entries(d.layout)) if (!Number.isFinite(value) || !(value > 0)) fail(`layout.${field} must be above 0`);
+  if (d.layout.minScale > d.layout.maxScale) fail("layout.minScale must not exceed maxScale");
   const seen = new Map();
   for (const [action, codes] of Object.entries(d.keys)) {
     if (!known(action)) fail(`${action} is not an input action`);
