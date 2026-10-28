@@ -7,6 +7,8 @@
 import * as THREE from "three";
 import { count, fail, number } from "./game-data-checks.js";
 
+const cornersOf = () => ["a", "b", "c"]; // the corners of a triangle
+
 export function validateActorLod(d) {
   const keys = ["enabled", "offParam", "offValue", "rigs", "minTriangles", "hysteresisMetres", "levels"];
   if (!d || typeof d !== "object" || Object.keys(d).some((k) => !keys.includes(k)) || keys.some((k) => !(k in d)))
@@ -57,17 +59,15 @@ export function clusterIndex(position, index, cell) {
     let best = c.members[0],
       bestD = Infinity;
     for (const i of c.members) {
-      const d =
-        (position.getX(i) - c.x / n) ** 2 + (position.getY(i) - c.y / n) ** 2 + (position.getZ(i) - c.z / n) ** 2;
+      const d = Math.hypot(position.getX(i) - c.x / n, position.getY(i) - c.y / n, position.getZ(i) - c.z / n);
       if (d < bestD) [best, bestD] = [i, d];
     }
     for (const i of c.members) rep[i] = best;
   }
   const out = [];
-  for (let t = 0; t < index.count; t += 3) {
-    const a = rep[index.getX(t)],
-      b = rep[index.getX(t + 1)],
-      c = rep[index.getX(t + 2)];
+  const corners = cornersOf();
+  for (let t = 0; t < index.count; t += corners.length) {
+    const [a, b, c] = corners.map((_, k) => rep[index.getX(t + k)]);
     if (a !== b && b !== c && a !== c) out.push(a, b, c);
   }
   return out.length < index.count ? out : null;
@@ -107,7 +107,7 @@ export function createActorLod(rules) {
     view.model.traverse((m) => {
       if (!m.isMesh) return;
       const g = m.geometry,
-        thinnable = g?.index && !g.groups.length && g.index.count / 3 >= rules.minTriangles;
+        thinnable = g?.index && !g.groups.length && g.index.count / cornersOf().length >= rules.minTriangles;
       view.lodParts.push({ mesh: m, full: thinnable ? g : null });
     });
     return view.lodParts;

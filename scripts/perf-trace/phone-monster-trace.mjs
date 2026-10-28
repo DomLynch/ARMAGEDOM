@@ -191,7 +191,7 @@ console.log("TRACE_RESULT " + JSON.stringify(result));
 // The hostile scene against the pinned ceilings in data/renderBudget.json (p95 frame); a non-zero exit when over.
 const { hostileSceneProblems } = await import(pathToFileURL(`${process.cwd()}/src/engine/render-budget.js`).href);
 const budgetProblems = hostileSceneProblems({ hostiles: HOSTILES, drawCalls: idle.drawCalls.p95, triangles: idle.triangles.p95 });
-console.error("[trace] budget", budgetProblems.length ? budgetProblems.join("; ") : "within renderBudget.json hostileScene");
+console.error("[trace] budget", budgetProblems.length ? JSON.stringify(budgetProblems) : "within renderBudget.json hostileScene");
 if (budgetProblems.length) process.exitCode = 1;
 if (OUT) writeFileSync(OUT, JSON.stringify(result, null, 1));
 await browser.close();
