@@ -26,6 +26,7 @@ import { stepRockets } from "./engine/rocket-runtime.js";
 import { stepTrapCrates } from "./engine/trap-crate.js";
 import { bossEquipmentIntent, selectedBossRanged, stepBossGrenades } from "./engine/boss-weapon-runtime.js";
 import { bossEquipmentClock } from "./engine/boss-equipment-data.js";
+import { zoneMultiplier } from "./engine/zone-damage.js";
 import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
@@ -277,6 +278,7 @@ export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursed
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
+  damage *= zoneMultiplier(target.facing, shot.direction, target.kind); // flag off: x1. Boss seam: bossZoneHook (not built)
   const amount = Math.min(target.hp, damage);
   target.hp = Math.max(0, target.hp - damage);
   target.flashUntil = g.time + RULES.hitFlashSeconds;

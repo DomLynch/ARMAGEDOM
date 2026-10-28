@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "note": "PLACEHOLDER numbers, not tuned: arcs and multipliers are a first guess for facing-driven trash zone damage (Diablo/PoE-style mass-mob 2.5D ARPG; kills about 2 shots, fights <= 5 s). Bosses will get per-part hit boxes later via bossZoneHook; until then they fall through to x1.",
+  "flagParam": "zones",
+  "flagValue": "1",
+  "arcs": { "frontHalfDeg": 60, "backHalfDeg": 60 },
+  "multiplier": { "front": 1, "flank": 1.25, "back": 1.5 },
+  "cap": 1.5,
+  "bosses": [3],
+  "bossHook": "bossZoneHook"
+}

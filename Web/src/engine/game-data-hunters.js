@@ -54,6 +54,20 @@ export function validatePhysicsDeath(d) {
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");
 }
 
+// zoneDamage.json (zone-damage.js, the ?zones=1 flag-off trash zone damage): flag, front/back arc half-angles, multiplier per arc, cap, boss kinds.
+export function validateZoneDamage(d) {
+  closed(d, ["schema_version", "note", "flagParam", "flagValue", "arcs", "multiplier", "cap", "bosses", "bossHook"]);
+  closed(d.arcs, ["frontHalfDeg", "backHalfDeg"]);
+  closed(d.multiplier, ["front", "flank", "back"]);
+  for (const name of ["flagParam", "flagValue", "note", "bossHook"])
+    if (typeof d[name] !== "string" || !d[name]) fail("zoneDamage", name + " must be a non-empty string");
+  for (const name of ["frontHalfDeg", "backHalfDeg"]) number("zoneDamage", name, d.arcs[name], 1);
+  if (d.arcs.frontHalfDeg + d.arcs.backHalfDeg > 180) fail("zoneDamage", "front and back arcs must leave a flank (sum <= 180)");
+  for (const name of ["front", "flank", "back"]) number("zoneDamage", name, d.multiplier[name], 0.01);
+  number("zoneDamage", "cap", d.cap, 1);
+  if (!Array.isArray(d.bosses) || !d.bosses.every(Number.isSafeInteger)) fail("zoneDamage", "bosses must list integer kinds");
+}
+
 // physicsBody.json: the body measure row the ragdoll is built from, and the node-name prefix of the rig.
 export function validatePhysicsBody(d) {
   closed(d, ["schema_version", "note", "nodePrefix", "row"]);
