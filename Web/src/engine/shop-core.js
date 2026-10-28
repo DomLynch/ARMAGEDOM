@@ -93,7 +93,7 @@ export function createShopController({
       else if (!stock.ok || !inventory.ok) phase = "offline";
       else {
         rows = stock.rows.filter((row) => shop.itemIds.includes(row.itemId));
-        for (const row of rows) names.set(row.itemId, row.name);
+        for (const row of stock.rows) names.set(row.itemId, row.name); // the strip names everything carried, not just this stall's items
         take(inventory.items);
         phase = "ready";
       }
