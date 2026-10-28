@@ -61,6 +61,23 @@ old.definitions.push({
 });
 old.recipeFoundations["elephant-ashen-bull"] = "original-elephant";
 old.nativeRoles.push({ area: "elephant-and-castle", placement: "elephant-and-castle-resident-2", recipe: "elephant-ashen-bull", foundation: "original-elephant", cycles: ["A", "B"], preset: "baseline" });
+// 28 Oct: the spider foundation and its recipe are appended rows (art/monster-spider).
+old.definitions.push({
+  id: "original-spider",
+  rig: "original-spider",
+  contactRig: null,
+  assetRef: "model.original-spider",
+  clips: { idle: "roach_idle", walk: "roach_walk", run: "roach_run", hit: "roach_hit", death: "roach_death", attack: "roach_bite_scaled" },
+  scale: { model: 3, character: 1.265, visual: 1.3225, mobSizeMode: "fixed-one", bodyScale: 1, appliedBy: "actor-root-wrapper" },
+  stats: { health: 36, radius: 1.54, moveSpeed: 2, recoveryDelay: 0, weapon: "teeth" },
+  behaviour: { controllerRef: "roach-native-bite", parameterPreset: "baseline", intentPolicyRef: "existing-resident-intent-policy" },
+  clipSourceRefs: ["animation.roach-scaled-bite"],
+  preparationRefs: [],
+  equipmentRef: null,
+  provenanceRef: "art/monster-spider",
+  runtimeIdentity: "original-spider",
+});
+old.recipeFoundations["spider-crypt"] = "original-spider";
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 

@@ -11,7 +11,7 @@ const only = (rigs, pick) => assert.deepEqual(RIGS.filter(pick), rigs);
 
 test("each capability picks the same rigs as the comparison it replaced", () => {
   only(["low-hover-drone"], (r) => rigCapability(r, "hoverTarget"));
-  only(["original-roach"], (r) => rigText(r, "biteMove") === "roach");
+  only(["original-roach", "original-spider"], (r) => rigText(r, "biteMove") === "roach");
   only(["original-dog"], (r) => rigNumber(r, "feralScale") === 2);
   only(["original-rat", "original-crow"], (r) => rigText(r, "appearanceKit") === "rat"); // 28 Oct: the crow wears the rat coat kit
   only(["original-roach"], (r) => rigText(r, "appearanceKit") === "roach");
@@ -21,7 +21,7 @@ test("each capability picks the same rigs as the comparison it replaced", () => 
   only(["giant-salamander", "giant-eel"], (r) => rigCapability(r, "calfFaceReceiver"));
   only(["original-wolf", "original-elephant"], (r) => rigCapability(r, "bodyReceiver"));
   only(["original-rat", "original-crow"], (r) => rigText(r, "brain") === "rat"); // 28 Oct: the crow bites with the rat brain
-  only(["original-dog", "original-roach", "giant-salamander", "original-wolf", "giant-eel", "original-elephant"], (r) => rigText(r, "brain") === "dog");
+  only(["original-dog", "original-roach", "giant-salamander", "original-wolf", "giant-eel", "original-elephant", "original-spider"], (r) => rigText(r, "brain") === "dog");
 });
 
 test("actors.js keeps no rig-name literal", () => {
