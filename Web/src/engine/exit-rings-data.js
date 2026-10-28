@@ -8,9 +8,24 @@ const fail = (why) => {
 };
 const positive = (v) => Number.isFinite(v) && v > 0;
 export function validateExitRings(r) {
-  closed(r, ["inner", "outer", "segments", "colour", "opacity", "lockedColour", "lockedOpacity", "height", "anchor", "centring", "flatRotation", "offsets", "scales"]);
+  closed(r, [
+    "inner",
+    "outer",
+    "segments",
+    "colour",
+    "opacity",
+    "lockedColour",
+    "lockedOpacity",
+    "height",
+    "anchor",
+    "centring",
+    "flatRotation",
+    "offsets",
+    "scales",
+  ]);
   closed(r.centring ?? {}, ["radius", "step", "clearance"]);
-  if (!positive(r.centring.radius) || !positive(r.centring.step) || !positive(r.centring.clearance)) fail("centring radius, step and clearance must be above 0 metres");
+  if (!positive(r.centring.radius) || !positive(r.centring.step) || !positive(r.centring.clearance))
+    fail("centring radius, step and clearance must be above 0 metres");
   if (r.centring.step > r.centring.radius) fail("centring step must not exceed its radius");
   if (!positive(r.inner) || !positive(r.outer) || r.inner >= r.outer) fail("inner must be above 0 and below outer (metres)");
   if (!Number.isSafeInteger(r.segments) || r.segments < 3 || r.segments > 128) fail("segments must be a whole number from 3 to 128");
