@@ -13,14 +13,15 @@ export function slotModelRefs(world, areaId, manifest) {
       .map((row) => row.appearanceRef),
   ];
 }
+// A promise only when something deferred has to load, so callers (`if (slot) await slot`) add no turn when it does not.
 // Optional: a failed download leaves the creature without a model exactly as before, so it must not fail the boot or the entry.
-export async function ensureSlotModels(library, world, areaId) {
-  if (!library) return;
+export function ensureSlotModels(library, world, areaId) {
+  if (!library?.manifest) return undefined;
   const refs = [...new Set(slotModelRefs(world, areaId, library.manifest))];
-  if (refs.length === 0) return;
-  try {
-    await library.ensureModels?.(refs);
-  } catch {
-    /* Retried by the next area entry or restore. */
-  }
+  if (refs.length === 0) return undefined;
+  return Promise.resolve()
+    .then(() => library.ensureModels?.(refs))
+    .catch(() => {
+      /* Retried by the next area entry or restore. */
+    });
 }

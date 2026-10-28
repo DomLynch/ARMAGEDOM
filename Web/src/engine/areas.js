@@ -373,7 +373,8 @@ export function createAreaLifecycle(s) {
             await preparationTurn(state);
             const record = prepareParkedResidents(state.game, stage, initializeAreaResidents);
             await s.actors.ensureAreaModels?.(record, task.areaId);
-            await ensureSlotModels(s.survivorLibrary, s.world, task.areaId); // a slot creature killed earlier still respawns
+            const slotModels = ensureSlotModels(s.survivorLibrary, s.world, task.areaId); // a slot creature killed earlier still respawns
+            if (slotModels) await slotModels;
             if (state.cancelled || s.game !== state.game || s.actors !== state.actors || s.contextLost)
               throw Error("Area model preparation cancelled");
             iterator = s.actors.prepareAreaSteps(task.areaId, record, stage, state.game.finishers);

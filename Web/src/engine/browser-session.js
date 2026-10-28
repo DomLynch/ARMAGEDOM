@@ -821,7 +821,8 @@ export function createBrowserSession(options = {}) {
         visualScale: actorVisualScale,
       });
       await actors.ensureAreaModels(game);
-      await ensureSlotModels(library, world, world.areaId); // a slot creature dead at restore still respawns
+      const slotModels = ensureSlotModels(library, world, world.areaId); // a slot creature dead at restore still respawns
+      if (slotModels) await slotModels;
       if (contextLost || disposed) return;
       pendingLibrary = null;
       survivorLibrary = library; // the other players' reduced mesh loads from it on demand

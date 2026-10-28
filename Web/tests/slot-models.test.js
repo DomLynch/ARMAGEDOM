@@ -13,8 +13,13 @@ const manifest = {
     "giant-salamander": { rig: "giant-salamander", deferred: true },
     "giant-eel": { rig: "giant-eel", deferred: true },
     "original-rat": { rig: "original-rat" },
+    vagrant: { rig: "vagrant" },
   },
 };
+const stub = (rig) => ({
+  description: { rig, clips: {} },
+  gltf: { scene: new THREE.Group().add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial())), animations: [] },
+});
 function setup(t) {
   const prior = globalThis.document;
   globalThis.document = {
@@ -39,11 +44,10 @@ function setup(t) {
     },
     library = {
       manifest,
-      models: new Map(),
+      models: new Map([["vagrant", stub("vagrant")]]),
       async ensureModels(refs) {
         calls.push(refs);
-        for (const ref of refs)
-          library.models.set(ref, { description: { rig: ref }, gltf: { scene: new THREE.Group(), animations: [] } });
+        for (const ref of refs) library.models.set(ref, stub(ref));
       },
       dispose() {},
     },
@@ -92,8 +96,8 @@ test("a slot creature dead at restore respawns without 'export not ready' once t
 
 test("slot model preparation is optional: no library, no refs and a failed download never throw", async (t) => {
   const { calls, world, library } = setup(t);
-  await ensureSlotModels(null, world, "westminster");
-  await ensureSlotModels(library, world, "east");
+  assert.equal(ensureSlotModels(null, world, "westminster"), undefined);
+  assert.equal(ensureSlotModels(library, world, "east"), undefined, "nothing deferred in the area: no promise, so callers add no turn");
   assert.deepEqual(calls, [], "nothing deferred in the area, nothing requested");
   await ensureSlotModels({ ...library, ensureModels: async () => Promise.reject(Error("offline")) }, world, "westminster");
   await ensureSlotModels({ manifest }, world, "westminster");
@@ -103,8 +107,8 @@ test("restore and area entry prepare the slot models right after the ordinary pr
   const session = readFileSync(new URL("../src/engine/browser-session.js", import.meta.url), "utf8"),
     areas = readFileSync(new URL("../src/engine/areas.js", import.meta.url), "utf8");
   for (const [source, ordinary, slot] of [
-    [session, "await actors.ensureAreaModels(game);", "await ensureSlotModels(library, world, world.areaId);"],
-    [areas, "await s.actors.ensureAreaModels?.(record, task.areaId);", "await ensureSlotModels(s.survivorLibrary, s.world, task.areaId);"],
+    [session, "await actors.ensureAreaModels(game);", "ensureSlotModels(library, world, world.areaId);"],
+    [areas, "await s.actors.ensureAreaModels?.(record, task.areaId);", "ensureSlotModels(s.survivorLibrary, s.world, task.areaId);"],
   ]) {
     const first = source.indexOf(ordinary),
       second = source.indexOf(slot);
