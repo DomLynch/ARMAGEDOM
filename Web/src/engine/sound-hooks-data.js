@@ -9,7 +9,6 @@ const share = (field, v, max = 1) => {
 const word = (field, v) => {
   if (typeof v !== "string" || !v) fail(FILE, `${field} must be a non-empty string`);
 };
-const TONE_TYPES = ["sine", "triangle", "square", "sawtooth"];
 function checkRow(r) {
   closed(
     r,
@@ -40,7 +39,8 @@ function checkRow(r) {
     closed(r.tone, ["from", "to", "seconds", "type"]);
     for (const k of ["from", "to"]) number(FILE, `${r.id}.tone.${k}`, r.tone[k], 1);
     number(FILE, `${r.id}.tone.seconds`, r.tone.seconds, 0.01);
-    if (!TONE_TYPES.includes(r.tone.type)) fail(FILE, `${r.id}.tone.type must be one of ${TONE_TYPES}`);
+    if (!["sine", "triangle", "square", "sawtooth"].includes(r.tone.type))
+      fail(FILE, `${r.id}.tone.type must be sine, triangle, square or sawtooth`);
   }
   if (r.noise) {
     closed(r.noise, ["seconds", "cutoff", "share"]);

@@ -258,7 +258,7 @@ export function createBrowserLoop(s) {
     if (audioEvents.length || severs.length) {
       const heard = presentationAudioEvents(audioEvents, severs);
       s.audio.play(heard);
-      const cues = soundHooks?.plan(heard, { player: s.game.player, time: ms / 1000 }) ?? []; // tuning-ok: ms to seconds
+      const cues = soundHooks?.plan(heard, { player: s.game.player, time: s.game.time }) ?? [];
       if (cues.length) s.audio.playHooks?.(cues);
     }
     s.audio?.setBurning?.(burning && !s.paused ? burnLevel(s.game) : 0, GAME_DATA.soundHooks.burn);

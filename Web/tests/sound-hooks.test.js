@@ -88,8 +88,9 @@ test('distance fades a cue and silences it past hearing range; pitch varies with
   assert.ok(far.gain < near.gain && far.gain > 0);
   assert.deepEqual(h.plan([hit(enemy({pos: {x: D.mix.hearingRange + 1, z: 0}}), 'knife')], {player, time: 2}), []);
   assert.ok(h.plan([hit(player, 'teeth')], {player, time: 3})[0].gain === D.rows.find(r => r.id === 'hurt-player-melee').gain, 'no fade on distance:false rows');
-  const low = createSoundHooks({random: () => 0}).plan([hit(enemy(), 'knife')], {player, time: 0})[0];
-  const high = createSoundHooks({random: () => 1}).plan([hit(enemy(), 'knife')], {player, time: 0})[0];
+  const draws = (...v) => () => v.shift();
+  const low = createSoundHooks({random: draws(0, 1)}).plan([hit(enemy(), 'knife')], {player, time: 0})[0];
+  const high = createSoundHooks({random: draws(1, 0)}).plan([hit(enemy(), 'knife')], {player, time: 0})[0];
   const v = D.rows.find(r => r.id === 'hit-enemy-knife').pitchVariance;
   assert.ok(Math.abs(low.pitch - (1 - v)) < 1e-9 && Math.abs(high.pitch - (1 + v)) < 1e-9);
 });

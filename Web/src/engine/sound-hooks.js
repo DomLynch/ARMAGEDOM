@@ -51,7 +51,7 @@ export function createSoundHooks({ data = GAME_DATA.soundHooks, random = Math.ra
         if (live.filter((v) => v.id === row.id).length >= row.voices) continue;
         const near = row.distance ? distanceGain(data.mix, data.mix.hearingRange, event, player) : 1;
         if (near <= 0) continue;
-        const pitch = 1 + (random() * 2 - 1) * row.pitchVariance; // tuning-ok: unit random to -1..1
+        const pitch = 1 + (random() - random()) * row.pitchVariance; // two draws: -1..1, centred
         lastAt.set(row.id, time);
         live.push({ id: row.id, until: time + Math.max(row.tone?.seconds ?? 0, row.noise?.seconds ?? 0) });
         out.push({ id: row.id, gain: row.gain * near, pitch, tone: row.tone, noise: row.noise });
