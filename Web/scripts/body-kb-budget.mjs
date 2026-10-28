@@ -24,7 +24,7 @@ export function measure() {
     const cls = classOf(url), c = BUDGET.classes[cls];
     const line = c.softKB + c.toleranceKB, ceiling = BUDGET.exceptions[url];
     // Wire size: what a server sends with gzip (level 9) or brotli (default quality). `deferred` bodies load after first input.
-    const deferred = Object.values(manifest.models).some((m) => m.url === url && m.deferred === true);
+    const deferred = Object.values(manifest.models).filter((m) => m.url === url).every((m) => m.deferred === true);
     return { url, cls, kb, line, ceiling, over: kb > line, ok: kb <= (ceiling ?? line), gzip: gzipSync(raw, { level: 9 }).length, brotli: brotliCompressSync(raw).length, deferred };
   });
 }
