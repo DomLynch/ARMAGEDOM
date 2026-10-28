@@ -34,6 +34,7 @@ export function validatePhysicsDeath(d) {
     "settleSeconds",
     "removeSeconds",
     "preloadIdleMs",
+    "cutPrefetch",
     "poolSize",
     "rewarmMs",
     "maxActive",
@@ -52,6 +53,11 @@ export function validatePhysicsDeath(d) {
     "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
+  closed(d.cutPrefetch, ["idleMs", "skipSaveData", "slowTypes"]);
+  number("physicsDeath", "cutPrefetch.idleMs", d.cutPrefetch.idleMs, 1);
+  if (typeof d.cutPrefetch.skipSaveData !== "boolean") fail("physicsDeath", "cutPrefetch.skipSaveData must be true or false");
+  if (!Array.isArray(d.cutPrefetch.slowTypes) || d.cutPrefetch.slowTypes.some((t) => typeof t !== "string"))
+    fail("physicsDeath", "cutPrefetch.slowTypes must be a list of connection types");
   if (typeof d.defaultOn !== "boolean") fail("physicsDeath", "defaultOn must be true or false");
   if (typeof d.offValue !== "string" || d.offValue === d.flagValue)
     fail("physicsDeath", "offValue must be a string that differs from flagValue");
