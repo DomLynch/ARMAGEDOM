@@ -90,8 +90,10 @@
       <p id="ammo" hidden aria-live="polite"></p>
       <p id="notice" role="status"></p>
       <p id="expedition-objective" hidden></p>
+      <p id="run-hud" hidden role="status"></p>
       <p id="marked-status" hidden role="status"></p>
       </div>
+      <div id="run-banner" hidden role="status"><strong id="run-banner-title"></strong><span id="run-banner-line"></span></div>
       <button id="menu-button" aria-label="Open game menu">☰</button>
       <!-- Desktop only (body.desktop-ui, not body.touch): the key hints, filled from data/inputKeys.json by hud.js. -->
       <div id="key-hints" aria-hidden="true"></div>
@@ -152,9 +154,11 @@
       <nav id="menu-tabs" role="tablist" aria-label="Field menu">
         <button id="menu-tab-locker" type="button" role="tab" aria-controls="menu-locker" aria-selected="false" tabindex="-1">Storage</button>
         <button id="menu-tab-gear" type="button" role="tab" aria-controls="menu-gear" aria-selected="true">Gear</button>
+        <button id="menu-tab-items" type="button" role="tab" aria-controls="menu-items" aria-selected="false" tabindex="-1">Items</button>
         <button id="menu-tab-map" type="button" role="tab" aria-controls="menu-map" aria-selected="false" tabindex="-1">Map</button>
       </nav>
       <div id="menu-content">
+        <section id="run-panel" hidden aria-label="Apocalypse run"><p id="run-start-hint"></p><button id="run-start" type="button"></button></section>
         <section id="expedition-panel" hidden aria-label="Gear, journal and discovery atlas">
           <section id="menu-gear" role="tabpanel" aria-labelledby="menu-tab-gear">
             <details id="equipment-panel" open><summary>Equipment</summary>
@@ -171,6 +175,7 @@
           <section id="menu-journal" role="tabpanel" aria-labelledby="menu-tab-journal" hidden><h3>Journal</h3><p class="eyebrow">Side quest</p><div class="journal-next"><p class="eyebrow">Stolen Supplies</p><h4 id="contract-title">Stolen Supplies</h4><p id="contract-status" role="status"></p></div><p id="contract-reward"></p><button id="contract-action" type="button"></button><details id="contract-details"><summary>Contract details</summary><p id="contract-description"></p></details></section>
           <section id="menu-map" role="tabpanel" aria-labelledby="menu-tab-map" hidden><h3>Discovery atlas</h3><details id="atlas-panel" open><summary>Discovery atlas · schematic</summary><p>Nine locations. Choose a known destination to show only its route and next exit. Tile positions are schematic; movement stays manual. Westminster Shelter is inside Westminster. Central Safehouse has marked side entrances.</p><div id="atlas-map"><svg id="atlas-links" viewBox="0 0 300 300" aria-hidden="true"></svg><div id="atlas-nodes"></div></div><p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button></details></section>
         </section>
+        <section id="menu-items" role="tabpanel" aria-labelledby="menu-tab-items" hidden><h3 id="items-title"></h3><p id="items-intro"></p><div id="items-strip" role="list"></div><p id="items-more"></p><article id="items-card" hidden></article><p id="items-status" role="status"></p></section>
         <section id="menu-locker" role="tabpanel" aria-labelledby="menu-tab-locker" hidden><h3>Safehouse storage</h3><section id="marked-bank" hidden></section><p id="locker-status" role="status"></p><div id="locker-items"></div></section>
         <section id="menu-settings" role="region" aria-labelledby="menu-settings-button" hidden><h3>Settings</h3><button id="sound" aria-pressed="true">Sound on</button><button id="assist" aria-pressed="true">Assist: 100%</button><label for="feedback-mode">Combat feedback</label><select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select><button id="haptics" aria-pressed="true" hidden></button><label id="haptics-label" for="haptics-intensity" hidden></label><select id="haptics-intensity" hidden></select>
       <details>
@@ -236,6 +241,9 @@
         </div>
         <button id="again">Try again</button>
       </div>
+    </section>
+    <section id="run-results" class="overlay" hidden>
+      <div class="card"><h2 id="run-results-title"></h2><div id="run-results-rows"></div><button id="run-continue" type="button"></button></div>
     </section>
     <script type="module" src="/src/main.js"></script>
   <button id="rifle-pickup" type="button" hidden style="position:fixed;z-index:8;transform:translate(-50%,-100%);padding:.4rem .6rem;background:#392a16;color:#f6d281;border:1px solid #c6a75d;border-radius:.4rem">PICK UP RIFLE</button>

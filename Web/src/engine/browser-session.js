@@ -27,6 +27,7 @@ import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
+import { createLootSession } from "./loot-session.js";
 import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
 import { respawnArea } from "./corpse-run.js";
@@ -354,6 +355,9 @@ export function createBrowserSession(options = {}) {
     updateHeatTally() {
       resources.updateHeatTally();
     },
+    updateRunHud() {
+      resources.updateRunHud();
+    },
     updateVestBag() {
       resources.updateVestBag();
     },
@@ -374,7 +378,7 @@ export function createBrowserSession(options = {}) {
     baseRunStorage = runStorage;
     runStorage = observeStorage(runStorage, isRunKey, (raw) => {
       // Stash and airdrop cash noted since the last write goes to the server first, so the save below finds it credited.
-      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount);
+      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount, claim);
       saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) });
     });
   }
@@ -383,6 +387,14 @@ export function createBrowserSession(options = {}) {
   loop = createBrowserLoop(context);
   // Nothing online exists until the status read says the world is open: no guest signup, no presence socket, no save traffic.
   const worldGate = worldConfig && !privateContent ? createWorldGate({ baseUrl: location.origin }) : null;
+  // Rare drops (data/loot.json): the server rolls them with the kill credit; the Items tab shows what the account owns. ?noloot=1 turns it off.
+  const lootSession = createLootSession({
+    search: location.search,
+    doc: document,
+    request: (op, body) => (saveClient ? saveClient.request(op, body) : Promise.resolve({ error: "offline" })),
+    getGame: () => context.game,
+  });
+  listeners.push(() => lootSession.dispose());
   // The OAuth return parameters never stay in the address bar, whether or not the world starts: keep the query for the code exchange,
   // then strip link, code, the error fields and any #access_token hash at load.
   let returnedSearch = null;
@@ -436,6 +448,7 @@ export function createBrowserSession(options = {}) {
       storage: runStorage,
       onCash: (reply, info) => adoptServerCash(context.game, reply, info),
       onClosed: () => recheckWorld(),
+      onLoot: lootSession.onLoot,
       log: (line) => {
         console.info(line);
         if (/not saved|error:|refused/.test(line)) beacon.report("sync", "save", line);
@@ -451,6 +464,7 @@ export function createBrowserSession(options = {}) {
         if (result.reason === "late" || result.reason === "storage") beacon.report("sync", `pull-${result.reason}`);
       })
       .catch((error) => beacon.report("sync", "pull-failed", error));
+    bootPull.then(() => lootSession.refresh()); // not awaited by Enter: the strip fills in when the server answers
     presence = createPresenceSession(context, {
       config: worldConfig,
       getToken,

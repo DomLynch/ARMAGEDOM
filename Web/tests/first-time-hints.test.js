@@ -41,7 +41,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "ember-fire"],
+    ["attack", "dodge-guard", "ember-fire", "first-loot"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(

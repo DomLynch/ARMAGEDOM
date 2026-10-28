@@ -31,9 +31,9 @@ export function armPostBossRaid(g) {
 // Each step from the Marked hunt (marked-hunters.js): `entry` picks the arrival point, `spawn` builds a hunter, `open` is false when a
 // safehouse or a finished run bars every hunter.
 export function stepPostBossRaid(g, spawn, entry, open) {
-  const row = GAME_DATA.postBossRaid,
-    s = g.raid;
+  const s = g.raid;
   if (!s) return;
+  const row = s.row ?? GAME_DATA.postBossRaid; // an apocalypse-run raid (apocalypse-run.js) carries its own row, with the same cap
   if (!row.enabled || g.player.hp <= 0 || g.time >= s.endAt) {
     if (row.enabled && g.player.hp > 0 && s.spawned > 0) notify(g, webText("raid.over"));
     g.raid = null;

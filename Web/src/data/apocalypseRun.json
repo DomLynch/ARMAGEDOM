@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "note": "Apocalypse run (Dom, 28 Oct 2026): an opt-in 12 minute run of three stages on the existing zones. The default game stays the open sandbox; a run starts from the hub's menu button or ?run=1 and ?norun=1 turns the whole mode off. engine/apocalypse-run.js is the director: it reads the game clock, moves through the stages, fires each stage's raids through the post-boss raid (engine/post-boss-raid.js, capped by postBossRaid.maxSimultaneous) and scales the heat gain (engine/heat.js). The run seed (the day plus the run count, see spawn-variation.js) picks one row of each variants list, so every run differs in objective, assault size and hazard. Client-only and session-only: g.run is never saved or sent.",
+  "enabled": true,
+  "startSwitch": { "param": "run", "value": "1" },
+  "offSwitch": { "param": "norun", "value": "1" },
+  "startZone": "central-hub",
+  "seed": { "fallbackDay": "sandbox", "separator": ":", "salt": "apocalypse-run" },
+  "bannerSeconds": 6,
+  "scaleValuables": true,
+  "raidZones": ["east", "south", "east-bridge", "elephant-and-castle", "lambeth", "area7", "area8"],
+  "stages": [
+    {
+      "id": "scavenge",
+      "seconds": 240,
+      "banner": "STAGE 1 · SCAVENGE",
+      "bannerLine": "Loot and explore. The heat is low.",
+      "heatScale": 0.5,
+      "raids": [],
+      "objectiveFrom": "scavenge"
+    },
+    {
+      "id": "invasion",
+      "seconds": 240,
+      "banner": "STAGE 2 · AI INVASION",
+      "bannerLine": "The hunters are coming for you.",
+      "heatScale": 2,
+      "raids": [{ "atSeconds": 10 }, { "atSeconds": 130 }],
+      "objectiveFrom": "assault"
+    },
+    {
+      "id": "finale",
+      "seconds": 240,
+      "banner": "STAGE 3 · BOSS OR ESCAPE",
+      "bannerLine": "End it. Kill the boss or reach the safehouse.",
+      "heatScale": 1.5,
+      "raids": [{ "atSeconds": 30 }],
+      "objectiveFrom": "finale"
+    }
+  ],
+  "variants": {
+    "scavenge": [
+      { "id": "crates", "objective": "Search the roads for crates. Stay quiet." },
+      { "id": "arms", "objective": "Find weapons and rounds. Avoid fights." },
+      { "id": "dressings", "objective": "Stock up on dressings and ammunition." }
+    ],
+    "assault": [
+      { "id": "patrol", "objective": "Hunters are sweeping the roads. Hold out.", "hunterCount": 6, "durationSeconds": 90 },
+      { "id": "swarm", "objective": "A swarm is coming. Keep moving.", "hunterCount": 10, "durationSeconds": 100 },
+      { "id": "siege", "objective": "A siege. Make a stand and thin them out.", "hunterCount": 8, "durationSeconds": 110 }
+    ],
+    "hazard": [
+      { "id": "clear", "label": "Clear sky", "heatScale": 1 },
+      { "id": "fallout", "label": "Fallout", "heatScale": 1.25 },
+      { "id": "curfew", "label": "Curfew", "heatScale": 1.5 }
+    ],
+    "finale": [
+      { "id": "boss", "kind": "boss", "objective": "A boss has found you. Kill it." },
+      { "id": "escape", "kind": "escape", "objective": "Reach the safehouse to escape." }
+    ]
+  },
+  "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
+  "escape": { "arrived": "Reach the safehouse." },
+  "outcomes": {
+    "escaped": "You escaped.",
+    "boss": "Boss killed.",
+    "died": "You died.",
+    "timeout": "Time ran out."
+  },
+  "text": {
+    "timer": "{stage} · {time}",
+    "hazard": " · {label}",
+    "startButton": "Start the apocalypse run",
+    "startHint": "Twelve minutes: scavenge, survive the invasion, then kill the boss or escape.",
+    "resultsTitle": "RUN RESULTS",
+    "rowOutcome": "Outcome",
+    "rowKills": "Kills",
+    "rowTime": "Time",
+    "rowHeat": "Heat peak",
+    "continue": "Continue"
+  }
+}
