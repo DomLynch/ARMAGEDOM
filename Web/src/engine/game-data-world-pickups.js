@@ -25,6 +25,7 @@ export function validateWorldPickups(d) {
     "refusalRepeatSeconds",
     "items",
     "text",
+    "markers",
     "models",
     "placements",
   ]);
@@ -51,9 +52,20 @@ export function validateWorldPickups(d) {
   closed(d.text, [...WORLD_PICKUP_TYPES, "medkitFull", "ammoBoxFull", "cashStashFull"]);
   for (const [k, v] of Object.entries(d.text)) if (typeof v !== "string" || !v.length || v.length > 60) fail("worldPickups", `text.${k}`);
   if (!d.text.medkit.includes("{amount}") || !d.text.cashStash.includes("{amount}")) fail("worldPickups", "text needs {amount}");
+  // The ground ring and the name that shows near a pickup: the drop-marker look (visual.json `dropMarker`) with `style` laid over it,
+  // then each kind's own label and colours.
+  closed(d.markers, ["labelDistance", "style", ...WORLD_PICKUP_TYPES]);
+  number("worldPickups", "markers.labelDistance", d.markers.labelDistance, 0.5);
+  if (!d.markers.style || typeof d.markers.style !== "object" || Array.isArray(d.markers.style)) fail("worldPickups", "markers.style");
+  for (const type of WORLD_PICKUP_TYPES) {
+    const m = d.markers[type];
+    closed(m, ["label", "ringColour", "labelColour"]);
+    if (typeof m.label !== "string" || !m.label.length || m.label.length > 12) fail("worldPickups", `markers.${type}.label`);
+    for (const c of [m.ringColour, m.labelColour]) if (typeof c !== "string" || !/^[0-9a-f]{6}$/.test(c)) fail("worldPickups", `markers.${type} colour`);
+  }
   closed(d.models, WORLD_PICKUP_TYPES);
   for (const [type, parts] of Object.entries(d.models)) {
-    if (!Array.isArray(parts) || parts.length < 1 || parts.length > 8) fail("worldPickups", `models.${type} must list 1 to 8 parts`);
+    if (!Array.isArray(parts) || parts.length < 1 || parts.length > 12) fail("worldPickups", `models.${type} must list 1 to 12 parts`);
     for (const p of parts) {
       closed(p, ["shape", "size", "pos", "color"]);
       if (!["box", "cylinder"].includes(p.shape)) fail("worldPickups", `models.${type} shape`);

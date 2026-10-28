@@ -80,6 +80,23 @@ test("placements stand on open ground, away from the spawn, and apart from each 
   }
 });
 
+test("no two pickups of the same kind lie within 5 m of each other (a second box next to the first is refused once the first has filled you up)", () => {
+  const apart = 5; // tuning-ok: the closest two same-kind pickups may stand, test-only
+  for (const id of areas) {
+    const list = placementsFor(id);
+    for (const p of list) for (const q of list) if (q !== p && q.type === p.type) assert.ok(Math.hypot(p.x - q.x, p.z - q.z) >= apart, `${p.id} is next to ${q.id}`);
+  }
+});
+
+test("every kind has a ground-ring label and colours, and each kind's model reads as itself (parts in its own colours)", () => {
+  for (const type of Object.keys(WORLD_PICKUPS.models)) {
+    const m = WORLD_PICKUPS.markers[type];
+    assert.ok(m.label.length > 0 && /^[0-9a-f]{6}$/.test(m.ringColour) && /^[0-9a-f]{6}$/.test(m.labelColour), type);
+  }
+  assert.ok(WORLD_PICKUPS.models.ammoBox.filter((p) => p.shape === "cylinder").length >= 3, "ammo box carries cartridges");
+  assert.ok(WORLD_PICKUPS.models.cashStash.every((p) => p.shape === "cylinder"), "cash is a coin pile");
+});
+
 test("medkit heals half of max HP, shows the toast, and is refused at full health without being used up", () => {
   const p = spot("medkit"),
     g = run(p);
