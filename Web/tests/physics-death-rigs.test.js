@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { physicsDeathStep, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
+import { loadChainBody } from "@frankendom/physics";
 import { liveBodies, rigOf } from "../src/engine/physics-rigs.js";
 
 const RIGS = GAME_DATA.physicsRigs,
@@ -15,26 +16,31 @@ const RIGS = GAME_DATA.physicsRigs,
     return new Set(JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes.map((n) => n.name));
   };
 
+const HUMANOIDS = Object.entries(RIGS.models).filter(([, m]) => !m.chain),
+  CHAINS = Object.entries(RIGS.models).filter(([, m]) => m.chain);
+
 test("every row names a manifest model, a rig family and a body, and the part map is the 20 ragdoll parts", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
-    assert.ok(manifest[name], `${name} is a manifest model`);
+  for (const name of Object.keys(RIGS.models)) assert.ok(manifest[name], `${name} is a manifest model`);
+  for (const [name, m] of HUMANOIDS) {
     const parts = RIGS.rigs[m.rig].parts === "physicsDeath.parts" ? CFG.parts : RIGS.rigs[m.rig].parts;
     assert.deepEqual(Object.keys(parts).sort(), Object.keys(CFG.parts).sort(), `${name} maps the same 20 part ids`);
   }
 });
 
 test("every bone a row maps exists in the model's GLB (no ragdoll can die on a missing bone)", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     const family = RIGS.rigs[m.rig],
       parts = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
       nodes = glbNodes(manifest[name].url);
-    for (const [part, joint] of Object.entries(parts))
-      assert.ok(nodes.has(family.nodePrefix + joint), `${name} has ${family.nodePrefix + joint} for ${part}`);
+    for (const [part, joint] of Object.entries(parts)) {
+      const node = family.virtual?.[part] ?? joint; // a virtual part has no bone: its parent joint must exist
+      assert.ok(nodes.has(family.nodePrefix + node), `${name} has ${family.nodePrefix + node} for ${part}`);
+    }
   }
 });
 
 test("body rows hold the 20 joints and a standing height, UNSCALED (the actor root already applies the manifest scale)", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     if (m.body === "physicsBody") continue;
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
@@ -58,26 +64,60 @@ test("a body row's hip height above the toes equals the GLB's own bind pose at x
       for (i = parent.get(i); i !== undefined; i = parent.get(i)) m = mul(local(nodes[i]), m);
       return m[13];
     };
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     if (m.body === "physicsBody") continue;
     const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
       nodes = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes,
       family = RIGS.rigs[m.rig],
-      p = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
-      hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + p.toeLeft);
+      p = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts;
+    if (family.virtual) continue; // no toe node in the GLB: its toe is a measured offset from the foot
+    const hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + p.toeLeft);
     assert.ok(Math.abs(hips - RIGS.bodies[m.body].joints.Hips[1]) < 0.01, `${name} hips ${hips} vs row ${RIGS.bodies[m.body].joints.Hips[1]}`);
   }
 });
 
-test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
+test("the hunter, the crowd humans, the bosses and the chain creatures are live", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
-  for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
+  for (const n of [
+    CFG.rigRef,
+    "hollow-scavenger",
+    "hale-pitborn",
+    "vagrant-106",
+    "giant-salamander",
+    "rat-king",
+    "original-crow",
+    "giant-eel",
+    "original-elephant",
+    "original-wolf",
+    "original-dog",
+    "original-spider",
+    "giant-centipede",
+  ])
+    assert.ok(live.includes(n), n);
   assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
-  for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
+});
+
+test("each chain creature names a package body whose bones exist in the GLB and whose hit parts resolve", () => {
+  const rows = [
+      CFG.killImpulse,
+      ...Object.values(CFG.bulletImpulse.byWeapon),
+      ...Object.values(CFG.bulletImpulse.byAttackClass),
+    ],
+    impulseParts = [...new Set(rows.map((r) => r.part).filter(Boolean))];
+  for (const [name, m] of CHAINS) {
+    const body = loadChainBody(m.chain),
+      nodes = glbNodes(manifest[name].url),
+      ids = body.row.roles.map((r) => r.id),
+      followers = Object.values(body.followMap ?? {}).flat();
+    for (const bone of [...Object.values(body.boneMap), ...followers])
+      assert.ok(nodes.has(bone), `${name} has bone ${bone}`);
+    for (const p of impulseParts) assert.ok(ids.includes(m.partAlias[p] ?? p), `${name}: hit part ${p} resolves`);
+    assert.equal(rigOf(name).chain, m.chain);
+  }
 });
 
 test("every live body row can be handed to the impl as its own record", () => {
-  for (const n of Object.keys(RIGS.models).filter((n) => RIGS.models[n].live)) {
+  for (const n of HUMANOIDS.filter(([, m]) => m.live).map(([n]) => n)) {
     const rig = rigOf(n);
     assert.equal(rig.model, n);
     assert.equal(Object.keys(rig.parts).length, 20);
@@ -104,8 +144,8 @@ test("a crowd human starts its ragdoll with its own bone map and body row", () =
 test("a model without a live row keeps the baked clip and never reaches the impl", () => {
   const calls = [];
   usePhysicsDeathImpl({ startDeath: (...a) => calls.push(a), stepDeath: () => {} });
-  const description = manifest["giant-salamander"],
-    library = { models: new Map([["giant-salamander", { description, gltf: { scene: {} } }]]) },
+  const description = manifest["original-roach"],
+    library = { models: new Map([["original-roach", { description, gltf: { scene: {} } }]]) },
     view = { description },
     entity = { id: 3, hp: 0, maxHP: 10 };
   for (let i = 0; i < 5; i++) assert.equal(physicsDeathStep(view, entity, library, 1 / 60, true), false);

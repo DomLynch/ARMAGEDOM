@@ -158,9 +158,13 @@ export function validatePhysicsBody(d) {
 // physicsRigs.json (physics-death.js): which manifest models ragdoll on death, their rig family (bone map) and body row. `live: false` keeps the
 // baked death. The body "physicsBody" is the single row in physicsBody.json (the marked hunter's); every other body is listed under `bodies`.
 export function validatePhysicsRigs(d) {
-  closed(d, ["schema_version", "note", "rigs", "bodies", "models"]);
+  // A model is a humanoid (rig + body) or a chain creature (the package's body named by `chain`; partAlias maps shared hit-part ids onto its own parts).
+  // impulseReferenceKg: the body mass the kill impulse rows are tuned on (the package role table's 65 kg); a chain body's shove scales with its mass.
+  closed(d, ["schema_version", "note", "rigs", "bodies", "models", "impulseReferenceKg"]);
+  number("physicsRigs", "impulseReferenceKg", d.impulseReferenceKg, 1);
   for (const [name, rig] of Object.entries(d.rigs)) {
-    closed(rig, ["nodePrefix", "parts"]);
+    // virtual: part id -> the joint name (without prefix) whose node gets an empty child for a part the rig has no bone for
+    closed(rig, ["nodePrefix", "parts"], ["virtual"]);
     if (typeof rig.nodePrefix !== "string") fail("physicsRigs", `${name}.nodePrefix must be a string`);
     if (typeof rig.parts === "object" && Object.keys(rig.parts).length !== 20)
       fail("physicsRigs", `${name}.parts must name the 20 ragdoll parts`);
@@ -172,6 +176,14 @@ export function validatePhysicsRigs(d) {
     number("physicsRigs", `${name}.height_m`, row.height_m, 0.1);
   }
   for (const [name, m] of Object.entries(d.models)) {
+    if (Object.hasOwn(m, "chain")) {
+      closed(m, ["chain", "partAlias", "live"]);
+      if (typeof m.chain !== "string" || !m.chain) fail("physicsRigs", `${name}.chain must be a body name`);
+      if (Object.values(m.partAlias).some((v) => typeof v !== "string"))
+        fail("physicsRigs", `${name}.partAlias must map part ids to part ids`);
+      if (typeof m.live !== "boolean") fail("physicsRigs", `${name}.live must be true or false`);
+      continue;
+    }
     closed(m, ["rig", "body", "live"]);
     if (!Object.hasOwn(d.rigs, m.rig)) fail("physicsRigs", `${name}.rig must be one of rigs`);
     if (m.body !== "physicsBody" && !Object.hasOwn(d.bodies, m.body)) fail("physicsRigs", `${name}.body must be physicsBody or one of bodies`);

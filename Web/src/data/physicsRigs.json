@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "note": "Which manifest models ragdoll on death, as data. Each model names a rig family (bone map) and a body row; live=false keeps the baked death (no ragdoll is taken from the pool). A model with no row here (animals, drones, the hero) always takes the baked death. The simultaneous-ragdoll cap is data/physicsBudget.json; over it the death is baked too. Bodies are measured at the bind pose (package tools/glb-measure.mjs) with the manifest scale baked in.",
+  "note": "Which manifest models ragdoll on death, as data. Each model names a rig family (bone map) and a body row; live=false keeps the baked death (no ragdoll is taken from the pool). A model with no row here (animals, drones, the hero) always takes the baked death. The simultaneous-ragdoll cap is data/physicsBudget.json; over it the death is baked too. Bodies are measured at the bind pose (package tools/glb-measure.mjs) with the manifest scale baked in. A model with a `chain` is a non-humanoid: the package's own body of that name (partAlias maps the shared hit-part ids onto its parts). Chain rows are rebuilt at scale 1 in the impl: the actor root already carries the model scale.",
   "rigs": {
     "mixamo-106": {
       "nodePrefix": "mixamorig:",
@@ -29,6 +29,14 @@
         "footRight": "foot_r",
         "toeLeft": "ball_l",
         "toeRight": "ball_r"
+      }
+    },
+    "mixamo-19": {
+      "nodePrefix": "mixamorig:",
+      "parts": "physicsDeath.parts",
+      "virtual": {
+        "toeLeft": "LeftFoot",
+        "toeRight": "RightFoot"
       }
     }
   },
@@ -368,7 +376,7 @@
         ],
         "LeftToeBase": [
           0.1399,
-          0.0,
+          0,
           0.0722
         ],
         "RightUpLeg": [
@@ -388,7 +396,7 @@
         ],
         "RightToeBase": [
           -0.1399,
-          0.0,
+          0,
           0.0722
         ]
       }
@@ -2691,6 +2699,126 @@
         ]
       },
       "scale_baked": 1
+    },
+    "vagrant-106": {
+      "id": "vagrant-106",
+      "source": "vagrant-106.glb (Armagedom Web/public/assets/appearances) bind pose via mixamo-19.json (Spine1 = pass-through node, toes = Foot + 0.20 m along the foot bone), x1",
+      "height_m": 1.8939,
+      "neck_len": 0.13,
+      "torso_len": 0.42,
+      "shoulder_w": 0.47,
+      "upper_arm_len": 0.3265,
+      "forearm_len": 0.2911,
+      "thigh_len": 0.4315,
+      "shin_len": 0.4058,
+      "foot_len": 0.2001,
+      "chest_w": 0.4789,
+      "waist_w": 0.4418,
+      "hip_w": 0.3947,
+      "chest_d": 0.3736,
+      "joints": {
+        "Hips": [
+          0,
+          0.9269,
+          0
+        ],
+        "Spine": [
+          0,
+          1.0969,
+          0
+        ],
+        "Spine1": [
+          0,
+          1.2042,
+          0
+        ],
+        "Spine2": [
+          0,
+          1.3269,
+          0
+        ],
+        "Neck": [
+          0,
+          1.5169,
+          0
+        ],
+        "Head": [
+          0,
+          1.6469,
+          0
+        ],
+        "LeftArm": [
+          0.235,
+          1.5369,
+          0
+        ],
+        "LeftForeArm": [
+          0.5541,
+          1.4832,
+          -0.0434
+        ],
+        "LeftHand": [
+          0.8431,
+          1.4795,
+          -0.0092
+        ],
+        "RightArm": [
+          -0.235,
+          1.5369,
+          0
+        ],
+        "RightForeArm": [
+          -0.5543,
+          1.4831,
+          -0.0417
+        ],
+        "RightHand": [
+          -0.8435,
+          1.4794,
+          -0.0089
+        ],
+        "LeftUpLeg": [
+          0.115,
+          0.9269,
+          0
+        ],
+        "LeftLeg": [
+          0.1574,
+          0.4986,
+          -0.031
+        ],
+        "LeftFoot": [
+          0.1714,
+          0.0966,
+          -0.0845
+        ],
+        "LeftToeBase": [
+          0.2092,
+          0,
+          0.0866
+        ],
+        "RightUpLeg": [
+          -0.115,
+          0.9269,
+          0
+        ],
+        "RightLeg": [
+          -0.1573,
+          0.4988,
+          -0.0345
+        ],
+        "RightFoot": [
+          -0.1714,
+          0.0968,
+          -0.0878
+        ],
+        "RightToeBase": [
+          -0.2084,
+          0.0021,
+          0.0845
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -2848,6 +2976,75 @@
       "rig": "mixamo-106",
       "body": "mh-woman-01",
       "live": true
+    },
+    "vagrant-106": {
+      "rig": "mixamo-19",
+      "body": "vagrant-106",
+      "live": true
+    },
+    "giant-salamander": {
+      "chain": "salamander",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "rat-king": {
+      "chain": "rat-king",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-crow": {
+      "chain": "crow",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "giant-eel": {
+      "chain": "eel",
+      "partAlias": {
+        "spine2": "chest_a"
+      },
+      "live": true
+    },
+    "original-elephant": {
+      "chain": "elephant",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-wolf": {
+      "chain": "wolf",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-dog": {
+      "chain": "dog",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-spider": {
+      "chain": "spider",
+      "partAlias": {
+        "spine2": "thorax"
+      },
+      "live": true
+    },
+    "giant-centipede": {
+      "chain": "centipede",
+      "partAlias": {
+        "spine2": "seg2"
+      },
+      "live": true
     }
-  }
+  },
+  "impulseReferenceKg": 65
 }
