@@ -73,7 +73,7 @@ for (const [areaId, cycle, name, fresh] of TOUR) {
   const r = await q(async ([areaId, cycle, name, rigName, fresh]) => {
     const qa = window.__qa, g = qa.game;
     g.animalCycle = cycle;
-    if (fresh) delete g.areaFights[areaId];
+    if (fresh) { delete g.areaFights[areaId]; qa.world.unmarkAreaReady?.(areaId); } // so the next entry prepares (and loads the models of) the new cycle
     window.__tpl ??= {};
     const t0 = performance.now();
     let ok = null, err = null;
@@ -87,26 +87,18 @@ for (const [areaId, cycle, name, fresh] of TOUR) {
   note("visit", r);
 }
 
-// The scene: in the last area (area8): hostiles + the monsters + two marked hunters that die as ragdolls.
-const setup = await q(([n]) => {
-  const g = window.__qa.game, tpl = window.__tpl ?? {}, px = g.player.pos.x, pz = g.player.pos.z;
+// The scene is built up in steps, each measured, so the cost of each addition is a difference (the last area entered holds it all):
+// the area's own residents (baseline) -> + hostiles -> + each monster in turn -> + two marked hunters that die as ragdolls.
+const setup = await q(() => {
+  const g = window.__qa.game, px = g.player.pos.x, pz = g.player.pos.z;
   const base = g.enemies.find((e) => e.hp > 0 && !e.markedHunter && e.rig === "hollow-scavenger") ?? g.enemies.find((e) => e.hp > 0 && !e.markedHunter);
-  const put = (src, id, key, r, a) => {
+  window.__put = (src, id, key, r, a) => {
     const pos = { x: px + Math.cos(a) * r, z: pz + Math.sin(a) * r };
     g.enemies.push({ ...src, id, placementKey: key, pos, home: { ...pos }, swing: null, hp: src.maxHP ?? src.hp });
   };
-  let hostiles = 0;
-  for (let i = 0; base && i < n; i++, hostiles++) put(base, 90000 + i, `qa-h-${i}`, 6, (i / n) * Math.PI * 2);
-  const monsters = [];
-  const ORDER = ["eel", "elephant", "ratking", "spider", "centipede", "crow"];
-  ORDER.forEach((name, i) => {
-    const src = tpl[name];
-    if (!src) return;
-    put(src, 92000 + i, `qa-m-${name}`, 9, (i / ORDER.length) * Math.PI * 2 + 0.3);
-    monsters.push(name);
-  });
-  return { hostiles, monsters, enemies: g.enemies.length, area: window.__qa.world.areaId, baseRig: base?.rig };
-}, [HOSTILES]);
+  window.__base = base;
+  return { enemies: g.enemies.length, area: window.__qa.world.areaId, baseRig: base?.rig, templates: Object.keys(window.__tpl ?? {}) };
+});
 note("setup", setup);
 await page.waitForTimeout(PHYSICS === "0" ? 3000 : 9000); // the lazy physics chunk preloads on idle
 const errs0 = logs.filter((l) => /PAGEERROR|error/i.test(l)).slice(0, 8);
@@ -119,11 +111,29 @@ const measure = async (ms) => {
   const f = await q(() => { const f = window.__f; f.on = false; return { dt: [...f.dt], js: [...f.js], calls: [...f.calls], tris: [...f.tris] }; });
   return { frameMs: summary(f.dt), jsMs: summary(f.js), drawCalls: summary(f.calls), triangles: summary(f.tris) };
 };
-const idle = await measure(SECONDS * 1000);
+const steps = [];
+const stepWindow = async (label, ms) => { const m = await measure(ms); steps.push({ label, enemies: await q(() => window.__qa.game.enemies.filter((e) => e.hp > 0).length), ...m }); note("step", steps.at(-1)); return m; };
+await stepWindow("area residents only", SECONDS * 1000);
+await q((n) => { for (let i = 0; window.__base && i < n; i++) window.__put(window.__base, 90000 + i, `qa-h-${i}`, 6, (i / n) * Math.PI * 2); }, HOSTILES);
+await page.waitForTimeout(2500); // views build
+const idle = await stepWindow(`+${HOSTILES} hostiles`, SECONDS * 1000);
+const MONSTERS = ["eel", "elephant", "ratking", "spider", "centipede", "crow"];
+for (const [i, name] of MONSTERS.entries()) {
+  const added = await q(([name, i, total]) => { const src = window.__tpl?.[name]; if (!src) return false; window.__put(src, 92000 + i, `qa-m-${name}`, 9, (i / total) * Math.PI * 2 + 0.3); return true; }, [name, i, MONSTERS.length]);
+  await page.waitForTimeout(2500);
+  if (added) await stepWindow(`+${name}`, Math.max(3000, SECONDS * 600));
+  else steps.push({ label: `+${name}`, missing: true });
+}
+const withMonsters = steps.at(-1);
 
 // Two marked hunters arrive in view and die at once (the game's own lethal ranged hit): the boss ragdoll cost.
+// The simulation is stepped (session.step) to the arrival, because a software-rendered page runs at a frame or two a second.
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
-const hunterSeen = await page.waitForFunction(() => window.__qa.game.enemies.some((e) => e.markedHunter && e.hp > 0), null, { timeout: 90000 }).then(() => true, () => false);
+const hunterSeen = await q(async () => {
+  const qa = window.__qa;
+  for (let i = 0; i < 160 && !qa.game.enemies.some((e) => e.markedHunter && e.hp > 0); i++) { qa.session.step(0.25); await new Promise((r) => setTimeout(r, 30)); }
+  return qa.game.enemies.some((e) => e.markedHunter && e.hp > 0);
+});
 await page.waitForTimeout(8000); // the hunter's own model streams in
 const hunters = await q(() => {
   const g = window.__qa.game, h = g.enemies.find((e) => e.markedHunter && e.hp > 0);
@@ -146,7 +156,7 @@ const gpu = await q(() => { const gl = document.createElement("canvas").getConte
 const result = {
   physics: PHYSICS, viewport: "375x812@2", gpu, cores: await q(() => navigator.hardwareConcurrency),
   visits: visits.map((v) => ({ area: v.areaId, ok: v.ok, got: v.got, err: v.err, ms: v.ms })), setup, hunterSeen, hunters,
-  idleScene: idle, withHuntersAlive, ragdollDeathWindow, ragdollSettled, deathStats,
+  steps, hostilesOnly: idle, withMonsters, withHuntersAlive, ragdollDeathWindow, ragdollSettled, deathStats,
   errors: [...errs0, ...logs.filter((l) => /PAGEERROR|ARMAGEDOM_LOAD_FAILED|error/i.test(l)).slice(0, 8)],
 };
 console.log("TRACE_RESULT " + JSON.stringify(result));
