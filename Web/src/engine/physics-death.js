@@ -75,16 +75,33 @@ const slowLink = () => {
     p = CFG.cutPrefetch;
   return !!c && ((p.skipSaveData && c.saveData === true) || p.slowTypes.includes(c.effectiveType));
 };
-// Call once after the area is entered: warms the cut GLB at idle, so the first wounded hunter does not start a 2 MB fetch mid-fight.
+// The game, read only to see how close a marked hunter is to the player (set once by the browser session).
+let probe = null;
+export const watchCutPrefetch = (getGame) => void (probe = getGame);
+const hunterNear = (entity) => {
+  const g = probe?.();
+  return (
+    !!g?.player &&
+    (entity.areaId ?? g.world.areaId) === g.world.areaId &&
+    Math.hypot(entity.pos.x - g.player.pos.x, entity.pos.z - g.player.pos.z) <= CFG.cutPrefetch.range
+  );
+};
+// A marked hunter alive in the current area has come within cutPrefetch.range of the player: warm the cut GLB at idle (once), so its first wound
+// does not start a 2 MB fetch mid-fight. Never at area entry, never for a player nobody hunts.
+let cutsScheduled = false;
 export function prefetchCutsOnIdle(library, enabled = physicsDeathEnabled()) {
-  if (!enabled || !cutsEnabled() || slowLink() || cutsRequested || !library?.ensureModels) return;
+  if (!enabled || !cutsEnabled() || slowLink() || cutsRequested || cutsScheduled || !library?.ensureModels) return;
+  cutsScheduled = true;
   const go = () => load().then(() => (broken ? undefined : prefetchCuts(library)));
   if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.cutPrefetch.idleMs });
   else setTimeout(go, CFG.cutPrefetch.idleMs);
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
-  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts(library);
+  if (enabled && entity.markedHunter && entity.hp > 0 && !cutsRequested) {
+    if (entity.hp < entity.maxHP) prefetchCuts(library);
+    else if (!cutsScheduled && hunterNear(entity)) prefetchCutsOnIdle(library, true);
+  }
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed) return false;

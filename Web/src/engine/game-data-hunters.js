@@ -60,7 +60,8 @@ export function validatePhysicsDeath(d) {
     "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
-  closed(d.cutPrefetch, ["idleMs", "skipSaveData", "slowTypes"]);
+  closed(d.cutPrefetch, ["range", "idleMs", "skipSaveData", "slowTypes"]);
+  number("physicsDeath", "cutPrefetch.range", d.cutPrefetch.range, 1);
   number("physicsDeath", "cutPrefetch.idleMs", d.cutPrefetch.idleMs, 1);
   if (typeof d.cutPrefetch.skipSaveData !== "boolean") fail("physicsDeath", "cutPrefetch.skipSaveData must be true or false");
   if (!Array.isArray(d.cutPrefetch.slowTypes) || d.cutPrefetch.slowTypes.some((t) => typeof t !== "string"))

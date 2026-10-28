@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { preparePrivateAreaContent, namespacedRunStorage } from "./private-area-content.js";
 import { createWorld } from "../world.js";
 import { loadActors, createActors } from "../actors.js";
-import { preloadPhysicsDeath, prefetchCutsOnIdle } from "./physics-death.js";
+import { preloadPhysicsDeath, watchCutPrefetch } from "./physics-death.js";
 import { createGame, resetMobileControls } from "../combat.js";
 import { attachInput } from "../input.js";
 import { createHUD } from "../hud.js";
@@ -822,7 +822,7 @@ export function createBrowserSession(options = {}) {
       await actors.ensureAreaModels(game);
       if (contextLost || disposed) return;
       pendingLibrary = null;
-      prefetchCutsOnIdle(library);
+      watchCutPrefetch(() => game);
       survivorLibrary = library; // the other players' reduced mesh loads from it on demand
       effects = createEffects(
         scene,
