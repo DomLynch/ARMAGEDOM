@@ -89,6 +89,8 @@ import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
 import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
 import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
+import hitReaction from "../data/hitReaction.json" with { type: "json" };
+import { validateHitReaction } from "./hit-reaction-data.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -1071,6 +1073,7 @@ const sources = () => ({
   pitbornCuts: [pitbornCuts, validatePitbornCuts],
   pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],
+  hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
