@@ -65,9 +65,8 @@ test("default ON with an OFF switch: ?noratking=1 turns the king back into the p
     globalThis.location = { search: "?noratking=1" };
     const off = build("A");
     assert.equal(off.appearanceRef, undefined);
-    assert.equal(off.encounter, undefined);
     assert.equal(off.foundationRef, "original-rat");
-  } finally {
+    assert.equal(off.recipeRef, "rat-soot", "main's station rat comes back (dark tint, ambush intent), not the king recipe");  } finally {
     if (had) Object.defineProperty(globalThis, "location", had);
     else delete globalThis.location;
   }
