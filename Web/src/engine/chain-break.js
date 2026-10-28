@@ -44,6 +44,18 @@ function nearRay(r, at) {
     t = length ? Math.max(0, Math.min(1, ((at.x - r.origin.x) * sx + (at.z - r.origin.z) * sz) / length)) : 0;
   return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres;
 }
+// The Pitborn stands inside the lion statue's collision, which stops a bullet short of it. While its own spot is blocked scenery, a shot
+// stopped within coverMetres of it (its own cover, not a wall elsewhere) still counts when the line it was fired along passes within
+// hitRadiusMetres of the Pitborn.
+function behindCover(r, e, at, geometry) {
+  if (geometry.clear(at, SPAWN.bodyRadius)) return false;
+  const dir = r.direction ?? e.direction ?? { x: r.end.x - r.origin.x, z: r.end.z - r.origin.z },
+    len = Math.hypot(dir.x, dir.z),
+    dx = at.x - r.origin.x,
+    dz = at.z - r.origin.z,
+    along = len ? (dx * dir.x + dz * dir.z) / len : 0;
+  return along > 0 && gap(r.end, at) <= T.coverMetres && Math.abs(dx * dir.z - dz * dir.x) / len <= B.hitRadiusMetres;
+}
 function inCone(e, at) {
   const dx = at.x - e.origin.x,
     dz = at.z - e.origin.z,
@@ -71,8 +83,19 @@ function struck(g, at) {
       ground = (q) => (flip ? { x: q.x, z: -q.z } : q);
     if (!(flip || T.rays.includes(e.type)) || !e.origin || gap(ground(e.origin), p.pos) > B.hitOriginMetres) return false;
     // A shotgun event's own origin/end is the unclipped full-range line; only its wall-clipped pellets say where the shot went.
-    return (e.pellets?.length ? e.pellets : [e]).some((r) => r.origin && r.end && nearRay({ origin: ground(r.origin), end: ground(r.end) }, at));
+    // Cover applies to a single bullet (pistol, rifle); a clipped shotgun pellet stays stopped by whatever stopped it.
+    const bullet = !e.pellets?.length && !flip;
+    return (e.pellets?.length ? e.pellets : [e]).some(
+      (r) => r.origin && r.end && (nearRay({ origin: ground(r.origin), end: ground(r.end) }, at) || (bullet && behindCover(r, e, at, g.world.geometry))),
+    );
   });
+}
+// The shackled Pitborn as an aim-assist target: auto-aim turns the shot toward it (the first hit then snaps the chains). It is a stand-in,
+// never an enemy: no damage, not in g.enemies. Only while it is still chained and the run is in its area.
+export function chainedPitbornTarget(g) {
+  const w = g.world;
+  if (!w?.geometry?.ground || w.areaId !== D.areaId || !chainBreakOn() || (g.chainBreak?.state ?? "chained") !== "chained") return null;
+  return { id: T.aimTargetId, pos: w.geometry.ground(D.at), hp: 1, radius: B.hitRadiusMetres, hostile: true, visible: true, areaId: D.areaId };
 }
 // `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).
 export function stepChainBreak(g, spawn, open) {
