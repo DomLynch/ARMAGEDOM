@@ -2,7 +2,7 @@ import { GAME_DATA } from "./game-data.js";
 const D = GAME_DATA.chainedPitborn,
   B = D.breakLoose,
   SPAWN = GAME_DATA.markedHunterSpawn,
-  TURN = Math.PI * 2, // one full turn in radians
+  TURN = Math.PI * 2, // tuning-ok: one full turn in radians
   OFF = new URLSearchParams(globalThis.location?.search ?? "").get(D.offParam) === D.offValue; // read once, the page does not change it
 // The chained Pitborn breaks loose (data/chainedPitborn.json `breakLoose`). Walking up to the shackled Pitborn on the Westminster steps
 // snaps its chains; after snapSeconds it is a real marked hunter spawned at the nearest clear spot to where it stood, with the ordinary
