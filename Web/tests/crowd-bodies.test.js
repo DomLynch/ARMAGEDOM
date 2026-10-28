@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import * as THREE from "three";
 import { loadGeometry } from "../../art/donor/probe.mjs";
@@ -9,27 +9,55 @@ import { createActors } from "../src/actors.js";
 import { createGame, enemy } from "../src/combat.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { AREA_MOB_SPAWNS } from "../src/area-mob-spawns.js";
-import { slotModelRefs } from "../src/engine/slot-models.js";
+import { slotModelRefs, ensureSlotModels } from "../src/engine/slot-models.js";
 import {
   actorModelRef,
   crowdAreaRefs,
   crowdBodyForKey,
   crowdBodyRef,
   crowdOn,
+  ensureCrowdModels,
   isCrowdBody,
 } from "../src/engine/crowd-bodies.js";
 
 const read = (p) => readFileSync(new URL("../public/assets/" + p, import.meta.url));
 const manifest = JSON.parse(read("manifest-hollow.json"));
 const POOL = GAME_DATA.crowdBodies;
-const bodies = POOL.pool.filter((row) => row.ref !== POOL.defaultRef);
+// The MakeHuman bodies (the native looks, the scavenger and the Pitborn, keep their own rig).
+const bodies = POOL.pool.filter((row) => !row.native);
+const NATIVE = POOL.pool.filter((row) => row.native);
 const activeBodies = bodies.filter((row) => row.active && row.weight > 0);
 const sanitize = (name) => THREE.PropertyBinding.sanitizeNodeName(name);
 const AREAS = ["east", "south"];
 const plain = (key, extra = {}) => ({ kind: 0, rig: "hollow-scavenger", placementKey: key, ...extra });
+// An east resident key that draws a MakeHuman body.
+const bodyKey = () => AREA_MOB_SPAWNS.east.map((row) => row.key).find((k) => isCrowdBody(crowdBodyForKey("east", k)));
 
-test("all 30 MakeHuman bodies are registered as deferred crowd appearances that match their files", () => {
-  assert.equal(bodies.length, 30);
+test("only the bodies checked clean are shipped: every crowd file is a registered pool row and the print bodies are gone", () => {
+  const files = readdirSync(new URL("../public/assets/crowd/", import.meta.url)).sort();
+  assert.deepEqual(files, bodies.map((row) => `${row.ref}.glb`).sort(), "no GLB outside the pool");
+  for (const gone of ["man-02", "woman-02", "gen-v2-0001", "gen-v2-0009", "gen-v2-0002", "gen-v2-0015", "gen-v2-0043", "brute-01"])
+    assert.equal(manifest.models[`mh-${gone}`], undefined, `${gone} is not shipped`);
+  assert.equal(bodies.length, 19);
+});
+
+test("the existing looks stay in the rotation with the real weight: at least half of the draws in every area keep an existing human", () => {
+  for (const row of NATIVE) {
+    assert.equal(manifest.models[row.ref].rig, "hollow-scavenger", `${row.ref} keeps the scavenger rig, clips and finishers`);
+    assert(row.active && row.weight > 0);
+  }
+  const others = POOL.pool.filter((row) => row.active && row.ref !== POOL.defaultRef).map((row) => row.weight).sort((a, b) => b - a);
+  const worstOthers = others.slice(0, POOL.maxBodiesPerArea).reduce((sum, w) => sum + w, 0),
+    scavenger = POOL.pool.find((row) => row.ref === POOL.defaultRef).weight;
+  assert(scavenger >= worstOthers, "the scavenger alone outweighs the heaviest set an area can draw, whatever it draws");
+  for (const area of ["east", "south", "lambeth", "area7", "area8"]) {
+    const looks = Array.from({ length: 400 }, (_, i) => crowdBodyForKey(area, `${area}-resident-${i}`));
+    const existing = looks.filter((ref) => ref === null || NATIVE.some((row) => row.ref === ref)).length;
+    assert(existing / looks.length >= 0.5, `${area}: ${existing} of ${looks.length} keep an existing look`);
+  }
+});
+
+test("the MakeHuman bodies are registered as deferred crowd appearances that match their files", () => {
   for (const { ref } of bodies) {
     const row = manifest.models[ref];
     assert(row, `${ref} is a manifest model`);
@@ -70,7 +98,7 @@ test("a resident gets the same body every time, areas draw at most maxBodiesPerA
     );
     const distinct = new Set(first.filter((ref) => ref !== null));
     assert(distinct.size <= POOL.maxBodiesPerArea, `${area} draws ${distinct.size} bodies`);
-    for (const ref of distinct) assert(activeBodies.some((row) => row.ref === ref), `${ref} is active`);
+    for (const ref of distinct) assert(POOL.pool.some((row) => row.active && row.ref === ref), `${ref} is active`);
     seen.set(area, first);
   }
   const all = [...seen.values()].flat();
@@ -81,7 +109,7 @@ test("a resident gets the same body every time, areas draw at most maxBodiesPerA
 });
 
 test("only plain resident humans are dressed: not the tutorial area, hunters, bosses, animals, gaunt or crooked residents", () => {
-  const key = AREA_MOB_SPAWNS.east.map((row) => row.key).find((k) => crowdBodyForKey("east", k) !== null);
+  const key = bodyKey();
   assert(key, "an east resident wears a body");
   assert.equal(crowdBodyRef(plain(key), "east"), crowdBodyForKey("east", key));
   assert.equal(crowdBodyRef(plain(key), "westminster"), null, "the Westminster tutorial residents are unchanged");
@@ -100,7 +128,7 @@ test("only plain resident humans are dressed: not the tutorial area, hunters, bo
 });
 
 test("the off switch gives the plain scavenger back", (t) => {
-  const key = AREA_MOB_SPAWNS.east.map((row) => row.key).find((k) => crowdBodyForKey("east", k) !== null);
+  const key = bodyKey();
   const prior = globalThis.location;
   t.after(() => {
     if (prior === undefined) delete globalThis.location;
@@ -113,12 +141,12 @@ test("the off switch gives the plain scavenger back", (t) => {
   assert.equal(actorModelRef(plain(key), manifest, undefined, "east"), "hollow-scavenger");
 });
 
-test("a body file is only requested for the residents an area places, never all 30", () => {
+test("a pool file is only requested for the residents an area places, never all of them, and never as a required model", async () => {
   for (const area of AREAS) {
-    const refs = slotModelRefs({ residentPlacements: undefined }, area, manifest).filter(isCrowdBody);
-    assert(refs.length > 0 && refs.length <= POOL.maxBodiesPerArea, `${area}: ${refs.length} bodies`);
-    assert.deepEqual(refs, crowdAreaRefs({}, area, AREA_MOB_SPAWNS[area]));
+    const refs = crowdAreaRefs({}, area);
+    assert(refs.length > 0 && refs.length <= POOL.maxBodiesPerArea, `${area}: ${refs.length} pool models`);
     for (const ref of refs) assert.equal(manifest.models[ref].deferred, true);
+    assert.deepEqual(slotModelRefs({}, area, manifest).filter((ref) => POOL.pool.some((row) => row.ref === ref)), [], "not in the required list");
   }
   assert.deepEqual(crowdAreaRefs({}, "westminster", AREA_MOB_SPAWNS.westminster), []);
   // A placement with its own appearance, foundation or recipe draws no body.
@@ -126,6 +154,33 @@ test("a body file is only requested for the residents an area places, never all 
     crowdAreaRefs({ residentPlacements: { east: [{ key: "x", appearanceRef: "hale-pitborn" }, { key: "y", foundationRef: "original-wolf" }] } }, "east"),
     [],
   );
+  // Best effort: a rejected or throwing download resolves, so one failed body never fails boot, restore or an area entry.
+  const failing = { manifest, models: new Map(), dispose() {}, ensureModels: () => Promise.reject(Error("offline")) };
+  const throwing = { manifest, models: new Map(), dispose() {}, ensureModels: () => { throw Error("boom"); } };
+  for (const area of AREAS) {
+    assert.equal(await ensureCrowdModels(failing, {}, area), undefined);
+    assert.equal(await ensureCrowdModels(throwing, {}, area), undefined);
+    assert.equal(await ensureSlotModels(failing, {}, area), undefined);
+  }
+});
+
+test("a failed crowd body download never fails boot, restore or an area entry, and the bodies are still asked for", async (t) => {
+  shim(t);
+  const calls = [];
+  const offline = {
+    manifest,
+    models: new Map(),
+    dispose() {},
+    ensureModels(names) {
+      calls.push(names);
+      return names.some((name) => POOL.pool.some((row) => row.ref === name)) ? Promise.reject(Error("offline")) : Promise.resolve();
+    },
+  };
+  const actors = createActors(new THREE.Scene(), world, offline);
+  await actors.ensureAreaModels({ enemies: [] }, "east", { fresh: true });
+  await actors.ensureAreaModels({ enemies: [plain(bodyKey(), { id: 5 })] }, "east");
+  assert(calls.some((names) => names.some(isCrowdBody)), "the pool models were requested");
+  actors.dispose();
 });
 
 const shim = (t) => {
@@ -160,7 +215,7 @@ async function library(refs) {
 
 test("a crowd resident is built from its body, keeps its rig and stats, and falls back to the scavenger while the file is missing", async (t) => {
   shim(t);
-  const key = AREA_MOB_SPAWNS.east.map((row) => row.key).find((k) => crowdBodyForKey("east", k) !== null);
+  const key = bodyKey();
   const ref = crowdBodyForKey("east", key);
   const g = createGame(world, { pilot: "donor-knife" });
   const resident = Object.assign(enemy(0, { x: 1, z: 1 }), { rig: "hollow-scavenger", placementKey: key });

@@ -1,6 +1,6 @@
 import { BOSS_RANGED_RULES } from "./engine/boss-ranged.js";
 import { slotModelRefs } from "./engine/slot-models.js";
-import { actorModelRef, areaActorModelRefs, crowdAreaRefs, crowdBodyRef, visualRigOf } from "./engine/crowd-bodies.js";
+import { actorModelRef, areaRequiredRefs, crowdAreaRefs, crowdBodyRef, visualRigOf } from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
@@ -838,7 +838,7 @@ export function createActors(
     ensureAreaModels(record, areaId = world.areaId, { fresh = false } = {}) {
       const flame = world.flameData,
         reward = world.uniqueRewardData,
-        refs = areaActorModelRefs([...(record.enemies ?? []), ...(record.corpses ?? [])], library.manifest, areaId);
+        refs = areaRequiredRefs(record, library, areaId, world);
       if (fresh) {
         refs.push(...slotModelRefs(world, areaId, library.manifest));
         refs.push(
@@ -868,7 +868,7 @@ export function createActors(
             if (projectile) refs.push(projectile);
           }
         }
-      const required = library.ensureModels?.([...new Set(refs)]) ?? Promise.resolve();
+      const required = Promise.all([library.ensureModels?.([...new Set(refs)]), refs.crowd]);
       return required.then(async () => {
         if (flame && areaId === flame.areaId)
           try {

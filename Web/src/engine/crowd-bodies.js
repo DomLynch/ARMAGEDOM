@@ -3,9 +3,11 @@
 // pure function of the area id and the resident's placement key, so a resident has the same body in every session and every rebuild.
 import { GAME_DATA } from "./game-data.js";
 import { hash as faceHash } from "../face-allocator.js";
+import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
 
 const POOL = GAME_DATA.crowdBodies;
-const CROWD = new Set(POOL.pool.map((row) => row.ref).filter((ref) => ref !== POOL.defaultRef));
+// The MakeHuman bodies: pool rows that are not native looks (the existing scavenger and Pitborn keep their own rig, clips and finishers).
+const CROWD = new Set(POOL.pool.filter((row) => !row.native).map((row) => row.ref));
 const CROOKED = new Set(GAME_DATA.spawns.crookedResidents);
 const HOLLOW_RIG = "hollow-scavenger";
 
@@ -51,8 +53,8 @@ export function crowdBodyForKey(areaId, key) {
   }
   return null;
 }
-// Only a plain resident human takes a crowd body: not a marked hunter, a boss, an animal or drone, an explicit appearance or a gaunt recipe.
-export function crowdBodyRef(entity, areaId) {
+// Only a plain resident human takes a look from the pool: not a marked hunter, a boss, an animal or drone, an explicit appearance or a gaunt recipe.
+function crowdLookRef(entity, areaId) {
   return entity.kind >= 0 &&
     entity.rig === HOLLOW_RIG &&
     !entity.markedHunter &&
@@ -62,8 +64,13 @@ export function crowdBodyRef(entity, areaId) {
     ? crowdBodyForKey(areaId, entity.placementKey)
     : null;
 }
-// Crowd body models a fresh area entry may need: the bodies its plain placed humans draw (the files are downloaded only for those).
-export function crowdAreaRefs(world, areaId, fallbackRows = []) {
+// The MakeHuman body (a 106-rig model, not a native look) a resident wears, or null: these views take the body's own rig and have no finisher.
+export function crowdBodyRef(entity, areaId) {
+  const ref = crowdLookRef(entity, areaId);
+  return CROWD.has(ref) ? ref : null;
+}
+// The pool models (bodies and native looks other than the scavenger) the plain placed humans of an area draw.
+export function crowdAreaRefs(world, areaId, fallbackRows = AREA_MOB_SPAWNS[areaId] ?? []) {
   const rows = world.residentPlacements?.[areaId] ?? fallbackRows;
   return [
     ...new Set(
@@ -75,6 +82,24 @@ export function crowdAreaRefs(world, areaId, fallbackRows = []) {
         .filter((ref) => ref !== null),
     ),
   ];
+}
+// Best effort, never required: download the pool models an area's residents draw. Resolves whatever happens (a failed file only leaves
+// those residents in the scavenger look, and the next entry asks again), so a missing body can never fail boot, restore or an area entry.
+export function ensureCrowdModels(library, world, areaId, entities = []) {
+  const refs = [
+    ...new Set([
+      ...crowdAreaRefs(world, areaId),
+      ...entities.map((e) => crowdLookRef(e, areaId)).filter((ref) => ref !== null),
+    ]),
+  ];
+  if (refs.length === 0) return Promise.resolve();
+  try {
+    return Promise.resolve(library.ensureModels?.(refs)).catch(() => {
+      /* Retried by the next area entry. */
+    });
+  } catch {
+    return Promise.resolve();
+  }
 }
 
 // The model name for an entity. `loaded` (the library's model map) is given when the view is built: a hunter or crowd body whose
@@ -95,23 +120,22 @@ export function actorModelRef(entity, manifest, loaded, areaId) {
       throw Error("Invalid actor appearance reference");
     return ref;
   }
-  const crowd = crowdBodyRef(entity, areaId);
+  const crowd = crowdLookRef(entity, areaId);
   if (crowd && manifest.models?.[crowd] && (!loaded || loaded.has(crowd))) return crowd;
   return entity.kind < 0 ? "vagrant" : manifest.pilot === "donor-knife" ? entity.rig : names[entity.kind];
 }
 const names = ["revenant", "orc", "warlock", "warlord"];
 
-// The models an area's saved actors need that are deferred, named by the model rule above.
-export function areaActorModelRefs(entities, manifest, areaId) {
-  return entities
-    .filter(
-      (e) =>
-        e.bossProfile ||
-        e.appearanceRef !== undefined ||
-        manifest.models[e.rig]?.deferred === true ||
-        crowdBodyRef(e, areaId) !== null,
-    )
+// The models an area's saved actors REQUIRE that are deferred (bosses, explicit appearances, deferred foundations), named by the model rule
+// above. Pool looks are not required: the array carries `crowd`, the best-effort download of the pool models the area's residents draw
+// (ensureCrowdModels), for the caller to wait on beside the required ones.
+export function areaRequiredRefs(record, library, areaId, world) {
+  const { manifest } = library,
+    entities = [...(record.enemies ?? []), ...(record.corpses ?? [])];
+  const refs = entities
+    .filter((e) => e.bossProfile || e.appearanceRef !== undefined || manifest.models[e.rig]?.deferred === true)
     .map((e) => actorModelRef(e, manifest, undefined, areaId));
+  return Object.assign(refs, { crowd: ensureCrowdModels(library, world, areaId, entities) });
 }
 // The rig a view is dressed as: the body's own rig for the marked hunter and the crowd bodies, otherwise the entity's.
 export function visualRigOf(entity, name, description) {

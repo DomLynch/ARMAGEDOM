@@ -28,7 +28,8 @@ export function validateCrowdBodies(d) {
   if (!Array.isArray(d.pool) || d.pool.length < 1) fail("crowdBodies", "pool must list at least one row");
   const seen = new Set();
   for (const row of d.pool) {
-    closed(row, ["ref", "weight", "active"]);
+    closed(row, ["ref", "weight", "active", "native"]);
+    if (typeof row.native !== "boolean") fail("crowdBodies", `${row.ref}.native must be true or false`);
     if (typeof row.ref !== "string" || !REF.test(row.ref) || seen.has(row.ref))
       fail("crowdBodies", "pool refs must be unique model names");
     seen.add(row.ref);
