@@ -167,6 +167,10 @@ export function createBrowserSession(options = {}) {
     get survivorLibrary() {
       return survivorLibrary;
     },
+    // The creature slot's deferred models for an area entry (slot-models.js); undefined when nothing has to load.
+    ensureSlotModels(areaId) {
+      return ensureSlotModels(survivorLibrary, world, areaId);
+    },
     get storage() {
       return runStorage;
     },

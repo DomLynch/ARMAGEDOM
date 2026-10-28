@@ -8,7 +8,6 @@ import { warmFramebuffer, warmFramebufferSteps } from "./warm-framebuffer.js";
 import { createStageAhead } from "./stage-ahead.js";
 import { resetMobileControls, initializeAreaResidents } from "../combat.js";
 import { prepareParkedResidents } from "../parked-area-preparation.js";
-import { ensureSlotModels } from "./slot-models.js";
 import { relieveGeometryBudget, limitParkedAreas, protectedAreas } from "./parked-view-budget.js";
 import { createAreaPrefetch, PREFETCH_LIMITS } from "./area-prefetch.js";
 import { travelTo, captureTravelState, restoreTravelState } from "../travel.js";
@@ -373,7 +372,7 @@ export function createAreaLifecycle(s) {
             await preparationTurn(state);
             const record = prepareParkedResidents(state.game, stage, initializeAreaResidents);
             await s.actors.ensureAreaModels?.(record, task.areaId);
-            const slotModels = ensureSlotModels(s.survivorLibrary, s.world, task.areaId); // a slot creature killed earlier still respawns
+            const slotModels = s.ensureSlotModels?.(task.areaId); // a slot creature killed earlier still respawns
             if (slotModels) await slotModels;
             if (state.cancelled || s.game !== state.game || s.actors !== state.actors || s.contextLost)
               throw Error("Area model preparation cancelled");

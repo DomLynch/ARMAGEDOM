@@ -108,12 +108,12 @@ test("restore and area entry prepare the slot models right after the ordinary pr
     areas = readFileSync(new URL("../src/engine/areas.js", import.meta.url), "utf8");
   for (const [source, ordinary, slot] of [
     [session, "await actors.ensureAreaModels(game);", "ensureSlotModels(library, world, world.areaId);"],
-    [areas, "await s.actors.ensureAreaModels?.(record, task.areaId);", "ensureSlotModels(s.survivorLibrary, s.world, task.areaId);"],
+    [areas, "await s.actors.ensureAreaModels?.(record, task.areaId);", "s.ensureSlotModels?.(task.areaId);"],
   ]) {
     const first = source.indexOf(ordinary),
       second = source.indexOf(slot);
     assert(first > 0 && second > first, `${slot} follows ${ordinary}`);
   }
   assert.match(session, /import \{ ensureSlotModels \} from "\.\/slot-models\.js";/);
-  assert.match(areas, /import \{ ensureSlotModels \} from "\.\/slot-models\.js";/);
+  assert.match(session, /ensureSlotModels\(areaId\) \{\s+return ensureSlotModels\(survivorLibrary, world, areaId\);/);
 });
