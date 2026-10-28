@@ -78,12 +78,16 @@ export function createAirdropView(scene, toRender) {
     root,
     // Called every frame with the game: shows whatever `g.airdrop` says is in the air or on the ground.
     update(g) {
-      const a = g.airdrop,
+      // The run's hold-out (engine/apocalypse-run.js `g.run.hold`) borrows the flare and glow alone: no plane, no crate.
+      const hold = g.run?.hold,
+        beacon = hold && hold.areaId === g.world?.areaId ? hold : null,
+        a = beacon ? { phase: "landed", crate: beacon.at } : g.airdrop,
         flying = !!a && a.startAt !== undefined && g.time - a.startAt < plane.seconds,
         dropped = !!a && (a.phase === "falling" || a.phase === "landed");
       root.visible = flying || dropped;
       shadow.visible = flying;
-      crate.visible = flare.visible = glow.visible = dropped;
+      flare.visible = glow.visible = dropped;
+      crate.visible = dropped && !beacon;
       if (!root.visible) return;
       if (flying) {
         const t = (g.time - a.startAt) / plane.seconds;

@@ -1,7 +1,7 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { activeDay, seededRandom } from "./spawn-variation.js";
-import { safehouseTouches } from "./safehouse.js";
+import { safehouseTouches, safehouseProtected } from "./safehouse.js";
 
 // APOCALYPSE RUN (data/apocalypseRun.json): an opt-in run of three timed stages on the existing zones (scavenge, AI invasion, boss or escape).
 // This is the director. It reads the game clock, announces each stage, fires the stage's raids through the post-boss raid (the raid row's own
@@ -19,6 +19,7 @@ function flags(rules, search) {
     return {
       off: params.get(rules.offSwitch.param) === rules.offSwitch.value,
       start: params.get(rules.startSwitch.param) === rules.startSwitch.value,
+      noExtract: params.get(rules.extraction.offSwitch.param) === rules.extraction.offSwitch.value,
     };
   };
   if (search !== undefined) return read(search);
@@ -26,6 +27,8 @@ function flags(rules, search) {
   return pageFlags.get(rules);
 }
 export const runEnabled = (rules = RUN, search = undefined) => rules.enabled && !flags(rules, search).off;
+// The escape is a hold-out unless the row or ?noextract=1 switches it back to the instant exit.
+export const extractionEnabled = (rules = RUN, search = undefined) => rules.extraction.enabled && !flags(rules, search).noExtract;
 
 const stageStart = (rules, index) => rules.stages.slice(0, index).reduce((sum, s) => sum + s.seconds, 0);
 export const runTotalSeconds = (rules = RUN) => stageStart(rules, rules.stages.length);
@@ -78,18 +81,29 @@ export function startRun(g, rules = RUN, search = undefined, count = undefined) 
     finale: null,
     boss: null,
     armed: false,
+    hold: null,
+    extracted: null,
+    clockAt: g.time,
   };
   return true;
 }
 
-function finish(g, outcome, rules) {
+// The held extraction's bonus: the base scaled by the last curve row the heat peak reaches. A score only: never cash, never saved.
+const extractionBonus = (rules, heatPeak) => {
+  const { base, curve } = rules.extraction.bonus;
+  return Math.round(base * curve.findLast((row) => heatPeak >= row.minHeatPeak).scale);
+};
+
+function finish(g, outcome, rules, bonus = 0) {
   const r = g.run;
   r.outcome = outcome;
+  r.hold = null;
   r.result = {
     outcome,
     kills: (g.kills ?? 0) - r.kills0,
     seconds: Math.min(g.time - r.startAt, runTotalSeconds(rules)),
     heatPeak: r.heatPeak,
+    ...(bonus > 0 ? { bonus } : {}),
   };
   if (r.boss?.runHome) r.boss.home = r.boss.runHome; // the summoned boss goes back to its own leash
   g.raid = null; // the run's raid ends with the run
@@ -150,6 +164,59 @@ function prepareFinale(g, rules) {
   } else say(g, rules.escape.arrived);
 }
 
+// How far the player is, in metres, from the nearest exit of this area that leads to `toArea` (Infinity when there is none). The same
+// clamp-to-the-exit-box measure as the route hint (world.js exitHint).
+function exitGap(world, position, toArea) {
+  const links = (world.registry?.links(world.areaId) ?? []).filter((link) => link.to === toArea),
+    point = links.length ? world.geometry.point(position) : null;
+  let best = Infinity;
+  for (const link of links) {
+    const c = link.condition,
+      ground = world.geometry.ground({
+        x: Math.min(Math.max(point.x, c.xMin ?? 0), c.xMax ?? 1),
+        y: Math.min(Math.max(point.y, c.yMin ?? 0), c.yMax ?? 1),
+      });
+    best = Math.min(best, Math.hypot(position.x - ground.x, position.z - ground.z));
+  }
+  return best;
+}
+
+// The hold-out in the FIELD, beside the exit that leads back to the safehouse (the safehouse itself bars every hostile, so nothing
+// could come for a hold there). The spot is set where the player stands within mouthRange of that exit, in a raid zone; a flare marks it,
+// the run raid is called and the area boss is pulled to it. Staying within holdRadius fills the hold, leaving drains it, and a drained
+// hold (or another area) drops the spot. A full hold opens the extraction: taking the exit home then ends the run with the bonus.
+function stepHold(g, rules, dt) {
+  const r = g.run,
+    x = rules.extraction,
+    areaId = g.world.areaId;
+  if (r.extracted) return;
+  if (!r.hold) {
+    if (!rules.raidZones.includes(areaId) || safehouseProtected(g)) return;
+    if (exitGap(g.world, g.player.pos, rules.startZone) > x.mouthRange) return;
+    r.hold = { areaId, at: { ...g.player.pos }, hold: 0, progress: 0, hud: "" };
+    if (!g.raid) armRaid(g, rules);
+    say(g, webText("extraction.begin"));
+    return;
+  }
+  const h = r.hold,
+    near = areaId === h.areaId && Math.hypot(g.player.pos.x - h.at.x, g.player.pos.z - h.at.z) <= x.holdRadius;
+  h.hold = near ? h.hold + dt : Math.max(0, h.hold - x.holdDecayPerSecond * dt);
+  h.progress = Math.min(1, h.hold / x.holdSeconds);
+  if (h.progress >= 1) {
+    r.extracted = { bonus: extractionBonus(rules, r.heatPeak) };
+    r.hold = null;
+    say(g, webText("extraction.ready"));
+  } else if (areaId !== h.areaId || (!near && h.hold === 0)) {
+    r.hold = null;
+    say(g, webText("extraction.broken"));
+  } else h.hud = webText("extraction.hud", { percent: Math.round(h.progress * 100) });
+}
+
+// The point the hold-out calls hunters and bosses to (engine/airdrop.js airdropPull), or null. It outranks the airdrop and the body
+// bag for as long as the hold lasts, and only in the area it was set in.
+export const extractionTarget = (g, rules = RUN) =>
+  g.run?.hold && g.run.hold.areaId === g.world?.areaId ? { at: g.run.hold.at, pull: rules.extraction.pull } : null;
+
 function fireRaids(g, rules, index, t) {
   const stage = rules.stages[index],
     from = stageStart(rules, index);
@@ -187,10 +254,18 @@ export function stepApocalypseRun(g, rules = RUN, search = undefined) {
     r.bannerUntil = g.time + rules.bannerSeconds;
     if (index === rules.stages.length - 1) prepareFinale(g, rules);
   }
+  const dt = Math.max(0, g.time - r.clockAt);
+  r.clockAt = g.time;
   if (r.finale?.kind === "escape") {
     // The safehouse counts only after the player has been out of it during the finale.
-    if (!safehouseTouches(g, g.player.pos, g.player.radius)) r.armed = true;
-    else if (r.armed) return finish(g, "escaped", rules);
+    const touching = safehouseTouches(g, g.player.pos, g.player.radius);
+    if (!touching) r.armed = true;
+    if (!extractionEnabled(rules, search)) {
+      if (touching && r.armed) return finish(g, "escaped", rules);
+    } else {
+      stepHold(g, rules, dt);
+      if (touching && r.extracted) return finish(g, "escaped", rules, r.extracted.bonus);
+    }
   }
   fireRaids(g, rules, index, t);
 }
@@ -200,7 +275,7 @@ export function stepApocalypseRun(g, rules = RUN, search = undefined) {
 export function runHeatScale(g, rules = RUN, valuable = false) {
   const r = g.run;
   if (!r || r.outcome || r.stage < 0 || (valuable && !rules.scaleValuables)) return 1;
-  return rules.stages[r.stage].heatScale * r.picks.hazard.heatScale;
+  return rules.stages[r.stage].heatScale * r.picks.hazard.heatScale * (r.hold ? rules.extraction.heatScale : 1);
 }
 
 const live = (g) => (g.run && !g.run.outcome && g.run.stage >= 0 ? g.run : null);
@@ -234,12 +309,14 @@ export function runResults(g, rules = RUN) {
   const r = g.run;
   if (!r?.result || r.dismissed) return null;
   const x = r.result;
-  return [
+  const rows = [
     { label: rules.text.rowOutcome, value: rules.outcomes[x.outcome] },
     { label: rules.text.rowKills, value: String(x.kills) },
     { label: rules.text.rowTime, value: clock(x.seconds) },
     { label: rules.text.rowHeat, value: String(x.heatPeak) },
   ];
+  if (x.bonus) rows.push({ label: webText("extraction.rowBonus"), value: String(x.bonus) });
+  return rows;
 }
 
 export function dismissRun(g) {

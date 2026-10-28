@@ -18,10 +18,15 @@ import {
   runTotalSeconds,
   clock,
 } from "../src/engine/apocalypse-run.js";
+import { extractionTarget, extractionEnabled } from "../src/engine/apocalypse-run.js";
+import { airdropPull } from "../src/engine/airdrop.js";
 import { stepHeat, addHeat } from "../src/engine/heat.js";
 import { stepMarkedHunters, clearMarkedHunters } from "../src/engine/marked-hunters.js";
-import { armPostBossRaid } from "../src/engine/post-boss-raid.js";
-import { make, shipped } from "./helpers/marked-fixture.js";
+import { armPostBossRaid, stepPostBossRaid } from "../src/engine/post-boss-raid.js";
+import { safehouseProtected } from "../src/engine/safehouse.js";
+import { publicAreaRegistry as registry } from "../src/area-registry.js";
+import { createGeometry } from "../src/world-geometry.js";
+import { make, shipped, read } from "./helpers/marked-fixture.js";
 import { LondonWorld } from "../src/world.js";
 
 const RUN = GAME_DATA.apocalypseRun,
@@ -222,8 +227,173 @@ test("finale escape: the safehouse ends the run only after the player has been o
   assert.equal(g.run.armed, true);
   assert.equal(g.run.outcome, null);
   g.world = hub;
-  at(g, S1.seconds + S2.seconds + 20);
+  g.time = g.run.startAt + S1.seconds + S2.seconds + 20;
+  stepApocalypseRun(g, RUN, "?noextract=1"); // the off switch: the touch is the instant exit again
   assert.equal(g.run.outcome, "escaped");
+  assert.equal(g.run.result.bonus, undefined, "no hold, no bonus");
+});
+
+// REAL data: the shipped layouts, the shipped area links and safehouse, the run's own raid zones. A world here is the real geometry and
+// registry of one area, which is all the run director and the post-boss raid read.
+const HUB_SAFEHOUSE = read("../../public/world/area-content.json").safehouse; // the shipped one: not the marked fixture's legacy copy
+const realWorld = (areaId) => {
+  const geometry = createGeometry(read(`../../public/world/${areaId}/layout.json`));
+  return {
+    areaId,
+    registry,
+    geometry,
+    safehouseData: HUB_SAFEHOUSE,
+    markedData: shipped.markedData,
+    lineClear: (a, b) => geometry.lineClear(a, b),
+  };
+};
+// The ground just outside the first exit of `areaId` that leads to the start zone.
+const exitMouth = (areaId) => {
+  const link = registry.links(areaId).find((l) => l.to === RUN.startZone),
+    c = link.condition,
+    mid = (low, high) => (low + high) / 2;
+  return createGeometry(read(`../../public/world/${areaId}/layout.json`)).ground({
+    x: c.xMax !== undefined ? c.xMax + 0.01 : c.xMin !== undefined ? c.xMin - 0.01 : mid(0, 1),
+    y: c.yMax !== undefined && c.yMin !== undefined ? mid(c.yMin, c.yMax) : c.yMin !== undefined ? c.yMin - 0.01 : c.yMax + 0.01,
+  });
+};
+
+// A finale on the escape row, with the player in the field beside the exit home: the next step starts the hold-out.
+const holdOut = (heatPeak = 0, areaId = "east") => {
+  const g = started(),
+    X = RUN.extraction,
+    base = S1.seconds + S2.seconds;
+  g.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "escape");
+  g.world = realWorld(areaId);
+  g.player.pos = exitMouth(areaId);
+  g.heat = { count: heatPeak, lastKillAt: 0, seen: 0, rolls: 0 };
+  at(g, base);
+  g.run.heatPeak = heatPeak;
+  at(g, base + 1);
+  return { g, X, t: base + 1, home: () => (g.world = hub) };
+};
+
+test("extraction on REAL data: hostiles can reach the hold spot, the hub earns nothing, and the hold needs its own area", () => {
+  assert.deepEqual([HUB_SAFEHOUSE.areaId, HUB_SAFEHOUSE.wholeArea], [RUN.startZone, true], "the shipped safehouse is the whole hub");
+  const { g } = holdOut();
+  assert.equal(g.run.hold?.areaId, "east", "the hold is set in a field area");
+  assert.ok(RUN.raidZones.includes("east") && !RUN.raidZones.includes(RUN.startZone));
+  assert.equal(safehouseProtected(g), false, "no safehouse protection at the spot: a hit can land");
+  assert.ok(g.raid.row.targetZones.includes("east"), "the raid targets the hold's area");
+  stepPostBossRaid(g, (p) => ({ pos: { ...p }, hp: 30 }), () => ({ x: 20, z: 20 }), true);
+  assert.ok(g.enemies.some((e) => e.raidHunter && e.hp > 0), "a raid hunter spawns in the hold's area");
+  // The hub: whole-area safehouse, not a raid zone. Idling there for the whole window earns nothing.
+  const idle = started();
+  idle.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "escape");
+  idle.world = realWorld(RUN.startZone);
+  idle.player.pos = idle.world.geometry.ground({ x: 0.5, y: 0.46 });
+  assert.equal(safehouseProtected(idle), true, "the hub protects the player");
+  for (let s = 0; s < 150; s++) at(idle, S1.seconds + S2.seconds + s);
+  assert.equal(idle.run.hold, null);
+  assert.equal(idle.run.extracted, null);
+  assert.equal(idle.run.outcome, null, "idling in the hub never escapes or pays");
+  // Another area mid-hold breaks it.
+  g.world = realWorld("south");
+  at(g, S1.seconds + S2.seconds + 2);
+  assert.equal(g.run.hold, null, "leaving the area mid-hold breaks the hold");
+  assert.equal(extractionTarget(g), null);
+});
+
+test("extraction: a hold-out sets a spot, a raid and a boss pull; holding the data's seconds opens the exit, and the exit ends the run", () => {
+  const { g, X, t, home } = holdOut();
+  assert.ok(g.run.hold, "the hold-out has begun");
+  assert.deepEqual(g.run.hold.at, g.player.pos);
+  assert.ok(g.raid, "the run's raid is called at the hold's start");
+  assert.deepEqual(extractionTarget(g), { at: g.run.hold.at, pull: X.pull });
+  assert.equal(runHeatScale(g), S3.heatScale * g.run.picks.hazard.heatScale * X.heatScale, "the heat runs hotter while holding");
+  const boss = { hp: 60, bossProfile: { wakeDistance: 5 }, pos: { x: 50, z: 0 }, home: { x: 50, z: 0 }, alerted: false },
+    steps = [];
+  assert.equal(airdropPull(g, boss, 0.1, (_g, _e, dir) => steps.push(dir)), true, "the area boss walks to the spot");
+  assert.ok(steps[0].x < 0, "toward the spot");
+  for (let s = 1; s < X.holdSeconds - 1; s++) {
+    at(g, t + s);
+    assert.equal(g.run.outcome, null, `still holding at ${s}s`);
+  }
+  assert.match(g.run.hold.hud, /EXTRACTING/);
+  at(g, t + X.holdSeconds);
+  assert.equal(g.run.outcome, null, "a full hold opens the exit; it does not end the run");
+  assert.equal(g.run.hold, null);
+  assert.ok(g.run.extracted);
+  assert.equal(extractionTarget(g), null, "the pull ends with the hold");
+  home();
+  at(g, t + X.holdSeconds + 1);
+  assert.equal(g.run.outcome, "escaped", "taking the exit home ends the run");
+  assert.equal(g.run.result.bonus, X.bonus.base * X.bonus.curve[0].scale);
+  assert.ok(runResults(g).some((row) => row.value === String(g.run.result.bonus)), "the bonus is on the results card");
+  assert.equal(g.cashClaims, undefined, "session-only: no cash claim");
+});
+
+test("extraction: leaving the spot drains the hold and a drained hold is broken; the next touch starts afresh", () => {
+  const { g, X, t } = holdOut();
+  at(g, t + 5);
+  const filled = g.run.hold.hold;
+  assert.ok(filled > 0);
+  g.player.pos = { x: g.player.pos.x + X.holdRadius + 10, z: g.player.pos.z };
+  at(g, t + 6);
+  assert.ok(g.run.hold.hold < filled, "walking off drains it");
+  at(g, t + 5 + Math.ceil(filled / X.holdDecayPerSecond) + 3);
+  assert.equal(g.run.hold, null, "a drained hold is broken");
+  assert.equal(g.run.outcome, null, "and the run goes on");
+  g.player.pos = exitMouth("east");
+  at(g, t + 40);
+  assert.ok(g.run.hold, "touching again starts a new hold");
+  assert.equal(g.run.hold.hold, 0);
+});
+
+test("extraction: the bonus scales with the heat peak along the data curve", () => {
+  const X = RUN.extraction,
+    bonuses = X.bonus.curve.map((row) => {
+      const { g, t, home } = holdOut(row.minHeatPeak);
+      at(g, t + X.holdSeconds);
+      home();
+      at(g, t + X.holdSeconds + 1);
+      return g.run.result.bonus;
+    });
+  assert.deepEqual(bonuses, X.bonus.curve.map((row) => Math.round(X.bonus.base * row.scale)));
+  assert.ok(bonuses.every((b, i) => i === 0 || b > bonuses[i - 1]), "a hotter run pays more");
+});
+
+test("extraction: the boss variant is unchanged, and the extraction row validates", () => {
+  const g = started();
+  g.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "boss");
+  g.enemies = [{ id: 7, hp: 60, radius: 0.5, bossProfile: { name: "T" }, pos: { x: 90, z: 90 }, home: { x: 90, z: 90 }, alerted: false }];
+  at(g, S1.seconds + S2.seconds);
+  g.world = realWorld("east");
+  g.player.pos = exitMouth("east");
+  at(g, S1.seconds + S2.seconds + 5);
+  assert.equal(g.run.finale.kind, "boss");
+  assert.equal(g.run.hold, null, "a boss finale never opens a hold-out");
+  assert.equal(extractionTarget(g), null);
+  for (const mutate of [
+    (d) => { d.extraction.extra = 1; },
+    (d) => { d.extraction.holdSeconds = 0; },
+    (d) => { d.extraction.bonus.curve = []; },
+    (d) => { d.extraction.bonus.curve[0].minHeatPeak = 1; },
+    (d) => { d.extraction.offSwitch.param = "bad param"; },
+  ]) {
+    const d = raw();
+    mutate(d);
+    assert.throws(() => validateApocalypseRun(d));
+  }
+});
+
+test("extraction: the data row off switch also returns the escape to the instant exit", () => {
+  const rules = { ...RUN, extraction: { ...RUN.extraction, enabled: false } },
+    g = started();
+  g.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "escape");
+  at(g, S1.seconds + S2.seconds);
+  at(g, S1.seconds + S2.seconds + 1);
+  g.world = hub;
+  g.time = g.run.startAt + S1.seconds + S2.seconds + 2;
+  stepApocalypseRun(g, rules);
+  assert.equal(g.run.outcome, "escaped");
+  assert.equal(extractionEnabled(RUN, "?noextract=1"), false);
+  assert.equal(extractionEnabled(RUN, ""), true);
 });
 
 test("results: kills, time, heat peak and outcome; Continue clears the card and lets a new run start", () => {

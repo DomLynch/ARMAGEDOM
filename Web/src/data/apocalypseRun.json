@@ -61,6 +61,28 @@
   },
   "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
   "escape": { "arrived": "Reach the safehouse." },
+  "extraction": {
+    "note": "The escape row is a hold-out (28 Oct 2026): hold a spot beside the exit home in a raid zone, then take the exit.",
+    "note2": "A flare marks it, a raid is called and the area boss walks to it (converge.js, the airdrop pull).",
+    "note3": "The bonus is a session-only score on the results card, never cash. ?noextract=1 or enabled false: instant exit.",
+    "enabled": true,
+    "offSwitch": { "param": "noextract", "value": "1" },
+    "holdSeconds": 20,
+    "mouthRange": 8,
+    "holdRadius": 4,
+    "holdDecayPerSecond": 2,
+    "heatScale": 1.5,
+    "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
+    "bonus": {
+      "base": 500,
+      "curve": [
+        { "minHeatPeak": 0, "scale": 1 },
+        { "minHeatPeak": 2, "scale": 1.5 },
+        { "minHeatPeak": 4, "scale": 2 },
+        { "minHeatPeak": 6, "scale": 3 }
+      ]
+    }
+  },
   "outcomes": {
     "escaped": "You escaped.",
     "boss": "Boss killed.",

@@ -229,7 +229,8 @@ export function createBrowserLoop(s) {
     s.updateVestBag();
     s.updateHeatTally();
     // Built when the first plane is called, so the tutorial and the hub never pay for it.
-    if (s.game.airdrop?.startAt !== undefined) airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
+    if (s.game.airdrop?.startAt !== undefined || s.game.run?.hold)
+      airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
     airdropView?.update(s.game);
     if (s.game.corpseBag) corpseView ??= createCorpseRunView(s.scene, (point, height) => s.world.toRender(point, height));
     corpseView?.update(s.game);
