@@ -33,22 +33,45 @@ function clearSpot(geometry, at) {
 // The chained Pitborn takes no damage; a shot or a swing aimed at it this tick is what snaps the chains. A pistol or rifle shot counts when its
 // path passes within hitRadiusMetres of it (the shot does not stop there: it is not an enemy yet), a swing when it is within meleeReachMetres
 // and inside the melee targeting cone.
+// Which event types count is data (`chainedTargets`): rays (pistol, rifle, shotgun pellets; rays3d the arc gun), melee swings and the saw, blasts (rocket,
+// grenade, trap crate: within the blast radius plus blastPaddingMetres, whoever set them off) and flame cones (the ember projector).
+// Any weapon that emits one of these events breaks the chains without being an enemy.
+const T = D.chainedTargets;
+function nearRay(r, at) {
+  const sx = r.end.x - r.origin.x,
+    sz = r.end.z - r.origin.z,
+    length = sx * sx + sz * sz,
+    t = length ? Math.max(0, Math.min(1, ((at.x - r.origin.x) * sx + (at.z - r.origin.z) * sz) / length)) : 0;
+  return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres;
+}
+function inCone(e, at) {
+  const dx = at.x - e.origin.x,
+    dz = at.z - e.origin.z,
+    d = Math.hypot(dx, dz),
+    half = (e.coneDegrees * Math.PI) / 360 + Math.asin(Math.min(1, B.hitRadiusMetres / Math.max(d, B.hitRadiusMetres)));
+  if (d > e.range + B.hitRadiusMetres) return false;
+  const len = Math.hypot(e.direction.x, e.direction.z);
+  return d === 0 || (len > 0 && (dx * e.direction.x + dz * e.direction.z) / (d * len) >= Math.cos(half));
+}
 function struck(g, at) {
   const p = g.player,
     cone = Math.cos((GAME_DATA.weapons.targeting.meleeConeDegrees * Math.PI) / 180);
   return g.events.some((e) => {
-    if (e.type === "attack" && e.actor === p) {
+    if (T.blasts.includes(e.type)) return !!e.position && gap(e.position, at) <= (e.radius ?? 0) + T.blastPaddingMetres;
+    if (e.actor && e.actor !== p) return false;
+    if (T.melee.includes(e.type) && e.actor === p) {
       const dx = at.x - p.pos.x,
         dz = at.z - p.pos.z,
         d = Math.hypot(dx, dz);
       return d <= B.meleeReachMetres && d > 0 && (dx * p.facing.x + dz * p.facing.z) / d >= cone;
     }
-    if (e.type !== "shot" || !e.origin || !e.end || (e.actor && e.actor !== p) || gap(e.origin, p.pos) > B.hitOriginMetres) return false;
-    const sx = e.end.x - e.origin.x,
-      sz = e.end.z - e.origin.z,
-      length = sx * sx + sz * sz,
-      t = length ? Math.max(0, Math.min(1, ((at.x - e.origin.x) * sx + (at.z - e.origin.z) * sz) / length)) : 0;
-    return gap({ x: e.origin.x + sx * t, z: e.origin.z + sz * t }, at) <= B.hitRadiusMetres;
+    if (T.cones.includes(e.type)) return !!e.origin && !!e.direction && inCone(e, at);
+    // rays3d events (the arc gun) carry 3D points whose z is the ground z negated.
+    const flip = T.rays3d.includes(e.type),
+      ground = (q) => (flip ? { x: q.x, z: -q.z } : q);
+    if (!(flip || T.rays.includes(e.type)) || !e.origin || gap(ground(e.origin), p.pos) > B.hitOriginMetres) return false;
+    // A shotgun event's own origin/end is the unclipped full-range line; only its wall-clipped pellets say where the shot went.
+    return (e.pellets?.length ? e.pellets : [e]).some((r) => r.origin && r.end && nearRay({ origin: ground(r.origin), end: ground(r.end) }, at));
   });
 }
 // `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).
