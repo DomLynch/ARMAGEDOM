@@ -5,10 +5,19 @@ import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
 const FILE = "pitbornCuts";
-const VISUAL = ["head_split", "belly_open"];
 const colour = (v, what) => {
   if (typeof v !== "string" || !/^[0-9a-f]{6}$/i.test(v)) fail(FILE, `${what} must be a 6 digit hex colour`);
 };
+
+// pitbornCutManifest.json: the physics package's cut-pieces/1 manifest of the Pitborn's cut GLB (physics docs/CUT-CONTRACT.md). The package's own
+// createCutRig checks the meshes against it when a body is cut; here only its shape, so a wrong file fails at load, not at the first kill.
+export function validatePitbornCutManifest(d) {
+  const F = "pitbornCutManifest";
+  if (d?.schema !== "cut-pieces/1") fail(F, "schema must be cut-pieces/1");
+  if (typeof d.body !== "string" || d.rig !== "mixamo-106") fail(F, "body must be a string and rig mixamo-106");
+  if (!Array.isArray(d.regions) || !d.regions.length || !d.regions.every((r) => r.id && r.mesh)) fail(F, "regions need id and mesh");
+  if (!Array.isArray(d.caps) || !d.caps.every((c) => c.id && c.mesh && c.region && c.shown_when_cut)) fail(F, "caps need id, mesh, region, shown_when_cut");
+}
 
 export function validatePitbornCuts(d) {
   closed(d, [
@@ -25,6 +34,7 @@ export function validatePitbornCuts(d) {
     "maxPieceBodies",
     "capTint",
     "units",
+    "visualUnits",
     "finishers",
     "bindings",
   ]);
@@ -42,6 +52,8 @@ export function validatePitbornCuts(d) {
   if (!Array.isArray(d.units) || new Set(d.units).size !== d.units.length || !d.units.every((u) => typeof u === "string"))
     fail(FILE, "units must list each package cut unit once");
   const known = new Set(d.units);
+  if (!Array.isArray(d.visualUnits) || !d.visualUnits.every((u) => known.has(u)))
+    fail(FILE, "visualUnits must list units of `units` (the package's visual-only cuts)");
   const unit = (u, what) => {
     if (!known.has(u)) fail(FILE, `${what} names unit "${u}" that units does not list`);
   };
@@ -53,7 +65,7 @@ export function validatePitbornCuts(d) {
     if (!Array.isArray(row.also)) fail(FILE, `${id}.also must be a list`);
     for (const u of row.also) unit(u, `${id}.also`);
     if (row.fallback !== undefined && row.fallback !== null) unit(row.fallback, `${id}.fallback`);
-    if (VISUAL.includes(row.fallback)) fail(FILE, `${id}.fallback must be a unit that detaches something`);
+    if (d.visualUnits.includes(row.fallback)) fail(FILE, `${id}.fallback must be a unit that detaches something`);
     for (const k of ["alsoAtS", "atS", "push", "pieceImpulse"]) number(FILE, `${id}.${k}`, row[k], 0);
   }
   if (!Array.isArray(d.bindings) || !d.bindings.length) fail(FILE, "bindings must be a non-empty list");

@@ -12,6 +12,7 @@
   "maxPieceBodies": 6,
   "capTint": { "flesh": "6f1d1d", "inner": "2a0b0b", "blood": "5a0a0a", "amount": 0.35 },
   "units": ["head", "arm_left", "arm_right", "leg_left", "leg_right", "torso_waist", "head_split", "belly_open"],
+  "visualUnits": ["head_split", "belly_open"],
   "finishers": {
     "splitCrown": { "unit": "head", "also": ["head_split"], "alsoAtS": 0, "atS": 0, "push": 1, "pieceImpulse": 60 },
     "decapitation": { "unit": "head", "also": [], "alsoAtS": 0, "atS": 0, "push": 1, "pieceImpulse": 70 },

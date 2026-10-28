@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import CUT_MANIFEST from "../src/data/pitbornCutManifest.json" with { type: "json" };
-import { validatePitbornCuts } from "../src/engine/game-data-pitborn-cuts.js";
+import { validatePitbornCutManifest, validatePitbornCuts } from "../src/engine/game-data-pitborn-cuts.js";
 import {
   createLateCuts,
   cutsEnabled,
@@ -177,6 +177,9 @@ test("the cut GLB is a deferred actor model pinned to the physics cut receipt, n
 });
 
 test("the cut manifest is the physics contract's, for the hunter body, and the game's units all exist in it", () => {
+  assert.doesNotThrow(() => validatePitbornCutManifest(CUT_MANIFEST));
+  assert.deepEqual(GAME_DATA.pitbornCutManifest, CUT_MANIFEST); // the game reads the same file through the loader
+  assert.throws(() => validatePitbornCutManifest({ ...CUT_MANIFEST, schema: "cut-pieces/2" }), /schema/);
   assert.equal(CUT_MANIFEST.schema, "cut-pieces/1");
   assert.equal(CUT_MANIFEST.body, "hunter-pitborn-106");
   assert.equal(CUT_MANIFEST.rig, "mixamo-106");

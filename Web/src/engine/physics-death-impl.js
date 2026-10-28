@@ -5,11 +5,11 @@ import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
-import CUT_MANIFEST from "../data/pitbornCutManifest.json" with { type: "json" };
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 
 const CFG = GAME_DATA.physicsDeath,
   CUTS = GAME_DATA.pitbornCuts,
+  CUT_MANIFEST = GAME_DATA.pitbornCutManifest,
   ROW = () => structuredClone(GAME_DATA.physicsBody.row); // GAME_DATA is frozen; the package gets its own copy
 
 let world = null;
