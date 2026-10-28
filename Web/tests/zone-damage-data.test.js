@@ -41,7 +41,11 @@ test("flag is read from the query string, default off", () => {
 });
 
 test("multiplier is 1 with the flag off, whatever the angle", () => {
-  for (const dir of [{ x: 0, z: -1 }, { x: 0, z: 1 }, { x: 1, z: 0 }])
+  for (const dir of [
+    { x: 0, z: -1 },
+    { x: 0, z: 1 },
+    { x: 1, z: 0 },
+  ])
     assert.equal(zoneMultiplier(facing, dir, TRASH, false), 1);
 });
 
@@ -65,6 +69,10 @@ test("boss kinds, missing vectors and zero vectors fall through to 1", () => {
 });
 
 test("the cap bounds the multiplier", () => {
-  for (const dir of [{ x: 0, z: -1 }, { x: 1, z: 0 }, { x: 0, z: 1 }])
+  for (const dir of [
+    { x: 0, z: -1 },
+    { x: 1, z: 0 },
+    { x: 0, z: 1 },
+  ])
     assert.ok(zoneMultiplier(facing, dir, TRASH, true) <= ROW.cap);
 });
