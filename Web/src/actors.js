@@ -99,6 +99,7 @@ import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
 import { allocateFaceRecipes } from "./face-allocator.js";
+import { applyStarTell } from "./engine/star-variants-view.js";
 import { createFinisherPrepPump, captureRig, applyRig } from "./engine/finisher-prep-pump.js";
 const residentFaces = allocateFaceRecipes(
   "london-residents",
@@ -433,6 +434,7 @@ export function createActors(
           if (materialDim !== undefined) own.color?.multiplyScalar(materialDim);
           if (palette) applyHollowPalette(own, palette, garments);
           if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(...LOOK.markedTint));
+          if (entity.star) applyStarTell(own, entity.star);
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),

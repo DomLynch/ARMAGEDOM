@@ -1,12 +1,14 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { grantCash, claimCash } from "./world-pickups-core.js";
+import { starDropTier } from "./star-variants.js";
 // Coins an enemy leaves when it dies (data/killDrops.json). Rules only: which tier a kill is, the cash it rolls, walk-over pickup,
 // the carry-cap refusal and the claim noted for the server. Nothing here is drawn (engine/kill-drops-view.js) or saved: drops live on
 // the run (`g.killDrops`) and are gone when the area changes. Off until `enabled` is true (the server must accept the `kill:*` sources).
 // Each function takes the rules as its last argument so a test can pass an enabled copy of the frozen data.
 export const KILL_DROPS = GAME_DATA.killDrops;
 export const killDropsOn = (rules = KILL_DROPS) => rules.enabled === true;
-export const tierOf = (e, rules = KILL_DROPS) => (e.bossProfile ? "boss" : (rules.rigTiers[e.rig] ?? rules.defaultTier));
+export const tierOf = (e, rules = KILL_DROPS) =>
+  starDropTier(e, e.bossProfile ? "boss" : (rules.rigTiers[e.rig] ?? rules.defaultTier), Object.keys(rules.tiers));
 // A repeatable whole number in [min, max] from the kill's own labels and the run's counters, so one run state always rolls the same sum.
 export function rollKillCash(g, tier, key, rules = KILL_DROPS) {
   const { seed, prime, modulus } = rules.roll,
