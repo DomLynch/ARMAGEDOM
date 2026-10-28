@@ -80,8 +80,16 @@ export function journalPresentation(g, data, allowed = true) {
 // The HUD text for the objective. While the route arrow names the current kill (salamander, then Ember Matron) its line is
 // the only one shown; the objective itself is unchanged and the standing gate line returns when the hunt chain is not active.
 export const hudObjectiveLine = (g, progression) => (huntTarget(g) ? "" : (progression?.objective ?? ""));
+// Outside Westminster: one line per area (sessionText areaObjective); once the area's boss is dead, the way home.
+function areaObjectiveLine(g) {
+  const id = g.world.areaId;
+  if (!Object.hasOwn(GAME_DATA.sessionText.areaObjective, id)) return "";
+  const hasBoss = g.world.bossData?.placements?.some((row) => row.areaId === id),
+    bossAlive = g.enemies?.some((e) => e.hp > 0 && e.bossProfile);
+  return hasBoss && g.enemies && !bossAlive ? text("expedition.bossDown") : text(`areaObjective.${id}`);
+}
 export function progressionObjective(g) {
-  if (g.world.areaId !== "westminster") return { target: null, objective: "" };
+  if (g.world.areaId !== "westminster") return { target: null, objective: areaObjectiveLine(g) };
   const gate = bossExitGate(g, "central-hub");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
@@ -246,10 +254,18 @@ export function createExpeditionView(s, dispatch) {
     }
     return false;
   }
+  // The one objective line of the area (Westminster tutorial, or sessionText areaObjective elsewhere). It does not need the contract data,
+  // which only some areas carry, so it paints before the data check.
+  function paintObjective(g) {
+    const line = el("expedition-objective");
+    line.hidden = !g || !allowed() || g.player.hp <= 0;
+    paint(line, g ? hudObjectiveLine(g, progressionObjective(g)) : "");
+  }
   function update() {
     if (disposed) return;
     const g = s.game,
       data = s.world?.expeditionData;
+    paintObjective(g);
     if (!g || !data) {
       panel.hidden = true;
       return;
@@ -262,7 +278,6 @@ export function createExpeditionView(s, dispatch) {
       panel.hidden = true;
       return;
     }
-    const progression = g.world.safehouseData ? progressionObjective(g) : null;
     const c = data.contract,
       status = state.status,
       objective = expeditionObjective(g),
@@ -390,10 +405,6 @@ export function createExpeditionView(s, dispatch) {
           )
           .join(" / "),
       );
-    const objectiveLine = el("expedition-objective");
-    objectiveLine.hidden = !allowed() || g.player.hp <= 0;
-    // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
-    paint(objectiveLine, hudObjectiveLine(g, progression));
     const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();

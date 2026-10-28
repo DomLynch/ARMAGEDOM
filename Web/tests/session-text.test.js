@@ -49,6 +49,15 @@ const OLD = [
   ["expedition.journalRecovered", {}, "Case recovered · return to the Westminster stash."],
   ["expedition.journalClaimed", {}, "Reward claimed once · choose your earned weapon in Gear."],
   ["expedition.reachEast", {}, "Reach Central Safehouse."],
+  ["expedition.bossDown", {}, "Boss down. Return to Safehouse."],
+  ["areaObjective.central-hub", {}, "Pick a road. Each area has a boss."],
+  ["areaObjective.east", {}, "Head for East Bridge or Elephant and Castle."],
+  ["areaObjective.south", {}, "Kill the Southbank Stalker."],
+  ["areaObjective.east-bridge", {}, "Kill the Bridge Warden."],
+  ["areaObjective.elephant-and-castle", {}, "Kill the Borough Butcher."],
+  ["areaObjective.lambeth", {}, "Kill the Lambeth Surgeon."],
+  ["areaObjective.area7", {}, "Kill the Station Breaker."],
+  ["areaObjective.area8", {}, "Kill the Borough Marshal."],
   ["expedition.descriptionCompanion", { summary: "S.", name: "Watchman" }, `${"S."} Reward: ${"Watchman"}, an autonomous companion alongside your held weapon.`],
   [
     "expedition.descriptionWeapon",
@@ -165,7 +174,8 @@ test("each call in the source files names a key that exists, and each key is use
     for (const m of src.matchAll(/\bmark\([^,]+,\s*"([A-Za-z]+)"\)/g)) used.add(`expedition.${m[1]}`);
   }
   for (const key of used) assert(all.has(key), `${key} is used but not in the data`);
-  for (const key of all) assert(used.has(key), `${key} is in the data but no source file uses it`);
+  // areaObjective rows are looked up by area id at run time, so no source file names them.
+  for (const key of all) assert(used.has(key) || key.startsWith("areaObjective."),`${key} is in the data but no source file uses it`);
 });
 
 test("the placeholders in each string are exactly the values its call site passes", () => {
