@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { physicsDeathStep, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
+import { liveBodies, rigOf } from "../src/engine/physics-rigs.js";
 
 const RIGS = GAME_DATA.physicsRigs,
   CFG = GAME_DATA.physicsDeath,
@@ -42,20 +43,42 @@ test("body rows hold the 20 joints and a standing height; the baked scale matche
   }
 });
 
-test("only the marked hunter is live until the impl reads the rig record", () => {
-  assert.deepEqual(
-    Object.entries(RIGS.models)
-      .filter(([, m]) => m.live)
-      .map(([n]) => n),
-    [CFG.rigRef],
-  );
+test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
+  const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
+  for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
+  for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
+});
+
+test("every live body row can be handed to the impl as its own record", () => {
+  for (const n of Object.keys(RIGS.models).filter((n) => RIGS.models[n].live)) {
+    const rig = rigOf(n);
+    assert.equal(rig.model, n);
+    assert.equal(Object.keys(rig.parts).length, 20);
+    assert.equal(Object.keys(rig.body.joints).length, 20);
+  }
+  assert.deepEqual(liveBodies()[0].model, CFG.rigRef); // the hunter's pool is warmed first
+  assert.equal(new Set(liveBodies().map((r) => r.key)).size, liveBodies().length);
+});
+
+test("a crowd human starts its ragdoll with its own bone map and body row", () => {
+  const calls = [];
+  usePhysicsDeathImpl({ startDeath: (...a) => (calls.push(a), { frozen: false }), stepDeath: () => {} });
+  const description = manifest["hollow-scavenger"],
+    scene = {},
+    library = { models: new Map([["hollow-scavenger", { description, gltf: { scene } }]]) },
+    view = { description };
+  assert.equal(physicsDeathStep(view, { id: 8, hp: 0, maxHP: 10 }, library, 1 / 60, true), true);
+  assert.equal(calls[0][1], scene);
+  assert.equal(calls[0][3].nodePrefix, "");
+  assert.equal(calls[0][3].parts.hips, "pelvis");
+  assert.equal(calls[0][3].body, RIGS.bodies["scavenger-65"]);
 });
 
 test("a model without a live row keeps the baked clip and never reaches the impl", () => {
   const calls = [];
   usePhysicsDeathImpl({ startDeath: (...a) => calls.push(a), stepDeath: () => {} });
-  const description = manifest["hollow-scavenger"],
-    library = { models: new Map([["hollow-scavenger", { description, gltf: { scene: {} } }]]) },
+  const description = manifest["giant-salamander"],
+    library = { models: new Map([["giant-salamander", { description, gltf: { scene: {} } }]]) },
     view = { description },
     entity = { id: 3, hp: 0, maxHP: 10 };
   for (let i = 0; i < 5; i++) assert.equal(physicsDeathStep(view, entity, library, 1 / 60, true), false);

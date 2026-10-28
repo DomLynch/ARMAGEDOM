@@ -2,6 +2,7 @@
 // flag off, chunk not loaded yet, missing bone, a throw. Nothing here waits: a hunter that dies before the chunk is ready plays the clip.
 import { GAME_DATA } from "./game-data.js";
 import { cutsEnabled } from "./finisher-cuts.js";
+import { rigOf } from "./physics-rigs.js";
 
 const CFG = GAME_DATA.physicsDeath;
 
@@ -56,19 +57,48 @@ function failDeath(view, s) {
   }
   view.physicsDeath = { failed: true };
 }
-// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
-// preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
+// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once per page: at idle after the area is entered (prefetchCutsOnIdle),
+// or at the latest when a marked hunter is first WOUNDED. A kill before it arrives is the plain ragdoll.
 let cutsRequested = false;
 function prefetchCuts(library) {
   if (cutsRequested || !impl || !cutsEnabled() || !library?.ensureModels) return;
   cutsRequested = true;
-  impl.loadCutAssets(library).catch(() => {
-    /* No cut GLB: every death stays the plain ragdoll. */
-  });
+  // Started from a microtask so a synchronous throw from ensureModels lands in the catch below, not in the caller.
+  Promise.resolve()
+    .then(() => impl.loadCutAssets(library))
+    .catch(() => {
+      /* No cut GLB: every death stays the plain ragdoll. */
+    });
+}
+// Data saver or a slow link (data/physicsDeath.json cutPrefetch): the idle fetch is skipped; the wound-time fetch is unchanged.
+const slowLink = () => {
+  const c = globalThis.navigator?.connection,
+    p = CFG.cutPrefetch;
+  return !!c && ((p.skipSaveData && c.saveData === true) || p.slowTypes.includes(c.effectiveType));
+};
+// The game, read only to see how close a marked hunter is to the player (set once by the browser session).
+let probe = null;
+export const watchCutPrefetch = (getGame) => void (probe = getGame);
+const hunterNear = (entity) => {
+  const g = probe?.();
+  return (
+    !!g?.player &&
+    (entity.areaId ?? g.world.areaId) === g.world.areaId &&
+    Math.hypot(entity.pos.x - g.player.pos.x, entity.pos.z - g.player.pos.z) <= CFG.cutPrefetch.range
+  );
+};
+// A marked hunter alive in the current area has come within cutPrefetch.range of the player: warm the cut GLB at idle (once), so its first wound
+// does not start a 2 MB fetch mid-fight. Never at area entry, never for a player nobody hunts.
+let cutsScheduled = false;
+export function prefetchCutsOnIdle(library, enabled = physicsDeathEnabled()) {
+  if (!enabled || !cutsEnabled() || slowLink() || cutsRequested || cutsScheduled || !library?.ensureModels) return;
+  cutsScheduled = true;
+  const go = () => load().then(() => (broken ? undefined : prefetchCuts(library)));
+  if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.cutPrefetch.idleMs });
+  else setTimeout(go, CFG.cutPrefetch.idleMs);
 }
 // Which models ragdoll is data (physicsRigs.json `models`, `live`). The record handed to the impl: the model, its bone map and its body row.
-const RIGS = GAME_DATA.physicsRigs,
-  names = new WeakMap(), // manifest description -> model name, found once per description
+const names = new WeakMap(), // manifest description -> model name, found once per description
   baked = new WeakSet(); // views whose model has no live row: looked up once, then the clip plays every frame
 function modelOf(view, entity, library) {
   if (entity.markedHunter) return CFG.rigRef;
@@ -77,34 +107,31 @@ function modelOf(view, entity, library) {
   if (!names.has(d)) names.set(d, [...library.models].find(([, m]) => m.description === d)?.[0] ?? null);
   return names.get(d);
 }
-function liveRow(model) {
-  const m = RIGS.models[model];
-  if (!m?.live) return null;
-  const family = RIGS.rigs[m.rig];
-  return {
-    model,
-    nodePrefix: family.nodePrefix,
-    parts: family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
-    body: m.body === "physicsBody" ? GAME_DATA.physicsBody.row : RIGS.bodies[m.body],
-  };
-}
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
-  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts(library);
+  if (enabled && entity.markedHunter && entity.hp > 0 && !cutsRequested) {
+    if (entity.hp < entity.maxHP) prefetchCuts(library);
+    else if (!cutsScheduled && hunterNear(entity)) prefetchCutsOnIdle(library, true);
+  }
   if (!enabled || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed || (!s && baked.has(view))) return false;
   try {
     if (!s) {
       const model = modelOf(view, entity, library),
-        rig = model && liveRow(model);
+        rig = model && rigOf(model);
       if (!rig) {
         baked.add(view); // no live row for this model: the clip, and no ragdoll is ever taken from the pool
         return false;
       }
       const bindScene = library.models.get(model)?.gltf.scene;
       if (!impl || !bindScene) return false; // chunk not loaded: baked clip, never wait
-      s = view.physicsDeath = impl.startDeath(view, bindScene, entity, rig);
+      s = impl.startDeath(view, bindScene, entity, rig);
+      if (!s) {
+        view.physicsDeath = { failed: true }; // over the simultaneous-ragdoll budget: this one dies on the baked clip
+        return false;
+      }
+      view.physicsDeath = s;
     }
     impl.stepDeath(s, dt);
     return true;
