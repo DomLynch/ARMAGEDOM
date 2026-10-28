@@ -27,6 +27,7 @@ import { createPresenceSession, presenceConfig } from "./presence-session.js";
 import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
+import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
@@ -820,6 +821,7 @@ export function createBrowserSession(options = {}) {
         visualScale: actorVisualScale,
       });
       await actors.ensureAreaModels(game);
+      await ensureSlotModels(library, world, world.areaId); // a slot creature dead at restore still respawns
       if (contextLost || disposed) return;
       pendingLibrary = null;
       survivorLibrary = library; // the other players' reduced mesh loads from it on demand
