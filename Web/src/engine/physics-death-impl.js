@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { GAME_DATA } from "./game-data.js";
+import { impulseRow } from "./physics-death-impulse.js";
 
 const CFG = GAME_DATA.physicsDeath,
   ROW = () => structuredClone(GAME_DATA.physicsBody.row); // GAME_DATA is frozen; the package gets its own copy
@@ -40,7 +41,7 @@ export const markChunkLoaded = () => (stats.chunkLoaded = true);
 // The impulse in the sim frame (= the actor root's local frame): `horizontal` along the killing blow (the hit's impactDirection, else
 // away from where the hunter faces, i.e. back from the player it was walking at) plus `up`. Pure arithmetic: same hit, same fall.
 export function killVector(root, entity) {
-  const k = CFG.killImpulse,
+  const k = impulseRow(entity.deathImpact),
     d = entity.deathImpact ?? (entity.facing ? { x: -entity.facing.x, z: -entity.facing.z } : { x: 0, z: -1 }),
     len = Math.hypot(d.x, d.z) || 1,
     local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.quaternion.clone().invert());
@@ -55,7 +56,7 @@ export function startDeath(view, bindScene, entity) {
   const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bindScene), root: bindScene } });
   rig.drive();
   rd.snapToTarget();
-  rd.kill({ part: CFG.killImpulse.part, impulse: killVector(view.root, entity) });
+  rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: killVector(view.root, entity) });
   stats.created++;
   stats.lastAt = performance.now();
   return registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });

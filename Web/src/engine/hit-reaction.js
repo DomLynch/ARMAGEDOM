@@ -5,6 +5,7 @@
 // Fail soft: an exception in start or step ends the reaction and restores the bones to the clip pose; the frame loop never sees it.
 import * as THREE from "three";
 import { GAME_DATA } from "./game-data.js";
+import { deathImpactOf } from "./physics-death-impulse.js";
 
 const ROW = GAME_DATA.hitReaction;
 const clamp = (x, lo, hi) => (x < lo ? lo : x > hi ? hi : x);
@@ -216,5 +217,11 @@ export function bodyReactionEnd(view, force = false) {
   }
 }
 export const activeBodyReactions = () => active;
-// Short names for the three hook lines in actors.js (that file is at its size limit).
-export { bodyReactionStart as bodyHitStart, bodyReactionStep as bodyHitStep, bodyReactionEnd as bodyHitEnd };
+
+// The one hit hook of the actor layer: starts the body reaction, then records the killing blow (direction, weapon, zone) that shoves the ragdoll.
+export function bodyHitStart(view, hit) {
+  bodyReactionStart(view, hit);
+  if (hit.actor.hp <= 0) hit.actor.deathImpact = deathImpactOf(hit);
+}
+// Short names for the step and end hook lines in actors.js (that file is at its size limit).
+export { bodyReactionStep as bodyHitStep, bodyReactionEnd as bodyHitEnd };

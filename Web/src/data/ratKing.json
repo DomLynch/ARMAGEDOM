@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "note": "The Rat King mini-boss (area7 station rat slot, appearanceRef model 'rat-king'). enabled false, or the URL parameter offParam=offValue (?noratking=1), turns the placement back into the plain station rat. Health is the placement's encounter row in area-content.json.",
+  "enabled": true,
+  "offParam": "noratking",
+  "offValue": "1",
+  "appearanceRef": "rat-king"
+}
