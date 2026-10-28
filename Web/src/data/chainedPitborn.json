@@ -30,7 +30,10 @@
     "melee": ["attack", "saw-start"],
     "blasts": ["grenade-blast", "trap-crate-blast", "boss-rocket-blast"],
     "cones": ["flame-contact"],
-    "blastPaddingMetres": 0.9
+    "blastPaddingMetres": 0.9,
+    "coverEdgeMetres": 0.2,
+    "sightSteps": 200,
+    "aimTargetId": "chained-pitborn"
   },
   "emissive": { "color": "5a2610", "intensity": 0.02 },
   "rim": { "color": "ff9a50", "power": 4, "strength": 0.06 },
