@@ -2,6 +2,7 @@ import { closedData } from "./progression-state.js";
 import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { dropCorpseBag, gearOf } from "./corpse-run.js";
 export const MARKED_SAVE_KEY = "armagedom:marked-run:v18";
 const same = (a, b) =>
   a.version === b.version &&
@@ -55,7 +56,8 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       if (!g || !validMarked(state(g), rules().maxMoney)) return fail("invalid-save");
       const before = copyMarked(state(g)),
         oldAwards = new Set((g.progression?.awards ?? []).map((a) => a.placementKey)),
-        action = command.type === "save" ? getAction(g) : null;
+        action = command.type === "save" ? getAction(g) : null,
+        fell = { areaId: g.world?.areaId, x: g.player?.pos?.x, z: g.player?.pos?.z }; // where a death in this command happened
       if (
         action &&
         (!canDispatch(g) ||
@@ -148,6 +150,12 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       if (result.ok && committed) {
         const current = getRun();
         current.marked = copyMarked(committed.marked);
+        // Retry swaps in a fresh run whose clock starts again: the bag outlives the dead run with its remaining scavenger time.
+        if (command.type === "retry" && g.corpseBag)
+          current.corpseBag = { ...g.corpseBag, expiresAt: current.time + g.corpseBag.expiresAt - g.time };
+        // The cash this commit took out of the record (death or Retry) goes into a session-only body bag: moved, never copied.
+        if (command.type === "retry" || committed.player.hp <= 0)
+          dropCorpseBag(current, before.carried - current.marked.carried, fell, gearOf(g));
         if (action || command.type === "retry") {
           current.player.hp = committed.player.hp;
           current.pistol = committed.pistol;

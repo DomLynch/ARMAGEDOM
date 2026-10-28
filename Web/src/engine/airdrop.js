@@ -2,6 +2,8 @@ import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { applyAirdropOutcome } from "./airdrop-effects.js";
 import { claimCash } from "./world-pickups-core.js";
+import { converge } from "./converge.js";
+import { corpseTarget, stepCorpseRun } from "./corpse-run.js";
 
 // The supply airdrop (data/airdrop.json): every few minutes in a combat area a plane passes and drops a crate with a red flare somewhere
 // the player can walk to. Bosses of the area walk to the crate, and holding still beside it opens it for a loot bundle and a small chance of
@@ -100,6 +102,7 @@ function hudLine(g, a) {
 }
 
 export function stepAirdrop(g, dt) {
+  stepCorpseRun(g, dt); // the body bag shares this per-step hook; it runs in every area, the airdrop only in combat areas
   const areaId = g.world?.areaId;
   if (!enabledIn(areaId)) {
     g.airdrop = null;
@@ -136,26 +139,12 @@ export function stepAirdrop(g, dt) {
   a.hud = hudLine(g, a);
 }
 
-// The boss hook (combat.js residentPatrol): a boss that is not already fighting the player walks to the crate and waits beside it.
+// The boss hook (combat.js residentPatrol): a boss that is not already fighting the player walks to the crate (or, with no crate in the
+// air or on the ground, to the player's body bag, engine/corpse-run.js) and waits beside it. The walk itself is engine/converge.js.
 // Returns true when it handled the boss's idle step. `move` is combat's own enemy mover, so bosses walk the way they always do.
 export function airdropPull(g, e, dt, move) {
   const a = g.airdrop,
-    pull = GAME_DATA.airdrop.convergence;
-  if (!pull.enabled || !a || !e.bossProfile || e.hp <= 0 || (a.phase !== "falling" && a.phase !== "landed")) {
-    if (e.stockIntent) [e.residentIntent, e.stockIntent] = [e.stockIntent, undefined]; // the crate is gone: the boss's own leash is back
-    return false;
-  }
-  // A boss only wakes for a player within its home leash; the crate may lie beyond it, so stretch the leash to cover the crate.
-  if (!e.stockIntent) e.stockIntent = e.residentIntent;
-  const reach = distance(e.home ?? e.pos, a.crate) + pull.leashPadding;
-  if (e.residentIntent && e.residentIntent.homeLeash < reach) e.residentIntent = Object.freeze({ ...e.stockIntent, homeLeash: reach });
-  // A boss already chasing the player keeps at it inside engageRadius; an idle one answers the crate unless it can see the player
-  // from close enough to wake (the same test the boss uses to wake, so it never stalls beside a wall it cannot wake through).
-  const apart = distance(e.pos, g.player.pos);
-  if (e.alerted ? apart <= pull.engageRadius : apart <= e.bossProfile.wakeDistance && g.world.lineClear(e.pos, g.player.pos)) return false;
-  e.alerted = false;
-  e.returning = false;
-  const gap = distance(e.pos, a.crate);
-  if (gap > pull.arriveRadius) move(g, e, { x: (a.crate.x - e.pos.x) / gap, z: (a.crate.z - e.pos.z) / gap }, e.moveSpeed, dt);
-  return true;
+    pull = GAME_DATA.airdrop.convergence,
+    live = pull.enabled && !!a && (a.phase === "falling" || a.phase === "landed");
+  return converge(g, e, dt, move, live ? { at: a.crate, pull } : corpseTarget(g));
 }

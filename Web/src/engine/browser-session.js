@@ -30,6 +30,7 @@ import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver 
 import { createWorldGate } from "./world-gate.js";
 import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
+import { respawnArea } from "./corpse-run.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { installQaBridge } from "./qa-bridge.js";
@@ -566,14 +567,10 @@ export function createBrowserSession(options = {}) {
   }
   async function restart() {
     if (!loaded || traveling || resetting || contextLost || travelRecoveryFailed) return;
-    if (world.areaId !== "westminster") {
-      if (
-        !(await areas.activate({
-          areaId: "westminster",
-          entryPoint: world.manifest.entries.westminster,
-        }))
-      )
-        return;
+    // A death out in the field restarts in the safehouse area (data/corpseRun.json respawn); a death at home restarts as it always did.
+    const home = respawnArea(world.areaId, "westminster");
+    if (world.areaId !== home) {
+      if (!(await areas.activate({ areaId: home, entryPoint: world.manifest.entries[home] }))) return;
     }
     const owner = game;
     traveling = true;
@@ -591,6 +588,7 @@ export function createBrowserSession(options = {}) {
       }
       world.invalidateReadiness();
       input.clear();
+      await resources.equipFallbackMelee();
       resources.clearSupplies();
       resources.clearVestBag();
       actors.reset();
