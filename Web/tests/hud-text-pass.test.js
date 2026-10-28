@@ -28,7 +28,18 @@ test("outside Westminster each area shows its one objective line", () => {
   assert.equal(progressionObjective({ world: { areaId: "east" } }).objective, "Head for East Bridge or Elephant and Castle.");
   const world = { areaId: "south", bossData: { placements: [{ areaId: "south" }] } };
   assert.equal(progressionObjective({ world, enemies: [{ hp: 9, bossProfile: {} }] }).objective, "Kill the Southbank Stalker.");
-  assert.match(progressionObjective({ world, enemies: [] }).objective, /^Boss down/);
+});
+
+test("Boss down needs a boss seen alive in that area first, so a late spawn never flashes it", () => {
+  const world = { areaId: "south", bossData: { placements: [{ areaId: "south" }] } },
+    g = { world, enemies: [] };
+  assert.equal(progressionObjective(g).objective, "Kill the Southbank Stalker.");
+  g.enemies = [{ hp: 9, bossProfile: {} }];
+  assert.equal(progressionObjective(g).objective, "Kill the Southbank Stalker.");
+  g.enemies = [];
+  assert.match(progressionObjective(g).objective, /^Boss down/);
+  g.world = { areaId: "east-bridge", bossData: { placements: [{ areaId: "east-bridge" }] } };
+  assert.equal(progressionObjective(g).objective, "Kill the Bridge Warden.");
 });
 
 test("the hunter warnings never reach the HUD; other messages pass through", () => {
