@@ -128,14 +128,17 @@ for (const [i, name] of MONSTERS.entries()) {
 }
 const withMonsters = steps.at(-1);
 
-// Two marked hunters arrive in view and die at once (the game's own lethal ranged hit): the boss ragdoll cost.
-// The simulation is stepped (session.step) to the arrival, because a software-rendered page runs at a frame or two a second.
+// --ragdoll 1 (OFF by default, UNPROVEN): two marked hunters arrive in view and die at once (the game's own lethal ranged hit).
+// On a software-rendered page with this crowd the sim runs at ~7% of real time and the hunter did not arrive within 4 minutes in area7
+// (see the PR); the ragdoll cost is measured with Web/tools/physics-pilot-game.mjs instead (--crowd 2 --hostiles 10, physics 0 vs 1).
+let hunterSeen = false, hunters = 0, withHuntersAlive = null, ragdollDeathWindow = null, ragdollSettled = null;
+if (arg("ragdoll", "0") === "1") {
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
 await q(() => { const g = window.__qa.game; g.marked ??= { version: 1, carried: 0, bank: 0, bounty: 0 }; }); // no Marked state = no hunter (huntBlocked)
 // (markedHunt is created by the first hunter step in this area, so the arrival clock is moved back on every poll, not once)
 // A hunter arrives at an entry point at least minSpawnDistance from the player (markedEntry), and the player starts AT an entry, so the player
 // is pinned at a spot where markedEntry finds a point (searched on rings around the build spot), then put back.
-const hunterSeen = await page.waitForFunction(async () => {
+hunterSeen = await page.waitForFunction(async () => {
   const g = window.__qa.game, s = g.markedHunt, { markedEntry } = await import("/src/engine/marked-hunters.js");
   if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; }
   if (!window.__stand) {
@@ -154,7 +157,7 @@ const hunterSeen = await page.waitForFunction(async () => {
 }, null, { timeout: 240000, polling: 500 }).then(() => true, () => false);
 note("hunter wait", await q(() => { const g = window.__qa.game; return { seen: g.enemies.some((e) => e.markedHunter), enemies: g.enemies.length, qa: g.enemies.filter((e) => String(e.placementKey).startsWith("qa-")).length, stand: window.__stand ?? null, home: window.__home, markedHunt: !!g.markedHunt, areaId: g.markedHunt?.areaId, area: window.__qa.world.areaId, finished: g.finished, time: g.time }; }));
 await page.waitForTimeout(8000); // the hunter's own model streams in
-const hunters = await q(() => {
+hunters = await q(() => {
   const g = window.__qa.game, h = g.enemies.find((e) => e.markedHunter && e.hp > 0);
   if (!h) return 0;
   h.pos = { x: g.player.pos.x - 1.5, z: g.player.pos.z + 3.5 }; h.home = { ...h.pos }; h.moveSpeed = 0;
@@ -163,13 +166,14 @@ const hunters = await q(() => {
   return g.enemies.filter((e) => e.markedHunter && e.hp > 0).length;
 });
 await page.waitForTimeout(1500);
-const withHuntersAlive = await measure(4000);
+withHuntersAlive = await measure(4000);
 await q(async () => {
   const { rangedHit } = await import("/src/combat.js"), g = window.__qa.game;
   for (const h of g.enemies.filter((e) => e.markedHunter && e.hp > 0)) rangedHit(g, { targetId: h.id, direction: { x: 0, z: -1 } }, "pistol", "pistol", 1e9);
 });
-const ragdollDeathWindow = await measure(4000); // both bodies fall
-const ragdollSettled = await measure(3000);
+ragdollDeathWindow = await measure(4000); // both bodies fall
+ragdollSettled = await measure(3000);
+}
 const deathStats = await q(() => ({ ...globalThis.__physicsDeathStats }));
 const gpu = await q(() => { const gl = document.createElement("canvas").getContext("webgl2"), e = gl?.getExtension("WEBGL_debug_renderer_info"); return e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : "unknown"; });
 const result = {
