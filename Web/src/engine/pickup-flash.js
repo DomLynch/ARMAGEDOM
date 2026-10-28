@@ -6,10 +6,11 @@ import { GAME_DATA } from "./game-data.js";
 // stepGame replaces g.events at the start of every step, so a pickup that lands between steps (the async auto-equip, the pistol claim from a
 // tap) would be wiped unseen; the loop therefore observes g.events both just before and just after each step.
 // The overlay is #pickup-flash (pointer-events none), so it never touches input or the six touch actions.
-export function createPickupFlash(
-  node = globalThis.document?.getElementById?.("pickup-flash"),
-  data = GAME_DATA.visual.pickupFlash,
-) {
+// `overlay` and `rules` are for tests; both are resolved in the body (no default-parameter expressions, which the production build lowers badly).
+export function createPickupFlash(overlay, rules) {
+  const doc = globalThis.document,
+    node = overlay !== undefined ? overlay : doc && doc.getElementById ? doc.getElementById("pickup-flash") : null,
+    data = rules !== undefined ? rules : GAME_DATA.visual.pickupFlash;
   const kinds = new Set(data.events),
     seen = new WeakMap(); // events array -> how many of its events were already looked at
   let until = 0,
@@ -22,7 +23,8 @@ export function createPickupFlash(
     get latest() {
       return latest;
     },
-    observe(events, now = globalThis.performance?.now() ?? 0) {
+    observe(events, at) {
+      const now = at !== undefined ? at : globalThis.performance ? globalThis.performance.now() : 0;
       latest = [];
       if (!events) return false;
       const fresh = events.slice(seen.get(events) ?? 0);
