@@ -38,7 +38,7 @@ test("only the bodies checked clean are shipped: every crowd file is a registere
   assert.deepEqual(files, bodies.map((row) => `${row.ref}.glb`).sort(), "no GLB outside the pool");
   for (const gone of ["man-02", "woman-02", "gen-v2-0001", "gen-v2-0009", "gen-v2-0002", "gen-v2-0015", "gen-v2-0043", "brute-01"])
     assert.equal(manifest.models[`mh-${gone}`], undefined, `${gone} is not shipped`);
-  assert.equal(bodies.length, 19);
+  assert.equal(bodies.length, 49, "19 from batch 1 plus the 30 worn-clothing bodies of batch 2 (inactive until Dom picks)");
 });
 
 test("the existing looks stay in the rotation with the real weight: at least half of the draws in every area keep an existing human", () => {

@@ -1,0 +1,47 @@
+[
+ {
+  "id": "mh-worn-02",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.571,
+  "bottom": -0.084,
+  "width": 0.633,
+  "sheet": "full-walk-01.png"
+ },
+ {
+  "id": "mh-worn-07",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.91,
+  "bottom": -0.081,
+  "width": 0.72,
+  "sheet": "full-walk-02.png"
+ },
+ {
+  "id": "mh-worn-13",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.702,
+  "bottom": -0.074,
+  "width": 0.642,
+  "sheet": "full-walk-03.png"
+ },
+ {
+  "id": "mh-worn-19",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.551,
+  "bottom": -0.066,
+  "width": 0.649,
+  "sheet": "full-walk-04.png"
+ },
+ {
+  "id": "mh-worn-26",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.518,
+  "bottom": -0.063,
+  "width": 0.56,
+  "sheet": "full-walk-05.png"
+ }
+]

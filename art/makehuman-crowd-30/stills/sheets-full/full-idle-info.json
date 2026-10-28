@@ -1,0 +1,272 @@
+[
+ {
+  "id": "mh-worn-01",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.679,
+  "bottom": -0.079,
+  "width": 0.686,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-02",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.529,
+  "bottom": -0.082,
+  "width": 0.634,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-03",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.444,
+  "bottom": -0.061,
+  "width": 0.576,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-04",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.776,
+  "bottom": -0.088,
+  "width": 0.708,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-05",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.906,
+  "bottom": -0.085,
+  "width": 0.791,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-06",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.669,
+  "bottom": -0.065,
+  "width": 0.682,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-07",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.865,
+  "bottom": -0.076,
+  "width": 0.709,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-08",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.546,
+  "bottom": -0.079,
+  "width": 0.646,
+  "sheet": "full-idle-01.png"
+ },
+ {
+  "id": "mh-worn-09",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.801,
+  "bottom": -0.086,
+  "width": 0.701,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-10",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.521,
+  "bottom": -0.085,
+  "width": 0.602,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-11",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.456,
+  "bottom": -0.061,
+  "width": 0.549,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-12",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.353,
+  "bottom": -0.057,
+  "width": 0.529,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-13",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.658,
+  "bottom": -0.071,
+  "width": 0.638,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-14",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.546,
+  "bottom": -0.064,
+  "width": 0.586,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-15",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.397,
+  "bottom": -0.056,
+  "width": 0.521,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-16",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.649,
+  "bottom": -0.047,
+  "width": 0.624,
+  "sheet": "full-idle-02.png"
+ },
+ {
+  "id": "mh-worn-17",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.439,
+  "bottom": -0.071,
+  "width": 0.605,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-18",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.405,
+  "bottom": -0.072,
+  "width": 0.595,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-19",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.513,
+  "bottom": -0.064,
+  "width": 0.654,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-20",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.623,
+  "bottom": -0.064,
+  "width": 0.607,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-21",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.776,
+  "bottom": -0.084,
+  "width": 0.677,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-22",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.418,
+  "bottom": -0.068,
+  "width": 0.548,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-23",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.462,
+  "bottom": -0.052,
+  "width": 0.555,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-24",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.624,
+  "bottom": -0.048,
+  "width": 0.622,
+  "sheet": "full-idle-03.png"
+ },
+ {
+  "id": "mh-worn-25",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.907,
+  "bottom": -0.078,
+  "width": 0.735,
+  "sheet": "full-idle-04.png"
+ },
+ {
+  "id": "mh-worn-26",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.481,
+  "bottom": -0.057,
+  "width": 0.565,
+  "sheet": "full-idle-04.png"
+ },
+ {
+  "id": "mh-worn-27",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.426,
+  "bottom": -0.064,
+  "width": 0.539,
+  "sheet": "full-idle-04.png"
+ },
+ {
+  "id": "mh-worn-28",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.697,
+  "bottom": -0.053,
+  "width": 0.632,
+  "sheet": "full-idle-04.png"
+ },
+ {
+  "id": "mh-worn-29",
+  "draws": 2,
+  "tris": 13500,
+  "top": 1.61,
+  "bottom": -0.045,
+  "width": 0.603,
+  "sheet": "full-idle-04.png"
+ },
+ {
+  "id": "mh-worn-30",
+  "draws": 2,
+  "tris": 13499,
+  "top": 1.49,
+  "bottom": -0.041,
+  "width": 0.566,
+  "sheet": "full-idle-04.png"
+ }
+]

@@ -1,0 +1,3028 @@
+{
+ "mh-worn-01": {
+  "factory_row": "body-0101",
+  "row": {
+   "label": "Crowd worn 0101",
+   "node": "Body0101",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.47,
+    "muscle": 0.57,
+    "weight": 0.47,
+    "height": 0.44,
+    "proportions": 0.56,
+    "race": {
+     "asian": 0.04,
+     "caucasian": 0.1,
+     "african": 0.86
+    }
+   },
+   "skin": "young_african_male.mhmat",
+   "clothes": [
+    "male_casualsuit06.mhclo",
+    "shoes06.mhclo"
+   ],
+   "eyebrows": "eyebrow009.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 101,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "mud-brown",
+     "shoes": "scuffed-black",
+     "hair": "black"
+    }
+   },
+   "hair": "short02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit06$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.42,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.21,
+     0.16
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.16,
+      0.05,
+      0.42,
+      0.2
+     ],
+     [
+      0.46,
+      0.04,
+      0.64,
+      0.2
+     ],
+     [
+      0.74,
+      0.12,
+      0.82,
+      0.22
+     ]
+    ],
+    "dirt": 0.59,
+    "fade": 0.16,
+    "seed": 101
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-02": {
+  "factory_row": "body-0102",
+  "row": {
+   "label": "Crowd worn 0102",
+   "node": "Body0102",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.77,
+    "muscle": 0.67,
+    "weight": 0.45,
+    "height": 0.27,
+    "proportions": 0.62,
+    "race": {
+     "asian": 0.11,
+     "caucasian": 0.62,
+     "african": 0.26
+    }
+   },
+   "skin": "middleage_caucasian_male.mhmat",
+   "clothes": [
+    "male_casualsuit03.mhclo",
+    "shoes06.mhclo"
+   ],
+   "eyebrows": "eyebrow008.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 102,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "charcoal",
+     "shoes": "dust-tan",
+     "hair": "black"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit03$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.04,
+      0.0,
+      0.99,
+      0.58
+     ]
+    ],
+    "in": [
+     0.2,
+     0.2,
+     0.22
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [],
+    "dirt": 0.43,
+    "fade": 0.12,
+    "seed": 102
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-03": {
+  "factory_row": "body-0103",
+  "row": {
+   "label": "Crowd worn 0103",
+   "node": "Body0103",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.7,
+    "muscle": 0.83,
+    "weight": 0.77,
+    "height": 0.31,
+    "proportions": 0.45,
+    "race": {
+     "asian": 0.12,
+     "caucasian": 0.36,
+     "african": 0.52
+    }
+   },
+   "skin": "middleage_african_female.mhmat",
+   "clothes": [
+    "female_elegantsuit01.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow003.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 103,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "rust-stained",
+     "trousers": "black-denim",
+     "shoes": "grey-canvas",
+     "hair": "grey"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_elegantsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.0,
+      1.0,
+      0.32
+     ]
+    ],
+    "in": [
+     0.14,
+     0.14,
+     0.16
+    ],
+    "out": [
+     0.5,
+     0.32,
+     0.24
+    ],
+    "logo_rects": [],
+    "dirt": 0.35,
+    "fade": 0.16,
+    "seed": 103
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-04": {
+  "factory_row": "body-0104",
+  "row": {
+   "label": "Crowd worn 0104",
+   "node": "Body0104",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.72,
+    "muscle": 0.23,
+    "weight": 0.37,
+    "height": 0.59,
+    "proportions": 0.61,
+    "race": {
+     "asian": 0.35,
+     "caucasian": 0.05,
+     "african": 0.6
+    }
+   },
+   "skin": "middleage_african_male.mhmat",
+   "clothes": [
+    "male_casualsuit02.mhclo",
+    "shoes03.mhclo"
+   ],
+   "eyebrows": "eyebrow004.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 104,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "moss-drab",
+     "trousers": "black-denim",
+     "shoes": "grey-canvas",
+     "hair": "grey"
+    }
+   },
+   "hair": "short02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.45,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.14,
+     0.14,
+     0.16
+    ],
+    "out": [
+     0.34,
+     0.38,
+     0.26
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.61,
+    "fade": 0.13,
+    "seed": 104
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-05": {
+  "factory_row": "body-0105",
+  "row": {
+   "label": "Crowd worn 0105",
+   "node": "Body0105",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.51,
+    "muscle": 0.83,
+    "weight": 0.77,
+    "height": 0.71,
+    "proportions": 0.73,
+    "race": {
+     "asian": 0.55,
+     "caucasian": 0.2,
+     "african": 0.25
+    }
+   },
+   "skin": "young_asian_male.mhmat",
+   "clothes": [
+    "male_casualsuit03.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow005.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 105,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "tarp-green",
+     "trousers": "grey-work",
+     "shoes": "dust-tan",
+     "hair": "black"
+    }
+   },
+   "hair": "long01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit03$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.04,
+      0.0,
+      0.99,
+      0.58
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.26,
+     0.34,
+     0.3
+    ],
+    "logo_rects": [],
+    "dirt": 0.49,
+    "fade": 0.15,
+    "seed": 105
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-06": {
+  "factory_row": "body-0106",
+  "row": {
+   "label": "Crowd worn 0106",
+   "node": "Body0106",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.69,
+    "muscle": 0.67,
+    "weight": 0.75,
+    "height": 0.58,
+    "proportions": 0.65,
+    "race": {
+     "asian": 0.84,
+     "caucasian": 0.04,
+     "african": 0.12
+    }
+   },
+   "skin": "middleage_asian_male.mhmat",
+   "clothes": [
+    "male_casualsuit01.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow009.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 106,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "mud-brown",
+     "trousers": "charcoal",
+     "shoes": "dust-tan",
+     "hair": "auburn"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.35,
+      0.0,
+      0.73,
+      1.0
+     ]
+    ],
+    "in": [
+     0.2,
+     0.2,
+     0.22
+    ],
+    "out": [
+     0.36,
+     0.28,
+     0.22
+    ],
+    "logo_rects": [],
+    "dirt": 0.53,
+    "fade": 0.18,
+    "seed": 106
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.34,
+     0.15,
+     0.08
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.289,
+     0.128,
+     0.068
+    ]
+   }
+  ]
+ },
+ "mh-worn-07": {
+  "factory_row": "body-0107",
+  "row": {
+   "label": "Crowd worn 0107",
+   "node": "Body0107",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.85,
+    "muscle": 0.57,
+    "weight": 0.74,
+    "height": 0.68,
+    "proportions": 0.4,
+    "race": {
+     "asian": 0.44,
+     "caucasian": 0.39,
+     "african": 0.17
+    }
+   },
+   "skin": "old_asian_male.mhmat",
+   "clothes": [
+    "male_casualsuit01.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow002.mhclo",
+   "eyelashes": "eyelashes03.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 107,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "washed-maroon",
+     "trousers": "black-denim",
+     "shoes": "grey-canvas",
+     "hair": "grey"
+    }
+   },
+   "hair": "short01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.35,
+      0.0,
+      0.73,
+      1.0
+     ]
+    ],
+    "in": [
+     0.14,
+     0.14,
+     0.16
+    ],
+    "out": [
+     0.38,
+     0.2,
+     0.22
+    ],
+    "logo_rects": [],
+    "dirt": 0.39,
+    "fade": 0.21,
+    "seed": 107
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-08": {
+  "factory_row": "body-0108",
+  "row": {
+   "label": "Crowd worn 0108",
+   "node": "Body0108",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.72,
+    "muscle": 0.7,
+    "weight": 0.54,
+    "height": 0.32,
+    "proportions": 0.66,
+    "race": {
+     "asian": 0.38,
+     "caucasian": 0.22,
+     "african": 0.4
+    }
+   },
+   "skin": "middleage_african_male.mhmat",
+   "clothes": [
+    "male_casualsuit02.mhclo",
+    "shoes05.mhclo"
+   ],
+   "eyebrows": "eyebrow005.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 108,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "dark-indigo",
+     "shoes": "worn-brown",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "short03.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.45,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.16,
+     0.2,
+     0.31
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.38,
+    "fade": 0.2,
+    "seed": 108
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-09": {
+  "factory_row": "body-0109",
+  "row": {
+   "label": "Crowd worn 0109",
+   "node": "Body0109",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.83,
+    "muscle": 0.62,
+    "weight": 0.6,
+    "height": 0.62,
+    "proportions": 0.49,
+    "race": {
+     "asian": 0.42,
+     "caucasian": 0.12,
+     "african": 0.47
+    }
+   },
+   "skin": "old_african_male.mhmat",
+   "clothes": [
+    "male_casualsuit02.mhclo",
+    "shoes05.mhclo"
+   ],
+   "eyebrows": "eyebrow005.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 109,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "washed-maroon",
+     "trousers": "dirt-khaki",
+     "shoes": "grey-canvas",
+     "hair": "brown"
+    }
+   },
+   "hair": "short02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.45,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.46,
+     0.42,
+     0.3
+    ],
+    "out": [
+     0.38,
+     0.2,
+     0.22
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.43,
+    "fade": 0.19,
+    "seed": 109
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.27,
+     0.18,
+     0.11
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.23,
+     0.153,
+     0.093
+    ]
+   }
+  ]
+ },
+ "mh-worn-10": {
+  "factory_row": "body-0111",
+  "row": {
+   "label": "Crowd worn 0111",
+   "node": "Body0111",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.77,
+    "muscle": 0.41,
+    "weight": 0.82,
+    "height": 0.27,
+    "proportions": 0.34,
+    "race": {
+     "asian": 0.18,
+     "caucasian": 0.5,
+     "african": 0.32
+    }
+   },
+   "skin": "middleage_caucasian_male.mhmat",
+   "clothes": [
+    "male_casualsuit06.mhclo",
+    "shoes03.mhclo"
+   ],
+   "eyebrows": "eyebrow007.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 111,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "mud-brown",
+     "shoes": "worn-brown",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit06$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.42,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.21,
+     0.16
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.16,
+      0.05,
+      0.42,
+      0.2
+     ],
+     [
+      0.46,
+      0.04,
+      0.64,
+      0.2
+     ],
+     [
+      0.74,
+      0.12,
+      0.82,
+      0.22
+     ]
+    ],
+    "dirt": 0.58,
+    "fade": 0.17,
+    "seed": 111
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-11": {
+  "factory_row": "body-0113",
+  "row": {
+   "label": "Crowd worn 0113",
+   "node": "Body0113",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.56,
+    "muscle": 0.58,
+    "weight": 0.35,
+    "height": 0.41,
+    "proportions": 0.4,
+    "race": {
+     "asian": 0.4,
+     "caucasian": 0.48,
+     "african": 0.13
+    }
+   },
+   "skin": "toigo_light_skin_female_ginger.mhmat",
+   "clothes": [
+    "female_casualsuit02.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow007.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 113,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "tarp-green",
+     "trousers": "charcoal",
+     "shoes": "scuffed-black",
+     "hair": "black"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.46,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.2,
+     0.2,
+     0.22
+    ],
+    "out": [
+     0.26,
+     0.34,
+     0.3
+    ],
+    "logo_rects": [
+     [
+      0.58,
+      0.11,
+      0.89,
+      0.32
+     ]
+    ],
+    "dirt": 0.57,
+    "fade": 0.17,
+    "seed": 113
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-12": {
+  "factory_row": "body-0115",
+  "row": {
+   "label": "Crowd worn 0115",
+   "node": "Body0115",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.81,
+    "muscle": 0.78,
+    "weight": 0.27,
+    "height": 0.31,
+    "proportions": 0.49,
+    "race": {
+     "asian": 0.62,
+     "caucasian": 0.1,
+     "african": 0.28
+    }
+   },
+   "skin": "old_asian_female.mhmat",
+   "clothes": [
+    "female_casualsuit02.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow012.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 115,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "dirt-khaki",
+     "shoes": "dust-tan",
+     "hair": "grey"
+    }
+   },
+   "hair": "ponytail01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.46,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.46,
+     0.42,
+     0.3
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.58,
+      0.11,
+      0.89,
+      0.32
+     ]
+    ],
+    "dirt": 0.37,
+    "fade": 0.11,
+    "seed": 115
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-13": {
+  "factory_row": "body-0116",
+  "row": {
+   "label": "Crowd worn 0116",
+   "node": "Body0116",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.87,
+    "muscle": 0.29,
+    "weight": 0.83,
+    "height": 0.49,
+    "proportions": 0.4,
+    "race": {
+     "asian": 0.36,
+     "caucasian": 0.11,
+     "african": 0.53
+    }
+   },
+   "skin": "old_african_male.mhmat",
+   "clothes": [
+    "male_casualsuit04.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow004.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 116,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "rust-stained",
+     "trousers": "mud-brown",
+     "shoes": "worn-brown",
+     "hair": "white"
+    }
+   },
+   "hair": "short03.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit04$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.42,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.21,
+     0.16
+    ],
+    "out": [
+     0.5,
+     0.32,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.61,
+    "fade": 0.18,
+    "seed": 116
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.78,
+     0.77,
+     0.74
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.663,
+     0.654,
+     0.629
+    ]
+   }
+  ]
+ },
+ "mh-worn-14": {
+  "factory_row": "body-0117",
+  "row": {
+   "label": "Crowd worn 0117",
+   "node": "Body0117",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.66,
+    "muscle": 0.62,
+    "weight": 0.36,
+    "height": 0.47,
+    "proportions": 0.5,
+    "race": {
+     "asian": 0.03,
+     "caucasian": 0.68,
+     "african": 0.29
+    }
+   },
+   "skin": "middleage_caucasian_female.mhmat",
+   "clothes": [
+    "female_elegantsuit01.mhclo",
+    "shoes03.mhclo"
+   ],
+   "eyebrows": "eyebrow001.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 117,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "moss-drab",
+     "trousers": "black-denim",
+     "shoes": "worn-brown",
+     "hair": "black"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_elegantsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.0,
+      1.0,
+      0.32
+     ]
+    ],
+    "in": [
+     0.14,
+     0.14,
+     0.16
+    ],
+    "out": [
+     0.34,
+     0.38,
+     0.26
+    ],
+    "logo_rects": [],
+    "dirt": 0.6,
+    "fade": 0.18,
+    "seed": 117
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-15": {
+  "factory_row": "body-0118",
+  "row": {
+   "label": "Crowd worn 0118",
+   "node": "Body0118",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.37,
+    "muscle": 0.56,
+    "weight": 0.66,
+    "height": 0.56,
+    "proportions": 0.33,
+    "race": {
+     "asian": 0.75,
+     "caucasian": 0.21,
+     "african": 0.04
+    }
+   },
+   "skin": "young_asian_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes05.mhclo"
+   ],
+   "eyebrows": "eyebrow005.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 118,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "washed-maroon",
+     "trousers": "olive-drab",
+     "shoes": "grey-canvas",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "short04.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.3,
+     0.2
+    ],
+    "out": [
+     0.38,
+     0.2,
+     0.22
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.59,
+    "fade": 0.17,
+    "seed": 118
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-16": {
+  "factory_row": "body-0119",
+  "row": {
+   "label": "Crowd worn 0119",
+   "node": "Body0119",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.8,
+    "muscle": 0.75,
+    "weight": 0.29,
+    "height": 0.6,
+    "proportions": 0.67,
+    "race": {
+     "asian": 0.21,
+     "caucasian": 0.48,
+     "african": 0.31
+    }
+   },
+   "skin": "old_caucasian_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow008.mhclo",
+   "eyelashes": "eyelashes03.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 119,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "dust-grey",
+     "trousers": "dark-indigo",
+     "shoes": "worn-brown",
+     "hair": "black"
+    }
+   },
+   "hair": "bob02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.16,
+     0.2,
+     0.31
+    ],
+    "out": [
+     0.46,
+     0.46,
+     0.44
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.62,
+    "fade": 0.17,
+    "seed": 119
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-17": {
+  "factory_row": "body-0120",
+  "row": {
+   "label": "Crowd worn 0120",
+   "node": "Body0120",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.41,
+    "muscle": 0.6,
+    "weight": 0.25,
+    "height": 0.31,
+    "proportions": 0.43,
+    "race": {
+     "asian": 0.4,
+     "caucasian": 0.34,
+     "african": 0.26
+    }
+   },
+   "skin": "young_asian_male.mhmat",
+   "clothes": [
+    "male_casualsuit05.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow012.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 120,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-mustard",
+     "trousers": "dirt-khaki",
+     "shoes": "grey-canvas",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "ponytail01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit05$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.5,
+      0.66,
+      1.0
+     ]
+    ],
+    "in": [
+     0.46,
+     0.42,
+     0.3
+    ],
+    "out": [
+     0.58,
+     0.48,
+     0.24
+    ],
+    "logo_rects": [],
+    "dirt": 0.55,
+    "fade": 0.2,
+    "seed": 120
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-18": {
+  "factory_row": "body-0122",
+  "row": {
+   "label": "Crowd worn 0122",
+   "node": "Body0122",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.39,
+    "muscle": 0.45,
+    "weight": 0.56,
+    "height": 0.29,
+    "proportions": 0.55,
+    "race": {
+     "asian": 0.42,
+     "caucasian": 0.19,
+     "african": 0.39
+    }
+   },
+   "skin": "young_asian_male.mhmat",
+   "clothes": [
+    "male_casualsuit02.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow003.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 122,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "rust-stained",
+     "trousers": "black-denim",
+     "shoes": "grey-canvas",
+     "hair": "black"
+    }
+   },
+   "hair": "short04.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.45,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.14,
+     0.14,
+     0.16
+    ],
+    "out": [
+     0.5,
+     0.32,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.53,
+    "fade": 0.11,
+    "seed": 122
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-19": {
+  "factory_row": "body-0123",
+  "row": {
+   "label": "Crowd worn 0123",
+   "node": "Body0123",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.45,
+    "muscle": 0.58,
+    "weight": 0.44,
+    "height": 0.26,
+    "proportions": 0.74,
+    "race": {
+     "asian": 0.03,
+     "caucasian": 0.65,
+     "african": 0.32
+    }
+   },
+   "skin": "young_caucasian_male2.mhmat",
+   "clothes": [
+    "male_casualsuit03.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow007.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 123,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "ash-cream",
+     "trousers": "grey-work",
+     "shoes": "scuffed-black",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "afro01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit03$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.04,
+      0.0,
+      0.99,
+      0.58
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.7,
+     0.66,
+     0.56
+    ],
+    "logo_rects": [],
+    "dirt": 0.4,
+    "fade": 0.13,
+    "seed": 123
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-20": {
+  "factory_row": "body-0124",
+  "row": {
+   "label": "Crowd worn 0124",
+   "node": "Body0124",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.4,
+    "muscle": 0.48,
+    "weight": 0.53,
+    "height": 0.64,
+    "proportions": 0.57,
+    "race": {
+     "asian": 0.09,
+     "caucasian": 0.03,
+     "african": 0.88
+    }
+   },
+   "skin": "young_african_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow011.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 124,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "ash-cream",
+     "trousers": "dark-indigo",
+     "shoes": "worn-brown",
+     "hair": "auburn"
+    }
+   },
+   "hair": "short04.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.16,
+     0.2,
+     0.31
+    ],
+    "out": [
+     0.7,
+     0.66,
+     0.56
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.52,
+    "fade": 0.14,
+    "seed": 124
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.34,
+     0.15,
+     0.08
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.289,
+     0.128,
+     0.068
+    ]
+   }
+  ]
+ },
+ "mh-worn-21": {
+  "factory_row": "body-0125",
+  "row": {
+   "label": "Crowd worn 0125",
+   "node": "Body0125",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.84,
+    "muscle": 0.55,
+    "weight": 0.74,
+    "height": 0.62,
+    "proportions": 0.55,
+    "race": {
+     "asian": 0.4,
+     "caucasian": 0.52,
+     "african": 0.07
+    }
+   },
+   "skin": "old_caucasian_male.mhmat",
+   "clothes": [
+    "male_casualsuit04.mhclo",
+    "shoes06.mhclo"
+   ],
+   "eyebrows": "eyebrow010.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 125,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "bleached-khaki",
+     "trousers": "mud-brown",
+     "shoes": "scuffed-black",
+     "hair": "brown"
+    }
+   },
+   "hair": "short01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit04$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.42,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.21,
+     0.16
+    ],
+    "out": [
+     0.62,
+     0.58,
+     0.46
+    ],
+    "logo_rects": [
+     [
+      0.47,
+      0.1,
+      0.64,
+      0.27
+     ]
+    ],
+    "dirt": 0.5,
+    "fade": 0.22,
+    "seed": 125
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.27,
+     0.18,
+     0.11
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.23,
+     0.153,
+     0.093
+    ]
+   }
+  ]
+ },
+ "mh-worn-22": {
+  "factory_row": "body-0127",
+  "row": {
+   "label": "Crowd worn 0127",
+   "node": "Body0127",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.5,
+    "muscle": 0.83,
+    "weight": 0.35,
+    "height": 0.31,
+    "proportions": 0.55,
+    "race": {
+     "asian": 0.39,
+     "caucasian": 0.03,
+     "african": 0.58
+    }
+   },
+   "skin": "young_african_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes03.mhclo"
+   ],
+   "eyebrows": "eyebrow001.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 127,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "dust-grey",
+     "trousers": "dark-indigo",
+     "shoes": "dust-tan",
+     "hair": "brown"
+    }
+   },
+   "hair": "short02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.16,
+     0.2,
+     0.31
+    ],
+    "out": [
+     0.46,
+     0.46,
+     0.44
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.39,
+    "fade": 0.12,
+    "seed": 127
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.27,
+     0.18,
+     0.11
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.23,
+     0.153,
+     0.093
+    ]
+   }
+  ]
+ },
+ "mh-worn-23": {
+  "factory_row": "body-0128",
+  "row": {
+   "label": "Crowd worn 0128",
+   "node": "Body0128",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.49,
+    "muscle": 0.56,
+    "weight": 0.55,
+    "height": 0.37,
+    "proportions": 0.52,
+    "race": {
+     "asian": 0.19,
+     "caucasian": 0.47,
+     "african": 0.34
+    }
+   },
+   "skin": "young_caucasian_female2.mhmat",
+   "clothes": [
+    "female_casualsuit02.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow012.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 128,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "tarp-green",
+     "trousers": "grey-work",
+     "shoes": "grey-canvas",
+     "hair": "brown"
+    }
+   },
+   "hair": "short01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.46,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.26,
+     0.34,
+     0.3
+    ],
+    "logo_rects": [
+     [
+      0.58,
+      0.11,
+      0.89,
+      0.32
+     ]
+    ],
+    "dirt": 0.47,
+    "fade": 0.2,
+    "seed": 128
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.32,
+     0.32,
+     0.33
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.27,
+     0.18,
+     0.11
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.23,
+     0.153,
+     0.093
+    ]
+   }
+  ]
+ },
+ "mh-worn-24": {
+  "factory_row": "body-0129",
+  "row": {
+   "label": "Crowd worn 0129",
+   "node": "Body0129",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.73,
+    "muscle": 0.74,
+    "weight": 0.71,
+    "height": 0.59,
+    "proportions": 0.62,
+    "race": {
+     "asian": 0.22,
+     "caucasian": 0.63,
+     "african": 0.15
+    }
+   },
+   "skin": "middleage_caucasian_female.mhmat",
+   "clothes": [
+    "female_elegantsuit01.mhclo",
+    "shoes04.mhclo"
+   ],
+   "eyebrows": "eyebrow005.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 129,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "mud-brown",
+     "trousers": "grey-work",
+     "shoes": "scuffed-black",
+     "hair": "black"
+    }
+   },
+   "hair": "short03.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_elegantsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.0,
+      1.0,
+      0.32
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.36,
+     0.28,
+     0.22
+    ],
+    "logo_rects": [],
+    "dirt": 0.39,
+    "fade": 0.17,
+    "seed": 129
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-25": {
+  "factory_row": "body-0130",
+  "row": {
+   "label": "Crowd worn 0130",
+   "node": "Body0130",
+   "batch": 200,
+   "macro": {
+    "gender": 1.0,
+    "age": 0.77,
+    "muscle": 0.37,
+    "weight": 0.48,
+    "height": 0.71,
+    "proportions": 0.66,
+    "race": {
+     "asian": 0.3,
+     "caucasian": 0.68,
+     "african": 0.03
+    }
+   },
+   "skin": "middleage_caucasian_male.mhmat",
+   "clothes": [
+    "male_casualsuit06.mhclo",
+    "shoes04.mhclo"
+   ],
+   "eyebrows": "eyebrow012.mhclo",
+   "eyelashes": "eyelashes03.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 130,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "rust-stained",
+     "trousers": "dark-indigo",
+     "shoes": "scuffed-black",
+     "hair": "grey"
+    }
+   },
+   "hair": "bob02.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.male_casualsuit06$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.42,
+      0.78,
+      1.0
+     ]
+    ],
+    "in": [
+     0.16,
+     0.2,
+     0.31
+    ],
+    "out": [
+     0.5,
+     0.32,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.16,
+      0.05,
+      0.42,
+      0.2
+     ],
+     [
+      0.46,
+      0.04,
+      0.64,
+      0.2
+     ],
+     [
+      0.74,
+      0.12,
+      0.82,
+      0.22
+     ]
+    ],
+    "dirt": 0.51,
+    "fade": 0.12,
+    "seed": 130
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.11,
+     0.1,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-26": {
+  "factory_row": "body-0137",
+  "row": {
+   "label": "Crowd worn 0137",
+   "node": "Body0137",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.92,
+    "muscle": 0.67,
+    "weight": 0.53,
+    "height": 0.48,
+    "proportions": 0.31,
+    "race": {
+     "asian": 0.53,
+     "caucasian": 0.08,
+     "african": 0.39
+    }
+   },
+   "skin": "old_asian_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes02.mhclo"
+   ],
+   "eyebrows": "eyebrow001.mhclo",
+   "eyelashes": "eyelashes02.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 137,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "dull-teal",
+     "trousers": "olive-drab",
+     "shoes": "dust-tan",
+     "hair": "grey"
+    }
+   },
+   "hair": "short03.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.3,
+     0.2
+    ],
+    "out": [
+     0.24,
+     0.36,
+     0.38
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.53,
+    "fade": 0.1,
+    "seed": 137
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.5,
+     0.5,
+     0.5
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.425,
+     0.425,
+     0.425
+    ]
+   }
+  ]
+ },
+ "mh-worn-27": {
+  "factory_row": "body-0139",
+  "row": {
+   "label": "Crowd worn 0139",
+   "node": "Body0139",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.5,
+    "muscle": 0.22,
+    "weight": 0.27,
+    "height": 0.39,
+    "proportions": 0.61,
+    "race": {
+     "asian": 0.52,
+     "caucasian": 0.4,
+     "african": 0.08
+    }
+   },
+   "skin": "young_asian_female.mhmat",
+   "clothes": [
+    "female_elegantsuit01.mhclo",
+    "shoes03.mhclo"
+   ],
+   "eyebrows": "eyebrow003.mhclo",
+   "eyelashes": "eyelashes01.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 139,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "dust-grey",
+     "trousers": "grey-work",
+     "shoes": "worn-brown",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "long01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_elegantsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.0,
+      1.0,
+      0.32
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.46,
+     0.46,
+     0.44
+    ],
+    "logo_rects": [],
+    "dirt": 0.41,
+    "fade": 0.21,
+    "seed": 139
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ },
+ "mh-worn-28": {
+  "factory_row": "body-0140",
+  "row": {
+   "label": "Crowd worn 0140",
+   "node": "Body0140",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.54,
+    "muscle": 0.7,
+    "weight": 0.83,
+    "height": 0.69,
+    "proportions": 0.34,
+    "race": {
+     "asian": 0.72,
+     "caucasian": 0.2,
+     "african": 0.08
+    }
+   },
+   "skin": "young_asian_female.mhmat",
+   "clothes": [
+    "female_casualsuit02.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow002.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 140,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "rust-stained",
+     "trousers": "grey-work",
+     "shoes": "dust-tan",
+     "hair": "dark-blond"
+    }
+   },
+   "hair": "short04.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit02$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.46,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "out": [
+     0.5,
+     0.32,
+     0.24
+    ],
+    "logo_rects": [
+     [
+      0.58,
+      0.11,
+      0.89,
+      0.32
+     ]
+    ],
+    "dirt": 0.5,
+    "fade": 0.15,
+    "seed": 140
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.33,
+     0.18
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.357,
+     0.281,
+     0.153
+    ]
+   }
+  ]
+ },
+ "mh-worn-29": {
+  "factory_row": "body-0141",
+  "row": {
+   "label": "Crowd worn 0141",
+   "node": "Body0141",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.8,
+    "muscle": 0.63,
+    "weight": 0.83,
+    "height": 0.63,
+    "proportions": 0.52,
+    "race": {
+     "asian": 0.77,
+     "caucasian": 0.19,
+     "african": 0.03
+    }
+   },
+   "skin": "old_asian_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow008.mhclo",
+   "eyelashes": "eyelashes04.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 141,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "faded-denim",
+     "trousers": "mud-brown",
+     "shoes": "dust-tan",
+     "hair": "black"
+    }
+   },
+   "hair": "braid01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.28,
+     0.21,
+     0.16
+    ],
+    "out": [
+     0.3,
+     0.38,
+     0.48
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.37,
+    "fade": 0.11,
+    "seed": 141
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.42,
+     0.34,
+     0.22
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.06,
+     0.05,
+     0.05
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.051,
+     0.043,
+     0.043
+    ]
+   }
+  ]
+ },
+ "mh-worn-30": {
+  "factory_row": "body-0144",
+  "row": {
+   "label": "Crowd worn 0144",
+   "node": "Body0144",
+   "batch": 200,
+   "macro": {
+    "gender": 0.0,
+    "age": 0.9,
+    "muscle": 0.32,
+    "weight": 0.73,
+    "height": 0.46,
+    "proportions": 0.34,
+    "race": {
+     "asian": 0.3,
+     "caucasian": 0.68,
+     "african": 0.03
+    }
+   },
+   "skin": "old_caucasian_female.mhmat",
+   "clothes": [
+    "female_casualsuit01.mhclo",
+    "shoes01.mhclo"
+   ],
+   "eyebrows": "eyebrow004.mhclo",
+   "eyelashes": "eyelashes03.mhclo",
+   "gen": {
+    "seed": 20301028,
+    "index": 144,
+    "batch": "armagedom-crowd-30",
+    "palette": {
+     "shirt": "mud-brown",
+     "trousers": "charcoal",
+     "shoes": "worn-brown",
+     "hair": "dark-brown"
+    }
+   },
+   "hair": "short01.mhclo"
+  },
+  "palette": [
+   {
+    "match": "\\.female_casualsuit01$",
+    "mode": "worn",
+    "rects": [
+     [
+      0.0,
+      0.47,
+      0.76,
+      1.0
+     ]
+    ],
+    "in": [
+     0.2,
+     0.2,
+     0.22
+    ],
+    "out": [
+     0.36,
+     0.28,
+     0.22
+    ],
+    "logo_rects": [
+     [
+      0.64,
+      0.11,
+      0.95,
+      0.32
+     ]
+    ],
+    "dirt": 0.57,
+    "fade": 0.19,
+    "seed": 144
+   },
+   {
+    "match": "shoes0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.24,
+     0.16,
+     0.1
+    ]
+   },
+   {
+    "match": "\\.(short|bob|long|ponytail|braid|afro)0\\d",
+    "mode": "tone",
+    "rgb": [
+     0.16,
+     0.1,
+     0.07
+    ]
+   },
+   {
+    "match": "eyebrow",
+    "mode": "tone",
+    "rgb": [
+     0.136,
+     0.085,
+     0.06
+    ]
+   }
+  ]
+ }
+}
