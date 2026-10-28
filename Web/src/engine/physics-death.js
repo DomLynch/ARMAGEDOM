@@ -25,6 +25,7 @@ const load = () =>
       m.markChunkLoaded();
     })
     .catch(() => void (broken = true)));
+export const physicsDeathLoaded = () => loading; // the chunk's load promise (null until preloaded): tests and tools await it
 // Call once after first paint: fetches the chunk on idle, only when the flag is on.
 export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   if (!enabled) return;
@@ -33,13 +34,27 @@ export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   else setTimeout(go, CFG.preloadIdleMs);
 }
 // Call when an actor view is removed (despawn, travel): frees its ragdoll body and active entry at once instead of leaking it.
-export function releasePhysicsDeath(view) {
+// `parked` (the area is parked, the actor lives on): only the body and pool slot go, exactly as the timed release does; the handle stays so the
+// corpse is never re-ragdolled, and the cut visuals stay where the corpse lies.
+export function releasePhysicsDeath(view, parked = false) {
   const s = view.physicsDeath;
   if (!s) return;
-  view.physicsDeath = undefined;
+  if (!parked) view.physicsDeath = undefined;
   if (s.failed) return;
-  impl?.disposeCuts(s); // the cut body and its pieces leave the scene with the actor
+  if (!parked) impl?.disposeCuts(s); // the cut body and its pieces leave the scene with the actor
   impl?.releaseDeath(s);
+}
+// The ragdoll threw: free what it took (the cut visuals, the body, its pool slot), put the hunter's own body back, and let the baked clip play.
+function failDeath(view, s) {
+  try {
+    if (s && !s.failed) {
+      impl.disposeCuts(s); // also un-hides the hunter's own body
+      impl.releaseDeath(s);
+    }
+  } catch {
+    /* nothing more to free */
+  }
+  view.physicsDeath = { failed: true };
 }
 // The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
 // preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
@@ -66,7 +81,7 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
     impl.stepDeath(s, dt);
     return true;
   } catch {
-    view.physicsDeath = { failed: true };
+    failDeath(view, view.physicsDeath); // the old handle, not the replacement: it still owns the body and the cut visuals
     return false;
   }
 }

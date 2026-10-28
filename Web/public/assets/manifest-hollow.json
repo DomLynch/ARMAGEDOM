@@ -285,6 +285,55 @@
         ]
       }
     },
+    "rat-king": {
+      "url": "rat/rat-king.glb",
+      "deferred": true,
+      "rig": "original-rat",
+      "motion": "rat",
+      "scale": 6,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "rat_idle",
+        "walk": "rat_walk",
+        "run": "rat_run",
+        "hit": "rat_hit",
+        "death": "rat_death",
+        "attack": "rat_bite",
+        "attackLow": "rat_bite_low"
+      },
+      "bytes": 233120,
+      "sha256": "88a9452fa84c9d94327ea7cecd8097527362c1d2466f52c0f42793405a77158c",
+      "contact": {
+        "calfBand": [
+          0.3440308079655002,
+          0.4469086482463746
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 3182,
+            "vertices": [
+              2037,
+              2036,
+              1991
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 1820,
+            "vertices": [
+              1236,
+              1237,
+              1238
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "source": "art/rat-king/PROVENANCE.md",
+        "sourceModelSHA256": "0644f2fba2c3fabb9afcdf35845e582dc0b94a1e5060502cfdcd246caf8ab558"
+      }
+    },
     "original-dog": {
       "url": "dog/original-dog.glb",
       "deferred": true,
@@ -338,6 +387,60 @@
       },
       "bytes": 385500,
       "sha256": "6385348f564ef2c608a170f9ab1d1ea1c3f03a0bff7efefc27d711a1f72c4dc8"
+    },
+    "giant-centipede": {
+      "url": "centipede/giant-centipede.glb",
+      "deferred": true,
+      "rig": "giant-centipede",
+      "motion": "roach",
+      "scale": 3,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "roach_idle",
+        "walk": "roach_walk",
+        "run": "roach_run",
+        "hit": "roach_hit",
+        "death": "roach_death",
+        "attack": "roach_bite_scaled"
+      },
+      "contact": {
+        "canines": [
+          {
+            "mesh": "ARM_Giant_Centipede",
+            "vertex": 2868
+          },
+          {
+            "mesh": "ARM_Giant_Centipede",
+            "vertex": 2913
+          }
+        ],
+        "calfBand": [
+          0.15649900393918476,
+          0.1616338707922544
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "WrapBoots",
+            "face": 236,
+            "vertices": [
+              14,
+              12,
+              100
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 9824,
+            "vertices": [
+              5446,
+              5409,
+              5460
+            ]
+          }
+        ]
+      },
+      "bytes": 384976,
+      "sha256": "9b479d3639d355bc610e3ff53689ac714a6282b176211a3fa3f2208adc45f030"
     },
     "original-roach": {
       "url": "roach/original-roach.glb",

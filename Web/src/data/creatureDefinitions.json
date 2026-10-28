@@ -441,6 +441,45 @@
       "equipmentRef": null,
       "provenanceRef": "art/monster-spider",
       "runtimeIdentity": "original-spider"
+    },
+    {
+      "id": "giant-centipede",
+      "rig": "giant-centipede",
+      "contactRig": null,
+      "assetRef": "model.giant-centipede",
+      "clips": {
+        "idle": "roach_idle",
+        "walk": "roach_walk",
+        "run": "roach_run",
+        "hit": "roach_hit",
+        "death": "roach_death",
+        "attack": "roach_bite_scaled"
+      },
+      "scale": {
+        "model": 3,
+        "character": 1.265,
+        "visual": 1.3225,
+        "mobSizeMode": "fixed-one",
+        "bodyScale": 1,
+        "appliedBy": "actor-root-wrapper"
+      },
+      "stats": {
+        "health": 60,
+        "radius": 1.7,
+        "moveSpeed": 2.3,
+        "recoveryDelay": 0,
+        "weapon": "teeth"
+      },
+      "behaviour": {
+        "controllerRef": "centipede-native-bite",
+        "parameterPreset": "baseline",
+        "intentPolicyRef": "existing-resident-intent-policy"
+      },
+      "clipSourceRefs": ["animation.roach-scaled-bite"],
+      "preparationRefs": [],
+      "equipmentRef": null,
+      "provenanceRef": "art/centipede/PROVENANCE.md",
+      "runtimeIdentity": "giant-centipede"
     }
   ],
   "recipeFoundations": {
@@ -471,7 +510,9 @@
     "crow-ragged": "original-crow",
     "eel-river-ambusher": "giant-eel",
     "elephant-ashen-bull": "original-elephant",
-    "spider-crypt": "original-spider"
+    "spider-crypt": "original-spider",
+    "centipede-lurker": "giant-centipede",
+    "rat-king": "original-rat"
   },
   "nativeRoles": [
     {

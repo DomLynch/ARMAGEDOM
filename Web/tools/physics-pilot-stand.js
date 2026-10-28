@@ -5,6 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { physicsDeathStep, preloadPhysicsDeath, physicsDeathEnabled } from "../src/engine/physics-death.js";
+import { deathImpactOf } from "../src/engine/physics-death-impulse.js";
 
 const SCALE = 1.265 * 0.95, DEATH_TICKS = 144, ALIVE_SECONDS = 0.5; // CONTRACT.md characterScale x manifest scale; creatures.json deathTicks
 const canvas = document.getElementById("c"),
@@ -29,6 +30,7 @@ root.scale.setScalar(SCALE);
 scene.add(root);
 const view = { root, model },
   entity = { id: "hunter", markedHunter: true, hp: 1 },
+  killer = new URLSearchParams(location.search).get("weapon"), // ?weapon=pistol|shotgun|grenade: the killing hit the game would have recorded
   library = { models: new Map([["marked-hunter", { gltf }]]) },
   mixer = new THREE.AnimationMixer(model),
   action = (name) => mixer.clipAction(gltf.animations.find((c) => c.name === name)),
@@ -47,6 +49,12 @@ const advance = (dt) => {
   if (t < ALIVE_SECONDS) sample(idle, death, 0);
   else {
     entity.hp = 0;
+    if (killer)
+      entity.deathImpact ??= deathImpactOf({
+        impactDirection: { x: 1, z: 0.35 },
+        weapon: killer,
+        attackClass: killer === "grenade" || killer === "rocket" ? "blast" : "bullet",
+      });
     if (!physicsDeathStep(view, entity, library, dt)) sample(death, idle, (t - ALIVE_SECONDS) / (DEATH_TICKS / 60));
   }
   renderer.render(scene, camera);

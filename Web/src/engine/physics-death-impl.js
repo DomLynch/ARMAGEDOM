@@ -6,6 +6,7 @@ import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
+import { impulseRow } from "./physics-death-impulse.js";
 
 const CFG = GAME_DATA.physicsDeath,
   CUTS = GAME_DATA.pitbornCuts,
@@ -45,7 +46,7 @@ export const markChunkLoaded = () => (stats.chunkLoaded = true);
 // The impulse in the sim frame (= the actor root's local frame): `horizontal` along the killing blow (the hit's impactDirection, else
 // away from where the hunter faces, i.e. back from the player it was walking at) plus `up`. Pure arithmetic: same hit, same fall.
 export function killVector(root, entity) {
-  const k = CFG.killImpulse,
+  const k = impulseRow(entity.deathImpact),
     d = entity.deathImpact ?? (entity.facing ? { x: -entity.facing.x, z: -entity.facing.z } : { x: 0, z: -1 }),
     len = Math.hypot(d.x, d.z) || 1,
     local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.quaternion.clone().invert());
@@ -124,8 +125,7 @@ function beginCuts(s, plan, skin, push) {
 }
 // A corpse's cut visuals leave the scene with its actor (despawn, travel); the timed release of the BODY keeps them (the corpse stays where it lies).
 export function disposeCuts(s) {
-  if (!s.skin) return;
-  s.skin.model.removeFromParent();
+  undoSkin(s.skin); // the cut body leaves and the hunter's own body shows again (a no-op for the actor being removed)
   s.skin = null;
 }
 
@@ -158,7 +158,7 @@ export function startDeath(view, bindScene, entity) {
   rig ??= build(view.model, bindScene);
   const k = killVector(view.root, entity),
     push = plan ? k.map((v) => v * plan.row.push) : k;
-  rd.kill({ part: CFG.killImpulse.part, impulse: push });
+  rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
   stats.created++;
   stats.lastAt = performance.now();
   const s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });

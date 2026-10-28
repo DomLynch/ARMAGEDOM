@@ -78,6 +78,24 @@ old.definitions.push({
   runtimeIdentity: "original-spider",
 });
 old.recipeFoundations["spider-crypt"] = "original-spider";
+// 28 Oct: the centipede foundation and its recipe are appended rows (art/monster-centipede).
+old.definitions.push({
+  id: "giant-centipede",
+  rig: "giant-centipede",
+  contactRig: null,
+  assetRef: "model.giant-centipede",
+  clips: { idle: "roach_idle", walk: "roach_walk", run: "roach_run", hit: "roach_hit", death: "roach_death", attack: "roach_bite_scaled" },
+  scale: { model: 3, character: 1.265, visual: 1.3225, mobSizeMode: "fixed-one", bodyScale: 1, appliedBy: "actor-root-wrapper" },
+  stats: { health: 60, radius: 1.7, moveSpeed: 2.3, recoveryDelay: 0, weapon: "teeth" },
+  behaviour: { controllerRef: "centipede-native-bite", parameterPreset: "baseline", intentPolicyRef: "existing-resident-intent-policy" },
+  clipSourceRefs: ["animation.roach-scaled-bite"],
+  preparationRefs: [],
+  equipmentRef: null,
+  provenanceRef: "art/centipede/PROVENANCE.md",
+  runtimeIdentity: "giant-centipede",
+});
+old.recipeFoundations["centipede-lurker"] = "giant-centipede";
+old.recipeFoundations["rat-king"] = "original-rat"; // 28 Oct: art/monster-rat-king
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 

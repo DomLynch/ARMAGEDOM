@@ -12,6 +12,7 @@ test("each species resolves to the rig id combat.js used to write out", () => {
   assert.equal(rigOfSpecies("salamander"), "giant-salamander");
   assert.equal(rigOfSpecies("wolf"), "original-wolf");
   assert.equal(rigOfSpecies("eel"), "giant-eel");
+  assert.equal(rigOfSpecies("centipede"), "giant-centipede");
 });
 
 test("every rig has a distinct species and an unknown species is an error", () => {

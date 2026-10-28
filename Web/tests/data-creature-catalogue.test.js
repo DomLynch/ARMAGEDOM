@@ -20,6 +20,9 @@ old.reach["original-elephant"] = 4.95;
 // 28 Oct: the spider rows are appended (art/monster-spider).
 old.support["original-spider"] = ["roach-native-bite", "teeth", "original-spider", ["attack"]];
 old.reach["original-spider"] = 1.6063268331546576;
+// 28 Oct: the centipede rows are appended (art/monster-centipede).
+old.support["giant-centipede"] = ["centipede-native-bite", "teeth", "giant-centipede", ["attack"]];
+old.reach["giant-centipede"] = 1.9;
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("the data rows equal the old in-code tables exactly (values and key order) and are frozen", () => {
