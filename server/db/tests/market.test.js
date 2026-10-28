@@ -61,6 +61,9 @@ test("loot is rolled by the server on a credited kill and returned with the cash
   assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "original-dog")).loot, [], "an enemy with no table row drops nothing");
   assert.deepEqual((await kill(ids.alice, alice, "kill:trash", 5, "boss-warden")).loot, [], "a boss named on the trash tier rolls nothing");
   assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "boss-warden")).loot, [], "a boss named on the creature tier rolls nothing");
+  await db.exec("update public.arma_loot_table set chance = 1 where enemy = 'original-roach'");
+  assert.deepEqual((await kill(ids.alice, alice, "kill:trash", 5, "original-roach")).loot, [{ item_id: "roach-mandibles", qty: 1 }], "the roach rolls on the trash tier the client sends");
+  assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "original-roach")).loot, [], "and on no other tier");
   // the zero-chance world: nothing drops
   await db.exec("update public.arma_loot_table set chance = 0.000001");
   let drops = 0;

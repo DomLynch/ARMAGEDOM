@@ -24,7 +24,7 @@ create table public.arma_inventory (
 );
 create table public.arma_loot_table (
   enemy text not null check (enemy ~ '^[a-z0-9._:-]{1,64}$'),
-  source text not null check (source in ('kill:creature', 'kill:boss')),
+  source text not null check (source in ('kill:trash', 'kill:creature', 'kill:boss')),
   item_id text not null references public.arma_items (id),
   chance numeric not null check (chance > 0 and chance <= 1),
   qty_min int not null default 1 check (qty_min between 1 and 99),
@@ -66,7 +66,7 @@ insert into public.arma_items (id, name, kind, rarity, base_price, sell_price) v
 -- Rare chances, keyed by creature kind only (the client's tier names for a kind can change; the tier's kill rate cap bounds the rolls). Rare creatures and bosses only.
 -- source is the kill tier a row may roll under (the cash tier the server already bounds): a claim naming a boss on the cheap tier rolls nothing.
 insert into public.arma_loot_table (enemy, source, item_id, chance) values
-  ('original-roach', 'kill:creature', 'roach-mandibles', 0.05),
+  ('original-roach', 'kill:trash', 'roach-mandibles', 0.05), -- the client sends the roach on the trash tier (killDrops.json rigTiers)
   ('giant-salamander', 'kill:creature', 'salamander-gland', 0.06),
   ('low-hover-drone', 'kill:creature', 'drone-chip', 0.06),
   ('low-hover-drone', 'kill:creature', 'robot-parts', 0.08),
