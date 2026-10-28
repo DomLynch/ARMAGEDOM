@@ -211,7 +211,7 @@ test("every active body stays upright through its locomotion, fight and hit clip
     const feet = ["mixamorig:LeftFoot", "mixamorig:RightFoot"].map(bone);
     for (const foot of feet) assert(foot.y < 0.25 && foot.y > -0.05, `${ref} idle ankle ${foot.y.toFixed(3)}`);
     motion.sample(row.clips.death, 0.99);
-    assert(bone(row.headBone).y < bone(row.headBone).y + 1 && bone(row.headBone).y < 1.2, `${ref} death head ${bone(row.headBone).y.toFixed(2)}`);
+    assert(bone(row.headBone).y < 0.5, `${ref} lies on the ground at the end of Death, head ${bone(row.headBone).y.toFixed(2)}`);
     motion.dispose();
   }
 });
