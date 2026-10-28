@@ -393,6 +393,51 @@
       "bytes": 520860,
       "sha256": "c336864bc648a7c78331c6c38c65c167183a59922dd67870bf994c104fe86c29"
     },
+    "original-crow": {
+      "url": "crow/original-crow.glb",
+      "deferred": true,
+      "rig": "original-crow",
+      "motion": "rat",
+      "scale": 3,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "rat_idle",
+        "walk": "rat_walk",
+        "run": "rat_run",
+        "hit": "rat_hit",
+        "death": "rat_death",
+        "attack": "rat_bite",
+        "attackLow": "rat_bite_low"
+      },
+      "bytes": 310248,
+      "sha256": "8e8afdbe5439752f0b4b62bc07616f13ab329f07cffa37cf128ef65100a1b54f",
+      "contact": {
+        "calfBand": [
+          0.3440308079655002,
+          0.4469086482463746
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 3182,
+            "vertices": [
+              2037,
+              2036,
+              1991
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 1820,
+            "vertices": [
+              1236,
+              1237,
+              1238
+            ]
+          }
+        ]
+      }
+    },
     "boss-surgeon": {
       "motion": "donor-knife",
       "scale": 1,

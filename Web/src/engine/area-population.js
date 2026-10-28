@@ -81,12 +81,18 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
   }
   return freeze(structuredClone(input));
 }
-export function populationPlacements(policy, areaId, cycle, canonical) {
+// A rig row with `optionalMonster` is a monster Dom may drop: its row's `enabled` flag, or the page's ?<offParam>=1, puts the cycle A creature
+// back in its slot (creatures.json rigCapabilities; the crow's row is `enabled: true`, `offParam: "nocrow"`).
+const monsterOff = (rig, search) =>
+  rigCapability(rig, "optionalMonster") &&
+  (!rigCapability(rig, "enabled") || new URLSearchParams(search).get(rigText(rig, "offParam")) === "1");
+export function populationPlacements(policy, areaId, cycle, canonical, search = globalThis.location?.search ?? "") {
   const area = policy?.areas[areaId];
   if (!area) return canonical;
   const active = new Set(area.activePlacementIds),
     slot = area.creatureSlot,
-    spec = slot.cycles[cycle ?? "A"];
+    chosen = slot.cycles[cycle ?? "A"],
+    spec = chosen && monsterOff(chosen.foundationRef, search) ? slot.cycles.A : chosen;
   if (!spec) fail();
   return canonical
     .filter((row) => active.has(row.key))

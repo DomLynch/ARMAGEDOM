@@ -929,6 +929,19 @@
         "upperRegion": "body"
       },
       {
+        "id": "original-crow",
+        "material": "flesh",
+        "bodyBones": [
+          "chest",
+          "spine"
+        ],
+        "headBones": [
+          "head",
+          "neck"
+        ],
+        "radius": 0.1
+      },
+      {
         "id": "low-hover-drone",
         "material": "machine",
         "bodyBones": [],
