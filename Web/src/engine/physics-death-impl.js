@@ -1,14 +1,7 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import {
-  admit,
-  buildChainRow,
-  chainBoneObjects,
-  chainFollowObjects,
-  createPhysics,
-  loadChainBody,
-} from "@frankendom/physics";
+import { admit, buildChainRow, chainRigOptions, createPhysics, loadChainBody } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
@@ -40,36 +33,18 @@ export async function loadWorld() {
 // `spec` is the model's record from physics-rigs.js (bone map and body row, or a chain body name): the same code ragdolls every rig in the data.
 const find = (scene) => (name) => scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name));
 const boneMap = (scene, spec) =>
-  spec.chain
-    ? chainBones(scene, chainOf(spec))
-    : Object.fromEntries(
-        Object.entries(spec.parts).map(([part, joint]) => [
-          part,
-          find(scene)(spec.nodePrefix + joint) ?? virtualBone(scene, spec, part),
-        ]),
-      );
-// A chain's parts to bones. A virtual part (physics only, `drives: null`: a centipede segment with no bone) gets an empty node under the scene root, found
-// by name next time: the rig drives and reads it, nothing in the model moves for it.
-function chainBones(scene, chain) {
-  const bones = chainBoneObjects(chain.spec, find(scene));
-  for (const id of chain.virtualParts) {
-    const name = THREE.PropertyBinding.sanitizeNodeName(`virtual_${id}`);
-    bones[id] =
-      scene.getObjectByName(name) ?? scene.add(Object.assign(new THREE.Object3D(), { name })).getObjectByName(name);
-  }
-  return bones;
-}
-// Extra bones that ride a part (a centipede leg bank drives one leg bone, the rest of the bank copy its rotation): the game applies it, the rig does not.
-function withFollowers(rig, spec, scene, bones) {
-  const chain = spec.chain && chainOf(spec),
-    follow = chain && Object.entries(chainFollowObjects(chain.spec, find(scene)));
-  if (!follow?.length) return rig;
-  const applyPose = rig.applyPose;
-  rig.applyPose = () => {
-    applyPose();
-    for (const [part, riders] of follow) for (const rider of riders) rider.quaternion.copy(bones[part].quaternion);
-  };
-  return rig;
+  Object.fromEntries(
+    Object.entries(spec.parts).map(([part, joint]) => [
+      part,
+      find(scene)(spec.nodePrefix + joint) ?? virtualBone(scene, spec, part),
+    ]),
+  );
+// What createThreeRig gets for a model: the bones of the parts and the options (the bind pose; for a chain body also its virtual parts and followers,
+// which the package skips and copies itself).
+function rigInputs(body, bind, spec) {
+  if (spec.chain)
+    return chainRigOptions(chainOf(spec), find(body), { bindFind: find(bind), bindRoot: bind });
+  return { bones: boneMap(body, spec), options: { bind: { bones: boneMap(bind, spec), root: bind } } };
 }
 // A part the rig has no bone for (the 19-joint vagrant has no toes): an empty node with an identity local transform under its parent joint
 // (`virtual[part]`), found by name next time. The package puts that part at the measured offset from the parent joint.
@@ -241,12 +216,12 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const rd = poolOf(spec).pop() ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
-    const bones = boneMap(body, spec);
+    const { bones, options } = rigInputs(body, bind, spec);
     if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
-    const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bind, spec), root: bind } });
+    const rig = createThreeRig(THREE, rd, bones, view.root, options);
     rig.drive();
     rd.snapToTarget();
-    return withFollowers(rig, spec, body, bones);
+    return rig;
   };
   let skin = null,
     plan = null,
