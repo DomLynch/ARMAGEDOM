@@ -14,12 +14,12 @@ test("the budget covers all four body classes and every class is populated", () 
   assert(rows.some((r) => r.url.startsWith("crowd/")) && rows.some((r) => r.url.startsWith("bosses/")));
 });
 
-test("wire size: every body has gzip and brotli bytes, and first-visit bodies fit V3's 5.5 MB budget", () => {
+test("wire size: every body has gzip and brotli bytes, and pre-input bodies fit V3's 5.5 MB budget (it caps only those)", () => {
   const rows = measure(), t = wireTotals(rows);
   for (const r of rows) assert(r.gzip > 0 && r.brotli > 0 && r.brotli <= r.gzip * 1.02, r.url);
-  assert(t.firstVisitBodies >= 1 && t.firstVisitGzip <= BUDGET.firstVisitWireBytes);
-  assert(t.allGzip >= t.firstVisitGzip);
-  assert(problems(rows.map((r) => ({ ...r, deferred: false, gzip: BUDGET.firstVisitWireBytes }))).some((p) => p.includes("first-visit")));
+  assert(t.preInputBodies >= 1 && t.preInputGzip <= BUDGET.preInputWireBytes);
+  assert(t.allGzip >= t.preInputGzip);
+  assert(problems(rows.map((r) => ({ ...r, deferred: false, gzip: BUDGET.preInputWireBytes }))).some((p) => p.includes("pre-input")));
 });
 
 test("the row fails a body that is over its line", () => {
