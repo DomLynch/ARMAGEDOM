@@ -147,7 +147,7 @@ export function stepChainBreak(g, spawn, open) {
   if (s.state === "snapping") {
     if (g.time < s.at + B.snapSeconds) return;
     // One hunter at a time (marked.maxHunters): wait while another hunter lives.
-    const spot = g.enemies.some((e) => e.hp > 0 && e.markedHunter) ? null : clearSpot(w.geometry, at);
+    const spot = g.enemies.some((e) => e.hp > 0 && e.markedHunter && !e.raidHunter) ? null : clearSpot(w.geometry, at);
     if (!spot) {
       s.at = g.time - B.snapSeconds + B.retrySeconds;
       return;

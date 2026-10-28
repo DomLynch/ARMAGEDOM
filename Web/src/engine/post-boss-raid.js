@@ -2,7 +2,8 @@ import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 
 // POST-BOSS RAID (data/postBossRaid.json): killing an area boss arms ONE raid. After the delay, while the player stands in a target zone
-// (the hub or a road), marked hunters arrive through the Marked hunt's own entry and spawn, a few at a time (maxSimultaneous), until
+// (the hub or a road), marked hunters arrive through the Marked hunt's own entry and spawn, a few at a time (maxSimultaneous less the
+// normal hunt's maxHunters), until
 // hunterCount have come or the window closes. They chase the player like any hunter (area pursuit, as the airdrop pulls bosses), wear the
 // same LOD and ragdoll budget, and travel, death or a safehouse clears them. State lives on `g.raid`; nothing is saved.
 const notify = (g, text) => {
@@ -49,7 +50,8 @@ export function stepPostBossRaid(g, spawn, entry, open) {
     g.raid = null;
     return;
   }
-  const room = Math.min(row.maxSimultaneous - here, row.hunterCount - s.spawned);
+  // maxSimultaneous caps ALL marked hunters at once: the normal hunt keeps its own maxHunters slots, the raid gets the rest.
+  const room = Math.min(row.maxSimultaneous - g.world.markedData.maxHunters - here, row.hunterCount - s.spawned);
   if (!open || !row.targetZones.includes(g.world.areaId) || room <= 0 || g.time < s.nextAt) return;
   s.nextAt = g.time + row.retrySeconds;
   const at = entry(g);

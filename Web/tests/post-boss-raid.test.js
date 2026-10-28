@@ -5,6 +5,8 @@ import { GAME_DATA } from "../src/engine/game-data.js";
 import { validatePostBossRaid } from "../src/engine/game-data-raid.js";
 import { armPostBossRaid, stepPostBossRaid } from "../src/engine/post-boss-raid.js";
 import { publicAreaRegistry } from "../src/area-registry.js";
+import { make, shipped } from "./helpers/marked-fixture.js";
+import { stepMarkedHunters, clearMarkedHunters } from "../src/engine/marked-hunters.js";
 
 const ROW = GAME_DATA.postBossRaid,
   raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/postBossRaid.json", import.meta.url)))),
@@ -15,7 +17,7 @@ const game = (areaId = ZONE) => ({
   events: [],
   enemies: [],
   player: { hp: 100, pos: { x: 0, z: 0 } },
-  world: { areaId, markedData: { hunterHealth: 80 } },
+  world: { areaId, markedData: { hunterHealth: 80, maxHunters: 1 } },
 });
 const spawn = (p) => ({ hp: 80, markedHunter: true, pos: { ...p } });
 const entry = () => ({ x: 5, z: 5 });
@@ -94,7 +96,7 @@ test("cap: never more than maxSimultaneous raiders at once, never more than hunt
     if (t >= ROW.delaySeconds + 4 && raiders(g)[0] && Math.round(t) % 4 === 0) raiders(g)[0].hp = 0;
     g.enemies = g.enemies.filter((e) => e.hp > 0);
   }
-  assert.equal(peak, ROW.maxSimultaneous);
+  assert.equal(peak, ROW.maxSimultaneous - g.world.markedData.maxHunters);
   assert.equal(total, ROW.hunterCount);
   assert.equal(g.raid, null);
 });
@@ -110,7 +112,7 @@ test("zone and gates: nothing spawns outside the target zones, behind a safehous
   step(g, false);
   assert.equal(raiders(g).length, 0);
   step(g);
-  assert.equal(raiders(g).length, ROW.maxSimultaneous);
+  assert.equal(raiders(g).length, ROW.maxSimultaneous - g.world.markedData.maxHunters);
   g.enemies = []; // the player leaves: the Marked hunt clears every hunter of the old area
   g.world.areaId = "south";
   step(g);
@@ -128,4 +130,48 @@ test("the window closes on time", () => {
   step(g);
   assert.equal(g.raid, null);
   assert.equal(raiders(g).length, 0);
+});
+
+// The ordinary Marked hunt, on the shipped data and the real fixture: a living raider neither blocks nor delays the normal hunter.
+const ordinarySpawn = (p) => ({ id: 999, hp: 80, markedHunter: true, pos: { ...p }, radius: 0.4, hostile: true });
+function ordinaryArrival(withRaider) {
+  const g = make({ data: shipped }).g;
+  g.enemies = [];
+  g.marked = { version: 1, carried: 0, bank: 0, bounty: 0 };
+  clearMarkedHunters(g);
+  g.time = 0;
+  g.raid = { startAt: 0, endAt: 1e9, spawned: 1, live: 1, nextAt: 1e9, areaId: g.world.areaId };
+  if (withRaider) g.enemies.push({ id: 998, hp: 80, markedHunter: true, raidHunter: true, pos: { x: 0, z: 0 }, radius: 0.4, hostile: true });
+  for (let t = 0; t < 400; t += 0.5) {
+    g.time = t;
+    stepMarkedHunters(g, ordinarySpawn);
+    if (g.enemies.some((e) => e.markedHunter && !e.raidHunter)) return { t, total: g.enemies.filter((e) => e.markedHunter).length, g };
+  }
+  return null;
+}
+
+test("a living raider does not block or delay the normal hunter, and the total stays inside the data cap", () => {
+  const alone = ordinaryArrival(false),
+    raided = ordinaryArrival(true);
+  assert.ok(alone && raided, "the normal hunter arrives in both runs");
+  assert.equal(raided.t, alone.t);
+  assert.ok(raided.total <= ROW.maxSimultaneous);
+  assert.ok(raided.total - 1 <= ROW.maxSimultaneous - shipped.markedData.maxHunters, "raiders plus the normal hunters never pass the cap");
+});
+
+test("a raider's death does not push back the normal hunter's respawn clock", () => {
+  const { g } = ordinaryArrival(true);
+  const before = g.markedHunt.nextSpawnAt;
+  g.enemies.find((e) => e.raidHunter).hp = 0;
+  stepMarkedHunters(g, ordinarySpawn);
+  assert.equal(g.markedHunt.nextSpawnAt, before);
+});
+
+test("death ends the raid", () => {
+  const g = game();
+  g.world.markedData = shipped.markedData;
+  g.raid = { startAt: 0, endAt: 1e9, spawned: 0, live: 0, nextAt: 0, areaId: ZONE };
+  g.marked = {};
+  clearMarkedHunters(g, { death: true });
+  assert.equal(g.raid, null);
 });
