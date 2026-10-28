@@ -457,6 +457,8 @@ summary {
   text-transform: uppercase;
 }
 .share-pick canvas {
+  position: static; /* the global canvas rule pins every canvas to the screen */
+  inset: auto;
   width: 72px;
   height: 128px;
   border: 2px solid transparent;
