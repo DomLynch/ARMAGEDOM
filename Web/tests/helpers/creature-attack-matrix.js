@@ -449,22 +449,17 @@ for (const row of rangedRows) {
       }),
     });
   else if (field === "commanderPistol") {
-    const chargeTicks = Math.ceil(row.charge.seconds * 60),
-      cycle = chargeTicks + 14;
-    // Without a selected target the shot flies level from the muzzle; selecting the target pitches it
-    // at the posed body (railgunAimPoint), so both inputs are rows.
+    // The Light Machine Gun: held Fire along the mouse aim, or held Fire with the target tap-selected (touch). Both rows.
     for (const touch of [false, true])
       ATTACKS.push({
         ...base,
-        id: touch ? "railgun-charged-shot-touch" : "railgun-charged-shot",
-        scanTicks: cycle * 2,
+        id: touch ? "lmg-held-fire-touch" : "lmg-held-fire",
         make: () => armedBossEquipment(field),
-        drive: (ctx, aim) => (i) => {
-          const k = i % cycle,
-            e = { kind: "fire", lifetime: 1 + Math.floor(i / cycle) },
-            target = ctx.creature;
+        drive: (ctx, aim) => () => {
+          const target = ctx.creature;
           return {
             aim,
+            held: ["fire"],
             ...(touch
               ? {
                   touchTargetSelection: {
@@ -474,11 +469,6 @@ for (const row of rangedRows) {
                   },
                 }
               : {}),
-            actionEdges: {
-              started: k === 0 ? [e] : [],
-              held: k <= chargeTicks ? [e] : [],
-              released: k === chargeTicks + 1 ? [e] : [],
-            },
           };
         },
       });
