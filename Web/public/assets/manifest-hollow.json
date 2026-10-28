@@ -2737,13 +2737,13 @@
       },
       "deferred": true,
       "provenance": {
-        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-okafor (Dr. Okafor (field medic), delivered sha256 0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, 118910901-standing-w-briefcase-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
+        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-okafor (Dr. Okafor (field medic), delivered sha256 0346a6df828bd62a15b07a080463bdbee34465361bda462268deff72d1cc6f9b), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, 118910901-standing-w-briefcase-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
         "licence": "Relayed by Lead from OpenTrident Dev (not independently re-verified per asset by Lead): CC0 1.0. MPFB2 2.0.18 in Blender 5.2 (tool only, none of its code ships) with only the official MakeHuman CC0 packs makehuman_system_assets_cc0 and skins01_cc0; rig, skin weights and packing are OpenTrident's own work. See art/hub-npcs/PROVENANCE.md and art/makehuman-crowd/PROVENANCE.md. Mixamo animation clips: cleared by Dom 2026-10-23.",
         "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, no weapon, ONE clip (Idle, a retargeted Mixamo clip, see source); every clip role points at Idle because the NPC never fights or walks",
         "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
       },
-      "bytes": 468112,
-      "sha256": "c647c5f14cd4938157320c044365674805f7a5ceba71db035d4d02d898d1867d"
+      "bytes": 468632,
+      "sha256": "4714da70587a44b3feeeb487b89422f52e86764f224376c7e6a3caa33dea5b41"
     },
     "npc-reyes": {
       "url": "npc/npc-reyes.glb",
@@ -3004,8 +3004,8 @@
     },
     "npc-okafor": {
       "file": "npc/npc-okafor.glb",
-      "bytes": 468112,
-      "sha256": "c647c5f14cd4938157320c044365674805f7a5ceba71db035d4d02d898d1867d"
+      "bytes": 468632,
+      "sha256": "4714da70587a44b3feeeb487b89422f52e86764f224376c7e6a3caa33dea5b41"
     },
     "npc-reyes": {
       "file": "npc/npc-reyes.glb",

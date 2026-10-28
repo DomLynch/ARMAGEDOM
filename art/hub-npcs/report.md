@@ -5,7 +5,7 @@ Pipeline as the crowd: hand-authored rows (rows/npc-rows.json, npc-look-rows.jso
 | id | tris | bytes | gz | joints | Layer_/Sword/Weapon | clips | draws | textures |
 |---|---|---|---|---|---|---|---|---|
 | mh-npc-marsh | 13500 | 520580 | 377494 | 106 | 0 | 12 | 2 | 1024x1024/22K (colour), 1024x1024/108K (normal), 1024x256/52K (brow+lash) |
-| mh-npc-okafor | 13499 | 497476 | 355047 | 106 | 0 | 12 | 2 | 1024x1024/14K, 1024x1024/102K, 1024x256/43K |
+| mh-npc-okafor | 13499 | 497848 | 355448 | 106 | 0 | 12 | 2 | 1024x1024/14K, 1024x1024/102K, 1024x256/43K |
 | mh-npc-reyes | 13500 | 466784 | 325271 | 106 | 0 | 12 | 2 | 1024x1024/18K, 1024x1024/60K, 1024x256/55K |
 
 All under 600 KB gzipped. Joint set is the same as the crowd bodies: 106 unique joints, 64 named `mixamorig:*` plus 42 extras (root, ik_*, twist/helper joints).
