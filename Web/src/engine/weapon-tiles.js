@@ -108,6 +108,8 @@ export function carriedWeaponTiles(g) {
     });
   return rows;
 }
+// The strip shows PAGE tiles at a time, so the page holding the equipped weapon is where the strip must rest.
+export const activeTilePage = (rows) => Math.max(0, Math.floor(rows.findIndex((r) => r.active && !r.companion) / PAGE));
 // A cancelled or dragged gesture cannot become an equip click.
 export function tileGesture() {
   let start = null,
@@ -177,6 +179,7 @@ export function createWeaponTiles(s, select) {
   const newWeapon = createTileFlash();
   let flashUntil = 0,
     order = "",
+    followed = null,
     selecting = false,
     disposed = false;
   const listen = (node, type, fn, options) => {
@@ -248,7 +251,10 @@ export function createWeaponTiles(s, select) {
     const g = s.game;
     root.hidden =
       !g || !s.loaded || s.paused || s.traveling || s.contextLost || g.finished || g.runSaveInvalid || g.player.hp <= 0;
-    if (root.hidden) return;
+    if (root.hidden) {
+      followed = null; // a hidden strip loses its scroll position; rest on the equipped page when it shows again
+      return;
+    }
     const rows = carriedWeaponTiles(g),
       next = rows.map((r) => r.id).join("|");
     const now = globalThis.performance?.now?.() ?? 0;
@@ -280,6 +286,13 @@ export function createWeaponTiles(s, select) {
       }
       track.scrollLeft = Math.min(oldPage, Math.max(0, Math.ceil(rows.length / PAGE) - 1)) * STEP;
       order = next;
+    }
+    // Follow the equipped weapon: an auto-equipping pickup, a restore, a death or a key switch can leave the equipped tile on
+    // another page. Browsing with the arrows is left alone until the equipped weapon or the tile list changes again.
+    const activeKey = next + ">" + (rows.find((r) => r.active && !r.companion)?.id ?? "");
+    if (activeKey !== followed) {
+      followed = activeKey;
+      track.scrollLeft = activeTilePage(rows) * STEP;
     }
     for (const row of rows) {
       const b = buttons.get(row.id),
