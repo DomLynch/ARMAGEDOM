@@ -1,0 +1,81 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width">
+<style>html,body{margin:0;background:#15110e}canvas{display:block}</style>
+<!-- Scratch QA page for the hub NPC stills (not game code). Plays an NPC's Idle through the engine's own DonorMotion (src/donor-motion.js) on the
+     game's own camera rig (central-hub layout.json: height, distance, targetZ, fieldOfView, zoom, characterScale), the game's lights and no tone mapping.
+     ?ref=npc-marsh &view=front|q34 &close=1 (extra zoom on the NPC) &phase=0.3 -->
+<script type="importmap">{"imports":{"three":"/Web/node_modules/three/build/three.module.js","three/addons/":"/Web/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { DonorMotion } from "/Web/src/donor-motion.js";
+import { GAME_DATA } from "/Web/src/engine/game-data.js";
+
+const q = new URLSearchParams(location.search);
+const ref = q.get("ref"), view = q.get("view") ?? "front", close = q.get("close") === "1" || q.get("close") === "2", phase = +(q.get("phase") ?? 0.3);
+const W = innerWidth, H = innerHeight;
+const manifest = await (await fetch("/Web/public/assets/manifest-hollow.json")).json();
+const layout = await (await fetch("/Web/public/world/central-hub/layout.json")).json();
+const row = manifest.models[ref];
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setPixelRatio(devicePixelRatio);
+r.setSize(W, H);
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.NoToneMapping;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+const bg = await new THREE.TextureLoader().loadAsync("/Web/public/world/central-hub/backdrop-phone.webp");
+bg.colorSpace = THREE.SRGBColorSpace;
+scene.background = bg;
+const lights = GAME_DATA.browserSession.sceneLights;
+scene.add(new THREE.HemisphereLight(lights.hemiSky, lights.hemiGround, layout.fillIntensity));
+const sun = new THREE.DirectionalLight(lights.sunColor, layout.keyIntensity);
+sun.position.set(...lights.sunPosition);
+scene.add(sun);
+const rim = new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, lights.rimDecay);
+rim.position.set(0, lights.rimHeight, -layout.targetZ + lights.rimBehind);
+scene.add(rim);
+
+const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync("/Web/public/assets/" + row.url);
+const root = new THREE.Group();
+root.add(gltf.scene);
+root.scale.setScalar(row.scale * layout.characterScale);
+root.position.set(0, 0, -layout.targetZ);
+root.rotation.y = view === "q34" ? 0.7 : 0;
+scene.add(root);
+const motion = new DonorMotion(root, gltf.scene, gltf.animations, row);
+
+const sanitize = (n) => THREE.PropertyBinding.sanitizeNodeName(n);
+const at = (n) => new THREE.Vector3().setFromMatrixPosition(gltf.scene.getObjectByName(sanitize(n)).matrixWorld);
+const frames = [];
+for (const p of [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.99]) {
+  motion.sample(row.clips.idle, p);
+  frames.push({ phase: p, head: at(row.headBone).y, hips: at("mixamorig:Hips").y, foot: Math.min(at("mixamorig:LeftFoot").y, at("mixamorig:RightFoot").y), headX: at(row.headBone).x, rHand: at("mixamorig:RightHand").toArray() });
+}
+motion.sample(row.clips.idle, phase);
+root.updateMatrixWorld(true);
+window.__report = { ref, clip: motion.currentClip, frames };
+
+// A soft contact shadow so the feet read as standing (the painted backdrop has no floor shadow of its own).
+const shade = document.createElement("canvas");
+shade.width = shade.height = 64;
+const sg = shade.getContext("2d"), grad = sg.createRadialGradient(32, 32, 2, 32, 32, 32);
+grad.addColorStop(0, "rgba(0,0,0,0.55)");
+grad.addColorStop(1, "rgba(0,0,0,0)");
+sg.fillStyle = grad;
+sg.fillRect(0, 0, 64, 64);
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shade), transparent: true, depthWrite: false }));
+blob.rotation.x = -Math.PI / 2;
+blob.position.set(0, 0.01, -layout.targetZ);
+scene.add(blob);
+
+const detail = q.get("close") === "2";
+const zoom = layout.zoom * (detail ? 12 : close ? 4.5 : 1);
+const cam = new THREE.PerspectiveCamera((2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(layout.fieldOfView) / 2) / zoom) * 180) / Math.PI, W / H, 0.1, 200);
+cam.position.set(0, layout.height, layout.distance);
+cam.lookAt(0, detail ? 1.75 : close ? 0.95 : 0, -layout.targetZ);
+cam.updateMatrixWorld(true);
+r.render(scene, cam);
+window.__ready = true;
+</script>

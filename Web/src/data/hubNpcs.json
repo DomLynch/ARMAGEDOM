@@ -1,0 +1,40 @@
+{
+  "schema_version": 2,
+  "note": "Named Central Hub NPCs (appearance and one idle only). The three models are OpenTrident MakeHuman V2 bodies on the 106-joint Mixamo rig, delivered with the same 12 raw Mixamo clips as the crowd bodies and registered in assets/manifest-hollow.json as deferred rows. Nothing draws them yet and nothing reads this file: placement, interaction and dialogue belong to the Hub wiring PR (Lead, World, WebUI), which is also expected to honour enabled false or ?nonpcs=1 as the off switch. NPCs only ever play the Idle clip.",
+  "enabled": true,
+  "offParam": "nonpcs",
+  "offValue": "1",
+  "area": "central-hub",
+  "npcs": [
+    {
+      "id": "quartermaster-marsh",
+      "name": "Marsh",
+      "role": "quartermaster",
+      "title": "Quartermaster",
+      "ref": "npc-marsh",
+      "body": "mh-npc-marsh",
+      "idleClip": "Idle",
+      "look": "heavy-set, grey short hair, olive field jacket with flap pockets over a red pinstripe shirt, jeans, brown boots"
+    },
+    {
+      "id": "medic-okafor",
+      "name": "Dr. Okafor",
+      "role": "field-medic",
+      "title": "Field medic",
+      "ref": "npc-okafor",
+      "body": "mh-npc-okafor",
+      "idleClip": "Idle",
+      "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes"
+    },
+    {
+      "id": "radio-reyes",
+      "name": "Reyes",
+      "role": "radio-operator",
+      "title": "Radio operator",
+      "ref": "npc-reyes",
+      "body": "mh-npc-reyes",
+      "idleClip": "Idle",
+      "look": "thin, slightly hunched, short black hair, heather-grey collared shirt (not a hoodie), dark jeans"
+    }
+  ]
+}
