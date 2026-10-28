@@ -13,7 +13,7 @@ test('floating46px stick 13% radial deadzone, linear analog walk and deliberate 
  s.move(1,{x:164.4,y:100});assert.equal(s.take().run,false);
  s.move(1,{x:165,y:100});assert.equal(s.take().run,true);
  s.down(2,'move',{x:0,y:0});s.move(2,{x:100,y:0});assert.equal(s.take().run,true);
- s.cancel(1);assert.equal(s.take().run,false);s.keys.add('KeyD');s.keys.add('ShiftRight');assert.equal(s.take().run,true);
+ s.cancel(1);assert.equal(s.take().run,false);s.keys.add('moveRight');s.keys.add('sprint');assert.equal(s.take().run,true);
  s.clear();assert.equal(s.take().run,false);
 });
 test('donor sprint reaches5.2m/s and drains12/s without regen or action delay',()=>{

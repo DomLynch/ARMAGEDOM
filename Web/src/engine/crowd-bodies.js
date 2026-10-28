@@ -16,8 +16,11 @@ const HOLLOW_RIG = "hollow-scavenger";
 const unit = (text) => ((faceHash(text) % POOL.buckets) + 1) / (POOL.buckets + 1);
 
 // The crowd is on unless the data switches it off or the URL carries the off switch (improvements ship default-on).
+const onBySearch = new Map(); // the address does not change in a page, and this is asked for every resident every frame
 export function crowdOn(search = globalThis.location?.search ?? "") {
-  return POOL.enabled && new URLSearchParams(search).get(POOL.offParam) !== POOL.offValue;
+  if (!onBySearch.has(search))
+    onBySearch.set(search, POOL.enabled && new URLSearchParams(search).get(POOL.offParam) !== POOL.offValue);
+  return onBySearch.get(search);
 }
 export const isCrowdBody = (name) => CROWD.has(name);
 
@@ -41,17 +44,26 @@ function areaSet(areaId) {
   }
   return areaSets.get(areaId);
 }
-// The body model name for a resident key in an area, or null for the existing scavenger look.
+const looks = new Map();
+// The pool model name for a resident key in an area, or null for the existing scavenger look.
 export function crowdBodyForKey(areaId, key) {
   if (!crowdOn() || POOL.excludedAreas.includes(areaId) || typeof key !== "string" || CROOKED.has(key)) return null;
-  const rows = areaSet(areaId),
-    total = rows.reduce((sum, row) => sum + row.weight, 0);
-  let at = unit(`${POOL.seed}|${areaId}|${key}`) * total;
-  for (const row of rows) {
-    at -= row.weight;
-    if (at < 0) return row.ref === POOL.defaultRef ? null : row.ref;
+  const id = `${areaId}|${key}`;
+  if (!looks.has(id)) {
+    const rows = areaSet(areaId),
+      total = rows.reduce((sum, row) => sum + row.weight, 0);
+    let at = unit(`${POOL.seed}|${id}`) * total,
+      look = null;
+    for (const row of rows) {
+      at -= row.weight;
+      if (at < 0) {
+        look = row.ref === POOL.defaultRef ? null : row.ref;
+        break;
+      }
+    }
+    looks.set(id, look);
   }
-  return null;
+  return looks.get(id);
 }
 // Only a plain resident human takes a look from the pool: not a marked hunter, a boss, an animal or drone, an explicit appearance or a gaunt recipe.
 function crowdLookRef(entity, areaId) {
@@ -69,19 +81,37 @@ export function crowdBodyRef(entity, areaId) {
   const ref = crowdLookRef(entity, areaId);
   return CROWD.has(ref) ? ref : null;
 }
+// A placed row is a plain human when it is the scavenger foundation (or none) with no appearance of its own and no recipe but a plain one
+// (the street scavenger of the area content). Animals, gaunt skulkers and explicit appearances are not.
+const plainRow = (row) =>
+  (row.foundationRef === undefined || row.foundationRef === HOLLOW_RIG) &&
+  row.appearanceRef === undefined &&
+  (row.recipeRef === undefined || POOL.plainRecipes.includes(row.recipeRef));
 // The pool models (bodies and native looks other than the scavenger) the plain placed humans of an area draw.
 export function crowdAreaRefs(world, areaId, fallbackRows = AREA_MOB_SPAWNS[areaId] ?? []) {
   const rows = world.residentPlacements?.[areaId] ?? fallbackRows;
   return [
     ...new Set(
       rows
-        .filter(
-          (row) => row.foundationRef === undefined && row.appearanceRef === undefined && row.recipeRef === undefined,
-        )
+        .filter(plainRow)
         .map((row) => crowdBodyForKey(areaId, row.key))
         .filter((ref) => ref !== null),
     ),
   ];
+}
+// A living plain human built before its pool model had arrived (so it stands in as the scavenger), calm and OFF SCREEN now: true when its view
+// should be rebuilt with the model that has loaded since. Never while it fights (alert, swinging or reacting) and never while the player can see it
+// (the offscreen throttle, data/offscreenActors.json marginMetres, hides a view that is outside the camera frustum plus margin), so nothing
+// pops on screen: a resident the player is looking at keeps its look until it re-enters or respawns, when the cached body is used.
+export function staleLook(entity, view, library, areaId) {
+  if (entity.markedHunter)
+    return entity.hp > 0 && view?.root.name !== actorModelRef(entity, library.manifest, library.models, areaId);
+  if (!view || view.root.visible !== false || entity.hp <= 0 || entity.alerted || entity.swing || entity.response)
+    return false;
+  return (
+    crowdLookRef(entity, areaId) !== null &&
+    view.root.name !== actorModelRef(entity, library.manifest, library.models, areaId)
+  );
 }
 // Fire and forget, never required: download the pool models an area's residents draw, once the browser is idle (at once outside a browser).
 // Nothing waits on it: residents built before a file arrives keep the scavenger look, and the next spawn or entry uses the cached body. The

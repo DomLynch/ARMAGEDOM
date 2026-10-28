@@ -12,9 +12,11 @@ import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "..
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { createAirdropView } from "./airdrop-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
+import { createHaptics } from "./haptics.js";
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints(),
-    pickupFlash = createPickupFlash();
+    pickupFlash = createPickupFlash(),
+    haptics = createHaptics({ listen: s.listen });
   let last = 0,
     accumulator = 0,
     submitted = null,
@@ -25,7 +27,10 @@ export function createBrowserLoop(s) {
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
   if (globalThis.document && s.listen)
     s.listen(globalThis.document, "visibilitychange", () => {
-      if (globalThis.document.hidden) deathCam.reset();
+      if (globalThis.document.hidden) {
+        deathCam.reset();
+        haptics.cancel();
+      }
     });
   function toDomain(v) {
     return {
@@ -124,6 +129,7 @@ export function createBrowserLoop(s) {
         // Pickups that landed between steps; stepGame is about to reset g.events, so flash and tone them now.
         pickupFlash.observe(s.game.events);
         audioEvents.push(...pickupFlash.latest);
+        haptics.observe(s.game.events, s.game);
         const value = intent();
         s.diagnostics?.beforeStep(value);
         stepGame(s.game, value, 1 / 60, {
@@ -169,6 +175,7 @@ export function createBrowserLoop(s) {
         deathCam.observe(s.game.events);
         audioEvents.push(...s.game.events);
         pickupFlash.observe(s.game.events);
+        haptics.observe(s.game.events, s.game);
         s.emit(s.game.events);
         hints.observe(s.game);
         accumulator -= 1 / 60;

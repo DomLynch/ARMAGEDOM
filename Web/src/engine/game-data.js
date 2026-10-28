@@ -40,9 +40,13 @@ import presenceClient from "../data/presenceClient.json" with { type: "json" };
 import progressionBase from "../data/progressionBase.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import haptics from "../data/haptics.json" with { type: "json" };
+import { validateHaptics } from "./game-data-haptics.js";
 import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
+import inputKeys from "../data/inputKeys.json" with { type: "json" };
+import { validateInputKeys } from "./input-keymap-data.js";
 import visual from "../data/visual.json" with { type: "json" };
 import weapons from "../data/weapons.json" with { type: "json" };
 import spawns from "../data/spawns.json" with { type: "json" };
@@ -1105,6 +1109,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   goldenWeapons: [goldenWeapons, validateGoldenWeapons],
   renderBudget: [renderBudget, validateRenderBudget],
+  haptics: [haptics, validateHaptics],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],
   progressionBase: [progressionBase, validateProgressionBase],
@@ -1114,6 +1119,7 @@ const sources = () => ({
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],
   uniqueReward: [uniqueReward, validateUniqueReward],
+  inputKeys: [inputKeys, validateInputKeys],
   visual: [visual, validateVisual],
   weapons: [weapons, validateWeapons],
   world: [world, validateWorld],

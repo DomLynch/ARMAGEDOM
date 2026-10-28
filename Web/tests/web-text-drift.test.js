@@ -12,6 +12,7 @@ const IDS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/webText.
 // A call whose id is built at run time lists the id prefix it can produce; every id under the prefix counts as used.
 const DYNAMIC_PREFIXES = [
   { prefix: "runCore.refusal.", reason: "run-core.js picks the supply refusal line by the collectSupply reason (pistol-required, reserve-full, health-full)" },
+  { prefix: "hud.keys.", reason: "engine/input-keymap.js builds each key-hint label from the hint row's text in data/inputKeys.json" },
 ];
 
 // An id read by something other than a webText() call counts as used; each names who reads it and which test keeps the copy in step.

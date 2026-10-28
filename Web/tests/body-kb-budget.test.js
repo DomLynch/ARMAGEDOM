@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { measure, problems, BUDGET } from "../scripts/body-kb-budget.mjs";
+import { measure, problems, wireTotals, BUDGET } from "../scripts/body-kb-budget.mjs";
 
 test("every shipped body GLB is under its KB budget (crowd, creature, hero, boss); over-line bodies sit at a recorded ceiling and may not grow", () => {
   const rows = measure();
@@ -12,6 +12,14 @@ test("the budget covers all four body classes and every class is populated", () 
   const rows = measure();
   for (const cls of Object.keys(BUDGET.classes)) assert(rows.some((r) => r.cls === cls), `${cls} has bodies`);
   assert(rows.some((r) => r.url.startsWith("crowd/")) && rows.some((r) => r.url.startsWith("bosses/")));
+});
+
+test("wire size: every body has gzip and brotli bytes, and first-visit bodies fit V3's 5.5 MB budget", () => {
+  const rows = measure(), t = wireTotals(rows);
+  for (const r of rows) assert(r.gzip > 0 && r.brotli > 0 && r.brotli <= r.gzip * 1.02, r.url);
+  assert(t.firstVisitBodies >= 1 && t.firstVisitGzip <= BUDGET.firstVisitWireBytes);
+  assert(t.allGzip >= t.firstVisitGzip);
+  assert(problems(rows.map((r) => ({ ...r, deferred: false, gzip: BUDGET.firstVisitWireBytes }))).some((p) => p.includes("first-visit")));
 });
 
 test("the row fails a body that is over its line", () => {

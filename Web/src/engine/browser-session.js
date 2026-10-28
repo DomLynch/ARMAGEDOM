@@ -627,7 +627,7 @@ export function createBrowserSession(options = {}) {
     onRetry: restart,
     onReset: resetGame,
     onPickup: () => resources.interactNearby(),
-    cycleWeapon: () => resources.cycleWeapon(),
+    switchWeapon: (pick) => resources.switchWeapon(pick),
     isPistol: () =>
       !!(game && selectedBossRanged(game)) ||
       !!game?.rifle?.selected ||
