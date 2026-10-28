@@ -5,7 +5,6 @@ import { GAME_DATA } from "./game-data.js";
 // g.events), so it never polls the game itself. navigator.vibrate exists on Android browsers only; where it is missing (iOS Safari,
 // some desktops) every call is a no-op and the menu controls stay hidden. Never buzzes in a hidden tab or when the user prefers
 // reduced motion. ?<offParam>=0 switches it off for a session. Settings live in one localStorage key, every access in try/catch.
-const PAIR = 2; // a vibrate pattern alternates vibrate, pause (a Web Vibration API rule, not a tuning value)
 export function createHaptics({
   data = GAME_DATA.haptics,
   nav = globalThis.navigator,
@@ -47,11 +46,20 @@ export function createHaptics({
     } catch {}
   }
   const allowed = () =>
-    supported && enabled && !forcedOff && !doc?.hidden && !win.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    supported &&
+    enabled &&
+    !forcedOff &&
+    !doc?.hidden &&
+    !win.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   // Vibrate durations (even positions) scale with the strength level; the gaps between them stay as written.
   function scaled(pattern) {
     const scale = levels.get(intensity);
-    return pattern.map((ms, i) => (i % PAIR ? ms : Math.max(1, Math.round(ms * scale))));
+    let buzz = true;
+    return pattern.map((ms) => {
+      const value = buzz ? Math.ceil(ms * scale) : ms;
+      buzz = !buzz;
+      return value;
+    });
   }
   function fire(pattern, priority, now, { bypassGap = false } = {}) {
     if (!allowed()) return false;
@@ -133,7 +141,8 @@ export function createHaptics({
       seen.set(events, events.length);
       let best = null;
       for (const event of fresh)
-        for (const rule of data.rules) if ((!best || rule.priority > best.priority) && matches(rule, event, game?.player)) best = rule;
+        for (const rule of data.rules)
+          if ((!best || rule.priority > best.priority) && matches(rule, event, game?.player)) best = rule;
       if (best) return fire(best.pattern, best.priority, now, { bypassGap: best.bypassGap });
       const low = data.lowHealth,
         p = game?.player;

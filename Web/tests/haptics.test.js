@@ -95,7 +95,7 @@ test('strength levels scale the vibrate parts and leave the pauses alone', () =>
   calls.length = 0;
   h.observe([{type: 'death', actor: {id: 1, kind: 2}, boss: 1}], game(), 5000);
   const scale = D.intensityLevels.find(l => l.id === 'light').scale, p = rule('kill').pattern;
-  assert.deepEqual(calls[0], p.map((ms, i) => (i % 2 ? ms : Math.max(1, Math.round(ms * scale)))));
+  assert.deepEqual(calls[0], p.map((ms, i) => (i % 2 ? ms : Math.ceil(ms * scale))));
 });
 
 test('no support: no calls, no errors, controls hidden', () => {
