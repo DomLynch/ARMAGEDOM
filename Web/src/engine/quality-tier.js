@@ -34,8 +34,6 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     row: () => current,
     // A ceiling from the tier row: the smaller of the data's own value and the tier's.
     cap: (value, field) => Math.min(value, current[field]),
-    // The budget rows the physics pool reads, with the ragdoll cap lowered to the tier's.
-    ragdollRows: (rows) => ({ ...rows, max_simultaneous_ragdolls: Math.min(rows.max_simultaneous_ragdolls, current.ragdolls) }),
     onChange: (fn) => listeners.add(fn),
     // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
     report: () =>

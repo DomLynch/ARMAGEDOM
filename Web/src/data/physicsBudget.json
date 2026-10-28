@@ -1,6 +1,14 @@
 {
   "schema_version": 1,
+  "note": "rows: the package's own row, the floor (a test pins it). tiers: dying cap by qualityTier.json name, read once at the first death.",
+  "note2": "humanoid = bodies at once (low is the old cap 3); boss = how many may be marked hunters or bosses, 3 on every tier.",
+  "note3": "Quiet-box p95 vs the 3 ms budget: 3 bodies about 1.2 ms, 6 about 2.7, 8 about 3.6 (misses); 3 bosses about 1.0.",
   "rows": { "max_simultaneous_ragdolls": 3 },
+  "tiers": {
+    "full": { "humanoid": 6, "boss": 3 },
+    "mid": { "humanoid": 4, "boss": 3 },
+    "low": { "humanoid": 3, "boss": 3 }
+  },
   "reserve_for_marked": ["markedHunter", "bossProfile"],
   "ranks": { "crowd": 0, "remote": 1, "marked": 2, "player": 3 },
   "local_player_id": 0

@@ -8,6 +8,7 @@ import { GAME_DATA } from "./game-data.js";
 import { QUALITY } from "./quality-tier.js";
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 import { impulseRow } from "./physics-death-impulse.js";
+import { createTierCaps } from "./physics-cap.js";
 import { liveBodies, rigOf } from "./physics-rigs.js";
 import FLOOR from "../data/physicsFloor.json" with { type: "json" }; // lazy chunk only: about 150 KB of vertices that the main bundle never needs
 
@@ -230,11 +231,18 @@ const evictable = (rank) =>
     return !best || r < br || (r === br && a.frozen && !best.frozen) ? a : best;
   }, null);
 
+// The dying caps of this device's quality tier, fixed at the first death: { humanoid, boss }. Humanoid is the total of simultaneous bodies; boss is
+// how many of those may be marked hunters or bosses (rank `marked`), so a bigger crowd cap never lets more bosses simulate at once.
+export const tierCaps = createTierCaps(GAME_DATA.physicsBudget.tiers, QUALITY);
+const bossCount = () => active.filter((a) => a.rank === GAME_DATA.physicsBudget.ranks.marked).length;
+
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const budget = GAME_DATA.physicsBudget,
-    rows = QUALITY.ragdollRows(budget.rows),
+    caps = tierCaps(),
+    rows = { ...budget.rows, max_simultaneous_ragdolls: caps.humanoid },
     rank = rankOf(entity),
     marked = rank >= budget.ranks.marked;
+  if (rank === budget.ranks.marked && bossCount() >= caps.boss) return null; // boss cap: this one dies on the baked clip
   if (admit(active.length, rows) === "baked") {
     // Full: a higher-ranked death takes the place of the oldest lower-ranked corpse (its body is freed, the pose stays where it lies); else it is baked.
     const oldest = evictable(rank);
@@ -379,9 +387,9 @@ function freeBody(s) {
   s.pieces = 0;
 }
 
-// Track a corpse; past `maxActive` the oldest live one is frozen where it lies.
+// Track a corpse; past the tier's dying cap the oldest live one is frozen where it lies.
 export function registerDeath(s) {
-  for (let live = active.filter((a) => !a.frozen); live.length >= CFG.maxActive; live.shift()) {
+  for (let live = active.filter((a) => !a.frozen); live.length >= tierCaps().humanoid; live.shift()) {
     live[0].frozen = true; // the body leaves the world so it stops costing steps
     freeBody(live[0]);
   }
