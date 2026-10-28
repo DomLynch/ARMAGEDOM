@@ -135,7 +135,7 @@ test("the plan is null when the body carries none of the finisher's units", () =
     forced = { ...clone(), chance: 1 };
   assert.equal(planCut({ weapon: "pistol" }, "x", () => false, st, forced), null);
   const plan = planCut({ weapon: "pistol" }, "y", has(ALL), fresh(), forced);
-  assert.ok(plan && plan.steps.length >= 1 && CFG.finishers[plan.id] === plan.row);
+  assert.ok(plan && plan.steps.length >= 1 && forced.finishers[plan.id] === plan.row);
 });
 
 test("the manifest's units come from its regions, caps and optional cuts", () => {
