@@ -24,16 +24,16 @@ const rowFor = (areaId, cycle, key, isBoss, rules) => {
   const stars = rollStars(areaId, cycle, key, isBoss, rules);
   return rules.stars.find((r) => r.stars === stars);
 };
-// The health a placement spawns with once its stars are rolled; worldSpawnRows publishes this so the plan matches the game.
-export const starHealth = (areaId, cycle, key, isBoss, health, rules = STAR_VARIANTS) =>
-  Math.round(health * (rowFor(areaId, cycle, key, isBoss, rules)?.hp ?? 1));
+// Off switch: the URL parameter named in the data (offSwitch.param) set to offSwitch.value turns every star off.
+export const starsEnabled = (rules = STAR_VARIANTS, search = globalThis.location?.search ?? "") =>
+  rules.enabled && new URLSearchParams(search).get(rules.offSwitch.param) !== rules.offSwitch.value;
 // Rolls and applies the stars to a built resident. Drones and bodies without a placement key are never starred.
+// Health is never changed: the server's spawn row (hp, killed) is the truth, so a star changes only damage, size, drop tier and the tell.
 export function applyStarVariant(actor, areaId, cycle, rules = STAR_VARIANTS) {
-  if (actor.droneState || actor.star || !actor.placementKey) return actor;
+  if (actor.droneState || actor.star || !actor.placementKey || !starsEnabled(rules)) return actor;
   const row = rowFor(areaId, cycle, actor.placementKey, !!actor.bossProfile, rules);
   if (!row) return actor;
   actor.star = row;
-  actor.maxHP = actor.hp = starHealth(areaId, cycle, actor.placementKey, !!actor.bossProfile, actor.maxHP, rules);
   actor.mobSize = (actor.mobSize ?? 1) * row.scale;
   for (const field of ["combatScale", "contactScale", "radius"])
     if (Number.isFinite(actor[field])) actor[field] *= row.scale;

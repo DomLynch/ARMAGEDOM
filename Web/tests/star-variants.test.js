@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import * as THREE from "three";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateStarVariants } from "../src/engine/game-data-star-variants.js";
-import { STAR_VARIANTS, applyStarVariant, rollStars, starDamage, starDropTier } from "../src/engine/star-variants.js";
+import { STAR_VARIANTS, applyStarVariant, rollStars, starDamage, starDropTier, starsEnabled } from "../src/engine/star-variants.js";
 import { applyStarTell } from "../src/engine/star-variants-view.js";
 import { KILL_DROPS, tierOf } from "../src/engine/kill-drops.js";
 import { createGame, spawnWave, receiveHit } from "../src/combat.js";
@@ -36,7 +36,9 @@ test("the star rows are valid and ordered highest star count first", () => {
   );
   invalid((d) => d.stars.reverse());
   invalid((d) => (d.stars[0].chance = 0.9));
-  invalid((d) => (d.stars[1].hp = 0.5));
+  invalid((d) => (d.stars[1].hp = 1.5));
+  invalid((d) => (d.stars[1].damage = 0.5));
+  invalid((d) => (d.offSwitch.param = "No Stars"));
   invalid((d) => (d.stars[0].scale = 2));
   invalid((d) => (d.stars[0].dropTier = "gold"));
   invalid((d) => (d.stars[0].tell.emissive = "red"));
@@ -81,8 +83,8 @@ test("a starred resident scales HP, size and reach from its own row and keeps un
     }
     seen.add(e.star.stars);
     const row = STAR_VARIANTS.stars.find((r) => r.stars === e.star.stars);
-    assert.equal(e.maxHP, Math.round(40 * row.hp));
-    assert.equal(e.hp, e.maxHP);
+    assert.equal(e.maxHP, 40, "health is the server's: a star never changes it");
+    assert.equal(e.hp, 40);
     assert.equal(e.mobSize, row.scale);
     assert.equal(e.combatScale, row.scale);
     assert.equal(e.radius, 0.5 * row.scale);
@@ -96,6 +98,22 @@ test("a starred resident scales HP, size and reach from its own row and keeps un
     stars: [{ ...ALL_ON.stars[0], bossChance: 0.99 }],
   });
   assert.equal(boss.contactScale, 2 * ALL_ON.stars[0].scale);
+});
+
+test("?nostars=1 (named in the data) turns every star off", () => {
+  const { param, value } = STAR_VARIANTS.offSwitch;
+  assert.equal(starsEnabled(STAR_VARIANTS, ""), true);
+  assert.equal(starsEnabled(STAR_VARIANTS, `?${param}=${value}`), false);
+  assert.equal(starsEnabled(STAR_VARIANTS, `?${param}=0`), true);
+  assert.equal(starsEnabled({ ...STAR_VARIANTS, enabled: false }, ""), false);
+  const prior = globalThis.location;
+  globalThis.location = { search: `?${param}=${value}` };
+  try {
+    assert.equal(applyStarVariant(resident({ placementKey: "k" }), "east", "A", ALL_ON).star, undefined);
+  } finally {
+    if (prior === undefined) delete globalThis.location;
+    else globalThis.location = prior;
+  }
 });
 
 test("a star pays at its row's drop tier only when that is higher", () => {
@@ -150,7 +168,16 @@ test("a starred attacker hits harder through the player's hit path", async () =>
     starred = hurt({ id: -2, star: STAR_VARIANTS.stars[0] });
   assert.ok(plain > 0);
   assert.ok(Math.abs(starred - plain * STAR_VARIANTS.stars[0].damage) < 1e-9, `${plain} -> ${starred}`);
-  for (const e of g.enemies.filter((x) => x.star)) assert.ok(e.hp === e.maxHP && e.maxHP > 0 && e.placementKey && !e.droneState);
+  const plainGame = createGame(w, { pilot: "donor-knife", encounter, pistol: true, areaResidents: true, animalVariants: true });
+  spawnWave(plainGame);
+  w.areaId = "westminster";
+  await travelTo(plainGame, { areaId: "east" });
+  const baseHp = new Map(plainGame.enemies.map((e) => [e.placementKey, e.maxHP]));
+  for (const e of g.enemies.filter((x) => x.star)) {
+    assert.ok(e.placementKey && !e.droneState);
+    assert.equal(e.maxHP, baseHp.get(e.placementKey), "a starred hostile with a server spawn row keeps its base maxHp");
+    assert.equal(e.hp, e.maxHP);
+  }
   const rolled = g.enemies.filter((e) => e.star).map((e) => e.placementKey);
   assert.deepEqual(
     rolled,
