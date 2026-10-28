@@ -32,12 +32,13 @@ export function createShareCard({
     unsubscribe = null,
     statusTimer = null;
 
-  const say = (id, confirmation = false) => {
+  const say = (text, confirmation = false) => {
     clear(statusTimer);
-    status.textContent = id ? webText(id) : "";
+    status.textContent = text ?? "";
     if (confirmation) statusTimer = later(() => say(null), rows.card.statusSeconds * 1000);
   };
-  const line = () => webText("share.brand");
+  const line = () => webText("share.brand"),
+    moment = (id) => rows.moments.find((m) => m.id === id); // each moment's label and share text are data rows
 
   // One file per frozen moment: a recorded clip where the browser records one, else the branded still as a PNG.
   async function make(clip) {
@@ -61,13 +62,13 @@ export function createShareCard({
     selected = clip;
     send.disabled = true;
     for (const pick of picks.children) pick.setAttribute("aria-pressed", String(pick.dataset.id === clip.id));
-    say("share.making");
+    say(webText("share.making"));
     const made = await prepare(clip);
     if (selected !== clip || !shown) return;
-    if (!made) return say("share.failed");
+    if (!made) return say(webText("share.failed"));
     el("share-send-label").textContent = webText(made.kind === "clip" ? "share.button.clip" : "share.button.image");
     send.disabled = false;
-    say(made.kind === "clip" ? "share.ready" : "share.stillOnly");
+    say(made.kind === "clip" ? webText("share.ready") : webText("share.stillOnly"));
   }
   function render() {
     const { death, best } = share.clips(),
@@ -80,11 +81,11 @@ export function createShareCard({
       pick.type = "button";
       pick.className = "share-pick";
       pick.dataset.id = clip.id;
-      pick.setAttribute("aria-label", webText("share.pick", { moment: webText(`share.moment.${clip.id}`) }));
+      pick.setAttribute("aria-label", webText("share.pick", { moment: moment(clip.id).label }));
       thumb.width = rows.buffer.width;
       thumb.height = rows.buffer.height;
       thumb.getContext("2d").drawImage(clip.still, 0, 0, thumb.width, thumb.height);
-      label.textContent = webText(`share.moment.${clip.id}`);
+      label.textContent = moment(clip.id).label;
       pick.append(thumb, label);
       pick.onclick = () => {
         chosen = true;
@@ -94,7 +95,7 @@ export function createShareCard({
     }
     // Nothing is made until the death is frozen (its tail is still playing): the death is the default, and a boss kill or blast
     // earlier in the life is one tap away.
-    if (!death) return say("share.making");
+    if (!death) return say(webText("share.making"));
     void choose(chosen && list.includes(selected) ? selected : death);
   }
   function download(file) {
@@ -107,24 +108,25 @@ export function createShareCard({
   }
   send.onclick = async () => {
     const made = selected ? await prepared.get(selected) : null;
-    if (!made) return say("share.failed");
-    const data = { files: [made.file], title: webText(`share.moment.${selected.id}`), text: webText(`share.text.${selected.id}`, { url: rows.shareUrl }) };
+    if (!made) return say(webText("share.failed"));
+    const row = moment(selected.id),
+      data = { files: [made.file], title: row.label, text: row.text.replace("{url}", rows.shareUrl) };
     if (nav?.share && nav.canShare?.({ files: data.files })) {
       try {
         await nav.share(data);
-        say("share.shared", true);
+        say(webText("share.shared"), true);
       } catch (error) {
-        if (error?.name !== "AbortError") say("share.failed", true); // dismissed is not an error
+        if (error?.name !== "AbortError") say(webText("share.failed"), true); // dismissed is not an error
       }
       return;
     }
     download(made.file);
-    say("share.saved", true);
+    say(webText("share.saved"), true);
   };
   link.onclick = async () => {
     try {
       await nav.clipboard.writeText(rows.shareUrl);
-      return say("share.copied", true);
+      return say(webText("share.copied"), true);
     } catch {
       const area = doc.createElement("textarea");
       area.value = rows.shareUrl;
@@ -132,7 +134,7 @@ export function createShareCard({
       area.select();
       const ok = !!doc.execCommand?.("copy");
       area.remove();
-      say(ok ? "share.copied" : "share.failed", true);
+      say(ok ? webText("share.copied") : webText("share.failed"), true);
     }
   };
 

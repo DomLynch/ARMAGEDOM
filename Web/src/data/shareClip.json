@@ -33,10 +33,29 @@
     "rulePx": 2
   },
   "moments": [
-    { "id": "death", "trigger": "playerDeath", "priority": 1, "tailSeconds": 1.5, "cooldownSeconds": 0 },
-    { "id": "bossKill", "trigger": "flaggedDeath", "flags": ["bossProfile"], "priority": 4, "tailSeconds": 1.5, "cooldownSeconds": 20 },
+    {
+      "id": "death",
+      "label": "The end",
+      "text": "I just went down in ARMAGEDOM. Think you can last longer? {url}",
+      "trigger": "playerDeath",
+      "priority": 1,
+      "tailSeconds": 1.5,
+      "cooldownSeconds": 0
+    },
+    {
+      "id": "bossKill",
+      "label": "Boss down",
+      "text": "I just took down a boss in ARMAGEDOM. {url}",
+      "trigger": "flaggedDeath",
+      "flags": ["bossProfile"],
+      "priority": 4,
+      "tailSeconds": 1.5,
+      "cooldownSeconds": 20
+    },
     {
       "id": "bigBlast",
+      "label": "Big blast",
+      "text": "Look at that blast in ARMAGEDOM. {url}",
       "trigger": "blast",
       "events": ["grenade-blast", "trap-crate-blast", "boss-rocket-blast"],
       "minRadius": 3,
@@ -44,6 +63,16 @@
       "tailSeconds": 1,
       "cooldownSeconds": 12
     },
-    { "id": "closeEscape", "trigger": "closeCall", "hpFraction": 0.2, "surviveSeconds": 4, "priority": 2, "tailSeconds": 0.5, "cooldownSeconds": 30 }
+    {
+      "id": "closeEscape",
+      "label": "Close escape",
+      "text": "That was close. ARMAGEDOM. {url}",
+      "trigger": "closeCall",
+      "hpFraction": 0.2,
+      "surviveSeconds": 4,
+      "priority": 2,
+      "tailSeconds": 0.5,
+      "cooldownSeconds": 30
+    }
   ]
 }

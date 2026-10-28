@@ -148,10 +148,6 @@
     "corpse.lost": "Scavengers took your body bag.",
     "share.heading": "Share this moment",
     "share.brand": "ARMAGEDOM · playarmagedom.com",
-    "share.moment.death": "The end",
-    "share.moment.bossKill": "Boss down",
-    "share.moment.bigBlast": "Big blast",
-    "share.moment.closeEscape": "Close escape",
     "share.pick": "Pick this moment: {moment}",
     "share.making": "Preparing your clip… Copy link works now.",
     "share.ready": "Ready to share. Stays on your device.",
@@ -162,10 +158,6 @@
     "share.shared": "Shared.",
     "share.saved": "Saved to your device.",
     "share.copied": "Link copied.",
-    "share.failed": "Could not share. Try again.",
-    "share.text.death": "I just went down in ARMAGEDOM. Think you can last longer? {url}",
-    "share.text.bossKill": "I just took down a boss in ARMAGEDOM. {url}",
-    "share.text.bigBlast": "Look at that blast in ARMAGEDOM. {url}",
-    "share.text.closeEscape": "That was close. ARMAGEDOM. {url}"
+    "share.failed": "Could not share. Try again."
   }
 }

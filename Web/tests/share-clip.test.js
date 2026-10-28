@@ -52,9 +52,8 @@ test("the shipped row validates and bad rows are refused", () => {
 
 test("every moment has its card text and the link is the bare homepage with no player data", () => {
   for (const m of rows.moments) {
-    assert.ok(webText(`share.moment.${m.id}`));
-    const text = webText(`share.text.${m.id}`, { url: rows.shareUrl });
-    assert.ok(text.endsWith(rows.shareUrl) || text.includes(rows.shareUrl));
+    assert.ok(m.label);
+    assert.ok(m.text.replace("{url}", rows.shareUrl).includes(rows.shareUrl));
   }
   assert.equal(rows.shareUrl, "https://playarmagedom.com/");
   assert.equal(new URL(rows.shareUrl).search, "");
