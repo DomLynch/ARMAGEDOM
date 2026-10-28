@@ -966,7 +966,7 @@ test("an urgent (death) save is not held for the claim bucket", async () => {
   const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
   [1, 2, 3, 4, 5, 6].forEach((n) => t.client.claimPickup("kill:trash", n));
   await settle();
-  t.client.queue(record({ dead: true }), undefined, { urgent: true });
+  t.client.queue(record({ dead: true }), {}, { urgent: true });
   t.timers.splice(1, 1)[0].fn();
   await settle();
   assert.equal(claimCalls(t).length, 4, "claims 5 and 6 are still waiting for the bucket");
