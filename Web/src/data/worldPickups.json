@@ -31,18 +31,18 @@
   },
   "markers": {
     "labelDistance": 6,
-    "style": { "shape": "circle", "ringInner": 0.74, "ringOuter": 0.84, "glowOuter": 1.25, "labelHeight": 1.3, "labelWidth": 2.5, "peakOpacity": 0.7, "glowOpacity": 0.45 },
+    "style": { "shape": "circle", "ringInner": 0.79, "ringOuter": 0.83, "glowOuter": 1.25, "labelHeight": 1.55, "labelWidth": 1.35, "peakOpacity": 0.35, "glowOpacity": 0.18, "labelBackingOpacity": 0.4, "label": { "canvasWidth": 240, "canvasHeight": 48, "textY": 31, "textMaxWidth": 230, "opacityBase": 0.55, "opacitySwing": 0.1, "borderPx": 1, "renderOrder": 10 } },
     "medkit": { "label": "Medkit", "ringColour": "e5483f", "labelColour": "ffd9d6" },
     "ammoBox": { "label": "Ammo", "ringColour": "e0b030", "labelColour": "fff0b8" },
     "cashStash": { "label": "Cash", "ringColour": "f5c518", "labelColour": "fff3a8" }
   },
   "models": {
     "medkit": [
-      { "shape": "box", "size": [0.5, 0.22, 0.36], "pos": [0, 0.11, 0], "color": "ece8e0" },
-      { "shape": "box", "size": [0.34, 0.02, 0.1], "pos": [0, 0.23, 0], "color": "d4262b" },
-      { "shape": "box", "size": [0.1, 0.02, 0.34], "pos": [0, 0.23, 0], "color": "d4262b" },
-      { "shape": "box", "size": [0.2, 0.05, 0.012], "pos": [0, 0.12, 0.182], "color": "d4262b" },
-      { "shape": "box", "size": [0.05, 0.2, 0.012], "pos": [0, 0.12, 0.182], "color": "d4262b" }
+      { "shape": "box", "size": [0.5, 0.22, 0.36], "pos": [0, 0.11, 0], "color": "d6d1c3", "wear": 0.45 },
+      { "shape": "box", "size": [0.34, 0.02, 0.1], "pos": [0, 0.23, 0], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.1, 0.02, 0.34], "pos": [0, 0.23, 0], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.2, 0.05, 0.012], "pos": [0, 0.12, 0.182], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.05, 0.2, 0.012], "pos": [0, 0.12, 0.182], "color": "b02a2c", "wear": 0.4 }
     ],
     "ammoBox": [
       { "shape": "box", "size": [0.5, 0.24, 0.34], "pos": [0, 0.12, 0], "color": "5e6a3a" },
@@ -66,6 +66,66 @@
       { "shape": "cylinder", "size": [0.15, 0.04, 0.15], "pos": [0.3, 0.1, 0.08], "color": "ffd84a" },
       { "shape": "cylinder", "size": [0.15, 0.035, 0.15], "pos": [-0.28, 0.0175, 0.12], "color": "f5c518" }
     ]
+  },
+  "finish": { "gridMetres": 0.04, "maxCells": 10, "hashScale": 55, "hashSeed": [12.9898, 78.233, 37.719], "hashMultiplier": 43758.5453, "contrast": 0.9 },
+  "contour": { "medkit": false, "ammoBox": false, "cashStash": true },
+  "look": { "ammoBox": "crate" },
+  "lookScale": { "crate": 1.45, "carton": 1.4, "bandolier": 1.5 },
+  "looks": {
+    "ammoBox": {
+      "crate": [
+        { "shape": "box", "size": [0.46, 0.22, 0.26], "pos": [0, 0.11, 0], "color": "646b46", "wear": 0.35 },
+        { "shape": "box", "size": [0.47, 0.02, 0.27], "pos": [0, 0.23, 0], "color": "565c3a", "wear": 0.3 },
+        { "shape": "box", "size": [0.42, 0.004, 0.22], "pos": [0, 0.236, 0], "color": "23251b" },
+        { "shape": "box", "size": [0.48, 0.025, 0.28], "pos": [0, 0.3446, -0.0411], "rot": [-0.75, 0, 0], "color": "5d6340", "wear": 0.4 },
+        { "shape": "box", "size": [0.05, 0.05, 0.02], "pos": [0, 0.2, 0.138], "color": "7a7d78", "wear": 0.35 },
+        { "shape": "box", "size": [0.1, 0.08, 0.006], "pos": [-0.12, 0.1, 0.132], "color": "8a5a34", "wear": 0.5 },
+        { "shape": "box", "size": [0.07, 0.06, 0.006], "pos": [0.15, 0.15, 0.132], "color": "7a4e2e", "wear": 0.5 },
+        { "shape": "box", "size": [0.006, 0.09, 0.12], "pos": [0.232, 0.08, 0.02], "color": "80553a", "wear": 0.5 },
+        { "shape": "box", "size": [0.12, 0.07, 0.004], "pos": [0.05, 0.07, 0.131], "color": "4a5036", "wear": 0.4 },
+        { "shape": "box", "size": [0.2, 0.04, 0.004], "pos": [0, 0.14, 0.131], "color": "b0ab84", "wear": 0.6 },
+        { "shape": "box", "size": [0.12, 0.02, 0.004], "pos": [0, 0.1, 0.131], "color": "a39e78", "wear": 0.6 },
+        { "shape": "cylinder", "size": [0.018, 0.08, 0.018], "pos": [-0.15, 0.265, 0.07], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.018, 0.08, 0.018], "pos": [-0.05, 0.265, 0.07], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.018, 0.08, 0.018], "pos": [0.06, 0.265, 0.07], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.018, 0.08, 0.018], "pos": [0.16, 0.265, 0.07], "color": "b8a050", "wear": 0.3 }
+      ],
+      "carton": [
+        { "shape": "box", "size": [0.44, 0.13, 0.3], "pos": [0, 0.065, 0], "color": "7a6848", "wear": 0.45 },
+        { "shape": "box", "size": [0.44, 0.012, 0.14], "pos": [0, 0.192, -0.1817], "rot": [1.1, 0, 0], "color": "a38d66", "wear": 0.5 },
+        { "shape": "box", "size": [0.44, 0.012, 0.14], "pos": [0, 0.0905, 0.2078], "rot": [0.6, 0, 0], "color": "9a845e", "wear": 0.5 },
+        { "shape": "box", "size": [0.1, 0.05, 0.004], "pos": [0.08, 0.09, 0.151], "color": "b5ac86", "wear": 0.4 },
+        { "shape": "box", "size": [0.16, 0.05, 0.004], "pos": [-0.1, 0.07, 0.151], "color": "9c9876", "wear": 0.5 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [-0.14, 0.16, 0.02], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [-0.07, 0.16, 0.05], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0, 0.16, 0.02], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0.07, 0.16, 0.05], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0.14, 0.16, 0.02], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0.3, 0.016, 0.12], "rot": [0, 0.4, 1.5708], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0.27, 0.016, 0.05], "rot": [0, -0.3, 1.5708], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0.33, 0.016, -0.04], "rot": [0, 1, 1.5708], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [-0.3, 0.016, 0.17], "rot": [0, 0.2, 1.5708], "color": "b8a050", "wear": 0.3 },
+        { "shape": "box", "size": [0.22, 0.008, 0.16], "pos": [-0.3, 0.004, -0.1], "rot": [0, 0.5, 0], "color": "5a564a", "wear": 0.5 },
+        { "shape": "box", "size": [0.12, 0.01, 0.1], "pos": [-0.27, 0.01, -0.06], "rot": [0, -0.4, 0], "color": "47433a", "wear": 0.5 }
+      ],
+      "bandolier": [
+        { "shape": "box", "size": [0.34, 0.11, 0.2], "pos": [0, 0.055, 0], "color": "6d6a4e", "wear": 0.5 },
+        { "shape": "box", "size": [0.345, 0.04, 0.205], "pos": [0, 0.02, 0], "color": "4a3f2c", "wear": 0.6 },
+        { "shape": "box", "size": [0.34, 0.02, 0.09], "pos": [0, 0.115, 0.055], "color": "74704f", "wear": 0.5 },
+        { "shape": "box", "size": [0.34, 0.02, 0.12], "pos": [0, 0.1406, -0.156], "rot": [0.35, 0, 0], "color": "65613f", "wear": 0.5 },
+        { "shape": "box", "size": [0.04, 0.05, 0.012], "pos": [0, 0.085, 0.106], "color": "8a8a80", "wear": 0.4 },
+        { "shape": "box", "size": [0.07, 0.1, 0.03], "pos": [-0.07, 0.15, 0], "rot": [0, 0, 0.12], "color": "3a3d40", "wear": 0.3 },
+        { "shape": "box", "size": [0.07, 0.1, 0.03], "pos": [0.05, 0.15, 0], "rot": [0, 0, -0.1], "color": "3a3d40", "wear": 0.3 },
+        { "shape": "box", "size": [0.075, 0.012, 0.034], "pos": [-0.0775, 0.2, 0], "color": "2a2c2e" },
+        { "shape": "box", "size": [0.075, 0.012, 0.034], "pos": [0.0555, 0.2, 0], "color": "2a2c2e" },
+        { "shape": "cylinder", "size": [0.016, 0.07, 0.016], "pos": [0.13, 0.145, -0.03], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.07, 0.016], "pos": [0.15, 0.145, 0], "color": "b8a050", "wear": 0.3 },
+        { "shape": "cylinder", "size": [0.016, 0.07, 0.016], "pos": [0.115, 0.14, 0.03], "color": "b8a050", "wear": 0.3 },
+        { "shape": "box", "size": [0.55, 0.012, 0.045], "pos": [0, 0.007, 0.2], "rot": [0, 0.15, 0], "color": "55503a", "wear": 0.5 },
+        { "shape": "box", "size": [0.3, 0.012, 0.045], "pos": [0.33, 0.007, 0.27], "rot": [0, -0.5, 0], "color": "55503a", "wear": 0.5 },
+        { "shape": "box", "size": [0.2, 0.004, 0.12], "pos": [-0.05, 0.002, 0.14], "rot": [0, 0.7, 0], "color": "3b3225", "wear": 0.5 }
+      ]
+    }
   },
   "placements": {
     "westminster": [
