@@ -44,15 +44,24 @@ export function warm() {
   const [first, ...rest] = liveBodies();
   while (poolOf(first).length < CFG.poolSize) warmOne(first);
   rest.forEach((spec, i) =>
-    setTimeout(() => {
-      while (world && poolOf(spec).length < CFG.poolSize) warmOne(spec);
-    }, CFG.rewarmMs * (i + 1)),
+    setTimeout(
+      () => {
+        while (world && poolOf(spec).length < CFG.poolSize) warmOne(spec);
+      },
+      CFG.rewarmMs * (i + 1),
+    ),
   );
   world.step(1 / CFG.stepHz); // first step compiles the paths the death frame would otherwise pay for
 }
 
 // Silent always-on diagnostic: read it from the console or a harness (`__physicsDeathStats`); nothing is ever logged.
-const stats = (globalThis.__physicsDeathStats ??= { created: 0, released: 0, active: 0, lastAt: 0, chunkLoaded: false });
+const stats = (globalThis.__physicsDeathStats ??= {
+  created: 0,
+  released: 0,
+  active: 0,
+  lastAt: 0,
+  chunkLoaded: false,
+});
 export const markChunkLoaded = () => (stats.chunkLoaded = true);
 
 // The impulse in the sim frame (= the actor root's local frame): `horizontal` along the killing blow (the hit's impactDirection, else
@@ -143,7 +152,15 @@ export function disposeCuts(s) {
 
 // Null = the budget row (@frankendom/physics data/budget-rows.json, max_simultaneous_ragdolls) is full: no body is taken and the baked death plays.
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
-  if (admit(active.length, GAME_DATA.physicsBudget.rows) === "baked") return null;
+  const budget = GAME_DATA.physicsBudget,
+    marked = budget.reserve_for_marked.some((flag) => !!entity[flag]);
+  if (admit(active.length, budget.rows) === "baked") {
+    // Full: a hunter or boss death takes the place of the oldest crowd corpse (its body is freed, the pose stays where it lies); a crowd death is baked.
+    const oldest = marked ? active.find((a) => !a.marked) : null;
+    if (!oldest) return null;
+    releaseDeath(oldest);
+    if (admit(active.length, budget.rows) === "baked") return null;
+  }
   const rd = poolOf(spec).pop() ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
@@ -182,7 +199,7 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked });
     if (plan) {
       try {
         beginCuts(s, plan, skin, push);

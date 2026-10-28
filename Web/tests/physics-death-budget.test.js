@@ -318,18 +318,42 @@ test("past the simultaneous-ragdoll budget row the next death takes the baked cl
   try {
     while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
     const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
-      entity = { id: 50, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
-      library = { models: new Map([[CFG.rigRef, { gltf: { scene: skeleton() } }]]) },
       pooled = created;
-    assert.equal(physicsDeathStep(view, entity, library, DT, true), false);
-    assert.deepEqual(view.physicsDeath, { failed: true });
-    assert.equal(created, pooled); // no ragdoll was built for it
+    // a crowd death (no reserve flag) past the cap: baked, no body built, nothing released
+    assert.equal(impl.startDeath(view, skeleton(), { id: 50, hp: 0, maxHP: 10 }), null);
+    assert.equal(created, pooled);
     assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
-    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // and it stays on the clip
+    for (const s of held) assert.equal(s.rd.destroyed, 0);
   } finally {
     world.createRagdoll = create;
     for (const s of held) releaseDeath(s);
   }
+});
+
+test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and the oldest crowd corpse is released", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const held = [];
+  try {
+    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    for (const flag of GAME_DATA.physicsBudget.reserve_for_marked) {
+      const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
+        entity = { id: 60, [flag]: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
+        oldest = held.find((s) => s.rd),
+        s = impl.startDeath(view, skeleton(), entity);
+      assert.ok(s, `${flag} death got a ragdoll`);
+      assert.equal(oldest.rd, null); // the oldest crowd corpse's body was freed
+      assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+      held.push(s);
+    }
+  } finally {
+    for (const s of held) releaseDeath(s);
+  }
+});
+
+test("maxActive equals the simultaneous-ragdoll cap, so the oldest corpse is never frozen mid-fall by the cap", () => {
+  assert.equal(CFG.maxActive, budgetRows.max_simultaneous_ragdolls);
 });
 
 test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {

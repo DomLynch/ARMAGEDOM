@@ -86,7 +86,10 @@ test("a model without a live row keeps the baked clip and never reaches the impl
   assert.equal(calls.length, 0);
   assert.equal(view.physicsDeath, undefined);
   // no description at all
-  assert.equal(physicsDeathStep({ physicsDeath: undefined }, { id: 4, hp: 0, maxHP: 10 }, library, 1 / 60, true), false);
+  assert.equal(
+    physicsDeathStep({ physicsDeath: undefined }, { id: 4, hp: 0, maxHP: 10 }, library, 1 / 60, true),
+    false,
+  );
 });
 
 test("the marked hunter still starts its ragdoll, and the impl gets the rig record", () => {
