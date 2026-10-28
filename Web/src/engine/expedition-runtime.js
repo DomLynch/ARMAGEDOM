@@ -86,7 +86,9 @@ function areaObjectiveLine(g) {
   if (!Object.hasOwn(GAME_DATA.sessionText.areaObjective, id)) return "";
   const hasBoss = g.world.bossData?.placements?.some((row) => row.areaId === id),
     bossAlive = g.enemies?.some((e) => e.hp > 0 && e.bossProfile);
-  return hasBoss && g.enemies && !bossAlive ? text("expedition.bossDown") : text(`areaObjective.${id}`);
+  // "Boss down" only after this area's boss was seen alive: a boss that spawns late must not flash it on entry.
+  if (bossAlive) g.bossSeenAliveIn = id;
+  return hasBoss && g.enemies && !bossAlive && g.bossSeenAliveIn === id ? text("expedition.bossDown") : text(`areaObjective.${id}`);
 }
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: areaObjectiveLine(g) };
