@@ -36,7 +36,21 @@ export function validateCombatRules(d) {
   flat("awareness", ["ratContactDistance", "sightDistance"]);
   // bossWeapon: the boss-equipment weapon runtime's dead zone, grenade and rocket aim heights (metres) and the grenade throw ranges it cycles.
   const bw = d.bossWeapon;
-  closed(bw, ["moveThreshold", "grenadeLandingClearance", "grenadeAimHeight", "rocketAimHeight", "grenadeThrowRanges", "defaultThrowRange"]);
+  closed(bw, [
+    "moveThreshold",
+    "grenadeLandingClearance",
+    "grenadeAimHeight",
+    "rocketAimHeight",
+    "grenadeThrowRanges",
+    "defaultThrowRange",
+    "grenadeAim",
+  ]);
+  // grenadeAim: lead (metres, m/s, seconds), the cursor snap radius and the range margin for the auto-aimed throw (engine/grenade-aim.js).
+  const ga = bw.grenadeAim;
+  closed(ga, ["leadScale", "maxLead", "minSpeed", "maxSpeed", "velocityBlend", "maxSampleGap", "backoffSteps", "cursorSnapRadius", "rangeMargin"]);
+  for (const f of Object.keys(ga)) number("combatRules", `bossWeapon.grenadeAim.${f}`, ga[f], 0);
+  if (!Number.isInteger(ga.backoffSteps) || ga.backoffSteps < 1 || ga.velocityBlend > 1)
+    fail("combatRules", "bossWeapon.grenadeAim needs whole backoffSteps from 1 and velocityBlend up to 1");
   for (const f of ["moveThreshold", "grenadeLandingClearance", "grenadeAimHeight", "rocketAimHeight"]) number("combatRules", `bossWeapon.${f}`, bw[f], 0);
   if (!Array.isArray(bw.grenadeThrowRanges) || !bw.grenadeThrowRanges.length || !bw.grenadeThrowRanges.every((n) => Number.isFinite(n) && n > 0))
     fail("combatRules", "bossWeapon.grenadeThrowRanges must list positive numbers");

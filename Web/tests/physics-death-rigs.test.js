@@ -93,6 +93,7 @@ test("the hunter, the crowd humans, the bosses and the chain creatures are live"
     "original-rat",
     "low-hover-drone",
     "original-spider",
+    "original-roach",
     "giant-centipede",
     "vagrant-106",
   ])
@@ -204,8 +205,8 @@ test("a crowd human starts its ragdoll with its own bone map and body row", () =
 test("a model without a live row keeps the baked clip and never reaches the impl", () => {
   const calls = [];
   usePhysicsDeathImpl({ startDeath: (...a) => calls.push(a), stepDeath: () => {} });
-  const description = manifest["original-roach"],
-    library = { models: new Map([["original-roach", { description, gltf: { scene: {} } }]]) },
+  const description = manifest["npc-marsh"],
+    library = { models: new Map([["npc-marsh",{ description, gltf: { scene: {} } }]]) },
     view = { description },
     entity = { id: 3, hp: 0, maxHP: 10 };
   for (let i = 0; i < 5; i++) assert.equal(physicsDeathStep(view, entity, library, 1 / 60, true), false);

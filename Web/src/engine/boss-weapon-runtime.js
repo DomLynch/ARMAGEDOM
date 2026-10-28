@@ -5,6 +5,7 @@ import { startStickyGrenade, stepStickyGrenade } from "./sticky-grenade-runtime.
 import { tracePistol } from "../pistol.js";
 import { traceShotgun } from "./shotgun-pattern.js";
 import { createGrenadeModel } from "./grenade-state.js";
+import { grenadeAim, trackBodies } from "./grenade-aim.js";
 import { bossEquipmentClock } from "./boss-equipment-data.js";
 import { GAME_DATA } from "./game-data.js";
 const BOSS_WEAPON = GAME_DATA.combatRules.bossWeapon; // data/combatRules.json: dead zone, aim heights and grenade throw ranges
@@ -30,18 +31,19 @@ function grenadeModel(g) {
   );
 }
 function throwTarget(g, intent, reference) {
-  const result = resolveRangedAim(g, reference, {
-    visibleIds: intent.combatVisibleIds ?? intent.pistolVisibleIds,
-    aimPoint: intent.aimPoint,
-    aimTargetId: intent.aimTargetId,
-  });
-  g.grenadeAimTargetId = result?.targetId ?? null;
-  if (!result) return null;
+  const visibleIds = intent.combatVisibleIds ?? intent.pistolVisibleIds,
+    result = resolveRangedAim(g, reference, { visibleIds, aimPoint: intent.aimPoint, aimTargetId: intent.aimTargetId });
+  if (!result) {
+    g.grenadeAimTargetId = null;
+    return null;
+  }
+  const aimed = grenadeAim(g, result, { visibleIds, cursor: point(intent.aimPoint) });
+  g.grenadeAimTargetId = aimed.target?.id ?? null;
   const p = g.player.pos,
-    position = result.position,
+    position = aimed.landing,
     distance = Math.hypot(position.x - p.x, position.z - p.z);
   return distance > 0 && g.world.geometry?.clear(position, BOSS_WEAPON.grenadeLandingClearance) && g.world.lineClear(p, position)
-    ? { position, direction: normal({ x: position.x - p.x, z: position.z - p.z }, reference) }
+    ? { position, aim: aimed.aim, direction: normal({ x: position.x - p.x, z: position.z - p.z }, reference) }
     : null;
 }
 export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}) {
@@ -67,6 +69,7 @@ export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}
     moving = length(intent.move) > BOSS_WEAPON.moveThreshold,
     reference = explicit ? normal(intent.aim) : moving ? normal(intent.move) : (g.bossWeaponFacing ?? { ...p.facing });
   g.bossWeaponFacing = { ...reference };
+  if (field === "grenade") trackBodies(g);
   g.pistolTargetId = null;
   g.pistolTargetFacing = null;
   if (!canAct) clock.reloadingUntil = 0;
@@ -149,7 +152,7 @@ export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}
       }
     } else {
       const target = throwTarget(g, intent, reference);
-      g.grenadeAim = target?.position ?? null;
+      g.grenadeAim = target?.aim ?? null;
       if (target) {
         const id = "grenade:" + g.tick + ":" + (g.grenadeSequence ?? 0),
           proposal = grenadeModel(g).proposeThrow(
@@ -185,7 +188,7 @@ export function bossEquipmentIntent(g, intent, dispatch, applyHit, services = {}
       }
     }
   }
-  if (field === "grenade") g.grenadeAim = throwTarget(g, intent, reference)?.position ?? null;
+  if (field === "grenade") g.grenadeAim = throwTarget(g, intent, reference)?.aim ?? null;
   p.buffer = null;
   p.guarding = false;
   p.parryUntil = 0;
@@ -292,7 +295,7 @@ export function bossWeaponCue(g, { paused = false, visibleIds } = {}) {
             : field === "rocketLauncher"
               ? (g.rocketAimHeight ?? BOSS_WEAPON.rocketAimHeight)
               : result.height,
-        ground: field === "grenade",
+        ground: field === "grenade" && targetId == null,
         heightLocked: field === "rocketLauncher",
         targetId: targetId ?? null,
         ready:

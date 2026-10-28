@@ -11,7 +11,7 @@ export function touchGun(g) {
   const field = selectedRangedProfile(g)?.field;
   return g.flame?.equipped
     ? "flame"
-    : ["pistol", "rifle", "shotgun", "rocketLauncher", "commanderPistol"].includes(field)
+    : ["pistol", "rifle", "shotgun", "grenade", "rocketLauncher", "commanderPistol"].includes(field)
       ? field
       : reaperSelected(g)
         ? "reaper"
