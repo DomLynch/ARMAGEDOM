@@ -12,16 +12,23 @@ export function createPickupFlash(
 ) {
   const kinds = new Set(data.events),
     seen = new WeakMap(); // events array -> how many of its events were already looked at
-  let until = 0;
+  let until = 0,
+    latest = [];
   node?.style?.setProperty("--pickup-flash-colour", `#${data.colour}`);
   node?.style?.setProperty("--pickup-flash-opacity", String(data.peakOpacity));
   node?.style?.setProperty("--pickup-flash-seconds", `${data.seconds}s`);
   return {
+    // The pickup events the last observe() saw for the first time (the loop plays the tone for the ones that landed between steps).
+    get latest() {
+      return latest;
+    },
     observe(events, now = globalThis.performance?.now() ?? 0) {
+      latest = [];
       if (!events) return false;
       const fresh = events.slice(seen.get(events) ?? 0);
       seen.set(events, events.length);
-      if (now < until || !fresh.some((e) => kinds.has(e?.type))) return false;
+      latest = fresh.filter((e) => kinds.has(e?.type));
+      if (now < until || !latest.length) return false;
       until = now + data.seconds * 1000;
       if (node) {
         node.classList.remove("on");

@@ -121,7 +121,9 @@ export function createBrowserLoop(s) {
       while (accumulator >= 1 / 60) {
         const weaponBefore = s.game.player.weapon,
           flameBefore = !!s.game.flame?.equipped;
-        pickupFlash.observe(s.game.events); // pickups that landed between steps; stepGame is about to reset g.events
+        // Pickups that landed between steps; stepGame is about to reset g.events, so flash and tone them now.
+        pickupFlash.observe(s.game.events);
+        audioEvents.push(...pickupFlash.latest);
         const value = intent();
         s.diagnostics?.beforeStep(value);
         stepGame(s.game, value, 1 / 60, {
