@@ -133,13 +133,24 @@ const withMonsters = steps.at(-1);
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
 await q(() => { const g = window.__qa.game; g.marked ??= { version: 1, carried: 0, bank: 0, bounty: 0 }; }); // no Marked state = no hunter (huntBlocked)
 // (markedHunt is created by the first hunter step in this area, so the arrival clock is moved back on every poll, not once)
-const hunterSeen = await page.waitForFunction(() => {
-  const g = window.__qa.game, s = g.markedHunt;
-  g.player.pos = { ...window.__home }; // the player stays where the scene was built (it drifted into an exit and left the area)
+// A hunter arrives at an entry point at least minSpawnDistance from the player (markedEntry), and the player starts AT an entry, so the player
+// is pinned at a spot where markedEntry finds a point (searched on rings around the build spot), then put back.
+const hunterSeen = await page.waitForFunction(async () => {
+  const g = window.__qa.game, s = g.markedHunt, { markedEntry } = await import("/src/engine/marked-hunters.js");
   if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; }
-  return g.enemies.some((e) => e.markedHunter && e.hp > 0);
+  if (!window.__stand) {
+    const home = window.__home;
+    for (const r of [0, 4, 8, 12, 16, 20, 26]) for (let k = 0; k < 12 && !window.__stand; k++) {
+      g.player.pos = { x: home.x + Math.cos((k / 12) * 6.283) * r, z: home.z + Math.sin((k / 12) * 6.283) * r };
+      if (g.world.geometry?.clear?.(g.player.pos, 0.4) !== false && markedEntry(g)) window.__stand = { ...g.player.pos };
+    }
+  }
+  g.player.pos = { ...(window.__stand ?? window.__home) };
+  const seen = g.enemies.some((e) => e.markedHunter && e.hp > 0);
+  if (seen) g.player.pos = { ...window.__home };
+  return seen;
 }, null, { timeout: 240000, polling: 500 }).then(() => true, () => false);
-note("hunter wait", await q(() => { const g = window.__qa.game; return { seen: g.enemies.some((e) => e.markedHunter), enemies: g.enemies.length, qa: g.enemies.filter((e) => String(e.placementKey).startsWith("qa-")).length, markedHunt: !!g.markedHunt, areaId: g.markedHunt?.areaId, area: window.__qa.world.areaId, finished: g.finished, time: g.time }; }));
+note("hunter wait", await q(() => { const g = window.__qa.game; return { seen: g.enemies.some((e) => e.markedHunter), enemies: g.enemies.length, qa: g.enemies.filter((e) => String(e.placementKey).startsWith("qa-")).length, stand: window.__stand ?? null, home: window.__home, markedHunt: !!g.markedHunt, areaId: g.markedHunt?.areaId, area: window.__qa.world.areaId, finished: g.finished, time: g.time }; }));
 await page.waitForTimeout(8000); // the hunter's own model streams in
 const hunters = await q(() => {
   const g = window.__qa.game, h = g.enemies.find((e) => e.markedHunter && e.hp > 0);
