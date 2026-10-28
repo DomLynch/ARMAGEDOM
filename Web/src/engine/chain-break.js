@@ -64,15 +64,11 @@ const onStatue = (geometry, at, p) => {
 // and ask whether that point is the statue's edge. Any other wall on the way keeps the sight blocked.
 export function sightPastStatue(geometry, at, a) {
   if (!geometry.lineClear(a, a)) return false;
-  let low = 0,
-    high = 1;
-  const point = (t) => ({ x: a.x + (at.x - a.x) * t, z: a.z + (at.z - a.z) * t });
-  for (let i = 0; i < 20; i++) { // tuning-ok: twenty halvings pin the first blocked point to a millionth of the line
-    const middle = (low + high) / 2; // tuning-ok: bisection takes the midpoint
-    if (geometry.lineClear(a, point(middle))) low = middle;
-    else high = middle;
-  }
-  return onStatue(geometry, at, point(low));
+  const n = T.sightSteps,
+    point = (k) => ({ x: a.x + ((at.x - a.x) * k) / n, z: a.z + ((at.z - a.z) * k) / n });
+  let k = 1;
+  while (k <= n && geometry.lineClear(a, point(k))) k++;
+  return onStatue(geometry, at, point(k - 1));
 }
 function behindCover(r, e, at, geometry) {
   if (!onStatue(geometry, at, r.end)) return false;
