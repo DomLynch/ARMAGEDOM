@@ -9,11 +9,12 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { createServer } from "vite";
+import { pathToFileURL } from "node:url";
 
 const arg = (n, d) => (process.argv.includes(`--${n}`) ? process.argv[process.argv.indexOf(`--${n}`) + 1] : d),
   PHYSICS = arg("physics", "default"), SECONDS = Number(arg("seconds", 8)), HOSTILES = Number(arg("hostiles", 10)), OUT = arg("out", null), PORT = 38795;
-const require = createRequire(import.meta.url);
+const require = createRequire(`${process.cwd()}/`); // resolve vite and playwright-core from Web/ (the cwd), not from this folder
+const { createServer } = await import(pathToFileURL(require.resolve("vite")).href);
 let chromium;
 try { ({ chromium } = require("playwright-core")); } catch {
   execFileSync("npm", ["i", "--no-save", "--no-audit", "--no-fund", "playwright-core@1.62.1"], { stdio: "inherit" });
