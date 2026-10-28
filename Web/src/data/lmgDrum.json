@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "drum": { "radius": 0.17, "width": 0.1, "segments": 24, "x": 0.3, "y": 0.02, "z": 0.3 },
+  "band": { "radius": 0.178, "width": 0.025, "segments": 24, "offset": 0.02 },
+  "material": { "color": 11184810, "metalness": 0.3, "roughness": 0.6, "bandColor": 16747050 }
+}

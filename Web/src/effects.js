@@ -1002,13 +1002,14 @@ export function createEffects(
         if (!t) continue;
         const p = t.mesh.geometry.attributes.position;
         const flash = feedback.mode === "high" ? FEEL.shot.flash.high : FEEL.shot.flash.low;
-        t.total = FEEL.tracer.defaultSeconds;
-        t.mesh.material.color.setHex(hexNumber(FEEL.tracer.colour));
+        // A weapon's own row can set the tracer colour and life (the Light Machine Gun's hose of bullets); the rest use FEEL.tracer.
+        t.total = shot.tracerSeconds ?? FEEL.tracer.defaultSeconds;
+        t.mesh.material.color.setHex(hexNumber(shot.tracerColour ?? FEEL.tracer.colour));
         t.mesh.material.depthTest = true;
         p.setXYZ(0, a.x, a.y, a.z);
         p.setXYZ(1, b.x, b.y, b.z);
         p.needsUpdate = true;
-        t.life = FEEL.tracer.defaultSeconds;
+        t.life = t.total;
         muzzleFlash.position.copy(a);
         muzzleFlash.scale.set(...flash.scale);
         flashLife = flash.seconds;

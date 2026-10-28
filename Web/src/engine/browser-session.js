@@ -1,5 +1,4 @@
 import { clearBossRanged } from "./boss-ranged.js";
-import { stopRailgun } from "./railgun.js";
 import { stopReaper } from "./reaper.js";
 import { stopAllBoneSaws, stopBoneSaw } from "./bone-saw.js";
 import { stopBossFlames } from "./boss-flame.js";
@@ -142,8 +141,6 @@ export function createBrowserSession(options = {}) {
     if (game?.pistol) resources.cancelPistol(game);
     if (value) {
       clearBossRanged(game);
-      stopRailgun(game, "pause");
-      actors?.clearRailgunCharge?.();
       stopReaper(game, "pause");
       stopAllBoneSaws(game, "pause");
       stopBossFlames(game, "pause");
@@ -252,9 +249,6 @@ export function createBrowserSession(options = {}) {
       traveling = v;
       if (v) {
         clearBossRanged(game);
-        stopRailgun(game, "travel");
-        actors?.clearRailgunCharge?.();
-        audio.silenceRailgun?.();
         stopReaper(game, "travel");
         stopAllBoneSaws(game, "travel");
         audio.silenceSaw?.();
@@ -283,15 +277,6 @@ export function createBrowserSession(options = {}) {
     },
     dispatchFlame(g, command, request, allowed) {
       return resources.dispatchFlame(g, command, request, allowed);
-    },
-    railgunSource(g) {
-      return actors?.railgunSource(g);
-    },
-    railgunAimPoint(g, id) {
-      return actors?.railgunAimPoint(g, id);
-    },
-    railgunTrace(g, start, end) {
-      return actors?.railgunTrace(g, start, end) ?? [];
     },
     reaperSource(g) {
       return actors?.reaperSource(g);
@@ -642,13 +627,9 @@ export function createBrowserSession(options = {}) {
       !!game?.pistol?.equipped ||
       !!game?.flame?.equipped,
     isFlame: () => !!game?.flame?.equipped,
-    isSelectOnly: () => game?.player.weapon === "railgun",
     isWorldGun: () => !!game && touchGun(game) !== null,
     onTargetClear: () => {
       if (game) {
-        stopRailgun(game, "input-clear");
-        actors?.clearRailgunCharge?.();
-        audio.silenceRailgun?.();
         stopBoneSaw(game, game.player, "input-clear");
         audio.play([{ type: "saw-stop", actor: game.player }]);
         game.touchTarget = null;

@@ -18,14 +18,14 @@ test('failed durable payment creates no projectile, and actual area change cance
  const f=armed('grenade'),g=f.g,target=g.enemies.find(e=>e.hp>0),aim=near(f,target),aimPoint={...target.pos};f.quota(true);step(f,{actions:['fire'],aim,aimPoint});assert.equal(g.bossEquipment.grenade.magazine,3);assert.equal(g.activeGrenades?.length??0,0);assert(!g.events.some(e=>e.type==='grenade-throw'));f.quota(false);step(f,{actions:['fire'],aim,aimPoint});assert.equal(g.activeGrenades.length,1);f.world.areaId='westminster';step(f);assert.equal(g.activeGrenades.length,0);assert.equal(g.bossEquipment.grenade.magazine,2);assert(!g.events.some(e=>e.type==='grenade-blast'));
 });
 
-test('actual Railgun charged release and finite reload conserve Pistol and reject unpaid shot/transfer',()=>{
+test('actual Light Machine Gun held fire and finite reload conserve Pistol and reject unpaid shot/transfer',()=>{
  const receipt=JSON.parse(fs.readFileSync(new URL('./fixtures/rifle166-earned-v9.json',import.meta.url))),f=armed('commanderPistol',new Map([[RIFLE_SAVE_KEY,receipt.rawV9],[FLAME_SAVE_KEY,receipt.rawV8]])),g=f.g,target=g.enemies.find(e=>e.rig==='hollow-scavenger'&&e.hp===40);assert(target);const aim=near(f,target),pistol={...g.pistol},hp=target.hp,profile=profiles.commanderPistol;
  g.bossEquipment.commanderPistol={...g.bossEquipment.commanderPistol,magazine:1};
- const services={dispatchBossEquipment:f.p.dispatchBossEquipment,railgunSource:()=>({x:g.player.pos.x,y:1,z:-g.player.pos.z}),railgunTrace:()=>[{enemy:target}]};
- const advance=(intent={})=>stepGame(g,intent,1/60,services),edge=lifetime=>({kind:'fire',lifetime});
- function charge(lifetime){const e=edge(lifetime);advance({aim,actionEdges:{started:[e],held:[e],released:[]}});assert(g.railgunCharge);for(let i=0;i<Math.ceil(profile.charge.seconds*60);i++)advance({aim,actionEdges:{started:[],held:[e],released:[]}});advance({aim,actionEdges:{started:[],held:[],released:[e]}});}
- f.quota(true);charge(1);assert.equal(g.bossEquipment.commanderPistol.magazine,1);assert.equal(target.hp,hp);assert(!g.events.some(e=>e.type==='railgun-shot'));assert.deepEqual(g.pistol,pistol);
- f.quota(false);charge(2);assert.equal(g.bossEquipment.commanderPistol.magazine,0);assert.equal(g.events.find(e=>e.type==='railgun-shot').damage,profile.rules.damage);assert.equal(target.hp,0);assert.deepEqual(g.pistol,pistol);
+ const services={dispatchBossEquipment:f.p.dispatchBossEquipment};
+ const advance=(intent={})=>stepGame(g,intent,1/60,services);
+ function hold(){advance({aim,actions:[],held:['fire']});}
+ f.quota(true);hold();assert.equal(g.bossEquipment.commanderPistol.magazine,1);assert.equal(target.hp,hp);assert(!g.events.some(e=>e.type==='shot'&&e.weapon==='railgun'));assert.deepEqual(g.pistol,pistol);
+ f.quota(false);hold();assert.equal(g.bossEquipment.commanderPistol.magazine,0);assert.equal(g.events.find(e=>e.type==='shot'&&e.weapon==='railgun').damage,profile.rules.damage);assert(target.hp<hp);assert.deepEqual(g.pistol,pistol);
  const clock=bossEquipmentClock(g,'commanderPistol');for(let i=0;i<140&&!clock.reloadingUntil;i++)advance();assert(clock.reloadingUntil>g.time);const deadline=clock.reloadingUntil;assert(Math.abs(deadline-g.time-profile.rules.reload)<1e-7);
  f.quota(true);while(g.time+1e-8<deadline)advance();assert.deepEqual([g.bossEquipment.commanderPistol.magazine,g.bossEquipment.commanderPistol.reserve],[0,profile.rules.reserve]);assert.deepEqual(g.pistol,pistol);assert(g.bossEquipment.commanderPistol.selected);
  f.quota(false);for(let i=0;i<Math.ceil(profile.rules.reload*60)+3;i++)advance();assert.deepEqual([g.bossEquipment.commanderPistol.magazine,g.bossEquipment.commanderPistol.reserve],[profile.rules.capacity,profile.rules.reserve-profile.rules.capacity]);assert.deepEqual(g.pistol,pistol);assert.equal(f.records.get(RIFLE_SAVE_KEY),receipt.rawV9);

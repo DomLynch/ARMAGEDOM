@@ -3,7 +3,6 @@ import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
-import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
   BONE_SAW_RULES,
@@ -1189,7 +1188,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (intent.cancel || intent.paused || g.finished) clearBossRanged(g);
   if (g.pilot) g.player.running = false;
   if (intent.paused || g.finished) stopReaper(g, "pause");
-  if (intent.cancel || intent.paused || g.finished || g.weaponsLowered) stopRailgun(g, "interrupted");
   if (intent.cancel || intent.paused || g.finished) {
     stopBoneSaw(g, g.player, "cancel");
     for (const e of g.enemies)
@@ -1208,7 +1206,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
     if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
-    stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
     resetDeadPlayerBossPursuit(g);
@@ -1375,7 +1372,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
     if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
-    if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
     resolveCreatureContacts(g, before, ratBefore);
     if (!g.finished) {
@@ -1393,7 +1389,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.finished) {
     clearBossRanged(g);
     if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
-    stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
     resetDeadPlayerBossPursuit(g);
