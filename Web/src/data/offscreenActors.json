@@ -4,5 +4,19 @@
   "marginMetres": 4,
   "farDistance": 30,
   "everyNthFrame": 4,
-  "fullRateRadius": 9
+  "fullRateRadius": 6,
+  "shadowMaxDistance": 14,
+  "reducedRate": { "distance": 16, "everyNthFrame": 2 },
+  "lod": {
+    "enabled": true,
+    "offParam": "lod",
+    "offValue": "0",
+    "rigs": ["hollow-scavenger"],
+    "minTriangles": 400,
+    "hysteresisMetres": 0.5,
+    "levels": [
+      { "distance": 3, "cell": 0.015, "hide": [] },
+      { "distance": 5, "cell": 0.03, "hide": ["PhotoEyes", "PhotoTeeth"] }
+    ]
+  }
 }
