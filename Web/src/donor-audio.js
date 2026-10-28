@@ -124,6 +124,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         gain = context.createGain(),
         lfo = context.createOscillator(),
         depth = context.createGain();
+      source.buffer = noiseBuffer;
       source.loop = true;
       filter.type = "highpass";
       filter.frequency.value = burn.cutoff;
@@ -242,14 +243,13 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
       const data = noiseBuffer.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = bipolar(Math.random());
     }
-    const source = context.createBufferSource();
-    source.buffer = noiseBuffer;
-    return source;
+    return context.createBufferSource();
   }
   function noise(duration, gain, frequency) {
     if (voicesFull()) return;
     const source = noiseSource(),
       filter = context.createBiquadFilter();
+    source.buffer = noiseBuffer;
     filter.type = "highpass";
     filter.frequency.value = frequency;
     emit(source, duration, gain, filter);
