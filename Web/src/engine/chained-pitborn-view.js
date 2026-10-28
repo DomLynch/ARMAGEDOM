@@ -33,6 +33,7 @@ export function createChainedPitbornView(s) {
     loading = false,
     disposed = false,
     last = null,
+    snapped = false,
     lastPulse = 0;
   const show = (p, on) => {
     p.root.visible = p.link.visible = p.plate.visible = p.backplate.visible = p.points.visible = on;
@@ -265,8 +266,19 @@ export function createChainedPitbornView(s) {
         );
         return;
       }
+      const phase = g.chainBreak?.state ?? "chained";
+      // Loose or dead: the real hunter (or nothing) stands there now, so the shackled prop is gone.
+      if (phase === "loose" || phase === "done") {
+        show(parts, false);
+        return;
+      }
       show(parts, true);
       frame(parts, g);
+      // The snap: one dust-and-spark burst at the feet as the chains let go.
+      if (phase === "snapping" && !snapped) {
+        snapped = true;
+        burst(parts, g.time, tmp.a.copy(parts.root.position));
+      } else if (phase === "chained") snapped = false;
     },
     dispose() {
       disposed = true;

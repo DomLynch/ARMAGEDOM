@@ -8,6 +8,17 @@
   "at": { "x": 0.132, "y": 0.574 },
   "facesToward": { "x": 0.5, "y": 0.8075 },
   "scaleMultiplier": 2.7,
+  "breakLoose": {
+    "enabled": true,
+    "triggerMetres": 4.5,
+    "snapSeconds": 1.4,
+    "retrySeconds": 1,
+    "messageSeconds": 4,
+    "text": {
+      "snap": "The chains SNAP.",
+      "loose": "The Pitborn bellows. It has your scent. Fight it, or reach a safehouse."
+    }
+  },
   "emissive": { "color": "5a2610", "intensity": 0.02 },
   "rim": { "color": "ff9a50", "power": 4, "strength": 0.06 },
   "horns": {
