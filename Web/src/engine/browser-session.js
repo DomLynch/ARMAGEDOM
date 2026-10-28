@@ -685,7 +685,6 @@ export function createBrowserSession(options = {}) {
         cores: navigator.hardwareConcurrency,
         memoryGb: navigator.deviceMemory,
         textureSize: renderer.capabilities?.maxTextureSize,
-        devicePixelRatio,
       });
       renderer.setPixelRatio(QUALITY.cap(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio), "pixelRatio"));
       renderer.setSize(innerWidth, innerHeight, false);

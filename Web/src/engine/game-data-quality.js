@@ -3,7 +3,7 @@ import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
 export function validateQualityTier(d) {
-  closed(d, ["schema_version", "note", "enabled", "param", "autoValue", "probe", "signals", "tiers"]);
+  closed(d, ["schema_version", "note", "enabled", "param", "autoValue", "globalName", "probe", "signals", "tiers"]);
   if (d.schema_version !== 1) fail("qualityTier", "schema_version must be 1");
   if (typeof d.enabled !== "boolean") fail("qualityTier", "enabled must be true or false");
   if (!d.param || !d.autoValue) fail("qualityTier", "param and autoValue are required");
@@ -33,4 +33,6 @@ export function validateQualityTier(d) {
     number("qualityTier", `${t.name}.shadowScale`, t.shadowScale, 0.1);
   }
   if (d.tiers[0].weakSignals !== 0) fail("qualityTier", "the first tier must need no weak signals");
+  if (d.tiers.slice(1).some((t) => t.weakSignals < 2)) fail("qualityTier", "leaving the first tier needs at least two weak signals");
+  if (typeof d.globalName !== "string") fail("qualityTier", "globalName must be text (empty for none)");
 }

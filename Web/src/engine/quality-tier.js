@@ -1,6 +1,6 @@
-// Device quality tier (data/qualityTier.json). A device probe (cores, memory, texture size, pixel ratio) and a frame-time sample pick a
+// Device quality tier (data/qualityTier.json). A device probe (cores, memory, texture size) and a sustained frame-time sample pick a
 // tier row; the callers read its ceilings (pixel ratio, ragdolls, crowd bodies, distance scales). Presentation only: sim, hits, spawns
-// and saves never read it. The tier can only go down while the game runs, once, when the frame-time sample lands.
+// and saves never read it. The probe runs once per session; the tier can only go down, once, when the frame-time sample lands.
 import { GAME_DATA } from "./game-data.js";
 
 const median = (list) => [...list].sort((a, b) => a - b)[list.length >> 1];
@@ -14,17 +14,18 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
   let current = rules.tiers[0],
     previous = 0,
     seen = 0,
+    probed = false,
     sampled = !rules.enabled || !!forced;
-  const weakCount = () =>
+  const weakSignals = () =>
     rules.signals.filter((s) => {
       const v = values[s.name];
       return Number.isFinite(v) && (s.weak === "atMost" ? v <= s.limit : v >= s.limit);
-    }).length;
+    });
   const choose = () => {
     if (!rules.enabled || forced) return;
-    const weak = weakCount(),
+    const weak = weakSignals().length,
       next = rules.tiers.filter((t) => t.weakSignals <= weak).at(-1);
-    if (next === current) return;
+    if (rules.tiers.indexOf(next) <= rules.tiers.indexOf(current)) return; // never back up to a better tier
     current = next;
     for (const fn of listeners) fn(current);
   };
@@ -36,12 +37,23 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     // The budget rows the physics pool reads, with the ragdoll cap lowered to the tier's.
     ragdollRows: (rows) => ({ ...rows, max_simultaneous_ragdolls: Math.min(rows.max_simultaneous_ragdolls, current.ragdolls) }),
     onChange: (fn) => listeners.add(fn),
-    // The one-off device probe: { cores, memoryGb, textureSize, devicePixelRatio } (anything the browser does not report is left out).
+    // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
+    report: () =>
+      Object.freeze({
+        tier: current.name,
+        how: !rules.enabled ? "off" : forced ? "forced" : "auto",
+        values: Object.freeze({ ...values }),
+        reasons: Object.freeze(weakSignals().map((s) => s.name)),
+      }),
+    // The device probe, taken ONCE per session: { cores, memoryGb, textureSize } (anything the browser does not report is left out).
+    // Later calls (a resize asks again) are ignored, so the result is cached and the tier cannot move on them.
     probe(env) {
+      if (probed) return;
+      probed = true;
       Object.assign(values, env);
       choose();
     },
-    // Called with each frame's timestamp (ms). After warmup the median of the sample becomes the frameMs signal, once.
+    // Called with each real frame's timestamp (ms). After warmup the median of a long sample becomes the frameMs signal, once.
     frame(ms) {
       const delta = ms - previous;
       previous = ms;
@@ -56,4 +68,11 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
   };
 }
 
-export const QUALITY = createQualityTier(GAME_DATA.qualityTier);
+// The read-only global a phone can show (the name is data). A getter with no setter: assigning to it changes nothing.
+export function exposeQualityTier(tier, rules, target = globalThis) {
+  if (rules.globalName)
+    Object.defineProperty(target, rules.globalName, { get: tier.report, set: undefined, configurable: true, enumerable: true });
+  return tier;
+}
+
+export const QUALITY = exposeQualityTier(createQualityTier(GAME_DATA.qualityTier), GAME_DATA.qualityTier);
