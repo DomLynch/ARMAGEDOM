@@ -12,7 +12,9 @@ import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint, withChained } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { armPostBossRaid } from "./post-boss-raid.js";
+import { heatFromEvents } from "./heat.js";
 import { createAirdropView } from "./airdrop-view.js";
+import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
 const STAND_IN = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId;
@@ -23,7 +25,8 @@ export function createBrowserLoop(s) {
   let last = 0,
     accumulator = 0,
     submitted = null,
-    airdropView = null;
+    airdropView = null,
+    corpseView = null;
   const deathCam = createDeathPresentation();
   let seenGame = null,
     seenArea = null;
@@ -176,6 +179,7 @@ export function createBrowserLoop(s) {
         stepKillDrops(s.game);
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
         armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
+        heatFromEvents(s.game); // a defeated boss also raises heat (heat.json valuables)
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);
@@ -212,9 +216,12 @@ export function createBrowserLoop(s) {
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
+    s.updateHeatTally();
     // Built when the first plane is called, so the tutorial and the hub never pay for it.
     if (s.game.airdrop?.startAt !== undefined) airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
     airdropView?.update(s.game);
+    if (s.game.corpseBag) corpseView ??= createCorpseRunView(s.scene, (point, height) => s.world.toRender(point, height));
+    corpseView?.update(s.game);
     s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,

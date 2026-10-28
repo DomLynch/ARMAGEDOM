@@ -24,10 +24,7 @@
     "creature": { "min": 11, "max": 20, "source": "kill:creature", "model": "coinPile" },
     "boss": { "min": 21, "max": 40, "source": "kill:boss", "model": "coinStack" }
   },
-  "text": {
-    "picked": "+${amount}",
-    "full": "Cannot carry more cash"
-  },
+  "text": { "picked": "+${amount}", "full": "Cannot carry more cash" },
   "models": {
     "coinSingle": [
       { "shape": "cylinder", "size": [0.14, 0.035], "pos": [0, 0.0175, 0], "color": "b8860b" },
@@ -54,5 +51,283 @@
       { "shape": "cylinder", "size": [0.15, 0.04], "pos": [-0.19, 0.06, 0.1], "color": "c8921a" },
       { "shape": "cylinder", "size": [0.12, 0.042], "pos": [0, 0.241, 0], "color": "e0aa1e" }
     ]
-  }
+  },
+  "look": "treasure",
+  "looks": {
+    "treasure": {
+      "scale": 1,
+      "material": { "roughness": 0.32, "metalness": 0.3, "emissive": "5a2610", "emissiveIntensity": 1 },
+      "motion": { "spin": 0.1, "bob": 0.05, "bobHz": 0.6, "lift": 0.07 },
+      "models": {
+        "coinSingle": [
+          { "shape": "cylinder", "size": [0.12, 0.026], "pos": [0.002, 0.013, 0.001], "color": "d9742a" },
+          { "shape": "cylinder", "size": [0.085, 0.026], "pos": [-0.004, 0.036, 0.002], "color": "e89a30" },
+          { "shape": "cylinder", "size": [0.05, 0.026], "pos": [0.003, 0.06, 0.001], "color": "f2bd48" },
+          {
+            "shape": "cylinder",
+            "size": [0.05, 0.008],
+            "pos": [0.01, 0.1, 0],
+            "color": "fff1c0",
+            "rot": [1, 0.6, 0.3]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.097, 0.03, 0.111],
+            "color": "e89a30",
+            "rot": [1.199, 1.307, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.191, 0.03, 0.01],
+            "color": "f2bd48",
+            "rot": [0.979, 0.846, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.059, 0.03, -0.176],
+            "color": "ffd978",
+            "rot": [1.294, 2.857, 0.2]
+          }
+        ],
+        "coinPile": [
+          { "shape": "cylinder", "size": [0.2, 0.026], "pos": [-0.005, 0.013, 0.004], "color": "d9742a" },
+          { "shape": "cylinder", "size": [0.15, 0.026], "pos": [-0.003, 0.036, 0.005], "color": "e89a30" },
+          { "shape": "cylinder", "size": [0.1, 0.026], "pos": [-0.003, 0.06, 0.004], "color": "f2bd48" },
+          { "shape": "cylinder", "size": [0.055, 0.026], "pos": [0.003, 0.083, 0.001], "color": "ffd978" },
+          {
+            "shape": "cylinder",
+            "size": [0.05, 0.008],
+            "pos": [0.01, 0.124, 0],
+            "color": "fff1c0",
+            "rot": [1, 0.6, 0.3]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.22, 0.03, 0.138],
+            "color": "e89a30",
+            "rot": [0.974, 0.081, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.072, 0.03, 0.229],
+            "color": "f2bd48",
+            "rot": [1.206, 0.263, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.26, 0.03, 0.07],
+            "color": "ffd978",
+            "rot": [1.297, 0.567, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.103, 0.03, -0.25],
+            "color": "e89a30",
+            "rot": [1.063, 1.615, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.103, 0.03, -0.265],
+            "color": "f2bd48",
+            "rot": [0.994, 1.326, 0.2]
+          }
+        ],
+        "coinStack": [
+          { "shape": "cylinder", "size": [0.34, 0.026], "pos": [-0.003, 0.013, 0.002], "color": "d9742a" },
+          { "shape": "cylinder", "size": [0.28, 0.026], "pos": [0.002, 0.036, -0.001], "color": "e89a30" },
+          { "shape": "cylinder", "size": [0.22, 0.026], "pos": [-0.004, 0.06, 0.004], "color": "f2bd48" },
+          { "shape": "cylinder", "size": [0.16, 0.026], "pos": [-0.004, 0.083, 0.001], "color": "ffd978" },
+          { "shape": "cylinder", "size": [0.1, 0.026], "pos": [-0.003, 0.107, 0.003], "color": "ffe9a0" },
+          { "shape": "cylinder", "size": [0.055, 0.026], "pos": [-0.001, 0.13, 0.001], "color": "fff1c0" },
+          {
+            "shape": "cylinder",
+            "size": [0.05, 0.008],
+            "pos": [0.01, 0.17, 0],
+            "color": "fff1c0",
+            "rot": [1, 0.6, 0.3]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.367, 0.03, 0.183],
+            "color": "e89a30",
+            "rot": [1.037, 2.046, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.224, 0.03, 0.302],
+            "color": "f2bd48",
+            "rot": [1.215, 1.686, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.134, 0.03, 0.455],
+            "color": "ffd978",
+            "rot": [1.113, 0.865, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.248, 0.03, 0.434],
+            "color": "e89a30",
+            "rot": [1.217, 0.084, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.422, 0.03, 0.132],
+            "color": "f2bd48",
+            "rot": [0.924, 1.573, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.264, 0.03, -0.34],
+            "color": "ffd978",
+            "rot": [1.268, 0.023, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.019, 0.03, -0.406],
+            "color": "e89a30",
+            "rot": [1.072, 2.809, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [-0.026, 0.03, -0.391],
+            "color": "f2bd48",
+            "rot": [1.278, 0.412, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.228, 0.03, -0.302],
+            "color": "ffd978",
+            "rot": [1.117, 0.54, 0.2]
+          },
+          {
+            "shape": "cylinder",
+            "size": [0.04, 0.008],
+            "pos": [0.495, 0.03, 0.026],
+            "color": "e89a30",
+            "rot": [1.075, 0.177, 0.2]
+          }
+        ]
+      },
+      "fx": {
+        "trash": {
+          "pool": { "radius": 0.65, "colour": "ff9a50", "opacity": 0.48, "pulse": 0.3, "hz": 0.9, "ringAt": 0.78 },
+          "beam": { "radius": 0.07, "taper": 0.3, "height": 3.2, "colour": "ffb060", "opacity": 0.19 },
+          "glint": {
+            "count": 3,
+            "radius": 0.14,
+            "height": 0.2,
+            "size": 0.24,
+            "colour": "ffe9a0",
+            "opacity": 0.8,
+            "hz": 0.9,
+            "sharpness": 8
+          },
+          "burst": {
+            "count": 6,
+            "period": 1.6,
+            "spread": 0.3,
+            "rise": 0.55,
+            "base": 0.15,
+            "size": 0.16,
+            "colour": "ffc070"
+          }
+        },
+        "creature": {
+          "pool": { "radius": 0.95, "colour": "ff9a50", "opacity": 0.52, "pulse": 0.3, "hz": 0.9, "ringAt": 0.78 },
+          "beam": { "radius": 0.09, "taper": 0.3, "height": 4, "colour": "ffb060", "opacity": 0.21 },
+          "glint": {
+            "count": 5,
+            "radius": 0.24,
+            "height": 0.24,
+            "size": 0.27,
+            "colour": "ffe9a0",
+            "opacity": 0.8,
+            "hz": 0.9,
+            "sharpness": 8
+          },
+          "burst": {
+            "count": 10,
+            "period": 1.6,
+            "spread": 0.5,
+            "rise": 0.75,
+            "base": 0.2,
+            "size": 0.19,
+            "colour": "ffc070"
+          }
+        },
+        "boss": {
+          "pool": { "radius": 1.35, "colour": "ff9a50", "opacity": 0.56, "pulse": 0.3, "hz": 0.9, "ringAt": 0.78 },
+          "beam": { "radius": 0.13, "taper": 0.3, "height": 5, "colour": "ffb060", "opacity": 0.22 },
+          "glint": {
+            "count": 8,
+            "radius": 0.4,
+            "height": 0.3,
+            "size": 0.32,
+            "colour": "ffe9a0",
+            "opacity": 0.8,
+            "hz": 0.9,
+            "sharpness": 8
+          },
+          "burst": {
+            "count": 16,
+            "period": 1.6,
+            "spread": 0.75,
+            "rise": 0.95,
+            "base": 0.25,
+            "size": 0.24,
+            "colour": "ffc070"
+          }
+        }
+      }
+    }
+  },
+  "fxStyle": {
+    "textureSize": 64,
+    "poolStops": [
+      [0, 1],
+      [0.35, 0.6],
+      [0.7, 0.2],
+      [1, 0]
+    ],
+    "ringAlpha": 0.55,
+    "ringWidth": 2,
+    "starCore": 0.28,
+    "starArm": 0.95,
+    "starWidth": 2,
+    "beamStops": [
+      [0, 1],
+      [0.15, 0.7],
+      [0.6, 0.25],
+      [1, 0]
+    ],
+    "beamSegments": 16,
+    "floorLift": 0.012,
+    "renderOrder": 12,
+    "heightLow": 0.4,
+    "minScale": 0.0001,
+    "starAlpha": 0.9,
+    "hashA": 12.9898,
+    "hashB": 78.233,
+    "hashC": 43758.5453,
+    "burstArc": 1
+  },
+  "classicSwitch": { "param": "classiccoins", "value": "1" }
 }

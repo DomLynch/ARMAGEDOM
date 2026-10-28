@@ -32,7 +32,10 @@ export const starsEnabled = (rules = STAR_VARIANTS, search = globalThis.location
 export function applyStarVariant(actor, areaId, cycle, rules = STAR_VARIANTS) {
   if (actor.droneState || actor.star || !actor.placementKey || !starsEnabled(rules)) return actor;
   const row = rowFor(areaId, cycle, actor.placementKey, !!actor.bossProfile, rules);
-  if (!row) return actor;
+  return row ? applyStarRow(actor, row) : actor;
+}
+// Gives an actor one star row's look and damage: size through the existing fields, never its health.
+export function applyStarRow(actor, row) {
   actor.star = row;
   actor.mobSize = (actor.mobSize ?? 1) * row.scale;
   for (const field of ["combatScale", "contactScale", "radius"])

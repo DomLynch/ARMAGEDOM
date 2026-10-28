@@ -1,5 +1,6 @@
 import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
+import { heatStarHunter } from "./heat.js";
 
 // POST-BOSS RAID (data/postBossRaid.json): killing an area boss arms ONE raid. After the delay, while the player stands in a target zone
 // (the hub or a road), marked hunters arrive through the Marked hunt's own entry and spawn, a few at a time (maxSimultaneous less the
@@ -51,13 +52,15 @@ export function stepPostBossRaid(g, spawn, entry, open) {
     return;
   }
   // maxSimultaneous caps ALL marked hunters at once: the normal hunt keeps its own maxHunters slots, the raid gets the rest.
-  const room = Math.min(row.maxSimultaneous - g.world.markedData.maxHunters - here, row.hunterCount - s.spawned);
+  // Heat (heat.js) may let the normal hunt hold more than maxHunters: the raid gets only what the cap leaves after them.
+  const normal = g.enemies.filter((e) => e.markedHunter && !e.relicHunter && !e.raidHunter && e.hp > 0).length,
+    room = Math.min(row.maxSimultaneous - Math.max(g.world.markedData.maxHunters, normal) - here, row.hunterCount - s.spawned);
   if (!open || !row.targetZones.includes(g.world.areaId) || room <= 0 || g.time < s.nextAt) return;
   s.nextAt = g.time + row.retrySeconds;
   const at = entry(g);
   if (!at) return;
   for (let i = 0; i < room; i++) {
-    const actor = spawn(at, g.world.markedData);
+    const actor = heatStarHunter(g, spawn(at, g.world.markedData));
     actor.raidHunter = true;
     g.enemies.push(actor);
     g.events.push({ type: "marked-hunter-arrived", actor, position: { ...at } });
