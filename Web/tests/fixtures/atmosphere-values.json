@@ -42,24 +42,24 @@
   "stats": "96aa13bc9d49f07854fd90b3b92250a970119fcbcfd8ac71b81d3076ed59fcf9"
  },
  "south": {
-  "meshes": "70b18c253c86a9773e18aa1b350df816d2cda383f74572d9c3602c289999dda8",
+  "meshes": "4b0976dd344f96893d1b61494d7d7f6e2c3d1276362abd40aad0e27dca85d6ed",
   "meshNames": [
    [
     "Atmosphere smoke",
     -80,
-    72
+    60
    ],
    [
     "Atmosphere flame",
     -80,
-    24
+    18
    ],
    [
     "Atmosphere ember",
     -80,
-    30
+    24
    ]
   ],
-  "stats": "471761bbd4080f95f8ba38ccfed077a0eb1e4048c88f872e688f74bf3f430f5b"
+  "stats": "11e50e3630b765bd1a921cc1966a8b87c080c3ea56f9c5408560c572afa9d728"
  }
 }

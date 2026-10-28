@@ -1,5 +1,5 @@
-// Scratch QA driver (not game code): load a built Web/dist, arrive in Area 8 and take 375x812 stills at the arrival point and a few steps on.
-// usage: node area8-still.mjs <dist> <label> <outDir> <playwright-node_modules-parent>   (Playwright fake clock, ?qa=1&world=0, seeded Math.random)
+// Scratch QA driver (not game code): load a built Web/dist, enter South at a few entry points and take 375x812 stills (crate stack by the Lambeth arrival, hedgehog at the bottom edge).
+// usage: node south-still.mjs <dist> <label> <outDir> <playwright-node_modules-parent>   (Playwright fake clock, ?qa=1&world=0, seeded Math.random)
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -39,30 +39,21 @@ for (let i = 0; i < 4000; i++) {
   await page.waitForTimeout(10);
 }
 for (let i = 0; i < 40; i++) { await page.clock.runFor(16); await page.waitForTimeout(50); }
-// Arrive in Area 8 the way travel does: load the area (backdrop + layout), then place the player at its entry point.
-const arrival = await page.evaluate(async () => {
-  const g = window.__qa.game, w = window.__qa.world;
-  const entry = { x: 0.70, y: 0.788 }; // South, arrival from Elephant and Castle
-  const pos = await w.loadArea("south", entry);
-  g.player.pos = { ...pos };
-  g.enemies = [];
-  w.update(g.player.pos, 0, innerWidth, innerHeight, true);
-  return { area: w.areaId, pos };
-});
-console.log(label, "arrived", JSON.stringify(arrival));
 const frames = async (n) => { for (let i = 0; i < n; i++) { await page.clock.runFor(16); await page.waitForTimeout(30); } };
-await frames(120);
-await page.screenshot({ path: path.join(outDir, `${label}-arrival.png`) });
-// A few metres up the road toward the old pile: move the player, let the camera follow, shoot again.
-for (const [name, dx, dz] of [["near", 2.5, -1.5], ["beside", 5, -3]]) {
-  await page.evaluate(([dx, dz, base]) => {
+// Enter South the way travel does (load the area, then place the player at the entry point), once per shot.
+const shots = [["lambeth-arrival", 0.261, 0.691], ["by-crates", 0.275, 0.745], ["hub-arrival", 0.5, 0.887], ["by-hedgehog", 0.45, 0.84]];
+for (const [name, x, y] of shots) {
+  const arrival = await page.evaluate(async ([x, y]) => {
     const g = window.__qa.game, w = window.__qa.world;
-    g.player.pos = { x: base.x + dx, z: base.z + dz };
+    const pos = await w.loadArea("south", { x, y });
+    g.player.pos = { ...pos };
+    g.enemies = [];
     w.update(g.player.pos, 0, innerWidth, innerHeight, true);
-  }, [dx, dz, arrival.pos]);
-  await frames(90);
+    return { area: w.areaId, pos };
+  }, [x, y]);
+  await frames(100);
   await page.screenshot({ path: path.join(outDir, `${label}-${name}.png`) });
-  console.log(label, name, JSON.stringify(await page.evaluate(() => window.__qa.state())));
+  console.log(label, name, JSON.stringify(arrival));
 }
 await browser.close();
 server.close();
