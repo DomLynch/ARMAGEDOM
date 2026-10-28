@@ -65,13 +65,15 @@ await q(() => { const p = window.__qa.game.player; p.hp = p.maxHP = 1e9; }); // 
 
 // Load the monsters' models the way the game does: enter the areas that hold them (area entry loads both cycles' deferred models).
 // Templates are the real resident entities each area builds; the cycle is set per visit so the slot holds the wanted monster.
-const WANT = { eel: "giant-eel", crow: "original-crow", elephant: "original-elephant", spider: "original-spider", centipede: "giant-centipede", rat: "original-rat" };
-const TOUR = [["east", "B", "eel"], ["east-bridge", "A", "rat"], ["lambeth", "B", "crow"], ["elephant-and-castle", "A", "elephant"], ["area7", "B", "spider"], ["area8", "B", "centipede"]];
+const WANT = { eel: "giant-eel", crow: "original-crow", elephant: "original-elephant", spider: "original-spider", centipede: "giant-centipede", ratking: "original-rat" };
+// area7 is entered twice: cycle A holds the Rat King (loads the rat-king model), then its parked state is dropped and cycle B builds the spider.
+const TOUR = [["east", "B", "eel"], ["lambeth", "B", "crow"], ["elephant-and-castle", "A", "elephant"], ["area7", "A", "ratking"], ["area8", "B", "centipede"], ["area7", "B", "spider", true]];
 const visits = [];
-for (const [areaId, cycle, name] of TOUR) {
-  const r = await q(async ([areaId, cycle, name, rigName]) => {
+for (const [areaId, cycle, name, fresh] of TOUR) {
+  const r = await q(async ([areaId, cycle, name, rigName, fresh]) => {
     const qa = window.__qa, g = qa.game;
     g.animalCycle = cycle;
+    if (fresh) delete g.areaFights[areaId];
     window.__tpl ??= {};
     const t0 = performance.now();
     let ok = null, err = null;
@@ -80,7 +82,7 @@ for (const [areaId, cycle, name] of TOUR) {
     const e = qa.game.enemies.find((x) => x.rig === rigName && x.hp > 0);
     if (e) window.__tpl[name] = { ...e };
     return { areaId, cycle, ok, err, ms: Math.round(performance.now() - t0), area: qa.world.areaId, rigs: qa.game.enemies.map((x) => x.rig), got: !!e };
-  }, [areaId, cycle, name, WANT[name]]);
+  }, [areaId, cycle, name, WANT[name], !!fresh]);
   visits.push(r);
   note("visit", r);
 }
@@ -96,12 +98,12 @@ const setup = await q(([n]) => {
   let hostiles = 0;
   for (let i = 0; base && i < n; i++, hostiles++) put(base, 90000 + i, `qa-h-${i}`, 6, (i / n) * Math.PI * 2);
   const monsters = [];
-  const ORDER = ["eel", "elephant", "rat", "spider", "centipede", "crow"];
+  const ORDER = ["eel", "elephant", "ratking", "spider", "centipede", "crow"];
   ORDER.forEach((name, i) => {
     const src = tpl[name];
     if (!src) return;
-    put(name === "rat" ? { ...src, appearanceRef: "rat-king" } : src, 92000 + i, `qa-m-${name}`, 9, (i / ORDER.length) * Math.PI * 2 + 0.3);
-    monsters.push(name === "rat" ? "rat-king" : name);
+    put(src, 92000 + i, `qa-m-${name}`, 9, (i / ORDER.length) * Math.PI * 2 + 0.3);
+    monsters.push(name);
   });
   return { hostiles, monsters, enemies: g.enemies.length, area: window.__qa.world.areaId, baseRig: base?.rig };
 }, [HOSTILES]);
