@@ -2,7 +2,6 @@ import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from
 import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
-import { stepChainBreak } from "./engine/chain-break.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stopRailgun } from "./engine/railgun.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
@@ -1374,7 +1373,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
     stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
-    stepChainBreak(g, (p, c) => markedHunter(g, p, c));
     if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");

@@ -19,7 +19,7 @@ function notify(g, text) {
 export function stepChainBreak(g, spawn) {
   const w = g.world,
     marked = w?.markedData;
-  if (!marked || !w.geometry || w.areaId !== D.areaId || !chainBreakOn()) return;
+  if (!marked || marked.hunters === false || !w.geometry || w.areaId !== D.areaId || !chainBreakOn()) return;
   const s = chainBreakState(g);
   if (g.player.hp <= 0 || g.finished) {
     if (s.state !== "done") Object.assign(s, { state: "chained", actor: null });

@@ -1,6 +1,7 @@
 import { safehouseTouches, safehouseSite, safehouseBlocksSegment } from "./safehouse.js";
 import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
+import { stepChainBreak } from "./chain-break.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
@@ -88,6 +89,7 @@ export function markedEntry(g, { position = null } = {}) {
 export function stepMarkedHunters(g, spawn) {
   const c = g.world.markedData;
   if (!c) return;
+  stepChainBreak(g, spawn); // the chained Pitborn is a marked hunter on a trigger of its own (chain-break.js)
   if (c.hunters === false) {
     if (g.enemies.some((e) => e.markedHunter && !e.relicHunter)) clearMarkedHunters(g, { keepRelic: true });
     return;
