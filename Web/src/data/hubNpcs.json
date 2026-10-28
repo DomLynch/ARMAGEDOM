@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "note": "Named Central Hub NPCs (appearance and one idle only). The three models are crowd-body GLBs on the 106-joint rig with the combat clips replaced by a single retargeted Mixamo idle, so they are registered in assets/manifest-hollow.json as deferred rows and are not drawn by any area yet: nothing reads this file until the Hub wiring PR (placement, interaction and dialogue belong to Lead, World and WebUI). enabled false or ?nonpcs=1 is the off switch that PR is expected to honour.",
+  "enabled": true,
+  "offParam": "nonpcs",
+  "offValue": "1",
+  "area": "central-hub",
+  "npcs": [
+    {
+      "id": "vendor-brannock",
+      "name": "Brannock",
+      "role": "vendor",
+      "title": "Salvage vendor",
+      "ref": "npc-vendor-brannock",
+      "body": "mh-male-01",
+      "mixamoClip": "107900901-breathing-idle",
+      "idleClip": "Idle",
+      "look": "bearded, olive knit and khaki trousers, dust and grime"
+    },
+    {
+      "id": "medic-ines",
+      "name": "Ines",
+      "role": "medic",
+      "title": "Field medic",
+      "ref": "npc-medic-ines",
+      "body": "mh-gen-v2-0036",
+      "mixamoClip": "110210901-looking",
+      "idleClip": "Idle",
+      "look": "grey hair, bleached cream knit and one oxblood trouser leg, clinical off-white lift"
+    },
+    {
+      "id": "quest-marrow",
+      "name": "Marrow",
+      "role": "quest-giver",
+      "title": "Hub elder",
+      "ref": "npc-quest-marrow",
+      "body": "mh-gen-v2-0020",
+      "mixamoClip": "104340901-old-man-idle",
+      "idleClip": "Idle",
+      "look": "white-cropped hair, faded rust jacket (the one warm colour in the hub), hands worried at the chest"
+    }
+  ]
+}
