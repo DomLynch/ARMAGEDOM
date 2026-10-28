@@ -215,7 +215,7 @@ test("isolation: inventory is private, nobody writes it directly, and a stranger
     `select * from public.arma_market_requests`,
     `select public.arma_buy_item(auth.uid(), '${alice}', 'hub-trader', 'ammo-pack', 1, 'direct-aaaa-1')`,
     `select public.arma_inventory_add('${alice}', 'hunter-cpu', 50)`,
-    `select public.arma_roll_loot('${alice}', 'kill:boss', 'boss-warden')`,
+    `select public.arma_roll_loot('${alice}', 'boss-warden')`,
     `select public.arma_claim_pickup(auth.uid(), '${alice}', 'kill:boss', 30, 'boss-warden', null)`,
   ])
     assert.match((await as(db, "authenticated", ids.alice, () => failure(call(db, sql))))?.message ?? "NO ERROR", /permission denied|row-level security/, sql);
