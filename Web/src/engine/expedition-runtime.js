@@ -254,10 +254,18 @@ export function createExpeditionView(s, dispatch) {
     }
     return false;
   }
+  // The one objective line of the area (Westminster tutorial, or sessionText areaObjective elsewhere). It does not need the contract data,
+  // which only some areas carry, so it paints before the data check.
+  function paintObjective(g) {
+    const line = el("expedition-objective");
+    line.hidden = !g || !allowed() || g.player.hp <= 0;
+    paint(line, g ? hudObjectiveLine(g, progressionObjective(g)) : "");
+  }
   function update() {
     if (disposed) return;
     const g = s.game,
       data = s.world?.expeditionData;
+    paintObjective(g);
     if (!g || !data) {
       panel.hidden = true;
       return;
@@ -270,7 +278,6 @@ export function createExpeditionView(s, dispatch) {
       panel.hidden = true;
       return;
     }
-    const progression = progressionObjective(g);
     const c = data.contract,
       status = state.status,
       objective = expeditionObjective(g),
@@ -398,10 +405,6 @@ export function createExpeditionView(s, dispatch) {
           )
           .join(" / "),
       );
-    const objectiveLine = el("expedition-objective");
-    objectiveLine.hidden = !allowed() || g.player.hp <= 0;
-    // Only the Westminster tutorial objective is shown; the contract lines (and the pinned route) are not.
-    paint(objectiveLine, hudObjectiveLine(g, progression));
     const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
