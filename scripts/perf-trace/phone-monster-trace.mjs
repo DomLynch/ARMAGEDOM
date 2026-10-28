@@ -97,6 +97,7 @@ const setup = await q(() => {
     g.enemies.push({ ...src, id, placementKey: key, pos, home: { ...pos }, swing: null, hp: src.maxHP ?? src.hp });
   };
   window.__base = base;
+  window.__home = { ...g.player.pos };
   return { enemies: g.enemies.length, area: window.__qa.world.areaId, baseRig: base?.rig, templates: Object.keys(window.__tpl ?? {}) };
 });
 note("setup", setup);
@@ -134,6 +135,7 @@ await q(() => { const g = window.__qa.game; g.marked ??= { version: 1, carried: 
 // (markedHunt is created by the first hunter step in this area, so the arrival clock is moved back on every poll, not once)
 const hunterSeen = await page.waitForFunction(() => {
   const g = window.__qa.game, s = g.markedHunt;
+  g.player.pos = { ...window.__home }; // the player stays where the scene was built (it drifted into an exit and left the area)
   if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; }
   return g.enemies.some((e) => e.markedHunter && e.hp > 0);
 }, null, { timeout: 240000, polling: 500 }).then(() => true, () => false);
