@@ -172,6 +172,16 @@ test("the low tier keeps no ring: a death still gets a still to share", () => {
   assert.ok(clip.still);
 });
 
+test("no copies are made on the low tier or in the hub; the rate is the tier's fps in data", () => {
+  assert.equal(rows.tiers.low.fps, 0);
+  assert.deepEqual(rows.offAreas, ["central-hub"]);
+  const r = rig();
+  for (let i = 0; i < 600; i++) r.clip.capture(SOURCE, 1 / 60, "central-hub");
+  assert.equal(r.made.length, 0, "no frame canvas is even made in the hub");
+  for (let i = 0; i < 600; i++) r.clip.capture(SOURCE, 1 / 60, "westminster");
+  assert.ok(r.clip.size().ring > 0);
+});
+
 test("a hidden tab clears the ring so no clip joins frames across the gap", () => {
   const r = rig();
   r.play(5);

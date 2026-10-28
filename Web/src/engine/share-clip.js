@@ -133,7 +133,7 @@ export function createShareClip({
       }
     },
     // Right after the WebGL render, in the same task (the drawing buffer is valid only then); `seconds` is the frame's play time.
-    capture(source, seconds) {
+    capture(source, seconds, area = null) {
       if (!on) return;
       clock += Math.min(seconds, rows.buffer.gapSeconds) * 1000;
       if (closeAt !== null && closeRow) {
@@ -143,7 +143,7 @@ export function createShareClip({
           fire(closeRow);
         }
       }
-      const fps = rows.tiers[tier()]?.fps ?? 0;
+      const fps = rows.offAreas.includes(area) ? 0 : (rows.tiers[tier()]?.fps ?? 0); // no copies in the hub or on the low tier
       if (!fps) emptyRing();
       else if (!frozen && clock - lastSample >= 1000 / fps) {
         const frame = takeFrame();

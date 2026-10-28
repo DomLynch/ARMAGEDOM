@@ -252,7 +252,7 @@ export function createBrowserLoop(s) {
     s.updateExpedition?.();
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
-    if (!s.paused) shareClip.capture(s.canvas, realElapsed); // right after the render: the drawing buffer is valid only in this task
+    if (!s.paused) shareClip.capture(s.canvas, realElapsed, s.world.areaId); // right after the render: the drawing buffer is valid only in this task
   }
   return {
     deathCam,

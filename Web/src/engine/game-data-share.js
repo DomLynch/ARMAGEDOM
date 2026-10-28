@@ -17,6 +17,7 @@ export function validateShareClip(d) {
     "shareUrl",
     "buffer",
     "tiers",
+    "offAreas",
     "still",
     "encode",
     "card",
@@ -35,7 +36,8 @@ export function validateShareClip(d) {
     number(f, `tiers.${name}.fps`, tier.fps, 0);
   }
   if (d.tiers.low?.fps !== 0) fail(f, "the low tier must turn the clip ring off (fps 0)");
-  closed(d.still, ["width", "height"]);
+  if (!Array.isArray(d.offAreas) || !d.offAreas.every(text)) fail(f, "offAreas must list area ids");
+  closed(d.still,["width", "height"]);
   number(f, "still.width", d.still.width, 1);
   number(f, "still.height", d.still.height, 1);
   closed(d.encode, ["types", "bitsPerSecond", "timesliceMs", "holdSeconds", "minFrames"]);
