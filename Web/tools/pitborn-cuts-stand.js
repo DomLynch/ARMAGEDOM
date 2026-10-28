@@ -48,7 +48,7 @@ scene.add(root);
 let victim = "hunter";
 if (WANT) for (let i = 0; i < 400; i++) if (pickCutFinisher({ weapon: WEAPON }, `hunter-${i}`, { last: null, misses: 0, ordinal: 0 }) === WANT) { victim = `hunter-${i}`; break; }
 const view = { root, model },
-  entity = { id: victim, markedHunter: true, hp: 100, maxHP: 100, deathImpact: { x: 0.2, z: -1, weapon: WEAPON } },
+  entity = { id: victim, markedHunter: true, hp: 100, maxHP: 100, deathImpact: { x: -0.4, z: 0.6, weapon: WEAPON } }, // toward the camera and a little left: the corpse stays in the 375 frame
   mixer = new THREE.AnimationMixer(model),
   action = (name) => mixer.clipAction(gltf.animations.find((c) => c.name === name)),
   idle = action("Armed"),
