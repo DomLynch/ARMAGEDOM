@@ -140,6 +140,11 @@
     "raid.armed": "The hunters are moving.",
     "raid.arrived": "The raid is here. Hold the line.",
     "raid.over": "The raid has passed.",
-    "heat.tierUp": "The hunters are closing in."
+    "heat.tierUp": "The hunters are closing in.",
+    "corpse.dropped": "You fell. ${cash} is in a body bag where you died.",
+    "corpse.hud": "BODY BAG · {distance}m · {seconds}s",
+    "corpse.retrieved": "Body bag recovered. ${cash} back in your pocket.",
+    "corpse.partial": "Body bag part recovered. ${cash} back in your pocket, the rest stays in the bag.",
+    "corpse.lost": "Scavengers took your body bag."
   }
 }
