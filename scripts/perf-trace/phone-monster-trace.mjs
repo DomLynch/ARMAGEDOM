@@ -146,6 +146,8 @@ const hunterSeen = await page.waitForFunction(async () => {
     }
   }
   g.player.pos = { ...(window.__stand ?? window.__home) };
+  // a software-rendered page runs at a frame or two a second, so the simulation is stepped (a few quarter-seconds a poll) to the arrival
+  for (let i = 0; i < 4 && !g.enemies.some((e) => e.markedHunter && e.hp > 0); i++) window.__qa.session.step(0.25);
   const seen = g.enemies.some((e) => e.markedHunter && e.hp > 0);
   if (seen) g.player.pos = { ...window.__home };
   return seen;
