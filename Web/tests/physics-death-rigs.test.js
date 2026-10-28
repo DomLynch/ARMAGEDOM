@@ -33,20 +33,38 @@ test("every bone a row maps exists in the model's GLB (no ragdoll can die on a m
   }
 });
 
-test("body rows hold the 20 joints and a standing height; the baked scale matches the manifest scale", () => {
+test("body rows hold the 20 joints and a standing height, UNSCALED (the actor root already applies the manifest scale)", () => {
   for (const [name, m] of Object.entries(RIGS.models)) {
     if (m.body === "physicsBody") continue;
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
     assert.ok(row.height_m > 1 && row.height_m < 3, `${m.body} height ${row.height_m}`);
-    assert.equal(row.scale_baked, manifest[name].scale, `${name} uses a body baked at its manifest scale`);
+    assert.equal(row.scale_baked, 1, `${name} uses a body measured at x1: a scaled row is scaled twice by the root`);
+    assert.ok(row.source.endsWith(", x1"), `${name} row source says x1`);
+  }
+});
+
+test("a body row's hip height above the toes equals the GLB's own bind pose at x1, not at the manifest scale", () => {
+  const up = (nodes, name) => { // bind-pose world height of a named node: sum of translations up the parent chain (bind rotations are identity)
+    const parent = new Map(nodes.flatMap((n, i) => (n.children ?? []).map((c) => [c, i])));
+    let i = nodes.findIndex((n) => n.name === name), y = 0;
+    for (; i !== undefined; i = parent.get(i)) y += (nodes[i].translation?.[1] ?? 0) * (nodes[i].scale?.[1] ?? 1);
+    return y;
+  };
+  for (const [name, m] of Object.entries(RIGS.models)) {
+    if (m.body === "physicsBody") continue;
+    const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
+      nodes = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes,
+      p = RIGS.rigs[m.rig].parts,
+      hips = up(nodes, p.hips) - up(nodes, p.toeLeft);
+    assert.ok(Math.abs(hips - RIGS.bodies[m.body].joints.Hips[1]) < 0.01, `${name} hips ${hips} vs row ${RIGS.bodies[m.body].joints.Hips[1]}`);
   }
 });
 
 test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
   for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
-  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 6); // every humanoid boss but the butcher (its row is re-measured unscaled next)
+  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
   for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
 });
 
