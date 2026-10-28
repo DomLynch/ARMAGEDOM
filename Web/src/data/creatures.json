@@ -156,14 +156,16 @@
       "original-roach": { "controller": "roach-native-bite", "weapon": "teeth", "rig": "original-roach", "actions": ["attack"] },
       "low-hover-drone": { "controller": "drone-selector", "weapon": "bolt", "rig": null, "actions": [] },
       "original-wolf": { "controller": "wolf-native-bite", "weapon": "teeth", "rig": "original-wolf", "actions": ["attack"] },
-      "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] }
+      "giant-salamander": { "controller": "salamander-native-bite", "weapon": "teeth", "rig": "giant-salamander", "actions": ["attack"] },
+      "original-crow": { "controller": "rat-native-bite", "weapon": "teeth", "rig": "original-crow", "actions": ["attack", "attackLow"] }
     },
     "reach": {
       "original-wolf": 2.375,
       "original-rat": 1.050307904880233,
       "original-dog": 1.635623468495986,
       "original-roach": 1.6063268331546576,
-      "giant-salamander": 3.1078573708270647
+      "giant-salamander": 3.1078573708270647,
+      "original-crow": 1.4004105398402
     }
   },
   "behaviours": {
@@ -193,7 +195,8 @@
       "roach-sewer": "baseline",
       "roach-ash": "baseline",
       "roach-rust-shell": "baseline",
-      "roach-heavy-shell": "cautious"
+      "roach-heavy-shell": "cautious",
+      "crow-carrion": "brisk"
     },
     "intents": {
       "baseline": { "wakeDistance": 6, "homeLeash": 12, "holdUntilWake": false, "retreatSeconds": 0, "companionDistance": 0, "isolationDistance": 0, "burstSeconds": 0, "pauseSeconds": 0 },
@@ -237,7 +240,9 @@
       "roach-rust-shell": "baseline",
       "roach-heavy-shell": "baseline",
       "roach-skitter": "skitter",
-      "roach-nest-guard": "territorial"
+      "roach-nest-guard": "territorial",
+      "crow-carrion": "short-burst",
+      "crow-ragged": "baseline"
     }
   },
   "animalCycles": {
@@ -408,6 +413,24 @@
       "populationSlot": true,
       "brain": "drone",
       "hoverTarget": true
+    },
+    "original-crow": {
+      "lowStrike": true,
+      "animal": true,
+      "species": "crow",
+      "appearanceRecipe": "crow",
+      "populationSlot": true,
+      "brain": "rat",
+      "appearanceKit": "rat",
+      "coatName": "Glossy black carrion feathers",
+      "targetHeight": 0.72,
+      "hitClip": "rat_hit",
+      "deathClip": "rat_death",
+      "hitTicks": 20,
+      "deathTicks": 54,
+      "optionalMonster": true,
+      "enabled": true,
+      "offParam": "nocrow"
     }
   }
 }

@@ -12,6 +12,9 @@ const digest = value => createHash('sha256').update(JSON.stringify(value)).diges
 
 test('MELEE_VARIANTS and CLEAVER_MOVES equal the old in-code tables exactly', () => {
   const {__CLEAVER_MOVES: oldCleaverMoves, ...oldVariants} = old;
+  // 28 Oct: every low-move table that has the rat also has the crow, with the rat's move (art/monster-crow).
+  const addCrow = node => {if (node && typeof node === 'object') {if (node['original-rat'] && node['original-roach']) node['original-crow'] = structuredClone(node['original-rat']); for (const child of Object.values(node)) addCrow(child);}};
+  addCrow(oldVariants);addCrow(oldCleaverMoves);
   assert.deepEqual(Object.keys(MELEE_VARIANTS).sort(), Object.keys(oldVariants).sort());
   for (const [id, variant] of Object.entries(MELEE_VARIANTS)) {
     const {contactPaths, ...rest} = variant;

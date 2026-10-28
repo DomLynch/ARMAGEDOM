@@ -7694,8 +7694,8 @@
               "recipeRef": "rat-soot"
             },
             "B": {
-              "foundationRef": "original-dog",
-              "recipeRef": "dog-street-mongrel"
+              "foundationRef": "original-crow",
+              "recipeRef": "crow-carrion"
             }
           }
         },
@@ -7750,8 +7750,8 @@
               "recipeRef": "roach-ash"
             },
             "B": {
-              "foundationRef": "original-rat",
-              "recipeRef": "rat-soot"
+              "foundationRef": "original-crow",
+              "recipeRef": "crow-ragged"
             }
           }
         },

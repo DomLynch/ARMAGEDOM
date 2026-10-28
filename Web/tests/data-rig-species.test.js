@@ -15,8 +15,8 @@ test("each species resolves to the rig id combat.js used to write out", () => {
 
 test("every rig has a distinct species and an unknown species is an error", () => {
   const species = Object.keys(RIG_CAPABILITIES).map((rig) => rigText(rig, "species"));
-  assert.equal(species.length, 6);
-  assert.equal(new Set(species).size, 6);
+  assert.equal(species.length, 7); // 28 Oct: the crow is the seventh rig
+  assert.equal(new Set(species).size, 7);
   assert(species.every((s) => typeof s === "string" && s));
   assert.throws(() => rigOfSpecies("human"), /No rig has species human/);
 });

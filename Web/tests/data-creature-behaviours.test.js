@@ -12,6 +12,10 @@ const old = JSON.parse(fs.readFileSync(new URL("./fixtures/creature-behaviour-pr
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 const capabilities = ["home", "lineOfSight", "completedAttack", "collisionMove", "wakeTime", "nativeLocomotion", "eligibleCompanions"];
 
+// 28 Oct: the crow's recipe rows are appended (art/monster-crow).
+old.recipeBehaviours["crow-carrion"] = "brisk";
+old.recipeIntents["crow-carrion"] = "short-burst";
+old.recipeIntents["crow-ragged"] = "baseline";
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {
   for (const [table, rows, expected] of [
     ["presets", CREATURE_BEHAVIOURS, old.presets],

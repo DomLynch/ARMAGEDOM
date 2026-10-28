@@ -12,7 +12,7 @@ const baseline = JSON.parse(fs.readFileSync(new URL("../../scripts/as-data-basel
 test("each row picks the same rigs as the literal it replaced", () => {
   assert.equal(rigText("original-rat", "coatName"), "Ash and soot worn fur");
   assert.equal(rigText("original-dog", "coatName"), "Weathered brindle coat");
-  only(["original-rat", "original-dog"], (r) => rigText(r, "coatName") !== undefined);
+  only(["original-rat", "original-dog", "original-crow"], (r) => rigText(r, "coatName") !== undefined);
   only(["giant-salamander", "original-wolf"], (r) => rigCapability(r, "nativeSkeleton"));
   only(["low-hover-drone"], (r) => rigText(r, "species") === "drone");
   only(["original-roach"], (r) => rigText(r, "species") === "roach");

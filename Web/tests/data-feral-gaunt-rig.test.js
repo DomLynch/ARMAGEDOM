@@ -11,6 +11,25 @@ import { countConstantTables } from "../../scripts/as-data-gate.mjs";
 // creatures.json (`feralBodyShapes`, `feralCoatProfiles`, `gauntShape`, `rigCapabilities`). The fixture is the old in-code tables,
 // dumped from the old modules before the move.
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/feral-gaunt-rig-pre-data.json", import.meta.url)));
+// 28 Oct: the crow rig row is appended (art/monster-crow).
+old.rigCapabilities["original-crow"] = {
+  lowStrike: true,
+  animal: true,
+  species: "crow",
+  appearanceRecipe: "crow",
+  populationSlot: true,
+  brain: "rat",
+  appearanceKit: "rat",
+  coatName: "Glossy black carrion feathers",
+  targetHeight: 0.72,
+  hitClip: "rat_hit",
+  deathClip: "rat_death",
+  hitTicks: 20,
+  deathTicks: 54,
+  optionalMonster: true,
+  enabled: true,
+  offParam: "nocrow",
+};
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("every table equals the old in-code table exactly (values and key order) and is frozen", () => {

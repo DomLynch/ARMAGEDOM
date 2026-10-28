@@ -4,7 +4,7 @@ import { resolveResidentIntent } from "../creature-behaviour-intents.js";
 import { GAME_DATA } from "./game-data.js";
 import { rigText } from "../rig-capabilities.js";
 const DRONE_MODEL_SCALE = 2; // tuning-ok: the drone's procedural model is authored at twice the unit scale
-const REVIEWED_FOUNDATIONS = 7; // tuning-ok: the reviewed foundation count this catalogue accepts
+const REVIEWED_FOUNDATIONS = creatureDefinitions.length; // the reviewed foundations are the rows of creatureDefinitions.json
 // Capabilities provided by existing resident movement/native completion/neighbour seams.
 export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "home",
