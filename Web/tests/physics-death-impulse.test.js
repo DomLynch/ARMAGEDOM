@@ -18,10 +18,10 @@ test("the bullet impulse is on by default and ?bulletimpulse=0 is the off switch
   assert.equal(bulletImpulseEnabled("?physics=0&bulletimpulse=1"), true);
 });
 
-test("the dying entity records the killing hit's direction, weapon, attack class and zone", () => {
+test("the dying entity records the killing hit's direction, weapon and attack class", () => {
   const impact = deathImpactOf({ impactDirection: { x: 1, z: -2 }, weapon: "shotgun", attackClass: "bullet", zone: "head" });
-  assert.deepEqual(impact, { x: 1, z: -2, weapon: "shotgun", attackClass: "bullet", zone: "head" });
-  assert.deepEqual(deathImpactOf({}), { x: 0, z: 0, weapon: undefined, attackClass: undefined, zone: undefined });
+  assert.deepEqual(impact, { x: 1, z: -2, weapon: "shotgun", attackClass: "bullet" });
+  assert.deepEqual(deathImpactOf({}), { x: 0, z: 0, weapon: undefined, attackClass: undefined });
 });
 
 test("pistol and rifle shove the body back with lift, the shotgun launches it harder, a knife barely moves it", () => {
@@ -57,12 +57,11 @@ test("an unknown weapon or no weapon at all keeps the fixed default row, and so 
   assert.deepEqual(impulseRow({ weapon: "shotgun", attackClass: "bullet", zone: "head" }, false), base);
 });
 
-test("a known zone picks the struck part, an unknown one keeps the row's part", () => {
-  assert.equal(impulseRow({ weapon: "pistol", attackClass: "bullet", zone: "head" }, true).part, BI.zoneParts.head);
-  assert.equal(impulseRow({ weapon: "pistol", attackClass: "bullet", zone: "legs" }, true).part, BI.zoneParts.legs);
-  assert.equal(impulseRow({ weapon: "pistol", attackClass: "bullet" }, true).part, CFG.killImpulse.part);
-  assert.equal(impulseRow({ weapon: "pistol", attackClass: "bullet", zone: "unknown-zone" }, true).part, CFG.killImpulse.part);
-  for (const part of Object.values(BI.zoneParts)) assert.ok(Object.hasOwn(CFG.parts, part));
+test("no zone rows exist: no hit carries a zone, so the struck part always comes from the row", () => {
+  assert.equal(Object.hasOwn(BI, "zoneParts"), false);
+  assert.deepEqual(Object.keys(BI.byAttackClass), ["blast"]);
+  for (const weapon of ["knife", "flamethrower"]) assert.ok(BI.byWeapon[weapon]);
+  assert.equal(impulseRow({ weapon: "pistol", attackClass: "bullet", zone: "head" }, true).part, CFG.killImpulse.part);
 });
 
 test("killVector carries the weapon's row, aimed along the blow, and stays deterministic", () => {
@@ -83,7 +82,7 @@ test("the validator accepts the shipped rows and rejects bad ones", () => {
   a.bulletImpulse.byWeapon.pistol.horizontal = -1;
   assert.throws(() => validatePhysicsDeath(a));
   const b = clone();
-  b.bulletImpulse.zoneParts.head = "notAPart";
+  b.bulletImpulse.zoneParts = { head: "head" };
   assert.throws(() => validatePhysicsDeath(b));
   const c = clone();
   c.bulletImpulse.offValue = c.bulletImpulse.onValue;
