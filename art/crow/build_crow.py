@@ -407,7 +407,7 @@ def mk(name, base, rough, metal, textured=False, emit=None):
 
 mesh.materials.append(mk("Glossy black carrion feathers", (0.04, 0.035, 0.04, 1), 0.4, 0.15, textured=True))
 mesh.materials.append(mk("Scaled ash-grey legs and feet", (0.055, 0.045, 0.04, 1), 0.7, 0.0))
-mesh.materials.append(mk("Pale glowing eyes", (0.9, 0.93, 0.78, 1), 0.3, 0.0, emit=(0.86, 0.95, 0.72, 1)))
+mesh.materials.append(mk("Dark glossy eyes", (0.012, 0.010, 0.009, 1), 0.06, 0.0))
 mesh.materials.append(mk("Dark horn beak", (0.045, 0.038, 0.034, 1), 0.3, 0.0))
 mesh.name = "Original ARM rat surface"
 

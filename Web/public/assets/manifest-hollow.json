@@ -409,8 +409,8 @@
         "attack": "rat_bite",
         "attackLow": "rat_bite_low"
       },
-      "bytes": 293912,
-      "sha256": "634ad61e88547463a208acd97b41192bd5efbe8702df6d19177b9c3486ab6ebd",
+      "bytes": 293676,
+      "sha256": "63d6b7e734122ee44f33f52450a7f277583124d72fc4a2c98e499d1c14766f62",
       "contact": {
         "calfBand": [
           0.3440308079655002,
