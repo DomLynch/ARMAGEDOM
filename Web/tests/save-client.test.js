@@ -917,3 +917,101 @@ test("a successful save records its revision as synced, so the next boot does no
   await t.run();
   assert.deepEqual(JSON.parse(t.storage.map.get(syncedKey("user-1"))), { character: "pc:abc", revision: 4 });
 });
+
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+const claimCalls = (t) => t.w.calls.filter((c) => c.op === "claim_pickup");
+async function fire(t) {
+  const timer = t.timers.shift();
+  timer.fn();
+  await settle();
+}
+test("six cash claims against the writer's burst of four are all credited, spaced by the bucket", async () => {
+  assert.equal(GAME_DATA.saveClient.claimBurst, 4);
+  const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
+  const done = [1, 2, 3, 4, 5, 6].map((n) => t.client.claimPickup("kill:trash", n));
+  await settle();
+  assert.equal(claimCalls(t).length, 4, "the burst goes at once");
+  assert.equal(t.timers.length, 1, "the rest wait for the bucket");
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  assert.equal(claimCalls(t).length, 5);
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  await Promise.all(done);
+  assert.deepEqual(claimCalls(t).map((c) => c.body.amount), [1, 2, 3, 4, 5, 6]);
+  assert.equal(t.lines.length, 0, "nothing was refused");
+});
+test("a routine save issued mid-queue goes out only after all six claims are credited", async () => {
+  const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
+  [1, 2, 3, 4, 5, 6].forEach((n) => t.client.claimPickup("kill:trash", n));
+  await settle();
+  t.client.queue(record());
+  assert.equal(t.timers.length, 2, "a claim timer and the save timer");
+  t.timers.splice(1, 1)[0].fn(); // the save starts now, with claims 5 and 6 still waiting
+  await settle();
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 0, "the save waits for the queue");
+  assert.equal(claimCalls(t).length, 4);
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 0, "five of six is still not all");
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  await settle();
+  const ops = t.w.calls.map((c) => c.op),
+    save = ops.indexOf("save_run");
+  assert.ok(save > 0);
+  assert.equal(ops.slice(0, save).filter((op) => op === "claim_pickup").length, 6, "all six claims came first");
+});
+test("an urgent (death) save is not held for the claim bucket", async () => {
+  const t = make({ claim_pickup: (body) => ({ credited: body.amount, earned: body.amount }) });
+  [1, 2, 3, 4, 5, 6].forEach((n) => t.client.claimPickup("kill:trash", n));
+  await settle();
+  t.client.queue(record({ dead: true }), {}, { urgent: true });
+  t.timers.splice(1, 1)[0].fn();
+  await settle();
+  assert.equal(claimCalls(t).length, 4, "claims 5 and 6 are still waiting for the bucket");
+  assert.equal(t.w.calls.filter((c) => c.op === "save_run").length, 1, "the death save went anyway");
+});
+test("a 429 on a claim waits its retryMs and sends the same claim again", async () => {
+  const t = make({ claim_pickup: (body, n) => (n === 0 ? { status: 429, error: "rate-limited", retryMs: 3000 } : { credited: body.amount, earned: body.amount }) });
+  const done = t.client.claimPickup("kill:creature", 15);
+  await settle();
+  assert.equal(claimCalls(t).length, 1);
+  assert.equal(t.timers.length, 1);
+  assert.ok(t.timers[0].ms >= 3000);
+  t.clock.ms += 3000;
+  await fire(t);
+  assert.equal(claimCalls(t).length, 1, "a 429 means the bucket is empty: it still has to refill a token");
+  t.clock.ms += GAME_DATA.saveClient.claimRefillMs;
+  await fire(t);
+  await done;
+  assert.deepEqual(claimCalls(t).map((c) => c.body), [{ source: "kill:creature", amount: 15 }, { source: "kill:creature", amount: 15 }]);
+  assert.equal(t.lines.length, 0);
+});
+test("a kill-tier rate-limit refusal waits retryS and retries; a bad-amount refusal is only logged", async () => {
+  const t = make({
+    claim_pickup: (body, n) => (body.amount === 99 ? { refused: "bad-amount" } : n === 0 ? { refused: "rate-limit", retryS: 2 } : { credited: body.amount }),
+  });
+  const done = t.client.claimPickup("kill:boss", 30);
+  await settle();
+  assert.equal(claimCalls(t).length, 1);
+  t.clock.ms += 2000;
+  await fire(t);
+  await done;
+  assert.equal(claimCalls(t).length, 2);
+  await t.client.claimPickup("kill:boss", 99);
+  assert.match(t.lines.at(-1), /pickup cash not credited: kill:boss bad-amount/);
+  assert.equal(claimCalls(t).length, 3, "a refusal that is not for rate is not retried");
+});
+test("a claim refused for rate more than claimRetries times is given up and logged", async () => {
+  const t = make({ claim_pickup: () => ({ refused: "rate-limit", retryS: 1 }) });
+  const done = t.client.claimPickup("kill:trash", 5);
+  for (let i = 0; i <= GAME_DATA.saveClient.claimRetries; i++) {
+    await settle();
+    t.clock.ms += GAME_DATA.saveClient.claimRefillMs; // long enough for the retry wait and for the bucket to give a token back
+    if (t.timers.length) await fire(t);
+  }
+  await done;
+  assert.equal(claimCalls(t).length, GAME_DATA.saveClient.claimRetries + 1);
+  assert.match(t.lines.at(-1), /not credited: kill:trash rate-limit/);
+});

@@ -3,11 +3,11 @@ import { addPickupGlow } from "../pickup-glow.js";
 import { WORLD_PICKUPS, placementsFor, stepWorldPickups, worldPickupState } from "./world-pickups-core.js";
 // The small boxes lying in an area (data/worldPickups.json `models`): one instanced mesh per kind, so a whole area costs three draw
 // calls and three thin contours (the same glow the other ground pickups wear). A taken pickup is scaled to nothing until it returns.
-function modelGeometry(THREE, parts) {
+export function modelGeometry(THREE, parts, segments = WORLD_PICKUPS.cylinderSegments) {
   const pieces = parts.map((part) => {
     const g =
       part.shape === "cylinder"
-        ? new THREE.CylinderGeometry(part.size[0], part.size[0], part.size[1], WORLD_PICKUPS.cylinderSegments)
+        ? new THREE.CylinderGeometry(part.size[0], part.size[0], part.size[1], segments)
         : new THREE.BoxGeometry(...part.size);
     g.translate(...part.pos);
     const colour = new THREE.Color(`#${part.color}`),

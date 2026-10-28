@@ -8,5 +8,9 @@
   "bucketRefillMs": 5000,
   "bucketReserve": 2,
   "retryFloorMs": 250,
-  "keepaliveMaxBytes": 60000
+  "keepaliveMaxBytes": 60000,
+  "claimBurst": 4,
+  "claimRefillMs": 5000,
+  "claimRetries": 6,
+  "claimSecondMs": 1000
 }

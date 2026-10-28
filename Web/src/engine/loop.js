@@ -2,6 +2,7 @@ import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
 import { grantBossGolden } from "./golden-weapons.js";
+import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
@@ -136,6 +137,8 @@ export function createBrowserLoop(s) {
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
         s.world.worldPickups?.collect(s.game, s.world.camera);
+        leaveKillDrops(s.game); // coins where enemies fell this step (off until killDrops.enabled)
+        stepKillDrops(s.game);
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
@@ -159,6 +162,7 @@ export function createBrowserLoop(s) {
     s.world.update(s.game.player.pos, s.paused ? 0 : dt, innerWidth, innerHeight);
     s.world.exitRings?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
     s.world.worldPickups?.sync(s.game);
+    s.world.killDrops?.sync(s.game);
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
