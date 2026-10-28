@@ -113,6 +113,8 @@ import physicsBudget from "../data/physicsBudget.json" with { type: "json" };
 import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
 import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
+import shareClip from "../data/shareClip.json" with { type: "json" };
+import { validateShareClip } from "./game-data-share.js";
 import hitReaction from "../data/hitReaction.json" with { type: "json" };
 import { validateHitReaction } from "./hit-reaction-data.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
@@ -1110,6 +1112,7 @@ const sources = () => ({
   pitbornCuts: [pitbornCuts, validatePitbornCuts],
   pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],
+  shareClip: [shareClip, validateShareClip],
   hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],

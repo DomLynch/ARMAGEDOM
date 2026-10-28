@@ -422,6 +422,79 @@ summary {
 #ending {
   background: rgba(8, 15, 17, 0.75);
 }
+/* Viral death cam: the SHARE card on the death screen (engine/share-card.js). Dark, burnt-amber rim; icon + label buttons like
+   Frankendom 1's SHARE/CLIP pair. Kept short so the card plus Try again fits a 375x667 phone. */
+.share-card {
+  margin: 14px auto 16px;
+  padding: 12px 12px 14px;
+  max-width: 320px;
+  background: rgba(8, 12, 14, 0.82);
+  border: 1px solid #ff9a50;
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 154, 80, 0.18);
+}
+.share-card .eyebrow {
+  margin: 0 0 10px;
+  color: #ff9a50;
+}
+.share-picks {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.card .share-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #eee9df;
+  font: 700 11px system-ui, -apple-system, sans-serif;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.share-pick canvas {
+  width: 72px;
+  height: 128px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #000;
+}
+.share-pick[aria-pressed="true"] canvas {
+  border-color: #ff9a50;
+}
+.card .share-status {
+  min-height: 20px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #c9c3b6;
+}
+.share-actions {
+  display: flex;
+  gap: 10px;
+}
+.card .share-actions .share-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 8px;
+  color: #ff9a50;
+  background: #1a1411;
+  border: 1px solid #ff9a50;
+  font: 700 12px system-ui, -apple-system, sans-serif;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.card .share-actions .share-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 @media (pointer: coarse) {
   #touch-controls {
     display: block;
