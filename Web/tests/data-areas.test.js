@@ -30,7 +30,7 @@ test("areaDefinitions and areaAssets equal the old in-code export (values and ke
   assert.deepEqual(withoutExits(areaDefinitions), withoutExits(old.areas));
   // The layout files whose guidance rows went with the retired exits have new bytes and hashes; the next two tests check them on disk.
   // The phone backdrops of area8, elephant-and-castle and east-bridge were painted over (the blocked objects are gone from the picture), so those three rows moved too.
-  const painted = ["backdrop.area8", "backdrop.elephant-and-castle", "backdrop.east-bridge"];
+  const painted = ["backdrop.area8", "backdrop.elephant-and-castle", "backdrop.east-bridge", "backdrop.south"]; // south: arrival pile painted out, art/south-clear-road
   const withoutLayoutIdentity = (assets) =>
     Object.fromEntries(
       Object.entries(assets).map(([ref, row]) => [ref, ref.startsWith("layout.") || painted.includes(ref) ? { ...row, bytes: 0, sha256: "" } : row]),
