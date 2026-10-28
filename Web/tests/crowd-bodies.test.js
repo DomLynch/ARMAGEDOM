@@ -41,6 +41,36 @@ test("only the bodies checked clean are shipped: every crowd file is a registere
   assert.equal(bodies.length, 19);
 });
 
+test("every area's plain humans draw MakeHuman bodies from the pool, and at least half of them keep an existing look", () => {
+  const content = JSON.parse(read("../world/area-content.json")).residents,
+    crooked = new Set(GAME_DATA.spawns.crookedResidents),
+    plainRows = (area) =>
+      (content[area] ?? AREA_MOB_SPAWNS[area] ?? []).filter(
+        (row) =>
+          (row.foundationRef === undefined || row.foundationRef === "hollow-scavenger") &&
+          row.appearanceRef === undefined &&
+          (row.recipeRef === undefined || POOL.plainRecipes.includes(row.recipeRef)) &&
+          !crooked.has(row.key),
+      );
+  const areas = Object.keys(JSON.parse(read("../world/manifest.json")).entries).filter((area) => plainRows(area).length > 0);
+  for (const area of ["westminster", "east", "south", "east-bridge", "elephant-and-castle", "lambeth", "area7", "area8"])
+    assert(areas.includes(area), `${area} has plain humans`);
+  for (const area of areas) {
+    const looks = plainRows(area).map((row) => crowdBodyForKey(area, row.key)),
+      bodies = looks.filter(isCrowdBody),
+      existing = looks.length - bodies.length;
+    assert(bodies.length >= 1, `${area}: ${bodies.length} MakeHuman bodies among ${looks.length} plain humans`);
+    assert(existing * 2 >= looks.length, `${area}: only ${existing} of ${looks.length} keep an existing look`);
+    assert(new Set(bodies).size <= POOL.maxBodiesPerArea, `${area} draws within the download cap`);
+    assert(crowdAreaRefs({ residentPlacements: content }, area).length <= POOL.maxBodiesPerArea);
+  }
+  // Out of the pool: gaunt skulkers, animals, crooked residents, bosses (no placementKey row here), hunters and explicit appearances.
+  const gaunt = Object.values(content).flat().filter((row) => row.recipeRef === "human-gaunt-skulker");
+  assert(gaunt.length > 0);
+  assert.deepEqual(crowdAreaRefs({ residentPlacements: { area8: gaunt } }, "area8"), []);
+  assert.deepEqual(crowdAreaRefs({ residentPlacements: { lambeth: content.lambeth.filter((row) => row.foundationRef === "original-rat") } }, "lambeth"), []);
+});
+
 test("the existing looks stay in the rotation with the real weight: at least half of the draws in every area keep an existing human", () => {
   for (const row of NATIVE) {
     assert.equal(manifest.models[row.ref].rig, "hollow-scavenger", `${row.ref} keeps the scavenger rig, clips and finishers`);
@@ -112,8 +142,6 @@ test("only plain resident humans are dressed: not the tutorial area, hunters, bo
   const key = bodyKey();
   assert(key, "an east resident wears a body");
   assert.equal(crowdBodyRef(plain(key), "east"), crowdBodyForKey("east", key));
-  assert.equal(crowdBodyRef(plain(key), "westminster"), null, "the Westminster tutorial residents are unchanged");
-  for (const area of ["westminster"]) for (const row of AREA_MOB_SPAWNS[area]) assert.equal(crowdBodyForKey(area, row.key), null);
   assert.equal(crowdBodyRef(plain(key, { markedHunter: true }), "east"), null);
   assert.equal(crowdBodyRef(plain(key, { bossProfile: {} }), "east"), null);
   assert.equal(crowdBodyRef(plain(key, { appearanceRef: "hale-pitborn" }), "east"), null);
@@ -148,7 +176,8 @@ test("a pool file is only requested for the residents an area places, never all 
     for (const ref of refs) assert.equal(manifest.models[ref].deferred, true);
     assert.deepEqual(slotModelRefs({}, area, manifest).filter((ref) => POOL.pool.some((row) => row.ref === ref)), [], "not in the required list");
   }
-  assert.deepEqual(crowdAreaRefs({}, "westminster", AREA_MOB_SPAWNS.westminster), []);
+  const westminster = crowdAreaRefs({}, "westminster");
+  assert(westminster.length > 0 && westminster.length <= POOL.maxBodiesPerArea, "Westminster, the first area, has its pool models prefetched at idle");
   // A placement with its own appearance, foundation or recipe draws no body.
   assert.deepEqual(
     crowdAreaRefs({ residentPlacements: { east: [{ key: "x", appearanceRef: "hale-pitborn" }, { key: "y", foundationRef: "original-wolf" }] } }, "east"),
@@ -255,9 +284,19 @@ test("a crowd resident is built from its body, keeps its rig and stats, and fall
   assert.equal(JSON.stringify({ ...resident, id: 0 }), before, "the entity is untouched");
   loaded.dispose();
 
-  const fallback = createActors(new THREE.Scene(), world, await library([]));
+  const lib = await library([]),
+    fallback = createActors(new THREE.Scene(), world, lib);
   assert.doesNotThrow(() => fallback.update(g, 0));
   assert.equal(fallback.views.get(resident.id).root.name, "hollow-scavenger");
+  // The body arrives later (the fire-and-forget download): a fighting resident keeps its look, a calm one is rebuilt with the body.
+  lib.models.set(ref, { description: manifest.models[ref], gltf: await loadGeometry(read(manifest.models[ref].url)) });
+  resident.alerted = true;
+  fallback.update(g, 0);
+  assert.equal(fallback.views.get(resident.id).root.name, "hollow-scavenger", "no swap while it fights");
+  resident.alerted = false;
+  fallback.update(g, 0);
+  assert.equal(fallback.views.get(resident.id).root.name, ref, "swapped once calm");
+  assert.equal(fallback.views.get(resident.id).entity, resident, "same entity, nothing else changed");
   fallback.dispose();
 });
 

@@ -17,6 +17,7 @@ export function validateCrowdBodies(d) {
     "idleMs",
     "maxBodiesPerArea",
     "excludedAreas",
+    "plainRecipes",
     "pool",
   ]);
   if (typeof d.enabled !== "boolean") fail("crowdBodies", "enabled must be true or false");
@@ -27,6 +28,8 @@ export function validateCrowdBodies(d) {
   count("crowdBodies", "maxBodiesPerArea", d.maxBodiesPerArea, 0, 12);
   if (!Array.isArray(d.excludedAreas) || d.excludedAreas.some((a) => typeof a !== "string" || !a))
     fail("crowdBodies", "excludedAreas must be a list of area ids");
+  if (!Array.isArray(d.plainRecipes) || d.plainRecipes.some((r) => typeof r !== "string" || !r))
+    fail("crowdBodies", "plainRecipes must be a list of recipe ids");
   if (!Array.isArray(d.pool) || d.pool.length < 1) fail("crowdBodies", "pool must list at least one row");
   const seen = new Set();
   for (const row of d.pool) {
