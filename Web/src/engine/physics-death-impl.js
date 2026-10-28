@@ -161,8 +161,14 @@ export function rankOf(entity) {
   return entity.remotePlayer ? r.remote : r.crowd;
 }
 // The corpse a death of `rank` may take the place of: the lowest rank below it, the oldest of those; null = none (the newcomer is baked).
+// Among the lowest rank, a settled (frozen) body goes before one that is still falling; then the oldest.
 const evictable = (rank) =>
-  active.reduce((best, a) => ((a.rank ?? 0) < rank && (!best || (a.rank ?? 0) < (best.rank ?? 0)) ? a : best), null);
+  active.reduce((best, a) => {
+    const r = a.rank ?? 0,
+      br = best?.rank ?? 0;
+    if (r >= rank) return best;
+    return !best || r < br || (r === br && a.frozen && !best.frozen) ? a : best;
+  }, null);
 
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const budget = GAME_DATA.physicsBudget,
