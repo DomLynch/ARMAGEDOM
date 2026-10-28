@@ -21,19 +21,19 @@
     "onValue": "1",
     "defaultOn": true,
     "byWeapon": {
-      "pistol": { "horizontal": 300, "up": 70 },
-      "rifle": { "horizontal": 400, "up": 90 },
-      "railgun": { "horizontal": 520, "up": 100 },
-      "shotgun": { "horizontal": 640, "up": 180 },
-      "grenade": { "horizontal": 820, "up": 380 },
-      "rocket": { "horizontal": 980, "up": 440 },
+      "pistol": { "horizontal": 240, "up": 60 },
+      "rifle": { "horizontal": 300, "up": 70 },
+      "railgun": { "horizontal": 330, "up": 60 },
+      "shotgun": { "horizontal": 380, "up": 90 },
+      "grenade": { "horizontal": 430, "up": 120 },
+      "rocket": { "horizontal": 480, "up": 140 },
       "knife": { "horizontal": 70, "up": 15 },
-      "flamethrower": { "horizontal": 90, "up": 30 }
+      "flamethrower": { "horizontal": 100, "up": 30 }
     },
     "byAttackClass": {
-      "blast": { "horizontal": 850, "up": 400 },
-      "saw": { "horizontal": 30, "up": 10 },
-      "fire": { "horizontal": 90, "up": 30 }
+      "blast": { "horizontal": 440, "up": 120 },
+      "saw": { "horizontal": 50, "up": 10 },
+      "fire": { "horizontal": 100, "up": 30 }
     },
     "zoneParts": { "head": "head", "torso": "spine2", "legs": "hips" }
   },

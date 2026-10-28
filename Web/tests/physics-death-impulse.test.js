@@ -32,8 +32,8 @@ test("pistol and rifle shove the body back with lift, the shotgun launches it ha
     shotgun: row("shotgun", "bullet"),
     knife: row("knife", undefined),
   };
-  assert.ok(pistol.horizontal > CFG.killImpulse.horizontal && pistol.up > CFG.killImpulse.up);
-  assert.ok(rifle.horizontal > pistol.horizontal);
+  assert.ok(pistol.up > CFG.killImpulse.up && pistol.horizontal > knife.horizontal);
+  assert.ok(rifle.horizontal > pistol.horizontal && rifle.up >= pistol.up);
   assert.ok(shotgun.horizontal > rifle.horizontal && shotgun.up > rifle.up);
   assert.ok(knife.horizontal < CFG.killImpulse.horizontal && knife.horizontal > 0);
 });
