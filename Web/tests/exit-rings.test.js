@@ -57,7 +57,7 @@ test("a tenth area, a moved exit and a data offset need no code: the ring follow
   assert.equal(first[0].to, "area-ten-neighbour");
   assert.ok(Math.hypot(first[0].at.x - moved[0].at.x, first[0].at.z - moved[0].at.z) > 0.5, "moving the exit moves the ring");
   // The look and any per-exit offset live in data/visual.json only (the game's data is frozen, so a test cannot edit it).
-  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "scales", "segments"]);
+  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "centring", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "scales", "segments"]);
   const ring = createExitRings({ ...base, group: new THREE.Group(), registry: { links: () => [link] } }).rings[0];
   assert.equal(ring.mesh.material.color.getHexString(), EXIT_RINGS.colour);
   assert.equal(ring.mesh.material.opacity, EXIT_RINGS.opacity);
@@ -75,11 +75,44 @@ test("each ring stands on clear ground, at or within two metres of its exit zone
         p = g.point(at),
         zone = g.ground({ x: Math.min(Math.max(p.x, c.xMin ?? 0), c.xMax ?? 1), y: Math.min(Math.max(p.y, c.yMin ?? 0), c.yMax ?? 1) }),
         gap = Math.hypot(zone.x - at.x, zone.z - at.z);
-      // Re-pinned: the hub's data offsets pull its rings in from the picture edge (a ring at the edge sat off screen), so allow that much more.
+      // Re-pinned: the hub's data offsets pull its rings in from the picture edge (a ring at the edge sat off screen), so allow that much more,
+      // and the centring step may move a ring up to its data radius further, off the road's edge towards the road's middle.
       const pull = EXIT_RINGS.offsets[`${id}>${to}`] ?? { x: 0, z: 0 };
-      if (gap > 2 + Math.hypot(pull.x, pull.z)) bad.push(`${id} -> ${to}: ${gap.toFixed(1)} m from its zone`);
+      if (gap > 2 + EXIT_RINGS.centring.radius + Math.hypot(pull.x, pull.z)) bad.push(`${id} -> ${to}: ${gap.toFixed(1)} m from its zone`);
     }
     exits.dispose();
   }
   assert.deepEqual(bad, []);
+});
+
+test("a ring stands in the road's middle, not against its edge: no clear spot within the centring radius has more room around it", () => {
+  const { radius, step, clearance } = EXIT_RINGS.centring,
+    room = (g, p) => {
+      let r = 0;
+      while (r + step <= clearance && g.clear(p, r + step)) r += step;
+      return r;
+    },
+    bad = [];
+  for (const id of areas) {
+    const world = fakeWorld(id),
+      g = world.geometry,
+      exits = createExitRings(world);
+    for (const { at, spot, to } of exits.rings) {
+      const own = room(g, at);
+      assert.ok(Math.hypot(at.x - spot.x, at.z - spot.z) <= radius + 1e-9, `${id} -> ${to}: moved further than the centring radius`);
+      for (let dx = -radius; dx <= radius; dx += step)
+        for (let dz = -radius; dz <= radius; dz += step) {
+          const p = { x: spot.x + dx, z: spot.z + dz };
+          if (Math.hypot(dx, dz) <= radius && g.clear(p, 0) && room(g, p) > own + 1e-9) bad.push(`${id} -> ${to}: ${room(g, p)} m of room at (${dx}, ${dz}) from its spot against ${own} m`);
+        }
+    }
+    exits.dispose();
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("Westminster's exit to Area 8 no longer sits against the river rail: its ring has at least a metre of road around it", () => {
+  const g = fakeWorld("westminster").geometry,
+    ring = createExitRings(fakeWorld("westminster")).rings.find((r) => r.to === "area8");
+  assert.ok(g.clear(ring.at, 1), `ring at (${ring.at.x.toFixed(1)}, ${ring.at.z.toFixed(1)}) has under a metre of room`);
 });

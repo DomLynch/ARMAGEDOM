@@ -49,6 +49,27 @@ export function ringSpot(g, target, radius) {
     };
   return walk(target, road, road.gap) ?? walk(road, middle, Math.hypot(middle.x - road.x, middle.z - road.z)) ?? road;
 }
+// How far the ring stands from the road's edge and from any blocker: the widest radius (up to `clearance`) that is still clear there.
+function roomAround(g, p, clearance, step) {
+  let room = 0;
+  while (room + step <= clearance && g.clear(p, room + step)) room += step;
+  return room;
+}
+// An exit zone hugs the picture's edge, so the first clear spot is often against the river rail or a wall. Within `radius` metres of that
+// spot, the ring takes the clear point with the most room around it (nearest to the spot on a tie), so it sits in the road's middle.
+export function centredSpot(g, spot, { radius, step, clearance }) {
+  let best = { at: spot, room: roomAround(g, spot, clearance, step), gap: 0 };
+  for (let dx = -radius; dx <= radius; dx += step) {
+    for (let dz = -radius; dz <= radius; dz += step) {
+      const p = { x: spot.x + dx, z: spot.z + dz },
+        gap = Math.hypot(dx, dz);
+      if (gap > radius || !g.clear(p, 0)) continue;
+      const room = roomAround(g, p, clearance, step);
+      if (room > best.room || (room === best.room && gap < best.gap)) best = { at: p, room, gap };
+    }
+  }
+  return best.at;
+}
 export function createExitRings(world) {
   const { THREE, geometry: g } = world,
     links = world.registry?.links?.(world.areaId) ?? [],
@@ -75,14 +96,15 @@ export function createExitRings(world) {
     const zone = zoneGround(g, link.condition, EXIT_RINGS.anchor);
     if (!zone) continue;
     const nudge = EXIT_RINGS.offsets[`${world.areaId}>${link.to}`] ?? { x: 0, z: 0 },
-      at = ringSpot(g, { x: zone.x + nudge.x, z: zone.z + nudge.z }, 0),
+      spot = ringSpot(g, { x: zone.x + nudge.x, z: zone.z + nudge.z }, 0),
+      at = centredSpot(g, spot, EXIT_RINGS.centring),
       mesh = new THREE.Mesh(geometry, material);
     mesh.name = `Exit ring to ${link.to}`; // text-ok: internal mesh name
     mesh.position.copy(world.toRender(at, EXIT_RINGS.height));
     mesh.rotation.x = EXIT_RINGS.flatRotation;
     mesh.scale.setScalar(EXIT_RINGS.scales[`${world.areaId}>${link.to}`] ?? 1); // far, compressed picture areas need a bigger ring
     group.add(mesh);
-    rings.push({ to: link.to, mesh, link, at });
+    rings.push({ to: link.to, mesh, link, at, spot });
   }
   world.group.add(group);
   let disposed = false;
