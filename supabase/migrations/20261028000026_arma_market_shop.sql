@@ -1,8 +1,8 @@
 begin;
--- ROLLBACK: supabase/down/20261028000025_arma_market_shop_down.sql.
+-- ROLLBACK: supabase/down/20261028000026_arma_market_shop_down.sql.
 -- Market part B (docs/MARKET-CONTRACT.md): the global NPC shop. The stock list is a pure function of the shop template rows and the UTC day, so it is identical
 -- for every player in every session with no job to run (Strategy's daily roll_daily is therefore not needed in v1; a rotation is a row with active_day set).
--- Prices are fixed rows: no player pricing, no depletion. buy_item / sell_item are idempotent on request_id (arma_market_requests, migration 000024).
+-- Prices are fixed rows: no player pricing, no depletion. buy_item / sell_item are idempotent on request_id (arma_market_requests, migration 000025).
 --
 -- CASH INVARIANTS (the cash lives in the stored run record's marked.carried/bank, clamped at every save to arma_cash_ceiling):
 --  1. ceiling = max(held, start_cash_total + earned - spent), floored at 0. A buy raises `spent`; a sell raises `earned` (a server credit, like a kill).

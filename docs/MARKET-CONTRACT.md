@@ -1,6 +1,6 @@
 # Market contract (client <-> writer <-> database)
 
-Server lane, 28 Oct 2026. Migrations 000024 (items, inventory, loot) and 000025 (shop, buy/sell). Not applied to hosted Supabase until the Auditor passes.
+Server lane, 28 Oct 2026. Migrations 000025 (items, inventory, loot) and 000026 (shop, buy/sell); 000024 is PR #478's. Not applied to hosted Supabase until the Auditor passes.
 All routes are the writer's `POST /arma/<op>` with `Authorization: Bearer <Supabase access token>` and a JSON body (same as `save_run`, `claim_pickup`). Inventory belongs to the account's ACTIVE character.
 Database function in brackets, for reference only: the phone never calls them.
 

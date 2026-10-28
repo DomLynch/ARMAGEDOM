@@ -1,5 +1,5 @@
 begin;
--- Removes items, inventory and loot: restores the 000018 four-argument kill credit and drops the market tables. Run 000025's down first.
+-- Removes items, inventory and loot: restores the 000018 four-argument kill credit and drops the market tables. Run 000026's down first.
 -- Inventory contents are lost; cash already credited stays in arma_cash.earned.
 drop function if exists public.arma_prune_market_requests();
 drop function if exists public.arma_inventory_get(uuid, text);

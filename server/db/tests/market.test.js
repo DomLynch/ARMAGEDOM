@@ -1,4 +1,4 @@
-// Market (migrations 000024 + 000025): items, inventory, server-rolled loot, the NPC shop, buy/sell with replay, and the cash ceiling. Real migrations on pglite.
+// Market (migrations 000025 + 000026): items, inventory, server-rolled loot, the NPC shop, buy/sell with replay, and the cash ceiling. Real migrations on pglite.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";

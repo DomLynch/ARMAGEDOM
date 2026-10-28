@@ -1,5 +1,5 @@
 begin;
--- Removes the shop and trading. Inventory rows (migration 000024) stay; cash already moved stays in the stored runs. `spent` is dropped, so the ceiling returns to start + earned.
+-- Removes the shop and trading. Inventory rows (migration 000025) stay; cash already moved stays in the stored runs. `spent` is dropped, so the ceiling returns to start + earned.
 drop function if exists public.arma_buy_item(uuid, text, text, text, int, text);
 drop function if exists public.arma_sell_item(uuid, text, text, text, int, text);
 drop function if exists public.arma_market_trade(uuid, text, text, text, text, int, text);

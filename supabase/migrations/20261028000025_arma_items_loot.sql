@@ -1,5 +1,5 @@
 begin;
--- ROLLBACK: supabase/down/20261028000024_arma_items_loot_down.sql.
+-- ROLLBACK: supabase/down/20261028000025_arma_items_loot_down.sql.
 -- Market part A (docs/MARKET-CONTRACT.md): the item catalogue, a per-character inventory, and SERVER-ROLLED rare loot folded into the kill credit.
 -- Inventory is keyed by CHARACTER (not account) because cash, the cash ceiling and every writer rpc already are; a character belongs to one account.
 -- The kill credit arma_claim_pickup gains two optional arguments: p_enemy (the creature kind, the client's claim, bounded by the tier's kill rate cap) and
