@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { createHash } from "node:crypto";
 import { GAME_DATA } from "../src/engine/game-data.js";
-import { appearanceRefOn, residentEncounterHealth } from "../src/area-mob-spawns.js";
+import { appearanceRefOn, residentEncounterHealth, slotAppearanceRefs } from "../src/area-mob-spawns.js";
 import { creatureCatalogue } from "../src/engine/creature-catalogue.js";
 import { populationPlacements } from "../src/engine/area-population.js";
 
@@ -48,6 +48,36 @@ test("the king keeps the rat's health (20): no health override, so the writer's 
   assert.equal(residentEncounterHealth(row, 20), 20);
   const spawns = read("../../server/data/spawns.json");
   assert.equal(spawns["area7:area7-station-rat-v1"].maxHp, 20);
+});
+
+test("switch combinations in Area 7: a switched-off king never survives as another cycle's fallback", () => {
+  const A = (search) => build("A", search),
+    B = (search) => build("B", search);
+  const plain = (row) => {
+    assert.equal(row.appearanceRef, undefined, "no rat-king appearanceRef");
+    assert.equal(row.foundationRef, "original-rat");
+    assert.equal(row.recipeRef, "rat-soot", "the plain station rat");
+  };
+  // both off: cycle B falls back to cycle A, which is itself off, so the plain rat
+  plain(B("?nospider=1&noratking=1"));
+  plain(A("?nospider=1&noratking=1"));
+  // king off, spider on: cycle B stays the spider, cycle A the plain rat
+  assert.equal(B("?noratking=1").foundationRef, "original-spider");
+  assert.equal(B("?noratking=1").appearanceRef, undefined);
+  plain(A("?noratking=1"));
+  // king on, spider off: cycle B falls back to the king and keeps its model, and the preloader queues it
+  const fallback = B("?nospider=1");
+  assert.equal(fallback.recipeRef, "rat-king");
+  assert.equal(fallback.appearanceRef, "rat-king");
+  assert.deepEqual(slotAppearanceRefs(content.population.areas.area7), ["rat-king"]);
+  const had = Object.getOwnPropertyDescriptor(globalThis, "location");
+  try {
+    globalThis.location = { search: "?noratking=1" };
+    assert.deepEqual(slotAppearanceRefs(content.population.areas.area7), [], "king off: nothing queued, and nothing placed needs it");
+  } finally {
+    if (had) Object.defineProperty(globalThis, "location", had);
+    else delete globalThis.location;
+  }
 });
 
 test("default ON with an OFF switch: ?noratking=1 turns the king back into the plain slot rat", () => {

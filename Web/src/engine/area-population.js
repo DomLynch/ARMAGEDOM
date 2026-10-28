@@ -105,8 +105,12 @@ export function populationPlacements(policy, areaId, cycle, canonical, search = 
     slot = area.creatureSlot,
     chosen = slot.cycles[cycle ?? "A"],
     // A spec dressed in an appearance model (the Rat King) is also off when that model is switched off (ratKing.json).
-    off = chosen && (monsterOff(chosen.foundationRef, search) || (chosen.appearanceRef !== undefined && !appearanceRefOn(chosen.appearanceRef, search))),
-    spec = off ? (chosen.off ?? slot.cycles.A) : chosen;
+    isOff = (s) =>
+      monsterOff(s.foundationRef, search) || (s.appearanceRef !== undefined && !appearanceRefOn(s.appearanceRef, search)),
+    // The fallback (cycle A) goes through the same off logic, so a switched-off king never survives as the fallback of another cycle.
+    resolve = (s) => (isOff(s) ? (s.off ?? slot.cycles.A) : s);
+  let spec = chosen && resolve(chosen);
+  if (spec && spec !== chosen && isOff(spec)) spec = spec.off ?? spec;
   if (!spec) fail();
   return canonical
     .filter((row) => active.has(row.key))
@@ -117,7 +121,7 @@ export function populationPlacements(policy, areaId, cycle, canonical, search = 
           ...row,
           foundationRef: spec.foundationRef,
           recipeRef: spec.recipeRef,
-          ...(appearanceRef !== undefined ? { appearanceRef } : {}),
+          ...(appearanceRef !== undefined && appearanceRefOn(appearanceRef, search) ? { appearanceRef } : {}),
         };
       }
       if (
