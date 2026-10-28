@@ -3,13 +3,17 @@ import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
 import { stepChainBreak } from "./chain-break.js";
 import { stepPostBossRaid } from "./post-boss-raid.js";
+import { stepHeat, resetHeat, heatSeconds, heatHunterLimit, heatStarHunter } from "./heat.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
 // the area, death or a safehouse removes them (keepRelic lets the "hunters off" switch leave them alone).
 export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false, keepRelic = false } = {}) {
   if (!g.world.markedData) return;
-  if (death) g.raid = null; // a death ends any post-boss raid (post-boss-raid.js)
+  if (death) {
+    g.raid = null; // a death ends any post-boss raid (post-boss-raid.js)
+    resetHeat(g); // and clears the heat tally (heat.js)
+  }
   const hadHunter = g.enemies.some((e) => e.markedHunter && !e.relicHunter && !e.raidHunter && e.hp > 0);
   g.enemies = g.enemies.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
   if (g.chainBreak?.state === "snapping") g.chainBreak.state = "chained"; // a snap in progress is undone by death or travel
@@ -95,6 +99,7 @@ const siteBlocked = (g) =>
 const huntBlocked = (g, c) => siteBlocked(g) || !g.marked || g.marked.bounty < c.hunterBounty;
 // One finite tier, one simulation clock and existing actor/nav/movement owners.
 export function stepMarkedHunters(g, spawn) {
+  stepHeat(g); // kills add heat, quiet time cools it (heat.js); the tiers below scale the hunt
   const c = g.world.markedData;
   if (!c) return;
   if (c.hunters === false) {
@@ -112,7 +117,7 @@ export function stepMarkedHunters(g, spawn) {
   stepPostBossRaid(g, spawn, markedEntry, !siteBlocked(g)); // a boss kill armed a raid: extra hunters, capped by data
   // A hunter that has died is gone: the next one comes after the re-arrival delay.
   const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && !e.raidHunter && e.hp > 0);
-  if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);
+  if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + heatSeconds(g, c.respawnDelay));
   s.hadHunter = present;
   if (huntBlocked(g, c)) {
     s.warning = null;
@@ -120,11 +125,11 @@ export function stepMarkedHunters(g, spawn) {
   }
   // The residents of an area never block a hunter: only another living hunter does (maxHunters).
   const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter && !e.relicHunter && !e.raidHunter);
-  if (hunters.length >= c.maxHunters) {
+  if (hunters.length >= heatHunterLimit(g, c.maxHunters)) {
     s.warning = null;
     return;
   }
-  if (g.time < s.arrivedAt + c.arrivalDelay || g.time < s.nextSpawnAt || g.time < s.nextAttemptAt) return;
+  if (g.time < s.arrivedAt + heatSeconds(g, c.arrivalDelay) || g.time < s.nextSpawnAt || g.time < s.nextAttemptAt) return;
   if (!s.warning) {
     const p = markedEntry(g);
     s.nextAttemptAt = g.time + 1;
@@ -141,9 +146,9 @@ export function stepMarkedHunters(g, spawn) {
   s.nextAttemptAt = g.time + 1;
   if (!markedEntry(g, { position: p })) return;
   g.corpses = (g.corpses ?? []).filter((e) => !e.markedHunter || e.relicHunter);
-  const actor = spawn(p, c);
+  const actor = heatStarHunter(g, spawn(p, c));
   g.enemies.push(actor);
-  s.nextSpawnAt = g.time + c.spawnCooldown;
+  s.nextSpawnAt = g.time + heatSeconds(g, c.spawnCooldown);
   g.events.push({ type: "marked-hunter-arrived", actor, position: { ...p } });
   g.message = GAME_DATA.combatText.markedHunter.arrived;
   g.messageUntil = g.time + SPAWN.messageSeconds;

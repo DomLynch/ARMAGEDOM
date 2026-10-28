@@ -110,6 +110,7 @@ function harness(f) {
     collectNearbyVest: (g) => f.p.collectNearbyVest(g),
     updateSupplies() {},
     updateVestBag() {},
+    updateHeatTally() {},
     emit() {},
     worldJournal: journal,
     dispatchPistol: persistence.dispatchPistol,

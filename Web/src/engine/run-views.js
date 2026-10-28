@@ -31,6 +31,8 @@ import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
 import { GAME_DATA, fillText } from "./game-data.js";
+import { createHeatTallyView } from "./heat-tally-view.js";
+import { heatShown } from "./heat.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 // The weapon summary lines quote these rows of data/weapons.json, so the text cannot drift from what the weapon does.
 const GRENADE = GAME_DATA.weapons.ranged["standard-grenade-v1"],
@@ -341,6 +343,14 @@ export function createRunViews(s) {
     } else weapon = meleeWeaponSummary(g);
     if (active.textContent !== weapon) active.textContent = weapon;
   }
+  let heatView = null;
+  // The heat tally (heat.js) above the player's head; gone with the heat, on death and while the run is over or the context is lost.
+  function updateHeatTally() {
+    const shown = s.game && !s.contextLost && !s.game.finished ? heatShown(s.game) : null;
+    if (!shown) return heatView?.update(null);
+    heatView ??= createHeatTallyView(s.scene);
+    heatView?.update(shown, s.world.toRender(s.game.player.pos, GAME_DATA.heat.world.heightMetres));
+  }
   function clearVestBag() {
     vestBag?.dispose();
     vestBag = null;
@@ -446,6 +456,7 @@ export function createRunViews(s) {
     interactUniqueReward: uniqueView.interact,
     clearVestBag,
     updateVestBag,
+    updateHeatTally,
     ...persistence,
     updateSupplies,
     clearSupplies,

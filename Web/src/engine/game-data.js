@@ -91,6 +91,8 @@ import { validateWeaponViewText } from "./game-data-weapon-view-text.js";
 import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safehouse-text.js";
 import { validateAirdrop } from "./game-data-airdrop.js";
 import { validatePostBossRaid } from "./game-data-raid.js";
+import heat from "../data/heat.json" with { type: "json" };
+import { validateHeat } from "./game-data-heat.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1093,6 +1095,7 @@ const sources = () => ({
   safehouseText: [safehouseText, validateSafehouseText],
   airdrop: [airdrop, validateAirdrop],
   postBossRaid: [postBossRaid, validatePostBossRaid],
+  heat: [heat, validateHeat],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],

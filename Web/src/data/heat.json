@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": { "param": "noheat", "value": "1" },
+  "groupSize": 5,
+  "maxHeat": 15,
+  "seed": 20261028,
+  "rng": { "multiplier": 1664525, "increment": 1013904223, "modulus": 4294967296, "stride": 101 },
+  "decay": { "secondsPerMark": 90, "fadeSeconds": 6, "minAlpha": 0.3 },
+  "pressure": {
+    "minSeconds": 15,
+    "tiers": [
+      { "minHeat": 1, "timeScale": 0.75, "extraHunters": 0, "stars": [] },
+      { "minHeat": 3, "timeScale": 0.5, "extraHunters": 1, "stars": [] },
+      { "minHeat": 5, "timeScale": 0.35, "extraHunters": 1, "stars": [{ "stars": 1, "chance": 0.25 }, { "stars": 2, "chance": 0.08 }] }
+    ]
+  },
+  "world": {
+    "heightMetres": 3.6,
+    "widthMetresPerGroup": 1.15,
+    "canvasPxPerGroup": 240,
+    "canvasHeightPx": 220,
+    "maxGroups": 4,
+    "renderOrder": 60
+  },
+  "look": {
+    "label": "Burnt amber rake scratches",
+    "centre": 0.5,
+    "colours": { "fill": "a8620f", "core": "ff9a50", "edge": "3a1608", "glow": "5a2610", "glowAlpha": 0.75, "glowBlurPx": 9 },
+    "mark": {
+      "lengthPx": 156, "widthPx": 14, "bendPx": 4, "segments": 16, "edgeJitterPx": 2.2, "notchProb": 0.24, "notchPx": 9, "notchBias": 0.35, "tipSharpness": 2,
+      "entryPower": 0.6, "bodyPower": 0.7, "tiltJitterDeg": 2, "baseTiltDeg": 26, "spacingPx": 40, "edgeLinePx": 1.6, "coreShare": 0.4
+    },
+    "companions": { "offsetsPx": [-10, 10], "widthPx": 6, "lengthShare": 0.82, "startShare": 0.1, "followShare": 0.5 },
+    "strike": { "angleDeg": -48, "halfLengthPx": 98, "widthPx": 15, "bendPx": 3 }
+  }
+}
