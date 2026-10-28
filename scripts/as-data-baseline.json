@@ -70,7 +70,7 @@
   "jsonImports": ["first-time-hints.js", "engine/stage-ahead.js"],
   "rigLiterals": {},
   "numberLiterals": {},
-  "tuningOkCount": 405,
+  "tuningOkCount": 403,
   "textLiterals": {},
   "textOkCount": 92,
   "constantTables": {
