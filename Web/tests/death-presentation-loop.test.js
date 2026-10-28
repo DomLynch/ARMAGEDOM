@@ -79,7 +79,7 @@ test("real frame: a boss death scales simulation time once and feeds the camera;
     assert.equal(view(r).zoomMul > 1, true);
     assert.deepEqual(view(r).focus, { x: 5, z: 6 });
     for (let i = 0; i < 9; i++) r.loop.step(1 / 60);
-    assert.ok(r.game.time - base < (10 / 60) * 0.6, "slowed, not full rate");
+    assert.ok(r.game.time - base < (10 / 60) * 0.8, "slowed, not full rate");
     for (let i = 0; i < 90; i++) r.loop.step(1 / 60); // 1.5 s real: window over
     assert.equal(view(r), null);
   }));

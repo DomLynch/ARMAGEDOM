@@ -19,6 +19,13 @@ export function validateMarkedHunterSpawn(d) {
     fail("markedHunterSpawn", "gateDefaultCoordinate must be 0 to 1");
 }
 
+export function validatePhysicsBudget(d) {
+  closed(d, ["schema_version", "rows"]);
+  closed(d.rows, ["max_simultaneous_ragdolls"]);
+  if (!Number.isInteger(d.rows.max_simultaneous_ragdolls) || d.rows.max_simultaneous_ragdolls < 1)
+    fail("physicsBudget", "max_simultaneous_ragdolls must be an integer >= 1");
+}
+
 // physicsDeath.json (physics-death.js, the ?physics=1 pilot): flag, step rate, settle and removal seconds, kill impulse, part -> joint map.
 export function validatePhysicsDeath(d) {
   closed(d, [
@@ -34,6 +41,7 @@ export function validatePhysicsDeath(d) {
     "settleSeconds",
     "removeSeconds",
     "preloadIdleMs",
+    "cutPrefetch",
     "poolSize",
     "rewarmMs",
     "maxActive",
@@ -52,6 +60,12 @@ export function validatePhysicsDeath(d) {
     "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
+  closed(d.cutPrefetch, ["range", "idleMs", "skipSaveData", "slowTypes"]);
+  number("physicsDeath", "cutPrefetch.range", d.cutPrefetch.range, 1);
+  number("physicsDeath", "cutPrefetch.idleMs", d.cutPrefetch.idleMs, 1);
+  if (typeof d.cutPrefetch.skipSaveData !== "boolean") fail("physicsDeath", "cutPrefetch.skipSaveData must be true or false");
+  if (!Array.isArray(d.cutPrefetch.slowTypes) || d.cutPrefetch.slowTypes.some((t) => typeof t !== "string"))
+    fail("physicsDeath", "cutPrefetch.slowTypes must be a list of connection types");
   if (typeof d.defaultOn !== "boolean") fail("physicsDeath", "defaultOn must be true or false");
   if (typeof d.offValue !== "string" || d.offValue === d.flagValue)
     fail("physicsDeath", "offValue must be a string that differs from flagValue");
@@ -162,11 +176,18 @@ export function validateChainedPitborn(d) {
   closed(d.breakLoose.text, ["snap", "loose"]);
   for (const name of ["snap", "loose"])
     if (typeof d.breakLoose.text[name] !== "string" || !d.breakLoose.text[name]) fail("chainedPitborn", "breakLoose.text." + name + " must be text");
-  closed(d.chainedTargets, ["rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres"]);
+  closed(d.chainedTargets, [
+    "rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres", "coverEdgeMetres", "coverBlocker", "sightSteps", "aimTargetId",
+  ]);
   for (const name of ["rays", "rays3d", "melee", "blasts", "cones"])
     if (!Array.isArray(d.chainedTargets[name]) || d.chainedTargets[name].some((t) => typeof t !== "string" || !t))
       fail("chainedPitborn", "chainedTargets." + name + " must be a list of event types");
   number("chainedPitborn", "chainedTargets.blastPaddingMetres", d.chainedTargets.blastPaddingMetres, 0.01);
+  number("chainedPitborn", "chainedTargets.coverEdgeMetres", d.chainedTargets.coverEdgeMetres, 0.01);
+  if (typeof d.chainedTargets.coverBlocker !== "string" || !d.chainedTargets.coverBlocker)
+    fail("chainedPitborn", "chainedTargets.coverBlocker must be a blocker name");
+  number("chainedPitborn", "chainedTargets.sightSteps", d.chainedTargets.sightSteps, 1);
+  if (typeof d.chainedTargets.aimTargetId !== "string" || !d.chainedTargets.aimTargetId) fail("chainedPitborn", "chainedTargets.aimTargetId must be text");
   if (!d.motion.clips.length || !d.chains.rows.length) fail("chainedPitborn", "needs clips and chain rows");
 }
 

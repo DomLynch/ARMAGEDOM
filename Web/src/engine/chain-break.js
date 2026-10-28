@@ -44,6 +44,46 @@ function nearRay(r, at) {
     t = length ? Math.max(0, Math.min(1, ((at.x - r.origin.x) * sx + (at.z - r.origin.z) * sz) / length)) : 0;
   return gap({ x: r.origin.x + sx * t, z: r.origin.z + sz * t }, at) <= B.hitRadiusMetres;
 }
+function edgeGap(p, a, b) {
+  const sx = b.x - a.x,
+    sz = b.z - a.z,
+    length = sx * sx + sz * sz,
+    t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * sx + (p.z - a.z) * sz) / length)) : 0;
+  return gap(p, { x: a.x + sx * t, z: a.z + sz * t });
+}
+const polygonGap = (p, poly) => Math.min(...poly.map((a, i) => edgeGap(p, a, poly[(i + 1) % poly.length])));
+// The Pitborn stands on the lion statue's plinth, whose collision stops a bullet 1 to 4 m short of it. The statue is named in data
+// (`chainedTargets.coverBlocker`, a blocker of the Westminster layout), not guessed from the Pitborn's spot. A bullet whose stop point is
+// on that polygon's edge (within coverEdgeMetres) still counts when the line it was fired along passes within hitRadiusMetres of the
+// Pitborn. A bullet stopped by any other wall, crate or enemy does not.
+const statueOf = (world) => {
+  const i = world.layout?.blockers?.findIndex((b) => b.name === T.coverBlocker) ?? -1;
+  return i < 0 ? null : (world.geometry.blockers[i] ?? null);
+};
+const onStatue = (world, p) => {
+  const statue = statueOf(world);
+  return !!statue && polygonGap(p, statue) <= T.coverEdgeMetres;
+};
+// Sight from a to the Pitborn's spot, where the only thing in the way (if anything) is the statue: walk the line to the first blocked
+// point and ask whether that point is the statue's edge. Any other wall on the way keeps the sight blocked.
+export function sightPastStatue(world, at, a) {
+  const geometry = world.geometry;
+  if (!geometry.lineClear(a, a)) return false;
+  const n = T.sightSteps,
+    point = (k) => ({ x: a.x + ((at.x - a.x) * k) / n, z: a.z + ((at.z - a.z) * k) / n });
+  let k = 1;
+  while (k <= n && geometry.lineClear(a, point(k))) k++;
+  return k > n || onStatue(world, point(k - 1));
+}
+function behindCover(r, e, at, world) {
+  if (!onStatue(world, r.end)) return false;
+  const dir = r.direction ?? e.direction ?? { x: r.end.x - r.origin.x, z: r.end.z - r.origin.z },
+    len = Math.hypot(dir.x, dir.z),
+    dx = at.x - r.origin.x,
+    dz = at.z - r.origin.z,
+    along = len ? (dx * dir.x + dz * dir.z) / len : 0;
+  return along > 0 && Math.abs(dx * dir.z - dz * dir.x) / len <= B.hitRadiusMetres;
+}
 function inCone(e, at) {
   const dx = at.x - e.origin.x,
     dz = at.z - e.origin.z,
@@ -71,8 +111,19 @@ function struck(g, at) {
       ground = (q) => (flip ? { x: q.x, z: -q.z } : q);
     if (!(flip || T.rays.includes(e.type)) || !e.origin || gap(ground(e.origin), p.pos) > B.hitOriginMetres) return false;
     // A shotgun event's own origin/end is the unclipped full-range line; only its wall-clipped pellets say where the shot went.
-    return (e.pellets?.length ? e.pellets : [e]).some((r) => r.origin && r.end && nearRay({ origin: ground(r.origin), end: ground(r.end) }, at));
+    // Cover applies to a single bullet (pistol, rifle); a clipped shotgun pellet stays stopped by whatever stopped it.
+    const bullet = !e.pellets?.length && !flip;
+    return (e.pellets?.length ? e.pellets : [e]).some(
+      (r) => r.origin && r.end && (nearRay({ origin: ground(r.origin), end: ground(r.end) }, at) || (bullet && behindCover(r, e, at, g.world))),
+    );
   });
+}
+// The shackled Pitborn as an aim-assist target: auto-aim turns the shot toward it (the first hit then snaps the chains). It is a stand-in,
+// never an enemy: no damage, not in g.enemies. Only while it is still chained and the run is in its area.
+export function chainedPitbornTarget(g) {
+  const w = g.world;
+  if (!w?.geometry?.ground || w.areaId !== D.areaId || !chainBreakOn() || (g.chainBreak?.state ?? "chained") !== "chained") return null;
+  return { id: T.aimTargetId, pos: w.geometry.ground(D.at), hp: 1, radius: B.hitRadiusMetres, hostile: true, visible: true, areaId: D.areaId };
 }
 // `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).
 export function stepChainBreak(g, spawn, open) {
