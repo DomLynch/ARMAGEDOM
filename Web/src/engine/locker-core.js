@@ -37,7 +37,8 @@ export function lockerInventory(g) {
     },
   };
 }
-export function lockerStored(g, id) {
+// The physical locker family an item id belongs to (every pistol variant is the pistol, both flamethrowers the flamethrower).
+function physicalOf(g, id) {
   let physical = id;
   const profiles = g.world?.bossEquipmentData ?? {},
     profile = Object.values(profiles).find((p) => p.itemId === id);
@@ -49,8 +50,14 @@ export function lockerStored(g, id) {
   )
     physical = LOCKER_WEAPON_IDS[0];
   if (profile?.family === "flamethrowers") physical = LOCKER_WEAPON_IDS[2];
-  return (g.locker?.weapons ?? []).includes(physical);
+  return physical;
 }
+// In the safehouse Storage: the saved locker list only.
+export const lockerHolds = (g, id) => (g.locker?.weapons ?? []).includes(physicalOf(g, id));
+// Not usable right now: in the Storage, or left in the player's body bag (engine/corpse-run.js, session-only, never in the save).
+// Every equip, fire and reload command and every weapon tile already asks this, so a withheld weapon cannot be used anywhere.
+export const lockerStored = (g, id) =>
+  lockerHolds(g, id) || (!!g.corpseBag?.gearId && physicalOf(g, g.corpseBag.gearId) === physicalOf(g, id));
 function withAmmo(g, ammo) {
   const next = { ...g };
   if (g.pistol) next.pistol = { ...g.pistol, reserve: ammo["pistol-reserve"] };

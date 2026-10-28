@@ -261,6 +261,13 @@ export function createRunViews(s) {
       weaponTiles.update();
     }
   }
+  // After Retry: a weapon left in the body bag (engine/corpse-run.js) may still be the equipped one in the fresh run. It cannot fire
+  // while withheld, so put the fallback melee in hand through the same select path as a tile tap.
+  async function equipFallbackMelee() {
+    if (!s.game?.corpseBag?.gearId) return;
+    await selectWeapon({ control: `melee-variant-${GAME_DATA.corpseRun.gear.fallbackMelee}` });
+    weaponTiles.update();
+  }
   let vestBag = null;
   function updateVestEquipment() {
     const node = document.getElementById("vest-state"),
@@ -448,6 +455,7 @@ export function createRunViews(s) {
     },
     interactNearby,
     switchWeapon,
+    equipFallbackMelee,
     interactSafehouse: safehouseView.interact,
     interactFlame: flameView.interact,
     interactExpedition: expeditionView.interact,

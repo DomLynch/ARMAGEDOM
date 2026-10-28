@@ -8,7 +8,7 @@ export function validateCorpseRun(d) {
     COLOURS = ["bagColour", "trimColour", "beaconColour"],
     SHARES = ["beaconOpacity", "trimShare", "ringOpacity"],
     SIZES = ["ringWidth", "bagWidth","bagHeight", "bagLength", "beaconRadius", "beaconHeight", "groundLift", "pulseSeconds"];
-  closed(d, ["schema_version", "enabled", "drop", "retrieve", "bag", "respawn", "convergence", "view"]);
+  closed(d, ["schema_version", "enabled", "drop", "retrieve", "bag", "gear", "respawn", "convergence", "view"]);
   if (typeof d.enabled !== "boolean") fail(FILE, "enabled must be a boolean");
   closed(d.drop, ["cashShare", "minCash"]);
   if (!(d.drop.cashShare >= 0 && d.drop.cashShare <= 1)) fail(FILE, "drop.cashShare must be 0 to 1");
@@ -18,6 +18,11 @@ export function validateCorpseRun(d) {
   closed(d.bag, ["scavengerSeconds", "mergeOnSecondDeath", "noticeSeconds", "stealableBy"]);
   // The hook for later (other players stealing a bag): only "none" exists today and nothing reads another value.
   if (d.bag.stealableBy !== "none") fail(FILE, "bag.stealableBy must be none (stealing is not built)");
+  closed(d.gear, ["enabled", "neverDrop", "fallbackMelee", "onScavenge"]);
+  if (typeof d.gear.enabled !== "boolean") fail(FILE, "gear.enabled must be a boolean");
+  if (!Array.isArray(d.gear.neverDrop) || d.gear.neverDrop.some((i) => typeof i !== "string" || !i)) fail(FILE, "gear.neverDrop must list item ids");
+  if (typeof d.gear.fallbackMelee !== "string" || !d.gear.fallbackMelee) fail(FILE, "gear.fallbackMelee must be an item id");
+  if (!["release", "keep"].includes(d.gear.onScavenge)) fail(FILE, "gear.onScavenge must be release or keep");
   closed(d.respawn, ["enabled", "safehouseAreaId", "homeAreas"]);
   if (typeof d.respawn.enabled !== "boolean") fail(FILE, "respawn.enabled must be a boolean");
   if (typeof d.respawn.safehouseAreaId !== "string" || !d.respawn.safehouseAreaId) fail(FILE, "respawn.safehouseAreaId must be an area id");

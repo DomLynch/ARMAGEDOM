@@ -604,6 +604,9 @@ export function createBrowserSession(options = {}) {
     } finally {
       delete owner.corpseFell;
       traveling = false;
+      // The knife handler refuses while traveling, so the fallback melee for a weapon left in the body bag is asked only now.
+      if (loaded && !disposed && !contextLost && game !== owner)
+        resources.equipFallbackMelee().catch((error) => console.error("ARMAGEDOM_RETRY_FALLBACK_MELEE_FAILED", error));
       if (loaded && !disposed && !contextLost) {
         requestAnimationFrame(() => areas.start());
         if (!paused) renderer.setAnimationLoop(loop.frame);

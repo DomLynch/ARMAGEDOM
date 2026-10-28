@@ -2,7 +2,7 @@ import { closedData } from "./progression-state.js";
 import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-import { dropCorpseBag } from "./corpse-run.js";
+import { dropCorpseBag, gearOf } from "./corpse-run.js";
 export const MARKED_SAVE_KEY = "armagedom:marked-run:v18";
 const same = (a, b) =>
   a.version === b.version &&
@@ -153,10 +153,11 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
         // Retry swaps in a fresh run whose clock starts again: the bag outlives the dead run with its remaining scavenger time.
         if (command.type === "retry" && g.corpseBag)
           current.corpseBag = { ...g.corpseBag, expiresAt: current.time + g.corpseBag.expiresAt - g.time };
-        // The cash a DEATH took out of the record goes into a session-only body bag: moved, never copied. Retry while alive drops no bag
-        // (its cash is zeroed as it always was), so Retry is never a way to park cash. Where the player fell was read before any travel.
+        // The cash a DEATH took out of the record, and the weapon in hand, go into a session-only body bag: cash moved, never copied.
+        // Retry while alive drops no bag (its cash is zeroed as it always was), so Retry is never a way to park cash or a weapon.
+        // Where the player fell was read before any travel.
         if (g.player.hp <= 0 || committed.player.hp <= 0)
-          dropCorpseBag(current, before.carried - current.marked.carried, g.corpseFell ?? fell);
+          dropCorpseBag(current, before.carried - current.marked.carried, g.corpseFell ?? fell, gearOf(g));
         if (action || command.type === "retry") {
           current.player.hp = committed.player.hp;
           current.pistol = committed.pistol;
