@@ -12,13 +12,13 @@ export function placeholders(text) {
 }
 
 export function validateSessionText(d) {
-  const groups = ["browser", "run", "expedition", "commander", "mode", "account"];
+  const groups = ["browser", "run", "expedition", "areaObjective", "commander", "mode", "account"];
   closed(d, ["schema_version", ...groups]);
   for (const group of groups) {
     const rows = d[group];
     if (!rows || typeof rows !== "object" || Array.isArray(rows) || !Object.keys(rows).length) fail("sessionText", `${group} must be a non-empty object`);
     for (const [key, text] of Object.entries(rows)) {
-      if (!/^[a-z][A-Za-z]*$/.test(key)) fail("sessionText", `${group}.${key} is not a plain key`);
+      if (!/^[a-z][A-Za-z0-9-]*$/.test(key)) fail("sessionText", `${group}.${key} is not a plain key`);
       if (typeof text !== "string" || !text) fail("sessionText", `${group}.${key} must be a non-empty string`);
       placeholders(text);
     }
