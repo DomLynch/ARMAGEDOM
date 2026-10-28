@@ -3,35 +3,10 @@
 // residents per area cost about what three did. AI, movement and combat are untouched: this only decides how often the picture is
 // refreshed. When an actor comes back into view (or is due its reduced-rate update) it is updated at once with the time it missed, so
 // it does not pop. Numbers live in data/offscreenActors.json.
-import { closed } from "./content-schema.js";
-import { count, fail, number } from "./game-data-checks.js";
-import { createActorLod, validateActorLod } from "./actor-lod.js";
+import { createActorLod } from "./actor-lod.js";
+import { QUALITY } from "./quality-tier.js";
 
-export function validateOffscreenActors(d) {
-  closed(d, [
-    "schema_version",
-    "enabled",
-    "marginMetres",
-    "farDistance",
-    "everyNthFrame",
-    "fullRateRadius",
-    "shadowMaxDistance",
-    "reducedRate",
-    "lod",
-  ]);
-  closed(d.reducedRate, ["distance", "everyNthFrame"]);
-  number("offscreenActors", "shadowMaxDistance", d.shadowMaxDistance, 1);
-  number("offscreenActors", "reducedRate.distance", d.reducedRate.distance, 1);
-  count("offscreenActors", "reducedRate.everyNthFrame", d.reducedRate.everyNthFrame, 1, 30);
-  validateActorLod(d.lod);
-  if (d.schema_version !== 1) fail("offscreenActors", "schema_version must be 1");
-  if (typeof d.enabled !== "boolean") fail("offscreenActors", "enabled must be true or false");
-  number("offscreenActors", "marginMetres", d.marginMetres, 0);
-  number("offscreenActors", "farDistance", d.farDistance, 1);
-  number("offscreenActors", "fullRateRadius", d.fullRateRadius, 0);
-  count("offscreenActors", "everyNthFrame", d.everyNthFrame, 1, 30);
-  if (d.fullRateRadius > d.farDistance) fail("offscreenActors", "fullRateRadius must not exceed farDistance");
-}
+export { validateOffscreenActors } from "./game-data-offscreen.js";
 
 // One throttle per actors manager. `begin` once per update; `skip` per living enemy; `takePending` when it is updated.
 export function createOffscreenThrottle(THREE, rules) {
@@ -59,7 +34,8 @@ export function createOffscreenThrottle(THREE, rules) {
       if (!ready) return false;
       const dx = entity.pos.x - px,
         dz = entity.pos.z - pz,
-        distance = Math.hypot(dx, dz);
+        tier = QUALITY.row(),
+        distance = Math.hypot(dx, dz) / tier.distanceScale; // a weak device sees every actor farther away (data/qualityTier.json)
       lod.update(view, distance);
       if (!rules.enabled) return false;
       let onScreen = distance <= rules.fullRateRadius;
@@ -72,7 +48,7 @@ export function createOffscreenThrottle(THREE, rules) {
       // (The game has no shadow-map pass; the shadow is this one blob draw, which a far actor also skips.)
       const show = (visible) => {
         view.root.visible = visible;
-        if (view.shadow) view.shadow.visible = visible && distance <= rules.shadowMaxDistance;
+        if (view.shadow) view.shadow.visible = visible && distance <= rules.shadowMaxDistance * tier.shadowScale;
       };
       if (onScreen) {
         show(true);

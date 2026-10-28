@@ -55,7 +55,9 @@ import world from "../data/world.json" with { type: "json" };
 import trapCrates from "../data/trapCrates.json" with { type: "json" };
 import { validateTrapCrates } from "./game-data-trap-crates.js";
 import offscreenActors from "../data/offscreenActors.json" with { type: "json" };
-import { validateOffscreenActors } from "./offscreen-actors.js";
+import { validateOffscreenActors } from "./game-data-offscreen.js";
+import qualityTier from "../data/qualityTier.json" with { type: "json" };
+import { validateQualityTier } from "./game-data-quality.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -1126,6 +1128,7 @@ const sources = () => ({
   worldEvents: [worldEvents, validateWorldEvents],
   trapCrates: [trapCrates, validateTrapCrates],
   offscreenActors: [offscreenActors, validateOffscreenActors],
+  qualityTier: [qualityTier, validateQualityTier],
 });
 
 /**

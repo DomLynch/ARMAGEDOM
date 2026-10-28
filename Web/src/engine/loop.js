@@ -1,6 +1,7 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { bossExitGate } from "./area-bosses.js";
 import { GAME_DATA } from "./game-data.js";
+import { QUALITY } from "./quality-tier.js";
 import { createDeathPresentation } from "./death-presentation.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
@@ -103,6 +104,7 @@ export function createBrowserLoop(s) {
   function frame(ms, providedElapsed) {
     const realElapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0);
     last = ms;
+    if (providedElapsed === undefined) QUALITY.frame(ms); // real frames only: a QA step supplies its own elapsed time
     if (!s.world || !s.game || s.contextLost) return;
     // Real reset hooks: travel, player death, a new game object or area id (area change / run reset).
     if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();

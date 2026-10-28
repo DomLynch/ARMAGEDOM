@@ -2,6 +2,7 @@
 // Appearance only: a crowd body changes how a plain resident human looks, never its rig, stats, rules or save record. The choice is a
 // pure function of the area id and the resident's placement key, so a resident has the same body in every session and every rebuild.
 import { GAME_DATA } from "./game-data.js";
+import { QUALITY } from "./quality-tier.js";
 import { hash as faceHash } from "../face-allocator.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
 
@@ -34,7 +35,7 @@ function areaSet(areaId) {
         .filter((row) => row.ref !== POOL.defaultRef)
         .map((row) => ({ ref: row.ref, key: -Math.log(unit(`${POOL.seed}|${areaId}|${row.ref}`)) / row.weight }))
         .sort((a, b) => a.key - b.key || (a.ref < b.ref ? -1 : 1))
-        .slice(0, POOL.maxBodiesPerArea)
+        .slice(0, QUALITY.cap(POOL.maxBodiesPerArea, "crowdBodies"))
         .map((row) => row.ref),
     );
     areaSets.set(
