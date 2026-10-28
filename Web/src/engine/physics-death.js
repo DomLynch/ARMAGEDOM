@@ -8,10 +8,13 @@ let impl = null,
   loading = null,
   broken = false;
 let flag = null; // read once: the off path allocates nothing per frame
+// Default comes from the row (defaultOn); ?physics=0 (offValue) is the OFF switch, ?physics=1 (flagValue) forces ON.
+const fromSearch = (search) => {
+  const v = new URLSearchParams(search).get(CFG.flagParam);
+  return v === CFG.offValue ? false : v === CFG.flagValue ? true : CFG.defaultOn;
+};
 export const physicsDeathEnabled = (search) =>
-  search === undefined
-    ? (flag ??= new URLSearchParams(globalThis.location?.search ?? "").get(CFG.flagParam) === CFG.flagValue)
-    : new URLSearchParams(search).get(CFG.flagParam) === CFG.flagValue;
+  search === undefined ? (flag ??= fromSearch(globalThis.location?.search ?? "")) : fromSearch(search);
 const load = () =>
   (loading ??= import("./physics-death-impl.js")
     .then(async (m) => {
@@ -26,6 +29,13 @@ export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   const go = () => void load();
   if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.preloadIdleMs });
   else setTimeout(go, CFG.preloadIdleMs);
+}
+// Call when an actor view is removed (despawn, travel): frees its ragdoll body and active entry at once instead of leaking it.
+export function releasePhysicsDeath(view) {
+  const s = view.physicsDeath;
+  if (!s) return;
+  view.physicsDeath = undefined;
+  if (!s.failed) impl?.releaseDeath(s);
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {

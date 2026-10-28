@@ -25,6 +25,8 @@ export function validatePhysicsDeath(d) {
     "schema_version",
     "flagParam",
     "flagValue",
+    "offValue",
+    "defaultOn",
     "rigRef",
     "seed",
     "stepHz",
@@ -34,6 +36,7 @@ export function validatePhysicsDeath(d) {
     "preloadIdleMs",
     "poolSize",
     "rewarmMs",
+    "maxActive",
     "killImpulse",
     "parts",
   ]);
@@ -45,8 +48,12 @@ export function validatePhysicsDeath(d) {
     "preloadIdleMs",
     "poolSize",
     "rewarmMs",
+    "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
+  if (typeof d.defaultOn !== "boolean") fail("physicsDeath", "defaultOn must be true or false");
+  if (typeof d.offValue !== "string" || d.offValue === d.flagValue)
+    fail("physicsDeath", "offValue must be a string that differs from flagValue");
   if (d.killImpulse?.length !== 3 || !d.killImpulse.every(Number.isFinite))
     fail("physicsDeath", "killImpulse must be three numbers");
   if (Object.keys(d.parts).length !== 20) fail("physicsDeath", "parts must name the 20 ragdoll parts");

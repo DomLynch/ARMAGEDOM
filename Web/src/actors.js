@@ -4,7 +4,7 @@ import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
-import { physicsDeathStep } from "./engine/physics-death.js";
+import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
 import {
   traceGrenadeSurface,
   traceRailgunSurface,
@@ -613,6 +613,7 @@ export function createActors(
   function remove(id, store = views) {
     const view = store.get(id);
     if (!view) return;
+    releasePhysicsDeath(view);
     view.gore?.dispose();
     goreOwners.delete(view.gore);
     if (view.drone) {
