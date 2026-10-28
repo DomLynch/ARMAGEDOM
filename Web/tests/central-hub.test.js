@@ -20,24 +20,21 @@ const registry=createAreaRegistry({manifest}),data=validateAreaMetadata(raw,regi
 const seed=fs.readFileSync(new URL('./fixtures/hub195-source194-v16.json',import.meta.url),'utf8');
 const make=(records=new Map([[RAILGUN_SAVE_KEY,seed]]))=>{const f=fixture({areaId:'central-hub',records,extraWorld:{bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData}});f.restore();assert(!f.g.runSaveInvalid);return f;};
 
-test('hub gates reject unvisited, absent authoritative boss reward, missing boss profiles and invalid save before allowing exits',()=>{
+test('hub exits east, south and area7 are open whatever the visit, boss reward or save state',()=>{
  const g={world:{areaId:'central-hub',registry,bossData:data.bossData,bossEquipmentData:data.bossEquipmentData},expedition:{visitedIds:[]},bossEquipment:{}};
  assert.equal(bossExitGate(g,'westminster'),null);
- for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,false,id);
- g.expedition.visitedIds=['south','east','area7'];assert.equal(bossExitGate(g,'east').allowed,false);
- g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'east').allowed,false);
- g.bossEquipment.emberProjector={status:'owned'};g.world.bossEquipmentData={};assert.equal(bossExitGate(g,'east').allowed,false);
- g.world.bossEquipmentData=data.bossEquipmentData;g.runSaveInvalid=true;for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,false);
- g.runSaveInvalid=false;for(const status of ['pending','owned','legacy-dead']){g.bossEquipment.emberProjector={status};for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,true,id);}
- // Existing receipt aliases are validated by the sole Core codec, not invented here.
- g.expedition.visitedIds=[];{const message=bossExitGate(g,'east').message;assert.ok(message.length>0&&message.length<=32);assert.match(message,/east/i,'the locked exit still names the area to visit');}
+ // 28 Oct: the three hub exits are open; no visit, boss reward or save state gates them.
+ for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.bossEquipment.emberProjector={status:'unseen'};for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.world.bossEquipmentData={};g.runSaveInvalid=true;for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.world.bossEquipmentData=data.bossEquipmentData;g.runSaveInvalid=false;
  for(const id of ['south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
  g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'central-hub').allowed,false,'the Westminster gate stays closed until the Matron is down');
 });
 
-test('registry rejects forged visit predicates and manifest omission of a real gate',()=>{
+test('registry rejects forged visit predicates and a manifest gate the areas data does not have',()=>{
  const areas=structuredClone(areaDefinitions);areas.at(-1).exits[1].requiresVisited='yes';assert.throws(()=>createAreaRegistry({areas}),/visit requirement/);
- const changed=structuredClone(manifest);delete changed.links.find(e=>e.from==='central-hub'&&e.to==='south').requiresVisited;assert.throws(()=>createAreaRegistry({manifest:changed}),/adjacency/);
+ const changed=structuredClone(manifest);changed.links.find(e=>e.from==='central-hub'&&e.to==='south').requiresVisited=true;assert.throws(()=>createAreaRegistry({manifest:changed}),/adjacency/);
 });
 
 test('all actual new mouth paths fit full player capsules, target arrivals are legal and never land in their return triggers',()=>{

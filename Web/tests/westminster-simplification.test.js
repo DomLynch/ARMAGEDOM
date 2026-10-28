@@ -70,8 +70,8 @@ test('genuine prior18 and17 cold restores retain resources/visits and start at l
   for(const field of ['areaId','position','pos','pin','arrival'])assert(!Object.hasOwn(saved,field));
  }
 });
-test('legacy early hub-only visit saves cold-start safely without unlocking any remaining hub gate or resetting progress',()=>{
+test('legacy early hub-only visit saves cold-start safely with the hub exits open and without resetting progress',()=>{
  const old=make();old.restore();old.world.areaId='central-hub';old.g.player.pos={x:-999,z:-999};assert(old.p.persistRun(old.g));const raw=old.records.get(MARKED_SAVE_KEY),saved=JSON.parse(raw);assert.deepEqual(saved.expedition.visitedIds,['westminster','central-hub']);
  const restored=make(old.records),spawn={...restored.g.player.pos};restored.restore();assert(!restored.g.runSaveInvalid);assert.equal(restored.world.areaId,'westminster');assert.deepEqual(restored.g.player.pos,spawn);assert.deepEqual(JSON.parse(old.records.get(MARKED_SAVE_KEY)),saved);
- restored.world.areaId='central-hub';for(const to of ['east','south','area7'])assert.equal(bossExitGate(restored.g,to).allowed,false,to);
+ restored.world.areaId='central-hub';for(const to of ['east','south','area7'])assert.equal(bossExitGate(restored.g,to),null,to);
 });

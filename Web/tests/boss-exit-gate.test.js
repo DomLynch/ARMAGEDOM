@@ -31,7 +31,7 @@ test('only declared outward exit is gated; return and alternate routes retain th
  const f=make();f.restore();assert.equal(bossExitGate(f.g,'central-hub').allowed,false);
  assert.match(bossExitGate(f.g).message,/matron/i);assert.ok(bossExitGate(f.g).message.length<=32);
  assert.equal(bossExitGate(f.g,'south'),null);
- for(const area of registry.ids){const links=registry.links(area).filter(link=>link.requiresDefeat);assert.equal(links.length,area==='westminster'?3:area==='central-hub'?1:0);}
+ for(const area of registry.ids){const links=registry.links(area).filter(link=>link.requiresDefeat);assert.equal(links.length,area==='westminster'?3:0);}
  assert.equal(registry.nextExit('south','east').to,'central-hub');
  const malformed=structuredClone(areaDefinitions);malformed[0].exits[0].requiresDefeat=()=>true;
  assert.throws(()=>createAreaRegistry({areas:malformed}),/Area registry/);

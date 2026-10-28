@@ -41,7 +41,7 @@ test("every area is reachable from Westminster once the Matron is down", () => {
   for (const l of registry.links("westminster")) assert.equal(l.requiresDefeat, "boss-witch-v1", `westminster>${l.to}`);
   assert.deepEqual(
     links.filter((l) => l.from !== "westminster" && l.requiresDefeat).map((l) => `${l.from}>${l.to}`),
-    ["central-hub>east"],
+    [],
   );
 });
 
