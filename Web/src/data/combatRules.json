@@ -20,7 +20,18 @@
     "grenadeAimHeight": 0.08,
     "rocketAimHeight": 0.05,
     "grenadeThrowRanges": [3, 5, 8],
-    "defaultThrowRange": 5
+    "defaultThrowRange": 5,
+    "grenadeAim": {
+      "leadScale": 1,
+      "maxLead": 4,
+      "minSpeed": 0.2,
+      "maxSpeed": 12,
+      "velocityBlend": 0.6,
+      "maxSampleGap": 0.25,
+      "backoffSteps": 4,
+      "cursorSnapRadius": 2.5,
+      "rangeMargin": 0.001
+    }
   },
   "spawning": {
     "distances": [4, 6, 8],

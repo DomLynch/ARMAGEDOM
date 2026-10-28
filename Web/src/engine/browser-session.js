@@ -76,6 +76,7 @@ export function createBrowserSession(options = {}) {
     roach: true,
     drone: true,
     animalVariants: true,
+    starVariants: true,
     mobileControls: true,
     areaResidents: true,
     openingGroup: false,

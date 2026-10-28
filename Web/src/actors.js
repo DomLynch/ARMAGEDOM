@@ -80,6 +80,7 @@ import { createFinisherPresentationSteps, finisherVictimPoseAge, validateHeadPar
 import { createVestView } from "./vest-view.js";
 import * as THREE from "three";
 import { GAME_DATA } from "./engine/game-data.js";
+import { createHubNpcs } from "./engine/hub-npcs.js";
 import { syncGoldenSkins } from "./engine/golden-weapons.js";
 // The damage flash, blob shadow, marked tint, drone clocks, contact bands and hit, flame and fire/reload timings are appearance.json `actorView`.
 const LOOK = GAME_DATA.appearance.actorView;
@@ -99,6 +100,7 @@ import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
 import { allocateFaceRecipes } from "./face-allocator.js";
+import { applyStarTell } from "./engine/star-variants-view.js";
 import { createFinisherPrepPump, captureRig, applyRig } from "./engine/finisher-prep-pump.js";
 const residentFaces = allocateFaceRecipes(
   "london-residents",
@@ -289,6 +291,7 @@ export function createActors(
     } catch (error) {
       gauntPreparationError = String(error.message ?? error);
     }
+  const hubNpcs = createHubNpcs({ library, visualScale });
   let reaperView = null;
   let earlyHunterLoad = false;
   let feedbackMode = "high",
@@ -433,6 +436,7 @@ export function createActors(
           if (materialDim !== undefined) own.color?.multiplyScalar(materialDim);
           if (palette) applyHollowPalette(own, palette, garments);
           if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(...LOOK.markedTint));
+          if (entity.star) applyStarTell(own, entity.star);
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
@@ -1292,6 +1296,7 @@ export function createActors(
       pistolRecoil = 0,
       { presentationDt = dt, restoreCorpses = false, contactOnly = false, projectileContactIds, combatVisibleIds } = {},
     ) {
+      if (!contactOnly) hubNpcs.sync(game.world, presentationDt);
       if (deferredViews.size && dt > 0 && !contactOnly) {
         finisherPump.pump(
           [...deferredViews]

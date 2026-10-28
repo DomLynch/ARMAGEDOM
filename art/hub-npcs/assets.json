@@ -1,0 +1,845 @@
+{
+ "about": "Per-asset provenance for the 3 ARMAGEDOM hub NPC bodies (2026-10-28). MPFB2 2.0.18 in Blender 5.2 (tool only; none of its code ships). Sources: makehuman_system_assets_cc0 and skins01_cc0 only. Unlike the 30 crowd bodies, these assets are read from the rows actually built (no later rebuild).",
+ "licence_of_deliverables": "CC0 1.0 (source assets CC0; rig, weights, packing are OpenTrident's own)",
+ "packs": {
+  "makehuman_system_assets_cc0": {
+   "assets": 94,
+   "licences": {
+    "CC0": 94
+   }
+  },
+  "skins01_cc0": {
+   "assets": 23,
+   "licences": {
+    "CC0": 23
+   }
+  }
+ },
+ "caveats": [
+  "The GLB bakes clothes, skin and eyes into shared texture atlases; the recorded asset list is from the rows that were built. Clothes textures were recoloured (palette rows) but are the pack textures.",
+  "Installed-file sha256 come from /root/mpfb_asset_hashes.json (hashed 2026-10-28); pack zip sums were not kept."
+ ],
+ "bodies": [
+  {
+   "id": "mh-npc-marsh",
+   "label": "Marsh (quartermaster)",
+   "reduced_glb": {
+    "file": "mh-npc-marsh.glb",
+    "sha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb",
+    "bytes": 520580
+   },
+   "licence": "CC0",
+   "record": "rows/npc-rows.json + npc-look-rows.json + npc-palette-rows.json (hand-authored; these are exactly what was built)",
+   "assets_used": [
+    {
+     "pack_asset": "middleage_caucasian_male",
+     "type": "skins",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "skin",
+     "file": "middleage_caucasian_male.mhmat",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "skins/middleage_caucasian_male/middleage_caucasian_male.mhmat",
+       "sha256": "113326b7670cb273610314b91e2597b228711adf5f0666660b16fef269bfbe72",
+       "bytes": 1469
+      },
+      {
+       "path": "skins/middleage_caucasian_male/middleage_lightskinned_male_diffuse.png",
+       "sha256": "3f94f3f6a5cab92dedf5cce392a87332312fc435f1cb44c6e7b897daef9a5fbb",
+       "bytes": 3668589
+      }
+     ]
+    },
+    {
+     "pack_asset": "short04",
+     "type": "hair",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "hair",
+     "file": "short04.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "hair/short04/short04.mhclo",
+       "sha256": "d60640aa4c4ffce1aa269647ba436b6ee0bb21bb948f927b84e27a48d2107157",
+       "bytes": 59195
+      },
+      {
+       "path": "hair/short04/short04.mhmat",
+       "sha256": "7a3ac74db8478aa0afdb8a596c6fe3997d1a8a09d12211d70e8f1e9f0b7e0e97",
+       "bytes": 1316
+      },
+      {
+       "path": "hair/short04/short04.obj",
+       "sha256": "676964a133ee35ffcea1195382bf75542da7a298931e4001bc7b0d7b707225de",
+       "bytes": 55152
+      },
+      {
+       "path": "hair/short04/short04_diffuse.png",
+       "sha256": "0bef7fc0e403db5a40fabb2111ebfa6f7e8158e204c6e56b8da98e9ef527846e",
+       "bytes": 2308132
+      }
+     ]
+    },
+    {
+     "pack_asset": "low-poly",
+     "type": "eyes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyes",
+     "file": "low-poly.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyes/low-poly/low-poly.mhclo",
+       "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8",
+       "bytes": 1344
+      },
+      {
+       "path": "eyes/low-poly/low-poly.obj",
+       "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de",
+       "bytes": 6604
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyebrow003",
+     "type": "eyebrows",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyebrows",
+     "file": "eyebrow003.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyebrows/eyebrow003/eyebrow003.mhclo",
+       "sha256": "43028df55838152be8568eaa9a736746a2581ca327129a443d8d214554448632",
+       "bytes": 9148
+      },
+      {
+       "path": "eyebrows/eyebrow003/eyebrow003.mhmat",
+       "sha256": "91d53fb4fad2927ae412b38aaa8785bb26c6e886be049d5889a276ad3a875ea2",
+       "bytes": 1098
+      },
+      {
+       "path": "eyebrows/eyebrow003/eyebrow003.obj",
+       "sha256": "dda3828f484f877f011fb8c52b75be0d7870561111739ff4cc5c83fb5ac6acd7",
+       "bytes": 8227
+      },
+      {
+       "path": "eyebrows/eyebrow003/eyebrow003.png",
+       "sha256": "e98837d77247f2c11a8259f8b265243b9053ba55683bd70223c668110e7dfb62",
+       "bytes": 92174
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyelashes01",
+     "type": "eyelashes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyelashes",
+     "file": "eyelashes01.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyelashes/eyelashes01/eyelashes01.mhclo",
+       "sha256": "5a86b29c15649273d723084954b7fa7bf199112571d4f58539b46734d397ee6b",
+       "bytes": 2265
+      },
+      {
+       "path": "eyelashes/eyelashes01/eyelashes01.mhmat",
+       "sha256": "8029c99d94f3d87a1e81825fad6b90eec773ae6955a5b2592222ef237377e190",
+       "bytes": 1074
+      },
+      {
+       "path": "eyelashes/eyelashes01/eyelashes01.obj",
+       "sha256": "f78f5b93fea1946fcae103d32c4f082dd9612a1ec2e7e2f90b03ebe59b0baf20",
+       "bytes": 18832
+      },
+      {
+       "path": "eyelashes/eyelashes01/eyelashes01.png",
+       "sha256": "4b69c0fff2648874460e9caf80c31413c444218a5c50afebc425aeaa65484a35",
+       "bytes": 91600
+      }
+     ]
+    },
+    {
+     "pack_asset": "teeth_base",
+     "type": "teeth",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "teeth",
+     "file": "teeth_base.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "teeth/teeth_base/teeth.mhmat",
+       "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+       "bytes": 1086
+      },
+      {
+       "path": "teeth/teeth_base/teeth.png",
+       "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+       "bytes": 1799930
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.mhclo",
+       "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+       "bytes": 263220
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.obj",
+       "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+       "bytes": 313110
+      }
+     ]
+    },
+    {
+     "pack_asset": "male_casualsuit05",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "male_casualsuit05.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05.mhclo",
+       "sha256": "df41c9fba3da054e35b964706ad2f8d189e65cc00a45f4a34f65235946f647f0",
+       "bytes": 217422
+      },
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05.mhmat",
+       "sha256": "e29fdf895bfc03ebf49f1fcb784cd41cfd8cf95beba4a0a54bc95c084b9b9528",
+       "bytes": 1396
+      },
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05.obj",
+       "sha256": "6069dd8b828591c16f74678c235387954775b815b5b77640d24fb7c9541b85c2",
+       "bytes": 261223
+      },
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05_ao.png",
+       "sha256": "cf22b778ce3d2c92cf0c5e7eef2bcc2a0d9812e578d4c08a4bb428eb33eacc66",
+       "bytes": 1724222
+      },
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05_diffuse.png",
+       "sha256": "d4345efe9332c23e9302f5a3bca8c895004be841b5ebea593c96189870e3852a",
+       "bytes": 3345738
+      },
+      {
+       "path": "clothes/male_casualsuit05/male_casualsuit05_normal.png",
+       "sha256": "aec19a8fa1988aa178e7ead9f9c0b290fc441ed62ce47d5c4dd611a0037a796c",
+       "bytes": 9295328
+      }
+     ]
+    },
+    {
+     "pack_asset": "shoes02",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "shoes02.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/shoes02/shoes02.mhclo",
+       "sha256": "0d447fd6b7415d6b2603e91697336ee51ac2f00ef85878d6667e9acfb45a20fe",
+       "bytes": 110217
+      },
+      {
+       "path": "clothes/shoes02/shoes02.mhmat",
+       "sha256": "7f2cb19506784fbe22ba3f766f94bb13d1eee1712dd29ed10b926c5905bab924",
+       "bytes": 1184
+      },
+      {
+       "path": "clothes/shoes02/shoes02.mhw",
+       "sha256": "dba34894b93f102ea64d7ad21968894a9788c7a0770c066584a66a536a3e92b6",
+       "bytes": 309023
+      },
+      {
+       "path": "clothes/shoes02/shoes02.obj",
+       "sha256": "5726aabac42ff489998d0a769545dea013961bbb71b9c6024d75170181a98818",
+       "bytes": 125457
+      },
+      {
+       "path": "clothes/shoes02/shoes02_diffuse.png",
+       "sha256": "efef94ea34b0e0c2283095cb47a9e0389b55449c61a4f4972d0ad4d2bf06b4f0",
+       "bytes": 1282057
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mh-npc-okafor",
+   "label": "Dr. Okafor (field medic)",
+   "reduced_glb": {
+    "file": "mh-npc-okafor.glb",
+    "sha256": "0346a6df828bd62a15b07a080463bdbee34465361bda462268deff72d1cc6f9b",
+    "bytes": 497848
+   },
+   "licence": "CC0",
+   "record": "rows/npc-rows.json + npc-look-rows.json + npc-palette-rows.json (hand-authored; these are exactly what was built)",
+   "assets_used": [
+    {
+     "pack_asset": "middleage_african_female",
+     "type": "skins",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "skin",
+     "file": "middleage_african_female.mhmat",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "skins/middleage_african_female/middleage_african_female.mhmat",
+       "sha256": "8b7aabedb78afa46031efb6a223b079301990ce2ffe7ae7ba2b516d3363b7297",
+       "bytes": 1472
+      },
+      {
+       "path": "skins/middleage_african_female/middleage_darkskinned_female_diffuse.png",
+       "sha256": "c3c9ab972ad46fbda64cedfd1d0a626c2a8e739fd345c4c349102eaacc947699",
+       "bytes": 4197671
+      }
+     ]
+    },
+    {
+     "pack_asset": "ponytail01",
+     "type": "hair",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "hair",
+     "file": "ponytail01.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "hair/ponytail01/ponytail01.mhclo",
+       "sha256": "97fc50b12bcb3b1c7b33edddd8d427a2604ffb06fe79b31132bf47f82d7afbac",
+       "bytes": 252080
+      },
+      {
+       "path": "hair/ponytail01/ponytail01.mhmat",
+       "sha256": "b145f5a7c9606859ad523f5113482a1cf989cf0e26dccc2ea95c377cb1c2557f",
+       "bytes": 1305
+      },
+      {
+       "path": "hair/ponytail01/ponytail01.obj",
+       "sha256": "d9f5fe96fbedbc8006220d87aad0e4a33d15286eb6b21f5929661cdc490ebf5a",
+       "bytes": 264384
+      },
+      {
+       "path": "hair/ponytail01/ponytail01_diffuse.png",
+       "sha256": "dcb364300cac06ce8bef91b2f7c0970baf310898bbdd06b0c6b884ee9306eb97",
+       "bytes": 3910782
+      }
+     ]
+    },
+    {
+     "pack_asset": "low-poly",
+     "type": "eyes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyes",
+     "file": "low-poly.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyes/low-poly/low-poly.mhclo",
+       "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8",
+       "bytes": 1344
+      },
+      {
+       "path": "eyes/low-poly/low-poly.obj",
+       "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de",
+       "bytes": 6604
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyebrow007",
+     "type": "eyebrows",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyebrows",
+     "file": "eyebrow007.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyebrows/eyebrow007/eyebrow007.mhclo",
+       "sha256": "1c70518b0b4ed9cce46b5728e8b2ea1012466b54718f6ee82c03896546adb4ab",
+       "bytes": 9134
+      },
+      {
+       "path": "eyebrows/eyebrow007/eyebrow007.mhmat",
+       "sha256": "f025cb04f2fc8e7443ff8aaede885042ef36659e2ad8eba75a576d865174a34d",
+       "bytes": 1098
+      },
+      {
+       "path": "eyebrows/eyebrow007/eyebrow007.obj",
+       "sha256": "63326994bc56e0b0a29822d813daf96d48ba638e19523d9e21e9184e2f70e71f",
+       "bytes": 8227
+      },
+      {
+       "path": "eyebrows/eyebrow007/eyebrow007.png",
+       "sha256": "1827b24aaa1c928353027c5a86b8db59c1c22f06258b18faa2117d81f5ff9b05",
+       "bytes": 18685
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyelashes02",
+     "type": "eyelashes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyelashes",
+     "file": "eyelashes02.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyelashes/eyelashes02/eyelashes02.mhclo",
+       "sha256": "51b858de6005bf9476035a739a695726b2227b853daf60cbf0f6b5eb9f70628e",
+       "bytes": 6717
+      },
+      {
+       "path": "eyelashes/eyelashes02/eyelashes02.mhmat",
+       "sha256": "b4866317918a984e4a20a1ce67b56e7186da6dc5d5436fe0c36f1f058d7dcc6f",
+       "bytes": 1074
+      },
+      {
+       "path": "eyelashes/eyelashes02/eyelashes02.obj",
+       "sha256": "331595b4e19a179be1fe603edc58ba6d088ab7898007b7e8321428efcbaf2eba",
+       "bytes": 18832
+      },
+      {
+       "path": "eyelashes/eyelashes02/eyelashes02.png",
+       "sha256": "6375eb8934d86d49eb2a37589e179614fb557dd92a772ced11e269ad6d72d79d",
+       "bytes": 132278
+      }
+     ]
+    },
+    {
+     "pack_asset": "teeth_base",
+     "type": "teeth",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "teeth",
+     "file": "teeth_base.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "teeth/teeth_base/teeth.mhmat",
+       "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+       "bytes": 1086
+      },
+      {
+       "path": "teeth/teeth_base/teeth.png",
+       "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+       "bytes": 1799930
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.mhclo",
+       "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+       "bytes": 263220
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.obj",
+       "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+       "bytes": 313110
+      }
+     ]
+    },
+    {
+     "pack_asset": "female_elegantsuit01",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "female_elegantsuit01.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01.mhclo",
+       "sha256": "8ed657dbc49466e6a485993cfdcfd7b6ac30a0f44408dfd38de7a649477d8928",
+       "bytes": 151008
+      },
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01.mhmat",
+       "sha256": "a0b1708efbff3c4ad96f8e7d8cc27fb1652719549455ce94b89bcf6294cfbed0",
+       "bytes": 1408
+      },
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01.obj",
+       "sha256": "3b46cef6d63968954dc00c39ede649d76c05e5d36fe9f9c677349c88fd424de9",
+       "bytes": 174924
+      },
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01_ao.png",
+       "sha256": "0f89546c63ab16e2c1ba0556da7e07264b98b58e6200b043491f92f796b87673",
+       "bytes": 1350953
+      },
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01_diffuse.png",
+       "sha256": "ebe6f2afcbaadbe56d5cee6e00bab45e97ce482f0be0e34491d16ca5f98b38ac",
+       "bytes": 1996561
+      },
+      {
+       "path": "clothes/female_elegantsuit01/female_elegantsuit01_normal.png",
+       "sha256": "ae3650bce6678cd67d025ab70e68b22683176aeaabc06d8e5b2129af99c762e9",
+       "bytes": 1549042
+      }
+     ]
+    },
+    {
+     "pack_asset": "shoes05",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "shoes05.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/shoes05/shoes05.mhclo",
+       "sha256": "75fc467264b085d7a05ce0c9b5628bb364b246392c59524c556fa09f92b6cb16",
+       "bytes": 110217
+      },
+      {
+       "path": "clothes/shoes05/shoes05.mhmat",
+       "sha256": "e59a9cc4d4c9a56cf9025beb26ca549986c97065cdb675d4f59bd9c5a27dbe8d",
+       "bytes": 1184
+      },
+      {
+       "path": "clothes/shoes05/shoes05.mhw",
+       "sha256": "7963030c66988b4164003b3b02e4ef42a83069fa32fe09362e0c14ae2b730e25",
+       "bytes": 309023
+      },
+      {
+       "path": "clothes/shoes05/shoes05.obj",
+       "sha256": "5726aabac42ff489998d0a769545dea013961bbb71b9c6024d75170181a98818",
+       "bytes": 125457
+      },
+      {
+       "path": "clothes/shoes05/shoes05_diffuse.png",
+       "sha256": "7fe5ea2600f6578cdf017da3392ae13aedabea8e8cc1dd6302a8f57e8fb7e5af",
+       "bytes": 1291907
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mh-npc-reyes",
+   "label": "Reyes (radio operator)",
+   "reduced_glb": {
+    "file": "mh-npc-reyes.glb",
+    "sha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e",
+    "bytes": 466784
+   },
+   "licence": "CC0",
+   "record": "rows/npc-rows.json + npc-look-rows.json + npc-palette-rows.json (hand-authored; these are exactly what was built)",
+   "assets_used": [
+    {
+     "pack_asset": "young_caucasian_male2",
+     "type": "skins",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "skin",
+     "file": "young_caucasian_male2.mhmat",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "skins/young_caucasian_male2/young_caucasian_male2.mhmat",
+       "sha256": "60022513803f7b68f30c4f91235b827ace9d36757dc07bdac157d58b7cbc226d",
+       "bytes": 1464
+      },
+      {
+       "path": "skins/young_caucasian_male2/young_lightskinned_male_diffuse2.png",
+       "sha256": "03efe1f6b0ae52429649dcefc9dcaef6058032f874a251169cc3e2ed473c3874",
+       "bytes": 3595270
+      }
+     ]
+    },
+    {
+     "pack_asset": "short02",
+     "type": "hair",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "hair",
+     "file": "short02.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "hair/short02/short02.mhclo",
+       "sha256": "625736cdb73e6d094df6e5a2df18f371781f1d2cd37b0ae15795c5d7051c3ec2",
+       "bytes": 119240
+      },
+      {
+       "path": "hair/short02/short02.mhmat",
+       "sha256": "2ed04c8aad9c1a35d858ca72091525d32b1da3b61b5a031634dd528fd8530f6d",
+       "bytes": 1323
+      },
+      {
+       "path": "hair/short02/short02.obj",
+       "sha256": "48f979114adfa712165a69cc55c45a70831af1fb3cba8e2a89120f0c87407b64",
+       "bytes": 139742
+      },
+      {
+       "path": "hair/short02/short02_diffuse.png",
+       "sha256": "47fe33831a3929567c733356dd66243116e05df2ace1f884ddca0080b728229f",
+       "bytes": 3553543
+      },
+      {
+       "path": "hair/short02/short02_normal.png",
+       "sha256": "2cfac7619f8eec77dd90df979d912415058f4f0fc16940cba40a8eb1ae6d74b5",
+       "bytes": 1626745
+      }
+     ]
+    },
+    {
+     "pack_asset": "low-poly",
+     "type": "eyes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyes",
+     "file": "low-poly.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyes/low-poly/low-poly.mhclo",
+       "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8",
+       "bytes": 1344
+      },
+      {
+       "path": "eyes/low-poly/low-poly.obj",
+       "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de",
+       "bytes": 6604
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyebrow010",
+     "type": "eyebrows",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyebrows",
+     "file": "eyebrow010.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyebrows/eyebrow010/eyebrow010.mhclo",
+       "sha256": "f007d2739463323d1398f20e6c77afd683da997956527ce5bc7cf9e56160e81e",
+       "bytes": 9142
+      },
+      {
+       "path": "eyebrows/eyebrow010/eyebrow010.mhmat",
+       "sha256": "5af8c410d415fc33bbb726245350cfd0ac7d6baec4a16ab07a2696c90539bfbb",
+       "bytes": 1099
+      },
+      {
+       "path": "eyebrows/eyebrow010/eyebrow010.obj",
+       "sha256": "db7a9747ffdc534b10de584f2d140f2006cc528ffffb6eff5071fef2ed94dce9",
+       "bytes": 8227
+      },
+      {
+       "path": "eyebrows/eyebrow010/eyebrow010.png",
+       "sha256": "d0aca671c7d51008177a2a607dc8eba3d3e84935375c6fcac2f85841563e44f3",
+       "bytes": 72383
+      }
+     ]
+    },
+    {
+     "pack_asset": "eyelashes03",
+     "type": "eyelashes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "eyelashes",
+     "file": "eyelashes03.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "eyelashes/eyelashes03/eyelashes03.mhclo",
+       "sha256": "d98e0c9b8c7df400fe850952fd7c8471eceeb5814ded4fece8bcceac8e55b2ec",
+       "bytes": 8191
+      },
+      {
+       "path": "eyelashes/eyelashes03/eyelashes03.mhmat",
+       "sha256": "43a571e0a7587c3af38947164f668ff5a43a1396abbeb2da4af4e5262fceeaf6",
+       "bytes": 1074
+      },
+      {
+       "path": "eyelashes/eyelashes03/eyelashes03.obj",
+       "sha256": "d1073c69e962e3b2524158d4b5e7026c85e4d181206d4d331dfbe2d2d16ac160",
+       "bytes": 18836
+      },
+      {
+       "path": "eyelashes/eyelashes03/eyelashes03.png",
+       "sha256": "3bae1d182039b695d5012b0d463bdc6a7c6e6669c7e0cf2eadef35aec4023ec5",
+       "bytes": 132260
+      }
+     ]
+    },
+    {
+     "pack_asset": "teeth_base",
+     "type": "teeth",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "teeth",
+     "file": "teeth_base.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "teeth/teeth_base/teeth.mhmat",
+       "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+       "bytes": 1086
+      },
+      {
+       "path": "teeth/teeth_base/teeth.png",
+       "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+       "bytes": 1799930
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.mhclo",
+       "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+       "bytes": 263220
+      },
+      {
+       "path": "teeth/teeth_base/teeth_base.obj",
+       "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+       "bytes": 313110
+      }
+     ]
+    },
+    {
+     "pack_asset": "male_casualsuit01",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "male_casualsuit01.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01.mhclo",
+       "sha256": "78503ed7f56c149843d85e06e1164bc6871ce7319b2ef689237046352cc90de4",
+       "bytes": 570419
+      },
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01.mhmat",
+       "sha256": "043b25cefd398261b893d3dae58c81fc3e9633a25a01eafe66963591f5ad6eb6",
+       "bytes": 1345
+      },
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01.obj",
+       "sha256": "001921d237e408c35103720d046aa37f9c5512db1a179a5ede6a065cd504ba89",
+       "bytes": 699545
+      },
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01_ao.png",
+       "sha256": "9402d75d71318ef3ad90ee59f8b8688effefd13b3ec56423330e005bed5cd6c0",
+       "bytes": 785596
+      },
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01_diffuse.png",
+       "sha256": "3fd0bba5dcbdea0ac427f644a6c7c298938f7369b8f96626621ce1e88989394e",
+       "bytes": 5531728
+      },
+      {
+       "path": "clothes/male_casualsuit01/male_casualsuit01_normal.png",
+       "sha256": "ff029fc5a3350ebc72813cdf050afcffd23064c7701d99e664572713cfa98a5f",
+       "bytes": 1738660
+      }
+     ]
+    },
+    {
+     "pack_asset": "shoes03",
+     "type": "clothes",
+     "author": "makehuman_system",
+     "original_author": null,
+     "license": "CC0",
+     "source": "http://www.makehumancommunity.org",
+     "kind": "clothes",
+     "file": "shoes03.mhclo",
+     "pack": "makehuman_system_assets_cc0",
+     "files": [
+      {
+       "path": "clothes/shoes03/shoes03.mhclo",
+       "sha256": "5a388e18e6759db99bcc8c7d062a2b3bed02eecd32705731ba90063a6e35265b",
+       "bytes": 152873
+      },
+      {
+       "path": "clothes/shoes03/shoes03.mhmat",
+       "sha256": "0104a8ecf68aa81bca878c12f909aca45a59e265f8b49cf4e4d5e2667773776e",
+       "bytes": 1184
+      },
+      {
+       "path": "clothes/shoes03/shoes03.mhw",
+       "sha256": "5ea7e817c2db05da540a0d4a71c3fadb422b3560857b8b73873df39ad3e49b5f",
+       "bytes": 410069
+      },
+      {
+       "path": "clothes/shoes03/shoes03.obj",
+       "sha256": "b03f46c0b5cdc38e4472e4747ba267f101e1e8ae88656180b1334986646108b2",
+       "bytes": 177420
+      },
+      {
+       "path": "clothes/shoes03/shoes03_diffuse.png",
+       "sha256": "fe8216fbd0c34ecd3ac0e1a01970a4ccf844417be5fd1d72c527c9209256db93",
+       "bytes": 309009
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

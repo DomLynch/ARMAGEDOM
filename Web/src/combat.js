@@ -68,6 +68,7 @@ import { createMobileAimState, stepMobileAim } from "./mobile-combat-aim.js";
 import { selectFinisher } from "./finisher-selection.js";
 import { allocateMobSizes } from "./mob-size-allocation.js";
 import { mobSizeProfile } from "./mob-size.js";
+import { applyStarVariant, starDamage } from "./engine/star-variants.js";
 import { createSuppliesState, issueSupply } from "./supplies.js";
 import { createVestState, damageAfterVest } from "./vest.js";
 import { AREA_MOB_SPAWNS, residentEncounterHealth } from "./area-mob-spawns.js";
@@ -229,6 +230,7 @@ export function createGame(world, options = {}) {
     }
   }
   if (options.healthRegen === true) g.healthRegen = true;
+  if (options.starVariants) g.starVariants = true;
   if (options.rat) g.rat = true;
   if (options.dog) g.dog = true;
   if (options.roach) g.roach = true;
@@ -1142,7 +1144,6 @@ function mobileControl(g, intent, dt, services) {
     flameRange: flame ? g.world.flameData?.contact.range : null,
     fireHeld:
       ranged &&
-      selectedBossRanged(g) !== "grenade" &&
       ((intent.held ?? []).includes("fire") || (intent.actions ?? []).includes("fire")),
     manualHeading: manualFlame ? Math.atan2(intent.aim.x, intent.aim.z) : null,
     flameEligible: services.flameAimEligible
@@ -1583,6 +1584,19 @@ function declaredResident(g, placement, mobSize) {
   actor.hp = actor.maxHP = health;
   return applyBossProfile(actor, placement, g.world.bossData);
 }
+function bindAnimalRole(g, areaId, e) {
+  const role = resolveBoundAnimalRole(e, {
+    areaId,
+    animalCycle: g.animalCycle,
+    behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
+  });
+  if (!role) return;
+  e.animalRole = role;
+  e.residentIntent = role.intent;
+  Object.assign(e, role.parameters);
+  e.completedAttack = null;
+  e.wokeAt = null;
+}
 // `revived` holds placements whose respawn time has passed: they come back although the permanent ledgers say dead.
 // `onlyRevived` builds just those (re-entering an area that was already set up); drones are never revived.
 function buildResidents(g, area, revived, onlyRevived) {
@@ -1648,37 +1662,13 @@ function buildResidents(g, area, revived, onlyRevived) {
       e.patrol = e.patrol.map((p) => ({ x: p.x + offset.x, z: p.z + offset.z }));
       const territory = resolveRoachNestGuard(e, { areaId: area, animalCycle: g.animalCycle });
       if (territory) e.residentIntent = territory;
-      const role = resolveBoundAnimalRole(e, {
-        areaId: area,
-        animalCycle: g.animalCycle,
-        behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
-      });
-      if (role) {
-        e.animalRole = role;
-        e.residentIntent = role.intent;
-        Object.assign(e, role.parameters);
-        e.completedAttack = null;
-        e.wokeAt = null;
-      }
+      bindAnimalRole(g, area, e);
     }
-  for (const e of residents)
-    if (rigCapability(e.rig, "nativeSkeleton")) {
-      const role = resolveBoundAnimalRole(e, {
-        areaId: area,
-        animalCycle: g.animalCycle,
-        behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
-      });
-      if (role) {
-        e.animalRole = role;
-        e.residentIntent = role.intent;
-        Object.assign(e, role.parameters);
-        e.completedAttack = null;
-        e.wokeAt = null;
-      }
-    }
+  for (const e of residents) if (rigCapability(e.rig, "nativeSkeleton")) bindAnimalRole(g, area, e);
   for (const e of residents) {
     const recipe = gauntHumanRecipe(g.animalCycle, area, e);
     if (recipe) e.humanBodyRecipe = recipe;
+    if (g.starVariants) applyStarVariant(e, area, g.animalCycle);
   }
   if (g.drone && !onlyRevived)
     for (const placement of AREA_DRONE_SPAWNS[area] ?? [])
@@ -1923,7 +1913,7 @@ function knifeReceive(g, hit) {
     return false;
   }
   const meta = hitMetadata(hit.attacker, p, def);
-  let amount = hit.amount,
+  let amount = hit.amount * starDamage(hit.attacker),
     blocked = false;
   if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), R.guardArc)) {
     p.guardRecoverAt = t + R.regenDelay / 60;
