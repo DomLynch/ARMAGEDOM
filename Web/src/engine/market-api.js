@@ -2,7 +2,7 @@
 // Bearer token, named in data/shops.json (api.calls). The UI and the shop controller only ever see the shapes below, so a mock backs the
 // tests and the transport can change without touching them. Nothing here throws: every call answers { ok, ... } and a failure carries an
 // `error` code (the writer's own, e.g. insufficient-cash, token, rate-limited, or "offline").
-//   inventory()                          -> { ok, items: [{ itemId, qty }] }
+//   inventory()                          -> { ok, items: [{ itemId, qty }], cash, bank, ceiling }   (the server's stored balances, or null)
 //   stock(shopId)                        -> { ok, rows: [{ itemId, name, buyPrice|null, sellPrice|null }] }
 //   buy(shopId, itemId, qty, requestId)  -> { ok, delta, items: [{ itemId, qty }], replayed, error? }   (sell is the same)
 // buyPrice is what the PLAYER pays, sellPrice what the player receives; null means the stall does not offer that side. delta is the signed
@@ -53,7 +53,9 @@ export function createMarketApi({ baseUrl, getToken, fetchImpl = globalThis.fetc
   return {
     async inventory() {
       const answer = await call("inventory", {});
-      return answer.ok ? { ok: true, items: items(answer.body?.inventory) } : answer;
+      if (!answer.ok) return answer;
+      const { inventory, cash, bank, ceiling } = answer.body ?? {};
+      return { ok: true, items: items(inventory), cash: price(cash), bank: price(bank), ceiling: price(ceiling) };
     },
     async stock(shopId) {
       const answer = await call("stock", { shop_id: shopId });

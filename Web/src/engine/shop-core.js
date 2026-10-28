@@ -31,6 +31,7 @@ export function createShopController({
     phase = "closed",
     closedKey = "closedOffline",
     rows = [],
+    serverCash = null,
     busy = false,
     message = null,
     pending = null, // { key, id } of an order that got no verdict
@@ -39,7 +40,8 @@ export function createShopController({
   const carried = (itemId) => held.get(itemId) ?? 0;
   const qtyOf = (itemId) => wanted.get(itemId) ?? 1;
   const priceOf = (row) => (tab === DATA.buyTabId ? row.buyPrice : row.sellPrice);
-  const cash = localCash;
+  // The run's own carried cash when there is one (it includes unsaved pickups); else the server's stored balance from inventory_get.
+  const cash = () => localCash() ?? serverCash;
   const shut = (key) => {
     phase = "closed";
     closedKey = key;
@@ -95,6 +97,7 @@ export function createShopController({
         rows = stock.rows.filter((row) => shop.itemIds.includes(row.itemId));
         for (const row of stock.rows) names.set(row.itemId, row.name); // the strip names everything carried, not just this stall's items
         take(inventory.items);
+        serverCash = inventory.cash;
         phase = "ready";
       }
     }
@@ -121,6 +124,7 @@ export function createShopController({
     message = null;
     emit();
     const reply = await market[side](shop.serverShop, itemId, qty, id);
+    if (reply.ok && serverCash !== null) serverCash += reply.delta;
     if (reply.ok) onCash(reply.delta); // applied even if the panel was closed meanwhile: the server has already settled it
     // A replayed answer carries the first call's inventory snapshot, so the present one is read.
     const fresh = reply.ok && reply.replayed ? await market.inventory() : null;

@@ -13,7 +13,7 @@
   "api": {
     "timeoutMs": 8000,
     "authStatuses": [401],
-    "signedOutErrors": ["signin", "token"],
+    "signedOutErrors": ["signin", "token", "guest"],
     "serverErrorFrom": 500,
     "calls": { "inventory": "inventory_get", "stock": "market_stock", "buy": "buy_item", "sell": "sell_item" }
   },
@@ -93,6 +93,7 @@
       "no-character": "Start a run first, then come back to trade.",
       "O0007": "The market is closed for now.",
       "token": "Sign in with Google to trade.",
+      "guest": "Sign in with Google to trade.",
       "signin": "Sign in with Google to trade.",
       "offline": "Cannot reach the market. Your order is kept: tap again to retry.",
       "refused": "The market refused that order."

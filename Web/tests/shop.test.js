@@ -191,6 +191,27 @@ test("closed state: a guest, no market and an unreachable market never throw and
   }
 });
 
+test("an anonymous account that reaches a trade gets the writer's guest refusal: closed state, no cash moved", async () => {
+  const t = setup({ market: createMockMarket({ cash: 500, guest: true }) });
+  t.controller.open("scrapper");
+  await wait();
+  await t.controller.confirm("ammo-pack");
+  assert.equal(t.last().phase, "closed");
+  assert.equal(t.last().stateText, DATA.text.closedGuest);
+  assert.equal(t.wallet.cash, 500);
+});
+
+test("with no local run the server's stored balance from inventory_get is shown and follows each trade", async () => {
+  const market = createMockMarket({ cash: 300 }),
+    views = [];
+  const controller = createShopController({ api: () => market, isGuest: () => false, localCash: () => null, onChange: (v) => views.push(v) });
+  controller.open("scrapper");
+  await wait();
+  assert.equal(views.at(-1).cashText, "Cash 300");
+  await controller.confirm("ammo-pack");
+  assert.equal(views.at(-1).cashText, "Cash 240");
+});
+
 test("the medic stall sells its own items through the same controller", async () => {
   const { controller, wallet, market, last } = setup();
   controller.open("medic");
@@ -308,8 +329,8 @@ test("market adapter: speaks the writer's routes and maps the contract's answers
   assert.deepEqual(await buy.buy("hub-trader", "a", 2, "r1"), { ok: true, delta: -10, items: [{ itemId: "a", qty: 2 }], replayed: true, error: undefined });
   assert.equal(seen.at(-1).url, `https://x.test/arma/api/${DATA.api.calls.buy}`);
   assert.deepEqual(seen.at(-1).body, { shop_id: "hub-trader", item_id: "a", qty: 2, request_id: "r1" });
-  const inv = make(reply(200, { inventory: [{ item_id: "a", qty: 1 }] }));
-  assert.deepEqual((await inv.inventory()).items, [{ itemId: "a", qty: 1 }]);
+  const inv = make(reply(200, { inventory: [{ item_id: "a", qty: 1 }], cash: 70, bank: 5, ceiling: null }));
+  assert.deepEqual(await inv.inventory(), { ok: true, items: [{ itemId: "a", qty: 1 }], cash: 70, bank: 5, ceiling: null });
   assert.equal(seen.at(-1).url, `https://x.test/arma/api/${DATA.api.calls.inventory}`);
   assert.equal((await make(reply(200, { ok: false, error: "insufficient-qty" })).sell("s", "a", 1, "r")).error, "insufficient-qty");
   assert.deepEqual(await make(reply(401, { error: "token" })).stock("s"), { ok: false, error: "signin" });

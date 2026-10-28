@@ -1,7 +1,7 @@
 // A mock of the market adapter (engine/market-api.js) with the same four calls and shapes, plus the server's rules as
 // docs/MARKET-CONTRACT.md states them: one global price list, cash and a carried inventory per player, signed cash deltas, and
 // request-id replay (the same id answers the first result again, flagged replayed, with the first call's inventory snapshot).
-export function createMockMarket({ cash = 100, items = {}, stock = defaultStock(), errors = {} } = {}) {
+export function createMockMarket({ cash = 100, items = {}, stock = defaultStock(), errors = {}, guest = false } = {}) {
   const held = new Map(Object.entries(items)),
     done = new Map(),
     calls = [];
@@ -15,6 +15,7 @@ export function createMockMarket({ cash = 100, items = {}, stock = defaultStock(
     calls.push({ side, shopId, itemId, qty, requestId });
     const failure = down(side);
     if (failure) return failure;
+    if (guest) return { ok: false, error: "guest", delta: 0, items: list(), replayed: false }; // an anonymous account may not trade
     if (done.has(requestId)) return { ...done.get(requestId), replayed: true };
     const row = stock[shopId]?.find((r) => r.itemId === itemId),
       price = side === "buy" ? row?.buyPrice : row?.sellPrice;
@@ -38,7 +39,7 @@ export function createMockMarket({ cash = 100, items = {}, stock = defaultStock(
     },
     carried: (itemId) => held.get(itemId) ?? 0,
     async inventory() {
-      return down("inventory") ?? { ok: true, items: list() };
+      return down("inventory") ?? { ok: true, items: list(), cash, bank: 0, ceiling: null };
     },
     async stock(shopId) {
       return down("stock") ?? { ok: true, rows: stock[shopId] ?? [] };
