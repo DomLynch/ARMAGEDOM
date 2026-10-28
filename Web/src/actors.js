@@ -1397,18 +1397,19 @@ export function createActors(
                   : entity.alerted
                     ? "idle"
                     : "patrol";
-          view.drone.update({
-            time: game.time,
-            dt: Math.max(0, dt),
-            position: world.toRender(entity.pos),
-            heading: Math.atan2(entity.facing.x, -entity.facing.z),
-            state,
-            phase: dead
-              ? (game.time - (entity.response?.start ?? game.time)) / LOOK.droneDeathSeconds
-              : warning
-                ? (game.time - warning.start) / LOOK.droneWarningSeconds
-                : 0,
-          });
+          if (!physicsDeathStep(view, entity, library, dt))
+            view.drone.update({
+              time: game.time,
+              dt: Math.max(0, dt),
+              position: world.toRender(entity.pos),
+              heading: Math.atan2(entity.facing.x, -entity.facing.z),
+              state,
+              phase: dead
+                ? (game.time - (entity.response?.start ?? game.time)) / LOOK.droneDeathSeconds
+                : warning
+                  ? (game.time - warning.start) / LOOK.droneWarningSeconds
+                  : 0,
+            });
           view.root.updateWorldMatrix(true, true);
           if (dead) {
             view.finisherAge = finisherPresentationAge(entity, game.time);
