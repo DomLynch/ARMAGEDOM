@@ -10,6 +10,7 @@ export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false, 
   if (!g.world.markedData) return;
   const hadHunter = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
   g.enemies = g.enemies.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
+  if (g.chainBreak?.state === "snapping") g.chainBreak.state = "chained"; // a snap in progress is undone by death or travel
   if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
   const old = g.markedHunt,
     c = g.world.markedData;
@@ -85,14 +86,11 @@ export function markedEntry(g, { position = null } = {}) {
   }
   return candidates.sort((a, b) => gap(b, g.player.pos) - gap(a, g.player.pos))[0] ?? null;
 }
-// The conditions under which no hunter may come: a finished or invalid run, no Marked state, too little bounty, or a safehouse.
-const huntBlocked = (g, c) =>
-  g.finished ||
-  g.runSaveInvalid ||
-  !g.marked ||
-  g.marked.bounty < c.hunterBounty ||
-  safehouseSite(g.world)?.wholeArea ||
-  safehouseTouches(g, g.player.pos, g.player.radius);
+// A finished or invalid run, or a safehouse: no hunter of any kind may come.
+const siteBlocked = (g) =>
+  g.finished || g.runSaveInvalid || safehouseSite(g.world)?.wholeArea || safehouseTouches(g, g.player.pos, g.player.radius);
+// The conditions under which no hunter may come: the above, no Marked state, or too little bounty.
+const huntBlocked = (g, c) => siteBlocked(g) || !g.marked || g.marked.bounty < c.hunterBounty;
 // One finite tier, one simulation clock and existing actor/nav/movement owners.
 export function stepMarkedHunters(g, spawn) {
   const c = g.world.markedData;
@@ -107,8 +105,8 @@ export function stepMarkedHunters(g, spawn) {
   }
   if (!g.markedHunt || g.markedHunt.areaId !== g.world.areaId) clearMarkedHunters(g);
   const s = g.markedHunt;
-  // The chained Pitborn is a marked hunter with a trigger of its own (chain-break.js), held to the same gates and first-arrival wait.
-  stepChainBreak(g, spawn, !huntBlocked(g, c) && g.time >= s.arrivedAt + c.arrivalDelay);
+  // The chained Pitborn is a marked hunter that only a hit wakes (chain-break.js); the site gates apply, the arrival wait and bounty do not.
+  stepChainBreak(g, spawn, !siteBlocked(g));
   // A hunter that has died is gone: the next one comes after the re-arrival delay.
   const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
   if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);

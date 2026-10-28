@@ -10,26 +10,43 @@ const spawn = (p) => ({ id: 900, hp: 80, markedHunter: true, pos: { ...p }, radi
 function steps() {
   const g = make().g;
   g.enemies = [];
+  g.events = [];
   g.time = 10;
   g.world.areaId = GAME_DATA.chainedPitborn.areaId;
   return { g, at: g.world.geometry.ground(GAME_DATA.chainedPitborn.at) };
 }
-
-test("the chained Pitborn stays chained until the player walks up to it", () => {
-  const { g, at } = steps();
-  g.player.pos = { x: at.x + B.triggerMetres + 3, z: at.z };
+// A shot from the player's position along +x that ends 4 m past the Pitborn's x, dz metres off its line.
+const shot = (g, at, dz = 0) => ({ type: "shot", origin: { ...g.player.pos }, end: { x: at.x + 4, z: at.z + dz }, direction: { x: 1, z: 0 } });
+// Fires at the Pitborn and steps once; returns the chain state.
+function fireAt(g, at, open = true, dz = 0) {
+  g.player.pos = { x: at.x - 8, z: at.z };
+  g.events = [shot(g, at, dz)];
+  stepChainBreak(g, spawn, open);
+  return chainBreakState(g).state;
+}
+function snapAndLoose(g, at) {
+  assert.equal(fireAt(g, at), "snapping");
+  g.events = [];
+  g.time += B.snapSeconds + 0.01;
   stepChainBreak(g, spawn, true);
-  assert.equal(chainBreakState(g).state, "chained");
+}
+
+test("walking up to the shackled Pitborn does nothing: only a hit breaks the chains", () => {
+  const { g, at } = steps();
+  for (const gapMetres of [8, 2, 0]) {
+    g.player.pos = { x: at.x + gapMetres, z: at.z };
+    stepChainBreak(g, spawn, true);
+    assert.equal(chainBreakState(g).state, "chained");
+  }
   assert.equal(g.enemies.length, 0);
 });
 
-test("walking up snaps the chains, then a marked hunter stands at a clear spot near where the Pitborn was", () => {
+test("a shot at it snaps the chains, then a marked hunter stands at a clear spot near where it was", () => {
   const { g, at } = steps();
-  g.player.pos = { x: at.x + 2, z: at.z };
-  stepChainBreak(g, spawn, true);
-  assert.equal(chainBreakState(g).state, "snapping");
+  assert.equal(fireAt(g, at), "snapping");
   assert.equal(g.message, B.text.snap);
   assert.equal(g.enemies.length, 0);
+  g.events = [];
   g.time += B.snapSeconds + 0.01;
   stepChainBreak(g, spawn, true);
   assert.equal(chainBreakState(g).state, "loose");
@@ -43,19 +60,42 @@ test("walking up snaps the chains, then a marked hunter stands at a clear spot n
   assert.equal(g.enemies.length, 1, "it breaks loose once");
 });
 
+test("a shot past it misses, and a closed gate (safehouse, invalid save, finished run) shows nothing", () => {
+  const { g, at } = steps();
+  assert.equal(fireAt(g, at, true, 6), "chained", "a shot 6 m off its line misses");
+  assert.equal(fireAt(g, at, false), "chained", "a closed gate shows nothing");
+  assert.equal(fireAt(g, at, true, 0.5), "snapping", "a shot within its body radius hits");
+});
+
+test("a knife swing at it snaps the chains, one aimed away or out of reach does not", () => {
+  const { g, at } = steps();
+  g.events = [{ type: "attack", actor: g.player }];
+  g.player.pos = { x: at.x - 1.5, z: at.z };
+  g.player.facing = { x: -1, z: 0 };
+  stepChainBreak(g, spawn, true);
+  assert.equal(chainBreakState(g).state, "chained", "swung away from it");
+  g.player.pos = { x: at.x - B.meleeReachMetres - 2, z: at.z };
+  g.player.facing = { x: 1, z: 0 };
+  stepChainBreak(g, spawn, true);
+  assert.equal(chainBreakState(g).state, "chained", "out of reach");
+  g.player.pos = { x: at.x - 1.5, z: at.z };
+  stepChainBreak(g, spawn, true);
+  assert.equal(chainBreakState(g).state, "snapping");
+});
+
 test("a blocked spawn point moves to the nearest clear spot, and waits when there is none", () => {
   const { g, at } = steps();
   const real = g.world.geometry.clear;
-  g.player.pos = { ...at };
-  stepChainBreak(g, spawn, true);
+  assert.equal(fireAt(g, at), "snapping");
+  g.events = [];
   g.time += B.snapSeconds + 0.01;
   g.world.geometry.clear = (p, r) => Math.hypot(p.x - at.x, p.z - at.z) >= 1 && real(p, r);
   stepChainBreak(g, spawn, true);
   const moved = Math.hypot(g.enemies[0].pos.x - at.x, g.enemies[0].pos.z - at.z);
   assert(moved >= 1 && moved <= 1.3, "one ring step past the blocked radius, not further");
   const none = steps();
-  none.g.player.pos = { ...none.at };
-  stepChainBreak(none.g, spawn, true);
+  assert.equal(fireAt(none.g, none.at), "snapping");
+  none.g.events = [];
   none.g.time += B.snapSeconds + 0.01;
   none.g.world.geometry.clear = () => false;
   stepChainBreak(none.g, spawn, true);
@@ -65,20 +105,14 @@ test("a blocked spawn point moves to the nearest clear spot, and waits when ther
 
 test("killing it ends the set-piece for the run; leaving puts it back in its chains", () => {
   const killed = steps();
-  killed.g.player.pos = { ...killed.at };
-  stepChainBreak(killed.g, spawn, true);
-  killed.g.time += B.snapSeconds + 0.01;
-  stepChainBreak(killed.g, spawn, true);
+  snapAndLoose(killed.g, killed.at);
   const actor = chainBreakState(killed.g).actor;
   killed.g.enemies = [];
   actor.hp = 0;
   stepChainBreak(killed.g, spawn, true);
   assert.equal(chainBreakState(killed.g).state, "done");
   const left = steps();
-  left.g.player.pos = { ...left.at };
-  stepChainBreak(left.g, spawn, true);
-  left.g.time += B.snapSeconds + 0.01;
-  stepChainBreak(left.g, spawn, true);
+  snapAndLoose(left.g, left.at);
   left.g.enemies = [];
   stepChainBreak(left.g, spawn, true);
   assert.equal(chainBreakState(left.g).state, "chained");
@@ -86,8 +120,8 @@ test("killing it ends the set-piece for the run; leaving puts it back in its cha
 
 test("it never spawns a second hunter while another lives", () => {
   const { g, at } = steps();
-  g.player.pos = { ...at };
-  stepChainBreak(g, spawn, true);
+  assert.equal(fireAt(g, at), "snapping");
+  g.events = [];
   g.enemies = [spawn({ x: 1, z: 1 })];
   g.time += B.snapSeconds + 0.01;
   stepChainBreak(g, spawn, true);
@@ -95,31 +129,25 @@ test("it never spawns a second hunter while another lives", () => {
   assert.equal(chainBreakState(g).state, "snapping");
 });
 
-test("held to the hunter gates and the first-arrival wait: no snap for a fresh or freshly dead character", () => {
+test("through the hunter step: a hit works for a new player (no bounty, inside the arrival wait), an invalid run save blocks it", () => {
   const { g, at } = steps();
-  g.marked = { version: 1, carried: 0, bank: 0, bounty: 300 };
-  g.player.pos = { ...at }; // standing on the Pitborn, as the tutorial end is 1.9 m away
+  g.marked = { version: 1, carried: 0, bank: 0, bounty: 0 };
   g.time = 0;
   clearMarkedHunters(g);
-  const wait = g.world.markedData.arrivalDelay;
-  g.time = wait - 1;
-  stepMarkedHunters(g, spawn);
-  assert.equal(chainBreakState(g).state, "chained", "inside the arrival wait");
-  g.time = wait + 1;
+  g.player.pos = { x: at.x - 8, z: at.z };
   g.runSaveInvalid = true;
+  g.events = [shot(g, at)];
   stepMarkedHunters(g, spawn);
   assert.equal(chainBreakState(g).state, "chained", "an invalid run save blocks it like a hunter");
   g.runSaveInvalid = false;
-  g.marked.bounty = 0;
+  g.events = [shot(g, at)];
   stepMarkedHunters(g, spawn);
-  assert.equal(chainBreakState(g).state, "chained", "too little bounty blocks it like a hunter");
-  g.marked.bounty = 300;
-  stepMarkedHunters(g, spawn);
-  assert.equal(chainBreakState(g).state, "snapping", "open gates let it snap");
+  assert.equal(chainBreakState(g).state, "snapping", "no bounty and no arrival wait for a hit");
   g.player.hp = 0;
+  g.events = [];
   stepMarkedHunters(g, spawn);
   g.player.hp = 150;
   g.time += 1;
   stepMarkedHunters(g, spawn);
-  assert.equal(chainBreakState(g).state, "chained", "death restarts the wait");
+  assert.equal(chainBreakState(g).state, "chained", "death puts it back in its chains");
 });
