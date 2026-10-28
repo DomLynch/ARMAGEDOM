@@ -9,7 +9,8 @@ import { GAME_DATA, buildGameData, validateSpawns } from "../src/engine/game-dat
 // The rows moved from code to data/spawns.json unchanged. This digest was taken from the old constants (AREA_MOB_SPAWNS,
 // AREA_DRONE_SPAWNS and the crookedResidents set) before they were deleted; a different digest is a different world, so it is a
 // decision (and the writer's server/data/spawns.json must be regenerated), never a side effect of editing the data.
-const DIGEST = "5585b49ace2581fc79b1818c70ad23e72ab94920c0d1c6bc968f2342d9c5f187";
+// salamander-roam (28 Oct): the tutorial salamander (westminster-roamer-2) patrol leg went from 0.7 m to 6.3 m on purpose (it jittered in place); positions only, server/data/spawns.json (kind/area/hp) is unchanged.
+const DIGEST = "b2547f8ee2196f48504a3362e190f4c7a885e24fbc326322d8b4815ecef4a526";
 const digest = (mob, drones, crooked) =>
   createHash("sha256")
     .update(JSON.stringify({ mob, drones, crooked }))
