@@ -8,7 +8,7 @@ import { createRequire } from "node:module";
 import { createServer } from "vite";
 
 const arg = (n, d) => (process.argv.includes(`--${n}`) ? process.argv[process.argv.indexOf(`--${n}`) + 1] : d),
-  PHYSICS = arg("physics", "0") === "1", HOSTILES = Number(arg("hostiles", 10)), SHOTS = arg("shots", "/tmp/game"), PORT = 38794;
+  PHYSICS = arg("physics", "0") === "1", CROWD = Number(arg("crowd", 1)), BURST_MS = Number(arg("burstMs", 2000)), HOSTILES = Number(arg("hostiles", 10)), SHOTS = arg("shots", "/tmp/game"), PORT = 38794;
 mkdirSync(SHOTS, { recursive: true });
 const require = createRequire(import.meta.url);
 let chromium;
@@ -44,7 +44,7 @@ await page.waitForTimeout(PHYSICS ? 9000 : 2000); // idle preload of the lazy ch
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
 const hunterSeen = await page.waitForFunction(() => window.__qa.game.enemies.some((e) => e.markedHunter && e.hp > 0), null, { timeout: 90000 }).then(() => true, () => false);
 await page.waitForTimeout(8000); // the hunter's own model streams in after it spawns (deferred)
-const info = await q((n) => {
+const info = await q(([n, CROWD]) => {
   const g = window.__qa.game, hunter = g.enemies.find((e) => e.markedHunter),
     res = g.enemies.filter((e) => !e.markedHunter && e.hp > 0);
   const base = res[0] ?? null;
@@ -54,8 +54,10 @@ const info = await q((n) => {
     const a = (i / n) * Math.PI * 2;
     g.enemies.push({ ...base, id: 90000 + i, placementKey: `qa-${i}`, pos: { x: g.player.pos.x + Math.cos(a) * 6, z: g.player.pos.z + Math.sin(a) * 6 }, swing: null });
   }
+  for (let i = 0; hunter && i < CROWD - 1; i++) // crowd mode: more marked hunters (same rig) in a ring, killed in a burst below
+    g.enemies.push({ ...hunter, id: 91000 + i, placementKey: `qa-hunter-${i}`, hp: hunter.hp, pos: { x: g.player.pos.x + Math.cos(i) * 3, z: g.player.pos.z + 3.5 + Math.sin(i) * 2 }, swing: null });
   return { hunter: !!hunter, enemiesBefore: g.enemies.length - added, residentRig: base?.rig ?? null, added, player: g.player.pos };
-}, HOSTILES);
+}, [HOSTILES, CROWD]);
 const frames = async (ms) => q((t) => new Promise((resolve) => { window.__jsMs.length = 0; setTimeout(() => resolve([...window.__jsMs]), t); }), ms);
 const stat = (a) => { const s = [...a].sort((x, y) => x - y); return { n: s.length, mean: +(s.reduce((x, y) => x + y, 0) / s.length).toFixed(2), p95: +s[Math.floor(s.length * 0.95)].toFixed(2), max: +s.at(-1).toFixed(2) }; };
 const idle = stat(await frames(4000));
@@ -69,6 +71,11 @@ const kill = await q(async () => {
   rangedHit(g, { targetId: h.id, direction: { x: 0, z: -1 } }, "pistol", "pistol", 1e9);
   return { killed: h.hp <= 0, where, response: h.response?.clip, corpses: (g.corpses ?? []).length, atMs: performance.now() };
 });
+if (CROWD > 1) // the rest of the crowd dies spread over BURST_MS (the first already died above)
+  await q(async ([ms]) => {
+    const { rangedHit } = await import("/src/combat.js"), g = window.__qa.game, rest = g.enemies.filter((e) => e.markedHunter && e.hp > 0);
+    rest.forEach((h, i) => setTimeout(() => rangedHit(g, { targetId: h.id, direction: { x: 0, z: -1 } }, "pistol", "pistol", 1e9), (i / rest.length) * ms));
+  }, [BURST_MS]);
 const out = [];
 for (const [label, wait] of [["0.3s", 300], ["1.2s", 900], ["3.0s", 1800]]) {
   await page.waitForTimeout(wait);
@@ -80,7 +87,7 @@ const corpse = await q(() => {
   const g = window.__qa.game, h = (g.corpses ?? []).find((e) => e.markedHunter) ?? g.enemies.find((e) => e.markedHunter);
   return h ? { hp: h.hp, pos: h.pos } : null;
 });
-console.log(JSON.stringify({ physics: PHYSICS, hunterSeen, info, idleJsMsPerFrame: idle, kill, deathWindowJsMsPerFrame: deathStat, worst3Frames: death.sort((a, b) => b - a).slice(0, 3).map((x) => +x.toFixed(1)), corpse, shots: out, fetched: [...new Set(fetched)],
+console.log(JSON.stringify({ physics: PHYSICS, crowd: CROWD, burstMs: BURST_MS, hunterSeen, info, idleJsMsPerFrame: idle, kill, deathWindowJsMsPerFrame: deathStat, worst3Frames: death.sort((a, b) => b - a).slice(0, 3).map((x) => +x.toFixed(1)), corpse, shots: out, fetched: [...new Set(fetched)],
   errors: logs.filter((l) => /PAGEERROR|error/i.test(l)).slice(0, 6) }, null, 1));
 await browser.close();
 await server.close();

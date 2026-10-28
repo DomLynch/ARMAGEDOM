@@ -34,6 +34,7 @@ export function validatePhysicsDeath(d) {
     "preloadIdleMs",
     "poolSize",
     "rewarmMs",
+    "maxActive",
     "killImpulse",
     "parts",
   ]);
@@ -45,6 +46,7 @@ export function validatePhysicsDeath(d) {
     "preloadIdleMs",
     "poolSize",
     "rewarmMs",
+    "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
   if (d.killImpulse?.length !== 3 || !d.killImpulse.every(Number.isFinite))
