@@ -85,6 +85,8 @@ import {
   validateDeathPresentation,
   validateReaperMotion,
 } from "./game-data-hunters.js";
+import { validateCreatureChainRows } from "./game-data-creature-chains.js";
+import creatureChainRows from "../data/creatureChainRows.json" with { type: "json" };
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
 import physicsBudget from "../data/physicsBudget.json" with { type: "json" };
@@ -1080,6 +1082,7 @@ const sources = () => ({
   deathPresentation: [deathPresentation, validateDeathPresentation],
   hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
+  creatureChainRows: [creatureChainRows, validateCreatureChainRows], // inert (live false) until the death ragdoll is wired per creature
   reaperMotion: [reaperMotion, validateReaperMotion],
   burnPresentation: [burnPresentation, validateBurnPresentation],
   appearance: [appearance, validateAppearance],
