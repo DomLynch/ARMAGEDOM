@@ -59,6 +59,8 @@ test("loot is rolled by the server on a credited kill and returned with the cash
   assert.deepEqual(await inv(ids.alice, alice), [{ item_id: "hunter-cpu", qty: 1 }]);
   assert.deepEqual((await kill(ids.alice, alice, "kill:trash", 5, null)).loot, [], "no enemy, no roll");
   assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "original-dog")).loot, [], "an enemy with no table row drops nothing");
+  assert.deepEqual((await kill(ids.alice, alice, "kill:trash", 5, "boss-warden")).loot, [], "a boss named on the trash tier rolls nothing");
+  assert.deepEqual((await kill(ids.alice, alice, "kill:creature", 15, "boss-warden")).loot, [], "a boss named on the creature tier rolls nothing");
   // the zero-chance world: nothing drops
   await db.exec("update public.arma_loot_table set chance = 0.000001");
   let drops = 0;
@@ -215,7 +217,7 @@ test("isolation: inventory is private, nobody writes it directly, and a stranger
     `select * from public.arma_market_requests`,
     `select public.arma_buy_item(auth.uid(), '${alice}', 'hub-trader', 'ammo-pack', 1, 'direct-aaaa-1')`,
     `select public.arma_inventory_add('${alice}', 'hunter-cpu', 50)`,
-    `select public.arma_roll_loot('${alice}', 'boss-warden')`,
+    `select public.arma_roll_loot('${alice}', 'boss-warden', 'kill:boss')`,
     `select public.arma_claim_pickup(auth.uid(), '${alice}', 'kill:boss', 30, 'boss-warden', null)`,
   ])
     assert.match((await as(db, "authenticated", ids.alice, () => failure(call(db, sql))))?.message ?? "NO ERROR", /permission denied|row-level security/, sql);

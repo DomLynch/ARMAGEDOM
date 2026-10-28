@@ -24,6 +24,7 @@ create table public.arma_inventory (
 );
 create table public.arma_loot_table (
   enemy text not null check (enemy ~ '^[a-z0-9._:-]{1,64}$'),
+  source text not null check (source in ('kill:creature', 'kill:boss')),
   item_id text not null references public.arma_items (id),
   chance numeric not null check (chance > 0 and chance <= 1),
   qty_min int not null default 1 check (qty_min between 1 and 99),
@@ -63,15 +64,16 @@ insert into public.arma_items (id, name, kind, rarity, base_price, sell_price) v
   ('medkit-pack', 'Medkit Pack', 'consumable', 1, 120, 40),
   ('vest-patch', 'Vest Patch', 'consumable', 2, 250, 80);
 -- Rare chances, keyed by creature kind only (the client's tier names for a kind can change; the tier's kill rate cap bounds the rolls). Rare creatures and bosses only.
-insert into public.arma_loot_table (enemy, item_id, chance) values
-  ('original-roach', 'roach-mandibles', 0.05),
-  ('giant-salamander', 'salamander-gland', 0.06),
-  ('low-hover-drone', 'drone-chip', 0.06),
-  ('low-hover-drone', 'robot-parts', 0.08),
-  ('boss-area7-knight', 'military-battery', 0.10),
-  ('boss-area8-veteran', 'military-battery', 0.10),
-  ('boss-warden', 'hunter-cpu', 0.10),
-  ('boss-butcher', 'robot-parts', 0.10);
+-- source is the kill tier a row may roll under (the cash tier the server already bounds): a claim naming a boss on the cheap tier rolls nothing.
+insert into public.arma_loot_table (enemy, source, item_id, chance) values
+  ('original-roach', 'kill:creature', 'roach-mandibles', 0.05),
+  ('giant-salamander', 'kill:creature', 'salamander-gland', 0.06),
+  ('low-hover-drone', 'kill:creature', 'drone-chip', 0.06),
+  ('low-hover-drone', 'kill:creature', 'robot-parts', 0.08),
+  ('boss-area7-knight', 'kill:boss', 'military-battery', 0.10),
+  ('boss-area8-veteran', 'kill:boss', 'military-battery', 0.10),
+  ('boss-warden', 'kill:boss', 'hunter-cpu', 0.10),
+  ('boss-butcher', 'kill:boss', 'robot-parts', 0.10);
 
 -- Adds qty to a character's stack (capped at 9999). Internal.
 create function public.arma_inventory_add(p_character text, p_item text, p_qty int) returns void language sql security definer set search_path = '' as $$
@@ -102,11 +104,11 @@ revoke all on function public.arma_item_defs(uuid) from public, anon, authentica
 grant execute on function public.arma_item_defs(uuid) to arma_writer;
 
 -- Roll the loot for one settled kill: each row of the enemy's table rolls once. Returns [{item_id, qty}] and adds it to the inventory.
-create function public.arma_roll_loot(p_character text, p_enemy text) returns jsonb language plpgsql security definer set search_path = '' as $$
+create function public.arma_roll_loot(p_character text, p_enemy text, p_source text) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare t public.arma_loot_table; q int; got jsonb := '[]'::jsonb;
 begin
   if p_enemy is null then return got; end if;
-  for t in select * from public.arma_loot_table where enemy = p_enemy order by item_id loop
+  for t in select * from public.arma_loot_table where enemy = p_enemy and source = p_source order by item_id loop
     if random() < t.chance then
       q := t.qty_min + floor(random() * (t.qty_max - t.qty_min + 1))::int;
       perform public.arma_inventory_add(p_character, t.item_id, q);
@@ -115,7 +117,7 @@ begin
   end loop;
   return got;
 end $$;
-revoke all on function public.arma_roll_loot(text, text) from public, anon, authenticated;
+revoke all on function public.arma_roll_loot(text, text, text) from public, anon, authenticated;
 
 -- Replaces the 4-argument kill credit (000018). Same behaviour and answers; additionally, a credited kill (not a stash or the airdrop) rolls loot in the same
 -- transaction and answers {credited, earned, loot: [...]}. With p_kill_id, the first answer is stored and a retry returns it with replayed true: no second credit, roll or rate-limit use.
@@ -147,7 +149,7 @@ begin
     pay := p_amount::int;
     update public.arma_cash set earned = least(earned + pay, 1000000000) where character = p_character;
     select earned into total from public.arma_cash where character = p_character;
-    loot := public.arma_roll_loot(p_character, p_enemy);
+    loot := public.arma_roll_loot(p_character, p_enemy, p_source);
     answer := jsonb_build_object('credited', pay, 'earned', total, 'loot', loot);
     if p_kill_id is not null then insert into public.arma_market_requests (character, request_id, op, args_hash, result) values (p_character, p_kill_id, 'kill', h, answer); end if;
     return answer;
