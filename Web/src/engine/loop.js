@@ -10,6 +10,7 @@ import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
+import { armPostBossRaid } from "./post-boss-raid.js";
 import { createAirdropView } from "./airdrop-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
@@ -167,6 +168,7 @@ export function createBrowserLoop(s) {
         leaveKillDrops(s.game); // coins where enemies fell this step (off until killDrops.enabled)
         stepKillDrops(s.game);
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
+        armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
         s.persistRun(s.game);
         // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
         s.worldJournal?.ingest(s.game, s.game.events);

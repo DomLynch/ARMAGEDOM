@@ -2,13 +2,15 @@ import { safehouseTouches, safehouseSite, safehouseBlocksSegment } from "./safeh
 import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
 import { stepChainBreak } from "./chain-break.js";
+import { stepPostBossRaid } from "./post-boss-raid.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
 // the area, death or a safehouse removes them (keepRelic lets the "hunters off" switch leave them alone).
 export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false, keepRelic = false } = {}) {
   if (!g.world.markedData) return;
-  const hadHunter = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
+  if (death) g.raid = null; // a death ends any post-boss raid (post-boss-raid.js)
+  const hadHunter = g.enemies.some((e) => e.markedHunter && !e.relicHunter && !e.raidHunter && e.hp > 0);
   g.enemies = g.enemies.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
   if (g.chainBreak?.state === "snapping") g.chainBreak.state = "chained"; // a snap in progress is undone by death or travel
   if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
@@ -107,8 +109,9 @@ export function stepMarkedHunters(g, spawn) {
   const s = g.markedHunt;
   // The chained Pitborn is a marked hunter that only a hit wakes (chain-break.js); the site gates apply, the arrival wait and bounty do not.
   stepChainBreak(g, spawn, !siteBlocked(g));
+  stepPostBossRaid(g, spawn, markedEntry, !siteBlocked(g)); // a boss kill armed a raid: extra hunters, capped by data
   // A hunter that has died is gone: the next one comes after the re-arrival delay.
-  const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
+  const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && !e.raidHunter && e.hp > 0);
   if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);
   s.hadHunter = present;
   if (huntBlocked(g, c)) {
@@ -116,7 +119,7 @@ export function stepMarkedHunters(g, spawn) {
     return;
   }
   // The residents of an area never block a hunter: only another living hunter does (maxHunters).
-  const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter && !e.relicHunter);
+  const hunters = g.enemies.filter((e) => e.hp > 0 && e.hostile !== false && e.markedHunter && !e.relicHunter && !e.raidHunter);
   if (hunters.length >= c.maxHunters) {
     s.warning = null;
     return;
