@@ -145,7 +145,8 @@ async function cardRun(query, options, name) {
       window.__shared = { name: file.name, type: file.type, size: file.size, text: data.text, title: data.title };
     };
   });
-  await page.click("#share-send");
+  result.sendEnabled = await page.evaluate(() => !document.getElementById("share-send").disabled);
+  await page.click("#share-send", { timeout: 5000 }).catch(() => {});
   await page.waitForTimeout(500);
   result.shared = await page.evaluate(() => window.__shared ?? null);
   result.afterStatus = await page.textContent("#share-status");
