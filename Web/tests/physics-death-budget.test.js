@@ -177,6 +177,53 @@ test("parking an area frees a corpse's body and slot but keeps its cut visuals; 
   assert.equal(skin.hidden.visible, true);
 });
 
+test("a throw while the death starts (rd.kill) gives back the hunter's body, the cut skin and the pooled ragdoll", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  const world = await impl.loadWorld(),
+    made = [],
+    create = world.createRagdoll;
+  world.createRagdoll = function (...a) {
+    const rd = create.apply(this, a),
+      destroy = rd.destroy.bind(rd);
+    rd.destroyed = 0;
+    rd.kill = () => {
+      throw new Error("kill blew up");
+    };
+    rd.destroy = () => {
+      rd.destroyed++;
+      destroy();
+    };
+    made.push(rd);
+    return rd;
+  };
+  try {
+    const skeleton = () => {
+      const g = new THREE.Group();
+      for (const joint of Object.values(CFG.parts))
+        g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
+      return g;
+    };
+    const bind = skeleton(),
+      root = new THREE.Group(),
+      model = skeleton();
+    root.add(model);
+    const view = { root, model, physicsDeath: undefined },
+      entity = { id: 7, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: bind } }]]) },
+      before = activeCount();
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
+    assert.equal(made.length, 1);
+    assert.equal(made[0].destroyed, 1); // the ragdoll is destroyed, not left in the pool or the world
+    assert.equal(activeCount(), before);
+    assert.equal(model.visible, true);
+    assert.equal(root.children.length, 1); // no cut skin left in the scene
+    assert.deepEqual(view.physicsDeath, { failed: true });
+  } finally {
+    world.createRagdoll = create;
+  }
+});
+
 test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {
   await loadChunk();
   const before = activeCount();

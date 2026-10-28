@@ -155,21 +155,30 @@ export function startDeath(view, bindScene, entity) {
       skin = plan = rig = null;
     }
   }
-  rig ??= build(view.model, bindScene);
-  const k = killVector(view.root, entity),
-    push = plan ? k.map((v) => v * plan.row.push) : k;
-  rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
-  stats.created++;
-  stats.lastAt = performance.now();
-  const s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
-  if (plan) {
-    try {
-      beginCuts(s, plan, skin, push);
-    } catch {
-      s.cutRig = s.late = null; // the ragdoll still falls on the cut body, whole
+  let s = null;
+  try {
+    rig ??= build(view.model, bindScene);
+    const k = killVector(view.root, entity),
+      push = plan ? k.map((v) => v * plan.row.push) : k;
+    rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
+    stats.created++;
+    stats.lastAt = performance.now();
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+    if (plan) {
+      try {
+        beginCuts(s, plan, skin, push);
+      } catch {
+        s.cutRig = s.late = null; // the ragdoll still falls on the cut body, whole
+      }
     }
+    return s;
+  } catch (err) {
+    // A throw after the body was taken: give back the hunter's own body, the cut skin and the ragdoll, then let the caller fall back to the clip.
+    undoSkin(skin);
+    if (s) releaseDeath(s);
+    else rd.destroy();
+    throw err;
   }
-  return s;
 }
 
 // A corpse's body (and any pieces cut from it) leaves the world; the bones keep the last applied pose.
