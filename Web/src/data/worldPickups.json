@@ -31,7 +31,7 @@
   },
   "markers": {
     "labelDistance": 6,
-    "style": { "shape": "circle", "ringInner": 0.74, "ringOuter": 0.84, "glowOuter": 1.25, "labelHeight": 1.25, "labelWidth": 1.9, "peakOpacity": 0.7, "glowOpacity": 0.45 },
+    "style": { "shape": "circle", "ringInner": 0.74, "ringOuter": 0.84, "glowOuter": 1.25, "labelHeight": 1.3, "labelWidth": 2.5, "peakOpacity": 0.7, "glowOpacity": 0.45 },
     "medkit": { "label": "Medkit", "ringColour": "e5483f", "labelColour": "ffd9d6" },
     "ammoBox": { "label": "Ammo", "ringColour": "e0b030", "labelColour": "fff0b8" },
     "cashStash": { "label": "Cash", "ringColour": "f5c518", "labelColour": "fff3a8" }
