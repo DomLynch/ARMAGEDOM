@@ -3189,7 +3189,7 @@
       "url": "crowd/mh-worn-12.glb",
       "rig": "mixamo-106",
       "motion": "donor-knife",
-      "scale": 1.11,
+      "scale": 1.1,
       "forwardCorrection": 0,
       "stride": 0.713,
       "upperBone": "mixamorig:Spine",
