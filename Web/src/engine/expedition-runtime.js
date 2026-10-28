@@ -87,8 +87,10 @@ function areaObjectiveLine(g) {
   const hasBoss = g.world.bossData?.placements?.some((row) => row.areaId === id),
     bossAlive = g.enemies?.some((e) => e.hp > 0 && e.bossProfile);
   // "Boss down" only after this area's boss was seen alive: a boss that spawns late must not flash it on entry.
-  if (bossAlive) g.bossSeenAliveIn = id;
-  return hasBoss && g.enemies && !bossAlive && g.bossSeenAliveIn === id ? text("expedition.bossDown") : text(`areaObjective.${id}`);
+  // Session-only set of area ids (never saved or sent), so a cleared area keeps its line after visiting another.
+  g.bossSeenAliveIn ??= new Set();
+  if (bossAlive) g.bossSeenAliveIn.add(id);
+  return hasBoss && g.enemies && !bossAlive && g.bossSeenAliveIn.has(id) ? text("expedition.bossDown") : text(`areaObjective.${id}`);
 }
 export function progressionObjective(g) {
   if (g.world.areaId !== "westminster") return { target: null, objective: areaObjectiveLine(g) };
