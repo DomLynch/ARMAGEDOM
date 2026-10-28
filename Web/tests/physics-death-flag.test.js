@@ -15,9 +15,9 @@ test("boss ragdoll is on by default and ?physics=0 is the off switch", () => {
   assert.equal(physicsDeathEnabled("?qa=1&physics=0"), false);
 });
 
-test("the bosses-only budget stays at pool 2 and 2 active", () => {
+test("the pool is 2 and the active bodies equal the simultaneous-ragdoll cap", () => {
   assert.equal(GAME_DATA.physicsDeath.poolSize, 2);
-  assert.equal(GAME_DATA.physicsDeath.maxActive, 2);
+  assert.equal(GAME_DATA.physicsDeath.maxActive, GAME_DATA.physicsBudget.rows.max_simultaneous_ragdolls);
 });
 
 test("validator needs a boolean defaultOn and an offValue different from flagValue", () => {

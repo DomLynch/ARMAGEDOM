@@ -20,7 +20,10 @@ export function validateMarkedHunterSpawn(d) {
 }
 
 export function validatePhysicsBudget(d) {
-  closed(d, ["schema_version", "rows"]);
+  // reserve_for_marked: entity flags whose death may release the oldest unflagged corpse when the cap is full (a hunter or boss is never baked for a crowd).
+  closed(d, ["schema_version", "rows", "reserve_for_marked"]);
+  if (!Array.isArray(d.reserve_for_marked) || d.reserve_for_marked.some((f) => typeof f !== "string" || !f))
+    fail("physicsBudget", "reserve_for_marked must be a list of entity flag names");
   closed(d.rows, ["max_simultaneous_ragdolls"]);
   if (!Number.isInteger(d.rows.max_simultaneous_ragdolls) || d.rows.max_simultaneous_ragdolls < 1)
     fail("physicsBudget", "max_simultaneous_ragdolls must be an integer >= 1");

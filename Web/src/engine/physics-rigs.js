@@ -22,4 +22,11 @@ export function rigOf(model) {
   return record ?? null;
 }
 // One record per distinct live body, for the pools.
-export const liveBodies = () => [...new Map(Object.keys(RIGS.models).map(rigOf).filter(Boolean).map((r) => [r.key, r])).values()];
+export const liveBodies = () => [
+  ...new Map(
+    Object.keys(RIGS.models)
+      .map(rigOf)
+      .filter(Boolean)
+      .map((r) => [r.key, r]),
+  ).values(),
+];
