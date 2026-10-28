@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "keys": {
+    "moveUp": ["KeyW", "ArrowUp"],
+    "moveDown": ["KeyS", "ArrowDown"],
+    "moveLeft": ["KeyA", "ArrowLeft"],
+    "moveRight": ["KeyD", "ArrowRight"],
+    "sprint": ["ShiftLeft", "ShiftRight"],
+    "dodge": ["Space"],
+    "stab": ["KeyR"],
+    "heavy": ["KeyQ"],
+    "special": ["KeyE"],
+    "guard": ["KeyF"],
+    "pickup": ["KeyG"],
+    "weaponNext": ["KeyC"],
+    "weaponPrev": ["KeyX"],
+    "weapon1": ["Digit1"],
+    "weapon2": ["Digit2"],
+    "weapon3": ["Digit3"],
+    "weapon4": ["Digit4"],
+    "weapon5": ["Digit5"],
+    "weapon6": ["Digit6"],
+    "menu": ["Escape"],
+    "retry": ["KeyR"]
+  },
+  "mouseButtons": ["primary", "middle", "secondary"],
+  "mouse": {
+    "primary": { "melee": "slash", "gun": "fire" },
+    "middle": { "melee": "heavy", "gun": "heavy" },
+    "secondary": { "melee": "guard", "gun": "stab" }
+  },
+  "wheelStepMs": 160,
+  "partJoin": "/",
+  "keyNames": {
+    "Space": "Space",
+    "ShiftLeft": "Shift",
+    "ShiftRight": "Shift",
+    "Escape": "Esc",
+    "ArrowUp": "Up",
+    "ArrowDown": "Down",
+    "ArrowLeft": "Left",
+    "ArrowRight": "Right"
+  },
+  "mouseNames": { "primary": "LMB", "middle": "MMB", "secondary": "RMB", "wheel": "Wheel" },
+  "hints": [
+    { "text": "hud.keys.move", "keys": ["moveUp", "moveLeft", "moveDown", "moveRight"], "join": "" },
+    { "text": "hud.keys.sprint", "keys": ["sprint"], "join": "/" },
+    { "text": "hud.keys.attack", "mouse": ["primary"], "keys": [], "join": "/" },
+    { "text": "hud.keys.guard", "mouse": ["secondary"], "keys": ["guard"], "join": "/" },
+    { "text": "hud.keys.dodge", "keys": ["dodge"], "join": "/" },
+    { "text": "hud.keys.stab", "keys": ["stab"], "join": "/" },
+    { "text": "hud.keys.heavy", "keys": ["heavy"], "join": "/" },
+    { "text": "hud.keys.weapon", "keys": ["weapon1", "weapon6"], "mouse": ["wheel"], "join": "-" },
+    { "text": "hud.keys.pickup", "keys": ["pickup"], "join": "/" },
+    { "text": "hud.keys.menu", "keys": ["menu"], "join": "/" }
+  ]
+}

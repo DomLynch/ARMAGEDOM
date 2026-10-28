@@ -12,7 +12,10 @@ slash and reviewed runtime allowlist. `?touch=1` is desktop layout review only.
 
 WASD/mouse/Q/E/Space/F and five melee touch actions: Slash, Stab, Heavy, Dodge,
 Guard/timed Parry. E retains keyboard Special; the approved touch layout omits it.
-C equips the next carried weapon (tile order, skipping the Reaper companion); Digit1 stays Special.
+Desktop keys and mouse buttons are data: src/data/inputKeys.json (left click attack, right click or F guard, R stab/reload,
+Q heavy, Space dodge, G pick up, Esc menu). Digits 1-6 and the mouse wheel pick a carried weapon, and
+C equips the next carried weapon (tile order, skipping the Reaper companion), X the previous one.
+R retries only on the ending card.
 Pistol equipment switches the contextual controls. Independent pointers allow moving while attacking; menu,
 rotation and focus changes cancel held input. Audio starts on a player gesture.
 World/actor coordinates and ownership are in CONTRACT.md.
