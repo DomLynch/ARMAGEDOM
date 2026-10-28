@@ -45,12 +45,19 @@ test("body rows hold the 20 joints and a standing height, UNSCALED (the actor ro
 });
 
 test("a body row's hip height above the toes equals the GLB's own bind pose at x1, not at the manifest scale", () => {
-  const up = (nodes, name) => { // bind-pose world height of a named node: sum of translations up the parent chain (bind rotations are identity)
-    const parent = new Map(nodes.flatMap((n, i) => (n.children ?? []).map((c) => [c, i])));
-    let i = nodes.findIndex((n) => n.name === name), y = 0;
-    for (; i !== undefined; i = parent.get(i)) y += (nodes[i].translation?.[1] ?? 0) * (nodes[i].scale?.[1] ?? 1);
-    return y;
-  };
+  const mul = (a, b) => Array.from({ length: 16 }, (_, k) => [0, 1, 2, 3].reduce((s, j) => s + a[j * 4 + (k % 4)] * b[(k >> 2) * 4 + j], 0)),
+    local = (n) => {
+      const [x, y, z, w] = n.rotation ?? [0, 0, 0, 1], [sx, sy, sz] = n.scale ?? [1, 1, 1], [tx, ty, tz] = n.translation ?? [0, 0, 0];
+      return [(1 - 2 * (y * y + z * z)) * sx, 2 * (x * y + z * w) * sx, 2 * (x * z - y * w) * sx, 0, 2 * (x * y - z * w) * sy,
+        (1 - 2 * (x * x + z * z)) * sy, 2 * (y * z + x * w) * sy, 0, 2 * (x * z + y * w) * sz, 2 * (y * z - x * w) * sz,
+        (1 - 2 * (x * x + y * y)) * sz, 0, tx, ty, tz, 1];
+    },
+    up = (nodes, name) => { // bind-pose world height of a named node: the node matrices multiplied up the parent chain
+      const parent = new Map(nodes.flatMap((n, i) => (n.children ?? []).map((c) => [c, i])));
+      let i = nodes.findIndex((n) => n.name === name), m = local(nodes[i]);
+      for (i = parent.get(i); i !== undefined; i = parent.get(i)) m = mul(local(nodes[i]), m);
+      return m[13];
+    };
   for (const [name, m] of Object.entries(RIGS.models)) {
     if (m.body === "physicsBody") continue;
     const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
