@@ -46,7 +46,8 @@ export function validateHaptics(d) {
     if (!text(l.id) || !text(d.text.levels[l.id])) fail("haptics", "every intensity level needs an id and menu text");
     if (!(l.scale > 0 && l.scale <= 1)) fail("haptics", "intensity scale must be above 0 and at most 1");
   }
-  if (!d.intensityLevels.some((l) => l.id === d.intensityDefault)) fail("haptics", "intensityDefault must be a level id");
+  if (!d.intensityLevels.some((l) => l.id === d.intensityDefault))
+    fail("haptics", "intensityDefault must be a level id");
   closed(d.lowHealth, ["enabled", "fraction", "intervalMs", "pattern"]);
   const low = d.lowHealth;
   if (typeof low.enabled !== "boolean" || !(low.fraction > 0 && low.fraction < 1))
