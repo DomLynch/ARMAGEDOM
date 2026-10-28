@@ -235,13 +235,14 @@ test("finale escape: the safehouse ends the run only after the player has been o
 
 // REAL data: the shipped layouts, the shipped area links and safehouse, the run's own raid zones. A world here is the real geometry and
 // registry of one area, which is all the run director and the post-boss raid read.
+const HUB_SAFEHOUSE = read("../../public/world/area-content.json").safehouse; // the shipped one: not the marked fixture's legacy copy
 const realWorld = (areaId) => {
-  const geometry = createGeometry(read(`../public/world/${areaId}/layout.json`));
+  const geometry = createGeometry(read(`../../public/world/${areaId}/layout.json`));
   return {
     areaId,
     registry,
     geometry,
-    safehouseData: shipped.safehouseData,
+    safehouseData: HUB_SAFEHOUSE,
     markedData: shipped.markedData,
     lineClear: (a, b) => geometry.lineClear(a, b),
   };
@@ -251,7 +252,7 @@ const exitMouth = (areaId) => {
   const link = registry.links(areaId).find((l) => l.to === RUN.startZone),
     c = link.condition,
     mid = (low, high) => (low + high) / 2;
-  return createGeometry(read(`../public/world/${areaId}/layout.json`)).ground({
+  return createGeometry(read(`../../public/world/${areaId}/layout.json`)).ground({
     x: c.xMax !== undefined ? c.xMax + 0.01 : c.xMin !== undefined ? c.xMin - 0.01 : mid(0, 1),
     y: c.yMax !== undefined && c.yMin !== undefined ? mid(c.yMin, c.yMax) : c.yMin !== undefined ? c.yMin - 0.01 : c.yMax + 0.01,
   });
@@ -273,7 +274,7 @@ const holdOut = (heatPeak = 0, areaId = "east") => {
 };
 
 test("extraction on REAL data: hostiles can reach the hold spot, the hub earns nothing, and the hold needs its own area", () => {
-  assert.equal(shipped.safehouseData.wholeArea, true, "the shipped safehouse is the whole hub");
+  assert.deepEqual([HUB_SAFEHOUSE.areaId, HUB_SAFEHOUSE.wholeArea], [RUN.startZone, true], "the shipped safehouse is the whole hub");
   const { g } = holdOut();
   assert.equal(g.run.hold?.areaId, "east", "the hold is set in a field area");
   assert.ok(RUN.raidZones.includes("east") && !RUN.raidZones.includes(RUN.startZone));
