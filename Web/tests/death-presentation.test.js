@@ -82,10 +82,10 @@ test("easing is monotone and returns exactly to 1", () => {
 test("runtime goes idle after the window in real seconds", () => {
   const p = createDeathPresentation(row, true);
   p.observe(death(boss));
-  assert.equal(p.tick(0.45).timeScale, row.timeScale);
-  assert.equal(p.tick(0.4).timeScale, row.timeScale);
-  assert.equal(p.tick(0.2).active, true);
-  assert.equal(p.tick(0.2).active, false);
+  assert.equal(p.tick(row.slowSeconds * 0.5).timeScale, row.timeScale);
+  assert.equal(p.tick(row.slowSeconds * 0.4).timeScale, row.timeScale);
+  assert.equal(p.tick(row.slowSeconds * 0.1 + row.easeBackSeconds * 0.5).active, true);
+  assert.equal(p.tick(row.easeBackSeconds).active, false);
   assert.equal(p.tick(1).timeScale, 1);
 });
 

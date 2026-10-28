@@ -1,4 +1,5 @@
 import { BOSS_RANGED_RULES } from "./engine/boss-ranged.js";
+import { slotModelRefs } from "./engine/slot-models.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
 import { createRailgunCoils } from "./engine/railgun-coils.js";
@@ -862,17 +863,7 @@ export function createActors(
           )
           .map((e) => actorModelRef(e, library.manifest));
       if (fresh) {
-        refs.push(
-          ...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles ?? {})
-            .map((spec) => spec.foundationRef)
-            .filter((ref) => library.manifest.models[ref]?.deferred === true),
-        );
-        refs.push(
-          ...(world.residentPlacements?.[areaId] ?? [])
-            .filter((row) => row.appearanceRef !== undefined)
-            .map((row) => row.appearanceRef),
-          ...slotAppearanceRefs(world.populationData?.areas[areaId]),
-        );
+        refs.push(...slotModelRefs(world, areaId, library.manifest));
         refs.push(
           ...(world.bossData?.placements ?? [])
             .filter((row) => row.areaId === areaId)
