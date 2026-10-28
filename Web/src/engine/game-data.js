@@ -61,6 +61,8 @@ import trapCrates from "../data/trapCrates.json" with { type: "json" };
 import { validateTrapCrates } from "./game-data-trap-crates.js";
 import spawnVariation from "../data/spawnVariation.json" with { type: "json" };
 import { validateSpawnVariation } from "./game-data-spawn-variation.js";
+import dailyLondon from "../data/dailyLondon.json" with { type: "json" };
+import { validateDailyLondon } from "./game-data-daily-london.js";
 import offscreenActors from "../data/offscreenActors.json" with { type: "json" };
 import { validateOffscreenActors } from "./game-data-offscreen.js";
 import qualityTier from "../data/qualityTier.json" with { type: "json" };
@@ -1086,6 +1088,7 @@ const sources = () => ({
   worldPickups: [worldPickups, validateWorldPickups],
   killDrops: [killDrops, validateKillDrops],
   starVariants: [starVariants, validateStarVariants],
+  dailyLondon: [dailyLondon, validateDailyLondon],
   webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],
   combatText: [combatText, validateCombatText],

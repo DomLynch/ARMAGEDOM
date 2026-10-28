@@ -3,6 +3,7 @@ import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
 import { stepChainBreak } from "./chain-break.js";
 import { stepPostBossRaid } from "./post-boss-raid.js";
+import { dailyEffects, dailyHunt } from "./daily-london.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
@@ -15,7 +16,7 @@ export function clearMarkedHunters(g, { areaId = g.world.areaId, death = false, 
   if (g.chainBreak?.state === "snapping") g.chainBreak.state = "chained"; // a snap in progress is undone by death or travel
   if (g.corpses) g.corpses = g.corpses.filter((e) => !e.markedHunter || (keepRelic && e.relicHunter));
   const old = g.markedHunt,
-    c = g.world.markedData;
+    c = dailyHunt(g.world.markedData, dailyEffects(areaId));
   g.markedHunt = {
     areaId,
     // The clock is per run, not per area: travel keeps `arrivedAt`, so the first-arrival wait (arrivalDelay) counts from the start
@@ -95,7 +96,7 @@ const siteBlocked = (g) =>
 const huntBlocked = (g, c) => siteBlocked(g) || !g.marked || g.marked.bounty < c.hunterBounty;
 // One finite tier, one simulation clock and existing actor/nav/movement owners.
 export function stepMarkedHunters(g, spawn) {
-  const c = g.world.markedData;
+  const c = g.world.markedData && dailyHunt(g.world.markedData, dailyEffects(g.world.areaId));
   if (!c) return;
   if (c.hunters === false) {
     if (g.enemies.some((e) => e.markedHunter && !e.relicHunter)) clearMarkedHunters(g, { keepRelic: true });

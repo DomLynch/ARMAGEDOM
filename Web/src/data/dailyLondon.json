@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": { "param": "nodaily", "value": "1" },
+  "seedKey": "daily-london:",
+  "messageSeconds": 6,
+  "excludedAreas": ["westminster", "central-hub"],
+  "note": "Daily London (Dom + Strategy, 28 Oct 2026). One modifier per UTC day, drawn from the date with the spawnVariation generator, the same for everyone. Session only, nothing saved. Effects reuse existing systems and only scale values the client already owns: light = area light intensities, sight = how far a resident hostile notices the player, hunt = marked hunter arrival and respawn waits and the live cap, stashFloor = the lowest cash stash pay (never above worldPickups cashStash.max, which is what the server's arma_pickup_rules cap at), medkit = medkit heal multiplier (heal never passes max HP). neutral is the no-modifier set and lists every effect. Not for westminster (tutorial) or the hub. No ambient damage row: the only hazard mechanism is a boss-owned zone, so Acid Fog is not built. Drone Swarm is not built either: drone rows are server spawn rows. ?nodaily=1 turns it off.",
+  "neutral": { "light": { "fill": 1, "key": 1 }, "sight": 1, "hunt": { "arrival": 1, "respawn": 1, "extra": 0 }, "stashFloor": 0, "medkit": 1 },
+  "text": {
+    "badge": "TODAY · {name}",
+    "announce": "Today's London: {name}. {line}"
+  },
+  "rows": [
+    { "id": "blackout", "name": "Blackout", "line": "The grid is dead. Streets are dark and hostiles spot you later.", "look": "dark",
+      "effects": { "light": { "fill": 0.5, "key": 0.4 }, "sight": 0.6 } },
+    { "id": "heavy-rain", "name": "Heavy Rain", "line": "Rain hammers the streets. Hostiles are slow to spot you.", "look": "rain",
+      "effects": { "light": { "fill": 0.85, "key": 0.75 }, "sight": 0.75 } },
+    { "id": "rich-salvage", "name": "Rich Salvage", "line": "Looters left more behind. Cash stashes pay more and medkits heal more.", "look": "gold",
+      "effects": { "stashFloor": 140, "medkit": 1.5 } },
+    { "id": "hunter-surge", "name": "Hunter Surge", "line": "The hunters are out early. They come sooner, and one more can hunt you.", "look": "red",
+      "effects": { "hunt": { "arrival": 0.5, "respawn": 0.5, "extra": 1 } } },
+    { "id": "dense-smog", "name": "Dense Smog", "line": "Thick smog hangs over London. You can barely see, and neither can they.", "look": "smog",
+      "effects": { "light": { "fill": 0.75, "key": 0.65 }, "sight": 0.5 } }
+  ]
+}

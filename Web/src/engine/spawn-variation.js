@@ -47,12 +47,17 @@ const seedOf = (...parts) => parts.join(DATA.seedSeparator);
 
 // The day the browser session started, so a layout does not shift under the player at midnight.
 let sessionDay = null;
-export function activeDay() {
-  const location = globalThis.location;
-  if (!location || new URLSearchParams(location.search).get(DATA.offParam) === "1") return null;
+// The UTC day of this browser session (null outside a browser). Daily London reads it too, whatever the variation switch says.
+export function currentDay() {
+  if (!globalThis.location) return null;
   sessionDay ??= new Date().toISOString().split("T")[0];
   return sessionDay;
 }
+// Tests pin the session day.
+export const pinDay = (day) => {
+  sessionDay = day;
+};
+export const activeDay = () => (new URLSearchParams(globalThis.location?.search).get(DATA.offParam) === "1" ? null : currentDay());
 
 const crateCache = new Map();
 // { pickups, traps } for an area on a day: the same rows with x and z moved to the point each drew. `day` null keeps the hand-built layout.
