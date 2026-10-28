@@ -4,6 +4,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { make } from "./helpers/marked-fixture.js";
 import { stepChainBreak, chainBreakState } from "../src/engine/chain-break.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
+import { createPistolState, grantPistol, stepPistol } from "../src/pistol.js";
 
 const D = GAME_DATA.chainedPitborn;
 const B = D.breakLoose;
@@ -54,6 +55,23 @@ test("rays: a pistol or rifle shot, a shotgun pellet and an arc-gun bolt break t
   );
   assert.equal(after((g, at) => [{ type: "shot", ...ray(g, at, 7) }]), "chained", "shot wide");
   assert.equal(after((g, at) => [{ type: "shot", actor: { id: 5 }, ...ray(g, at) }]), "chained", "another actor's shot");
+});
+
+test("a REAL shot from the game's own pistol code (stepPistol, not a hand-built event) snaps the chains", () => {
+  const { g, at } = steps();
+  const start = grantPistol(createPistolState({ pickupPos: at })).state;
+  const out = stepPistol(start, {
+    time: g.time,
+    fire: true,
+    origin: { ...g.player.pos },
+    aim: { x: at.x - g.player.pos.x, z: at.z - g.player.pos.z },
+    targets: [],
+    lineClear: () => true,
+  });
+  assert(out.events.some((e) => e.type === "shot"), "the pistol fired");
+  g.events = out.events;
+  stepChainBreak(g, spawn, true);
+  assert.equal(chainBreakState(g).state, "snapping");
 });
 
 test("melee: a swing and the bone saw break the chains in reach and in front, not behind", () => {
