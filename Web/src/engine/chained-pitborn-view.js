@@ -87,27 +87,6 @@ export function createChainedPitbornView(s) {
       bones = C.rows.map((row) => model.getObjectByName(sanitize(row.bone))),
       head = model.getObjectByName(sanitize(M.headBone)),
       fixed = C.rows.map((row) => w.toRender(w.geometry.ground(row.anchor), row.height));
-    // The GLB's head has no horns: two bone-coloured cones ride the head bone so the silhouette reads as a bull-man.
-    const H = D.horns,
-      hornMaterial = new T.MeshStandardMaterial({ color: hex(H.color), emissive: hex(H.emissive), roughness: H.roughness }),
-      cone = (r, len) => new T.ConeGeometry(r, len, H.segments).translate(0, len * H.baseShare, 0),
-      horn = new T.Mesh(cone(H.radius, H.length), hornMaterial),
-      tip = new T.Mesh(cone(H.tipRadius, H.tipLength), hornMaterial);
-    root.updateMatrixWorld(true);
-    const unit = head ? 1 / head.getWorldScale(tmp.v).x : 0,
-      deg = T.MathUtils.DEG2RAD;
-    for (const side of H.sides) {
-      // Two stacked cones: the base leans outward, the tip bends back up and in, so each horn curves.
-      const m = horn.clone(),
-        t = tip.clone();
-      t.position.set(0, H.length, 0);
-      t.rotation.z = side * H.curveDegrees * deg;
-      m.add(t);
-      m.scale.setScalar(unit);
-      m.position.set(side * H.spread, H.up, H.forward).multiplyScalar(unit);
-      m.rotation.set(H.tiltForwardDegrees * deg, 0, -side * H.tiltOutDegrees * deg);
-      head?.add(m);
-    }
     const metal = { roughness: C.roughness, metalness: C.metalness },
       link = new T.InstancedMesh(
         new T.TorusGeometry(C.linkRadius, C.linkTube, ...C.linkSegments),
@@ -151,7 +130,7 @@ export function createChainedPitbornView(s) {
     points.frustumCulled = false;
     s.scene.add(root, link, plate, backplate, points);
     return {
-      ...{ root, model, mixer, bones, head, fixed, link, plate, backplate, points, skin, foot, horns: [horn, tip] },
+      ...{ root, model, mixer, bones, head, fixed, link, plate, backplate, points, skin, foot },
       ...{ geometry, pos, col, born, seed, home, base: root.rotation.y, next: 0 },
     };
   }
@@ -234,10 +213,6 @@ export function createChainedPitbornView(s) {
     for (const o of [parts.link, parts.plate, parts.backplate, parts.points]) {
       o.geometry.dispose();
       o.material.dispose();
-    }
-    for (const h of parts.horns) {
-      h.geometry.dispose();
-      h.material.dispose();
     }
     parts.mixer.stopAllAction();
     parts.model.traverse((o) => o.isMesh && o.material.dispose());

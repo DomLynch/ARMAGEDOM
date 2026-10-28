@@ -34,24 +34,6 @@
   },
   "emissive": { "color": "5a2610", "intensity": 0.02 },
   "rim": { "color": "ff9a50", "power": 4, "strength": 0.06 },
-  "horns": {
-    "sides": [-1, 1],
-    "radius": 0.15,
-    "length": 0.5,
-    "tipRadius": 0.1,
-    "tipLength": 0.5,
-    "curveDegrees": 55,
-    "baseShare": 0.5,
-    "segments": 10,
-    "spread": 0.3,
-    "up": 0.3,
-    "forward": 0,
-    "tiltForwardDegrees": 15,
-    "tiltOutDegrees": 50,
-    "color": "4e4234",
-    "emissive": "100b07",
-    "roughness": 0.7
-  },
   "flicker": { "amount": 0.3, "hz": 6.5, "ratio": 2.3, "norm": 2 },
   "motion": {
     "clips": [
