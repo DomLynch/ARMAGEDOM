@@ -230,6 +230,7 @@ export function createGame(world, options = {}) {
     }
   }
   if (options.healthRegen === true) g.healthRegen = true;
+  if (options.starVariants) g.starVariants = true;
   if (options.rat) g.rat = true;
   if (options.dog) g.dog = true;
   if (options.roach) g.roach = true;
@@ -1668,7 +1669,7 @@ function buildResidents(g, area, revived, onlyRevived) {
   for (const e of residents) {
     const recipe = gauntHumanRecipe(g.animalCycle, area, e);
     if (recipe) e.humanBodyRecipe = recipe;
-    if (g.animalVariants) applyStarVariant(e, area, g.animalCycle); // stars roll per animal cycle
+    if (g.starVariants) applyStarVariant(e, area, g.animalCycle);
   }
   if (g.drone && !onlyRevived)
     for (const placement of AREA_DRONE_SPAWNS[area] ?? [])

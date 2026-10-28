@@ -136,7 +136,7 @@ test("a starred attacker hits harder through the player's hit path", async () =>
     },
   };
   const encounter = { id: "hollow-scavengers", character: { rig: "hollow-scavenger", weapon: "knife", contactRig: "hero", bodyScale: 1 } };
-  const g = createGame(w, { pilot: "donor-knife", encounter, pistol: true, areaResidents: true, animalVariants: true });
+  const g = createGame(w, { pilot: "donor-knife", encounter, pistol: true, areaResidents: true, animalVariants: true, starVariants: true });
   spawnWave(g);
   await travelTo(g, { areaId: "east" });
   const hurt = (attacker) => {

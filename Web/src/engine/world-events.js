@@ -32,8 +32,6 @@ import { WOLF_BITE } from "../wolf-native.js";
 import { SALAMANDER_BITE } from "../salamander-native.js";
 import { DRONE_RULES } from "../drone-mechanics.js";
 import { RAT_BITE, DOG_BITE, ROACH_BITE } from "../combat.js";
-import { starHealth } from "./star-variants.js";
-
 // The game steps at a fixed 60 Hz (stepGame refuses any other dt); tests pin this against the real step.
 export const TICK_HZ = 60;
 
@@ -377,13 +375,11 @@ export function worldSpawnRows(content, cycle = "A") {
       else if (foundation.runtimeIdentity === DRONE_FOUNDATION) reach = DRONE_RULES.boltRange;
       else if (foundation.runtimeIdentity !== "hollow-scavenger")
         reach = animalFoundationParameters(foundationRef, 1).contactGoalReach;
-      const health = boss ? boss.health : residentEncounterHealth(row, foundation.stats.health),
-        isDrone = foundation.runtimeIdentity === DRONE_FOUNDATION;
       rows.push({
         instance: instanceKey(area, row.key),
         kind: boss ? boss.modelRef : foundation.runtimeIdentity,
         area,
-        maxHp: isDrone ? health : starHealth(area, cycle, row.key, !!boss, health),
+        maxHp: boss ? boss.health : residentEncounterHealth(row, foundation.stats.health),
         respawnS: null,
         lootKind: content.lootRules?.[row.key]?.tableRef ?? null,
         reach,
