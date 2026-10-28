@@ -8,6 +8,8 @@ OUT = sys.argv[-1]
 D = "/srv/dev-jobs/art-roach/"
 random.seed(2712)
 bpy.ops.wm.read_factory_settings(use_empty=True)
+# The source clips are 30 fps (0.6 s = 18 frames); the factory 24 fps scene trimmed the last frame off every clip.
+bpy.context.scene.render.fps = 30
 bpy.ops.import_scene.gltf(filepath=D + "original-roach.glb")
 for o in list(bpy.data.objects):
     if o.name.startswith("Icosphere"):
