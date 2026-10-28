@@ -5,9 +5,25 @@
 // it does not pop. Numbers live in data/offscreenActors.json.
 import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
+import { createActorLod, validateActorLod } from "./actor-lod.js";
 
 export function validateOffscreenActors(d) {
-  closed(d, ["schema_version", "enabled", "marginMetres", "farDistance", "everyNthFrame", "fullRateRadius"]);
+  closed(d, [
+    "schema_version",
+    "enabled",
+    "marginMetres",
+    "farDistance",
+    "everyNthFrame",
+    "fullRateRadius",
+    "shadowMaxDistance",
+    "reducedRate",
+    "lod",
+  ]);
+  closed(d.reducedRate, ["distance", "everyNthFrame"]);
+  number("offscreenActors", "shadowMaxDistance", d.shadowMaxDistance, 1);
+  number("offscreenActors", "reducedRate.distance", d.reducedRate.distance, 1);
+  count("offscreenActors", "reducedRate.everyNthFrame", d.reducedRate.everyNthFrame, 1, 30);
+  validateActorLod(d.lod);
   if (d.schema_version !== 1) fail("offscreenActors", "schema_version must be 1");
   if (typeof d.enabled !== "boolean") fail("offscreenActors", "enabled must be true or false");
   number("offscreenActors", "marginMetres", d.marginMetres, 0);
@@ -21,7 +37,8 @@ export function validateOffscreenActors(d) {
 export function createOffscreenThrottle(THREE, rules) {
   const frustum = new THREE.Frustum(),
     matrix = new THREE.Matrix4(),
-    sphere = new THREE.Sphere();
+    sphere = new THREE.Sphere(),
+    lod = createActorLod(rules.lod);
   let ready = false,
     frame = 0,
     px = 0,
@@ -29,6 +46,7 @@ export function createOffscreenThrottle(THREE, rules) {
   return {
     begin(camera, playerPos) {
       frame++;
+      lod.sweep();
       ready = !!camera?.projectionMatrix && !!camera.matrixWorldInverse && !!playerPos;
       if (!ready) return;
       px = playerPos.x;
@@ -38,10 +56,12 @@ export function createOffscreenThrottle(THREE, rules) {
     },
     // True when this actor's presentation can be skipped this frame. Keeps the actor hidden while off screen.
     skip(entity, view, dt) {
-      if (!rules.enabled || !ready) return false;
+      if (!ready) return false;
       const dx = entity.pos.x - px,
         dz = entity.pos.z - pz,
         distance = Math.hypot(dx, dz);
+      lod.update(view, distance);
+      if (!rules.enabled) return false;
       let onScreen = distance <= rules.fullRateRadius;
       if (!onScreen && distance <= rules.farDistance) {
         sphere.center.set(entity.pos.x, 0, -entity.pos.z);
@@ -49,13 +69,18 @@ export function createOffscreenThrottle(THREE, rules) {
         onScreen = frustum.intersectsSphere(sphere);
       }
       // The ground shadow is its own scene object: it is shown and hidden with the body, or a far enemy leaves a lone blob behind.
+      // (The game has no shadow-map pass; the shadow is this one blob draw, which a far actor also skips.)
       const show = (visible) => {
         view.root.visible = visible;
-        if (view.shadow) view.shadow.visible = visible;
+        if (view.shadow) view.shadow.visible = visible && distance <= rules.shadowMaxDistance;
       };
       if (onScreen) {
         show(true);
-        return false;
+        // In view but far: the skeleton is refreshed at a reduced rate and the body stays drawn (the missed time is caught up).
+        if (distance <= rules.reducedRate.distance || (frame + entity.id) % rules.reducedRate.everyNthFrame === 0)
+          return false;
+        view.missedDt = (view.missedDt ?? 0) + dt;
+        return true;
       }
       show(false);
       if ((frame + entity.id) % rules.everyNthFrame === 0) return false;

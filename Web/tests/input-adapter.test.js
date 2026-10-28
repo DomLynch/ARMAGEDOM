@@ -203,14 +203,20 @@ test('R is blocked during pause, menu, loading and hidden document', (t) => {
   send(env.window, 'keydown', { code: 'KeyR' });
   assert.equal(env.retries, 0);
 });
-test('R retries active play and death once per fresh press', (t) => {
+// Re-pinned 28 Oct (desktop keys are data, inputKeys.json): in play R is Stab / reload and must never retry the encounter;
+// the retry key only works once the ending card is up.
+test('R is Stab in play and retries once per fresh press on the ending card', (t) => {
   const env = setup(t);
   send(env.window, 'keydown', { code: 'KeyR' });
   send(env.window, 'keydown', { code: 'KeyR', repeat: true });
+  assert.equal(env.retries, 0);
+  assert.deepEqual(env.input.take().actions, ['stab']);
+  send(env.window, 'keyup', { code: 'KeyR' });
   env.paused = true; // main includes finished in its pause predicate.
   env.elements.ending.hidden = false;
   send(env.window, 'keydown', { code: 'KeyR' });
-  assert.equal(env.retries, 2);
+  send(env.window, 'keydown', { code: 'KeyR', repeat: true });
+  assert.equal(env.retries, 1);
 });
 test('Escape repeat does not repeatedly toggle the menu', (t) => {
   const env = setup(t);
@@ -296,7 +302,7 @@ test('keyboard Special and Space Dodge remain available without a Special touch 
  send(env.window,'keydown',{code:'Space'});assert.equal(env.input.take().dodge,true);send(env.window,'keyup',{code:'Space'});
 });
 
-test('disposing input removes owned gameplay and browser listeners',t=>{const env=setup(t);send(env.window,'keydown',{code:'KeyW'});assert.equal(env.input.state.keys.has('KeyW'),true);env.input.dispose();send(env.window,'keydown',{code:'KeyD'});assert.equal(env.input.state.keys.size,0);send(env.elements.slash,'pointerdown');assert.equal(env.input.take().actions.length,0);env.input.dispose();});
+test('disposing input removes owned gameplay and browser listeners',t=>{const env=setup(t);send(env.window,'keydown',{code:'KeyW'});assert.equal(env.input.state.keys.has('moveUp'),true);env.input.dispose();send(env.window,'keydown',{code:'KeyD'});assert.equal(env.input.state.keys.size,0);send(env.elements.slash,'pointerdown');assert.equal(env.input.take().actions.length,0);env.input.dispose();});
 
 const worldEvent=(env,type,values={})=>send(env.canvas,type,{pointerType:'touch',pointerId:31,clientX:200,clientY:300,...values});
 test('world touch only emits one completed short tap, never held Fire; successful lostcapture preserves completed tap',t=>{const env=setup(t,true,true);worldEvent(env,'pointerdown');assert.equal(env.input.take().worldTap,undefined);worldEvent(env,'pointerup');worldEvent(env,'lostpointercapture');const out=env.input.take();assert.deepEqual(out.worldTap,{x:200,y:300});assert.deepEqual(out.actions,[]);assert.deepEqual(out.held,[]);assert(out.mobile);assert.equal(env.input.take().worldTap,undefined);});

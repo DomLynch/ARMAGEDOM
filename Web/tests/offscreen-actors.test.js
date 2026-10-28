@@ -78,6 +78,37 @@ test("an actor that walks back into view is shown and updated that same frame", 
   assert.ok(t.takePending(v) > 0, "the missed frames reach the animation");
 });
 
+test("an in-view hostile beyond the reduced-rate distance is refreshed every N frames and stays drawn", () => {
+  const slow = { ...rules, reducedRate: { distance: 1, everyNthFrame: 2 } },
+    t = createOffscreenThrottle(THREE, slow),
+    v = view(),
+    e = enemy(4, 0, 3);
+  let updates = 0,
+    carried = 0;
+  for (let i = 0; i < 10; i++) {
+    t.begin(rig(), { x: 0, z: 0 });
+    if (!t.skip(e, v, 1 / 60)) {
+      updates++;
+      carried += t.takePending(v) + 1 / 60;
+    }
+    assert.equal(v.root.visible, true);
+  }
+  carried += t.takePending(v);
+  assert.equal(updates, 5);
+  assert.ok(Math.abs(carried - 10 / 60) < 1e-9, "no time is lost");
+});
+
+test("the ground shadow blob is skipped beyond shadowMaxDistance while the body stays drawn", () => {
+  const t = createOffscreenThrottle(THREE, { ...rules, shadowMaxDistance: 2 }),
+    v = view();
+  t.begin(rig(), { x: 0, z: 0 });
+  t.skip(enemy(6, 0, 3), v, 1 / 60);
+  assert.equal(v.root.visible, true);
+  assert.equal(v.shadow.visible, false);
+  t.skip(enemy(6, 0, 1), v, 1 / 60);
+  assert.equal(v.shadow.visible, true);
+});
+
 test("switched off, every hostile is updated every frame", () => {
   const t = createOffscreenThrottle(THREE, { ...rules, enabled: false }),
     v = view();

@@ -581,6 +581,7 @@ export function createActors(
   // Runs `run` with the rig in the pose it had when the resident was built, then puts the live pose back. The
   // epoch tells the grounding bake that the pose was rewritten, so it re-poses from scratch (see finisher-grounding.js).
   function atBuildPose(view, run) {
+    view.lodRestore?.(); // finisher preparation reads the full geometry (engine/actor-lod.js)
     view.rigEpoch++;
     const live = captureRig(view.model);
     applyRig(view.finisherPose0, view.root, view.model);
