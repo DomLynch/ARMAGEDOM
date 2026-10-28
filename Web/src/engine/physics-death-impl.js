@@ -42,7 +42,7 @@ export const parkedCount = () => [...pools.values()].reduce((sum, pool) => sum +
 function warmOne(spec) {
   const pool = poolOf(spec);
   if (pool.length < CFG.poolSize && parkedCount() < CFG.maxParked)
-    pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked" }));
+    pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked", parked: true })); // created asleep: 0 ms per step until acquired
 }
 const fill = (spec) => {
   for (let i = 0; world && i < CFG.poolSize; i++) warmOne(spec);
@@ -161,7 +161,9 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     releaseDeath(oldest);
     if (admit(active.length, budget.rows) === "baked") return null;
   }
-  const rd = poolOf(spec).pop() ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  const pooled = poolOf(spec).pop(),
+    rd = pooled ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  pooled?.acquire?.(); // wake the parked body at its spawn pose (a pool built before the package knew `parked` has no acquire)
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
     const bones = boneMap(body, spec);
