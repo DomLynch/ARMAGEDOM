@@ -6,6 +6,7 @@ import { createGeometry } from "../src/world-geometry.js";
 import { createExitRings } from "../src/engine/exit-rings.js";
 import { EXIT_RINGS } from "../src/engine/exit-rings-data.js";
 import { markedTargets } from "../src/engine/route-guidance.js";
+import { LondonWorld } from "../src/world.js";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url), "utf8"));
 const areas = [...new Set(manifest.links.map((l) => l.from))];
@@ -75,21 +76,38 @@ test("each ring stands on clear ground, at or within two metres of its exit zone
         p = g.point(at),
         zone = g.ground({ x: Math.min(Math.max(p.x, c.xMin ?? 0), c.xMax ?? 1), y: Math.min(Math.max(p.y, c.yMin ?? 0), c.yMax ?? 1) }),
         gap = Math.hypot(zone.x - at.x, zone.z - at.z);
-      // Re-pinned: the hub's data offsets pull its rings in from the picture edge (a ring at the edge sat off screen), so allow that much more,
-      // and the centring step may move a ring up to its data radius further, off the road's edge towards the road's middle.
+      // Re-pinned: the hub's data offsets pull its rings in from the picture edge (a ring at the edge sat off screen), so allow that much more.
       const pull = EXIT_RINGS.offsets[`${id}>${to}`] ?? { x: 0, z: 0 };
-      if (gap > 2 + EXIT_RINGS.centring.radius + Math.hypot(pull.x, pull.z)) bad.push(`${id} -> ${to}: ${gap.toFixed(1)} m from its zone`);
+      if (gap > 2 + Math.hypot(pull.x, pull.z)) bad.push(`${id} -> ${to}: ${gap.toFixed(1)} m from its zone`);
     }
     exits.dispose();
   }
   assert.deepEqual(bad, []);
 });
 
-test("a ring stands in the road's middle, not against its edge: no clear spot within the centring radius has more room around it", () => {
-  const { radius, step, clearance } = EXIT_RINGS.centring,
+test("every ring lies inside its trigger rectangle, and a player standing on it fires its exit (the game's own travelAt)", () => {
+  const bad = [];
+  for (const id of areas) {
+    const world = fakeWorld(id),
+      real = Object.assign(Object.create(LondonWorld.prototype), { areaId: id, registry: world.registry, geometry: world.geometry }),
+      exits = createExitRings(world);
+    for (const { at, link, to } of exits.rings) {
+      const c = link.condition,
+        p = world.geometry.point(at);
+      const inside = p.x > (c.xMin ?? 0) && p.x < (c.xMax ?? 1) && p.y > (c.yMin ?? 0) && p.y < (c.yMax ?? 1);
+      if (!inside) bad.push(`${id} -> ${to}: the ring's centre (${p.x.toFixed(3)}, ${p.y.toFixed(3)}) is outside the trigger`);
+      if (real.travelAt(at)?.areaId !== to) bad.push(`${id} -> ${to}: standing on the ring does not fire the exit`);
+    }
+    exits.dispose();
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("a ring stands in the road's middle, not against its edge: no clear spot inside its trigger within the centring radius has more room", () => {
+  const { radius, roomStep, pictureStep, margin, clearance } = EXIT_RINGS.centring,
     room = (g, p) => {
       let r = 0;
-      while (r + step <= clearance && g.clear(p, r + step)) r += step;
+      while (r + roomStep <= clearance && g.clear(p, r + roomStep)) r += roomStep;
       return r;
     },
     bad = [];
@@ -97,13 +115,19 @@ test("a ring stands in the road's middle, not against its edge: no clear spot wi
     const world = fakeWorld(id),
       g = world.geometry,
       exits = createExitRings(world);
-    for (const { at, spot, to } of exits.rings) {
-      const own = room(g, at);
-      assert.ok(Math.hypot(at.x - spot.x, at.z - spot.z) <= radius + 1e-9, `${id} -> ${to}: moved further than the centring radius`);
-      for (let dx = -radius; dx <= radius; dx += step)
-        for (let dz = -radius; dz <= radius; dz += step) {
-          const p = { x: spot.x + dx, z: spot.z + dz };
-          if (Math.hypot(dx, dz) <= radius && g.clear(p, 0) && room(g, p) > own + 1e-9) bad.push(`${id} -> ${to}: ${room(g, p)} m of room at (${dx}, ${dz}) from its spot against ${own} m`);
+    for (const { at, spot, link, to } of exits.rings) {
+      const own = room(g, at),
+        c = link.condition;
+      if (Math.hypot(at.x - spot.x, at.z - spot.z) > radius + 1e-9) continue; // a trigger with nothing clear that close takes its nearest clear point
+      for (let x = (c.xMin ?? 0) + margin; x <= (c.xMax ?? 1) - margin; x += pictureStep)
+        for (let y = (c.yMin ?? 0) + margin; y <= (c.yMax ?? 1) - margin; y += pictureStep) {
+          let p;
+          try {
+            p = g.ground({ x, y });
+          } catch {
+            continue;
+          }
+          if (Math.hypot(p.x - spot.x, p.z - spot.z) <= radius && g.clear(p, 0) && room(g, p) > own + 1e-9) bad.push(`${id} -> ${to}: ${room(g, p)} m of room at picture (${x.toFixed(3)}, ${y.toFixed(3)}) against ${own} m`);
         }
     }
     exits.dispose();

@@ -23,10 +23,11 @@ export function validateExitRings(r) {
     "offsets",
     "scales",
   ]);
-  closed(r.centring ?? {}, ["radius", "step", "clearance"]);
-  if (!positive(r.centring.radius) || !positive(r.centring.step) || !positive(r.centring.clearance))
-    fail("centring radius, step and clearance must be above 0 metres");
-  if (r.centring.step > r.centring.radius) fail("centring step must not exceed its radius");
+  closed(r.centring ?? {}, ["radius", "roomStep", "pictureStep", "margin", "clearance"]);
+  if (!positive(r.centring.radius) || !positive(r.centring.roomStep) || !positive(r.centring.clearance))
+    fail("centring radius, roomStep and clearance must be above 0 metres");
+  if (!(r.centring.pictureStep > 0 && r.centring.pictureStep <= 0.05)) fail("centring pictureStep must be an image share above 0 and at most 0.05");
+  if (!(r.centring.margin > 0 && r.centring.margin < r.centring.pictureStep)) fail("centring margin must be above 0 and below pictureStep (image share)");
   if (!positive(r.inner) || !positive(r.outer) || r.inner >= r.outer) fail("inner must be above 0 and below outer (metres)");
   if (!Number.isSafeInteger(r.segments) || r.segments < 3 || r.segments > 128) fail("segments must be a whole number from 3 to 128");
   if (typeof r.colour !== "string" || !/^[0-9a-f]{6}$/i.test(r.colour)) fail("colour must be six hex digits");

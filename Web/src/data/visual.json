@@ -327,7 +327,7 @@
     "lockedOpacity": 0.7,
     "height": 0.045,
     "anchor": { "x": 0.5, "y": 0.5 },
-    "centring": { "radius": 2.5, "step": 0.5, "clearance": 2 },
+    "centring": { "radius": 2.5, "roomStep": 0.5, "pictureStep": 0.005, "margin": 0.002, "clearance": 2 },
     "flatRotation": -1.5707963267948966,
     "offsets": {
       "central-hub>westminster": { "x": 1.9, "z": 0 },
