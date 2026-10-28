@@ -1,27 +1,29 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import { createPhysics } from "@frankendom/physics";
+import { admit, createPhysics } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 import { impulseRow } from "./physics-death-impulse.js";
+import { liveBodies, rigOf } from "./physics-rigs.js";
 
 const CFG = GAME_DATA.physicsDeath,
   CUTS = GAME_DATA.pitbornCuts,
   CUT_MANIFEST = GAME_DATA.pitbornCutManifest,
-  ROW = () => structuredClone(GAME_DATA.physicsBody.row); // GAME_DATA is frozen; the package gets its own copy
+  ROW = (spec) => structuredClone(spec.body); // GAME_DATA is frozen; the package gets its own copy of the model's body row
 
 let world = null;
 export async function loadWorld() {
   return (world ??= await createPhysics({ seed: CFG.seed }));
 }
 
-const boneOf = (scene, joint) =>
-  scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint));
-const boneMap = (scene) =>
-  Object.fromEntries(Object.entries(CFG.parts).map(([part, joint]) => [part, boneOf(scene, joint)]));
+// `spec` is the model's record from physics-rigs.js (bone map, node prefix, body row): the same code ragdolls every rig family in the data.
+const boneOf = (scene, spec, joint) =>
+  scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(spec.nodePrefix + joint));
+const boneMap = (scene, spec) =>
+  Object.fromEntries(Object.entries(spec.parts).map(([part, joint]) => [part, boneOf(scene, spec, joint)]));
 
 // Hand the hunter's last animated pose (the bones, as the previous frame left them) to a ragdoll. `view.root` is the actor group,
 // `view.model` the clone, `bindScene` the untouched loaded glTF scene (the bind pose the body row was measured in). Synchronous.
@@ -29,18 +31,37 @@ const boneMap = (scene) =>
 // stepped only while a corpse is moving), so it costs nothing per frame; the pool is refilled after the corpse is freed.
 // Crowd budget (mass mobs, kills in bursts): `poolSize` parked bodies, refilled ONE per kill so a burst never builds many at once; at most
 // `maxActive` corpses simulate at the same time, the oldest is frozen where it lies (pose kept, no more steps) when a new death starts.
-const pool = [],
-  active = [];
-function warmOne() {
-  if (pool.length < CFG.poolSize) pool.push(world.createRagdoll(ROW(), { position: [0, 0, 0], id: "parked" }));
+// One pool per body row (a parked ragdoll is built from one row); the marked hunter's is filled at once, every other live body's one rewarmMs later
+// after the previous, so the idle warm-up never builds all of them in one frame.
+const pools = new Map(),
+  active = [],
+  poolOf = (spec) => pools.get(spec.key) ?? pools.set(spec.key, []).get(spec.key);
+function warmOne(spec) {
+  const pool = poolOf(spec);
+  if (pool.length < CFG.poolSize) pool.push(world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: "parked" }));
 }
 export function warm() {
-  while (pool.length < CFG.poolSize) warmOne();
+  const [first, ...rest] = liveBodies();
+  while (poolOf(first).length < CFG.poolSize) warmOne(first);
+  rest.forEach((spec, i) =>
+    setTimeout(
+      () => {
+        while (world && poolOf(spec).length < CFG.poolSize) warmOne(spec);
+      },
+      CFG.rewarmMs * (i + 1),
+    ),
+  );
   world.step(1 / CFG.stepHz); // first step compiles the paths the death frame would otherwise pay for
 }
 
 // Silent always-on diagnostic: read it from the console or a harness (`__physicsDeathStats`); nothing is ever logged.
-const stats = (globalThis.__physicsDeathStats ??= { created: 0, released: 0, active: 0, lastAt: 0, chunkLoaded: false });
+const stats = (globalThis.__physicsDeathStats ??= {
+  created: 0,
+  released: 0,
+  active: 0,
+  lastAt: 0,
+  chunkLoaded: false,
+});
 export const markChunkLoaded = () => (stats.chunkLoaded = true);
 
 // The impulse in the sim frame (= the actor root's local frame): `horizontal` along the killing blow (the hit's impactDirection, else
@@ -129,13 +150,23 @@ export function disposeCuts(s) {
   s.skin = null;
 }
 
-export function startDeath(view, bindScene, entity) {
-  const rd = pool.pop() ?? world.createRagdoll(ROW(), { position: [0, 0, 0], id: String(entity.id) });
-  setTimeout(warmOne, CFG.rewarmMs);
+// Null = the budget row (@frankendom/physics data/budget-rows.json, max_simultaneous_ragdolls) is full: no body is taken and the baked death plays.
+export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
+  const budget = GAME_DATA.physicsBudget,
+    marked = budget.reserve_for_marked.some((flag) => !!entity[flag]);
+  if (admit(active.length, budget.rows) === "baked") {
+    // Full: a hunter or boss death takes the place of the oldest crowd corpse (its body is freed, the pose stays where it lies); a crowd death is baked.
+    const oldest = marked ? active.find((a) => !a.marked) : null;
+    if (!oldest) return null;
+    releaseDeath(oldest);
+    if (admit(active.length, budget.rows) === "baked") return null;
+  }
+  const rd = poolOf(spec).pop() ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
-    const bones = boneMap(body);
-    if (Object.values(bones).some((b) => !b)) throw new Error("the hunter lacks a bone of the mixamo-106 map");
-    const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bind), root: bind } });
+    const bones = boneMap(body, spec);
+    if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
+    const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bind, spec), root: bind } });
     rig.drive();
     rd.snapToTarget();
     return rig;
@@ -143,7 +174,7 @@ export function startDeath(view, bindScene, entity) {
   let skin = null,
     plan = null,
     rig = null;
-  if (cutAssets && cutsEnabled()) {
+  if (cutAssets && cutsEnabled() && spec.model === CUTS.rigRef) {
     try {
       plan = planCut(entity.deathImpact, entity.id, (u) => cutAssets.units.has(u));
       if (plan) {
@@ -151,7 +182,12 @@ export function startDeath(view, bindScene, entity) {
         rig = build(skin.model, skin.bind);
       }
     } catch {
-      undoSkin(skin); // any failure on the cut path: the plain ragdoll on the hunter's own body
+      try {
+        undoSkin(skin); // any failure on the cut path: the plain ragdoll on the hunter's own body
+      } catch (err) {
+        rd.destroy(); // the ragdoll was taken from the pool above and nothing else owns it yet
+        throw err;
+      }
       skin = plan = rig = null;
     }
   }
@@ -163,7 +199,7 @@ export function startDeath(view, bindScene, entity) {
     rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false });
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked });
     if (plan) {
       try {
         beginCuts(s, plan, skin, push);

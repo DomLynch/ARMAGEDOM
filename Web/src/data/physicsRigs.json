@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "note": "Which manifest models ragdoll on death, as data. Each model names a rig family (bone map) and a body row; live=false keeps the baked death (no ragdoll is taken from the pool). A model with no row here (animals, drones, the hero) always takes the baked death. The simultaneous-ragdoll cap is data/physicsBudget.json; over it the death is baked too. Bodies are measured at the bind pose (package tools/glb-measure.mjs) with the manifest scale baked in.",
+  "rigs": {
+    "mixamo-106": {
+      "nodePrefix": "mixamorig:",
+      "parts": "physicsDeath.parts"
+    },
+    "v1-65": {
+      "nodePrefix": "",
+      "parts": {
+        "hips": "pelvis",
+        "spine": "spine_01",
+        "spine1": "spine_02",
+        "spine2": "spine_03",
+        "neck": "neck_01",
+        "head": "Head",
+        "armLeft": "upperarm_l",
+        "armRight": "upperarm_r",
+        "forearmLeft": "lowerarm_l",
+        "forearmRight": "lowerarm_r",
+        "handLeft": "hand_l",
+        "handRight": "hand_r",
+        "thighLeft": "thigh_l",
+        "thighRight": "thigh_r",
+        "shinLeft": "calf_l",
+        "shinRight": "calf_r",
+        "footLeft": "foot_l",
+        "footRight": "foot_r",
+        "toeLeft": "ball_l",
+        "toeRight": "ball_r"
+      }
+    }
+  },
+  "bodies": {
+    "scavenger-65": {
+      "id": "scavenger-65",
+      "source": "hollow-scavenger-phone.glb bind pose via v1-65.json, x1",
+      "height_m": 1.6834,
+      "neck_len": 0.0804,
+      "torso_len": 0.4363,
+      "shoulder_w": 0.3816,
+      "upper_arm_len": 0.226,
+      "forearm_len": 0.2192,
+      "thigh_len": 0.4159,
+      "shin_len": 0.445,
+      "foot_len": 0.1544,
+      "chest_w": 0.3889,
+      "waist_w": 0.3587,
+      "hip_w": 0.3532,
+      "chest_d": 0.3033,
+      "scale_baked": 1,
+      "joints": {
+        "Hips": [
+          0,
+          0.9059,
+          -0.0417
+        ],
+        "Spine": [
+          0,
+          1.0251,
+          -0.0067
+        ],
+        "Spine1": [
+          0,
+          1.1277,
+          0.0038
+        ],
+        "Spine2": [
+          0,
+          1.2568,
+          0.0067
+        ],
+        "Neck": [
+          0,
+          1.4601,
+          -0.0402
+        ],
+        "Head": [
+          0,
+          1.5371,
+          -0.0169
+        ],
+        "LeftArm": [
+          0.1908,
+          1.3971,
+          -0.0634
+        ],
+        "LeftForeArm": [
+          0.4167,
+          1.3971,
+          -0.0708
+        ],
+        "LeftHand": [
+          0.6358,
+          1.3971,
+          -0.0634
+        ],
+        "RightArm": [
+          -0.1908,
+          1.3971,
+          -0.0634
+        ],
+        "RightForeArm": [
+          -0.4167,
+          1.3971,
+          -0.0708
+        ],
+        "RightHand": [
+          -0.6358,
+          1.3971,
+          -0.0634
+        ],
+        "LeftUpLeg": [
+          0.1029,
+          0.9273,
+          -0.0349
+        ],
+        "LeftLeg": [
+          0.1029,
+          0.5114,
+          -0.035
+        ],
+        "LeftFoot": [
+          0.1029,
+          0.0692,
+          -0.0849
+        ],
+        "LeftToeBase": [
+          0.1029,
+          0,
+          0.0531
+        ],
+        "RightUpLeg": [
+          -0.1029,
+          0.9273,
+          -0.0349
+        ],
+        "RightLeg": [
+          -0.1029,
+          0.5114,
+          -0.035
+        ],
+        "RightFoot": [
+          -0.1029,
+          0.0692,
+          -0.0849
+        ],
+        "RightToeBase": [
+          -0.1029,
+          0,
+          0.0531
+        ]
+      }
+    },
+    "warden-65": {
+      "id": "warden-65",
+      "source": "boss-warden.glb bind pose via v1-65.json, x1",
+      "height_m": 1.986,
+      "neck_len": 0.0948,
+      "torso_len": 0.5149,
+      "shoulder_w": 0.4504,
+      "upper_arm_len": 0.2666,
+      "forearm_len": 0.2587,
+      "thigh_len": 0.4908,
+      "shin_len": 0.5251,
+      "foot_len": 0.1821,
+      "chest_w": 0.459,
+      "waist_w": 0.4234,
+      "hip_w": 0.4166,
+      "chest_d": 0.358,
+      "scale_baked": 1,
+      "joints": {
+        "Hips": [
+          0,
+          1.0689,
+          -0.0492
+        ],
+        "Spine": [
+          0,
+          1.2096,
+          -0.0079
+        ],
+        "Spine1": [
+          0,
+          1.3307,
+          0.0045
+        ],
+        "Spine2": [
+          0,
+          1.4831,
+          0.0079
+        ],
+        "Neck": [
+          0,
+          1.723,
+          -0.0474
+        ],
+        "Head": [
+          0,
+          1.8137,
+          -0.0199
+        ],
+        "LeftArm": [
+          0.2252,
+          1.6486,
+          -0.0749
+        ],
+        "LeftForeArm": [
+          0.4917,
+          1.6486,
+          -0.0836
+        ],
+        "LeftHand": [
+          0.7503,
+          1.6486,
+          -0.0749
+        ],
+        "RightArm": [
+          -0.2252,
+          1.6486,
+          -0.0749
+        ],
+        "RightForeArm": [
+          -0.4917,
+          1.6486,
+          -0.0836
+        ],
+        "RightHand": [
+          -0.7503,
+          1.6486,
+          -0.0749
+        ],
+        "LeftUpLeg": [
+          0.1214,
+          1.0942,
+          -0.0412
+        ],
+        "LeftLeg": [
+          0.1214,
+          0.6034,
+          -0.0413
+        ],
+        "LeftFoot": [
+          0.1214,
+          0.0816,
+          -0.1002
+        ],
+        "LeftToeBase": [
+          0.1214,
+          0,
+          0.0626
+        ],
+        "RightUpLeg": [
+          -0.1214,
+          1.0942,
+          -0.0412
+        ],
+        "RightLeg": [
+          -0.1214,
+          0.6034,
+          -0.0413
+        ],
+        "RightFoot": [
+          -0.1214,
+          0.0816,
+          -0.1002
+        ],
+        "RightToeBase": [
+          -0.1214,
+          0,
+          0.0626
+        ]
+      }
+    },
+    "butcher-65": {
+      "id": "butcher-65",
+      "source": "boss-butcher.glb bind pose via v1-65.json, x0.75",
+      "height_m": 1.7168,
+      "neck_len": 0.082,
+      "torso_len": 0.4451,
+      "shoulder_w": 0.3893,
+      "upper_arm_len": 0.2306,
+      "forearm_len": 0.2237,
+      "thigh_len": 0.4243,
+      "shin_len": 0.4539,
+      "foot_len": 0.1574,
+      "chest_w": 0.3967,
+      "waist_w": 0.3659,
+      "hip_w": 0.3601,
+      "chest_d": 0.3094,
+      "scale_baked": 0.75,
+      "joints": {
+        "Hips": [
+          0,
+          0.924,
+          -0.0425
+        ],
+        "Spine": [
+          0,
+          1.0456,
+          -0.0068
+        ],
+        "Spine1": [
+          0,
+          1.1503,
+          0.0038
+        ],
+        "Spine2": [
+          0,
+          1.282,
+          0.0068
+        ],
+        "Neck": [
+          0,
+          1.4894,
+          -0.0409
+        ],
+        "Head": [
+          0,
+          1.5678,
+          -0.0173
+        ],
+        "LeftArm": [
+          0.1946,
+          1.425,
+          -0.0647
+        ],
+        "LeftForeArm": [
+          0.425,
+          1.425,
+          -0.0722
+        ],
+        "LeftHand": [
+          0.6485,
+          1.425,
+          -0.0647
+        ],
+        "RightArm": [
+          -0.1946,
+          1.425,
+          -0.0647
+        ],
+        "RightForeArm": [
+          -0.425,
+          1.425,
+          -0.0722
+        ],
+        "RightHand": [
+          -0.6485,
+          1.425,
+          -0.0647
+        ],
+        "LeftUpLeg": [
+          0.1049,
+          0.9459,
+          -0.0356
+        ],
+        "LeftLeg": [
+          0.1049,
+          0.5216,
+          -0.0357
+        ],
+        "LeftFoot": [
+          0.1049,
+          0.0706,
+          -0.0865
+        ],
+        "LeftToeBase": [
+          0.1049,
+          0,
+          0.0542
+        ],
+        "RightUpLeg": [
+          -0.1049,
+          0.9459,
+          -0.0356
+        ],
+        "RightLeg": [
+          -0.1049,
+          0.5216,
+          -0.0357
+        ],
+        "RightFoot": [
+          -0.1049,
+          0.0706,
+          -0.0865
+        ],
+        "RightToeBase": [
+          -0.1049,
+          0,
+          0.0542
+        ]
+      }
+    }
+  },
+  "models": {
+    "marked-hunter": {
+      "rig": "mixamo-106",
+      "body": "physicsBody",
+      "live": true
+    },
+    "hollow-scavenger": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": true
+    },
+    "hale-pitborn": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": true
+    },
+    "boss-surgeon": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": false
+    },
+    "boss-westminster-witch": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": false
+    },
+    "boss-south-nightborn": {
+      "rig": "v1-65",
+      "body": "scavenger-65",
+      "live": false
+    },
+    "boss-warden": {
+      "rig": "v1-65",
+      "body": "warden-65",
+      "live": false
+    },
+    "boss-area8-veteran": {
+      "rig": "v1-65",
+      "body": "warden-65",
+      "live": false
+    },
+    "boss-area7-knight": {
+      "rig": "v1-65",
+      "body": "warden-65",
+      "live": false
+    },
+    "boss-butcher": {
+      "rig": "v1-65",
+      "body": "butcher-65",
+      "live": false
+    }
+  }
+}
