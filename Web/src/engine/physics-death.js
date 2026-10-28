@@ -21,6 +21,7 @@ const load = () =>
       await m.loadWorld();
       m.warm();
       impl = m;
+      m.markChunkLoaded();
     })
     .catch(() => void (broken = true)));
 // Call once after first paint: fetches the chunk on idle, only when the flag is on.

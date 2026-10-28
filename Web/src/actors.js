@@ -1286,6 +1286,7 @@ export function createActors(
           if (v) {
             v.hitReactionFresh = true;
             v.impactFlashLife = LOOK.hitFlashSeconds;
+            if (e.actor.hp <= 0) e.actor.deathImpact = { x: e.impactDirection?.x ?? 0, z: e.impactDirection?.z ?? 0 }; // the killing blow aims the ragdoll fall
             if (!e.blocked)
               v.hitReaction.hit({
                 x: e.impactDirection?.x ?? 0,
