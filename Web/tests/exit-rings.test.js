@@ -6,6 +6,7 @@ import { createGeometry } from "../src/world-geometry.js";
 import { createExitRings } from "../src/engine/exit-rings.js";
 import { EXIT_RINGS } from "../src/engine/exit-rings-data.js";
 import { markedTargets } from "../src/engine/route-guidance.js";
+import { LondonWorld } from "../src/world.js";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../public/world/manifest.json", import.meta.url), "utf8"));
 const areas = [...new Set(manifest.links.map((l) => l.from))];
@@ -57,7 +58,7 @@ test("a tenth area, a moved exit and a data offset need no code: the ring follow
   assert.equal(first[0].to, "area-ten-neighbour");
   assert.ok(Math.hypot(first[0].at.x - moved[0].at.x, first[0].at.z - moved[0].at.z) > 0.5, "moving the exit moves the ring");
   // The look and any per-exit offset live in data/visual.json only (the game's data is frozen, so a test cannot edit it).
-  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "scales", "segments"]);
+  assert.deepEqual(Object.keys(EXIT_RINGS).sort(), ["anchor", "centring", "colour", "flatRotation", "height", "inner", "lockedColour", "lockedOpacity", "offsets", "opacity", "outer", "scales", "segments"]);
   const ring = createExitRings({ ...base, group: new THREE.Group(), registry: { links: () => [link] } }).rings[0];
   assert.equal(ring.mesh.material.color.getHexString(), EXIT_RINGS.colour);
   assert.equal(ring.mesh.material.opacity, EXIT_RINGS.opacity);
@@ -82,4 +83,60 @@ test("each ring stands on clear ground, at or within two metres of its exit zone
     exits.dispose();
   }
   assert.deepEqual(bad, []);
+});
+
+test("every ring lies inside its trigger rectangle, and a player standing on it fires its exit (the game's own travelAt)", () => {
+  const bad = [];
+  for (const id of areas) {
+    const world = fakeWorld(id),
+      real = Object.assign(Object.create(LondonWorld.prototype), { areaId: id, registry: world.registry, geometry: world.geometry }),
+      exits = createExitRings(world);
+    for (const { at, link, to } of exits.rings) {
+      const c = link.condition,
+        p = world.geometry.point(at);
+      const inside = p.x > (c.xMin ?? 0) && p.x < (c.xMax ?? 1) && p.y > (c.yMin ?? 0) && p.y < (c.yMax ?? 1);
+      if (!inside) bad.push(`${id} -> ${to}: the ring's centre (${p.x.toFixed(3)}, ${p.y.toFixed(3)}) is outside the trigger`);
+      if (real.travelAt(at)?.areaId !== to) bad.push(`${id} -> ${to}: standing on the ring does not fire the exit`);
+    }
+    exits.dispose();
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("a ring stands in the road's middle, not against its edge: no clear spot inside its trigger within the centring radius has more room", () => {
+  const { radius, roomStep, pictureStep, margin, clearance } = EXIT_RINGS.centring,
+    room = (g, p) => {
+      let r = 0;
+      while (r + roomStep <= clearance && g.clear(p, r + roomStep)) r += roomStep;
+      return r;
+    },
+    bad = [];
+  for (const id of areas) {
+    const world = fakeWorld(id),
+      g = world.geometry,
+      exits = createExitRings(world);
+    for (const { at, spot, link, to } of exits.rings) {
+      const own = room(g, at),
+        c = link.condition;
+      if (Math.hypot(at.x - spot.x, at.z - spot.z) > radius + 1e-9) continue; // a trigger with nothing clear that close takes its nearest clear point
+      for (let x = (c.xMin ?? 0) + margin; x <= (c.xMax ?? 1) - margin; x += pictureStep)
+        for (let y = (c.yMin ?? 0) + margin; y <= (c.yMax ?? 1) - margin; y += pictureStep) {
+          let p;
+          try {
+            p = g.ground({ x, y });
+          } catch {
+            continue;
+          }
+          if (Math.hypot(p.x - spot.x, p.z - spot.z) <= radius && g.clear(p, 0) && room(g, p) > own + 1e-9) bad.push(`${id} -> ${to}: ${room(g, p)} m of room at picture (${x.toFixed(3)}, ${y.toFixed(3)}) against ${own} m`);
+        }
+    }
+    exits.dispose();
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("Westminster's exit to Area 8 no longer sits against the river rail: its ring has at least a metre of road around it", () => {
+  const g = fakeWorld("westminster").geometry,
+    ring = createExitRings(fakeWorld("westminster")).rings.find((r) => r.to === "area8");
+  assert.ok(g.clear(ring.at, 1), `ring at (${ring.at.x.toFixed(1)}, ${ring.at.z.toFixed(1)}) has under a metre of room`);
 });

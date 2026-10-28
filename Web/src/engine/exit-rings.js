@@ -49,6 +49,39 @@ export function ringSpot(g, target, radius) {
     };
   return walk(target, road, road.gap) ?? walk(road, middle, Math.hypot(middle.x - road.x, middle.z - road.z)) ?? road;
 }
+// How far the ring stands from the road's edge and from any blocker: the widest radius (up to `clearance`) that is still clear there.
+function roomAround(g, p, clearance, step) {
+  let room = 0;
+  while (room + step <= clearance && g.clear(p, room + step)) room += step;
+  return room;
+}
+// An exit zone hugs the picture's edge, so the first clear spot is often against the river rail or a wall. The ring must still mark where the
+// exit really fires, so it only moves inside the trigger rectangle (a point just inside every bound, as `world.travelAt` tests it): among the
+// clear points there within `radius` metres of the first spot it takes the one with the most room around it (nearest on a tie), and when none
+// lies that close, the clear point inside the trigger nearest to the spot. A trigger with no clear point keeps the first spot.
+export function centredSpot(g, spot, condition, { radius, roomStep, pictureStep, margin, clearance }) {
+  const lo = { x: (condition.xMin ?? 0) + margin, y: (condition.yMin ?? 0) + margin },
+    hi = { x: (condition.xMax ?? 1) - margin, y: (condition.yMax ?? 1) - margin };
+  let near = null,
+    closest = null;
+  for (let x = lo.x; x <= hi.x; x += pictureStep) {
+    for (let y = lo.y; y <= hi.y; y += pictureStep) {
+      let p;
+      try {
+        p = g.ground({ x, y });
+      } catch {
+        continue; // above the horizon
+      }
+      if (!g.clear(p, 0)) continue;
+      const gap = Math.hypot(p.x - spot.x, p.z - spot.z);
+      if (!closest || gap < closest.gap) closest = { at: p, gap };
+      if (gap > radius) continue;
+      const room = roomAround(g, p, clearance, roomStep);
+      if (!near || room > near.room || (room === near.room && gap < near.gap)) near = { at: p, room, gap };
+    }
+  }
+  return (near ?? closest)?.at ?? spot;
+}
 export function createExitRings(world) {
   const { THREE, geometry: g } = world,
     links = world.registry?.links?.(world.areaId) ?? [],
@@ -75,14 +108,15 @@ export function createExitRings(world) {
     const zone = zoneGround(g, link.condition, EXIT_RINGS.anchor);
     if (!zone) continue;
     const nudge = EXIT_RINGS.offsets[`${world.areaId}>${link.to}`] ?? { x: 0, z: 0 },
-      at = ringSpot(g, { x: zone.x + nudge.x, z: zone.z + nudge.z }, 0),
+      spot = ringSpot(g, { x: zone.x + nudge.x, z: zone.z + nudge.z }, 0),
+      at = centredSpot(g, spot, link.condition, EXIT_RINGS.centring),
       mesh = new THREE.Mesh(geometry, material);
     mesh.name = `Exit ring to ${link.to}`; // text-ok: internal mesh name
     mesh.position.copy(world.toRender(at, EXIT_RINGS.height));
     mesh.rotation.x = EXIT_RINGS.flatRotation;
     mesh.scale.setScalar(EXIT_RINGS.scales[`${world.areaId}>${link.to}`] ?? 1); // far, compressed picture areas need a bigger ring
     group.add(mesh);
-    rings.push({ to: link.to, mesh, link, at });
+    rings.push({ to: link.to, mesh, link, at, spot });
   }
   world.group.add(group);
   let disposed = false;
