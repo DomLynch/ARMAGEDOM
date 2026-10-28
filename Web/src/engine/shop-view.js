@@ -70,8 +70,9 @@ export function createShopView({ doc, controller }) {
   function render(v) {
     root.hidden = !v.open;
     if (!v.open) return;
-    title.textContent = v.shop.title;
+    title.textContent = v.phase === "closed" ? TEXT.closedTitle : v.shop.title;
     cash.textContent = v.cashText;
+    cash.hidden = v.phase !== "ready";
     const ready = v.phase === "ready";
     tabs.hidden = !ready;
     strip.hidden = !ready;

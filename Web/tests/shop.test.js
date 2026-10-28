@@ -277,9 +277,12 @@ test("the panel draws the Buy rows with 48px-class controls and a Market closed 
   await confirm.listeners.click();
   await wait();
   assert.equal(root.byClass("shop-note")[0].textContent, "Bought 1 x Scrap metal.");
-  const closed = createShop({ doc: makeDoc(), market: () => null, isGuest: () => true, localCash: () => null, blocked: () => false });
+  const closedDoc = makeDoc(),
+    closed = createShop({ doc: closedDoc, market: () => null, isGuest: () => true, localCash: () => null, blocked: () => false });
   closed.open("scrapper");
   assert.equal(closed.controller.view().stateText, DATA.text.closedGuest);
+  assert.equal(closedDoc.body.children[1].byClass("shop-title")[0].textContent, DATA.text.closedTitle);
+  assert.equal(closedDoc.body.children[1].byClass("shop-cash")[0].hidden, true);
 });
 
 test("market adapter: maps the contract's rows, the trade reply and offline/refusal verdicts; it never throws", async () => {
