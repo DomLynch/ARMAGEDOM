@@ -29,14 +29,14 @@ for (let i = 0; i < list.length; i++) {
   const mixer = new THREE.AnimationMixer(g.scene);
   mixer.clipAction(clip).play(); mixer.update(T);
   g.scene.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(g.scene), c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const box = new THREE.Box3().setFromObject(g.scene, true), c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
   const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 50);
   const d = Math.max(s.y / 2 / Math.tan(THREE.MathUtils.degToRad(15)) * 1.15, 2);
   const dir = view === "q34" ? new THREE.Vector3(0.6, 0.15, 0.8).normalize() : new THREE.Vector3(0, 0.05, 1);
   cam.position.copy(c).addScaledVector(dir, d); cam.lookAt(c);
   r.setViewport(i * W, 0, W, H); r.setScissor(i * W, 0, W, H);
   r.render(scene, cam);
-  document.title += `${list[i]}:${s.y.toFixed(2)} `;
+  document.title += `${list[i]}:h${s.y.toFixed(2)}/min${box.min.y.toFixed(3)} `;
 }
 window.__ready = true;
 </script>

@@ -2656,6 +2656,138 @@
       },
       "bytes": 478904,
       "sha256": "2452c89945f41739f53404d066e6ac71955aaed0e65d55d265e96418e2854b9d"
+    },
+    "npc-vendor-brannock": {
+      "url": "npc/npc-vendor-brannock.glb",
+      "rig": "mixamo-106",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 0.955,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "measure": {
+        "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
+        "meshTopMetres": 1.739,
+        "meshBottomMetres": -0.066,
+        "hipsMetres": 0.947,
+        "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
+      },
+      "deferred": true,
+      "provenance": {
+        "source": "Crowd body mh-male-01 (OpenTrident Dev MakeHuman V2, art/makehuman-crowd) with its clips replaced by one Mixamo idle, 107900901-breathing-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs)",
+        "licence": "Same as the crowd bodies, see art/makehuman-crowd/PROVENANCE.md (MakeHuman CC0 packs, Mixamo clips cleared by Dom 2026-10-23).",
+        "assembly": "plain body, worn-2030 colour grade on the body atlas only, ONE clip (Idle), no weapon; every clip role points at Idle because the NPC never fights",
+        "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
+      },
+      "bytes": 533780,
+      "sha256": "8cb8c8049bca022d9fbd7555f51c3b057551defd987c5edfe3442c54fc9d9866"
+    },
+    "npc-medic-ines": {
+      "url": "npc/npc-medic-ines.glb",
+      "rig": "mixamo-106",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 0.923,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "measure": {
+        "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
+        "meshTopMetres": 1.689,
+        "meshBottomMetres": -0.081,
+        "hipsMetres": 0.916,
+        "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
+      },
+      "deferred": true,
+      "provenance": {
+        "source": "Crowd body mh-gen-v2-0036 (OpenTrident Dev MakeHuman V2, art/makehuman-crowd) with its clips replaced by one Mixamo idle, 110210901-looking, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs)",
+        "licence": "Same as the crowd bodies, see art/makehuman-crowd/PROVENANCE.md (MakeHuman CC0 packs, Mixamo clips cleared by Dom 2026-10-23).",
+        "assembly": "plain body, worn-2030 colour grade on the body atlas only, ONE clip (Idle), no weapon; every clip role points at Idle because the NPC never fights",
+        "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
+      },
+      "bytes": 496244,
+      "sha256": "114ad699410912e8d61400e2e7f0fcd059c6446c54c546796ddd4778fdb00f5f"
+    },
+    "npc-quest-marrow": {
+      "url": "npc/npc-quest-marrow.glb",
+      "rig": "mixamo-106",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "stride": 0.858,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "measure": {
+        "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
+        "meshTopMetres": 1.553,
+        "meshBottomMetres": -0.088,
+        "hipsMetres": 0.851,
+        "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
+      },
+      "deferred": true,
+      "provenance": {
+        "source": "Crowd body mh-gen-v2-0020 (OpenTrident Dev MakeHuman V2, art/makehuman-crowd) with its clips replaced by one Mixamo idle, 104340901-old-man-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs)",
+        "licence": "Same as the crowd bodies, see art/makehuman-crowd/PROVENANCE.md (MakeHuman CC0 packs, Mixamo clips cleared by Dom 2026-10-23).",
+        "assembly": "plain body, worn-2030 colour grade on the body atlas only, ONE clip (Idle), no weapon; every clip role points at Idle because the NPC never fights",
+        "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
+      },
+      "bytes": 497236,
+      "sha256": "b358a7eb5ea246d4813d785bb12c576469ad532968c66ba0813f2d3a68d95949"
     }
   },
   "files": {
@@ -2864,6 +2996,21 @@
       "file": "crowd/mh-woman-01.glb",
       "bytes": 478904,
       "sha256": "2452c89945f41739f53404d066e6ac71955aaed0e65d55d265e96418e2854b9d"
+    },
+    "npc-vendor-brannock": {
+      "file": "npc/npc-vendor-brannock.glb",
+      "bytes": 533780,
+      "sha256": "8cb8c8049bca022d9fbd7555f51c3b057551defd987c5edfe3442c54fc9d9866"
+    },
+    "npc-medic-ines": {
+      "file": "npc/npc-medic-ines.glb",
+      "bytes": 496244,
+      "sha256": "114ad699410912e8d61400e2e7f0fcd059c6446c54c546796ddd4778fdb00f5f"
+    },
+    "npc-quest-marrow": {
+      "file": "npc/npc-quest-marrow.glb",
+      "bytes": 497236,
+      "sha256": "b358a7eb5ea246d4813d785bb12c576469ad532968c66ba0813f2d3a68d95949"
     }
   },
   "pistol": {
