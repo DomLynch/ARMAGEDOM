@@ -1,4 +1,4 @@
-// Which shove a ragdoll death gets: the killing hit's weapon, attack class and zone pick one row of physicsDeath.json `bulletImpulse`
+// Which shove a ragdoll death gets: the killing hit's weapon, and attack class pick one row of physicsDeath.json `bulletImpulse`
 // (a pistol round pushes the body back with a little lift, a shotgun launches it, a blast throws it from the blast centre, a knife barely
 // moves it). Pure data lookups with no physics import, so the actor code can record the hit and tests can read the rows. ?bulletimpulse=0
 // (the row's offValue) restores the single fixed `killImpulse`.
@@ -21,13 +21,11 @@ export const deathImpactOf = (hit) => ({
   z: hit.impactDirection?.z ?? 0,
   weapon: hit.weapon,
   attackClass: hit.attackClass,
-  zone: hit.zone,
 });
 
-// One row { horizontal, up, part }: weapon first, then attack class, then the fixed default; a known zone picks the struck part.
+// One row { horizontal, up, part }: weapon first, then attack class, then the fixed default.
 export function impulseRow(impact, enabled = bulletImpulseEnabled()) {
   const base = CFG.killImpulse,
-    row = enabled && impact ? (BI.byWeapon[impact.weapon] ?? BI.byAttackClass[impact.attackClass] ?? base) : base,
-    zonePart = enabled && impact?.zone ? BI.zoneParts[impact.zone] : undefined;
-  return { horizontal: row.horizontal, up: row.up, part: zonePart ?? row.part ?? base.part };
+    row = enabled && impact ? (BI.byWeapon[impact.weapon] ?? BI.byAttackClass[impact.attackClass] ?? base) : base;
+  return { horizontal: row.horizontal, up: row.up, part: row.part ?? base.part };
 }

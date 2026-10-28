@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "note": "Living and dying burn look for the flamethrower, presentation only (no hit, damage or sim state). Tint, ember, a few pooled flame licks and dark smoke on a burning body; a fire kill keeps burning and smoking on the corpse until it is removed. Seconds are game seconds, sizes metres, shares 0 to 1. Off switch: ?burn=0.",
+  "flagParam": "burn",
+  "offValue": "0",
+  "defaultOn": true,
+  "maxActors": 3,
+  "living": {
+    "chargeSeconds": 1.6,
+    "cooldownSeconds": 3.5,
+    "maxChar": 0.55,
+    "afterburnSeconds": 1.1
+  },
+  "dying": {
+    "graceSeconds": 0.6,
+    "charSeconds": 2.5,
+    "maxChar": 0.9,
+    "burnSeconds": 5,
+    "smokeSeconds": 9,
+    "lieSeconds": 1.6,
+    "lieHeightShare": 0.2
+  },
+  "tint": {
+    "sootColour": "17120f",
+    "blend": 0.85,
+    "emberColour": "8a2c08",
+    "emberIntensity": 0.12,
+    "flickerHz": 11,
+    "flickerDepth": 0.4,
+    "roughnessFloor": 0.9
+  },
+  "flame": {
+    "puffs": 3,
+    "reducedPuffs": 1,
+    "width": 0.34,
+    "aspect": 1.5,
+    "cyclesPerSecond": 2.6,
+    "heightMin": 0.2,
+    "heightMax": 0.85,
+    "spread": 0.28,
+    "palette": ["f2a33a", "d9591b", "8a2e0e"]
+  },
+  "smoke": {
+    "puffs": 4,
+    "reducedPuffs": 1,
+    "startWidth": 0.22,
+    "endWidth": 0.95,
+    "aspect": 1.2,
+    "rise": 1.5,
+    "lifeSeconds": 2.2,
+    "drift": 0.25,
+    "opacity": 0.6,
+    "colour": "100e0d",
+    "startHeightShare": 0.55
+  },
+  "texture": { "size": 32, "falloffPower": 1.5, "peakAlpha": 230, "alphaTest": 0.01, "renderOrder": 2 },
+  "floorClearance": 0.02,
+  "floorHeightShare": 0.5,
+  "seedStep": 0.618
+}

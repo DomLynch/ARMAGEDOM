@@ -93,6 +93,8 @@ import hitReaction from "../data/hitReaction.json" with { type: "json" };
 import { validateHitReaction } from "./hit-reaction-data.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
+import burnPresentation from "../data/burnPresentation.json" with { type: "json" };
+import { validateBurnPresentation } from "./burn-presentation-data.js";
 import { validateHud } from "./hud-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
 import { validateDropMarkerLayout } from "./drop-marker-data.js";
@@ -1076,6 +1078,7 @@ const sources = () => ({
   hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
+  burnPresentation: [burnPresentation, validateBurnPresentation],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
