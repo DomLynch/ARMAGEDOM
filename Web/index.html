@@ -56,7 +56,7 @@
     <div id="pickup-flash" aria-hidden="true"></div>
     <canvas
       id="world"
-      aria-label="Westminster fight. WASD to move; left click slash, right click stab, Q heavy, E special, Space dodge, F guard."
+      aria-label="Westminster fight. WASD to move; left click attack, right click or F guard, R stab or reload, Q heavy, Space dodge, 1-6 or wheel to switch weapon."
     ></canvas>
     <div id="hud" hidden>
       <!-- One column: vitals, ammo, then the three centre lines, so none of them can overlap however many lines they wrap to. -->
@@ -180,10 +180,9 @@
           Guard to turn your defence. Hold Guard to block, press just before
           eligible melee hits to parry.
         </p>
-        <p>
-          Desktop: WASD move · mouse aims · LMB Slash · RMB Stab · Q Heavy · E
-          Special · Space Dodge · hold F Guard · hold Shift Sprint · C Next
-          weapon · R Retry.
+        <p id="controls-desktop">
+          Desktop: WASD move · mouse aims · LMB Attack · RMB/F Guard · Space Dodge roll · R Stab / reload · Q Heavy · 1-6/Wheel Weapon
+          · Esc Menu. Keys can be changed in data/inputKeys.json.
         </p>
         <p>
           Attacks, dodge and sprint spend stamina. Recover when not attacking or

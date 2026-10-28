@@ -39,12 +39,16 @@ test("row 1: knife, pistol, rifle and flamethrower are all carried and exactly o
   assert.equal(rows.filter((r) => r.active).length, 1);
 });
 
-test("row 2: weapon switching has a keyboard binding (KeyC cycles; Digit1 stays Special)", () => {
+// Re-pinned 28 Oct for the data-driven key map (Web/src/data/inputKeys.json): C still cycles, the digits 1-6 are now weapon slots
+// (Special stays on E), and the same rules hold: Ctrl/Cmd chords go to the browser and a held key does not spin the weapons.
+test("row 2: weapon switching has a keyboard binding (C cycles, 1-6 select; Special stays on E)", () => {
   const src = fs.readFileSync(new URL("../src/input.js", import.meta.url), "utf8");
-  assert.match(src, /Digit1: "special"/);
-  assert.match(src, /event\.code === "KeyC"[\s\S]{0,200}cycleWeapon\(\)/, "KeyC calls cycleWeapon");
-  assert.match(src, /event\.code === "KeyC" && !event\.ctrlKey && !event\.metaKey/, "Ctrl/Cmd+C is left to the browser");
-  assert.match(src, /if \(!event\.repeat\) cycleWeapon\(\)/, "holding C does not spin through the weapons");
+  const keys = JSON.parse(fs.readFileSync(new URL("../src/data/inputKeys.json", import.meta.url), "utf8")).keys;
+  assert.deepEqual(keys.weaponNext, ["KeyC"]);
+  assert.deepEqual(keys.special, ["KeyE"]);
+  assert.deepEqual(keys.weapon1, ["Digit1"]);
+  assert.match(src, /event\.ctrlKey \|\| event\.metaKey/, "Ctrl/Cmd+C is left to the browser");
+  assert.match(src, /if \(!event\.repeat\) switchWeapon\(/, "holding the key does not spin through the weapons");
 });
 
 test("row 3: empty pistol, rifle and flame tiles say they are empty", () => {

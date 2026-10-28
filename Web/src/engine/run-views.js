@@ -3,7 +3,7 @@ import { createMarkedView } from "./marked-view.js";
 import { createTrapCrateView } from "./trap-crate-view.js";
 import { createReaperView } from "./reaper-view.js";
 import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
-import { nextCarriedWeapon } from "./weapon-cycle.js";
+import { nextCarriedWeapon, carriedWeaponAt } from "./weapon-cycle.js";
 import { createSafehouseView } from "./safehouse-view.js";
 import { createBossEquipmentView } from "./boss-equipment-view.js";
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
@@ -243,11 +243,13 @@ export function createRunViews(s) {
   // Keyboard weapon switch: the next carried weapon after the active one, in tile order, through the same
   // select path as a tile tap. The Reaper companion is a deploy/recall toggle, so the cycle skips it.
   let cycling = false;
-  async function cycleWeapon() {
+  // { step } picks the next (1) or previous (-1) carried weapon, { slot } the nth; the blocked states are the same as a tile tap.
+  async function switchWeapon({ step = 1, slot = null } = {}) {
     const g = s.game;
     if (cycling || !g || s.paused || !s.loaded || s.traveling || s.contextLost || g.finished || g.player.hp <= 0)
       return;
-    const next = nextCarriedWeapon(carriedWeaponTiles(g));
+    const rows = carriedWeaponTiles(g),
+      next = slot ? carriedWeaponAt(rows, slot) : nextCarriedWeapon(rows, step);
     if (!next || document.getElementById(next.control)?.disabled !== false) return;
     cycling = true;
     try {
@@ -437,7 +439,7 @@ export function createRunViews(s) {
       weaponTiles.update();
     },
     interactNearby,
-    cycleWeapon,
+    switchWeapon,
     interactSafehouse: safehouseView.interact,
     interactFlame: flameView.interact,
     interactExpedition: expeditionView.interact,
