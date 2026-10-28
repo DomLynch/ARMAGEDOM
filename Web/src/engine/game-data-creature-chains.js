@@ -38,7 +38,9 @@ export function validateCreatureChainRows(d) {
       ["missingBones", "nodeBones"],
     );
     if (row.live !== false) fail(FILE, `${id}: live must be false until the wiring lands`);
-    if (!["chain", "humanoid", "none"].includes(row.kind) || !["full", "partial", "humanoid", "none"].includes(row.fit)) fail(FILE, `${id}: kind or fit is not a known value`);
+    const known = (value, list) => list.includes(value);
+    if (!known(row.kind, ["chain", "humanoid", "none"]) || !known(row.fit, ["full", "partial", "humanoid", "none"]))
+      fail(FILE, `${id}: kind or fit is not a known value`);
     if (typeof row.fitNote !== "string" || !row.fitNote) fail(FILE, `${id}: fitNote must say how well the skeleton fits`);
     number(FILE, `${id}.modelScale`, row.modelScale, 0.01);
     closed(row.simRoot, ["scale", "modelChildScale"]);
