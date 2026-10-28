@@ -14,6 +14,7 @@ export function validateCrowdBodies(d) {
     "seed",
     "defaultRef",
     "buckets",
+    "idleMs",
     "maxBodiesPerArea",
     "excludedAreas",
     "pool",
@@ -22,6 +23,7 @@ export function validateCrowdBodies(d) {
   for (const name of ["offParam", "offValue", "seed", "defaultRef"])
     if (typeof d[name] !== "string" || !d[name]) fail("crowdBodies", `${name} must be a nonempty string`);
   count("crowdBodies", "buckets", d.buckets, 2, 65536);
+  count("crowdBodies", "idleMs", d.idleMs, 0, 60000);
   count("crowdBodies", "maxBodiesPerArea", d.maxBodiesPerArea, 0, 12);
   if (!Array.isArray(d.excludedAreas) || d.excludedAreas.some((a) => typeof a !== "string" || !a))
     fail("crowdBodies", "excludedAreas must be a list of area ids");

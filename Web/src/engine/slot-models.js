@@ -4,7 +4,7 @@
 // of actors.ensureAreaModels uses this same list (one source), without the placed bosses, which never respawn and stay deferred
 // while dead.
 import { slotAppearanceRefs } from "../area-mob-spawns.js";
-import { crowdAreaRefs, ensureCrowdModels } from "./crowd-bodies.js";
+import { ensureCrowdModels } from "./crowd-bodies.js";
 export function slotModelRefs(world, areaId, manifest) {
   const policyArea = world.populationData?.areas[areaId];
   return [
@@ -25,12 +25,11 @@ export function slotModelRefs(world, areaId, manifest) {
 export function ensureSlotModels(library, world, areaId) {
   if (!library?.manifest) return undefined;
   const refs = [...new Set(slotModelRefs(world, areaId, library.manifest))];
-  const crowd = crowdAreaRefs(world, areaId).length > 0 ? ensureCrowdModels(library, world, areaId) : undefined;
-  if (refs.length === 0) return crowd;
-  const slot = Promise.resolve()
+  ensureCrowdModels(library, world, areaId); // fire and forget: nothing waits on a pool look
+  if (refs.length === 0) return undefined;
+  return Promise.resolve()
     .then(() => library.ensureModels?.(refs))
     .catch(() => {
       /* Retried by the next area entry or restore. */
     });
-  return crowd ? Promise.all([slot, crowd]).then(() => undefined) : slot;
 }

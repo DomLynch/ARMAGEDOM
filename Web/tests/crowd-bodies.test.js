@@ -179,7 +179,30 @@ test("a failed crowd body download never fails boot, restore or an area entry, a
   const actors = createActors(new THREE.Scene(), world, offline);
   await actors.ensureAreaModels({ enemies: [] }, "east", { fresh: true });
   await actors.ensureAreaModels({ enemies: [plain(bodyKey(), { id: 5 })] }, "east");
+  await new Promise((resolve) => setTimeout(resolve, 20));
   assert(calls.some((names) => names.some(isCrowdBody)), "the pool models were requested");
+  actors.dispose();
+});
+
+test("an area entry never waits for the crowd downloads: they start after it resolved, and a download that never ends changes nothing", async (t) => {
+  shim(t);
+  const calls = [];
+  let entered = false;
+  const stuck = {
+    manifest,
+    models: new Map(),
+    dispose() {},
+    ensureModels(names) {
+      calls.push({ names, afterEntry: entered });
+      return names.some((name) => POOL.pool.some((row) => row.ref === name)) ? new Promise(() => {}) : Promise.resolve();
+    },
+  };
+  const actors = createActors(new THREE.Scene(), world, stuck);
+  await actors.ensureAreaModels({ enemies: [] }, "east", { fresh: true }); // would hang here if the entry waited for the bodies
+  entered = true;
+  assert(!calls.some((c) => c.names.some(isCrowdBody)), "no pool download had started before the entry resolved");
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert(calls.some((c) => c.names.some(isCrowdBody) && c.afterEntry), "the pool downloads start after it");
   actors.dispose();
 });
 

@@ -83,8 +83,10 @@ export function crowdAreaRefs(world, areaId, fallbackRows = AREA_MOB_SPAWNS[area
     ),
   ];
 }
-// Best effort, never required: download the pool models an area's residents draw. Resolves whatever happens (a failed file only leaves
-// those residents in the scavenger look, and the next entry asks again), so a missing body can never fail boot, restore or an area entry.
+// Fire and forget, never required: download the pool models an area's residents draw, once the browser is idle (at once outside a browser).
+// Nothing waits on it: residents built before a file arrives keep the scavenger look, and the next spawn or entry uses the cached body. The
+// returned promise always resolves (a failed file only leaves those residents as they are, and the next entry asks again), so a missing body
+// can never fail boot, restore or an area entry.
 export function ensureCrowdModels(library, world, areaId, entities = []) {
   const refs = [
     ...new Set([
@@ -93,13 +95,21 @@ export function ensureCrowdModels(library, world, areaId, entities = []) {
     ]),
   ];
   if (refs.length === 0) return Promise.resolve();
-  try {
-    return Promise.resolve(library.ensureModels?.(refs)).catch(() => {
-      /* Retried by the next area entry. */
-    });
-  } catch {
-    return Promise.resolve();
-  }
+  return new Promise((resolve) => {
+    const go = () => {
+      try {
+        Promise.resolve(library.ensureModels?.(refs))
+          .catch(() => {
+            /* Retried by the next area entry. */
+          })
+          .then(resolve);
+      } catch {
+        resolve();
+      }
+    };
+    if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: POOL.idleMs });
+    else setTimeout(go);
+  });
 }
 
 // The model name for an entity. `loaded` (the library's model map) is given when the view is built: a hunter or crowd body whose
@@ -127,15 +137,15 @@ export function actorModelRef(entity, manifest, loaded, areaId) {
 const names = ["revenant", "orc", "warlock", "warlord"];
 
 // The models an area's saved actors REQUIRE that are deferred (bosses, explicit appearances, deferred foundations), named by the model rule
-// above. Pool looks are not required: the array carries `crowd`, the best-effort download of the pool models the area's residents draw
-// (ensureCrowdModels), for the caller to wait on beside the required ones.
+// above. Pool looks are not required: the array carries `crowd()`, which the caller runs once the entry has resolved to start the
+// fire-and-forget download of the pool models the area's residents draw (ensureCrowdModels).
 export function areaRequiredRefs(record, library, areaId, world) {
   const { manifest } = library,
     entities = [...(record.enemies ?? []), ...(record.corpses ?? [])];
   const refs = entities
     .filter((e) => e.bossProfile || e.appearanceRef !== undefined || manifest.models[e.rig]?.deferred === true)
     .map((e) => actorModelRef(e, manifest, undefined, areaId));
-  return Object.assign(refs, { crowd: ensureCrowdModels(library, world, areaId, entities) });
+  return Object.assign(refs, { crowd: () => void ensureCrowdModels(library, world, areaId, entities) });
 }
 // The rig a view is dressed as: the body's own rig for the marked hunter and the crowd bodies, otherwise the entity's.
 export function visualRigOf(entity, name, description) {

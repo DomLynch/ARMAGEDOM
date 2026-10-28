@@ -7,6 +7,7 @@
   "seed": "crowd-bodies-v1",
   "defaultRef": "hollow-scavenger",
   "buckets": 4096,
+  "idleMs": 2000,
   "maxBodiesPerArea": 3,
   "excludedAreas": ["westminster"],
   "pool": [

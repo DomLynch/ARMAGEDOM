@@ -868,8 +868,9 @@ export function createActors(
             if (projectile) refs.push(projectile);
           }
         }
-      const required = Promise.all([library.ensureModels?.([...new Set(refs)]), refs.crowd]);
+      const required = library.ensureModels?.([...new Set(refs)]) ?? Promise.resolve();
       return required.then(async () => {
+        refs.crowd();
         if (flame && areaId === flame.areaId)
           try {
             await library.ensureModels([flame.modelRef]);
