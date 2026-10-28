@@ -120,7 +120,9 @@ export function killVector(root, entity) {
     d = entity.deathImpact ?? (entity.facing ? { x: -entity.facing.x, z: -entity.facing.z } : { x: 0, z: -1 }),
     len = Math.hypot(d.x, d.z) || 1,
     // the root's WORLD turn, as the rig's own frame is (a remote body sits under a yawed group)
-    local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()).invert());
+    local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(
+      root.getWorldQuaternion(new THREE.Quaternion()).invert(),
+    );
   return [local.x * k.horizontal, k.up, local.z * k.horizontal];
 }
 
@@ -246,17 +248,22 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   // return means it was not parked (already awake), which is fine to use as it is.
   pooled?.acquire(spawn);
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
-  const seat = spec.frame ? frameOf(view, chainOf(spec)) : null,
-    sim = seat?.frame ?? view.root,
-    build = (body, bind) => {
-      const chain = spec.chain ? chainRig(spec, seat?.frame ?? body, seat?.frame ?? bind) : null,
-        bones = chain?.bones ?? boneMap(body, spec);
-      if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
-      const rig = createThreeRig(THREE, rd, bones, sim, chain?.options ?? { bind: { bones: boneMap(bind, spec), root: bind } });
-      rig.drive();
-      rd.snapToTarget();
-      return rig;
-    };
+  let seat = null; // a frame body's seat is made inside the try below, so a throw there frees the pooled body
+  const build = (body, bind) => {
+    const chain = spec.chain ? chainRig(spec, seat?.frame ?? body, seat?.frame ?? bind) : null,
+      bones = chain?.bones ?? boneMap(body, spec);
+    if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
+    const rig = createThreeRig(
+      THREE,
+      rd,
+      bones,
+      seat?.frame ?? view.root,
+      chain?.options ?? { bind: { bones: boneMap(bind, spec), root: bind } },
+    );
+    rig.drive();
+    rd.snapToTarget();
+    return rig;
+  };
   let skin = null,
     plan = null,
     rig = null;
@@ -279,10 +286,11 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   }
   let s = null;
   try {
+    seat = spec.frame ? frameOf(view, chainOf(spec)) : null;
     rig ??= build(view.model, bindScene);
     // A chain body is heavier or lighter than the 65 kg humanoid the impulse rows are tuned on: the shove scales with its mass.
     const mass = spec.chain ? chainOf(spec).row.total_mass_kg / spec.impulseReferenceKg : 1,
-      k = killVector(sim, entity).map((v) => v * mass),
+      k = killVector(seat?.frame ?? view.root, entity).map((v) => v * mass),
       push = plan ? k.map((v) => v * plan.row.push) : k,
       part = impulseRow(entity.deathImpact).part;
     rd.kill({ part: spec.partAlias?.[part] ?? part, impulse: push });
@@ -332,6 +340,8 @@ export const activeCount = () => active.length;
 export function releaseDeath(s) {
   s.frozen = true;
   freeBody(s);
+  unseat(s.seat); // a parked area keeps the actor: its model goes back to its own parent where it lies
+  s.seat = null;
   const i = active.indexOf(s);
   if (i >= 0) {
     active.splice(i, 1);

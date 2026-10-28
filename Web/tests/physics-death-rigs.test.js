@@ -161,6 +161,32 @@ test("a drone dies as a ragdoll on a frame node: the model rides it, falls to th
   assert.equal(scene.children.length, 1, "the frame left the scene");
 });
 
+test("a dead drone's area is parked and bound again: the model keeps its world transform (park frees the seat)", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js"),
+    THREE = await import("three"),
+    { releasePhysicsDeath } = await import("../src/engine/physics-death.js");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const scene = new THREE.Scene(),
+    root = new THREE.Group();
+  root.scale.setScalar(2);
+  root.position.set(3, 0.9, -2);
+  root.rotation.y = 0.7;
+  scene.add(root);
+  root.updateWorldMatrix(true, true);
+  const view = { root, model: root, drone: {} },
+    s = impl.startDeath(view, root, { id: 78, hp: 0, maxHP: 20, facing: { x: 0, z: -1 } }, rigOf(CFG.droneRef));
+  view.physicsDeath = s;
+  for (let i = 0; i < 120; i++) impl.stepDeath(s, 1 / 60);
+  const before = root.matrixWorld.clone().elements.slice();
+  releasePhysicsDeath(view, true); // the area is parked, the actor lives on
+  scene.remove(root);
+  scene.add(root); // bindPreparedArea puts it back
+  root.updateWorldMatrix(true, true);
+  before.forEach((v, k) => assert.ok(Math.abs(root.matrixWorld.elements[k] - v) < 1e-5, `element ${k}`));
+  assert.equal(scene.children.length, 1, "the frame is gone");
+});
+
 test("a crowd human starts its ragdoll with its own bone map and body row", () => {
   const calls = [];
   usePhysicsDeathImpl({ startDeath: (...a) => (calls.push(a), { frozen: false }), stepDeath: () => {} });
