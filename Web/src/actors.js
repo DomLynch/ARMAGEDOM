@@ -283,7 +283,7 @@ export function createActors(
     } catch (error) {
       gauntPreparationError = String(error.message ?? error);
     }
-  const hubNpcs = createHubNpcs({ library });
+  const hubNpcs = createHubNpcs({ library, visualScale });
   let reaperView = null;
   let earlyHunterLoad = false;
   let feedbackMode = "high",

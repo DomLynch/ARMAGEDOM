@@ -13,7 +13,8 @@ export const hubNpcsOn = (search = globalThis.location?.search ?? "") =>
 // The model names an area draws: all of them in the hub, none elsewhere.
 export const hubNpcRefs = (areaId) => (areaId === DATA.area && hubNpcsOn() ? DATA.npcs.map((n) => n.ref) : []);
 
-export function createHubNpcs({ library }) {
+// visualScale is the actors' own visual scale, so the NPCs stand the same size as the player and the residents.
+export function createHubNpcs({ library, visualScale = 1 }) {
   let built = null, // { world, root, mixers }
     asked = null; // the world a download was last requested for (one request per entry)
   const dispose = () => {
@@ -32,7 +33,7 @@ export function createHubNpcs({ library }) {
       const ground = world.geometry.ground(npc.at);
       holder.position.copy(world.toRender(ground));
       holder.rotation.y = THREE.MathUtils.degToRad(npc.facingDegrees);
-      holder.scale.setScalar((world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) * (description.scale ?? 1));
+      holder.scale.setScalar((world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) * (description.scale ?? 1) * visualScale);
       holder.name = npc.ref;
       holder.add(model);
       model.position.y += description.groundOffset ?? 0;

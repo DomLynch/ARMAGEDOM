@@ -15,8 +15,8 @@
       "body": "mh-male-01",
       "mixamoClip": "107900901-breathing-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.44, "y": 0.43 },
-      "facingDegrees": 15,
+      "at": { "x": 0.42, "y": 0.43 },
+      "facingDegrees": 20,
       "phaseSeconds": 0,
       "look": "bearded, olive knit and khaki trousers, dust and grime"
     },
@@ -29,8 +29,8 @@
       "body": "mh-gen-v2-0036",
       "mixamoClip": "110210901-looking",
       "idleClip": "Idle",
-      "at": { "x": 0.56, "y": 0.43 },
-      "facingDegrees": -15,
+      "at": { "x": 0.58, "y": 0.43 },
+      "facingDegrees": -20,
       "phaseSeconds": 2.5,
       "look": "grey hair, bleached cream knit and one oxblood trouser leg, clinical off-white lift"
     },
@@ -43,7 +43,7 @@
       "body": "mh-gen-v2-0020",
       "mixamoClip": "104340901-old-man-idle",
       "idleClip": "Idle",
-      "at": { "x": 0.5, "y": 0.4 },
+      "at": { "x": 0.5, "y": 0.35 },
       "facingDegrees": 0,
       "phaseSeconds": 5,
       "look": "white-cropped hair, faded rust jacket (the one warm colour in the hub), hands worried at the chest"
