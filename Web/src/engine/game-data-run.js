@@ -65,7 +65,7 @@ function validateStages(d) {
 }
 
 function validateExtraction(x) {
-  closed(x, ["note", "enabled", "offSwitch", "holdSeconds", "holdRadius", "holdDecayPerSecond", "heatScale", "pull", "bonus"]);
+  closed(x, ["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "holdRadius", "holdDecayPerSecond", "heatScale", "pull", "bonus"]);
   if (typeof x.enabled !== "boolean") fail("apocalypseRun", "extraction.enabled must be a boolean");
   checkSwitch("extraction.offSwitch", x.offSwitch);
   for (const f of ["holdSeconds", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);

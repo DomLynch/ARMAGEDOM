@@ -62,7 +62,9 @@
   "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
   "escape": { "arrived": "Reach the safehouse." },
   "extraction": {
-    "note": "The escape row is a hold-out (Dom, 28 Oct 2026): touch the safehouse after leaving it, then hold the spot. A flare marks it, a raid is called and the area boss walks to it (engine/converge.js, the airdrop's pull). The bonus is session-only: a score on the results card, never cash. ?noextract=1 (or enabled false) returns the escape to the instant exit.",
+    "note": "The escape row is a hold-out (28 Oct 2026): touch the safehouse after leaving it, then hold the spot.",
+    "note2": "A flare marks it, a raid is called and the area boss walks to it (converge.js, the airdrop pull).",
+    "note3": "The bonus is a session-only score on the results card, never cash. ?noextract=1 or enabled false: instant exit.",
     "enabled": true,
     "offSwitch": { "param": "noextract", "value": "1" },
     "holdSeconds": 20,
