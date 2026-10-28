@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "note": "Named Central Hub NPCs (appearance and one idle only). The three models are crowd-body GLBs on the 106-joint rig with the combat clips replaced by a single retargeted Mixamo idle, so they are registered in assets/manifest-hollow.json as deferred rows and are not drawn by any area yet: nothing reads this file until the Hub wiring PR (placement, interaction and dialogue belong to Lead, World and WebUI). enabled false or ?nonpcs=1 is the off switch that PR is expected to honour.",
+  "schema_version": 2,
+  "note": "Named Central Hub NPCs, presentation only: three crowd-body GLBs on the 106-joint rig with one retargeted Mixamo idle each (deferred rows in assets/manifest-hollow.json). engine/hub-npcs.js draws them in `area` while the player is there and removes them on leaving. They are not entities: no health, collision, targeting, trade, healing, quest or save state, so no cash, inventory or save record is touched. Placement is painting fractions (x right, y down, like the layout and exits) projected on the ground; facingDegrees turns the body about the vertical (0 faces the camera); phaseSeconds offsets the idle so they do not move together. enabled false or ?nonpcs=1 removes them.",
   "enabled": true,
   "offParam": "nonpcs",
   "offValue": "1",
@@ -15,6 +15,9 @@
       "body": "mh-male-01",
       "mixamoClip": "107900901-breathing-idle",
       "idleClip": "Idle",
+      "at": { "x": 0.44, "y": 0.43 },
+      "facingDegrees": 15,
+      "phaseSeconds": 0,
       "look": "bearded, olive knit and khaki trousers, dust and grime"
     },
     {
@@ -26,6 +29,9 @@
       "body": "mh-gen-v2-0036",
       "mixamoClip": "110210901-looking",
       "idleClip": "Idle",
+      "at": { "x": 0.56, "y": 0.43 },
+      "facingDegrees": -15,
+      "phaseSeconds": 2.5,
       "look": "grey hair, bleached cream knit and one oxblood trouser leg, clinical off-white lift"
     },
     {
@@ -37,6 +43,9 @@
       "body": "mh-gen-v2-0020",
       "mixamoClip": "104340901-old-man-idle",
       "idleClip": "Idle",
+      "at": { "x": 0.5, "y": 0.4 },
+      "facingDegrees": 0,
+      "phaseSeconds": 5,
       "look": "white-cropped hair, faded rust jacket (the one warm colour in the hub), hands worried at the chest"
     }
   ]
