@@ -96,7 +96,29 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       if (!Number.isFinite(amount)) throw new HttpError(400, "bad-request");
       const active = await call("arma_active", [account]);
       if (!active) throw new HttpError(403, "no-character");
-      return call("arma_claim_pickup", [account, active, source, amount]);
+      // A kill may name its enemy kind and carry a client-made killId: loot is rolled by the database and a retried killId answers the first answer.
+      const enemy = typeof body.enemy === "string" ? body.enemy : null,
+        killId = typeof body.killId === "string" ? body.killId : null;
+      return call("arma_claim_pickup", [account, active, source, amount, enemy, killId]);
+    },
+    // The market (docs/MARKET-CONTRACT.md). The database settles every price, stock row and replay.
+    async inventory_get({ account }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return { inventory: await call("arma_inventory_get", [account, active]) };
+    },
+    async market_stock({ account, body }) {
+      return { stock: await call("arma_market_stock", [account, String(body.shop_id ?? "")]) };
+    },
+    async buy_item({ account, body }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_buy_item", [account, active, String(body.shop_id ?? ""), String(body.item_id ?? ""), Number.isInteger(body.qty) ? body.qty : 0, String(body.request_id ?? "")]);
+    },
+    async sell_item({ account, body }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_sell_item", [account, active, String(body.shop_id ?? ""), String(body.item_id ?? ""), Number.isInteger(body.qty) ? body.qty : 0, String(body.request_id ?? "")]);
     },
     async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];
@@ -227,6 +249,7 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
     }
   });
   /** Deletes the spawn engages that can no longer be used (arma_prune_engages); resolves to the number deleted. main.js runs it on a timer. */
-  const pruneEngages = async () => Number(await call("arma_prune_engages", [])) || 0;
+  // Also deletes market replay rows older than 7 days (arma_prune_market_requests); its count is added to the result.
+  const pruneEngages = async () => (Number(await call("arma_prune_engages", [])) || 0) + (Number(await call("arma_prune_market_requests", [])) || 0);
   return { server, stats: () => ({ ...counts }), pruneEngages };
 }
