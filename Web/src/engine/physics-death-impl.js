@@ -1,7 +1,7 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import { admit, createPhysics } from "@frankendom/physics";
+import { admit, buildChainRow, chainRigOptions, createPhysics, loadChainBody } from "@frankendom/physics";
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
@@ -12,18 +12,67 @@ import { liveBodies, rigOf } from "./physics-rigs.js";
 const CFG = GAME_DATA.physicsDeath,
   CUTS = GAME_DATA.pitbornCuts,
   CUT_MANIFEST = GAME_DATA.pitbornCutManifest,
-  ROW = (spec) => structuredClone(spec.body); // GAME_DATA is frozen; the package gets its own copy of the model's body row
+  chains = new Map(),
+  // The package's body of that name, with its row rebuilt at scale 1: the actor root already carries the model scale (characterScale x description.scale
+  // x ...), so the ragdoll lives in model units like the humanoid rows. Masses are the package's times the record's `massScale` (a smaller creature on
+  // the same skeleton). A frame body (the drone) has no scaled actor root to ride: its ragdoll lives in metres under an unscaled frame and keeps the
+  // package row as it is.
+  chainOf = (spec) => {
+    if (!chains.has(spec.key)) {
+      const body = loadChainBody(spec.chain),
+        segments = body.spec.segments.map((seg) => ({ ...seg, mass: seg.mass * spec.massScale }));
+      chains.set(
+        spec.key,
+        spec.frame ? body : { ...body, row: buildChainRow({ ...body.spec, scale: 1, segments }, body.bones) },
+      );
+    }
+    return chains.get(spec.key);
+  },
+  // GAME_DATA is frozen; the package gets its own copy of the model's body row
+  ROW = (spec) => structuredClone(spec.chain ? chainOf(spec).row : spec.body);
 
 let world = null;
 export async function loadWorld() {
   return (world ??= await createPhysics({ seed: CFG.seed }));
 }
 
-// `spec` is the model's record from physics-rigs.js (bone map, node prefix, body row): the same code ragdolls every rig family in the data.
-const boneOf = (scene, spec, joint) =>
-  scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(spec.nodePrefix + joint));
+// `spec` is the model's record from physics-rigs.js (bone map and body row, or a chain body name): the same code ragdolls every rig in the data.
+const find = (scene) => (name) => scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name));
 const boneMap = (scene, spec) =>
-  Object.fromEntries(Object.entries(spec.parts).map(([part, joint]) => [part, boneOf(scene, spec, joint)]));
+  Object.fromEntries(
+    Object.entries(spec.parts).map(([part, joint]) => [
+      part,
+      find(scene)(spec.nodePrefix + joint) ?? virtualBone(scene, spec, part),
+    ]),
+  );
+// A chain body's bones and rig options (virtual parts, followers) in the package's one call; `bind` is the untouched model.
+const chainRig = (spec, scene, bind) =>
+  chainRigOptions(chainOf(spec), find(scene), { bindFind: find(bind), bindRoot: bind });
+// A procedural body with no skeleton (the drone): an unscaled frame on the floor under the model, turned like the model, and one empty node named like
+// the package's single bone at the model's left end. The model is seated under the node when the ragdoll starts, so it rides the capsule as one piece.
+function frameOf(view, chain) {
+  const root = view.root,
+    frame = new THREE.Group(),
+    node = new THREE.Object3D(),
+    end = new THREE.Vector3(...Object.values(chain.bones.bones)[0].pos).multiplyScalar(chain.spec.scale);
+  node.name = Object.values(chain.boneMap)[0];
+  frame.position.set(root.position.x, 0, root.position.z);
+  frame.rotation.y = root.rotation.y;
+  node.position.set(end.x, root.position.y, 0);
+  frame.add(node);
+  root.parent.add(frame);
+  return { frame, node, root, parent: root.parent };
+}
+// A part the rig has no bone for (the 19-joint vagrant has no toes): an empty node with an identity local transform under its parent joint
+// (`virtual[part]`), found by name next time. The package puts that part at the measured offset from the parent joint.
+function virtualBone(scene, spec, part) {
+  const parent = spec.virtual[part] && find(scene)(spec.nodePrefix + spec.virtual[part]);
+  if (!parent) return null;
+  const node = new THREE.Object3D();
+  node.name = THREE.PropertyBinding.sanitizeNodeName(spec.nodePrefix + spec.parts[part]);
+  parent.add(node);
+  return node;
+}
 
 // Hand the hunter's last animated pose (the bones, as the previous frame left them) to a ragdoll. `view.root` is the actor group,
 // `view.model` the clone, `bindScene` the untouched loaded glTF scene (the bind pose the body row was measured in). Synchronous.
@@ -149,6 +198,13 @@ function beginCuts(s, plan, skin, push) {
 export function disposeCuts(s) {
   undoSkin(s.skin); // the cut body leaves and the hunter's own body shows again (a no-op for the actor being removed)
   s.skin = null;
+  unseat(s.seat); // a frame body gives its model back to the scene and the frame leaves
+  s.seat = null;
+}
+function unseat(seat) {
+  if (!seat) return;
+  seat.parent.attach(seat.root);
+  seat.frame.removeFromParent();
 }
 
 // Null = the budget row (@frankendom/physics data/budget-rows.json, max_simultaneous_ragdolls) is full: no body is taken and the baked death plays.
@@ -181,20 +237,26 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     releaseDeath(oldest);
     if (admit(active.length, budget.rows) === "baked") return null;
   }
-  const pooled = poolOf(spec).pop(),
-    rd = pooled ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
+  // A body that hovers (the drone) spawns at its hover height: the capsule's centre above its own radius, where the model hangs.
+  const hover = spec.frame ? chainOf(spec).row.roles[0] : null,
+    spawn = [0, hover ? hover.rest.centre[1] - hover.radius_m : 0, 0],
+    pooled = poolOf(spec).pop(),
+    rd = pooled ?? world.createRagdoll(ROW(spec), { position: spawn, id: String(entity.id) });
   // Wake the parked body at its spawn pose BEFORE anything else touches it: setRoot, kill, snapToTarget and the rest are no-ops on a parked body. A false
   // return means it was not parked (already awake), which is fine to use as it is.
-  pooled?.acquire();
+  pooled?.acquire(spawn);
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
-  const build = (body, bind) => {
-    const bones = boneMap(body, spec);
-    if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
-    const rig = createThreeRig(THREE, rd, bones, view.root, { bind: { bones: boneMap(bind, spec), root: bind } });
-    rig.drive();
-    rd.snapToTarget();
-    return rig;
-  };
+  const seat = spec.frame ? frameOf(view, chainOf(spec)) : null,
+    sim = seat?.frame ?? view.root,
+    build = (body, bind) => {
+      const chain = spec.chain ? chainRig(spec, seat?.frame ?? body, seat?.frame ?? bind) : null,
+        bones = chain?.bones ?? boneMap(body, spec);
+      if (Object.values(bones).some((b) => !b)) throw new Error(`${spec.model} lacks a bone of its rig map`);
+      const rig = createThreeRig(THREE, rd, bones, sim, chain?.options ?? { bind: { bones: boneMap(bind, spec), root: bind } });
+      rig.drive();
+      rd.snapToTarget();
+      return rig;
+    };
   let skin = null,
     plan = null,
     rig = null;
@@ -218,12 +280,16 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   let s = null;
   try {
     rig ??= build(view.model, bindScene);
-    const k = killVector(view.root, entity),
-      push = plan ? k.map((v) => v * plan.row.push) : k;
-    rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
+    // A chain body is heavier or lighter than the 65 kg humanoid the impulse rows are tuned on: the shove scales with its mass.
+    const mass = spec.chain ? chainOf(spec).row.total_mass_kg / spec.impulseReferenceKg : 1,
+      k = killVector(sim, entity).map((v) => v * mass),
+      push = plan ? k.map((v) => v * plan.row.push) : k,
+      part = impulseRow(entity.deathImpact).part;
+    rd.kill({ part: spec.partAlias?.[part] ?? part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank });
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank, seat });
+    seat?.node.attach(seat.root); // the model rides the node, kept where it hangs now
     if (plan) {
       try {
         beginCuts(s, plan, skin, push);
@@ -235,6 +301,7 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   } catch (err) {
     // A throw after the body was taken: give back the hunter's own body, the cut skin and the ragdoll, then let the caller fall back to the clip.
     undoSkin(skin);
+    unseat(seat);
     if (s) releaseDeath(s);
     else rd.destroy();
     throw err;

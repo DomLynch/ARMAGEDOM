@@ -3,6 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { loadChainBody } from "@frankendom/physics";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { physicsDeathStep, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 import { liveBodies, rigOf } from "../src/engine/physics-rigs.js";
@@ -15,26 +16,31 @@ const RIGS = GAME_DATA.physicsRigs,
     return new Set(JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes.map((n) => n.name));
   };
 
+const HUMANOIDS = Object.entries(RIGS.models).filter(([, m]) => !m.chain),
+  CHAINS = Object.entries(RIGS.models).filter(([, m]) => m.chain);
+
 test("every row names a manifest model, a rig family and a body, and the part map is the 20 ragdoll parts", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
-    assert.ok(manifest[name], `${name} is a manifest model`);
+  for (const [name, m] of Object.entries(RIGS.models)) assert.ok(manifest[name] || m.frame, `${name} is a manifest model`);
+  for (const [name, m] of HUMANOIDS) {
     const parts = RIGS.rigs[m.rig].parts === "physicsDeath.parts" ? CFG.parts : RIGS.rigs[m.rig].parts;
     assert.deepEqual(Object.keys(parts).sort(), Object.keys(CFG.parts).sort(), `${name} maps the same 20 part ids`);
   }
 });
 
 test("every bone a row maps exists in the model's GLB (no ragdoll can die on a missing bone)", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     const family = RIGS.rigs[m.rig],
       parts = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
       nodes = glbNodes(manifest[name].url);
-    for (const [part, joint] of Object.entries(parts))
-      assert.ok(nodes.has(family.nodePrefix + joint), `${name} has ${family.nodePrefix + joint} for ${part}`);
+    for (const [part, joint] of Object.entries(parts)) {
+      const node = family.virtual?.[part] ?? joint; // a virtual part has no bone: its parent joint must exist
+      assert.ok(nodes.has(family.nodePrefix + node), `${name} has ${family.nodePrefix + node} for ${part}`);
+    }
   }
 });
 
 test("body rows hold the 20 joints and a standing height, UNSCALED (the actor root already applies the manifest scale)", () => {
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     if (m.body === "physicsBody") continue;
     const row = RIGS.bodies[m.body];
     assert.equal(Object.keys(row.joints).length, 20);
@@ -58,26 +64,63 @@ test("a body row's hip height above the toes equals the GLB's own bind pose at x
       for (i = parent.get(i); i !== undefined; i = parent.get(i)) m = mul(local(nodes[i]), m);
       return m[13];
     };
-  for (const [name, m] of Object.entries(RIGS.models)) {
+  for (const [name, m] of HUMANOIDS) {
     if (m.body === "physicsBody") continue;
     const b = readFileSync(new URL(`../public/assets/${manifest[name].url}`, import.meta.url)),
       nodes = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()).nodes,
       family = RIGS.rigs[m.rig],
       p = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
-      hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + p.toeLeft);
-    assert.ok(Math.abs(hips - RIGS.bodies[m.body].joints.Hips[1]) < 0.01, `${name} hips ${hips} vs row ${RIGS.bodies[m.body].joints.Hips[1]}`);
+      virtual = family.virtual?.toeLeft, // a rig with no toe bone: the floor mark is the foot joint, and the row's own foot height is subtracted
+      rowHips = RIGS.bodies[m.body].joints.Hips[1] - (virtual ? RIGS.bodies[m.body].joints[virtual][1] : 0),
+      hips = up(nodes, family.nodePrefix + p.hips) - up(nodes, family.nodePrefix + (virtual ?? p.toeLeft));
+    assert.ok(Math.abs(hips - rowHips) < 0.01, `${name} hips ${hips} vs row ${rowHips}`);
   }
 });
 
-test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
+test("the hunter, the crowd humans, the bosses and the chain creatures are live", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
-  for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
+  for (const n of [
+    CFG.rigRef,
+    "hollow-scavenger",
+    "hale-pitborn",
+    "giant-salamander",
+    "rat-king",
+    "original-crow",
+    "giant-eel",
+    "original-elephant",
+    "original-wolf",
+    "original-dog",
+    "original-rat",
+    "low-hover-drone",
+    "original-spider",
+    "giant-centipede",
+    "vagrant-106",
+  ])
+    assert.ok(live.includes(n), n);
   assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
-  for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
+});
+
+test("each chain creature names a package body whose bones exist in the GLB and whose hit parts resolve", () => {
+  const rows = [
+      CFG.killImpulse,
+      ...Object.values(CFG.bulletImpulse.byWeapon),
+      ...Object.values(CFG.bulletImpulse.byAttackClass),
+    ],
+    impulseParts = [...new Set(rows.map((r) => r.part).filter(Boolean))];
+  for (const [name, m] of CHAINS) {
+    const body = loadChainBody(m.chain),
+      nodes = m.frame ? new Set(Object.values(body.boneMap)) : glbNodes(manifest[name].url), // a frame body's node is made by the impl
+      ids = body.row.roles.map((r) => r.id);
+    const followers = Object.values(body.followMap ?? {}).flat();
+    for (const bone of [...Object.values(body.boneMap), ...followers])
+      assert.ok(nodes.has(bone), `${name} has bone ${bone}`);
+    for (const p of impulseParts) assert.ok(ids.includes(m.partAlias[p] ?? p), `${name}: hit part ${p} resolves`);
+    assert.equal(rigOf(name).chain, m.chain);
+  }
 });
 
 test("every live body row can be handed to the impl as its own record", () => {
-  for (const n of Object.keys(RIGS.models).filter((n) => RIGS.models[n].live)) {
+  for (const n of HUMANOIDS.filter(([, m]) => m.live).map(([n]) => n)) {
     const rig = rigOf(n);
     assert.equal(rig.model, n);
     assert.equal(Object.keys(rig.parts).length, 20);
@@ -85,6 +128,37 @@ test("every live body row can be handed to the impl as its own record", () => {
   }
   assert.deepEqual(liveBodies()[0].model, CFG.rigRef); // the hunter's pool is warmed first
   assert.equal(new Set(liveBodies().map((r) => r.key)).size, liveBodies().length);
+});
+
+test("a drone dies as a ragdoll on a frame node: the model rides it, falls to the floor, and a release gives it back to the scene", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js"),
+    THREE = await import("three");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const scene = new THREE.Scene(),
+    root = new THREE.Group(),
+    start = { x: 3, y: 0.9, z: -2, yaw: 0.7 };
+  root.scale.setScalar(2);
+  root.position.set(start.x, start.y, start.z);
+  root.rotation.y = start.yaw;
+  scene.add(root);
+  root.updateWorldMatrix(true, true);
+  const view = { root, model: root, drone: {} },
+    entity = { id: 77, hp: 0, maxHP: 20, facing: { x: 0, z: -1 } },
+    s = impl.startDeath(view, root, entity, rigOf(CFG.droneRef));
+  try {
+    assert.ok(s?.seat && root.parent !== scene, "the model is seated under the frame node");
+    assert.ok(Math.abs(root.getWorldPosition(new THREE.Vector3()).x - start.x) < 1e-6, "seated where it hung");
+    for (let i = 0; i < 240; i++) impl.stepDeath(s, 1 / 60);
+    const end = root.getWorldPosition(new THREE.Vector3());
+    assert.ok(end.y < start.y - 0.3 && end.y > 0, `fell to the floor, y ${end.y}`);
+    assert.ok(Math.abs(root.getWorldScale(new THREE.Vector3()).x - 2) < 1e-6, "the model keeps its own scale");
+  } finally {
+    impl.disposeCuts(s);
+    impl.releaseDeath(s);
+  }
+  assert.equal(root.parent, scene);
+  assert.equal(scene.children.length, 1, "the frame left the scene");
 });
 
 test("a crowd human starts its ragdoll with its own bone map and body row", () => {
@@ -104,8 +178,8 @@ test("a crowd human starts its ragdoll with its own bone map and body row", () =
 test("a model without a live row keeps the baked clip and never reaches the impl", () => {
   const calls = [];
   usePhysicsDeathImpl({ startDeath: (...a) => calls.push(a), stepDeath: () => {} });
-  const description = manifest["giant-salamander"],
-    library = { models: new Map([["giant-salamander", { description, gltf: { scene: {} } }]]) },
+  const description = manifest["original-roach"],
+    library = { models: new Map([["original-roach", { description, gltf: { scene: {} } }]]) },
     view = { description },
     entity = { id: 3, hp: 0, maxHP: 10 };
   for (let i = 0; i < 5; i++) assert.equal(physicsDeathStep(view, entity, library, 1 / 60, true), false);

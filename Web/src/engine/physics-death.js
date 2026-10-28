@@ -102,6 +102,7 @@ const names = new WeakMap(), // manifest description -> model name, found once p
   baked = new WeakSet(); // views whose model has no live row: looked up once, then the clip plays every frame
 function modelOf(view, entity, library) {
   if (entity.markedHunter) return CFG.rigRef;
+  if (view.drone) return CFG.droneRef; // procedural, no model in the library
   if (entity.remotePlayer) return CFG.remote.modelRef; // another player seen through presence (the reduced survivor mesh)
   const d = view.description;
   if (!d || !library?.models) return null;
@@ -133,7 +134,7 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
         baked.add(view); // no live row for this model: the clip, and no ragdoll is ever taken from the pool
         return false;
       }
-      const bindScene = library.models.get(model)?.gltf.scene;
+      const bindScene = library.models.get(model)?.gltf.scene ?? (rig.frame ? view.root : undefined);
       if (!impl || !bindScene) return false; // chunk not loaded: baked clip, never wait
       s = impl.startDeath(view, bindScene, entity, rig);
       if (!s) {
