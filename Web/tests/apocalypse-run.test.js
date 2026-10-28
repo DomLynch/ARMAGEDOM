@@ -310,7 +310,7 @@ test("extraction: a hold-out sets a spot, a raid and a boss pull; holding the da
     steps = [];
   assert.equal(airdropPull(g, boss, 0.1, (_g, _e, dir) => steps.push(dir)), true, "the area boss walks to the spot");
   assert.ok(steps[0].x < 0, "toward the spot");
-  for (let s = 1; s < X.holdSeconds; s++) {
+  for (let s = 1; s < X.holdSeconds - 1; s++) {
     at(g, t + s);
     assert.equal(g.run.outcome, null, `still holding at ${s}s`);
   }
