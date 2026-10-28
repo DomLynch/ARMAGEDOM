@@ -3,6 +3,7 @@ import { touchTargetCue } from "./engine/touch-target.js";
 import { bossWeaponCue } from "./engine/boss-weapon-runtime.js";
 import { goreProfile, finisherPresentationId } from "./engine/finisher-data.js";
 import { createFlameEffect } from "./engine/flame-effect.js";
+import { createBurnPresentation } from "./engine/burn-presentation.js";
 import { createSeverBloodEffect } from "./engine/sever-blood-effect.js";
 import { createFinisherImpactGate } from "./finisher-impact-profile.js";
 import { createDroneLaserBolts } from "./drone-laser.js";
@@ -139,6 +140,7 @@ export function createEffects(
   const flameEffect = world.flameData
       ? createFlameEffect({ THREE, scene, world, getSource: getFlameSource, getView, reducedMotion })
       : null,
+    burn = createBurnPresentation({ THREE, scene, world, getView, reducedMotion }),
     severBlood = createSeverBloodEffect({ THREE, scene, world }),
     finisherGate = createFinisherImpactGate(),
     finisherBursts = new Map(),
@@ -1149,12 +1151,14 @@ export function createEffects(
       bossFlame?.update(game, { paused });
       salamanderFlame.update(game, { paused });
       flameEffect?.update(game, { paused });
+      burn.update(game, { paused });
       droneLasers.sync(game.bolts, game.time);
       if (!paused) arcBolts?.update(game.time, Math.max(0, game.time - arcClock));
       arcClock = game.time;
       sync(game.loot, loot, gem, (l) => lootMaterials[l.kind], FEEL.loot.height);
     },
     reset() {
+      burn.reset();
       flameEffect?.reset();
       bossFlame?.reset();
       salamanderFlame.reset();
@@ -1175,6 +1179,7 @@ export function createEffects(
       this.reset();
       severBlood.dispose();
       flameEffect?.dispose();
+      burn.dispose();
       bossFlame?.dispose();
       salamanderFlame.dispose();
       finisherGate.dispose();
