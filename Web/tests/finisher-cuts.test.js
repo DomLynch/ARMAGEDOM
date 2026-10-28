@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
+import CUT_MANIFEST from "../src/data/pitbornCutManifest.json" with { type: "json" };
 import { validatePitbornCuts } from "../src/engine/game-data-pitborn-cuts.js";
 import {
   createLateCuts,
@@ -159,6 +162,31 @@ test("late cuts come due in order and only once", () => {
   assert.equal(late.pending, 1);
   assert.deepEqual(late.tick(0.5), ["leg_left"]);
   assert.deepEqual(late.tick(1), []);
+});
+
+test("the cut GLB is a deferred actor model pinned to the physics cut receipt, never loaded at start", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../public/assets/manifest-hollow.json", import.meta.url))),
+    row = manifest.models[CFG.cutModel],
+    glb = readFileSync(new URL(`../public/assets/${row.url}`, import.meta.url)),
+    hunter = manifest.models[CFG.rigRef];
+  assert.equal(row.deferred, true); // area load and the idle preload never fetch it
+  assert.equal(glb.length, row.bytes);
+  assert.equal(createHash("sha256").update(glb).digest("hex"), row.sha256);
+  assert.equal(row.sha256, "b677d29d085cdc27b8b54d87f6814b210d11099a045cfef456ae22946ab82377"); // physics #62 receipt
+  assert.equal(row.provenance.sourceSHA256, hunter.sha256); // cut from the hunter body in the game, horn-free
+});
+
+test("the cut manifest is the physics contract's, for the hunter body, and the game's units all exist in it", () => {
+  assert.equal(CUT_MANIFEST.schema, "cut-pieces/1");
+  assert.equal(CUT_MANIFEST.body, "hunter-pitborn-106");
+  assert.equal(CUT_MANIFEST.rig, "mixamo-106");
+  assert.equal(CUT_MANIFEST.regions.length, 7);
+  assert.equal(CUT_MANIFEST.caps.length, 12);
+  const units = manifestUnits(CUT_MANIFEST);
+  for (const u of ["head", "arm_left", "arm_right", "leg_left", "leg_right", "torso_waist"]) assert.ok(units.has(u), u);
+  // this cut GLB was made without the optional visual cuts: the rows fall back (opened -> waist) or skip (run through)
+  assert.equal(units.has("belly_open"), false);
+  assert.equal(units.has("head_split"), false);
 });
 
 test("?cuts=0 turns the cuts off and nothing else does", () => {
