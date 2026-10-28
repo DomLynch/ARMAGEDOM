@@ -81,11 +81,13 @@ import {
   validateMarkedHunterSpawn,
   validatePhysicsBody,
   validatePhysicsDeath,
+  validatePhysicsBudget,
   validateDeathPresentation,
   validateReaperMotion,
 } from "./game-data-hunters.js";
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
+import physicsBudget from "../data/physicsBudget.json" with { type: "json" };
 import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
 import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
@@ -1072,6 +1074,7 @@ const sources = () => ({
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
+  physicsBudget: [physicsBudget, validatePhysicsBudget], // the cap admit() reads; a test pins it to the package's own row
   pitbornCuts: [pitbornCuts, validatePitbornCuts],
   pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],

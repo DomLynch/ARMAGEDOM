@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import {
   activeCount,
@@ -13,6 +14,12 @@ import * as THREE from "three";
 import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
+const budgetRows = GAME_DATA.physicsBudget.rows;
+
+test("the ragdoll cap row equals the package's own budget row", () => {
+  const pkg = JSON.parse(readFileSync(new URL("../node_modules/@frankendom/physics/data/budget-rows.json", import.meta.url), "utf8"));
+  assert.equal(budgetRows.max_simultaneous_ragdolls, pkg.max_simultaneous_ragdolls);
+});
 const DT = 1 / CFG.stepHz;
 
 // A stand-in for the shared physics world: it counts steps, like the real one that advances every ragdoll per step.
@@ -177,17 +184,28 @@ test("parking an area frees a corpse's body and slot but keeps its cut visuals; 
   assert.equal(skin.hidden.visible, true);
 });
 
-test("a throw while the death starts (rd.kill) gives back the hunter's body, the cut skin and the pooled ragdoll", async () => {
+// A hunter whose rd.kill throws, on a skeleton the way the loaded GLBs have one. `cutLibrary`: the cut GLB is loaded first, so the cut path runs.
+const skeleton = () => {
+  const g = new THREE.Group();
+  for (const joint of Object.values(CFG.parts))
+    g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
+  return g;
+};
+async function killThatThrows(cutLibrary) {
   const impl = await import("../src/engine/physics-death-impl.js");
   usePhysicsDeathImpl(impl);
+  if (cutLibrary) await impl.loadCutAssets(cutLibrary);
   const world = await impl.loadWorld(),
     made = [],
-    create = world.createRagdoll;
+    create = world.createRagdoll,
+    root = new THREE.Group();
+  let sceneAtKill = -1;
   world.createRagdoll = function (...a) {
     const rd = create.apply(this, a),
       destroy = rd.destroy.bind(rd);
     rd.destroyed = 0;
     rd.kill = () => {
+      sceneAtKill = root.children.length; // 2 = the hunter's body and the cut skin beside it
       throw new Error("kill blew up");
     };
     rd.destroy = () => {
@@ -198,29 +216,119 @@ test("a throw while the death starts (rd.kill) gives back the hunter's body, the
     return rd;
   };
   try {
-    const skeleton = () => {
-      const g = new THREE.Group();
-      for (const joint of Object.values(CFG.parts))
-        g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
-      return g;
-    };
     const bind = skeleton(),
-      root = new THREE.Group(),
       model = skeleton();
     root.add(model);
     const view = { root, model, physicsDeath: undefined },
-      entity = { id: 7, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
       library = { models: new Map([[CFG.rigRef, { gltf: { scene: bind } }]]) },
       before = activeCount();
-    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
-    assert.equal(made.length, 1);
-    assert.equal(made[0].destroyed, 1); // the ragdoll is destroyed, not left in the pool or the world
+    // The cut roll can come up "no cut" (data: chance, pityAfter); the pity rule guarantees one within a few kills.
+    let kills = 0;
+    do {
+      const entity = { id: 7 + kills, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } };
+      view.physicsDeath = undefined;
+      assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
+      assert.deepEqual(view.physicsDeath, { failed: true });
+      kills++;
+    } while (cutLibrary && sceneAtKill !== 2 && kills < 8);
+    if (cutLibrary) assert.equal(sceneAtKill, 2, "the cut path ran before the kill threw");
+    assert.equal(made.length, kills);
+    for (const rd of made) assert.equal(rd.destroyed, 1); // each ragdoll is destroyed, not left in the pool or the world
     assert.equal(activeCount(), before);
     assert.equal(model.visible, true);
     assert.equal(root.children.length, 1); // no cut skin left in the scene
-    assert.deepEqual(view.physicsDeath, { failed: true });
   } finally {
     world.createRagdoll = create;
+  }
+}
+
+test("a throw while the death starts (rd.kill) gives back the hunter's body and the pooled ragdoll", () => killThatThrows(null));
+
+test("a throw while a CUT death starts (rd.kill, cut GLB loaded) removes the cut skin, shows the hunter and frees the ragdoll", () =>
+  killThatThrows({
+    ensureModels: async () => {},
+    models: new Map([[GAME_DATA.pitbornCuts.cutModel, { gltf: { scene: skeleton() } }]]),
+  }));
+
+test("a throw while the cut path is undone (the pooled ragdoll was already taken) still destroys the ragdoll", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl); // the cut GLB is loaded by the test above
+  const world = await impl.loadWorld(),
+    made = [],
+    create = world.createRagdoll;
+  world.createRagdoll = function (...a) {
+    const rd = create.apply(this, a),
+      destroy = rd.destroy.bind(rd);
+    rd.destroyed = 0;
+    rd.destroy = () => {
+      rd.destroyed++;
+      destroy();
+    };
+    made.push(rd);
+    return rd;
+  };
+  try {
+    let undoThrew = 0;
+    const model = skeleton(),
+      root = new THREE.Group();
+    root.add(model);
+    let shown = true;
+    Object.defineProperty(model, "visible", {
+      get: () => shown,
+      set(v) {
+        if (v) {
+          undoThrew++;
+          throw new Error("un-hiding blew up");
+        }
+        shown = v;
+      },
+    });
+    // view.root = null makes the cut path's rig build throw, so the cut path is undone; undoing it throws too.
+    const view = { root: null, model, physicsDeath: undefined },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: skeleton() } }]]) },
+      before = activeCount();
+    root.add(new THREE.Group()); // keeps `model.parent` set for the cut skin
+    let kills = 0;
+    do {
+      const entity = { id: 90 + kills, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } };
+      view.physicsDeath = undefined;
+      assert.equal(physicsDeathStep(view, entity, library, DT, true), false);
+      kills++;
+    } while (!undoThrew && kills < 8);
+    assert.ok(undoThrew, "the undo path was reached");
+    assert.equal(made.length, kills);
+    for (const rd of made) assert.equal(rd.destroyed, 1); // none left out of the pool and the world
+    assert.equal(activeCount(), before);
+  } finally {
+    world.createRagdoll = create;
+  }
+});
+
+test("past the simultaneous-ragdoll budget row the next death takes the baked clip and no body", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  const world = await impl.loadWorld(),
+    create = world.createRagdoll;
+  let created = 0;
+  world.createRagdoll = function (...a) {
+    created++;
+    return create.apply(this, a);
+  };
+  const held = [];
+  try {
+    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
+      entity = { id: 50, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: skeleton() } }]]) },
+      pooled = created;
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false);
+    assert.deepEqual(view.physicsDeath, { failed: true });
+    assert.equal(created, pooled); // no ragdoll was built for it
+    assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // and it stays on the clip
+  } finally {
+    world.createRagdoll = create;
+    for (const s of held) releaseDeath(s);
   }
 });
 
