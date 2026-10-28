@@ -527,8 +527,8 @@
     "layout.area8": {
       "kind": "layout",
       "path": "world/area8/layout.json",
-      "sha256": "f3b3e9cfd9c93245b365512a40b56c37779848bc526557456c1fe3b378e0802e",
-      "bytes": 10678
+      "sha256": "83fc9c96f087830ef273d2ee15d9a191281077179c5143086421a65205c0c3ef",
+      "bytes": 10979
     },
     "backdrop.area8": {
       "kind": "backdrop",
