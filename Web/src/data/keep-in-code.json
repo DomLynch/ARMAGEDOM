@@ -21,6 +21,10 @@
       "reason": "frozen donor motion captures (clip and blade-path tables), not tuning"
     },
     {
+      "pattern": "^data/physicsFloor\\.json$",
+      "reason": "lazy physics chunk data (about 230 KB of skin vertices per boss, written from the GLBs by tools/physics-floor-support.mjs), read only by physics-death-impl.js; routing it through GAME_DATA would put it in the main bundle"
+    },
+    {
       "pattern": "^(roach|dog|rat)-data/[^/]+\\.json$",
       "reason": "frozen per-animal motion captures (clips, blade paths, foot bindings), not tuning"
     }
