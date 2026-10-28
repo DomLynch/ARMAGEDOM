@@ -65,7 +65,7 @@ export function stepKillDrops(g, rules = KILL_DROPS) {
       }
       return true;
     }
-    claimCash(g, rules.tiers[d.tier].source, amount);
+    claimCash(g, rules.tiers[d.tier].source, amount, { x: d.x, z: d.z });
     g.message = fillText(rules.text.picked, { amount });
     g.messageUntil = g.time + rules.noticeSeconds;
     return false;

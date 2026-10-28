@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": "noloot",
+  "ops": { "inventory": "inventory_get", "items": "item_defs" },
+  "slots": 4,
+  "toastSeconds": 3.5,
+  "kinds": ["weapon", "consumable", "part", "relic"],
+  "glint": { "seconds": 1.4, "radiusFrom": 0.3, "radiusTo": 1.6, "width": 0.12, "lift": 0.05, "segments": 32, "colour": "ffd36b", "opacity": 0.9 },
+  "rarities": { "common": "9fb3ad", "uncommon": "7bd68a", "rare": "6fb4ff", "epic": "c58bff" },
+  "defaultRarity": "rare",
+  "defaultKind": "part",
+  "items": {
+    "hunter-cpu": { "name": "Hunter CPU", "badge": "CP", "colour": "5aa7d6", "rarity": "rare", "kind": "part", "flavour": "Still warm. Still thinking about you." },
+    "roach-mandibles": { "name": "Roach Mandibles", "badge": "RM", "colour": "b58a4a", "rarity": "uncommon", "kind": "part", "flavour": "Sharp enough to cut wire." },
+    "salamander-gland": { "name": "Salamander Gland", "badge": "SG", "colour": "e0803c", "rarity": "rare", "kind": "part", "flavour": "Hums with a slow orange heat." },
+    "military-battery": { "name": "Military Battery", "badge": "MB", "colour": "7bd68a", "rarity": "rare", "kind": "part", "flavour": "Old stock. Holds a charge anyway." },
+    "robot-parts": { "name": "Robot Parts", "badge": "RP", "colour": "9fb3ad", "rarity": "uncommon", "kind": "part", "flavour": "Servos and plating, still twitching." },
+    "drone-chip": { "name": "Drone Chip", "badge": "DC", "colour": "c58bff", "rarity": "epic", "kind": "part", "flavour": "Sky-eye logic. The Scrapper pays well." }
+  },
+  "text": {
+    "toast": "{name} x{qty}",
+    "tab": "Items",
+    "title": "Rare drops",
+    "intro": "Rare parts from elites and bosses. Sell them to the Scrapper.",
+    "empty": "Nothing yet. Elites and bosses sometimes drop rare parts.",
+    "offline": "Inventory is offline. Play online to keep your drops.",
+    "slotAria": "{name}, quantity {qty}",
+    "emptySlot": "Empty slot",
+    "qty": "x{qty}",
+    "more": "+{count} more kinds",
+    "sellValue": "Sells for ${value}",
+    "sellUnknown": "Sell value shown at the Scrapper",
+    "kindRarity": "{kind} · {rarity}",
+    "cardClose": "Close"
+  }
+}

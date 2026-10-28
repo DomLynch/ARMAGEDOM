@@ -1,12 +1,14 @@
 import { addPickupGlow } from "../pickup-glow.js";
 import { modelGeometry } from "./world-pickups-view.js";
 import { KILL_DROPS, killDropsOn } from "./kill-drops.js";
+import { createLootGlintView } from "./loot-glint-view.js";
 // The coins lying where enemies fell (data/killDrops.json `models`): one small mesh per drop, built from the tier's cylinder parts and
 // removed when the drop is taken or expires. Geometry and material are shared per model and built on the first drop, so a stage with
 // the feature off (or no kills yet) pays nothing.
 export function createKillDropsView(world) {
   const { THREE } = world,
     group = new THREE.Group(),
+    glints = createLootGlintView(world),
     geometries = new Map(),
     rows = new Map();
   let material = null,
@@ -26,6 +28,7 @@ export function createKillDropsView(world) {
     group,
     // Once a frame: add a mesh for each new drop, drop the ones that are gone.
     sync(g) {
+      glints.sync(g); // rare-drop rings (data/loot.json) run whether or not coins are on
       if (disposed || !killDropsOn()) return;
       const list = g.killDrops?.list ?? [],
         live = new Set();
@@ -45,6 +48,7 @@ export function createKillDropsView(world) {
     dispose() {
       if (disposed) return;
       disposed = true;
+      glints.dispose();
       for (const id of [...rows.keys()]) remove(id);
       group.removeFromParent();
       for (const geometry of geometries.values()) geometry.dispose();

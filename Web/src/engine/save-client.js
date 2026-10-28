@@ -72,6 +72,7 @@ export function createSaveClient({
   clearTimer = (id) => globalThis.clearTimeout(id),
   onCash = () => {},
   onClosed = () => {},
+  onLoot = () => {},
   log = () => {},
   tuning = GAME_DATA.saveClient,
 }) {
@@ -259,6 +260,14 @@ export function createSaveClient({
       return;
     }
     if (reply.error || reply.refused) log(`pickup cash not credited: ${item.source} ${reply.error ?? reply.refused}`);
+    // The server rolls rare loot with a kill credit (docs/MARKET-CONTRACT.md); the page only shows what comes back.
+    if (Array.isArray(reply.loot) && reply.loot.length) {
+      try {
+        onLoot(reply.loot, item.at);
+      } catch {
+        /* The listener must not break the claim path. */
+      }
+    }
     item.resolve();
   }
   // A routine save waits here until every queued claim is credited or given up, so it never carries cash its claim has not reached.
@@ -290,8 +299,9 @@ export function createSaveClient({
     claimPump = claimPump.then(drainClaims);
     return claimPump;
   }
-  function claimPickup(source, amount) {
-    const done = new Promise((resolve) => claimQueue.push({ source, amount, tries: 0, resolve }));
+  // `at` ({x, z}, optional): where the body fell, handed back to onLoot so the glint shows there.
+  function claimPickup(source, amount, at) {
+    const done = new Promise((resolve) => claimQueue.push({ source, amount, at, tries: 0, resolve }));
     pumpClaims();
     return done;
   }
@@ -515,6 +525,8 @@ export function createSaveClient({
     flush,
     flushOnHide,
     claimPickup,
+    // The inventory adapter's transport (engine/inventory-api.js): one signed request, answers the parsed reply or {error}.
+    request: call,
     // A status read says the world is open again: carry on with the newest queued record.
     resume() {
       if (!halted) return;
