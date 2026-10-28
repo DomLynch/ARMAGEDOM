@@ -4,10 +4,11 @@ import fs from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateCorpseRun } from "../src/engine/game-data-corpse-run.js";
 import { dropCorpseBag, stepCorpseRun, corpseTarget, respawnArea } from "../src/engine/corpse-run.js";
+import { lockerStored } from "../src/engine/locker-core.js";
 import { airdropPull } from "../src/engine/airdrop.js";
 import { adoptServerCash } from "../src/engine/save-client.js";
-import { make, earn, atArea } from "./helpers/marked-fixture.js";
-import { receiveHit } from "../src/combat.js";
+import { make, earn, atArea, collectPistol } from "./helpers/marked-fixture.js";
+import { receiveHit, stepGame } from "../src/combat.js";
 
 const RULES = GAME_DATA.corpseRun,
   STEP = 1 / 60,
@@ -177,7 +178,34 @@ test("bosses converge on the bag like an airdrop; the crate wins while one is in
   assert.equal(airdropPull(g, boss(), STEP, move), false);
 });
 
-test("Retry while alive drops no bag and moves no cash (it zeroes carried as it always did); an existing bag stays", () => {
+test("gear: the weapon in hand is withheld (not removed) while the bag holds it; touching the bag or a reload gives it back, never twice", () => {
+  const f = make(),
+    id = "westminster-start-pistol-v1";
+  earn(f);
+  collectPistol(f);
+  assert(f.p.dispatchPistol(f.g, { type: "equip", itemId: id, equipped: true }, true).ok);
+  atArea(f, "westminster");
+  f.g.time = 5; // the run has been played; a run loaded from a save has time 0 and never drops gear
+  assert(f.g.pistol.equipped && !lockerStored(f.g, id));
+  die(f);
+  assert.equal(f.g.corpseBag.gearId, id);
+  assert(lockerStored(f.g, id), "the pistol cannot be used while the bag holds it");
+  assert.equal(f.p.dispatchPistol(f.g, { type: "equip", itemId: id, equipped: true }, true).ok, false);
+  assert.equal(f.g.locker?.weapons?.length ?? 0, 0, "the Storage list is untouched: one owner only");
+  assert(f.p.retry());
+  const g = f.g;
+  assert.equal(g.corpseBag.gearId, id, "Retry carries the bag");
+  assert(lockerStored(g, id));
+  g.player.pos = { ...g.corpseBag.at };
+  stepCorpseRun(g, STEP);
+  assert.equal(g.corpseBag, null);
+  assert(!lockerStored(g, id), "touching the bag frees the weapon");
+  assert.equal(g.pistol.collected, true, "the weapon was never removed from the run");
+  const cold = make({ records: f.records });
+  assert(!lockerStored(cold.g, id) && cold.g.corpseBag === undefined, "a reload never leaves a weapon withheld");
+});
+
+test("Retry while alive drops no bag and no weapon and moves no cash (it zeroes carried as it always did); an existing bag stays", () => {
   const f = make();
   earn(f);
   atArea(f, "westminster");
@@ -212,6 +240,110 @@ test("the bag drops where the player fell, read before the respawn travel (g.cor
   assert(f.p.retry());
   assert.equal(f.g.corpseBag.areaId, "south");
   assert.deepEqual(f.g.corpseBag.at, { x: died.x, z: died.z });
+});
+
+// The withheld pistol must not fire on ANY input path after Retry. Each path is the intent combat.js is really given.
+const FIRE_PATHS = {
+  "held fire": { held: ["fire"] },
+  "fire action": { actions: ["fire"] },
+  "touch aim and fire": { aim: { x: 0, z: 1 }, held: ["fire"], actions: ["fire"] },
+  "mouse aim and fire": { aim: { x: 1, z: 0 }, actions: ["fire"], held: ["fire"] },
+};
+const shots = (g) => g.events.filter((e) => e.type === "shot").length;
+function armed(id) {
+  const f = make();
+  earn(f);
+  collectPistol(f);
+  assert(f.p.dispatchPistol(f.g, { type: "equip", itemId: id, equipped: true }, true).ok);
+  atArea(f, "westminster");
+  f.g.time = 5;
+  return f;
+}
+const fireOnce = (f, intent) => {
+  f.g.pistol.cooldownUntil = 0;
+  f.g.pistol.nextShotAt = 0;
+  stepGame(f.g, { ...intent }, STEP, { dispatchPistol: f.p.dispatchPistol, dispatchMarshalPistol: f.p.dispatchMarshalPistol });
+};
+
+test("gear: a withheld pistol cannot fire after Retry on any path; touching the bag gives the shot back", () => {
+  const id = "westminster-start-pistol-v1";
+  for (const [name, intent] of Object.entries(FIRE_PATHS)) {
+    const f = armed(id);
+    fireOnce(f, intent);
+    assert(shots(f.g) > 0, `${name}: the same input fires a pistol that is not withheld (the test has teeth)`);
+    die(f);
+    assert(f.p.retry());
+    const g = f.g,
+      reserve = g.pistol.reserve + g.pistol.magazine;
+    assert.equal(g.corpseBag.gearId, id);
+    g.player.pos = { x: g.corpseBag.at.x + 3 * RULES.retrieve.radius, z: g.corpseBag.at.z }; // Westminster respawns where the player fell
+    for (let i = 0; i < 3; i++) {
+      g.events.length = 0;
+      fireOnce(f, intent);
+      assert.equal(shots(g), 0, `${name}: no shot while the bag holds the pistol`);
+      assert.equal(g.pistol.equipped, false, `${name}: the pistol is put away`);
+      assert.equal(g.pistol.reserve + g.pistol.magazine, reserve, `${name}: no ammo spent`);
+    }
+    assert.equal(f.p.dispatchPistol(g, { type: "equip", itemId: id, equipped: true }, true).ok, false, `${name}: no re-equip`);
+    g.player.pos = { ...g.corpseBag.at };
+    stepCorpseRun(g, STEP);
+    assert.equal(g.corpseBag, null);
+    assert(f.p.dispatchPistol(g, { type: "equip", itemId: id, equipped: true }, true).ok, `${name}: restored on pickup`);
+    g.events.length = 0;
+    fireOnce(f, intent);
+    assert(shots(g) > 0, `${name}: fires again once the bag is touched`);
+  }
+});
+
+test("gear: a stale equipped flag cannot fire a withheld pistol either; never duplicated or lost across Retry, reload and a second death", () => {
+  const id = "westminster-start-pistol-v1",
+    f = armed(id);
+  die(f);
+  assert(f.p.retry());
+  let g = f.g;
+  g.player.pos = { x: g.corpseBag.at.x + 3 * RULES.retrieve.radius, z: g.corpseBag.at.z };
+  g.pistol.equipped = true; // whatever restored the flag, the step puts it away before combat reads it
+  g.events.length = 0;
+  fireOnce(f, FIRE_PATHS["held fire"]);
+  assert.equal(shots(g), 0);
+  assert.equal(g.pistol.equipped, false);
+  die(f); // a second death with the bag out: still one bag, still one pistol
+  assert(f.p.retry());
+  g = f.g;
+  assert(g.corpseBag.gearId === id, "the second death keeps the one bag with the one pistol");
+  assert.equal(g.pistol.collected, true, "the pistol was never removed from the run");
+  assert.equal(g.locker?.weapons?.length ?? 0, 0, "and never copied into the Storage");
+  const cold = make({ records: f.records });
+  assert.equal(cold.g.corpseBag, undefined);
+  assert.equal(cold.g.pistol.collected, true, "a reload returns the weapon from the save");
+  assert(!lockerStored(cold.g, id));
+});
+
+test("gear: a reload with the bag outstanding returns the weapon and the cash stays lost (never both)", () => {
+  const f = make();
+  earn(f);
+  collectPistol(f);
+  assert(f.p.dispatchPistol(f.g, { type: "equip", itemId: "westminster-start-pistol-v1", equipped: true }, true).ok);
+  atArea(f, "westminster");
+  f.g.time = 5;
+  die(f);
+  assert(f.g.corpseBag.gearId && f.g.corpseBag.cash === 100);
+  const cold = make({ records: f.records });
+  assert.equal(cold.g.corpseBag, undefined);
+  assert.equal(cold.g.marked.carried, 0);
+  assert.equal(cold.g.pistol.collected, true);
+});
+
+test("gear: rows keep the knife, cleaver and Reaper companion; scavengers release the weapon by row", () => {
+  assert.deepEqual(RULES.gear.neverDrop, ["knife", "hale-pitborn-cleaver-v1", "watchmans-pistol-v1"]);
+  const g = game();
+  dropCorpseBag(g, 10, { areaId: "east", x: 0, z: 0 }, { id: "bridge-warden-rifle-v1", name: "Rifle" });
+  assert.equal(g.corpseBag.gearId, "bridge-warden-rifle-v1");
+  assert.equal(g.corpseBag.stealableBy, "none");
+  assert.equal(RULES.gear.onScavenge, "release");
+  g.time += RULES.bag.scavengerSeconds + 1;
+  stepCorpseRun(g, STEP);
+  assert.equal(g.corpseBag, null, "release: the cash is gone and the weapon is the player's again");
 });
 
 test("Retry restarts the run clock; the scavenger timer keeps counting from the new clock with the time that was left", () => {

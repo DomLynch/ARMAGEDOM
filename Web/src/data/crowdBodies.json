@@ -32,6 +32,24 @@
     { "ref": "mh-gen-v2-0037", "weight": 1, "active": false, "native": false },
     { "ref": "mh-gen-v2-0041", "weight": 1, "active": false, "native": false },
     { "ref": "mh-gen-v2-0044", "weight": 1, "active": false, "native": false },
-    { "ref": "mh-gen-v2-0046", "weight": 1, "active": false, "native": false }
+    { "ref": "mh-gen-v2-0046", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b1-01", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b1-02", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b1-06", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b1-07", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b1-10", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-01", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-03", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-04", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-05", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-06", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-07", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-09", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b2-10", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b3-01", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b3-03", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b3-04", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b3-05", "weight": 1, "active": false, "native": false },
+    { "ref": "mh-crowd-b3-10", "weight": 1, "active": false, "native": false }
   ]
 }

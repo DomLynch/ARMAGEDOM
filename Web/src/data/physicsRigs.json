@@ -401,6 +401,2304 @@
         ]
       }
     },
+    "vagrant-106": {
+      "id": "vagrant-106",
+      "source": "vagrant-106.glb (Armagedom Web/public/assets/appearances) bind pose via mixamo-19.json, x1 (unscaled: the actor root carries the model scale; Spine1 = pass-through node, toes = Foot + 0.20 m along the foot bone)",
+      "height_m": 1.8939,
+      "neck_len": 0.13,
+      "torso_len": 0.42,
+      "shoulder_w": 0.47,
+      "upper_arm_len": 0.3265,
+      "forearm_len": 0.2911,
+      "thigh_len": 0.4315,
+      "shin_len": 0.4058,
+      "foot_len": 0.2001,
+      "chest_w": 0.4789,
+      "waist_w": 0.4418,
+      "hip_w": 0.3947,
+      "chest_d": 0.3736,
+      "joints": {
+        "Hips": [
+          0,
+          0.9269,
+          0
+        ],
+        "Spine": [
+          0,
+          1.0969,
+          0
+        ],
+        "Spine1": [
+          0,
+          1.2042,
+          0
+        ],
+        "Spine2": [
+          0,
+          1.3269,
+          0
+        ],
+        "Neck": [
+          0,
+          1.5169,
+          0
+        ],
+        "Head": [
+          0,
+          1.6469,
+          0
+        ],
+        "LeftArm": [
+          0.235,
+          1.5369,
+          0
+        ],
+        "LeftForeArm": [
+          0.5541,
+          1.4832,
+          -0.0434
+        ],
+        "LeftHand": [
+          0.8431,
+          1.4795,
+          -0.0092
+        ],
+        "RightArm": [
+          -0.235,
+          1.5369,
+          0
+        ],
+        "RightForeArm": [
+          -0.5543,
+          1.4831,
+          -0.0417
+        ],
+        "RightHand": [
+          -0.8435,
+          1.4794,
+          -0.0089
+        ],
+        "LeftUpLeg": [
+          0.115,
+          0.9269,
+          0
+        ],
+        "LeftLeg": [
+          0.1574,
+          0.4986,
+          -0.031
+        ],
+        "LeftFoot": [
+          0.1714,
+          0.0966,
+          -0.0845
+        ],
+        "LeftToeBase": [
+          0.2092,
+          0,
+          0.0866
+        ],
+        "RightUpLeg": [
+          -0.115,
+          0.9269,
+          0
+        ],
+        "RightLeg": [
+          -0.1573,
+          0.4988,
+          -0.0345
+        ],
+        "RightFoot": [
+          -0.1714,
+          0.0968,
+          -0.0878
+        ],
+        "RightToeBase": [
+          -0.2084,
+          0.0021,
+          0.0845
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b1-01": {
+      "id": "mh-crowd-b1-01",
+      "source": "mh-crowd-b1-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5595,
+      "neck_len": 0.042,
+      "torso_len": 0.4287,
+      "shoulder_w": 0.4008,
+      "upper_arm_len": 0.2476,
+      "forearm_len": 0.2661,
+      "thigh_len": 0.3981,
+      "shin_len": 0.4497,
+      "foot_len": 0.1509,
+      "chest_w": 0.4084,
+      "waist_w": 0.3768,
+      "hip_w": 0.3751,
+      "chest_d": 0.3186,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0011,
+          0.926,
+          0.0113
+        ],
+        "Spine": [
+          0,
+          1.0107,
+          0.0253
+        ],
+        "Spine1": [
+          0,
+          1.1112,
+          0.0049
+        ],
+        "Spine2": [
+          0,
+          1.2314,
+          -0.0493
+        ],
+        "Neck": [
+          0,
+          1.4392,
+          0.0133
+        ],
+        "Head": [
+          0.002,
+          1.4807,
+          0.0196
+        ],
+        "LeftArm": [
+          0.2004,
+          1.335,
+          0.0194
+        ],
+        "LeftForeArm": [
+          0.3626,
+          1.1479,
+          0.0173
+        ],
+        "LeftHand": [
+          0.4966,
+          1.0197,
+          0.2082
+        ],
+        "RightArm": [
+          -0.2004,
+          1.335,
+          0.0194
+        ],
+        "RightForeArm": [
+          -0.3626,
+          1.1479,
+          0.0173
+        ],
+        "RightHand": [
+          -0.4966,
+          1.0197,
+          0.2082
+        ],
+        "LeftUpLeg": [
+          0.1093,
+          0.8832,
+          -0.0059
+        ],
+        "LeftLeg": [
+          0.1494,
+          0.4886,
+          0.0284
+        ],
+        "LeftFoot": [
+          0.2006,
+          0.042,
+          0.0156
+        ],
+        "LeftToeBase": [
+          0.198,
+          0,
+          0.1605
+        ],
+        "RightUpLeg": [
+          -0.1093,
+          0.8832,
+          -0.0059
+        ],
+        "RightLeg": [
+          -0.1494,
+          0.4886,
+          0.0284
+        ],
+        "RightFoot": [
+          -0.2006,
+          0.042,
+          0.0156
+        ],
+        "RightToeBase": [
+          -0.198,
+          0,
+          0.1605
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b1-02": {
+      "id": "mh-crowd-b1-02",
+      "source": "mh-crowd-b1-02.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5121,
+      "neck_len": 0.0406,
+      "torso_len": 0.4182,
+      "shoulder_w": 0.3604,
+      "upper_arm_len": 0.242,
+      "forearm_len": 0.2565,
+      "thigh_len": 0.3692,
+      "shin_len": 0.4394,
+      "foot_len": 0.1483,
+      "chest_w": 0.3672,
+      "waist_w": 0.3388,
+      "hip_w": 0.3779,
+      "chest_d": 0.2865,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0017,
+          0.891,
+          0.0077
+        ],
+        "Spine": [
+          0,
+          0.9775,
+          0.023
+        ],
+        "Spine1": [
+          0,
+          1.0697,
+          0.0035
+        ],
+        "Spine2": [
+          0,
+          1.1903,
+          -0.0523
+        ],
+        "Neck": [
+          0,
+          1.3955,
+          0.0118
+        ],
+        "Head": [
+          0.0027,
+          1.4357,
+          0.0171
+        ],
+        "LeftArm": [
+          0.1802,
+          1.2928,
+          0.0163
+        ],
+        "LeftForeArm": [
+          0.3403,
+          1.1113,
+          0.0165
+        ],
+        "LeftHand": [
+          0.4698,
+          0.9878,
+          0.2003
+        ],
+        "RightArm": [
+          -0.1802,
+          1.2928,
+          0.0163
+        ],
+        "RightForeArm": [
+          -0.3403,
+          1.1113,
+          0.0165
+        ],
+        "RightHand": [
+          -0.4698,
+          0.9878,
+          0.2003
+        ],
+        "LeftUpLeg": [
+          0.1101,
+          0.843,
+          -0.007
+        ],
+        "LeftLeg": [
+          0.1495,
+          0.4774,
+          0.0263
+        ],
+        "LeftFoot": [
+          0.195,
+          0.0406,
+          0.0114
+        ],
+        "LeftToeBase": [
+          0.1926,
+          0,
+          0.154
+        ],
+        "RightUpLeg": [
+          -0.1101,
+          0.843,
+          -0.007
+        ],
+        "RightLeg": [
+          -0.1495,
+          0.4774,
+          0.0263
+        ],
+        "RightFoot": [
+          -0.195,
+          0.0406,
+          0.0114
+        ],
+        "RightToeBase": [
+          -0.1926,
+          0,
+          0.154
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b1-06": {
+      "id": "mh-crowd-b1-06",
+      "source": "mh-crowd-b1-06.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5737,
+      "neck_len": 0.0618,
+      "torso_len": 0.384,
+      "shoulder_w": 0.312,
+      "upper_arm_len": 0.2531,
+      "forearm_len": 0.2232,
+      "thigh_len": 0.4258,
+      "shin_len": 0.3865,
+      "foot_len": 0.1436,
+      "chest_w": 0.3179,
+      "waist_w": 0.2933,
+      "hip_w": 0.3422,
+      "chest_d": 0.248,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0039,
+          0.9011,
+          0.023
+        ],
+        "Spine": [
+          0,
+          1.0238,
+          0.0224
+        ],
+        "Spine1": [
+          0,
+          1.1364,
+          0.0128
+        ],
+        "Spine2": [
+          0,
+          1.26,
+          0.0049
+        ],
+        "Neck": [
+          0,
+          1.4072,
+          0.0002
+        ],
+        "Head": [
+          0,
+          1.4646,
+          0.0231
+        ],
+        "LeftArm": [
+          0.156,
+          1.3221,
+          0.0203
+        ],
+        "LeftForeArm": [
+          0.3255,
+          1.1342,
+          0.0253
+        ],
+        "LeftHand": [
+          0.4407,
+          1.0117,
+          0.172
+        ],
+        "RightArm": [
+          -0.156,
+          1.3221,
+          0.0203
+        ],
+        "RightForeArm": [
+          -0.3255,
+          1.1342,
+          0.0253
+        ],
+        "RightHand": [
+          -0.4407,
+          1.0117,
+          0.172
+        ],
+        "LeftUpLeg": [
+          0.0997,
+          0.8562,
+          0.0189
+        ],
+        "LeftLeg": [
+          0.1371,
+          0.433,
+          0.0477
+        ],
+        "LeftFoot": [
+          0.1693,
+          0.0489,
+          0.0192
+        ],
+        "LeftToeBase": [
+          0.1673,
+          0,
+          0.1542
+        ],
+        "RightUpLeg": [
+          -0.0997,
+          0.8562,
+          0.0189
+        ],
+        "RightLeg": [
+          -0.1371,
+          0.433,
+          0.0477
+        ],
+        "RightFoot": [
+          -0.1693,
+          0.0489,
+          0.0192
+        ],
+        "RightToeBase": [
+          -0.1673,
+          0,
+          0.1542
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b1-07": {
+      "id": "mh-crowd-b1-07",
+      "source": "mh-crowd-b1-07.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.4663,
+      "neck_len": 0.0633,
+      "torso_len": 0.3558,
+      "shoulder_w": 0.3068,
+      "upper_arm_len": 0.2257,
+      "forearm_len": 0.2076,
+      "thigh_len": 0.3556,
+      "shin_len": 0.3801,
+      "foot_len": 0.1297,
+      "chest_w": 0.3126,
+      "waist_w": 0.2884,
+      "hip_w": 0.3202,
+      "chest_d": 0.2439,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0042,
+          0.8211,
+          0.0239
+        ],
+        "Spine": [
+          0,
+          0.9384,
+          0.0207
+        ],
+        "Spine1": [
+          0,
+          1.0378,
+          0.013
+        ],
+        "Spine2": [
+          0,
+          1.1521,
+          0.0153
+        ],
+        "Neck": [
+          0,
+          1.294,
+          0.009
+        ],
+        "Head": [
+          0.0007,
+          1.3534,
+          0.0308
+        ],
+        "LeftArm": [
+          0.1534,
+          1.2114,
+          0.0293
+        ],
+        "LeftForeArm": [
+          0.307,
+          1.0462,
+          0.0356
+        ],
+        "LeftHand": [
+          0.4152,
+          0.9306,
+          0.1698
+        ],
+        "RightArm": [
+          -0.1534,
+          1.2114,
+          0.0293
+        ],
+        "RightForeArm": [
+          -0.307,
+          1.0462,
+          0.0356
+        ],
+        "RightHand": [
+          -0.4152,
+          0.9306,
+          0.1698
+        ],
+        "LeftUpLeg": [
+          0.0933,
+          0.7758,
+          0.0179
+        ],
+        "LeftLeg": [
+          0.1312,
+          0.4234,
+          0.0473
+        ],
+        "LeftFoot": [
+          0.1678,
+          0.0456,
+          0.0274
+        ],
+        "LeftToeBase": [
+          0.1638,
+          0,
+          0.1488
+        ],
+        "RightUpLeg": [
+          -0.0933,
+          0.7758,
+          0.0179
+        ],
+        "RightLeg": [
+          -0.1312,
+          0.4234,
+          0.0473
+        ],
+        "RightFoot": [
+          -0.1678,
+          0.0456,
+          0.0274
+        ],
+        "RightToeBase": [
+          -0.1638,
+          0,
+          0.1488
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b1-10": {
+      "id": "mh-crowd-b1-10",
+      "source": "mh-crowd-b1-10.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.6901,
+      "neck_len": 0.0658,
+      "torso_len": 0.3987,
+      "shoulder_w": 0.339,
+      "upper_arm_len": 0.2664,
+      "forearm_len": 0.2443,
+      "thigh_len": 0.4528,
+      "shin_len": 0.4278,
+      "foot_len": 0.1507,
+      "chest_w": 0.3454,
+      "waist_w": 0.3187,
+      "hip_w": 0.3508,
+      "chest_d": 0.2694,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0043,
+          0.9846,
+          0.0267
+        ],
+        "Spine": [
+          0,
+          1.1074,
+          0.0225
+        ],
+        "Spine1": [
+          0,
+          1.228,
+          0.0192
+        ],
+        "Spine2": [
+          0,
+          1.3468,
+          0.0183
+        ],
+        "Neck": [
+          0,
+          1.506,
+          0.0297
+        ],
+        "Head": [
+          0.0007,
+          1.5695,
+          0.0471
+        ],
+        "LeftArm": [
+          0.1695,
+          1.4136,
+          0.0479
+        ],
+        "LeftForeArm": [
+          0.3535,
+          1.2216,
+          0.0641
+        ],
+        "LeftHand": [
+          0.479,
+          1.0928,
+          0.2295
+        ],
+        "RightArm": [
+          -0.1695,
+          1.4136,
+          0.0479
+        ],
+        "RightForeArm": [
+          -0.3535,
+          1.2216,
+          0.0641
+        ],
+        "RightHand": [
+          -0.479,
+          1.0928,
+          0.2295
+        ],
+        "LeftUpLeg": [
+          0.1022,
+          0.9303,
+          0.0194
+        ],
+        "LeftLeg": [
+          0.1409,
+          0.4802,
+          0.05
+        ],
+        "LeftFoot": [
+          0.1949,
+          0.057,
+          0.0186
+        ],
+        "LeftToeBase": [
+          0.1843,
+          0,
+          0.1577
+        ],
+        "RightUpLeg": [
+          -0.1022,
+          0.9303,
+          0.0194
+        ],
+        "RightLeg": [
+          -0.1409,
+          0.4802,
+          0.05
+        ],
+        "RightFoot": [
+          -0.1949,
+          0.057,
+          0.0186
+        ],
+        "RightToeBase": [
+          -0.1843,
+          0,
+          0.1577
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-01": {
+      "id": "mh-crowd-b2-01",
+      "source": "mh-crowd-b2-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5697,
+      "neck_len": 0.0441,
+      "torso_len": 0.4272,
+      "shoulder_w": 0.3732,
+      "upper_arm_len": 0.2484,
+      "forearm_len": 0.272,
+      "thigh_len": 0.3994,
+      "shin_len": 0.4499,
+      "foot_len": 0.1506,
+      "chest_w": 0.3803,
+      "waist_w": 0.3508,
+      "hip_w": 0.372,
+      "chest_d": 0.2966,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0001,
+          0.9266,
+          0.0152
+        ],
+        "Spine": [
+          0,
+          1.0173,
+          0.0252
+        ],
+        "Spine1": [
+          0,
+          1.1211,
+          0.0069
+        ],
+        "Spine2": [
+          0,
+          1.241,
+          -0.0484
+        ],
+        "Neck": [
+          0,
+          1.4444,
+          0.0139
+        ],
+        "Head": [
+          0.0014,
+          1.4876,
+          0.0224
+        ],
+        "LeftArm": [
+          0.1866,
+          1.34,
+          0.0198
+        ],
+        "LeftForeArm": [
+          0.35,
+          1.1529,
+          0.0181
+        ],
+        "LeftHand": [
+          0.4859,
+          1.0217,
+          0.2138
+        ],
+        "RightArm": [
+          -0.1866,
+          1.34,
+          0.0198
+        ],
+        "RightForeArm": [
+          -0.35,
+          1.1529,
+          0.0181
+        ],
+        "RightHand": [
+          -0.4859,
+          1.0217,
+          0.2138
+        ],
+        "LeftUpLeg": [
+          0.1084,
+          0.8841,
+          -0.0046
+        ],
+        "LeftLeg": [
+          0.1495,
+          0.4885,
+          0.0322
+        ],
+        "LeftFoot": [
+          0.2039,
+          0.0422,
+          0.0162
+        ],
+        "LeftToeBase": [
+          0.2021,
+          0,
+          0.1608
+        ],
+        "RightUpLeg": [
+          -0.1084,
+          0.8841,
+          -0.0046
+        ],
+        "RightLeg": [
+          -0.1495,
+          0.4885,
+          0.0322
+        ],
+        "RightFoot": [
+          -0.2038,
+          0.0422,
+          0.0162
+        ],
+        "RightToeBase": [
+          -0.2021,
+          0,
+          0.1608
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-03": {
+      "id": "mh-crowd-b2-03",
+      "source": "mh-crowd-b2-03.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5838,
+      "neck_len": 0.0408,
+      "torso_len": 0.4276,
+      "shoulder_w": 0.37,
+      "upper_arm_len": 0.2491,
+      "forearm_len": 0.2537,
+      "thigh_len": 0.4151,
+      "shin_len": 0.4445,
+      "foot_len": 0.1514,
+      "chest_w": 0.377,
+      "waist_w": 0.3478,
+      "hip_w": 0.3858,
+      "chest_d": 0.2941,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0008,
+          0.9468,
+          0.007
+        ],
+        "Spine": [
+          0,
+          1.04,
+          0.0241
+        ],
+        "Spine1": [
+          0,
+          1.1365,
+          0.0034
+        ],
+        "Spine2": [
+          0,
+          1.2612,
+          -0.0511
+        ],
+        "Neck": [
+          0,
+          1.4675,
+          0.013
+        ],
+        "Head": [
+          0.0025,
+          1.5076,
+          0.02
+        ],
+        "LeftArm": [
+          0.185,
+          1.3634,
+          0.0172
+        ],
+        "LeftForeArm": [
+          0.3504,
+          1.1771,
+          0.0198
+        ],
+        "LeftHand": [
+          0.479,
+          1.055,
+          0.2013
+        ],
+        "RightArm": [
+          -0.185,
+          1.3634,
+          0.0172
+        ],
+        "RightForeArm": [
+          -0.3504,
+          1.1771,
+          0.0198
+        ],
+        "RightHand": [
+          -0.479,
+          1.055,
+          0.2013
+        ],
+        "LeftUpLeg": [
+          0.1124,
+          0.8951,
+          -0.0041
+        ],
+        "LeftLeg": [
+          0.1531,
+          0.4834,
+          0.0294
+        ],
+        "LeftFoot": [
+          0.1909,
+          0.0408,
+          0.0121
+        ],
+        "LeftToeBase": [
+          0.1871,
+          0,
+          0.1579
+        ],
+        "RightUpLeg": [
+          -0.1124,
+          0.8951,
+          -0.0041
+        ],
+        "RightLeg": [
+          -0.1531,
+          0.4834,
+          0.0294
+        ],
+        "RightFoot": [
+          -0.1909,
+          0.0408,
+          0.0121
+        ],
+        "RightToeBase": [
+          -0.1871,
+          0,
+          0.1579
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-04": {
+      "id": "mh-crowd-b2-04",
+      "source": "mh-crowd-b2-04.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.4743,
+      "neck_len": 0.0642,
+      "torso_len": 0.3577,
+      "shoulder_w": 0.3138,
+      "upper_arm_len": 0.223,
+      "forearm_len": 0.2081,
+      "thigh_len": 0.3498,
+      "shin_len": 0.3783,
+      "foot_len": 0.1342,
+      "chest_w": 0.3198,
+      "waist_w": 0.295,
+      "hip_w": 0.3425,
+      "chest_d": 0.2494,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.003,
+          0.8193,
+          0.0255
+        ],
+        "Spine": [
+          0,
+          0.9374,
+          0.0186
+        ],
+        "Spine1": [
+          0,
+          1.0397,
+          0.02
+        ],
+        "Spine2": [
+          0,
+          1.1513,
+          0.0188
+        ],
+        "Neck": [
+          0,
+          1.2951,
+          0.0219
+        ],
+        "Head": [
+          0.0011,
+          1.3569,
+          0.0392
+        ],
+        "LeftArm": [
+          0.1569,
+          1.2114,
+          0.0405
+        ],
+        "LeftForeArm": [
+          0.3096,
+          1.0491,
+          0.0499
+        ],
+        "LeftHand": [
+          0.4191,
+          0.9368,
+          0.1867
+        ],
+        "RightArm": [
+          -0.1569,
+          1.2114,
+          0.0405
+        ],
+        "RightForeArm": [
+          -0.3096,
+          1.0491,
+          0.0499
+        ],
+        "RightHand": [
+          -0.4191,
+          0.9368,
+          0.1867
+        ],
+        "LeftUpLeg": [
+          0.0998,
+          0.7715,
+          0.0195
+        ],
+        "LeftLeg": [
+          0.1318,
+          0.4243,
+          0.0477
+        ],
+        "LeftFoot": [
+          0.1789,
+          0.0496,
+          0.0253
+        ],
+        "LeftToeBase": [
+          0.171,
+          0,
+          0.1498
+        ],
+        "RightUpLeg": [
+          -0.0998,
+          0.7715,
+          0.0195
+        ],
+        "RightLeg": [
+          -0.1318,
+          0.4243,
+          0.0477
+        ],
+        "RightFoot": [
+          -0.1789,
+          0.0496,
+          0.0253
+        ],
+        "RightToeBase": [
+          -0.171,
+          0,
+          0.1498
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-05": {
+      "id": "mh-crowd-b2-05",
+      "source": "mh-crowd-b2-05.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.4323,
+      "neck_len": 0.0341,
+      "torso_len": 0.3956,
+      "shoulder_w": 0.34,
+      "upper_arm_len": 0.2239,
+      "forearm_len": 0.2182,
+      "thigh_len": 0.3559,
+      "shin_len": 0.4148,
+      "foot_len": 0.1367,
+      "chest_w": 0.3465,
+      "waist_w": 0.3196,
+      "hip_w": 0.3727,
+      "chest_d": 0.2702,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0015,
+          0.8535,
+          0.001
+        ],
+        "Spine": [
+          0,
+          0.939,
+          0.0066
+        ],
+        "Spine1": [
+          0,
+          1.0358,
+          -0.0145
+        ],
+        "Spine2": [
+          0,
+          1.142,
+          -0.067
+        ],
+        "Neck": [
+          0,
+          1.3346,
+          0.0014
+        ],
+        "Head": [
+          0.0007,
+          1.3683,
+          0.0064
+        ],
+        "LeftArm": [
+          0.17,
+          1.2357,
+          0.0015
+        ],
+        "LeftForeArm": [
+          0.3215,
+          1.0712,
+          0.0117
+        ],
+        "LeftHand": [
+          0.4326,
+          0.9664,
+          0.1675
+        ],
+        "RightArm": [
+          -0.17,
+          1.2357,
+          0.0015
+        ],
+        "RightForeArm": [
+          -0.3215,
+          1.0712,
+          0.0117
+        ],
+        "RightHand": [
+          -0.4326,
+          0.9664,
+          0.1675
+        ],
+        "LeftUpLeg": [
+          0.1086,
+          0.8007,
+          -0.0136
+        ],
+        "LeftLeg": [
+          0.1435,
+          0.4478,
+          0.0167
+        ],
+        "LeftFoot": [
+          0.1651,
+          0.0342,
+          -0.0068
+        ],
+        "LeftToeBase": [
+          0.162,
+          0,
+          0.1255
+        ],
+        "RightUpLeg": [
+          -0.1086,
+          0.8007,
+          -0.0136
+        ],
+        "RightLeg": [
+          -0.1435,
+          0.4478,
+          0.0167
+        ],
+        "RightFoot": [
+          -0.1651,
+          0.0342,
+          -0.0068
+        ],
+        "RightToeBase": [
+          -0.162,
+          0,
+          0.1255
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-06": {
+      "id": "mh-crowd-b2-06",
+      "source": "mh-crowd-b2-06.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.4089,
+      "neck_len": 0.0595,
+      "torso_len": 0.3501,
+      "shoulder_w": 0.301,
+      "upper_arm_len": 0.2151,
+      "forearm_len": 0.2011,
+      "thigh_len": 0.3266,
+      "shin_len": 0.3668,
+      "foot_len": 0.1305,
+      "chest_w": 0.3067,
+      "waist_w": 0.2829,
+      "hip_w": 0.3511,
+      "chest_d": 0.2392,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0028,
+          0.7834,
+          0.0251
+        ],
+        "Spine": [
+          0,
+          0.8931,
+          0.0173
+        ],
+        "Spine1": [
+          0,
+          1.0011,
+          0.0196
+        ],
+        "Spine2": [
+          0,
+          1.1032,
+          0.021
+        ],
+        "Neck": [
+          0,
+          1.243,
+          0.0301
+        ],
+        "Head": [
+          0.0008,
+          1.3002,
+          0.0465
+        ],
+        "LeftArm": [
+          0.1505,
+          1.1603,
+          0.0471
+        ],
+        "LeftForeArm": [
+          0.3007,
+          1.0068,
+          0.0588
+        ],
+        "LeftHand": [
+          0.4073,
+          0.9003,
+          0.192
+        ],
+        "RightArm": [
+          -0.1505,
+          1.1603,
+          0.0471
+        ],
+        "RightForeArm": [
+          -0.3007,
+          1.0068,
+          0.0588
+        ],
+        "RightHand": [
+          -0.4073,
+          0.9003,
+          0.192
+        ],
+        "LeftUpLeg": [
+          0.1023,
+          0.7367,
+          0.0194
+        ],
+        "LeftLeg": [
+          0.1265,
+          0.4121,
+          0.0462
+        ],
+        "LeftFoot": [
+          0.1783,
+          0.0497,
+          0.0239
+        ],
+        "LeftToeBase": [
+          0.1679,
+          0,
+          0.1441
+        ],
+        "RightUpLeg": [
+          -0.1023,
+          0.7367,
+          0.0194
+        ],
+        "RightLeg": [
+          -0.1265,
+          0.4121,
+          0.0462
+        ],
+        "RightFoot": [
+          -0.1783,
+          0.0497,
+          0.0239
+        ],
+        "RightToeBase": [
+          -0.1679,
+          0,
+          0.1441
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-07": {
+      "id": "mh-crowd-b2-07",
+      "source": "mh-crowd-b2-07.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5401,
+      "neck_len": 0.0396,
+      "torso_len": 0.4168,
+      "shoulder_w": 0.3534,
+      "upper_arm_len": 0.2477,
+      "forearm_len": 0.2545,
+      "thigh_len": 0.4123,
+      "shin_len": 0.4191,
+      "foot_len": 0.1451,
+      "chest_w": 0.3601,
+      "waist_w": 0.3322,
+      "hip_w": 0.3768,
+      "chest_d": 0.2809,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0018,
+          0.9182,
+          0.0032
+        ],
+        "Spine": [
+          0,
+          1.0101,
+          0.0177
+        ],
+        "Spine1": [
+          0,
+          1.103,
+          -0.0013
+        ],
+        "Spine2": [
+          0,
+          1.2228,
+          -0.0566
+        ],
+        "Neck": [
+          0,
+          1.4267,
+          0.0063
+        ],
+        "Head": [
+          0.0025,
+          1.4658,
+          0.0122
+        ],
+        "LeftArm": [
+          0.1767,
+          1.3244,
+          0.011
+        ],
+        "LeftForeArm": [
+          0.3411,
+          1.1391,
+          0.0128
+        ],
+        "LeftHand": [
+          0.4695,
+          1.0166,
+          0.1952
+        ],
+        "RightArm": [
+          -0.1767,
+          1.3244,
+          0.011
+        ],
+        "RightForeArm": [
+          -0.3411,
+          1.1391,
+          0.0128
+        ],
+        "RightHand": [
+          -0.4695,
+          1.0166,
+          0.1952
+        ],
+        "LeftUpLeg": [
+          0.1098,
+          0.8665,
+          -0.0114
+        ],
+        "LeftLeg": [
+          0.1487,
+          0.4574,
+          0.0216
+        ],
+        "LeftFoot": [
+          0.1865,
+          0.0403,
+          0.0061
+        ],
+        "LeftToeBase": [
+          0.1835,
+          0,
+          0.1455
+        ],
+        "RightUpLeg": [
+          -0.1098,
+          0.8665,
+          -0.0114
+        ],
+        "RightLeg": [
+          -0.1487,
+          0.4574,
+          0.0216
+        ],
+        "RightFoot": [
+          -0.1865,
+          0.0403,
+          0.0061
+        ],
+        "RightToeBase": [
+          -0.1835,
+          0,
+          0.1455
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-09": {
+      "id": "mh-crowd-b2-09",
+      "source": "mh-crowd-b2-09.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.6174,
+      "neck_len": 0.039,
+      "torso_len": 0.4368,
+      "shoulder_w": 0.3742,
+      "upper_arm_len": 0.2555,
+      "forearm_len": 0.2537,
+      "thigh_len": 0.4261,
+      "shin_len": 0.4577,
+      "foot_len": 0.1555,
+      "chest_w": 0.3813,
+      "waist_w": 0.3517,
+      "hip_w": 0.3974,
+      "chest_d": 0.2974,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0001,
+          0.9764,
+          0.0098
+        ],
+        "Spine": [
+          0,
+          1.0699,
+          0.0218
+        ],
+        "Spine1": [
+          0,
+          1.1751,
+          -0.0008
+        ],
+        "Spine2": [
+          0,
+          1.2979,
+          -0.0555
+        ],
+        "Neck": [
+          0,
+          1.5066,
+          0.0116
+        ],
+        "Head": [
+          0.0016,
+          1.5448,
+          0.0194
+        ],
+        "LeftArm": [
+          0.1871,
+          1.401,
+          0.0145
+        ],
+        "LeftForeArm": [
+          0.3577,
+          1.2109,
+          0.0212
+        ],
+        "LeftHand": [
+          0.4861,
+          1.0889,
+          0.2029
+        ],
+        "RightArm": [
+          -0.1871,
+          1.401,
+          0.0145
+        ],
+        "RightForeArm": [
+          -0.3577,
+          1.2109,
+          0.0212
+        ],
+        "RightHand": [
+          -0.4861,
+          1.0889,
+          0.2029
+        ],
+        "LeftUpLeg": [
+          0.1158,
+          0.9203,
+          -0.0048
+        ],
+        "LeftLeg": [
+          0.1561,
+          0.4974,
+          0.0286
+        ],
+        "LeftFoot": [
+          0.1902,
+          0.0415,
+          0.0062
+        ],
+        "LeftToeBase": [
+          0.1862,
+          0,
+          0.156
+        ],
+        "RightUpLeg": [
+          -0.1158,
+          0.9203,
+          -0.0048
+        ],
+        "RightLeg": [
+          -0.1561,
+          0.4974,
+          0.0286
+        ],
+        "RightFoot": [
+          -0.1902,
+          0.0415,
+          0.0062
+        ],
+        "RightToeBase": [
+          -0.1862,
+          0,
+          0.156
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b2-10": {
+      "id": "mh-crowd-b2-10",
+      "source": "mh-crowd-b2-10.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5338,
+      "neck_len": 0.0669,
+      "torso_len": 0.3696,
+      "shoulder_w": 0.317,
+      "upper_arm_len": 0.2345,
+      "forearm_len": 0.2159,
+      "thigh_len": 0.3776,
+      "shin_len": 0.3864,
+      "foot_len": 0.137,
+      "chest_w": 0.323,
+      "waist_w": 0.298,
+      "hip_w": 0.3521,
+      "chest_d": 0.252,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0032,
+          0.8556,
+          0.0249
+        ],
+        "Spine": [
+          0,
+          0.9804,
+          0.0197
+        ],
+        "Spine1": [
+          0,
+          1.0839,
+          0.018
+        ],
+        "Spine2": [
+          0,
+          1.2029,
+          0.0156
+        ],
+        "Neck": [
+          0,
+          1.3499,
+          0.0096
+        ],
+        "Head": [
+          0.0008,
+          1.4133,
+          0.031
+        ],
+        "LeftArm": [
+          0.1585,
+          1.2647,
+          0.0305
+        ],
+        "LeftForeArm": [
+          0.3175,
+          1.0925,
+          0.0368
+        ],
+        "LeftHand": [
+          0.4303,
+          0.9734,
+          0.1771
+        ],
+        "RightArm": [
+          -0.1585,
+          1.2647,
+          0.0305
+        ],
+        "RightForeArm": [
+          -0.3175,
+          1.0925,
+          0.0368
+        ],
+        "RightHand": [
+          -0.4303,
+          0.9734,
+          0.1771
+        ],
+        "LeftUpLeg": [
+          0.1026,
+          0.8072,
+          0.019
+        ],
+        "LeftLeg": [
+          0.136,
+          0.4323,
+          0.0487
+        ],
+        "LeftFoot": [
+          0.1749,
+          0.0485,
+          0.0271
+        ],
+        "LeftToeBase": [
+          0.1707,
+          0,
+          0.1552
+        ],
+        "RightUpLeg": [
+          -0.1026,
+          0.8072,
+          0.019
+        ],
+        "RightLeg": [
+          -0.136,
+          0.4323,
+          0.0487
+        ],
+        "RightFoot": [
+          -0.1749,
+          0.0485,
+          0.0271
+        ],
+        "RightToeBase": [
+          -0.1707,
+          0,
+          0.1552
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b3-01": {
+      "id": "mh-crowd-b3-01",
+      "source": "mh-crowd-b3-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.716,
+      "neck_len": 0.0436,
+      "torso_len": 0.4591,
+      "shoulder_w": 0.3968,
+      "upper_arm_len": 0.2776,
+      "forearm_len": 0.2772,
+      "thigh_len": 0.4753,
+      "shin_len": 0.4678,
+      "foot_len": 0.1641,
+      "chest_w": 0.4043,
+      "waist_w": 0.373,
+      "hip_w": 0.4015,
+      "chest_d": 0.3154,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0006,
+          1.0368,
+          0.0125
+        ],
+        "Spine": [
+          0,
+          1.1333,
+          0.0258
+        ],
+        "Spine1": [
+          0,
+          1.2466,
+          0.0045
+        ],
+        "Spine2": [
+          0,
+          1.375,
+          -0.0514
+        ],
+        "Neck": [
+          0,
+          1.5922,
+          0.0137
+        ],
+        "Head": [
+          0.0017,
+          1.6349,
+          0.0221
+        ],
+        "LeftArm": [
+          0.1984,
+          1.4831,
+          0.0193
+        ],
+        "LeftForeArm": [
+          0.3817,
+          1.2747,
+          0.0224
+        ],
+        "LeftHand": [
+          0.5213,
+          1.1411,
+          0.2211
+        ],
+        "RightArm": [
+          -0.1984,
+          1.4831,
+          0.0193
+        ],
+        "RightForeArm": [
+          -0.3817,
+          1.2747,
+          0.0224
+        ],
+        "RightHand": [
+          -0.5213,
+          1.1411,
+          0.2211
+        ],
+        "LeftUpLeg": [
+          0.117,
+          0.9835,
+          -0.0046
+        ],
+        "LeftLeg": [
+          0.1605,
+          0.5115,
+          0.0308
+        ],
+        "LeftFoot": [
+          0.2046,
+          0.0462,
+          0.011
+        ],
+        "LeftToeBase": [
+          0.2005,
+          0,
+          0.1684
+        ],
+        "RightUpLeg": [
+          -0.117,
+          0.9835,
+          -0.0046
+        ],
+        "RightLeg": [
+          -0.1605,
+          0.5115,
+          0.0308
+        ],
+        "RightFoot": [
+          -0.2046,
+          0.0462,
+          0.011
+        ],
+        "RightToeBase": [
+          -0.2005,
+          0,
+          0.1684
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b3-03": {
+      "id": "mh-crowd-b3-03",
+      "source": "mh-crowd-b3-03.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5727,
+      "neck_len": 0.0378,
+      "torso_len": 0.4296,
+      "shoulder_w": 0.371,
+      "upper_arm_len": 0.2432,
+      "forearm_len": 0.2518,
+      "thigh_len": 0.3747,
+      "shin_len": 0.4763,
+      "foot_len": 0.1542,
+      "chest_w": 0.378,
+      "waist_w": 0.3487,
+      "hip_w": 0.4053,
+      "chest_d": 0.2949,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0005,
+          0.943,
+          0.0087
+        ],
+        "Spine": [
+          0,
+          1.0356,
+          0.0184
+        ],
+        "Spine1": [
+          0,
+          1.1378,
+          -0.0044
+        ],
+        "Spine2": [
+          0,
+          1.2571,
+          -0.0605
+        ],
+        "Neck": [
+          0,
+          1.4651,
+          0.0114
+        ],
+        "Head": [
+          0.002,
+          1.5022,
+          0.0183
+        ],
+        "LeftArm": [
+          0.1855,
+          1.3594,
+          0.0118
+        ],
+        "LeftForeArm": [
+          0.3492,
+          1.1798,
+          0.0214
+        ],
+        "LeftHand": [
+          0.4768,
+          1.0594,
+          0.202
+        ],
+        "RightArm": [
+          -0.1855,
+          1.3594,
+          0.0118
+        ],
+        "RightForeArm": [
+          -0.3492,
+          1.1798,
+          0.0214
+        ],
+        "RightHand": [
+          -0.4768,
+          1.0594,
+          0.202
+        ],
+        "LeftUpLeg": [
+          0.1181,
+          0.8857,
+          -0.0046
+        ],
+        "LeftLeg": [
+          0.1565,
+          0.5144,
+          0.0279
+        ],
+        "LeftFoot": [
+          0.1871,
+          0.0398,
+          0.002
+        ],
+        "LeftToeBase": [
+          0.1836,
+          0,
+          0.1509
+        ],
+        "RightUpLeg": [
+          -0.1181,
+          0.8857,
+          -0.0046
+        ],
+        "RightLeg": [
+          -0.1565,
+          0.5144,
+          0.0279
+        ],
+        "RightFoot": [
+          -0.1871,
+          0.0398,
+          0.002
+        ],
+        "RightToeBase": [
+          -0.1836,
+          0,
+          0.1509
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b3-04": {
+      "id": "mh-crowd-b3-04",
+      "source": "mh-crowd-b3-04.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.6729,
+      "neck_len": 0.044,
+      "torso_len": 0.4478,
+      "shoulder_w": 0.3838,
+      "upper_arm_len": 0.2764,
+      "forearm_len": 0.273,
+      "thigh_len": 0.4816,
+      "shin_len": 0.4387,
+      "foot_len": 0.1572,
+      "chest_w": 0.3911,
+      "waist_w": 0.3608,
+      "hip_w": 0.3796,
+      "chest_d": 0.3051,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0015,
+          1.0106,
+          0.0069
+        ],
+        "Spine": [
+          0,
+          1.1,
+          0.0202
+        ],
+        "Spine1": [
+          0,
+          1.2124,
+          0.0003
+        ],
+        "Spine2": [
+          0,
+          1.34,
+          -0.0557
+        ],
+        "Neck": [
+          0,
+          1.5476,
+          0.0081
+        ],
+        "Head": [
+          0.0023,
+          1.5908,
+          0.0163
+        ],
+        "LeftArm": [
+          0.1919,
+          1.4407,
+          0.0142
+        ],
+        "LeftForeArm": [
+          0.3738,
+          1.2326,
+          0.017
+        ],
+        "LeftHand": [
+          0.5111,
+          1.1009,
+          0.2128
+        ],
+        "RightArm": [
+          -0.1919,
+          1.4407,
+          0.0142
+        ],
+        "RightForeArm": [
+          -0.3738,
+          1.2326,
+          0.017
+        ],
+        "RightHand": [
+          -0.5111,
+          1.1009,
+          0.2128
+        ],
+        "LeftUpLeg": [
+          0.1106,
+          0.96,
+          -0.0105
+        ],
+        "LeftLeg": [
+          0.1538,
+          0.4818,
+          0.0271
+        ],
+        "LeftFoot": [
+          0.1992,
+          0.046,
+          0.0056
+        ],
+        "LeftToeBase": [
+          0.196,
+          0,
+          0.1559
+        ],
+        "RightUpLeg": [
+          -0.1106,
+          0.96,
+          -0.0105
+        ],
+        "RightLeg": [
+          -0.1538,
+          0.4818,
+          0.0271
+        ],
+        "RightFoot": [
+          -0.1992,
+          0.046,
+          0.0056
+        ],
+        "RightToeBase": [
+          -0.196,
+          0,
+          0.1559
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b3-05": {
+      "id": "mh-crowd-b3-05",
+      "source": "mh-crowd-b3-05.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.5505,
+      "neck_len": 0.0399,
+      "torso_len": 0.4254,
+      "shoulder_w": 0.3612,
+      "upper_arm_len": 0.2459,
+      "forearm_len": 0.2564,
+      "thigh_len": 0.3825,
+      "shin_len": 0.4495,
+      "foot_len": 0.1515,
+      "chest_w": 0.3681,
+      "waist_w": 0.3395,
+      "hip_w": 0.3902,
+      "chest_d": 0.2871,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          -0.0011,
+          0.9185,
+          0.0061
+        ],
+        "Spine": [
+          0,
+          1.0112,
+          0.0233
+        ],
+        "Spine1": [
+          0,
+          1.1079,
+          0.0032
+        ],
+        "Spine2": [
+          0,
+          1.23,
+          -0.0526
+        ],
+        "Neck": [
+          0,
+          1.4365,
+          0.0131
+        ],
+        "Head": [
+          0.0028,
+          1.4758,
+          0.0194
+        ],
+        "LeftArm": [
+          0.1806,
+          1.3329,
+          0.0168
+        ],
+        "LeftForeArm": [
+          0.3441,
+          1.1493,
+          0.0194
+        ],
+        "LeftHand": [
+          0.4735,
+          1.0258,
+          0.2031
+        ],
+        "RightArm": [
+          -0.1806,
+          1.3329,
+          0.0168
+        ],
+        "RightForeArm": [
+          -0.3441,
+          1.1493,
+          0.0194
+        ],
+        "RightHand": [
+          -0.4735,
+          1.0258,
+          0.2031
+        ],
+        "LeftUpLeg": [
+          0.1137,
+          0.8672,
+          -0.0034
+        ],
+        "LeftLeg": [
+          0.1526,
+          0.488,
+          0.0287
+        ],
+        "LeftFoot": [
+          0.1939,
+          0.0408,
+          0.0109
+        ],
+        "LeftToeBase": [
+          0.1908,
+          0,
+          0.1568
+        ],
+        "RightUpLeg": [
+          -0.1137,
+          0.8672,
+          -0.0034
+        ],
+        "RightLeg": [
+          -0.1526,
+          0.488,
+          0.0287
+        ],
+        "RightFoot": [
+          -0.1939,
+          0.0408,
+          0.0109
+        ],
+        "RightToeBase": [
+          -0.1908,
+          0,
+          0.1568
+        ]
+      },
+      "scale_baked": 1
+    },
+    "mh-crowd-b3-10": {
+      "id": "mh-crowd-b3-10",
+      "source": "mh-crowd-b3-10.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
+      "height_m": 1.75,
+      "neck_len": 0.0687,
+      "torso_len": 0.4197,
+      "shoulder_w": 0.3464,
+      "upper_arm_len": 0.2838,
+      "forearm_len": 0.2487,
+      "thigh_len": 0.4782,
+      "shin_len": 0.4368,
+      "foot_len": 0.1556,
+      "chest_w": 0.353,
+      "waist_w": 0.3256,
+      "hip_w": 0.3683,
+      "chest_d": 0.2753,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.004,
+          1.0182,
+          0.0229
+        ],
+        "Spine": [
+          0,
+          1.1451,
+          0.0244
+        ],
+        "Spine1": [
+          0,
+          1.2701,
+          0.0168
+        ],
+        "Spine2": [
+          0,
+          1.4011,
+          0.0104
+        ],
+        "Neck": [
+          0,
+          1.5644,
+          0.005
+        ],
+        "Head": [
+          -0.0014,
+          1.6284,
+          0.0298
+        ],
+        "LeftArm": [
+          0.1732,
+          1.4717,
+          0.0265
+        ],
+        "LeftForeArm": [
+          0.3644,
+          1.2622,
+          0.037
+        ],
+        "LeftHand": [
+          0.4917,
+          1.1249,
+          0.2007
+        ],
+        "RightArm": [
+          -0.1732,
+          1.4717,
+          0.0265
+        ],
+        "RightForeArm": [
+          -0.3644,
+          1.2622,
+          0.037
+        ],
+        "RightHand": [
+          -0.4917,
+          1.1249,
+          0.2007
+        ],
+        "LeftUpLeg": [
+          0.1073,
+          0.9631,
+          0.0171
+        ],
+        "LeftLeg": [
+          0.1485,
+          0.4878,
+          0.0503
+        ],
+        "LeftFoot": [
+          0.1867,
+          0.0537,
+          0.0208
+        ],
+        "LeftToeBase": [
+          0.1834,
+          0,
+          0.1668
+        ],
+        "RightUpLeg": [
+          -0.1073,
+          0.9631,
+          0.0171
+        ],
+        "RightLeg": [
+          -0.1485,
+          0.4878,
+          0.0503
+        ],
+        "RightFoot": [
+          -0.1867,
+          0.0537,
+          0.0208
+        ],
+        "RightToeBase": [
+          -0.1834,
+          0,
+          0.1668
+        ]
+      },
+      "scale_baked": 1
+    },
     "mh-female-01": {
       "id": "mh-female-01",
       "source": "mh-female-01.glb bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the manifest scale)",
@@ -3249,6 +5547,180 @@
       "rig": "v1-65",
       "body": "butcher-65",
       "live": true
+    },
+    "giant-salamander": {
+      "chain": "salamander",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "rat-king": {
+      "chain": "rat-king",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-crow": {
+      "chain": "crow",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "giant-eel": {
+      "chain": "eel",
+      "partAlias": {
+        "spine2": "chest_a"
+      },
+      "live": true
+    },
+    "original-elephant": {
+      "chain": "elephant",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "original-wolf": {
+      "chain": "wolf",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "vagrant-106": {
+      "rig": "mixamo-19",
+      "body": "vagrant-106",
+      "live": true
+    },
+    "original-spider": {
+      "chain": "spider",
+      "partAlias": {
+        "spine2": "thorax"
+      },
+      "live": true
+    },
+    "giant-centipede": {
+      "chain": "centipede",
+      "partAlias": {
+        "spine2": "seg2"
+      },
+      "live": true
+    },
+    "low-hover-drone": {
+      "chain": "drone",
+      "partAlias": {
+        "spine2": "hips"
+      },
+      "frame": true,
+      "live": true
+    },
+    "original-rat": {
+      "chain": "rat-king",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "massScale": 0.125,
+      "live": true
+    },
+    "original-dog": {
+      "chain": "dog",
+      "partAlias": {
+        "spine2": "chest"
+      },
+      "live": true
+    },
+    "mh-crowd-b1-01": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b1-01",
+      "live": false
+    },
+    "mh-crowd-b1-02": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b1-02",
+      "live": false
+    },
+    "mh-crowd-b1-06": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b1-06",
+      "live": false
+    },
+    "mh-crowd-b1-07": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b1-07",
+      "live": false
+    },
+    "mh-crowd-b1-10": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b1-10",
+      "live": false
+    },
+    "mh-crowd-b2-01": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-01",
+      "live": false
+    },
+    "mh-crowd-b2-03": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-03",
+      "live": false
+    },
+    "mh-crowd-b2-04": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-04",
+      "live": false
+    },
+    "mh-crowd-b2-05": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-05",
+      "live": false
+    },
+    "mh-crowd-b2-06": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-06",
+      "live": false
+    },
+    "mh-crowd-b2-07": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-07",
+      "live": false
+    },
+    "mh-crowd-b2-09": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-09",
+      "live": false
+    },
+    "mh-crowd-b2-10": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b2-10",
+      "live": false
+    },
+    "mh-crowd-b3-01": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b3-01",
+      "live": false
+    },
+    "mh-crowd-b3-03": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b3-03",
+      "live": false
+    },
+    "mh-crowd-b3-04": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b3-04",
+      "live": false
+    },
+    "mh-crowd-b3-05": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b3-05",
+      "live": false
+    },
+    "mh-crowd-b3-10": {
+      "rig": "mixamo-106",
+      "body": "mh-crowd-b3-10",
+      "live": false
     },
     "mh-female-01": {
       "rig": "mixamo-106",

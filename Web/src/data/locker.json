@@ -25,7 +25,7 @@
     "borough-marshals-pistol-v1"
   ],
   "resourceCaps": {
-    "railgun-reserve": 8,
+    "railgun-reserve": 120,
     "pistol-reserve": 12,
     "rifle-reserve": 16,
     "shotgun-reserve": 12,

@@ -17,7 +17,6 @@
   "poolSize": 3,
   "maxParked": 6,
   "rewarmMs": 3000,
-  "maxActive": 3,
   "killImpulse": { "horizontal": 260, "up": 40, "part": "spine2" },
   "bulletImpulse": {
     "flagParam": "bulletimpulse",

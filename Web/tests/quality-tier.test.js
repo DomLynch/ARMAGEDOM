@@ -75,8 +75,6 @@ test("a genuinely weak device lands on low and tells listeners and the report wh
   assert.equal(q.row().name, low.name, "a sustained slow median adds a third weak signal");
   assert.deepEqual(seen, [mid.name, low.name]);
   assert.equal(q.cap(3, "ragdolls"), low.ragdolls);
-  assert.equal(q.ragdollRows({ max_simultaneous_ragdolls: 3 }).max_simultaneous_ragdolls, low.ragdolls);
-  assert.equal(q.ragdollRows({ max_simultaneous_ragdolls: 1 }).max_simultaneous_ragdolls, 1, "never raises the data cap");
   const report = q.report();
   assert.equal(report.tier, low.name);
   assert.deepEqual(report.reasons, ["cores", "memoryGb", "frameMs"]);

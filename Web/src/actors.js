@@ -10,15 +10,13 @@ import {
 } from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
-import { createRailgunCoils } from "./engine/railgun-coils.js";
+import { createLmgDrum } from "./engine/lmg-drum.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
 import { bodyHitStart, bodyHitStep, bodyHitEnd } from "./engine/hit-reaction.js";
 import {
   traceGrenadeSurface,
-  traceRailgunSurface,
-  posedActorBounds,
   followGrenadeSurface,
   surfaceAimHeight,
 } from "./engine/grenade-surface.js";
@@ -652,7 +650,7 @@ export function createActors(
     view.shadow.removeFromParent();
     view.shadow.material.dispose();
     view.bossGunPose?.dispose();
-    view.railgunCoils?.dispose();
+    view.lmgDrum?.dispose();
     view.railgunPose?.dispose();
     view.riflePose?.dispose();
     view.shotgunPose?.dispose();
@@ -738,37 +736,6 @@ export function createActors(
     grenadeFollow(game, anchor, enemy) {
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([enemy.id]) });
       return followGrenadeSurface(anchor, views.get(enemy.id));
-    },
-    clearRailgunCharge() {
-      const v = views.get(0);
-      v?.railgunCoils?.update({ charging: false, visible: !!v.railgunPose?.mount.visible });
-    },
-    railgunSource(game) {
-      this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set() });
-      const p = this.equipmentOrigin("commanderPistol");
-      return p ? { x: p.x, y: p.y, z: p.z } : null;
-    },
-    railgunAimPoint(game, id) {
-      this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([id]) });
-      const view = views.get(id),
-        aimView = view?.contactModel ? { root: view.contactModel, model: view.contactModel } : view,
-        box = posedActorBounds(aimView, { skinnedOnly: true }) ?? posedActorBounds(aimView),
-        p = box?.getCenter(new THREE.Vector3());
-      return p ? { x: p.x, y: p.y, z: p.z } : null;
-    },
-    railgunTrace(game, start, end) {
-      const targets = game.enemies
-        .filter((e) => e.hp > 0 && e.hostile !== false && (e.areaId == null || e.areaId === game.world.areaId))
-        .sort(
-          (a, b) => Math.hypot(a.pos.x - start.x, a.pos.z + start.z) - Math.hypot(b.pos.x - start.x, b.pos.z + start.z),
-        )
-        .slice(0, LOOK.rocketAimTargets);
-      this.update(game, 0, 0, {
-        presentationDt: 0,
-        contactOnly: true,
-        projectileContactIds: new Set(targets.map((e) => e.id)),
-      });
-      return traceRailgunSurface(views, targets, start, end);
     },
     bossRangedSource(game, actor) {
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([actor.id]) });
@@ -1693,18 +1660,13 @@ export function createActors(
               game.time >= entity.hurtUntil;
           if (railgunSource && !view.railgunPose) {
             view.railgunPose = createRiflePose(view.model, railgunSource);
-            view.railgunPose.mount.name = "ThundercoilRailgunMount";
-            view.railgunCoils = createRailgunCoils(view.railgunPose.mount.getObjectByName("Rifle"));
+            view.railgunPose.mount.name = "LightMachineGunMount";
+            view.lmgDrum = createLmgDrum(view.railgunPose.mount.getObjectByName("Rifle"));
             view.flashMaterials.push(...view.railgunPose.materials);
           }
           if (view.railgunPose) {
             view.railgunPose.mount.visible = railgunPose;
-            view.railgunCoils.update({
-              visible: railgunPose,
-              charging: !!game.railgunCharge,
-              progress: game.railgunCharge ? (game.time - game.railgunCharge.startedAt) / railgun.charge.seconds : 0,
-              time: game.time,
-            });
+            view.lmgDrum.update({ visible: railgunPose });
             if (railgunPose) {
               const clock = game.bossEquipmentAction?.commanderPistol ?? {},
                 reloading = clock.reloadingUntil > game.time,

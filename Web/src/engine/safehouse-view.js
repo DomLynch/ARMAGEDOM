@@ -7,7 +7,7 @@ import {
   safehouseAnchor,
   safehouseSite,
 } from "./safehouse.js";
-import { lockerInventory, lockerStored } from "./locker-core.js";
+import { lockerInventory, lockerHolds } from "./locker-core.js";
 import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 import { SAFEHOUSE_VIEW } from "./safehouse-view-data.js";
@@ -234,7 +234,7 @@ export function createSafehouseView(s, dispatch) {
       const row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p"),
-        stored = lockerStored(g, id);
+        stored = lockerHolds(g, id); // the Storage list only: a weapon in the body bag is not in the Storage
       text.textContent = fillText(TEXT.weaponRow, {
         name: TEXT.weaponNames[id],
         state: stored ? TEXT.stored : item.equipped ? TEXT.equipped : TEXT.carried,

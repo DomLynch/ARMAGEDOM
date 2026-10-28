@@ -130,9 +130,8 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     if (data.weaponKey === "railgun")
       return fillText(TEXT.railgunStats, {
         damage: data.rules.damage,
-        jumps: data.arc.jumps,
         range: data.rules.range,
-        charge: data.charge.seconds,
+        spread: data.automatic.spreadDegrees,
         cadence: data.rules.cadence,
         magazine,
         capacity: data.rules.capacity,
