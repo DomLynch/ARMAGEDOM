@@ -19,6 +19,24 @@ export function validateMarkedHunterSpawn(d) {
     fail("markedHunterSpawn", "gateDefaultCoordinate must be 0 to 1");
 }
 
+// physicsFloor.json (physics-death-impl.js): per model, its bone names and the skin vertices that can be a corpse's lowest point, each a list of
+// influences [bone index, weight, x, y, z]. A corpse is seated on the floor from them; a model with no entry is not lifted. The lazy physics chunk
+// imports the file directly (about 200 KB the main bundle never needs), so a test runs this validator over it.
+export function validatePhysicsFloor(d) {
+  closed(d, ["schema_version", "note", "models"]);
+  for (const [model, m] of Object.entries(d.models)) {
+    closed(m, ["bones", "vertices"]);
+    if (!m.bones.length || m.bones.some((b) => typeof b !== "string" || !b)) fail("physicsFloor", `${model}.bones must be bone names`);
+    if (!m.vertices.length) fail("physicsFloor", `${model} lists no vertices`);
+    m.vertices.forEach((vertex, n) => {
+      const bad = (i) => i.length !== 5 || !i.every(Number.isFinite) || !Number.isInteger(i[0]) || i[0] < 0 || i[0] >= m.bones.length;
+      if (!vertex.length || vertex.some(bad)) fail("physicsFloor", `${model}.vertices[${n}] must be influences [bone index, weight, x, y, z]`);
+      const weight = vertex.reduce((sum, i) => sum + i[1], 0);
+      if (Math.abs(weight - 1) > 0.01) fail("physicsFloor", `${model}.vertices[${n}] weights add up to ${weight}, not 1`);
+    });
+  }
+}
+
 export function validatePhysicsBudget(d) {
   // reserve_for_marked: entity flags whose death may release the oldest unflagged corpse when the cap is full (a hunter or boss is never baked for a crowd).
   // ranks: who may take whose place when the cap is full (a death evicts the lowest-ranked, then oldest, corpse of a LOWER rank; the local

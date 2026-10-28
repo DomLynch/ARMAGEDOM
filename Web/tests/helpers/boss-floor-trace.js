@@ -67,5 +67,5 @@ export async function bossSettle(model, { seconds = CFG.settleSeconds, afterSeco
   for (let t = 0; t < afterSeconds; t += dt) frame();
   const later = afterSeconds ? lowestVertex(root) : settled;
   i.releaseDeath(s);
-  return { rest, settled, later, scale, state: s };
+  return { rest, settled, later, scale, root };
 }
