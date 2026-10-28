@@ -38,6 +38,7 @@ const setup = await page.evaluate(() => {
     ...g.bossEquipment.commanderPistol,
     status: "owned", rewardReceipt: data.source.receiptId, selected: true, magazine: data.rules.capacity, reserve: data.rules.reserve,
   };
+  Object.assign(g.pistol, { collected: true, equipped: false, magazine: 6, reserve: 12 });
   p.weapon = "railgun";
   p.facing = { x: 0, z: 1 };
   const bodies = [[0.4, 6], [-0.9, 7.5], [0.2, 9]].map(([dx, dz], i) => ({
@@ -49,14 +50,15 @@ const setup = await page.evaluate(() => {
 });
 if (setup.error) throw Error(setup.error);
 await page.waitForTimeout(3000); // the rifle model streams in
-await page.mouse.move(187, 300);
+await page.mouse.move(Number(arg("mx", 187)), Number(arg("my", 300)));
 await page.mouse.down();
 await page.waitForTimeout(700);
 await page.screenshot({ path: `${OUT}/${TAG}.png` });
 const spent = await page.evaluate(() => {
   const g = window.__qa.game, s = g.bossEquipment.commanderPistol;
   const hp = g.enemies.filter((e) => e.id >= 9100).map((e) => e.hp);
-  return { magazine: s.magazine, reserve: s.reserve, ready: g.bossEquipmentAssetReady?.commanderPistol, hp };
+  const why = { weapon: g.player.weapon, selected: s.selected, status: s.status, area: g.world.areaId, lowered: g.weaponsLowered };
+  return { magazine: s.magazine, reserve: s.reserve, ready: g.bossEquipmentAssetReady?.commanderPistol, hp, why };
 });
 await page.mouse.up();
 console.log(JSON.stringify({ tag: TAG, setup, spent, errors: logs.filter((l) => /error|PAGEERROR/i.test(l)).slice(0, 3) }));
