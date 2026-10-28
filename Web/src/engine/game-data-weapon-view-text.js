@@ -29,7 +29,7 @@ const spec = () => ({
   },
   bossEquipment: {
     loadFailed: [], equipped: ["name"], returned: [],
-    railgunStats: ["damage", "jumps", "range", "charge", "cadence", "magazine", "capacity", "reserve", "reload"],
+    railgunStats: ["damage", "range", "spread", "cadence", "magazine", "capacity", "reserve", "reload"],
     sawStats: ["damage", "interval"],
     shotgunStats: ["pellets", "pelletDamage", "range", "magazine", "capacity", "reserve"],
     launcherStats: ["damage", "radius", "magazine", "capacity", "reserve", "range", "speed", "reload"],

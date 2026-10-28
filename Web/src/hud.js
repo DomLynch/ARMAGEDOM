@@ -620,32 +620,19 @@ export function createHUD({
           const data = g.world.bossEquipmentData.commanderPistol,
             state = g.bossEquipment.commanderPistol,
             clock = g.bossEquipmentAction?.commanderPistol ?? {},
-            charge = g.railgunCharge,
-            progress = charge ? Math.min(1, (g.time - charge.startedAt) / data.charge.seconds) : 0,
-            ready = charge && g.time + 1e-8 >= charge.readyAt,
             left = Math.max(0, (clock.nextFireAt ?? 0) - g.time);
-          el("slash").querySelector("span").textContent = webText(ready ? "hud.label.release" : "hud.label.charge");
-          el("slash").querySelector("small").textContent = charge
-            ? ready
-              ? webText("hud.label.ready")
-              : `${Math.floor(progress * 100)}%`
-            : g.railgunStatus?.until > g.time &&
-                ["early-release", "cancel", "expired", "interrupted"].includes(g.railgunStatus.reason)
-              ? webText("hud.label.cancelled")
-              : `${state.magazine}/${data.rules.capacity}`;
-          el("slash").style.setProperty(
-            "--ready",
-            String(charge ? progress : 1 - Math.min(1, left / data.rules.cadence)),
-          );
+          el("slash").querySelector("span").textContent = webText("hud.label.fire");
+          el("slash").querySelector("small").textContent = `${state.magazine}/${data.rules.capacity}`;
+          el("slash").style.setProperty("--ready", String(1 - Math.min(1, left / data.rules.cadence)));
           el("slash").classList.toggle("cooldown", left > 0 || !!clock.reloadingUntil);
           el("slash").classList.toggle("low-energy", state.magazine === 0);
           el("slash").setAttribute(
             "aria-label",
-            webText("hud.arcCharge", { seconds: data.charge.seconds }),
+            webText("hud.fire.lmg", { magazine: state.magazine, reserve: state.reserve }),
           );
           el("stab").setAttribute("aria-label", webText("hud.reload.arc"));
           el("ammo").textContent = webText("hud.ammo.standard", {
-            name: webText("hud.arcGunName"),
+            name: webText("hud.lmgName"),
             magazine: state.magazine,
             capacity: data.rules.capacity,
             reserve: state.reserve,

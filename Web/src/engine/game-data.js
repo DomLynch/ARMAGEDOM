@@ -47,7 +47,7 @@ import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" }
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import haptics from "../data/haptics.json" with { type: "json" };
 import { validateHaptics } from "./game-data-haptics.js";
-import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
+import lmgDrum from "../data/lmgDrum.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import inputKeys from "../data/inputKeys.json" with { type: "json" };
@@ -125,7 +125,7 @@ import { validateEffectsFeedback } from "./effects-data.js";
 import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateGuestAuth, validatePresenceClient } from "./game-data-presence.js";
 import { validateProgressionBase } from "./game-data-progression.js";
-import { validateRailgunCoils } from "./game-data-railgun-coils.js";
+import { validateLmgDrum } from "./game-data-lmg-drum.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -1130,7 +1130,7 @@ const sources = () => ({
   presenceClient: [presenceClient, validatePresenceClient],
   progressionBase: [progressionBase, validateProgressionBase],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
-  railgunCoils: [railgunCoils, validateRailgunCoils],
+  lmgDrum: [lmgDrum, validateLmgDrum],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],
