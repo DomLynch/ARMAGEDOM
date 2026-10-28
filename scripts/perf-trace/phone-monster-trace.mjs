@@ -109,7 +109,8 @@ const measure = async (ms) => {
   await q(() => { const f = window.__f; f.dt.length = f.js.length = f.calls.length = f.tris.length = 0; f.on = true; });
   await page.waitForTimeout(ms);
   const f = await q(() => { const f = window.__f; f.on = false; return { dt: [...f.dt], js: [...f.js], calls: [...f.calls], tris: [...f.tris] }; });
-  return { frameMs: summary(f.dt), jsMs: summary(f.js), drawCalls: summary(f.calls), triangles: summary(f.tris) };
+  const alive = await q(() => window.__qa.game.enemies.filter((e) => e.hp > 0).length);
+  return { alive, frameMs: summary(f.dt), jsMs: summary(f.js), drawCalls: summary(f.calls), triangles: summary(f.tris) };
 };
 const steps = [];
 const stepWindow = async (label, ms) => { const m = await measure(ms); steps.push({ label, enemies: await q(() => window.__qa.game.enemies.filter((e) => e.hp > 0).length), ...m }); note("step", steps.at(-1)); return m; };
@@ -129,11 +130,8 @@ const withMonsters = steps.at(-1);
 // Two marked hunters arrive in view and die at once (the game's own lethal ranged hit): the boss ragdoll cost.
 // The simulation is stepped (session.step) to the arrival, because a software-rendered page runs at a frame or two a second.
 await q(() => { const s = window.__qa.game.markedHunt; if (s) { s.arrivedAt = -1e6; s.nextSpawnAt = 0; s.nextAttemptAt = 0; } });
-const hunterSeen = await q(async () => {
-  const qa = window.__qa;
-  for (let i = 0; i < 160 && !qa.game.enemies.some((e) => e.markedHunter && e.hp > 0); i++) { qa.session.step(0.25); await new Promise((r) => setTimeout(r, 30)); }
-  return qa.game.enemies.some((e) => e.markedHunter && e.hp > 0);
-});
+await q(() => { const g = window.__qa.game; g.marked ??= { version: 1, carried: 0, bank: 0, bounty: 0 }; }); // no Marked state = no hunter (huntBlocked)
+const hunterSeen = await page.waitForFunction(() => window.__qa.game.enemies.some((e) => e.markedHunter && e.hp > 0), null, { timeout: 240000 }).then(() => true, () => false);
 await page.waitForTimeout(8000); // the hunter's own model streams in
 const hunters = await q(() => {
   const g = window.__qa.game, h = g.enemies.find((e) => e.markedHunter && e.hp > 0);
