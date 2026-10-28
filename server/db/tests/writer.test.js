@@ -257,6 +257,33 @@ test("claim_pickup: needs a character, credits a stash once, refuses a repeat, r
   }
 });
 
+test("market routes: inventory, stock, loot on a kill, buy, sell and replay over HTTP as the writer role (docs/MARKET-CONTRACT.md)", async () => {
+  const t = await start();
+  try {
+    const post = (op, body) => t.post("/arma/" + op, body, { as: ids.alice });
+    assert.deepEqual([(await post("inventory_get", {})).status, (await post("inventory_get", {})).body.error], [403, "no-character"]);
+    await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice });
+    await t.pg.exec("reset role; update public.arma_loot_table set chance = 1 where enemy = 'boss-warden'; update public.arma_config set value = 'true'::jsonb where key = 'enforce_cash'; set role arma_writer");
+    const kill = await post("claim_pickup", { source: "kill:boss", amount: 40, enemy: "boss-warden", killId: "kill-http-0001" });
+    assert.deepEqual([kill.body.credited, kill.body.loot], [40, [{ item_id: "hunter-cpu", qty: 1 }]]);
+    assert.equal((await post("claim_pickup", { source: "kill:boss", amount: 40, enemy: "boss-warden", killId: "kill-http-0001" })).body.replayed, true);
+    assert.deepEqual((await post("inventory_get", {})).body, { inventory: [{ item_id: "hunter-cpu", qty: 1 }] });
+    const stock = (await post("market_stock", { shop_id: "hub-trader" })).body.stock;
+    assert.deepEqual(stock.find((r) => r.item_id === "ammo-pack"), { item_id: "ammo-pack", name: "Ammo Pack", buy_price: 60, sell_price: 20 });
+    const sold = await post("sell_item", { shop_id: "hub-trader", item_id: "hunter-cpu", qty: 1, request_id: "sell-http-0001" });
+    assert.deepEqual([sold.body.ok, sold.body.delta, sold.body.inventory], [true, 150, []]);
+    const bought = await post("buy_item", { shop_id: "hub-trader", item_id: "ammo-pack", qty: 2, request_id: "buy-http-0001" });
+    assert.deepEqual([bought.body.ok, bought.body.delta, bought.body.inventory, bought.body.replayed], [true, -120, [{ item_id: "ammo-pack", qty: 2 }], false]);
+    assert.equal((await post("buy_item", { shop_id: "hub-trader", item_id: "ammo-pack", qty: 2, request_id: "buy-http-0001" })).body.replayed, true);
+    assert.equal((await post("buy_item", { shop_id: "hub-trader", item_id: "ammo-pack", qty: "2", request_id: "buy-http-0002" })).body.error, "bad-request");
+    assert.equal((await post("buy_item", { shop_id: "hub-trader", item_id: "vest-patch", qty: 1, request_id: "buy-http-0003" })).body.error, "insufficient-cash");
+    assert.deepEqual((await post("inventory_get", {})).body.inventory, [{ item_id: "ammo-pack", qty: 2 }]);
+    assert.equal(await t.writer.pruneEngages(), 0);
+  } finally {
+    await t.close();
+  }
+});
+
 test("rate limit, production numbers: save_run takes a burst of 6, refuses the 7th with retryMs 5000, and one token returns every 5 s", async () => {
   assert.deepEqual(DEFAULT_LIMITS.save_run, { burst: 6, refillMs: 5000 });
   let clock = 1_000_000;
@@ -377,7 +404,7 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
 });
 
 test("every client op has a bucket in server/data/rate-limits.json, load_run is one per 10 s, and the token-bearing status read is limited while the anonymous one is not", async () => {
-  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "claim_pickup", "create_character", "load_run", "save_run", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "buy_item", "claim_pickup", "create_character", "inventory_get", "load_run", "market_stock", "save_run", "sell_item", "set_active", "spawn_engage", "spawn_state", "status"]);
   assert.deepEqual(DEFAULT_LIMITS.load_run, { burst: 3, refillMs: 10000 });
   let clock = 1_000_000;
   const t = await start({ limits: { status: { burst: 2, refillMs: 5000 }, active: { burst: 1, refillMs: 10000 } }, now: () => clock });
