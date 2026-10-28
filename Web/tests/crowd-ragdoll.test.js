@@ -5,13 +5,12 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { loadGeometry } from "../../art/donor/probe.mjs";
 import { GAME_DATA } from "../src/engine/game-data.js";
-import { activeCount, registerDeath, releaseDeath } from "../src/engine/physics-death-impl.js";
+import { activeCount, registerDeath, releaseDeath, tierCaps } from "../src/engine/physics-death-impl.js";
 import { physicsDeathStep, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 import { liveBodies, rigOf } from "../src/engine/physics-rigs.js";
 
 const RIGS = GAME_DATA.physicsRigs,
   POOL = GAME_DATA.crowdBodies.pool,
-  budgetRows = GAME_DATA.physicsBudget.rows,
   read = (p) => readFileSync(new URL("../public/assets/" + p, import.meta.url)),
   manifest = JSON.parse(read("manifest-hollow.json")).models,
   bodies = POOL.filter((row) => !row.native),
@@ -102,7 +101,7 @@ test("a MakeHuman crowd body ragdolls through the real impl, and past the ragdol
     for (let i = 0; i < 20; i++) assert.equal(physicsDeathStep(first.view, first.entity, library, 1 / 60, true), true);
     assert(hips.position.distanceTo(before) > 0 || hips.quaternion.angleTo(new THREE.Quaternion()) > 0, "the ragdoll drives the bones");
     // Fill the cap: a crowd death past it is baked and takes no body.
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls)
+    while (activeCount() < tierCaps().humanoid)
       held.push(registerDeath({ physics: { step() {} }, rd: { awake: true, destroy() {} }, rig: { applyPose() {} }, age: 0, frozen: false }));
     const over = await dying(911);
     assert.equal(physicsDeathStep(over.view, over.entity, library, 1 / 60, true), false, "over the cap: the baked clip plays");

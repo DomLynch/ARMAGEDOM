@@ -15,9 +15,10 @@ test("boss ragdoll is on by default and ?physics=0 is the off switch", () => {
   assert.equal(physicsDeathEnabled("?qa=1&physics=0"), false);
 });
 
-test("the pool and the active bodies equal the simultaneous-ragdoll cap", () => {
+test("the parked pool equals the low-tier dying cap; bigger tiers build the extra bodies lazily on death", () => {
+  assert.equal(GAME_DATA.physicsDeath.poolSize, GAME_DATA.physicsBudget.tiers.low.humanoid);
   assert.equal(GAME_DATA.physicsDeath.poolSize, GAME_DATA.physicsBudget.rows.max_simultaneous_ragdolls);
-  assert.equal(GAME_DATA.physicsDeath.maxActive, GAME_DATA.physicsBudget.rows.max_simultaneous_ragdolls);
+  assert.ok(GAME_DATA.physicsDeath.maxParked >= GAME_DATA.physicsBudget.tiers.full.humanoid);
 });
 
 test("validator needs a boolean defaultOn and an offValue different from flagValue", () => {

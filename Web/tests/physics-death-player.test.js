@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validatePhysicsBudget, validatePhysicsDeath } from "../src/engine/game-data-hunters.js";
-import { activeCount, rankOf, registerDeath, releaseDeath } from "../src/engine/physics-death-impl.js";
+import { activeCount, rankOf, registerDeath, releaseDeath, tierCaps } from "../src/engine/physics-death-impl.js";
 import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 import { rigOf } from "../src/engine/physics-rigs.js";
 import { createRemotePlayers } from "../src/engine/remote-players.js";
@@ -14,7 +14,7 @@ import { createRemotePlayersView } from "../src/engine/remote-players-view.js";
 const RIGS = GAME_DATA.physicsRigs,
   CFG = GAME_DATA.physicsDeath,
   BUDGET = GAME_DATA.physicsBudget,
-  CAP = BUDGET.rows.max_simultaneous_ragdolls,
+  CAP = tierCaps().humanoid, // the tier's dying cap (a node run is the full tier: no probe)
   DT = 1 / CFG.stepHz,
   manifest = JSON.parse(readFileSync(new URL("../public/assets/manifest-hollow.json", import.meta.url), "utf8")).models;
 

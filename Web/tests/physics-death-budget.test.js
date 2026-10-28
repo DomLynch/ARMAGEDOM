@@ -9,12 +9,19 @@ import {
   registerDeath,
   releaseDeath,
   stepDeath,
+  tierCaps,
 } from "../src/engine/physics-death-impl.js";
+import { createTierCaps } from "../src/engine/physics-cap.js";
+import { QUALITY } from "../src/engine/quality-tier.js";
 import * as THREE from "three";
 import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
 const budgetRows = GAME_DATA.physicsBudget.rows;
+
+// A strong device: probe and frame sample land at import, before any cap is read, so this file runs under the full tier (6 dying, 3 bosses).
+QUALITY.probe({ cores: 8, memoryGb: 8, textureSize: 16384 });
+for (let i = 1; i <= GAME_DATA.qualityTier.probe.warmupFrames + GAME_DATA.qualityTier.probe.sampleFrames + 2; i++) QUALITY.frame(i * 16);
 
 test("the ragdoll cap row equals the package's own budget row", () => {
   const pkg = JSON.parse(readFileSync(new URL("../node_modules/@frankendom/physics/data/budget-rows.json", import.meta.url), "utf8"));
@@ -101,10 +108,10 @@ test("removing an actor view releases its ragdoll (travel or despawn before the 
   assert.equal(view.physicsDeath, undefined);
 });
 
-test("past maxActive the oldest live corpse is frozen and its body freed", () => {
+test("past the tier's dying cap the oldest live corpse is frozen and its body freed", () => {
   const world = fakeWorld();
   const made = [];
-  for (let i = 0; i < CFG.maxActive + 1; i++) made.push(registerDeath(corpse(world)));
+  for (let i = 0; i < tierCaps().humanoid + 1; i++) made.push(registerDeath(corpse(world)));
   const frozen = made.filter((s) => s.frozen);
   assert.equal(frozen.length, 1);
   assert.equal(made[0].frozen, true);
@@ -316,13 +323,13 @@ test("past the simultaneous-ragdoll budget row the next death takes the baked cl
   };
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
       pooled = created;
     // a crowd death (no reserve flag) past the cap: baked, no body built, nothing released
     assert.equal(impl.startDeath(view, skeleton(), { id: 50, hp: 0, maxHP: 10 }), null);
     assert.equal(created, pooled);
-    assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+    assert.equal(activeCount(), tierCaps().humanoid);
     for (const s of held) assert.equal(s.rd.destroyed, 0);
   } finally {
     world.createRagdoll = create;
@@ -336,7 +343,7 @@ test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and
   await impl.loadWorld();
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     for (const flag of GAME_DATA.physicsBudget.reserve_for_marked) {
       const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
         entity = { id: 60, [flag]: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
@@ -344,7 +351,7 @@ test("three crowd corpses lying: a dying hunter or boss still gets a ragdoll and
         s = impl.startDeath(view, skeleton(), entity);
       assert.ok(s, `${flag} death got a ragdoll`);
       assert.equal(oldest.rd, null); // the oldest crowd corpse's body was freed
-      assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+      assert.equal(activeCount(), tierCaps().humanoid);
       held.push(s);
     }
   } finally {
@@ -358,7 +365,7 @@ test("a reserved death releases an already-frozen crowd corpse before one that i
   await impl.loadWorld();
   const held = [];
   try {
-    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    while (activeCount() < tierCaps().humanoid) held.push(registerDeath(corpse(fakeWorld())));
     held[1].frozen = true; // the second-oldest has settled; the oldest is still moving
     const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
       s = impl.startDeath(view, skeleton(), { id: 61, markedHunter: true, hp: 0, maxHP: 10 });
@@ -371,8 +378,63 @@ test("a reserved death releases an already-frozen crowd corpse before one that i
   }
 });
 
-test("maxActive equals the simultaneous-ragdoll cap, so the oldest corpse is never frozen mid-fall by the cap", () => {
-  assert.equal(CFG.maxActive, budgetRows.max_simultaneous_ragdolls);
+test("the low tier row is the package's cap, and no tier lets more bosses than its row simulate", () => {
+  const { tiers } = GAME_DATA.physicsBudget;
+  assert.equal(tiers.low.humanoid, budgetRows.max_simultaneous_ragdolls);
+  assert.deepEqual(Object.keys(tiers).sort(), GAME_DATA.qualityTier.tiers.map((t) => t.name).sort());
+  for (const t of Object.values(tiers)) assert.ok(t.boss === 3 && t.boss <= t.humanoid);
+  assert.deepEqual(tiers.full, { humanoid: 6, boss: 3 });
+  assert.deepEqual(tiers.mid, { humanoid: 4, boss: 3 });
+});
+
+test("the cap is the pending (low) row until the probe resolves, then the tier's row, and only ever goes down", () => {
+  const { tiers, pendingTier } = GAME_DATA.physicsBudget;
+  const q = { tier: "full", done: false, settled: () => q.done, row: () => ({ name: q.tier }) };
+  const caps = createTierCaps(tiers, pendingTier, q);
+  assert.deepEqual(caps(), tiers.low, "a death before the probe resolves uses 3");
+  q.done = true;
+  assert.deepEqual(caps(), tiers.low, "never up: the minimum of every row in force (low was in force)");
+  const fresh = { tier: "full", done: false, settled: () => fresh.done, row: () => ({ name: fresh.tier }) };
+  const fromStart = createTierCaps(tiers, pendingTier, fresh);
+  fresh.done = true;
+  assert.deepEqual(fromStart(), tiers.full, "resolved to full before any death: 6");
+  fresh.tier = "low";
+  assert.deepEqual(fromStart(), tiers.low, "stepped down full -> low: 3");
+  fresh.tier = "full";
+  assert.deepEqual(fromStart(), tiers.low, "and never rises again");
+  for (const tier of ["full", "mid", "low"]) {
+    const s = { settled: () => true, row: () => ({ name: tier }) };
+    assert.deepEqual(createTierCaps(tiers, pendingTier, s)(), tiers[tier]);
+  }
+});
+
+test("the real quality tier is settled once its probe and frame sample have landed", () => {
+  assert.equal(QUALITY.settled(), true);
+  assert.equal(QUALITY.row().name, "full");
+  assert.equal(tierCaps().humanoid, GAME_DATA.physicsBudget.tiers.full.humanoid);
+});
+
+test("bosses stay at their cap while the crowd cap is higher, and a crowd death is not blocked by bosses", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const caps = tierCaps(),
+    held = [];
+  try {
+    for (let i = 0; i < caps.boss; i++) held.push(registerDeath({ ...corpse(fakeWorld()), rank: GAME_DATA.physicsBudget.ranks.marked }));
+    const mk = () => ({ root: new THREE.Group(), model: skeleton(), physicsDeath: undefined });
+    // one more boss: over the boss cap, baked, though the total cap (humanoid) still has room
+    assert.ok(activeCount() < caps.humanoid || caps.humanoid === caps.boss);
+    if (caps.humanoid > caps.boss) {
+      assert.equal(impl.startDeath(mk(), skeleton(), { id: 80, markedHunter: true, hp: 0, maxHP: 10 }), null);
+      const crowd = impl.startDeath(mk(), skeleton(), { id: 81, hp: 0, maxHP: 10 });
+      assert.ok(crowd, "the crowd still takes a free slot");
+      held.push(crowd);
+    }
+    assert.equal(activeCount(), held.length);
+  } finally {
+    for (const s of held) releaseDeath(s);
+  }
 });
 
 test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {
