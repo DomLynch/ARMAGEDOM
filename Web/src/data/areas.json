@@ -454,8 +454,8 @@
     "backdrop.south": {
       "kind": "backdrop",
       "path": "world/south/backdrop-phone.webp",
-      "sha256": "f58ff4bbb15e41bb7feb1878439462290ac98038d9e252b2cf6833f3e59c215e",
-      "bytes": 446406
+      "sha256": "a83e27eba53ea0df7b619b99f34d550e7926bf3c20b28aef551ac39c5ac21966",
+      "bytes": 458994
     },
     "layout.east": {
       "kind": "layout",
