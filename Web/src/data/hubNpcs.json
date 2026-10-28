@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
-  "note": "Named Central Hub NPCs (appearance and one idle only). The three models are OpenTrident MakeHuman V2 bodies on the 106-joint Mixamo rig, delivered with the same 12 raw Mixamo clips as the crowd bodies and registered in assets/manifest-hollow.json as deferred rows. Nothing draws them yet and nothing reads this file: placement, interaction and dialogue belong to the Hub wiring PR (Lead, World, WebUI), which is also expected to honour enabled false or ?nonpcs=1 as the off switch. NPCs only ever play the Idle clip.",
+  "schema_version": 3,
+  "note": "Named Central Hub NPCs (appearance and one idle only). The three models are OpenTrident MakeHuman V2 bodies on the 106-joint Mixamo rig with their 12 clips replaced by ONE retargeted Mixamo idle each (art/hub-npcs/build.mjs), registered in assets/manifest-hollow.json as deferred rows. Nothing draws them yet and nothing reads this file: placement, interaction and dialogue belong to the Hub wiring PR (Lead, World, WebUI), which is also expected to honour enabled false or ?nonpcs=1 as the off switch, and to drive the idle clock itself (DonorMotion holds a standing human at phase 0). bodySha256 is the sha256 of OpenTrident's delivered body (art/hub-npcs/assets.json); the shipped file differs only by its clip.",
   "enabled": true,
   "offParam": "nonpcs",
   "offValue": "1",
@@ -13,8 +13,10 @@
       "title": "Quartermaster",
       "ref": "npc-marsh",
       "body": "mh-npc-marsh",
+      "bodySha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb",
+      "mixamoClip": "107900901-breathing-idle",
       "idleClip": "Idle",
-      "look": "heavy-set, grey short hair, olive field jacket with flap pockets over a red pinstripe shirt, jeans, brown boots"
+      "look": "heavy-set, grey short hair, olive field jacket with flap pockets over a red pinstripe shirt, jeans, brown boots; stands upright, arms loose, slow breathing"
     },
     {
       "id": "medic-okafor",
@@ -23,8 +25,10 @@
       "title": "Field medic",
       "ref": "npc-okafor",
       "body": "mh-npc-okafor",
+      "bodySha256": "0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79",
+      "mixamoClip": "118910901-standing-w-briefcase-idle",
       "idleClip": "Idle",
-      "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes"
+      "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes; stands upright holding a bag or clipboard low in one hand (the prop is not modelled)"
     },
     {
       "id": "radio-reyes",
@@ -33,8 +37,10 @@
       "title": "Radio operator",
       "ref": "npc-reyes",
       "body": "mh-npc-reyes",
+      "bodySha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e",
+      "mixamoClip": "119170901-talking-on-phone",
       "idleClip": "Idle",
-      "look": "thin, slightly hunched, short black hair, heather-grey collared shirt (not a hoodie), dark jeans"
+      "look": "thin, short black hair, heather-grey collared shirt (not a hoodie), dark jeans; one hand raised to the ear as if listening on a radio, other hand on the hip (no handset modelled)"
     }
   ]
 }

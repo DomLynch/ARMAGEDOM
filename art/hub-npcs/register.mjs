@@ -28,7 +28,9 @@ for (const npc of roster) {
   const bytes = readFileSync(new URL(name, npcDir)),
     sha256 = createHash("sha256").update(bytes).digest("hex");
   const delivered = record.find((body) => body.id === npc.body);
-  if (!delivered || delivered.reduced_glb.sha256 !== sha256) throw Error(`${npc.ref}: file does not match OpenTrident's assets.json sha256`);
+  // The shipped file is OpenTrident's body with its 12 clips replaced by one retargeted Mixamo idle (build.mjs), so its own sha256 differs
+  // from the delivery; hubNpcs.json pins the delivered body's sha256, which must match OpenTrident's record.
+  if (!delivered || delivered.reduced_glb.sha256 !== npc.bodySha256) throw Error(`${npc.ref}: bodySha256 does not match OpenTrident's assets.json`);
   const gltf = await loadGeometry(bytes);
   const idle = gltf.animations.find((clip) => clip.name === npc.idleClip);
   const mixer = new THREE.AnimationMixer(gltf.scene);
@@ -64,31 +66,17 @@ for (const npc of roster) {
       hipsMetres: round(hips, 3),
       note: "same measure as the crowd rows; the NPC stands still, so stride is unused",
     },
-    clips: {
-      idle: "Idle",
-      walk: "Walk",
-      run: "Run",
-      slash: "Attack",
-      return: "Attack",
-      stab: "Heavy",
-      riposte: "Heavy",
-      heavy: "Heavy",
-      skill_pommel: "Heavy",
-      guard: "Guard",
-      dodge: "Roll",
-      hit: "Hit",
-      death: "Death",
-      parry: "Guard",
-      block: "Guard",
-      deflected: "Hit",
-    },
+    // The NPC file carries ONE clip, so every role points at it (the NPC never fights or walks).
+    clips: Object.fromEntries(
+      ["idle", "walk", "run", "slash", "return", "stab", "riposte", "heavy", "skill_pommel", "guard", "dodge", "hit", "death", "parry", "block", "deflected"].map((role) => [role, npc.idleClip]),
+    ),
     deferred: true,
     provenance: {
-      source: `OpenTrident Dev MakeHuman V2 NPC body ${npc.body} (${delivered.label}), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md`,
+      source: `OpenTrident Dev MakeHuman V2 NPC body ${npc.body} (${delivered.label}, delivered sha256 ${npc.bodySha256}), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, ${npc.mixamoClip}, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md`,
       licence:
         "Relayed by Lead from OpenTrident Dev (not independently re-verified per asset by Lead): CC0 1.0. MPFB2 2.0.18 in Blender 5.2 (tool only, none of its code ships) with only the official MakeHuman CC0 packs makehuman_system_assets_cc0 and skins01_cc0; rig, skin weights and packing are OpenTrident's own work. See art/hub-npcs/PROVENANCE.md and art/makehuman-crowd/PROVENANCE.md. Mixamo animation clips: cleared by Dom 2026-10-23.",
       assembly:
-        "plain realistic body, no Layer_/Sword/Weapon nodes, 12 raw Mixamo clips on the 106-joint rig as delivered; no weapon; the NPC only plays Idle; clip roles that Mixamo did not supply point at the nearest supplied clip, as in the crowd rows",
+        "plain realistic body, no Layer_/Sword/Weapon nodes, no weapon, ONE clip (Idle, a retargeted Mixamo clip, see source); every clip role points at Idle because the NPC never fights or walks",
       note: "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet",
     },
     bytes: bytes.length,

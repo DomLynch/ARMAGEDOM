@@ -50,15 +50,17 @@ for (const npc of hubNpcs.npcs) {
     assert.equal(sha, pin.sha256);
     assert(bytes.length < SIZE_CAP, `${bytes.length} bytes is over the phone budget`);
     const delivered = record.find((body) => body.id === npc.body);
-    assert.equal(delivered.reduced_glb.sha256, sha, "the shipped file is the file OpenTrident delivered");
+    assert.equal(delivered.reduced_glb.sha256, npc.bodySha256, "bodySha256 is the body OpenTrident delivered");
+    assert.match(npc.mixamoClip, /^\d+-[a-z0-9-]+$/, "names the Mixamo clip the idle was retargeted from");
+    assert(row.provenance.source.includes(npc.mixamoClip) && row.provenance.source.includes(npc.bodySha256));
     assert.equal(delivered.licence, "CC0");
     for (const field of ["source", "licence", "assembly"]) assert(row.provenance[field], `provenance.${field}`);
     assert(row.scale >= 0.8 && row.scale <= 1.1 && row.stride > 0.6 && row.stride < 1.4);
 
     const gltf = await loadGeometry(bytes);
-    const clips = new Set(gltf.animations.map((clip) => clip.name));
-    assert(clips.has(npc.idleClip), "has an Idle clip");
-    for (const clip of Object.values(row.clips)) assert(clips.has(clip), `row clip ${clip} exists`);
+    assert.deepEqual(gltf.animations.map((clip) => clip.name), [npc.idleClip], "exactly one clip, the Idle");
+    for (const clip of Object.values(row.clips)) assert.equal(clip, npc.idleClip, "every clip role points at the one Idle");
+    assert(gltf.animations[0].duration > 3, "a real idle loop");
     let draws = 0,
       joints = 0;
     gltf.scene.traverse((node) => {
@@ -97,7 +99,8 @@ for (const npc of hubNpcs.npcs) {
     const travel = (i) => Math.max(...poses.map((p) => p[i].distanceTo(poses[0][i])));
     assert(travel(0) > 0.01, `${npc.ref} head moves (${travel(0).toFixed(3)} m)`);
     assert(Math.max(travel(2), travel(3)) > 0.01, `${npc.ref} hands move (${travel(2).toFixed(3)}, ${travel(3).toFixed(3)} m)`);
-    assert(travel(1) < 0.1, `${npc.ref} spine stays in place (${travel(1).toFixed(3)} m)`);
+    // Measured: Marsh and Okafor sway about 13 cm, Reyes' phone clip takes one 40 cm step forward and back inside its 39 s loop.
+    assert(travel(1) < 0.5, `${npc.ref} spine stays near its mark (${travel(1).toFixed(3)} m)`);
     const seam = poses.at(-1).map((p, i) => p.distanceTo(poses[0][i]));
     assert(Math.max(...seam) < 0.25, `${npc.ref} idle loops without a jump (${seam.map((n) => n.toFixed(2))})`);
     // The engine's per-tick path (update) for a standing, unhurt entity selects this row's Idle but holds phase 0: DonorMotion does not

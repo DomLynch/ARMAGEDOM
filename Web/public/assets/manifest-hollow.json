@@ -2663,43 +2663,43 @@
       "motion": "donor-knife",
       "scale": 1,
       "forwardCorrection": 0,
-      "stride": 0.945,
+      "stride": 0.995,
       "upperBone": "mixamorig:Spine",
       "headBone": "mixamorig:Head",
       "measure": {
         "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
-        "meshTopMetres": 1.729,
-        "meshBottomMetres": -0.079,
-        "hipsMetres": 0.937,
+        "meshTopMetres": 1.799,
+        "meshBottomMetres": -0.083,
+        "hipsMetres": 0.987,
         "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
       },
       "clips": {
         "idle": "Idle",
-        "walk": "Walk",
-        "run": "Run",
-        "slash": "Attack",
-        "return": "Attack",
-        "stab": "Heavy",
-        "riposte": "Heavy",
-        "heavy": "Heavy",
-        "skill_pommel": "Heavy",
-        "guard": "Guard",
-        "dodge": "Roll",
-        "hit": "Hit",
-        "death": "Death",
-        "parry": "Guard",
-        "block": "Guard",
-        "deflected": "Hit"
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
       },
       "deferred": true,
       "provenance": {
-        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-marsh (Marsh (quartermaster)), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
+        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-marsh (Marsh (quartermaster), delivered sha256 e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, 107900901-breathing-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
         "licence": "Relayed by Lead from OpenTrident Dev (not independently re-verified per asset by Lead): CC0 1.0. MPFB2 2.0.18 in Blender 5.2 (tool only, none of its code ships) with only the official MakeHuman CC0 packs makehuman_system_assets_cc0 and skins01_cc0; rig, skin weights and packing are OpenTrident's own work. See art/hub-npcs/PROVENANCE.md and art/makehuman-crowd/PROVENANCE.md. Mixamo animation clips: cleared by Dom 2026-10-23.",
-        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, 12 raw Mixamo clips on the 106-joint rig as delivered; no weapon; the NPC only plays Idle; clip roles that Mixamo did not supply point at the nearest supplied clip, as in the crowd rows",
+        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, no weapon, ONE clip (Idle, a retargeted Mixamo clip, see source); every clip role points at Idle because the NPC never fights or walks",
         "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
       },
-      "bytes": 520580,
-      "sha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb"
+      "bytes": 490756,
+      "sha256": "51ce94a058c49f89f294f9aa38c4c5887e70be4e6432dea1e9be470b7b4d91ae"
     },
     "npc-okafor": {
       "url": "npc/npc-okafor.glb",
@@ -2707,43 +2707,43 @@
       "motion": "donor-knife",
       "scale": 1,
       "forwardCorrection": 0,
-      "stride": 0.853,
+      "stride": 0.912,
       "upperBone": "mixamorig:Spine",
       "headBone": "mixamorig:Head",
       "measure": {
         "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
-        "meshTopMetres": 1.607,
+        "meshTopMetres": 1.679,
         "meshBottomMetres": -0.063,
-        "hipsMetres": 0.846,
+        "hipsMetres": 0.904,
         "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
       },
       "clips": {
         "idle": "Idle",
-        "walk": "Walk",
-        "run": "Run",
-        "slash": "Attack",
-        "return": "Attack",
-        "stab": "Heavy",
-        "riposte": "Heavy",
-        "heavy": "Heavy",
-        "skill_pommel": "Heavy",
-        "guard": "Guard",
-        "dodge": "Roll",
-        "hit": "Hit",
-        "death": "Death",
-        "parry": "Guard",
-        "block": "Guard",
-        "deflected": "Hit"
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
       },
       "deferred": true,
       "provenance": {
-        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-okafor (Dr. Okafor (field medic)), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
+        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-okafor (Dr. Okafor (field medic), delivered sha256 0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, 118910901-standing-w-briefcase-idle, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
         "licence": "Relayed by Lead from OpenTrident Dev (not independently re-verified per asset by Lead): CC0 1.0. MPFB2 2.0.18 in Blender 5.2 (tool only, none of its code ships) with only the official MakeHuman CC0 packs makehuman_system_assets_cc0 and skins01_cc0; rig, skin weights and packing are OpenTrident's own work. See art/hub-npcs/PROVENANCE.md and art/makehuman-crowd/PROVENANCE.md. Mixamo animation clips: cleared by Dom 2026-10-23.",
-        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, 12 raw Mixamo clips on the 106-joint rig as delivered; no weapon; the NPC only plays Idle; clip roles that Mixamo did not supply point at the nearest supplied clip, as in the crowd rows",
+        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, no weapon, ONE clip (Idle, a retargeted Mixamo clip, see source); every clip role points at Idle because the NPC never fights or walks",
         "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
       },
-      "bytes": 497476,
-      "sha256": "0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79"
+      "bytes": 468112,
+      "sha256": "c647c5f14cd4938157320c044365674805f7a5ceba71db035d4d02d898d1867d"
     },
     "npc-reyes": {
       "url": "npc/npc-reyes.glb",
@@ -2751,43 +2751,43 @@
       "motion": "donor-knife",
       "scale": 1,
       "forwardCorrection": 0,
-      "stride": 0.906,
+      "stride": 0.948,
       "upperBone": "mixamorig:Spine",
       "headBone": "mixamorig:Head",
       "measure": {
         "source": "Web/public/assets/npc GLB, skinned vertices and Hips world height at the first Idle frame (art/hub-npcs/register.mjs)",
-        "meshTopMetres": 1.688,
+        "meshTopMetres": 1.734,
         "meshBottomMetres": -0.083,
-        "hipsMetres": 0.899,
+        "hipsMetres": 0.94,
         "note": "same measure as the crowd rows; the NPC stands still, so stride is unused"
       },
       "clips": {
         "idle": "Idle",
-        "walk": "Walk",
-        "run": "Run",
-        "slash": "Attack",
-        "return": "Attack",
-        "stab": "Heavy",
-        "riposte": "Heavy",
-        "heavy": "Heavy",
-        "skill_pommel": "Heavy",
-        "guard": "Guard",
-        "dodge": "Roll",
-        "hit": "Hit",
-        "death": "Death",
-        "parry": "Guard",
-        "block": "Guard",
-        "deflected": "Hit"
+        "walk": "Idle",
+        "run": "Idle",
+        "slash": "Idle",
+        "return": "Idle",
+        "stab": "Idle",
+        "riposte": "Idle",
+        "heavy": "Idle",
+        "skill_pommel": "Idle",
+        "guard": "Idle",
+        "dodge": "Idle",
+        "hit": "Idle",
+        "death": "Idle",
+        "parry": "Idle",
+        "block": "Idle",
+        "deflected": "Idle"
       },
       "deferred": true,
       "provenance": {
-        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-reyes (Reyes (radio operator)), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
+        "source": "OpenTrident Dev MakeHuman V2 NPC body mh-npc-reyes (Reyes (radio operator), delivered sha256 ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e), 13.5k triangles, 1024 px WebP textures, 106 Mixamo joints, delivered 2026-10-28; its 12 clips replaced by one Mixamo idle, 119170901-talking-on-phone, retargeted onto the 106-joint rig (art/hub-npcs/build.mjs); per-asset record art/hub-npcs/assets.json, build report art/hub-npcs/report.md",
         "licence": "Relayed by Lead from OpenTrident Dev (not independently re-verified per asset by Lead): CC0 1.0. MPFB2 2.0.18 in Blender 5.2 (tool only, none of its code ships) with only the official MakeHuman CC0 packs makehuman_system_assets_cc0 and skins01_cc0; rig, skin weights and packing are OpenTrident's own work. See art/hub-npcs/PROVENANCE.md and art/makehuman-crowd/PROVENANCE.md. Mixamo animation clips: cleared by Dom 2026-10-23.",
-        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, 12 raw Mixamo clips on the 106-joint rig as delivered; no weapon; the NPC only plays Idle; clip roles that Mixamo did not supply point at the nearest supplied clip, as in the crowd rows",
+        "assembly": "plain realistic body, no Layer_/Sword/Weapon nodes, no weapon, ONE clip (Idle, a retargeted Mixamo clip, see source); every clip role points at Idle because the NPC never fights or walks",
         "note": "hub NPC, appearance and idle only (Web/src/data/hubNpcs.json); not wired into any area yet"
       },
-      "bytes": 466784,
-      "sha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e"
+      "bytes": 500252,
+      "sha256": "3f6a061591531a4cde8181c8cb0f15ab45ca099e2fc6ac8c7faed51a9b5642fb"
     }
   },
   "files": {
@@ -2999,18 +2999,18 @@
     },
     "npc-marsh": {
       "file": "npc/npc-marsh.glb",
-      "bytes": 520580,
-      "sha256": "e2c26f63df657b82537ab8504cea3fc1ec75c754ebafea484bd84921b3a65ccb"
+      "bytes": 490756,
+      "sha256": "51ce94a058c49f89f294f9aa38c4c5887e70be4e6432dea1e9be470b7b4d91ae"
     },
     "npc-okafor": {
       "file": "npc/npc-okafor.glb",
-      "bytes": 497476,
-      "sha256": "0b0adf4e1959da49ceb3cea25c66c6b3b3213fec82765a8e3e12a6d99cf0da79"
+      "bytes": 468112,
+      "sha256": "c647c5f14cd4938157320c044365674805f7a5ceba71db035d4d02d898d1867d"
     },
     "npc-reyes": {
       "file": "npc/npc-reyes.glb",
-      "bytes": 466784,
-      "sha256": "ee82589f940868a06130fc361d3a68ea6765d674701f5f37677b8a4d1c9f732e"
+      "bytes": 500252,
+      "sha256": "3f6a061591531a4cde8181c8cb0f15ab45ca099e2fc6ac8c7faed51a9b5642fb"
     }
   },
   "pistol": {
