@@ -32,9 +32,9 @@ export function createShareClip({
   rows = GAME_DATA.shareClip,
   search = globalThis.location?.search ?? "",
   tier = () => QUALITY.row().name,
-  makeCanvas = () => globalThis.document.createElement("canvas"),
+  makeCanvas = globalThis.document?.createElement ? () => globalThis.document.createElement("canvas") : null,
 } = {}) {
-  const on = shareEnabled(rows, search),
+  const on = shareEnabled(rows, search) && !!makeCanvas, // no page, no ring (a test or worker without a document)
     aspect = rows.buffer.width / rows.buffer.height,
     windowMs = rows.buffer.seconds * 1000,
     keepMs = windowMs + 1000 * Math.max(...rows.moments.map((m) => m.tailSeconds)),

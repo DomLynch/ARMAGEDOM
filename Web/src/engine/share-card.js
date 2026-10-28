@@ -15,7 +15,7 @@ export function createShareCard({
   nav = globalThis.navigator,
   env = {},
 }) {
-  const el = (id) => doc?.getElementById(id),
+  const el = (id) => (typeof doc?.getElementById === "function" ? doc.getElementById(id) : null),
     card = el("share-card"),
     picks = el("share-picks"),
     status = el("share-status"),

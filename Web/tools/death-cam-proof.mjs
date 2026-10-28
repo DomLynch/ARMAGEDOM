@@ -112,7 +112,11 @@ const kill = (page) =>
 const b64 = [];
 async function still(page, name) {
   const buffer = await page.screenshot({ path: `${OUT}/${name}.png` });
-  if (process.argv.includes("--b64")) b64.push(`STILL ${name} ${buffer.toString("base64")}`);
+  // A job log line is cut at about 16 KB: the PNG goes out in numbered 8000-character pieces.
+  if (process.argv.includes("--b64")) {
+    const text = buffer.toString("base64");
+    for (let i = 0; i * 8000 < text.length; i++) b64.push(`STILL ${name} ${i} ${text.slice(i * 8000, (i + 1) * 8000)}`);
+  }
 }
 async function cardRun(query, options, name) {
   const page = await open(query, options);
