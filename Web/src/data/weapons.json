@@ -482,6 +482,14 @@
           "activeTicks": 6,
           "recoveryTicks": 28
         },
+        "giant-centipede": {
+          "clip": "RatLowSlash",
+          "slashMoveId": "roach_low",
+          "includeRadius": true,
+          "windupTicks": 20,
+          "activeTicks": 6,
+          "recoveryTicks": 28
+        },
         "original-dog": {
           "clip": "DogMidSlash",
           "slashMoveId": "dog_low",
@@ -578,7 +586,7 @@
     "extensionRate": 24
   },
   "lowMelee": {
-    "rigs": ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf", "original-crow", "giant-eel", "original-elephant", "original-spider"],
+    "rigs": ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf", "original-crow", "giant-eel", "original-elephant", "original-spider", "giant-centipede"],
     "clips": ["RatLowSlash", "DogMidSlash"]
   },
   "creditPolicies": [
