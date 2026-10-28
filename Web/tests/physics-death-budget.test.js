@@ -10,7 +10,7 @@ import {
   stepDeath,
 } from "../src/engine/physics-death-impl.js";
 import * as THREE from "three";
-import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
+import { physicsDeathStep, prefetchCutsOnIdle, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
 const DT = 1 / CFG.stepHz;
@@ -177,17 +177,28 @@ test("parking an area frees a corpse's body and slot but keeps its cut visuals; 
   assert.equal(skin.hidden.visible, true);
 });
 
-test("a throw while the death starts (rd.kill) gives back the hunter's body, the cut skin and the pooled ragdoll", async () => {
+// A hunter whose rd.kill throws, on a skeleton the way the loaded GLBs have one. `cutLibrary`: the cut GLB is loaded first, so the cut path runs.
+const skeleton = () => {
+  const g = new THREE.Group();
+  for (const joint of Object.values(CFG.parts))
+    g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
+  return g;
+};
+async function killThatThrows(cutLibrary) {
   const impl = await import("../src/engine/physics-death-impl.js");
   usePhysicsDeathImpl(impl);
+  if (cutLibrary) await impl.loadCutAssets(cutLibrary);
   const world = await impl.loadWorld(),
     made = [],
-    create = world.createRagdoll;
+    create = world.createRagdoll,
+    root = new THREE.Group();
+  let sceneAtKill = -1;
   world.createRagdoll = function (...a) {
     const rd = create.apply(this, a),
       destroy = rd.destroy.bind(rd);
     rd.destroyed = 0;
     rd.kill = () => {
+      sceneAtKill = root.children.length; // 2 = the hunter's body and the cut skin beside it
       throw new Error("kill blew up");
     };
     rd.destroy = () => {
@@ -198,30 +209,97 @@ test("a throw while the death starts (rd.kill) gives back the hunter's body, the
     return rd;
   };
   try {
-    const skeleton = () => {
-      const g = new THREE.Group();
-      for (const joint of Object.values(CFG.parts))
-        g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
-      return g;
-    };
     const bind = skeleton(),
-      root = new THREE.Group(),
       model = skeleton();
     root.add(model);
     const view = { root, model, physicsDeath: undefined },
-      entity = { id: 7, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
       library = { models: new Map([[CFG.rigRef, { gltf: { scene: bind } }]]) },
       before = activeCount();
-    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
-    assert.equal(made.length, 1);
-    assert.equal(made[0].destroyed, 1); // the ragdoll is destroyed, not left in the pool or the world
+    // The cut roll can come up "no cut" (data: chance, pityAfter); the pity rule guarantees one within a few kills.
+    let kills = 0;
+    do {
+      const entity = { id: 7 + kills, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } };
+      view.physicsDeath = undefined;
+      assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
+      assert.deepEqual(view.physicsDeath, { failed: true });
+      kills++;
+    } while (cutLibrary && sceneAtKill !== 2 && kills < 8);
+    if (cutLibrary) assert.equal(sceneAtKill, 2, "the cut path ran before the kill threw");
+    assert.equal(made.length, kills);
+    for (const rd of made) assert.equal(rd.destroyed, 1); // each ragdoll is destroyed, not left in the pool or the world
     assert.equal(activeCount(), before);
     assert.equal(model.visible, true);
     assert.equal(root.children.length, 1); // no cut skin left in the scene
-    assert.deepEqual(view.physicsDeath, { failed: true });
   } finally {
     world.createRagdoll = create;
   }
+}
+
+test("a throw while the death starts (rd.kill) gives back the hunter's body and the pooled ragdoll", () => killThatThrows(null));
+
+test("a throw while a CUT death starts (rd.kill, cut GLB loaded) removes the cut skin, shows the hunter and frees the ragdoll", () =>
+  killThatThrows({
+    ensureModels: async () => {},
+    models: new Map([[GAME_DATA.pitbornCuts.cutModel, { gltf: { scene: skeleton() } }]]),
+  }));
+
+const withNavigator = (value, run) => {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  Object.defineProperty(globalThis, "navigator", { value, configurable: true, writable: true });
+  try {
+    return run();
+  } finally {
+    if (saved) Object.defineProperty(globalThis, "navigator", saved);
+    else delete globalThis.navigator;
+  }
+};
+const withIdleCapture = async (run) => {
+  const saved = globalThis.requestIdleCallback,
+    queued = [];
+  globalThis.requestIdleCallback = (fn, opts) => queued.push({ fn, opts });
+  try {
+    await run(queued);
+  } finally {
+    if (saved) globalThis.requestIdleCallback = saved;
+    else delete globalThis.requestIdleCallback;
+  }
+};
+
+test("the cut GLB idle prefetch is skipped when the flag is off, on data saver and on a slow link", async () => {
+  const library = { ensureModels: () => assert.fail("must not fetch") };
+  await withIdleCapture(async (queued) => {
+    prefetchCutsOnIdle(library, false);
+    withNavigator({ connection: { saveData: true, effectiveType: "4g" } }, () => prefetchCutsOnIdle(library, true));
+    for (const effectiveType of CFG.cutPrefetch.slowTypes)
+      withNavigator({ connection: { saveData: false, effectiveType } }, () => prefetchCutsOnIdle(library, true));
+    prefetchCutsOnIdle({}, true); // no loader to call
+    assert.equal(queued.length, 0);
+  });
+});
+
+test("the cut GLB is prefetched once at idle, and a synchronous throw from ensureModels falls back quietly to the plain ragdoll", async () => {
+  await loadChunk();
+  let calls = 0;
+  const library = {
+    ensureModels() {
+      calls++;
+      throw new Error("sync blow-up");
+    },
+  };
+  await withIdleCapture(async (queued) => {
+    withNavigator({ connection: { saveData: false, effectiveType: "4g" } }, () => prefetchCutsOnIdle(library, true));
+    assert.equal(queued.length, 1);
+    assert.equal(queued[0].opts.timeout, CFG.cutPrefetch.idleMs);
+    assert.equal(calls, 0); // nothing fetched until the browser is idle
+    await queued[0].fn(); // does not throw
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(calls, 1);
+    // once per page: a wounded hunter does not ask again, and the step still returns false
+    assert.equal(physicsDeathStep({}, { markedHunter: true, hp: 3, maxHP: 10 }, library, DT, true), false);
+    prefetchCutsOnIdle(library, true);
+    assert.equal(queued.length, 1);
+    assert.equal(calls, 1);
+  });
 });
 
 test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {

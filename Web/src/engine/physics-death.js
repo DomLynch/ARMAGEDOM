@@ -56,15 +56,31 @@ function failDeath(view, s) {
   }
   view.physicsDeath = { failed: true };
 }
-// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
-// preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
+// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once per page: at idle after the area is entered (prefetchCutsOnIdle),
+// or at the latest when a marked hunter is first WOUNDED. A kill before it arrives is the plain ragdoll.
 let cutsRequested = false;
 function prefetchCuts(library) {
   if (cutsRequested || !impl || !cutsEnabled() || !library?.ensureModels) return;
   cutsRequested = true;
-  impl.loadCutAssets(library).catch(() => {
-    /* No cut GLB: every death stays the plain ragdoll. */
-  });
+  // Started from a microtask so a synchronous throw from ensureModels lands in the catch below, not in the caller.
+  Promise.resolve()
+    .then(() => impl.loadCutAssets(library))
+    .catch(() => {
+      /* No cut GLB: every death stays the plain ragdoll. */
+    });
+}
+// Data saver or a slow link (data/physicsDeath.json cutPrefetch): the idle fetch is skipped; the wound-time fetch is unchanged.
+const slowLink = () => {
+  const c = globalThis.navigator?.connection,
+    p = CFG.cutPrefetch;
+  return !!c && ((p.skipSaveData && c.saveData === true) || p.slowTypes.includes(c.effectiveType));
+};
+// Call once after the area is entered: warms the cut GLB at idle, so the first wounded hunter does not start a 2 MB fetch mid-fight.
+export function prefetchCutsOnIdle(library, enabled = physicsDeathEnabled()) {
+  if (!enabled || !cutsEnabled() || slowLink() || cutsRequested || !library?.ensureModels) return;
+  const go = () => load().then(() => (broken ? undefined : prefetchCuts(library)));
+  if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.cutPrefetch.idleMs });
+  else setTimeout(go, CFG.cutPrefetch.idleMs);
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {

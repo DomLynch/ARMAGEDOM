@@ -11,6 +11,7 @@
   "settleSeconds": 5,
   "removeSeconds": 8,
   "preloadIdleMs": 2500,
+  "cutPrefetch": { "idleMs": 6000, "skipSaveData": true, "slowTypes": ["slow-2g", "2g", "3g"] },
   "poolSize": 2,
   "rewarmMs": 3000,
   "maxActive": 2,
