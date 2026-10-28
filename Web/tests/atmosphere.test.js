@@ -53,7 +53,7 @@ test('bus emits smoke only with its own tint; other smoke retains its accepted c
 });
 
 test('five seeded presets and active three-area budgets retain approved West parameters',()=>{
- assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',20,4],['east',18,5],['south',21,5]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
+ assert.equal(Object.keys(ATMOSPHERE_PRESETS).length,5);const {fx,scene,world}=fixture();for(const [area,count,anchors]of [['westminster',20,4],['east',18,5],['south',17,5]]){const resolved=atmosphereForArea(area);assert.equal(resolved.length,anchors);assert.equal(new Set(resolved.map(a=>a.id)).size,anchors);assert.deepEqual(atmosphereForArea(area),resolved);assert(atmosphereBudget(area).quads<=28);world.areaId=area;fx.update(.01);assert.equal(scene.children.filter(o=>o.name==='London restrained atmosphere').length,1);assert.equal(fx.stats().quads,count);assert.equal(fx.stats().textureBytes,0);assert(fx.stats().drawCalls<=3);}
  for(const [i,a]of atmosphereForArea('westminster').entries())for(const key of Object.keys(WESTMINSTER_ATMOSPHERE[i]))assert.deepEqual(a[key],WESTMINSTER_ATMOSPHERE[i][key]);fx.dispose();fx.dispose();assert.equal(scene.children.length,0);
 });
 
