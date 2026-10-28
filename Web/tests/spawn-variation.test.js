@@ -5,6 +5,7 @@ import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateSpawnVariation } from "../src/engine/game-data-spawn-variation.js";
 import { activeDay, rollSlots, seededRandom, variedCrates, variedHostiles } from "../src/engine/spawn-variation.js";
 import { populationPlacements } from "../src/engine/area-population.js";
+import { reviveDue } from "../src/engine/respawn.js";
 import { placementsFor } from "../src/engine/world-pickups-core.js";
 import { trapCrateList } from "../src/engine/trap-crate.js";
 import { validateAreaGeometry } from "../src/engine/area-content.js";
@@ -181,6 +182,42 @@ test("the tutorial and the hub keep their hand-built layout; the roll needs a br
     globalThis.location = { search: `?${DATA.offParam}=1` };
     assert.equal(activeDay(), null);
     assert.equal(placementsFor("east"), GAME_DATA.worldPickups.placements.east);
+  } finally {
+    if (saved) Object.defineProperty(globalThis, "location", saved);
+    else delete globalThis.location;
+  }
+});
+
+test("a hostile whose varied spot is on screen does not revive there, even if its hand-built spot is far away", () => {
+  const area = "south",
+    cycle = "A",
+    saved = Object.getOwnPropertyDescriptor(globalThis, "location");
+  try {
+    globalThis.location = { search: "" };
+    const day = activeDay(),
+      rows = rowsOf(area),
+      varied = variedHostiles(rows, area, cycle, day),
+      moved = varied.find((row, i) => Math.hypot(row.pos.x - rows[i].pos.x, row.pos.z - rows[i].pos.z) > 3),
+      policy = { seconds: 60, minPlayerDistance: 2, offscreenDistance: 3, excludedAreas: [] },
+      base = (at) => ({
+        areaResidents: true,
+        areaInitialized: true,
+        finished: false,
+        animalCycle: cycle,
+        enemies: [],
+        player: { hp: 100, pos: { ...at } },
+        time: 1000,
+        respawn: { base: 0, kills: { [moved?.key]: 0 } },
+        world: { areaId: area, populationData: { respawn: policy }, lineClear: () => true },
+      }),
+      built = [],
+      build = (g, a, keys) => (built.push(...keys), []);
+    assert.ok(moved, "today's roll moves at least one south resident");
+    assert.equal(reviveDue(base(moved.pos), build, AREA_MOB_SPAWNS), 0);
+    assert.deepEqual(built, [], "the player stands on the varied spot, so it waits");
+    const original = rows.find((row) => row.key === moved.key).pos;
+    reviveDue(base(original), build, AREA_MOB_SPAWNS);
+    assert.deepEqual(built, [moved.key], "standing on the hand-built spot does not block a revive at the varied one");
   } finally {
     if (saved) Object.defineProperty(globalThis, "location", saved);
     else delete globalThis.location;

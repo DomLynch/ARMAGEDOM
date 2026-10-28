@@ -1,4 +1,5 @@
 import { rigText } from "../rig-capabilities.js";
+import { activeDay, variedHostiles } from "./spawn-variation.js";
 // Hostile respawn. A killed ordinary hostile stays down for population.respawn.seconds of play and comes back only
 // while the player is elsewhere (on entering its area), at its registered placement.
 //
@@ -68,7 +69,8 @@ export function expiredKeys(g, area, areaKeys) {
 export function reviveDue(g, build, defaultRows) {
   if (!g.areaResidents || !g.areaInitialized || g.finished || g.player.hp <= 0) return 0;
   const area = g.world.areaId ?? "westminster",
-    rows = g.residentPlacements?.[area] ?? defaultRows[area] ?? [],
+    // The same daily positions the hostile is built at, so the on-screen check looks at the spot it will appear on.
+    rows = variedHostiles(g.residentPlacements?.[area] ?? defaultRows[area] ?? [], area, g.animalCycle ?? "A", activeDay()),
     alive = new Set(g.enemies.map((e) => e.placementKey)),
     due = [
       ...expiredKeys(
