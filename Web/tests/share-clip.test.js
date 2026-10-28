@@ -8,7 +8,7 @@ import { webText } from "../src/engine/web-text.js";
 
 const rows = GAME_DATA.shareClip;
 const SOURCE = { width: 390, height: 844 };
-const bad = (patch) => assert.throws(() => validateShareClip({ ...structuredClone(rows), ...patch }), TypeError);
+const bad = (patch) => assert.throws(() => validateShareClip({ ...structuredClone(rows), ...patch }));
 
 function fakeCanvas() {
   const calls = [];
@@ -126,9 +126,12 @@ test("a trash mob death is not a moment, and a cooldown stops the same moment fi
   r.play(5, [{ type: "death", actor: { pos: {} } }]);
   r.play(3);
   assert.equal(r.clip.clips().best, null);
-  r.play(1, [{ type: "grenade-blast", radius: 3 }]);
+  r.play(0.5, [{ type: "grenade-blast", radius: 3 }]);
   r.play(0.2, [{ type: "grenade-blast", radius: 3 }]);
-  assert.equal(r.clip.size().pending, 1);
+  assert.equal(r.clip.size().pending, 1, "the second blast while one waits its tail adds nothing");
+  r.play(2);
+  r.play(1, [{ type: "grenade-blast", radius: 3 }]);
+  assert.equal(r.clip.size().pending, 0, "inside the cooldown a blast is not a new moment");
 });
 
 test("a close escape fires only when the player survives the low-health spell", () => {

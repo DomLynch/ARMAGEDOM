@@ -3,11 +3,11 @@
 import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
 
-const TRIGGERS = ["playerDeath", "flaggedDeath", "blast", "closeCall"];
 const text = (v) => typeof v === "string" && v.length > 0;
 
 export function validateShareClip(d) {
-  const f = "shareClip";
+  const f = "shareClip",
+    triggers = ["playerDeath", "flaggedDeath", "blast", "closeCall"]; // the four the capture code knows
   closed(d, [
     "schema_version",
     "note",
@@ -56,7 +56,7 @@ export function validateShareClip(d) {
     closed(m, ["id", "trigger", "priority", "tailSeconds", "cooldownSeconds"], ["flags", "events", "minRadius", "hpFraction", "surviveSeconds"]);
     if (!/^[A-Za-z]+$/.test(m.id) || seen.has(m.id)) fail(f, `moment id ${m.id} must be unique letters`);
     seen.add(m.id);
-    if (!TRIGGERS.includes(m.trigger)) fail(f, `${m.id}: trigger must be one of ${TRIGGERS.join(", ")}`);
+    if (!triggers.includes(m.trigger)) fail(f, `${m.id}: trigger must be one of ${triggers.join(", ")}`);
     number(f, `${m.id}.priority`, m.priority, 1);
     number(f, `${m.id}.tailSeconds`, m.tailSeconds, 0);
     number(f, `${m.id}.cooldownSeconds`, m.cooldownSeconds, 0);
