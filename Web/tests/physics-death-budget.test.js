@@ -49,18 +49,20 @@ test("the shared world steps once per frame however many corpses are active", ()
 });
 
 test("a single corpse steps the same number of times as two", () => {
+  // the world clock is module-wide (one real world), so run the two cases one after the other
   const w1 = fakeWorld(),
-    w2 = fakeWorld();
-  const solo = corpse(w1),
+    solo = corpse(w1);
+  for (let i = 0; i < 20; i++) stepDeath(solo, DT);
+  releaseDeath(solo);
+  const w2 = fakeWorld(),
     x = corpse(w2),
     y = corpse(w2);
   for (let i = 0; i < 20; i++) {
-    stepDeath(solo, DT);
     stepDeath(x, DT);
     stepDeath(y, DT);
   }
-  assert.ok(Math.abs(w1.steps - w2.steps) <= 1);
-  for (const s of [solo, x, y]) releaseDeath(s);
+  assert.ok(Math.abs(w1.steps - w2.steps) <= 1, `solo ${w1.steps} steps, pair ${w2.steps}`);
+  for (const s of [x, y]) releaseDeath(s);
 });
 
 test("releasing a corpse frees its body and active entry, and twice is safe", () => {
