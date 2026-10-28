@@ -38,7 +38,15 @@ export function validateSaveClient(d) {
     "bucketReserve",
     "retryFloorMs",
     "keepaliveMaxBytes",
+    "claimBurst",
+    "claimRefillMs",
+    "claimRetries",
   ]);
+  // The writer's claim_pickup bucket (server/data/rate-limits.json): the client spaces its cash claims to it and retries a refused one
+  // (a 429, or a kill-tier rate-limit) up to `claimRetries` times, so a crowd of kills is credited in full instead of dropped.
+  count("saveClient", "claimBurst", d.claimBurst, 1, 100);
+  count("saveClient", "claimRefillMs", d.claimRefillMs, 100, 600000);
+  count("saveClient", "claimRetries", d.claimRetries, 0, 20);
   // Browsers cap the body of a keepalive request at 64 KiB in all; the page-hide send stays under this, else it is a plain request.
   count("saveClient", "keepaliveMaxBytes", d.keepaliveMaxBytes, 1000, 65536);
   // The shortest wait before a kept record is sent again after a refused or failed send, whatever the writer's Retry-After says.

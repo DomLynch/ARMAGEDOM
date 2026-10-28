@@ -228,17 +228,65 @@ export function createSaveClient({
 
   // Cash from a world stash or the airdrop is credited by the server once per source per window (arma_claim_pickup), so a reload cannot farm it.
   // A refused or failed claim is only logged: the cash the page already holds is clamped by the next save, never given back.
-  const claims = new Set();
+  // The writer gives claim_pickup its own small bucket (claimBurst, one more per claimRefillMs), and a kill-tier claim can also be refused
+  // for rate (`refused: "rate-limit"`, `retryS`). So claims wait in a queue and go out one at a time as the bucket allows; a refusal for
+  // rate puts the claim back and waits what the writer said (up to claimRetries times). Any other refusal is only logged.
+  const claimQueue = [];
+  let claimTokens = tuning.claimBurst,
+    claimTokensAt = now(),
+    claimBlockedUntil = 0,
+    claimTimer = null,
+    claimPump = Promise.resolve();
+  const claimWait = () => {
+    const t = now();
+    claimTokens = Math.min(tuning.claimBurst, claimTokens + Math.max(0, t - claimTokensAt) / tuning.claimRefillMs);
+    claimTokensAt = t;
+    return Math.max(Math.ceil((1 - claimTokens) * tuning.claimRefillMs), claimBlockedUntil - t, 0);
+  };
+  async function sendClaim(item) {
+    if (halted || stopped || !(await ensureCharacter())) return item.resolve();
+    claimWait();
+    claimTokens = Math.max(0, claimTokens - 1);
+    const reply = await call("claim_pickup", { source: item.source, amount: item.amount });
+    const rateLimited = reply.status === 429 || reply.refused === "rate-limit"; // tuning-ok: HTTP status code
+    if (rateLimited && item.tries < tuning.claimRetries) {
+      item.tries++;
+      if (reply.status === 429) claimTokens = 0; // tuning-ok: HTTP status code
+      const ms = reply.retryMs ?? (Number.isFinite(reply.retryS) ? reply.retryS * 1000 : tuning.claimRefillMs); // tuning-ok: seconds to ms
+      claimBlockedUntil = now() + Math.max(tuning.retryFloorMs, ms);
+      claimQueue.unshift(item);
+      return;
+    }
+    if (reply.error || reply.refused) log(`pickup cash not credited: ${item.source} ${reply.error ?? reply.refused}`);
+    item.resolve();
+  }
+  async function drainClaims() {
+    while (claimQueue.length) {
+      if (halted || stopped) {
+        for (const item of claimQueue.splice(0)) item.resolve();
+        return;
+      }
+      const wait = claimWait();
+      if (wait > 0) {
+        if (claimTimer === null)
+          claimTimer = setTimer(() => {
+            claimTimer = null;
+            pumpClaims();
+          }, wait);
+        return;
+      }
+      await sendClaim(claimQueue.shift()).catch(() => {});
+    }
+  }
+  // One drain at a time; `claimPump` settles when the queue is empty or waiting for the bucket, so a save only waits for claims that can go now.
+  function pumpClaims() {
+    claimPump = claimPump.then(drainClaims);
+    return claimPump;
+  }
   function claimPickup(source, amount) {
-    const run = (async () => {
-      if (halted || stopped || !(await ensureCharacter())) return;
-      const reply = await call("claim_pickup", { source, amount });
-      if (reply.error || reply.refused) log(`pickup cash not credited: ${source} ${reply.error ?? reply.refused}`);
-    })()
-      .catch(() => {})
-      .finally(() => claims.delete(run));
-    claims.add(run);
-    return run;
+    const done = new Promise((resolve) => claimQueue.push({ source, amount, tries: 0, resolve }));
+    pumpClaims();
+    return done;
   }
 
   async function send(raw, run, { urgent = false } = {}) {
@@ -249,7 +297,7 @@ export function createSaveClient({
       return { ok: false, reason: "bad-record" };
     }
     const generation = hideGen;
-    await Promise.all(claims); // a stash or airdrop claim in flight lands BEFORE the save that carries its cash (the writer keeps arrival order)
+    await claimPump; // a cash claim that can go now lands BEFORE the save that carries its cash (the writer keeps arrival order)
     await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
     if (!(await sync()) || !character) return { ok: false, reason: "offline" };
     const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
@@ -494,6 +542,9 @@ export function createSaveClient({
       stopped = true;
       if (timer !== null) clearTimer(timer);
       timer = null;
+      if (claimTimer !== null) clearTimer(claimTimer);
+      claimTimer = null;
+      for (const item of claimQueue.splice(0)) item.resolve();
     },
     get state() {
       return { character, revision, seq, uncertain };
