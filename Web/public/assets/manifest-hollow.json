@@ -1292,6 +1292,49 @@
       "bytes": 1218984,
       "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
     },
+    "vagrant-106": {
+      "url": "appearances/vagrant-106.glb",
+      "rig": "vagrant-106",
+      "motion": "donor-knife",
+      "scale": 0.92,
+      "forwardCorrection": 0,
+      "stride": 0.988,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "measure": {
+        "source": "art/vagrant-106/build-vagrant106.py log (T-pose mesh bounds, hips rest height of the fitted skeleton)",
+        "meshTopMetres": 1.94,
+        "hipsMetres": 0.98,
+        "note": "scale 0.92 puts the mesh top near the Pitborn hunter's 1.95 m after its 1.1; stride is the hips height over the donor hero's 0.992 like the hunter's row, foot slide not checked"
+      },
+      "clips": {
+        "idle": "Armed",
+        "walk": "ArmedWalk",
+        "run": "Run",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "parry": "Parry",
+        "block": "BlockImpact",
+        "deflected": "Deflected"
+      },
+      "deferred": true,
+      "provenance": {
+        "source": "Lossless vagrant (art/vagrant, lossless/vagrant.glb, 19-joint WardenRig) re-skinned onto the 106-joint Mixamo skeleton of hunters/hunter-pitborn-106.glb",
+        "sourceSHA256": "2fa34a820d5a4bcc221482b828ed2c4814386f4e4d95ede726a82f22c2242e3c",
+        "clipSourceSHA256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/vagrant-106/build-vagrant106.py (lean: the 19 weighted joints only, 21 tracks per clip), the hunter's 16 clips with rotations verbatim and the Hips translation scaled by the leg ratio 0.9634, the machete baked as WeaponDrawn under fk_socket_hand_r, then gltf-transform resize 1024 and meshopt medium",
+        "note": "appearance only, no gameplay path selects this model: the player 'vagrant' row stays the donor warrior because pistol, vest, finisher and flame code read its hero bone names (hand_r, spine_01)"
+      },
+      "bytes": 915092,
+      "sha256": "ac6ca36481d9ada6cf5c8f61389ae0ba58f2422b5cc176ca59043e5e5231dbe3"
+    },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
       "rig": "giant-salamander",
@@ -1504,6 +1547,11 @@
       "file": "hunters/hunter-pitborn-106.glb",
       "bytes": 1218984,
       "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
+    },
+    "vagrant-106": {
+      "file": "appearances/vagrant-106.glb",
+      "bytes": 915092,
+      "sha256": "ac6ca36481d9ada6cf5c8f61389ae0ba58f2422b5cc176ca59043e5e5231dbe3"
     },
     "giant-salamander/giant-salamander.glb": {
       "file": "giant-salamander/giant-salamander.glb",
