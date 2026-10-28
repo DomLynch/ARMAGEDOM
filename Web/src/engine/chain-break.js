@@ -70,7 +70,8 @@ function struck(g, at) {
     const flip = T.rays3d.includes(e.type),
       ground = (q) => (flip ? { x: q.x, z: -q.z } : q);
     if (!(flip || T.rays.includes(e.type)) || !e.origin || gap(ground(e.origin), p.pos) > B.hitOriginMetres) return false;
-    return [e, ...(e.pellets ?? [])].some((r) => r.origin && r.end && nearRay({ origin: ground(r.origin), end: ground(r.end) }, at));
+    // A shotgun event's own origin/end is the unclipped full-range line; only its wall-clipped pellets say where the shot went.
+    return (e.pellets?.length ? e.pellets : [e]).some((r) => r.origin && r.end && nearRay({ origin: ground(r.origin), end: ground(r.end) }, at));
   });
 }
 // `open`: no finished run, no invalid run save, not in a safehouse (the arrival wait and the bounty gate do not apply to a hit).

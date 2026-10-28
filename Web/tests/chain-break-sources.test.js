@@ -47,6 +47,13 @@ test("rays: a pistol or rifle shot, a shotgun pellet and an arc-gun bolt break t
   assert.equal(after((g, at) => [{ type: "shot", ...ray(g, at) }]), "snapping", "pistol / rifle shot");
   assert.equal(after((g, at) => [{ type: "shot", ...ray(g, at, 7), pellets: [ray(g, at, 7), ray(g, at, 0.3)] }]), "snapping", "one shotgun pellet");
   assert.equal(after((g, at) => [{ type: "shot", ...ray(g, at, 7), pellets: [ray(g, at, 7)] }]), "chained", "every pellet wide");
+  // A wall between: the event's own full-range line runs through the Pitborn, but every pellet ended at the wall short of it.
+  const wall = (g, at) => ({ origin: { ...g.player.pos }, end: { x: at.x - 2, z: at.z } });
+  assert.equal(
+    after((g, at) => [{ type: "shot", ...ray(g, at), pellets: [wall(g, at), wall(g, at)] }]),
+    "chained",
+    "a shotgun shot stopped by a wall does not snap it through the wall",
+  );
   const flip = (q) => ({ x: q.x, z: -q.z });
   assert.equal(
     after((g, at) => [{ type: "railgun-shot", actor: g.player, origin: flip(ray(g, at).origin), end: flip(ray(g, at).end) }]),
