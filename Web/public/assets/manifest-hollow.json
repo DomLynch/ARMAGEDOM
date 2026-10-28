@@ -1324,7 +1324,7 @@
         },
         "weaponSHA256": "507b9b4fe26a7f90d0f477390d0d9247279355a7584e3ca57a00b66178f1a07a",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
-        "assembly": "art/hunter-pitborn/build-hunter.mjs: 16 clips kept, Layer_* nodes dropped, weapons/pitborn-cleaver-phone.glb baked under fk_socket_hand_r as WeaponDrawn; a pair of ivory bull horns (plain mesh, vertex-coloured, 720 triangles) added as a child of mixamorig:Head because the body has no horns and did not read as a minotaur at game distance; skeleton, bind pose and clips untouched; appearance only. Replaces hunters/hunter-goblin-l8.glb, kept in the tree as the rollback",
+        "assembly": "art/hunter-pitborn/build-hunter.mjs: 16 clips kept, Layer_* nodes dropped, weapons/pitborn-cleaver-phone.glb baked under fk_socket_hand_r as WeaponDrawn; the 28 Oct ivory bull horns were removed on Dom's ruling (realistic game, the original OpenTrident body as is; HORN=0 default in the build script); skeleton, bind pose and clips untouched; appearance only. Replaces hunters/hunter-goblin-l8.glb, kept in the tree as the rollback",
         "previous": {
           "url": "hunters/hunter-goblin-l8.glb",
           "rig": "goblin",

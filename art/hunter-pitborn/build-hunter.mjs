@@ -38,14 +38,15 @@ for (const s of root.listScenes()) if (!s.listChildren().length) s.dispose();
 // x +-0.11, y -0.035 to 0.201, z -0.096 to 0.156, measured with headbox.html). Ivory base fading to a dark tip by vertex colour.
 const head = root.listNodes().find((n) => n.getName() === "mixamorig:Head");
 if (!head) throw Error("no mixamorig:Head");
-const HORN = Number(process.env.HORN ?? 1.45); // 1.0 read as a small white blob from the game camera (steep, 100 px tall hunter)
+// Dom, 28 Oct: horns removed (realistic 2030 game, original OpenTrident body as is). HORN=0 (default) builds no horns; HORN=1.45 is the old build.
+const HORN = Number(process.env.HORN ?? 0); // 1.0 read as a small white blob from the game camera (steep, 100 px tall hunter)
 const pos = [], nrm = [], col = [], idx = [];
 const RING = 10, STEPS = 18;
 const bez = (a, b, c, t) => a.map((_, i) => (1 - t) * (1 - t) * a[i] + 2 * (1 - t) * t * b[i] + t * t * c[i]);
 const dbez = (a, b, c, t) => a.map((_, i) => 2 * (1 - t) * (b[i] - a[i]) + 2 * t * (c[i] - b[i]));
 const norm = (v) => { const l = Math.hypot(...v) || 1; return v.map((x) => x / l); };
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-for (const s of [1, -1]) {
+for (const s of HORN > 0 ? [1, -1] : []) {
   const P0 = [s * 0.075, 0.12, 0.01];
   const grow = (p) => p.map((v, i) => P0[i] + (v - P0[i]) * HORN); // HORN scales the length and sweep, not the skull anchor
   const P1 = grow([s * 0.25, 0.14, 0.0]), P2 = grow([s * 0.27, 0.37, 0.07]); // little forward sweep: more than this reads as a unicorn from the side
@@ -70,17 +71,19 @@ for (const s of [1, -1]) {
       if (s > 0) idx.push(a, b, c2, b, d2, c2); else idx.push(a, c2, b, b, c2, d2);
     }
 }
-const hornBuffer = root.listBuffers()[0];
-const acc = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(hornBuffer);
-const hornMaterial = doc.createMaterial("Horn").setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.5).setMetallicFactor(0);
-const hornPrim = doc.createPrimitive()
-  .setAttribute("POSITION", acc("VEC3", new Float32Array(pos)))
-  .setAttribute("NORMAL", acc("VEC3", new Float32Array(nrm)))
-  .setAttribute("COLOR_0", acc("VEC4", new Float32Array(col)))
-  .setIndices(acc("SCALAR", new Uint16Array(idx)))
-  .setMaterial(hornMaterial);
-const hornNode = doc.createNode("Horns").setMesh(doc.createMesh("Horns").addPrimitive(hornPrim));
-head.addChild(hornNode);
+if (HORN > 0) {
+  const hornBuffer = root.listBuffers()[0];
+  const acc = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(hornBuffer);
+  const hornMaterial = doc.createMaterial("Horn").setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.5).setMetallicFactor(0);
+  const hornPrim = doc.createPrimitive()
+    .setAttribute("POSITION", acc("VEC3", new Float32Array(pos)))
+    .setAttribute("NORMAL", acc("VEC3", new Float32Array(nrm)))
+    .setAttribute("COLOR_0", acc("VEC4", new Float32Array(col)))
+    .setIndices(acc("SCALAR", new Uint16Array(idx)))
+    .setMaterial(hornMaterial);
+  const hornNode = doc.createNode("Horns").setMesh(doc.createMesh("Horns").addPrimitive(hornPrim));
+  head.addChild(hornNode);
+}
 const [buffer, ...extra] = root.listBuffers(); // the merge brought the cleaver's buffer; a GLB takes one
 for (const a of root.listAccessors()) a.setBuffer(buffer);
 for (const b of extra) b.dispose();
