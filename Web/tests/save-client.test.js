@@ -977,7 +977,7 @@ test("a claim refused for rate more than claimRetries times is given up and logg
   const done = t.client.claimPickup("kill:trash", 5);
   for (let i = 0; i <= GAME_DATA.saveClient.claimRetries; i++) {
     await settle();
-    t.clock.ms += 1000;
+    t.clock.ms += GAME_DATA.saveClient.claimRefillMs; // long enough for the retry wait and for the bucket to give a token back
     if (t.timers.length) await fire(t);
   }
   await done;
