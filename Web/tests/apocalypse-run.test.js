@@ -227,8 +227,8 @@ test("finale escape: the safehouse ends the run only after the player has been o
 });
 
 test("results: kills, time, heat peak and outcome; Continue clears the card and lets a new run start", () => {
-  const before = runSession.count,
-    g = started();
+  const g = started(),
+    before = runSession.count;
   g.heat = { count: 4, lastKillAt: 0, seen: 0, rolls: 0 };
   at(g, 30);
   g.kills = 9;
