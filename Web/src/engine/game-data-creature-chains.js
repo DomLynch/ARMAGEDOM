@@ -5,20 +5,13 @@ import { closed } from "./content-schema.js";
 import { fail, number } from "./game-data-checks.js";
 
 const FILE = "creatureChainRows";
-const KINDS = ["chain", "humanoid", "none"];
-const FITS = ["full", "partial", "humanoid", "none"];
-const ROW_FIELDS = [
-  "glb", "family", "kind", "fit", "fitNote", "live", "definitionId", "modelScale", "rigNodeScale", "simRoot", "jointCount", "bones", "boneMap",
-  "segments",
-];
-const SEGMENT_FIELDS = ["id", "role", "parent", "bone", "tip", "lengthModel", "lengthMetres", "radiusModel", "radiusSamples"];
 
 function validateSegments(id, row) {
   const seen = new Set();
   const bones = new Set(row.bones);
   row.segments.forEach((s, i) => {
     const at = `${id}.segments[${i}]`;
-    closed(s, SEGMENT_FIELDS);
+    closed(s, ["id", "role", "parent", "bone", "tip", "lengthModel", "lengthMetres", "radiusModel", "radiusSamples"]);
     if (!s.id || seen.has(s.id)) fail(FILE, `${at}: id must be unique text`);
     if (i === 0 ? s.parent !== null : !seen.has(s.parent)) fail(FILE, `${at}: parent must be null for the root and an earlier segment otherwise`);
     seen.add(s.id);
@@ -38,9 +31,14 @@ export function validateCreatureChainRows(d) {
   if (!ids.length) fail(FILE, "rows must not be empty");
   for (const id of ids) {
     const row = d.rows[id];
-    closed(row, ROW_FIELDS, ["missingBones", "nodeBones"]);
+    closed(
+      row,
+      ["glb", "family", "kind", "fit", "fitNote", "live", "definitionId", "modelScale", "rigNodeScale", "simRoot", "jointCount"]
+        .concat(["bones", "boneMap", "segments"]),
+      ["missingBones", "nodeBones"],
+    );
     if (row.live !== false) fail(FILE, `${id}: live must be false until the wiring lands`);
-    if (!KINDS.includes(row.kind) || !FITS.includes(row.fit)) fail(FILE, `${id}: kind or fit is not a known value`);
+    if (!["chain", "humanoid", "none"].includes(row.kind) || !["full", "partial", "humanoid", "none"].includes(row.fit)) fail(FILE, `${id}: kind or fit is not a known value`);
     if (typeof row.fitNote !== "string" || !row.fitNote) fail(FILE, `${id}: fitNote must say how well the skeleton fits`);
     number(FILE, `${id}.modelScale`, row.modelScale, 0.01);
     closed(row.simRoot, ["scale", "modelChildScale"]);
