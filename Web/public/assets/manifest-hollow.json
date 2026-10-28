@@ -1334,8 +1334,8 @@
           "sha256": "cb71a23ef5133fcc032f34b41758ca05d7654699928749afb1e2a7bd1d91dac5"
         }
       },
-      "bytes": 1218984,
-      "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
+      "bytes": 1211976,
+      "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
     },
     "vagrant-106": {
       "url": "appearances/vagrant-106.glb",
@@ -1590,8 +1590,8 @@
     },
     "marked-hunter": {
       "file": "hunters/hunter-pitborn-106.glb",
-      "bytes": 1218984,
-      "sha256": "e41f996e75db5447d9b979ed22674bffe71c5af0c43802c6387d5cedcdfcaadb"
+      "bytes": 1211976,
+      "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
     },
     "vagrant-106": {
       "file": "appearances/vagrant-106.glb",
