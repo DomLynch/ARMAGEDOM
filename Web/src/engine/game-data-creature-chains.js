@@ -29,7 +29,7 @@ function validateSegments(id, row) {
     if (!Number.isInteger(s.radiusSamples) || s.radiusSamples < 0) fail(FILE, `${at}: radiusSamples must be a whole number`);
     if (s.radiusModel !== null) number(FILE, `${at}.radiusModel`, s.radiusModel, 0.0001);
   });
-  if (Object.keys(row.boneMap).length !== row.segments.length) fail(FILE, `${id}: boneMap must have one entry per segment`);
+  if (row.segments.length && Object.keys(row.boneMap).length !== row.segments.length) fail(FILE, `${id}: boneMap must have one entry per segment`);
 }
 
 export function validateCreatureChainRows(d) {
