@@ -57,7 +57,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
   let sawMotor = null,
     railgunHum = null;
   const sawActors = new Set();
-  const voicesFull = () => active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) + (burnLoop ? 1 : 0) >= A.engine.voiceCapacity;
+  const voicesFull = () =>
+    active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) + (burnLoop ? 1 : 0) >= A.engine.voiceCapacity;
   function stopSaw() {
     if (!sawMotor) return;
     try {
@@ -115,7 +116,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     burnLoop = null;
   }
   function setBurning(level, burn) {
-    if (!level || !enabled || context?.state !== "running" || effectiveMode() === "off" || (!burnLoop && voicesFull())) return stopBurn();
+    if (!level || !enabled || context?.state !== "running" || effectiveMode() === "off" || (!burnLoop && voicesFull()))
+      return stopBurn();
     if (!burnLoop) {
       const source = noiseSource(),
         filter = context.createBiquadFilter(),
@@ -135,7 +137,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
       lfo.start();
       burnLoop = { source, filter, gain, lfo, depth };
     }
-    const level01 = (burn.gain + burn.gainPerActor * (level - 1)) * (effectiveMode() === "low" ? A.engine.lowModeFactor : 1);
+    const level01 =
+      (burn.gain + burn.gainPerActor * (level - 1)) * (effectiveMode() === "low" ? A.engine.lowModeFactor : 1);
     burnLoop.depth.gain.value = level01 * burn.lfoDepth;
     const param = burnLoop.gain.gain;
     if (param.setTargetAtTime) param.setTargetAtTime(level01, context.currentTime, burn.rampSeconds);
@@ -409,7 +412,11 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
             if (!off) noiseRow(A.rocketLaunch.noise);
           } else if (event.type === "trap-crate-open") toneRow(GAME_DATA.trapCrates.audio.open);
           else if (event.type === "trap-crate-beep") toneRow(GAME_DATA.trapCrates.audio.beep);
-          else if (event.type === "grenade-blast" || event.type === "boss-rocket-blast" || event.type === "trap-crate-blast") {
+          else if (
+            event.type === "grenade-blast" ||
+            event.type === "boss-rocket-blast" ||
+            event.type === "trap-crate-blast"
+          ) {
             const cue = WEAPON_AUDIO.grenade;
             tone(cue.from, cue.to, off ? A.grenadeOff.seconds : cue.seconds, off ? A.grenadeOff.gain : cue.gain);
             if (!off) noise(cue.noiseSeconds, cue.noiseGain, cue.cutoff);
@@ -417,8 +424,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
             // One pickup tone per play() batch, whichever of the pickup events (visual.json pickupFlash.events) arrive together.
             if (!pickupToned) toneRow(A.pickup);
             pickupToned = true;
-          }
-          else if (
+          } else if (
             event.type === "hit" &&
             !event.blocked &&
             event.amount > 0 &&

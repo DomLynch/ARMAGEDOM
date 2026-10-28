@@ -11,15 +11,15 @@ const word = (field, v) => {
 };
 const TONE_TYPES = ["sine", "triangle", "square", "sawtooth"];
 function checkRow(r) {
-  closed(r, ["id", "event", "enabled", "priority", "gain", "pitchVariance", "minGapSeconds", "voices", "distance"], [
-    "match",
-    "note",
-    "tone",
-    "noise",
-  ]);
+  closed(
+    r,
+    ["id", "event", "enabled", "priority", "gain", "pitchVariance", "minGapSeconds", "voices", "distance"],
+    ["match", "note", "tone", "noise"],
+  );
   id(FILE, "row id", r.id);
   word(`${r.id}.event`, r.event);
-  if (typeof r.enabled !== "boolean" || typeof r.distance !== "boolean") fail(FILE, `${r.id}: enabled and distance must be true or false`);
+  if (typeof r.enabled !== "boolean" || typeof r.distance !== "boolean")
+    fail(FILE, `${r.id}: enabled and distance must be true or false`);
   if (!r.enabled && !r.note) fail(FILE, `${r.id}: an inert row must carry a note saying why`);
   count(FILE, `${r.id}.priority`, r.priority, 1, 9);
   count(FILE, `${r.id}.voices`, r.voices, 1, 4);
@@ -28,7 +28,13 @@ function checkRow(r) {
   number(FILE, `${r.id}.minGapSeconds`, r.minGapSeconds);
   if (!r.tone && !r.noise) fail(FILE, `${r.id}: needs a tone or a noise`);
   for (const [k, v] of Object.entries(r.match ?? {}))
-    if (!(typeof v === "string" || typeof v === "boolean" || (Array.isArray(v) && v.length && v.every((x) => typeof x === "string"))))
+    if (
+      !(
+        typeof v === "string" ||
+        typeof v === "boolean" ||
+        (Array.isArray(v) && v.length && v.every((x) => typeof x === "string"))
+      )
+    )
       fail(FILE, `${r.id}.match.${k} must be a string, a boolean or a list of strings`);
   if (r.tone) {
     closed(r.tone, ["from", "to", "seconds", "type"]);
@@ -54,7 +60,17 @@ export function validateSoundHooks(d) {
   count(FILE, "mix.maxPerBatch", d.mix.maxPerBatch, 1, 8);
   number(FILE, "mix.hearingRange", d.mix.hearingRange, 1);
   share("mix.farGain", d.mix.farGain);
-  closed(d.burn, ["enabled", "note", "hearingRange", "gain", "gainPerActor", "cutoff", "lfoHz", "lfoDepth", "rampSeconds"]);
+  closed(d.burn, [
+    "enabled",
+    "note",
+    "hearingRange",
+    "gain",
+    "gainPerActor",
+    "cutoff",
+    "lfoHz",
+    "lfoDepth",
+    "rampSeconds",
+  ]);
   if (typeof d.burn.enabled !== "boolean") fail(FILE, "burn.enabled must be true or false");
   for (const k of ["hearingRange", "cutoff", "lfoHz", "rampSeconds"]) number(FILE, `burn.${k}`, d.burn[k], 0.01);
   for (const k of ["gain", "gainPerActor", "lfoDepth"]) share(`burn.${k}`, d.burn[k]);

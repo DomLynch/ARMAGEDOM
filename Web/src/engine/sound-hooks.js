@@ -8,9 +8,14 @@ import { GAME_DATA } from "./game-data.js";
 export const soundHooksEnabled = (data = GAME_DATA.soundHooks, search = globalThis.location?.search ?? "") =>
   new URLSearchParams(search).get(data.flagParam) === data.offValue ? false : data.defaultOn;
 
-const targetOf = (actor, player) => (!actor ? "none" : actor === player ? "player" : actor.bossProfile ? "boss" : "enemy");
+const targetOf = (actor, player) =>
+  !actor ? "none" : actor === player ? "player" : actor.bossProfile ? "boss" : "enemy";
 const field = (event, key, player) =>
-  key === "target" ? targetOf(event.actor, player) : key === "lethal" ? !!event.actor && event.actor.hp <= 0 : event[key];
+  key === "target"
+    ? targetOf(event.actor, player)
+    : key === "lethal"
+      ? !!event.actor && event.actor.hp <= 0
+      : event[key];
 const same = (want, got) => (Array.isArray(want) ? want.includes(got) : want === got);
 export const rowMatches = (row, event, player) =>
   row.enabled &&
@@ -29,15 +34,13 @@ export function createSoundHooks({ data = GAME_DATA.soundHooks, random = Math.ra
   const byEvent = new Map(),
     lastAt = new Map(), // row id -> clock of its last cue
     live = []; // { id, until } of cues still sounding
-  for (const row of data.rows)
-    if (row.enabled) byEvent.set(row.event, [...(byEvent.get(row.event) ?? []), row]);
+  for (const row of data.rows) if (row.enabled) byEvent.set(row.event, [...(byEvent.get(row.event) ?? []), row]);
   return {
     // events: one frame's events; player: the player actor (distance and target); time: a clock in seconds.
     plan(events, { player, time }) {
       const found = [];
       for (const event of events)
-        for (const row of byEvent.get(event.type) ?? [])
-          if (rowMatches(row, event, player)) found.push({ row, event });
+        for (const row of byEvent.get(event.type) ?? []) if (rowMatches(row, event, player)) found.push({ row, event });
       if (!found.length) return [];
       for (let i = live.length - 1; i >= 0; i--) if (live[i].until <= time) live.splice(i, 1);
       found.sort((a, b) => b.row.priority - a.row.priority);
