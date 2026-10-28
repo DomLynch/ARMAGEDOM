@@ -30,9 +30,10 @@
           "id": "exit.westminster.area8",
           "target": "area8",
           "condition": {
-            "yMax": 0.36,
-            "xMin": 0.25,
-            "xMax": 0.4
+            "yMin": 0.335,
+            "yMax": 0.38,
+            "xMin": 0.19,
+            "xMax": 0.24
           },
           "entry": {
             "x": 0.206,
@@ -436,14 +437,14 @@
     "layout.westminster": {
       "kind": "layout",
       "path": "world/westminster/layout.json",
-      "sha256": "4ad4083f213318137c484315145de8c113fd48e79f33501f784ccb64dad17c6f",
-      "bytes": 10593
+      "sha256": "02b4d971eb7a8c6c51ff314a302f45d0e3b6f6f61487df7c71038eee85a179b0",
+      "bytes": 10072
     },
     "backdrop.westminster": {
       "kind": "backdrop",
       "path": "world/westminster/backdrop-phone.webp",
-      "sha256": "0a31bd86c3e2ff14bc1e973f615bb29889aa869cd9fd49bdcc85c38cfd41bf97",
-      "bytes": 327720
+      "sha256": "6aef2ea1005f5a25f56b763cdacbf57554e38933c041b7c8ec043e42c6a3c434",
+      "bytes": 391872
     },
     "layout.south": {
       "kind": "layout",

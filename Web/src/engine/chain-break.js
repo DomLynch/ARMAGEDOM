@@ -52,26 +52,31 @@ function edgeGap(p, a, b) {
   return gap(p, { x: a.x + sx * t, z: a.z + sz * t });
 }
 const polygonGap = (p, poly) => Math.min(...poly.map((a, i) => edgeGap(p, a, poly[(i + 1) % poly.length])));
-// The Pitborn stands inside the lion statue's collision (the blocker polygon nearest its spot), which stops a bullet short of it. While its
-// own spot is blocked scenery, a bullet whose stop point is on that polygon's edge (within coverEdgeMetres) still counts when the line it
-// was fired along passes within hitRadiusMetres of the Pitborn. A bullet stopped by any other wall, crate or enemy does not.
-const onStatue = (geometry, at, p) => {
-  if (geometry.clear(at, SPAWN.bodyRadius)) return false;
-  const statue = geometry.blockers?.reduce((best, poly) => (!best || polygonGap(at, poly) < polygonGap(at, best) ? poly : best), null);
+// The Pitborn stands on the lion statue's plinth, whose collision stops a bullet 1 to 4 m short of it. The statue is named in data
+// (`chainedTargets.coverBlocker`, a blocker of the Westminster layout), not guessed from the Pitborn's spot. A bullet whose stop point is
+// on that polygon's edge (within coverEdgeMetres) still counts when the line it was fired along passes within hitRadiusMetres of the
+// Pitborn. A bullet stopped by any other wall, crate or enemy does not.
+const statueOf = (world) => {
+  const i = world.layout?.blockers?.findIndex((b) => b.name === T.coverBlocker) ?? -1;
+  return i < 0 ? null : (world.geometry.blockers[i] ?? null);
+};
+const onStatue = (world, p) => {
+  const statue = statueOf(world);
   return !!statue && polygonGap(p, statue) <= T.coverEdgeMetres;
 };
-// Sight from a to the Pitborn's spot, where the only thing in the way is the statue it stands in: walk the line to the first blocked point
-// and ask whether that point is the statue's edge. Any other wall on the way keeps the sight blocked.
-export function sightPastStatue(geometry, at, a) {
+// Sight from a to the Pitborn's spot, where the only thing in the way (if anything) is the statue: walk the line to the first blocked
+// point and ask whether that point is the statue's edge. Any other wall on the way keeps the sight blocked.
+export function sightPastStatue(world, at, a) {
+  const geometry = world.geometry;
   if (!geometry.lineClear(a, a)) return false;
   const n = T.sightSteps,
     point = (k) => ({ x: a.x + ((at.x - a.x) * k) / n, z: a.z + ((at.z - a.z) * k) / n });
   let k = 1;
   while (k <= n && geometry.lineClear(a, point(k))) k++;
-  return onStatue(geometry, at, point(k - 1));
+  return k > n || onStatue(world, point(k - 1));
 }
-function behindCover(r, e, at, geometry) {
-  if (!onStatue(geometry, at, r.end)) return false;
+function behindCover(r, e, at, world) {
+  if (!onStatue(world, r.end)) return false;
   const dir = r.direction ?? e.direction ?? { x: r.end.x - r.origin.x, z: r.end.z - r.origin.z },
     len = Math.hypot(dir.x, dir.z),
     dx = at.x - r.origin.x,
@@ -109,7 +114,7 @@ function struck(g, at) {
     // Cover applies to a single bullet (pistol, rifle); a clipped shotgun pellet stays stopped by whatever stopped it.
     const bullet = !e.pellets?.length && !flip;
     return (e.pellets?.length ? e.pellets : [e]).some(
-      (r) => r.origin && r.end && (nearRay({ origin: ground(r.origin), end: ground(r.end) }, at) || (bullet && behindCover(r, e, at, g.world.geometry))),
+      (r) => r.origin && r.end && (nearRay({ origin: ground(r.origin), end: ground(r.end) }, at) || (bullet && behindCover(r, e, at, g.world))),
     );
   });
 }
