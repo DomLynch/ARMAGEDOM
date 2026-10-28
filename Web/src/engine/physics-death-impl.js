@@ -8,6 +8,7 @@ import { GAME_DATA } from "./game-data.js";
 import { createLateCuts, cutsEnabled, manifestUnits, planCut } from "./finisher-cuts.js";
 import { impulseRow } from "./physics-death-impulse.js";
 import { liveBodies, rigOf } from "./physics-rigs.js";
+import FLOOR from "../data/physicsFloor.json" with { type: "json" }; // lazy chunk only: about 150 KB of vertices that the main bundle never needs
 
 const CFG = GAME_DATA.physicsDeath,
   CUTS = GAME_DATA.pitbornCuts,
@@ -296,7 +297,18 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     rd.kill({ part: spec.partAlias?.[part] ?? part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank, seat });
+    s = registerDeath({
+      physics: world,
+      rd,
+      rig,
+      age: 0,
+      clock: worldClock,
+      frozen: false,
+      marked,
+      rank,
+      seat,
+      floor: floorOf(view, spec.model),
+    });
     seat?.node.attach(seat.root); // the model rides the node, kept where it hangs now
     if (plan) {
       try {
@@ -314,6 +326,47 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     else rd.destroy();
     throw err;
   }
+}
+
+// The skin of a boss is thicker than its capsules (plate, cape, skirt: the role table caps a radius at a fraction of its bone), so a corpse that rests on
+// its capsules lies with the skin in the floor. data/physicsFloor.json holds the skin vertices that can be the lowest (each with its bone influences);
+// the corpse's root is lifted by how far the lowest of them, skinned as the renderer skins it, is below the floor. Only a model with an entry there is
+// lifted; a corpse in the air is not touched.
+function floorOf(view, model) {
+  const d = FLOOR.models[model],
+    bones = d?.bones.map((name) => view.model.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name)));
+  return !d || bones.some((b) => !b)
+    ? null
+    : { root: view.root, bones, up: bones.map(() => [0, 0, 0, 0]), vertices: d.vertices, lift: 0 };
+}
+const toRoot = new THREE.Matrix4(),
+  boneToRoot = new THREE.Matrix4();
+// How far the lowest skin vertex is below the floor, in the root's own units (the sim frame; the floor is y = 0 in it). Read before the lift is applied.
+function sinkOf(f) {
+  toRoot.copy(f.root.matrixWorld).invert();
+  f.bones.forEach((bone, i) => {
+    const e = boneToRoot.multiplyMatrices(toRoot, bone.matrixWorld).elements;
+    const m = f.up[i]; // the y row of the bone's matrix in the root's frame
+    m[0] = e[1];
+    m[1] = e[5];
+    m[2] = e[9];
+    m[3] = e[13];
+  });
+  let low = 0;
+  for (const vertex of f.vertices) {
+    let y = 0;
+    for (const [bone, weight, x, py, z] of vertex) {
+      const m = f.up[bone];
+      y += weight * (m[0] * x + m[1] * py + m[2] * z + m[3]);
+    }
+    low = Math.min(low, y);
+  }
+  return -low;
+}
+// The actor view puts the root back on the floor every frame, so the lift is re-applied every frame, also after the body is freed.
+function seatOnFloor(f) {
+  f.root.position.y += f.lift * f.root.scale.y;
+  f.root.updateMatrixWorld(true);
 }
 
 // A corpse's body (and any pieces cut from it) leaves the world; the bones keep the last applied pose.
@@ -369,7 +422,9 @@ export function stepDeath(s, dt) {
     s.rig.applyPose();
     if (s.late) for (const unit of s.late.tick(dt)) if (pieces < CUTS.maxPieceBodies) cutUnit(s, unit);
     s.cutRig?.update();
+    if (s.floor) s.floor.lift = sinkOf(s.floor);
     if (s.age >= CFG.settleSeconds || !s.rd.awake) s.frozen = true;
   }
+  if (s.floor) seatOnFloor(s.floor);
   if (s.frozen && s.age >= CFG.removeSeconds) releaseDeath(s);
 }
