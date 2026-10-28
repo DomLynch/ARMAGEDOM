@@ -275,12 +275,13 @@ export function createWeaponTiles(s, select) {
         b.type = "button";
         b.dataset.weaponId = row.id;
         const name = document.createElement("span"),
-          ammo = document.createElement("small");
+          ammo = document.createElement("small"),
+          slot = document.createElement("i"); // the 1-6 key number; style.css shows it only on desktop
         const icon = weaponTileIcon(row.id);
         name.textContent = icon.caption;
         b.style.setProperty("--weapon-icon", icon.mask);
         b.dataset.iconFamily = icon.family;
-        b.append(name, ammo);
+        b.append(name, ammo, slot);
         page.append(b);
         buttons.set(row.id, b);
       }
@@ -294,9 +295,13 @@ export function createWeaponTiles(s, select) {
       followed = activeKey;
       track.scrollLeft = activeTilePage(rows) * STEP;
     }
+    let slotNumber = 0;
     for (const row of rows) {
       const b = buttons.get(row.id),
         control = document.getElementById(row.control);
+      // The weapon key number: the nth carried weapon, the Reaper companion not counted (same order as the 1-6 keys).
+      const slot = b.querySelector("i");
+      if (slot) slot.textContent = row.companion ? "" : String(++slotNumber);
       // An empty tile stays tappable so the tap can explain why it will not equip.
       const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
       b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;

@@ -29,6 +29,7 @@
     "middle": { "melee": "heavy", "gun": "heavy" },
     "secondary": { "melee": "guard", "gun": "stab" }
   },
+  "layout": { "minWidthPx": 900, "baseHeightPx": 640, "minScale": 1.1, "maxScale": 2.2 },
   "wheelStepMs": 160,
   "partJoin": "/",
   "keyNames": {
