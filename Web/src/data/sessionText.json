@@ -38,6 +38,7 @@
     "journalRecovered": "Case recovered · return to the Westminster stash.",
     "journalClaimed": "Reward claimed once · choose your earned weapon in Gear.",
     "reachEast": "Reach Central Safehouse.",
+    "bossDown": "Boss down. Take any road back to Central Safehouse.",
     "descriptionCompanion": "{summary} Reward: {name}, an autonomous companion alongside your held weapon.",
     "descriptionWeapon": "{summary} Reward: {name}, {damage} base damage (+{percent}%; starting pistol {baseDamage}); reload {reload}s (starting pistol {baseReload}s).",
     "rewardCompanion": "Reward: {name} · autonomous companion",
@@ -69,6 +70,16 @@
     "stateEquip": "Equip",
     "stateLocked": "Locked",
     "comparisonRow": "{name}: {damage} damage · {reload}s reload"
+  },
+  "areaObjective": {
+    "central-hub": "Pick a road out. Each area has one boss to kill.",
+    "east": "Head for East Bridge or Elephant and Castle.",
+    "south": "Kill the Southbank Stalker.",
+    "east-bridge": "Kill the Bridge Warden.",
+    "elephant-and-castle": "Kill the Borough Butcher.",
+    "lambeth": "Kill the Lambeth Surgeon.",
+    "area7": "Kill the Station Breaker.",
+    "area8": "Kill the Borough Marshal."
   },
   "commander": {
     "unavailable": "Match or order unavailable",

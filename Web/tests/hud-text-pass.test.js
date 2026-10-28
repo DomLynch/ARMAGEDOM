@@ -24,8 +24,11 @@ test("ammo has no fixed offset of its own, and each centre line shows at most tw
   assert.match(rule, /position:\s*static/);
 });
 
-test("outside Westminster the tutorial objective is empty", () => {
-  assert.equal(progressionObjective({ world: { areaId: "east" } }).objective, "");
+test("outside Westminster each area shows its one objective line", () => {
+  assert.equal(progressionObjective({ world: { areaId: "east" } }).objective, "Head for East Bridge or Elephant and Castle.");
+  const world = { areaId: "south", bossData: { placements: [{ areaId: "south" }] } };
+  assert.equal(progressionObjective({ world, enemies: [{ hp: 9, bossProfile: {} }] }).objective, "Kill the Southbank Stalker.");
+  assert.match(progressionObjective({ world, enemies: [] }).objective, /^Boss down/);
 });
 
 test("the hunter warnings never reach the HUD; other messages pass through", () => {
