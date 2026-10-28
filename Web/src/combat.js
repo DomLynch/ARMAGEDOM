@@ -1144,7 +1144,6 @@ function mobileControl(g, intent, dt, services) {
     flameRange: flame ? g.world.flameData?.contact.range : null,
     fireHeld:
       ranged &&
-      selectedBossRanged(g) !== "grenade" &&
       ((intent.held ?? []).includes("fire") || (intent.actions ?? []).includes("fire")),
     manualHeading: manualFlame ? Math.atan2(intent.aim.x, intent.aim.z) : null,
     flameEligible: services.flameAimEligible
