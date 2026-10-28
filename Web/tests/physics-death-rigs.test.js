@@ -27,7 +27,8 @@ test("every bone a row maps exists in the model's GLB (no ragdoll can die on a m
     const family = RIGS.rigs[m.rig],
       parts = family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
       nodes = glbNodes(manifest[name].url);
-    for (const [part, joint] of Object.entries(parts)) assert.ok(nodes.has(family.nodePrefix + joint), `${name} has ${family.nodePrefix + joint} for ${part}`);
+    for (const [part, joint] of Object.entries(parts))
+      assert.ok(nodes.has(family.nodePrefix + joint), `${name} has ${family.nodePrefix + joint} for ${part}`);
   }
 });
 
@@ -42,7 +43,12 @@ test("body rows hold the 20 joints and a standing height; the baked scale matche
 });
 
 test("only the marked hunter is live until the impl reads the rig record", () => {
-  assert.deepEqual(Object.entries(RIGS.models).filter(([, m]) => m.live).map(([n]) => n), [CFG.rigRef]);
+  assert.deepEqual(
+    Object.entries(RIGS.models)
+      .filter(([, m]) => m.live)
+      .map(([n]) => n),
+    [CFG.rigRef],
+  );
 });
 
 test("a model without a live row keeps the baked clip and never reaches the impl", () => {
@@ -55,7 +61,8 @@ test("a model without a live row keeps the baked clip and never reaches the impl
   for (let i = 0; i < 5; i++) assert.equal(physicsDeathStep(view, entity, library, 1 / 60, true), false);
   assert.equal(calls.length, 0);
   assert.equal(view.physicsDeath, undefined);
-  assert.equal(physicsDeathStep({ physicsDeath: undefined }, { id: 4, hp: 0, maxHP: 10 }, library, 1 / 60, true), false); // no description at all
+  // no description at all
+  assert.equal(physicsDeathStep({ physicsDeath: undefined }, { id: 4, hp: 0, maxHP: 10 }, library, 1 / 60, true), false);
 });
 
 test("the marked hunter still starts its ragdoll, and the impl gets the rig record", () => {
