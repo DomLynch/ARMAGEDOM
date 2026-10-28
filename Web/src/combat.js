@@ -26,7 +26,7 @@ import { stepRockets } from "./engine/rocket-runtime.js";
 import { stepTrapCrates } from "./engine/trap-crate.js";
 import { bossEquipmentIntent, selectedBossRanged, stepBossGrenades } from "./engine/boss-weapon-runtime.js";
 import { bossEquipmentClock } from "./engine/boss-equipment-data.js";
-import { zoneMultiplier } from "./engine/zone-damage.js";
+import { pickZone, zoneMultiplier } from "./engine/zone-damage.js";
 import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
@@ -278,7 +278,8 @@ export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursed
 export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
-  damage *= zoneMultiplier(target.facing, shot.direction, target.kind); // flag off: x1. Boss seam: bossZoneHook (not built)
+  const zone = pickZone(g, target, weapon, attackClass, shot.aimZone ?? shot.impact?.zone); // flag off or boss: null, x1 (bossZoneHook: future boss seam)
+  damage *= zoneMultiplier(target.facing, shot.direction, zone);
   const amount = Math.min(target.hp, damage);
   target.hp = Math.max(0, target.hp - damage);
   target.flashUntil = g.time + RULES.hitFlashSeconds;
@@ -291,6 +292,7 @@ export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet
     attackClass,
     impactDirection: { ...shot.direction },
     parry: false,
+    ...(zone ? { zone } : null),
   });
   if (weapon === "rifle") rifleActionState(g).lastDamageTick = g.tick;
   else if (["shotgun", "grenade", "rocket", "railgun"].includes(weapon))
@@ -880,9 +882,11 @@ function strike(g, s) {
   if (def.single) candidates.sort((a, b) => mag(sub(a.pos, p.pos)) - mag(sub(b.pos, p.pos)));
   for (const e of def.single ? candidates.slice(0, 1) : candidates) {
     const delta = normal(sub(e.pos, p.pos));
-    e.hp = Math.max(0, e.hp - p.damage * def.multiplier);
+    const zone = pickZone(g, e, s.action, undefined, undefined), // flag off or boss: null, x1 (bossZoneHook: future boss seam)
+      melee = p.damage * def.multiplier * zoneMultiplier(e.facing, delta, zone);
+    e.hp = Math.max(0, e.hp - melee);
     e.flashUntil = g.time + RULES.hitFlashSeconds;
-    event(g, "hit", { actor: e, amount: p.damage * def.multiplier });
+    event(g, "hit", zone ? { actor: e, amount: melee, zone } : { actor: e, amount: melee });
     if (e.hp <= 0) kill(g, e);
     else if (e.kind !== WARLORD) {
       e.staggerUntil = g.time + def.stagger;

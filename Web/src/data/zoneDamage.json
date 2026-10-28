@@ -1,11 +1,36 @@
 {
   "schema_version": 1,
-  "note": "PLACEHOLDER numbers, not tuned: arcs and multipliers are a first guess for facing-driven trash zone damage (Diablo/PoE-style mass-mob 2.5D ARPG; kills about 2 shots, fights <= 5 s). Bosses will get per-part hit boxes later via bossZoneHook; until then they fall through to x1.",
+  "note": "PLACEHOLDER numbers, not tuned (Diablo/PoE-style mass-mob 2.5D ARPG; kills about 2 shots, fights <= 5 s). Damage is 360 degrees: facing never blocks or zeroes a hit, it only adds facingBonus on top of the zone multiplier, and the product is capped. The zone comes from the shot (aimZone / impact.zone) or from a seeded weighted roll keyed by weapon, then attackClass, then melee swing kind, then default. Bosses fall through to x1 until per-part hit boxes land behind bossZoneHook (not built).",
   "flagParam": "zones",
   "flagValue": "1",
-  "arcs": { "frontHalfDeg": 60, "backHalfDeg": 60 },
-  "multiplier": { "front": 1, "flank": 1.25, "back": 1.5 },
-  "cap": 1.5,
+  "seed": 9173,
+  "zones": {
+    "head": { "multiplier": 1.5 },
+    "torso": { "multiplier": 1 },
+    "legs": { "multiplier": 0.75 }
+  },
+  "weights": {
+    "default": { "head": 1, "torso": 3, "legs": 1 },
+    "pistol": { "head": 3, "torso": 5, "legs": 2 },
+    "rifle": { "head": 3, "torso": 5, "legs": 2 },
+    "bullet": { "head": 2, "torso": 5, "legs": 2 },
+    "shotgun": { "head": 1, "torso": 6, "legs": 2 },
+    "railgun": { "head": 2, "torso": 6, "legs": 1 },
+    "rocket": { "head": 0, "torso": 8, "legs": 2 },
+    "grenade": { "head": 0, "torso": 6, "legs": 4 },
+    "fire": { "head": 1, "torso": 7, "legs": 2 },
+    "saw": { "head": 1, "torso": 6, "legs": 3 },
+    "stab": { "head": 4, "torso": 5, "legs": 0 },
+    "slash": { "head": 0, "torso": 6, "legs": 4 },
+    "heavy": { "head": 0, "torso": 1, "legs": 0 }
+  },
+  "facingBonus": {
+    "arcs": { "frontHalfDeg": 60, "backHalfDeg": 60 },
+    "front": 1,
+    "flank": 1.1,
+    "back": 1.25
+  },
+  "cap": 2,
   "bosses": [3],
   "bossHook": "bossZoneHook"
 }

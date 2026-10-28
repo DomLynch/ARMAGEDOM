@@ -56,16 +56,45 @@ export function validatePhysicsDeath(d) {
 
 // zoneDamage.json (zone-damage.js, the ?zones=1 flag-off trash zone damage): flag, front/back arc half-angles, multiplier per arc, cap, boss kinds.
 export function validateZoneDamage(d) {
-  closed(d, ["schema_version", "note", "flagParam", "flagValue", "arcs", "multiplier", "cap", "bosses", "bossHook"]);
-  closed(d.arcs, ["frontHalfDeg", "backHalfDeg"]);
-  closed(d.multiplier, ["front", "flank", "back"]);
+  closed(d, [
+    "schema_version",
+    "note",
+    "flagParam",
+    "flagValue",
+    "seed",
+    "zones",
+    "weights",
+    "facingBonus",
+    "cap",
+    "bosses",
+    "bossHook",
+  ]);
+  closed(d.facingBonus, ["arcs", "front", "flank", "back"]);
+  closed(d.facingBonus.arcs, ["frontHalfDeg", "backHalfDeg"]);
   for (const name of ["flagParam", "flagValue", "note", "bossHook"])
     if (typeof d[name] !== "string" || !d[name]) fail("zoneDamage", name + " must be a non-empty string");
-  for (const name of ["frontHalfDeg", "backHalfDeg"]) number("zoneDamage", name, d.arcs[name], 1);
-  if (d.arcs.frontHalfDeg + d.arcs.backHalfDeg > 180) fail("zoneDamage", "front and back arcs must leave a flank (sum <= 180)");
-  for (const name of ["front", "flank", "back"]) number("zoneDamage", name, d.multiplier[name], 0.01);
+  number("zoneDamage", "seed", d.seed, 0);
+  const arcs = d.facingBonus.arcs;
+  for (const name of ["frontHalfDeg", "backHalfDeg"]) number("zoneDamage", name, arcs[name], 1);
+  if (arcs.frontHalfDeg + arcs.backHalfDeg > 180)
+    fail("zoneDamage", "front and back arcs must leave a flank (sum <= 180)");
+  // Facing only modifies: every bonus is a positive number, so a hit is never zeroed or blocked by where the target looks.
+  for (const name of ["front", "flank", "back"]) number("zoneDamage", name, d.facingBonus[name], 0.01);
+  const zones = Object.keys(d.zones);
+  if (!zones.length) fail("zoneDamage", "zones must name at least one zone");
+  for (const z of zones) {
+    closed(d.zones[z], ["multiplier"]);
+    number("zoneDamage", z + ".multiplier", d.zones[z].multiplier, 0.01);
+  }
+  if (!d.weights?.default) fail("zoneDamage", "weights needs a default row");
+  for (const [key, w] of Object.entries(d.weights)) {
+    closed(w, zones);
+    for (const z of zones) number("zoneDamage", key + "." + z, w[z], 0);
+    if (!zones.some((z) => w[z] > 0)) fail("zoneDamage", key + " needs a positive weight");
+  }
   number("zoneDamage", "cap", d.cap, 1);
-  if (!Array.isArray(d.bosses) || !d.bosses.every(Number.isSafeInteger)) fail("zoneDamage", "bosses must list integer kinds");
+  if (!Array.isArray(d.bosses) || !d.bosses.every(Number.isSafeInteger))
+    fail("zoneDamage", "bosses must list integer kinds");
 }
 
 // physicsBody.json: the body measure row the ragdoll is built from, and the node-name prefix of the rig.
