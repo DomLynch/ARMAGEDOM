@@ -10,7 +10,7 @@ import {
   stepDeath,
 } from "../src/engine/physics-death-impl.js";
 import * as THREE from "three";
-import { releasePhysicsDeath } from "../src/engine/physics-death.js";
+import { physicsDeathStep, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
 const DT = 1 / CFG.stepHz;
@@ -139,4 +139,107 @@ test("the kill impulse is aimed along the killing blow, else back from where the
   assert.ok(Math.abs(Math.hypot(turned[0], turned[2]) - k.horizontal) < 1e-6);
   assert.ok(Math.abs(turned[2]) < 1e-6 && Math.abs(Math.abs(turned[0]) - k.horizontal) < 1e-6);
   assert.deepEqual(killVector(root, { deathImpact: { x: 0, z: 1 } }), turned); // deterministic
+});
+
+// The cut visuals of a corpse as cutSkin leaves them: the cut body in the scene, the hunter's own body hidden.
+const cutCorpse = () => {
+  const s = registerDeath(corpse(fakeWorld()));
+  s.skin = {
+    model: {
+      removed: 0,
+      removeFromParent() {
+        this.removed++;
+      },
+    },
+    hidden: { visible: false },
+  };
+  return s;
+};
+const loadChunk = async () => usePhysicsDeathImpl(await import("../src/engine/physics-death-impl.js"));
+
+test("parking an area frees a corpse's body and slot but keeps its cut visuals; removing it later disposes them", async () => {
+  await loadChunk();
+  const before = activeCount();
+  const s = cutCorpse(),
+    rd = s.rd,
+    skin = s.skin,
+    view = { physicsDeath: s };
+  releasePhysicsDeath(view, true);
+  assert.equal(rd.destroyed, 1);
+  assert.equal(activeCount(), before);
+  assert.equal(view.physicsDeath, s); // the handle stays: the corpse is not re-ragdolled when the area wakes
+  assert.equal(skin.model.removed, 0);
+  assert.equal(skin.hidden.visible, false);
+  releasePhysicsDeath(view); // the actor is removed for good
+  assert.equal(view.physicsDeath, undefined);
+  assert.equal(rd.destroyed, 1); // the body is not freed twice
+  assert.equal(skin.model.removed, 1);
+  assert.equal(skin.hidden.visible, true);
+});
+
+test("a throw while the death starts (rd.kill) gives back the hunter's body, the cut skin and the pooled ragdoll", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  const world = await impl.loadWorld(),
+    made = [],
+    create = world.createRagdoll;
+  world.createRagdoll = function (...a) {
+    const rd = create.apply(this, a),
+      destroy = rd.destroy.bind(rd);
+    rd.destroyed = 0;
+    rd.kill = () => {
+      throw new Error("kill blew up");
+    };
+    rd.destroy = () => {
+      rd.destroyed++;
+      destroy();
+    };
+    made.push(rd);
+    return rd;
+  };
+  try {
+    const skeleton = () => {
+      const g = new THREE.Group();
+      for (const joint of Object.values(CFG.parts))
+        g.add(Object.assign(new THREE.Bone(), { name: THREE.PropertyBinding.sanitizeNodeName(GAME_DATA.physicsBody.nodePrefix + joint) }));
+      return g;
+    };
+    const bind = skeleton(),
+      root = new THREE.Group(),
+      model = skeleton();
+    root.add(model);
+    const view = { root, model, physicsDeath: undefined },
+      entity = { id: 7, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: bind } }]]) },
+      before = activeCount();
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // the baked clip plays
+    assert.equal(made.length, 1);
+    assert.equal(made[0].destroyed, 1); // the ragdoll is destroyed, not left in the pool or the world
+    assert.equal(activeCount(), before);
+    assert.equal(model.visible, true);
+    assert.equal(root.children.length, 1); // no cut skin left in the scene
+    assert.deepEqual(view.physicsDeath, { failed: true });
+  } finally {
+    world.createRagdoll = create;
+  }
+});
+
+test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {
+  await loadChunk();
+  const before = activeCount();
+  const s = cutCorpse(),
+    rd = s.rd,
+    skin = s.skin;
+  s.physics.step = () => {
+    throw new Error("physics blew up");
+  };
+  const view = { physicsDeath: s },
+    entity = { markedHunter: true, hp: 0, maxHP: 10 };
+  assert.equal(physicsDeathStep(view, entity, {}, DT, true), false); // the baked clip plays
+  assert.deepEqual(view.physicsDeath, { failed: true });
+  assert.equal(rd.destroyed, 1);
+  assert.equal(activeCount(), before);
+  assert.equal(skin.model.removed, 1);
+  assert.equal(skin.hidden.visible, true);
+  assert.equal(physicsDeathStep(view, entity, {}, DT, true), false); // and it stays on the clip
 });

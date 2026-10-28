@@ -95,6 +95,7 @@ old.definitions.push({
   runtimeIdentity: "giant-centipede",
 });
 old.recipeFoundations["centipede-lurker"] = "giant-centipede";
+old.recipeFoundations["rat-king"] = "original-rat"; // 28 Oct: art/monster-rat-king
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 

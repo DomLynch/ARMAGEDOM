@@ -5,6 +5,7 @@ import { createRailgunCoils } from "./engine/railgun-coils.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
+import { bodyHitStart, bodyHitStep, bodyHitEnd } from "./engine/hit-reaction.js";
 import {
   traceGrenadeSurface,
   traceRailgunSurface,
@@ -84,7 +85,7 @@ import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { shareIdenticalTextures } from "./actor-texture-share.js";
-import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
+import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
@@ -306,7 +307,8 @@ export function createActors(
   const reducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   const parkedViews = new Map(),
     groundingCache = new WeakMap(),
-    goreOwners = new Set();
+    goreOwners = new Set(),
+    storeOf = (a) => parkedViews.get(a) ?? parkedViews.set(a, new Map()).get(a);
   // Residents whose finisher geometry is still to be prepared after arrival (see engine/finisher-prep-pump.js).
   const deferredViews = new Set(),
     finisherPump = createFinisherPrepPump({
@@ -614,6 +616,7 @@ export function createActors(
     const view = store.get(id);
     if (!view) return;
     releasePhysicsDeath(view);
+    bodyHitEnd(view);
     view.gore?.dispose();
     goreOwners.delete(view.gore);
     if (view.drone) {
@@ -868,6 +871,7 @@ export function createActors(
           ...(world.residentPlacements?.[areaId] ?? [])
             .filter((row) => row.appearanceRef !== undefined)
             .map((row) => row.appearanceRef),
+          ...slotAppearanceRefs(world.populationData?.areas[areaId]),
         );
         refs.push(
           ...(world.bossData?.placements ?? [])
@@ -917,6 +921,7 @@ export function createActors(
           .flatMap((row) => [row.appearanceRef, row.foundationRef])
           .filter((ref) => ref !== undefined),
         ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
+        ...slotAppearanceRefs(world.populationData?.areas[areaId]),
         ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
         ...(world.bossData?.placements ?? [])
           .filter((row) => row.areaId === areaId)
@@ -929,14 +934,15 @@ export function createActors(
       return library.modelUrls?.(refs) ?? [];
     },
     parkArea(areaId) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       for (const [id, view] of [...views])
         if (id !== 0) {
+          releasePhysicsDeath(view, true);
           view.impactFlashLife = 0;
           view.hitReactionFresh = false;
           restoreActorFlash(view);
           view.hitReaction.reset();
+          bodyHitEnd(view);
           view.pistolSlide.reset();
           view.finisher?.setDormant(true);
           view.root.removeFromParent();
@@ -946,8 +952,7 @@ export function createActors(
         }
     },
     *prepareAreaSteps(areaId, record, stageWorld, finishers) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       const added = [];
       let completed = false;
       try {
@@ -1286,7 +1291,7 @@ export function createActors(
           if (v) {
             v.hitReactionFresh = true;
             v.impactFlashLife = LOOK.hitFlashSeconds;
-            if (e.actor.hp <= 0) e.actor.deathImpact = { x: e.impactDirection?.x ?? 0, z: e.impactDirection?.z ?? 0 }; // the killing blow aims the ragdoll fall
+            bodyHitStart(v, e);
             if (!e.blocked)
               v.hitReaction.hit({
                 x: e.impactDirection?.x ?? 0,
@@ -1523,6 +1528,7 @@ export function createActors(
             (game.finished && view.description.motion !== "donor-knife" ? 0 : dt) + offscreen.takePending(view),
             deathPose,
           );
+        bodyHitStep(view, entity, dt, contactOnly);
         const reaction = view.hitReaction.update(
           contactOnly || view.hitReactionFresh ? 0 : Math.min(LOOK.hitStepMax, presentationDt),
           { paused: presentationDt === 0 },

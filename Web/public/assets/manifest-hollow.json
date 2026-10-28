@@ -285,6 +285,55 @@
         ]
       }
     },
+    "rat-king": {
+      "url": "rat/rat-king.glb",
+      "deferred": true,
+      "rig": "original-rat",
+      "motion": "rat",
+      "scale": 6,
+      "forwardCorrection": 0,
+      "clips": {
+        "idle": "rat_idle",
+        "walk": "rat_walk",
+        "run": "rat_run",
+        "hit": "rat_hit",
+        "death": "rat_death",
+        "attack": "rat_bite",
+        "attackLow": "rat_bite_low"
+      },
+      "bytes": 233120,
+      "sha256": "88a9452fa84c9d94327ea7cecd8097527362c1d2466f52c0f42793405a77158c",
+      "contact": {
+        "calfBand": [
+          0.3440308079655002,
+          0.4469086482463746
+        ],
+        "calfFaces": [
+          {
+            "runtimeName": "Skin",
+            "face": 3182,
+            "vertices": [
+              2037,
+              2036,
+              1991
+            ]
+          },
+          {
+            "runtimeName": "Skin",
+            "face": 1820,
+            "vertices": [
+              1236,
+              1237,
+              1238
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "source": "art/rat-king/PROVENANCE.md",
+        "sourceModelSHA256": "0644f2fba2c3fabb9afcdf35845e582dc0b94a1e5060502cfdcd246caf8ab558"
+      }
+    },
     "original-dog": {
       "url": "dog/original-dog.glb",
       "deferred": true,
@@ -1444,6 +1493,17 @@
       },
       "bytes": 1211976,
       "sha256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
+    },
+    "marked-hunter-cut": {
+      "url": "hunters/hunter-pitborn-106.cut.glb",
+      "bytes": 3482116,
+      "sha256": "b677d29d085cdc27b8b54d87f6814b210d11099a045cfef456ae22946ab82377",
+      "deferred": true,
+      "rig": "static-prop",
+      "provenance": {
+        "source": "physics tools/cut-units.mjs on hunters/hunter-pitborn-106.glb (physics #62): 7 pieces and 12 caps on the same 106-joint skeleton, cleaver included; loaded only when a finisher cut is about to play",
+        "sourceSHA256": "5a20aa18ed3c1f36ecc4872363f8d2d61df16a42caa881012ad2a1ec3b57e5ca"
+      }
     },
     "vagrant-106": {
       "url": "appearances/vagrant-106.glb",

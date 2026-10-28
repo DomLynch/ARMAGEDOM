@@ -17,6 +17,7 @@ const text = (file) => fs.readFileSync(new URL(`../src/${file}`, import.meta.url
 old.animals.push(
   { id: "crow-carrion", foundation: "original-crow", name: "Carrion Crow", width: 1, tint: [1.2, 1.02, 0.9], patch: 0 },
   { id: "crow-ragged", foundation: "original-crow", name: "Ragged Crow", width: 1.12, tint: [1.3, 1.05, 0.85], patch: 0.35 },
+  { id: "rat-king", foundation: "original-rat", name: "Rat King", width: 1, tint: [1, 1, 1], patch: 0 }, // 28 Oct: art/monster-rat-king
 );
 test("every exported table equals the old in-code table exactly (values and key order) and is frozen", () => {
   assert.deepEqual(ANIMAL_APPEARANCES, old.animals);

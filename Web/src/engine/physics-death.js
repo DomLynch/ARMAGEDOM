@@ -1,6 +1,7 @@
 // Pilot: ragdoll DEATH for the marked hunter, behind ?physics=1 (default OFF). The baked Death clip is the fallback for every failure:
 // flag off, chunk not loaded yet, missing bone, a throw. Nothing here waits: a hunter that dies before the chunk is ready plays the clip.
 import { GAME_DATA } from "./game-data.js";
+import { cutsEnabled } from "./finisher-cuts.js";
 
 const CFG = GAME_DATA.physicsDeath;
 
@@ -24,6 +25,7 @@ const load = () =>
       m.markChunkLoaded();
     })
     .catch(() => void (broken = true)));
+export const usePhysicsDeathImpl = (module) => (impl = module); // tests hand in the chunk without loading the Jolt WASM world
 // Call once after first paint: fetches the chunk on idle, only when the flag is on.
 export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   if (!enabled) return;
@@ -32,14 +34,41 @@ export function preloadPhysicsDeath(enabled = physicsDeathEnabled()) {
   else setTimeout(go, CFG.preloadIdleMs);
 }
 // Call when an actor view is removed (despawn, travel): frees its ragdoll body and active entry at once instead of leaking it.
-export function releasePhysicsDeath(view) {
+// `parked` (the area is parked, the actor lives on): only the body and pool slot go, exactly as the timed release does; the handle stays so the
+// corpse is never re-ragdolled, and the cut visuals stay where the corpse lies.
+export function releasePhysicsDeath(view, parked = false) {
   const s = view.physicsDeath;
   if (!s) return;
-  view.physicsDeath = undefined;
-  if (!s.failed) impl?.releaseDeath(s);
+  if (!parked) view.physicsDeath = undefined;
+  if (s.failed) return;
+  if (!parked) impl?.disposeCuts(s); // the cut body and its pieces leave the scene with the actor
+  impl?.releaseDeath(s);
+}
+// The ragdoll threw: free what it took (the cut visuals, the body, its pool slot), put the hunter's own body back, and let the baked clip play.
+function failDeath(view, s) {
+  try {
+    if (s && !s.failed) {
+      impl.disposeCuts(s); // also un-hides the hunter's own body
+      impl.releaseDeath(s);
+    }
+  } catch {
+    /* nothing more to free */
+  }
+  view.physicsDeath = { failed: true };
+}
+// The Pitborn's cut GLB (data/pitbornCuts.json, about 2 MB gzip) is fetched once, only when a marked hunter is first WOUNDED: never in the idle
+// preload, never at area load, never for a player who does not fight one. A kill before it arrives is the plain ragdoll.
+let cutsRequested = false;
+function prefetchCuts(library) {
+  if (cutsRequested || !impl || !cutsEnabled() || !library?.ensureModels) return;
+  cutsRequested = true;
+  impl.loadCutAssets(library).catch(() => {
+    /* No cut GLB: every death stays the plain ragdoll. */
+  });
 }
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
+  if (enabled && entity.markedHunter && entity.hp > 0 && entity.hp < entity.maxHP) prefetchCuts(library);
   if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
   if (s?.failed) return false;
@@ -52,7 +81,7 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
     impl.stepDeath(s, dt);
     return true;
   } catch {
-    view.physicsDeath = { failed: true };
+    failDeath(view, view.physicsDeath); // the old handle, not the replacement: it still owns the body and the cut visuals
     return false;
   }
 }

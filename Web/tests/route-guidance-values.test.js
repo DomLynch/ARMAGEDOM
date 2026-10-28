@@ -146,6 +146,8 @@ function snapshot() {
 
 // Re-pinned 28 Oct 2026 (pickup readability, #399): every area now builds ground rings and name labels under its pickups (new meshes
 // and canvas draws), so the `meshes` and `canvas` digests changed. Intentional; the guidance geometry, colours, reach and hints did not.
+// Re-pinned 28 Oct 2026 (art/south-clear-crates-hedgehog): only the south `reach` digest moved, because the painted-out crate stack's blocker left
+// south/layout.json and the walkable ground grew. Intentional; the geometry, colours and hints did not.
 test("route guidance geometry, colours, reach and hints are value-identical to the pre-data code", () => {
   const got = snapshot();
   if (process.env.UPDATE_ROUTE_GUIDANCE_DIGEST) fs.writeFileSync(digestPath, JSON.stringify(got, null, 1) + "\n");

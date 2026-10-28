@@ -511,7 +511,8 @@
     "eel-river-ambusher": "giant-eel",
     "elephant-ashen-bull": "original-elephant",
     "spider-crypt": "original-spider",
-    "centipede-lurker": "giant-centipede"
+    "centipede-lurker": "giant-centipede",
+    "rat-king": "original-rat"
   },
   "nativeRoles": [
     {

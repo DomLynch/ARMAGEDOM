@@ -25,6 +25,7 @@ import weaponViewText from "../data/weaponViewText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import airdrop from "../data/airdrop.json" with { type: "json" };
 import chainedPitborn from "../data/chainedPitborn.json" with { type: "json" };
+import ratKing from "../data/ratKing.json" with { type: "json" };
 import markedHunterSpawn from "../data/markedHunterSpawn.json" with { type: "json" };
 import reaperMotion from "../data/reaperMotion.json" with { type: "json" };
 import creatures from "../data/creatures.json" with { type: "json" };
@@ -67,6 +68,7 @@ import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateGoldenWeapons } from "./game-data-golden.js";
 import { validateWorldPickups } from "./game-data-world-pickups.js";
 import { validateKillDrops } from "./game-data-kill-drops.js";
+import { validatePitbornCutManifest, validatePitbornCuts } from "./game-data-pitborn-cuts.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
 import { validateCombatText } from "./game-data-combat-text.js";
@@ -75,6 +77,7 @@ import { checkSafehouseNameIds, validateSafehouseText } from "./game-data-safeho
 import { validateAirdrop } from "./game-data-airdrop.js";
 import {
   validateChainedPitborn,
+  validateRatKing,
   validateMarkedHunterSpawn,
   validatePhysicsBody,
   validatePhysicsDeath,
@@ -83,7 +86,11 @@ import {
 } from "./game-data-hunters.js";
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
+import pitbornCuts from "../data/pitbornCuts.json" with { type: "json" };
+import pitbornCutManifest from "../data/pitbornCutManifest.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
+import hitReaction from "../data/hitReaction.json" with { type: "json" };
+import { validateHitReaction } from "./hit-reaction-data.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -1061,8 +1068,12 @@ const sources = () => ({
   airdrop: [airdrop, validateAirdrop],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
+  ratKing: [ratKing, validateRatKing],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
+  pitbornCuts: [pitbornCuts, validatePitbornCuts],
+  pitbornCutManifest: [pitbornCutManifest, validatePitbornCutManifest],
   deathPresentation: [deathPresentation, validateDeathPresentation],
+  hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],
