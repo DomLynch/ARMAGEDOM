@@ -54,6 +54,8 @@ import supplies from "../data/supplies.json" with { type: "json" };
 import world from "../data/world.json" with { type: "json" };
 import trapCrates from "../data/trapCrates.json" with { type: "json" };
 import { validateTrapCrates } from "./game-data-trap-crates.js";
+import spawnVariation from "../data/spawnVariation.json" with { type: "json" };
+import { validateSpawnVariation } from "./game-data-spawn-variation.js";
 import offscreenActors from "../data/offscreenActors.json" with { type: "json" };
 import { validateOffscreenActors } from "./offscreen-actors.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
@@ -1125,6 +1127,7 @@ const sources = () => ({
   world: [world, validateWorld],
   worldEvents: [worldEvents, validateWorldEvents],
   trapCrates: [trapCrates, validateTrapCrates],
+  spawnVariation: [spawnVariation, validateSpawnVariation],
   offscreenActors: [offscreenActors, validateOffscreenActors],
 });
 

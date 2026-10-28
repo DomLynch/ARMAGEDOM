@@ -1,12 +1,13 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { lockerInventory } from "./locker-core.js";
+import { activeDay, variedCrates } from "./spawn-variation.js";
 import { resourceOwner, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 // Ground pickups hidden in every area but the hub (data/worldPickups.json): a medkit, an ammo box and a cash stash. This module is the
 // rules only: who may take one, what it gives, the toast, and when a taken one comes back. Nothing here is drawn or saved.
 // The taken-pickup timers live on the run (`g.worldPickups`) in active game time, so leaving an area and coming back does not reset
 // a pickup, and pausing or travelling does not run the clock.
 export const WORLD_PICKUPS = GAME_DATA.worldPickups;
-export const placementsFor = (areaId) => WORLD_PICKUPS.placements[areaId] ?? [];
+export const placementsFor = (areaId) => variedCrates(areaId, activeDay()).pickups;
 // Where each carried resource sits on the run (the same fields lockerInventory reads), so a refill writes exactly what the locker reads.
 function ammoHolder(g, resource) {
   const boss = g.bossEquipment;
