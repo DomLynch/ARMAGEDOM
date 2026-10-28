@@ -96,20 +96,48 @@ export function prefetchCutsOnIdle(library, enabled = physicsDeathEnabled()) {
   if (globalThis.requestIdleCallback) globalThis.requestIdleCallback(go, { timeout: CFG.cutPrefetch.idleMs });
   else setTimeout(go, CFG.cutPrefetch.idleMs);
 }
+// Which models ragdoll is data (physicsRigs.json `models`, `live`). The record handed to the impl: the model, its bone map and its body row.
+const RIGS = GAME_DATA.physicsRigs,
+  names = new WeakMap(), // manifest description -> model name, found once per description
+  baked = new WeakSet(); // views whose model has no live row: looked up once, then the clip plays every frame
+function modelOf(view, entity, library) {
+  if (entity.markedHunter) return CFG.rigRef;
+  const d = view.description;
+  if (!d || !library?.models) return null;
+  if (!names.has(d)) names.set(d, [...library.models].find(([, m]) => m.description === d)?.[0] ?? null);
+  return names.get(d);
+}
+function liveRow(model) {
+  const m = RIGS.models[model];
+  if (!m?.live) return null;
+  const family = RIGS.rigs[m.rig];
+  return {
+    model,
+    nodePrefix: family.nodePrefix,
+    parts: family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
+    body: m.body === "physicsBody" ? GAME_DATA.physicsBody.row : RIGS.bodies[m.body],
+  };
+}
 // Per actor per frame, before the clip is sampled. True = the ragdoll owns the bones this frame; false = the baked clip plays.
 export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? physicsDeathEnabled()) {
   if (enabled && entity.markedHunter && entity.hp > 0 && !cutsRequested) {
     if (entity.hp < entity.maxHP) prefetchCuts(library);
     else if (!cutsScheduled && hunterNear(entity)) prefetchCutsOnIdle(library, true);
   }
-  if (!enabled || !entity.markedHunter || entity.hp > 0 || broken) return false;
+  if (!enabled || entity.hp > 0 || broken) return false;
   let s = view.physicsDeath;
-  if (s?.failed) return false;
+  if (s?.failed || (!s && baked.has(view))) return false;
   try {
     if (!s) {
-      const bindScene = library.models.get(CFG.rigRef)?.gltf.scene;
+      const model = modelOf(view, entity, library),
+        rig = model && liveRow(model);
+      if (!rig) {
+        baked.add(view); // no live row for this model: the clip, and no ragdoll is ever taken from the pool
+        return false;
+      }
+      const bindScene = library.models.get(model)?.gltf.scene;
       if (!impl || !bindScene) return false; // chunk not loaded: baked clip, never wait
-      s = impl.startDeath(view, bindScene, entity);
+      s = impl.startDeath(view, bindScene, entity, rig);
       if (!s) {
         view.physicsDeath = { failed: true }; // over the simultaneous-ragdoll budget: this one dies on the baked clip
         return false;
