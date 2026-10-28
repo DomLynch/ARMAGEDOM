@@ -143,7 +143,7 @@ test("every real area, cycle and off variant: the creature the slot spawns has i
     const refs = new Set(slotModelRefs({ ...realContent, residentPlacements: realContent.residents }, area, realManifest));
     for (const search of searches)
       for (const cycle of ["A", "B"]) {
-        const rows = populationPlacements(realContent.populationData, area, cycle, AREA_MOB_SPAWNS[area] ?? realContent.residents[area], search);
+        const rows = populationPlacements(realContent.populationData, area, cycle, realContent.residents[area] ?? AREA_MOB_SPAWNS[area] ?? [], search);
         const row = rows.find((r) => r.key === realContent.populationData.areas[area].creatureSlot.placementKey);
         for (const ref of [row.foundationRef, row.appearanceRef])
           if (ref !== undefined && (ref === row.appearanceRef || realManifest.models[ref]?.deferred === true)) {
