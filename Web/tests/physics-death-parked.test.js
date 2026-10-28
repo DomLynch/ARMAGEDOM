@@ -23,10 +23,17 @@ test("the pool is created parked, a death acquires one, and the refill is parked
     made = [];
   world.createRagdoll = function (row, opts) {
     const rd = create.call(this, row, opts),
-      entry = { opts, rd, acquired: 0 };
-    if (typeof rd.acquire === "function") {
-      const acquire = rd.acquire.bind(rd);
-      rd.acquire = (...a) => (entry.acquired++, acquire(...a));
+      entry = { opts, rd, acquired: 0, calls: [] };
+    // every call that is a no-op (or worse) on a parked body, in order: acquire has to come first
+    for (const name of ["acquire", "setRoot", "setTargetPose", "snapToTarget", "kill", "applyImpulse", "reset"]) {
+      const fn = rd[name];
+      if (typeof fn !== "function") continue;
+      rd[name] = (...a) => {
+        entry.calls.push(name);
+        if (name === "acquire") entry.acquired++;
+        else entry.parkedAtCall ??= rd.parked;
+        return fn.apply(rd, a);
+      };
     }
     made.push(entry);
     return rd;
@@ -46,7 +53,12 @@ test("the pool is created parked, a death acquires one, and the refill is parked
   assert.equal(made.length, pooled, "it came from the pool, nothing was built in the death frame");
   const taken = made.find((m) => m.rd === s.rd);
   assert.ok(taken, "the corpse is one of the pooled bodies");
-  if (typeof taken.rd.acquire === "function") assert.equal(taken.acquired, 1, "the death woke it with acquire");
+  assert.equal(taken.acquired, 1, "the death woke it with acquire");
+  assert.equal(taken.calls[0], "acquire", "acquire comes before setRoot, snapToTarget and kill");
+  assert.ok(taken.calls.includes("kill"), "and the kill followed");
+  assert.notEqual(taken.parkedAtCall, true, "no other call reached the body while it was still parked");
+  assert.equal(taken.rd.parked, false, "the corpse is awake");
+  for (const m of made) if (m !== taken) assert.equal(m.rd.parked, true, "the rest of the pool stays asleep");
   mock.timers.tick(CFG.rewarmMs);
   assert.equal(made.length, pooled + 1, "the refill built one more");
   assert.equal(made.at(-1).opts.parked, true, "and parked it");

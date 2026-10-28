@@ -183,7 +183,9 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   }
   const pooled = poolOf(spec).pop(),
     rd = pooled ?? world.createRagdoll(ROW(spec), { position: [0, 0, 0], id: String(entity.id) });
-  pooled?.acquire?.(); // wake the parked body at its spawn pose (a pool built before the package knew `parked` has no acquire)
+  // Wake the parked body at its spawn pose BEFORE anything else touches it: setRoot, kill, snapToTarget and the rest are no-ops on a parked body. A false
+  // return means it was not parked (already awake), which is fine to use as it is.
+  pooled?.acquire();
   setTimeout(() => warmOne(spec), CFG.rewarmMs);
   const build = (body, bind) => {
     const bones = boneMap(body, spec);
