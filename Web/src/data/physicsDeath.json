@@ -31,11 +31,8 @@
       "flamethrower": { "horizontal": 100, "up": 30 }
     },
     "byAttackClass": {
-      "blast": { "horizontal": 440, "up": 120 },
-      "saw": { "horizontal": 50, "up": 10 },
-      "fire": { "horizontal": 100, "up": 30 }
-    },
-    "zoneParts": { "head": "head", "torso": "spine2", "legs": "hips" }
+      "blast": { "horizontal": 440, "up": 120 }
+    }
   },
   "parts": {
     "hips": "Hips", "spine": "Spine", "spine1": "Spine1", "spine2": "Spine2", "neck": "Neck", "head": "Head",
