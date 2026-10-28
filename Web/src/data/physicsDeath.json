@@ -13,6 +13,7 @@
   "preloadIdleMs": 2500,
   "cutPrefetch": { "range": 24, "idleMs": 6000, "skipSaveData": true, "slowTypes": ["slow-2g", "2g", "3g"] },
   "poolSize": 3,
+  "maxParked": 6,
   "rewarmMs": 3000,
   "maxActive": 3,
   "killImpulse": { "horizontal": 260, "up": 40, "part": "spine2" },

@@ -7,7 +7,7 @@ import { loadGeometry } from "../../art/donor/probe.mjs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { activeCount, registerDeath, releaseDeath } from "../src/engine/physics-death-impl.js";
 import { physicsDeathStep, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
-import { rigOf } from "../src/engine/physics-rigs.js";
+import { liveBodies, rigOf } from "../src/engine/physics-rigs.js";
 
 const RIGS = GAME_DATA.physicsRigs,
   POOL = GAME_DATA.crowdBodies.pool,
@@ -54,7 +54,23 @@ test("the hunter's row does not fit a MakeHuman body, so none shares it", () => 
   assert.equal(new Set(bodies.map(({ ref }) => RIGS.models[ref].body)).size, bodies.length, "one measured row per body");
 });
 
-test("a MakeHuman crowd body ragdolls through the real impl, and past the ragdoll cap its death takes the baked clip", async () => {
+test("all active crowd bodies are live, yet the parked ragdolls across every row stay within maxParked (awake capsules the world steps)", async (t) => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  await impl.loadWorld();
+  const live = liveBodies();
+  assert(live.length >= 2 + bodies.filter((row) => row.active).length, "the hunter, the scavenger and every active body have their own row");
+  assert.equal(GAME_DATA.physicsDeath.maxParked, 6, "no more parked ragdolls than before the crowd bodies");
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  impl.warm();
+  t.mock.timers.tick(GAME_DATA.physicsDeath.rewarmMs * (live.length + 2));
+  assert(impl.parkedCount() > 0 && impl.parkedCount() <= GAME_DATA.physicsDeath.maxParked, `${impl.parkedCount()} parked ragdolls`);
+  // Refills after deaths stay inside the same bound.
+  for (const spec of live) t.mock.timers.tick(GAME_DATA.physicsDeath.rewarmMs);
+  assert(impl.parkedCount() <= GAME_DATA.physicsDeath.maxParked);
+});
+
+test("a MakeHuman crowd body ragdolls through the real impl, and past the ragdoll cap its death takes the baked clip", async (t) => {
   const impl = await import("../src/engine/physics-death-impl.js");
   usePhysicsDeathImpl(impl);
   await impl.loadWorld();
@@ -74,7 +90,13 @@ test("a MakeHuman crowd body ragdolls through the real impl, and past the ragdol
     const first = await dying(910),
       hips = node(first.view.model, "Hips"),
       before = hips.position.clone();
-    assert.equal(physicsDeathStep(first.view, first.entity, library, 1 / 60, true), true, "the body ragdolls");
+    // A body with no parked ragdoll (past maxParked) builds its own on the first death: how long that frame takes is reported, and bounded.
+    const t0 = performance.now(),
+      started = physicsDeathStep(first.view, first.entity, library, 1 / 60, true),
+      buildMs = performance.now() - t0;
+    t.diagnostic(`first crowd-body death built its ragdoll in ${buildMs.toFixed(1)} ms`);
+    assert.equal(started, true, "the body ragdolls");
+    assert(buildMs < 250, `the first death frame took ${buildMs.toFixed(1)} ms`);
     assert(first.view.physicsDeath && !first.view.physicsDeath.failed);
     held.push(first.view.physicsDeath);
     for (let i = 0; i < 20; i++) assert.equal(physicsDeathStep(first.view, first.entity, library, 1 / 60, true), true);
