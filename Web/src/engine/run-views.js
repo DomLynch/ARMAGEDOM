@@ -287,12 +287,10 @@ export function createRunViews(s) {
         state = g.bossEquipment[field];
       weapon =
         field === "commanderPistol"
-          ? webText("summary.arcGun", {
+          ? webText("summary.lmg", {
               name: data.name,
               damage: data.rules.damage,
-              jumps: data.arc.jumps,
               range: data.rules.range,
-              seconds: data.charge.seconds,
               magazine: state.magazine,
               capacity: data.rules.capacity,
               reserve: state.reserve,
