@@ -221,7 +221,7 @@ test("key hints come from the data: every hint has text in webText.json and a ke
   const hints = keyHints();
   assert.equal(hints.length, DATA.hints.length);
   for (const [i, hint] of hints.entries()) {
-    assert.equal(hint.label, webText(DATA.hints[i].text));
+    assert.equal(hint.label, webText(`hud.keys.${DATA.hints[i].text}`));
     assert.ok(hint.label.length > 0 && hint.label.length <= 24, "short label");
     assert.ok(hint.keys.length > 0, `${hint.label} shows a key`);
   }

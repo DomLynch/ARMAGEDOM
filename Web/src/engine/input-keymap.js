@@ -41,6 +41,6 @@ export function keyHints(data = GAME_DATA.inputKeys) {
   return data.hints.map((hint) => {
     const keys = hint.keys.map((action) => keyName(data.keys[action][0], data.keyNames)).join(hint.join);
     const mouse = (hint.mouse ?? []).map((name) => data.mouseNames[name]);
-    return { label: webText(hint.text), keys: [...(keys ? [keys] : []), ...mouse].join(data.partJoin) };
+    return { label: webText(`hud.keys.${hint.text}`), keys: [...(keys ? [keys] : []), ...mouse].join(data.partJoin) };
   });
 }

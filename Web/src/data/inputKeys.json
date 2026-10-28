@@ -43,15 +43,15 @@
   },
   "mouseNames": { "primary": "LMB", "middle": "MMB", "secondary": "RMB", "wheel": "Wheel" },
   "hints": [
-    { "text": "hud.keys.move", "keys": ["moveUp", "moveLeft", "moveDown", "moveRight"], "join": "" },
-    { "text": "hud.keys.sprint", "keys": ["sprint"], "join": "/" },
-    { "text": "hud.keys.attack", "mouse": ["primary"], "keys": [], "join": "/" },
-    { "text": "hud.keys.guard", "mouse": ["secondary"], "keys": ["guard"], "join": "/" },
-    { "text": "hud.keys.dodge", "keys": ["dodge"], "join": "/" },
-    { "text": "hud.keys.stab", "keys": ["stab"], "join": "/" },
-    { "text": "hud.keys.heavy", "keys": ["heavy"], "join": "/" },
-    { "text": "hud.keys.weapon", "keys": ["weapon1", "weapon6"], "mouse": ["wheel"], "join": "-" },
-    { "text": "hud.keys.pickup", "keys": ["pickup"], "join": "/" },
-    { "text": "hud.keys.menu", "keys": ["menu"], "join": "/" }
+    { "text": "move", "keys": ["moveUp", "moveLeft", "moveDown", "moveRight"], "join": "" },
+    { "text": "sprint", "keys": ["sprint"], "join": "/" },
+    { "text": "attack", "mouse": ["primary"], "keys": [], "join": "/" },
+    { "text": "guard", "mouse": ["secondary"], "keys": ["guard"], "join": "/" },
+    { "text": "dodge", "keys": ["dodge"], "join": "/" },
+    { "text": "stab", "keys": ["stab"], "join": "/" },
+    { "text": "heavy", "keys": ["heavy"], "join": "/" },
+    { "text": "weapon", "keys": ["weapon1", "weapon6"], "mouse": ["wheel"], "join": "-" },
+    { "text": "pickup", "keys": ["pickup"], "join": "/" },
+    { "text": "menu", "keys": ["menu"], "join": "/" }
   ]
 }
