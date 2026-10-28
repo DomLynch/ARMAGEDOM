@@ -5,6 +5,7 @@ import { createRailgunCoils } from "./engine/railgun-coils.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
+import { bodyReactionStart, bodyReactionStep, bodyReactionEnd } from "./engine/hit-reaction.js";
 import {
   traceGrenadeSurface,
   traceRailgunSurface,
@@ -614,6 +615,7 @@ export function createActors(
     const view = store.get(id);
     if (!view) return;
     releasePhysicsDeath(view);
+    bodyReactionEnd(view);
     view.gore?.dispose();
     goreOwners.delete(view.gore);
     if (view.drone) {
@@ -1286,6 +1288,7 @@ export function createActors(
           if (v) {
             v.hitReactionFresh = true;
             v.impactFlashLife = LOOK.hitFlashSeconds;
+            bodyReactionStart(v, e);
             if (e.actor.hp <= 0) e.actor.deathImpact = { x: e.impactDirection?.x ?? 0, z: e.impactDirection?.z ?? 0 }; // the killing blow aims the ragdoll fall
             if (!e.blocked)
               v.hitReaction.hit({
@@ -1523,6 +1526,7 @@ export function createActors(
             (game.finished && view.description.motion !== "donor-knife" ? 0 : dt) + offscreen.takePending(view),
             deathPose,
           );
+        bodyReactionStep(view, entity, dt);
         const reaction = view.hitReaction.update(
           contactOnly || view.hitReactionFresh ? 0 : Math.min(LOOK.hitStepMax, presentationDt),
           { paused: presentationDt === 0 },

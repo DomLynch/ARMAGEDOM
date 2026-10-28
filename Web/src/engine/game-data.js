@@ -84,6 +84,8 @@ import {
 import physicsBody from "../data/physicsBody.json" with { type: "json" };
 import physicsDeath from "../data/physicsDeath.json" with { type: "json" };
 import deathPresentation from "../data/deathPresentation.json" with { type: "json" };
+import hitReaction from "../data/hitReaction.json" with { type: "json" };
+import { validateHitReaction } from "./hit-reaction-data.js";
 import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import { validateHud } from "./hud-data.js";
@@ -1063,6 +1065,7 @@ const sources = () => ({
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   physicsDeath: [physicsDeath, validatePhysicsDeath],
   deathPresentation: [deathPresentation, validateDeathPresentation],
+  hitReaction: [hitReaction, validateHitReaction],
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   appearance: [appearance, validateAppearance],

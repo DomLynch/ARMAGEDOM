@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "note": "PLACEHOLDER values: tune on a phone at 375 wide. Alive hit reactions for bosses and marked hunters only (never trash mobs): an additive lean and twist of the spine, neck, head, arms and legs on top of the playing clip, by weapon class x zone x blow direction. Presentation only: nothing here reaches damage, hp or the server. Radians.",
+  "flagParam": "hitreact",
+  "offValue": "0",
+  "defaultOn": true,
+  "eligibleFlags": ["markedHunter", "bossProfile"],
+  "maxActive": 3,
+  "retriggerSeconds": 0.1,
+  "bendRadians": 0.32,
+  "twistRadians": 0.26,
+  "damage": { "ref": 40, "min": 0.6, "max": 1.6 },
+  "hash": { "mul": 31, "mod": 997 },
+  "weaponClass": {
+    "pistol": "pistol",
+    "rifle": "rifle",
+    "railgun": "rifle",
+    "shotgun": "shotgun",
+    "grenade": "blast",
+    "rocket": "blast",
+    "knife": "melee",
+    "boneSaw": "melee",
+    "cleaver": "melee"
+  },
+  "classes": {
+    "pistol": { "power": 0.5, "twist": 1.2, "easeInSeconds": 0.05, "holdSeconds": 0.04, "backSeconds": 0.28, "zoneWeights": { "head": 2, "torso": 6, "arms": 3, "legs": 2 } },
+    "rifle": { "power": 0.75, "twist": 1.2, "easeInSeconds": 0.05, "holdSeconds": 0.06, "backSeconds": 0.34, "zoneWeights": { "head": 2, "torso": 6, "arms": 3, "legs": 2 } },
+    "shotgun": { "power": 1.4, "twist": 0.8, "easeInSeconds": 0.06, "holdSeconds": 0.12, "backSeconds": 0.45, "zoneWeights": { "head": 1, "torso": 7, "arms": 2, "legs": 3 } },
+    "blast": { "power": 1.8, "twist": 0.6, "easeInSeconds": 0.07, "holdSeconds": 0.2, "backSeconds": 0.6, "zoneWeights": { "head": 0, "torso": 6, "arms": 1, "legs": 5 } },
+    "melee": { "power": 0.7, "twist": 1.5, "easeInSeconds": 0.05, "holdSeconds": 0.05, "backSeconds": 0.3, "zoneWeights": { "head": 2, "torso": 5, "arms": 4, "legs": 1 } }
+  },
+  "zones": {
+    "head": {
+      "bend": { "head": 0.9, "neck": 0.7, "spine2": 0.25 },
+      "twist": { "head": 0.8, "neck": 0.5, "spine2": 0.2 },
+      "fixed": {}
+    },
+    "torso": {
+      "bend": { "spine": 0.35, "spine1": 0.45, "spine2": 0.5, "neck": 0.2, "head": 0.2 },
+      "twist": { "spine1": 0.3, "spine2": 0.5 },
+      "fixed": {}
+    },
+    "arms": {
+      "bend": { "spine1": 0.15, "spine2": 0.25 },
+      "twist": { "spine2": 0.3 },
+      "fixed": { "armNear": { "pitch": -0.5, "roll": 0.5 }, "forearmNear": { "pitch": -0.6, "roll": 0 } }
+    },
+    "legs": {
+      "bend": { "hips": 0.2, "spine": 0.2 },
+      "twist": {},
+      "fixed": {
+        "thighLeft": { "pitch": 0.45, "roll": 0 },
+        "thighRight": { "pitch": 0.45, "roll": 0 },
+        "shinLeft": { "pitch": -0.6, "roll": 0 },
+        "shinRight": { "pitch": -0.6, "roll": 0 }
+      }
+    }
+  },
+  "order": ["hips", "spine", "spine1", "spine2", "neck", "head", "armNear", "forearmNear", "thighLeft", "thighRight", "shinLeft", "shinRight"]
+}
