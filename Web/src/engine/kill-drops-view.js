@@ -2,12 +2,14 @@ import { addPickupGlow } from "../pickup-glow.js";
 import { modelGeometry } from "./world-pickups-view.js";
 import { CLASSIC_COINS, KILL_DROPS, killDropsOn } from "./kill-drops.js";
 import { createDropFxKit } from "./kill-drops-fx.js";
+import { createLootGlintView } from "./loot-glint-view.js";
 // The coins lying where enemies fell (data/killDrops.json): one small mesh per drop, built from the chosen look's tier models and removed when
 // the drop is taken or expires. `look` names a row of `looks` (models, material, motion and the light around each tier) or "classic" for the
 // plain `models`. Geometry and material are shared per model and built on the first drop, so a stage with the feature off (or no kills yet) pays nothing.
 export function createKillDropsView(world) {
   const { THREE } = world,
     group = new THREE.Group(),
+    glints = createLootGlintView(world),
     geometries = new Map(),
     rows = new Map(),
     look = CLASSIC_COINS ? null : (KILL_DROPS.looks[KILL_DROPS.look] ?? null),
@@ -34,6 +36,7 @@ export function createKillDropsView(world) {
     group,
     // Once a frame: add a mesh for each new drop, drop the ones that are gone, move the live ones with the game clock.
     sync(g) {
+      glints.sync(g); // rare-drop rings (data/loot.json) run whether or not coins are on
       if (disposed || !killDropsOn()) return;
       const list = g.killDrops?.list ?? [],
         live = new Set(),
@@ -77,6 +80,7 @@ export function createKillDropsView(world) {
     dispose() {
       if (disposed) return;
       disposed = true;
+      glints.dispose();
       for (const id of [...rows.keys()]) remove(id);
       group.removeFromParent();
       for (const geometry of geometries.values()) geometry.dispose();

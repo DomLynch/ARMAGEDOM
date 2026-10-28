@@ -18,6 +18,7 @@ import commanderSession from "../data/commanderSession.json" with { type: "json"
 import runNotices from "../data/runNotices.json" with { type: "json" };
 import worldPickups from "../data/worldPickups.json" with { type: "json" };
 import killDrops from "../data/killDrops.json" with { type: "json" };
+import loot from "../data/loot.json" with { type: "json" };
 import starVariants from "../data/starVariants.json" with { type: "json" };
 import { validateStarVariants } from "./game-data-star-variants.js";
 import webText from "../data/webText.json" with { type: "json" };
@@ -84,6 +85,7 @@ import { validateRunNotices } from "./game-data-run-notices.js";
 import { validateGoldenWeapons } from "./game-data-golden.js";
 import { validateWorldPickups } from "./game-data-world-pickups.js";
 import { validateKillDrops } from "./game-data-kill-drops.js";
+import { validateLoot } from "./game-data-loot.js";
 import { validatePitbornCutManifest, validatePitbornCuts } from "./game-data-pitborn-cuts.js";
 import { validateWebText } from "./game-data-web-text.js";
 import { validateSessionText } from "./game-data-session-text.js";
@@ -1093,6 +1095,7 @@ const sources = () => ({
   runNotices: [runNotices, validateRunNotices],
   worldPickups: [worldPickups, validateWorldPickups],
   killDrops: [killDrops, validateKillDrops],
+  loot: [loot, validateLoot],
   starVariants: [starVariants, validateStarVariants],
   webText: [webText, validateWebText],
   sessionText: [sessionText, validateSessionText],

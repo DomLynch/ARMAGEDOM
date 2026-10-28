@@ -81,8 +81,8 @@ export function grantCash(g, wanted) {
   return amount;
 }
 // Notes cash from a stash or the airdrop for the server to credit once (the online session drains `g.cashClaims`; offline nothing reads it).
-export function claimCash(g, source, amount) {
-  if (amount > 0) (g.cashClaims ??= []).push({ source, amount });
+export function claimCash(g, source, amount, extra) {
+  if (amount > 0) (g.cashClaims ??= []).push({ source, amount, ...extra });
   heatFromClaim(g, source, amount); // a stash or a crate also raises heat (heat.json valuables)
 }
 const say = (g, text, seconds) => {

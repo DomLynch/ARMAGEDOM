@@ -72,6 +72,7 @@ export function createSaveClient({
   clearTimer = (id) => globalThis.clearTimeout(id),
   onCash = () => {},
   onClosed = () => {},
+  onLoot = () => {},
   log = () => {},
   tuning = GAME_DATA.saveClient,
 }) {
@@ -247,7 +248,13 @@ export function createSaveClient({
     if (halted || stopped || !(await ensureCharacter())) return item.resolve();
     claimWait();
     claimTokens = Math.max(0, claimTokens - 1);
-    const reply = await call("claim_pickup", { source: item.source, amount: item.amount });
+    // A kill claim also names its enemy kind and a per-kill id (docs/MARKET-CONTRACT.md): the server rolls rare loot from the kind, and a retry
+    // keeps the same killId so nothing is credited or rolled twice.
+    const reply = await call("claim_pickup", {
+      source: item.source,
+      amount: item.amount,
+      ...(item.killId ? { ...(item.enemy ? { enemy: item.enemy } : {}), killId: item.killId } : {}), // an empty enemy is refused (bad-enemy): leave it out
+    });
     // The writer's own 429 (and a proxy's) carries retryMs; the kill-tier rate refusal is a normal reply with retryS.
     const writerLimited = reply.retryMs !== undefined;
     if ((writerLimited || reply.refused === "rate-limit") && item.tries < tuning.claimRetries) {
@@ -259,6 +266,14 @@ export function createSaveClient({
       return;
     }
     if (reply.error || reply.refused) log(`pickup cash not credited: ${item.source} ${reply.error ?? reply.refused}`);
+    // The server rolls rare loot with a kill credit (docs/MARKET-CONTRACT.md); the page only shows what comes back.
+    if (Array.isArray(reply.loot) && reply.loot.length) {
+      try {
+        onLoot(reply.loot, item.at);
+      } catch {
+        /* The listener must not break the claim path. */
+      }
+    }
     item.resolve();
   }
   // A routine save waits here until every queued claim is credited or given up, so it never carries cash its claim has not reached.
@@ -290,8 +305,10 @@ export function createSaveClient({
     claimPump = claimPump.then(drainClaims);
     return claimPump;
   }
-  function claimPickup(source, amount) {
-    const done = new Promise((resolve) => claimQueue.push({ source, amount, tries: 0, resolve }));
+  // `extra` (optional, a kill's claim): `at` {x, z} where the body fell (handed to onLoot for the glint), `enemy` its kind, `killId` its unique id.
+  function claimPickup(source, amount, extra) {
+    const { at, enemy, killId } = extra ?? {};
+    const done = new Promise((resolve) => claimQueue.push({ source, amount, at, enemy, killId, tries: 0, resolve }));
     pumpClaims();
     return done;
   }
@@ -515,6 +532,8 @@ export function createSaveClient({
     flush,
     flushOnHide,
     claimPickup,
+    // The inventory adapter's transport (engine/inventory-api.js): one signed request, answers the parsed reply or {error}.
+    request: call,
     // A status read says the world is open again: carry on with the newest queued record.
     resume() {
       if (!halted) return;

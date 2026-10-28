@@ -67,6 +67,8 @@ test("a boss pays $21-40 with the boss source; a marked hunter leaves nothing", 
   assert.equal(leaveKillDrops(g, ON), 1);
   stepKillDrops(g, ON);
   assert.equal(g.cashClaims[0].source, "kill:boss");
+  assert.match(g.cashClaims[0].killId, /^[A-Za-z0-9_-]{8,64}$/);
+  assert.equal(typeof g.cashClaims[0].enemy, "string");
   assert.ok(g.cashClaims[0].amount >= 21 && g.cashClaims[0].amount <= 40);
 });
 test("a full wallet leaves the coins and says so once", () => {

@@ -19,6 +19,7 @@ const checks = {
   enemyWithin: (meters, { g }) =>
     g.enemies.some((e) => alive(e) && !e.bossProfile && distance(e.pos, g.player.pos) <= meters),
   tookHit: (_, { tookHit }) => tookHit,
+  lootDropped: (_, { g }) => g.loot?.dropped === true, // a rare drop has come back with a kill credit (engine/loot.js)
   flameEquipped: (_, { g }) => !!g.flame?.equipped,
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
