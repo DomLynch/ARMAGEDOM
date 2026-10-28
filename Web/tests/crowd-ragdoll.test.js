@@ -26,7 +26,7 @@ test("every shipped MakeHuman body has a mixamo-106 ragdoll row, live exactly wh
     assert.equal(m.live, active, `${ref} is live exactly when it is active in crowdBodies.json (each live body row has its own parked pool)`);
     const rig = RIGS.bodies[m.body];
     assert.equal(Object.keys(rig.joints).length, 20);
-    assert.equal(rig.scale_baked, undefined, "unscaled: the sim frame is the actor root's local frame, which carries the manifest scale");
+    assert.equal(rig.scale_baked, 1, "unscaled (scale_baked 1): the sim frame is the actor root's local frame, which carries the manifest scale");
   }
   assert.equal(Object.keys(RIGS.models).filter((n) => n.startsWith("mh-")).length, bodies.length);
 });
