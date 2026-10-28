@@ -92,7 +92,12 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
     if (!s) {
       const bindScene = library.models.get(CFG.rigRef)?.gltf.scene;
       if (!impl || !bindScene) return false; // chunk not loaded: baked clip, never wait
-      s = view.physicsDeath = impl.startDeath(view, bindScene, entity);
+      s = impl.startDeath(view, bindScene, entity);
+      if (!s) {
+        view.physicsDeath = { failed: true }; // over the simultaneous-ragdoll budget: this one dies on the baked clip
+        return false;
+      }
+      view.physicsDeath = s;
     }
     impl.stepDeath(s, dt);
     return true;

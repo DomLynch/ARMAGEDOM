@@ -10,6 +10,7 @@ import {
   stepDeath,
 } from "../src/engine/physics-death-impl.js";
 import * as THREE from "three";
+import budgetRows from "@frankendom/physics/data/budget-rows.json" with { type: "json" };
 import { physicsDeathStep, prefetchCutsOnIdle, releasePhysicsDeath, usePhysicsDeathImpl } from "../src/engine/physics-death.js";
 
 const CFG = GAME_DATA.physicsDeath;
@@ -235,14 +236,6 @@ async function killThatThrows(cutLibrary) {
   }
 }
 
-test("a throw while the death starts (rd.kill) gives back the hunter's body and the pooled ragdoll", () => killThatThrows(null));
-
-test("a throw while a CUT death starts (rd.kill, cut GLB loaded) removes the cut skin, shows the hunter and frees the ragdoll", () =>
-  killThatThrows({
-    ensureModels: async () => {},
-    models: new Map([[GAME_DATA.pitbornCuts.cutModel, { gltf: { scene: skeleton() } }]]),
-  }));
-
 const withNavigator = (value, run) => {
   const saved = Object.getOwnPropertyDescriptor(globalThis, "navigator");
   Object.defineProperty(globalThis, "navigator", { value, configurable: true, writable: true });
@@ -300,6 +293,96 @@ test("the cut GLB is prefetched once at idle, and a synchronous throw from ensur
     assert.equal(queued.length, 1);
     assert.equal(calls, 1);
   });
+});
+
+test("a throw while the death starts (rd.kill) gives back the hunter's body and the pooled ragdoll", () => killThatThrows(null));
+
+test("a throw while a CUT death starts (rd.kill, cut GLB loaded) removes the cut skin, shows the hunter and frees the ragdoll", () =>
+  killThatThrows({
+    ensureModels: async () => {},
+    models: new Map([[GAME_DATA.pitbornCuts.cutModel, { gltf: { scene: skeleton() } }]]),
+  }));
+
+test("a throw while the cut path is undone (the pooled ragdoll was already taken) still destroys the ragdoll", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl); // the cut GLB is loaded by the test above
+  const world = await impl.loadWorld(),
+    made = [],
+    create = world.createRagdoll;
+  world.createRagdoll = function (...a) {
+    const rd = create.apply(this, a),
+      destroy = rd.destroy.bind(rd);
+    rd.destroyed = 0;
+    rd.destroy = () => {
+      rd.destroyed++;
+      destroy();
+    };
+    made.push(rd);
+    return rd;
+  };
+  try {
+    let undoThrew = 0;
+    const model = skeleton(),
+      root = new THREE.Group();
+    root.add(model);
+    let shown = true;
+    Object.defineProperty(model, "visible", {
+      get: () => shown,
+      set(v) {
+        if (v) {
+          undoThrew++;
+          throw new Error("un-hiding blew up");
+        }
+        shown = v;
+      },
+    });
+    // view.root = null makes the cut path's rig build throw, so the cut path is undone; undoing it throws too.
+    const view = { root: null, model, physicsDeath: undefined },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: skeleton() } }]]) },
+      before = activeCount();
+    root.add(new THREE.Group()); // keeps `model.parent` set for the cut skin
+    let kills = 0;
+    do {
+      const entity = { id: 90 + kills, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } };
+      view.physicsDeath = undefined;
+      assert.equal(physicsDeathStep(view, entity, library, DT, true), false);
+      kills++;
+    } while (!undoThrew && kills < 8);
+    assert.ok(undoThrew, "the undo path was reached");
+    assert.equal(made.length, kills);
+    for (const rd of made) assert.equal(rd.destroyed, 1); // none left out of the pool and the world
+    assert.equal(activeCount(), before);
+  } finally {
+    world.createRagdoll = create;
+  }
+});
+
+test("past the simultaneous-ragdoll budget row the next death takes the baked clip and no body", async () => {
+  const impl = await import("../src/engine/physics-death-impl.js");
+  usePhysicsDeathImpl(impl);
+  const world = await impl.loadWorld(),
+    create = world.createRagdoll;
+  let created = 0;
+  world.createRagdoll = function (...a) {
+    created++;
+    return create.apply(this, a);
+  };
+  const held = [];
+  try {
+    while (activeCount() < budgetRows.max_simultaneous_ragdolls) held.push(registerDeath(corpse(fakeWorld())));
+    const view = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
+      entity = { id: 50, markedHunter: true, hp: 0, maxHP: 10, deathImpact: { x: 0, z: 1, weapon: "pistol" } },
+      library = { models: new Map([[CFG.rigRef, { gltf: { scene: skeleton() } }]]) },
+      pooled = created;
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false);
+    assert.deepEqual(view.physicsDeath, { failed: true });
+    assert.equal(created, pooled); // no ragdoll was built for it
+    assert.equal(activeCount(), budgetRows.max_simultaneous_ragdolls);
+    assert.equal(physicsDeathStep(view, entity, library, DT, true), false); // and it stays on the clip
+  } finally {
+    world.createRagdoll = create;
+    for (const s of held) releaseDeath(s);
+  }
 });
 
 test("a ragdoll that throws mid-step frees its body and cut visuals and shows the hunter's own body again", async () => {

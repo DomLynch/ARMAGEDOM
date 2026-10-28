@@ -1,7 +1,8 @@
 // LAZY chunk: loaded only with ?physics=1 (see physics-death.js). Jolt WASM + @frankendom/physics + the body measure row live here and nowhere else.
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import { createPhysics } from "@frankendom/physics";
+import { admit, createPhysics } from "@frankendom/physics";
+import BUDGET_ROWS from "@frankendom/physics/data/budget-rows.json" with { type: "json" };
 import { createThreeRig } from "@frankendom/physics/three-rig";
 import { createCutRig } from "@frankendom/physics/three-cuts";
 import { GAME_DATA } from "./game-data.js";
@@ -129,7 +130,9 @@ export function disposeCuts(s) {
   s.skin = null;
 }
 
+// Null = the budget row (@frankendom/physics data/budget-rows.json, max_simultaneous_ragdolls) is full: no body is taken and the baked death plays.
 export function startDeath(view, bindScene, entity) {
+  if (admit(active.length, BUDGET_ROWS) === "baked") return null;
   const rd = pool.pop() ?? world.createRagdoll(ROW(), { position: [0, 0, 0], id: String(entity.id) });
   setTimeout(warmOne, CFG.rewarmMs);
   const build = (body, bind) => {
@@ -151,7 +154,12 @@ export function startDeath(view, bindScene, entity) {
         rig = build(skin.model, skin.bind);
       }
     } catch {
-      undoSkin(skin); // any failure on the cut path: the plain ragdoll on the hunter's own body
+      try {
+        undoSkin(skin); // any failure on the cut path: the plain ragdoll on the hunter's own body
+      } catch (err) {
+        rd.destroy(); // the ragdoll was taken from the pool above and nothing else owns it yet
+        throw err;
+      }
       skin = plan = rig = null;
     }
   }
