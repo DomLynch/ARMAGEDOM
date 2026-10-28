@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "trigger": { "event": "boss-defeated", "ignoreAreas": ["westminster"] },
+  "delaySeconds": 20,
+  "durationSeconds": 120,
+  "targetZones": ["central-hub", "east-bridge"],
+  "hunterCount": 4,
+  "maxSimultaneous": 2,
+  "retrySeconds": 2,
+  "messageSeconds": 5,
+  "text": { "armed": "raid.armed", "arrived": "raid.arrived", "over": "raid.over" }
+}

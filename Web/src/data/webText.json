@@ -136,6 +136,9 @@
     "airdrop.opened": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found.",
     "airdrop.openedGolden": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found. A golden weapon was inside.",
     "airdrop.openedCashFallback": "Airdrop opened. Ammo restocked, wounds dressed, ${cash} found. Bonus ${extra} cash.",
-    "airdrop.lost": "The airdrop is gone."
+    "airdrop.lost": "The airdrop is gone.",
+    "raid.armed": "The hunters are moving.",
+    "raid.arrived": "The raid is here. Hold the line.",
+    "raid.over": "The raid has passed."
   }
 }

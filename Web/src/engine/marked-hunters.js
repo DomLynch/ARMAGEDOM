@@ -2,6 +2,7 @@ import { safehouseTouches, safehouseSite, safehouseBlocksSegment } from "./safeh
 import { bodyLineClear, createBridgeSteering } from "../bridge-steering.js";
 import { GAME_DATA } from "./game-data.js";
 import { stepChainBreak } from "./chain-break.js";
+import { stepPostBossRaid } from "./post-boss-raid.js";
 const SPAWN = GAME_DATA.markedHunterSpawn; // data/markedHunterSpawn.json: spawn clearances and the arrival message time
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Relic hunters (cursed-relic.js) are marked hunters on their own timer and cap: the ordinary hunt never counts them, and only leaving
@@ -107,6 +108,7 @@ export function stepMarkedHunters(g, spawn) {
   const s = g.markedHunt;
   // The chained Pitborn is a marked hunter that only a hit wakes (chain-break.js); the site gates apply, the arrival wait and bounty do not.
   stepChainBreak(g, spawn, !siteBlocked(g));
+  stepPostBossRaid(g, spawn, markedEntry, !siteBlocked(g)); // a boss kill armed a raid: extra hunters, capped by data
   // A hunter that has died is gone: the next one comes after the re-arrival delay.
   const present = g.enemies.some((e) => e.markedHunter && !e.relicHunter && e.hp > 0);
   if (s.hadHunter && !present) s.nextSpawnAt = Math.max(s.nextSpawnAt, g.time + c.respawnDelay);
