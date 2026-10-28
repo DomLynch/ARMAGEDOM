@@ -30,10 +30,10 @@
           "id": "exit.westminster.area8",
           "target": "area8",
           "condition": {
-            "yMin": 0.355,
-            "yMax": 0.372,
-            "xMin": 0.205,
-            "xMax": 0.232
+            "yMin": 0.335,
+            "yMax": 0.38,
+            "xMin": 0.19,
+            "xMax": 0.24
           },
           "entry": {
             "x": 0.206,
