@@ -27,6 +27,7 @@ import weaponViewText from "../data/weaponViewText.json" with { type: "json" };
 import safehouseText from "../data/safehouseText.json" with { type: "json" };
 import airdrop from "../data/airdrop.json" with { type: "json" };
 import postBossRaid from "../data/postBossRaid.json" with { type: "json" };
+import corpseRun from "../data/corpseRun.json" with { type: "json" };
 import chainedPitborn from "../data/chainedPitborn.json" with { type: "json" };
 import ratKing from "../data/ratKing.json" with { type: "json" };
 import crowdBodies from "../data/crowdBodies.json" with { type: "json" };
@@ -93,6 +94,7 @@ import { validateAirdrop } from "./game-data-airdrop.js";
 import { validatePostBossRaid } from "./game-data-raid.js";
 import heat from "../data/heat.json" with { type: "json" };
 import { validateHeat } from "./game-data-heat.js";
+import { validateCorpseRun } from "./game-data-corpse-run.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1096,6 +1098,7 @@ const sources = () => ({
   airdrop: [airdrop, validateAirdrop],
   postBossRaid: [postBossRaid, validatePostBossRaid],
   heat: [heat, validateHeat],
+  corpseRun: [corpseRun, validateCorpseRun],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],

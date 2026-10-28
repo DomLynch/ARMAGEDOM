@@ -30,6 +30,7 @@ import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver 
 import { createWorldGate } from "./world-gate.js";
 import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
+import { respawnArea } from "./corpse-run.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { installQaBridge } from "./qa-bridge.js";
@@ -566,16 +567,17 @@ export function createBrowserSession(options = {}) {
   }
   async function restart() {
     if (!loaded || traveling || resetting || contextLost || travelRecoveryFailed) return;
-    if (world.areaId !== "westminster") {
-      if (
-        !(await areas.activate({
-          areaId: "westminster",
-          entryPoint: world.manifest.entries.westminster,
-        }))
-      )
+    // A death out in the field restarts in the safehouse area (data/corpseRun.json respawn); a death at home restarts as it always did.
+    // The spot the player fell is read BEFORE any travel: the body bag (marked-core.js, on a death) is dropped there, not at the respawn.
+    const home = respawnArea(world.areaId, "westminster"),
+      owner = game;
+    owner.corpseFell = { areaId: world.areaId, x: owner.player.pos.x, z: owner.player.pos.z };
+    if (world.areaId !== home) {
+      if (!(await areas.activate({ areaId: home, entryPoint: world.manifest.entries[home] }))) {
+        delete owner.corpseFell;
         return;
+      }
     }
-    const owner = game;
     traveling = true;
     areas.stop();
     input.clear();
@@ -615,6 +617,7 @@ export function createBrowserSession(options = {}) {
       console.error("ARMAGEDOM_RETRY_PREPARATION_FAILED", error);
       return false;
     } finally {
+      delete owner.corpseFell;
       traveling = false;
       if (loaded && !disposed && !contextLost) {
         requestAnimationFrame(() => areas.start());
