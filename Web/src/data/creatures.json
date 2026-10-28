@@ -407,6 +407,13 @@
       "hitTicks": 32,
       "deathTicks": 74
     },
+    "low-hover-drone": {
+      "lowStrike": true,
+      "species": "drone",
+      "populationSlot": true,
+      "brain": "drone",
+      "hoverTarget": true
+    },
     "original-crow": {
       "lowStrike": true,
       "animal": true,
@@ -424,13 +431,6 @@
       "optionalMonster": true,
       "enabled": true,
       "offParam": "nocrow"
-    },
-    "low-hover-drone": {
-      "lowStrike": true,
-      "species": "drone",
-      "populationSlot": true,
-      "brain": "drone",
-      "hoverTarget": true
     }
   }
 }

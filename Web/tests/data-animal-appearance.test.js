@@ -12,7 +12,7 @@ const old = JSON.parse(fs.readFileSync(new URL("./fixtures/animal-appearance-pre
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/appearance.json", import.meta.url))));
 
 test("every animal recipe produces exactly the old geometry, colours and material", () => {
-  const now = animalSignatures();
+  const now = Object.fromEntries(Object.entries(animalSignatures()).filter(([id]) => !id.startsWith("crow-"))); // 28 Oct: the crow recipes are new rows, pinned by crow-monster.test.js
   assert.deepEqual(Object.keys(now), Object.keys(old));
   for (const [id, hash] of Object.entries(old)) assert.equal(now[id], hash, id);
   assert(new Set(Object.values(old)).size >= 10, "the fixture covers distinct looks");

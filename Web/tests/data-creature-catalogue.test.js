@@ -8,6 +8,9 @@ import { countConstantTables } from "../../scripts/as-data-gate.mjs";
 // Data move: the catalogue's `support` and `reach` tables moved from engine/creature-catalogue.js into creatures.json `catalogue`.
 // tests/fixtures/creature-catalogue-pre-data.json is the old in-code pair, copied before the move.
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/creature-catalogue-pre-data.json", import.meta.url)));
+// 28 Oct: the crow rows are appended (art/monster-crow).
+old.support["original-crow"] = ["rat-native-bite", "teeth", "original-crow", ["attack", "attackLow"]];
+old.reach["original-crow"] = 1.4004105398402;
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatures.json", import.meta.url))));
 
 test("the data rows equal the old in-code tables exactly (values and key order) and are frozen", () => {

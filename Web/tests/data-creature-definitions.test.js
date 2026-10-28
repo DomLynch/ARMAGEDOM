@@ -8,6 +8,24 @@ import { creatureCatalogue } from "../src/engine/creature-catalogue.js";
 // Data move: the creature definitions, recipe map and native roles moved from engine/creature-definitions.js (45 rig-name literals)
 // into data/creatureDefinitions.json. tests/fixtures/creature-definitions-pre-data.json is the old module's exports, dumped before the move.
 const old = JSON.parse(fs.readFileSync(new URL("./fixtures/creature-definitions-pre-data.json", import.meta.url)));
+// 28 Oct: the crow foundation and its two recipes are appended rows (art/monster-crow).
+old.definitions.push({
+  id: "original-crow",
+  rig: "original-crow",
+  contactRig: null,
+  assetRef: "model.original-crow",
+  clips: { idle: "rat_idle", walk: "rat_walk", run: "rat_run", hit: "rat_hit", death: "rat_death", attack: "rat_bite", attackLow: "rat_bite_low" },
+  scale: { model: 4, character: 1.265, visual: 1.3225, mobSizeMode: "fixed-one", bodyScale: 1, appliedBy: "actor-root-wrapper" },
+  stats: { health: 24, radius: 1.3, moveSpeed: 2.3, recoveryDelay: 0, weapon: "teeth" },
+  behaviour: { controllerRef: "rat-native-bite", parameterPreset: "baseline", intentPolicyRef: "existing-resident-intent-policy" },
+  clipSourceRefs: [],
+  preparationRefs: [],
+  equipmentRef: null,
+  provenanceRef: "art/crow/PROVENANCE.md",
+  runtimeIdentity: "original-crow",
+});
+old.recipeFoundations["crow-carrion"] = "original-crow";
+old.recipeFoundations["crow-ragged"] = "original-crow";
 const raw = () =>
   structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/creatureDefinitions.json", import.meta.url))));
 
