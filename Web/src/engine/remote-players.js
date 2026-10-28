@@ -11,11 +11,13 @@ export const KEEP_MS = 1000; // snapshots older than this are dropped
 const FACING_MIN = GAME_DATA.presenceClient.facingMinMetres;
 const MAX_NAME = GAME_DATA.presenceClient.maxNameLength;
 const MOVING_SPEED = GAME_DATA.presenceClient.movingMetresPerSecond;
+const DEATH_FIELD = GAME_DATA.physicsDeath.remote.deathField;
 
 export function createRemotePlayers({ selfId = () => null } = {}) {
   const tracks = new Map(); // id -> [{ at, x, z }] oldest first, metres
   const facing = new Map(),
-    names = new Map(); // id -> display name, when the server sends one
+    names = new Map(), // id -> display name, when the server sends one
+    dead = new Set(); // ids whose latest row carries the death field (data/physicsDeath.json remote.deathField); no server sends it yet
   let latestAt = -Infinity;
 
   return {
@@ -27,6 +29,8 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
         if (!Number.isInteger(row.id) || row.id === selfId() || !Number.isFinite(row.x) || !Number.isFinite(row.z))
           continue;
         present.add(row.id);
+        if (row[DEATH_FIELD] === true) dead.add(row.id);
+        else dead.delete(row.id);
         // The display name the server sends with a player ('Survivor-1234' for guests, the Google first name otherwise).
         if (typeof row.name === "string" && row.name.trim()) names.set(row.id, row.name.trim().slice(0, MAX_NAME));
         else names.delete(row.id);
@@ -40,10 +44,12 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
           tracks.delete(id);
           facing.delete(id);
           names.delete(id);
+          dead.delete(id);
         }
     },
     // Everyone who has left the layer, or a new area: forget them at once.
     clear() {
+      dead.clear();
       tracks.clear();
       facing.clear();
       names.clear();
@@ -76,6 +82,7 @@ export function createRemotePlayers({ selfId = () => null } = {}) {
           z,
           facing: facing.get(id) ?? 0,
           name: names.get(id) ?? null,
+          dead: dead.has(id),
           moving: span > 0 && moved / (span / 1000) > MOVING_SPEED,
         });
       }

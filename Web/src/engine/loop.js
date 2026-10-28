@@ -11,8 +11,10 @@ import { stepGame, resetMobileControls } from "../combat.js";
 import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
 import { createFirstTimeHints } from "../first-time-hints.js";
 import { createAirdropView } from "./airdrop-view.js";
+import { createPickupFlash } from "./pickup-flash.js";
 export function createBrowserLoop(s) {
-  const hints = createFirstTimeHints();
+  const hints = createFirstTimeHints(),
+    pickupFlash = createPickupFlash();
   let last = 0,
     accumulator = 0,
     submitted = null,
@@ -119,6 +121,9 @@ export function createBrowserLoop(s) {
       while (accumulator >= 1 / 60) {
         const weaponBefore = s.game.player.weapon,
           flameBefore = !!s.game.flame?.equipped;
+        // Pickups that landed between steps; stepGame is about to reset g.events, so flash and tone them now.
+        pickupFlash.observe(s.game.events);
+        audioEvents.push(...pickupFlash.latest);
         const value = intent();
         s.diagnostics?.beforeStep(value);
         stepGame(s.game, value, 1 / 60, {
@@ -163,6 +168,7 @@ export function createBrowserLoop(s) {
         s.actors?.events(s.game);
         deathCam.observe(s.game.events);
         audioEvents.push(...s.game.events);
+        pickupFlash.observe(s.game.events);
         s.emit(s.game.events);
         hints.observe(s.game);
         accumulator -= 1 / 60;

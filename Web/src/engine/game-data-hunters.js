@@ -21,7 +21,14 @@ export function validateMarkedHunterSpawn(d) {
 
 export function validatePhysicsBudget(d) {
   // reserve_for_marked: entity flags whose death may release the oldest unflagged corpse when the cap is full (a hunter or boss is never baked for a crowd).
-  closed(d, ["schema_version", "rows", "reserve_for_marked"]);
+  // ranks: who may take whose place when the cap is full (a death evicts the lowest-ranked, then oldest, corpse of a LOWER rank; the local
+  // player, highest, is never evicted). local_player_id: the entity id of the local player.
+  closed(d, ["schema_version", "rows", "reserve_for_marked", "ranks", "local_player_id"]);
+  closed(d.ranks, ["crowd", "remote", "marked", "player"]);
+  const { crowd, remote, marked, player } = d.ranks;
+  if (![crowd, remote, marked, player].every(Number.isInteger) || !(crowd < remote && remote < marked && marked < player))
+    fail("physicsBudget", "ranks must be non-negative integers rising crowd < remote < marked < player");
+  if (!Number.isInteger(d.local_player_id)) fail("physicsBudget", "local_player_id must be an integer");
   if (!Array.isArray(d.reserve_for_marked) || d.reserve_for_marked.some((f) => typeof f !== "string" || !f))
     fail("physicsBudget", "reserve_for_marked must be a list of entity flag names");
   closed(d.rows, ["max_simultaneous_ragdolls"]);
@@ -38,6 +45,7 @@ export function validatePhysicsDeath(d) {
     "offValue",
     "defaultOn",
     "rigRef",
+    "remote",
     "seed",
     "stepHz",
     "maxStepsPerFrame",
@@ -65,6 +73,11 @@ export function validatePhysicsDeath(d) {
     "maxActive",
   ])
     number("physicsDeath", name, d[name], 1);
+  // remote: other players seen through presence. modelRef = the physicsRigs model row their figure uses; deathField = the (truthy) field a presence
+  // row carries when that player is dead; fallbackClip = the baked death clip when the cap or a failure keeps the ragdoll away.
+  closed(d.remote, ["modelRef", "deathField", "fallbackClip"]);
+  for (const k of ["modelRef", "deathField", "fallbackClip"])
+    if (typeof d.remote[k] !== "string" || !d.remote[k]) fail("physicsDeath", `remote.${k} must be a non-empty string`);
   closed(d.cutPrefetch, ["range", "idleMs", "skipSaveData", "slowTypes"]);
   number("physicsDeath", "cutPrefetch.range", d.cutPrefetch.range, 1);
   number("physicsDeath", "cutPrefetch.idleMs", d.cutPrefetch.idleMs, 1);

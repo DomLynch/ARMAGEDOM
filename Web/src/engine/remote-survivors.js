@@ -116,16 +116,33 @@ export function createSurvivorKit({
       mixer.update((survivorVariantIndex(`${id}:phase`, 1000) / 1000) * idle.getClip().duration);
       let weight = 0,
         last = now(),
-        gone = false;
+        gone = false,
+        dying = false;
       const figure = {
         root,
+        body, // the scaled group (the physics frame) and the skinned model under it: what a ragdoll death drives
+        model,
         variant: SURVIVOR_VARIANTS[index],
         mixer,
+        // The baked death (data/physicsDeath.json remote.fallbackClip): plays once and holds the last frame. The fall-back when no ragdoll is taken.
+        dieBaked() {
+          const clip = equipped.animations.find((c) => c.name === GAME_DATA.physicsDeath.remote.fallbackClip);
+          if (gone || dying) return;
+          dying = true;
+          idle.setEffectiveWeight(0);
+          walk.setEffectiveWeight(0);
+          if (!clip) return;
+          const a = mixer.clipAction(clip);
+          a.setLoop(THREE.LoopOnce, 1);
+          a.clampWhenFinished = true;
+          a.reset().play();
+        },
         update({ moving = false } = {}) {
           if (gone) return;
           const t = now(),
             dt = Math.min(look.maxFrameSeconds, Math.max(0, t - last));
           last = t;
+          if (dying) return void mixer.update(dt);
           weight = THREE.MathUtils.clamp(weight + (moving ? 1 : -1) * dt * look.walkBlendPerSecond, 0, 1);
           idle.setEffectiveWeight(1 - weight);
           walk.setEffectiveWeight(weight);

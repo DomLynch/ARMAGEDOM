@@ -301,7 +301,9 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
               .map(id),
           ),
           playedLethal = new Set(),
+          pickupKinds = new Set(GAME_DATA.visual.pickupFlash.events),
           off = effectiveMode() === "off";
+        let pickupToned = false;
         function hitCue(lethal, countHit = true) {
           if (countHit) hitEvents++;
           if (lethal) killEvents++;
@@ -358,7 +360,11 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
             const cue = WEAPON_AUDIO.grenade;
             tone(cue.from, cue.to, off ? A.grenadeOff.seconds : cue.seconds, off ? A.grenadeOff.gain : cue.gain);
             if (!off) noise(cue.noiseSeconds, cue.noiseGain, cue.cutoff);
-          } else if (event.type === "pickup") toneRow(A.pickup);
+          } else if (pickupKinds.has(event.type)) {
+            // One pickup tone per play() batch, whichever of the pickup events (visual.json pickupFlash.events) arrive together.
+            if (!pickupToned) toneRow(A.pickup);
+            pickupToned = true;
+          }
           else if (
             event.type === "hit" &&
             !event.blocked &&

@@ -70,7 +70,8 @@ export function killVector(root, entity) {
   const k = impulseRow(entity.deathImpact),
     d = entity.deathImpact ?? (entity.facing ? { x: -entity.facing.x, z: -entity.facing.z } : { x: 0, z: -1 }),
     len = Math.hypot(d.x, d.z) || 1,
-    local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.quaternion.clone().invert());
+    // the root's WORLD turn, as the rig's own frame is (a remote body sits under a yawed group)
+    local = new THREE.Vector3(d.x / len, 0, d.z / len).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()).invert());
   return [local.x * k.horizontal, k.up, local.z * k.horizontal];
 }
 
@@ -151,12 +152,25 @@ export function disposeCuts(s) {
 }
 
 // Null = the budget row (@frankendom/physics data/budget-rows.json, max_simultaneous_ragdolls) is full: no body is taken and the baked death plays.
+// Who a corpse is, as a rank from data/physicsBudget.json: the local player (never evicted) > a marked hunter or boss > a remote player > the crowd.
+export function rankOf(entity) {
+  const budget = GAME_DATA.physicsBudget,
+    r = budget.ranks;
+  if (entity.id === budget.local_player_id && entity.kind < 0) return r.player;
+  if (budget.reserve_for_marked.some((flag) => !!entity[flag])) return r.marked;
+  return entity.remotePlayer ? r.remote : r.crowd;
+}
+// The corpse a death of `rank` may take the place of: the lowest rank below it, the oldest of those; null = none (the newcomer is baked).
+const evictable = (rank) =>
+  active.reduce((best, a) => ((a.rank ?? 0) < rank && (!best || (a.rank ?? 0) < (best.rank ?? 0)) ? a : best), null);
+
 export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
   const budget = GAME_DATA.physicsBudget,
-    marked = budget.reserve_for_marked.some((flag) => !!entity[flag]);
+    rank = rankOf(entity),
+    marked = rank >= budget.ranks.marked;
   if (admit(active.length, budget.rows) === "baked") {
-    // Full: a hunter or boss death takes the place of the oldest crowd corpse (its body is freed, the pose stays where it lies); a crowd death is baked.
-    const oldest = marked ? active.find((a) => !a.marked) : null;
+    // Full: a higher-ranked death takes the place of the oldest lower-ranked corpse (its body is freed, the pose stays where it lies); else it is baked.
+    const oldest = evictable(rank);
     if (!oldest) return null;
     releaseDeath(oldest);
     if (admit(active.length, budget.rows) === "baked") return null;
@@ -201,7 +215,7 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     rd.kill({ part: impulseRow(entity.deathImpact).part, impulse: push });
     stats.created++;
     stats.lastAt = performance.now();
-    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked });
+    s = registerDeath({ physics: world, rd, rig, age: 0, clock: worldClock, frozen: false, marked, rank });
     if (plan) {
       try {
         beginCuts(s, plan, skin, push);

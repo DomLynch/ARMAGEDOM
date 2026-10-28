@@ -686,3 +686,23 @@ summary {
 #mastery {
   white-space: nowrap;
 }
+/* Pickup flash (engine/pickup-flash.js, visual.json pickupFlash): a gold glow at the screen edge that fades, never over input. */
+#pickup-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 40;
+  background: radial-gradient(ellipse at center, transparent 30%, var(--pickup-flash-colour, #e1bb65) 90%);
+}
+#pickup-flash.on {
+  animation: pickup-flash var(--pickup-flash-seconds, 0.7s) ease-out;
+}
+@keyframes pickup-flash {
+  from {
+    opacity: var(--pickup-flash-opacity, 0.38);
+  }
+  to {
+    opacity: 0;
+  }
+}

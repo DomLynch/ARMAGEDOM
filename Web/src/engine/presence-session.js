@@ -5,6 +5,7 @@ import { createPresenceClient, presenceConfig } from "./presence-client.js";
 import { createRemotePlayers } from "./remote-players.js";
 import { createRemotePlayersView } from "./remote-players-view.js";
 import { createSurvivorKit } from "./remote-survivors.js";
+import { physicsDeathStep, releasePhysicsDeath } from "./physics-death.js";
 import { GAME_DATA } from "./game-data.js";
 
 const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
@@ -140,6 +141,11 @@ export function createPresenceSession(
         scene: s.scene,
         toRender: (p, y) => s.world.toRender(p, y),
         survivors: survivorKit,
+        // A remote player whose row says dead falls as a ragdoll (cap and ?physics=0 as for everything else), else plays the baked death.
+        death: {
+          step: (v, e, dt) => physicsDeathStep(v, e, s.survivorLibrary, dt),
+          release: (v) => releasePhysicsDeath(v),
+        },
       });
       const samples = client.joined ? remote.sample(clock()) : [];
       view.update(samples);
