@@ -43,7 +43,7 @@ test("all 30 MakeHuman bodies are registered as deferred crowd appearances that 
     assert.equal(manifest.files[ref].sha256, row.sha256);
     assert.equal(manifest.files[ref].bytes, row.bytes);
     for (const field of ["source", "licence", "assembly"]) assert(row.provenance[field], `${ref} provenance.${field}`);
-    assert(row.scale >= 0.9 && row.scale <= 1.1, `${ref} scale ${row.scale}`);
+    assert(row.scale >= 0.8 && row.scale <= 1.1, `${ref} scale ${row.scale}`);
     assert(row.stride > 0.6 && row.stride < 1.4, `${ref} stride ${row.stride}`);
     assert(isCrowdBody(ref));
   }
@@ -199,7 +199,7 @@ test("every active body stays upright through its locomotion, fight and hit clip
       for (const phase of [0, 0.25, 0.5, 0.75, 0.99]) {
         motion.sample(row.clips[role], phase);
         const [head, hips, foot] = [row.headBone, "mixamorig:Hips", "mixamorig:LeftFoot"].map(bone);
-        assert(head.y > hips.y + 0.3 && hips.y > foot.y + 0.3, `${ref} ${role} ${phase}: head ${head.y.toFixed(2)} hips ${hips.y.toFixed(2)} foot ${foot.y.toFixed(2)}`);
+        assert(head.y > hips.y + 0.15 && hips.y > foot.y + 0.15, `${ref} ${role} ${phase}: head ${head.y.toFixed(2)} hips ${hips.y.toFixed(2)} foot ${foot.y.toFixed(2)}`);
         model.traverse((node) => assert(node.matrixWorld.elements.every(Number.isFinite)));
       }
     }

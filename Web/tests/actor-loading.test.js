@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { loadActors,createActors } from "../src/actors.js";
+import { isCrowdBody } from "../src/engine/crowd-bodies.js";
 
 function resource() {
   const scene = new THREE.Group();
@@ -269,6 +270,6 @@ test('deferred population foundation is ready before live, restored-corpse and f
  await actors.ensureAreaModels({enemies:[e]});assert.deepEqual(calls.at(-1),['giant-salamander']);
  await actors.ensureAreaModels({corpses:[{...e,hp:0}]});assert.deepEqual(calls.at(-1),['giant-salamander']);
  await actors.ensureAreaModels({enemies:[]},'westminster',{fresh:true});assert.deepEqual(calls.at(-1),['giant-salamander']);
- await actors.ensureAreaModels({enemies:[]},'east',{fresh:true});assert.deepEqual(calls.at(-1),[]);
+ await actors.ensureAreaModels({enemies:[]},'east',{fresh:true});assert.deepEqual(calls.at(-1).filter(ref=>!isCrowdBody(ref)),[],'east needs no deferred model but the crowd bodies its residents draw');
  await actors.ensureAreaModels({enemies:[{kind:0,rig:'original-rat'}]});assert.deepEqual(calls.at(-1),[]);
 });
