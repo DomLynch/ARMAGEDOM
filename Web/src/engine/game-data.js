@@ -40,6 +40,8 @@ import presenceClient from "../data/presenceClient.json" with { type: "json" };
 import progressionBase from "../data/progressionBase.json" with { type: "json" };
 import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" };
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
+import haptics from "../data/haptics.json" with { type: "json" };
+import { validateHaptics } from "./game-data-haptics.js";
 import railgunCoils from "../data/railgunCoils.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
@@ -1105,6 +1107,7 @@ const sources = () => ({
   locker: [locker, validateLocker],
   goldenWeapons: [goldenWeapons, validateGoldenWeapons],
   renderBudget: [renderBudget, validateRenderBudget],
+  haptics: [haptics, validateHaptics],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],
   progressionBase: [progressionBase, validateProgressionBase],
