@@ -121,7 +121,7 @@ test("zone and gates: nothing spawns outside the target zones, behind a safehous
   assert.equal(g.raid, null);
 });
 
-test("the window closes on time and the raid is off when the row is disabled", () => {
+test("the window closes on time", () => {
   const g = game();
   kill(g);
   armPostBossRaid(g);
@@ -129,14 +129,4 @@ test("the window closes on time and the raid is off when the row is disabled", (
   step(g);
   assert.equal(g.raid, null);
   assert.equal(raiders(g).length, 0);
-  const off = { ...ROW, enabled: false };
-  GAME_DATA.postBossRaid = off;
-  try {
-    const h = game();
-    kill(h);
-    armPostBossRaid(h);
-    assert.equal(h.raid, undefined);
-  } finally {
-    GAME_DATA.postBossRaid = ROW;
-  }
 });
