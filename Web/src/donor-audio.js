@@ -57,7 +57,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
   let sawMotor = null,
     railgunHum = null;
   const sawActors = new Set();
-  const voicesFull = () => active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) >= A.engine.voiceCapacity;
+  const voicesFull = () => active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) + (burnLoop ? 1 : 0) >= A.engine.voiceCapacity;
   function stopSaw() {
     if (!sawMotor) return;
     try {
@@ -101,9 +101,58 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
     source.start();
     railgunHum = { source, gain };
   }
+  // Burning crackle (data/soundHooks.json `burn`): a looping filtered noise whose level follows how many flamed actors are in earshot.
+  let burnLoop = null;
+  function stopBurn() {
+    if (!burnLoop) return;
+    for (const node of [burnLoop.source, burnLoop.lfo]) {
+      try {
+        node.stop();
+      } catch {}
+      node.disconnect();
+    }
+    for (const node of [burnLoop.filter, burnLoop.gain, burnLoop.depth]) node.disconnect();
+    burnLoop = null;
+  }
+  function setBurning(level, burn) {
+    if (!level || !enabled || context?.state !== "running" || effectiveMode() === "off" || (!burnLoop && voicesFull())) return stopBurn();
+    if (!burnLoop) {
+      const source = noiseSource(),
+        filter = context.createBiquadFilter(),
+        gain = context.createGain(),
+        lfo = context.createOscillator(),
+        depth = context.createGain();
+      source.loop = true;
+      filter.type = "highpass";
+      filter.frequency.value = burn.cutoff;
+      lfo.frequency.value = burn.lfoHz;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(context.destination);
+      lfo.connect(depth);
+      depth.connect(gain.gain);
+      source.start();
+      lfo.start();
+      burnLoop = { source, filter, gain, lfo, depth };
+    }
+    const level01 = (burn.gain + burn.gainPerActor * (level - 1)) * (effectiveMode() === "low" ? A.engine.lowModeFactor : 1);
+    burnLoop.depth.gain.value = level01 * burn.lfoDepth;
+    const param = burnLoop.gain.gain;
+    if (param.setTargetAtTime) param.setTargetAtTime(level01, context.currentTime, burn.rampSeconds);
+    else param.value = level01;
+  }
+  // Hook cues planned by engine/sound-hooks.js: [{ gain, pitch, tone?, noise? }]. Pitch scales the tone's sweep and the noise cutoff.
+  function playHooks(plans) {
+    if (!enabled || context?.state !== "running" || effectiveMode() === "off") return;
+    for (const p of plans) {
+      if (p.tone) tone(p.tone.from * p.pitch, p.tone.to * p.pitch, p.tone.seconds, p.gain, p.tone.type);
+      if (p.noise) noise(p.noise.seconds, p.gain * p.noise.share, p.noise.cutoff * p.pitch);
+    }
+  }
   const active = new Set(),
     lastVariants = new Map();
   function stop() {
+    stopBurn();
     stopRailgunHum();
     stopSaw();
     sawActors.clear();
@@ -180,8 +229,7 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
   // One data row ({ from, to, seconds, gain, type? }), with the gain or length replaced where a mode asks for it.
   const toneRow = (row, gain = row.gain, seconds = row.seconds) => tone(row.from, row.to, seconds, gain, row.type);
   const noiseRow = (row) => noise(row.seconds, row.gain, row.cutoff);
-  function noise(duration, gain, frequency) {
-    if (voicesFull()) return;
+  function noiseSource() {
     if (!noiseBuffer) {
       noiseBuffer = context.createBuffer(
         1,
@@ -191,9 +239,14 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
       const data = noiseBuffer.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = bipolar(Math.random());
     }
-    const source = context.createBufferSource(),
-      filter = context.createBiquadFilter();
+    const source = context.createBufferSource();
     source.buffer = noiseBuffer;
+    return source;
+  }
+  function noise(duration, gain, frequency) {
+    if (voicesFull()) return;
+    const source = noiseSource(),
+      filter = context.createBiquadFilter();
     filter.type = "highpass";
     filter.frequency.value = frequency;
     emit(source, duration, gain, filter);
@@ -231,7 +284,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         ready: !!buffer,
         context: context?.state ?? "locked",
         enabled,
-        activeVoices: active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0),
+        burnLoopActive: !!burnLoop,
+        activeVoices: active.size + (sawMotor ? 1 : 0) + (railgunHum ? 1 : 0) + (burnLoop ? 1 : 0),
         voiceCapacity: A.engine.voiceCapacity,
         mode: effectiveMode(),
         played,
@@ -398,6 +452,8 @@ export function createDonorAudio({ baseUrl = globalThis.document?.baseURI } = {}
         stop();
       }
     },
+    playHooks,
+    setBurning,
     silenceRailgun() {
       stopRailgunHum();
     },

@@ -21,12 +21,16 @@ import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
 import { createBossTaunts, tauntsEnabled } from "./boss-taunts.js";
+import { burnLevel, createSoundHooks, soundHooksEnabled } from "./sound-hooks.js";
+import { burnEnabled } from "./burn-presentation.js";
 const STAND_IN = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId;
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints(),
     pickupFlash = createPickupFlash(),
     haptics = createHaptics({ listen: s.listen }),
-    taunts = tauntsEnabled() ? createBossTaunts() : null; // data/bossTaunts.json; ?taunts=0 turns them off
+    taunts = tauntsEnabled() ? createBossTaunts() : null, // data/bossTaunts.json; ?taunts=0 turns them off
+    soundHooks = soundHooksEnabled() ? createSoundHooks() : null, // data/soundHooks.json; ?sound=0 turns the hooks off
+    burning = !!soundHooks && burnEnabled(); // the crackle follows ?burn=0 too
   let last = 0,
     accumulator = 0,
     submitted = null,
@@ -139,6 +143,7 @@ export function createBrowserLoop(s) {
     // Travel holds this frame and simulation. Re-rendering the unchanged rigs
     // consumes the idle budget needed to finish the destination's preparation.
     if (s.traveling) {
+      s.audio?.setBurning?.(0);
       s.hud.update(s.game);
       s.updateExpedition?.();
       return;
@@ -250,7 +255,13 @@ export function createBrowserLoop(s) {
       viewportWidth: s.canvas.clientWidth,
     });
     const severs = s.effects?.takeSeverEvents?.() ?? [];
-    if (audioEvents.length || severs.length) s.audio.play(presentationAudioEvents(audioEvents, severs));
+    if (audioEvents.length || severs.length) {
+      const heard = presentationAudioEvents(audioEvents, severs);
+      s.audio.play(heard);
+      const cues = soundHooks?.plan(heard, { player: s.game.player, time: ms / 1000 }) ?? []; // tuning-ok: ms to seconds
+      if (cues.length) s.audio.playHooks?.(cues);
+    }
+    s.audio?.setBurning?.(burning && !s.paused ? burnLevel(s.game) : 0, GAME_DATA.soundHooks.burn);
     const { rimHeight, rimBehind } = GAME_DATA.browserSession.sceneLights;
     s.rim.position.copy(s.world.toRender(s.game.player.pos, rimHeight)).add(new THREE.Vector3(0, 0, rimBehind));
     const routeActive = !!s.world?.exitHint?.(s.game.player.pos),
