@@ -33,6 +33,7 @@ import { vestAvailable, VEST_RULES } from "../vest.js";
 import { GAME_DATA, fillText } from "./game-data.js";
 import { createHeatTallyView } from "./heat-tally-view.js";
 import { heatShown } from "./heat.js";
+import { createRunHudView } from "./run-hud-view.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 // The weapon summary lines quote these rows of data/weapons.json, so the text cannot drift from what the weapon does.
 const GRENADE = GAME_DATA.weapons.ranged["standard-grenade-v1"],
@@ -348,6 +349,7 @@ export function createRunViews(s) {
     } else weapon = meleeWeaponSummary(g);
     if (active.textContent !== weapon) active.textContent = weapon;
   }
+  const runHudView = createRunHudView(s);
   let heatView = null;
   // The heat tally (heat.js) above the player's head; gone with the heat, on death and while the run is over or the context is lost.
   function updateHeatTally() {
@@ -463,11 +465,13 @@ export function createRunViews(s) {
     clearVestBag,
     updateVestBag,
     updateHeatTally,
+    updateRunHud: runHudView.update,
     ...persistence,
     updateSupplies,
     clearSupplies,
     cancelPistol,
     dispose() {
+      runHudView.dispose();
       wantedProjection.dispose();
       relicView.dispose();
       markedView.dispose();

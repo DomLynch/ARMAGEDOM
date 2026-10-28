@@ -95,6 +95,8 @@ import { validatePostBossRaid } from "./game-data-raid.js";
 import heat from "../data/heat.json" with { type: "json" };
 import { validateHeat } from "./game-data-heat.js";
 import { validateCorpseRun } from "./game-data-corpse-run.js";
+import apocalypseRun from "../data/apocalypseRun.json" with { type: "json" };
+import { validateApocalypseRun } from "./game-data-run.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1101,6 +1103,7 @@ const sources = () => ({
   postBossRaid: [postBossRaid, validatePostBossRaid],
   heat: [heat, validateHeat],
   corpseRun: [corpseRun, validateCorpseRun],
+  apocalypseRun: [apocalypseRun, validateApocalypseRun],
   markedHunterSpawn: [markedHunterSpawn, validateMarkedHunterSpawn],
   chainedPitborn: [chainedPitborn, validateChainedPitborn],
   ratKing: [ratKing, validateRatKing],

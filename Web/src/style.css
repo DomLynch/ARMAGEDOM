@@ -761,6 +761,83 @@ summary {
 #mastery {
   white-space: nowrap;
 }
+/* Apocalypse run (engine/run-hud-view.js, data/apocalypseRun.json): a small stage timer in the status column, a stage banner that floats
+   across the upper screen for a few seconds, the menu's start button and the end-of-run results card. */
+#run-hud {
+  align-self: stretch;
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #e8a35a;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  pointer-events: none;
+}
+#run-hud[hidden],
+#run-banner[hidden],
+#run-panel[hidden] {
+  display: none;
+}
+#run-banner {
+  position: fixed;
+  top: 30%;
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, transparent, rgba(8, 15, 17, 0.82) 18%, rgba(8, 15, 17, 0.82) 82%, transparent);
+  text-align: center;
+  pointer-events: none;
+  z-index: 9;
+}
+#run-banner-title {
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  color: #e8a35a;
+}
+#run-banner-line {
+  font-size: 13px;
+  color: #f1d28c;
+}
+#run-panel {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #a8620f;
+  border-radius: 7px;
+  text-align: left;
+}
+#run-panel p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+#run-results {
+  z-index: 11;
+}
+#run-results .card {
+  width: min(100%, 360px);
+}
+#run-results-rows {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+#run-results-rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #5a4a2a;
+  border-radius: 6px;
+  background: rgba(13, 24, 27, 0.7);
+  font-size: 14px;
+}
+#run-results-rows strong {
+  color: #e8a35a;
+}
 /* Pickup flash (engine/pickup-flash.js, visual.json pickupFlash): a gold glow at the screen edge that fades, never over input. */
 #pickup-flash {
   position: fixed;

@@ -2,6 +2,7 @@ import { GAME_DATA } from "./game-data.js";
 import { applyStarRow, starsEnabled, STAR_VARIANTS } from "./star-variants.js";
 import { seeded } from "./heat-tally-strokes.js";
 import { webText } from "./web-text.js";
+import { runHeatScale } from "./apocalypse-run.js";
 
 // HEAT (data/heat.json): +1 for every kill, a mark lost after each decay.secondsPerMark without one, back to zero on the player's death.
 // It scales the existing marked hunt (marked-hunters.js) by tier: shorter waits, one more hunter at once, and star hunters at the top tier.
@@ -43,10 +44,15 @@ export function stepHeat(g, rules = HEAT, search = undefined) {
 
 // Heat goes up by `amount` (a kill, or a valuable from the valuables rows), never past maxHeat, and restarts the cooldown. Reaching a new
 // tier says so on the HUD line (webText heat.tierUp).
-export function addHeat(g, amount, rules = HEAT, search = undefined) {
+// A run's stage and hazard scale every gain here (apocalypse-run.js); a valuable (stash, crate, boss) is scaled only when the run row's
+// scaleValuables says so. The fraction left over carries to the next gain, so a half-rate stage still adds a mark for every two kills.
+export function addHeat(g, amount, rules = HEAT, search = undefined, valuable = false) {
   if (!g.heat || !(amount > 0) || !heatEnabled(rules, search)) return;
-  const before = heatTier(g, rules);
-  g.heat.count = Math.min(rules.maxHeat, g.heat.count + amount);
+  const before = heatTier(g, rules),
+    scaled = (g.heat.carry ?? 0) + amount * runHeatScale(g, undefined, valuable),
+    whole = Math.floor(scaled);
+  g.heat.carry = scaled - whole;
+  g.heat.count = Math.min(rules.maxHeat, g.heat.count + whole);
   g.heat.lastKillAt = g.time;
   const after = heatTier(g, rules);
   if (after && after !== before) {
@@ -64,9 +70,9 @@ export function heatFromClaim(g, source, amount, rules = HEAT) {
       const bank = (g.heat.cashBank ?? 0) + amount,
         gained = Math.floor(bank / row.perHeat);
       g.heat.cashBank = bank - gained * row.perHeat;
-      addHeat(g, gained, rules);
+      addHeat(g, gained, rules, undefined, true);
     }
-  for (const row of rules.valuables.claims) if (row.source === source) addHeat(g, row.heat, rules);
+  for (const row of rules.valuables.claims) if (row.source === source) addHeat(g, row.heat, rules, undefined, true);
 }
 
 // Game events that are valuables (a boss kill), each read once however often the step is read again (the loop calls this after each step).
@@ -76,7 +82,7 @@ export function heatFromEvents(g, rules = HEAT) {
   for (const e of g.events ?? []) {
     if (seen.has(e)) continue;
     seen.add(e);
-    for (const row of rules.valuables.events) if (row.type === e.type) addHeat(g, row.heat, rules);
+    for (const row of rules.valuables.events) if (row.type === e.type) addHeat(g, row.heat, rules, undefined, true);
   }
 }
 
@@ -85,6 +91,7 @@ export function resetHeat(g) {
   if (!g.heat) return;
   g.heat.cashBank = 0;
   g.heat.count = 0;
+  g.heat.carry = 0;
   g.heat.seen = g.kills ?? 0;
   g.heat.lastKillAt = g.time;
 }
