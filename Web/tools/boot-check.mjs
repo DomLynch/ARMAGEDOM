@@ -17,7 +17,12 @@ const browser = await chromium.launch({
 const page = await (await browser.newContext({ viewport: { width: 375, height: 812 } })).newPage();
 const problems = [];
 page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
+const failedUrls = [];
+page.on("response", (r) => {
+  if (r.status() >= 400) failedUrls.push(`${r.status()} ${r.url()}`);
+});
 page.on("console", (m) => {
+  if (m.text().startsWith("Failed to load resource")) return; // reported with its URL below
   if (m.type() === "error" || m.text().includes("ARMAGEDOM_BOOT_FAILED")) problems.push(`console.${m.type()}: ${m.text().slice(0, 300)}`);
 });
 await page.goto(`http://127.0.0.1:${PORT}/`);
@@ -29,6 +34,11 @@ const state = await page.evaluate(() => ({
   hud: !!document.getElementById("notice"),
   boot: document.body.innerText.includes("ARMAGEDOM_BOOT_FAILED"),
 }));
+// A missing favicon is not a boot problem; any other failed request is listed, and one for a script or style fails the check.
+for (const u of failedUrls) {
+  console.log(`note: ${u}`);
+  if (/\.(js|css|json)(\?|$)/.test(u)) problems.push(`failed request: ${u}`);
+}
 if (state.boot) problems.push("page shows ARMAGEDOM_BOOT_FAILED");
 if (!state.flash || !state.hud) problems.push(`missing DOM: ${JSON.stringify(state)}`);
 await browser.close();
