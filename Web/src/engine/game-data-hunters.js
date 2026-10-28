@@ -138,7 +138,9 @@ export function validateChainedPitborn(d) {
   closed(d.breakLoose.text, ["snap", "loose"]);
   for (const name of ["snap", "loose"])
     if (typeof d.breakLoose.text[name] !== "string" || !d.breakLoose.text[name]) fail("chainedPitborn", "breakLoose.text." + name + " must be text");
-  closed(d.chainedTargets, ["rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres", "coverEdgeMetres", "coverBlocker", "sightSteps", "aimTargetId"]);
+  closed(d.chainedTargets, [
+    "rays", "rays3d", "melee", "blasts", "cones", "blastPaddingMetres", "coverEdgeMetres", "coverBlocker", "sightSteps", "aimTargetId",
+  ]);
   for (const name of ["rays", "rays3d", "melee", "blasts", "cones"])
     if (!Array.isArray(d.chainedTargets[name]) || d.chainedTargets[name].some((t) => typeof t !== "string" || !t))
       fail("chainedPitborn", "chainedTargets." + name + " must be a list of event types");
