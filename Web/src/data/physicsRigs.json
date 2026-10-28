@@ -443,7 +443,7 @@
     "boss-butcher": {
       "rig": "v1-65",
       "body": "butcher-65",
-      "live": true
+      "live": false
     }
   }
 }

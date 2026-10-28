@@ -46,7 +46,7 @@ test("body rows hold the 20 joints and a standing height; the baked scale matche
 test("the hunter and the crowd humans are live; no animal or drone has a row", () => {
   const live = Object.keys(RIGS.models).filter((n) => RIGS.models[n].live);
   for (const n of [CFG.rigRef, "hollow-scavenger", "hale-pitborn"]) assert.ok(live.includes(n), n);
-  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 7); // every humanoid boss
+  assert.equal(live.filter((n) => n.startsWith("boss-")).length, 6); // every humanoid boss but the butcher (its row is re-measured unscaled next)
   for (const n of live) assert.ok(!manifest[n].rig.includes("original-") && !manifest[n].rig.startsWith("giant-"), n);
 });
 
