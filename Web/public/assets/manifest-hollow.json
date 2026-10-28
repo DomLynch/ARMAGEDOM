@@ -398,7 +398,7 @@
       "deferred": true,
       "rig": "original-crow",
       "motion": "rat",
-      "scale": 3,
+      "scale": 4,
       "forwardCorrection": 0,
       "clips": {
         "idle": "rat_idle",
@@ -409,8 +409,8 @@
         "attack": "rat_bite",
         "attackLow": "rat_bite_low"
       },
-      "bytes": 310248,
-      "sha256": "8e8afdbe5439752f0b4b62bc07616f13ab329f07cffa37cf128ef65100a1b54f",
+      "bytes": 293912,
+      "sha256": "634ad61e88547463a208acd97b41192bd5efbe8702df6d19177b9c3486ab6ebd",
       "contact": {
         "calfBand": [
           0.3440308079655002,

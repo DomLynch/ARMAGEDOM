@@ -13,14 +13,14 @@ test("each capability picks the same rigs as the comparison it replaced", () => 
   only(["low-hover-drone"], (r) => rigCapability(r, "hoverTarget"));
   only(["original-roach"], (r) => rigText(r, "biteMove") === "roach");
   only(["original-dog"], (r) => rigNumber(r, "feralScale") === 2);
-  only(["original-rat"], (r) => rigText(r, "appearanceKit") === "rat");
+  only(["original-rat", "original-crow"], (r) => rigText(r, "appearanceKit") === "rat"); // 28 Oct: the crow wears the rat coat kit
   only(["original-roach"], (r) => rigText(r, "appearanceKit") === "roach");
   only(["giant-salamander", "original-wolf"], (r) => rigCapability(r, "nativeSkeleton"));
   only(["giant-salamander"], (r) => rigNumber(r, "materialDim") === 0.75);
   only(["giant-salamander"], (r) => rigCapability(r, "fireBreath"));
   only(["giant-salamander"], (r) => rigCapability(r, "calfFaceReceiver"));
   only(["original-wolf"], (r) => rigCapability(r, "bodyReceiver"));
-  only(["original-rat"], (r) => rigText(r, "brain") === "rat");
+  only(["original-rat", "original-crow"], (r) => rigText(r, "brain") === "rat"); // 28 Oct: the crow bites with the rat brain
   only(["original-dog", "original-roach", "giant-salamander", "original-wolf"], (r) => rigText(r, "brain") === "dog");
 });
 

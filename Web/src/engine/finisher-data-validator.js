@@ -359,8 +359,8 @@ export function validateFinisherData(value) {
     g.profiles.length !== 4 ||
     new Set(g.profiles.map((p) => p.recipeId)).size !== 4 ||
     !Array.isArray(g.rigs) ||
-    g.rigs.length !== 8 ||
-    new Set(g.rigs.map((r) => r.id)).size !== 8
+    !g.rigs.length ||
+    new Set(g.rigs.map((r) => r.id)).size !== g.rigs.length
   )
     fail();
   for (const p of g.profiles) {

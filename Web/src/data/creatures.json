@@ -165,7 +165,7 @@
       "original-dog": 1.635623468495986,
       "original-roach": 1.6063268331546576,
       "giant-salamander": 3.1078573708270647,
-      "original-crow": 1.050307904880233
+      "original-crow": 1.4004105398402
     }
   },
   "behaviours": {
@@ -416,7 +416,7 @@
       "brain": "rat",
       "appearanceKit": "rat",
       "coatName": "Glossy black carrion feathers",
-      "targetHeight": 0.54,
+      "targetHeight": 0.72,
       "hitClip": "rat_hit",
       "deathClip": "rat_death",
       "hitTicks": 20,

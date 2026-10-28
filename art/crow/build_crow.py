@@ -320,7 +320,7 @@ for sx in (-0.012, 0.0, 0.012):
 
 # ---------- UVs
 bm.faces.ensure_lookup_table()
-BODY_R = (0.12, 0.25, 0.1)
+TILE_M = 0.48
 for f in bm.faces:
     mat, kind, prm = TAG.get(f, (FEATHER, "box", None))
     f.material_index = mat
@@ -334,15 +334,16 @@ for f in bm.faces:
             u = 0.5 + 0.5 * (0.02 + 0.96 * (0.5 + 0.5 * lat))
             v = 0.02 + 0.96 * t
         elif kind == "box":
+            # one isotropic scale on every projection: the plumage tile (512 px, u 0 to .5, v 0 to 1) spans 0.48 m of body
             ax = max(range(3), key=lambda k: abs(n[k]))
             if ax == 2:
-                a, b = co.x / BODY_R[0], co.y / BODY_R[1]
+                a, b = co.x, co.y
             elif ax == 1:
-                a, b = co.x / BODY_R[0], co.z / BODY_R[2]
+                a, b = co.x, co.z - 0.1
             else:
-                a, b = co.y / BODY_R[1], co.z / BODY_R[2]
-            u = 0.02 + 0.46 * (0.5 + 0.5 * max(-1, min(1, a)))
-            v = 0.02 + 0.96 * (0.5 + 0.5 * max(-1, min(1, b)))
+                a, b = co.y, co.z - 0.1
+            u = 0.25 + 0.46 * a / TILE_M
+            v = 0.5 + 0.96 * b / TILE_M
         else:
             u, v = 0.25, 0.5
         l[uvl].uv = (u, v)
@@ -405,7 +406,7 @@ def mk(name, base, rough, metal, textured=False, emit=None):
 
 
 mesh.materials.append(mk("Glossy black carrion feathers", (0.04, 0.035, 0.04, 1), 0.4, 0.15, textured=True))
-mesh.materials.append(mk("Scaled ash-grey legs and feet", (0.13, 0.105, 0.09, 1), 0.7, 0.0))
+mesh.materials.append(mk("Scaled ash-grey legs and feet", (0.055, 0.045, 0.04, 1), 0.7, 0.0))
 mesh.materials.append(mk("Pale glowing eyes", (0.9, 0.93, 0.78, 1), 0.3, 0.0, emit=(0.86, 0.95, 0.72, 1)))
 mesh.materials.append(mk("Dark horn beak", (0.045, 0.038, 0.034, 1), 0.3, 0.0))
 mesh.name = "Original ARM rat surface"

@@ -30,7 +30,7 @@ def sheen_colour(field):
 
 def plumage():
     """Scallop rows: returns albedo (SQ,SQ,3 in 0..255), roughness, metal, height."""
-    rows, cols = 40, 40
+    rows, cols = 24, 24
     ch, cw = SQ / rows, SQ / cols
     yy, xx = np.mgrid[0:SQ, 0:SQ].astype(np.float32)
     r = (yy // ch).astype(int)
@@ -49,13 +49,13 @@ def plumage():
     base = np.array([0.20, 0.17, 0.175], np.float32) * (0.75 + 0.5 * cellrand[..., None])
     worn = (smooth_noise(SQ, SQ, 4, 13) > 0.66).astype(np.float32)[..., None]  # a few sun-bleached, rusty patches
     base = base * (1 - worn) + np.array([0.20, 0.14, 0.10], np.float32) * worn * (0.6 + 0.4 * cellrand[..., None])
-    k = (0.30 + 0.6 * edge ** 1.4)[..., None] * (1 - 0.7 * worn)
+    k = (0.42 + 0.6 * edge ** 1.4)[..., None] * (1 - 0.7 * worn)
     col = base * (0.55 + 0.6 * shade[..., None]) + sheen * k * (0.45 + 0.55 * cellrand[..., None]) * 0.95
     col = np.where(inside[..., None], col, col * 0.35)  # the gap under a scallop is shadow
     col += rng.normal(0, 0.012, col.shape[:2])[..., None]
     height = shade * inside + 0.3 * edge
     rough = np.clip(0.55 - 0.32 * edge - 0.1 * (1 - worn[..., 0]) + 0.1 * worn[..., 0], 0.18, 0.9)
-    metal = np.clip(0.10 + 0.25 * edge, 0, 1) * (1 - worn[..., 0])
+    metal = np.clip(0.04 + 0.08 * edge, 0, 1) * (1 - worn[..., 0])
     return np.clip(col, 0, 1) * 255, rough, metal, height
 
 
@@ -78,7 +78,7 @@ def blade():
     col += rng.normal(0, 0.012, col.shape[:2])[..., None]
     height = 0.6 * barbs * vane + 0.4 * shaft
     rough = np.clip(0.5 - 0.25 * barbs * vane, 0.2, 0.9)
-    metal = np.clip(0.08 + 0.22 * barbs * vane, 0, 1)
+    metal = np.clip(0.03 + 0.08 * barbs * vane, 0, 1)
     return np.clip(col, 0, 1) * 255, rough, metal, height
 
 

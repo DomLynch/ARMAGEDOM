@@ -182,7 +182,7 @@
         "attackLow": "rat_bite_low"
       },
       "scale": {
-        "model": 3,
+        "model": 4,
         "character": 1.265,
         "visual": 1.3225,
         "mobSizeMode": "fixed-one",
@@ -191,7 +191,7 @@
       },
       "stats": {
         "health": 24,
-        "radius": 1.09,
+        "radius": 1.3,
         "moveSpeed": 2.3,
         "recoveryDelay": 0,
         "weapon": "teeth"
