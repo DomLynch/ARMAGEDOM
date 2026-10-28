@@ -6,8 +6,8 @@ Pipeline (VPS, CPU, `run_eel.sh`): `atlas_eel.py` (numpy/scipy/Pillow) paints al
 - Rig kept: `QuadRig`, all 31 bones, 7 clips (Idle, Walk, Run, Bite, Hurt, Death, Flee). Joints equal the source and every clip duration matches (Bite 0.933, Death 1.233, Flee 0.5, Hurt 0.533, Idle 2.033, Run 0.633, Walk 1.033 s); the scene is built at 30 fps like roach v3. The leg bones are unweighted, so the legs vanish and the body undulates on the spine and tail bones.
 - Mesh: lofted body on the spine and tail (16 sides), a head whose lower jaw is a separate half-shell weighted to the `jaw` bone (mouth interior faces, about 50 teeth, two big upper fangs), dorsal and anal fins with torn edges, pectoral fins, eyes, nostril tubes. Skin weights come from the position along the body (no copy from the old mesh). 3,448 triangles (source 8,000).
 - Realism ruling (Dom, 28 Oct: a 2030 realistic game, no fantasy): small dark brown eye with a round black pupil and no glow, muted pale jaw line and belly, a faint lateral stripe, wet low-roughness skin; head and jaw 1.5x the lean profile (moray/conger-like); model scale 0.9, about 2 m long in game.
-- Size: 350,584 bytes (source 668,628); albedo 1024 WebP, ORM 512, normal 512.
+- Size: 350,212 bytes (source 668,628); albedo 1024 WebP, ORM 512, normal 512.
 - Contact: mesh name `world-raw` kept; `manifest-hollow.json` contact.canines are vertices 1962, 1980 (upper fangs) and 1935 (lower fang) of the meshopt file, read by `contact_eel.mjs`. calfFaces and calfBand are the salamander's (they describe the player's calf).
-- Hashes: source GLB sha256 `d2355f72...f800`; eel `c0b42849...7249`.
+- Hashes: source GLB sha256 `d2355f72...f800`; eel `357a0bb1...88ab`.
 - Game rows (data only): rig `giant-eel` (motion `salamander`, scale 0.9, bite = the salamander bite, no breath), recipe `eel-river-ambusher` (ambush intent: waits until the player is within 2 m), East slot cycle B (replaces the roach). Off switch: `?noeel=1` or `enabled: false` in the creatures.json rig row.
 - Not checked: a physical phone, frame pacing, bite feel, audio (the eel reuses the shared animal audio).

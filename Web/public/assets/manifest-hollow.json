@@ -1508,8 +1508,8 @@
         "flee": "Flee"
       },
       "deferred": true,
-      "bytes": 350584,
-      "sha256": "c0b42849499aad8595e245991686dd25f105e5f7f85fa84df19527af076b7249",
+      "bytes": 350212,
+      "sha256": "357a0bb135419f5fce825333a3fe6cff08e82c8b3cb3dd26a97ca54e869c88ab",
       "name": "Giant Eel",
       "contact": {
         "canines": [
