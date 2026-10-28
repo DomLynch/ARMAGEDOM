@@ -27,7 +27,10 @@ export function createBrowserLoop(s) {
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
   if (globalThis.document && s.listen)
     s.listen(globalThis.document, "visibilitychange", () => {
-      if (globalThis.document.hidden) deathCam.reset();
+      if (globalThis.document.hidden) {
+        deathCam.reset();
+        haptics.cancel();
+      }
     });
   function toDomain(v) {
     return {

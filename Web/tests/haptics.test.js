@@ -121,7 +121,7 @@ test('hidden tab, reduced motion and ?haptics=0 never vibrate; hiding the tab ca
   const hidden = rig();
   hidden.doc.hidden = true;
   assert.equal(hidden.h.observe([{type: 'death', actor: player}], game(), 1000), false);
-  hidden.listeners.get('visibilitychange')();
+  hidden.h.cancel(); // the loop's tab-hidden listener calls this
   assert.deepEqual(hidden.calls, [0]);
   const reduced = rig({reduced: true});
   assert.equal(reduced.h.observe([{type: 'death', actor: player}], game(), 1000), false);

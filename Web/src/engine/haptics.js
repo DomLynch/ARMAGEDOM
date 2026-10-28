@@ -100,7 +100,7 @@ export function createHaptics({
     const label = doc.getElementById("haptics-label");
     if (label) label.textContent = data.text.intensityLabel;
     for (const node of [button, select, label]) if (node) node.hidden = !supported || forcedOff;
-    if (select && !select.options.length)
+    if (select?.options && win.Option && !select.options.length)
       for (const l of data.intensityLevels) select.add(new win.Option(data.text.levels[l.id], l.id));
     const on = (node, type, handler) => {
       attach(node, type, handler);
@@ -152,18 +152,13 @@ export function createHaptics({
       }
       return false;
     },
+    // Stops whatever is playing; the loop's existing tab-hidden listener calls it, so no second document listener exists.
+    cancel,
     dispose() {
       for (const off of offs.splice(0)) off();
       cancel();
     },
   };
-  if (doc?.addEventListener) {
-    const stop = () => {
-      if (doc.hidden) cancel();
-    };
-    attach(doc, "visibilitychange", stop);
-    offs.push(() => doc.removeEventListener("visibilitychange", stop));
-  }
   bind();
   return api;
 }
