@@ -207,6 +207,19 @@ test("?burn=0 builds nothing, touches nothing and leaves the scene empty", () =>
   assert.equal(f.burn.snapshot().enabled, false);
 });
 
+test("a flamed live drone keeps its own eye colour (its view is not restored per frame)", () => {
+  const f = fixture(),
+    e = f.enemy(1, 0),
+    view = f.views.get(e),
+    eye = view.flashMaterials[0].material.color;
+  view.drone = {};
+  eye.setHex(0xffb000);
+  f.g.enemies = [e];
+  run(f, 1.5, () => (e.flameBurnUntil = f.g.time + 0.35));
+  assert.equal(eye.getHex(), 0xffb000);
+  assert.ok(f.burn.snapshot().smokePuffs > 0, "the fire look itself still draws");
+});
+
 test("the pooled draws are built only when something first burns", () => {
   const f = fixture(),
     e = f.enemy(1, 0);

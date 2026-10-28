@@ -155,6 +155,8 @@ export function createBurnPresentation({
     mesh.setMatrixAt(i, pose.matrix);
   }
   function tint(view, s, time) {
+    // A drone's view is not restored every frame (actors.js) and sets its eye colour itself (the attack warning), so it is never tinted.
+    if (!view || view.drone) return;
     const T0 = row.tint,
       flash = (view?.impactFlashLife ?? 0) > 0,
       wave = Math.sin(time * T0.flickerHz + s.seed * TAU),
