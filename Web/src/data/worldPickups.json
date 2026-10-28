@@ -1,1765 +1,481 @@
 {
- "schema_version": 1,
- "coinKinds": [
-  "cashStash"
- ],
- "respawnSeconds": 180,
- "pickupRadius": 1,
- "offscreenMargin": 0.15,
- "spotHeight": 0.2,
- "cylinderSegments": 12,
- "displayScale": 1.7,
- "roughness": 0.8,
- "metalness": 0.1,
- "noticeSeconds": 3,
- "refusalRepeatSeconds": 6,
- "items": {
-  "medkit": {
-   "healFraction": 0.5
+  "schema_version": 1,
+  "coinKinds": ["cashStash"],
+  "respawnSeconds": 180,
+  "pickupRadius": 1,
+  "offscreenMargin": 0.15,
+  "spotHeight": 0.2,
+  "cylinderSegments": 12,
+  "displayScale": 1.7,
+  "roughness": 0.8,
+  "metalness": 0.1,
+  "noticeSeconds": 3,
+  "refusalRepeatSeconds": 6,
+  "items": {
+    "medkit": { "healFraction": 0.5 },
+    "ammoBox": {},
+    "cashStash": { "min": 60, "max": 180, "step": 20 }
   },
-  "ammoBox": {},
-  "cashStash": {
-   "min": 60,
-   "max": 180,
-   "step": 20
-  }
- },
- "text": {
-  "medkit": "Medkit +{amount} HP",
-  "ammoBox": "Ammo refilled",
-  "cashStash": "+${amount}",
-  "medkitFull": "Health is full",
-  "ammoBoxFull": "Ammo is full",
-  "cashStashFull": "Cannot carry more cash"
- },
- "markers": {
-  "labelDistance": 6,
-  "style": {
-   "shape": "circle",
-   "ringInner": 0.79,
-   "ringOuter": 0.83,
-   "glowOuter": 1.25,
-   "labelHeight": 1.55,
-   "labelWidth": 1.35,
-   "peakOpacity": 0.35,
-   "glowOpacity": 0.18,
-   "labelBackingOpacity": 0.4,
-   "label": {
-    "canvasWidth": 240,
-    "canvasHeight": 48,
-    "textY": 31,
-    "textMaxWidth": 230,
-    "opacityBase": 0.55,
-    "opacitySwing": 0.1,
-    "borderPx": 1,
-    "renderOrder": 10
-   }
+  "text": {
+    "medkit": "Medkit +{amount} HP",
+    "ammoBox": "Ammo refilled",
+    "cashStash": "+${amount}",
+    "medkitFull": "Health is full",
+    "ammoBoxFull": "Ammo is full",
+    "cashStashFull": "Cannot carry more cash"
   },
-  "medkit": {
-   "label": "Medkit",
-   "ringColour": "e5483f",
-   "labelColour": "ffd9d6"
+  "markers": {
+    "labelDistance": 6,
+    "style": {
+      "shape": "circle",
+      "ringInner": 0.79,
+      "ringOuter": 0.83,
+      "glowOuter": 1.25,
+      "labelHeight": 1.55,
+      "labelWidth": 1.35,
+      "peakOpacity": 0.35,
+      "glowOpacity": 0.18,
+      "labelBackingOpacity": 0.4,
+      "label": {
+        "canvasWidth": 240,
+        "canvasHeight": 48,
+        "textY": 31,
+        "textMaxWidth": 230,
+        "opacityBase": 0.55,
+        "opacitySwing": 0.1,
+        "borderPx": 1,
+        "renderOrder": 10
+      }
+    },
+    "medkit": { "label": "Medkit", "ringColour": "e5483f", "labelColour": "ffd9d6" },
+    "ammoBox": { "label": "Ammo", "ringColour": "e0b030", "labelColour": "fff0b8" },
+    "cashStash": { "label": "Cash", "ringColour": "f5c518", "labelColour": "fff3a8" }
   },
-  "ammoBox": {
-   "label": "Ammo",
-   "ringColour": "e0b030",
-   "labelColour": "fff0b8"
+  "models": {
+    "medkit": [
+      { "shape": "box", "size": [0.5, 0.22, 0.36], "pos": [0, 0.11, 0], "color": "d6d1c3", "wear": 0.45 },
+      { "shape": "box", "size": [0.34, 0.02, 0.1], "pos": [0, 0.23, 0], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.1, 0.02, 0.34], "pos": [0, 0.23, 0], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.2, 0.05, 0.012], "pos": [0, 0.12, 0.182], "color": "b02a2c", "wear": 0.4 },
+      { "shape": "box", "size": [0.05, 0.2, 0.012], "pos": [0, 0.12, 0.182], "color": "b02a2c", "wear": 0.4 }
+    ],
+    "ammoBox": [
+      { "shape": "box", "size": [0.5, 0.24, 0.34], "pos": [0, 0.12, 0], "color": "5e6a3a" },
+      { "shape": "box", "size": [0.52, 0.04, 0.36], "pos": [0, 0.26, 0], "color": "474f2c" },
+      { "shape": "box", "size": [0.32, 0.07, 0.012], "pos": [0, 0.14, 0.172], "color": "e8c547" },
+      { "shape": "cylinder", "size": [0.06, 0.24, 0.06], "pos": [-0.15, 0.4, 0], "color": "e2b13c" },
+      { "shape": "cylinder", "size": [0.06, 0.24, 0.06], "pos": [0, 0.4, 0], "color": "e2b13c" },
+      { "shape": "cylinder", "size": [0.06, 0.24, 0.06], "pos": [0.15, 0.4, 0], "color": "e2b13c" },
+      { "shape": "cylinder", "size": [0.04, 0.1, 0.04], "pos": [-0.15, 0.57, 0], "color": "b9722f" },
+      { "shape": "cylinder", "size": [0.04, 0.1, 0.04], "pos": [0, 0.57, 0], "color": "b9722f" },
+      { "shape": "cylinder", "size": [0.04, 0.1, 0.04], "pos": [0.15, 0.57, 0], "color": "b9722f" }
+    ],
+    "cashStash": [
+      { "shape": "cylinder", "size": [0.17, 0.04, 0.17], "pos": [0, 0.02, 0], "color": "d9980f" },
+      { "shape": "cylinder", "size": [0.17, 0.04, 0.17], "pos": [0.012, 0.06, 0], "color": "f5c518" },
+      { "shape": "cylinder", "size": [0.17, 0.04, 0.17], "pos": [-0.01, 0.1, 0.01], "color": "d9980f" },
+      { "shape": "cylinder", "size": [0.17, 0.04, 0.17], "pos": [0.01, 0.14, 0], "color": "f5c518" },
+      { "shape": "cylinder", "size": [0.17, 0.04, 0.17], "pos": [0, 0.18, 0], "color": "ffd84a" },
+      { "shape": "cylinder", "size": [0.15, 0.04, 0.15], "pos": [0.3, 0.02, 0.08], "color": "d9980f" },
+      { "shape": "cylinder", "size": [0.15, 0.04, 0.15], "pos": [0.3, 0.06, 0.08], "color": "f5c518" },
+      { "shape": "cylinder", "size": [0.15, 0.04, 0.15], "pos": [0.3, 0.1, 0.08], "color": "ffd84a" },
+      { "shape": "cylinder", "size": [0.15, 0.035, 0.15], "pos": [-0.28, 0.0175, 0.12], "color": "f5c518" }
+    ]
   },
-  "cashStash": {
-   "label": "Cash",
-   "ringColour": "f5c518",
-   "labelColour": "fff3a8"
-  }
- },
- "models": {
-  "medkit": [
-   {
-    "shape": "box",
-    "size": [
-     0.5,
-     0.22,
-     0.36
-    ],
-    "pos": [
-     0,
-     0.11,
-     0
-    ],
-    "color": "d6d1c3",
-    "wear": 0.45
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.34,
-     0.02,
-     0.1
-    ],
-    "pos": [
-     0,
-     0.23,
-     0
-    ],
-    "color": "b02a2c",
-    "wear": 0.4
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.1,
-     0.02,
-     0.34
-    ],
-    "pos": [
-     0,
-     0.23,
-     0
-    ],
-    "color": "b02a2c",
-    "wear": 0.4
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.2,
-     0.05,
-     0.012
-    ],
-    "pos": [
-     0,
-     0.12,
-     0.182
-    ],
-    "color": "b02a2c",
-    "wear": 0.4
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.05,
-     0.2,
-     0.012
-    ],
-    "pos": [
-     0,
-     0.12,
-     0.182
-    ],
-    "color": "b02a2c",
-    "wear": 0.4
-   }
-  ],
-  "ammoBox": [
-   {
-    "shape": "box",
-    "size": [
-     0.5,
-     0.24,
-     0.34
-    ],
-    "pos": [
-     0,
-     0.12,
-     0
-    ],
-    "color": "5e6a3a"
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.52,
-     0.04,
-     0.36
-    ],
-    "pos": [
-     0,
-     0.26,
-     0
-    ],
-    "color": "474f2c"
-   },
-   {
-    "shape": "box",
-    "size": [
-     0.32,
-     0.07,
-     0.012
-    ],
-    "pos": [
-     0,
-     0.14,
-     0.172
-    ],
-    "color": "e8c547"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.06,
-     0.24,
-     0.06
-    ],
-    "pos": [
-     -0.15,
-     0.4,
-     0
-    ],
-    "color": "e2b13c"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.06,
-     0.24,
-     0.06
-    ],
-    "pos": [
-     0,
-     0.4,
-     0
-    ],
-    "color": "e2b13c"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.06,
-     0.24,
-     0.06
-    ],
-    "pos": [
-     0.15,
-     0.4,
-     0
-    ],
-    "color": "e2b13c"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.04,
-     0.1,
-     0.04
-    ],
-    "pos": [
-     -0.15,
-     0.57,
-     0
-    ],
-    "color": "b9722f"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.04,
-     0.1,
-     0.04
-    ],
-    "pos": [
-     0,
-     0.57,
-     0
-    ],
-    "color": "b9722f"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.04,
-     0.1,
-     0.04
-    ],
-    "pos": [
-     0.15,
-     0.57,
-     0
-    ],
-    "color": "b9722f"
-   }
-  ],
-  "cashStash": [
-   {
-    "shape": "cylinder",
-    "size": [
-     0.17,
-     0.04,
-     0.17
-    ],
-    "pos": [
-     0,
-     0.02,
-     0
-    ],
-    "color": "d9980f"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.17,
-     0.04,
-     0.17
-    ],
-    "pos": [
-     0.012,
-     0.06,
-     0
-    ],
-    "color": "f5c518"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.17,
-     0.04,
-     0.17
-    ],
-    "pos": [
-     -0.01,
-     0.1,
-     0.01
-    ],
-    "color": "d9980f"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.17,
-     0.04,
-     0.17
-    ],
-    "pos": [
-     0.01,
-     0.14,
-     0
-    ],
-    "color": "f5c518"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.17,
-     0.04,
-     0.17
-    ],
-    "pos": [
-     0,
-     0.18,
-     0
-    ],
-    "color": "ffd84a"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.15,
-     0.04,
-     0.15
-    ],
-    "pos": [
-     0.3,
-     0.02,
-     0.08
-    ],
-    "color": "d9980f"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.15,
-     0.04,
-     0.15
-    ],
-    "pos": [
-     0.3,
-     0.06,
-     0.08
-    ],
-    "color": "f5c518"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.15,
-     0.04,
-     0.15
-    ],
-    "pos": [
-     0.3,
-     0.1,
-     0.08
-    ],
-    "color": "ffd84a"
-   },
-   {
-    "shape": "cylinder",
-    "size": [
-     0.15,
-     0.035,
-     0.15
-    ],
-    "pos": [
-     -0.28,
-     0.0175,
-     0.12
-    ],
-    "color": "f5c518"
-   }
-  ]
- },
- "finish": {
-  "gridMetres": 0.04,
-  "maxCells": 10,
-  "hashScale": 55,
-  "hashSeed": [
-   12.9898,
-   78.233,
-   37.719
-  ],
-  "hashMultiplier": 43758.5453,
-  "contrast": 0.9
- },
- "contour": {
-  "medkit": false,
-  "ammoBox": false,
-  "cashStash": true
- },
- "look": {
-  "ammoBox": "crate",
-  "cashStash": "treasure"
- },
- "lookScale": {
-  "crate": 1.45,
-  "carton": 1.4,
-  "bandolier": 1.5,
-  "treasure": 0.588
- },
- "looks": {
-  "ammoBox": {
-   "crate": [
-    {
-     "shape": "box",
-     "size": [
-      0.46,
-      0.22,
-      0.26
-     ],
-     "pos": [
-      0,
-      0.11,
-      0
-     ],
-     "color": "646b46",
-     "wear": 0.35
+  "finish": {
+    "gridMetres": 0.04,
+    "maxCells": 10,
+    "hashScale": 55,
+    "hashSeed": [12.9898, 78.233, 37.719],
+    "hashMultiplier": 43758.5453,
+    "contrast": 0.9
+  },
+  "contour": { "medkit": false, "ammoBox": false, "cashStash": true },
+  "look": { "ammoBox": "crate", "cashStash": "treasure" },
+  "lookScale": { "crate": 1.45, "carton": 1.4, "bandolier": 1.5, "treasure": 0.588 },
+  "looks": {
+    "ammoBox": {
+      "crate": [
+        { "shape": "box", "size": [0.46, 0.22, 0.26], "pos": [0, 0.11, 0], "color": "646b46", "wear": 0.35 },
+        { "shape": "box", "size": [0.47, 0.02, 0.27], "pos": [0, 0.23, 0], "color": "565c3a", "wear": 0.3 },
+        { "shape": "box", "size": [0.42, 0.004, 0.22], "pos": [0, 0.236, 0], "color": "23251b" },
+        {
+          "shape": "box",
+          "size": [0.48, 0.025, 0.28],
+          "pos": [0, 0.3446, -0.0411],
+          "rot": [-0.75, 0, 0],
+          "color": "5d6340",
+          "wear": 0.4
+        },
+        { "shape": "box", "size": [0.05, 0.05, 0.02], "pos": [0, 0.2, 0.138], "color": "7a7d78", "wear": 0.35 },
+        { "shape": "box", "size": [0.1, 0.08, 0.006], "pos": [-0.12, 0.1, 0.132], "color": "8a5a34", "wear": 0.5 },
+        { "shape": "box", "size": [0.07, 0.06, 0.006], "pos": [0.15, 0.15, 0.132], "color": "7a4e2e", "wear": 0.5 },
+        { "shape": "box", "size": [0.006, 0.09, 0.12], "pos": [0.232, 0.08, 0.02], "color": "80553a", "wear": 0.5 },
+        { "shape": "box", "size": [0.12, 0.07, 0.004], "pos": [0.05, 0.07, 0.131], "color": "4a5036", "wear": 0.4 },
+        { "shape": "box", "size": [0.2, 0.04, 0.004], "pos": [0, 0.14, 0.131], "color": "b0ab84", "wear": 0.6 },
+        { "shape": "box", "size": [0.12, 0.02, 0.004], "pos": [0, 0.1, 0.131], "color": "a39e78", "wear": 0.6 },
+        {
+          "shape": "cylinder",
+          "size": [0.018, 0.08, 0.018],
+          "pos": [-0.15, 0.265, 0.07],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.018, 0.08, 0.018],
+          "pos": [-0.05, 0.265, 0.07],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.018, 0.08, 0.018],
+          "pos": [0.06, 0.265, 0.07],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.018, 0.08, 0.018],
+          "pos": [0.16, 0.265, 0.07],
+          "color": "b8a050",
+          "wear": 0.3
+        }
+      ],
+      "carton": [
+        { "shape": "box", "size": [0.44, 0.13, 0.3], "pos": [0, 0.065, 0], "color": "7a6848", "wear": 0.45 },
+        {
+          "shape": "box",
+          "size": [0.44, 0.012, 0.14],
+          "pos": [0, 0.192, -0.1817],
+          "rot": [1.1, 0, 0],
+          "color": "a38d66",
+          "wear": 0.5
+        },
+        {
+          "shape": "box",
+          "size": [0.44, 0.012, 0.14],
+          "pos": [0, 0.0905, 0.2078],
+          "rot": [0.6, 0, 0],
+          "color": "9a845e",
+          "wear": 0.5
+        },
+        { "shape": "box", "size": [0.1, 0.05, 0.004], "pos": [0.08, 0.09, 0.151], "color": "b5ac86", "wear": 0.4 },
+        { "shape": "box", "size": [0.16, 0.05, 0.004], "pos": [-0.1, 0.07, 0.151], "color": "9c9876", "wear": 0.5 },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [-0.14, 0.16, 0.02],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [-0.07, 0.16, 0.05],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        { "shape": "cylinder", "size": [0.016, 0.08, 0.016], "pos": [0, 0.16, 0.02], "color": "b8a050", "wear": 0.3 },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [0.07, 0.16, 0.05],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [0.14, 0.16, 0.02],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [0.3, 0.016, 0.12],
+          "rot": [0, 0.4, 1.5708],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [0.27, 0.016, 0.05],
+          "rot": [0, -0.3, 1.5708],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [0.33, 0.016, -0.04],
+          "rot": [0, 1, 1.5708],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.08, 0.016],
+          "pos": [-0.3, 0.016, 0.17],
+          "rot": [0, 0.2, 1.5708],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "box",
+          "size": [0.22, 0.008, 0.16],
+          "pos": [-0.3, 0.004, -0.1],
+          "rot": [0, 0.5, 0],
+          "color": "5a564a",
+          "wear": 0.5
+        },
+        {
+          "shape": "box",
+          "size": [0.12, 0.01, 0.1],
+          "pos": [-0.27, 0.01, -0.06],
+          "rot": [0, -0.4, 0],
+          "color": "47433a",
+          "wear": 0.5
+        }
+      ],
+      "bandolier": [
+        { "shape": "box", "size": [0.34, 0.11, 0.2], "pos": [0, 0.055, 0], "color": "6d6a4e", "wear": 0.5 },
+        { "shape": "box", "size": [0.345, 0.04, 0.205], "pos": [0, 0.02, 0], "color": "4a3f2c", "wear": 0.6 },
+        { "shape": "box", "size": [0.34, 0.02, 0.09], "pos": [0, 0.115, 0.055], "color": "74704f", "wear": 0.5 },
+        {
+          "shape": "box",
+          "size": [0.34, 0.02, 0.12],
+          "pos": [0, 0.1406, -0.156],
+          "rot": [0.35, 0, 0],
+          "color": "65613f",
+          "wear": 0.5
+        },
+        { "shape": "box", "size": [0.04, 0.05, 0.012], "pos": [0, 0.085, 0.106], "color": "8a8a80", "wear": 0.4 },
+        {
+          "shape": "box",
+          "size": [0.07, 0.1, 0.03],
+          "pos": [-0.07, 0.15, 0],
+          "rot": [0, 0, 0.12],
+          "color": "3a3d40",
+          "wear": 0.3
+        },
+        {
+          "shape": "box",
+          "size": [0.07, 0.1, 0.03],
+          "pos": [0.05, 0.15, 0],
+          "rot": [0, 0, -0.1],
+          "color": "3a3d40",
+          "wear": 0.3
+        },
+        { "shape": "box", "size": [0.075, 0.012, 0.034], "pos": [-0.0775, 0.2, 0], "color": "2a2c2e" },
+        { "shape": "box", "size": [0.075, 0.012, 0.034], "pos": [0.0555, 0.2, 0], "color": "2a2c2e" },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.07, 0.016],
+          "pos": [0.13, 0.145, -0.03],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        { "shape": "cylinder", "size": [0.016, 0.07, 0.016], "pos": [0.15, 0.145, 0], "color": "b8a050", "wear": 0.3 },
+        {
+          "shape": "cylinder",
+          "size": [0.016, 0.07, 0.016],
+          "pos": [0.115, 0.14, 0.03],
+          "color": "b8a050",
+          "wear": 0.3
+        },
+        {
+          "shape": "box",
+          "size": [0.55, 0.012, 0.045],
+          "pos": [0, 0.007, 0.2],
+          "rot": [0, 0.15, 0],
+          "color": "55503a",
+          "wear": 0.5
+        },
+        {
+          "shape": "box",
+          "size": [0.3, 0.012, 0.045],
+          "pos": [0.33, 0.007, 0.27],
+          "rot": [0, -0.5, 0],
+          "color": "55503a",
+          "wear": 0.5
+        },
+        {
+          "shape": "box",
+          "size": [0.2, 0.004, 0.12],
+          "pos": [-0.05, 0.002, 0.14],
+          "rot": [0, 0.7, 0],
+          "color": "3b3225",
+          "wear": 0.5
+        }
+      ]
     },
-    {
-     "shape": "box",
-     "size": [
-      0.47,
-      0.02,
-      0.27
-     ],
-     "pos": [
-      0,
-      0.23,
-      0
-     ],
-     "color": "565c3a",
-     "wear": 0.3
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.42,
-      0.004,
-      0.22
-     ],
-     "pos": [
-      0,
-      0.236,
-      0
-     ],
-     "color": "23251b"
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.48,
-      0.025,
-      0.28
-     ],
-     "pos": [
-      0,
-      0.3446,
-      -0.0411
-     ],
-     "rot": [
-      -0.75,
-      0,
-      0
-     ],
-     "color": "5d6340",
-     "wear": 0.4
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.05,
-      0.05,
-      0.02
-     ],
-     "pos": [
-      0,
-      0.2,
-      0.138
-     ],
-     "color": "7a7d78",
-     "wear": 0.35
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.1,
-      0.08,
-      0.006
-     ],
-     "pos": [
-      -0.12,
-      0.1,
-      0.132
-     ],
-     "color": "8a5a34",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.07,
-      0.06,
-      0.006
-     ],
-     "pos": [
-      0.15,
-      0.15,
-      0.132
-     ],
-     "color": "7a4e2e",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.006,
-      0.09,
-      0.12
-     ],
-     "pos": [
-      0.232,
-      0.08,
-      0.02
-     ],
-     "color": "80553a",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.12,
-      0.07,
-      0.004
-     ],
-     "pos": [
-      0.05,
-      0.07,
-      0.131
-     ],
-     "color": "4a5036",
-     "wear": 0.4
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.2,
-      0.04,
-      0.004
-     ],
-     "pos": [
-      0,
-      0.14,
-      0.131
-     ],
-     "color": "b0ab84",
-     "wear": 0.6
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.12,
-      0.02,
-      0.004
-     ],
-     "pos": [
-      0,
-      0.1,
-      0.131
-     ],
-     "color": "a39e78",
-     "wear": 0.6
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.018,
-      0.08,
-      0.018
-     ],
-     "pos": [
-      -0.15,
-      0.265,
-      0.07
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.018,
-      0.08,
-      0.018
-     ],
-     "pos": [
-      -0.05,
-      0.265,
-      0.07
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.018,
-      0.08,
-      0.018
-     ],
-     "pos": [
-      0.06,
-      0.265,
-      0.07
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.018,
-      0.08,
-      0.018
-     ],
-     "pos": [
-      0.16,
-      0.265,
-      0.07
-     ],
-     "color": "b8a050",
-     "wear": 0.3
+    "cashStash": {
+      "treasure": [
+        { "shape": "cylinder", "size": [0.34, 0.026, 0.34], "pos": [-0.003, 0.013, 0.002], "color": "d9742a" },
+        { "shape": "cylinder", "size": [0.28, 0.026, 0.28], "pos": [0.002, 0.036, -0.001], "color": "e89a30" },
+        { "shape": "cylinder", "size": [0.22, 0.026, 0.22], "pos": [-0.004, 0.06, 0.004], "color": "f2bd48" },
+        { "shape": "cylinder", "size": [0.16, 0.026, 0.16], "pos": [-0.004, 0.083, 0.001], "color": "ffd978" },
+        { "shape": "cylinder", "size": [0.1, 0.026, 0.1], "pos": [-0.003, 0.107, 0.003], "color": "ffe9a0" },
+        { "shape": "cylinder", "size": [0.055, 0.026, 0.055], "pos": [-0.001, 0.13, 0.001], "color": "fff1c0" },
+        {
+          "shape": "cylinder",
+          "size": [0.05, 0.008, 0.05],
+          "pos": [0.01, 0.17, 0],
+          "color": "fff1c0",
+          "rot": [1, 0.6, 0.3]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [0.367, 0.03, 0.183],
+          "color": "e89a30",
+          "rot": [1.037, 2.046, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [0.224, 0.03, 0.302],
+          "color": "f2bd48",
+          "rot": [1.215, 1.686, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [-0.134, 0.03, 0.455],
+          "color": "ffd978",
+          "rot": [1.113, 0.865, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [-0.248, 0.03, 0.434],
+          "color": "e89a30",
+          "rot": [1.217, 0.084, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [-0.422, 0.03, 0.132],
+          "color": "f2bd48",
+          "rot": [0.924, 1.573, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [-0.264, 0.03, -0.34],
+          "color": "ffd978",
+          "rot": [1.268, 0.023, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [0.019, 0.03, -0.406],
+          "color": "e89a30",
+          "rot": [1.072, 2.809, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [-0.026, 0.03, -0.391],
+          "color": "f2bd48",
+          "rot": [1.278, 0.412, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [0.228, 0.03, -0.302],
+          "color": "ffd978",
+          "rot": [1.117, 0.54, 0.2]
+        },
+        {
+          "shape": "cylinder",
+          "size": [0.04, 0.008, 0.04],
+          "pos": [0.495, 0.03, 0.026],
+          "color": "e89a30",
+          "rot": [1.075, 0.177, 0.2]
+        }
+      ]
     }
-   ],
-   "carton": [
-    {
-     "shape": "box",
-     "size": [
-      0.44,
-      0.13,
-      0.3
-     ],
-     "pos": [
-      0,
-      0.065,
-      0
-     ],
-     "color": "7a6848",
-     "wear": 0.45
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.44,
-      0.012,
-      0.14
-     ],
-     "pos": [
-      0,
-      0.192,
-      -0.1817
-     ],
-     "rot": [
-      1.1,
-      0,
-      0
-     ],
-     "color": "a38d66",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.44,
-      0.012,
-      0.14
-     ],
-     "pos": [
-      0,
-      0.0905,
-      0.2078
-     ],
-     "rot": [
-      0.6,
-      0,
-      0
-     ],
-     "color": "9a845e",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.1,
-      0.05,
-      0.004
-     ],
-     "pos": [
-      0.08,
-      0.09,
-      0.151
-     ],
-     "color": "b5ac86",
-     "wear": 0.4
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.16,
-      0.05,
-      0.004
-     ],
-     "pos": [
-      -0.1,
-      0.07,
-      0.151
-     ],
-     "color": "9c9876",
-     "wear": 0.5
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      -0.14,
-      0.16,
-      0.02
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      -0.07,
-      0.16,
-      0.05
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0,
-      0.16,
-      0.02
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0.07,
-      0.16,
-      0.05
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0.14,
-      0.16,
-      0.02
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0.3,
-      0.016,
-      0.12
-     ],
-     "rot": [
-      0,
-      0.4,
-      1.5708
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0.27,
-      0.016,
-      0.05
-     ],
-     "rot": [
-      0,
-      -0.3,
-      1.5708
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      0.33,
-      0.016,
-      -0.04
-     ],
-     "rot": [
-      0,
-      1,
-      1.5708
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.08,
-      0.016
-     ],
-     "pos": [
-      -0.3,
-      0.016,
-      0.17
-     ],
-     "rot": [
-      0,
-      0.2,
-      1.5708
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.22,
-      0.008,
-      0.16
-     ],
-     "pos": [
-      -0.3,
-      0.004,
-      -0.1
-     ],
-     "rot": [
-      0,
-      0.5,
-      0
-     ],
-     "color": "5a564a",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.12,
-      0.01,
-      0.1
-     ],
-     "pos": [
-      -0.27,
-      0.01,
-      -0.06
-     ],
-     "rot": [
-      0,
-      -0.4,
-      0
-     ],
-     "color": "47433a",
-     "wear": 0.5
-    }
-   ],
-   "bandolier": [
-    {
-     "shape": "box",
-     "size": [
-      0.34,
-      0.11,
-      0.2
-     ],
-     "pos": [
-      0,
-      0.055,
-      0
-     ],
-     "color": "6d6a4e",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.345,
-      0.04,
-      0.205
-     ],
-     "pos": [
-      0,
-      0.02,
-      0
-     ],
-     "color": "4a3f2c",
-     "wear": 0.6
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.34,
-      0.02,
-      0.09
-     ],
-     "pos": [
-      0,
-      0.115,
-      0.055
-     ],
-     "color": "74704f",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.34,
-      0.02,
-      0.12
-     ],
-     "pos": [
-      0,
-      0.1406,
-      -0.156
-     ],
-     "rot": [
-      0.35,
-      0,
-      0
-     ],
-     "color": "65613f",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.04,
-      0.05,
-      0.012
-     ],
-     "pos": [
-      0,
-      0.085,
-      0.106
-     ],
-     "color": "8a8a80",
-     "wear": 0.4
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.07,
-      0.1,
-      0.03
-     ],
-     "pos": [
-      -0.07,
-      0.15,
-      0
-     ],
-     "rot": [
-      0,
-      0,
-      0.12
-     ],
-     "color": "3a3d40",
-     "wear": 0.3
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.07,
-      0.1,
-      0.03
-     ],
-     "pos": [
-      0.05,
-      0.15,
-      0
-     ],
-     "rot": [
-      0,
-      0,
-      -0.1
-     ],
-     "color": "3a3d40",
-     "wear": 0.3
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.075,
-      0.012,
-      0.034
-     ],
-     "pos": [
-      -0.0775,
-      0.2,
-      0
-     ],
-     "color": "2a2c2e"
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.075,
-      0.012,
-      0.034
-     ],
-     "pos": [
-      0.0555,
-      0.2,
-      0
-     ],
-     "color": "2a2c2e"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.07,
-      0.016
-     ],
-     "pos": [
-      0.13,
-      0.145,
-      -0.03
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.07,
-      0.016
-     ],
-     "pos": [
-      0.15,
-      0.145,
-      0
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.016,
-      0.07,
-      0.016
-     ],
-     "pos": [
-      0.115,
-      0.14,
-      0.03
-     ],
-     "color": "b8a050",
-     "wear": 0.3
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.55,
-      0.012,
-      0.045
-     ],
-     "pos": [
-      0,
-      0.007,
-      0.2
-     ],
-     "rot": [
-      0,
-      0.15,
-      0
-     ],
-     "color": "55503a",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.3,
-      0.012,
-      0.045
-     ],
-     "pos": [
-      0.33,
-      0.007,
-      0.27
-     ],
-     "rot": [
-      0,
-      -0.5,
-      0
-     ],
-     "color": "55503a",
-     "wear": 0.5
-    },
-    {
-     "shape": "box",
-     "size": [
-      0.2,
-      0.004,
-      0.12
-     ],
-     "pos": [
-      -0.05,
-      0.002,
-      0.14
-     ],
-     "rot": [
-      0,
-      0.7,
-      0
-     ],
-     "color": "3b3225",
-     "wear": 0.5
-    }
-   ]
   },
-  "cashStash": {
-   "treasure": [
-    {
-     "shape": "cylinder",
-     "size": [
-      0.34,
-      0.026,
-      0.34
-     ],
-     "pos": [
-      -0.003,
-      0.013,
-      0.002
-     ],
-     "color": "d9742a"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.28,
-      0.026,
-      0.28
-     ],
-     "pos": [
-      0.002,
-      0.036,
-      -0.001
-     ],
-     "color": "e89a30"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.22,
-      0.026,
-      0.22
-     ],
-     "pos": [
-      -0.004,
-      0.06,
-      0.004
-     ],
-     "color": "f2bd48"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.16,
-      0.026,
-      0.16
-     ],
-     "pos": [
-      -0.004,
-      0.083,
-      0.001
-     ],
-     "color": "ffd978"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.1,
-      0.026,
-      0.1
-     ],
-     "pos": [
-      -0.003,
-      0.107,
-      0.003
-     ],
-     "color": "ffe9a0"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.055,
-      0.026,
-      0.055
-     ],
-     "pos": [
-      -0.001,
-      0.13,
-      0.001
-     ],
-     "color": "fff1c0"
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.05,
-      0.008,
-      0.05
-     ],
-     "pos": [
-      0.01,
-      0.17,
-      0
-     ],
-     "color": "fff1c0",
-     "rot": [
-      1,
-      0.6,
-      0.3
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      0.367,
-      0.03,
-      0.183
-     ],
-     "color": "e89a30",
-     "rot": [
-      1.037,
-      2.046,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      0.224,
-      0.03,
-      0.302
-     ],
-     "color": "f2bd48",
-     "rot": [
-      1.215,
-      1.686,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      -0.134,
-      0.03,
-      0.455
-     ],
-     "color": "ffd978",
-     "rot": [
-      1.113,
-      0.865,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      -0.248,
-      0.03,
-      0.434
-     ],
-     "color": "e89a30",
-     "rot": [
-      1.217,
-      0.084,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      -0.422,
-      0.03,
-      0.132
-     ],
-     "color": "f2bd48",
-     "rot": [
-      0.924,
-      1.573,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      -0.264,
-      0.03,
-      -0.34
-     ],
-     "color": "ffd978",
-     "rot": [
-      1.268,
-      0.023,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      0.019,
-      0.03,
-      -0.406
-     ],
-     "color": "e89a30",
-     "rot": [
-      1.072,
-      2.809,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      -0.026,
-      0.03,
-      -0.391
-     ],
-     "color": "f2bd48",
-     "rot": [
-      1.278,
-      0.412,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      0.228,
-      0.03,
-      -0.302
-     ],
-     "color": "ffd978",
-     "rot": [
-      1.117,
-      0.54,
-      0.2
-     ]
-    },
-    {
-     "shape": "cylinder",
-     "size": [
-      0.04,
-      0.008,
-      0.04
-     ],
-     "pos": [
-      0.495,
-      0.03,
-      0.026
-     ],
-     "color": "e89a30",
-     "rot": [
-      1.075,
-      0.177,
-      0.2
-     ]
+  "placements": {
+    "westminster": [
+      { "id": "westminster-2", "type": "ammoBox", "x": -8.86, "z": -2.54 },
+      { "id": "westminster-3", "type": "cashStash", "x": 16.46, "z": -6.4 },
+      { "id": "westminster-4", "type": "ammoBox", "x": 6, "z": 6 }
+    ],
+    "east": [
+      { "id": "east-1", "type": "medkit", "x": 1.37, "z": 17.82 },
+      { "id": "east-2", "type": "ammoBox", "x": 16.12, "z": 10.32 },
+      { "id": "east-3", "type": "cashStash", "x": 29.87, "z": 21.07 },
+      { "id": "east-4", "type": "ammoBox", "x": -7.88, "z": 15.82 }
+    ],
+    "south": [
+      { "id": "south-1", "type": "medkit", "x": 12.55, "z": 25.6 },
+      { "id": "south-2", "type": "ammoBox", "x": 7.3, "z": 29.1 },
+      { "id": "south-3", "type": "cashStash", "x": 9.8, "z": 10.35 },
+      { "id": "south-4", "type": "ammoBox", "x": -5.95, "z": 5.1 },
+      { "id": "south-5", "type": "medkit", "x": 3.05, "z": 33.35 }
+    ],
+    "east-bridge": [
+      { "id": "east-bridge-1", "type": "medkit", "x": -1.37, "z": 5.85 },
+      { "id": "east-bridge-2", "type": "ammoBox", "x": 16.63, "z": 9.6 },
+      { "id": "east-bridge-3", "type": "cashStash", "x": 9.63, "z": 11.85 },
+      { "id": "east-bridge-4", "type": "ammoBox", "x": 23.63, "z": 14.1 }
+    ],
+    "elephant-and-castle": [
+      { "id": "elephant-and-castle-1", "type": "medkit", "x": 13.97, "z": -7.72 },
+      { "id": "elephant-and-castle-2", "type": "ammoBox", "x": 16.72, "z": -0.72 },
+      { "id": "elephant-and-castle-3", "type": "cashStash", "x": 28.22, "z": 15.53 },
+      { "id": "elephant-and-castle-4", "type": "ammoBox", "x": 7.47, "z": -2.47 }
+    ],
+    "lambeth": [
+      { "id": "lambeth-1", "type": "medkit", "x": 9.56, "z": 18.1 },
+      { "id": "lambeth-2", "type": "ammoBox", "x": -11.94, "z": 5.35 },
+      { "id": "lambeth-3", "type": "cashStash", "x": -14.19, "z": 14.35 },
+      { "id": "lambeth-4", "type": "ammoBox", "x": 5.81, "z": -6.4 },
+      { "id": "lambeth-5", "type": "medkit", "x": -2.44, "z": 3.35 }
+    ],
+    "area7": [
+      { "id": "area7-1", "type": "medkit", "x": -11.18, "z": 3.08 },
+      { "id": "area7-2", "type": "ammoBox", "x": -10.18, "z": 16.83 },
+      { "id": "area7-3", "type": "cashStash", "x": 15.07, "z": -2.42 },
+      { "id": "area7-4", "type": "ammoBox", "x": -4.68, "z": 14.08 }
+    ],
+    "area8": [
+      { "id": "area8-1", "type": "medkit", "x": 11.43, "z": -7.79 },
+      { "id": "area8-2", "type": "ammoBox", "x": -5.57, "z": 10.21 },
+      { "id": "area8-3", "type": "cashStash", "x": 12.68, "z": -1.04 },
+      { "id": "area8-4", "type": "ammoBox", "x": -21.07, "z": 5.21 }
+    ]
+  },
+  "fx": {
+    "cashStash": {
+      "pool": { "radius": 1.35, "colour": "ff9a50", "opacity": 0.56, "pulse": 0.3, "hz": 0.9, "ringAt": 0.78 },
+      "beam": { "radius": 0.13, "taper": 0.3, "height": 5, "colour": "ffb060", "opacity": 0.22 },
+      "glint": {
+        "count": 8,
+        "radius": 0.4,
+        "height": 0.3,
+        "size": 0.32,
+        "colour": "ffe9a0",
+        "opacity": 0.8,
+        "hz": 0.9,
+        "sharpness": 8
+      },
+      "burst": {
+        "count": 16,
+        "period": 1.6,
+        "spread": 0.75,
+        "rise": 0.95,
+        "base": 0.25,
+        "size": 0.24,
+        "colour": "ffc070"
+      },
+      "motion": { "spin": 0.1, "bob": 0.05, "bobHz": 0.6, "lift": 0.07 }
     }
-   ]
   }
- },
- "placements": {
-  "westminster": [
-   {
-    "id": "westminster-2",
-    "type": "ammoBox",
-    "x": -8.86,
-    "z": -2.54
-   },
-   {
-    "id": "westminster-3",
-    "type": "cashStash",
-    "x": 16.46,
-    "z": -6.4
-   },
-   {
-    "id": "westminster-4",
-    "type": "ammoBox",
-    "x": 6,
-    "z": 6
-   }
-  ],
-  "east": [
-   {
-    "id": "east-1",
-    "type": "medkit",
-    "x": 1.37,
-    "z": 17.82
-   },
-   {
-    "id": "east-2",
-    "type": "ammoBox",
-    "x": 16.12,
-    "z": 10.32
-   },
-   {
-    "id": "east-3",
-    "type": "cashStash",
-    "x": 29.87,
-    "z": 21.07
-   },
-   {
-    "id": "east-4",
-    "type": "ammoBox",
-    "x": -7.88,
-    "z": 15.82
-   }
-  ],
-  "south": [
-   {
-    "id": "south-1",
-    "type": "medkit",
-    "x": 12.55,
-    "z": 25.6
-   },
-   {
-    "id": "south-2",
-    "type": "ammoBox",
-    "x": 7.3,
-    "z": 29.1
-   },
-   {
-    "id": "south-3",
-    "type": "cashStash",
-    "x": 9.8,
-    "z": 10.35
-   },
-   {
-    "id": "south-4",
-    "type": "ammoBox",
-    "x": -5.95,
-    "z": 5.1
-   },
-   {
-    "id": "south-5",
-    "type": "medkit",
-    "x": 3.05,
-    "z": 33.35
-   }
-  ],
-  "east-bridge": [
-   {
-    "id": "east-bridge-1",
-    "type": "medkit",
-    "x": -1.37,
-    "z": 5.85
-   },
-   {
-    "id": "east-bridge-2",
-    "type": "ammoBox",
-    "x": 16.63,
-    "z": 9.6
-   },
-   {
-    "id": "east-bridge-3",
-    "type": "cashStash",
-    "x": 9.63,
-    "z": 11.85
-   },
-   {
-    "id": "east-bridge-4",
-    "type": "ammoBox",
-    "x": 23.63,
-    "z": 14.1
-   }
-  ],
-  "elephant-and-castle": [
-   {
-    "id": "elephant-and-castle-1",
-    "type": "medkit",
-    "x": 13.97,
-    "z": -7.72
-   },
-   {
-    "id": "elephant-and-castle-2",
-    "type": "ammoBox",
-    "x": 16.72,
-    "z": -0.72
-   },
-   {
-    "id": "elephant-and-castle-3",
-    "type": "cashStash",
-    "x": 28.22,
-    "z": 15.53
-   },
-   {
-    "id": "elephant-and-castle-4",
-    "type": "ammoBox",
-    "x": 7.47,
-    "z": -2.47
-   }
-  ],
-  "lambeth": [
-   {
-    "id": "lambeth-1",
-    "type": "medkit",
-    "x": 9.56,
-    "z": 18.1
-   },
-   {
-    "id": "lambeth-2",
-    "type": "ammoBox",
-    "x": -11.94,
-    "z": 5.35
-   },
-   {
-    "id": "lambeth-3",
-    "type": "cashStash",
-    "x": -14.19,
-    "z": 14.35
-   },
-   {
-    "id": "lambeth-4",
-    "type": "ammoBox",
-    "x": 5.81,
-    "z": -6.4
-   },
-   {
-    "id": "lambeth-5",
-    "type": "medkit",
-    "x": -2.44,
-    "z": 3.35
-   }
-  ],
-  "area7": [
-   {
-    "id": "area7-1",
-    "type": "medkit",
-    "x": -11.18,
-    "z": 3.08
-   },
-   {
-    "id": "area7-2",
-    "type": "ammoBox",
-    "x": -10.18,
-    "z": 16.83
-   },
-   {
-    "id": "area7-3",
-    "type": "cashStash",
-    "x": 15.07,
-    "z": -2.42
-   },
-   {
-    "id": "area7-4",
-    "type": "ammoBox",
-    "x": -4.68,
-    "z": 14.08
-   }
-  ],
-  "area8": [
-   {
-    "id": "area8-1",
-    "type": "medkit",
-    "x": 11.43,
-    "z": -7.79
-   },
-   {
-    "id": "area8-2",
-    "type": "ammoBox",
-    "x": -5.57,
-    "z": 10.21
-   },
-   {
-    "id": "area8-3",
-    "type": "cashStash",
-    "x": 12.68,
-    "z": -1.04
-   },
-   {
-    "id": "area8-4",
-    "type": "ammoBox",
-    "x": -21.07,
-    "z": 5.21
-   }
-  ]
- },
- "fx": {
-  "cashStash": {
-   "pool": {
-    "radius": 1.35,
-    "colour": "ff9a50",
-    "opacity": 0.56,
-    "pulse": 0.3,
-    "hz": 0.9,
-    "ringAt": 0.78
-   },
-   "beam": {
-    "radius": 0.13,
-    "taper": 0.3,
-    "height": 5,
-    "colour": "ffb060",
-    "opacity": 0.22
-   },
-   "glint": {
-    "count": 8,
-    "radius": 0.4,
-    "height": 0.3,
-    "size": 0.32,
-    "colour": "ffe9a0",
-    "opacity": 0.8,
-    "hz": 0.9,
-    "sharpness": 8
-   },
-   "burst": {
-    "count": 16,
-    "period": 1.6,
-    "spread": 0.75,
-    "rise": 0.95,
-    "base": 0.25,
-    "size": 0.24,
-    "colour": "ffc070"
-   },
-   "motion": {
-    "spin": 0.1,
-    "bob": 0.05,
-    "bobHz": 0.6,
-    "lift": 0.07
-   }
-  }
- }
 }

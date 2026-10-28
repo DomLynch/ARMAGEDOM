@@ -11,7 +11,9 @@ export function createDropFxKit(THREE, style) {
     if (!globalThis.document) return null; // a headless test has no canvas: the sprites are then plain colour
     const c = globalThis.document.createElement("canvas");
     c.width = c.height = style.textureSize;
-    draw(c.getContext("2d"), style.textureSize);
+    const ctx = c.getContext("2d");
+    if (typeof ctx?.createLinearGradient(0, 0, 0, 0)?.addColorStop !== "function") return null; // a test's stub canvas cannot draw gradients
+    draw(ctx, style.textureSize);
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
