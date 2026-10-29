@@ -34,7 +34,7 @@
       "mixamoClip": "118910901-standing-w-briefcase-idle",
       "idleClip": "Idle",
       "at": { "x": 0.25, "y": 0.485 },
-      "facingDegrees": 40,
+      "facingDegrees": 30,
       "phaseSeconds": 2.5,
       "look": "black ponytail, pale-teal long-sleeved tunic dress (not scrubs under a coat), white shoes; stands upright holding a bag or clipboard low in one hand (the prop is not modelled)"
     },
