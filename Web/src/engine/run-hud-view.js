@@ -12,17 +12,38 @@ const show = (node, on) => {
 };
 
 export function createRunHudView(s) {
-  const el = (id) => document.getElementById(id),
+  const nodes = new Map(),
+    el = (id) => {
+      if (!nodes.has(id)) nodes.set(id, document.getElementById(id)); // the page's nodes never change: look each up once
+      return nodes.get(id);
+    },
     listeners = [],
     listen = (node, handler) => {
       if (!node) return;
       node.addEventListener("click", handler);
       listeners.push(() => node.removeEventListener("click", handler));
     };
-  let rowsKey = null;
+  let rowsKey = null,
+    idle = false;
   function update() {
     const g = s.game;
     if (!g || s.contextLost) return;
+    // No run (or a dismissed one): the timer, banner and results are hidden once, then only the hub's start button is checked.
+    if (!g.run || g.run.dismissed) {
+      if (!idle) {
+        idle = true;
+        rowsKey = null;
+        for (const id of ["run-hud", "run-banner", "run-results"]) show(el(id), false);
+      }
+      const canStart = canStartRun(g, RUN);
+      if (canStart || el("run-panel")?.hidden === false) {
+        paint(el("run-start"), RUN.text.startButton);
+        paint(el("run-start-hint"), RUN.text.startHint);
+      }
+      show(el("run-panel"), canStart);
+      return;
+    }
+    idle = false;
     const timer = runTimerLine(g, RUN),
       banner = runBanner(g, RUN),
       rows = runResults(g, RUN);
