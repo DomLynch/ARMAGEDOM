@@ -227,6 +227,26 @@ test("isolation: inventory is private, nobody writes it directly, and a stranger
   assert.deepEqual(await inv(ids.alice, alice), [{ item_id: "ammo-pack", qty: 1 }], "nothing changed");
 });
 
+test("enforce_cash off closes the market: buy and sell both answer cash-not-enforced and change nothing; with it on, trading is unchanged", async () => {
+  const { db, alice, buy, sell, earn, inv, cash, save } = await setup();
+  await earn(alice, 500);
+  await save(ids.alice, alice, 0, 1, 500);
+  assert.equal((await buy(ids.alice, alice, "medkit-pack", 2, "ens-aaaa-0001")).ok, true);
+  const snapshot = async () => ({
+    inv: await inv(ids.alice, alice), cash: await cash(alice),
+    run: (await call(db, "select record #>> '{marked,carried}' as c from public.arma_runs where character = $1", [alice]))[0].c,
+    requests: (await call(db, "select count(*)::int as n from public.arma_market_requests where character = $1", [alice]))[0].n,
+  });
+  const before = await snapshot();
+  await db.exec("update public.arma_config set value = 'false'::jsonb where key = 'enforce_cash'");
+  assert.deepEqual(await buy(ids.alice, alice, "ammo-pack", 1, "ens-aaaa-0002"), { ok: false, error: "cash-not-enforced" });
+  assert.deepEqual(await sell(ids.alice, alice, "medkit-pack", 1, "ens-aaaa-0003"), { ok: false, error: "cash-not-enforced" });
+  assert.deepEqual(await snapshot(), before, "nothing moved: inventory, cash, run record, requests");
+  await db.exec("update public.arma_config set value = 'true'::jsonb where key = 'enforce_cash'");
+  assert.equal((await sell(ids.alice, alice, "medkit-pack", 1, "ens-aaaa-0003")).ok, true, "back on: the same request id was not burned");
+  assert.equal((await buy(ids.alice, alice, "ammo-pack", 1, "ens-aaaa-0002")).ok, true);
+});
+
 test("the old four-argument kill credit call still works unchanged for stashes and kills", async () => {
   const { db, alice } = await setup();
   const r = (await call(db, "select public.arma_claim_pickup($1, $2, 'kill:trash', 5) as r", [ids.alice, alice]))[0].r;
