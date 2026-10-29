@@ -1116,7 +1116,7 @@ export function createActors(
           return best;
         },
         calf: (game, dog) => {
-          this.update(game, 0, 0, { presentationDt: 0, contactOnly: true });
+          this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([dog.id]) });
           const player = views.get(0),
             view = views.get(dog.id);
           if (!player || !view) return null;
