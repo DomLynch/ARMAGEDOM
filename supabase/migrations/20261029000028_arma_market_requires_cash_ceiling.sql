@@ -1,5 +1,5 @@
 begin;
--- ROLLBACK: supabase/down/20261028000027_arma_market_requires_cash_ceiling_down.sql.
+-- ROLLBACK: supabase/down/20261029000028_arma_market_requires_cash_ceiling_down.sql.
 -- Market trades need an enforced cash ceiling. With enforce_cash off, arma_cash_ceiling is null: a buy was unbounded and a sell credited cash the server never granted (a mint).
 -- Buy and sell now both answer cash-not-enforced before any write. Otherwise identical to the function in 000026; create or replace keeps its grants, restated below.
 create or replace function public.arma_market_trade(p_account uuid, p_character text, p_op text, p_shop text, p_item text, p_qty int, p_request text) returns jsonb language plpgsql security definer set search_path = '' as $$
