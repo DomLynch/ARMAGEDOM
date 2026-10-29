@@ -166,8 +166,18 @@ function prepareFinale(g, rules) {
 
 // How far the player is, in metres, from the nearest exit of this area that leads to `toArea` (Infinity when there is none). The same
 // clamp-to-the-exit-box measure as the route hint (world.js exitHint).
+const linkLists = new WeakMap(); // registry -> "area>toArea" -> its links: the step runs at 60 Hz and the registry never changes
+function exitLinks(world, toArea) {
+  const registry = world.registry;
+  if (!registry) return [];
+  const key = `${world.areaId}>${toArea}`;
+  let lists = linkLists.get(registry);
+  if (!lists) linkLists.set(registry, (lists = new Map()));
+  if (!lists.has(key)) lists.set(key, registry.links(world.areaId).filter((link) => link.to === toArea));
+  return lists.get(key);
+}
 function exitGap(world, position, toArea) {
-  const links = (world.registry?.links(world.areaId) ?? []).filter((link) => link.to === toArea),
+  const links = exitLinks(world, toArea),
     point = links.length ? world.geometry.point(position) : null;
   let best = Infinity;
   for (const link of links) {
@@ -192,9 +202,18 @@ function stepHold(g, rules, dt) {
   if (r.extracted) return;
   if (!r.hold) {
     if (!rules.raidZones.includes(areaId) || safehouseProtected(g)) return;
-    if (exitGap(g.world, g.player.pos, rules.startZone) > x.mouthRange) return;
+    const gap = exitGap(g.world, g.player.pos, rules.startZone);
+    if (gap > x.mouthRange) return;
+    if (gap < x.mouthMin) {
+      // Too close to the exit: the hunt's entry points keep a minimum distance, so nothing could come. Say so, not every frame.
+      if (g.time >= (r.stepHintAt ?? 0)) {
+        r.stepHintAt = g.time + x.hintSeconds;
+        say(g, webText("extraction.step"));
+      }
+      return;
+    }
     r.hold = { areaId, at: { ...g.player.pos }, hold: 0, progress: 0, hud: "" };
-    if (!g.raid) armRaid(g, rules);
+    if (!g.raid || g.raid.endAt - g.time < x.raidMinSeconds) armRaid(g, rules); // a raid nearly over would leave the hold unopposed
     say(g, webText("extraction.begin"));
     return;
   }

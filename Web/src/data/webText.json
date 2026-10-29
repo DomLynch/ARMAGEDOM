@@ -126,6 +126,7 @@
     "hud.deathHint": "Watch their wind-up. Dodge, then strike.",
     "hud.safehouseLowered": "SAFEHOUSE · WEAPONS LOWERED",
     "extraction.begin": "Hold this spot by the exit. The hunters are coming.",
+    "extraction.step": "Step away from the exit to hold.",
     "extraction.ready": "Extraction ready. Take the exit to the safehouse.",
     "extraction.hud": "EXTRACTING · {percent}%",
     "extraction.broken": "You left the spot. Extraction lost.",
