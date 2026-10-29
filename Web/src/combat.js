@@ -1,6 +1,6 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
-import { rigCapability, rigOfSpecies, rigText } from "./rig-capabilities.js";
+import { rigCapability, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
@@ -34,60 +34,49 @@ import { SALAMANDER_BREATH } from "./salamander-native.js";
 import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
-import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
-import { recordResidentKill, reviveDue } from "./engine/respawn.js";
+import { recordResidentKill } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
-import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
+import { bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
 import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
 import { stepAirdrop, airdropPull } from "./engine/airdrop.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
-import {
-  creatureCatalogue,
-  animalFoundationParameters,
-  ENGINE_CREATURE_CAPABILITIES,
-} from "./engine/creature-catalogue.js";
 import { ratMeleeDefinition } from "./rat-melee-definition.js";
-import { resolveBoundAnimalRole, nativeAttackCompletion } from "./animal-role-bindings.js";
-import { resolveRoachNestGuard, territoryHomeStep } from "./roach-territory.js";
-import { gauntHumanRecipe } from "./gaunt-human-bindings.js";
+import { nativeAttackCompletion } from "./animal-role-bindings.js";
+import { territoryHomeStep } from "./roach-territory.js";
 import {
-  resolveResidentIntent,
   canWakeResident,
   recoveryMovement,
   approachRhythm,
   observeResidentCompanions,
 } from "./creature-behaviour-intents.js";
-import { animalPlacement } from "./animal-cycle.js";
-import { AREA_DRONE_SPAWNS } from "./area-drone-spawns.js";
-import { DRONE_KEYS, DRONE_RULES, createDroneState, droneIntent, recordDroneDeath } from "./drone-mechanics.js";
+import { DRONE_RULES, createDroneState, droneIntent, recordDroneDeath } from "./drone-mechanics.js";
 import { createBridgeSteering } from "./bridge-steering.js";
-import { createMobileAimState, stepMobileAim } from "./mobile-combat-aim.js";
+import { createMobileAimState } from "./mobile-combat-aim.js";
 import { selectFinisher } from "./finisher-selection.js";
-import { allocateMobSizes } from "./mob-size-allocation.js";
-import { mobSizeProfile } from "./mob-size.js";
-import { applyStarVariant, starDamage } from "./engine/star-variants.js";
+import { starDamage } from "./engine/star-variants.js";
 import { createSuppliesState, issueSupply } from "./supplies.js";
 import { createVestState, damageAfterVest } from "./vest.js";
-import { AREA_MOB_SPAWNS, residentEncounterHealth } from "./area-mob-spawns.js";
-import { selectCombatTarget, resolvePistolShot, resolveRangedAim, selectedRangedProfile } from "./pistol-targeting.js";
+import { selectCombatTarget, resolveRangedAim } from "./pistol-targeting.js";
 import { meleeCandidates, chainedSight, bodies } from "./pistol-targeting.js";
-import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
+import { createPistolState, stepPistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
+import { knifeEnergy, knifeAffordable, knifeSpend, knifeRegen } from "./engine/knife-stamina.js";
+import {
+  hollowActor,
+  markedHunter,
+  initializeAreaResidents,
+  reviveAreaResidents,
+  DOG_RIG,
+} from "./engine/area-residents.js";
+import { mobileControl, resetMobileControls } from "./engine/mobile-control.js";
+export { initializeAreaResidents, reviveAreaResidents, resetMobileControls };
 const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // Legacy (non-pilot) attacks: data/creatures.json `playerAttacks`.
 export const attacks = GAME_DATA.creatures.playerAttacks;
-// The rig ids of the kinds addressed by name below (creatures.json rigCapabilities species).
-const DRONE_RIG = rigOfSpecies("drone"),
-  RAT_RIG = rigOfSpecies("rat"),
-  ROACH_RIG = rigOfSpecies("roach"),
-  DOG_RIG = rigOfSpecies("dog");
-const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
-  behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
-});
 // The bite and low-strike moves are rows of Web/src/data/creatures.json, resolved in creature-moves.js.
 const RAT_LOW = CREATURE_MOVES.rat_low;
 export const RAT_BITE = CREATURE_MOVES.rat_bite;
@@ -120,7 +109,7 @@ export function normal(v, fallback = { x: 0, z: 1 }) {
   const n = mag(v);
   return n > NEGLIGIBLE_DISTANCE ? { x: v.x / n, z: v.z / n } : { ...fallback };
 }
-const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > NEGLIGIBLE_DISTANCE;
+export const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > NEGLIGIBLE_DISTANCE;
 const dot = (a, b) => a.x * b.x + a.z * b.z;
 const inside = (dir, delta, arc) =>
   mag(delta) < NEGLIGIBLE_DISTANCE || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
@@ -1090,75 +1079,6 @@ function collect(g) {
   }
   g.loot = g.loot.filter((l) => !l.collected);
 }
-export function resetMobileControls(g) {
-  if (g) {
-    stopBoneSaw(g, g.player, "input-clear");
-    g.touchTarget = null;
-    g.touchTargetReady = false;
-  }
-  if (!g?.mobileAim) return;
-  g.mobileAim = createMobileAimState(Math.atan2(g.player.facing.x, g.player.facing.z));
-  g.mobileAiming = false;
-  g.player.velocity = { x: 0, z: 0 };
-}
-function mobileControl(g, intent, dt, services) {
-  if (!g.mobileAim) return intent;
-  const p = g.player,
-    heading = Math.atan2(p.facing.x, p.facing.z);
-  if (intent.mobile && !intent.moveHeld) p.velocity = { x: 0, z: 0 };
-  const flame = !!g.flame?.equipped,
-    manualFlame = flame && intent.manualFlameAim && validDirection(intent.aim);
-  if ((!intent.mobile && !flame) || intent.cancel || (validDirection(intent.aim) && !manualFlame)) {
-    g.mobileAim = createMobileAimState(heading);
-    g.mobileAiming = false;
-    if (intent.cancel) p.velocity = { x: 0, z: 0 };
-    return intent;
-  }
-  const areaId = g.world.areaId,
-    visible = intent.combatVisibleIds ?? intent.pistolVisibleIds;
-  const ranged = !!selectedBossRanged(g) || !!g.pistol?.equipped || !!g.rifle?.selected || !!g.flame?.equipped,
-    busy = !!p.swing || g.time < p.dodgeUntil || g.time < p.hurtUntil || (!!intent.guard && !ranged);
-  if (busy) g.mobileAim = { ...g.mobileAim, heading };
-  const result = stepMobileAim(g.mobileAim, {
-    dt,
-    move: intent.move ?? { x: 0, z: 0 },
-    position: p.pos,
-    targets: bodies(g).map((e) => ({
-      id: e.placementKey,
-      pos: e.pos,
-      hp: e.hp,
-      hostile: e.hostile !== false,
-      visible: e.visible !== false && (!visible || visible.includes(e.id)),
-      areaId: e.areaId ?? areaId,
-      radius: e.radius,
-    })),
-    areaId,
-    lineClear: chainedSight(g),
-    mobile: !!intent.mobile,
-    moveHeld: !!intent.moveHeld,
-    alive: p.hp > 0,
-    assistEnabled: g.mobileAssistEnabled,
-    pistolEquipped: ranged,
-    rangedRange: !flame ? selectedRangedProfile(g)?.rules.range : null,
-    flameRange: flame ? g.world.flameData?.contact.range : null,
-    fireHeld:
-      ranged &&
-      ((intent.held ?? []).includes("fire") || (intent.actions ?? []).includes("fire")),
-    manualHeading: manualFlame ? Math.atan2(intent.aim.x, intent.aim.z) : null,
-    flameEligible: services.flameAimEligible
-      ? (key) =>
-          services.flameAimEligible(
-            g,
-            bodies(g).find((e) => e.placementKey === key),
-          )
-      : undefined,
-  });
-  g.mobileAim = result.state;
-  g.mobileAiming = !!intent.mobile;
-  if (intent.mobile && !intent.moveHeld) p.velocity = { x: 0, z: 0 };
-  if (!busy) p.facing = { ...result.direction };
-  return { ...intent, move: result.move, aim: busy ? null : { ...p.facing } };
-}
 function resetDeadPlayerBossPursuit(g) {
   if (g.player.hp > 0) return;
   for (const e of g.enemies) {
@@ -1407,44 +1327,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
 
 // One pool for action costs and defence. The legacy guard field is an alias,
 // so existing HUD/hit callers cannot create a second independent resource.
-function knifeEnergy(entity, regen = 1) {
-  if (entity.maxStamina !== undefined) return entity;
-  entity.stamina = R.maxStamina;
-  entity.maxStamina = R.maxStamina;
-  entity.exhausted = false;
-  entity.staminaRegen = regen;
-  entity.guardRecoverAt = 0;
-  Object.defineProperty(entity, "guard", {
-    enumerable: true,
-    configurable: true,
-    get() {
-      return this.stamina;
-    },
-    set(value) {
-      this.stamina = Math.max(0, Math.min(this.maxStamina, value));
-      if (this.stamina <= EPS) this.exhausted = true;
-    },
-  });
-  return entity;
-}
-function knifeAffordable(entity, cost) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  return !entity.exhausted && entity.stamina + EPS >= cost;
-}
-function knifeSpend(g, entity, cost) {
-  entity.guard = Math.max(0, entity.stamina - cost);
-  entity.guardRecoverAt = g.time + R.regenDelay / 60;
-  if (entity.exhausted) {
-    entity.guarding = false;
-    entity.parryUntil = 0;
-  }
-}
-function knifeRegen(g, entity, dt, committed) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  if (!committed && g.time + EPS >= entity.guardRecoverAt && g.time + EPS >= (entity.guardBrokenUntil ?? 0))
-    entity.guard = entity.stamina + R.regen * (entity.staminaRegen ?? 1) * (entity.guarding ? R.guardRegen : 1) * dt;
-  if (entity.exhausted && entity.stamina + EPS >= R.exhaustRecover) entity.exhausted = false;
-}
 function hollowSpawn(g) {
   if (g.enemies.length || g.finished || g.wave) return false;
   const profile = g.encounter,
@@ -1496,210 +1378,6 @@ function hollowSpawn(g) {
   }
   return false;
 }
-// The opening group and placed residents share the same Hollow factory/rules.
-function hollowActor(g, position, index = 0, mobSize = 1) {
-  const profile = g.encounter,
-    c = profile.character,
-    foundation = creatureCatalogue.get("hollow-scavenger");
-  return knifeEnergy(
-    Object.assign(enemy(0, position), {
-      rig: foundation.runtimeIdentity,
-      contactRig: c.contactRig,
-      weapon: c.weapon,
-      ...mobSizeProfile(
-        { bodyScale: c.bodyScale, combatScale: g.player.combatScale, radius: RULES.bodyRadius * c.bodyScale },
-        mobSize,
-      ),
-      mobSize,
-      hp: profile.health,
-      maxHP: profile.health,
-      lastMove: null,
-      moveSpeed: profile.moveSpeed,
-      recoveryDelay: profile.recovery,
-      ready: g.time + index * profile.aggression,
-    }),
-    profile.regen,
-  );
-}
-function droneResident(g, placement) {
-  const foundation = creatureCatalogue.get(DRONE_RIG);
-  return Object.assign(enemy(0, placement.pos), {
-    rig: foundation.runtimeIdentity,
-    areaId: g.world.areaId,
-    weapon: foundation.stats.weapon,
-    radius: foundation.stats.radius,
-    hp: foundation.stats.health,
-    maxHP: foundation.stats.health,
-    moveSpeed: foundation.stats.moveSpeed,
-    combatScale: g.player.combatScale,
-    droneState: createDroneState(),
-  });
-}
-function markedHunter(g, position, config) {
-  const e = hollowActor(g, position);
-  return Object.assign(e, {
-    markedHunter: true,
-    placementKey: "marked-hunter-" + e.id,
-    areaId: g.world.areaId,
-    hp: config.hunterHealth,
-    maxHP: config.hunterHealth,
-    moveSpeed: config.hunterSpeed,
-    home: { ...position },
-    patrol: [{ ...position }, { ...position }],
-    patrolIndex: 0,
-    alerted: true,
-    returning: false,
-    residentIntent: Object.freeze({
-      pursuitScope: "area",
-      wakeDistance: 1000,
-      homeLeash: 1000,
-      holdUntilWake: false,
-      retreatSeconds: 0,
-      companionDistance: 0,
-      isolationDistance: 0,
-      burstSeconds: 0,
-      pauseSeconds: 0,
-    }),
-  });
-}
-function declaredResident(g, placement, mobSize) {
-  const foundation = placement.foundationRef ? creatureCatalogue.get(placement.foundationRef) : null;
-  if (foundation?.runtimeIdentity === DRONE_RIG) {
-    if (DRONE_KEYS[placement.key] !== g.world.areaId) throw Error("Unsupported declared drone death placement");
-    return droneResident(g, placement);
-  }
-  const actor = hollowActor(g, placement.pos, 0, foundation ? 1 : mobSize);
-  if (foundation && foundation.runtimeIdentity !== "hollow-scavenger")
-    Object.assign(actor, animalFoundationParameters(foundation.runtimeIdentity, g.player.combatScale), {
-      animalRecipe: placement.recipeRef,
-    });
-  else if (placement.recipeRef === "human-gaunt-skulker") actor.humanBodyRecipe = placement.recipeRef;
-  if (placement.appearanceRef !== undefined) actor.appearanceRef = placement.appearanceRef;
-  const health = residentEncounterHealth(placement, actor.maxHP);
-  actor.hp = actor.maxHP = health;
-  return applyBossProfile(actor, placement, g.world.bossData);
-}
-function bindAnimalRole(g, areaId, e) {
-  const role = resolveBoundAnimalRole(e, {
-    areaId,
-    animalCycle: g.animalCycle,
-    behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
-  });
-  if (!role) return;
-  e.animalRole = role;
-  e.residentIntent = role.intent;
-  Object.assign(e, role.parameters);
-  e.completedAttack = null;
-  e.wokeAt = null;
-}
-// `revived` holds placements whose respawn time has passed: they come back although the permanent ledgers say dead.
-// `onlyRevived` builds just those (re-entering an area that was already set up); drones are never revived.
-function buildResidents(g, area, revived, onlyRevived) {
-  const dead = new Set(g.progressionModel?.deadPlacements(g.progression, area) ?? []);
-  const policy = g.world.populationData,
-    canonical = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [];
-  const placements = populationPlacements(policy, area, g.animalCycle, canonical),
-    sizes = allocateMobSizes(
-      area,
-      canonical.map((placement) => placement.key),
-    );
-  const residents = placements
-    .filter(
-      (p) =>
-        revived.has(p.key) ||
-        (!onlyRevived &&
-          !dead.has(p.key) &&
-          (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
-            !g.supplies?.issued.includes(p.key)) &&
-          (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key))),
-    )
-    .map((placement) =>
-      Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
-        placementKey: placement.key,
-        home: { ...placement.pos },
-        patrol: placement.patrol,
-        patrolIndex: 1,
-        returning: false,
-      }),
-    );
-  if (!policy?.areas[area] && g.rat) {
-    const rat = residents.find((e) =>
-      ["westminster-roamer-4", "east-roamer-7", "south-roamer-3"].includes(e.placementKey),
-    );
-    if (rat) Object.assign(rat, animalFoundationParameters(RAT_RIG, g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.roach) {
-    const roach = residents.find((e) => e.placementKey === "westminster-roamer-2");
-    if (roach) Object.assign(roach, animalFoundationParameters(ROACH_RIG, g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.dog) {
-    const dog = residents.find((e) =>
-      ["westminster-roamer-6", "east-roamer-4", "south-roamer-8"].includes(e.placementKey),
-    );
-    if (dog) Object.assign(dog, animalFoundationParameters(DOG_RIG, g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.animalVariants)
-    for (const e of residents) {
-      const assignment = animalPlacement(g.animalCycle, e.placementKey);
-      if (!assignment) continue;
-      const { recipe, rig, offset } = assignment;
-      Object.assign(e, { animalRecipe: recipe, ...animalFoundationParameters(rig, g.player.combatScale) });
-      if (
-        g.animalCycle === "A" &&
-        area === "east" &&
-        e.placementKey === "east-roamer-4" &&
-        recipe === "dog-pack-chaser" &&
-        rig === DOG_RIG
-      )
-        e.residentIntent = PACK_CHASER;
-      e.pos = { x: e.pos.x + offset.x, z: e.pos.z + offset.z };
-      e.home = { ...e.pos };
-      e.patrol = e.patrol.map((p) => ({ x: p.x + offset.x, z: p.z + offset.z }));
-      const territory = resolveRoachNestGuard(e, { areaId: area, animalCycle: g.animalCycle });
-      if (territory) e.residentIntent = territory;
-      bindAnimalRole(g, area, e);
-    }
-  for (const e of residents) if (rigCapability(e.rig, "nativeSkeleton")) bindAnimalRole(g, area, e);
-  for (const e of residents) {
-    const recipe = gauntHumanRecipe(g.animalCycle, area, e);
-    if (recipe) e.humanBodyRecipe = recipe;
-    if (g.starVariants) applyStarVariant(e, area, g.animalCycle);
-  }
-  if (g.drone && !onlyRevived)
-    for (const placement of AREA_DRONE_SPAWNS[area] ?? [])
-      if (
-        populationAllowsDrone(policy, area, placement.key) &&
-        !dead.has(placement.key) &&
-        !g.droneDeaths.includes(placement.key) &&
-        !placements.some((p) => p.foundationRef === DRONE_RIG && p.key === placement.key)
-      )
-        residents.push(
-          Object.assign(droneResident(g, placement), {
-            placementKey: placement.key,
-            home: { ...placement.pos },
-            patrol: placement.patrol,
-            patrolIndex: 1,
-            returning: false,
-          }),
-        );
-  return residents;
-}
-export function initializeAreaResidents(g) {
-  if (!g.areaResidents || g.areaInitialized) return;
-  const area = g.world.areaId ?? "westminster";
-  // Legacy opening groups remain atomic; resident-only starts initialize directly.
-  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
-  g.enemies.push(...buildResidents(g, area, new Set(), false));
-  g.areaInitialized = true;
-  g.encounterActive = g.enemies.length > 0;
-  g.encounterCleared = !g.enemies.length;
-  if (area !== "westminster" || g.openingGroup === false) {
-    g.wave = 1;
-    g.nextWave = Infinity;
-    g.nextEnemyAttackAt = g.time;
-  }
-}
-export const reviveAreaResidents = (g) => reviveDue(g, buildResidents, AREA_MOB_SPAWNS);
 function alertResident(g, e) {
   if (!e.alerted && e.animalRole) e.wokeAt = g.time;
   e.alerted = true;
