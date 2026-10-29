@@ -296,7 +296,3 @@ export function followGrenadeSurface(anchor, view) {
     ? { x: point.x, y: point.y, z: point.z }
     : null;
 }
-
-export function traceRailgunSurface(views, enemies, start, end) {
-  return traceGrenadeSurface(views, enemies, start, end, { pierce: true }) ?? [];
-}
