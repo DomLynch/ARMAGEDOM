@@ -14,7 +14,7 @@ try:
 except ImportError:  # no torch on this machine: finish the seams with OpenCV's Navier-Stokes inpainting instead
     SimpleLama = None
 
-root = "/Users/domininclynch/Developer/armagedom/.claude/worktrees/arma-chars-f7f72b"
+root = os.environ.get("ARMAGEDOM_ROOT") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # repo root
 area, mask_file, sources_file, out = sys.argv[1:5]
 original = sys.argv[5] if len(sys.argv) > 5 else f"{root}/Web/public/world/{area}/backdrop-phone.webp"
 img = np.asarray(Image.open(original).convert("RGB")).copy()

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import {createGeometry} from '/Users/domininclynch/Developer/armagedom/.claude/worktrees/agent-ac38ca45493deaff1/Web/src/world-geometry.js';
-const R='/Users/domininclynch/Developer/armagedom/.claude/worktrees/agent-ac38ca45493deaff1/Web/';
+import {createGeometry} from '../../Web/src/world-geometry.js';
+const R=new URL('../../Web/',import.meta.url).pathname;
 const areas=JSON.parse(fs.readFileSync(R+'src/data/areas.json')).areas;
 const out={};
 for(const a of areas){

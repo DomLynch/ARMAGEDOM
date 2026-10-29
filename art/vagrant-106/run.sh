@@ -3,7 +3,7 @@
 # usage: bash run.sh <results dir>   (run from a checkout that has Web/public/assets/lossless/vagrant.glb and hunters/hunter-pitborn-106.glb)
 # VPS work dir /srv/dev-jobs/art-rig106 only needs these scripts and the two inputs; nothing else on the box is touched.
 set -e
-K="-o BatchMode=yes -i /Users/domininclynch/.ssh/binance_futures_tool"
+K="-o BatchMode=yes -i ${SSH_KEY:-$HOME/.ssh/binance_futures_tool}"
 H=root@49.12.7.18
 W=/srv/dev-jobs/art-rig106
 D=$(cd "$(dirname "$0")" && pwd)
