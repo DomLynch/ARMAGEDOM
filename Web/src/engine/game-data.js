@@ -126,6 +126,8 @@ import burnPresentation from "../data/burnPresentation.json" with { type: "json"
 import { validateBurnPresentation } from "./burn-presentation-data.js";
 import bossTaunts from "../data/bossTaunts.json" with { type: "json" };
 import { validateBossTaunts } from "./boss-taunts-data.js";
+import soundHooks from "../data/soundHooks.json" with { type: "json" };
+import { validateSoundHooks } from "./sound-hooks-data.js";
 import { validateHud } from "./hud-data.js";
 import { validatePickupFlash } from "./pickup-flash-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
@@ -1099,6 +1101,7 @@ const sources = () => ({
   reaperMotion: [reaperMotion, validateReaperMotion],
   burnPresentation: [burnPresentation, validateBurnPresentation],
   bossTaunts: [bossTaunts, validateBossTaunts],
+  soundHooks: [soundHooks, validateSoundHooks],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
