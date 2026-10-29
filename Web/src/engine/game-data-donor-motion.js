@@ -1,7 +1,7 @@
 // donorMotion.json validator: the presentation numbers for donor-motion.js (swing-phase curve, bone-saw poses, locomotion clock).
 import { closed, freeze } from "./content-schema.js";
 
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { finite } from "./shared-checks.js";
 const fail = () => {
   throw TypeError("Invalid donor motion data");
 };

@@ -2,7 +2,7 @@ import { areaDisplayName } from "../area-registry.js";
 import { rigCapability } from "../rig-capabilities.js";
 import { GAME_DATA, fillText } from "./game-data.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 // The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
 const tune = () => GAME_DATA.visual.routeGuidance;
 const pointOnSegment = (p, a, b) => {

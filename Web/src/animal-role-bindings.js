@@ -4,7 +4,7 @@ import { resolveResidentIntent } from "./creature-behaviour-intents.js";
 import { resolveCreatureBehaviour } from "./creature-behaviour-presets.js";
 // Exact existing079 catalogue assignments; no species-wide activation or clocks.
 const bindings = creatureCatalogue.roles;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 export function resolveBoundAnimalRole(e, { areaId, animalCycle, behaviourCapabilities = [] } = {}) {
   if (
     !["A", "B"].includes(animalCycle) ||

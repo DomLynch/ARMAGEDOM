@@ -1,6 +1,6 @@
 import { MOVEMENT_TRACE } from "./movement-trace-data.js";
 const vector = (p) => (p ? { x: p.x, z: p.z } : null);
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 export function movementBoundary(world, point, radius) {
   const polygons = [
     ["road", world.geometry.road],

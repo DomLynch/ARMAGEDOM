@@ -2,7 +2,7 @@
 // warning arcs, the rocket's ground height and wall bisection, and the stagger and stamina each shot carries).
 import { closed, freeze } from "./content-schema.js";
 
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { finite } from "./shared-checks.js";
 const fail = () => {
   throw TypeError("Invalid boss ranged data");
 };

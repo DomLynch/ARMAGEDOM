@@ -3,7 +3,7 @@ import { GAME_DATA } from "./engine/game-data.js";
 // Area1-only rules; caller owns actual kill authority and atomic run persistence.
 export const SUPPLY_RULES = GAME_DATA.supplies.rules; // data/supplies.json: pickupRadius, reserveCap, healFraction
 export const AREA1_SUPPLIES = GAME_DATA.supplies.area1; // data/supplies.json: roamer key -> { kind, amount } or null
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const copy = (p) => ({ x: p.x, z: p.z });
 const dropId = (key) => `area1-supply-v1:${key}`;
 

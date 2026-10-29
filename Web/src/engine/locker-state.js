@@ -27,14 +27,7 @@ const lockerRules = (caps) =>
     ),
   );
 export const LOCKER_RESOURCE_RULES = lockerRules(GAME_DATA.locker.resourceCaps);
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+import { closed } from "./shared-checks.js";
 const dense = (rows) =>
   Array.isArray(rows) &&
   Object.getPrototypeOf(rows) === Array.prototype &&

@@ -5,14 +5,7 @@ import { GAME_DATA } from "./game-data.js";
 const profileFields = ["itemId", "capacity", "maxRange", "fuseSeconds", "radius", "maxDamage"];
 // The one registered profile: the grenade payload in data/weapons.json. A caller's profile must match it field for field.
 const registeredProfile = () => GAME_DATA.weapons.ranged["standard-grenade-v1"].payload;
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+import { closed } from "./shared-checks.js";
 const id = (value) =>
   typeof value === "string" &&
   /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,159}$/.test(value) &&

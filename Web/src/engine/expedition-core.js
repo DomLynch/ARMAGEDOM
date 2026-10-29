@@ -19,7 +19,7 @@ const envelope = [
   "progression",
   "expedition",
 ];
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 const same = (a, b) =>
   a.version === b.version &&
   a.status === b.status &&

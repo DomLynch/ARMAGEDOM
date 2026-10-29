@@ -6,7 +6,7 @@ export const START_PISTOL_ID = "westminster-start-pistol-v1";
 export const START_PISTOL_LABEL = GAME_DATA.combatText.gear.startPistolLabel; // data/combatText.json
 export const PISTOL_RULES = RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules;
 const EPS = 1e-8;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const copy = (p) => ({ x: p.x, z: p.z });
 
 export function createPistolState({ pickupPos, pickupAreaId = "westminster" } = {}) {

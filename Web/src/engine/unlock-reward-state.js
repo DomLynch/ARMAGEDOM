@@ -1,11 +1,4 @@
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+import { closed } from "./shared-checks.js";
 const id = (value) =>
   typeof value === "string" &&
   /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,159}$/.test(value) &&

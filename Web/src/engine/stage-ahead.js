@@ -6,7 +6,7 @@
 import input from "./stage-ahead-data.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { finite } from "./shared-checks.js";
 export function validateStageAheadData(value) {
   const d = structuredClone(value);
   closed(d, [

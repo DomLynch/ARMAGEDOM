@@ -18,7 +18,7 @@ import { LOCKER_WEAPON_IDS } from "./locker-state.js";
 // `lockerStored` (locker-core.js), which every equip/fire/reload command and every weapon tile already asks, answers true for the
 // bag's `gearId` while the bag holds it. So it cannot be used, and it cannot be duplicated, because there is only ever the one owned
 // weapon. Lost to a reload: nothing. A reload clears the bag, so the weapon comes back with the saved run (the cash does not).
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 
 const toast = (g, text) => {
   g.message = text;

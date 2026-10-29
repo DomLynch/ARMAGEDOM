@@ -2,7 +2,7 @@ import { insidePolygon } from "../world-geometry.js";
 import { GAME_DATA } from "./game-data.js";
 // Presentation values only. Existing FX pools own clocks, slots and disposal.
 export const SEVER_BLOOD_DATA = GAME_DATA.visual.severBlood; // data/visual.json
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./shared-checks.js";
 function distanceSquared(p, a, b) {
   const dx = b.x - a.x,
     dz = b.z - a.z,
