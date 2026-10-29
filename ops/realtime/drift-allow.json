@@ -7,12 +7,17 @@
     "arma_record_keys",
     "arma_weapon_rules",
     "arma_config",
-    "arma_world_config"
+    "arma_world_config",
+    "arma_items",
+    "arma_loot_table",
+    "arma_kill_tiers",
+    "arma_pickup_rules",
+    "arma_shop_stock"
   ],
   "liveConfigKeys": {
     "arma_enabled": "the live world switch: the migrations ship it false, Dom opened the world on 25 Oct 2026",
     "arma_open_access": "the live open-access switch: the migrations ship it false, Dom opened the world on 25 Oct 2026",
-    "enforce_cash": "the live cash-ceiling switch: the migrations ship it true; Lead turned it OFF on hosted on 26 Oct 2026 because arma_cash_ceiling is start_cash_total 0 plus earned cash, and nothing credits earned cash yet (the web client has no caller of spawn_engage or the hit settle), so every online save clamped cash to 0 (8 runs, none holding any cash, 0 cash rows, 0 kill events). Turn it back on only once engage and hit settle are wired"
+    "enforce_cash": "the live cash-ceiling switch: the migrations ship it true. Lead turned it OFF on hosted on 26 Oct 2026 (arma_cash_ceiling is start_cash_total 0 plus earned cash and nothing credited earned cash yet, so every online save clamped cash to 0), and it reads TRUE on hosted again as of 29 Oct 2026 (Lead read arma_config; Deploy has not re-read it). Kept in the list because the switch is the operator's to flip: a boolean here is allowed to differ from the migration, anything else is drift"
   },
   "allowedGrantees": {
     "service_role": "Supabase's own admin role: its default privileges on every table and function, never granted by a migration; the key stays server-side (Lead ruling, 26 Oct 2026)"
