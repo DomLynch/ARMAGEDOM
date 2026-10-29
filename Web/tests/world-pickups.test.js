@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { createGeometry } from "../src/world-geometry.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { createWorldPickups } from "../src/engine/world-pickups-view.js";
-import { WORLD_PICKUPS, placementsFor, stashCash, stepWorldPickups, worldPickupState } from "../src/engine/world-pickups-core.js";
+import { WORLD_PICKUPS, drainCashClaims, placementsFor, stashCash, stepWorldPickups, worldPickupState } from "../src/engine/world-pickups-core.js";
 import { LOCKER_RESOURCE_RULES } from "../src/engine/locker-state.js";
 import { lockerInventory } from "../src/engine/locker-core.js";
 
@@ -24,6 +24,20 @@ test("taking a cash stash notes one claim for the server; a medkit notes none", 
   const h = run({ x: kit.x, z: kit.z });
   stepWorldPickups(h, kitArea, NEVER, null);
   assert.equal(h.cashClaims, undefined);
+});
+test("cash claims noted before the save client exists stay noted, then go to the client once, in order", () => {
+  const g = { cashClaims: [{ source: "stash:a", amount: 5 }, { source: "kill:boss", amount: 30, killId: "k1" }] };
+  drainCashClaims(g, null);
+  drainCashClaims(g, undefined);
+  assert.equal(g.cashClaims.length, 2, "no client: nothing is dropped");
+  const sent = [];
+  const client = { claimPickup: (source, amount, extra) => sent.push([source, amount, extra.killId]) };
+  drainCashClaims(g, client);
+  assert.deepEqual(sent, [["stash:a", 5, undefined], ["kill:boss", 30, "k1"]]);
+  assert.equal(g.cashClaims.length, 0);
+  drainCashClaims(g, client);
+  drainCashClaims({}, client);
+  assert.equal(sent.length, 2, "an empty or missing list sends nothing");
 });
 const NEVER = () => false;
 const ALWAYS = () => true;
