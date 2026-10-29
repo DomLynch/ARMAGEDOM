@@ -230,8 +230,8 @@ test("the off switch is named in data and turns the shops off", () => {
   assert.equal(shopsOn(`?${DATA.offParam}=${DATA.offValue}`), false);
 });
 
-test("the shops ship OFF in data until the market server (PR #483) is live", () => {
-  assert.equal(DATA.enabled, false);
+test("the shops ship ON in data; ?noshop=1 is the off switch", () => {
+  assert.equal(DATA.enabled, true);
 });
 
 // A screen with the hub, the player and a camera whose projection keeps boxes predictable.
