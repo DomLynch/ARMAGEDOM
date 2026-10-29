@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "note": "The hub NPC shops (engine/shop.js). A shop is a ROW: shopId (this stall), serverShop (the server's shop id: v1 has one global shop, hub-trader, so each stall lists the itemIds it shows from it), npcId (a hubNpcs.json npc id; the shop opens when that NPC is tapped), title (the panel heading), stallLabel (the tag over the NPC) and radius (how close the player must be, in ground units; Marsh and Okafor stand about 8.5 apart). More stalls are more rows. Stock, names and prices come from the server (market_stock), counts from its replies, cash from the run (a trade's signed delta is applied to carried cash); this file holds only the rows, the layout of the tap target and the words. api.calls.* name the writer routes POST /arma/api/<op> (docs/MARKET-CONTRACT.md); an answer that is not ok maps its error code through text.errors, anything unknown through text.errors.refused. inventorySlots is the length of the carried strip. hotspot sizes the invisible tap target over the NPC: heightUnits is how tall the body is in ground units, widthRatio the width as a share of the projected height, minPx the smallest side. enabled false or ?noshop=1 removes every shop. A guest (anonymous) account and an unreachable market both show the closed state.",
-  "enabled": false,
+  "enabled": true,
   "offParam": "noshop",
   "offValue": "1",
   "area": "central-hub",

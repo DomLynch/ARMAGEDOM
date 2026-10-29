@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "enabled": false,
+  "enabled": true,
   "pickupRadius": 1,
   "despawnSeconds": 45,
   "maxDrops": 10,

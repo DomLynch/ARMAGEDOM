@@ -17,13 +17,23 @@ const run = (over = {}) => ({
 });
 const die = (g, actor) => g.events.push({ type: "death", actor: { pos: { x: 5, z: 5 }, ...actor } });
 
-test("kill drops ship switched off and the data is valid", () => {
-  assert.equal(GAME_DATA.killDrops.enabled, false);
+test("kill drops ship switched on, the data is valid and a data row set off leaves nothing", () => {
+  assert.equal(GAME_DATA.killDrops.enabled, true);
   validateKillDrops(structuredClone(KILL_DROPS));
   const g = run();
   die(g, { rig: "original-rat" });
-  assert.equal(leaveKillDrops(g), 0);
+  assert.equal(leaveKillDrops(g, { ...KILL_DROPS, enabled: false }), 0);
   assert.equal(g.killDrops, undefined);
+  assert.equal(leaveKillDrops(g), 1, "shipped data leaves a drop");
+});
+test("a roach kill claims kill:trash $1-10 on the shipped data", () => {
+  const g = run({ player: { hp: 10, pos: { x: 5, z: 5 } } });
+  die(g, { rig: "original-roach" });
+  assert.equal(leaveKillDrops(g), 1);
+  stepKillDrops(g);
+  assert.equal(g.cashClaims[0].source, "kill:trash");
+  assert.equal(g.cashClaims[0].enemy, "original-roach");
+  assert.ok(g.cashClaims[0].amount >= 1 && g.cashClaims[0].amount <= 10);
 });
 test("tiers: boss profile is boss, a salamander a creature, a rat and an unknown body trash", () => {
   assert.equal(tierOf({ bossProfile: {} }), "boss");
