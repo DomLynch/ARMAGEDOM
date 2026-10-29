@@ -1,0 +1,63 @@
+# Soft, NON-GATING lint (outside code review, Dom approved). Never fails CI, is not part of
+# web-gate and is not a required check. Reports counts only in the job summary.
+# Ratchet later: drop continue-on-error, pin a baseline count, or move eslint/prettier into
+# Web devDependencies (lockfile change) and fail only when the count rises above the baseline.
+name: lint-soft
+
+on:
+  pull_request:
+
+concurrency:
+  group: lint-soft-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint (soft, non-gating)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: ESLint (report only)
+        continue-on-error: true
+        run: |
+          npx --yes eslint@9.39.1 --no-warn-ignored -f json -o "$RUNNER_TEMP/eslint.json" src tests scripts tools || true
+          node -e '
+            const fs = require("fs");
+            const out = [];
+            let files = [];
+            try { files = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/eslint.json", "utf8")); } catch (e) { out.push("ESLint produced no report."); }
+            let warn = 0, err = 0; const byRule = {};
+            for (const f of files) for (const m of f.messages) {
+              if (m.severity === 2) err++; else warn++;
+              byRule[m.ruleId || "parse"] = (byRule[m.ruleId || "parse"] || 0) + 1;
+            }
+            out.push("## ESLint (soft, non-gating)", "", "Warnings: " + warn + "  Errors/parse: " + err, "", "Top 20 rules:", "");
+            Object.entries(byRule).sort((a, b) => b[1] - a[1]).slice(0, 20).forEach(([r, n]) => out.push("- `" + r + "`: " + n));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out.join("\n") + "\n\n");
+          ' || true
+
+      - name: Prettier check (report only)
+        continue-on-error: true
+        run: |
+          npx --yes prettier@3.9.10 --list-different "src/**/*.js" > "$RUNNER_TEMP/prettier.txt" 2>&1 || true
+          {
+            echo "## Prettier (soft, non-gating, uses Web/.prettierrc)"
+            echo
+            echo "Files that would change: $(grep -c '\.js$' "$RUNNER_TEMP/prettier.txt" || true)"
+            echo
+            echo "First 20:"
+            echo
+            grep '\.js$' "$RUNNER_TEMP/prettier.txt" | head -20 | sed 's/^/- `/; s/$/`/' || true
+          } >> "$GITHUB_STEP_SUMMARY"
