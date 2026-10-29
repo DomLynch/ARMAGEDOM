@@ -214,7 +214,8 @@ function stepHold(g, rules, dt) {
     }
     r.hold = { areaId, at: { ...g.player.pos }, hold: 0, progress: 0, hud: "" };
     if (!g.raid || g.raid.endAt - g.time < x.raidMinSeconds) armRaid(g, rules); // a raid nearly over would leave the hold unopposed
-    say(g, webText("extraction.begin"));
+    say(g, webText(r.holdsStarted ? "extraction.begin" : "extraction.beginFirst")); // the first hold of a run says how to hold
+    r.holdsStarted = (r.holdsStarted ?? 0) + 1;
     return;
   }
   const h = r.hold,

@@ -76,6 +76,19 @@
     "raidMinSeconds": 30,
     "heatScale": 1.5,
     "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
+    "view": {
+      "note": "First-time-player legibility (Dom's phone pass, 29 Oct 2026): a ground circle at the hold spot the size of holdRadius, and a big progress ring on screen that turns green when the exit is open. The ring text is webText extraction.hud / extraction.readyPrompt.",
+      "ring": { "segments": 64, "width": 0.3, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
+      "hud": {
+        "sizePx": 120,
+        "strokePx": 10,
+        "topPercent": 22,
+        "trackColour": "2a2418",
+        "fillColour": "e8a35a",
+        "readyColour": "7fd68a",
+        "textPx": 13
+      }
+    },
     "bonus": {
       "base": 500,
       "curve": [

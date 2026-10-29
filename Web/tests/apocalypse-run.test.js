@@ -252,6 +252,15 @@ test("extraction: a raid nearly over is renewed when the hold begins, a raid wit
   assert.throws(() => validateApocalypseRun((() => { const d = raw(); delete d.extraction.raidMinSeconds; return d; })()), "the row is required");
 });
 
+test("extraction view rows: the shipped ring and HUD rows validate, and a missing row, a fat stroke or a bad colour fail", () => {
+  validateApocalypseRun(raw());
+  const broken = (edit) => () => validateApocalypseRun((() => { const d = raw(); edit(d.extraction.view); return d; })());
+  assert.throws(() => validateApocalypseRun((() => { const d = raw(); delete d.extraction.view; return d; })()), "the view row is required");
+  assert.throws(broken((v) => { v.hud.strokePx = v.hud.sizePx; }), "a stroke as wide as the ring");
+  assert.throws(broken((v) => { v.hud.fillColour = "red"; }), "a colour must be six hex digits");
+  assert.throws(broken((v) => { v.ring.extra = 1; }), "no stray keys");
+});
+
 test("end conditions: died, boss killed, escaped and time out each end the run once, and stop the raid", () => {
   const died = started();
   at(died, 5);
@@ -399,6 +408,7 @@ test("extraction on REAL data: hostiles can reach the hold spot, the hub earns n
 test("extraction: a hold-out sets a spot, a raid and a boss pull; holding the data's seconds opens the exit, and the exit ends the run", () => {
   const { g, X, t, home } = holdOut();
   assert.ok(g.run.hold, "the hold-out has begun");
+  assert.equal(g.message, webText("extraction.beginFirst"), "the first hold of a run says how to hold it");
   assert.deepEqual(g.run.hold.at, g.player.pos);
   assert.ok(g.raid, "the run's raid is called at the hold's start");
   assert.deepEqual(extractionTarget(g), { at: g.run.hold.at, pull: X.pull });
@@ -440,6 +450,7 @@ test("extraction: leaving the spot drains the hold and a drained hold is broken;
   at(g, t + 40);
   assert.ok(g.run.hold, "touching again starts a new hold");
   assert.equal(g.run.hold.hold, 0);
+  assert.equal(g.message, webText("extraction.begin"), "a later hold uses the short line");
 });
 
 test("extraction: the bonus scales with the heat peak along the data curve", () => {

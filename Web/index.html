@@ -93,6 +93,11 @@
       <p id="run-hud" hidden role="status"></p>
       <p id="marked-status" hidden role="status"></p>
       </div>
+      <div id="extraction-ring" hidden role="status">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle id="extraction-ring-track" cx="50" cy="50"></circle><circle id="extraction-ring-fill" cx="50" cy="50"></circle></svg>
+        <strong id="extraction-ring-percent"></strong>
+        <span id="extraction-ring-text"></span>
+      </div>
       <div id="run-banner" hidden role="status"><strong id="run-banner-title"></strong><span id="run-banner-line"></span></div>
       <button id="menu-button" aria-label="Open game menu">☰</button>
       <!-- Desktop only (body.desktop-ui, not body.touch): the key hints, filled from data/inputKeys.json by hud.js. -->
