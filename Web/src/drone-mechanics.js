@@ -10,7 +10,7 @@ export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(tim
 export const DRONE_KEYS = Object.freeze(
   Object.fromEntries(Object.entries(AREA_DRONE_SPAWNS).flatMap(([area, rows]) => rows.map((row) => [row.key, area]))),
 );
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const live = (a) => a && Number.isFinite(a.hp) && a.hp > 0 && point(a.pos);
 const copy = (p) => ({ x: p.x, z: p.z });
 export function createDroneState() {

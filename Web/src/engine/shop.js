@@ -10,7 +10,7 @@ import { createShopView } from "./shop-view.js";
 const DATA = GAME_DATA.shops;
 
 // The screen box of a body standing at `ground`: feet to head, as pixels of the canvas.
-export function bodyBox(world, camera, bounds, ground) {
+function bodyBox(world, camera, bounds, ground) {
   const { half, heightUnits, minPx, widthRatio } = DATA.hotspot;
   const at = (height) => {
     const v = world.toRender(ground, height).project(camera);

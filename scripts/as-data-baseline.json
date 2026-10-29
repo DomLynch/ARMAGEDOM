@@ -70,9 +70,9 @@
   "jsonImports": ["first-time-hints.js", "engine/stage-ahead.js"],
   "rigLiterals": {},
   "numberLiterals": {},
-  "tuningOkCount": 402,
+  "tuningOkCount": 386,
   "textLiterals": {},
-  "textOkCount": 90,
+  "textOkCount": 84,
   "constantTables": {
     "clothing-palettes.js": 1,
     "core/index.js": 1,

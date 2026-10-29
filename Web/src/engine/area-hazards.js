@@ -1,4 +1,4 @@
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./shared-checks.js";
 export function createAreaHazard({ ownerId, areaId, position, time, config }, existing = []) {
   if (
     !Number.isInteger(ownerId) ||

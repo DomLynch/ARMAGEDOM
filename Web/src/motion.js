@@ -19,7 +19,7 @@ export function posePhase(elapsed, windup, recovery) {
     1,
   );
 }
-export function worldRotation(bone, q) {
+function worldRotation(bone, q) {
   const parent = bone.parent?.getWorldQuaternion(quat()) ?? quat();
   bone.quaternion.copy(parent.invert().multiply(q));
   bone.updateWorldMatrix(false, true);

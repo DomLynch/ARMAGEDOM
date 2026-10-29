@@ -34,7 +34,7 @@ function zoneGround(g, c, anchor) {
 }
 // The target itself when the ring stands clear there; otherwise the first clear step from it towards the road, and from the road's edge
 // inwards (towards the road's middle) when the zone lies wholly off the road.
-export function ringSpot(g, target, radius) {
+function ringSpot(g, target, radius) {
   if (g.clear(target, radius)) return target;
   const road = nearestOnRoad(g.road, target),
     middle = g.road.reduce((s, p) => ({ x: s.x + p.x / g.road.length, z: s.z + p.z / g.road.length }), { x: 0, z: 0 }),
@@ -59,7 +59,7 @@ function roomAround(g, p, clearance, step) {
 // exit really fires, so it only moves inside the trigger rectangle (a point just inside every bound, as `world.travelAt` tests it): among the
 // clear points there within `radius` metres of the first spot it takes the one with the most room around it (nearest on a tie), and when none
 // lies that close, the clear point inside the trigger nearest to the spot. A trigger with no clear point keeps the first spot.
-export function centredSpot(g, spot, condition, { radius, roomStep, pictureStep, margin, clearance }) {
+function centredSpot(g, spot, condition, { radius, roomStep, pictureStep, margin, clearance }) {
   const lo = { x: (condition.xMin ?? 0) + margin, y: (condition.yMin ?? 0) + margin },
     hi = { x: (condition.xMax ?? 1) - margin, y: (condition.yMax ?? 1) - margin };
   let near = null,

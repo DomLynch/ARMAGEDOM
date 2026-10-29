@@ -1,5 +1,5 @@
-// sessionText.json: the player-facing English of the browser session, the run notices, the expedition panel, the Commander screen, the
-// mode picker and the account control. One group per owner, one string per key, {placeholder} for each value filled in at the call.
+// sessionText.json: the player-facing English of the browser session, the run notices, the expedition panel and the account control.
+// One group per owner, one string per key, {placeholder} for each value filled in at the call.
 // The validator lives here so the loader (engine/game-data.js) stays small; game-data.js re-exports it and imports the JSON.
 import { closed } from "./content-schema.js";
 import { fail } from "./game-data-checks.js";
@@ -12,7 +12,7 @@ export function placeholders(text) {
 }
 
 export function validateSessionText(d) {
-  const groups = ["browser", "run", "expedition", "areaObjective", "commander", "mode", "account"];
+  const groups = ["browser", "run", "expedition", "areaObjective", "account"];
   closed(d, ["schema_version", ...groups]);
   for (const group of groups) {
     const rows = d[group];

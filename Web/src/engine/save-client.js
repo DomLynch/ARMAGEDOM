@@ -8,9 +8,9 @@ import { CURRENT_ERA } from "./save-eras.js";
 
 // A run that is over (dead or finished): its save is sent at once, never held for the interval.
 export const runIsOver = (game) => !!game && (game.finished === true || game.player?.hp <= 0);
-export const CHARACTER_KEY ="armagedom.world.character.v1";
+const CHARACTER_KEY="armagedom.world.character.v1";
 // The newest server revision this device has synced (saved to or loaded from), per account: `{ character, revision }`.
-export const SYNCED_KEY = "armagedom.world.synced.v1";
+const SYNCED_KEY= "armagedom.world.synced.v1";
 export const syncedKey = (account) => `${SYNCED_KEY}:${account}`;
 // The cached character id belongs to one account: a new guest session must not reuse (and be refused) another's.
 export const characterKey = (account) => `${CHARACTER_KEY}:${account}`;

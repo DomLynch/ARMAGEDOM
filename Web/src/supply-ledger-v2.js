@@ -3,7 +3,7 @@ const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const object = (x) => x && Object.getPrototypeOf(x) === Object.prototype;
 const closed = (x, fields) =>
   object(x) && Object.keys(x).length === fields.length && fields.every((k) => Object.hasOwn(x, k));
-export const lootTableStamp = (rule) =>
+const lootTableStamp = (rule) =>
   JSON.stringify(rule.outcomes.map((o) => [o.itemId, o.quantity, o.weight, o.conditions]));
 export function isExtendedSupplies(s, rules) {
   if (!rules || !closed(s, ["version", "issued", "collected", "pending", "rolls"]) || s.version !== 2) return false;

@@ -5,7 +5,7 @@ const BENDS = GAME_DATA.atmosphere.bends;
 // The road-edge safety margin, the default leash, the progress and stall limits and the waypoint reach are creatures.json `bridgeSteering`.
 const STEER = GAME_DATA.creatures.bridgeSteering;
 const squared = (x) => x * x;
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./engine/shared-checks.js";
 function pointSegmentSq(p, a, b) {
   const x = b.x - a.x,
     z = b.z - a.z,

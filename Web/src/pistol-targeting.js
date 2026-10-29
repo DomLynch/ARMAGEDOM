@@ -23,7 +23,7 @@ const SHOT = TARGETING.shot;
 const EPS = 1e-8;
 const SAME_SPOT = 1e-6; // tuning-ok: metres within which an aim point counts as standing on a target
 const sq = (x) => x * x;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 
 // Stateless: caller supplies original intent, current visible cohort and weapon
 // potential reach. Selection never turns an actor, starts an attack or grants a hit.

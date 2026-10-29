@@ -61,7 +61,7 @@ export function healPlayer(player, fraction) {
   return hp;
 }
 // What taking this pickup does to the run: { ok, amount } on success, { ok: false, reason } when it would be wasted.
-export function applyPickup(g, placement, state) {
+function applyPickup(g, placement, state) {
   const items = WORLD_PICKUPS.items;
   if (placement.type === "medkit") {
     const amount = Math.ceil(healPlayer(g.player, items.medkit.healFraction));

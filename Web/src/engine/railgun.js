@@ -15,7 +15,7 @@ const EPS = 1e-8,
     const n = Math.hypot(v?.x ?? 0, v?.z ?? 0);
     return n > EPS ? { x: v.x / n, z: v.z / n } : null;
   };
-export function railgunSelected(g) {
+function railgunSelected(g) {
   const p = g.world?.bossEquipmentData?.commanderPistol,
     s = g.bossEquipment?.commanderPistol;
   return (

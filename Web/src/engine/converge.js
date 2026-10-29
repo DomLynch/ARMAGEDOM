@@ -2,7 +2,7 @@
 // step: a boss that is not already fighting the player walks to the point and waits beside it. `target` is { at, pull } (the point and the
 // data row with engageRadius, leashPadding, arriveRadius) or null when nothing is calling. Returns true when it handled the boss's idle
 // step. `move` is combat's own enemy mover, so bosses walk the way they always do.
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 
 export function converge(g, e, dt, move, target) {
   if (!target || !e.bossProfile || e.hp <= 0) {

@@ -6,16 +6,16 @@ const GOLD = GAME_DATA.goldenWeapons;
 export const GOLDEN_WEAPON_OUTCOME = GOLD.outcomeId;
 const read = (root, path) => path.reduce((node, key) => node?.[key], root);
 
-export const goldenKeys = (g) => g?.marked?.golden ?? [];
+const goldenKeys= (g) => g?.marked?.golden ?? [];
 export const isGolden = (g, key) => goldenKeys(g).includes(key);
 /** The weapon key a tile / item id belongs to, or null when that weapon has no golden variant. */
-export const goldenKeyOfItem = (itemId) => Object.keys(GOLD.weapons).find((key) => GOLD.weapons[key].itemId === itemId) ?? null;
+const goldenKeyOfItem = (itemId) => Object.keys(GOLD.weapons).find((key) => GOLD.weapons[key].itemId === itemId) ?? null;
 export const isGoldenItem = (g, itemId) => {
   const key = goldenKeyOfItem(itemId);
   return key !== null && isGolden(g, key);
 };
 /** Weapon keys the player owns, in data order. */
-export const ownedGoldenCandidates = (g) =>
+const ownedGoldenCandidates = (g) =>
   Object.keys(GOLD.weapons).filter((key) => {
     const { path, equals } = GOLD.weapons[key].owned;
     return read(g, path) === equals;

@@ -29,9 +29,6 @@ export function syncMeleeEquipment(g) {
   g.staminaCosts = profile.costs;
   return profile;
 }
-export function meleeModelRef(g) {
-  return selectedMeleeVariant(g).modelRef ?? null;
-}
 // Clone only the rigid weapon subtree; the live player rig, mixer and body buffers stay owners.
 export function cloneMeleeWeapon(source, variantId) {
   const profile = MELEE_VARIANTS[variantId],

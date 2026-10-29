@@ -43,7 +43,7 @@ function landable(g, point) {
   );
 }
 // Where the blast should go for this body: its position plus its walk over the fuse, backed off until the spot is open ground in range.
-export function grenadeLanding(g, target) {
+function grenadeLanding(g, target) {
   const track = g.grenadeTracks?.[target.id],
     // A body with no track (the chained Pitborn's stand-in is not an enemy) is a stationary target.
     vx = track ? track.vx : 0,

@@ -16,8 +16,7 @@ export const cutsEnabled = (search) =>
 
 // What the last kills showed: `last` keeps one finisher from repeating, `misses` feeds the pity rule, `ordinal` makes each draw its own.
 const pickState = () => ({ last: null, misses: 0, ordinal: 0 });
-let state = pickState();
-export const resetCutState = () => void (state = pickState());
+const state = pickState();
 
 const bindingFor = (weapon, cfg) => cfg.bindings.find((b) => b.weapons.includes(weapon)) ?? null;
 

@@ -39,7 +39,7 @@ const flameView = () =>
 export const MOBILE_AIM = mobileView();
 export const FLAME_AIM = flameView();
 const arc = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const vector = (angle) => ({ x: Math.sin(angle), z: Math.cos(angle) });
 export function followMobileAngle(current, target, dt, rate = MOBILE_AIM.headingRate) {
   return current + arc(target - current) * (1 - Math.exp(-dt * rate));

@@ -1,7 +1,7 @@
 // finisher-data.json validator, split out so game-data.js can load the file (finisher-data.js reads the result back from GAME_DATA).
 import { closed, freeze } from "./content-schema.js";
 const key = (x) => typeof x === "string" && /^[a-z][a-z0-9_-]{0,63}$/.test(x);
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { finite } from "./shared-checks.js";
 const list = (x) => Array.isArray(x) && x.length > 0 && x.every(key) && new Set(x).size === x.length;
 const fail = () => {
   throw TypeError("Invalid finisher catalogue");

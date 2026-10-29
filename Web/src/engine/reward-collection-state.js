@@ -1,12 +1,5 @@
 // Fixed component DTO collection only; actual models retain their own rules.
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+import { closed } from "./shared-checks.js";
 export function createRewardCollectionModel(models) {
   if (!models || Object.getPrototypeOf(models) !== Object.prototype)
     throw TypeError("Fixed own-key model map required");

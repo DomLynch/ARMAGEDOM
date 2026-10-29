@@ -1,9 +1,8 @@
 import { insidePolygon, segmentsIntersect } from "../world-geometry.js";
 import { closed, freeze } from "./content-schema.js";
 import { GAME_DATA } from "./game-data.js";
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { finite, point } from "./shared-checks.js";
 const art = (p) => p && closed(p, ["x", "y"]) !== false && finite(p.x, 0, 1) && finite(p.y, 0, 1);
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const distance = (p, a, b) => {
   const x = b.x - a.x,
     z = b.z - a.z,

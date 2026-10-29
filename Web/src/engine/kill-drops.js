@@ -23,7 +23,7 @@ export function rollKillCash(g, tier, key, rules = KILL_DROPS) {
 }
 // One id per kill (8-64 of A-Za-z0-9_-), kept on the drop so every retry of its claim sends the same one. Random, so a reload never repeats it.
 const killIdFor = (g, serial) => globalThis.crypto?.randomUUID?.() ?? `kill-${g.world.areaId}-${g.kills ?? 0}-${serial}`;
-export function killDropState(g) {
+function killDropState(g) {
   return (g.killDrops ??= { list: [], serial: 0, notice: 0 });
 }
 // After each step: every enemy that died in that step's events leaves one drop where it fell. A marked hunter pays its bounty instead.
