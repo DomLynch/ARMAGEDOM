@@ -64,6 +64,8 @@ jobs:
       - run: node --test ops/realtime/check-presence-layout.test.mjs
       # The hosted drift check: a changed row, function, grant, RLS flag, policy or registry sha must be reported (pglite, no network).
       - run: node --test ops/realtime/check-db-drift.test.mjs
+      # verify-hosted.sql (the schema lock-down check apply-migrations.sh runs on hosted) passes on the migrated schema and names each break.
+      - run: node --test ops/realtime/verify-hosted.test.mjs
 
   # The PRODUCTION build, loaded in headless Chromium (release 311 passed every source test, then the built game did not boot:
   # the build's lowering of a default parameter emitted out-of-scope code). Fails on ARMAGEDOM_BOOT_FAILED, any page error or
