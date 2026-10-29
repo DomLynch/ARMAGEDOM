@@ -58,6 +58,35 @@ test('legacy maximum remains the reviewed frozen policy',()=>{
   // Re-pinned 25 Oct for one added public door, engine/game-data.js (the single data loader), which donor/knife.js reads. No legacy exception was added.
   assert.deepEqual(policy.publicEntries,['engine/game-data.js','engine/index.js','engine/server.js']);
 });
+// Static import graph of Web/src (dynamic import() is not an edge); a cycle makes module load order matter.
+function importCycles(sources){
+  const edge=/(?:^|[\n;])\s*(?:import|export)\b[^'"`;]*?\bfrom\s*['"](\.[^'"]+)['"]|(?:^|[\n;])\s*import\s*['"](\.[^'"]+)['"]/g;
+  const graph=new Map();
+  for(const [path,text] of Object.entries(sources)){
+    const dir=path.split('/').slice(0,-1);
+    const targets=[...text.matchAll(edge)].map(m=>{
+      const parts=[...dir];
+      for(const part of (m[1]??m[2]).split('/')){if(part==='..')parts.pop();else if(part!=='.')parts.push(part);}
+      return parts.join('/');
+    }).filter(target=>target in sources);
+    graph.set(path,[...new Set(targets)]);
+  }
+  const cycles=[],state=new Map(),stack=[];
+  const visit=(node)=>{
+    state.set(node,1);stack.push(node);
+    for(const next of graph.get(node)){
+      if(state.get(next)===1)cycles.push([...stack.slice(stack.indexOf(next)),next].join(' -> '));
+      else if(!state.has(next))visit(next);
+    }
+    stack.pop();state.set(node,2);
+  };
+  for(const node of graph.keys())if(!state.has(node))visit(node);
+  return cycles;
+}
+test('the static import graph of Web/src has no cycles',()=>{
+  assert.deepEqual(importCycles({'a.js':"import{b}from'./b.js';",'b.js':"export*from'./a.js';"}).length,1);
+  assert.deepEqual(importCycles(files),[]);
+});
 // The only growth of the frozen list: six rows hidden by the compact import style until the step 1 format.
 test('formatted-only legacy rows are recorded once and never grow again',()=>{
   const hidden=policy.legacyExceptions.filter(x=>x.startsWith('melee-equipment.js|')||x.startsWith('unique-reward-view.js|'));

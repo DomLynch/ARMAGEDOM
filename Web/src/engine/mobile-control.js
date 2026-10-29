@@ -2,7 +2,7 @@ import { stopBoneSaw } from "./bone-saw.js";
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
 import { createMobileAimState, stepMobileAim } from "../mobile-combat-aim.js";
 import { selectedRangedProfile, chainedSight, bodies } from "../pistol-targeting.js";
-import { validDirection } from "../combat.js";
+import { validDirection } from "./enemy-core.js";
 export function resetMobileControls(g) {
   if (g) {
     stopBoneSaw(g, g.player, "input-clear");

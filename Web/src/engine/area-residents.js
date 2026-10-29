@@ -15,7 +15,7 @@ import { allocateMobSizes } from "../mob-size-allocation.js";
 import { mobSizeProfile } from "../mob-size.js";
 import { applyStarVariant } from "./star-variants.js";
 import { AREA_MOB_SPAWNS, residentEncounterHealth } from "../area-mob-spawns.js";
-import { enemy } from "../combat.js";
+import { enemy } from "./enemy-core.js";
 import { knifeEnergy } from "./knife-stamina.js";
 const RULES = GAME_DATA.combatRules;
 // The rig ids of the kinds addressed by name below (creatures.json rigCapabilities species).
