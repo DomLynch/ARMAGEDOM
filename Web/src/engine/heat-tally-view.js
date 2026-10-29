@@ -36,7 +36,7 @@ function drawGouge(ctx, outline, core, alpha) {
 
 // Paint the tally on its canvas. part "rest" draws every slot but the newest; part "newest" draws only the newest, so the fade needs no
 // repaint: the newest slot sits in its own sprite whose material opacity does the dimming.
-export function drawTally(ctx, count, part) {
+function drawTally(ctx, count, part) {
   const w = HEAT.world,
     size = HEAT.groupSize,
     look = HEAT.look,

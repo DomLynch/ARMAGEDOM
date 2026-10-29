@@ -4,7 +4,7 @@ import { GAME_DATA } from "./game-data.js";
 // visual.json flameEffect.particles; the palette is stored as hex strings and read as three.js colour numbers.
 const PARTICLES = GAME_DATA.visual.flameEffect.particles;
 export const FLAME_VISUAL_DATA = freeze({ ...structuredClone(PARTICLES), palette: PARTICLES.palette.map((hex) => Number(`0x${hex}`)) });
-export const FLAME_MODEL_REF = "player-flamethrower";
+const FLAME_MODEL_REF = "player-flamethrower";
 export function validateFlameData(input, registry) {
   if (input === undefined) return null;
   closed(input, ["version", "pickupId", "areaId", "position", "modelRef"]);

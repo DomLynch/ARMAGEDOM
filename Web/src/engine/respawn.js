@@ -11,9 +11,9 @@ const RECORD_VERSION = "v1";
 const recordFields = ["version", "clock", "kills"];
 const keyPattern = /^[a-z0-9._:-]{1,96}$/;
 
-export const respawnPolicy = (g) => g.world?.populationData?.respawn ?? null;
+const respawnPolicy = (g) => g.world?.populationData?.respawn ?? null;
 // Play seconds across sessions: `base` carries the time played before this session was loaded.
-export const respawnClock = (g) => (g.respawn?.base ?? 0) + g.time;
+const respawnClock = (g) => (g.respawn?.base ?? 0) + g.time;
 
 function permanentKeys(g) {
   const keys = new Set((g.world?.bossData?.placements ?? []).map((row) => row.key));
@@ -43,7 +43,7 @@ export function recordResidentKill(g, e) {
 }
 // A placement may only spawn off-screen and away from the player: never within minPlayerDistance, and closer than
 // offscreenDistance only when a wall blocks the line of sight. Otherwise the hostile waits for the player to move.
-export function spawnAllowed(g, pos) {
+function spawnAllowed(g, pos) {
   const policy = respawnPolicy(g),
     distance = Math.hypot(pos.x - g.player.pos.x, pos.z - g.player.pos.z);
   return (
@@ -52,7 +52,7 @@ export function spawnAllowed(g, pos) {
   );
 }
 // Placement keys of `areaKeys` whose recorded kill is old enough.
-export function expiredKeys(g, area, areaKeys) {
+function expiredKeys(g, area, areaKeys) {
   const policy = respawnPolicy(g),
     out = new Set();
   if (!policy || policy.excludedAreas.includes(area) || !g.respawn) return out;

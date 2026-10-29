@@ -27,7 +27,7 @@ const same = (a, b) =>
   a.selectedPistolVariant === b.selectedPistolVariant &&
   a.visitedIds.length === b.visitedIds.length &&
   a.visitedIds.every((id, i) => id === b.visitedIds[i]);
-export function expeditionModel(data, registry) {
+function expeditionModel(data, registry) {
   return createExpeditionModel({
     areaIds: registry.ids,
     expeditionId: data.contract.id,

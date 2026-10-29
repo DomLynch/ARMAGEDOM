@@ -23,9 +23,9 @@ export function capsuleSegmentClear(g, a, b) {
     if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, clearance)) return false;
   return true;
 }
-export const TUTORIAL_AREA = "westminster";
+const TUTORIAL_AREA = "westminster";
 // The arrow fades slowly in and out so it is easier to notice: cos squared is a smooth cycle between minOpacity and peakOpacity.
-export const arrowOpacity = (seconds) => {
+const arrowOpacity = (seconds) => {
   const { minOpacity, peakOpacity, pulseSeconds } = tune().arrow;
   const wave = Math.cos((Math.PI * seconds) / pulseSeconds);
   return minOpacity + (peakOpacity - minOpacity) * wave * wave;
@@ -153,7 +153,7 @@ export function resolveGuidance(rows, g, position) {
 }
 // The exits this module marks with its own ring: the Central Safehouse side entrance and any row that asks for a `sign`. The exit rings
 // (exit-rings.js) skip these so an exit never carries two rings.
-export const SAFEHOUSE_ENTRANCE = "central-hub";
+const SAFEHOUSE_ENTRANCE = "central-hub";
 export const markedTargets = (rows) => new Set(rows.filter((row) => row.sign || row.to === SAFEHOUSE_ENTRANCE).map((row) => row.to));
 export function createRouteGuidance(world) {
   const rows = validateGuidance(world.layout, world.geometry),

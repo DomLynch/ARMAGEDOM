@@ -23,7 +23,7 @@ export const lootFromReply = (reply) => normalizeRows(reply && reply.loot);
 
 const price = (v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : null);
 // The server's item rows, as a map id -> {name, kind, rarity, basePrice, sellPrice}. Unknown fields are dropped, bad ones left out.
-export function normalizeDefs(rows, rules) {
+function normalizeDefs(rows, rules) {
   const map = new Map();
   for (const row of Array.isArray(rows) ? rows : []) {
     const id = row && (row.id ?? row.item_id);

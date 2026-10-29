@@ -16,7 +16,7 @@ const D = GAME_DATA.chainedPitborn,
   LOOPS = { pingpong: T.LoopPingPong, repeat: T.LoopRepeat },
   DOWN = new T.Vector3(0, -1, 0),
   hex = (v) => new T.Color(`#${v}`);
-export const chainedPitbornOn = (search = globalThis.location?.search ?? "") =>
+const chainedPitbornOn = (search = globalThis.location?.search ?? "") =>
   D.enabled && new URLSearchParams(search).get(D.offParam) !== D.offValue;
 export function createChainedPitbornView(s) {
   const tmp = {

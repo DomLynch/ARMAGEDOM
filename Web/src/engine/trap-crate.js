@@ -11,7 +11,7 @@ const BLAST = GAME_DATA.weapons.ranged[DATA.blast.profile].payload;
 const PLAYER_VICTIM = "player";
 export const trapCrateList = (areaId) => variedCrates(areaId, activeDay()).traps;
 // The loot adapter: the heal and ammo effects are the world pickups' own (engine/world-pickups-core.js), so there is one effect path.
-export function grantTrapCrateLoot(g, loot = DATA.loot) {
+function grantTrapCrateLoot(g, loot = DATA.loot) {
   const hp = healPlayer(g.player, loot.healFraction),
     rounds = loot.refillReserve ? refillAmmo(g) : 0;
   return { hp: Math.ceil(hp), rounds };

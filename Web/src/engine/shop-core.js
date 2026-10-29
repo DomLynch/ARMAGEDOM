@@ -9,7 +9,7 @@ export const say = (key, vars = {}) => fillText(DATA.text[key], vars);
 // On unless the data switches it off or the URL carries the off switch (improvements ship default-on).
 export const shopsOn = (search = globalThis.location?.search ?? "", enabled = DATA.enabled) =>
   enabled && new URLSearchParams(search).get(DATA.offParam) !== DATA.offValue;
-export const shopRow = (shopId) => DATA.shops.find((row) => row.shopId === shopId) ?? null;
+const shopRow = (shopId) => DATA.shops.find((row) => row.shopId === shopId) ?? null;
 const signedOut = (code) => DATA.api.signedOutErrors.includes(code);
 const errorText = (code) => (Object.hasOwn(DATA.text.errors, code) ? DATA.text.errors[code] : DATA.text.errors.refused);
 

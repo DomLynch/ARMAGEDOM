@@ -16,7 +16,7 @@ export const hubNpcsOn = (search = globalThis.location?.search ?? "") =>
 // The model names an area draws: all of them in the hub, none elsewhere. A row's ref is its manifest model id.
 export const hubNpcRefs = (areaId) => (areaId === DATA.area && hubNpcsOn() ? DATA.npcs.map((n) => n.ref) : []);
 // Where an NPC's Idle is at a clock time (0 to 1 of the loop), offset per NPC so they do not move together.
-export const idlePhase = (phaseSeconds, clock, duration) =>
+const idlePhase = (phaseSeconds, clock, duration) =>
   THREE.MathUtils.euclideanModulo(((clock + phaseSeconds) * DATA.idleRate) / duration, 1);
 
 // visualScale is the actors' own visual scale, so the NPCs stand the same size as the player and the residents.

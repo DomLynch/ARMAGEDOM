@@ -4,7 +4,7 @@ import { GAME_DATA } from "./game-data.js";
 const MOTION = GAME_DATA.reaperMotion; // data/reaperMotion.json: the step bound and the orbit speed
 export const REAPER_ITEM_ID = "watchmans-pistol-v1";
 export const REAPER_RECEIPT = "west-east-stolen-supply-v1:watchmans-pistol-v1";
-export const REAPER_ACTOR_ID = -1;
+const REAPER_ACTOR_ID = -1;
 // The rule values live only in area-content.json `reaper.rules`; this is just the closed set of names the validator accepts.
 const RULE_KEYS = ["damage", "range", "cadence", "windup", "boltSpeed", "boltRange", "orbitRadius", "followSpeed"];
 export function ownsReaper(g) {
