@@ -78,28 +78,36 @@ export function createAirdropView(scene, toRender) {
     root,
     // Called every frame with the game: shows whatever `g.airdrop` says is in the air or on the ground.
     update(g) {
-      const a = g.airdrop,
+      // The run's hold-out (engine/apocalypse-run.js `g.run.hold`) borrows the flare and glow: they stand at the hold, while the plane and
+      // the crate of a real airdrop in the same area stay as they are (the crate keeps its place and stays openable).
+      const hold = g.run?.hold,
+        beacon = hold && hold.areaId === g.world?.areaId ? hold : null,
+        a = g.airdrop,
         flying = !!a && a.startAt !== undefined && g.time - a.startAt < plane.seconds,
         dropped = !!a && (a.phase === "falling" || a.phase === "landed");
-      root.visible = flying || dropped;
+      root.visible = flying || dropped || !!beacon;
       shadow.visible = flying;
-      crate.visible = flare.visible = glow.visible = dropped;
+      flare.visible = glow.visible = dropped || !!beacon;
+      crate.visible = dropped;
       if (!root.visible) return;
       if (flying) {
         const t = (g.time - a.startAt) / plane.seconds;
         place(shadow, { x: a.from.x + (a.to.x - a.from.x) * t, z: a.from.z + (a.to.z - a.from.z) * t }, style.groundLift);
         shadow.rotation.y = Math.atan2(a.to.z - a.from.z, a.to.x - a.from.x);
       }
-      if (!dropped) return;
-      const falling = a.phase === "falling",
+      if (!dropped && !beacon) return;
+      const falling = dropped && a.phase === "falling",
         left = falling ? Math.max(0, (a.landAt - g.time) / fall) : 0,
-        sway = Math.sin(g.time * style.swayRate) * style.flareSway * left;
-      place(crate, a.crate, style.crateLift + style.dropHeight * left);
-      crate.position.x += sway;
-      canopy.visible = falling;
-      place(flare, a.crate, style.crateLift + style.dropHeight * left);
-      flare.position.x += sway;
-      place(glow, a.crate, style.groundLift);
+        sway = Math.sin(g.time * style.swayRate) * style.flareSway * left,
+        marker = beacon ? beacon.at : a.crate;
+      if (dropped) {
+        place(crate, a.crate, style.crateLift + style.dropHeight * left);
+        crate.position.x += sway;
+        canopy.visible = falling;
+      }
+      place(flare, marker, style.crateLift + (beacon ? 0 : style.dropHeight * left));
+      if (!beacon) flare.position.x += sway;
+      place(glow, marker, style.groundLift);
       const beat = Math.cos((g.time * Math.PI) / style.pulseSeconds);
       glowMaterial.opacity = style.flareGlowOpacity * beat * beat;
       puffs.forEach((puff, i) => {
