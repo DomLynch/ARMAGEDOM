@@ -327,7 +327,7 @@ test("extraction on REAL data: hostiles can reach the hold spot, the hub earns n
   g.marked = { version: 1, carried: 0, bank: 0, bounty: 0 };
   g.time += 1;
   // The entry the real hunt picks must be at least minSpawnDistance from the player, so the player holds at the inland edge of the spot.
-  g.player.pos = { x: g.run.hold.at.x + X.holdRadius - 0.1, z: g.run.hold.at.z };
+  g.player.pos = { x: g.run.hold.at.x + RUN.extraction.holdRadius - 0.1, z: g.run.hold.at.z };
   stepMarkedHunters(g, spawn);
   assert.ok(g.enemies.some((e) => e.raidHunter && e.hp > 0), "a raid hunter spawns in the hold's area");
   // The hub: whole-area safehouse, not a raid zone. Idling there for the whole window earns nothing.
