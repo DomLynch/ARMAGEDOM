@@ -300,13 +300,14 @@ const exitMouth = (areaId) => {
 };
 
 // A finale on the escape row, with the player in the field beside the exit home: the next step starts the hold-out.
-const holdOut = (heatPeak = 0, areaId = "east") => {
+const holdOut = (heatPeak = 0, areaId = "east", inland = 0) => {
   const g = started(),
     X = RUN.extraction,
     base = S1.seconds + S2.seconds;
   g.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "escape");
   g.world = realWorld(areaId);
-  g.player.pos = exitMouth(areaId);
+  g.player.pos = { ...exitMouth(areaId) };
+  g.player.pos.x += inland; // east's exit is on its west edge, so inland is +x
   g.heat = { count: heatPeak, lastKillAt: 0, seen: 0, rolls: 0 };
   at(g, base);
   g.run.heatPeak = heatPeak;
@@ -316,7 +317,8 @@ const holdOut = (heatPeak = 0, areaId = "east") => {
 
 test("extraction on REAL data: hostiles can reach the hold spot, the hub earns nothing, and the hold needs its own area", () => {
   assert.deepEqual([HUB_SAFEHOUSE.areaId, HUB_SAFEHOUSE.wholeArea], [RUN.startZone, true], "the shipped safehouse is the whole hub");
-  const { g } = holdOut();
+  // The player begins the hold at the far end of the mouth range: the hunt's entry points keep a minimum distance from the player.
+  const { g } = holdOut(0, "east", RUN.extraction.mouthRange - 0.5);
   assert.equal(g.run.hold?.areaId, "east", "the hold is set in a field area");
   assert.ok(RUN.raidZones.includes("east") && !RUN.raidZones.includes(RUN.startZone));
   assert.equal(safehouseProtected(g), false, "no safehouse protection at the spot: a hit can land");
