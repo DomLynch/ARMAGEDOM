@@ -171,14 +171,22 @@ test("extraction on REAL data: a hold at either edge of the band has a hunt entr
   assert.ok(X.mouthMin >= CLEAR + 2, "the band starts two metres past the hunt's minimum spawn distance");
   assert.ok(X.mouthMin < X.mouthRange);
   for (const area of ["east", "south", "area7"]) {
-    for (const edge of [X.mouthMin + 0.05, X.mouthRange - 0.05]) {
+    const geometry = realWorld(area).geometry,
+      mouth = exitMouth(area);
+    for (const [name, edge, sign] of [["near", X.mouthMin, 1], ["far", X.mouthRange, -1]]) {
+      // The first clear spot, walking in from the edge a quarter metre at a time, where the director starts the hold: within 1 m of the edge.
       let found = null;
-      for (let k = 0; k < 16 && !found; k++) {
-        const angle = (k * Math.PI) / 8,
-          { g } = holdOut(0, area, { x: Math.cos(angle) * edge, z: Math.sin(angle) * edge });
-        if (g.run.hold && g.world.geometry.clear(g.player.pos, g.player.radius)) found = g;
+      for (let s = 0; s <= 4 && !found; s++) {
+        for (let k = 0; k < 16 && !found; k++) {
+          const angle = (k * Math.PI) / 8,
+            d = edge + sign * (0.05 + s * 0.25),
+            offset = { x: Math.cos(angle) * d, z: Math.sin(angle) * d };
+          if (!geometry.clear({ x: mouth.x + offset.x, z: mouth.z + offset.z }, 0.4)) continue;
+          const { g } = holdOut(0, area, offset);
+          if (g.run.hold) found = g;
+        }
       }
-      assert.ok(found, `${area}: a hold starts at ${edge.toFixed(2)} m from the exit`);
+      assert.ok(found, `${area}: a hold starts at the ${name} edge of the band`);
       const g = found;
       assert.ok(markedEntry(g), `${area}: the hunt has an entry at ${edge.toFixed(2)} m`);
       let serial = 0;
@@ -428,7 +436,7 @@ test("extraction: leaving the spot drains the hold and a drained hold is broken;
   at(g, t + 5 + Math.ceil(filled / X.holdDecayPerSecond) + 3);
   assert.equal(g.run.hold, null, "a drained hold is broken");
   assert.equal(g.run.outcome, null, "and the run goes on");
-  g.player.pos = exitMouth("east");
+  g.player.pos = { x: exitMouth("east").x + 12, z: exitMouth("east").z };
   at(g, t + 40);
   assert.ok(g.run.hold, "touching again starts a new hold");
   assert.equal(g.run.hold.hold, 0);
