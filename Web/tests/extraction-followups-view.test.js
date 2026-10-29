@@ -4,6 +4,7 @@ import * as T from "three";
 import { createAirdropView } from "../src/engine/airdrop-view.js";
 import { createRunHudView } from "../src/engine/run-hud-view.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
+import { webText } from "../src/engine/web-text.js";
 
 // The hold-out's flare and the run HUD, on the shipped rows.
 const AIR = GAME_DATA.airdrop,
@@ -75,6 +76,83 @@ test("run HUD: with no run it hides the parts once, then only checks the start b
     for (let i = 0; i < 100; i++) hud.update();
     assert.equal(lookups.count, after, "no further getElementById calls once the nodes are cached");
     assert.equal(nodes["run-hud"].textContent, "", "the timer is never painted without a run");
+  } finally {
+    hud.dispose();
+    delete globalThis.document;
+  }
+});
+
+const EXTRACTION = GAME_DATA.apocalypseRun.extraction;
+
+test("hold circle: drawn at the hold, as wide as the hold, bright inside and dim outside, gone with the hold", () => {
+  const { view } = airdropScene(),
+    ring = view.root.children[4],
+    hold = { areaId: AREA, at: { x: 30, z: -12 } },
+    look = EXTRACTION.view.ring;
+  view.update(game());
+  assert.ok(!ring.visible, "no circle without a hold");
+  view.update(game({ player: { pos: { x: 30, z: -12 } }, run: { hold } }));
+  assert.ok(ring.visible);
+  assert.deepEqual([ring.position.x, ring.position.z], [30, -12]);
+  assert.equal(ring.geometry.parameters.outerRadius, EXTRACTION.holdRadius, "the circle is the hold's radius");
+  assert.equal(ring.material.opacity, look.opacity, "full strength with the player inside");
+  view.update(game({ player: { pos: { x: 30 + EXTRACTION.holdRadius + 1, z: -12 } }, run: { hold } }));
+  assert.equal(ring.material.opacity, look.opacity * look.outsideShare, "dimmer outside the circle");
+  view.update(game({ player: { pos: { x: 0, z: 0 } }, run: { hold: { ...hold, areaId: "south" } } }));
+  assert.ok(!ring.visible, "a hold in another area draws nothing here");
+  view.dispose();
+});
+
+// A page of nodes that keep attributes, styles and the data set the progress ring writes.
+function ringPage() {
+  const nodes = {};
+  const node = (id) => ({
+    id,
+    hidden: false,
+    textContent: "",
+    style: {},
+    dataset: {},
+    attrs: {},
+    setAttribute(k, v) {
+      this.attrs[k] = v;
+    },
+    getElementsByTagName: () => [node(`${id}-svg`)],
+    addEventListener() {},
+    removeEventListener() {},
+  });
+  globalThis.document = { getElementById: (id) => (nodes[id] ??= node(id)), createElement: () => ({ append() {} }) };
+  return nodes;
+}
+
+test("progress ring: fills with the hold, turns green with the way out in words once the exit is open, hides with the run", () => {
+  const nodes = ringPage(),
+    look = EXTRACTION.view.hud,
+    run = { stage: 2, startAt: 0, outcome: null, dismissed: false, picks: { hazard: { label: "x" } }, hold: null, extracted: null },
+    s = { game: { time: 10, run, world: { areaId: AREA }, player: { hp: 10 } }, contextLost: false, traveling: false },
+    hud = createRunHudView(s);
+  try {
+    hud.update();
+    assert.ok(nodes["extraction-ring"].hidden, "no ring before a hold");
+    run.hold = { areaId: AREA, progress: 0.5 };
+    hud.update();
+    const ring = nodes["extraction-ring"];
+    assert.equal(ring.hidden, false);
+    assert.equal(nodes["extraction-ring-percent"].textContent, "50%");
+    assert.equal(ring.style.top, `${look.topPercent}%`, "position comes from the row");
+    assert.equal(nodes["extraction-ring-fill"].attrs.stroke, `#${look.fillColour}`);
+    const circumference = Number(nodes["extraction-ring-fill"].dataset.circumference);
+    assert.ok(Math.abs(Number(nodes["extraction-ring-fill"].attrs["stroke-dashoffset"]) - circumference / 2) < 1e-9, "half the circle is filled");
+    assert.match(nodes["extraction-ring-text"].textContent, /circle/);
+    run.hold = null;
+    run.extracted = { bonus: 500 };
+    hud.update();
+    assert.equal(ring.hidden, false, "the ring stays after the hold fills");
+    assert.equal(nodes["extraction-ring-fill"].attrs.stroke, `#${look.readyColour}`);
+    assert.equal(nodes["extraction-ring-percent"].textContent, "100%");
+    assert.equal(nodes["extraction-ring-text"].textContent, webText("extraction.readyPrompt"));
+    run.outcome = "escaped";
+    hud.update();
+    assert.ok(ring.hidden, "the ring goes with the run's end");
   } finally {
     hud.dispose();
     delete globalThis.document;

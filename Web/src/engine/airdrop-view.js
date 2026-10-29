@@ -60,15 +60,21 @@ export function createAirdropView(scene, toRender) {
     canopy = new T.Mesh(canopyCone, basic(style.canopyColour)),
     flare = new T.Group(),
     glow = new T.Mesh(glowPlane, glowMaterial),
+    // The hold-out's circle on the ground: as wide as the hold itself (extraction.holdRadius), bright while the player stands in it.
+    EXTRACTION = GAME_DATA.apocalypseRun.extraction,
+    ringStyle = EXTRACTION.view.ring,
+    ringMaterial = ghost(ringStyle.colour, ringStyle.opacity),
+    ringGeometry = flat(new T.RingGeometry(EXTRACTION.holdRadius - ringStyle.width, EXTRACTION.holdRadius, ringStyle.segments)),
+    ring = new T.Mesh(ringGeometry, ringMaterial),
     // One material per puff: each fades on its own as it rises.
     puffs = Array.from({ length: style.flarePuffs }, () => new T.Sprite(puffMaterial.clone())),
-    materials = [shadowMaterial, glowMaterial, puffMaterial, body.material, trim.material, canopy.material, ...puffs.map((p) => p.material)];
+    materials = [shadowMaterial, glowMaterial, ringMaterial, puffMaterial, body.material, trim.material, canopy.material, ...puffs.map((p) => p.material)];
   shadow.add(new T.Mesh(bodyShape, shadowMaterial), new T.Mesh(wingShape, shadowMaterial));
   canopy.position.y = style.crateSize + style.canopyHeight; // the canopy rides above the crate on its cords
   crate.add(body, trim, canopy);
   flare.add(...puffs);
   root.name = "airdrop";
-  root.add(shadow, crate, flare, glow);
+  root.add(shadow, crate, flare, glow, ring);
   root.visible = false;
   scene.add(root);
   const place = (object, point, height) => object.position.copy(toRender(point, height)),
@@ -88,6 +94,7 @@ export function createAirdropView(scene, toRender) {
       root.visible = flying || dropped || !!beacon;
       shadow.visible = flying;
       flare.visible = glow.visible = dropped || !!beacon;
+      ring.visible = !!beacon;
       crate.visible = dropped;
       if (!root.visible) return;
       if (flying) {
@@ -108,6 +115,11 @@ export function createAirdropView(scene, toRender) {
       place(flare, marker, style.crateLift + (beacon ? 0 : style.dropHeight * left));
       if (!beacon) flare.position.x += sway;
       place(glow, marker, style.groundLift);
+      if (beacon) {
+        place(ring, marker, style.groundLift);
+        const inside = Math.hypot(g.player.pos.x - marker.x, g.player.pos.z - marker.z) <= EXTRACTION.holdRadius;
+        ringMaterial.opacity = ringStyle.opacity * (inside ? 1 : ringStyle.outsideShare);
+      }
       const beat = Math.cos((g.time * Math.PI) / style.pulseSeconds);
       glowMaterial.opacity = style.flareGlowOpacity * beat * beat;
       puffs.forEach((puff, i) => {
@@ -122,7 +134,7 @@ export function createAirdropView(scene, toRender) {
       if (disposed) return;
       disposed = true;
       root.removeFromParent();
-      for (const geometry of geometries) geometry.dispose();
+      for (const geometry of [...geometries, ringGeometry]) geometry.dispose();
       for (const material of materials) material.dispose();
       dot?.dispose();
     },

@@ -774,6 +774,42 @@ summary {
   pointer-events: none;
   z-index: 9;
 }
+/* The hold-out's progress ring (engine/run-hud-view.js; size, stroke, position and colours come from data/apocalypseRun.json extraction.view.hud). */
+#extraction-ring {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+  z-index: 9;
+}
+#extraction-ring[hidden] {
+  display: none;
+}
+#extraction-ring svg {
+  grid-area: 1 / 1;
+  transform: rotate(-90deg);
+}
+#extraction-ring circle {
+  fill: none;
+}
+#extraction-ring-percent {
+  grid-area: 1 / 1;
+  align-self: center;
+  font-size: 1.6em;
+  text-shadow: 0 1px 3px #000;
+}
+#extraction-ring-text {
+  max-width: 260px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(8, 15, 17, 0.82);
+  color: #f1d28c;
+  font-weight: 600;
+}
 #run-banner-title {
   font-size: 20px;
   letter-spacing: 0.14em;
