@@ -3,7 +3,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-const require = createRequire("/Users/domininclynch/Developer/frankendom-web/package.json");
+const FRANKENDOM_WEB = process.env.FRANKENDOM_WEB || `${process.env.HOME}/Developer/frankendom-web`; // checkout with node_modules/playwright and three
+const require = createRequire(`${FRANKENDOM_WEB}/package.json`);
 const { chromium } = require("playwright");
 const S = process.argv[2];
 const GLB = process.argv[3];
@@ -11,7 +12,7 @@ const LABEL = process.argv[4] ?? "spider";
 const VIEWS = (process.argv[5] ?? "q34,front,top,game,side").split(",");
 const CLIP = process.argv[6] ?? "roach_idle";
 const T = process.argv[7] ?? "0.4";
-const THREE = "/Users/domininclynch/Developer/frankendom-web/node_modules/three";
+const THREE = `${FRANKENDOM_WEB}/node_modules/three`;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".glb": "model/gltf-binary" };
 const server = http.createServer((req, res) => {
   const u = decodeURIComponent(new URL(req.url, "http://x").pathname);

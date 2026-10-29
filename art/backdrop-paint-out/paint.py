@@ -2,13 +2,13 @@
 
 The mask polygons are in full-image pixels. Only the dilated mask is replaced (feathered), the rest of the picture is untouched; the
 result is saved as lossy WebP at the same size. Run with the vlama venv (torch + simple-lama-inpainting)."""
-import json, sys
+import json, os, sys
 import cv2
 import numpy as np
 from PIL import Image
 from simple_lama_inpainting import SimpleLama
 
-root = "/Users/domininclynch/Developer/armagedom/.claude/worktrees/arma-chars-f7f72b"
+root = os.environ.get("ARMAGEDOM_ROOT") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # repo root
 area, mask_file, out = sys.argv[1:4]
 src = Image.open(sys.argv[4] if len(sys.argv) > 4 else f"{root}/Web/public/world/{area}/backdrop-phone.webp").convert("RGB")  # optional 4th argument: the source picture
 w, h = src.size

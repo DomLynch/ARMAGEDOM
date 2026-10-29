@@ -8,7 +8,8 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { createRequire } from "node:module";
-const require = createRequire("/Users/domininclynch/Developer/frankendom-web/package.json");
+const FRANKENDOM_WEB = process.env.FRANKENDOM_WEB || `${process.env.HOME}/Developer/frankendom-web`; // checkout with node_modules/playwright
+const require = createRequire(`${FRANKENDOM_WEB}/package.json`);
 const { chromium } = require("playwright");
 const [, , dist, label, outDir] = process.argv;
 const RECIPE = process.env.RECIPE ?? "crow-carrion";
