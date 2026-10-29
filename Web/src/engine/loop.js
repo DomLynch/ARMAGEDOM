@@ -20,11 +20,13 @@ import { createAirdropView } from "./airdrop-view.js";
 import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
+import { createBossTaunts, tauntsEnabled } from "./boss-taunts.js";
 const STAND_IN = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId;
 export function createBrowserLoop(s) {
   const hints = createFirstTimeHints(),
     pickupFlash = createPickupFlash(),
-    haptics = createHaptics({ listen: s.listen });
+    haptics = createHaptics({ listen: s.listen }),
+    taunts = tauntsEnabled() ? createBossTaunts() : null; // data/bossTaunts.json; ?taunts=0 turns them off
   let last = 0,
     accumulator = 0,
     submitted = null,
@@ -126,6 +128,7 @@ export function createBrowserLoop(s) {
     if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
     shareCard.sync(s.game.finished && s.game.player.hp <= 0);
     if (s.game !== seenGame || s.world.areaId !== seenArea) shareClip.reset();
+    if (s.game !== seenGame) taunts?.reset();
     seenGame = s.game;
     seenArea = s.world.areaId;
     const audioEvents = [],
@@ -198,6 +201,7 @@ export function createBrowserLoop(s) {
         deathCam.observe(s.game.events);
         shareClip.observe(s.game.events, s.game);
         audioEvents.push(...s.game.events);
+        taunts?.observe(s.game, s.game.events);
         pickupFlash.observe(s.game.events);
         haptics.observe(s.game.events, s.game);
         s.emit(s.game.events);

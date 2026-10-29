@@ -124,6 +124,8 @@ import { validateInput, validateTouchTarget } from "./input-data.js";
 import { validateFlameEffect } from "./flame-effect-data.js";
 import burnPresentation from "../data/burnPresentation.json" with { type: "json" };
 import { validateBurnPresentation } from "./burn-presentation-data.js";
+import bossTaunts from "../data/bossTaunts.json" with { type: "json" };
+import { validateBossTaunts } from "./boss-taunts-data.js";
 import { validateHud } from "./hud-data.js";
 import { validatePickupFlash } from "./pickup-flash-data.js";
 import { validateCombatImpact } from "./combat-impact-data.js";
@@ -1096,6 +1098,7 @@ const sources = () => ({
   physicsBody: [physicsBody, validatePhysicsBody],
   reaperMotion: [reaperMotion, validateReaperMotion],
   burnPresentation: [burnPresentation, validateBurnPresentation],
+  bossTaunts: [bossTaunts, validateBossTaunts],
   appearance: [appearance, validateAppearance],
   atmosphere: [atmosphere, validateAtmosphere],
   areaRuntime: [areaRuntime, validateAreaRuntime],
