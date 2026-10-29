@@ -1,0 +1,58 @@
+# Soft, NON-GATING type-check (outside code review, Dom approved). Never fails CI, is not part of
+# web-gate and is not a required check. Reports counts only in the job summary.
+# Ratchet later: see docs/audit/typecheck-ratchet.md (record baseline, fail only on increase).
+name: typecheck-soft
+
+on:
+  pull_request:
+
+concurrency:
+  group: typecheck-soft-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: typecheck (soft, non-gating)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Web dependencies
+        continue-on-error: true
+        run: npm ci || true
+
+      - name: tsc (report only)
+        continue-on-error: true
+        run: |
+          npx --yes -p typescript@5.9.3 tsc -p tsconfig.check.json --pretty false > "$RUNNER_TEMP/tsc.txt" 2>&1 || true
+          node -e '
+            const fs = require("fs");
+            const lines = fs.readFileSync(process.env.RUNNER_TEMP + "/tsc.txt", "utf8").split("\n");
+            const re = /^(.+?)\(\d+,\d+\): error (TS\d+):/;
+            const byFile = {}, byCode = {};
+            let total = 0;
+            for (const l of lines) {
+              const m = re.exec(l);
+              if (!m) continue;
+              total++;
+              byFile[m[1]] = (byFile[m[1]] || 0) + 1;
+              byCode[m[2]] = (byCode[m[2]] || 0) + 1;
+            }
+            const top = (o, n) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
+            const out = ["## tsc (soft, non-gating, Web/tsconfig.check.json)", "", "Total errors: " + total, "", "Top 20 files:", ""];
+            top(byFile, 20).forEach(([f, n]) => out.push("- `" + f + "`: " + n));
+            out.push("", "Top 10 error codes:", "");
+            top(byCode, 10).forEach(([c, n]) => out.push("- `" + c + "`: " + n));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out.join("\n") + "\n\n");
+          ' || true
