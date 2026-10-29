@@ -267,7 +267,7 @@ test("proximity gate: the tap target shows only inside the row's radius, in the 
   assert.equal(spots[0].hidden, false);
   assert.ok(Number.parseFloat(spots[0].style.width) >= DATA.hotspot.minPx);
   assert.ok(Number.parseFloat(spots[0].style.height) >= DATA.hotspot.minPx);
-  assert.equal(spots[1].hidden, true); // Okafor is 8.5 away
+  assert.equal(spots[1].hidden, true); // Okafor is about 10 away
   shop.update(scene({ player: marshAt(marsh.radius + 0.5) }));
   assert.equal(spots[0].hidden, true);
   shop.update(scene({ player: marshAt(0), area: "east" }));

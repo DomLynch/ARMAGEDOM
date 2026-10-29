@@ -34,6 +34,7 @@ import { respawnArea } from "./corpse-run.js";
 import { sessionText } from "./session-text.js";
 import { createGuestAuth } from "./guest-auth.js";
 import { createMarketApi } from "./market-api.js";
+import { drainCashClaims } from "./world-pickups-core.js";
 import { createShop } from "./shop.js";
 import { installQaBridge } from "./qa-bridge.js";
 import { createClientLog, releaseOf } from "./client-log.js";
@@ -378,7 +379,7 @@ export function createBrowserSession(options = {}) {
     baseRunStorage = runStorage;
     runStorage = observeStorage(runStorage, isRunKey, (raw) => {
       // Stash and airdrop cash noted since the last write goes to the server first, so the save below finds it credited.
-      for (const claim of context.game?.cashClaims?.splice(0) ?? []) saveClient?.claimPickup(claim.source, claim.amount, claim);
+      drainCashClaims(context.game, saveClient);
       saveClient?.queue(raw, context.game, { urgent: runIsOver(context.game) });
     });
   }

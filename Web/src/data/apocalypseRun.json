@@ -68,9 +68,12 @@
     "enabled": true,
     "offSwitch": { "param": "noextract", "value": "1" },
     "holdSeconds": 20,
-    "mouthRange": 8,
+    "mouthMin": 10,
+    "mouthRange": 20,
+    "hintSeconds": 5,
     "holdRadius": 4,
     "holdDecayPerSecond": 2,
+    "raidMinSeconds": 30,
     "heatScale": 1.5,
     "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
     "bonus": {

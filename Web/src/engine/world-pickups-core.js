@@ -85,6 +85,11 @@ export function claimCash(g, source, amount, extra) {
   if (amount > 0) (g.cashClaims ??= []).push({ source, amount, ...extra });
   heatFromClaim(g, source, amount); // a stash or a crate also raises heat (heat.json valuables)
 }
+// Hands the noted claims to the save client. With no client yet (a slow link) the claims stay noted: draining them would lose the cash.
+export function drainCashClaims(g, client) {
+  if (!client || !g?.cashClaims?.length) return;
+  for (const claim of g.cashClaims.splice(0)) client.claimPickup(claim.source, claim.amount, claim);
+}
 const say = (g, text, seconds) => {
   g.message = text;
   g.messageUntil = g.time + seconds;
