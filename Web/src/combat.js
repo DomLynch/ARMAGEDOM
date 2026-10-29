@@ -72,7 +72,8 @@ import {
   DOG_RIG,
 } from "./engine/area-residents.js";
 import { mobileControl, resetMobileControls } from "./engine/mobile-control.js";
-export { initializeAreaResidents, reviveAreaResidents, resetMobileControls };
+import { enemy, legacyKind, mag, NEGLIGIBLE_DISTANCE, nextSerial, validDirection } from "./engine/enemy-core.js";
+export { initializeAreaResidents, reviveAreaResidents, resetMobileControls, enemy, validDirection };
 const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
 // Legacy (non-pilot) attacks: data/creatures.json `playerAttacks`.
@@ -99,17 +100,14 @@ const DOG_MID = CREATURE_MOVES.dog_mid;
 export const DOG_BITE = CREATURE_MOVES.dog_bite;
 const DOG_BITE_SCALED = CREATURE_MOVES.dog_bite_scaled;
 const EPS = 1e-8,
-  mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
-// Numerical dead zones, not tuning: below these a direction, push or length counts as nothing.
-const NEGLIGIBLE_DISTANCE = 0.001, // tuning-ok: numerical dead zone for a direction
-  INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
+// Numerical dead zones, not tuning: below these a push or length counts as nothing (the direction one is in enemy-core.js).
+const INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
   MIN_SEGMENT = 0.0001; // tuning-ok: numerical dead zone for a segment length
 export function normal(v, fallback = { x: 0, z: 1 }) {
   const n = mag(v);
   return n > NEGLIGIBLE_DISTANCE ? { x: v.x / n, z: v.z / n } : { ...fallback };
 }
-export const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > NEGLIGIBLE_DISTANCE;
 const dot = (a, b) => a.x * b.x + a.z * b.z;
 const inside = (dir, delta, arc) =>
   mag(delta) < NEGLIGIBLE_DISTANCE || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
@@ -117,33 +115,12 @@ const rotate = (v, angle) => ({
   x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
-let serial = 0;
 // The original goblin game's numbers: data/combatRules.json `legacy`.
 const RULES = GAME_DATA.combatRules,
   LEGACY = RULES.legacy,
   WAVES = LEGACY.waves,
   WARLORD = WAVES.warlordKind,
   RANGED = WAVES.rangedKind;
-const legacyKind = (kind) => LEGACY.kinds[kind] ?? LEGACY.kinds[0];
-export function enemy(kind, pos) {
-  const hp = LEGACY.kinds[kind]?.hp;
-  return {
-    id: ++serial,
-    kind,
-    pos: { ...pos },
-    facing: { x: 0, z: -1 },
-    hp,
-    maxHP: hp,
-    radius: legacyKind(kind).radius,
-    ready: 0,
-    recoverUntil: 0,
-    staggerUntil: 0,
-    alerted: false,
-    pattern: 0,
-    swing: null,
-    flashUntil: 0,
-  };
-}
 export function createGame(world, options = {}) {
   if (options.encounter && (options.pilot !== "donor-knife" || options.encounter.id !== "hollow-scavengers"))
     throw Error("Unsupported combat encounter");
@@ -841,7 +818,7 @@ function kill(g, e, meta = {}) {
   const drops = LEGACY.loot;
   if (g.kills % drops.every === 0)
     g.loot.push({
-      id: ++serial,
+      id: nextSerial(),
       pos: { ...e.pos },
       kind: (g.kills / drops.every - 1) % drops.kinds,
       tier: Math.min(drops.maxTier, g.wave - 1),
@@ -917,7 +894,7 @@ const wideSwing = (e) => e.kind === WARLORD && e.pattern === WAVES.widePattern;
 const radius = (e) => (wideSwing(e) ? LEGACY.wideSwing.radius : legacyKind(e.kind).swingRadius);
 const arc = (e) => (wideSwing(e) ? LEGACY.wideSwing.arc : legacyKind(e.kind).swingArc);
 function bolt(g, pos, dir, amount) {
-  g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + WAVES.boltLifeSeconds });
+  g.bolts.push({ id: nextSerial(), pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + WAVES.boltLifeSeconds });
 }
 function enemyTick(g, e, dt, services = {}) {
   if (e.hp > 0 && safehouseProtected(g)) {
@@ -1299,7 +1276,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         source: services.reaperSource,
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
-        emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
+        emitBolt: (b) => g.bolts.push({ id: nextSerial(), ...b }),
         hit: (shot, amount) => cursedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
@@ -1828,7 +1805,7 @@ function droneEnemy(g, e, dt) {
   if (next.action === "approach") enemyMove(g, e, next.direction, e.moveSpeed, dt);
   else if (next.direction) e.facing = { ...next.direction };
   if (next.bolt) {
-    g.bolts.push({ id: ++serial, ...next.bolt });
+    g.bolts.push({ id: nextSerial(), ...next.bolt });
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...next.bolt.dir },
