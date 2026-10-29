@@ -9,8 +9,8 @@ import { sessionText } from "../src/engine/session-text.js";
 const gatePath = new URL("../../scripts/text-literal-gate.mjs", import.meta.url);
 const gate = fs.existsSync(gatePath) ? await import(gatePath.href) : null;
 
-// The player-facing English of browser-session.js, run-state.js, expedition-runtime.js, commander/match.js, commander/session.js,
-// mode-entry.js and account-control.js moved to data/sessionText.json. Each expected string below is the literal (or template with
+// The player-facing English of browser-session.js, run-state.js, expedition-runtime.js
+// and account-control.js moved to data/sessionText.json. Each expected string below is the literal (or template with
 // sample values filled in) the code held before, copied from origin/main (058e76b7), so this proves the shown text is string-equal.
 const text = (p) => fs.readFileSync(new URL(p, import.meta.url), "utf8");
 const raw = () => structuredClone(JSON.parse(text("../src/data/sessionText.json")));
@@ -97,45 +97,6 @@ const OLD = [
   ["expedition.stateEquip", {}, "Equip"],
   ["expedition.stateLocked", {}, "Locked"],
   ["expedition.comparisonRow", { name: "Marshal", damage: 30, reload: "1.0" }, `${"Marshal"}: ${30} damage · ${"1.0"}s reload`],
-  ["commander.unavailable", {}, "Match or order unavailable"],
-  ["commander.capReached", {}, "Three-unit cap reached"],
-  ["commander.reserveExhausted", {}, "Reserve exhausted"],
-  ["commander.pointOccupied", {}, "Deployment point occupied"],
-  ["commander.selectFirst", {}, "Select a machine first"],
-  ["commander.chooseOpponent", {}, "Choose a living biological opponent"],
-  ["commander.outsideRoad", {}, "Destination is outside the clear road"],
-  ["commander.noRoute", {}, "No body-clear route for the selected formation"],
-  ["commander.resultCaptured", {}, "Checkpoint captured and defended"],
-  ["commander.resultDestroyed", {}, "Checkpoint destroyed"],
-  ["commander.resultTime", {}, "Time expired"],
-  ["commander.resultReserve", {}, "Squad and replacement reserve exhausted"],
-  ["commander.objectiveCapture", { done: "1.5", total: 10 }, `Capture checkpoint · ${"1.5"} / ${10}s`],
-  ["commander.objectiveDefend", { done: "2.5", total: 30 }, `Defend checkpoint · ${"2.5"} / ${30}s`],
-  ["commander.integrity", { hp: 80, max: 100, seconds: 120 }, `Checkpoint ${80} / ${100} · ${120}s`],
-  ["commander.reserve", { alive: 2, cap: 3, reserve: 4 }, `Machines ${2} / ${3} · Reserve ${4}`],
-  ["commander.paused", {}, "Paused"],
-  ["commander.selected", { count: 2, hint: "tap clear road to move" }, `${2} selected · ${"tap clear road to move"}`],
-  ["commander.hintAttack", {}, "tap a biological opponent"],
-  ["commander.hintMove", {}, "tap clear road to move"],
-  ["commander.selectDrone", {}, "Select a drone or choose All"],
-  ["commander.droneButton", { id: 7, hp: 5, max: 8 }, `Drone ${7} · ${5}/${8}`],
-  ["commander.resume", {}, "Resume"],
-  ["commander.pause", {}, "Pause"],
-  ["commander.titleSuccess", {}, "Checkpoint secured"],
-  ["commander.titleLoss", {}, "Checkpoint lost"],
-  ["commander.matchUnavailable", {}, "Commander match unavailable"],
-  ["commander.selectLiving", {}, "Select a living machine"],
-  ["commander.deployed", {}, "Replacement deployed"],
-  ["commander.orderAccepted", { order: "Move" }, `${"Move"} order accepted`],
-  ["commander.loading", {}, "Loading Commander · Westminster…"],
-  ["commander.loadFailed", { error: "boom" }, `Commander could not load: ${"boom"}. Return to the menu and retry.`],
-  ["commander.tapOpponent", {}, "Tap a biological opponent to attack"],
-  ["commander.graphicsInterrupted", {}, "Graphics interrupted · return to menu and retry"],
-  ["mode.playHuman", {}, "Play as Human"],
-  ["mode.choose", {}, "Choose how to play."],
-  ["mode.startFailed", { mode: "Human", error: "x" }, `Could not start ${"Human"}: ${"x"}`],
-  ["mode.modeHuman", {}, "Human"],
-  ["mode.modeCommander", {}, "Commander"],
   ["account.signIn", {}, "Sign in with Google to keep progress"],
   ["account.signInUnavailable", {}, "Sign-in is unavailable right now."],
 ];
@@ -157,20 +118,19 @@ test("the helper refuses a missing key, a missing value and a prototype name, an
   assert.throws(() => sessionText("nope.vestEquipped"), /No session text/);
   assert.throws(() => sessionText("constructor.name"), /No session text/);
   assert.throws(() => sessionText("run.supplyRounds"), /needs \{amount\}/);
-  assert.equal(sessionText("mode.startFailed", { mode: "Human", error: "{mode} {x}" }), "Could not start Human: {mode} {x}");
+  assert.equal(sessionText("run.vestEquipped", { percent: "{x}" }), "Worn vest equipped · {x}% protection from unblocked hits.");
   assert.equal(sessionText("run.vestEquipped", { percent: 10, unused: 1 }), "Worn vest equipped · 10% protection from unblocked hits.");
 });
 
 test("each call in the source files names a key that exists, and each key is used by some call", () => {
   const files = [
-    "engine/browser-session.js", "engine/run-state.js", "engine/expedition-runtime.js", "engine/commander/match.js",
-    "engine/commander/session.js", "engine/mode-entry.js", "engine/account-control.js",
+    "engine/browser-session.js", "engine/run-state.js", "engine/expedition-runtime.js", "engine/account-control.js",
   ];
   const all = new Set(OLD.map(([key]) => key)),
     used = new Set();
   for (const file of files) {
     const src = text(`../src/${file}`);
-    for (const m of src.matchAll(/"((?:browser|run|expedition|commander|mode|account)\.[A-Za-z]+)"/g)) used.add(m[1]);
+    for (const m of src.matchAll(/"((?:browser|run|expedition|account)\.[A-Za-z]+)"/g)) used.add(m[1]);
     for (const m of src.matchAll(/\bmark\([^,]+,\s*"([A-Za-z]+)"\)/g)) used.add(`expedition.${m[1]}`);
   }
   for (const key of used) assert(all.has(key), `${key} is used but not in the data`);
@@ -201,8 +161,8 @@ test("the loader refuses missing, extra, empty and malformed text", () => {
 
 test("the text gate counts 0 in the session files, and every text-ok mark carries a reason", { skip: !gate }, () => {
   const files = [
-    "engine/browser-session.js", "engine/run-state.js", "engine/expedition-runtime.js", "engine/commander/match.js",
-    "engine/commander/session.js", "engine/mode-entry.js", "engine/account-control.js", "engine/movement-trace.js",
+    "engine/browser-session.js", "engine/run-state.js", "engine/expedition-runtime.js", "engine/account-control.js",
+    "engine/movement-trace.js",
     "engine/save-client.js", "engine/remote-survivors.js", "engine/guest-auth.js", "engine/client-log.js",
   ];
   for (const file of files) {
