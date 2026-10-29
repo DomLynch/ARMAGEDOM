@@ -91,7 +91,8 @@ export function createEffects(
     }));
   let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
-  let confirmation = null;
+  let confirmation = null,
+    poolDirty = true; // the instance buffers hold something the GPU has not been told is gone yet (see tickPool)
   let requestedMode = "high",
     motionReduced = !!reducedMotion();
   const impact = createCombatImpact({ mode: requestedMode, reducedMotion: motionReduced });
@@ -466,7 +467,12 @@ export function createEffects(
     if (world.camera) world.camera.getWorldQuaternion(particleCamera);
     else particleCamera.identity();
     particleCameraInverse.copy(particleCamera).invert();
-    for (let i = 0; i < POOL.particles; i++) {
+    // An empty pool is walked and uploaded once more after its last particle ends (to park every instance), then left alone: this runs
+    // several times a frame and each pass used to re-send the whole instance buffer.
+    const poolLive = particles.some((p) => p.life > 0 || p.delay > 0),
+      poolIdle = !poolLive && !poolDirty;
+    poolDirty = poolLive;
+    for (let i = 0; i < (poolIdle ? 0 : POOL.particles); i++) {
       const p = particles[i];
       pose.quaternion.identity();
       dropletMask.setX(i, p.stretch ? 1 : 0);
@@ -527,9 +533,11 @@ export function createEffects(
       particleMesh.setMatrixAt(i, pose.matrix);
     }
     particleMesh.visible = particles.some((p) => p.life > 0);
-    particleMesh.instanceMatrix.needsUpdate = true;
-    dropletMask.needsUpdate = true;
-    if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
+    if (!poolIdle) {
+      particleMesh.instanceMatrix.needsUpdate = true;
+      dropletMask.needsUpdate = true;
+      if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
+    }
     for (const t of tracers) {
       t.life = Math.max(0, t.life - dt);
       t.mesh.visible = t.life > 0;
