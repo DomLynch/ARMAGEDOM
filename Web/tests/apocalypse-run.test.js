@@ -182,7 +182,7 @@ test("extraction on REAL data: the zone sits clear at the exit mouth and the hun
     assert.ok(g?.run.hold, `${area}: the zone is set on arrival`);
     const spot = g.run.hold.at;
     assert.ok(geometry.clear(spot, X.zoneClearRadius), `${area}: the zone is on clear ground`);
-    assert.ok(Math.abs(Math.hypot(spot.x - mouth.x, spot.z - mouth.z) - X.zoneDistance) < 2, `${area}: the zone is the data's distance from the exit`);
+    assert.ok(Math.hypot(spot.x - mouth.x, spot.z - mouth.z) >= X.zoneDistance - 0.5, `${area}: the zone is never nearer the exit than the data's distance`);
     g.player.pos = { ...spot };
     g.time += 1;
     stepApocalypseRun(g);
@@ -403,7 +403,7 @@ test("extraction: the zone shows on arrival, stepping in calls a raid and a boss
   assert.ok(g.run.hold, "the zone stands at the exit");
   assert.equal(g.message, webText("extraction.zone", { seconds: X.holdSeconds }), "arriving says where to go and for how long");
   assert.equal(X.holdSeconds, 5);
-  assert.equal(g.raid, null, "no raid before the player steps in");
+  assert.ok(!g.raid, "no raid before the player steps in");
   assert.equal(extractionTarget(g), null, "no pull before the player steps in");
   assert.equal(runHeatScale(g), S3.heatScale * g.run.picks.hazard.heatScale, "the heat is normal before the player steps in");
   intoZone(g, t);

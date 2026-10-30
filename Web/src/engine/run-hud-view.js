@@ -33,7 +33,7 @@ export function createRunHudView(s) {
     const ring = el("extraction-ring"),
       look = RUN.extraction.view.hud;
     if (!ring) return;
-    const hold = g.run.hold && g.run.hold.areaId === g.world?.areaId ? g.run.hold : null;
+    const hold = !g.run.outcome && g.run.hold && g.run.hold.areaId === g.world?.areaId ? g.run.hold : null;
     show(ring, !!hold && !s.traveling);
     if (!hold) return;
     const track = el("extraction-ring-track"),
