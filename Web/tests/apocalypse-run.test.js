@@ -186,7 +186,6 @@ test("extraction on REAL data: the zone sits clear at the exit mouth and the hun
     const gap = Math.min(
       ...registry
         .links(area)
-        .filter((l) => l.to === RUN.startZone)
         .map((l) => {
           const c = l.condition,
             p = geometry.point(spot),
@@ -194,7 +193,7 @@ test("extraction on REAL data: the zone sits clear at the exit mouth and the hun
           return Math.hypot(spot.x - ground.x, spot.z - ground.z);
         }),
     );
-    assert.ok(gap > CLEAR && gap <= X.zoneDistance + 0.5, `${area}: the zone is off the exit line and at most the data's distance from it (${gap.toFixed(2)} m)`);
+    assert.ok(gap >= X.zoneExitClearance, `${area}: the zone is never nearer any exit than the data's clearance (${gap.toFixed(2)} m)`);
     g.player.pos = { ...spot };
     g.time += 1;
     stepApocalypseRun(g);

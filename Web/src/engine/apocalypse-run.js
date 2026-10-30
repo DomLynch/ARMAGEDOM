@@ -164,8 +164,8 @@ function prepareFinale(g, rules) {
   } else say(g, rules.escape.arrived);
 }
 
-// How far the player is, in metres, from the nearest exit of this area that leads to `toArea` (Infinity when there is none). The same
-// clamp-to-the-exit-box measure as the route hint (world.js exitHint).
+// The exits of this area that lead to `toArea` (any exit when it is omitted). The distance to them uses the same clamp-to-the-exit-box
+// measure as the route hint (world.js exitHint).
 const linkLists = new WeakMap(); // registry -> "area>toArea" -> its links: the step runs at 60 Hz and the registry never changes
 function exitLinks(world, toArea) {
   const registry = world.registry;
@@ -173,11 +173,11 @@ function exitLinks(world, toArea) {
   const key = `${world.areaId}>${toArea}`;
   let lists = linkLists.get(registry);
   if (!lists) linkLists.set(registry, (lists = new Map()));
-  if (!lists.has(key)) lists.set(key, registry.links(world.areaId).filter((link) => link.to === toArea));
+  if (!lists.has(key)) lists.set(key, registry.links(world.areaId).filter((link) => !toArea || link.to === toArea));
   return lists.get(key);
 }
-// The nearest ground point of an exit of this area that leads to `toArea`, with its distance from `position`: { x, z, gap }
-// (gap Infinity and no point when there is none).
+// The nearest ground point of an exit of this area that leads to `toArea` (any exit when omitted), with its distance from `position`:
+// { x, z, gap } (gap Infinity and no point when there is none).
 function nearestExit(world, position, toArea) {
   const links = exitLinks(world, toArea),
     point = links.length ? world.geometry.point(position) : null;
@@ -194,8 +194,9 @@ function nearestExit(world, position, toArea) {
   return best;
 }
 
-// The extraction zone of an area: a clear spot zoneDistance from the exit home, on the player's side of it (so never on the exit line),
-// or null when the layout leaves none. It tries the straight line first, then turns round the exit one step at a time.
+// The extraction zone of an area: a clear spot zoneDistance from the exit home, on the player's side of it, and no nearer than
+// zoneExitClearance to any exit (standing in the circle must never travel), or null when the layout leaves none. It tries the straight
+// line first, then turns round the exit one step at a time.
 function zoneSpot(world, position, x, toArea) {
   const exit = nearestExit(world, position, toArea);
   if (!Number.isFinite(exit.gap)) return null;
@@ -203,7 +204,7 @@ function zoneSpot(world, position, x, toArea) {
   for (let k = 0; k < x.zoneTurns; k++) {
     const angle = base + ((k * 360) / x.zoneTurns) * (Math.PI / 180),
       spot = { x: exit.x + Math.cos(angle) * x.zoneDistance, z: exit.z + Math.sin(angle) * x.zoneDistance };
-    if (world.geometry.clear(spot, x.zoneClearRadius)) return spot;
+    if (world.geometry.clear(spot, x.zoneClearRadius) && nearestExit(world, spot).gap >= x.zoneExitClearance) return spot;
   }
   return null;
 }

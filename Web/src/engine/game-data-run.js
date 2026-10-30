@@ -87,13 +87,13 @@ function validateExtractionView(v) {
 
 function validateExtraction(x) {
   closed(x, [
-    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "zoneDistance", "zoneTurns", "zoneClearRadius"],
+    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "zoneDistance", "zoneTurns", "zoneClearRadius", "zoneExitClearance"],
     ...["holdRadius", "holdDecayPerSecond", "raidMinSeconds", "heatScale", "pull", "bonus", "view"],
   ]);
   validateExtractionView(x.view);
   if (typeof x.enabled !== "boolean") fail("apocalypseRun", "extraction.enabled must be a boolean");
   checkSwitch("extraction.offSwitch", x.offSwitch);
-  for (const f of ["holdSeconds", "zoneDistance", "zoneClearRadius", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  for (const f of ["holdSeconds", "zoneDistance", "zoneClearRadius", "zoneExitClearance", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
   number("apocalypseRun", "extraction.zoneTurns", x.zoneTurns, 2);
   number("apocalypseRun", "extraction.holdDecayPerSecond", x.holdDecayPerSecond, 0);
   number("apocalypseRun", "extraction.raidMinSeconds", x.raidMinSeconds, 0);
