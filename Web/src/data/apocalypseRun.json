@@ -56,7 +56,7 @@
     ],
     "finale": [
       { "id": "boss", "kind": "boss", "objective": "A boss has found you. Kill it." },
-      { "id": "escape", "kind": "escape", "objective": "Reach the safehouse to escape." }
+      { "id": "escape", "kind": "escape", "objective": "Reach the circle by the exit and stay in it." }
     ]
   },
   "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
@@ -79,7 +79,7 @@
     "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
     "view": {
       "note": "First-time-player legibility (Dom's phone pass, 29 Oct 2026): a ground circle at the hold spot the size of holdRadius, and a big progress ring on screen. The ring text is webText extraction.ringLabel.",
-      "ring": { "segments": 64, "width": 0.3, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
+      "ring": { "segments": 64, "width": 0.6, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
       "hud": {
         "sizePx": 120,
         "strokeUnits": 8,
