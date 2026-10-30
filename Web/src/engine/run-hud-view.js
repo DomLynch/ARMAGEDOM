@@ -27,16 +27,15 @@ export function createRunHudView(s) {
   let rowsKey = null,
     idle = false,
     ringSized = false;
-  // The hold-out's big progress ring (data/apocalypseRun.json extraction.view.hud): it fills while the player holds the circle, then
-  // stays full and green with the way out in words until the run ends. Sizes and colours are set once from the row.
+  // The extraction zone's big progress ring (data/apocalypseRun.json extraction.view.hud): shown while the zone stands, it fills while the
+  // player is in the circle. Sizes and colours are set once from the row.
   function paintRing(g) {
     const ring = el("extraction-ring"),
       look = RUN.extraction.view.hud;
     if (!ring) return;
-    const hold = g.run.hold && g.run.hold.areaId === g.world?.areaId ? g.run.hold : null,
-      ready = !!g.run.extracted && !g.run.outcome;
-    show(ring, (!!hold || ready) && !s.traveling);
-    if (!hold && !ready) return;
+    const hold = g.run.hold && g.run.hold.areaId === g.world?.areaId ? g.run.hold : null;
+    show(ring, !!hold && !s.traveling);
+    if (!hold) return;
     const track = el("extraction-ring-track"),
       fill = el("extraction-ring-fill");
     if (!ringSized) {
@@ -58,11 +57,10 @@ export function createRunHudView(s) {
       fill.setAttribute("stroke-dasharray", 2 * Math.PI * radius);
       fill.dataset.circumference = 2 * Math.PI * radius;
     }
-    const progress = ready ? 1 : hold.progress;
-    fill.setAttribute("stroke", `#${ready ? look.readyColour : look.fillColour}`);
-    fill.setAttribute("stroke-dashoffset", Number(fill.dataset.circumference) * (1 - progress));
-    paint(el("extraction-ring-percent"), `${Math.round(progress * 100)}%`);
-    paint(el("extraction-ring-text"), webText(ready ? "extraction.readyPrompt" : "extraction.ringLabel"));
+    fill.setAttribute("stroke", `#${look.fillColour}`);
+    fill.setAttribute("stroke-dashoffset", Number(fill.dataset.circumference) * (1 - hold.progress));
+    paint(el("extraction-ring-percent"), `${Math.round(hold.progress * 100)}%`);
+    paint(el("extraction-ring-text"), webText("extraction.ringLabel"));
   }
   function update() {
     const g = s.game;

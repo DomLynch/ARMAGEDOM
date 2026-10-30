@@ -164,69 +164,53 @@ test("raid cap: with the run's raid armed and heat at its top, normal hunters pl
   assert.ok(worst <= CAP, `normal hunters plus raiders (${worst}) stay inside the cap (${CAP})`);
 });
 
-// Every raid zone with an exit home, at both edges of the hold band, on the shipped layouts: the hunt really has an entry and a raider spawns.
-test("extraction on REAL data: a hold at either edge of the band has a hunt entry and a raid hunter spawns (east, south, area7)", () => {
+// Every raid zone with an exit home, on the shipped layouts: the zone is on clear ground at the data's distance from the exit, the hunt
+// really has an entry there and a raider spawns once the player steps in.
+test("extraction on REAL data: the zone sits clear at the exit mouth and the hunt can reach it (east, south, area7)", () => {
   const X = RUN.extraction,
     CLEAR = shipped.markedData.minSpawnDistance;
-  assert.ok(X.mouthMin >= CLEAR + 2, "the band starts two metres past the hunt's minimum spawn distance");
-  assert.ok(X.mouthMin < X.mouthRange);
+  assert.ok(X.zoneDistance >= CLEAR + 2, "the zone is two metres past the hunt's minimum spawn distance from the exit");
   for (const area of ["east", "south", "area7"]) {
     const geometry = realWorld(area).geometry,
       mouth = exitMouth(area);
-    for (const [name, edge, sign] of [["near", X.mouthMin, 1], ["far", X.mouthRange, -1]]) {
-      // The first clear spot, walking in from the edge a quarter metre at a time, where the director starts the hold: within 1 m of the edge.
-      let found = null;
-      for (let s = 0; s <= 4 && !found; s++) {
-        for (let k = 0; k < 16 && !found; k++) {
-          const angle = (k * Math.PI) / 8,
-            d = edge + sign * (0.05 + s * 0.25),
-            offset = { x: Math.cos(angle) * d, z: Math.sin(angle) * d };
-          if (!geometry.clear({ x: mouth.x + offset.x, z: mouth.z + offset.z }, 0.4)) continue;
-          const { g } = holdOut(0, area, offset);
-          if (g.run.hold) found = g;
-        }
-      }
-      assert.ok(found, `${area}: a hold starts at the ${name} edge of the band`);
-      const g = found;
-      assert.ok(markedEntry(g), `${area}: the hunt has an entry at ${edge.toFixed(2)} m`);
-      let serial = 0;
-      g.marked = { version: 1, carried: 0, bank: 0, bounty: 0 };
-      g.time += 1;
-      stepMarkedHunters(g, (p) => ({ id: ++serial, hp: 30, pos: { ...p }, radius: 0.4, hostile: true, markedHunter: true }));
-      assert.ok(g.enemies.some((e) => e.raidHunter && e.hp > 0), `${area}: a raid hunter spawns at ${edge.toFixed(2)} m`);
+    // The first clear spot twelve metres out from the exit mouth, all the way round: where the player arrives.
+    let g = null;
+    for (let k = 0; k < 16 && !g; k++) {
+      const offset = { x: Math.cos((k * Math.PI) / 8) * 12, z: Math.sin((k * Math.PI) / 8) * 12 };
+      if (geometry.clear({ x: mouth.x + offset.x, z: mouth.z + offset.z }, 0.4)) g = holdOut(0, area, offset).g;
     }
+    assert.ok(g?.run.hold, `${area}: the zone is set on arrival`);
+    const spot = g.run.hold.at;
+    assert.ok(geometry.clear(spot, X.zoneClearRadius), `${area}: the zone is on clear ground`);
+    assert.ok(Math.abs(Math.hypot(spot.x - mouth.x, spot.z - mouth.z) - X.zoneDistance) < 2, `${area}: the zone is the data's distance from the exit`);
+    g.player.pos = { ...spot };
+    g.time += 1;
+    stepApocalypseRun(g);
+    assert.ok(markedEntry(g), `${area}: the hunt has an entry at the zone`);
+    let serial = 0;
+    g.marked = { version: 1, carried: 0, bank: 0, bounty: 0 };
+    g.time += 1;
+    stepMarkedHunters(g, (p) => ({ id: ++serial, hp: 30, pos: { ...p }, radius: 0.4, hostile: true, markedHunter: true }));
+    assert.ok(g.enemies.some((e) => e.raidHunter && e.hp > 0), `${area}: a raid hunter spawns once the player is in the zone`);
   }
 });
 
-test("extraction: inside mouthMin the hold does not start and the player is told to step away, not every frame", () => {
-  const { g } = holdOut(0, "east", { x: 0, z: 0 });
-  assert.equal(g.run.hold, null, "no hold at the mouth");
-  assert.equal(g.message, webText("extraction.step"));
-  g.message = "";
-  g.time += 0.5;
-  stepApocalypseRun(g);
-  assert.equal(g.message, "", "the hint waits its data seconds");
-  g.time += RUN.extraction.hintSeconds;
-  stepApocalypseRun(g);
-  assert.equal(g.message, webText("extraction.step"));
-});
-
-test("extraction: the per-area exit list is read once, not on every 60 Hz step of a raid zone with no hold", () => {
+test("extraction: the per-area exit list is read once, not on every 60 Hz step of a raid zone", () => {
   const g = started(),
     base = S1.seconds + S2.seconds;
   let reads = 0;
   g.run.picks.finale = RUN.variants.finale.find((r) => r.kind === "escape");
   g.world = { ...realWorld("east"), registry: { ...registry, links: (id) => (reads++, registry.links(id)) } };
   const mouth = exitMouth("east");
-  g.player.pos = { x: mouth.x + 500, z: mouth.z }; // far from the exit: no hold begins
+  g.player.pos = { x: mouth.x + 500, z: mouth.z }; // far from the exit: the zone is still set at the exit mouth
   at(g, base + 1);
   const first = reads;
   for (let i = 0; i < 120; i++) at(g, base + 2 + i / 60);
-  assert.equal(g.run.hold, null, "no hold far from the exit");
+  assert.ok(g.run.hold, "the zone stands at the exit however far the player is");
   assert.ok(first >= 1 && reads === first, `the link list is cached (${reads} reads, ${first} on the first step)`);
 });
 
-test("extraction: a raid nearly over is renewed when the hold begins, a raid with time left is kept", () => {
+test("extraction: a raid nearly over is renewed when the player steps into the zone, a raid with time left is kept", () => {
   const X = RUN.extraction;
   assert.ok(X.raidMinSeconds > 0, "the threshold is a data row");
   const setup = (left) => {
@@ -237,14 +221,14 @@ test("extraction: a raid nearly over is renewed when the hold begins, a raid wit
     const mouth = exitMouth("east");
     g.player.pos = { x: mouth.x + 500, z: mouth.z };
     at(g, base);
-    g.player.pos = { x: mouth.x + 12, z: mouth.z }; // inside the hold band
+    g.player.pos = { ...g.run.hold.at }; // steps into the zone
     const old = { startAt: g.time - 5, endAt: g.time + left, spawned: 3, live: 0, nextAt: g.time, areaId: "east", row: { ...g.raid?.row } };
     g.raid = old;
     at(g, base + 0.5);
     return { g, old };
   };
   const nearly = setup(X.raidMinSeconds - 1);
-  assert.ok(nearly.g.run.hold, "the hold began");
+  assert.ok(nearly.g.run.hold.hold > 0, "the zone began filling");
   assert.notEqual(nearly.g.raid, nearly.old, "a fresh raid is armed");
   assert.ok(nearly.g.raid.endAt - nearly.g.time >= X.raidMinSeconds, "the fresh raid outlasts the threshold");
   const plenty = setup(X.raidMinSeconds + 60);
@@ -356,8 +340,8 @@ const exitMouth = (areaId) => {
   });
 };
 
-// A finale on the escape row, with the player in the field beside the exit home: the next step starts the hold-out.
-// `offset` is from the exit mouth; the default stands inland in east (its exit is on the west edge), inside the [mouthMin, mouthRange] band.
+// A finale on the escape row, with the player arriving in the field: the next step sets the extraction zone at the exit mouth.
+// `offset` is from the exit mouth; the default stands inland in east (its exit is on the west edge).
 const holdOut = (heatPeak = 0, areaId = "east", offset = { x: 12, z: 0 }) => {
   const g = started(),
     X = RUN.extraction,
@@ -371,15 +355,21 @@ const holdOut = (heatPeak = 0, areaId = "east", offset = { x: 12, z: 0 }) => {
   at(g, base);
   g.run.heatPeak = heatPeak;
   at(g, base + 1);
-  return { g, X, t: base + 1, home: () => (g.world = hub) };
+  return { g, X, t: base + 1 };
+};
+// The player steps into the zone and the run steps half a second.
+const intoZone = (g, t) => {
+  g.player.pos = { ...g.run.hold.at };
+  at(g, t + 0.5);
 };
 
-test("extraction on REAL data: hostiles can reach the hold spot, the hub earns nothing, and the hold needs its own area", () => {
+test("extraction on REAL data: hostiles can reach the zone, the hub earns nothing, and the zone needs its own area", () => {
   assert.deepEqual([HUB_SAFEHOUSE.areaId, HUB_SAFEHOUSE.wholeArea], [RUN.startZone, true], "the shipped safehouse is the whole hub");
-  const { g } = holdOut();
-  assert.equal(g.run.hold?.areaId, "east", "the hold is set in a field area");
+  const { g, t } = holdOut();
+  assert.equal(g.run.hold?.areaId, "east", "the zone is set in a field area");
   assert.ok(RUN.raidZones.includes("east") && !RUN.raidZones.includes(RUN.startZone));
-  assert.equal(safehouseProtected(g), false, "no safehouse protection at the spot: a hit can land");
+  intoZone(g, t);
+  assert.equal(safehouseProtected(g), false, "no safehouse protection at the zone: a hit can land");
   assert.ok(g.raid.row.targetZones.includes("east"), "the raid targets the hold's area");
   // The real hunt step: its own site gate (siteBlocked) opens the raid in the field and its own entry picks the spawn point.
   let serial = 0;
@@ -398,68 +388,69 @@ test("extraction on REAL data: hostiles can reach the hold spot, the hub earns n
   assert.equal(idle.run.hold, null);
   assert.equal(idle.run.extracted, null);
   assert.equal(idle.run.outcome, null, "idling in the hub never escapes or pays");
-  // Another area mid-hold breaks it.
+  // Another area has its own zone at its own exit; the old zone and its pull are gone.
   g.world = realWorld("south");
+  g.player.pos = { ...exitMouth("south") };
+  g.player.pos.x += 12;
   at(g, S1.seconds + S2.seconds + 2);
-  assert.equal(g.run.hold, null, "leaving the area mid-hold breaks the hold");
+  assert.equal(g.run.hold?.areaId, "south", "the zone is set again in the new area");
+  assert.equal(g.run.hold.hold, 0, "with nothing filled");
   assert.equal(extractionTarget(g), null);
 });
 
-test("extraction: a hold-out sets a spot, a raid and a boss pull; holding the data's seconds opens the exit, and the exit ends the run", () => {
-  const { g, X, t, home } = holdOut();
-  assert.ok(g.run.hold, "the hold-out has begun");
-  assert.equal(g.message, webText("extraction.beginFirst"), "the first hold of a run says how to hold it");
-  assert.deepEqual(g.run.hold.at, g.player.pos);
-  assert.ok(g.raid, "the run's raid is called at the hold's start");
+test("extraction: the zone shows on arrival, stepping in calls a raid and a boss pull, and the data's seconds in the circle end the run", () => {
+  const { g, X, t } = holdOut();
+  assert.ok(g.run.hold, "the zone stands at the exit");
+  assert.equal(g.message, webText("extraction.zone", { seconds: X.holdSeconds }), "arriving says where to go and for how long");
+  assert.equal(X.holdSeconds, 5);
+  assert.equal(g.raid, null, "no raid before the player steps in");
+  assert.equal(extractionTarget(g), null, "no pull before the player steps in");
+  assert.equal(runHeatScale(g), S3.heatScale * g.run.picks.hazard.heatScale, "the heat is normal before the player steps in");
+  intoZone(g, t);
+  assert.equal(g.message, webText("extraction.begin"), "stepping in says to stay in the circle");
+  assert.ok(g.raid, "the run's raid is called when the player steps in");
   assert.deepEqual(extractionTarget(g), { at: g.run.hold.at, pull: X.pull });
-  assert.equal(runHeatScale(g), S3.heatScale * g.run.picks.hazard.heatScale * X.heatScale, "the heat runs hotter while holding");
+  assert.equal(runHeatScale(g), S3.heatScale * g.run.picks.hazard.heatScale * X.heatScale, "the heat runs hotter in the circle");
   const boss = { hp: 60, bossProfile: { wakeDistance: 5 }, pos: { x: 50, z: 0 }, home: { x: 50, z: 0 }, alerted: false },
     steps = [];
-  assert.equal(airdropPull(g, boss, 0.1, (_g, _e, dir) => steps.push(dir)), true, "the area boss walks to the spot");
-  assert.ok(steps[0].x < 0, "toward the spot");
+  assert.equal(airdropPull(g, boss, 0.1, (_g, _e, dir) => steps.push(dir)), true, "the area boss walks to the zone");
+  assert.ok(steps[0].x < 0, "toward the zone");
   for (let s = 1; s < X.holdSeconds - 1; s++) {
-    at(g, t + s);
-    assert.equal(g.run.outcome, null, `still holding at ${s}s`);
+    at(g, t + 0.5 + s);
+    assert.equal(g.run.outcome, null, `still in the circle at ${s}s`);
   }
   assert.match(g.run.hold.hud, /EXTRACTING/);
-  at(g, t + X.holdSeconds);
-  assert.equal(g.run.outcome, null, "a full hold opens the exit; it does not end the run");
+  at(g, t + 0.5 + X.holdSeconds);
+  assert.equal(g.run.outcome, "escaped", "a full hold ends the run: no exit to take, no safehouse to touch");
   assert.equal(g.run.hold, null);
-  assert.ok(g.run.extracted);
-  assert.equal(extractionTarget(g), null, "the pull ends with the hold");
-  home();
-  at(g, t + X.holdSeconds + 1);
-  assert.equal(g.run.outcome, "escaped", "taking the exit home ends the run");
+  assert.equal(extractionTarget(g), null, "the pull ends with the zone");
   assert.equal(g.run.result.bonus, X.bonus.base * X.bonus.curve[0].scale);
   assert.ok(runResults(g).some((row) => row.value === String(g.run.result.bonus)), "the bonus is on the results card");
   assert.equal(g.cashClaims, undefined, "session-only: no cash claim");
 });
 
-test("extraction: leaving the spot drains the hold and a drained hold is broken; the next touch starts afresh", () => {
+test("extraction: leaving the circle drains nothing and the zone stays; coming back finishes the count", () => {
   const { g, X, t } = holdOut();
-  at(g, t + 5);
+  assert.equal(X.holdDecayPerSecond, 0, "the drain is a data row, off");
+  intoZone(g, t);
+  at(g, t + 2);
   const filled = g.run.hold.hold;
   assert.ok(filled > 0);
   g.player.pos = { x: g.player.pos.x + X.holdRadius + 10, z: g.player.pos.z };
   at(g, t + 6);
-  assert.ok(g.run.hold.hold < filled, "walking off drains it");
-  at(g, t + 5 + Math.ceil(filled / X.holdDecayPerSecond) + 3);
-  assert.equal(g.run.hold, null, "a drained hold is broken");
-  assert.equal(g.run.outcome, null, "and the run goes on");
-  g.player.pos = { x: exitMouth("east").x + 12, z: exitMouth("east").z };
-  at(g, t + 40);
-  assert.ok(g.run.hold, "touching again starts a new hold");
-  assert.equal(g.run.hold.hold, 0);
-  assert.equal(g.message, webText("extraction.begin"), "a later hold uses the short line");
+  assert.equal(g.run.hold.hold, filled, "walking off keeps what is filled");
+  assert.equal(g.run.outcome, null);
+  g.player.pos = { ...g.run.hold.at };
+  at(g, t + 6 + (X.holdSeconds - filled) + 0.1);
+  assert.equal(g.run.outcome, "escaped", "the rest of the count ends the run");
 });
 
 test("extraction: the bonus scales with the heat peak along the data curve", () => {
   const X = RUN.extraction,
     bonuses = X.bonus.curve.map((row) => {
-      const { g, t, home } = holdOut(row.minHeatPeak);
-      at(g, t + X.holdSeconds);
-      home();
-      at(g, t + X.holdSeconds + 1);
+      const { g, t } = holdOut(row.minHeatPeak);
+      intoZone(g, t);
+      at(g, t + 0.5 + X.holdSeconds);
       return g.run.result.bonus;
     });
   assert.deepEqual(bonuses, X.bonus.curve.map((row) => Math.round(X.bonus.base * row.scale)));

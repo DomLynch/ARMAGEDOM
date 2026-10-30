@@ -16,7 +16,7 @@ function airdropScene() {
     [shadow, crate, flare, glow] = view.root.children;
   return { view, shadow, crate, flare, glow };
 }
-const game = (extra = {}) => ({ time: 100, world: { areaId: AREA }, airdrop: null, run: null, ...extra });
+const game = (extra = {}) => ({ time: 100, world: { areaId: AREA }, player: { pos: { x: 0, z: 0 } }, airdrop: null, run: null, ...extra });
 
 test("hold flare: a landed crate in the hold's area stays visible and in place while the flare stands at the hold", () => {
   const { view, crate, flare, glow } = airdropScene(),
@@ -124,7 +124,7 @@ function ringPage() {
   return nodes;
 }
 
-test("progress ring: fills with the hold, turns green with the way out in words once the exit is open, hides with the run", () => {
+test("progress ring: shows with the zone, fills with the hold, says to stay in the circle, hides with the run", () => {
   const nodes = ringPage(),
     look = EXTRACTION.view.hud,
     run = { stage: 2, startAt: 0, outcome: null, dismissed: false, picks: { hazard: { label: "x" } }, hold: null, extracted: null },
@@ -142,14 +142,7 @@ test("progress ring: fills with the hold, turns green with the way out in words 
     assert.equal(nodes["extraction-ring-fill"].attrs.stroke, `#${look.fillColour}`);
     const circumference = Number(nodes["extraction-ring-fill"].dataset.circumference);
     assert.ok(Math.abs(Number(nodes["extraction-ring-fill"].attrs["stroke-dashoffset"]) - circumference / 2) < 1e-9, "half the circle is filled");
-    assert.match(nodes["extraction-ring-text"].textContent, /circle/);
-    run.hold = null;
-    run.extracted = { bonus: 500 };
-    hud.update();
-    assert.equal(ring.hidden, false, "the ring stays after the hold fills");
-    assert.equal(nodes["extraction-ring-fill"].attrs.stroke, `#${look.readyColour}`);
-    assert.equal(nodes["extraction-ring-percent"].textContent, "100%");
-    assert.equal(nodes["extraction-ring-text"].textContent, webText("extraction.readyPrompt"));
+    assert.equal(nodes["extraction-ring-text"].textContent, webText("extraction.ringLabel"));
     run.outcome = "escaped";
     hud.update();
     assert.ok(ring.hidden, "the ring goes with the run's end");

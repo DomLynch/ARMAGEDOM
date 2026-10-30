@@ -176,66 +176,74 @@ function exitLinks(world, toArea) {
   if (!lists.has(key)) lists.set(key, registry.links(world.areaId).filter((link) => link.to === toArea));
   return lists.get(key);
 }
-function exitGap(world, position, toArea) {
+// The nearest ground point of an exit of this area that leads to `toArea`, with its distance from `position`: { x, z, gap }
+// (gap Infinity and no point when there is none).
+function nearestExit(world, position, toArea) {
   const links = exitLinks(world, toArea),
     point = links.length ? world.geometry.point(position) : null;
-  let best = Infinity;
+  let best = { gap: Infinity };
   for (const link of links) {
     const c = link.condition,
       ground = world.geometry.ground({
         x: Math.min(Math.max(point.x, c.xMin ?? 0), c.xMax ?? 1),
         y: Math.min(Math.max(point.y, c.yMin ?? 0), c.yMax ?? 1),
-      });
-    best = Math.min(best, Math.hypot(position.x - ground.x, position.z - ground.z));
+      }),
+      gap = Math.hypot(position.x - ground.x, position.z - ground.z);
+    if (gap < best.gap) best = { x: ground.x, z: ground.z, gap };
   }
   return best;
 }
 
-// The hold-out in the FIELD, beside the exit that leads back to the safehouse (the safehouse itself bars every hostile, so nothing
-// could come for a hold there). The spot is set where the player stands within mouthRange of that exit, in a raid zone; a flare marks it,
-// the run raid is called and the area boss is pulled to it. Staying within holdRadius fills the hold, leaving drains it, and a drained
-// hold (or another area) drops the spot. A full hold opens the extraction: taking the exit home then ends the run with the bonus.
+// The extraction zone of an area: a clear spot zoneDistance from the exit home, on the player's side of it (so never on the exit line),
+// or null when the layout leaves none. It tries the straight line first, then turns away from it a step at a time.
+function zoneSpot(world, position, x, toArea) {
+  const exit = nearestExit(world, position, toArea);
+  if (!Number.isFinite(exit.gap)) return null;
+  const base = exit.gap > 1e-6 ? Math.atan2(position.z - exit.z, position.x - exit.x) : 0;
+  for (let k = 0; k < x.zoneTurns; k++) {
+    const turn = Math.ceil(k / 2) * ((2 * Math.PI) / x.zoneTurns) * (k % 2 ? 1 : -1),
+      spot = { x: exit.x + Math.cos(base + turn) * x.zoneDistance, z: exit.z + Math.sin(base + turn) * x.zoneDistance };
+    if (world.geometry.clear(spot, x.zoneClearRadius)) return spot;
+  }
+  return null;
+}
+
+// The extraction zone in the FIELD, at the mouth of the exit that leads back to the safehouse (the safehouse itself bars every hostile,
+// so nothing could come for it there). Entering a raid zone sets the circle; stepping into it calls the run raid and pulls the area boss
+// to it. Standing in it for holdSeconds ends the run with the bonus: no safehouse touch, and the drain is a data row (0 = none). Another
+// area drops the zone, and it is set again at that area's exit.
 function stepHold(g, rules, dt) {
   const r = g.run,
     x = rules.extraction,
     areaId = g.world.areaId;
   if (r.extracted) return;
+  if (r.hold && r.hold.areaId !== areaId) r.hold = null;
   if (!r.hold) {
     if (!rules.raidZones.includes(areaId) || safehouseProtected(g)) return;
-    const gap = exitGap(g.world, g.player.pos, rules.startZone);
-    if (gap > x.mouthRange) return;
-    if (gap < x.mouthMin) {
-      // Too close to the exit: the hunt's entry points keep a minimum distance, so nothing could come. Say so, not every frame.
-      if (g.time >= (r.stepHintAt ?? 0)) {
-        r.stepHintAt = g.time + x.hintSeconds;
-        say(g, webText("extraction.step"));
-      }
-      return;
-    }
-    r.hold = { areaId, at: { ...g.player.pos }, hold: 0, progress: 0, hud: "" };
-    if (!g.raid || g.raid.endAt - g.time < x.raidMinSeconds) armRaid(g, rules); // a raid nearly over would leave the hold unopposed
-    say(g, webText(r.holdsStarted ? "extraction.begin" : "extraction.beginFirst")); // the first hold of a run says how to hold
-    r.holdsStarted = (r.holdsStarted ?? 0) + 1;
+    const at = zoneSpot(g.world, g.player.pos, x, rules.startZone);
+    if (!at) return;
+    r.hold = { areaId, at, hold: 0, progress: 0, hud: "" };
+    say(g, webText("extraction.zone", { seconds: x.holdSeconds }));
     return;
   }
   const h = r.hold,
-    near = areaId === h.areaId && Math.hypot(g.player.pos.x - h.at.x, g.player.pos.z - h.at.z) <= x.holdRadius;
+    near = Math.hypot(g.player.pos.x - h.at.x, g.player.pos.z - h.at.z) <= x.holdRadius;
+  if (near && h.hold === 0) {
+    if (!g.raid || g.raid.endAt - g.time < x.raidMinSeconds) armRaid(g, rules); // a raid nearly over would leave the zone unopposed
+    say(g, webText("extraction.begin"));
+  }
   h.hold = near ? h.hold + dt : Math.max(0, h.hold - x.holdDecayPerSecond * dt);
   h.progress = Math.min(1, h.hold / x.holdSeconds);
   if (h.progress >= 1) {
     r.extracted = { bonus: extractionBonus(rules, r.heatPeak) };
     r.hold = null;
-    say(g, webText("extraction.ready"));
-  } else if (areaId !== h.areaId || (!near && h.hold === 0)) {
-    r.hold = null;
-    say(g, webText("extraction.broken"));
   } else h.hud = webText("extraction.hud", { percent: Math.round(h.progress * 100) });
 }
 
 // The point the hold-out calls hunters and bosses to (engine/airdrop.js airdropPull), or null. It outranks the airdrop and the body
 // bag for as long as the hold lasts, and only in the area it was set in.
 export const extractionTarget = (g, rules = RUN) =>
-  g.run?.hold && g.run.hold.areaId === g.world?.areaId ? { at: g.run.hold.at, pull: rules.extraction.pull } : null;
+  g.run?.hold?.hold > 0 && g.run.hold.areaId === g.world?.areaId ? { at: g.run.hold.at, pull: rules.extraction.pull } : null;
 
 function fireRaids(g, rules, index, t) {
   const stage = rules.stages[index],
@@ -284,7 +292,7 @@ export function stepApocalypseRun(g, rules = RUN, search = undefined) {
       if (touching && r.armed) return finish(g, "escaped", rules);
     } else {
       stepHold(g, rules, dt);
-      if (touching && r.extracted) return finish(g, "escaped", rules, r.extracted.bonus);
+      if (r.extracted) return finish(g, "escaped", rules, r.extracted.bonus);
     }
   }
   fireRaids(g, rules, index, t);
@@ -295,7 +303,7 @@ export function stepApocalypseRun(g, rules = RUN, search = undefined) {
 export function runHeatScale(g, rules = RUN, valuable = false) {
   const r = g.run;
   if (!r || r.outcome || r.stage < 0 || (valuable && !rules.scaleValuables)) return 1;
-  return rules.stages[r.stage].heatScale * r.picks.hazard.heatScale * (r.hold ? rules.extraction.heatScale : 1);
+  return rules.stages[r.stage].heatScale * r.picks.hazard.heatScale * (r.hold?.hold > 0 ? rules.extraction.heatScale : 1);
 }
 
 const live = (g) => (g.run && !g.run.outcome && g.run.stage >= 0 ? g.run : null);

@@ -72,32 +72,29 @@ function validateExtractionView(v) {
   number("apocalypseRun", "extraction.view.ring.width", v.ring.width, 0.01);
   number("apocalypseRun", "extraction.view.ring.opacity", v.ring.opacity, 0.05);
   number("apocalypseRun", "extraction.view.ring.outsideShare", v.ring.outsideShare, 0.05);
-  closed(v.hud, ["sizePx", "strokePx", "topPercent", "trackColour", "fillColour", "readyColour", "textPx"]);
+  closed(v.hud, ["sizePx", "strokePx", "topPercent", "trackColour", "fillColour", "textPx"]);
   for (const f of ["sizePx", "strokePx", "topPercent", "textPx"]) number("apocalypseRun", `extraction.view.hud.${f}`, v.hud[f], 1);
   if (!(v.hud.strokePx * 2 < v.hud.sizePx)) fail("apocalypseRun", "extraction.view.hud.strokePx must be well below sizePx");
   for (const [where, value] of [
     ["ring.colour", v.ring.colour],
     ["hud.trackColour", v.hud.trackColour],
     ["hud.fillColour", v.hud.fillColour],
-    ["hud.readyColour", v.hud.readyColour],
   ])
     if (!HEX.test(value)) fail("apocalypseRun", `extraction.view.${where} must be six lowercase hex digits`);
 }
 
 function validateExtraction(x) {
   closed(x, [
-    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "mouthRange", "holdRadius", "holdDecayPerSecond"],
-    ...["raidMinSeconds", "mouthMin", "hintSeconds", "heatScale", "pull", "bonus", "view"],
+    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "zoneDistance", "zoneTurns", "zoneClearRadius"],
+    ...["holdRadius", "holdDecayPerSecond", "raidMinSeconds", "heatScale", "pull", "bonus", "view"],
   ]);
   validateExtractionView(x.view);
-  if (!(x.mouthMin < x.mouthRange)) fail("apocalypseRun", "extraction.mouthMin must be below mouthRange");
   if (typeof x.enabled !== "boolean") fail("apocalypseRun", "extraction.enabled must be a boolean");
   checkSwitch("extraction.offSwitch", x.offSwitch);
-  for (const f of ["holdSeconds", "mouthRange", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  for (const f of ["holdSeconds", "zoneDistance", "zoneClearRadius", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  number("apocalypseRun", "extraction.zoneTurns", x.zoneTurns, 2);
   number("apocalypseRun", "extraction.holdDecayPerSecond", x.holdDecayPerSecond, 0);
   number("apocalypseRun", "extraction.raidMinSeconds", x.raidMinSeconds, 0);
-  number("apocalypseRun", "extraction.mouthMin", x.mouthMin, 0);
-  number("apocalypseRun", "extraction.hintSeconds", x.hintSeconds, 0.1);
   closed(x.pull, ["engageRadius", "leashPadding", "arriveRadius"]);
   for (const f of ["engageRadius", "leashPadding", "arriveRadius"]) number("apocalypseRun", `extraction.pull.${f}`, x.pull[f], 0);
   closed(x.bonus, ["base", "curve"]);
