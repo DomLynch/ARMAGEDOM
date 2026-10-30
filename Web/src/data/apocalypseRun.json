@@ -70,7 +70,7 @@
     "holdSeconds": 5,
     "zoneDistance": 10,
     "zoneTurns": 16,
-    "zoneClearRadius": 4,
+    "zoneClearRadius": 1,
     "holdRadius": 4,
     "holdDecayPerSecond": 0,
     "raidMinSeconds": 30,
