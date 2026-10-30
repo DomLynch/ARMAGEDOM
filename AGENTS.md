@@ -25,7 +25,7 @@ Frankendom is read-only; do not touch its production users/database/keys.
 
 Official game: https://playarmagedom.com/. Read PROJECT_STATE.md and the current
 Codex handover for dated source/release facts; verify the served release when needed.
-Keep six touch actions and keyboard/mouse. No new area, roster, paid service or
+Keep five touch actions (Special removed, Dom 24 Oct 2026) and keyboard/mouse. No new area, roster, paid service or
 realtime economy/backend expansion without owner authorization.
 Prefer readable modules and small coherent fixes. Physical line count is not a
 quality target; do not compress statements to satisfy it or reformat unrelated files.
