@@ -64,19 +64,40 @@ function validateStages(d) {
   if (d.stages.at(-1).objectiveFrom !== "finale") fail("apocalypseRun", "the last stage is the finale");
 }
 
+const HEX = /^[0-9a-f]{6}$/;
+function validateExtractionView(v) {
+  closed(v, ["note", "ring", "hud"]);
+  closed(v.ring, ["segments", "width", "colour", "opacity", "outsideShare"]);
+  number("apocalypseRun", "extraction.view.ring.segments", v.ring.segments, 8);
+  number("apocalypseRun", "extraction.view.ring.width", v.ring.width, 0.01);
+  number("apocalypseRun", "extraction.view.ring.opacity", v.ring.opacity, 0.05);
+  number("apocalypseRun", "extraction.view.ring.outsideShare", v.ring.outsideShare, 0.05);
+  closed(v.hud, ["sizePx", "strokeUnits", "radiusUnits", "percentScale", "topPercent", "trackColour", "fillColour", "textPx"]);
+  for (const f of ["sizePx", "strokeUnits", "radiusUnits", "topPercent", "textPx"]) number("apocalypseRun", `extraction.view.hud.${f}`, v.hud[f], 1);
+  number("apocalypseRun", "extraction.view.hud.percentScale", v.hud.percentScale, 0.1);
+  // The ring is drawn in a 100-unit box: the stroke must sit inside it.
+  if (v.hud.radiusUnits + v.hud.radiusUnits + v.hud.strokeUnits > 100) fail("apocalypseRun", "extraction.view.hud ring and stroke must fit the 100-unit box");
+  for (const [where, value] of [
+    ["ring.colour", v.ring.colour],
+    ["hud.trackColour", v.hud.trackColour],
+    ["hud.fillColour", v.hud.fillColour],
+  ])
+    if (!HEX.test(value)) fail("apocalypseRun", `extraction.view.${where} must be six lowercase hex digits`);
+}
+
 function validateExtraction(x) {
   closed(x, [
-    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "mouthRange", "holdRadius", "holdDecayPerSecond"],
-    ...["raidMinSeconds", "mouthMin", "hintSeconds", "heatScale", "pull", "bonus"],
+    ...["note", "note2", "note3", "enabled", "offSwitch", "holdSeconds", "zoneDistance", "zoneTurns", "zoneClearRadius", "zoneExitClearance"],
+    ...["holdRadius", "holdDecayPerSecond", "raidMinSeconds", "heatScale", "pull", "bonus", "view"],
   ]);
-  if (!(x.mouthMin < x.mouthRange)) fail("apocalypseRun", "extraction.mouthMin must be below mouthRange");
+  validateExtractionView(x.view);
   if (typeof x.enabled !== "boolean") fail("apocalypseRun", "extraction.enabled must be a boolean");
   checkSwitch("extraction.offSwitch", x.offSwitch);
-  for (const f of ["holdSeconds", "mouthRange", "holdRadius", "heatScale"]) number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  for (const f of ["holdSeconds", "zoneDistance", "zoneClearRadius", "zoneExitClearance", "holdRadius", "heatScale"])
+    number("apocalypseRun", `extraction.${f}`, x[f], 0.1);
+  number("apocalypseRun", "extraction.zoneTurns", x.zoneTurns, 2);
   number("apocalypseRun", "extraction.holdDecayPerSecond", x.holdDecayPerSecond, 0);
   number("apocalypseRun", "extraction.raidMinSeconds", x.raidMinSeconds, 0);
-  number("apocalypseRun", "extraction.mouthMin", x.mouthMin, 0);
-  number("apocalypseRun", "extraction.hintSeconds", x.hintSeconds, 0.1);
   closed(x.pull, ["engageRadius", "leashPadding", "arriveRadius"]);
   for (const f of ["engageRadius", "leashPadding", "arriveRadius"]) number("apocalypseRun", `extraction.pull.${f}`, x.pull[f], 0);
   closed(x.bonus, ["base", "curve"]);

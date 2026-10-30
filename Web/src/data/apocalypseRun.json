@@ -56,26 +56,41 @@
     ],
     "finale": [
       { "id": "boss", "kind": "boss", "objective": "A boss has found you. Kill it." },
-      { "id": "escape", "kind": "escape", "objective": "Reach the safehouse to escape." }
+      { "id": "escape", "kind": "escape", "objective": "Reach the circle by the exit and stay in it." }
     ]
   },
   "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
   "escape": { "arrived": "Reach the safehouse." },
   "extraction": {
-    "note": "The escape row is a hold-out (28 Oct 2026): hold a spot beside the exit home in a raid zone, then take the exit.",
-    "note2": "A flare marks it, a raid is called and the area boss walks to it (converge.js, the airdrop pull).",
+    "note": "The escape row is one timed zone (Dom, 30 Oct 2026): a circle at the mouth of the exit home in each raid zone; stand in it holdSeconds and the run ends with the bonus.",
+    "note2": "A flare marks it; stepping in calls a raid and the area boss walks to it (converge.js, the airdrop pull). holdDecayPerSecond 0 = leaving never drains it.",
     "note3": "The bonus is a session-only score on the results card, never cash. ?noextract=1 or enabled false: instant exit.",
     "enabled": true,
     "offSwitch": { "param": "noextract", "value": "1" },
-    "holdSeconds": 20,
-    "mouthMin": 10,
-    "mouthRange": 20,
-    "hintSeconds": 5,
+    "holdSeconds": 5,
+    "zoneDistance": 10,
+    "zoneTurns": 16,
+    "zoneClearRadius": 1,
+    "zoneExitClearance": 6,
     "holdRadius": 4,
-    "holdDecayPerSecond": 2,
+    "holdDecayPerSecond": 0,
     "raidMinSeconds": 30,
     "heatScale": 1.5,
     "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
+    "view": {
+      "note": "First-time-player legibility (Dom's phone pass, 29 Oct 2026): a ground circle at the hold spot the size of holdRadius, and a big progress ring on screen. The ring text is webText extraction.ringLabel.",
+      "ring": { "segments": 64, "width": 0.6, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
+      "hud": {
+        "sizePx": 120,
+        "strokeUnits": 8,
+        "radiusUnits": 46,
+        "percentScale": 1.6,
+        "topPercent": 22,
+        "trackColour": "2a2418",
+        "fillColour": "e8a35a",
+        "textPx": 13
+      }
+    },
     "bonus": {
       "base": 500,
       "curve": [
