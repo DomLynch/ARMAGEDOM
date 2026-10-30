@@ -81,7 +81,9 @@
       "ring": { "segments": 64, "width": 0.3, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
       "hud": {
         "sizePx": 120,
-        "strokePx": 10,
+        "strokeUnits": 8,
+        "radiusUnits": 46,
+        "percentScale": 1.6,
         "topPercent": 22,
         "trackColour": "2a2418",
         "fillColour": "e8a35a",

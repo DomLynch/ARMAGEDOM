@@ -72,9 +72,11 @@ function validateExtractionView(v) {
   number("apocalypseRun", "extraction.view.ring.width", v.ring.width, 0.01);
   number("apocalypseRun", "extraction.view.ring.opacity", v.ring.opacity, 0.05);
   number("apocalypseRun", "extraction.view.ring.outsideShare", v.ring.outsideShare, 0.05);
-  closed(v.hud, ["sizePx", "strokePx", "topPercent", "trackColour", "fillColour", "textPx"]);
-  for (const f of ["sizePx", "strokePx", "topPercent", "textPx"]) number("apocalypseRun", `extraction.view.hud.${f}`, v.hud[f], 1);
-  if (!(v.hud.strokePx * 2 < v.hud.sizePx)) fail("apocalypseRun", "extraction.view.hud.strokePx must be well below sizePx");
+  closed(v.hud, ["sizePx", "strokeUnits", "radiusUnits", "percentScale", "topPercent", "trackColour", "fillColour", "textPx"]);
+  for (const f of ["sizePx", "strokeUnits", "radiusUnits", "topPercent", "textPx"]) number("apocalypseRun", `extraction.view.hud.${f}`, v.hud[f], 1);
+  number("apocalypseRun", "extraction.view.hud.percentScale", v.hud.percentScale, 0.1);
+  // The ring is drawn in a 100-unit box: the stroke must sit inside it.
+  if (v.hud.radiusUnits + v.hud.radiusUnits + v.hud.strokeUnits > 100) fail("apocalypseRun", "extraction.view.hud ring and stroke must fit the 100-unit box");
   for (const [where, value] of [
     ["ring.colour", v.ring.colour],
     ["hud.trackColour", v.hud.trackColour],

@@ -40,22 +40,22 @@ export function createRunHudView(s) {
       fill = el("extraction-ring-fill");
     if (!ringSized) {
       ringSized = true;
-      const stroke = (look.strokePx / look.sizePx) * 100,
-        radius = 50 - stroke / 2;
+      const radius = look.radiusUnits,
+        circumference = Math.PI * (radius + radius);
       ring.style.top = `${look.topPercent}%`;
       ring.style.fontSize = `${look.textPx}px`;
-      el("extraction-ring-percent").style.fontSize = `${look.textPx * 1.6}px`;
+      el("extraction-ring-percent").style.fontSize = `${look.textPx * look.percentScale}px`;
       for (const svg of ring.getElementsByTagName("svg")) {
         svg.setAttribute("width", look.sizePx);
         svg.setAttribute("height", look.sizePx);
       }
       for (const circle of [track, fill]) {
         circle.setAttribute("r", radius);
-        circle.setAttribute("stroke-width", stroke);
+        circle.setAttribute("stroke-width", look.strokeUnits);
       }
       track.setAttribute("stroke", `#${look.trackColour}`);
-      fill.setAttribute("stroke-dasharray", 2 * Math.PI * radius);
-      fill.dataset.circumference = 2 * Math.PI * radius;
+      fill.setAttribute("stroke-dasharray", circumference);
+      fill.dataset.circumference = circumference;
     }
     fill.setAttribute("stroke", `#${look.fillColour}`);
     fill.setAttribute("stroke-dashoffset", Number(fill.dataset.circumference) * (1 - hold.progress));

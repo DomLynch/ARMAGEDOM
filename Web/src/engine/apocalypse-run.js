@@ -195,14 +195,14 @@ function nearestExit(world, position, toArea) {
 }
 
 // The extraction zone of an area: a clear spot zoneDistance from the exit home, on the player's side of it (so never on the exit line),
-// or null when the layout leaves none. It tries the straight line first, then turns away from it a step at a time.
+// or null when the layout leaves none. It tries the straight line first, then turns round the exit one step at a time.
 function zoneSpot(world, position, x, toArea) {
   const exit = nearestExit(world, position, toArea);
   if (!Number.isFinite(exit.gap)) return null;
-  const base = exit.gap > 1e-6 ? Math.atan2(position.z - exit.z, position.x - exit.x) : 0;
+  const base = exit.gap > 0 ? Math.atan2(position.z - exit.z, position.x - exit.x) : 0;
   for (let k = 0; k < x.zoneTurns; k++) {
-    const turn = Math.ceil(k / 2) * ((2 * Math.PI) / x.zoneTurns) * (k % 2 ? 1 : -1),
-      spot = { x: exit.x + Math.cos(base + turn) * x.zoneDistance, z: exit.z + Math.sin(base + turn) * x.zoneDistance };
+    const angle = base + ((k * 360) / x.zoneTurns) * (Math.PI / 180),
+      spot = { x: exit.x + Math.cos(angle) * x.zoneDistance, z: exit.z + Math.sin(angle) * x.zoneDistance };
     if (world.geometry.clear(spot, x.zoneClearRadius)) return spot;
   }
   return null;

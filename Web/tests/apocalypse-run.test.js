@@ -182,7 +182,19 @@ test("extraction on REAL data: the zone sits clear at the exit mouth and the hun
     assert.ok(g?.run.hold, `${area}: the zone is set on arrival`);
     const spot = g.run.hold.at;
     assert.ok(geometry.clear(spot, X.zoneClearRadius), `${area}: the zone is on clear ground`);
-    assert.ok(Math.hypot(spot.x - mouth.x, spot.z - mouth.z) >= X.zoneDistance - 0.5, `${area}: the zone is never nearer the exit than the data's distance`);
+    // The gap to the nearest exit box, measured the way the director does: clamp the spot into each box and take the ground there.
+    const gap = Math.min(
+      ...registry
+        .links(area)
+        .filter((l) => l.to === RUN.startZone)
+        .map((l) => {
+          const c = l.condition,
+            p = geometry.point(spot),
+            ground = geometry.ground({ x: Math.min(Math.max(p.x, c.xMin ?? 0), c.xMax ?? 1), y: Math.min(Math.max(p.y, c.yMin ?? 0), c.yMax ?? 1) });
+          return Math.hypot(spot.x - ground.x, spot.z - ground.z);
+        }),
+    );
+    assert.ok(gap > CLEAR && gap <= X.zoneDistance + 0.5, `${area}: the zone is off the exit line and at most the data's distance from it (${gap.toFixed(2)} m)`);
     g.player.pos = { ...spot };
     g.time += 1;
     stepApocalypseRun(g);
@@ -240,7 +252,7 @@ test("extraction view rows: the shipped ring and HUD rows validate, and a missin
   validateApocalypseRun(raw());
   const broken = (edit) => () => validateApocalypseRun((() => { const d = raw(); edit(d.extraction.view); return d; })());
   assert.throws(() => validateApocalypseRun((() => { const d = raw(); delete d.extraction.view; return d; })()), "the view row is required");
-  assert.throws(broken((v) => { v.hud.strokePx = v.hud.sizePx; }), "a stroke as wide as the ring");
+  assert.throws(broken((v) => { v.hud.strokeUnits = 100; }), "a stroke wider than the ring box");
   assert.throws(broken((v) => { v.hud.fillColour = "red"; }), "a colour must be six hex digits");
   assert.throws(broken((v) => { v.ring.extra = 1; }), "no stray keys");
 });
