@@ -56,7 +56,7 @@
     ],
     "finale": [
       { "id": "boss", "kind": "boss", "objective": "A boss has found you. Kill it." },
-      { "id": "escape", "kind": "escape", "objective": "Reach the circle by the exit and stay in it." }
+      { "id": "escape", "kind": "escape", "objective": "Make for the exit to the hub. Stand in the circle there." }
     ]
   },
   "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
