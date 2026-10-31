@@ -1566,22 +1566,27 @@
         "walk": "Walk",
         "run": "Run",
         "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
         "heavy": "Heavy",
         "guard": "Guard",
         "dodge": "Roll",
         "hit": "Hit",
-        "death": "Death"
+        "death": "Death",
+        "parry": "Parry",
+        "block": "BlockImpact",
+        "deflected": "Deflected"
       },
       "deferred": true,
       "provenance": {
         "source": "OpenTrident models/custom/ch42-nonpbr-full-phone-mixamorig.glb (Mixamo ch42, labelled Perseus, rig 106, 4,679,784 bytes, sha256 fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605)",
         "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
-        "assembly": "art/perseus-106/build-perseus.mjs: nine clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped, textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
+        "assembly": "art/perseus-106/build-perseus.mjs: nine own clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped; Return, Riposte, Parry, BlockImpact, Deflected, StrafeLeft, StrafeRight taken from hunters/hunter-pitborn-106.glb (same 106 skeleton names) and delta-retargeted to his rest pose (rest rotations differ up to 16.6 degrees at the feet), Hips translation scaled by the hips height ratio 1.0078; textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
         "note": "appearance only, no gameplay path selects this model: the player 'vagrant' row stays the donor warrior until the pistol, rifle, flame, vest and finisher code read bone names from the manifest row (hero names hand_r, spine_01 today)"
       },
-      "bytes": 1104108,
-      "sha256": "6abd8cd51848b6dc78f742c05c468ab4b65fd95f3fa126c59c4e168d99d46e78"
+      "bytes": 1189952,
+      "sha256": "b9f787acc731e4657d409c277d6546166d795d9d5d58f18df983ff73e295c7a9"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
