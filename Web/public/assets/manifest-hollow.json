@@ -1577,11 +1577,11 @@
         "source": "OpenTrident models/custom/ch42-nonpbr-full-phone-mixamorig.glb (Mixamo ch42, labelled Perseus, rig 106, 4,679,784 bytes, sha256 fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605)",
         "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
-        "assembly": "art/perseus-106/build-perseus.mjs: nine clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped, meshopt medium; skeleton, bind pose and clips untouched",
+        "assembly": "art/perseus-106/build-perseus.mjs: nine clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped, textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
         "note": "appearance only, no gameplay path selects this model: the player 'vagrant' row stays the donor warrior until the pistol, rifle, flame, vest and finisher code read bone names from the manifest row (hero names hand_r, spine_01 today)"
       },
-      "bytes": 2264476,
-      "sha256": "4c78922cc7c360dfe0f2de6662c9c86f2ea2ffe52e7a7cf1d7f002770bfa5698"
+      "bytes": 1104108,
+      "sha256": "6abd8cd51848b6dc78f742c05c468ab4b65fd95f3fa126c59c4e168d99d46e78"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",

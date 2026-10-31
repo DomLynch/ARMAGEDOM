@@ -2,12 +2,13 @@
 // usage: node build-perseus.mjs <ch42-nonpbr-full-phone-mixamorig.glb> <out.glb>
 // - keeps the 106-joint skeleton, bind pose and the nine game clips untouched (appearance only)
 // - drops the Layer_* gear nodes (tunic, helmet, bracers, greaves, sword, scabbard) and the three Stress_* test clips
-// - packs with meshopt; textures stay as embedded (TEX=1024 resizes them for the phone variant)
+// - textures (512 px PNG) re-encoded as WebP q85 to stay under the body KB budget, then meshopt medium
 import { createRequire } from "node:module";
 const req = createRequire("/usr/lib/node_modules/@gltf-transform/cli/package.json");
 const { NodeIO } = req("@gltf-transform/core");
 const { ALL_EXTENSIONS } = req("@gltf-transform/extensions");
 const { prune, dedup, meshopt, textureCompress } = req("@gltf-transform/functions");
+const sharp = req("sharp");
 const { MeshoptDecoder, MeshoptEncoder } = req("meshoptimizer");
 const [, , bodyPath, outPath] = process.argv;
 const KEEP = ["Idle", "Walk", "Run", "Attack", "Guard", "Roll", "Hit", "Death", "Heavy"];
@@ -22,6 +23,6 @@ const have = root.listAnimations().map((a) => a.getName());
 const missing = KEEP.filter((k) => !have.includes(k));
 if (missing.length) throw Error("clips missing: " + missing);
 if (!root.listNodes().some((n) => n.getName() === "fk_socket_hand_r")) throw Error("no fk_socket_hand_r");
-await doc.transform(prune(), dedup(), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
+await doc.transform(prune(), dedup(), textureCompress({ encoder: sharp, targetFormat: "webp", quality: 85 }), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
 await io.write(outPath, doc);
 console.log("clips", have.join(","), "nodes", root.listNodes().length);
