@@ -8,6 +8,7 @@ import {
   withFinisherAliases,
 } from "./engine/finisher-data.js";
 import * as T from "three";
+import { rigBone } from "./rig-bones.js";
 import { nativeFinisherSupport } from "./engine/finisher-cosmetics.js";
 import { prepareSplitCrownSteps } from "./finisher-crown.js";
 import { prepareOpenedSteps } from "./finisher-opened.js";
@@ -264,7 +265,7 @@ export function* createFinisherPresentationSteps({
   if (!validDuration(death)) throw new TypeError("Finisher presentation requires a native Death clip");
   const support = isPlayer ? [] : nativeFinisherSupport({ clip: "Death", seconds: death }),
     bone = model.getObjectByName("Head"),
-    torso = model.getObjectByName("spine_01"),
+    torso = rigBone(model, "torso"),
     anchorPoint = new T.Vector3(),
     anchorNormal = new T.Vector3();
   let runGrounding = null,

@@ -20,6 +20,7 @@ test("hero rig resolves by default with no manifest fields", () => {
   assert.equal(rigBone(m, "upperArm").name, "upperarm_r");
   assert.equal(rigBone(m, "foreArm").name, "lowerarm_r");
   assert.equal(rigBone(rig(["hand_r"]), "hand").name, "hand_r");
+  assert.equal(rigBone(rig(["spine_01"]), "torso").name, "spine_01");
 });
 
 test("manifest row names win, colon-stripped like three does on load", () => {

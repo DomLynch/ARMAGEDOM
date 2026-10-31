@@ -1,5 +1,6 @@
 import * as T from "three";
 import { addPickupGlow } from "./pickup-glow.js";
+import { GAME_DATA } from "./engine/game-data.js";
 
 // ONE fitted cloth overlay. Reads the original bind geometry/weights; never edits it.
 export function createVestView(model) {
@@ -15,7 +16,7 @@ export function createVestView(model) {
       donor.skeleton.boneInverses.map((m) => m.clone()),
     ),
     triangles = [];
-  const allowed = new Set(["pelvis", "spine_01", "spine_02", "spine_03", "clavicle_l", "clavicle_r", "neck_01"]);
+  const allowed = new Set(GAME_DATA.donorMotion.vestBones);
   const targetIndex = new Map(skeleton.bones.map((b, i) => [b.name, i]));
   model.traverse((o) => {
     if (!o.isSkinnedMesh || !["Steel", "Gambeson", "Heraldry", "LeatherBody", "Skin"].includes(o.name)) return;

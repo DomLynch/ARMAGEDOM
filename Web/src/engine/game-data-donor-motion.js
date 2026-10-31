@@ -7,9 +7,9 @@ const fail = () => {
 };
 export function validateDonorMotionData(value) {
   const d = structuredClone(value);
-  closed(d, ["schema_version", "swing", "samplePhaseMax", "rigBones", "saw", "locomotion"]);
+  closed(d, ["schema_version", "swing", "samplePhaseMax", "rigBones", "vestBones", "saw", "locomotion"]);
   closed(d.swing, ["windupKeyFraction", "windupSourceFraction", "followThrough", "followThroughFraction"]);
-  closed(d.rigBones, ["hand", "upperArm", "foreArm"]);
+  closed(d.rigBones, ["hand", "upperArm", "foreArm", "torso"]);
   closed(d.saw, ["windup", "active", "recovery"]);
   closed(d.locomotion, ["moveSpeed", "runSpeed", "walkRate", "runRate", "strafeRate", "sprintSpeed"]);
   if (
@@ -19,6 +19,8 @@ export function validateDonorMotionData(value) {
     !finite(d.swing.followThroughFraction, 0, 1) ||
     !finite(d.samplePhaseMax, 0.9, 1) ||
     !Object.values(d.rigBones).every((s) => typeof s === "string" && s.length > 0 && s.length < 64) ||
+    !Array.isArray(d.vestBones) ||
+    !d.vestBones.every((s) => typeof s === "string" && s.length > 0 && s.length < 64) ||
     !Object.values(d.saw).every((n) => finite(n, 0, 1)) ||
     !finite(d.locomotion.moveSpeed, 0.001, 1) ||
     !finite(d.locomotion.runSpeed, 1, 20) ||
