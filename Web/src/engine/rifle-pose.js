@@ -1,9 +1,10 @@
 import * as T from "three";
+import { rigBone } from "../rig-bones.js";
 // Absolute weapon-owned upper-body tracks; the live character/skeleton stay owners.
 export function createRiflePose(model, source) {
   const data = source?.description?.pose,
     asset = source?.gltf,
-    hand = model.getObjectByName(data?.mount?.bone ?? "hand_r");
+    hand = data?.mount?.bone ? model.getObjectByName(data.mount.bone) : rigBone(model, "hand");
   if (
     !data ||
     !hand?.isBone ||

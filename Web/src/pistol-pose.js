@@ -1,4 +1,5 @@
 import * as T from "three";
+import { rigBone } from "./rig-bones.js";
 const activeDigitOverlay = new WeakMap();
 export const PISTOL_ARM_EXTENSION = 0.92;
 // Remove only our temporary finger locals before the next native gait/equip.
@@ -11,8 +12,8 @@ export function restoreGripProfile(model) {
 }
 // Presentation overlay on a private cloned donor scene. Source clips stay intact.
 export function attachPistol(model, scene) {
-  const hand = model.getObjectByName("hand_r");
-  if (!hand) throw Error("Pistol requires hand_r");
+  const hand = rigBone(model, "hand");
+  if (!hand) throw Error("Pistol requires the hand bone");
   const mount = new T.Group();
   mount.name = "PistolMount";
   mount.add(scene.clone(true));
@@ -31,9 +32,9 @@ function pointBone(bone, child, target) {
 export function applyPistolAim(model, mount, { recoil = 0, gripProfile, armExtension = PISTOL_ARM_EXTENSION } = {}) {
   if (!Number.isFinite(armExtension) || armExtension < 0.35 || armExtension > 0.98)
     throw RangeError("Invalid arm extension");
-  const upper = model.getObjectByName("upperarm_r"),
-    fore = model.getObjectByName("lowerarm_r"),
-    hand = model.getObjectByName("hand_r");
+  const upper = rigBone(model, "upperArm"),
+    fore = rigBone(model, "foreArm"),
+    hand = rigBone(model, "hand");
   if (!upper || !fore || !hand || mount.parent !== model) throw Error("Pistol rig/mount mismatch");
   model.updateWorldMatrix(true, true);
   const basis = model.getWorldQuaternion(new T.Quaternion()),

@@ -91,6 +91,7 @@ import { HOLLOW_GARMENTS, hollowPaletteFor, applyHollowPalette } from "./hollow-
 import { ActorMotion } from "./motion.js";
 import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
+import { setRigBones } from "./rig-bones.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { shareIdenticalTextures } from "./actor-texture-share.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
@@ -375,6 +376,7 @@ export function createActors(
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
+    setRigBones(model, description);
     let animations = source.equipment
       ? equipDonorPlayer({ scene: model, animations: source.gltf.animations }, source.equipment).animations
       : source.gltf.animations;
