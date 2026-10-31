@@ -1548,6 +1548,41 @@
       "bytes": 915092,
       "sha256": "ac6ca36481d9ada6cf5c8f61389ae0ba58f2422b5cc176ca59043e5e5231dbe3"
     },
+    "perseus-106": {
+      "url": "appearances/perseus-106.glb",
+      "rig": "perseus-106",
+      "motion": "donor-knife",
+      "scale": 1,
+      "forwardCorrection": 0,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "measure": {
+        "source": "bind pose of the GLB (hips rest height from the Hips node, 0.9637 m); height and stride not yet measured against the donor hero",
+        "hipsMetres": 0.9637,
+        "note": "scale 1 and no stride until the foot-slide check; appearance only"
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "slash": "Attack",
+        "heavy": "Heavy",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death"
+      },
+      "deferred": true,
+      "provenance": {
+        "source": "OpenTrident models/custom/ch42-nonpbr-full-phone-mixamorig.glb (Mixamo ch42, labelled Perseus, rig 106, 4,679,784 bytes, sha256 fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605)",
+        "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/perseus-106/build-perseus.mjs: nine clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped, meshopt medium; skeleton, bind pose and clips untouched",
+        "note": "appearance only, no gameplay path selects this model: the player 'vagrant' row stays the donor warrior until the pistol, rifle, flame, vest and finisher code read bone names from the manifest row (hero names hand_r, spine_01 today)"
+      },
+      "bytes": 2264476,
+      "sha256": "4c78922cc7c360dfe0f2de6662c9c86f2ea2ffe52e7a7cf1d7f002770bfa5698"
+    },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
       "rig": "giant-salamander",
