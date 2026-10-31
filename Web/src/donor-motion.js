@@ -1,4 +1,5 @@
 import { ratMeleePosePhase } from "./rat-melee-definition.js";
+import { rigBone } from "./rig-bones.js";
 import * as THREE from "three";
 import { GAME_DATA } from "./engine/game-data.js";
 
@@ -7,7 +8,7 @@ const DONOR_MOTION = GAME_DATA.donorMotion;
 // Native hand transform and per-player clip overrides; never mutate the cache.
 // The caller supplies an independently SkeletonUtils-cloned character scene.
 export function equipDonorPlayer(asset, part) {
-  const hand = asset.scene.getObjectByName("hand_r"),
+  const hand = rigBone(asset.scene, "hand"),
     blade = part.scene.getObjectByName("WeaponDrawn");
   if (!hand || !blade) throw Error("Donor knife mount missing");
   const remove = [];

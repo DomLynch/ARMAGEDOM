@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { equipDonorPlayer } from "../donor-motion.js";
+import { setRigBones } from "../rig-bones.js";
 import { GAME_DATA } from "./game-data.js";
 
 // garment: multiplies the tunic and wraps; accent: the heraldry cloth and the ground ring. Skin, face and steel stay untouched.
@@ -83,8 +84,9 @@ export function createSurvivorKit({
       if (disposed) throw Error("Survivor kit disposed");
       const index = survivorVariantIndex(id),
         { materials, ring } = partsFor(index),
-        model = clone(source.gltf.scene),
-        equipped = equipDonorPlayer({ scene: model, animations: clipSource ?? source.gltf.animations }, source.equipment);
+        model = clone(source.gltf.scene);
+      setRigBones(model, description);
+      const equipped = equipDonorPlayer({ scene: model, animations: clipSource ?? source.gltf.animations }, source.equipment);
       animations ??= equipped.animations;
       model.traverse((o) => {
         if (!o.isMesh) return;
