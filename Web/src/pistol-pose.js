@@ -20,7 +20,7 @@ export function attachPistol(model, scene) {
   model.add(mount);
   return mount;
 }
-function pointBone(bone, child, target) {
+export function pointBone(bone, child, target) {
   bone.updateWorldMatrix(true, true);
   const origin = bone.getWorldPosition(new T.Vector3()),
     from = child.getWorldPosition(new T.Vector3()).sub(origin).normalize(),
